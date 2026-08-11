@@ -126,6 +126,11 @@ export default function AudioPlayer({
   // одинаково в домашке и в тренажёре, но в тренажёре попадает в палитру языка.
   const tone = accent ?? 'var(--color-accent)'
   const toneSoft = soft ?? (accent ? `color-mix(in srgb, ${accent} 18%, transparent)` : 'var(--color-purple-soft)')
+  // Залитая кнопка без цвета предмета — наш фирменный градиент, как у всех
+  // сплошных кнопок. Один --color-accent в тёмной теме светлеет до лаванды, и
+  // белая иконка на нём еле читалась. Цвет предмета, если он задан, остаётся
+  // цветом предмета: в тренажёре кнопка обязана попадать в палитру языка.
+  const fill = accent ?? 'var(--grad-purple)'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -153,7 +158,7 @@ export default function AudioPlayer({
                 background: toneSoft, color: tone, boxShadow: 'none',
               }
             : {
-                border: 'none', background: tone, color: '#fff',
+                border: 'none', background: fill, color: '#fff',
                 boxShadow: `0 4px 12px -3px color-mix(in srgb, ${tone} 55%, transparent)`,
               }),
         }}

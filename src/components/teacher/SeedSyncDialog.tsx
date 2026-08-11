@@ -46,9 +46,10 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
   // Удаление стоит отдельной группой, а не внутри перезаписей: «перезапишется»
   // и «исчезнет вместе с ответами учеников» — разный риск, и мерить их одной
   // жёлтой полосой значит прятать второе за первым.
-  const removals = useMemo(() => diff.changes.filter(c => c.kind === 'task-gone'), [diff])
+  const GONE = new Set(['task-gone', 'lesson-gone'])
+  const removals = useMemo(() => diff.changes.filter(c => GONE.has(c.kind)), [diff])
   const overwrites = useMemo(
-    () => diff.changes.filter(c => c.overwrites && c.kind !== 'task-gone'), [diff],
+    () => diff.changes.filter(c => c.overwrites && !GONE.has(c.kind)), [diff],
   )
 
   const toggle = (key: string) => setPicked(prev => {
@@ -160,7 +161,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
               )}
               {group(
                 t('Удалится'),
-                t('Эти задания убрали из готового курса. Ответы учеников на них останутся в базе, но перестанут показываться.'),
+                t('Эти уроки и задания убрали из готового курса. Ответы учеников на них останутся в базе, но перестанут показываться.'),
                 Trash2, removals, 'var(--color-red-text)',
               )}
             </>

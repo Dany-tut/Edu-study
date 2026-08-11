@@ -8904,4 +8904,722 @@ Here is what I know, without hearing it from anyone. She came here alone, in Nov
       },
     ],
   },
+
+  // ── Скорее счастлив, чем нет: сцены 2–3 ────────────────────────────────────
+  {
+    id: 'sc-more-happy-2',
+    workId: 'silvera-more-happy',
+    lang: 'en', title: 'Во дворе, до темноты', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Первая сцена этой книги была написана языком бумаг. Здесь нарочно наоборот — та же среда, но вслух: двор в Бронксе, площадка, испанские вставки. Пара из двух сцен и есть смысл: один и тот же мир умеет говорить и так и так, и по-английски это два совершенно разных набора слов.',
+    body: `We played until the lights came on, and then we played in the dark, which is worse basketball but better summer.
+
+“Yo, you’re guarding me? For real?”
+
+“Somebody has to.”
+
+“Nobody has to. That’s the thing about you, man. Nobody has to and you still do it.”
+
+He took the shot anyway and missed it, and the ball went off the fence and into the lot where nobody goes after dark, and we both stood there deciding whose fault it was.
+
+“It’s your ball,” I said.
+
+“It’s your fence.”
+
+“It is not my fence. Nobody owns a fence.”
+
+“Somebody owns the fence, bro.”
+
+From the third floor somebody’s mother shouted a name out the window, and two boys on the far court stopped dead like the shout had been a whistle, and one of them said “¡Ya voy!” without turning round, and did not move for another five minutes.
+
+That is the whole summer, if you want it in one picture. Somebody calling you in. You saying you are coming. Both of you knowing exactly how long you have got.`,
+    translation: `Мы играли, пока не зажглись фонари, а потом играли в темноте — это худший баскетбол, но лучшее лето.
+
+— Э, ты меня, что ли, держишь? Серьёзно?
+
+— Кто-то же должен.
+
+— Никто не должен. В том-то и дело с тобой, чувак. Никто не должен, а ты всё равно.
+
+Он всё равно бросил и промазал, мяч ушёл от сетки в пустырь, куда после темноты никто не ходит, и мы оба стояли, решая, чья это вина.
+
+— Мяч твой, — сказал я.
+
+— Сетка твоя.
+
+— Не моя это сетка. Сетка ничья.
+
+— Чья-то она да есть, бро.
+
+С третьего этажа чья-то мать крикнула в окно имя, и двое парней на дальней площадке замерли, будто это был свисток, и один из них, не оборачиваясь, сказал: «¡Ya voy!» — и ещё пять минут не двигался с места.
+
+Вот вам всё лето одной картинкой. Тебя зовут домой. Ты говоришь, что идёшь. И оба точно знают, сколько у тебя ещё есть.`,
+    glossary: [
+      { term: 'until the lights came on', ru: 'пока не зажглись фонари' },
+      { term: 'to guard somebody', ru: 'держать, опекать игрока (баскетбол)' },
+      { term: 'For real?', ru: 'серьёзно?; разг.' },
+      { term: 'That’s the thing about you', ru: 'в том-то и дело с тобой' },
+      { term: 'the lot', ru: 'пустырь, незастроенный участок' },
+      { term: 'whose fault it was', ru: 'чья это была вина' },
+      { term: 'to stop dead', ru: 'замереть, встать как вкопанный' },
+      { term: '¡Ya voy!', ru: 'исп. иду!' },
+      { term: 'how long you have got', ru: 'сколько у тебя ещё есть времени' },
+    ],
+    questions: [
+      {
+        q: 'What is the argument about after the missed shot?',
+        options: [
+          'Who lost the game',
+          'Whose fault it is that the ball is gone',
+          'Who goes home first',
+          'Who owns the ball',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "¡Ya voy!" show about the two languages here?',
+        options: [
+          'The boy does not speak English',
+          'The answer to a parent comes out in Spanish without thinking',
+          'It is a quotation from a song',
+          'The narrator is translating',
+        ],
+        correct: 1,
+        why: 'Переключение идёт не по теме, а по собеседнику: с матерью — испанский, с друзьями — английский. Ровно то же самое в сцене «Парни с кладбища».',
+      },
+      {
+        q: 'How does the language here differ from the consent form in scene 1?',
+        options: [
+          'It is the same register',
+          'Short spoken lines, slang and direct address instead of impersonal legal wording',
+          'It is more formal',
+          'It has more long words',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-more-happy-3',
+    workId: 'silvera-more-happy',
+    lang: 'en', title: 'Записка себе будущему', level: 'B2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Что человек оставил бы себе, зная, что завтра часть его памяти сотрут. Ниже наш текст в жанре записки самому себе. Грамматически это концентрат будущего и повелительного: will, going to, don’t, make sure — то есть всё, чем по-английски отдают распоряжения на будущее, только здесь распоряжаются собой.',
+    body: `If you are reading this, it worked, and you do not remember writing it. That is fine. Read to the end before you decide anything.
+
+You are going to feel like something is missing and you are going to try to name it. Do not. You will invent a wrong answer and then believe it, because that is what you do.
+
+Some practical things.
+
+The keys are in the blue bowl, not on the hook. You moved them for a reason you will not remember and the reason was good.
+
+You owe Marcus twenty dollars. Pay him before he asks. He will not ask.
+
+Do not go through the box under the bed for at least a month. If you go through it in the first week you will undo the whole thing and we will be back here in the spring, and you will not have the money to do it again.
+
+On Sunday call your mother. Do not explain. She will hear it in your voice and she will not say anything, and that is the two of you being kind to each other in the only way you have.
+
+Last thing. You did this because you wanted to be alright, not because you wanted to be someone else. If you cannot tell the difference later, ask Marcus. He will tell you the truth even when it costs him something.
+
+— You, on Tuesday`,
+    translation: `Если ты это читаешь, значит, получилось, и ты не помнишь, как это писал. Ничего страшного. Дочитай до конца, прежде чем что-то решать.
+
+Тебе будет казаться, что чего-то не хватает, и ты попробуешь это назвать. Не надо. Ты придумаешь неверный ответ и потом в него поверишь, потому что ты так делаешь.
+
+Теперь по делу.
+
+Ключи в синей миске, а не на крючке. Ты их переложил по причине, которую не вспомнишь, и причина была хорошая.
+
+Ты должен Маркусу двадцать долларов. Отдай раньше, чем он спросит. Он не спросит.
+
+Не лезь в коробку под кроватью хотя бы месяц. Если полезешь в первую неделю, ты всё это отменишь, и мы вернёмся сюда весной, а денег сделать это ещё раз у тебя не будет.
+
+В воскресенье позвони матери. Ничего не объясняй. Она услышит по голосу и ничего не скажет, и это вы двое проявляете друг к другу нежность единственным доступным вам способом.
+
+И последнее. Ты сделал это потому, что хотел быть в порядке, а не потому, что хотел стать кем-то другим. Если потом не сможешь отличить одно от другого — спроси Маркуса. Он скажет правду, даже когда это ему дорого обойдётся.
+
+— Ты, во вторник`,
+    glossary: [
+      { term: 'If you are reading this', ru: 'если ты это читаешь' },
+      { term: 'you are going to feel', ru: 'тебе будет казаться; going to о предсказуемом' },
+      { term: 'Do not.', ru: 'не надо; запрет без повтора глагола' },
+      { term: 'to owe somebody', ru: 'быть должным кому-то' },
+      { term: 'to go through something', ru: 'перебирать, рыться в чём-то' },
+      { term: 'to undo', ru: 'отменить, свести на нет' },
+      { term: 'we will be back here', ru: 'мы снова окажемся здесь' },
+      { term: 'even when it costs him something', ru: 'даже когда это ему дорого обходится' },
+    ],
+    questions: [
+      {
+        q: 'Why does the writer say "Do not." after "you are going to try to name it"?',
+        options: [
+          'He forgot the rest of the sentence',
+          'The verb is left out because it has just been said — a short, hard prohibition',
+          'It is a typing error',
+          'It is a question',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the instruction about the box under the bed?',
+        options: [
+          'Throw it away',
+          'Leave it alone for at least a month',
+          'Give it to Marcus',
+          'Open it first',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What distinction does the last paragraph draw?',
+        options: [
+          'Between remembering and forgetting',
+          'Between wanting to be alright and wanting to be someone else',
+          'Between friends and family',
+          'Between Sunday and Tuesday',
+        ],
+        correct: 1,
+        why: 'Ради этой пары и написана записка: она отделяет лечение от бегства. Заметьте, как это сказано — простым alright, без единого длинного слова.',
+      },
+    ],
+  },
+
+  // ── Что, если это мы: сцены 2–3 ────────────────────────────────────────────
+  {
+    id: 'sc-what-if-its-us-2',
+    workId: 'silvera-albertalli-what-if',
+    lang: 'en', title: 'Одни и те же десять минут', level: 'B2', minutes: 4,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман написан вдвоём: главы идут по очереди, и голоса героев различаются на слух. Ниже наш текст, показывающий приём в чистом виде, — одни и те же десять минут двумя рассказчиками. Читать стоит подряд и сравнивать: длина фразы, перечисления, скобки, ирония. Это лучший способ понять, из чего вообще складывается «голос» в английском тексте.',
+    body: `A.
+
+Here is the thing about waiting for someone: you have to decide, roughly every ninety seconds, whether you are the kind of person who leaves. I had decided nine times that I was not, which by my own maths meant I had been standing outside the cinema for thirteen and a half minutes, holding two tickets, one of which was now slightly damp, and rehearsing three separate opening lines, all of which were bad, and one of which involved the word "serendipity," which I want it noted I would never actually have said out loud.
+
+B.
+
+I was late. I ran. That is the whole story from my side.
+
+Okay, not the whole story. I stopped once, at the corner, because I could see him from there and he had not seen me yet, and he was doing that thing with the tickets where you fold them and unfold them. And I thought: he has been standing there a while. And then I thought: he stayed.
+
+I did not run the last bit. I walked, so I would not arrive out of breath and stupid.
+
+I arrived out of breath and stupid.`,
+    translation: `А.
+
+Вот в чём дело, когда ждёшь человека: примерно каждые полторы минуты приходится заново решать, из тех ли ты, кто уходит. Я девять раз решил, что не из тех, а это, по моим же подсчётам, означало, что я стою у кинотеатра тринадцать с половиной минут, держу два билета, один из которых уже слегка отсырел, и репетирую три разные первые фразы, все плохие, причём в одной фигурировало слово «серендипность», — и я хочу, чтобы это было зафиксировано: вслух я бы такого никогда не сказал.
+
+Б.
+
+Я опаздывал. Я бежал. С моей стороны это вся история.
+
+Ладно, не вся. Я один раз остановился, на углу, потому что оттуда его было видно, а он меня ещё нет, и он делал эту штуку с билетами — сложить, разложить. И я подумал: он тут уже давно стоит. А потом подумал: он не ушёл.
+
+Последний кусок я не бежал. Я шёл, чтобы не явиться запыхавшимся и глупым.
+
+Я явился запыхавшимся и глупым.`,
+    glossary: [
+      { term: 'Here is the thing about…', ru: 'вот в чём дело с…; ввод объяснения' },
+      { term: 'roughly', ru: 'примерно' },
+      { term: 'the kind of person who…', ru: 'из тех людей, кто…' },
+      { term: 'by my own maths', ru: 'по моим же подсчётам; брит. maths, амер. math' },
+      { term: 'to rehearse', ru: 'репетировать' },
+      { term: 'I want it noted', ru: 'я хочу, чтобы это было зафиксировано' },
+      { term: 'That is the whole story from my side', ru: 'с моей стороны это вся история' },
+      { term: 'out of breath', ru: 'запыхавшийся' },
+    ],
+    questions: [
+      {
+        q: 'What happens in these ten minutes?',
+        options: [
+          'One waits outside a cinema; the other is late and arrives',
+          'They watch a film',
+          'They argue',
+          'They miss each other completely',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'How do the two voices differ?',
+        options: [
+          'They do not',
+          'A builds long sentences with lists and asides; B uses short sentences and repeats himself for effect',
+          'A is formal and B is rude',
+          'A is in the past and B in the present',
+        ],
+        correct: 1,
+        why: 'Голос в английском тексте — это прежде всего длина фразы и то, что человек считает нужным пояснить. Приём стоит попробовать самому: пересказать один эпизод двумя разными длинами предложения.',
+      },
+      {
+        q: 'Why does B repeat "out of breath and stupid"?',
+        options: [
+          'It is a mistake',
+          'The repetition turns the plan into the joke: he did exactly what he tried to avoid',
+          'He is describing someone else',
+          'To fill space',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-what-if-its-us-3',
+    workId: 'silvera-albertalli-what-if',
+    lang: 'en', title: 'План на переигровку', level: 'A2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В романе неудачное свидание переигрывают заново — и составляют план. Ниже наш текст в жанре такого плана: заметки с временем, метро и ценами. Самый простой текст из четырёх (A2) и самый прикладной: время, направления, стоимость и вежливые оговорки — то, без чего в чужом городе не обойтись.',
+    body: `DO-OVER #3 — SATURDAY
+(rules: no phones except for photos, and if something goes wrong we keep going)
+
+11:40 — meet at the coffee place on Bleecker, NOT the one on Bleecker and 6th, the other one. I will be the one already there because I am always already there.
+
+12:00 — walk to the park. It is 11 minutes. I checked. Twice.
+
+12:15 — the bookshop with the cat. If the cat is out, we stay until it comes back. This is non-negotiable.
+
+13:30 — lunch. $9 each at the place with the counter, or $22 each at the place with the tablecloths. Your call. I am fine with either but I have $30 until Friday.
+
+15:00 — the ferry. It is free. It is genuinely free, I have checked this three times because it does not sound free.
+
+17:00 — home, unless we are having a good time, in which case we are not going home.
+
+Backup plan if it rains: the museum on 5th is pay-what-you-wish, and we pay what we wish, which is $1 each, and we do not feel bad about it.`,
+    translation: `ПЕРЕИГРОВКА №3 — СУББОТА
+(правила: телефоны только на фото, и если что-то пойдёт не так, мы всё равно продолжаем)
+
+11:40 — встречаемся в кофейне на Бликер, НЕ в той, что на углу Бликер и 6-й, в другой. Я буду тот, кто уже там, потому что я всегда уже там.
+
+12:00 — идём в парк пешком. Это 11 минут. Я проверил. Дважды.
+
+12:15 — книжный с котом. Если кота нет на месте, ждём, пока вернётся. Это не обсуждается.
+
+13:30 — обед. По 9 долларов в том, где стойка, или по 22 в том, где скатерти. Тебе решать. Меня устраивает и то и другое, но у меня 30 долларов до пятницы.
+
+15:00 — паром. Он бесплатный. Он правда бесплатный, я проверил три раза, потому что звучит это не как «бесплатный».
+
+17:00 — по домам, если только нам не будет хорошо, — в этом случае по домам мы не идём.
+
+Запасной план на случай дождя: в музей на 5-й вход «сколько сочтёте нужным», и мы сочтём нужным по доллару, и совесть нас мучить не будет.`,
+    glossary: [
+      { term: 'do-over', ru: 'переигровка, вторая попытка' },
+      { term: 'NOT the one on…, the other one', ru: 'не тот, что на…, а другой' },
+      { term: 'It is 11 minutes', ru: 'идти 11 минут' },
+      { term: 'non-negotiable', ru: 'не обсуждается' },
+      { term: 'Your call', ru: 'тебе решать' },
+      { term: 'I am fine with either', ru: 'меня устраивает и то и другое' },
+      { term: 'unless', ru: 'если только не' },
+      { term: 'pay-what-you-wish', ru: 'плати сколько сочтёшь нужным (о входе)' },
+      { term: 'backup plan', ru: 'запасной план' },
+    ],
+    questions: [
+      {
+        q: 'How much money does the writer have until Friday?',
+        options: ['$9', '$22', '$30', '$1'],
+        correct: 2,
+      },
+      {
+        q: '"17:00 — home, unless we are having a good time." What does "unless" mean?',
+        options: [
+          'Because',
+          'If we are NOT having a good time',
+          'Although',
+          'Until',
+        ],
+        correct: 1,
+        why: 'unless = if not. Ошибка «unless = if» — одна из самых частых, и здесь она переворачивает смысл фразы на противоположный.',
+      },
+      {
+        q: 'What is the rule at the top of the plan?',
+        options: [
+          'No photos at all',
+          'If something goes wrong, they carry on anyway',
+          'They must be home by five',
+          'No spending money',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── За нас: сцены 2–3 ──────────────────────────────────────────────────────
+  {
+    id: 'sc-heres-to-us-2',
+    workId: 'silvera-albertalli-heres-to-us',
+    lang: 'en', title: 'Собеседование на пятнадцать минут', level: 'B2', minutes: 4,
+    topic: 'Поиск работы', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Продолжение первой сцены: заявку прочли, позвали на разговор. Ниже наш текст — расшифровка короткого собеседования. Тут стоит смотреть не на слова, а на ходы: как отвечают на «расскажите о себе», как признают, чего не умеют, и что спрашивают в конце, когда спрашивают «есть ли у вас вопросы».',
+    body: `— Thanks for coming in. This will be about fifteen minutes, and I promise not to ask where you see yourself in five years.
+
+— I appreciate that. I have an answer prepared and it is not a good one.
+
+— Let’s start easy. Tell me about yourself.
+
+— I have done two summers front of house at a small theatre. Ticketing, seating, and everything that happens when a show starts eight minutes late. Before that I worked in a café, which is where I learned to say "of course" while thinking something else.
+
+— What went wrong at the theatre?
+
+— A lot. The most useful thing that went wrong was a double-booked row on a full house. I did not solve it. My manager solved it, and I watched exactly how, and the second time it happened I solved it.
+
+— Good answer. What can you not do?
+
+— I cannot drive, which I understand matters for the August run. I am learning, but I would rather tell you now than have you find out in August.
+
+— Noted. Any questions for me?
+
+— Two. Who would I be reporting to day to day? And what does a good first week look like from your side?
+
+— Nobody asks the second one.
+
+— That is why I ask it.`,
+    translation: `— Спасибо, что пришли. Это займёт минут пятнадцать, и обещаю не спрашивать, где вы видите себя через пять лет.
+
+— Ценю. У меня заготовлен ответ, и он плохой.
+
+— Начнём с простого. Расскажите о себе.
+
+— Я два лета отработал в зале небольшого театра. Билеты, рассадка и всё, что происходит, когда спектакль начинается на восемь минут позже. До этого работал в кофейне — там я и научился говорить «конечно», думая при этом другое.
+
+— Что у вас в театре пошло не так?
+
+— Многое. Самое полезное из того, что пошло не так, — дважды проданный ряд на полном зале. Я это не решил. Решил мой руководитель, а я смотрел, как именно, и во второй раз решил уже сам.
+
+— Хороший ответ. Чего вы не умеете?
+
+— Я не вожу машину, а это, как я понимаю, важно для августовского блока. Я учусь, но лучше скажу сейчас, чем вы обнаружите это в августе.
+
+— Принято. Есть вопросы ко мне?
+
+— Два. Кому я буду подчиняться в повседневной работе? И как с вашей стороны выглядит хорошая первая неделя?
+
+— Второй никто не задаёт.
+
+— Поэтому и задаю.`,
+    glossary: [
+      { term: 'Thanks for coming in', ru: 'спасибо, что пришли (на встречу)' },
+      { term: 'Tell me about yourself', ru: 'расскажите о себе; всегда первый вопрос' },
+      { term: 'a full house', ru: 'полный зал' },
+      { term: 'double-booked', ru: 'проданный дважды (о месте, номере)' },
+      { term: 'What can you not do?', ru: 'чего вы не умеете?' },
+      { term: 'I would rather tell you now', ru: 'я лучше скажу сейчас' },
+      { term: 'Noted.', ru: 'принято; сухое «услышал»' },
+      { term: 'to report to somebody', ru: 'подчиняться кому-то по работе' },
+      { term: 'day to day', ru: 'в повседневной работе' },
+    ],
+    questions: [
+      {
+        q: 'How does he answer "What went wrong at the theatre?"',
+        options: [
+          'He says nothing went wrong',
+          'He names a real failure and what he learned from watching it fixed',
+          'He blames his manager',
+          'He changes the subject',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does he mention that he cannot drive?',
+        options: [
+          'To get out of the August work',
+          'Because it is better said now than discovered later',
+          'He is asking for driving lessons',
+          'It is a joke',
+        ],
+        correct: 1,
+        why: 'Английская формула I would rather tell you now than have you find out later — стандартный способ признать слабое место так, чтобы оно читалось как надёжность.',
+      },
+      {
+        q: 'What is the point of his second question?',
+        options: [
+          'To fill the silence',
+          'It asks the employer to define success, which almost no candidate does',
+          'To find out the salary',
+          'To end the interview',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-heres-to-us-3',
+    workId: 'silvera-albertalli-heres-to-us',
+    lang: 'en', title: 'Расписание на завтра', level: 'B1', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Взяли — теперь надо читать расписание. Ниже наш текст в жанре, который в театре и на съёмках называют call sheet: кто во сколько нужен, что взять, кому писать. Сплошные сокращения и безличные формулы — и ровно из-за них новичок в первый день не понимает написанного, хотя каждое слово по отдельности знает.',
+    body: `AUGUST RUN — CALL SHEET
+Thursday 8 Aug · Studio 2 · weather: hot, no AC in the corridor, dress accordingly
+
+CALLS
+09:30 — crew call (all)
+10:00 — cast call, Act I only
+13:00 — lunch (45 min, not 60, sorry)
+13:45 — back in
+17:00 — hard out. Building locks at 17:15 and it is not negotiable this time.
+
+NOTES
+· Bring your own water. The machine on 2 is out until Monday.
+· Anyone who has not returned a key from last week: today, no questions asked.
+· Jordan is on props and running the door. If you need something moved, ask Jordan first, not the crew.
+· Phones on silent in the room. Not vibrate. Silent.
+· If you are running late, message the group — do not message me directly, I will not see it.
+
+TOMORROW (provisional)
+Same calls, Act II. Subject to change — check the group before you leave tonight.`,
+    translation: `АВГУСТОВСКИЙ БЛОК — РАСПИСАНИЕ
+Четверг, 8 авг. · Студия 2 · погода: жарко, в коридоре кондиционера нет, одевайтесь соответственно
+
+ВЫЗОВЫ
+09:30 — сбор постановочной части (все)
+10:00 — сбор актёров, только I акт
+13:00 — обед (45 минут, не 60, извините)
+13:45 — снова в зал
+17:00 — жёсткое окончание. Здание закрывается в 17:15, и в этот раз это не обсуждается.
+
+ПРИМЕЧАНИЯ
+· Воду берите свою. Автомат на 2-м этаже не работает до понедельника.
+· У кого с прошлой недели не сдан ключ — сегодня, без вопросов.
+· Джордан на реквизите и на двери. Если надо что-то передвинуть, сначала к Джордану, а не к постановочной части.
+· Телефоны в зале на беззвучном. Не на вибрации. На беззвучном.
+· Опаздываете — пишите в общий чат, не мне лично: я не увижу.
+
+ЗАВТРА (предварительно)
+Те же вызовы, II акт. Возможны изменения — проверьте чат до того, как уйдёте сегодня.`,
+    glossary: [
+      { term: 'call sheet', ru: 'расписание вызовов на день (театр, съёмки)' },
+      { term: 'crew call / cast call', ru: 'сбор постановочной части / актёров' },
+      { term: 'hard out', ru: 'жёсткое время окончания, дальше нельзя' },
+      { term: 'dress accordingly', ru: 'одевайтесь соответственно' },
+      { term: 'to be out', ru: 'не работать (об автомате, лифте)' },
+      { term: 'no questions asked', ru: 'без вопросов, без разбирательств' },
+      { term: 'props', ru: 'реквизит' },
+      { term: 'provisional / subject to change', ru: 'предварительно / возможны изменения' },
+    ],
+    questions: [
+      {
+        q: 'What does "hard out" at 17:00 mean?',
+        options: [
+          'The work is difficult',
+          'Everyone must be finished — no extension is possible',
+          'The exit is on the right',
+          'Overtime starts then',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'If you are going to be late, what should you do?',
+        options: [
+          'Message the manager directly',
+          'Message the group chat',
+          'Call the building',
+          'Say nothing and arrive',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is "Phones on silent. Not vibrate. Silent." written in three short pieces?',
+        options: [
+          'To take up space',
+          'Because the rule has been broken before — the repetition closes the loophole',
+          'It is a printing error',
+          'To be polite',
+        ],
+        correct: 1,
+        why: 'Приём живой и в рабочих письмах: короткая поправка после общего требования означает, что кто-то уже нашёл в нём лазейку.',
+      },
+    ],
+  },
+
+  // ── Сын бесконечности: сцены 2–3 ───────────────────────────────────────────
+  {
+    id: 'sc-infinity-son-2',
+    workId: 'silvera-infinity-son',
+    lang: 'en', title: 'Тред очевидцев', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Первая сцена этой книги была написана языком новостей — осторожным и безличным. Здесь то же происшествие, но снизу: форумная ветка очевидцев. Пара из двух сцен и есть упражнение — видно, чем официальное сообщение отличается от того, что люди пишут друг другу про одно и то же событие.',
+    body: `r/BronxLive · pinned: MEGATHREAD — 138th incident (Weds night)
+
+[+412] I live on the corner. Whatever it was, it was loud for about two seconds and then it was the quietest I have ever heard this street.
+
+  ↳ [+88] same. my dog knew before I did
+
+  ↳ [+51] can confirm the light. blue-white, not orange. that is NOT a transformer, I have seen a transformer blow
+
+[+287] Mod note: keep it civil. We are removing posts that name individuals. We are not the police and neither are you.
+
+[+206] My cousin works transit. He says they were told "inspection" and nobody believes it, but that is all anyone has been told, so take it for what it is worth.
+
+  ↳ [+74] "take it for what it is worth" is doing a lot of work in that sentence
+
+[+143] Genuine question, not being funny: does anyone know if the two people who were treated are okay? Everyone is arguing about lights and nobody has asked.
+
+  ↳ [+301] This is the only comment that matters. Thank you.
+
+[+19] guys the city alert literally says do not intervene and half this thread is planning to go look`,
+    translation: `r/BronxLive · закреплено: МЕГАТРЕД — происшествие на 138-й (в ночь на среду)
+
+[+412] Я живу на углу. Что бы это ни было, громко было секунды две, а потом улица стала тише, чем я вообще когда-либо слышал.
+
+  ↳ [+88] то же самое. моя собака поняла раньше меня
+
+  ↳ [+51] свет подтверждаю. бело-голубой, не оранжевый. это НЕ трансформатор, я видел, как взрывается трансформатор
+
+[+287] От модератора: без переходов на личности. Посты с именами конкретных людей удаляем. Мы не полиция, и вы тоже.
+
+[+206] У меня двоюродный брат работает в транспорте. Говорит, им сказали «осмотр», и никто в это не верит, но больше никому ничего не сказали, так что относитесь к этому как хотите.
+
+  ↳ [+74] «относитесь как хотите» в этой фразе работает за десятерых
+
+[+143] Серьёзный вопрос, не ради шутки: кто-нибудь знает, в порядке ли те двое, которым оказали помощь? Все спорят про свет, а этого никто не спросил.
+
+  ↳ [+301] Это единственный комментарий, который тут имеет значение. Спасибо.
+
+[+19] ребят, в городском оповещении прямым текстом «не вмешивайтесь», а полтреда собирается пойти посмотреть`,
+    glossary: [
+      { term: 'megathread', ru: 'общая ветка, куда сводят все обсуждения темы' },
+      { term: 'Whatever it was', ru: 'что бы это ни было' },
+      { term: 'can confirm', ru: 'подтверждаю; интернет-сокращение от I can confirm' },
+      { term: 'keep it civil', ru: 'без перехода на личности' },
+      { term: 'take it for what it is worth', ru: 'относитесь к этому как хотите; за что купил' },
+      { term: 'to be doing a lot of work', ru: 'об одном слове: держать на себе весь смысл фразы' },
+      { term: 'not being funny', ru: 'без шуток, я серьёзно' },
+      { term: 'literally', ru: 'прямым текстом; усилитель' },
+    ],
+    questions: [
+      {
+        q: 'What does the moderator’s note forbid?',
+        options: [
+          'Posting photographs',
+          'Naming individuals',
+          'Discussing the light',
+          'Asking questions',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"take it for what it is worth" — what is the speaker doing?',
+        options: [
+          'Guaranteeing the information',
+          'Passing on second-hand information without vouching for it',
+          'Asking for payment',
+          'Ending the discussion',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does this thread differ from the news report in scene 1?',
+        options: [
+          'It gives more facts',
+          'Same event, but personal, first-hand and unhedged — and it asks the question the report did not',
+          'It is more formal',
+          'It is written by officials',
+        ],
+        correct: 1,
+        why: 'Стоит заметить главное: репортаж говорил осторожно и обо всём, а вопрос «с людьми-то что?» задали только на форуме.',
+      },
+    ],
+  },
+  {
+    id: 'sc-infinity-son-3',
+    workId: 'silvera-infinity-son',
+    lang: 'en', title: 'Инструкция на случай проявления', level: 'B1', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Если сила проявляется у подростков, в школах будут инструкции — как на пожарный случай. Ниже наш текст в этом жанре. Грамматически это чистый повелительный и модальные долженствования: do, do not, must, should, are required to. Тот же язык — в самолётной карточке безопасности и в инструкции по эвакуации, так что читать полезно и вне фантастики.',
+    body: `WHAT TO DO IF A CLASSMATE MANIFESTS
+Posted in all form rooms · read once per term
+
+Manifestation is not a disciplinary matter. Nobody is in trouble.
+
+IF IT HAPPENS IN CLASS
+1. Stay where you are. Do not crowd around and do not film.
+2. Your teacher will move the class to the corridor. Walk. Do not run.
+3. One adult stays with the student. Do not offer to stay instead.
+
+IF IT HAPPENS WHEN NO ADULT IS PRESENT
+4. Send one person for a teacher. Everyone else stays.
+5. Speak to the student normally. Use their name. Do not touch them.
+6. If they ask you to leave, leave. You may wait outside the door.
+
+AFTERWARDS
+7. You are not required to give a statement, and you may ask for a parent before you do.
+8. Do not post about it. Every year we have to explain to somebody that a school corridor is not private just because your account is.
+
+Students who are worried about their own manifestation may speak to any member of staff, or leave a note in the box outside the office. You do not have to give your name.`,
+    translation: `ЧТО ДЕЛАТЬ, ЕСЛИ У ОДНОКЛАССНИКА ПРОЯВЛЯЕТСЯ СИЛА
+Вывешено во всех классных комнатах · прочитать раз в четверть
+
+Проявление — не дисциплинарный вопрос. Ни у кого нет неприятностей.
+
+ЕСЛИ ЭТО ПРОИЗОШЛО НА УРОКЕ
+1. Оставайтесь на месте. Не толпитесь вокруг и не снимайте.
+2. Учитель выведет класс в коридор. Идите шагом. Не бегите.
+3. С учеником остаётся один взрослый. Не предлагайте остаться вместо него.
+
+ЕСЛИ ВЗРОСЛОГО РЯДОМ НЕТ
+4. Отправьте одного человека за учителем. Остальные остаются.
+5. Разговаривайте с учеником как обычно. Называйте его по имени. Не трогайте его.
+6. Если он просит вас уйти — уйдите. Ждать можно за дверью.
+
+ПОСЛЕ
+7. Вы не обязаны давать объяснения и вправе попросить, чтобы сначала пришёл кто-то из родителей.
+8. Не выкладывайте это в сеть. Каждый год нам приходится объяснять кому-нибудь, что школьный коридор не становится частным оттого, что ваш аккаунт частный.
+
+Ученики, которых беспокоит их собственное проявление, могут обратиться к любому сотруднику или оставить записку в ящике у кабинета. Имя указывать не обязательно.`,
+    glossary: [
+      { term: 'to manifest', ru: 'проявиться (о способности)' },
+      { term: 'Nobody is in trouble', ru: 'ни у кого нет неприятностей; никого не накажут' },
+      { term: 'to crowd around', ru: 'толпиться вокруг' },
+      { term: 'Do not offer to…', ru: 'не предлагайте…' },
+      { term: 'You are not required to', ru: 'вы не обязаны' },
+      { term: 'to give a statement', ru: 'дать объяснения, показания' },
+      { term: 'member of staff', ru: 'сотрудник (школы, учреждения)' },
+      { term: 'You do not have to give your name', ru: 'имя указывать не обязательно' },
+    ],
+    questions: [
+      {
+        q: 'What is the first thing the notice says about manifestation?',
+        options: [
+          'It is against the rules',
+          'It is not a disciplinary matter and nobody is in trouble',
+          'It must be reported to the police',
+          'It only happens outside school',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the difference between "You are not required to" and "You must not"?',
+        options: [
+          'They mean the same',
+          'The first says you may choose; the second forbids',
+          'The first is stronger',
+          'The second is politer',
+        ],
+        correct: 1,
+        why: 'Пара, на которой спотыкаются постоянно: not required to — «не обязан», must not — «нельзя». По-русски и то и другое легко превращается в «не надо».',
+      },
+      {
+        q: 'Why does point 8 mention private accounts?',
+        options: [
+          'To advertise the school account',
+          'To answer in advance the excuse "but my account is private"',
+          'To ban phones completely',
+          'To explain the settings',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

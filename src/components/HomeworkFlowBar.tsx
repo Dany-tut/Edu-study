@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, CheckCircle2, X } from 'lucide-react'
+import { ArrowRight, CheckCircle2, X } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { bindShortWords, proseWrap } from '../lib/typography'
@@ -101,7 +101,10 @@ export default function HomeworkFlowBar({
           />
         </div>
 
-        {verdict !== 'none' && (
+        {/* «Верно» полоса не повторяет: этот вердикт напечатан на карточке, у
+            самого ответа. Здесь остаётся то, чего на карточке нет, — разбор
+            неверного ответа и статус отправки на проверку. */}
+        {verdict !== 'none' && verdict !== 'correct' && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -117,10 +120,9 @@ export default function HomeworkFlowBar({
             }}
           >
             <span style={{ flexShrink: 0, marginTop: 1 }}>
-              {verdict === 'correct' ? <Check size={17} /> : verdict === 'wrong' ? <X size={17} /> : <CheckCircle2 size={17} />}
+              {verdict === 'wrong' ? <X size={17} /> : <CheckCircle2 size={17} />}
             </span>
             <span style={{ fontSize: 14, fontWeight: 750, lineHeight: 1.4, ...proseWrap }}>
-              {verdict === 'correct' && t('Верно')}
               {verdict === 'review' && t('Ответ сохранён — проверит преподаватель')}
               {verdict === 'wrong' && (
                 answer
@@ -131,16 +133,18 @@ export default function HomeworkFlowBar({
           </motion.div>
         )}
 
-        <div className="flex items-center" style={{ gap: 12 }}>
+        {/* items-stretch: «Пропустить» тянется по высоте главной кнопки. Своя
+            вертикальная набивка делала её ниже, и пара кнопок стояла ступенькой. */}
+        <div className="flex items-stretch" style={{ gap: 12 }}>
           {onSkip && (
             <button
               onClick={onSkip}
-              className="cursor-pointer"
+              className="cursor-pointer flex items-center justify-center"
               style={{
                 // Граница — не декор: без панели кнопка ложится то на серый фон
                 // страницы, то на белую карточку задания, и на белом одна тень
                 // её не очерчивает.
-                padding: '12px 16px', borderRadius: 14, border: '1px solid var(--color-border-soft)',
+                padding: '0 18px', borderRadius: 18, border: '1px solid var(--color-border-soft)',
                 // Прозрачной кнопке нужен был фон панели; без панели она читалась
                 // бы поверх текста задания, поэтому у неё своё стекло.
                 background: 'rgba(var(--glass-rgb), 0.86)',
