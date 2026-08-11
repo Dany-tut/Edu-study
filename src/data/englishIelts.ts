@@ -748,7 +748,7 @@ export const IELTS_UNITS: LangUnit[] = [
         ['fails to address', 'критика'],
         ['it should be noted that', 'уточнение, важная оговорка'],
       ]),
-      write('Take a long article in English on a science or social topic. Underline ten words you do not know. For each, write your guess from context and morphology, then check the dictionary and note whether the guess was close enough to answer a question. Finally, write one sentence stating the author’s stance and quote the words that prove it.'),
+      write('Take a long article in English on a science or social topic. Pick out ten words you do not know and write them down. For each, write your guess from context and morphology, then check the dictionary and note whether the guess was close enough to answer a question. Finally, write one sentence stating the author’s stance and quote the words that prove it.'),
     ],
   },
 
@@ -1131,7 +1131,9 @@ export const IELTS_UNITS: LangUnit[] = [
         ['for instance', 'пример'],
         ['that said', 'уступка'],
       ]),
-      write('Write two full Task 2 essays of about 280 words in 40 minutes each, using the plans from the previous unit. Then, for every body paragraph, underline the topic sentence, mark the example, and mark one referencing device. If a paragraph has no clear topic sentence, rewrite it.'),
+      // Разметка задаётся метками, а не подчёркиванием: подчеркнуть в поле
+      // ответа нечем, а проверять надо именно то, что ученик разметил сам.
+      write('Write two full Task 2 essays of about 280 words in 40 minutes each, using the plans from the previous unit. Then, in every body paragraph, tag the topic sentence [TS], the example [EX], and one referencing device [REF]. If a paragraph has no clear topic sentence, rewrite it.'),
     ],
   },
   {

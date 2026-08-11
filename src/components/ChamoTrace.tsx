@@ -20,9 +20,13 @@
 // палец подошёл ближе TOLERANCE. Дошёл до конца — черта фиксируется и
 // подсвечивается следующая; отпустил раньше — черту начинают заново.
 //
-// ЗА ПАЛЬЦЕМ ТЯНЕТСЯ ЧЕРНИЛЬНЫЙ СЛЕД. Без него обводка немая: линия не
-// шевелится, и непонятно, ведёшь ты или экран тебя не слышит. Рисуем ровно тот
-// путь, который прошёл указатель, — это и обратная связь, и видно, где съехал.
+// ЧЕРНИЛА ЛОЖАТСЯ ПО ЛИНИИ, А НЕ ПО ПАЛЬЦУ. Сначала рисовался сырой путь
+// указателя — и первое же ведение показало, чем это плохо: рука дрогнула, и в
+// квадрате осталась синяя клякса поперёк буквы. Здесь учат писать ㄱ, а не
+// рисовать что вздумается, и кривизна руки — не то, что задание должно
+// фиксировать. Поэтому чернила наливаются по самой черте ровно на столько,
+// сколько пройдено: линия идёт за пальцем, но выйти за букву ею нельзя.
+// Отошёл дальше допуска — заливка просто замирает, и видно, что надо вернуться.
 //
 // СОБЫТИЯ СЛУШАЕМ У ОКНА, А НЕ У SVG. Мышь, зажатая на картинке, для браузера
 // выглядит как протяжка выделения: он честно отдаёт pointercancel, обводка
@@ -82,10 +86,10 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   const [strokeIndex, setStrokeIndex] = useState(0)
   /** Ведём прямо сейчас: пока true, движение и отпускание слушает окно. */
   const [drawing, setDrawing] = useState(false)
-  /** Чернильный след текущего ведения — то, что тянется за пальцем. */
-  const [trail, setTrail] = useState<Point[]>([])
   /** Доля текущей черты, которую уже прошли: по ней буква наливается. */
   const [progress, setProgress] = useState(0)
+  /** Кончик пера — точка на линии, до которой дописали. */
+  const [head, setHead] = useState<Point | null>(null)
   /** Толчок стартовой точке, когда начали не с неё: анимация проигрывается заново. */
   const [nudge, setNudge] = useState(0)
   /**
@@ -123,8 +127,8 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     setStrokeIndex(0)
     taken.current = 0
     setDrawing(false)
-    setTrail([])
     setProgress(0)
+    setHead(null)
     onChange('')
   }
 
@@ -141,8 +145,8 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     }
     taken.current = 1
     buzzed.current = 0
-    setTrail([current.pts[0], p])
     setProgress(0)
+    setHead(current.pts[0])
     setDrawing(true)
   }
 
@@ -154,36 +158,26 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     const move = (e: PointerEvent) => {
       e.preventDefault()
       // Браузер отдаёт движения пачками, склеивая всё, что случилось между
-      // кадрами. Взять из пачки только последнюю точку — значит рисовать
-      // отрезками от кадра к кадру: на быстром ведении линия идёт углами.
-      // Разжимаем пачку и получаем ровно тот путь, который прошёл палец.
+      // кадрами. Взять из пачки только последнюю точку — значит пропустить
+      // середину быстрого росчерка: палец «перепрыгнул» кусок линии, и заливка
+      // за ним не пошла. Разжимаем пачку и считаем весь пройденный путь.
       const coalesced = e.getCoalescedEvents?.() ?? []
       const steps = coalesced.length ? coalesced : [e]
 
-      const fresh: Point[] = []
+      let seen = false
       let next = taken.current
       for (const step of steps) {
         const p = toLocal(step.clientX, step.clientY)
         if (!p) continue
-        fresh.push(p)
+        seen = true
         while (next < denseCurrent.length && Math.hypot(p[0] - denseCurrent[next][0], p[1] - denseCurrent[next][1]) < TOLERANCE) next++
       }
-      if (!fresh.length) return
-
-      // След тянется всегда — даже когда съехали с линии: по нему и видно, куда.
-      setTrail(prev => {
-        const out = prev.slice()
-        for (const p of fresh) {
-          const last = out[out.length - 1]
-          if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.5) continue
-          out.push(p)
-        }
-        return out.length === prev.length ? prev : out
-      })
+      if (!seen) return
 
       if (next !== taken.current) {
         taken.current = next
         setProgress(next / denseCurrent.length)
+        setHead(denseCurrent[next - 1])
         // Точки частые, и отклик на каждую превратился бы в непрерывный зуд:
         // отмечаем заметный кусок пути, а не каждый шаг сгущения.
         if (next - buzzed.current >= 10) {
@@ -195,8 +189,8 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
 
     const up = () => {
       setDrawing(false)
-      setTrail([])
       setProgress(0)
+      setHead(null)
       const complete = taken.current >= denseCurrent.length
       taken.current = 0
       if (!complete) return

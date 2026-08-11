@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Play, Square, Languages, Type, Volume2, PanelRight, PanelBottom } from 'lucide-react'
+import {
+  Play, Square, Languages, Type, Volume2, PanelRight, PanelBottom,
+  Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye,
+} from 'lucide-react'
 import GlossedText from '../GlossedText'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
@@ -124,6 +127,14 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // на длинных строках это хуже, чем перевод сразу под строкой, — поэтому
   // выбор оставлен ученику, а не зашит в ширину экрана.
   const [ruSide, setRuSide] = useState<'right' | 'bottom'>('right')
+  // Строка за строкой: на экране один фрагмент, дальше — свайпом или кнопкой.
+  // null — обычный поток. Держим индексом, а не флагом: выйдя из режима и
+  // вернувшись, ученик оказывается там же, где остановился.
+  const [step, setStep] = useState<number | null>(null)
+  // Перевод текущего шага, раскрытый вручную. Сбрасывается на каждом переходе:
+  // в этом режиме попытка понять самому — часть работы, и открытый перевод
+  // следующего фрагмента отнимал бы её молча.
+  const [peek, setPeek] = useState(false)
   // Что звучит: номер реплики и позиция символа внутри неё.
   const [line, setLine] = useState<number | null>(null)
   const [char, setChar] = useState<number | null>(null)
@@ -152,7 +163,16 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
    * останавливает: это и есть «переслушал, хватит».
    */
   function playRow(row: Row) {
-    const chunks = row.chunks.filter(c => c.line !== null)
+    playChunks(row.chunks)
+  }
+
+  /** То же самое для целого фрагмента — им пользуется режим «строка за строкой». */
+  function playUnit(u: Unit) {
+    playChunks(u.rows.flatMap(r => r.chunks))
+  }
+
+  function playChunks(all: Chunk[]) {
+    const chunks = all.filter(c => c.line !== null)
     if (!chunks.length) return
     const key = chunks[0].line
     if (soloRef.current === key) { voice.current?.stop(); return }
@@ -201,7 +221,30 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // Колонка справа возможна не всегда: на телефоне её некуда поставить, а
   // перевод, не разложившийся по строкам (loose), стоять напротив нечему.
   const canSide = isDesktop && units.some(u => u.ru)
-  const twoCol = canSide && showRu && ruSide === 'right'
+  const stepping = step !== null
+  const twoCol = canSide && showRu && ruSide === 'right' && !stepping
+
+  /**
+   * Перейти на фрагмент. Речь при этом глохнет: экран сменился, а голос,
+   * дочитывающий предыдущий фрагмент, подсвечивал бы слова там, где их уже нет.
+   */
+  function goStep(next: number) {
+    const to = Math.max(0, Math.min(units.length - 1, next))
+    voice.current?.stop()
+    setStep(to)
+    setPeek(false)
+    setLine(null)
+    setChar(null)
+  }
+
+  /** Включить или выключить режим «строка за строкой». */
+  function toggleStepping() {
+    voice.current?.stop()
+    setLine(null)
+    setChar(null)
+    setPeek(false)
+    setStep(stepping ? null : 0)
+  }
   // Отступы длинной записью: колонки перекрывают их по одной стороне, а смесь
   // padding и paddingLeft в одном стиле React ругает и применяет непредсказуемо.
   const cell = { paddingTop: 9, paddingRight: 14, paddingBottom: 9, paddingLeft: 0 } as const
@@ -219,24 +262,37 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '11px 16px', borderBottom: '1px solid var(--color-border-soft)',
       }}>
+        {/* В режиме «строка за строкой» шапка читает ТЕКУЩИЙ фрагмент, а не
+            текст целиком: экран показывает один фрагмент, и голос, ушедший на
+            три экрана вперёд, подсвечивал бы то, чего не видно. */}
         <button
-          onClick={toggle}
-          aria-label={playing ? t('Стоп') : t('Слушать')}
+          onClick={() => (stepping ? playUnit(units[step!]) : toggle())}
+          aria-label={(stepping ? solo !== null : playing) ? t('Стоп') : t('Слушать')}
           style={{
             width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none',
             cursor: 'pointer', display: 'grid', placeItems: 'center',
             background: accent, color: '#fff',
           }}
         >
-          {playing ? <Square size={13} fill="#fff" /> : <Play size={14} fill="#fff" style={{ marginLeft: 2 }} />}
+          {(stepping ? solo !== null : playing)
+            ? <Square size={13} fill="#fff" />
+            : <Play size={14} fill="#fff" style={{ marginLeft: 2 }} />}
         </button>
 
         <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--color-border-soft)' }}>
           <div style={{
-            width: `${line === null || !total ? 0 : Math.round(((line + 1) / total) * 100)}%`,
+            width: stepping
+              ? `${Math.round(((step! + 1) / units.length) * 100)}%`
+              : `${line === null || !total ? 0 : Math.round(((line + 1) / total) * 100)}%`,
             height: 4, borderRadius: 2, background: accent, transition: 'width 220ms ease',
           }} />
         </div>
+
+        {stepping && (
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+            {step! + 1} / {units.length}
+          </span>
+        )}
 
         <button
           onClick={() => setRate(!slow)}
@@ -254,11 +310,18 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
 
       {/* Тумблеры — над текстом, рядом с плеером: включать перевод и
           транскрипцию ученик решает ДО чтения, а не дочитав до низа карточки. */}
-      {(translation || readings) && (
+      {(translation || readings || units.length > 1) && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
           padding: '10px 16px', borderBottom: '1px solid var(--color-border-soft)',
         }}>
+          {/* Поток или по одному фрагменту. Это не украшение для телефона:
+              поток отвечает на вопрос «о чём тут вообще», а «строка за строкой»
+              — на «разобрать вот это место», и второе на узком экране
+              невозможно, пока текст едет мимо. */}
+          {units.length > 1 && (
+            <ModeSwitch stepping={stepping} onChange={toggleStepping} accent={accent} soft={soft} />
+          )}
           {translation && (
             <Toggle on={showRu} onClick={() => setShowRu(v => !v)} accent={accent} soft={soft}>
               <Languages size={13} /> {t('Перевод')}
@@ -275,11 +338,38 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             </Toggle>
           )}
           <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
-            {t('Слово — перевод и озвучка, динамик слева — вся реплика')}
+            {stepping
+              ? t('Листай свайпом или кнопками внизу')
+              : t('Слово — перевод и озвучка, динамик слева — вся реплика')}
           </span>
         </div>
       )}
 
+      {stepping ? (
+        <StepCard
+          unit={units[step!]}
+          index={step!}
+          count={units.length}
+          onGo={goStep}
+          cell={cell}
+          ruStyle={ruStyle}
+          lang={lang}
+          glossary={glossary}
+          accent={accent}
+          soft={soft}
+          highlight={highlight}
+          ruby={showTr && readings}
+          line={line}
+          char={char}
+          solo={solo}
+          onPlayRow={playRow}
+          // Перевод в этом режиме открывается на один фрагмент, если общий
+          // тумблер выключен: смысл экрана — сперва понять самому.
+          showRu={showRu || peek}
+          canPeek={!showRu && !!units[step!].ru}
+          onPeek={() => setPeek(true)}
+        />
+      ) : (
       <div style={{ padding: '14px 16px' }}>
         <div style={{
           display: 'grid',
