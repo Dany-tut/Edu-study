@@ -951,6 +951,9 @@ export default function TeacherLessonEditorPage() {
   // туда сохраняется содержимое: видео, главы, описание, файлы. У занятия,
   // заведённого прямо здесь, такой строки нет, и содержимое сохранять некуда.
   const [lessonRowId, setLessonRowId] = useState<string | null>(null)
+  /** Дата занятия из расписания (DD.MM.YYYY) — поле «Дата» стартует с сегодня,
+   *  и без подстановки «Опубликовать» переносило чужое занятие на сегодня. */
+  const [sourceDate, setSourceDate] = useState('')
   const [lessonHw, setLessonHw] = useState<{ basic: number; hard: number } | null>(null)
   useEffect(() => {
     if (!editingScheduleId) { setSource(null); setLessonRowId(null); return }
@@ -962,6 +965,9 @@ export default function TeacherLessonEditorPage() {
       .then(({ data }) => {
         if (!data) return
         setLessonRowId(data.lesson_id ?? null)
+        // date приходит как YYYY-MM-DD, поле редактора — DD.MM.YYYY.
+        const iso = String(data.date ?? '').slice(0, 10).split('-')
+        if (iso.length === 3) setSourceDate(`${iso[2]}.${iso[1]}.${iso[0]}`)
         setSource({
           id: String(data.id),
           groupId: data.group_id ?? null,
@@ -1008,10 +1014,11 @@ export default function TeacherLessonEditorPage() {
           : m.recipients,
       title: source.topic || m.title,
       lessonNumber: String(source.lessonNumber || '') || m.lessonNumber,
+      date: sourceDate || m.date,
       startTime: source.time || m.startTime,
       endTime: source.endTime || m.endTime,
     }))
-  }, [source])
+  }, [source, sourceDate])
   const [videoUrl, setVideoUrl] = usePersistentState(`${draftNs}.videoUrl`, '')
   const [timecodes, setTimecodes] = usePersistentState<Timecode[]>(`${draftNs}.timecodes`, [])
   const [files, setFiles] = usePersistentState<LessonFiles>(`${draftNs}.files`, {})

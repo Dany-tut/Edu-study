@@ -12,7 +12,9 @@ import type { AuthoredHomeworkTask, LessonHomework, HomeworkQuizQuestion } from 
 import { buildKoreanHangulCourse } from './data/koreanHangul'
 import './index.css'
 
-// ?kohg — первый урок настоящего курса хангыля вместо рукодельной домашки.
+// ?kohg — урок настоящего курса хангыля вместо рукодельной домашки. Номер
+// задаётся значением (?kohg=4 — пятый урок): задания уроков разные — патчхим,
+// напряжённые, в-гласные, — и проверять их на одном первом уроке нельзя.
 const hangulLesson = buildKoreanHangulCourse('stand')
   .lessons[Math.max(0, Number(new URLSearchParams(location.search).get('kohg') || 0))]
 

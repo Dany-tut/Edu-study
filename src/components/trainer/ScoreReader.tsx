@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Play, Square, Languages, Type, PanelRight, PanelBottom } from 'lucide-react'
+import { Play, Square, Languages, Type, Volume2, PanelRight, PanelBottom } from 'lucide-react'
 import GlossedText from '../GlossedText'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
@@ -268,7 +268,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             </Toggle>
           )}
           <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
-            {t('Нажми на слово — перевод и озвучка')}
+            {t('Слово — перевод и озвучка, динамик слева — вся реплика')}
           </span>
         </div>
       )}
@@ -294,6 +294,8 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               ruby={showTr && readings}
               line={line}
               char={char}
+              solo={solo}
+              onPlayRow={playRow}
             />
           ))}
         </div>
@@ -308,7 +310,6 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           </div>
         )}
       </div>
-
     </div>
   )
 }
@@ -351,7 +352,7 @@ function SideSwitch({ value, onChange, accent, soft }: {
 }
 
 /** Строка партитуры: оригинал и, если включён, его перевод. */
-function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, accent, soft, highlight, ruby, line, char }: {
+function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, accent, soft, highlight, ruby, line, char, solo, onPlayRow }: {
   unit: Unit
   twoCol: boolean
   showRu: boolean
@@ -365,19 +366,55 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
   ruby: boolean
   line: number | null
   char: number | null
+  /** Реплика, которую слушают отдельно, — её кнопка стоит в положении «стоп». */
+  solo: number | null
+  onPlayRow: (row: Row) => void
 }) {
+  const t = useT()
   const orig = (
     <div style={{
       ...cell,
       ...(twoCol ? { borderRight: '1px solid var(--color-border-soft)', paddingRight: 18 } : null),
     }}>
-      {unit.rows.map((r, ri) => (
+      {unit.rows.map((r, ri) => {
+        const first = r.chunks.find(c => c.line !== null)?.line ?? null
+        const alone = first !== null && first === solo
+        return (
         <div
           key={ri}
-          // Межстрочный интервал больше обычного: под строкой стоит ещё строка
-          // транскрипции, и на 1.85 они слипаются.
-          style={{ fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.85, color: 'var(--color-text)' }}
+          // Кнопка реплики стоит в жёлобе слева, а не в потоке текста: в потоке
+          // она попадала бы между слов и мешала бы их нажимать.
+          style={{
+            display: 'grid', gridTemplateColumns: '22px minmax(0, 1fr)', columnGap: 6,
+            // Межстрочный интервал больше обычного: под строкой стоит ещё строка
+            // транскрипции, и на 1.85 они слипаются.
+            fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.85, color: 'var(--color-text)',
+          }}
         >
+          {first === null ? <span /> : (
+            <button
+              onClick={() => onPlayRow(r)}
+              title={alone ? t('Хватит') : t('Послушать реплику')}
+              aria-label={alone ? t('Хватит') : t('Послушать реплику')}
+              style={{
+                // Не hover-only: на телефоне наведения нет, и кнопка, видимая
+                // только под курсором, там просто не существует. Поэтому она
+                // всегда на месте, но приглушена, пока её не трогают.
+                width: 20, height: 20, borderRadius: '50%', border: 'none', padding: 0,
+                marginTop: ruby ? 8 : 6, cursor: 'pointer',
+                display: 'grid', placeItems: 'center',
+                background: alone ? accent : 'transparent',
+                color: alone ? '#fff' : accent,
+                opacity: alone ? 1 : 0.32,
+                transition: 'opacity 160ms ease, background 160ms ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '1' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = alone ? '1' : '0.32' }}
+            >
+              {alone ? <Square size={9} fill="#fff" /> : <Volume2 size={13} />}
+            </button>
+          )}
+          <div>
           {r.chunks.map((c, ci) => {
             const live = c.line !== null && c.line === line
             return (
@@ -406,8 +443,10 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
               </span>
             )
           })}
+          </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 

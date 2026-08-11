@@ -8141,4 +8141,392 @@ Pinned in the kitchen. If you live here, they are yours.
       },
     ],
   },
+
+  // ── Скорее счастлив, чем нет: карточка, наш текст ──────────────────────────
+  {
+    id: 'sc-more-happy-1',
+    workId: 'silvera-more-happy',
+    lang: 'en', title: 'Согласие на процедуру', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В романе есть клиника, обещающая стереть из памяти то, что мешает жить, — и весь ужас в том, каким спокойным языком такое предлагают. Ниже наш текст в этом жанре: форма информированного согласия. Регистр редкий и очень полезный — так написаны договоры, медицинские бумаги и пользовательские соглашения, которые подписывают не читая.',
+    body: `MEMORY MODIFICATION — INFORMED CONSENT
+Form 4B · Please read every section before signing.
+
+1. PURPOSE
+The procedure reduces the emotional weight of a selected memory. It does not delete facts. You will still know that the event took place.
+
+2. WHAT WE CANNOT PROMISE
+Results vary between clients. Some report that neighbouring memories become less clear. In a small number of cases the effect fades over time.
+
+3. IRREVERSIBILITY
+The procedure cannot be reversed. Should you later wish to recover the original memory, we will be unable to assist you.
+
+4. CONSENT OF A THIRD PARTY
+If the selected memory involves another person, that person’s consent is not required and will not be sought.
+
+5. AFTERCARE
+You are advised not to drive for twelve hours. You may experience mild confusion about recent events. This is normal.
+
+By signing below I confirm that the above has been explained to me, that I have had the opportunity to ask questions, and that I am acting of my own free will.
+
+Signature ____________________  Date __________`,
+    translation: `ИЗМЕНЕНИЕ ПАМЯТИ — ИНФОРМИРОВАННОЕ СОГЛАСИЕ
+Форма 4Б · Просим прочитать каждый раздел до подписания.
+
+1. НАЗНАЧЕНИЕ
+Процедура снижает эмоциональный вес выбранного воспоминания. Она не удаляет факты. Вы по-прежнему будете знать, что событие произошло.
+
+2. ЧЕГО МЫ НЕ МОЖЕМ ОБЕЩАТЬ
+Результаты у разных клиентов различаются. Некоторые сообщают, что соседние воспоминания становятся менее чёткими. В небольшом числе случаев эффект со временем ослабевает.
+
+3. НЕОБРАТИМОСТЬ
+Процедура необратима. Если впоследствии вы пожелаете восстановить исходное воспоминание, мы не сможем вам помочь.
+
+4. СОГЛАСИЕ ТРЕТЬЕГО ЛИЦА
+Если выбранное воспоминание касается другого человека, его согласие не требуется и запрашиваться не будет.
+
+5. ПОСЛЕ ПРОЦЕДУРЫ
+Не рекомендуется садиться за руль в течение двенадцати часов. Возможна лёгкая путаница в недавних событиях. Это нормально.
+
+Подписывая ниже, я подтверждаю, что вышеизложенное мне разъяснено, что у меня была возможность задать вопросы и что я действую по собственной воле.
+
+Подпись ____________________  Дата __________`,
+    glossary: [
+      { term: 'informed consent', ru: 'информированное согласие' },
+      { term: 'Results vary', ru: 'результаты различаются; стандартная оговорка' },
+      { term: 'Some report that…', ru: 'некоторые сообщают, что…; снимает ответственность' },
+      { term: 'cannot be reversed', ru: 'нельзя отменить, необратимо' },
+      { term: 'Should you later wish…', ru: 'если впоследствии вы пожелаете…; книжная инверсия вместо if' },
+      { term: 'will not be sought', ru: 'не будет запрашиваться' },
+      { term: 'You are advised not to…', ru: 'не рекомендуется…; безличная рекомендация' },
+      { term: 'of my own free will', ru: 'по собственной воле' },
+    ],
+    questions: [
+      {
+        q: 'What does the form say the procedure does NOT do?',
+        options: [
+          'It does not cost anything',
+          'It does not delete the facts — only the emotional weight',
+          'It does not take long',
+          'It does not need a signature',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Should you later wish to recover the original memory…" — what is this construction?',
+        options: [
+          'A question',
+          'An inverted conditional: if you should later wish',
+          'An order',
+          'Reported speech',
+        ],
+        correct: 1,
+        why: 'Инверсия вместо if — примета официального письменного английского: Should you have any questions, Had we known. В разговоре так не говорят.',
+      },
+      {
+        q: 'What is the effect of section 4?',
+        options: [
+          'It protects the other person',
+          'It states plainly that the other person has no say — in the calmest possible words',
+          'It requires two signatures',
+          'It cancels the procedure',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Что, если это мы: карточка, наш текст ──────────────────────────────────
+  {
+    id: 'sc-what-if-its-us-1',
+    workId: 'silvera-albertalli-what-if',
+    lang: 'en', title: 'Ищу человека с почты', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Завязка романа — двое столкнулись в очереди и не успели обменяться контактами. Ниже наш текст в жанре, который ровно для этого и существует: объявление «missed connection» и ответы под ним. Польза двойная — это описание внешности и обстоятельств в прошедшем времени, то есть то, что спрашивают на любом экзамене.',
+    body: `MISSED CONNECTIONS — MANHATTAN
+
+Post office on 8th, Tuesday around 4pm — you were the one with the box
+
+You were in front of me in the line. You had a big cardboard box that kept coming open and you were holding it shut with your knee. Green jacket. You said the tape was "a temporary solution" and I laughed way too loudly for a post office.
+
+Then the machine went down, everybody was told to come back tomorrow, and by the time I got out to the street you were gone.
+
+I know how this sounds. I have never posted one of these before. But you were funny, and you were kind to the man at the counter when he apologised for the tenth time, and I have thought about it all week.
+
+If this is you: what was in the box? Only you would know.
+
+— Reply here, not by DM.
+
+12 replies
+
+› was it a green jacket or more of a khaki situation. asking for science
+› OP this is the most 2018 thing I have ever read and I hope it works out
+› I was at that post office on Tuesday and I promise you the machine is always down
+› not me refreshing this thread like it’s my job`,
+    translation: `ПОТЕРЯННЫЕ ВСТРЕЧИ — МАНХЭТТЕН
+
+Почта на 8-й, вторник около 16:00 — ты был с коробкой
+
+Ты стоял передо мной в очереди. У тебя была большая картонная коробка, которая всё время раскрывалась, и ты придерживал её коленом. Зелёная куртка. Ты сказал, что скотч — это «временное решение», и я засмеялся слишком громко для почтового отделения.
+
+Потом сломался аппарат, всем велели приходить завтра, и, когда я вышел на улицу, тебя уже не было.
+
+Я знаю, как это звучит. Я никогда раньше такого не писал. Но ты был смешной, и ты по-доброму разговаривал с сотрудником, когда тот в десятый раз извинялся, и я думаю об этом всю неделю.
+
+Если это ты — что было в коробке? Знать можешь только ты.
+
+— Отвечайте здесь, не в личку.
+
+12 ответов
+
+› куртка была зелёная или всё-таки скорее хаки? спрашиваю ради науки
+› автор, это самая «2018 год» вещь, какую я читал, и я очень надеюсь, что сработает
+› я был на этой почте во вторник и клянусь, аппарат там ломается всегда
+› и вот я обновляю эту ветку как на работе`,
+    glossary: [
+      { term: 'missed connection', ru: 'объявление «ищу человека, которого случайно встретил»' },
+      { term: 'in front of me in the line', ru: 'передо мной в очереди; брит. in the queue' },
+      { term: 'cardboard box', ru: 'картонная коробка' },
+      { term: 'to hold something shut', ru: 'придерживать, чтобы не открылось' },
+      { term: 'the machine went down', ru: 'аппарат сломался, перестал работать' },
+      { term: 'I know how this sounds', ru: 'я знаю, как это звучит' },
+      { term: 'OP', ru: 'original poster — автор темы' },
+      { term: 'not me + -ing', ru: 'ироничное «и вот я…»; интернет-оборот' },
+    ],
+    questions: [
+      {
+        q: 'Why does the writer ask "what was in the box?"',
+        options: [
+          'He is curious about the contents',
+          'It is a check — only the right person can answer',
+          'He wants to buy it',
+          'He lost his own box',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which tense does the description use, and why?',
+        options: [
+          'Present — it is happening now',
+          'Past simple — it is a finished event at a stated time',
+          'Future — he hopes to meet him',
+          'Present perfect — the time is not stated',
+        ],
+        correct: 1,
+        why: 'Время названо (Tuesday around 4pm), поэтому только Past Simple. Present Perfect здесь был бы ошибкой — и именно на этом чаще всего спотыкаются.',
+      },
+      {
+        q: '"not me refreshing this thread like it’s my job" — what does it mean?',
+        options: [
+          'The person works there',
+          'Ironic self-mockery: I keep checking this thread constantly',
+          'A complaint',
+          'A refusal to reply',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── За нас: карточка, наш текст ────────────────────────────────────────────
+  {
+    id: 'sc-heres-to-us-1',
+    workId: 'silvera-albertalli-heres-to-us',
+    lang: 'en', title: 'Заявка на стажировку', level: 'B2', minutes: 4,
+    topic: 'Поиск работы', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Продолжение — про лето стажировок, и язык героев меняется вместе с их жизнью: из школьного он становится рабочим. Ниже наш текст в этом регистре: письмо-заявка и ответ. Самый практичный текст полки — видно, как по-английски пишут о себе, когда опыта ещё нет, и как выглядит вежливый отказ, который на самом деле не отказ.',
+    body: `Subject: Summer Assistant — application (Jordan Reyes)
+
+Dear Ms. Okafor,
+
+I am writing to apply for the Summer Assistant position advertised on your website. I am a second-year student and I have spent the past two summers working front of house at a 90-seat theatre, where I handled ticketing, seating and, on two memorable occasions, a fire alarm.
+
+I am aware that I do not yet have professional stage experience. What I do have is a record of being useful in a room where things are going wrong, and I learn quickly when someone shows me once.
+
+I have attached my CV and a reference from my previous manager. I am available from 3 June and happy to start earlier if that would help.
+
+Thank you for your time.
+
+Kind regards,
+Jordan Reyes
+
+—
+
+Subject: RE: Summer Assistant — application (Jordan Reyes)
+
+Hi Jordan,
+
+Thanks for this — it was one of the more readable applications we received, which is a lower bar than it sounds, but still.
+
+We have filled the assistant role. However, we are putting together a small crew for the August run and I would like to keep your name on that list. Are you around in August?
+
+No obligation either way.
+
+Best,
+A. Okafor`,
+    translation: `Тема: Летний ассистент — заявка (Джордан Рейес)
+
+Уважаемая госпожа Окафор,
+
+Пишу, чтобы подать заявку на позицию летнего ассистента, объявленную на вашем сайте. Я студент второго курса и последние два лета работал в зале театра на 90 мест, где занимался билетами, рассадкой и — дважды, что запомнилось, — пожарной тревогой.
+
+Я понимаю, что профессионального сценического опыта у меня пока нет. Что у меня есть — так это репутация человека, полезного в помещении, где всё идёт не так, и я быстро учусь, если мне показали один раз.
+
+Прилагаю резюме и рекомендацию от прежнего руководителя. Готов приступить с 3 июня и раньше, если так будет удобнее.
+
+Спасибо за ваше время.
+
+С уважением,
+Джордан Рейес
+
+—
+
+Тема: RE: Летний ассистент — заявка (Джордан Рейес)
+
+Привет, Джордан!
+
+Спасибо — это была одна из самых читаемых заявок, что нам пришли, а планка тут ниже, чем кажется, но всё же.
+
+Позицию ассистента мы уже закрыли. Но мы собираем небольшую команду на августовский блок, и я хотела бы оставить ваше имя в этом списке. Вы в августе тут?
+
+Ни к чему не обязывает.
+
+Всего доброго,
+А. Окафор`,
+    glossary: [
+      { term: 'I am writing to apply for…', ru: 'пишу, чтобы подать заявку на…; стандартное начало' },
+      { term: 'advertised on your website', ru: 'объявленную на вашем сайте' },
+      { term: 'front of house', ru: 'зал и фойе театра — всё, что перед сценой' },
+      { term: 'I am aware that…', ru: 'я понимаю, что…; честное признание слабого места' },
+      { term: 'What I do have is…', ru: 'что у меня есть — так это…; do для нажима' },
+      { term: 'I have attached', ru: 'прилагаю (к письму)' },
+      { term: 'Kind regards / Best', ru: 'с уважением / всего доброго; второе проще' },
+      { term: 'We have filled the role', ru: 'позиция уже закрыта' },
+      { term: 'No obligation either way', ru: 'ни к чему не обязывает' },
+    ],
+    questions: [
+      {
+        q: 'How does the applicant handle his lack of experience?',
+        options: [
+          'He hides it',
+          'He names it, then immediately says what he does have',
+          'He exaggerates his experience',
+          'He apologises for it twice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Is the reply a refusal?',
+        options: [
+          'Yes, completely',
+          'The role is gone, but a second offer is opened in the same message',
+          'It is only an acknowledgement',
+          'It asks for another CV',
+        ],
+        correct: 1,
+        why: 'Классическая английская конструкция отказа: however разворачивает письмо, и настоящее содержание идёт после него. Тот, кто дочитал до «filled the role», решит, что ему отказали.',
+      },
+      {
+        q: 'Why does the reply start with "Hi Jordan" and not "Dear Mr. Reyes"?',
+        options: [
+          'It is a mistake',
+          'Answering a register down is normal in working correspondence',
+          'She knows him personally',
+          'It is an automatic message',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Сын бесконечности: карточка, наш текст ─────────────────────────────────
+  {
+    id: 'sc-infinity-son-1',
+    workId: 'silvera-infinity-son',
+    lang: 'en', title: 'Срочные новости', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В «Сыне бесконечности» магия — общественная проблема, и половина текста идёт новостями и заявлениями властей. Ниже наш текст в этом жанре: сюжет в эфире и городское оповещение. Регистр новостей стоит освоить отдельно — он весь на пассиве и на осторожных формулировках, за которые потом нельзя предъявить.',
+    body: `BREAKING · 23:14
+
+Good evening. We are getting reports of an incident in the Bronx, where a section of the elevated line has been closed for what transit officials are calling "a precautionary inspection."
+
+Emergency services were called shortly after ten. Witnesses describe a bright light and what several have separately described as "a sound like a door closing underwater." We should say that none of this has been confirmed.
+
+The Department has not said whether the incident is being treated as specter-related. When asked directly, a spokesperson said only that "all lines of inquiry remain open."
+
+Two people were treated at the scene and released. There are no reports of serious injuries at this time.
+
+—
+
+CITY ALERT · sent to all devices in the affected area
+
+Avoid the area between 138th and 149th until further notice. Do not approach anyone displaying unusual abilities. Report sightings to 311 — do not intervene. Services will resume when the area has been cleared.`,
+    translation: `СРОЧНО · 23:14
+
+Добрый вечер. К нам поступают сообщения о происшествии в Бронксе, где закрыт участок надземной линии — в транспортном управлении это называют «профилактическим осмотром».
+
+Экстренные службы были вызваны вскоре после десяти. Очевидцы описывают яркий свет и то, что несколько человек независимо друг от друга назвали «звуком, будто под водой закрылась дверь». Отметим, что ничего из этого не подтверждено.
+
+Департамент не сообщил, рассматривается ли происшествие как связанное со спектрами. На прямой вопрос представитель ответил лишь, что «все версии остаются в проработке».
+
+Двоим на месте оказали помощь и отпустили. Сообщений о серьёзных пострадавших на данный момент нет.
+
+—
+
+ГОРОДСКОЕ ОПОВЕЩЕНИЕ · отправлено на все устройства в затронутом районе
+
+Избегайте района между 138-й и 149-й улицами до особого уведомления. Не приближайтесь к лицам, проявляющим необычные способности. Сообщайте о таких случаях по номеру 311 — не вмешивайтесь самостоятельно. Движение будет восстановлено после того, как район будет расчищен.`,
+    glossary: [
+      { term: 'We are getting reports of…', ru: 'к нам поступают сообщения о…' },
+      { term: 'what officials are calling…', ru: 'то, что власти называют…; кавычки-дистанция' },
+      { term: 'precautionary', ru: 'профилактический, на всякий случай' },
+      { term: 'none of this has been confirmed', ru: 'ничего из этого не подтверждено' },
+      { term: 'is being treated as', ru: 'рассматривается как' },
+      { term: 'all lines of inquiry remain open', ru: 'все версии остаются в проработке; формула «мы не скажем»' },
+      { term: 'at this time', ru: 'на данный момент; оставляет место для «а потом да»' },
+      { term: 'until further notice', ru: 'до особого уведомления' },
+      { term: 'do not intervene', ru: 'не вмешивайтесь' },
+    ],
+    questions: [
+      {
+        q: 'Why does the presenter say "what transit officials are calling a precautionary inspection"?',
+        options: [
+          'To quote them exactly and avoid endorsing the wording',
+          'Because it is the official name of the line',
+          'To save time',
+          'Because the words are foreign',
+        ],
+        correct: 0,
+      },
+      {
+        q: '"All lines of inquiry remain open." What does this really tell us?',
+        options: [
+          'The case is solved',
+          'Nothing — it is a formula for refusing to answer',
+          'There are several suspects',
+          'The investigation is closed',
+        ],
+        correct: 1,
+        why: 'Одна из самых частых английских формул «без комментариев». Стоит выучить вместе с at this time и we are not in a position to comment.',
+      },
+      {
+        q: 'How is the CITY ALERT written differently from the news report?',
+        options: [
+          'It is longer',
+          'Direct imperatives — avoid, do not approach, report — and no hedging',
+          'It uses the passive throughout',
+          'It quotes witnesses',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

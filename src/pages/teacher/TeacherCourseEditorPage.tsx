@@ -2236,7 +2236,7 @@ function ChamoPicker({ value, onChange, accent, accentBg }: {
       ))}
       <div style={{ fontSize: 11, color: chosen ? 'var(--color-text-3)' : 'var(--color-text-4)' }}>
         {chosen
-          ? `${chosen.ch} · ${chosen.name} · ${chosen.sound} · ${t('черт')}: ${chosen.strokes.length}`
+          ? `${chosen.ch} · ${chosen.name} · ${chosen.sound}`
           : t('Пока буква не выбрана, задание покажется ученику обычным полем ответа.')}
       </div>
     </div>

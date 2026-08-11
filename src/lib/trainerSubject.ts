@@ -37,6 +37,7 @@ import { useStudentData, subjectAliases } from '../store/studentDataStore'
 import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
 import { textsForLang } from '../data/readingLibrary'
+import { sceneCount } from '../data/scenes'
 import { hasSurvivalBook } from '../data/survivalBooks'
 import { deckOwner, dueCount } from '../data/reviewDeck'
 
@@ -118,7 +119,10 @@ export function useTrainerSubject(): TrainerSubjectState {
       // с историей нет ни того, ни другого — пункт вёл бы на чужой экран.
       if (!def.isLanguage && !def.hasBank) continue
       add(def, def.isLanguage ? 'lang' : 'bank', def.isLanguage
-        ? textsForLang(def.langCode ?? '').length
+        // Тексты вместе со сценами — столько же, сколько показывает «Чтение» в
+        // самом тренажёре. Разные числа в меню предметов и в меню режимов
+        // читаются как ошибка одного из них.
+        ? textsForLang(def.langCode ?? '').length + sceneCount(def.langCode)
         : tasks.filter(t => t.subject === def.id).length)
     }
 
