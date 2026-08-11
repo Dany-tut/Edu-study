@@ -9,6 +9,7 @@
     "build": "vite build",
     "check:gloss": "node scripts/checkGloss.mjs",
     "check:questions": "node scripts/checkQuestionRu.mjs",
+    "check:scenes": "node scripts/checkScenes.mjs",
     "preview": "vite preview",
     "start": "node server/index.js",
     "seed": "node server/seed.js",

@@ -84,6 +84,8 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   const [drawing, setDrawing] = useState(false)
   /** Чернильный след текущего ведения — то, что тянется за пальцем. */
   const [trail, setTrail] = useState<Point[]>([])
+  /** Доля текущей черты, которую уже прошли: по ней буква наливается. */
+  const [progress, setProgress] = useState(0)
   /** Толчок стартовой точке, когда начали не с неё: анимация проигрывается заново. */
   const [nudge, setNudge] = useState(0)
   /**
@@ -122,6 +124,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     taken.current = 0
     setDrawing(false)
     setTrail([])
+    setProgress(0)
     onChange('')
   }
 
@@ -139,6 +142,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     taken.current = 1
     buzzed.current = 0
     setTrail([current.pts[0], p])
+    setProgress(0)
     setDrawing(true)
   }
 
@@ -149,18 +153,37 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
 
     const move = (e: PointerEvent) => {
       e.preventDefault()
-      const p = toLocal(e.clientX, e.clientY)
-      if (!p) return
+      // Браузер отдаёт движения пачками, склеивая всё, что случилось между
+      // кадрами. Взять из пачки только последнюю точку — значит рисовать
+      // отрезками от кадра к кадру: на быстром ведении линия идёт углами.
+      // Разжимаем пачку и получаем ровно тот путь, который прошёл палец.
+      const coalesced = e.getCoalescedEvents?.() ?? []
+      const steps = coalesced.length ? coalesced : [e]
+
+      const fresh: Point[] = []
+      let next = taken.current
+      for (const step of steps) {
+        const p = toLocal(step.clientX, step.clientY)
+        if (!p) continue
+        fresh.push(p)
+        while (next < denseCurrent.length && Math.hypot(p[0] - denseCurrent[next][0], p[1] - denseCurrent[next][1]) < TOLERANCE) next++
+      }
+      if (!fresh.length) return
+
       // След тянется всегда — даже когда съехали с линии: по нему и видно, куда.
       setTrail(prev => {
-        const last = prev[prev.length - 1]
-        if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.6) return prev
-        return [...prev, p]
+        const out = prev.slice()
+        for (const p of fresh) {
+          const last = out[out.length - 1]
+          if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.5) continue
+          out.push(p)
+        }
+        return out.length === prev.length ? prev : out
       })
-      let next = taken.current
-      while (next < denseCurrent.length && Math.hypot(p[0] - denseCurrent[next][0], p[1] - denseCurrent[next][1]) < TOLERANCE) next++
+
       if (next !== taken.current) {
         taken.current = next
+        setProgress(next / denseCurrent.length)
         // Точки частые, и отклик на каждую превратился бы в непрерывный зуд:
         // отмечаем заметный кусок пути, а не каждый шаг сгущения.
         if (next - buzzed.current >= 10) {
@@ -173,6 +196,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     const up = () => {
       setDrawing(false)
       setTrail([])
+      setProgress(0)
       const complete = taken.current >= denseCurrent.length
       taken.current = 0
       if (!complete) return
@@ -259,33 +283,55 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
         <line x1="50" y1="4" x2="50" y2="96" stroke="currentColor" strokeOpacity={0.16} strokeWidth="0.5" strokeDasharray="3 3" />
         <line x1="4" y1="50" x2="96" y2="50" stroke="currentColor" strokeOpacity={0.16} strokeWidth="0.5" strokeDasharray="3 3" />
 
+        {/* ПОДЛОЖКА СПЛОШНАЯ, А НЕ ПУНКТИРНАЯ. Пунктир с круглыми торцами при
+            толщине 9 распадается на цепочку колбасок: буква читается «секциями»,
+            а не линией, и ведение по ней выглядит рваным ещё до того, как к
+            экрану притронулись. Направление показывает точка старта, а не
+            штриховка. */}
         {paths.map((d, i) => (
           <path
             key={i}
             d={d}
             fill="none"
             stroke="currentColor"
-            // Пройденная черта — в полную силу, текущая — заметный пунктир,
-            // будущие — тень, по которой видно, что буква ещё не кончилась.
-            strokeOpacity={i < strokeIndex ? 1 : i === strokeIndex ? 0.42 : 0.16}
+            // Пройденная черта — в полную силу, текущая — заметная тень,
+            // будущие — намёк, по которому видно, что буква ещё не кончилась.
+            strokeOpacity={i < strokeIndex ? 1 : i === strokeIndex ? 0.28 : 0.13}
             strokeWidth={9}
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeDasharray={i === strokeIndex && !done ? '4 5' : undefined}
           />
         ))}
 
-        {/* Чернила: путь, который прошёл указатель. Рисуются поверх пунктира,
-            чтобы линия «вилась» прямо под пальцем, а не появлялась потом. */}
-        {trail.length > 1 && (
-          <polyline
-            points={trail.map(p => `${p[0]},${p[1]}`).join(' ')}
+        {/* ЗАЛИВКА ТЕКУЩЕЙ ЧЕРТЫ. Буква наливается ровно на столько, сколько
+            пройдено: pathLength=1 делает штрих долей пути, и линия растёт
+            непрерывно, даже когда точки указателя приходят редкими пачками.
+            Чернильный след показывает, где палец, а это — сколько сделано. */}
+        {current && !done && progress > 0 && (
+          <path
+            d={paths[strokeIndex]}
             fill="none"
-            stroke="var(--color-blue-fill)"
+            stroke="currentColor"
+            strokeOpacity={0.75}
             strokeWidth={9}
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeOpacity={0.85}
+            pathLength={1}
+            strokeDasharray={`${progress} 1`}
+          />
+        )}
+
+        {/* Чернила: путь, который прошёл указатель, сглаженный так же, как сами
+            черты, — иначе на редких точках виден ломаный многоугольник. */}
+        {trail.length > 1 && (
+          <path
+            d={strokePath({ pts: trail, round: true })}
+            fill="none"
+            stroke="var(--color-blue-fill)"
+            strokeWidth={5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity={0.9}
           />
         )}
 

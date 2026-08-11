@@ -49,7 +49,7 @@ const OWNED_FIELDS = [
   'image', 'images', 'table', 'sequenceItems', 'pairs',
 ] as const
 
-export type SeedChangeKind = 'lesson' | 'task' | 'task-gone' | 'task-fields' | 'theory' | 'video'
+export type SeedChangeKind = 'lesson' | 'lesson-gone' | 'task' | 'task-gone' | 'task-fields' | 'theory' | 'video'
 
 export interface SeedChange {
   /** Стабильный ключ — по нему UI помнит, что отмечено. */
@@ -116,6 +116,18 @@ const isSeedTask = (id: string | undefined, seedKey: string): boolean =>
   !!id && new RegExp(`^${seedKey}-\\d+-`).test(id)
 
 /**
+ * Пришёл ли урок из этого сида.
+ *
+ * ЗАЧЕМ. То же соображение, что и у заданий: предлагать удаление можно только
+ * для того, что сид сам и положил. Опознаём по заданиям — у сидовых они несут
+ * id вида `<ключ сида>-<номер юнита>-<место>`. Урок, который учитель завёл
+ * руками, таких заданий не содержит и под удаление не попадёт. Пустой урок
+ * тоже не трогаем: доказательств, что он из сида, нет.
+ */
+const isSeedLesson = (lesson: CELesson, seedKey: string): boolean =>
+  tasksOf(lesson).some(t => isSeedTask(t.id, seedKey))
+
+/**
  * Значение с ключами объектов в одном и том же порядке.
  *
  * ЗАЧЕМ. Задания уезжают в БД в колонку `lessons.homework` типа jsonb, а jsonb
@@ -168,6 +180,33 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
   const fresh = await seed.build(course.id)
   const byTitle = new Map(course.lessons.map(l => [norm(l.title ?? ''), l]))
   const changes: SeedChange[] = []
+
+  // ── уроки, которые сид положил, а потом убрал ──
+  //
+  // ЗАЧЕМ. Сид умеет не только расти. Три юнита алфавита в «Корейский с нуля»
+  // заменены одной проверкой — сам алфавит уехал в отдельный курс. Без этой
+  // ветки правка доезжала бы только до заново созданных курсов, а живой курс
+  // навсегда оставался бы с тремя лишними уроками: сверка умела добавлять и
+  // перезаписывать, но не удалять, и перестройку программы приходилось
+  // повторять руками в редакторе.
+  //
+  // Отмечать по умолчанию нельзя, как и у заданий: в уроке могут лежать ответы
+  // учеников и правки учителя. Урок, которого сид не клал вовсе (учитель завёл
+  // его сам), сюда не попадает — иначе сверка предлагала бы стереть как раз ту
+  // работу, ради сохранности которой она и написана.
+  const freshTitles = new Set(fresh.lessons.map(l => norm(l.title)))
+  course.lessons.forEach(mine => {
+    const title = norm(mine.title ?? '')
+    if (freshTitles.has(title)) return
+    if (!isSeedLesson(mine, seed.key)) return
+    changes.push({
+      key: `lesson-gone:${title}`,
+      kind: 'lesson-gone',
+      lessonTitle: mine.title ?? title,
+      summary: `Урока больше нет в сиде · ${tasksOf(mine).length} заданий`,
+      overwrites: true,
+    })
+  })
 
   fresh.lessons.forEach(unit => {
     const title = norm(unit.title)
@@ -348,8 +387,20 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
     return next
   })
 
+  // ── уроки, убранные из сида ──
+  //
+  // Снимаем ДО вставки новых: иначе новый урок мог бы встать рядом с тем, на
+  // место которого он и пришёл, и в курсе оказались бы оба.
+  const dropped = new Set(
+    course.lessons
+      .filter(l => keys.has(`lesson-gone:${norm(l.title ?? '')}`))
+      .map(l => l.id),
+  )
+  if (dropped.size) lessons = lessons.filter(l => !dropped.has(l.id))
+
   // ── новые уроки ──
-  const modules = course.modules.map(m => ({ ...m, lessonIds: [...m.lessonIds] }))
+  const modules = course.modules
+    .map(m => ({ ...m, lessonIds: m.lessonIds.filter(id => !dropped.has(id)) }))
   fresh.lessons.forEach((unit, unitIdx) => {
     const title = norm(unit.title)
     if (!keys.has(`lesson:${title}`)) return

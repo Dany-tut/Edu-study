@@ -22,6 +22,7 @@ import Checkbox from '../Checkbox'
 
 const KIND_LABEL: Record<SeedChange['kind'], string> = {
   lesson: 'Новый урок',
+  'lesson-gone': 'Урок убран из сида',
   task: 'Новые задания',
   'task-gone': 'Убраны из готового курса',
   'task-fields': 'Правки в заданиях',

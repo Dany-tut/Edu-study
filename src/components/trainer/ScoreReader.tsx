@@ -131,7 +131,14 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // Реплика, которую слушают отдельно (номер её первого куска). Отдельная от
   // playing: строку слушают ПОВЕРХ чтения всего текста — клик по реплике
   // перебивает общий проход, и шапка должна вернуться в «играть».
-  const [solo, setSolo] = useState<number | null>(null)
+  //
+  // Дублируется в ref, и обработчик читает именно ref: два клика подряд успевают
+  // прийти в один рендер, и обработчик со старым значением из замыкания принимал
+  // второй клик по звучащей строке за первый — вместо остановки строка
+  // начиналась заново.
+  const [solo, setSoloState] = useState<number | null>(null)
+  const soloRef = useRef<number | null>(null)
+  function setSolo(v: number | null) { soloRef.current = v; setSoloState(v) }
 
   const voice = useRef<SpeechHandle | null>(null)
   useEffect(() => () => voice.current?.stop(), [])
@@ -148,7 +155,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
     const chunks = row.chunks.filter(c => c.line !== null)
     if (!chunks.length) return
     const key = chunks[0].line
-    if (solo === key) { voice.current?.stop(); return }
+    if (soloRef.current === key) { voice.current?.stop(); return }
     setSolo(key)
     setChar(null)
     voice.current = speak(chunks.map(c => c.text).join('\n'), {
@@ -457,7 +464,12 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
   return (
     <>
       {orig}
-      <div style={{ ...cell, ...(twoCol ? { paddingLeft: 18, paddingRight: 0 } : { paddingTop: 0 }) }}>
+      <div style={{
+        ...cell,
+        // Под строкой перевод встаёт вровень с оригиналом, а не с кнопкой
+        // реплики: 22px жёлоба + 6px зазора (см. сетку строки выше).
+        ...(twoCol ? { paddingLeft: 18, paddingRight: 0 } : { paddingTop: 0, paddingLeft: 28 }),
+      }}>
         <div style={ruStyle}>{unit.ru}</div>
       </div>
     </>

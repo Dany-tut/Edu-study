@@ -8529,4 +8529,379 @@ Avoid the area between 138th and 149th until further notice. Do not approach any
       },
     ],
   },
+
+  // ── Элита: карточка, наш текст ─────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Гимназия, стипендия и свидетели вымышлены. Сериал
+  // испанский, английская дорожка официальная — поэтому и берём у него только
+  // то, что от языка оригинала не зависит: бумаги и показания.
+  {
+    id: 'sc-elite-1',
+    workId: 'elite-en',
+    lang: 'en', title: 'Условия стипендии', level: 'B2', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Весь сериал держится на одной разнице: трое учеников платят за эту школу поведением, остальные — деньгами. Ниже наш документ, из которого эта разница видна построчно. Грамматически это сплошные условия и оговорки: subject to, provided that, shall be withdrawn — язык договоров, который читать придётся всю жизнь.',
+    after: 'Пункт 6 стоит перечитать. «Стипендиат представляет школу во всякое время» означает, что правила действуют и за воротами, — а на остальных учеников этот пункт не распространяется, потому что для них его просто нет.',
+    body: `LAS ENCINAS — SCHOLARSHIP AGREEMENT
+To be signed by the pupil and by a parent or guardian. Retain a copy.
+
+1. The scholarship covers tuition and one set of uniform per academic year. It does not cover trips, materials, examination fees or transport.
+
+2. The award is made for one year and is reviewed each June. Continuation is not automatic.
+
+3. The scholarship shall be withdrawn if the pupil's weighted average falls below 7.0 in any term, or below 8.0 across the year.
+
+4. Attendance must not fall below 95 per cent. Absence is excused only on production of a medical certificate, and only if the certificate is submitted within three school days.
+
+5. The pupil undertakes to make up any material missed, at their own arrangement. The school does not provide additional tuition under this agreement.
+
+6. The scholarship pupil represents the school at all times, including outside school hours and outside school premises. Conduct which in the judgement of the Head brings the school into disrepute is grounds for immediate withdrawal, whether or not it occurred on school property.
+
+7. The pupil agrees to take part in publicity relating to the scholarship programme, including photographs and interviews, on reasonable notice.
+
+8. Withdrawal of the scholarship takes effect at the end of the term in which it is decided. Fees for any subsequent term become payable in full by the family.
+
+I have read and understood the above.
+
+Pupil ______________________  Parent or guardian ______________________`,
+    translation: `«ЛАС-ЭНСИНАС» — ДОГОВОР О СТИПЕНДИИ
+Подписывается учеником и родителем или опекуном. Копию сохранить.
+
+1. Стипендия покрывает обучение и один комплект формы на учебный год. Она не покрывает поездки, материалы, экзаменационные сборы и проезд.
+
+2. Стипендия назначается на год и пересматривается каждый июнь. Продление не является автоматическим.
+
+3. Стипендия отзывается, если средневзвешенный балл ученика опускается ниже 7,0 в любой четверти или ниже 8,0 за год.
+
+4. Посещаемость не должна опускаться ниже 95 процентов. Пропуск считается уважительным только при наличии медицинской справки и только если справка подана в течение трёх учебных дней.
+
+5. Ученик обязуется самостоятельно наверстать пропущенный материал. Дополнительных занятий по настоящему договору школа не предоставляет.
+
+6. Стипендиат представляет школу во всякое время, в том числе вне учебных часов и вне территории школы. Поведение, которое, по мнению директора, наносит ущерб репутации школы, является основанием для немедленного отзыва стипендии — независимо от того, произошло ли оно на территории школы.
+
+7. Ученик соглашается участвовать в информационных материалах о стипендиальной программе, включая фотографии и интервью, при разумном предварительном уведомлении.
+
+8. Отзыв стипендии вступает в силу в конце той четверти, в которой он принят. Плата за любую последующую четверть подлежит внесению семьёй в полном объёме.
+
+С вышеизложенным ознакомлен.
+
+Ученик ______________________ Родитель или опекун ______________________`,
+    glossary: [
+      { term: 'tuition', ru: 'плата за обучение' },
+      { term: 'to be withdrawn', ru: 'быть отозванным' },
+      { term: 'weighted average', ru: 'средневзвешенный балл' },
+      { term: 'on production of', ru: 'при предъявлении' },
+      { term: 'to undertake to', ru: 'обязуется' },
+      { term: 'to make up (work)', ru: 'наверстать' },
+      { term: 'premises', ru: 'территория, помещения' },
+      { term: 'to bring into disrepute', ru: 'нанести ущерб репутации' },
+      { term: 'to take effect', ru: 'вступать в силу' },
+    ],
+    questions: [
+      {
+        q: 'What happens if the pupil misses a week with flu?',
+        options: [
+          'It is excused automatically',
+          'It is excused only with a medical certificate submitted within three school days',
+          'The scholarship ends',
+          'Nothing is said about illness',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is clause 6 harsher than it first looks?',
+        options: [
+          'It applies at all times, including outside school — and only to scholarship pupils',
+          'It requires a uniform',
+          'It mentions photographs',
+          'It sets a grade threshold',
+        ],
+        correct: 0,
+      },
+      {
+        q: '"The award is made for one year and is reviewed each June. Continuation is not automatic." What is the second sentence for?',
+        options: [
+          'To repeat the first',
+          'To remove any expectation the first sentence might create',
+          'To set the review date',
+          'To describe the payment',
+        ],
+        correct: 1,
+        why: 'Приём договоров: сначала обещание, сразу за ним оговорка, которая его ограничивает. Читать такие пары надо вместе, а не по отдельности.',
+      },
+      {
+        q: 'What does clause 8 mean for the family in practice?',
+        options: [
+          'They pay nothing',
+          'From the next term onwards they pay the full fees themselves',
+          'They get a refund',
+          'The pupil must leave immediately',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-elite-2',
+    workId: 'elite-en',
+    lang: 'en', title: 'Три показания об одних и тех же двадцати минутах', level: 'B2', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал устроен как чередование: вечеринка и допрос, вечеринка и допрос. Ниже наши три письменных показания об одном отрезке времени. Читать их надо не подряд, а поперёк: сверяя время, место и кто кого видел. Грамматика тут работает на задачу — прошедшее длительное для фона, past perfect для того, что было раньше, и «I think» там, где человек не уверен.',
+    after: 'Расхождения три: двое помещают одного и того же человека в разные места в 23:20, у второго свидетеля есть минута, которой нет ни у кого, а третий описывает разговор, который по времени первого не мог состояться. Ни одно из этих расхождений само по себе не доказывает ничего — и в этом весь жанр.',
+    body: `WITNESS STATEMENTS — taken separately, same evening, 23:10 to 23:30
+
+STATEMENT A
+I was in the kitchen from about eleven until the music stopped. I was making coffee because I had promised to drive. Around twenty past, D. came in and asked me for the time. He seemed fine. He took a bottle from the counter and went back out towards the garden. I did not leave the kitchen at any point.
+
+STATEMENT B
+At about ten past eleven I went upstairs to find my jacket, which took longer than it should have because somebody had moved the coats. Coming back down I passed D. on the stairs, going up. That was twenty past, or near enough — I remember because my phone buzzed on the landing and that is timestamped. I did not see him again.
+
+STATEMENT C
+I was outside on the terrace the whole time. D. was out there with me for most of it. We talked about the exam results for a good ten minutes — I would say from about a quarter past. Then somebody called him from inside and he went in. I stayed on the terrace until I heard shouting.
+
+INVESTIGATOR'S NOTE
+Statements A and B place the same person in two different parts of the house at approximately the same minute. Statement C describes a conversation of ten minutes' duration within a window in which, on A's account, the same person was in the kitchen.
+
+This does not establish that anyone is lying. People are poor at times, good at sequence, and better still at faces. What it establishes is that at least one of these three accounts is wrong, and that we do not yet know which.`,
+    translation: `ПОКАЗАНИЯ СВИДЕТЕЛЕЙ — сняты по отдельности, тот же вечер, с 23:10 до 23:30
+
+ПОКАЗАНИЕ A
+Я был на кухне примерно с одиннадцати и до того, как выключили музыку. Я варил кофе, потому что обещал сесть за руль. Около двадцати минут двенадцатого зашёл Д. и спросил у меня время. Выглядел он нормально. Взял бутылку со столешницы и вышел обратно в сторону сада. Кухню я не покидал ни разу.
+
+ПОКАЗАНИЕ B
+Примерно в десять минут двенадцатого я поднялась наверх за курткой — это заняло больше времени, чем должно было, потому что кто-то переложил верхнюю одежду. Спускаясь, я разминулась с Д. на лестнице: он шёл вверх. Это было двадцать минут двенадцатого или около того — помню, потому что на площадке звякнул телефон, а у этого есть отметка времени. Больше я его не видела.
+
+ПОКАЗАНИЕ C
+Я всё это время был снаружи, на террасе. Д. большую часть времени был там со мной. Мы добрых десять минут говорили про результаты экзаменов — я бы сказал, примерно с четверти двенадцатого. Потом его позвали изнутри, и он ушёл. Я оставался на террасе, пока не услышал крики.
+
+ЗАМЕЧАНИЕ СЛЕДОВАТЕЛЯ
+Показания A и B помещают одного и того же человека в две разные части дома примерно в одну и ту же минуту. Показание C описывает десятиминутный разговор в промежутке, в котором, по версии A, тот же человек находился на кухне.
+
+Это не устанавливает, что кто-то лжёт. Люди плохо запоминают время, хорошо — последовательность, и ещё лучше — лица. Устанавливает это лишь то, что как минимум один из трёх рассказов неверен и что мы пока не знаем какой.`,
+    glossary: [
+      { term: 'statement', ru: 'показание' },
+      { term: 'or near enough', ru: 'или около того' },
+      { term: 'to be timestamped', ru: 'иметь отметку времени' },
+      { term: 'landing', ru: 'лестничная площадка' },
+      { term: 'a good ten minutes', ru: 'добрых десять минут' },
+      { term: 'a quarter past', ru: 'четверть первого часа, то есть :15' },
+      { term: 'to place someone somewhere', ru: 'помещать кого-то куда-то (по показаниям)' },
+      { term: 'on someone’s account', ru: 'по чьей-либо версии' },
+      { term: 'to establish', ru: 'установить (факт)' },
+    ],
+    questions: [
+      {
+        q: 'Where does statement A put D. at about twenty past eleven?',
+        options: ['On the stairs', 'In the kitchen', 'On the terrace', 'In the garden'],
+        correct: 1,
+      },
+      {
+        q: 'Which statement has an independently checkable time reference?',
+        options: [
+          'A — the coffee',
+          'B — the phone that buzzed and is timestamped',
+          'C — the exam results',
+          'None of them',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the investigator conclude?',
+        options: [
+          'That one of the three is lying',
+          'That at least one account is wrong, without saying which or why',
+          'That all three are reliable',
+          'That D. is guilty',
+        ],
+        correct: 1,
+        why: 'Разница между «ошибается» и «лжёт» здесь принципиальна, и следователь её проговаривает. Английский эту разницу держит в выборе слова: wrong против lying.',
+      },
+      {
+        q: 'Why do the statements use "about", "around" and "I would say"?',
+        options: [
+          'The witnesses are being evasive',
+          'They are hedges — honest markers that the time is approximate',
+          'It is a translation artefact',
+          'To make the text longer',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Центр моей вселенной: карточка, наш текст ──────────────────────────────
+  //
+  // bucket: 'inspired'. Роман современный и охраняется, поэтому текст наш; от
+  // книги здесь дом на отшибе, городок, который семью не принял, и интонация.
+  // На английскую полку произведение попадает законно: официальный перевод
+  // Алисы Джаффы существует с 2005 года, и читают его по-английски именно так.
+  {
+    id: 'sc-center-1',
+    workId: 'steinhofel-center',
+    lang: 'en', title: 'Список того, что мать так и не объяснила', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Рассказчику семнадцать, он растёт с матерью и сестрой-близнецом в огромном доме на отшибе, и половина семейной истории ему никогда не рассказывалась. Ниже наш текст в этом духе — перечень необъяснённого. Грамматика тут одна и очень нужная: would и used to для повторявшегося в прошлом, а между ними разница, которую обычно объясняют плохо.',
+    after: 'Обратите внимание на последний пункт: он единственный, в котором рассказчик перестаёт спрашивать и начинает объяснять сам. Так и устроены такие книги — вопросов больше, чем ответов, и один ответ герой в итоге придумывает себе сам.',
+    body: `Things my mother has never explained, in the order I stopped asking about them.
+
+Why the house. Nobody needs eleven rooms and we have never used more than four of them. She would say that it was cheap, which was true, and that it came with the trees, which was also true and was not an answer.
+
+Why she never learned to drive. She used to walk into town twice a week and carry everything back, in all weathers, for eleven years. When I was fourteen I offered to learn instead, and she said, "Yes, do that," in a voice that closed the subject.
+
+Why there are no photographs from before we moved. There are hundreds from after. She would take them constantly, of the garden, of the two of us asleep, of nothing. Before is a blank, and the blank is not accidental, because a woman who photographs an empty kitchen does not simply fail to photograph her own children.
+
+Why we are not to open the third door on the landing. Not "must not" — she has never used that word. She would just say "not that one" and carry on walking, and after a while you stop hearing it as an instruction and start hearing it as the name of the door.
+
+Why the town decided about us. It decided in the first month and it has not revised the decision in seventeen years. My sister thinks it was the house. I think it was my mother, who arrived alone with two babies and never once explained herself to anybody, and I have come to believe that this is the part they could not forgive.`,
+    translation: `Вещи, которых мать так и не объяснила, — в том порядке, в каком я перестал о них спрашивать.
+
+Почему дом. Одиннадцать комнат не нужны никому, а мы никогда не пользовались больше чем четырьмя. Она говорила, что было дёшево, — это правда, — и что он шёл вместе с деревьями, что тоже правда и ответом не является.
+
+Почему она так и не научилась водить. Она ходила в город пешком дважды в неделю и таскала всё обратно на себе, в любую погоду, одиннадцать лет. Когда мне было четырнадцать, я предложил научиться вместо неё, и она сказала: «Да, займись», — тем голосом, которым закрывают тему.
+
+Почему нет ни одной фотографии до переезда. После — сотни. Она снимала постоянно: сад, нас двоих спящими, вообще ничего. «До» — это пробел, и пробел не случайный: женщина, которая фотографирует пустую кухню, не может просто так забыть сфотографировать собственных детей.
+
+Почему третью дверь на площадке открывать нельзя. Не «запрещено» — этого слова она не произносила ни разу. Она просто говорила «не эту» и шла дальше, и через какое-то время перестаёшь слышать в этом указание и начинаешь слышать название двери.
+
+Почему городок решил на наш счёт. Он решил в первый же месяц и за семнадцать лет решения не пересмотрел. Сестра думает, что дело в доме. Я думаю, что в матери, которая приехала одна с двумя младенцами и ни разу ни перед кем не объяснилась, — и со временем я пришёл к мысли, что именно этого ей и не простили.`,
+    glossary: [
+      { term: 'she would say', ru: 'она, бывало, говорила (повторявшееся в прошлом)' },
+      { term: 'she used to walk', ru: 'она раньше ходила (привычка, которой больше нет)' },
+      { term: 'in all weathers', ru: 'в любую погоду' },
+      { term: 'to close the subject', ru: 'закрыть тему' },
+      { term: 'a blank', ru: 'пробел, пустое место' },
+      { term: 'landing', ru: 'лестничная площадка' },
+      { term: 'to revise a decision', ru: 'пересмотреть решение' },
+      { term: 'to come to believe', ru: 'прийти к убеждению' },
+    ],
+    questions: [
+      {
+        q: 'What is the difference between "she would say" and "she used to walk" here?',
+        options: [
+          'None — they are interchangeable',
+          'Both are past habits, but "used to" also implies it is over, while "would" just recalls repeated behaviour',
+          '"Would" is conditional',
+          '"Used to" is present',
+        ],
+        correct: 1,
+        why: 'Would подходит только для повторявшихся действий и звучит как воспоминание. Used to годится и для состояний (I used to live here), и всегда подразумевает, что теперь не так.',
+      },
+      {
+        q: 'Why does the narrator say the missing photographs are "not accidental"?',
+        options: [
+          'The camera was broken',
+          'Because someone who photographs an empty kitchen would not simply forget her own children',
+          'The photographs were lost in the move',
+          'They were never developed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the mother forbid the third door?',
+        options: [
+          'With a rule and a lock',
+          'By never using a word of prohibition at all — just "not that one"',
+          'By explaining what is inside',
+          'She does not forbid it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the narrator think the town could not forgive?',
+        options: [
+          'The house',
+          'That his mother never explained herself to anyone',
+          'The children',
+          'The trees',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-center-2',
+    workId: 'steinhofel-center',
+    lang: 'en', title: 'Что о нас говорят в городке', level: 'B2', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Слух по-английски почти никогда не подают как факт: у него всегда есть рамка — apparently, they say, someone told my sister that. Ниже наш текст, целиком собранный из таких рамок. Это лучший способ разобраться с косвенной речью: она тут не упражнение, а способ рассказчика не брать на себя чужие слова.',
+    after: 'Последний абзац переворачивает приём: рассказчик впервые убирает рамку и говорит прямо — и на фоне трёх страниц «говорят, что» эта прямая фраза звучит громче любого слуха.',
+    body: `Apparently my mother was an actress. Apparently she was a nurse who was struck off. Apparently there was money and then there wasn't, and apparently that is why the east wing has no floor.
+
+They say she bought the house in cash. They say a man came looking for her the year we started school and that she did not let him past the gate. Mrs Halloran at the shop told my sister that she remembers the taxi, and that it waited forty minutes and left empty, which is the kind of detail that makes a story stand up.
+
+I have been told that my mother is brave, that she is selfish, that she is unwell, and that she is the most interesting thing to happen to this town in thirty years. All four were said to me by people who had never had a conversation with her.
+
+At school it is simpler. At school it is not my mother at all, it is me, and it is one word, and it has been the same word since I was eleven. It arrives without a frame. Nobody says "apparently" about that one.
+
+Here is what I know, without hearing it from anyone. She came here alone, in November, with two babies and four suitcases, and she has never once explained herself, and the town has spent seventeen years filling the silence with whatever it had lying around. That is not a story about her. It is a story about the town, and it always was.`,
+    translation: `Говорят, моя мать была актрисой. Говорят, она была медсестрой, которую лишили лицензии. Говорят, были деньги, а потом их не стало, и будто бы поэтому в восточном крыле нет пола.
+
+Говорят, дом она купила за наличные. Говорят, в тот год, когда мы пошли в школу, её приезжал искать какой-то мужчина и она не пустила его дальше ворот. Миссис Хэллоран из лавки сказала моей сестре, что помнит то такси: оно прождало сорок минут и уехало пустым, — а это как раз та деталь, на которой история начинает держаться.
+
+Мне говорили, что моя мать смелая, что она эгоистка, что она нездорова и что она — самое интересное, что случилось с этим городком за тридцать лет. Все четыре вещи сказали мне люди, которые ни разу с ней не разговаривали.
+
+В школе проще. В школе речь вообще не о матери, а обо мне, и это одно слово, и слово это одно и то же с тех пор, как мне исполнилось одиннадцать. Оно приходит без всякой рамки. Про него никто не говорит «будто бы».
+
+Вот что я знаю, не услышав это ни от кого. Она приехала сюда одна, в ноябре, с двумя младенцами и четырьмя чемоданами, и ни разу ни перед кем не объяснилась, а городок семнадцать лет заполнял эту тишину тем, что было под рукой. Это рассказ не про неё. Это рассказ про городок, и всегда им был.`,
+    glossary: [
+      { term: 'apparently', ru: 'судя по всему; говорят (рамка слуха)' },
+      { term: 'they say', ru: 'говорят' },
+      { term: 'to be struck off', ru: 'быть лишённым лицензии (о враче, медсестре)' },
+      { term: 'to make a story stand up', ru: 'сделать так, что в историю верят' },
+      { term: 'I have been told', ru: 'мне говорили' },
+      { term: 'a frame', ru: 'здесь: рамка, оговорка вокруг чужих слов' },
+      { term: 'to have something lying around', ru: 'иметь что-то под рукой, валяющимся без дела' },
+    ],
+    questions: [
+      {
+        q: 'What is the function of "apparently" and "they say" in this text?',
+        options: [
+          'They make the statements true',
+          'They mark the words as someone else’s — the narrator reports without vouching',
+          'They are fillers with no meaning',
+          'They introduce questions',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the detail about the taxi waiting forty minutes matter?',
+        options: [
+          'It proves the story',
+          'A specific detail is what makes a rumour believable, whether or not it is true',
+          'It identifies the man',
+          'It gives the date',
+        ],
+        correct: 1,
+        why: 'Приём стоит запомнить и вне литературы: правдоподобие даёт не доказательство, а конкретность. «Сорок минут» звучит проверенно, хотя не проверено ничем.',
+      },
+      {
+        q: 'What is different about what is said at school?',
+        options: [
+          'It is kinder',
+          'It arrives with no hedging frame at all — it is said as plain fact',
+          'It is about the house',
+          'It is never said aloud',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the narrator conclude in the last paragraph?',
+        options: [
+          'That the rumours are true',
+          'That the rumours describe the town, not his mother',
+          'That his mother should explain herself',
+          'That he will leave',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]
