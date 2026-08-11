@@ -14,6 +14,7 @@ import MobileStickersRow from './MobileStickersRow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
+import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { tactile } from '../lib/feedback'
 import { PAIR } from '../lib/mobileTokens'
 import { useT, t as tt } from '../lib/i18n'
@@ -99,6 +100,15 @@ export default function MobileHome() {
       { icon: Zap, value: stats.totalPoints, label: t('XP'), pair: PAIR.focus },
     ]
   }, [scopedSubject, progress, stats, t])
+
+  // Карточки «виджетов дня» — по тем же правилам, что и десктопная карусель
+  // (предмет курса + непустой контент), см. lib/widgetVisibility.ts.
+  const relevant = useWidgetRelevance()
+  const dayCards = {
+    quiz: relevant(5) ? quizQuestions[0] : undefined,
+    facts: relevant(1) ? scienceFacts[0] : undefined,
+    memes: relevant(4) ? scienceMemes[0] : undefined,
+  }
 
   const todayLessons = scheduleDays.find(d => d.isToday)?.lessons ?? []
 
@@ -192,31 +202,32 @@ export default function MobileHome() {
           {/* Стикеры за принятые задания */}
           <MobileStickersRow />
 
-          {/* Виджеты дня */}
-          {(quizQuestions.length > 0 || scienceFacts.length > 0 || scienceMemes.length > 0) && (
+          {/* Виджеты дня — те же правила уместности, что у десктопной карусели:
+              химический факт на корейском курсе не нужен и здесь. */}
+          {(dayCards.quiz || dayCards.facts || dayCards.memes) && (
             <div>
               <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Виджеты дня')}</p>
               <div style={{ marginLeft: -16, marginRight: -16 }}>
                 <MobileHScroll padX={16} gap={10}>
-                  {quizQuestions[0] && (
+                  {dayCards.quiz && (
                     <WidgetCard
                       tag={t('Вопрос дня')} icon={<HelpCircle size={15} />}
                       accent="var(--color-purple-text)" bg="var(--color-purple-soft)"
-                      text={quizQuestions[0].title}
+                      text={dayCards.quiz.title}
                     />
                   )}
-                  {scienceFacts[0] && (
+                  {dayCards.facts && (
                     <WidgetCard
                       tag={t('Факт дня')} icon={<Atom size={15} />}
                       accent="var(--color-green-text)" bg="var(--color-green-soft)"
-                      text={scienceFacts[0].text}
+                      text={dayCards.facts.text}
                     />
                   )}
-                  {scienceMemes[0] && (
+                  {dayCards.memes && (
                     <WidgetCard
                       tag={t('Мем дня')} icon={<Star size={15} />}
                       accent="#B07A00" bg="var(--color-yellow-soft)"
-                      text={scienceMemes[0].setup}
+                      text={dayCards.memes.setup}
                     />
                   )}
                 </MobileHScroll>

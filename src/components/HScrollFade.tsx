@@ -86,16 +86,19 @@ export default function HScrollFade({
       >
         {children}
       </div>
+      {/* zIndex обязателен: вкладки внутри ряда сидят на zIndex 1–3 (пилюля,
+          активная кнопка), и фейд без своего слоя уезжает ПОД текст — градиент
+          есть, а на экране его не видно. */}
       <div
         style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none',
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
           background: `linear-gradient(to right, ${fade}, transparent)`,
           opacity: edges.left ? 1 : 0, transition: 'opacity 0.18s ease',
         }}
       />
       <div
         style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none',
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
           background: `linear-gradient(to left, ${fade}, transparent)`,
           opacity: edges.right ? 1 : 0, transition: 'opacity 0.18s ease',
         }}

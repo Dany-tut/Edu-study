@@ -223,10 +223,16 @@ function downloadFile(filename: string) {
 // single row with a chevron. The chevron opens a glass dropdown with two
 // download actions — ч/б or цвет — each downloading the file in that variant,
 // mirroring the "Материалы" tile so all three line up at one height.
-function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: string }) {
+//
+// Без файла плитка НЕактивна: приглушённые цвета, подпись «файл не прикреплён»,
+// без шеврона и без выпадашки. Раньше она всегда выглядела рабочей и по клику
+// скачивала выдуманный PDF — урок казался укомплектованным, хотя учитель
+// ничего не прикреплял (файлы вообще никуда не сохраняются, см. редактор).
+function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; label: string; file?: string }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const active = Boolean(file)
 
   useEffect(() => {
     if (!open) return
@@ -245,49 +251,59 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <motion.button
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center w-full cursor-pointer"
+        whileHover={active ? { y: -2 } : undefined}
+        whileTap={active ? { scale: 0.99 } : undefined}
+        disabled={!active}
+        onClick={() => active && setOpen(o => !o)}
+        className="flex items-center w-full"
         style={{
           gap: 10,
           padding: '10px 12px',
           borderRadius: 14,
-          background: 'rgba(var(--glass-rgb), 0.96)',
+          background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'var(--color-bg-2)',
           border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+          boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
           minHeight: 56,
+          cursor: active ? 'pointer' : 'default',
+          opacity: active ? 1 : 0.6,
         }}
       >
         <div
           style={{
             width: 30, height: 30, borderRadius: 9, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+            background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+            color: active ? 'var(--color-accent)' : 'var(--color-text-4)',
           }}
         >
           <Icon size={16} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>{label}</p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>PDF · {t('скачать')}</p>
+          <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15 }}>{label}</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-4)', marginTop: 1 }}>
+            {active ? `PDF · ${t('скачать')}` : t('файл не прикреплён')}
+          </p>
         </div>
-        <ChevronDown
-          size={15}
-          style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
-        />
+        {active && (
+          <ChevronDown
+            size={15}
+            style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
+          />
+        )}
       </motion.button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             style={{
+              // Вверх, а не вниз: плитки стоят в самом низу урока, и выпадашка
+              // вниз уезжала за край страницы.
               position: 'absolute',
-              top: 'calc(100% + 8px)',
+              bottom: 'calc(100% + 8px)',
               left: 0,
               right: 0,
               zIndex: 50,
@@ -320,11 +336,13 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
   )
 }
 
-// "Материалы" tile with a dropdown of reference files.
+// "Материалы" tile with a dropdown of reference files. Без прикреплённых
+// файлов — неактивная плитка (см. DownloadTile).
 function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const active = materials.length > 0
 
   useEffect(() => {
     if (!open) return
@@ -338,49 +356,58 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <motion.button
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center w-full cursor-pointer"
+        whileHover={active ? { y: -2 } : undefined}
+        whileTap={active ? { scale: 0.99 } : undefined}
+        disabled={!active}
+        onClick={() => active && setOpen(o => !o)}
+        className="flex items-center w-full"
         style={{
           gap: 10,
           padding: '10px 12px',
           borderRadius: 14,
-          background: 'rgba(var(--glass-rgb), 0.96)',
+          background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'var(--color-bg-2)',
           border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+          boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
           minHeight: 56,
+          cursor: active ? 'pointer' : 'default',
+          opacity: active ? 1 : 0.6,
         }}
       >
         <div
           style={{
             width: 30, height: 30, borderRadius: 9, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+            background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+            color: active ? 'var(--color-accent)' : 'var(--color-text-4)',
           }}
         >
           <FolderOpen size={16} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>{t('Материалы')}</p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{materials.length} {t('файла')}</p>
+          <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15 }}>{t('Материалы')}</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-4)', marginTop: 1 }}>
+            {active ? `${materials.length} ${t('файла')}` : t('файлы не прикреплены')}
+          </p>
         </div>
-        <ChevronDown
-          size={15}
-          style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
-        />
+        {active && (
+          <ChevronDown
+            size={15}
+            style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
+          />
+        )}
       </motion.button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             style={{
+              // Вверх, а не вниз — плитки стоят в самом низу урока.
               position: 'absolute',
-              top: 'calc(100% + 8px)',
+              bottom: 'calc(100% + 8px)',
               left: 0,
               right: 0,
               zIndex: 50,
@@ -1182,8 +1209,13 @@ export default function LessonPage() {
           alignItems: 'start',
         }}
       >
-        <DownloadTile icon={NotebookPen} label={t('Рабочая тетрадь')} />
-        <DownloadTile icon={FileText} label={t('Конспект')} />
+        {/* Файлов у урока пока нет ни в одной точке: редактор курса и редактор
+            урока держат имена загруженных файлов только в черновике (никуда не
+            сохраняются), в lessons такого поля нет. Поэтому обе плитки-скачки
+            приходят без файла и рисуются неактивными — до тех пор, пока
+            прикрепление не заведено по-настоящему. */}
+        <DownloadTile icon={NotebookPen} label={t('Рабочая тетрадь')} file={detail.workbookFile} />
+        <DownloadTile icon={FileText} label={t('Конспект')} file={detail.notebookFile} />
         <MaterialsTile materials={detail.materials} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>

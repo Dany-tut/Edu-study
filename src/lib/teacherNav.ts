@@ -10,7 +10,7 @@ export async function openLessonInCourseEditor(lessonId: string, openCourseEdito
   if (!lessonRow?.course_id) return false
   const { data: course } = await supabase
     .from('courses')
-    .select('id, short_id, title, subject, level, status, color, bg, description, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks)')
+    .select('id, short_id, title, subject, level, status, color, bg, description, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks)')
     .eq('id', lessonRow.course_id)
     .single()
   if (!course) return false
@@ -22,6 +22,7 @@ export async function openLessonInCourseEditor(lessonId: string, openCourseEdito
     kind: l.kind === 'test' ? 'test' : 'lesson',
     testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
     videoUrl: l.youtube_url ?? undefined, description: l.description ?? undefined,
+    timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
   }))
   let modules = dbModules.map((m: any) => ({
     id: m.id, label: m.label, expanded: true,

@@ -22,6 +22,8 @@ interface TrainerProgressState {
   sessionMs: number
   /** Дней подряд с занятиями, включая сегодня. */
   streak: number
+  /** Идёт ли счёт прямо сейчас — виджет показывает это точкой-пульсом. */
+  counting: boolean
   lastAnswerAt: number
   openModal: boolean
   update: (p: Partial<Omit<TrainerProgressState, 'update' | 'setOpenModal'>>) => void
@@ -48,6 +50,7 @@ export const useTrainerProgress = create<TrainerProgressState>((set, get) => ({
   weekMs: 0,
   sessionMs: 0,
   streak: 0,
+  counting: false,
   lastAnswerAt: 0,
   openModal: false,
   update: p => set(s => {
@@ -138,8 +141,12 @@ export function useTrainerClock(subjectId: string, kind: TrainerKind): void {
       const now = Date.now()
       const delta = now - last
       last = now
-      if (document.hidden) return
-      if (now - lastAct > IDLE_MS) return
+      const active = !document.hidden && now - lastAct <= IDLE_MS
+      // Виджет обязан показывать, идёт счёт или нет: молчащий счётчик и
+      // считающий выглядели одинаково, и «а он вообще работает?» —
+      // единственный возможный вопрос к такому виджету.
+      if (useTrainerProgress.getState().counting !== active) useTrainerProgress.setState({ counting: active })
+      if (!active) return
       // Ограничение сверху: вкладку усыпили — интервал не сработал, а delta
       // накопилась. Засчитываем один шаг, не полчаса сна.
       tick(Math.min(delta, TICK_MS * 2))
@@ -147,11 +154,12 @@ export function useTrainerClock(subjectId: string, kind: TrainerKind): void {
 
     const iv = setInterval(flush, TICK_MS)
     // Уход со страницы не должен терять последние секунды захода.
-    const onHide = () => { if (document.hidden) flush(); else last = Date.now() }
+    const onHide = () => { if (document.hidden) flush(); else { last = Date.now(); lastAct = Date.now(); flush() } }
     document.addEventListener('visibilitychange', onHide)
 
     return () => {
       flush()
+      useTrainerProgress.setState({ counting: false })
       clockOwners -= 1
       clearInterval(iv)
       document.removeEventListener('visibilitychange', onHide)

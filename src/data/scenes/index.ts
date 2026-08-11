@@ -69,7 +69,7 @@ export type ShelfId =
   | 'west-classics'
   | 'kr'
   | 'jp'
-  | 'us-modern'
+  | 'series'
   | 'br'
   | 'ya'
 
@@ -90,7 +90,7 @@ export const SHELVES: Shelf[] = [
   { id: 'jp',            title: 'Япония',            hint: 'Настоящая японская проза и экранизации' },
   { id: 'kr',            title: 'Корея',             hint: 'Классика рассказа и корейские сериалы' },
   { id: 'br',            title: 'Бразилия',          hint: 'Бразильская проза и сериалы на португальском' },
-  { id: 'us-modern',     title: 'Америка и сериалы', hint: 'Современный разговорный язык — HBO, Apple TV+, Netflix' },
+  { id: 'series',        title: 'Сериалы',          hint: 'Современный разговорный язык — HBO, Netflix, Apple TV+, BBC' },
   { id: 'ya',            title: 'Young adult',       hint: 'Подростковая и молодая проза, простой современный язык' },
 ]
 
@@ -387,9 +387,63 @@ export const WORKS: Work[] = [
   {
     id: 'ted-lasso',
     title: 'Тед Лассо', origTitle: 'Ted Lasso', author: 'Apple TV+', year: 2020,
-    medium: 'series', platform: 'Apple TV+', shelf: 'us-modern', lang: 'en', bucket: 'inspired', age: '16+',
+    medium: 'series', platform: 'Apple TV+', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
     tags: ['сериал', 'комедия'],
     blurb: 'Американский тренер по американскому футболу приезжает тренировать английский футбольный клуб. Половина шуток построена на разнице американского и британского английского — то есть на ровно том, что путает изучающих.',
+  },
+  {
+    id: 'stranger-things',
+    title: 'Очень странные дела', origTitle: 'Stranger Things', author: 'Netflix / The Duffer Brothers', year: 2016,
+    medium: 'series', platform: 'Netflix', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
+    tags: ['сериал', 'фантастика', '80-е'],
+    blurb: 'Городок в Индиане, 1983 год: пропадает мальчик, а из секретной лаборатории выходит девочка, которая двигает предметы взглядом. Язык здесь самый полезный из всех сериалов полки — это обычная американская речь школьников и их родителей, без профессионального жаргона и почти без сленга, который устареет.',
+    quote: {
+      text: 'Friends don\'t lie.',
+      attribution: 'Stranger Things, Netflix (2016)',
+    },
+  },
+  {
+    id: 'got',
+    title: 'Игра престолов', origTitle: 'Game of Thrones', author: 'HBO / по романам Дж. Мартина', year: 2011,
+    medium: 'series', platform: 'HBO', shelf: 'series', lang: 'en', bucket: 'inspired', age: '18+',
+    tags: ['сериал', 'фэнтези', 'политика'],
+    blurb: 'Семь королевств, девять семей и трон, за который каждая из них считает себя вправе убивать. Английский здесь особый: современная грамматика в старинной оболочке — обращения «my lord», клятвы через shall, обороты, которых нет в разговоре, но полно в договорах, присягах и официальных письмах.',
+    quote: {
+      text: 'Winter is coming.',
+      attribution: 'Game of Thrones, HBO (2011)',
+    },
+  },
+  {
+    id: 'alice-borderland-en',
+    title: 'Алиса в Пограничье (по-английски)', origTitle: 'Alice in Borderland', author: 'Netflix / 麻生羽呂', year: 2020,
+    medium: 'series', platform: 'Netflix', shelf: 'series', lang: 'en', bucket: 'inspired', age: '18+',
+    tags: ['сериал', 'триллер', 'выживание'],
+    blurb: 'Токио пустеет, и оставшиеся играют в игры на выживание, чтобы продлить «визу на жизнь». Сериал японский, но у Netflix есть официальная английская дорожка, и именно на ней он держит целый пласт языка: правила, запреты, обратный отсчёт и условия «если — то». То есть повелительное наклонение и модальные глаголы в чистом виде.',
+  },
+  {
+    id: 'the-office-us',
+    title: 'Офис', origTitle: 'The Office (US)', author: 'NBC', year: 2005,
+    medium: 'series', platform: 'NBC', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
+    tags: ['сериал', 'комедия', 'работа'],
+    blurb: 'Бумажная фирма в Скрантоне, начальник, уверенный, что он лучший друг всем подчинённым, и камера, которая всё это снимает. Самый практичный сериал полки: это ровно тот английский, на котором ведут переписку, совещания и разбор полётов — включая вежливые формулы, за которыми прячется недовольство.',
+    quote: {
+      text: 'Bears. Beets. Battlestar Galactica.',
+      attribution: 'The Office, NBC (2005)',
+    },
+  },
+  {
+    id: 'sherlock-bbc',
+    title: 'Шерлок', origTitle: 'Sherlock', author: 'BBC', year: 2010,
+    medium: 'series', platform: 'BBC', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
+    tags: ['сериал', 'детектив', 'британский английский'],
+    blurb: 'Холмс и Ватсон в современном Лондоне: смс на экране, блог вместо записок, скорость речи вдвое выше учебной. Ради этой скорости сериал и стоит брать — и ради дедукции, которая по-английски целиком собрана на модальных глаголах предположения: must have been, can’t have, would have.',
+  },
+  {
+    id: 'wednesday',
+    title: 'Уэнздей', origTitle: 'Wednesday', author: 'Netflix', year: 2022,
+    medium: 'series', platform: 'Netflix', shelf: 'ya', lang: 'en', bucket: 'inspired', age: '12+',
+    tags: ['сериал', 'young-adult', 'школа'],
+    blurb: 'Дочь семейки Аддамс отправляют в закрытую школу для «изгоев», где она немедленно начинает расследовать убийства вместо того, чтобы заводить друзей. Речь простая и внятная, а главное — построена на иронии и недосказанности: лучший материал, чтобы услышать, как по-английски язвят, не повышая голоса.',
   },
   {
     id: 'alice-borderland',

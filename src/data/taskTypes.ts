@@ -603,7 +603,10 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     grade: (t, a) => {
       if (!TASK_TYPES.buildSyllable.isGradable(t)) return NOT_AUTO
       const want = chamoOf(t.syllable ?? '')
-      const got = toWords(a)
+      // Сборщик слога отдаёт буквы через запятую (ㄱ,ㅣ,ㅁ), а не через пробел:
+      // разбор по словам склеивал бы их в один токен, и верный ответ считался
+      // бы неверным всегда. Массив принимаем тоже — на случай общего решателя.
+      const got = typeof a === 'string' ? a.split(',').map(s => s.trim()).filter(Boolean) : toWords(a)
       if (!got) return { auto: true, correct: false }
       return { auto: true, correct: got.length === want.length && got.every((c, i) => c === want[i]) }
     },

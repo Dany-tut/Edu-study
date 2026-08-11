@@ -1051,4 +1051,529 @@ Comrade, remember: our task is not to change the record. Our task is to correct 
       },
     ],
   },
+
+  // ── Очень странные дела: карточка, наш текст ───────────────────────────────
+  //
+  // bucket: 'inspired'. Ни одной реплики сериала и ни одного его персонажа:
+  // город, школа и газета придуманы нами. От «Очень странных дел» здесь год,
+  // место действия и регистр — американская провинция начала восьмидесятых.
+  {
+    id: 'sc-st-1',
+    workId: 'stranger-things',
+    lang: 'en', title: 'Доска объявлений, осень 1983', level: 'A2', minutes: 2,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина «Очень странных дел» происходит в обычной американской школе: кружки, ярмарка проектов, зимний бал. Ниже — наша школьная доска объявлений тех же лет. Это самый частотный слой языка сериала: ни одного фантастического слова, зато вся школьная бытовуха, которой в учебниках почти нет.',
+    after: 'Именно из таких объявлений собирается фон сериала: кружок радиолюбителей, ярмарка проектов и бал в спортзале — а всё странное происходит вокруг них и никогда вместо них.',
+    body: `BELLWOOD MIDDLE SCHOOL — NOTICE BOARD
+
+SCIENCE FAIR — FRIDAY
+Projects go in the gym by 3 p.m. Volcanoes are fine. Volcanoes that actually erupt are not. Ask Mr. Colby before you bring anything electrical.
+
+AV CLUB
+Meets Tuesdays in Room 12. We have a new radio set. Members only — but everybody is a member, because there are four of us.
+
+LOST AND FOUND
+One left glove. One library book about the solar system. One bicycle bell. One retainer. Please come and get the retainer. Please.
+
+SNOW BALL — DECEMBER 15
+Tickets are two dollars. Yes, you can come without a date. No, the gym will not be warm.`,
+    translation: `СРЕДНЯЯ ШКОЛА БЕЛЛВУД — ДОСКА ОБЪЯВЛЕНИЙ
+
+ЯРМАРКА НАУЧНЫХ ПРОЕКТОВ — В ПЯТНИЦУ
+Проекты сдавать в спортзал до 15:00. Вулканы можно. Вулканы, которые правда извергаются, нельзя. Если несёте что-то электрическое, сначала спросите мистера Колби.
+
+КРУЖОК АУДИО-ВИДЕО
+Собираемся по вторникам в кабинете 12. У нас новая радиостанция. Только для членов кружка — но член кружка каждый, потому что нас четверо.
+
+БЮРО НАХОДОК
+Одна левая перчатка. Одна библиотечная книга про Солнечную систему. Один велосипедный звонок. Одна пластинка для зубов. Пожалуйста, заберите пластинку. Пожалуйста.
+
+ЗИМНИЙ БАЛ — 15 ДЕКАБРЯ
+Билет два доллара. Да, можно прийти без пары. Нет, в спортзале не будет тепло.`,
+    glossary: [
+      { term: 'notice board', ru: 'доска объявлений; в США чаще bulletin board' },
+      { term: 'science fair', ru: 'школьная ярмарка научных проектов' },
+      { term: 'to erupt', ru: 'извергаться' },
+      { term: 'AV club', ru: 'кружок аудио- и видеотехники' },
+      { term: 'lost and found', ru: 'бюро находок' },
+      { term: 'retainer', ru: 'пластинка для зубов' },
+      { term: 'a date', ru: 'пара, спутник на вечер' },
+      { term: 'gym', ru: 'спортзал' },
+    ],
+    questions: [
+      {
+        q: 'What kind of volcano is not allowed at the science fair?',
+        options: ['A big one', 'One that really erupts', 'A painted one', 'One made of paper'],
+        correct: 1,
+        why: '«Volcanoes are fine. Volcanoes that actually erupt are not» — actually здесь «на самом деле», а не «вообще-то».',
+      },
+      {
+        q: 'How many people are in the AV club?',
+        options: ['Four', 'Twelve', 'The whole school', 'It does not say'],
+        correct: 0,
+      },
+      {
+        q: 'What does "you can come without a date" mean?',
+        options: [
+          'You do not need to bring a partner',
+          'You do not need a ticket',
+          'The day is not fixed',
+          'You can come late',
+        ],
+        correct: 0,
+        why: 'A date — это человек, с которым идут на свидание или на вечер, а не число в календаре.',
+      },
+    ],
+  },
+  {
+    id: 'sc-st-2',
+    workId: 'stranger-things',
+    lang: 'en', title: 'Правила пользования рацией', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Рация — главный предмет сериала: у детей нет мобильных, и всё держится на канале, позывном и слове «over». Ниже наш листок с правилами, написанный самым ответственным ребёнком компании. Это редкий случай, когда полезная лексика (over, copy, roger) приходит вместе с интонацией, ради которой её запоминают.',
+    after: 'Смысл этих правил в сериале выясняется в первую же ночь: рация — единственный способ докричаться, когда взрослые не верят. Поэтому шестой пункт там нарушают ровно один раз и по делу.',
+    body: `RULES FOR THE RADIOS (do not lose this)
+
+1. Channel 6. Always channel 6. If you cannot hear anyone, you are on the wrong channel, and you are about to say so on the wrong channel.
+
+2. Say your call sign first, then let go of the button and wait. The radio only goes one way at a time. If two people talk, nobody talks.
+
+3. "Over" means I have finished, your turn. "Out" means I have finished, goodbye. Never say "over and out". They mean opposite things and you would be saying both.
+
+4. "Copy" means I heard you. "Roger" means I heard you and I will do it. Learn the difference before you promise something by accident.
+
+5. Radios go off at nine. Batteries cost money and my mom counts them.
+
+6. The emergency word is COMPASS. If you hear it, you drop everything and you come. You do not ask questions on the radio, because anyone can hear channel 6, including people we do not want on it.
+
+7. Do not use the emergency word because your sister finished the cereal. This has now happened twice.`,
+    translation: `ПРАВИЛА ПОЛЬЗОВАНИЯ РАЦИЯМИ (не потеряй этот листок)
+
+1. Шестой канал. Всегда шестой. Если никого не слышно, ты на не том канале — и сейчас сообщишь об этом на не том канале.
+
+2. Сначала называешь позывной, потом отпускаешь кнопку и ждёшь. Рация работает только в одну сторону за раз. Если говорят двое, не говорит никто.
+
+3. «Over» значит «я закончил, теперь ты». «Out» значит «я закончил, до связи». Никогда не говори «over and out». Это противоположные вещи, и ты сказал бы обе сразу.
+
+4. «Copy» значит «я тебя услышал». «Roger» значит «услышал и сделаю». Разберись в разнице, пока случайно что-нибудь не пообещал.
+
+5. В девять рации выключаются. Батарейки стоят денег, и мама их считает.
+
+6. Слово тревоги — КОМПАС. Услышал — бросаешь всё и приходишь. Вопросов по рации не задаёшь: шестой канал слышат все, в том числе те, кого мы там не ждём.
+
+7. Не используй слово тревоги из-за того, что сестра доела хлопья. Так уже было два раза.`,
+    glossary: [
+      { term: 'call sign', ru: 'позывной' },
+      { term: 'over', ru: 'приём (я закончил, отвечай)' },
+      { term: 'out', ru: 'конец связи' },
+      { term: 'copy', ru: 'принял, слышу' },
+      { term: 'roger', ru: 'принял и выполню' },
+      { term: 'to let go of', ru: 'отпустить' },
+      { term: 'to drop everything', ru: 'всё бросить' },
+      { term: 'by accident', ru: 'нечаянно' },
+    ],
+    questions: [
+      {
+        q: 'Why must you never say "over and out"?',
+        options: [
+          'It takes too long',
+          'The two words mean opposite things',
+          'It is impolite',
+          'It only works on channel 6',
+        ],
+        correct: 1,
+        why: 'Over — «продолжай», out — «конец связи». Вместе это «отвечай мне, до свидания».',
+      },
+      {
+        q: 'What is the difference between "copy" and "roger"?',
+        options: [
+          'There is none',
+          '"Copy" means I heard you, "roger" means I heard you and will act',
+          '"Roger" is only for adults',
+          '"Copy" is used at the end of a call',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why are questions forbidden after the emergency word?',
+        options: [
+          'There is no time',
+          'Because anyone can listen to channel 6',
+          'Because the batteries run out',
+          'Because the rule was written as a joke',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "you drop everything" mean here?',
+        options: ['You break things', 'You stop whatever you are doing', 'You fall over', 'You hide'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-st-3',
+    workId: 'stranger-things',
+    lang: 'en', title: 'Заметка в городской газете', level: 'B2', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале странное всегда сначала попадает в местную газету — коротким сухим текстом, из которого ничего не понятно. Ниже наша заметка в том же жанре. Газетный английский устроен иначе, чем разговорный: страдательный залог, косвенная речь и обязательное «источник сказал», — и на трёх абзацах это видно целиком.',
+    after: 'Приём газеты: она сообщает всё, кроме главного. Причина не найдена, оборудование проверено, звонить не надо — и одна фраза жителя, которая портит всю картину.',
+    body: `THE BELLWOOD LEDGER · Thursday, November 10, 1983
+
+POWER OUT ACROSS EAST SIDE; UTILITY SAYS NO CAUSE FOUND
+
+Homes on the east side of town were without electricity for almost four hours on Tuesday night. The lights went out shortly after nine and were not fully restored until one in the morning.
+
+A spokesman for the Ridgeline Power Company said that no cause had been found and that the equipment had been checked twice. He added that the company did not expect the fault to repeat itself.
+
+Several residents of Maple Street reported that their televisions had switched themselves on and off for about a minute before the power failed. One of them, a retired schoolteacher, said she had counted the flashes.
+
+"I have lived here thirty-one years," she said. "I know what a storm sounds like. That was not a storm."
+
+The sheriff's office asks residents not to call about the lights unless there is an emergency. Anyone who saw anything unusual near the water tower on Tuesday night is asked to get in touch.`,
+    translation: `«БЕЛЛВУД ЛЕДЖЕР» · четверг, 10 ноября 1983
+
+СВЕТА НЕТ ВО ВСЁМ ВОСТОЧНОМ РАЙОНЕ; ЭНЕРГЕТИКИ ГОВОРЯТ, ЧТО ПРИЧИНА НЕ НАЙДЕНА
+
+Дома в восточной части города во вторник вечером почти четыре часа оставались без электричества. Свет погас вскоре после девяти и был полностью восстановлен только к часу ночи.
+
+Представитель компании «Риджлайн пауэр» заявил, что причина не найдена, а оборудование проверено дважды. Он добавил, что повторения сбоя компания не ожидает.
+
+Несколько жителей Мэйпл-стрит рассказали, что примерно за минуту до отключения их телевизоры сами включались и выключались. Одна из них, учительница на пенсии, сказала, что считала вспышки.
+
+«Я живу здесь тридцать один год, — сказала она. — Я знаю, как звучит гроза. Это была не гроза».
+
+Управление шерифа просит жителей не звонить по поводу света, если это не экстренный случай. Тех, кто видел во вторник вечером что-либо необычное возле водонапорной башни, просят связаться с ним.`,
+    glossary: [
+      { term: 'power out / power failure', ru: 'отключение электричества' },
+      { term: 'utility', ru: 'коммунальная компания' },
+      { term: 'to restore', ru: 'восстановить' },
+      { term: 'spokesman', ru: 'представитель, тот, кто говорит от лица' },
+      { term: 'fault', ru: 'неисправность, сбой' },
+      { term: 'resident', ru: 'житель' },
+      { term: 'sheriff’s office', ru: 'управление шерифа' },
+      { term: 'to get in touch', ru: 'связаться' },
+    ],
+    questions: [
+      {
+        q: 'What does the power company say about the cause?',
+        options: [
+          'It was a storm',
+          'No cause was found',
+          'It was a fault in one house',
+          'The company refused to comment',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did the residents of Maple Street notice?',
+        options: [
+          'A loud noise from the water tower',
+          'Their televisions switching on and off before the power failed',
+          'A car driving away',
+          'A smell of burning',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the newspaper full of "said that" and "was checked"?',
+        options: [
+          'The writer is unsure of the grammar',
+          'News style reports other people’s words and hides who did the action',
+          'It is the style of 1983 only',
+          'To make the text longer',
+        ],
+        correct: 1,
+        why: 'Косвенная речь и страдательный залог — костяк газетного стиля: газета отвечает за то, что ей сказали, а не за сам факт.',
+      },
+      {
+        q: 'What does "get in touch" mean?',
+        options: ['touch something', 'make contact', 'come to the office', 'stay calm'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Игра престолов: карточка, наш текст ────────────────────────────────────
+  //
+  // bucket: 'inspired'. Ни Вестероса, ни его домов и персонажей: замок, семья и
+  // отряд придуманы нами. Берём у сериала ровно одно — регистр: современная
+  // грамматика в старинной оболочке, shall в обещаниях, «my lord» в обращении.
+  {
+    id: 'sc-got-1',
+    workId: 'got',
+    lang: 'en', title: 'Письмо, привезённое вороном', level: 'C1', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина решений в «Игре престолов» принимается не в бою, а в письме на одну страницу. Ниже наше письмо в том же жанре: сестра пишет брату, который задержался при дворе. Ни одного героя сериала здесь нет — есть его язык: вежливая форма, под которой лежит требование, и shall, который в современной речи почти исчез, но в клятвах и приказах остался.',
+    after: 'Обратите внимание на последнюю строку. Подпись «твоя сестра, которая подписывается так, а не „твоя покорная слуга“» — это в письме единственное прямое высказывание, и оно стоит там, где его нельзя не заметить.',
+    body: `To Lord Corran of Stonemarch, from his sister, by raven.
+
+My lord brother,
+
+Our father died on the ninth day of the month. He was not in pain at the end, whatever the healer may write to you, and he asked for you twice. I have told the household that he asked for you once, because the second time he was not himself, and I would not have that carried through the halls.
+
+The harvest is in. It is thin, but it is in, and the granaries will hold until spring if the winter is an ordinary one. I do not think it will be an ordinary one.
+
+Lord Aemon has written twice to ask for my hand, and twice I have thanked him for the honour and said nothing else. He will not wait for a third letter. If you would have me refuse him outright, say so plainly and I shall. If you would have me accept, say that plainly too. Do not send me half a sentence and call it a command.
+
+Come home before the roads close. Whatever you are owed at court will still be owed in the spring, and the men here are asking who they serve.
+
+Your sister, who signs herself so and not "your obedient servant",
+Aleth`,
+    translation: `Лорду Коррану Стоунмарчскому, от его сестры, с вороном.
+
+Милорд брат,
+
+Отец умер на девятый день месяца. В конце он не страдал — что бы ни писал тебе лекарь — и дважды звал тебя. Домашним я сказала, что звал один раз: во второй он был уже не в себе, и я не хочу, чтобы это разнесли по всему дому.
+
+Урожай убран. Он скудный, но убран, и амбаров хватит до весны, если зима будет обычной. Я не думаю, что она будет обычной.
+
+Лорд Эймон дважды писал, прося моей руки, и дважды я благодарила его за честь и не говорила больше ничего. Третьего письма он ждать не станет. Если ты хочешь, чтобы я отказала ему прямо, — скажи это ясно, и я откажу. Если хочешь, чтобы приняла, — скажи ясно и это. Не присылай мне полфразы и не называй это приказом.
+
+Возвращайся, пока не закрылись дороги. Всё, что тебе должны при дворе, будут должны и весной, а здешние люди уже спрашивают, кому они служат.
+
+Твоя сестра, которая подписывается так, а не «твоя покорная слуга»,
+Алет`,
+    glossary: [
+      { term: 'by raven', ru: 'с вороном (почта в фэнтези)' },
+      { term: 'household', ru: 'домочадцы, вся челядь дома' },
+      { term: 'to ask for someone’s hand', ru: 'просить руки' },
+      { term: 'outright', ru: 'прямо, наотрез' },
+      { term: 'plainly', ru: 'ясно, без обиняков' },
+      { term: 'granary', ru: 'амбар, зернохранилище' },
+      { term: 'to be owed', ru: 'причитаться, быть должным кому-то' },
+      { term: 'I shall', ru: 'обещание в старом регистре: «и я сделаю»' },
+    ],
+    questions: [
+      {
+        q: 'Why did she tell the household that their father asked for his son only once?',
+        options: [
+          'She did not hear the second time',
+          'The second time he was not in his right mind, and she did not want that repeated around the house',
+          'She was angry with her brother',
+          'The healer told her to',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"If you would have me refuse him" means…',
+        options: [
+          'if you want me to refuse him',
+          'if you would refuse him yourself',
+          'if you had refused him',
+          'if he refuses me',
+        ],
+        correct: 0,
+        why: 'Would have somebody do something — «хотеть, чтобы кто-то сделал». Оборот старый и книжный, но в договорах и приказах живой до сих пор.',
+      },
+      {
+        q: 'What does she want from her brother?',
+        options: [
+          'Money for the winter',
+          'A clear answer instead of a vague one',
+          'Permission to leave the castle',
+          'A new healer',
+        ],
+        correct: 1,
+        why: '«Do not send me half a sentence and call it a command» — она просит не решения, а определённости.',
+      },
+      {
+        q: 'What is the point of the way she signs the letter?',
+        options: [
+          'It is the standard formula of the time',
+          'She is refusing the usual submissive formula, and doing it visibly',
+          'She forgot her title',
+          'It shows she is not really his sister',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-got-2',
+    workId: 'got',
+    lang: 'en', title: 'Присяга привратной стражи', level: 'C1', minutes: 2,
+    topic: 'Работа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Клятвы в сериале — отдельный жанр: их произносят вслух, при всех, и потом весь сюжет держится на том, кто её нарушил. Ниже наша присяга вымышленного отряда. Здесь стоит смотреть не на смысл, а на конструкцию: shall в каждом предложении — это не будущее время, а обещание, и различать их приходится по контексту.',
+    after: 'Последняя строка — то, ради чего такие тексты вообще пишут: «ты будешь в отряде, пока не умрёшь, а после этого ты нам не нужен». Клятва всегда договор, и невыгодную сторону в ней проговаривают в конце.',
+    body: `THE OATH OF THE ASHGUARD
+
+Say the words with me, and say them loudly enough for the whole hall to hear.
+
+I take this post of my own will.
+I shall hold the gate while I can stand, and when I cannot stand I shall hold it sitting.
+I shall take no land, no wife, no crown and no coin that is offered to me for the turning of my head.
+I shall obey the captain of the watch in all things concerning the gate, and in nothing else, for he is my captain and not my lord.
+If I am asked to open the gate by any voice but his, I shall not open it, though the voice be the king's own.
+I shall not speak of what passes through the gate at night.
+
+This I swear by fire and by iron. Let the fire take me if I lie, and let the iron take me if I run.
+
+Rise. You are of the Ashguard now, and you will be of it until you are dead, and after that we shall not need you.`,
+    translation: `ПРИСЯГА ПЕПЕЛЬНОЙ СТРАЖИ
+
+Повторяй за мной и говори так, чтобы слышал весь зал.
+
+Я принимаю этот пост по своей воле.
+Я буду держать ворота, пока стою на ногах, а когда не смогу стоять — буду держать их сидя.
+Я не приму ни земли, ни жены, ни короны, ни монеты из тех, что предлагают за то, чтобы я отвернулся.
+Я буду подчиняться начальнику стражи во всём, что касается ворот, и ни в чём другом, ибо он мне начальник, а не господин.
+Если открыть ворота мне велит любой голос, кроме его, я не открою, будь то и голос самого короля.
+Я не стану говорить о том, что проходит в ворота ночью.
+
+В том клянусь огнём и железом. Пусть огонь возьмёт меня, если я солгал, и пусть железо возьмёт меня, если я побегу.
+
+Встань. Ты теперь из Пепельной стражи и будешь в ней, пока не умрёшь, а после этого ты нам не понадобишься.`,
+    glossary: [
+      { term: 'oath', ru: 'клятва, присяга' },
+      { term: 'to take a post', ru: 'заступить на пост' },
+      { term: 'of my own will', ru: 'по своей воле' },
+      { term: 'to turn one’s head', ru: 'отвернуться, закрыть глаза (на что-то)' },
+      { term: 'the watch', ru: 'стража, караул' },
+      { term: 'though the voice be', ru: 'даже если голос — (старое сослагательное)' },
+      { term: 'to swear by', ru: 'клясться чем-либо' },
+    ],
+    questions: [
+      {
+        q: 'What does "no coin that is offered to me for the turning of my head" mean?',
+        options: [
+          'No payment for turning around',
+          'No bribe for looking the other way',
+          'No wages at all',
+          'No gift from the king',
+        ],
+        correct: 1,
+        why: 'To turn one’s head — «отвернуться», то есть сделать вид, что не заметил. Вся строка — про взятку.',
+      },
+      {
+        q: 'Whom does the guard obey, and in what?',
+        options: [
+          'The king, in everything',
+          'The captain of the watch, but only in matters of the gate',
+          'His lord, in everything',
+          'Nobody',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is "shall" doing in this text?',
+        options: [
+          'Making a simple future tense',
+          'Marking a promise or an obligation',
+          'Asking a question',
+          'Showing the past',
+        ],
+        correct: 1,
+        why: 'Это shall обещания и обязательства. В современной речи оно осталось в клятвах, договорах и законах: the tenant shall pay…',
+      },
+    ],
+  },
+  {
+    id: 'sc-got-3',
+    workId: 'got',
+    lang: 'en', title: 'Объявление о турнире', level: 'B2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Турнир в таком сериале — не спорт, а способ собрать в одном месте всех, кто друг друга ненавидит. Ниже наше объявление глашатая: призы, правила, запреты. Полезно оно не фэнтези, а конструкцией are to be — так по-английски до сих пор пишут регламенты и приказы: «блюда подавать к семи», «заявки подать до пятницы».',
+    after: 'Последняя строка объявления — «поле вмещает две тысячи, а город заметно меньше» — и есть настоящая причина, по которой такие турниры в сериалах кончаются плохо.',
+    body: `BY ORDER OF THE LORD OF STONEMARCH
+A TOURNEY IS PROCLAIMED
+
+To be held on the field below the north wall, beginning on the first morning after the harvest feast and lasting three days.
+
+THE PRIZES
+For the joust: forty gold pieces and a horse of the winner's choosing from the lord's own stable.
+For the archery: twenty gold pieces.
+For the melee: ten gold pieces, and the arms of every man the winner unseats.
+
+THE RULES
+Any free man may enter. Any man who is not free may enter with the written consent of the house he serves.
+Names are to be given to the herald before sundown on the day the tourney opens. No name will be taken after that hour for any reason. It is useless to argue with the herald, who cannot read and will not pretend to.
+Blades are to be blunted. A man who brings a live blade to the melee forfeits his place, his horse and his arms, and will be asked to leave the field on foot.
+Quarrels begun at the tourney are to be finished at the tourney. Quarrels carried home are the lord's business, and the lord has business enough.
+
+Come armed, come sober and come early. The field holds two thousand and the town holds rather fewer.`,
+    translation: `ПО ПРИКАЗУ ЛОРДА СТОУНМАРЧСКОГО
+ОБЪЯВЛЯЕТСЯ ТУРНИР
+
+Быть ему на поле под северной стеной, начаться первым утром после праздника урожая и длиться три дня.
+
+НАГРАДЫ
+За конный поединок: сорок золотых и конь из конюшни лорда — на выбор победителя.
+За стрельбу из лука: двадцать золотых.
+За общую схватку: десять золотых и оружие каждого, кого победитель выбьет из седла.
+
+ПРАВИЛА
+Участвовать может любой свободный человек. Несвободный — с письменного согласия дома, которому служит.
+Имена подавать глашатаю до захода солнца в день открытия турнира. После этого часа имён не принимают ни по какой причине. Спорить с глашатаем бесполезно: он не умеет читать и делать вид не станет.
+Клинки затупить. Тот, кто выйдет на общую схватку с боевым клинком, теряет своё место, коня и оружие и будет выведен с поля пешком.
+Ссоры, начатые на турнире, на турнире и заканчивать. Ссоры, увезённые домой, — дело лорда, а у лорда дел и без того хватает.
+
+Приходите вооружёнными, трезвыми и заранее. Поле вмещает две тысячи, а город — заметно меньше.`,
+    glossary: [
+      { term: 'tourney', ru: 'турнир (старая форма от tournament)' },
+      { term: 'joust', ru: 'конный поединок на копьях' },
+      { term: 'melee', ru: 'общая схватка' },
+      { term: 'to unseat', ru: 'выбить из седла' },
+      { term: 'consent', ru: 'согласие' },
+      { term: 'herald', ru: 'глашатай' },
+      { term: 'sundown', ru: 'заход солнца' },
+      { term: 'to forfeit', ru: 'лишиться, потерять по правилам' },
+      { term: 'are to be given', ru: 'следует подать (регламентное долженствование)' },
+    ],
+    questions: [
+      {
+        q: 'Can a man who is not free take part?',
+        options: [
+          'No, never',
+          'Yes, if the house he serves gives written consent',
+          'Yes, but only in the archery',
+          'Only on the third day',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happens to a man who brings a sharp blade to the melee?',
+        options: [
+          'He is fined',
+          'He loses his place, his horse and his arms',
+          'He fights first',
+          'Nothing is said about it',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Names are to be given to the herald before sundown" means…',
+        options: [
+          'Names are usually given before sundown',
+          'Names must be given before sundown',
+          'Names may be given before sundown',
+          'Names were given before sundown',
+        ],
+        correct: 1,
+        why: 'Be to do — регламентное «надлежит». Так пишут распоряжения и инструкции: passengers are to remain seated.',
+      },
+      {
+        q: 'Why does the notice end by comparing the field and the town?',
+        options: [
+          'To show the town is small and there will not be room for everyone',
+          'To advertise the town',
+          'To explain the prizes',
+          'To describe the walls',
+        ],
+        correct: 0,
+      },
+    ],
+  },
 ]

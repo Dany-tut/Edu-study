@@ -147,6 +147,20 @@ export interface DeckSource {
   doneTitle?: string
 }
 
+/**
+ * Метрики кнопок под пустой и под пройденной стопкой. Общие, потому что
+ * `emptyExtra` приходит снаружи и встаёт в один ряд с «вернуть последнюю»:
+ * без единой высоты ряд выглядит сломанным.
+ */
+export const DECK_CTA = {
+  height: 34,
+  padding: '0 14px',
+  fontSize: 12.5,
+  fontWeight: 650,
+  gap: 6,
+  icon: 14,
+} as const
+
 export default function CardDeck({ owner, accent, lang, subject, emptyExtra, source, tourExtra }: {
   owner?: { studentId?: string; anonName?: string }
   accent: string
@@ -372,7 +386,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         // Промах на ПОСЛЕДНЕЙ карточке иначе не отменить: сессия уже закрыта,
         // а кнопка «вернуть» живёт только под стопкой.
         extra={<>
-          {undoStack.current.length > 0 && <UndoButton onClick={undo} label={t('вернуть последнюю')} />}
+          {undoStack.current.length > 0 && <UndoButton onClick={undo} label={t('вернуть последнюю')} big />}
           {emptyExtra}
         </>}
       />
@@ -1084,19 +1098,29 @@ function Overlay({ side, opacity, label, tone }: {
   )
 }
 
-function UndoButton({ onClick, label, disabled }: { onClick: () => void; label: string; disabled?: boolean }) {
+/**
+ * `big` — вариант под пройденной стопкой: там кнопка стоит в ряд с «Пройти
+ * заново», и обе обязаны быть одной высоты. В строке под колодой она мелкая,
+ * вровень с кнопкой подсказок.
+ */
+function UndoButton({ onClick, label, disabled, big }: {
+  onClick: () => void; label: string; disabled?: boolean; big?: boolean
+}) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 999,
+        display: 'inline-flex', alignItems: 'center', gap: big ? DECK_CTA.gap : 5, borderRadius: 999,
+        ...(big
+          ? { height: DECK_CTA.height, padding: DECK_CTA.padding, fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight }
+          : { padding: '6px 12px', fontSize: 12, fontWeight: 600 }),
         border: '1px solid var(--color-border-soft)', background: 'transparent', fontFamily: 'inherit',
-        fontSize: 12, fontWeight: 600, cursor: disabled ? 'default' : 'pointer',
+        cursor: disabled ? 'default' : 'pointer',
         color: disabled ? 'var(--color-text-3)' : 'var(--color-text-2)',
       }}
     >
-      <Undo2 size={13} /> {label}
+      <Undo2 size={big ? DECK_CTA.icon : 13} /> {label}
     </button>
   )
 }
@@ -1139,9 +1163,29 @@ function Empty({ icon, title, text, extra }: {
       border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
     }}>
       <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{icon}</div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginBottom: 6 }}>{title}</div>
-      <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-muted)' }}>{text}</div>
-      {extra && <div style={{ marginTop: 14 }}>{extra}</div>}
+      <div style={{
+        fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginBottom: 6,
+        ...balancedWrap,
+      }}>{bindShortWords(title)}</div>
+      {/* Длину строки держим сами: на широком экране абзац растягивался во всю
+          карточку и ломался где придётся. `\n` в тексте = отдельный абзац. */}
+      <div style={{ maxWidth: 380, margin: '0 auto' }}>
+        {text.split('\n').map((line, i) => (
+          <div key={i} style={{
+            fontSize: 13, lineHeight: 1.6, color: 'var(--color-muted)',
+            marginTop: i ? 6 : 0, ...balancedWrap,
+          }}>{bindShortWords(line)}</div>
+        ))}
+      </div>
+      {/* Кнопок под пройденной стопкой бывает две — «вернуть» и «пройти
+          заново». Ряд задаётся здесь, чтобы отступ между ними не зависел от
+          того, кто их прислал. */}
+      {extra && (
+        <div style={{
+          marginTop: 14, display: 'flex', flexWrap: 'wrap',
+          justifyContent: 'center', alignItems: 'center', gap: 8,
+        }}>{extra}</div>
+      )}
     </div>
   )
 }

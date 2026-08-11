@@ -3218,10 +3218,10 @@ export default function HomeworkFlow({
                     <p style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
                       {t('Что дальше')}
                     </p>
-                    <p style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-muted)' }}>
-                      {basicWrong.length > 0
+                    <p style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap }}>
+                      {bindShortWords(basicWrong.length > 0
                         ? `${t('Ошибок:')} ${basicWrong.length}. ${t('Их слова уже в колоде повторения — вернуться к ним можно в тренажёре.')}`
-                        : t('Ошибок нет. Домашка закрыта — результат уже у преподавателя.')
+                        : t('Ошибок нет. Домашка закрыта — результат уже у преподавателя.'))
                       }
                     </p>
                   </div>

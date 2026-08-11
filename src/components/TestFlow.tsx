@@ -6,6 +6,8 @@ import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
 import WordBankSolver from './WordBankSolver'
+import ChamoTrace from './ChamoTrace'
+import SyllableBuilder from './SyllableBuilder'
 import MatchingSolver, { matchingFromMap, matchingToMap } from './MatchingSolver'
 import AudioPlayer from './AudioPlayer'
 import { upsertLessonProgress } from '../lib/db'
@@ -337,6 +339,30 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                         )
                       })}
                     </div>
+                  </div>
+                )}
+
+                {/* trace — обводка буквы по чертам. Ответ один: 'done', когда
+                    пройдены все черты; сверять тут нечего, см. taskTypes.ts. */}
+                {tp === 'trace' && task.chamo && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <ChamoTrace
+                      chamo={task.chamo}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* buildSyllable — слог собирают из букв; ответ пишется списком
+                    букв через запятую, ровно его ждёт gradeTask(). */}
+                {tp === 'buildSyllable' && task.syllable && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <SyllableBuilder
+                      syllable={task.syllable}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
                   </div>
                 )}
               </div>

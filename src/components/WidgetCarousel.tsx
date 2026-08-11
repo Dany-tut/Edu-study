@@ -11,6 +11,7 @@ import QuestionOfDayWidget from './QuestionOfDayWidget'
 import TrainerProgressWidget from './TrainerProgressWidget'
 import StickersWidget from './StickersWidget'
 import { useDashboard } from '../store/dashboardStore'
+import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
 
 const WIDGETS = ['Статистика', 'Научные факты', 'Реакции', 'Фокус', 'Мемы', 'Вопрос дня'] as const
@@ -38,11 +39,12 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
   const perPage = columnsOverride ?? storeColumns
   const rawOrder = useDashboard(s => s.widgetOrder)
   const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
-  // Teacher-enforced hard-hide: drop any widget the teacher hid for this student
-  // so it never renders and leaves no empty trailing page.
-  const widgetOrder = hiddenWidgets.length
-    ? rawOrder.filter(id => !hiddenWidgets.includes(id))
-    : rawOrder
+  // Два фильтра поверх сохранённого порядка, оба — только на показ:
+  //   • teacher-enforced hard-hide (учитель убрал виджет этому ученику);
+  //   • уместность (чужой предмет / пустой контент) — lib/widgetVisibility.ts.
+  // Ни один не переписывает настройки ученика: сменится курс — виджет вернётся.
+  const relevant = useWidgetRelevance()
+  const widgetOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
   const pageCount = Math.max(1, Math.ceil(widgetOrder.length / perPage))

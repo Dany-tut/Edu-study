@@ -196,6 +196,10 @@ export interface LessonDetail {
    *  no recording has been attached yet. */
   videoSource?: VideoSource
   timecodes: LessonTimecode[]
+  /** Рабочая тетрадь / конспект-PDF урока. Пусто, пока файл не прикреплён —
+   *  плитка на экране урока в этом случае неактивна (см. lessonMaterials). */
+  workbookFile?: string
+  notebookFile?: string
   materials: LessonMaterial[]
   /** Body of the lesson's "Конспект" — a handful of paragraphs, with any
    *  reactions from `courseReactions` woven in as their own paragraphs. */
@@ -203,17 +207,18 @@ export interface LessonDetail {
   homework?: LessonHomework
 }
 
-// Reference downloadable materials, keyed by subject id. Mirrors the prototype's
-// Материалы dropdown (Таблица Менделеева, Таблица растворимостей for chemistry).
-const materialsBySubject: Record<string, LessonMaterial[]> = {
-  chemistry: [
-    { id: 'mendeleev', name: 'Таблица Менделеева', emoji: '🧪', gradient: 'linear-gradient(135deg, #6EC6FF, #2D6BE0)' },
-    { id: 'solubility', name: 'Таблица растворимостей', emoji: '💧', gradient: 'linear-gradient(135deg, #6EE7A0, #1E9E63)' },
-  ],
-  biology: [
-    { id: 'taxonomy', name: 'Систематика растений', emoji: '🌿', gradient: 'linear-gradient(135deg, #8FE06E, #2D9A45)' },
-    { id: 'cell', name: 'Строение клетки', emoji: '🔬', gradient: 'var(--grad-purple)' },
-  ],
+/** Файлы урока: рабочая тетрадь, конспект-PDF, справочные материалы.
+ *
+ *  Пусто у всех уроков, и это правда, а не заглушка: прикрепить файл сейчас
+ *  негде — редактор курса и редактор урока держат ИМЕНА выбранных файлов в
+ *  черновике (localStorage) и не пишут их ни в lessons, ни в Storage. Плитки на
+ *  экране урока читают это поле и рисуются неактивными, пока оно пустое.
+ *
+ *  Раньше здесь лежал зашитый набор по предметам с фолбэком на химию — и урок
+ *  английского предлагал скачать таблицу Менделеева и таблицу растворимостей.
+ */
+function lessonMaterials(_lesson: Lesson): LessonMaterial[] {
+  return []
 }
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
@@ -252,7 +257,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       date: dateStr,
       videoSource,
       timecodes,
-      materials: materialsBySubject.chemistry,
+      materials: lessonMaterials(lesson),
       paragraphs: ap.paragraphs,
       homework: authoredHw ?? buildApHomework(lesson, dateStr, ap),
     }
@@ -267,7 +272,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     date: dateStr,
     videoSource,
     timecodes,
-    materials: materialsBySubject[lesson.subject] ?? materialsBySubject.chemistry,
+    materials: lessonMaterials(lesson),
     paragraphs: descParagraphs,
     homework: authoredHw ?? undefined,
   }
@@ -339,6 +344,11 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     pattern: t.pattern,
     patternGloss: t.patternGloss,
     patternItems: t.patternItems,
+    // Письменность: буква для обводки и эталонный слог. Решатели включаются
+    // именно по ним, а не по типу — без переноса задание доезжало до ученика
+    // с пустым chamo/syllable и показывалось полем «Развёрнутый ответ».
+    chamo: t.chamo,
+    syllable: t.syllable,
   }
 }
 

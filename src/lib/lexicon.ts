@@ -66,6 +66,64 @@ function cls(c: string | undefined): 'd' | 'l' | 'x' {
 /** Ключ словаря: регистр для латиницы не значим, для остального нейтрален. */
 const key = (s: string) => s.toLowerCase()
 
+// ─── Английские формы ────────────────────────────────────────────────────────
+//
+// ПОЧЕМУ ЗДЕСЬ МОРФОЛОГИЯ ЕСТЬ, А ВЫШЕ НАПИСАНО, ЧТО ЕЁ НЕТ. Выше речь о
+// корейском и японском: там окончание приклеено к слову без пробела, вариантов
+// разреза много, и угадывание границы врёт. Английское словоизменение устроено
+// иначе — окончаний ровно четыре (-s, -ed, -ing, -er/-est/-ly), и проверка
+// здесь не «угадать», а «отрезать и посмотреть, есть ли ТАКАЯ основа в
+// словаре». Нет основы — ничего не показываем, поэтому ложных срабатываний
+// почти не бывает: sauntered находит saunter, а bring не находит br.
+//
+// Зачем вообще: держать в словаре face, faces, facing и faced четырьмя записями
+// — это вчетверо больше работы ради одного и того же перевода, и всё равно не
+// покрывает текст, которого мы не видели. Форма помечается («форма слова…»),
+// чтобы ученик видел, что перевод дан для основы, а не для того, во что он ткнул.
+
+/** Минимальная длина основы: короче — почти всегда мусор (his → hi, as → a). */
+const MIN_STEM = 3
+
+/** Двойная согласная на конце: stopped → stop, running → run. */
+const undouble = (s: string) =>
+  s.length > 3 && s[s.length - 1] === s[s.length - 2] && !'aeiou'.includes(s[s.length - 1])
+    ? s.slice(0, -1)
+    : null
+
+/**
+ * Возможные основы английской словоформы — от самой вероятной к менее.
+ *
+ * Список кандидатов, а не ответ: какой из них настоящий, решает наличие записи
+ * в словаре (см. buildLexicon).
+ */
+function enStems(k: string): string[] {
+  const out: string[] = []
+  const add = (s: string | null | undefined) => { if (s && s.length >= MIN_STEM) out.push(s) }
+  // Притяжательное и стяжения с апострофом: men's → men.
+  const apos = k.match(/^(.+?)['’](s|d|ll|ve|re|m)$/)
+  if (apos) add(apos[1])
+  if (k.endsWith('ies') && k.length > 4) add(k.slice(0, -3) + 'y')
+  if (k.endsWith('es') && k.length > 3) { add(k.slice(0, -2)); add(k.slice(0, -1)) }
+  else if (k.endsWith('s') && !k.endsWith('ss') && k.length > 3) add(k.slice(0, -1))
+  if (k.endsWith('ied') && k.length > 4) add(k.slice(0, -3) + 'y')
+  if (k.endsWith('ed') && k.length > 3) {
+    add(k.slice(0, -1))          // liked → like
+    add(k.slice(0, -2))          // walked → walk
+    add(undouble(k.slice(0, -2))) // stopped → stop
+  }
+  if (k.endsWith('ing') && k.length > 4) {
+    add(k.slice(0, -3))              // walking → walk
+    add(k.slice(0, -3) + 'e')        // making → make
+    add(undouble(k.slice(0, -3)))    // running → run
+  }
+  if (k.endsWith('ily') && k.length > 4) add(k.slice(0, -3) + 'y')
+  if (k.endsWith('ly') && k.length > 3) { add(k.slice(0, -2)); add(k.slice(0, -2) + 'e') }
+  if (k.endsWith('ier') || k.endsWith('iest')) add(k.replace(/i(er|est)$/, 'y'))
+  if (k.endsWith('er') && k.length > 4) { add(k.slice(0, -2)); add(k.slice(0, -1)) }
+  if (k.endsWith('est') && k.length > 5) { add(k.slice(0, -3)); add(k.slice(0, -2)) }
+  return out
+}
+
 /**
  * Собрать словарь для языка.
  *
@@ -85,7 +143,29 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
   for (const g of WORD_GLOSS[lang] ?? []) put(g)
   for (const g of extra) put(g)
 
-  const lookup = (term: string) => map.get(key(term.trim()))
+  /**
+   * Перевод для словоформы, которой нет в словаре как отдельной записи.
+   *
+   * Только для английского: остальные три языка либо не режутся по окончаниям
+   * (корейский, японский), либо режутся, но с чередованиями в основе
+   * (португальский: durmo/dormir), и там отрезание врало бы.
+   */
+  const derived = (word: string): WordGloss | undefined => {
+    if (lang !== 'en') return undefined
+    for (const stem of enStems(key(word))) {
+      const g = map.get(stem)
+      if (!g) continue
+      // reading основы для формы не годится — его считает translit.
+      return {
+        term: word,
+        ru: g.ru,
+        note: g.note ? `форма слова «${g.term}» · ${g.note}` : `форма слова «${g.term}»`,
+      }
+    }
+    return undefined
+  }
+
+  const lookup = (term: string) => map.get(key(term.trim())) ?? derived(term.trim())
 
   function segment(text: string): Segment[] {
     const out: Segment[] = []
@@ -143,7 +223,11 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
         // Голое число переводить нечего — оно и так понятно, поэтому не делаем
         // его кликабельным: подсказка «нет в словаре» на каждой цифре только
         // мешает.
-        out.push({ text: run, word: LETTER.test(run) })
+        // Слово целиком в словаре не нашлось — пробуем его основу (walking →
+        // walk). Проверка тут, а не в жадном поиске выше: там перебираются
+        // куски строки, и отрезать окончание у куска значило бы искать основу
+        // внутри соседнего слова.
+        out.push({ text: run, gloss: LETTER.test(run) ? derived(run) : undefined, word: LETTER.test(run) })
         i = j
         continue
       }

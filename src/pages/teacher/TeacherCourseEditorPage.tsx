@@ -8,6 +8,7 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
+  ListVideo, Play, ListPlus,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
@@ -34,10 +35,15 @@ import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
 import {
-  theoryToParagraphs, appendTheoryImage, removeTheoryImage, captionOf,
+  theoryToParagraphs, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
   type TheoryImage,
 } from '../../lib/theoryImages'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
+import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
+import { parseVideoSource } from '../../lib/videoSource'
+import { emptyWatch } from '../../lib/videoProgress'
+import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonContent'
+import { ALL_CHAMO, CHAMO, chamoOf, type ChamoKind } from '../../data/hangul'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +71,12 @@ export interface CELesson {
   /** Quiz tasks when kind === 'test'. */
   testTasks?: HWTask[]
   videoUrl?: string
+  /**
+   * Главы записи — то, по чему ученик прыгает внутри ролика. Ложатся в
+   * lessons.timecodes, откуда их читает плеер урока (см. lib/db.ts). Секунды
+   * держим рядом со строкой времени: по ним и сортировка, и подсветка главы.
+   */
+  timecodes?: LessonTimecode[]
   description?: string
   /**
    * Конспект урока — то, что ученик читает на вкладке «Конспект».
@@ -843,42 +855,291 @@ function ScheduleCard({
   )
 }
 
+// ─── «Запись»: главы ролика ───────────────────────────────────────────────────
+
+/** «12:30» / «1:02:03» → секунды. Мусор и пустая строка дают 0. */
+function clockToSeconds(raw: string): number {
+  const parts = raw.trim().split(':')
+  if (parts.length > 3 || parts.some(p => !/^\d{1,2}$/.test(p.trim()))) return 0
+  return parts.reduce((acc, p) => acc * 60 + Number(p.trim()), 0)
+}
+
+/** Секунды → «12:30». Часы появляются только у длинных записей: у получасового
+ *  ролика «0:12:30» читается как чужой формат. */
+function secondsToClock(total: number): string {
+  const s = Math.max(0, Math.floor(total))
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  const mm = h > 0 ? String(m).padStart(2, '0') : String(m)
+  return `${h > 0 ? `${h}:` : ''}${mm}:${String(sec).padStart(2, '0')}`
+}
+
+function sortCodes(codes: LessonTimecode[]): LessonTimecode[] {
+  return [...codes].sort((a, b) => a.seconds - b.seconds)
+}
+
+/**
+ * Разбор списка глав, скопированного из описания ролика: «0:00 Интро»,
+ * «[12:30] — Разбор», «1:02:03. Итог». Строки без времени или без названия
+ * пропускаем молча — в таком списке всегда есть посторонний текст.
+ */
+function parseTimecodeList(text: string): LessonTimecode[] {
+  const out: LessonTimecode[] = []
+  for (const line of text.split('\n')) {
+    const m = line.match(/^\s*\[?(\d{1,2}(?::\d{1,2}){1,2})\]?\s*[-–—.:)|]*\s*(.*)$/)
+    if (!m) continue
+    const label = m[2].trim()
+    if (!label) continue
+    const seconds = clockToSeconds(m[1])
+    out.push({ time: secondsToClock(seconds), label, seconds })
+  }
+  return out
+}
+
+/**
+ * Панель глав рядом с плеером. Время не набирают руками: кнопка ставит главу на
+ * той секунде, где сейчас стоит ролик, — поэтому в редакторе и живёт настоящий
+ * плеер, а не карточка со ссылкой. Поле времени всё же редактируемое: главы
+ * часто переносят из описания ролика, где секунды уже посчитаны.
+ */
+function TimecodeRail({
+  codes, onChange, at, total, onSeek,
+}: {
+  codes: LessonTimecode[]
+  onChange: (next: LessonTimecode[]) => void
+  at: number
+  total: number
+  onSeek?: (seconds: number) => void
+}) {
+  const t = useT()
+  const [bulk, setBulk] = useState<string | null>(null)
+  const rowRefs = useRef<Array<HTMLInputElement | null>>([])
+  const active = activeTimecodeIndex(codes, at)
+
+  function patch(i: number, p: Partial<LessonTimecode>) {
+    onChange(codes.map((c, j) => (j === i ? { ...c, ...p } : c)))
+  }
+
+  function addHere() {
+    const s = Math.floor(at)
+    const next = sortCodes([...codes, { time: secondsToClock(s), label: '', seconds: s }])
+    onChange(next)
+    // Фокус — в название новой главы: время уже проставлено, набирать осталось
+    // только его. setTimeout, а не rAF: в превью кадры не идут.
+    const idx = next.findIndex(c => c.seconds === s && !c.label)
+    setTimeout(() => rowRefs.current[idx]?.focus(), 0)
+  }
+
+  function applyBulk() {
+    const parsed = parseTimecodeList(bulk ?? '')
+    if (parsed.length) {
+      const busy = new Set(codes.map(c => c.seconds))
+      onChange(sortCodes([...codes, ...parsed.filter(p => !busy.has(p.seconds))]))
+    }
+    setBulk(null)
+  }
+
+  return (
+    <div style={{
+      width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
+      borderRadius: 24, padding: 16, minHeight: 0, maxHeight: PLAYER_MAX_H,
+      background: 'rgba(var(--glass-rgb), 0.96)',
+      border: '1px solid var(--color-border-soft)',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ListVideo size={16} style={{ color: 'var(--color-green-text)' }} />
+        <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
+        <span style={{ flex: 1 }} />
+        {total > 0 && (
+          <span style={{ fontSize: 11.5, fontWeight: 650, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)' }}>
+            {secondsToClock(at)} / {secondsToClock(total)}
+          </span>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
+        {codes.map((tc, i) => {
+          const isActive = i === active && total > 0
+          return (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 5, padding: 4, borderRadius: 12,
+              background: isActive ? 'var(--color-green-soft)' : 'transparent',
+              transition: 'background 0.2s',
+            }}>
+              <button
+                onClick={() => onSeek?.(tc.seconds)}
+                disabled={!onSeek}
+                title={t('Перейти к главе')}
+                style={{
+                  width: 26, height: 26, borderRadius: 8, flexShrink: 0, border: 'none',
+                  background: 'var(--color-bg-2)', cursor: onSeek ? 'pointer' : 'default',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: onSeek ? 'var(--color-green-text)' : 'var(--color-muted)',
+                }}
+              >
+                <Play size={11} fill="currentColor" />
+              </button>
+              <input
+                value={tc.time}
+                onChange={e => patch(i, { time: e.target.value, seconds: clockToSeconds(e.target.value) })}
+                onBlur={() => onChange(sortCodes(codes))}
+                placeholder="00:00"
+                style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
+              />
+              <input
+                ref={el => { rowRefs.current[i] = el }}
+                value={tc.label}
+                onChange={e => patch(i, { label: e.target.value })}
+                placeholder={t('Название главы')}
+                style={{ ...inputSt, flex: 1, minWidth: 0, padding: '6px 9px' }}
+              />
+              <button
+                onClick={() => onChange(codes.filter((_, j) => j !== i))}
+                style={{
+                  width: 26, height: 26, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
+                  background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          )
+        })}
+
+        {codes.length === 0 && bulk === null && (
+          <div style={{ padding: '18px 8px', textAlign: 'center', fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+            {t('Смотрите запись и жмите «Таймкод» — глава встанет на текущей секунде ролика')}
+          </div>
+        )}
+
+        {bulk !== null && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <textarea
+              autoFocus
+              value={bulk}
+              onChange={e => setBulk(e.target.value)}
+              placeholder={'0:00 Интро\n2:15 Новые слова\n12:30 Разбор'}
+              rows={6}
+              style={{ ...inputSt, resize: 'none', lineHeight: 1.5, fontVariantNumeric: 'tabular-nums' }}
+            />
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setBulk(null)}
+                style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {t('Отмена')}
+              </button>
+              <button onClick={applyBulk}
+                style={{ flex: 1, padding: '7px 12px', borderRadius: 10, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {t('Добавить')}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          onClick={addHere}
+          style={{
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
+            fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+          }}
+        >
+          <Plus size={13} /> {t('Таймкод')}
+          <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.75 }}>{secondsToClock(at)}</span>
+        </button>
+        <button
+          onClick={() => setBulk(bulk === null ? '' : null)}
+          title={t('Вставить списком')}
+          style={{
+            width: 38, borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
+            background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <ListPlus size={14} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function CenterRecording({
-  lesson, onSaveVideo,
+  lesson, onUpdate,
 }: {
   lesson: CELesson
-  onSaveVideo: (url: string) => void
+  onUpdate: (updated: CELesson) => void
 }) {
   const t = useT()
   const [linkMode, setLinkMode] = useState(false)
   const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
 
+  // Плеер прямо в редакторе: главу ставят с текущей секунды ролика, а не
+  // переписывают время из соседнего окна. Прогресс просмотра учителя никуда не
+  // пишется — плееру нужен только неизменный стартовый объект (иначе он на
+  // каждый ре-рендер сбрасывал бы своё состояние).
+  const source = useMemo(() => parseVideoSource(lesson.videoUrl), [lesson.videoUrl])
+  const playerRef = useRef<LessonVideoHandle>(null)
+  const startWatch = useRef(emptyWatch()).current
+  const [at, setAt] = useState(0)
+  const [total, setTotal] = useState(0)
+  const codes = useMemo(() => lesson.timecodes ?? [], [lesson.timecodes])
+
   const content = (() => {
   if (lesson.videoUrl && !linkMode) {
     return (
-      <OverlayScrollArea style={{ flex: 1 }} padding="28px 36px">
-        <div style={{ maxWidth: 640, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Label>{t('Запись урока')}</Label>
-            <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
-              style={{ fontSize: 11, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-              {t('Изменить')}
-            </button>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Video size={14} style={{ color: 'var(--color-green-text)' }} />
           </div>
-          <div style={{
-            padding: '14px 16px', borderRadius: 14, background: 'var(--color-bg-2)',
-            border: '1.5px solid var(--color-border-medium)',
-            display: 'flex', alignItems: 'center', gap: 10,
-          }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Video size={16} style={{ color: 'var(--color-green-text)' }} />
-            </div>
-            <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {lesson.videoUrl}
-            </span>
-          </div>
+          <span style={{ fontSize: 12.5, color: 'var(--color-text-3)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {lesson.videoUrl}
+          </span>
+          <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
+            style={{ fontSize: 11.5, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
+            {t('Изменить')}
+          </button>
         </div>
-      </OverlayScrollArea>
+
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
+          <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column' }}>
+            {source ? (
+              <LessonVideoPlayer
+                key={lesson.videoUrl}
+                ref={playerRef}
+                source={source}
+                title={lesson.title}
+                timecodes={codes}
+                initialWatch={startWatch}
+                onPersist={() => {}}
+                onTime={(s, d) => { setAt(s); setTotal(d) }}
+              />
+            ) : (
+              <div style={{
+                flex: 1, borderRadius: 24, border: '1.5px dashed var(--color-border-medium)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24, textAlign: 'center',
+              }}>
+                <Video size={26} style={{ color: 'var(--color-muted)' }} />
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Ссылку не удалось разобрать')}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Предпросмотра нет — таймкоды справа можно проставить вручную')}</div>
+              </div>
+            )}
+          </div>
+
+          <TimecodeRail
+            codes={codes}
+            onChange={next => onUpdate({ ...lesson, timecodes: next })}
+            at={at}
+            total={total}
+            onSeek={source ? s => playerRef.current?.playFrom(s) : undefined}
+          />
+        </div>
+      </div>
     )
   }
 
@@ -899,7 +1160,7 @@ function CenterRecording({
               style={{ padding: '9px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('Отмена')}
             </button>
-            <button onClick={() => { onSaveVideo(videoUrl); setLinkMode(false) }}
+            <button onClick={() => { onUpdate({ ...lesson, videoUrl }); setLinkMode(false) }}
               style={{ flex: 1, padding: '9px 18px', borderRadius: 12, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('Сохранить')}
             </button>
@@ -967,6 +1228,9 @@ function TheoryImages({
   const t = useT()
   const fileRef = useRef<HTMLInputElement>(null)
   const images = lesson.theoryImages ?? []
+  // Порядок полосы — порядок картинок в тексте урока, а не порядок загрузки:
+  // маркер можно двигать между абзацами, и список должен читаться как урок.
+  const placed = orderedTheoryImages(lesson.theory ?? '', images)
 
   function add(file: File) {
     optimizePhoto(file)
@@ -987,17 +1251,30 @@ function TheoryImages({
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) add(f); e.target.value = '' }}
       />
-      {images.length > 0 && (
+      {placed.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
-          {images.map(img => (
+          {placed.map(({ image: img, caption, position }) => (
             <div key={img.key} style={{
               position: 'relative', padding: 8, borderRadius: 12,
               border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)',
+              opacity: position === null ? 0.55 : 1,
             }}>
+              {/* Номер по тексту, а не по ключу: ключи не переиспользуются после
+                  удаления, и по img:N порядок в уроке не читается. */}
+              {position !== null && (
+                <div style={{
+                  position: 'absolute', top: 4, left: 4, zIndex: 2, minWidth: 22, height: 22, padding: '0 6px',
+                  borderRadius: 11, background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700, boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                }}>
+                  {position}
+                </div>
+              )}
               <img src={img.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff' }} />
               <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 <code style={{ fontSize: 10, color: 'var(--color-muted)' }}>img:{img.key}</code>
-                {' · '}{captionOf(lesson.theory ?? '', img.key) || t('нет в тексте конспекта')}
+                {' · '}{caption || (position === null ? t('нет в тексте конспекта') : t('без подписи'))}
               </div>
               {/* zIndex обязателен: без него превью перекрывает крестик и
                   удалить картинку нельзя — клик уходит в картинку. */}
@@ -1524,6 +1801,63 @@ function cardLabel(front: string | undefined, reading: string | undefined): stri
   return r ? `${word} (${r})` : word
 }
 
+/**
+ * Выбор буквы для обводки — весь алфавит плитками, согласные и гласные порознь.
+ *
+ * Списком, а не полем ввода: обводка ведёт палец по чертам из data/hangul.ts, и
+ * буквы вне этого списка (слог, латиница, опечатка) дали бы пустой холст. Здесь
+ * же видно название и звук — учитель ставит задание, не сверяясь с таблицей.
+ */
+function ChamoPicker({ value, onChange, accent, accentBg }: {
+  value: string
+  onChange: (chamo: string) => void
+  accent: string
+  accentBg: string
+}) {
+  const t = useT()
+  const chosen = value ? CHAMO[value] : undefined
+  const groups: { kind: ChamoKind; title: string }[] = [
+    { kind: 'consonant', title: t('Согласные') },
+    { kind: 'vowel', title: t('Гласные') },
+  ]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {groups.map(g => (
+        <div key={g.kind}>
+          <div style={{ fontSize: 11, color: 'var(--color-text-4)', marginBottom: 5 }}>{g.title}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {ALL_CHAMO.filter(c => c.kind === g.kind).map(c => {
+              const on = c.ch === value
+              return (
+                <button
+                  key={c.ch}
+                  onClick={() => onChange(on ? '' : c.ch)}
+                  title={`${c.name} · ${c.sound}`}
+                  style={{
+                    width: 36, height: 36, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
+                    fontSize: 17, lineHeight: 1, fontWeight: on ? 700 : 500,
+                    border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
+                    background: on ? accentBg : 'var(--color-bg-input)',
+                    color: on ? accent : 'var(--color-text)',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  {c.ch}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+      <div style={{ fontSize: 11, color: chosen ? 'var(--color-text-3)' : 'var(--color-text-4)' }}>
+        {chosen
+          ? `${chosen.ch} · ${chosen.name} · ${chosen.sound} — ${chosen.strokes.length} ${t('черты по порядку письма')}`
+          : t('Пока буква не выбрана, задание покажется ученику обычным полем ответа.')}
+      </div>
+    </div>
+  )
+}
+
 function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   task: HWTask; index: number
   onUpdate: (t: HWTask) => void
@@ -1898,6 +2232,46 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   </button>
                 </div>
               )}
+
+              {/* trace — какую букву обводят. Выбор из алфавита, а не поле
+                  ввода: черты берутся из data/hangul.ts по самой букве, и
+                  напечатанный слог (이) или латиница дали бы пустой холст. */}
+              {task.type === 'trace' && (
+                <div>
+                  <Label>{t('Буква для обводки')}</Label>
+                  <ChamoPicker value={task.chamo ?? ''} onChange={chamo => onUpdate({ ...task, chamo, ttsText: chamo })} accent={cfg.color} accentBg={cfg.bg} />
+                </div>
+              )}
+
+              {/* buildSyllable — эталонный слог. Состав считается по нему же,
+                  поэтому проверяем ввод сразу: слог, а не буква и не слово. */}
+              {task.type === 'buildSyllable' && (() => {
+                const syl = task.syllable ?? ''
+                const parts = chamoOf(syl)
+                const ok = [...syl].length === 1 && parts.length >= 2
+                return (
+                  <div>
+                    <Label>{t('Слог, который собирают')}</Label>
+                    <input
+                      value={syl}
+                      onChange={e => {
+                        // Один слог, не строка: задание про состав ОДНОГО слога.
+                        const next = [...e.target.value.trim()].slice(-1).join('')
+                        onUpdate({ ...task, syllable: next, ttsText: next })
+                      }}
+                      placeholder={t('Например 김')}
+                      style={{ ...inputSt, width: 120, fontSize: 22, textAlign: 'center', padding: '8px 12px' }}
+                    />
+                    <div style={{ fontSize: 11, color: ok ? 'var(--color-text-3)' : 'var(--color-red-text)', marginTop: 6 }}>
+                      {ok
+                        ? `${syl} = ${parts.join(' + ')} — ${t('ученик соберёт слог из этих букв')}`
+                        : syl
+                          ? t('Это не слог хангыля — буква, латиница или знак. Черты и состав взять неоткуда.')
+                          : t('Пока слог не указан, задание покажется ученику обычным полем ответа.')}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* flashcard — словарная карточка: лицо (слово) и оборот (перевод).
                   Без этого блока карточки выглядели в редакторе пустыми: у них
@@ -4030,6 +4404,11 @@ export default function TeacherCourseEditorPage() {
       position: i,
       lesson_number: i,
       youtube_url: lesson.videoUrl ?? null,
+      // Главы записи. Пустые строки не пишем: пустая глава в плеере ученика —
+      // это безымянная засечка на шкале, которую он не может ни понять, ни снять.
+      timecodes: (lesson.timecodes ?? [])
+        .filter(tc => tc.label.trim())
+        .map(tc => ({ time: tc.time, label: tc.label.trim(), seconds: tc.seconds })),
       description: lesson.description ?? null,
       // Конспект → lessons.content.paragraphs, откуда его читает вкладка
       // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
@@ -4839,7 +5218,7 @@ export default function TeacherCourseEditorPage() {
                       <CenterRecording
                         key={selectedLesson.id}
                         lesson={selectedLesson}
-                        onSaveVideo={url => updateLesson({ ...selectedLesson, videoUrl: url })}
+                        onUpdate={updateLesson}
                       />
                     )}
                     {lessonMode === 'lesson' && (

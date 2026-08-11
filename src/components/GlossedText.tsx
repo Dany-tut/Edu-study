@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Volume2 } from 'lucide-react'
 import { buildLexicon, type Segment } from '../lib/lexicon'
 import { transcribe } from '../lib/translit'
@@ -62,7 +63,7 @@ export function TierChip({ term, lang, accent, style }: {
 /** Ширина карточки перевода. Уже — начинает переносить корейские пометки. */
 const POP_W = 264
 
-export default function GlossedText({ text, lang, extra = [], accent, overlay = false, style }: {
+export default function GlossedText({ text, lang, extra = [], accent, highlight, style }: {
   text: string
   /** Код языка: en, ko, ja, pt-BR — им же озвучиваем. */
   lang: string
@@ -70,18 +71,14 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
   extra?: WordGloss[]
   accent: string
   /**
-   * Выносить подсказку из потока — в портал поверх страницы.
+   * Слово, выбранное СНАРУЖИ — в словаре текста рядом с читалкой. Все его
+   * вхождения заливаются, первое подкручивается в вид.
    *
-   * ЗАЧЕМ. Обычно карточка лежит абсолютом внутри абзаца и едет вместе с ним
-   * при скролле — это правильно для текста, который читают целиком. Но текст
-   * бывает и внутри коробки со своими границами: карточка стопки поворачивается
-   * (transform), её оборот прокручивается (overflow), и любой из этих предков
-   * обрезает подсказку — слово подсвечивалось, а перевода не было видно вовсе.
-   * С overlay подсказка рисуется в body по координатам окна, поэтому её не
-   * режет ничей overflow; расплата — она не едет со скроллом, поэтому на скролл
-   * закрывается.
+   * Зачем: список слов сбоку сам по себе бесполезен — слово надо увидеть в
+   * предложении, иначе непонятно, в какой форме и с чем оно стоит. Искать его
+   * глазами по абзацу — ровно та работа, которую машина делает лучше.
    */
-  overlay?: boolean
+  highlight?: string | null
   style?: React.CSSProperties
 }) {
   const t = useT()
@@ -99,6 +96,47 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
   const [pinned, setPinned] = useState(false)
   const [pos, setPos] = useState<{ x: number; y: number; w: number; above: boolean } | null>(null)
 
+  // Выбранное снаружи слово в виде, пригодном для сверки с кусками текста.
+  //
+  // Точного совпадения мало: словарь текста пишет инфинитив с частицей («to
+  // forsake»), а в тексте стоит форма («forsaking»). Морфологии у нас нет и не
+  // будет (см. lib/lexicon.ts), поэтому для латиницы сверяем ещё и по началу
+  // слова: отсекаем «to» и конечное -e и требуем совпадения хотя бы пяти букв —
+  // короткие слова так ловят чужое («on» внутри «only»), длинные почти нет.
+  const hl = useMemo(() => {
+    const term = highlight?.trim().toLowerCase() ?? ''
+    if (!term) return null
+    const bare = term.replace(/^to\s+/, '')
+    const stem = /^[\p{L}'’-]+$/u.test(bare) && bare.length >= 5 ? bare.replace(/e$/, '') : ''
+    return { term, bare, stem }
+  }, [highlight])
+
+  const isHit = (seg: Segment) => {
+    if (!hl || !seg.word) return false
+    const s = seg.text.trim().toLowerCase()
+    if (s === hl.term || s === hl.bare) return true
+    if (seg.gloss && seg.gloss.term.trim().toLowerCase() === hl.term) return true
+    return !!hl.stem && s.startsWith(hl.stem)
+  }
+
+  // Первое вхождение — якорь прокрутки.
+  const firstHit = useRef<HTMLElement | null>(null)
+  const firstHitIndex = useMemo(
+    () => (hl ? segments.findIndex(isHit) : -1),
+    [hl, segments],
+  )
+
+  useEffect(() => {
+    const el = firstHit.current
+    if (!hl || !el) return
+    const r = el.getBoundingClientRect()
+    // Крутим, только если слово вне вида: дёргать страницу, когда искомое и так
+    // на экране, — потеря места, а не помощь.
+    if (r.top < 80 || r.bottom > window.innerHeight - 80) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+  }, [hl])
+
   // На тач-устройстве наведение эмулируется и «залипает» — там только тап.
   const canHover = useMemo(
     () => typeof matchMedia !== 'undefined' && matchMedia('(hover: hover)').matches,
@@ -107,8 +145,8 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
-  // Закрытие: клик мимо или Esc. Скролл карточку не трогает — она лежит внутри
-  // абзаца и едет вместе со словом, к которому привязана.
+  // Закрытие: клик мимо или Esc. Скролл карточку не закрывает — она едет за
+  // словом (см. эффект пересчёта ниже).
   //
   // «Мимо» — это всё, кроме самой карточки и слова, которое её открыло: тыкать
   // повторно в то же слово, чтобы убрать подсказку, — лишний прицел, гасить
@@ -143,19 +181,18 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
     const t1 = window.setTimeout(again, 0)
     const t2 = window.setTimeout(again, 160)
     window.addEventListener('resize', again)
-    // Вынесенная в портал подсказка стоит по координатам окна и со скроллом не
-    // едет, поэтому на скролл её закрываем: висящая на пустом месте карточка
-    // хуже, чем её отсутствие. В обычном режиме подсказка внутри абзаца и
-    // скролл ей не мешает — там слушателя нет.
-    const onScroll = () => close()
-    if (overlay) window.addEventListener('scroll', onScroll, true)
+    // Карточка стоит по координатам окна, поэтому за словом её надо вести
+    // руками: на скролл — пересчёт, а не закрытие. Слушатель на фазе перехвата,
+    // потому что крутится обычно не окно, а коробка внутри страницы (оборот
+    // карточки, колонка урока), и её события до window не всплывают.
+    window.addEventListener('scroll', again, true)
     const ro = new ResizeObserver(again)
     if (wrapRef.current) ro.observe(wrapRef.current)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
       window.removeEventListener('resize', again)
-      if (overlay) window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('scroll', again, true)
       ro.disconnect()
     }
   }, [active])
@@ -168,24 +205,20 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
     setPos(null)
   }
 
-  /**
-   * Координаты карточки: относительно обёртки (она position: relative) или
-   * относительно окна, если подсказка вынесена в портал.
-   */
+  /** Координаты карточки в окне: она нарисована в портале, поверх страницы. */
   function place(el: HTMLElement) {
-    const wrap = wrapRef.current
-    if (!wrap) return
-    const w = overlay ? { left: 0, top: 0 } : wrap.getBoundingClientRect()
     const r = el.getBoundingClientRect()
+    // Слово уехало под край своей коробки — карточке не над чем стоять.
+    if (!inSight(el, r)) { close(); return }
     // Над словом, если под ним меньше 190px до низа окна.
     const above = window.innerHeight - r.bottom < 190
     const width = Math.min(POP_W, window.innerWidth - 16)
     // Карточка стоит ПО ЦЕНТРУ слова, а упирается в края ЭКРАНА, а не колонки
     // текста. Ограничение по колонке выглядело сдвигом: у слова в начале строки
     // карточку прижимало к левому краю абзаца, хотя рядом было пусто.
-    const centreVp = r.left + r.width / 2
-    const xVp = Math.max(8, Math.min(centreVp - width / 2, window.innerWidth - width - 8))
-    setPos({ x: xVp - w.left, y: above ? r.top - w.top : r.bottom - w.top, w: width, above })
+    const centre = r.left + r.width / 2
+    const x = Math.max(8, Math.min(centre - width / 2, window.innerWidth - width - 8))
+    setPos({ x, y: above ? r.top : r.bottom, w: width, above })
   }
 
   function open(i: number, seg: Segment, el: HTMLElement, pin: boolean) {
@@ -210,11 +243,13 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
       {segments.map((seg, i) => {
         if (!seg.word) return <span key={i}>{seg.text}</span>
         const on = active?.i === i
+        const hit = isHit(seg)
         return (
           <span
             key={i}
             role="button"
             tabIndex={-1}
+            ref={i === firstHitIndex ? (el => { firstHit.current = el }) : undefined}
             onClick={e => {
               if (on && pinned) close()
               else open(i, seg, e.currentTarget, true)
@@ -235,10 +270,18 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
               borderRadius: 4,
               // Известное слово помечено пунктиром — видно, что в тексте есть
               // опора. Сплошная подсветка на каждом слове превратила бы абзац в
-              // рябь, поэтому фон только у активного.
-              borderBottom: seg.gloss ? `1px dotted ${accent}80` : '1px dotted transparent',
-              background: on ? `${accent}22` : 'transparent',
-              boxShadow: on ? `0 0 0 2px ${accent}22` : 'none',
+              // рябь, поэтому фон только у активного и у выбранного в словаре.
+              //
+              // Выбранное снаружи слово держится ярче наведения: наведение —
+              // мимолётное состояние под курсором, а тут ученик специально
+              // спросил «где оно в тексте», и ответ должен быть виден с одного
+              // взгляда, в том числе когда таких вхождений несколько.
+              borderBottom: hit
+                ? `1px solid ${accent}`
+                : seg.gloss ? `1px dotted ${accent}80` : '1px dotted transparent',
+              background: hit ? `${accent}3d` : on ? `${accent}22` : 'transparent',
+              boxShadow: hit || on ? `0 0 0 2px ${hit ? `${accent}3d` : `${accent}22`}` : 'none',
+              transition: 'background 140ms ease',
             }}
           >
             {seg.text}
@@ -246,11 +289,13 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
         )
       })}
 
-      {active && pos && (
+      {active && pos && createPortal(
         <div
           ref={popRef}
           style={{
-            position: 'absolute', left: pos.x, top: pos.y, width: pos.w, zIndex: 40,
+            // 4000 — этаж выпадающих списков, вынесенных в портал: выше модалок
+            // (2000–3000), потому что текст со словами бывает и внутри них.
+            position: 'fixed', left: pos.x, top: pos.y, width: pos.w, zIndex: 4000,
             transform: pos.above ? 'translateY(-100%) translateY(-8px)' : 'translateY(8px)',
             // Тот же радиус, что у карточек текста и вопросов: подсказка —
             // такой же блок интерфейса, а не всплывашка из другой системы.
@@ -295,7 +340,7 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
           <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', marginTop: 6, ...proseWrap }}>
             {active.seg.gloss
               ? bindShortWords(active.seg.gloss.ru)
-              : <span style={{ color: 'var(--color-text-3)' }}>{t('Этого слова нет в словаре — но послушать можно.')}</span>}
+              : <span style={{ color: 'var(--color-text-3)' }}>{bindShortWords(t('Этого слова нет в словаре — но послушать можно.'))}</span>}
           </div>
           {/* Вес слова: стоит ли учить его сейчас. Показывается только у ядра и
               полезного — плашка «редкое» на каждом втором слове превратила бы
@@ -307,8 +352,34 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
               {bindShortWords(active.seg.gloss.note)}
             </div>
           )}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
+}
+
+/**
+ * Видно ли слово: не ушло ли оно под край окна или прокручиваемой коробки.
+ *
+ * Нужно потому, что карточка нарисована в body по координатам окна и никакой
+ * overflow её больше не режет — а значит, и не прячет, когда само слово уже
+ * уехало из вида. Подсказка, висящая над чужим местом, читается как поломка,
+ * поэтому границы предков проверяем сами.
+ */
+function inSight(el: HTMLElement, r: DOMRect) {
+  let left = 0, top = 0, right = window.innerWidth, bottom = window.innerHeight
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const cs = getComputedStyle(p)
+    if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue
+    const pr = p.getBoundingClientRect()
+    left = Math.max(left, pr.left)
+    top = Math.max(top, pr.top)
+    right = Math.min(right, pr.right)
+    bottom = Math.min(bottom, pr.bottom)
+  }
+  // Хватает половины строки: слово, наполовину заехавшее под край, ещё читается
+  // как то самое, по которому нажали.
+  return r.right > left && r.left < right
+    && r.bottom - r.height / 2 > top && r.top + r.height / 2 < bottom
 }

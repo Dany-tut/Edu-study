@@ -32,7 +32,7 @@ import TrainerSkeleton from '../components/trainer/TrainerSkeleton'
 import CardDeck, { type DeckSource } from '../components/CardDeck'
 import { captureMistake, deckOwner, type ReviewCard } from '../data/reviewDeck'
 import { getContrastColor } from '../lib/utils'
-import { bindShortWordsHtml } from '../lib/typography'
+import { bindShortWords, bindShortWordsHtml, balancedWrap } from '../lib/typography'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
@@ -1257,7 +1257,13 @@ function ProgressModal({
                 {wrongTasks.slice(0, 12).map(wt => (
                   <div key={wt.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 11, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)' }}>
                     <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 10, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
-                    <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} dangerouslySetInnerHTML={{ __html: wt.question.replace(/<[^>]*>/g, '').slice(0, 55) }} />
+                    {/* Две строки, а не одна: по 55 символам «Установите соответствие
+                        между процессом и ур…» не отличить одно задание от другого,
+                        а список ошибок нужен именно чтобы узнать своё. */}
+                    <span style={{
+                      flex: 1, fontSize: 12, lineHeight: 1.3, color: 'var(--color-text)',
+                      display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden',
+                    }} dangerouslySetInnerHTML={{ __html: wt.question.replace(/<[^>]*>/g, '').slice(0, 160) }} />
                     <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Л.')}{wt.line}</span>
                   </div>
                 ))}
@@ -1270,7 +1276,7 @@ function ProgressModal({
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <div style={{ fontSize: 32, marginBottom: 10 }}>🎯</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Ещё нет решённых заданий')}</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 5 }}>{t('Начни отвечать — здесь появится статистика')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 5 }}>{bindShortWords(t('Начни отвечать — здесь появится статистика'))}</div>
             </div>
           )}
         </div>
@@ -1392,7 +1398,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
         {answered.size === 0 && (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-3)' }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{t('Ещё нет решённых заданий')}</div>
-            <div style={{ fontSize: 12 }}>{t('Начни отвечать — здесь появится статистика')}</div>
+            <div style={{ fontSize: 12 }}>{bindShortWords(t('Начни отвечать — здесь появится статистика'))}</div>
           </div>
         )}
       </div>
@@ -1689,8 +1695,15 @@ export default function TaskBankPage() {
   const setOpenModal = useTrainerProgress(s => s.setOpenModal)
   useEffect(() => {
     if (isLangTrainer) return  // языковые числа шлёт LanguageTrainer, у него свой материал
+    // Пока курсы не приехали, `subject` — не предмет ученика, а заглушка для
+    // расчётов (первый предмет банка). Отправлять её в стор нельзя: сама
+    // страница в этот момент показывает скелетон, а пилюля в шапке успевала
+    // написать «ТРЕНАЖЁР · ХИМИЯ» человеку, который учит корейский.
+    // (`waitedTooLong` — та же страховка, что и у скелетона страницы: сеть
+    // подвела, но пилюля не должна остаться серой навсегда.)
+    if (!dataLoaded && !waitedTooLong) return
     updateProgress({ doneCount, wrongCount, totalCount, favCount: favorites.size, todayCorrect, todayWrong, subject, subjectId: subject, kind: 'bank' })
-  }, [doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject, isLangTrainer])
+  }, [dataLoaded, waitedTooLong, doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject, isLangTrainer])
   useEffect(() => {
     if (openModal) { setShowProgressModal(true); setOpenModal(false) }
   }, [openModal])
@@ -1836,7 +1849,7 @@ export default function TaskBankPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <span>{t('Заданий не найдено — измените фильтры')}</span>
+              <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
               <button onClick={() => { tactile(); clearFilters() }}
                 style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {t('Сбросить фильтры')}
@@ -2313,7 +2326,7 @@ export default function TaskBankPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <span>{t('Заданий не найдено — измените фильтры')}</span>
+          <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
           <button onClick={clearFilters}
             style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             {t('Сбросить фильтры')}

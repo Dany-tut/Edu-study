@@ -62,13 +62,17 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
                 <Tile key={w.id} accent={accent} onClick={() => onOpen(w.id)}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                     <TileChip tone="accent" accent={accent} soft={soft}>
-                      {w.medium === 'series' ? <Tv size={11} /> : <BookOpen size={11} />}
-                      {' '}{w.medium === 'series' ? t('сериал') : t('книга')}
+                      {/* inline-flex, а не значок с пробелом: в обычной строке
+                          плашка ужималась по ширине и переносила подпись под
+                          иконку, превращая её в двухэтажную. */}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        {w.medium === 'series' ? <Tv size={11} /> : <BookOpen size={11} />}
+                        {w.medium === 'series' ? t('сериал') : t('книга')}
+                      </span>
                     </TileChip>
                     {/* Возраст показываем только там, где он что-то значит:
                         плашка «12+» на каждой карточке — визуальный шум. */}
                     {w.age !== '12+' && <TileChip tone="mute">{w.age}</TileChip>}
-                    {w.bucket === 'pd' && <TileChip tone="mute">{t('оригинал')}</TileChip>}
                   </span>
 
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>

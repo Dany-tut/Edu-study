@@ -640,13 +640,70 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
  * как чужая наклейка. Палитра берётся из реестра предметов, как и весь
  * остальной тренажёр; красным остаётся только ошибка — это смысл, а не тема.
  */
+/**
+ * Пилюля тренажёра на время загрузки.
+ *
+ * Предмет приезжает вместе с курсами ученика; до этого его просто нет. Раньше
+ * пилюля всё равно рисовала полный виджет и подставляла первый предмет банка —
+ * после F5 в шапке секунду висело «ТРЕНАЖЁР · ХИМИЯ · Начни решать задания»
+ * поверх страницы, целиком состоящей из скелетона. Геометрия здесь та же
+ * (кружок 40px + кикер + строка), поэтому содержимое проявляется на месте
+ * плашек, а не сдвигает их.
+ */
+function TrainerProgressSkeleton() {
+  return (
+    <div role="status" aria-busy="true"
+      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
+      <span aria-hidden className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'block' }} />
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 7, paddingTop: 4 }}>
+        <span aria-hidden className="skeleton" style={{ display: 'block', width: '52%', height: 9, borderRadius: 999 }} />
+        <span aria-hidden className="skeleton" style={{ display: 'block', width: '78%', height: 12, borderRadius: 999 }} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Точка состояния часов: залитая и дышит — время идёт, полая и серая — пауза.
+ *
+ * Появилась потому, что без неё виджет со счётчиком отвечал на единственный
+ * вопрос к нему — «а он вообще считает?» — только через пять минут и только
+ * если ученик запомнил, сколько было. Пауза наступает сама (вкладка ушла с
+ * экрана или три минуты без действий), и молчать о ней нельзя.
+ */
+function ClockDot({ on, color }: { on: boolean; color: string }) {
+  const t = useT()
+  const size = 6
+  const base = {
+    width: size, height: size, borderRadius: '50%', flexShrink: 0, display: 'block',
+  } as const
+  if (!on) {
+    return <span aria-label={t('Пауза')} title={t('Пауза')} style={{ ...base, border: '1px solid var(--color-text-3)', opacity: 0.7 }} />
+  }
+  return (
+    <motion.span
+      aria-label={t('Время идёт')}
+      title={t('Время идёт')}
+      animate={{ opacity: [1, 0.3, 1] }}
+      transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+      style={{ ...base, background: color }}
+    />
+  )
+}
+
 function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   const t = useT()
   const { dark } = useTheme()
   const {
     doneCount, wrongCount, totalCount, todayCorrect, todayWrong,
-    subject, subjectId, kind, todayMs, streak, setOpenModal,
+    subject, subjectId, kind, todayMs, streak, counting, setOpenModal,
   } = useTrainerProgress()
+  // Курсы ещё в пути и предмет тренажёра неизвестен — показывать нечего.
+  // Проверяем ОБА условия: на главной ученик мог вообще не открывать тренажёр,
+  // и после загрузки `subjectId` останется пустым — там работает обычный
+  // запасной вид, а не вечный скелетон.
+  const dataLoaded = useStudentData(s => s.loaded)
+  if (!dataLoaded && !subjectId) return <TrainerProgressSkeleton />
 
   const palette = resolveSubjectPalette(subjectId || subject, dark)
   const accent = palette.accent
@@ -664,7 +721,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   const avatarCirc = 2 * Math.PI * avatarR
   const avatarDash = avatarCirc * (goalPct / 100)
 
-  const pill = (key: string, value: string, label: string, fg: string, bg: string) => (
+  const pill = (key: string, value: string, label: string, fg: string, bg: string, lead?: React.ReactNode) => (
     <motion.div
       key={key}
       initial={false}
@@ -672,7 +729,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
       transition={PILL_T}
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: bg, color: fg, fontWeight: 700, lineHeight: 1 }}
     >
-      <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>{value}</motion.span>
+      <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5 }}>{lead}{value}</motion.span>
       <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
         {label}
       </motion.span>
@@ -688,6 +745,16 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'relative',
       }}>
+        {/* Пульс вокруг кружка — «часы идут прямо сейчас». Виден и в свёрнутой
+            пилюле, где текста почти нет. */}
+        {counting && (
+          <motion.span
+            aria-hidden
+            animate={{ scale: [1, 1.35], opacity: [0.35, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
+            style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `1.5px solid ${accent}`, pointerEvents: 'none' }}
+          />
+        )}
         <svg width="40" height="40" viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
           <circle cx="20" cy="20" r={avatarR} fill="none" stroke={`${accent}33`} strokeWidth="3.5" />
           <circle cx="20" cy="20" r={avatarR} fill="none" stroke={accent} strokeWidth="3.5"
@@ -705,13 +772,20 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
           fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
-          {t('Тренажёр')} · <span style={{ color: palette.text }}>{t(def?.name ?? subject ?? 'прогресс')}</span>
+          {/* `||`, а не `??`: у предмета из стора пустая строка — это «предмета
+              нет», и точка с пустотой после неё выглядела как обрезанный текст. */}
+          {t('Тренажёр')} · <span style={{ color: palette.text }}>{t(def?.name || subject || 'прогресс')}</span>
         </span>
 
         {/* Пилюли — плавно перетекают из капсулы в плитку */}
         {started ? (
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 2 }}>
-            {pill('time', formatShort(todayMs), t('Сегодня'), palette.text, `${accent}26`)}
+            {pill(
+              'time', formatShort(todayMs),
+              counting ? t('Сейчас идёт') : t('Пауза'),
+              palette.text, `${accent}26`,
+              <ClockDot on={counting} color={accent} />,
+            )}
             {todayCorrect > 0 && pill(
               'right', `✓ ${todayCorrect}`,
               kind === 'lang' ? t('Знаю') : t('Верно'),
@@ -727,8 +801,13 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {streak > 1 && expanded && pill('streak', `🔥 ${streak}`, t('Дней подряд'), palette.text, `${accent}1F`)}
           </div>
         ) : (
-          <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
-            {kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
+          <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* Первая минута ещё не набралась. Показывать «0м» нечестно, но и
+                молчать нельзя: точка отвечает на «а он вообще считает?». */}
+            {counting && <ClockDot on color={accent} />}
+            {counting
+              ? t('Считаю время…')
+              : kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
           </span>
         )}
 
@@ -738,8 +817,14 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           style={{ overflow: 'hidden', willChange: 'opacity' }}
         >
+          {/* Словами, а не только точкой: пауза должна объяснять себя, иначе
+              остановившийся счётчик читается как поломка. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 8 }}>
+            <ClockDot on={counting} color={accent} />
+            <span>{counting ? t('Время идёт') : t('Пауза — счёт вернётся с первым действием')}</span>
+          </div>
           {totalCount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 4 }}>
               <span>{kind === 'lang' ? t('Выучено') : t('Решено')} {doneCount} {t('из')} {totalCount}</span>
               <span style={{ color: palette.text, fontWeight: 700 }}>{pct}%</span>
             </div>

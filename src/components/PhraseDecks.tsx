@@ -46,7 +46,7 @@ import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
 import { speechLocale, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
-import CardDeck, { type DeckSource } from './CardDeck'
+import CardDeck, { DECK_CTA, type DeckSource } from './CardDeck'
 import GlossedText from './GlossedText'
 import { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
@@ -309,7 +309,7 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
     // формулировка по умолчанию («карточки набираются сами») в этом месте
     // читалась бы как поломка.
     emptyTitle: 'На сегодня тема закрыта',
-    emptyText: 'Все фразы этой темы уже разобраны и ждут своего дня. Можно прогнать её заново — расписание при этом продолжит считаться.',
+    emptyText: 'Все фразы этой темы уже разобраны и ждут своего дня.\nМожно прогнать её заново — расписание при этом продолжит считаться.',
   }), [phrases, drill, book.key, theme.id, theme.title, subjectId, owner, view.reverse, view.reading, onGraded])
 
   if (run === 'list') return <PhraseList phrases={phrases} accent={accent} view={view} lang={lang} />
@@ -340,12 +340,13 @@ function DrillButton({ accent, onClick }: { accent: string; onClick: () => void 
     <button
       onClick={onClick}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999,
+        display: 'inline-flex', alignItems: 'center', gap: DECK_CTA.gap, borderRadius: 999,
+        height: DECK_CTA.height, padding: DECK_CTA.padding,
         border: `1px solid ${accent}66`, background: 'transparent', color: accent,
-        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650, cursor: 'pointer',
+        fontFamily: 'inherit', fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight, cursor: 'pointer',
       }}
     >
-      <RotateCcw size={14} /> {t('Пройти заново')}
+      <RotateCcw size={DECK_CTA.icon} /> {t('Пройти заново')}
     </button>
   )
 }
@@ -408,12 +409,25 @@ function PhraseList({ phrases, accent, view, lang }: {
                 style={{
                   fontSize: on ? 30 : 15, fontWeight: 650, color: 'var(--color-text)',
                   lineHeight: 1.3, letterSpacing: on ? 0.2 : 0,
+                  display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
                   transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.24s ease',
                 }}
               >
                 {on
                   ? <GlossedText text={p.term} lang={lang} accent={accent} />
                   : p.term}
+                {/* Динамик стоит вплотную к фразе, как и у примера: у правого
+                    края карточки до него было тянуться через весь перевод. */}
+                <button
+                  onClick={e => { e.stopPropagation(); say(p.term) }}
+                  aria-label={t('Послушать')}
+                  style={{
+                    flexShrink: 0, display: 'flex', border: 'none', background: 'none',
+                    cursor: 'pointer', color: accent, padding: 0,
+                  }}
+                >
+                  <Volume2 size={on ? 17 : 14} />
+                </button>
               </div>
               {view.reading && p.reading && (
                 <div style={{
@@ -433,10 +447,8 @@ function PhraseList({ phrases, accent, view, lang }: {
               {/* Пример — та же фраза внутри предложения. Оригинал крупнее
                   перевода: смотреть надо на него, перевод только подтверждает
                   догадку. Пример слушают отдельно от заглавной фразы, поэтому
-                  кнопка у него своя — но стоит она вплотную к тексту, а не по
-                  правому краю: отогнанная к краю, она вставала посреди карточки
-                  вторым динамиком рядом с динамиком строки и читалась как сбой
-                  вёрстки. */}
+                  кнопка у него своя — и, как у фразы, стоит вплотную к тексту:
+                  оба динамика ищут в одном месте, слева, а не по краям. */}
               {on && p.ex && (
                 <div style={{
                   marginTop: 10, paddingLeft: 10, borderLeft: `2px solid ${accent}55`,
@@ -472,16 +484,6 @@ function PhraseList({ phrases, accent, view, lang }: {
             <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', flexShrink: 0, maxWidth: '42%', textAlign: 'right', lineHeight: 1.4 }}>
               {p.ru}
             </div>
-            <button
-              onClick={e => { e.stopPropagation(); say(p.term) }}
-              aria-label={t('Послушать')}
-              style={{
-                flexShrink: 0, display: 'flex', border: 'none', background: 'none',
-                cursor: 'pointer', color: accent, padding: 0,
-              }}
-            >
-              <Volume2 size={15} />
-            </button>
           </div>
         )
       })}

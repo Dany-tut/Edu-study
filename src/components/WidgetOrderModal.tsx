@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { GripVertical, Plus, Minus, X } from 'lucide-react'
 import { useDashboard } from '../store/dashboardStore'
 import { WIDGET_META } from '../data/widgets'
+import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
 
 const EASE = [0.32, 0.72, 0, 1] as const
@@ -83,12 +84,16 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
   const savedOrder = useDashboard(s => s.widgetOrder)
   const setWidgetOrder = useDashboard(s => s.setWidgetOrder)
   const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
+  // Виджеты чужого предмета (химия у языкового курса) и пустые контентные в
+  // список не попадают: показывать в настройках то, чего в карусели нет, — врать.
+  const relevant = useWidgetRelevance()
+  const editable = (id: number) => !hiddenWidgets.includes(id) && relevant(id)
 
-  const [order, setOrder] = useState<number[]>(savedOrder.filter(id => !hiddenWidgets.includes(id)))
+  const [order, setOrder] = useState<number[]>(savedOrder.filter(editable))
 
   // Start each session from the saved order, minus any teacher-hard-hidden widget
   // (intentionally only on open).
-  useEffect(() => { if (open) setOrder(savedOrder.filter(id => !hiddenWidgets.includes(id))) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open) setOrder(savedOrder.filter(editable)) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open) return
@@ -99,14 +104,22 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
 
   // Teacher-hard-hidden widgets are dropped entirely — they appear in neither the
   // shown list nor the "Скрытые" section, so the student can't re-enable them.
-  const hidden = WIDGET_META.filter(w => !order.includes(w.id) && !hiddenWidgets.includes(w.id))
+  const hidden = WIDGET_META.filter(w => !order.includes(w.id) && editable(w.id))
   const lastOne = order.length <= 1
 
   // Keep at least one widget visible — the carousel needs something to show.
   const hide = (id: number) => setOrder(prev => (prev.length <= 1 ? prev : prev.filter(x => x !== id)))
   const show = (id: number) => setOrder(prev => (prev.includes(id) ? prev : [...prev, id]))
 
-  const apply = () => { setWidgetOrder(order); onClose() }
+  // Виджеты, которых в модалке не было (скрыты предметом или пустотой), нельзя
+  // потерять при сохранении — иначе один визит в настройки на языковом курсе
+  // навсегда вычёркивает «Реакции» у того, кто учит ещё и химию. Дописываем их
+  // в хвост: на экране их сейчас всё равно нет, а место в порядке сохраняется.
+  const apply = () => {
+    const carried = savedOrder.filter(id => !order.includes(id) && !editable(id))
+    setWidgetOrder([...order, ...carried])
+    onClose()
+  }
 
   if (!open) return null
 

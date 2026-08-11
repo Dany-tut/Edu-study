@@ -29,7 +29,10 @@ const L = (
 
 export const DEMO_SUBJECTS: Subject[] = [
   {
-    id: 'chemistry', name: 'Химия', progress: 46, activeModuleId: 2, accessMode: 'custom',
+    // `subject` — тег предмета из реестра (lib/subjects.ts), как у настоящих
+    // курсов: по нему экраны понимают, какой предмет открыт (уместность
+    // виджетов, палитра, тренажёр). Без него демо вело себя не как прод.
+    id: 'chemistry', name: 'Химия', subject: 'Химия', progress: 46, activeModuleId: 2, accessMode: 'custom',
     modules: [
       {
         id: 1, label: 'Основы',
@@ -73,7 +76,7 @@ export const DEMO_SUBJECTS: Subject[] = [
     ],
   },
   {
-    id: 'biology', name: 'Биология', progress: 28, activeModuleId: 1, accessMode: 'by_date',
+    id: 'biology', name: 'Биология', subject: 'Биология', progress: 28, activeModuleId: 1, accessMode: 'by_date',
     modules: [
       {
         id: 1, label: 'Клетка',
@@ -96,7 +99,7 @@ export const DEMO_SUBJECTS: Subject[] = [
     ],
   },
   {
-    id: 'physics', name: 'Физика', progress: 60, activeModuleId: 2, accessMode: 'full',
+    id: 'physics', name: 'Физика', subject: 'Физика', progress: 60, activeModuleId: 2, accessMode: 'full',
     modules: [
       {
         id: 1, label: 'Механика',
@@ -118,7 +121,7 @@ export const DEMO_SUBJECTS: Subject[] = [
     ],
   },
   {
-    id: 'math', name: 'Математика', progress: 15, activeModuleId: 1, accessMode: 'custom',
+    id: 'math', name: 'Математика', subject: 'Математика', progress: 15, activeModuleId: 1, accessMode: 'custom',
     modules: [
       {
         id: 1, label: 'Алгебра',

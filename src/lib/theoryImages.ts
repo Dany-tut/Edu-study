@@ -146,11 +146,38 @@ export function removeTheoryImage(
   return { theory: kept.join('\n\n'), images: images.filter(img => img.key !== key) }
 }
 
-/** Подпись картинки в тексте конспекта — для превью в списке иллюстраций. */
-export function captionOf(theory: string, key: string): string {
+/** Картинка конспекта вместе с её местом в тексте. */
+export interface PlacedTheoryImage {
+  image: TheoryImage
+  /** Подпись из маркера. */
+  caption: string
+  /** Номер по порядку в тексте (1, 2, …) или null, если маркера в тексте нет. */
+  position: number | null
+}
+
+/**
+ * Картинки в порядке их появления в конспекте.
+ *
+ * Список хранит их в порядке загрузки, а маркер учитель двигает по тексту —
+ * поэтому «первая в списке» и «первая в уроке» расходятся. Полоса превью должна
+ * читаться как сам урок, иначе по ней не понять, что за чем идёт. Картинки без
+ * маркера уходят в конец: они нигде не показываются, и их место — «потеряшки».
+ */
+export function orderedTheoryImages(theory: string, images: TheoryImage[] = []): PlacedTheoryImage[] {
+  const placed = new Map<string, { caption: string; position: number }>()
   for (const chunk of theory.split(/\n\s*\n/)) {
     const fig = parseFigureLine(chunk.trim())
-    if (fig && fig.ref === `img:${key}`) return fig.caption
+    if (!fig || !fig.ref.startsWith('img:')) continue
+    const key = fig.ref.slice(4)
+    // Один и тот же ключ дважды — берём первое вхождение: оно и задаёт порядок.
+    if (!placed.has(key)) placed.set(key, { caption: fig.caption, position: placed.size + 1 })
   }
-  return ''
+  return images
+    .map(image => {
+      const hit = placed.get(image.key)
+      return { image, caption: hit?.caption ?? '', position: hit ? hit.position : null }
+    })
+    // MAX_SAFE_INTEGER, а не Infinity: у двух «потеряшек» Infinity − Infinity = NaN,
+    // и порядок сортировки ломается.
+    .sort((a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER))
 }

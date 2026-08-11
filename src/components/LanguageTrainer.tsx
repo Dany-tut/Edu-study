@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import AudioPlayer from './AudioPlayer'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
-import { bindShortWords, proseWrap } from '../lib/typography'
-import CardDeck from './CardDeck'
+import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
+import CardDeck, { DECK_CTA } from './CardDeck'
 import PhraseDecks, {
   ThemeSession, BackToSets, TakeWholeTheme, DeckHint, themeStats,
   type PhraseView, type RunMode,
@@ -775,7 +775,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               объясняет ровно то, почему список именно такой длины. */}
           {vocabView === 'nests' && (
             <RailCard title="Глубина" accent={palette.accent} icon={<Layers size={15} />}>
-              <RailStat label="Гнёзд открыто" value={nests.length} />
+              <RailStat label="Рядов открыто" value={nests.length} />
               {nestsLocked > 0 && <RailStat label="Ждут курса" value={nestsLocked} />}
               <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
                 {t(reachNote(reach))}
@@ -860,8 +860,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {mode === 'vocab' && !hasBook && vocabView !== 'nests' && (
         <RailCard title="Колода" accent={palette.accent} icon={<Layers size={15} />}>
           <RailStat label="На сегодня" value={due} tone={due > 0 ? 'warn' : undefined} />
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-            {t('Разговорника для этого языка пока нет — колода набирается из уроков и ошибок.')}
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+            {bindShortWords(t('Разговорника для этого языка пока нет — колода набирается из уроков и ошибок.'))}
           </div>
         </RailCard>
       )}
@@ -921,9 +921,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && vocabView === 'nests' && !openNest) {
     toolbar = (
       <Toolbar>
-        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или гнездо…')} />
+        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или ряд…')} />
         <ToolCount>
-          {visibleNests.length} {t('гнёзд')}
+          {visibleNests.length} {t('рядов')}
           {nestsLocked > 0 && ` · ${nestsLocked} ${t('ждут курса')}`}
         </ToolCount>
       </Toolbar>
@@ -1072,12 +1072,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       />
     ) : visibleNests.length === 0 ? (
       <ShellEmpty text={nests.length === 0
-        ? 'Гнёзда открываются по мере прохождения курса — пока ни одного юнита не пройдено.'
+        ? 'Ряды созвучий открываются по мере прохождения курса — пока ни одного юнита не пройдено.'
         : 'Под поиск ничего не подошло.'} />
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0, lineHeight: 1.6, ...proseWrap }}>
-          {t('Слова, которые слипаются на слух. Разбор показывает, чем они отличаются, прогон проверяет, слышно ли это, а промахи уходят в колоду повторений и возвращаются сами.')}
+          {bindShortWords(t('Слова, которые слипаются на слух. Разбор показывает, чем они отличаются, прогон проверяет, слышно ли это, а промахи уходят в колоду повторений и возвращаются сами.'))}
         </p>
         <NestGrid
           nests={visibleNests}
@@ -1143,9 +1143,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 onClick={seedFromTexts}
                 disabled={seeding}
                 style={{
-                  padding: '10px 18px', borderRadius: 999, cursor: seeding ? 'default' : 'pointer',
-                  border: `1.5px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
-                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
+                  height: DECK_CTA.height, padding: DECK_CTA.padding, borderRadius: 999,
+                  cursor: seeding ? 'default' : 'pointer',
+                  border: `1px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
+                  fontFamily: 'inherit', fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight,
                 }}
               >
                 {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossaryCards.length}`}
@@ -1215,18 +1216,6 @@ export function Chips({ label, value, options, onChange, accent }: {
   )
 }
 
-function Empty({ text }: { text: string }) {
-  return (
-    <div style={{
-      padding: '34px 22px', borderRadius: 18, textAlign: 'center',
-      border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-      fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)',
-    }}>
-      {text}
-    </div>
-  )
-}
-
 // ─── Читалка ─────────────────────────────────────────────────────────────────
 
 // Читалка и аудирование занимают экран целиком, минуя витрину TrainerShell, —
@@ -1240,6 +1229,13 @@ const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 2
 
 /** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
 const TOUR_KEY = 'lang-reader-tour-v1'
+
+/** Кнопки служебной строки на титрах: все одного роста, различаются только цветом. */
+const finishChip = {
+  display: 'inline-flex', alignItems: 'center', gap: 6,
+  padding: '9px 12px', borderRadius: 11, background: 'transparent',
+  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+} as const
 
 function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, onBack }: {
   text: ReadingText
@@ -1278,6 +1274,8 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   // то есть ровно тогда, когда слова уже забыты.
   const [tookWords, setTookWords] = useState<number | null>(null)
   const [takingWords, setTakingWords] = useState(false)
+  /** Перевод на титрах раскрывается кнопкой, а не нативным <details>. */
+  const [showTranslation, setShowTranslation] = useState(false)
   async function takeWords() {
     setTakingWords(true)
     try {
@@ -1498,6 +1496,10 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
             lang={lang}
             extra={text.glossary}
             accent={accent}
+            // Слово, выбранное в словаре текста слева, подсвечивается прямо в
+            // абзаце: список слов без их места в предложении — просто столбик,
+            // а искать слово глазами по тексту ученик не должен.
+            highlight={gloss}
             style={{ fontSize: 16.5, lineHeight: 1.85, color: 'var(--color-text)' }}
           />
         ) : (
@@ -1545,41 +1547,95 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
           {allAnswered ? t('Проверить') : t('Ответь на все вопросы')}
         </button>
       ) : (
+        /* Титры сцены. Раньше здесь первым и самым крупным был счёт, а «чем
+           кончилось» лежало под ним в оранжевой плашке — то есть громче всего
+           звучала цифра, ради которой сюда никто не шёл. Теперь экран закрывает
+           сцену: развязка набрана крупно и без заливки, а счёт, перевод и слова
+           ушли в служебную строку под ней. */
         <div style={{
-          padding: '16px 18px', borderRadius: 18, textAlign: 'center',
+          padding: '22px', borderRadius: 18,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>
-            {correctCount} / {text.questions.length}
+          <div style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
+            {scene && work ? `${work.title} · ${scene.where}` : `${text.topic} · ${text.level}`}
           </div>
 
           {/* «Чем кончилось» — награда за работу и крючок к следующей сцене.
               Открывается только здесь: до вопросов это спойлер, после — то,
-              ради чего вообще хочется открыть следующий отрывок. */}
-          {scene?.after && (
-            <div style={{
-              marginTop: 12, padding: '13px 15px', borderRadius: 14, textAlign: 'left',
-              background: palette.soft, border: `1px solid ${accent}33`,
-            }}>
-              <div style={{ fontSize: 11.5, fontWeight: 750, letterSpacing: 0.3, color: accent, textTransform: 'uppercase', marginBottom: 6 }}>
-                {t('Чем кончилось')}
-              </div>
-              <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text)', ...proseWrap }}>
-                {bindShortWords(scene.after)}
-              </div>
-            </div>
-          )}
+              ради чего вообще хочется открыть следующий отрывок. У учебного
+              текста развязки нет, и её место занимает итог проверки: иначе
+              экран начинался бы с пустоты. */}
+          <div style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--color-text)', marginTop: 10, ...balancedWrap }}>
+            {scene?.after
+              ? bindShortWords(scene.after)
+              : `${correctCount} ${t('из')} ${text.questions.length} ${t('верно')}`}
+          </div>
 
-          {/* Перевод открывается только после проверки: иначе читать оригинал незачем. */}
-          {text.translation && (
-            <details style={{ marginTop: 10, textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 700, color: accent }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+            marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)',
+          }}>
+            {scene?.after && (
+              <span style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
+                <span style={{ color: 'var(--color-text)', fontWeight: 700 }}>{correctCount}</span>
+                {` ${t('из')} ${text.questions.length} ${t('вопросов')}`}
+              </span>
+            )}
+
+            {/* Перевод открывается только после проверки: иначе читать оригинал незачем. */}
+            {text.translation && (
+              <button
+                onClick={() => setShowTranslation(v => !v)}
+                style={{
+                  ...finishChip,
+                  border: `1px solid ${showTranslation ? `${accent}66` : 'var(--color-border-soft)'}`,
+                  color: showTranslation ? accent : 'var(--color-text-2)',
+                }}
+              >
+                <Languages size={15} /> {t('Перевод')}
+              </button>
+            )}
+
+            {/* Та же кнопка, что в рейле, и то же состояние: слова забирают
+                именно здесь, когда текст только что дочитан. */}
+            {text.glossary.length > 0 && (
+              <button
+                onClick={takeWords}
+                disabled={takingWords || tookWords !== null}
+                style={{
+                  ...finishChip,
+                  border: '1px solid var(--color-border-soft)',
+                  color: tookWords !== null ? 'var(--color-muted)' : 'var(--color-text-2)',
+                  cursor: takingWords || tookWords !== null ? 'default' : 'pointer',
+                }}
+              >
+                <Layers size={15} />
+                {tookWords !== null
+                  ? (tookWords > 0 ? `${t('в колоде')} +${tookWords}` : t('уже в колоде'))
+                  : (takingWords ? t('Добавляю…') : `${text.glossary.length} ${t('слов в колоду')}`)}
+              </button>
+            )}
+
+            <button
+              onClick={onBack}
+              style={{
+                ...finishChip, marginLeft: 'auto', padding: '9px 15px',
+                border: `1px solid ${accent}66`, color: accent, fontWeight: 650,
+              }}
+            >
+              {t('Дальше')} <ArrowRight size={15} />
+            </button>
+          </div>
+
+          {showTranslation && text.translation && (
+            <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)' }}>
+              <div style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 7 }}>
                 {t('Перевод текста')}
-              </summary>
-              <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-2)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+              </div>
+              <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
                 {text.translation}
               </div>
-            </details>
+            </div>
           )}
         </div>
       )}

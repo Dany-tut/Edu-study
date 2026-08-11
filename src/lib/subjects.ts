@@ -43,6 +43,49 @@ function hexToRgba(hex: string, a: number): string {
   return `rgba(${r},${g},${b},${a})`
 }
 
+function clamp255(n: number): number { return Math.max(0, Math.min(255, Math.round(n))) }
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '')
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return '#' + [r, g, b].map(v => clamp255(v).toString(16).padStart(2, '0')).join('')
+}
+
+/** Затемнить цвет на долю k (0…1) — умножением каналов, оттенок сохраняется. */
+function darken(hex: string, k: number): string {
+  const [r, g, b] = hexToRgb(hex)
+  return rgbToHex(r * (1 - k), g * (1 - k), b * (1 - k))
+}
+
+/** Относительная яркость по WCAG — по ней считается контраст с белым текстом. */
+function relLuminance(hex: string): number {
+  const [r, g, b] = hexToRgb(hex).map(v => {
+    const c = v / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/**
+ * Заливка сплошной кнопки из акцента предмета — для белого текста.
+ *
+ * Акцент предмета сам по себе под заливку не годится: он подобран как цвет
+ * ТЕКСТА и в тёмной теме светлый (#F0805E у английского, #B3A6F7 у химии),
+ * белые буквы на нём тонут. Поэтому цвет затемняется ровно до тех пор, пока
+ * контраст с белым не дотянет до 4.5:1, и уходит в градиент — по устройству
+ * тот же `--grad-purple`, только в цвете предмета.
+ */
+export function subjectFill(accent: string): string {
+  // 4.5:1 против белого ⇔ яркость ≤ 0.183. Шаг мелкий нарочно: крупный
+  // проскакивает порог и гасит цвет сильнее, чем нужно (коралл уходит в бурый).
+  let base = accent
+  for (let i = 0; i < 16 && relLuminance(base) > 0.183; i++) base = darken(base, 0.06)
+  return `linear-gradient(135deg, ${base}, ${darken(base, 0.22)})`
+}
+
 /** Build a light+dark palette pair for a tag subject from its accent + AA text color. */
 function palettePair(accent: string, accentDark: string, text: string, textDark: string): { light: SubjectPalette; dark: SubjectPalette } {
   return {

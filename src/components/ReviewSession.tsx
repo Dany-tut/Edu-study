@@ -34,7 +34,7 @@ export default function ReviewSession({ owner, onDone }: {
     <Shell>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{t('На сегодня всё повторено')}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', ...balancedWrap }}>{bindShortWords(t('На сегодня всё повторено'))}</div>
         {done > 0 && <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>{t('Повторено карточек:')} {done}</div>}
         {onDone && <button onClick={onDone} style={{ marginTop: 16, padding: '10px 20px', borderRadius: 12, border: 'none', background: ACC, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Готово')}</button>}
       </div>

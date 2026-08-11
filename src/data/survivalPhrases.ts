@@ -195,6 +195,31 @@ export interface SurvivalBook {
   notes: Record<string, ThemeNote>
   /** Фразы по темам: ключ — id темы. */
   phrases: Record<string, Phrase[]>
+  /**
+   * Ядро темы — то, что реально учат на уроке. Ключ темы → термы фраз.
+   *
+   * ЗАЧЕМ. Список темы пишется как справочник: в «Спасибо, извините» лежат все
+   * пять способов поблагодарить, потому что человек их услышит. Урок — не
+   * справочник. Сорок карточек во втором уроке, из которых десять переводятся
+   * словом «спасибо», не выучиваются: ученик видит пять почти одинаковых
+   * ответов, не понимает, какой из них его, и не запоминает ни одного. На
+   * первом заходе нужна одна форма на смысл, а варианты — потом, когда основная
+   * держится сама.
+   *
+   * Поэтому тема живёт в двух видах. Ядро (десяток фраз, по одной на смысл)
+   * уходит в карточки и задания урока. Остальное остаётся в разговорнике
+   * тренажёра — оно никуда не девается, но не выдаётся к сроку и не считается
+   * за долг.
+   *
+   * ПОЧЕМУ СПИСКОМ ТЕРМОВ, А НЕ ФЛАЖКОМ У ФРАЗЫ. Ядро — это ещё и порядок: в
+   * каком виде тема встаёт в голову с нуля. Отдельный список показывает этот
+   * порядок целиком, одним экраном, и его видно при правке. Флажки, размазанные
+   * по сорока строкам, такого не дают.
+   *
+   * Не задано — темой становится весь список. Так и должно быть у языков, где
+   * фраз в теме и так десяток (см. английский, японский, португальский).
+   */
+  core?: Record<string, string[]>
 }
 
 /**
@@ -905,7 +930,9 @@ const toVocab = (x: Phrase): VocabItem => ({
  * перед первой же домашкой, и без этого абзаца непонятно, почему все фразы
  * выглядят одинаково «вежливо».
  */
-function themeTheory(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook, first = false): string {
+function themeTheory(
+  theme: SurvivalTheme, list: Phrase[], book: SurvivalBook, first = false, extra = 0,
+): string {
   const note = book.notes[theme.id]
   const core = slice(list, 0, 6)
     .map(x => `• ${x.reading ? `${x.term} (${x.reading})` : x.term} — ${x.ru}`)
@@ -916,8 +943,35 @@ function themeTheory(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook, f
     note ? `Правило: ${note.formula}` : '',
     note?.note ?? '',
     `Костяк темы:\n${core}`,
+    // Про остаток говорится прямо, иначе он выглядит как пропажа: в тренажёре
+    // тема показывает все сорок фраз, а урок спрашивает двенадцать.
+    extra > 0
+      ? `В уроке ${list.length} фраз — по одной на смысл. Ещё ${extra} способов сказать то же самое ` +
+        `лежат в тренажёре, в наборе фраз «${theme.title}»: это запас на потом, к уроку они не нужны.`
+      : '',
     `Что вы сделаете: ${theme.artifact}.`,
   ].filter(Boolean).join('\n\n')
+}
+
+/**
+ * Ядро темы — фразы, которые уходят в урок (см. SurvivalBook.core).
+ *
+ * Терм, которого в теме нет, — это опечатка или переименованная фраза, и молча
+ * пропустить её нельзя: ядро тихо станет на фразу короче, а автор будет думать,
+ * что она в уроке. Поэтому промах кричит в консоль, но сборку не роняет —
+ * курс без одной карточки лучше пустого экрана Конструктора.
+ */
+function coreOf(book: SurvivalBook, themeId: string, list: Phrase[]): Phrase[] {
+  const want = book.core?.[themeId]
+  if (!want?.length) return list
+  const byTerm = new Map(list.map(x => [x.term, x]))
+  const picked: Phrase[] = []
+  for (const term of want) {
+    const found = byTerm.get(term)
+    if (found) picked.push(found)
+    else console.warn(`survival ${book.key}/${themeId}: в ядре есть «${term}», а в теме такой фразы нет`)
+  }
+  return picked.length ? picked : list
 }
 
 /**
@@ -936,6 +990,9 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
 
   const units: LangUnit[] = themes.map((theme, i) => {
     const list = book.phrases[theme.id]
+    // Урок собирается по ядру, а не по всему списку темы: в карточки и задания
+    // идёт одна фраза на смысл, остальное остаётся справочником в тренажёре.
+    const core = coreOf(book, theme.id, list)
     const note = book.notes[theme.id]
     const shortId = `${book.key}-${String(theme.n).padStart(2, '0')}`
     return {
@@ -948,9 +1005,9 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
       grammarWhy: theme.why,
       vocabTheme: theme.vocabTheme,
       artifact: theme.artifact,
-      theory: themeTheory(theme, list, book, i === 0),
-      vocab: list.map(toVocab),
-      tasks: unitTasks(theme, list, book),
+      theory: themeTheory(theme, core, book, i === 0, list.length - core.length),
+      vocab: core.map(toVocab),
+      tasks: unitTasks(theme, core, book),
     }
   })
 
@@ -960,6 +1017,7 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
     .filter(m => m.units.length > 0)
 
   const count = units.reduce((sum, u) => sum + u.vocab.length, 0)
+  const total = themes.reduce((sum, t) => sum + book.phrases[t.id].length, 0)
   return {
     key: book.key,
     title: book.title,
@@ -970,9 +1028,11 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
     guidedHours: `${units.length * 2}`,
     lessonMinutes: 60,
     scopeNote:
-      `Разговорник, а не грамматический курс: ${count} готовых фраз по ${units.length} ситуациям. ` +
-      'Юнит — это тема целиком, её карточки рассчитаны на несколько подходов через интервальные ' +
-      'повторения, а не на один вечер. Грамматика объясняется только там, где без неё фразу нельзя ' +
+      `Разговорник, а не грамматический курс: ${count} готовых фраз по ${units.length} ситуациям — ` +
+      'по одной фразе на смысл' +
+      (total > count ? `, ещё ${total - count} вариантов лежат в тренажёре как запас` : '') +
+      '. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через ' +
+      'интервальные повторения. Грамматика объясняется только там, где без неё фразу нельзя ' +
       'переставить под себя.',
     modules,
     units,

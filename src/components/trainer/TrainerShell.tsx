@@ -39,11 +39,12 @@
 // родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search, Check, SlidersHorizontal } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { bindShortWords, balancedWrap } from '../../lib/typography'
 import { useFloatingPill } from '../../lib/useFloatingPill'
 import MobileSheet from '../MobileSheet'
 
@@ -211,6 +212,25 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
 // ─── Карточки рейла ──────────────────────────────────────────────────────────
 
 /**
+ * Подпись обрывается ВТОРОЙ строкой, а не первой.
+ *
+ * Рейл узкий, и любая подпись длиннее его ширины раньше превращалась в
+ * «выполнять роль, п…» или «до 3 …». Одна отрезанная строка — это не короткий
+ * вариант подписи, а загадка: перевод слова без второй половины бесполезен,
+ * название режима без хвоста неотличимо от соседнего. Вторая строка почти
+ * всегда закрывает вопрос, а на совсем длинном многоточие остаётся —
+ * но уже после того, как смысл прочитан.
+ */
+const clamp2: CSSProperties = {
+  display: '-webkit-box',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: 2,
+  overflow: 'hidden',
+  // Хангыль и длинные составные слова иначе распирают колонку вместо переноса.
+  overflowWrap: 'anywhere',
+}
+
+/**
  * Градиентная шапка рейла — заголовок и строчка контекста.
  *
  * ПРЕДМЕТ ЗДЕСЬ БОЛЬШЕ НЕ ЖИВЁТ: шапку предмета рисует SubjectHero
@@ -317,7 +337,7 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
             }}
           >
             {m.Icon && <m.Icon size={15} />}
-            <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ flex: 1, minWidth: 0, lineHeight: 1.25, ...clamp2 }}>
               {t(m.label)}
             </span>
             {m.count !== undefined && (
@@ -364,7 +384,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               // которых кольцо появляется только по фокусу.
               // Боковой отступ меньше банковских 12 px: там в ряду две кнопки с
               // коротким «Часть 1», здесь — три с «до 3 мин», и на 12 px подпись
-              // обрезалась в «до 3 …». Высота (9 px сверху и снизу) та же.
+              // ломалась пополам. Высота (9 px сверху и снизу) та же.
               // Иконочный вариант не растягивается: подпись ему не нужна, а
               // равная доля ряда только резала бы соседний текст многоточием.
               flex: o.icon ? '0 0 auto' : 1, minWidth: 0,
@@ -379,7 +399,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
           >
             {o.icon
               ? <span style={{ display: 'flex', alignItems: 'center' }}>{o.icon}</span>
-              : <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(o.label)}</span>}
+              : <span style={{ lineHeight: 1.2, textAlign: 'center', ...clamp2 }}>{t(o.label)}</span>}
             {o.badge !== undefined && o.badge > 0 && (
               <span style={{
                 padding: '1px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
@@ -419,50 +439,59 @@ export function RailList({ items, value, onChange, accent, soft }: {
     >
       {items.map(i => {
         const on = i.id === value
+        // Подпись обычно короткая — счётчик полки, «больше месяца» — и стоит
+        // справа от слова, как в любом списке-с-числом. Но переводы в словаре
+        // текста тянутся до шести десятков знаков («формула перед едой; здесь —
+        // „спасибо, поедим с удовольствием“»), и в колонке шириной в треть
+        // рейла такой перевод не помещается ни в одну строку, ни в две.
+        // Длинному отдаётся своя строка во всю ширину: там те же две строки
+        // вмещают вдвое больше, и обрезать уже нечего.
+        const wide = (i.hint?.length ?? 0) > 32
+        const hintStyle: CSSProperties = {
+          fontSize: 11, lineHeight: 1.3, color: on ? accent : 'var(--color-text-3)',
+          fontVariantNumeric: 'tabular-nums',
+          ...clamp2,
+        }
         return (
           <button
             key={i.id}
             onClick={() => onChange(i.id)}
             title={i.label}
             style={{
-              display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', textAlign: 'left',
+              display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 3,
+              width: '100%', textAlign: 'left',
               padding: '7px 9px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
               border: 'none', background: on ? soft : 'transparent',
               color: on ? accent : 'var(--color-text-2)',
               fontSize: 12.5, fontWeight: on ? 700 : 550,
             }}
           >
-            <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 1 }}>
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {i.label}
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, width: '100%' }}>
+              <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 1 }}>
+                <span style={{ ...clamp2, lineHeight: 1.25 }}>
+                  {i.label}
+                </span>
+                {/* Транскрипция — под словом и тише его: она нужна, чтобы слово
+                    можно было проговорить, но читают всё-таки оригинал. */}
+                {i.sub && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 500, letterSpacing: 0.1, lineHeight: 1.3,
+                    color: on ? accent : 'var(--color-text-3)', opacity: on ? 0.8 : 1,
+                    ...clamp2,
+                  }}>
+                    {i.sub}
+                  </span>
+                )}
               </span>
-              {/* Транскрипция — под словом и тише его: она нужна, чтобы слово
-                  можно было проговорить, но читают всё-таки оригинал. */}
-              {i.sub && (
-                <span style={{
-                  fontSize: 11, fontWeight: 500, letterSpacing: 0.1,
-                  color: on ? accent : 'var(--color-text-3)', opacity: on ? 0.8 : 1,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {i.sub}
+              {i.hint && !wide && (
+                // Слово важнее подписи: она берёт не больше 58% строки, иначе
+                // от самого слова не остаётся ни буквы.
+                <span style={{ ...hintStyle, maxWidth: '58%', textAlign: 'right' }}>
+                  {i.hint}
                 </span>
               )}
             </span>
-            {i.hint && (
-              // Подпись не съедает строку целиком. Счётчик полки короткий, а
-              // перевод слова — нет: «освоиться, чувствовать себя как дома»
-              // занимал всю ширину, и от самого слова не оставалось ни буквы.
-              // Отсюда потолок в 58% и многоточие: слово важнее перевода,
-              // потому что искать глазами будут именно его.
-              <span style={{
-                fontSize: 11, color: on ? accent : 'var(--color-text-3)',
-                fontVariantNumeric: 'tabular-nums',
-                maxWidth: '58%', textAlign: 'right',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {i.hint}
-              </span>
-            )}
+            {i.hint && wide && <span style={hintStyle}>{i.hint}</span>}
           </button>
         )
       })}
@@ -881,16 +910,28 @@ export function TileChip({ children, tone, accent, soft }: {
   )
 }
 
-/** Пустая выборка. */
+/**
+ * Пустая выборка.
+ *
+ * Строку держим короче коробки: плашка растягивается на всю ширину содержимого
+ * (в тренажёре это под тысячу пикселей), и фраза в одну-две строки рвалась в
+ * случайных местах. `\n` в тексте = отдельный абзац.
+ */
 export function Empty({ text }: { text: string }) {
   const t = useT()
   return (
     <div style={{
       padding: '34px 22px', borderRadius: 18, textAlign: 'center',
       border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-      fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)',
     }}>
-      {t(text)}
+      <div style={{ maxWidth: 420, margin: '0 auto' }}>
+        {t(text).split('\n').map((line, i) => (
+          <div key={i} style={{
+            fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)',
+            marginTop: i ? 6 : 0, ...balancedWrap,
+          }}>{bindShortWords(line)}</div>
+        ))}
+      </div>
     </div>
   )
 }

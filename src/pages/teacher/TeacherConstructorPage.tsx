@@ -7684,7 +7684,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, content, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, content, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -7707,6 +7707,7 @@ export default function TeacherConstructorPage() {
           kind: l.kind === 'test' ? 'test' : 'lesson',
           testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
           videoUrl: l.youtube_url ?? undefined,
+          timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
           description: l.description ?? undefined,
           theory: theory.theory || undefined,
           theoryImages: theory.images,

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Volume2, ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
+import { subjectFill } from '../../lib/subjects'
 import { speechLocale, speechText } from '../../lib/speech'
 import { addCards } from '../../data/reviewDeck'
 import { nestAxisLabel, nestPrompt, type NestWord, type SoundNest } from '../../data/soundNests'
@@ -397,7 +398,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
-              ? t('Ряд различается целиком. Гнездо вернётся на повторение позже — на слух это забывается быстрее, чем кажется.')
+              ? t('Ряд различается целиком. Он вернётся на повторение позже — на слух это забывается быстрее, чем кажется.')
               : t('Слова, на которых промахнулся, уже в колоде повторений — они вернутся сами.')}
           </div>
         </div>
@@ -411,7 +412,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         )}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button onClick={start} style={primaryBtn(accent)}>
-            <RotateCcw size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
+            <RotateCcw size={14} />
             {t('Ещё прогон')}
           </button>
           <button onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
@@ -429,7 +430,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)',
       }}>
-        <ChevronLeft size={14} /> {t('К гнёздам')}
+        <ChevronLeft size={14} /> {t('К созвучиям')}
       </button>
 
       {header}
@@ -441,7 +442,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {audible ? (
           <button onClick={start} style={primaryBtn(accent)}>
-            <Ear size={15} style={{ marginRight: 7, verticalAlign: -3 }} />
+            <Ear size={15} />
             {t('Проверить на слух')}
           </button>
         ) : (
@@ -455,7 +456,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           </div>
         )}
         <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
-          {saving ? t('Добавляю…') : t('Взять гнездо в колоду')}
+          {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
         {added !== null && (
           <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
@@ -469,17 +470,32 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
 
 // ─── Кнопки ──────────────────────────────────────────────────────────────────
 //
-// Сплошная кнопка идёт на --grad-purple: --color-accent предмета светлый, он
-// работает как цвет текста, а не как заливка под белые буквы.
+// Две кнопки ряда («Проверить на слух» и «Взять слова в колоду») стоят рядом,
+// поэтому у них ОДНА геометрия: высота задаётся не паддингом, а `height`, а
+// рамка ghost-кнопки лежит внутри бокса (`box-sizing: border-box`). Иначе
+// сплошная кнопка выше соседней на высоту иконки и на две рамки.
+//
+// Заливка — цвет предмета, а не общий фиолетовый: экран целиком выкрашен
+// акцентом языка (чипы, динамики, обводки), и одна фиолетовая кнопка посреди
+// кораллового читалась как чужая. Под белый текст акцент затемняется в
+// `subjectFill` — сам по себе он слишком светлый.
 
-const primaryBtn = (_accent: string): React.CSSProperties => ({
-  padding: '11px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750,
-  background: 'var(--grad-purple)', color: '#fff',
+const BTN_H = 42
+
+const btnBase: React.CSSProperties = {
+  height: BTN_H, boxSizing: 'border-box', borderRadius: 999, cursor: 'pointer',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, lineHeight: 1, whiteSpace: 'nowrap',
+}
+
+const primaryBtn = (accent: string): React.CSSProperties => ({
+  ...btnBase,
+  padding: '0 20px', border: 'none',
+  background: subjectFill(accent), color: '#fff',
 })
 
 const ghostBtn = (accent: string): React.CSSProperties => ({
-  padding: '11px 18px', borderRadius: 999, cursor: 'pointer',
+  ...btnBase,
+  padding: '0 18px',
   border: `1.5px solid ${accent}`, background: 'transparent', color: accent,
-  fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
 })
