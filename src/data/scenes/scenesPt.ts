@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Сцены на португальском (бразильский вариант)
 //
-// ПОДЛИННЫЙ ТЕКСТ — Machado de Assis (ум. 1908), Project Gutenberg. Издание
-// 1899 года, орфография дореформенная: theatro, visinhos, accordando, elle,
-// mettesse. Это не опечатки и не наша небрежность — так печатали до реформ
-// 1911 и 1943 годов.
+// ПОДЛИННЫЙ ТЕКСТ — Machado de Assis (ум. 1908), Project Gutenberg. Издания
+// 1881, 1891 и 1899 годов, орфография дореформенная: theatro, visinhos,
+// accordando, elle, mettesse, methodo, chinellas. Это не опечатки и не наша
+// небрежность — так печатали до реформ 1911 и 1943 годов.
 //
 // Текст оставлен как есть, но у произведения заполнен `source.caveat`, и
 // предупреждение показывается ДО чтения. Иначе ученик спокойно заучит elle
@@ -184,6 +184,138 @@ Não consultes diccionarios. Casmurro não está aqui no sentido que elles lhe d
           'Ir ao rio antes do pôr do sol',
           'Ir de manhã cedo',
           'Levar alguém junto',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Machado de Assis, «Memórias Póstumas de Brás Cubas» ────────────────────
+  {
+    id: 'sc-bras-1',
+    workId: 'machado-bras-cubas',
+    lang: 'pt-BR', title: 'Покойный автор, а не автор покойный', level: 'B2', minutes: 5,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 1, where: 'Capítulo I — Obito do autor', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Machado de Assis, Memórias Póstumas de Brás Cubas (1881) · Project Gutenberg',
+    setup: 'Первая глава романа. Рассказчик объясняет, почему начинает книгу не с рождения, а со смерти, — и тут же эту смерть описывает: дата, возраст, состояние, одиннадцать человек за гробом. Заодно он показывает, как будет вести себя дальше: перебивать сам себя и считать всё, включая скорбь.',
+    after: 'Дальше он назовёт причину смерти — «великую и полезную идею», из-за которой всё и вышло, — и только потом отступит к своему рождению. Незнакомка у постели тоже получит имя, но не скоро.',
+    body: `Algum tempo hesitei se devia abrir estas memorias pelo principio ou pelo fim, isto é, se poria em primeiro logar o meu nascimento ou a minha morte. Supposto o uso vulgar seja começar pelo nascimento, duas considerações me levaram a adoptar differente methodo: a primeira é que eu não sou propriamente um autor defunto, mas um defunto autor, para quem a campa foi outro berço; a segunda é que o escripto ficaria assim mais galante e mais novo. Moysés, que tambem contou a sua morte, não a poz no introito, mas no cabo: differença radical entre este livro e o Pentateuco.
+
+Dito isto, expirei ás duas horas da tarde de uma sexta feira do mez de agosto de 1869, na minha bella chacara de Catumby. Tinha uns sessenta e quatro annos, rijos e prosperos, era solteiro, possuia cerca de tresentos contos e fui acompanhado ao cemiterio por onze amigos. Onze amigos! Verdade é que não houve cartas nem annuncios.`,
+    translation: `Некоторое время я колебался, начать ли эти записки с начала или с конца, то есть поставить ли впереди своё рождение или свою смерть. Хотя обычай велит начинать с рождения, два соображения склонили меня к иному способу: во-первых, я не столько покойный автор, сколько автор покойный, для которого могила стала вторыми пелёнками; во-вторых, написанное выйдет так изящнее и новее. Моисей, который тоже рассказал о своей смерти, поместил её не во вступлении, а в конце — коренное различие между этой книгой и Пятикнижием.
+
+Сказав это, сообщаю: я испустил дух в два часа пополудни, в пятницу августа 1869 года, на своей прекрасной усадьбе в Катумби. Мне было около шестидесяти четырёх лет, крепких и благополучных, я был холост, владел без малого тремястами конто и был провожён на кладбище одиннадцатью друзьями. Одиннадцатью друзьями! Правда, ни писем, ни объявлений в газетах не было.`,
+    glossary: [
+      { term: 'hesitar', ru: 'колебаться, сомневаться' },
+      { term: 'defunto', ru: 'покойный, усопший' },
+      { term: 'a campa', ru: 'могила, могильная плита' },
+      { term: 'o berço', ru: 'колыбель' },
+      { term: 'galante', ru: 'здесь: изящный, щегольской' },
+      { term: 'no cabo', ru: 'в конце (устар., ср. совр. no fim)' },
+      { term: 'expirar', ru: 'испустить дух, скончаться' },
+      { term: 'a chácara', ru: 'загородный дом с участком, усадьба' },
+      { term: 'o conto', ru: 'конто — тысяча милрейсов, крупная сумма того времени' },
+    ],
+    questions: [
+      {
+        q: 'Por que o narrador começa pela morte?',
+        options: [
+          'Porque não lembra do nascimento',
+          'Porque é um defunto autor e acha o texto mais novo assim',
+          'Porque a família pediu',
+          'Porque morreu criança',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Quantos amigos acompanharam o enterro?',
+        options: ['Três', 'Onze', 'Sessenta e quatro', 'Nenhum'],
+        correct: 1,
+        why: 'Одиннадцать — и рассказчик повторяет это число с восклицательным знаком: он до сих пор считает, много это или мало.',
+      },
+      {
+        q: 'Qual era o estado civil dele?',
+        options: ['Casado', 'Viúvo', 'Solteiro', 'Divorciado'],
+        correct: 2,
+      },
+      {
+        q: 'Qual é a diferença entre «autor defunto» e «defunto autor»?',
+        options: [
+          'Não há diferença',
+          'A ordem muda quem escreve: um autor que morreu × um morto que escreve',
+          'É um erro de impressão',
+          'Uma forma é do português europeu',
+        ],
+        correct: 1,
+        why: 'В португальском прилагательное перед существительным и после него значат разное. Вся книга держится на этой перестановке: пишет не человек, который умер, а мертвец.',
+      },
+    ],
+  },
+
+  // ── Machado de Assis, «Quincas Borba» ──────────────────────────────────────
+  {
+    id: 'sc-quincas-1',
+    workId: 'machado-quincas',
+    lang: 'pt-BR', title: 'Год назад — учитель, теперь — капиталист', level: 'B2', minutes: 4,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 1, where: 'Capítulo I', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Machado de Assis, Quincas Borba (1891) · Project Gutenberg',
+    setup: 'Восемь утра, Ботафого, окно большого дома. Рубиан — вчерашний учитель из провинции, которому достались деньги сумасшедшего философа Кинкаса Борбы. Он смотрит на залив и первый раз в жизни думает о себе как о человеке с собственностью.',
+    after: 'Следующая глава покажет то же самое мгновение с другой стороны: пока ум стыдится собственной мысли, сердце спокойно радуется. С этого расхождения и начнётся вся история Рубиана.',
+    body: `Rubião fitava a enseada,--eram oito horas da manhã. Quem o visse, com os polegares mettidos no cordão do chambre, á janella de uma grande casa de Botafogo, cuidaria que elle admirava aquelle pedaço de agua quieta; mas, em verdade, vos digo que pensava em outra cousa. Cotejava o passado com o presente. Que era, ha um anno? Professor. Que é agora? Capitalista. Olha para si, para as chinellas (umas chinellas de Tunis, que lhe deu recente amigo, Christiano Palha), para a casa, para o jardim, para a enseada, para os morros e para o ceu; e tudo, desde as chinellas até o ceu, tudo entra na mesma sensação de propriedade.
+
+--Vejam como Deus escreve direito por linhas tortas, pensa elle. Se a mana Piedade tem casado com o Quincas Borba, apenas me daria uma esperança collateral. Não casou; ambos morreram, e aqui está tudo commigo; de modo que o que parecia uma desgraça...`,
+    translation: `Рубиан глядел на залив — было восемь часов утра. Тот, кто увидел бы его у окна большого дома в Ботафого, с большими пальцами, заложенными за шнур халата, решил бы, что он любуется этим куском тихой воды; но, говорю вам по правде, думал он о другом. Он сличал прошлое с настоящим. Кем он был год назад? Учителем. Кто он теперь? Капиталист. Он смотрит на себя, на туфли (тунисские туфли, подарок нового друга, Кристиану Пальи), на дом, на сад, на залив, на холмы и на небо — и всё, от туфель до неба, входит в одно и то же чувство собственности.
+
+«Вот и смотрите, как Бог пишет прямо кривыми строками, — думает он. — Выйди сестрица Пиедаде за Кинкаса Борбу, мне досталась бы всего лишь надежда сбоку. Не вышла; оба умерли, и вот всё это у меня, — так что то, что казалось несчастьем…»`,
+    glossary: [
+      { term: 'fitar', ru: 'пристально смотреть, вперить взгляд' },
+      { term: 'a enseada', ru: 'бухта, залив' },
+      { term: 'o chambre', ru: 'домашний халат' },
+      { term: 'cuidar (que)', ru: 'здесь: полагать, думать (устар.)' },
+      { term: 'cotejar', ru: 'сличать, сопоставлять' },
+      { term: 'as chinelas', ru: 'домашние туфли, шлёпанцы' },
+      { term: 'a propriedade', ru: 'собственность, владение' },
+      { term: 'a mana', ru: 'сестрица (ласкательное от irmã)' },
+      { term: 'a desgraça', ru: 'несчастье, беда' },
+    ],
+    questions: [
+      {
+        q: 'O que Rubião era há um ano?',
+        options: ['Capitalista', 'Professor', 'Médico', 'Canoeiro'],
+        correct: 1,
+      },
+      {
+        q: 'Ele está realmente admirando a água?',
+        options: [
+          'Sim, é o que o narrador diz',
+          'Não, pensa em outra coisa',
+          'Está dormindo',
+          'Está procurando alguém',
+        ],
+        correct: 1,
+        why: '«mas, em verdade, vos digo que pensava em outra cousa» — рассказчик нарочно поправляет воображаемого наблюдателя. Машаду постоянно ловит героя на разнице между видом и мыслью.',
+      },
+      {
+        q: 'O que entra na «mesma sensação de propriedade»?',
+        options: [
+          'Só a casa',
+          'Só as chinelas',
+          'Tudo, das chinelas até o céu',
+          'Nada, ele não tem nada',
+        ],
+        correct: 2,
+      },
+      {
+        q: 'Como Rubião ficou rico?',
+        options: [
+          'Trabalhando como professor',
+          'Herdando de Quincas Borba, que morreu',
+          'Vendendo a casa de Botafogo',
+          'Casando com a irmã',
         ],
         correct: 1,
       },
