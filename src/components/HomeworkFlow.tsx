@@ -1792,6 +1792,13 @@ export default function HomeworkFlow({
    * ПОЧЕМУ НЕ scrollIntoView. Он целится в элемент и заводит его под липкую шапку.
    * Здесь на экране всё равно одно задание, поэтому правильное место — самый верх
    * прокрутки, а не верх карточки.
+   *
+   * ПОЧЕМУ РЫВКОМ, А НЕ ПЛАВНО. Плавную прокрутку глушат и `prefers-reduced-motion`,
+   * и часть вебвью — и глушат молча: прокрутка просто не происходит, а понять это
+   * можно только измерив (в нашем же стенде `behavior: 'smooth'` не сдвигал
+   * страницу вовсе). Прыжок работает везде одинаково, и здесь он ещё и уместнее:
+   * содержимое уже сменилось, и плавный проезд выглядел бы так, будто страница
+   * едет под новым заданием.
    */
   useEffect(() => {
     if (!flowMode) return
@@ -1801,12 +1808,12 @@ export default function HomeworkFlow({
     let node: HTMLElement | null = card?.parentElement ?? null
     while (node) {
       if (node.scrollHeight > node.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(node).overflowY)) {
-        node.scrollTo({ top: 0, behavior: 'smooth' })
+        node.scrollTo({ top: 0 })
         return
       }
       node = node.parentElement
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0 })
     // Шаг — единственное, что должно двигать прокрутку: на ответ внутри задания
     // она реагировать не обязана.
     // eslint-disable-next-line react-hooks/exhaustive-deps

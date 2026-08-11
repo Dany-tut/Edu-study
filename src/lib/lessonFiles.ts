@@ -104,14 +104,16 @@ export async function uploadLessonFile(file: File): Promise<LessonFile> {
   return { id, name: file.name, path, size: file.size, mime }
 }
 
-/** Ссылка на файл. Бакет публичный на чтение (легаси-ученики без сессии
- *  Supabase Auth иначе не скачали бы ничего), путь неугадываемый. */
-export function lessonFileUrl(path: string): string {
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
-}
-
-/** Скачивание под настоящим именем файла: `download` не действует на
- *  кросс-origin ссылку, поэтому тянем blob и сохраняем его сами. */
+/**
+ * Скачивание под настоящим именем файла.
+ *
+ * Тянем blob и сохраняем его сами: атрибут `download` на кросс-origin ссылке
+ * браузер игнорирует — файл открылся бы в соседней вкладке под именем-uuid.
+ *
+ * Бакет публичный на чтение, поэтому запрос проходит и без сессии Supabase
+ * Auth: часть учеников входит легаси-логином (RPC student_login), и приватный
+ * бакет им бы ничего не отдал.
+ */
 export async function downloadLessonFile(file: LessonFile): Promise<void> {
   const { data, error } = await supabase.storage.from(BUCKET).download(file.path)
   if (error || !data) throw error ?? new Error('Файл не найден')

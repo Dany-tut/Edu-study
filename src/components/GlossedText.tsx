@@ -105,6 +105,34 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     return segments.map(s => { const start = at; at += s.text.length; return start })
   }, [segments])
 
+  // Разбивка под транскрипцию: слово вместе с прилипшими к нему знаками.
+  //
+  // Зачем отдельный проход. В режиме ruby колонка слова шире самого слова
+  // (кириллица под хангылем длиннее его раза в полтора), и знак препинания,
+  // стоящий отдельным куском, отъезжает от своего слова на эту разницу: «될까요
+  // ?». Поэтому знаки без пробела приклеиваем к соседнему слову и рисуем внутри
+  // его колонки, а пробелы оставляем обычными кусками текста.
+  const rubyUnits = useMemo(() => {
+    if (!ruby) return null
+    type Unit = { kind: 'word'; i: number; pre: string; post: string } | { kind: 'plain'; text: string }
+    const out: Unit[] = []
+    let pre = ''
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i]
+      if (seg.word) { out.push({ kind: 'word', i, pre, post: '' }); pre = ''; continue }
+      let text = seg.text
+      const last = out[out.length - 1]
+      const lead = text.match(/^\S*/)![0]
+      if (lead && last?.kind === 'word') { last.post += lead; text = text.slice(lead.length) }
+      const tail = text.match(/\S*$/)![0]
+      if (tail) text = text.slice(0, text.length - tail.length)
+      if (text) out.push({ kind: 'plain', text })
+      pre = tail
+    }
+    if (pre) out.push({ kind: 'plain', text: pre })
+    return out
+  }, [segments, ruby])
+
   // Последнее слово, начавшееся не позже озвученного символа. Именно последнее,
   // а не «в чей диапазон попали»: часть голосов отдаёт позицию пробела перед
   // словом или середину предыдущего, и поиск по диапазону в эти моменты гасил
@@ -273,14 +301,12 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     voiceRef.current = speak(word, { lang, rate: 0.85 })
   }
 
-  return (
-    <div ref={wrapRef} style={{ position: 'relative', whiteSpace: 'pre-wrap', ...proseWrap, ...style }}>
-      {segments.map((seg, i) => {
-        if (!seg.word) return <span key={i}>{seg.text}</span>
-        const on = active?.i === i
-        const hit = isHit(seg)
-        const said = i === spokenIndex
-        const chip = (
+  /** Слово: кликабельный кусок текста со всеми его состояниями. */
+  function chipFor(seg: Segment, i: number) {
+    const on = active?.i === i
+    const hit = isHit(seg)
+    const said = i === spokenIndex
+    return (
           <span
             key={i}
             role="button"
@@ -327,24 +353,30 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
           >
             {seg.text}
           </span>
-        )
+    )
+  }
 
-        if (!ruby) return chip
-
+  return (
+    <div ref={wrapRef} style={{ position: 'relative', whiteSpace: 'pre-wrap', ...proseWrap, ...style }}>
+      {rubyUnits
         // Слово и его чтение — одна колонка: перенос строки уносит их вместе, и
         // транскрипция не может оторваться от своего слова.
-        return (
-          <span key={i} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', verticalAlign: 'top' }}>
-            {chip}
-            <span style={{
-              fontSize: '0.6em', lineHeight: 1.4, color: 'var(--color-text-3)',
-              whiteSpace: 'nowrap', letterSpacing: 0.1,
-            }}>
-              {wordReading(seg.text, lang)}
+        ? rubyUnits.map((u, k) => u.kind === 'plain'
+          ? <span key={k}>{u.text}</span>
+          : (
+            <span key={k} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', verticalAlign: 'top' }}>
+              <span style={{ whiteSpace: 'nowrap' }}>
+                {u.pre}{chipFor(segments[u.i], u.i)}{u.post}
+              </span>
+              <span style={{
+                fontSize: '0.6em', lineHeight: 1.4, color: 'var(--color-text-3)',
+                whiteSpace: 'nowrap', letterSpacing: 0.1,
+              }}>
+                {wordReading(segments[u.i].text, lang)}
+              </span>
             </span>
-          </span>
-        )
-      })}
+          ))
+        : segments.map((seg, i) => (seg.word ? chipFor(seg, i) : <span key={i}>{seg.text}</span>))}
 
       {active && pos && createPortal(
         <div

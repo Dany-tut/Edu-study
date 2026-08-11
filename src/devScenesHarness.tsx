@@ -30,11 +30,10 @@ const subjectState: TrainerSubjectState = {
 
 // Тренажёр помнит, где ученик стоял. Стенду нужны сразу «Чтение» → «Сцены».
 try {
-  const key = lang.split('-')[0]
-  sessionStorage.setItem(`draft:trainer.${key}.mode`, JSON.stringify('reading'))
-  sessionStorage.setItem(`draft:trainer.${key}.readingView`, JSON.stringify('scenes'))
-  sessionStorage.setItem(`draft:trainer.${key}.work`, JSON.stringify(null))
-  sessionStorage.setItem(`draft:trainer.${key}.scene`, JSON.stringify(null))
+  sessionStorage.setItem(`draft:trainer.${lang}.mode`, JSON.stringify('reading'))
+  sessionStorage.setItem(`draft:trainer.${lang}.readingView`, JSON.stringify('scenes'))
+  sessionStorage.setItem(`draft:trainer.${lang}.work`, JSON.stringify(null))
+  sessionStorage.setItem(`draft:trainer.${lang}.scene`, JSON.stringify(null))
 } catch { /* не критично */ }
 
 createRoot(document.getElementById('root')!).render(

@@ -340,10 +340,16 @@ export const nestTasks = (nestId: string, limit = 3): SeedTask[] => {
   // значением — она у таких гнёзд и есть вся работа.
   const audible = nest.axis !== 'homonym' && nest.audible !== false
 
+  // Сторона верного ответа выводится из ИМЕНИ гнезда, а не из номера пары
+  // внутри вызова. Со счётчиком от нуля каждый вызов начинался с «A», и юнит,
+  // собранный из пяти гнёзд по одной паре, давал пять вопросов подряд с ответом
+  // на первом месте — такое задание проходится по позиции, не слушая.
+  const seed = [...nest.id].reduce((n, c) => n + c.charCodeAt(0), 0)
+
   const pairs: SeedTask[] = []
   if (audible) {
     for (let i = 0; i + 1 < nest.words.length && pairs.length < limit; i += 2) {
-      const correct = pairs.length % 2 === 0 ? 'A' : 'B'
+      const correct = (seed + pairs.length) % 2 === 0 ? 'A' : 'B'
       pairs.push(minPair('Какое слово прозвучало?', nest.words[i].term, nest.words[i + 1].term, correct))
     }
   }

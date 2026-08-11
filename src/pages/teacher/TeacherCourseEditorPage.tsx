@@ -1671,9 +1671,12 @@ function CenterLesson({
     }
   }
 
+  // Снимаем файл только с урока; сам объект в бакете НЕ трогаем. Учитель может
+  // убрать файл и закрыть редактор, не сохраняясь, — тогда урок в базе всё ещё
+  // ссылается на этот путь, и удалённый объект превратился бы у ученика в
+  // плитку, которая не скачивается. Осиротевший файл в бакете безобиднее.
   function removeFile(slot: FileSlot, file: LessonFile) {
     onUpdate({ ...lesson, files: withoutSlotFile(lesson.files, slot, file.path) })
-    void deleteLessonFile(file.path)
   }
 
   useEffect(() => {
@@ -4327,23 +4330,8 @@ const railInnerSt: React.CSSProperties = {
 export default function TeacherCourseEditorPage() {
   const t = useT()
   const { setActivePage, editingCourseJson, setCourseEdited } = useTeacher()
-  const { groups: groupsReal } = useGroups()
-  // TEMP-VERIFY
-  const groups = groupsReal.length ? groupsReal : ([
-    { id: 'g2', name: 'Анна Петровна', subject: 'Корейский', isIndividual: true },
-    { id: 'g3', name: 'Анна Петровна', subject: 'Японский', isIndividual: true },
-    { id: 'g7', name: 'Биба Бенкенс', subject: 'Химия', isIndividual: true },
-    { id: 'gr1', name: 'Химия · ЕГЭ, вторник', subject: 'Химия', isIndividual: false },
-  ] as typeof groupsReal)
-  const allStudentsReal = useAllStudents()
-  // TEMP-VERIFY
-  const allStudents = allStudentsReal.length ? allStudentsReal : ([
-    { id: 'a2', name: 'Анна Петровна', groupId: 'g2', subject: 'Корейский', personId: 'p1' },
-    { id: 'a3', name: 'Анна Петровна', groupId: 'g3', subject: 'Японский', personId: 'p1' },
-    { id: 'a4', name: 'Анна Петровна', groupId: 'g4', subject: 'Японский', personId: 'p1' },
-    { id: 'c1', name: 'Биба Бенкенс', groupId: 'g7', subject: 'Химия', personId: 'p3' },
-    { id: 'd1', name: 'Тимур Богданов', groupId: 'gr1', subject: 'Химия', personId: 'p4' },
-  ] as typeof allStudentsReal)
+  const { groups } = useGroups()
+  const allStudents = useAllStudents()
 
   const [course, setCourse] = useState<CourseEdData>(() => {
     const base: CourseEdData = editingCourseJson

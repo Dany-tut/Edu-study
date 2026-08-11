@@ -395,8 +395,11 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
     if (!open) {
       const top = ref.current?.getBoundingClientRect().top ?? 0
       const need = Math.min(300, materials.length * 52 + 16) + 16
+      // Вверх — по умолчанию; вниз только когда ТОЧНО померили и места нет.
       // 100px — высота плавающей шапки, под неё список тоже прятать нельзя.
-      setUp(top - 100 >= need)
+      // Нулевой top (элемент ещё не в потоке) не считаем за «места нет»:
+      // иначе список падал бы вниз именно там, где просили вверх.
+      setUp(!(top > 0 && top - 100 < need))
     }
     setOpen(o => !o)
   }

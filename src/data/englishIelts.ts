@@ -38,8 +38,8 @@
 
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
-  one, many, fill, wb, order, pairsOf, grid, write, say,
-  dictation, describeImage, compareImages, drill,
+  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
+  dictation, describeImage, compareImages, drill, nestTasks,
 } from './languageCourse'
 import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
 import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
@@ -96,7 +96,7 @@ export const IELTS_MODULES: LangModule[] = [
   { title: 'Listening', subtitle: 'Формат, предсказание, ловушки, заметки', units: [5, 6, 7] },
   { title: 'Reading', subtitle: 'Скимминг, TFNG, заголовки, тайминг', units: [8, 9, 10, 11] },
   { title: 'Writing', subtitle: 'Task 1 графики и процессы, Task 2 эссе', units: [12, 13, 14, 15, 16] },
-  { title: 'Speaking', subtitle: 'Три части, беглость, произношение, пробный экзамен', units: [17, 18, 19, 20] },
+  { title: 'Speaking', subtitle: 'Три части, беглость, произношение, пробный экзамен', units: [17, 18, 19, 20, 21] },
 ]
 
 export const IELTS_UNITS: LangUnit[] = [
@@ -1382,7 +1382,63 @@ export const IELTS_UNITS: LangUnit[] = [
     ],
   },
   {
-    n: 20, shortId: 'ielt-20',
+    // ПОЧЕМУ shortId НЕ 'ielt-20'. Юнит вставлен в готовый модуль, а short_id —
+    // ключ прогресса в БД (lessons.short_id). Курсы, уже созданные из этого
+    // сида, живут своей копией, и если отдать 'ielt-20' новому уроку, сверка с
+    // сидом покажет, что пробный экзамен «превратился» в произношение. Номер
+    // сдвигаем, ключи существующих уроков не трогаем — вставка юнита в середину
+    // курса на это и рассчитана (см. CourseFigures в languageCourse.ts).
+    n: 20, shortId: 'ielt-20p',
+    title: 'Произношение: что реально стоит баллов',
+    goal: 'Убрать замены звуков, которые экзаменатор слышит как другое слово',
+    grammar: 'Критерий Pronunciation: индивидуальные звуки (θ/ð, w/v, /ɪ/ против /iː/, /æ/ против /e/), словесное ударение, интонация в перечислении и противопоставлении',
+    grammarWhy: 'Pronunciation — это ЧЕТВЕРТЬ балла за Speaking, и единственный критерий, который русскоязычные почти не готовят: считается, что «акцент не страшен». Акцент действительно не страшен — штрафуют не за него, а за неразборчивость. Дескриптор band 7 требует, чтобы речь была понятна БЕЗ усилия со стороны слушателя, а замены вроде think→sink и west→vest дают не акцент, а другое слово, и экзаменатор тратит внимание на расшифровку вместо содержания. Отсюда же второй незакрытый пункт — словесное ударение: перенесённое ударение (deVElopment вместо deVELopment) сбивает распознавание сильнее любого звука.',
+    vocabTheme: 'Слова, на которых слышна подмена звука',
+    artifact: 'Запись всех пяти рядов и трёх ответов Part 1 с самопроверкой по критерию',
+    vocab: [
+      { term: 'think', reading: '/θɪŋk/', ru: 'думать', example: 'Подменяется на sink — язык должен быть между зубами и виден в зеркале.' },
+      { term: 'three', reading: '/θriː/', ru: 'три', example: 'Подменяется на tree.' },
+      { term: 'west', reading: '/west/', ru: 'запад', example: 'Подменяется на vest: при w губы трубочкой, зубы не участвуют.' },
+      { term: 'wine', reading: '/waɪn/', ru: 'вино', example: 'Подменяется на vine.' },
+      { term: 'sheep', reading: '/ʃiːp/', ru: 'овца', example: 'Долгий /iː/ против короткого /ɪ/ в ship.' },
+      { term: 'bad', reading: '/bæd/', ru: 'плохой', example: '/æ/ против /e/ в bed: рот открыт шире.' },
+      { term: 'walk', reading: '/wɔːk/', ru: 'идти пешком', example: 'L не читается: «уок». Путается с work.' },
+      { term: 'word stress', ru: 'ударение в слове', example: 'phoTOgraphy, но PHOtograph и photoGRAPHic — ударение ездит вместе с суффиксом.' },
+      { term: 'to be intelligible', ru: 'быть разборчивым', example: 'Формулировка критерия: понятность важнее «правильного акцента».' },
+      { term: 'a chunk', ru: 'смысловой кусок речи', example: 'Речь членится паузами по смыслу, а не по нехватке воздуха.' },
+    ],
+    tasks: [
+      one('What does the Pronunciation criterion actually measure?', [
+        'How close you sound to a native speaker',
+        'How much effort the listener needs to understand you',
+        'Whether you have a British or American accent',
+        'How fast you speak',
+      ], 1),
+      one('Which mistake costs the most on Speaking?', [
+        'A noticeable Russian accent',
+        'Replacing a sound so that the word becomes a different word',
+        'Occasional hesitation',
+        'Using simple linking words',
+      ], 1),
+      one('Where is the stress in «development»?', ['DEvelopment', 'deVELopment', 'develOPment', 'developMENT'], 1),
+      // Пять рядов из тренажёра целиком: юнит и гнёзда держатся одного
+      // источника, и дописанное в soundNests.ts появляется в уроке само.
+      // Здесь по одной паре с ряда — прогон всего ряда живёт в тренажёре и
+      // возвращается по расписанию, а не один раз на уроке.
+      ...nestTasks('en-think', 1),
+      ...nestTasks('en-west', 1),
+      ...nestTasks('en-ship', 1),
+      ...nestTasks('en-bad', 1),
+      ...nestTasks('en-work', 1),
+      readAloud('Read the five rows aloud, holding the difference in each: think–sink–three–tree, west–vest–wine–vine, ship–sheep–cheap–chip, bad–bed–bat–bet, work–walk–word–world.',
+        'think sink three tree west vest wine vine ship sheep cheap chip bad bed bat bet work walk word world', 60),
+      readAloud('Read this Part 1 answer aloud twice: first as fast as you can, then chunked by meaning with a short pause at every slash. I’d say I do / mainly because it helps me switch off after work / and I usually cook something simple on weekdays.',
+        'I’d say I do, mainly because it helps me switch off after work, and I usually cook something simple on weekdays.', 45),
+      say('Answer three Part 1 questions and listen back to your own recording with one question only: was there any word the examiner would have to guess? Do you often walk to work? What kind of weather do you like? Do you think people read enough these days?', 150),
+    ],
+  },
+  {
+    n: 21, shortId: 'ielt-20',
     title: 'Пробный экзамен и план на последний месяц',
     goal: 'Пройти все четыре секции в условиях экзамена и составить точный план доработки',
     grammar: 'Повторение всего курса; беглость против точности; язык самооценки по критериям',

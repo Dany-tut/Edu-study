@@ -154,5 +154,10 @@ export const IELTS_VIDEO_EXTRA: Record<string, string> = {
   'ielt-17': yt('39PfYf8NodA'), // Speaking: 8 techniques for any topic
   'ielt-18': yt('iT5dk3nkYfQ'), // Top 20 speaking topics with answers
   'ielt-19': yt('dHTpgdWp5tY'), // Band 7+ speaking tips
+  // Урок про произношение своего ролика пока не получил: тот же разбор band 7+,
+  // где критерий Pronunciation идёт одним из четырёх. Повтор здесь — приём
+  // штатный (так же переиспользованы ielt-07, ielt-10, ielt-13), но заменить
+  // на выделенный ролик про θ/ð и w/v стоит: тема этого заслуживает.
+  'ielt-20p': yt('dHTpgdWp5tY'),
   'ielt-20': yt('US_pz_Z6GCk'), // Speaking test band 6.5 с разбором
 }

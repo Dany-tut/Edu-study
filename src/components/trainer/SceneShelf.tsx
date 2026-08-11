@@ -1,4 +1,4 @@
-import { BookOpen, Tv, Quote, ExternalLink, AlertTriangle, Lock } from 'lucide-react'
+import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock } from 'lucide-react'
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
@@ -66,8 +66,12 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
                           плашка ужималась по ширине и переносила подпись под
                           иконку, превращая её в двухэтажную. */}
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        {w.medium === 'series' ? <Tv size={11} /> : <BookOpen size={11} />}
-                        {w.medium === 'series' ? t('сериал') : t('книга')}
+                        {w.medium === 'series' ? <Tv size={11} />
+                          : w.medium === 'film' ? <Clapperboard size={11} />
+                          : <BookOpen size={11} />}
+                        {w.medium === 'series' ? t('сериал')
+                          : w.medium === 'film' ? t('фильм')
+                          : t('книга')}
                       </span>
                     </TileChip>
                     {/* Возраст показываем только там, где он что-то значит:
