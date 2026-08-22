@@ -17,7 +17,9 @@
     "seed": "node server/seed.js",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "build:feed": "node scripts/buildFeed.mjs",
+    "check:feed": "node scripts/checkFeed.mjs"
   },
   "dependencies": {
     "@capacitor/cli": "^8.4.1",

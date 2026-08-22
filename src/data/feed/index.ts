@@ -308,3 +308,19 @@ export async function loadFeed(lang: string | undefined): Promise<FeedItem[]> {
     return []
   }
 }
+
+/**
+ * «1 материал», «2 материала», «5 материалов».
+ *
+ * Общего склонятора в проекте нет, а «1 материалов» в подзаголовке видно сразу
+ * и читается как недоделка. Живёт рядом со словом, которое склоняет, — как
+ * scenesWord у сцен.
+ */
+export function materialsWord(n: number): string {
+  const t = n % 100
+  if (t >= 11 && t <= 14) return 'материалов'
+  const d = n % 10
+  if (d === 1) return 'материал'
+  if (d >= 2 && d <= 4) return 'материала'
+  return 'материалов'
+}

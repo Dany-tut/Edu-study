@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ScrollText } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ScrollText, ExternalLink } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
+import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, type FeedItem } from '../data/feed'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
@@ -36,6 +37,7 @@ import {
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
+import { FeedList } from './trainer/FeedShelf'
 import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
 import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
 import {
@@ -87,6 +89,13 @@ import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressS
 // ответ и отдаёт учителю — автоматической оценки произношения нет.
 
 type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar' | 'guide'
+
+/**
+ * Половины вкладки «Чтение». Не режимы: у всех трёх одна читалка, один словарь
+ * по клику и одна запись результата. Разное у них только то, КАК выбирают
+ * материал — фильтром, по обложке или по дате.
+ */
+type ReadingView = 'texts' | 'scenes' | 'feed'
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
   { id: 'reading',   label: 'Чтение',     hint: 'Тексты с вопросами',       Icon: BookOpen },
@@ -185,7 +194,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // добавленными полями: она идёт через ту же читалку, тот же словарь по клику
   // и ту же запись результата. Отдельный режим означал бы вторую копию фильтров
   // и вторую читалку, которая разойдётся с первой на первой же правке.
-  const [readingView, setReadingView] = usePersistentState<'texts' | 'scenes'>(`trainer.${lang}.readingView`, 'texts')
+  const [readingView, setReadingView] = usePersistentState<ReadingView>(`trainer.${lang}.readingView`, 'texts')
   const [openWorkId, setOpenWorkId] = usePersistentState<string | null>(`trainer.${lang}.work`, null)
   const [openSceneId, setOpenSceneId] = usePersistentState<string | null>(`trainer.${lang}.scene`, null)
   const [hideSpoilers, setHideSpoilers] = usePersistentState<boolean>(`trainer.${lang}.spoilers`, true)
@@ -216,6 +225,34 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     loadScenes(lang).then(list => { if (alive) setSceneData({ lang, list }) })
     return () => { alive = false }
   }, [sceneLib, mode, readingView, scenes, lang])
+
+  // ── Лента: третья половина «Чтения» ────────────────────────────────────────
+  //
+  // Устроена как сцены и по той же причине: материал приезжает отдельным
+  // чанком, а количество известно синхронно из реестра — иначе бейдж «Чтение»
+  // в меню режимов показывал бы ленту нулём, пока её не откроют.
+  //
+  // Открытое хранится идентификатором И СПОСОБОМ: одна и та же заметка
+  // открывается читалкой или на слух, и после F5 человек должен вернуться туда
+  // же, откуда ушёл, а не «в тот же текст, но глазами».
+  const [openFeedId, setOpenFeedId] = usePersistentState<string | null>(`trainer.${lang}.feed`, null)
+  const [feedHow, setFeedHow] = usePersistentState<'read' | 'listen'>(`trainer.${lang}.feedHow`, 'read')
+
+  const feedLib = hasFeed(lang)
+  const [feedData, setFeedData] = useState<{ lang: string; list: FeedItem[] } | null>(null)
+  const feed = feedData?.lang === lang ? feedData.list : undefined
+  const feedTotal = feed?.length ?? feedCount(lang)
+
+  useEffect(() => {
+    if (!feedLib || mode !== 'reading' || readingView !== 'feed' || feed !== undefined) return
+    let alive = true
+    loadFeed(lang).then(list => { if (alive) setFeedData({ lang, list }) })
+    return () => { alive = false }
+  }, [feedLib, mode, readingView, feed, lang])
+
+  const openFeedItem: FeedItem | null = openFeedId
+    ? feed?.find(x => x.id === openFeedId) ?? null
+    : null
 
   const scenesOf = useMemo(() => {
     const byWork = new Map<string, Scene[]>()
@@ -340,9 +377,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }
 
   /** Переключение половин «Чтения». Открытое произведение при этом закрывается. */
-  function switchReadingView(v: 'texts' | 'scenes') {
+  function switchReadingView(v: ReadingView) {
     setReadingView(v)
-    setOpenWorkId(null); setOpenSceneId(null)
+    setOpenWorkId(null); setOpenSceneId(null); setOpenFeedId(null)
     setQuery(''); setStatus(''); setSceneShelf('')
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
   }
@@ -354,8 +391,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   /** Открыта ли вторая половина «Чтения» — витрина сцен. */
   const scenesOn = mode === 'reading' && readingView === 'scenes' && sceneLib
+  /** Третья половина — лента. */
+  const feedOn = mode === 'reading' && readingView === 'feed' && feedLib
 
-  const isLang = (mode === 'reading' && !scenesOn) || mode === 'listening'
+  const isLang = (mode === 'reading' && !scenesOn && !feedOn) || mode === 'listening'
   const pool = mode === 'listening' ? audio : allTexts
   const kind: MaterialKind = mode === 'listening' ? 'listening' : 'reading'
 
@@ -1048,7 +1087,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Сумма при этом известна сразу: сцены едут отдельным чанком (у английского
     // это 340 КБ), но их количество лежит в синхронном реестре (SCENE_COUNTS),
     // так что бейдж не прыгает и весь Диккенс ради цифры не грузится.
-    reading: allTexts.length + (sceneLib ? scenesTotal : 0),
+    reading: allTexts.length + (sceneLib ? scenesTotal : 0) + (feedLib ? feedTotal : 0),
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speakTotal,
@@ -1067,6 +1106,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
     : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
+    : feedOn ? `${feedTotal} ${t(materialsWord(feedTotal))} ${t('из свободных источников')}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
     : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')} · ${KO_NUMBER_SETS.length} ${t('наборов чисел')}`
@@ -1133,7 +1173,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {/* Две половины «Чтения». Показываем переключатель только там, где сцены
           для языка вообще написаны: пустая вкладка хуже отсутствующей. */}
-      {mode === 'reading' && sceneLib && (
+      {mode === 'reading' && (sceneLib || feedLib) && (
         <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={15} />}>
           <RailSegment
             options={[
@@ -1146,9 +1186,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               // половине «Тексты», где чанк ещё не загружали.
               { value: 'texts', label: 'Тексты', badge: allTexts.length },
               { value: 'scenes', label: 'Сцены', badge: scenesTotal },
+              // Лента появляется только там, где для языка собран хоть один
+              // материал: пустая вкладка хуже отсутствующей.
+              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedTotal }] : []),
             ]}
             value={readingView}
-            onChange={v => v && switchReadingView(v as 'texts' | 'scenes')}
+            onChange={v => v && switchReadingView(v as ReadingView)}
             accent={palette.accent}
             soft={palette.soft}
             clearable={false}
@@ -1156,7 +1199,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {readingView === 'scenes'
               ? t('Отрывки из книг и сериалов. У каждого — что было до сцены и чем всё кончилось.')
-              : t('Тексты, написанные под уровень: объявления, письма, инструкции.')}
+              : readingView === 'feed'
+                ? t('Новости и статьи из источников со свободной лицензией. Обновляется сборкой, читается по дням.')
+                : t('Тексты, написанные под уровень: объявления, письма, инструкции.')}
           </div>
         </RailCard>
       )}
@@ -1491,13 +1536,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           title="Фильтры"
           accent={palette.accent}
           icon={<SlidersHorizontal size={15} />}
-          action={kindFilter ? { label: t('Все'), onClick: () => setKindFilter('') } : undefined}
         >
           {/* Четыре подписи в ряд шириной в рейл ломались пополам («Шэдо/уинг»).
               Название остаётся у выбранного — того, что сейчас и определяет
               выборку, — остальные ждут значками и называют себя по наведению. */}
           <RailSegment
             options={[
+              // «Все» — такая же кнопка ряда, а не ссылка в углу карточки: без
+              // неё ряд открывался четырьмя безымянными значками, и было
+              // непонятно, что выборка сейчас полная.
+              { value: '', label: 'Все', icon: <ListChecks size={15} /> },
               ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг', icon: <Repeat size={15} /> }] : []),
               { value: 'roleplay', label: 'Ролевые', icon: <MessagesSquare size={15} /> },
               { value: 'story', label: 'Рассказ', icon: <ScrollText size={15} /> },
@@ -1507,6 +1555,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             onChange={setKindFilter}
             accent={palette.accent}
             soft={palette.soft}
+            clearable={false}
             idleIcon
           />
           <RailStat label="Заданий" value={speakTotal} />
@@ -1859,6 +1908,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         accent={palette.accent}
         soft={palette.soft}
         onOpen={setOpenWorkId}
+      />
+    )
+  } else if (feedOn) {
+    content = feed === undefined ? (
+      <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
+    ) : (
+      <FeedList
+        items={feed}
+        done={id => !!resultFrom('reading', id, results)}
+        accent={palette.accent}
+        soft={palette.soft}
+        onOpen={(id, how) => { setFeedHow(how); setOpenFeedId(id) }}
       />
     )
   } else if (isLang) {
@@ -2256,6 +2317,50 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       />
     )
   }
+  // Материал ленты. Он же ReadingText, поэтому идёт через ту же читалку — но с
+  // шапкой источника: без названия, лицензии и ссылки текст показывать нельзя,
+  // а у CC BY-SA это ещё и условие лицензии, а не вежливость.
+  //
+  // «Слушать» — тот же самый материал, отданный слушалке: у заметки уже есть
+  // текст, словарь и вопросы, и второй комплект данных для аудирования не
+  // нужен. Расшифровку слушалка показывает после ответов — иначе задание
+  // превращается в чтение.
+  if (openFeedItem) {
+    const back = () => { setOpenFeedId(null); setResultsKey(k => k + 1) }
+    return feedHow === 'listen' ? (
+      <Listener
+        item={{
+          id: openFeedItem.id,
+          lang: openFeedItem.lang,
+          title: openFeedItem.title,
+          level: openFeedItem.level,
+          topic: openFeedItem.topic,
+          skill: 'Аудирование',
+          minutes: openFeedItem.minutes,
+          script: openFeedItem.body,
+          credit: openFeedItem.credit,
+          translation: openFeedItem.translation,
+          glossary: openFeedItem.glossary,
+          questions: openFeedItem.questions,
+        }}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        onBack={back}
+      />
+    ) : (
+      <Reader
+        text={openFeedItem}
+        feed={openFeedItem}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        owner={owner}
+        subjectId={subjectId}
+        onBack={back}
+      />
+    )
+  }
   if (openText) {
     return (
       <Reader
@@ -2404,8 +2509,13 @@ const finishChip = {
   fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
 } as const
 
-function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, onBack }: {
+function Reader({ text, scene, work, feed, accent, palette, lang, owner, subjectId, onBack }: {
   text: ReadingText
+  /**
+   * Задано, если открыт материал ленты. Читалка от этого не раздваивается:
+   * сверху добавляется строка источника со ссылкой на оригинал — и всё.
+   */
+  feed?: FeedItem
   /**
    * Задано, если открыт отрывок из книги или сериала. Читалка от этого не
    * раздваивается: добавляются рамка «что вокруг» перед текстом и «чем
@@ -2564,7 +2674,11 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
         title={text.title}
         subtitle={scene && work
           ? `${work.title} · ${scene.where} · ${text.level}`
-          : `${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`}
+          : feed
+            // У материала ленты подпись начинается с источника и даты: это
+            // первое, что нужно знать про новость, и это же — атрибуция.
+            ? `${outletById(feed.outletId)?.name ?? ''} · ${dayLabel(feed.date)} · ${text.level}`
+            : `${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`}
         palette={palette}
       />
 
@@ -2645,6 +2759,22 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       </ToolButton>
       <ToolRight>
         {text.credit && <ToolCount>{text.credit}</ToolCount>}
+        {/* Ссылка на оригинал у материала ленты обязательна: и как проверяемое
+            основание («вот откуда это взято»), и как условие свободных
+            лицензий, которые требуют указать источник. */}
+        {feed && (
+          <a
+            href={feed.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              fontSize: 12, color: 'var(--color-muted)', textDecoration: 'none',
+            }}
+          >
+            {t('Оригинал')}<ExternalLink size={12} />
+          </a>
+        )}
         {/* Ссылка ведёт ровно на этот отрывок, а не «в тренажёр»: сцена
             адресуется вместе со своим произведением, учебный текст — сам собой. */}
         <ShareLink
