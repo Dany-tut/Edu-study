@@ -25,7 +25,7 @@ const out = join(tmp, 'bundle.mjs')
 await build({
   stdin: {
     contents: `
-      export { questionRu } from './src/data/questionRu'
+      export { questionRu, isAlreadyRu } from './src/data/questionRu'
       export { READING_LIBRARY } from './src/data/readingLibrary'
       export { LISTENING_LIBRARY } from './src/data/listeningLibrary'
       export { EN_SCENES } from './src/data/scenes/scenesEn'
@@ -39,7 +39,7 @@ await build({
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'error',
 })
 const {
-  questionRu, READING_LIBRARY, LISTENING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
+  questionRu, isAlreadyRu, READING_LIBRARY, LISTENING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
 } = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
 
@@ -56,6 +56,9 @@ for (const d of docs) {
   const st = (perLang[d.lang] ??= { total: 0, holes: 0 })
   const holes = []
   for (const q of d.questions ?? []) {
+    // Вопрос, заданный по-русски (о грамматике, о регистре), перевода не
+    // требует: считать его дырой значило бы держать список вечно красным.
+    if (isAlreadyRu(q)) continue
     st.total++
     if (questionRu(d.lang, q)) continue
     st.holes++

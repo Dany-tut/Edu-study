@@ -46,6 +46,23 @@ export interface Lexicon {
 const CJK = /[぀-ヿ㐀-䶿一-鿿가-힯々ー]/
 // Латиница с цифрами: слово может содержать апостроф (I'd) и дефис (mid-level).
 const WORD_CHAR = /[\p{L}\p{N}]/u
+
+/**
+ * Своя письменность языка.
+ *
+ * Формулировки вопросов к сцене нередко написаны по-русски — «Что означает
+ * «폭싹 속았수다»?». Разбор не знает русского и не должен: без этой проверки
+ * каждое русское слово становилось кликабельным и открывало «этого слова нет
+ * в словаре», то есть тупик там, где никакого слова и не спрашивали. Чужая
+ * письменность без перевода — просто текст; своя — кликается всегда, даже без
+ * перевода (по хангылю и кане важно хотя бы услышать чтение).
+ */
+const SCRIPT: Record<string, RegExp> = {
+  en: /[A-Za-z]/,
+  'pt-BR': /[A-Za-zÀ-ÖØ-öø-ÿ]/,
+  ko: /[가-힣ㄱ-ㅎㅏ-ㅣ]/,
+  ja: /[぀-ヿ㐀-䶿一-鿿々ー]/,
+}
 const DIGIT = /\p{N}/u
 const LETTER = /\p{L}/u
 
@@ -253,7 +270,10 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
         // walk). Проверка тут, а не в жадном поиске выше: там перебираются
         // куски строки, и отрезать окончание у куска значило бы искать основу
         // внутри соседнего слова.
-        out.push({ text: run, gloss: LETTER.test(run) ? derived(run) : undefined, word: LETTER.test(run) })
+        const g = LETTER.test(run) ? derived(run) : undefined
+        const own = SCRIPT[lang]
+        const clickable = LETTER.test(run) && (!!g || !own || own.test(run))
+        out.push({ text: run, gloss: g, word: clickable })
         i = j
         continue
       }

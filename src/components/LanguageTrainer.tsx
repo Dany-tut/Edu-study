@@ -1798,7 +1798,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       <div ref={questionsRef} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {text.questions.map((q, qi) => (
           <QuestionCard
-            key={qi}
+            key={`${qi}-${q.q}`}
             q={q}
             index={qi}
             value={answers[qi]}
@@ -2079,7 +2079,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {item.questions.map((q, qi) => (
           <QuestionCard
-            key={qi} q={q} index={qi} value={answers[qi]} checked={checked} accent={accent} lang={lang}
+            key={`${qi}-${q.q}`} q={q} index={qi} value={answers[qi]} checked={checked} accent={accent} lang={lang}
             onPick={v => !checked && setAnswers(a => ({ ...a, [qi]: v }))}
           />
         ))}

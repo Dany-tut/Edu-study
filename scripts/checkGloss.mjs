@@ -54,13 +54,18 @@ let bad = 0
 
 // ─── 1. Покрытие ─────────────────────────────────────────────────────────────
 
+// Кликается не только текст: формулировка вопроса под ним разбирается тем же
+// GlossedText (LanguageTrainer). Слово, которое встретилось ТОЛЬКО в вопросе
+// («What happens if the pupil misses a week with flu?»), — такой же тупик, и
+// заметить его труднее: до вопросов доходит не каждый читающий.
 const docs = []
-for (const s of [...EN_SCENES, ...KO_SCENES, ...JA_SCENES, ...PT_SCENES]) {
-  docs.push({ id: s.id, lang: s.lang, body: s.body, extra: s.glossary ?? [], kind: 'сцена' })
+const push = (d, kind) => {
+  docs.push({ id: d.id, lang: d.lang, body: d.body, extra: d.glossary ?? [], kind })
+  const qs = (d.questions ?? []).map(q => q.q).filter(Boolean)
+  if (qs.length) docs.push({ id: `${d.id} · вопросы`, lang: d.lang, body: qs.join('\n'), extra: d.glossary ?? [], kind })
 }
-for (const t of READING_LIBRARY) {
-  docs.push({ id: t.id, lang: t.lang, body: t.body, extra: t.glossary ?? [], kind: 'текст' })
-}
+for (const s of [...EN_SCENES, ...KO_SCENES, ...JA_SCENES, ...PT_SCENES]) push(s, 'сцена')
+for (const t of READING_LIBRARY) push(t, 'текст')
 
 const perLang = {}
 for (const d of docs) {

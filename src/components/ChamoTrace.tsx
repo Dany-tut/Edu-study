@@ -52,8 +52,16 @@ import AudioPlayer from './AudioPlayer'
 /** Насколько далеко от линии можно вести палец (в единицах квадрата 0..100). */
 const TOLERANCE = 16
 
-/** Начать черту можно, попав в этот радиус вокруг стартовой точки. */
+/** Начать (или продолжить) черту можно, попав в этот радиус вокруг кружка. */
 const START_TOLERANCE = 24
+
+/**
+ * Сколько точек сгущения смотрим вперёд за один шаг указателя.
+ *
+ * Окно не даёт «телепортироваться»: перепрыгнул середину черты — ближайшая
+ * точка ищется только в пределах окна, и заливка дальше не пойдёт.
+ */
+const LOOKAHEAD = 14
 
 /** Шаг сгущения черты. Мельче — дороже, крупнее — можно срезать угол. */
 const STEP = 2.5
@@ -155,7 +163,12 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     if (!p) return
     // Продолжают оттуда, где остановились: с начала черты, а если её уже начали
     // и отпустили — с кончика написанного. Там же стоит кружок со стрелкой.
-    if (Math.hypot(p[0] - resumeAt[0], p[1] - resumeAt[1]) > START_TOLERANCE) {
+    const nearResume = Math.hypot(p[0] - resumeAt[0], p[1] - resumeAt[1]) <= START_TOLERANCE
+    // От начала черты тоже пускаем: кто хочет обвести её целиком заново, просто
+    // ведёт от старта — написанное никуда не денется, и с кончика оно поедет
+    // дальше само, когда палец до него дойдёт.
+    const nearStart = Math.hypot(p[0] - current.pts[0][0], p[1] - current.pts[0][1]) <= START_TOLERANCE
+    if (!nearResume && !nearStart) {
       setNudge(n => n + 1)
       return
     }
@@ -184,7 +197,18 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
         const p = toLocal(step.clientX, step.clientY)
         if (!p) continue
         seen = true
-        while (next < denseCurrent.length && Math.hypot(p[0] - denseCurrent[next][0], p[1] - denseCurrent[next][1]) < TOLERANCE) next++
+        // Берём БЛИЖАЙШУЮ к пальцу точку, а не все, до которых дотянулся допуск.
+        // Иначе чернила убегают вперёд руки на весь допуск: отпустил на середине
+        // перекладины, а залито уже на треть дальше — и непонятно, где ты
+        // остановился и откуда продолжать.
+        let best = -1
+        let bestDist = TOLERANCE
+        const limit = Math.min(denseCurrent.length, next + LOOKAHEAD)
+        for (let i = next; i < limit; i++) {
+          const d = Math.hypot(p[0] - denseCurrent[i][0], p[1] - denseCurrent[i][1])
+          if (d < bestDist) { bestDist = d; best = i }
+        }
+        if (best >= 0) next = best + 1
       }
       if (!seen) return
 

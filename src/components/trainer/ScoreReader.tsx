@@ -528,7 +528,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             )}
             {/* Сторона — только когда перевод включён: пустой выбор «где его
                 показывать» рядом с выключенным переводом ничего не объясняет. */}
-            {translation && showRu && canSide && (
+            {translation && showRu && canSide && !stepping && (
               <SideSwitch value={ruSide} onChange={setRuSide} accent={accent} />
             )}
             {readings && (
@@ -574,7 +574,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           // Перевод в этом режиме открывается на один фрагмент, если общий
           // тумблер выключен: смысл экрана — сперва понять самому.
           showRu={showRu || peek}
-          canPeek={!showRu && !!units[at].ru}
+          canPeek={!showRu && !peek && !!units[at].ru}
           onPeek={() => setPeek(true)}
         />
       ) : (
@@ -667,8 +667,28 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
   // чтобы обычная прокрутка страницы не листала фрагменты.
   const touch = useRef<{ x: number; y: number } | null>(null)
 
+  // Фрагмент подкручивается в вид, если его не видно целиком.
+  //
+  // Зачем: карточка стоит под врезкой «что вокруг», и на телефоне включённый
+  // режим оказывается ниже экрана — ученик видит переключатель и пустоту. Плюс
+  // фрагменты разной высоты: после длинного следующий начинается за нижним
+  // краем. Крутим ТОЛЬКО когда надо, иначе экран дёргается на каждом шаге.
+  //
+  // behavior оставлен рывком: плавная прокрутка в этой оболочке иногда молча не
+  // доезжает, а рывок работает везде.
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    // 110 — прилипшая шапка плеера плюс воздух; ниже неё карточка «под шапкой».
+    if (r.top >= 110 && r.bottom <= window.innerHeight) return
+    el.scrollIntoView({ block: 'center' })
+  }, [index])
+
   return (
     <div
+      ref={cardRef}
       onTouchStart={e => {
         const p = e.touches[0]
         touch.current = { x: p.clientX, y: p.clientY }
@@ -751,6 +771,9 @@ function NavButton({ onClick, disabled, accent, soft, primary, children }: {
       style={{
         flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
         padding: '11px 14px', borderRadius: 14,
+        // Свайп по карточке проходит и по кнопкам: без этого жест «дальше»
+        // оставлял за собой выделенное синим слово на кнопке.
+        userSelect: 'none', WebkitUserSelect: 'none',
         cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
         fontSize: 13.5, fontWeight: 700,
         border: primary ? 'none' : `1px solid ${disabled ? 'var(--color-border-soft)' : 'var(--color-border-medium)'}`,

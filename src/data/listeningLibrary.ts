@@ -54,7 +54,7 @@ const EN: ListeningItem[] = [
   {
     id: 'en-l-voicemail',
     lang: 'en', title: 'A voicemail from a recruiter', level: 'A2',
-    topic: 'Переписка', skill: 'Аудирование', minutes: 2,
+    topic: 'Переписка и созвоны', skill: 'Аудирование', minutes: 2,
     script: `Hi, this is Anna from Nordic Labs. I'm calling about your application for the Product Designer role. We'd like to invite you to a short call — about twenty minutes — sometime this week. Wednesday or Thursday would work best for us, between ten and four. Could you send me a couple of times that suit you? My email is anna dot k at nordiclabs dot com. Thanks, and talk soon.`,
     translation: `Здравствуйте, это Анна из Nordic Labs. Звоню по поводу вашей заявки на позицию продуктового дизайнера. Хотим пригласить вас на короткий звонок, минут на двадцать, на этой неделе. Нам удобнее среда или четверг, с десяти до четырёх. Пришлите, пожалуйста, пару удобных вам вариантов. Моя почта — anna.k@nordiclabs.com. Спасибо, до связи.`,
     glossary: [
@@ -86,7 +86,7 @@ const EN: ListeningItem[] = [
   {
     id: 'en-l-standup',
     lang: 'en', title: 'A stand-up update', level: 'B1',
-    topic: 'Работа в команде', skill: 'Аудирование', minutes: 1,
+    topic: 'Работа', skill: 'Аудирование', minutes: 1,
     script: `Morning everyone. Yesterday I finished the empty states for search and handed them off to Tom. Today I'm picking up the filters — I should have something to show by the end of the day. One blocker: I'm still waiting on the copy for the error screens, so those are on hold. If anyone knows who owns that, let me know after stand-up.`,
     translation: `Всем доброе утро. Вчера я закончил пустые состояния для поиска и передал их Тому. Сегодня берусь за фильтры — к концу дня будет что показать. Одно препятствие: всё ещё жду тексты для экранов с ошибками, они пока стоят. Если кто-то знает, кто за них отвечает, скажите после планёрки.`,
     glossary: [

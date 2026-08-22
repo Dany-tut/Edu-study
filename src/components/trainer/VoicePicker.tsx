@@ -81,6 +81,12 @@ const MENU_MIN = 232
 /** Просвет между триггером и меню. */
 const GAP = 6
 
+/** Отступ от края окна — меню не должно упираться в него вплотную. */
+const EDGE = 8
+
+/** Предел высоты списка: дальше он листается внутри себя. */
+const MENU_MAX_H = 340
+
 export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
   lang: string
   accent: string
@@ -91,7 +97,12 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  // Меню привязано либо верхом к низу кнопки, либо низом к её верху: когда
+  // места под кнопкой нет (рейл упирается в край окна), список раскрывается
+  // вверх и растёт от кнопки, а не свисает с неё за экран.
+  const [pos, setPos] = useState<
+    { left: number; width: number; maxH: number; top?: number; bottom?: number } | null
+  >(null)
   const [picked, setPicked] = useState(() => preferredVoice(lang))
   // Список голосов в Chrome приходит асинхронно: на первом рендере он пуст, и
   // без подписки на voiceschanged выбор так и остался бы пустым до перезагрузки.
@@ -162,9 +173,12 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
         Math.max(8, variant === 'icon' ? r.right - width : r.left),
         window.innerWidth - width - 8,
       )
-      const below = window.innerHeight - r.bottom - GAP
-      const up = below < 220 && r.top > below
-      setPos({ top: up ? Math.max(8, r.top - GAP - Math.min(340, r.top - 16)) : r.bottom + GAP, left, width })
+      const below = window.innerHeight - r.bottom - GAP - EDGE
+      const above = r.top - GAP - EDGE
+      const up = below < 200 && above > below
+      setPos(up
+        ? { left, width, maxH: Math.min(MENU_MAX_H, above), bottom: window.innerHeight - r.top + GAP }
+        : { left, width, maxH: Math.min(MENU_MAX_H, below), top: r.bottom + GAP })
     }
     setOpen(o => !o)
   }
@@ -237,13 +251,16 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
             <motion.div
               ref={menu}
               className="no-scrollbar"
-              initial={{ opacity: 0, y: -6, scale: 0.96 }}
+              // Выезжает со стороны кнопки: список, раскрытый вверх, и
+              // появляться должен снизу вверх.
+              initial={{ opacity: 0, y: pos.top !== undefined ? -6 : 6, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              exit={{ opacity: 0, y: pos.top !== undefined ? -6 : 6, scale: 0.96 }}
               transition={{ duration: 0.15 }}
               style={{
-                position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999,
-                maxHeight: 340, overflowY: 'auto', padding: 6, borderRadius: 14,
+                position: 'fixed', left: pos.left, width: pos.width, zIndex: 9999,
+                ...(pos.top !== undefined ? { top: pos.top } : { bottom: pos.bottom }),
+                maxHeight: pos.maxH, overflowY: 'auto', padding: 6, borderRadius: 14,
                 background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
                 boxShadow: '0 16px 40px rgba(0,0,0,0.18)',
               }}
