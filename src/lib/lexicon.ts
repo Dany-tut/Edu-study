@@ -183,6 +183,7 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
       // reading основы для формы не годится — его считает translit.
       return {
         term: word,
+        base: g.term,
         ru: g.ru,
         note: g.note ? `форма слова «${g.term}» · ${g.note}` : `форма слова «${g.term}»`,
       }

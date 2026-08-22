@@ -47,6 +47,8 @@ import { useT } from '../../lib/i18n'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
 import { useFloatingPill } from '../../lib/useFloatingPill'
 import { useScrollLock } from '../../lib/useScrollLock'
+import ScrollFade from '../ScrollFade'
+import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
 
 const RAIL_W = 300
@@ -698,11 +700,14 @@ export function StatusTabs({ options, value, onChange, accent }: {
 }
 
 /** Кнопка-таблетка строки: вид, избранное, назад. */
-export function ToolButton({ children, on, onClick, accent }: {
+export function ToolButton({ children, on, onClick, accent, btnRef }: {
   children: React.ReactNode; on?: boolean; onClick: () => void; accent?: string
+  /** Кнопку бывает нужно показать в онбординге — отсюда доступ к её узлу. */
+  btnRef?: React.RefObject<HTMLButtonElement | null>
 }) {
   return (
     <button
+      ref={btnRef}
       onClick={onClick}
       style={{
         // Как «Избранное» в банке: 10×14, кегль 12 — тогда таблетка встаёт вровень
@@ -719,6 +724,12 @@ export function ToolButton({ children, on, onClick, accent }: {
     </button>
   )
 }
+
+// Меню строки носят тот же скин, что дропдауны кабинета (lib/dropdownStyle):
+// коробка-стекло, строка с подсветкой под курсором, выбранная — тинтом. Там,
+// где предметного акцента нет (сортировка), берём общий фиолетовый.
+const MENU_ACCENT = 'var(--color-purple-text)'
+const MENU_ACCENT_BG = 'var(--color-purple-soft)'
 
 /** Сортировка — выпадающий список, портал поверх всего. */
 export function SortMenu({ options, value, onChange }: {
@@ -745,7 +756,9 @@ export function SortMenu({ options, value, onChange }: {
       setOpen(false)
     }
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const scroll = () => setOpen(false)
+    // Внутри списка крутить можно: своя прокрутка не закрывает меню. Фон в это
+    // время стоит (useScrollLock), но событие может прийти и не от колеса.
+    const scroll = (e: Event) => { if (!menu.current?.contains(e.target as Node)) setOpen(false) }
     window.addEventListener('mousedown', down)
     window.addEventListener('keydown', key)
     window.addEventListener('scroll', scroll, true)
@@ -789,9 +802,8 @@ export function SortMenu({ options, value, onChange }: {
               transition={{ duration: 0.15 }}
               style={{
                 position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999,
-                padding: 6, borderRadius: 14,
-                background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
-                boxShadow: '0 16px 40px rgba(0,0,0,0.18)',
+                transformOrigin: 'top left',
+                ...dropdownSurface,
               }}
             >
               {options.map(o => {
@@ -800,15 +812,11 @@ export function SortMenu({ options, value, onChange }: {
                   <button
                     key={o.value}
                     onClick={() => { onChange(o.value); setOpen(false) }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-                      padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                      fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 700 : 550,
-                      background: 'transparent', color: on ? 'var(--color-text)' : 'var(--color-text-2)',
-                    }}
+                    style={dropdownRow(on, { accent: MENU_ACCENT, accentBg: MENU_ACCENT_BG })}
+                    {...dropdownRowHover(on)}
                   >
                     <span style={{ flex: 1 }}>{t(o.label)}</span>
-                    {on && <Check size={14} />}
+                    {on && <Check size={14} strokeWidth={2.5} style={{ color: MENU_ACCENT }} />}
                   </button>
                 )
               })}
@@ -839,7 +847,7 @@ export function SortMenu({ options, value, onChange }: {
  * обработчик, собирающий новый массив из пропса `value`, во втором клике видит
  * ещё старый — первый выбор молча теряется. С `prev => …` этого не бывает.
  */
-export function FilterMenu({ label, options, value, onChange, accent }: {
+export function FilterMenu({ label, options, value, onChange, accent, soft }: {
   label: string
   /** Значение и подпись; count — сколько под него попадает, показывается справа. */
   options: { value: string; label: string; count?: number }[]
@@ -847,6 +855,8 @@ export function FilterMenu({ label, options, value, onChange, accent }: {
   /** Сеттер из useState: нужен именно он, см. про обновляющую функцию выше. */
   onChange: React.Dispatch<React.SetStateAction<string[]>>
   accent?: string
+  /** Заливка выбранной строки — мягкий тон предмета (палитра курса). */
+  soft?: string
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -866,7 +876,9 @@ export function FilterMenu({ label, options, value, onChange, accent }: {
       setOpen(false)
     }
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const scroll = () => setOpen(false)
+    // Внутри списка крутить можно: своя прокрутка не закрывает меню. Фон в это
+    // время стоит (useScrollLock), но событие может прийти и не от колеса.
+    const scroll = (e: Event) => { if (!menu.current?.contains(e.target as Node)) setOpen(false) }
     window.addEventListener('mousedown', down)
     window.addEventListener('keydown', key)
     window.addEventListener('scroll', scroll, true)
@@ -935,26 +947,24 @@ export function FilterMenu({ label, options, value, onChange, accent }: {
               transition={{ duration: 0.15 }}
               style={{
                 position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999,
-                // Список платформ короткий, список тем — нет. Ограничение по высоте
-                // с прокруткой внутри: иначе меню тем уезжает за нижний край окна.
-                maxHeight: pos.maxH, overflowY: 'auto',
-                padding: 6, borderRadius: 14,
-                background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
-                boxShadow: '0 16px 40px rgba(0,0,0,0.18)',
+                transformOrigin: 'top left',
+                ...dropdownSurface,
               }}
             >
+              {/* Список платформ короткий, список тем — нет. Прокрутка живёт
+                  ВНУТРИ коробки (ScrollFade: фейды у краёв, накладной ползунок,
+                  overscroll-contain), а фон в это время стоит — иначе меню тем
+                  уезжает за нижний край окна. */}
+              <ScrollFade maxHeight={on ? Math.max(140, pos.maxH - 46) : pos.maxH} bg={DROPDOWN_GLASS} overlayScrollbar>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {options.map(o => {
                 const picked = value.includes(o.value)
                 return (
                   <button
                     key={o.value}
                     onClick={() => toggle(o.value)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-                      padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                      fontFamily: 'inherit', fontSize: 13, fontWeight: picked ? 700 : 550,
-                      background: 'transparent', color: picked ? 'var(--color-text)' : 'var(--color-text-2)',
-                    }}
+                    style={dropdownRow(picked, { accent: tint, accentBg: soft ?? MENU_ACCENT_BG })}
+                    {...dropdownRowHover(picked)}
                   >
                     <span style={{ flex: 1 }}>{t(o.label)}</span>
                     {o.count !== undefined && (
@@ -962,19 +972,23 @@ export function FilterMenu({ label, options, value, onChange, accent }: {
                         {o.count}
                       </span>
                     )}
-                    {picked && <Check size={14} style={{ color: tint }} />}
+                    {picked && <Check size={14} strokeWidth={2.5} style={{ color: tint }} />}
                   </button>
                 )
               })}
+              </div>
+              </ScrollFade>
               {on && (
                 <button
                   onClick={() => { onChange([]); setOpen(false) }}
+                  {...dropdownRowHover(false)}
                   style={{
                     display: 'block', width: '100%', textAlign: 'left',
-                    marginTop: 4, padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+                    marginTop: 4, padding: '8px 10px', borderRadius: 9, cursor: 'pointer',
                     border: 'none', borderTop: '1px solid var(--color-border-soft)',
                     fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
                     background: 'transparent', color: 'var(--color-text-3)',
+                    transition: 'background 0.12s',
                   }}
                 >
                   {t('Сбросить')}

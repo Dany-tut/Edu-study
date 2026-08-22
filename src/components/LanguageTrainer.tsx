@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3 } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Plus } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
 import AudioPlayer from './AudioPlayer'
-import VoicePicker from './trainer/VoicePicker'
+import VoicePicker, { useVoiceChoice } from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
@@ -22,7 +22,7 @@ import TrainerShell, {
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
 import MultiSelectField from './MultiSelectField'
-import { addCards, deckOwner, dueCount, deckStates, type CardState } from '../data/reviewDeck'
+import { addCards, collectedCards, deckOwner, dueCount, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 import {
   hasScenes, loadScenes, sceneCount, scenesWord, shelvesForLang, worksForLang, workById,
@@ -36,6 +36,9 @@ import {
 } from '../data/survivalPhrases'
 import { hasNests, nestById, nestsForLang, nestsUpTo } from '../data/soundNests'
 import { NestGrid, NestPage } from './trainer/SoundNestDrill'
+import {
+  MyWordsSession, MyWordsTile, myWordsFrom, myWordsStats, MY_WORDS_ID, type MyWord,
+} from './trainer/MyWords'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
 import { courseReach, reachLevelIndex, reachNote } from '../lib/courseReach'
 import VoiceRecorder from './VoiceRecorder'
@@ -222,6 +225,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // рейлу и строке нужны только числа — поэтому они поднимаются оттуда сюда.
   const [kindFilter, setKindFilter] = useState('')
   const [speakCounts, setSpeakCounts] = useState({ total: 0, sent: 0, shown: 0 })
+  // Открытое задание говорения живёт здесь, а не внутри режима: выход из
+  // карточки — кнопка общей строки управления, как «К списку» в чтении.
+  const [speakOpen, setSpeakOpen] = useState<SpeakTask | null>(null)
 
   // Смена режима сбрасывает выборку: фильтры у режимов разные, и «Уровень B1»,
   // унесённый из чтения в аудирование, молча прячет половину записей.
@@ -229,7 +235,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setMode(m)
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
-    setSceneShelf('')
+    setSceneShelf(''); setSpeakOpen(null)
   }
 
   /** Переключение половин «Чтения». Открытое произведение при этом закрывается. */
@@ -381,6 +387,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // глубины помечаются «рано», но не прячутся (см. lib/courseReach.ts).
   const reach = useMemo(() => courseReach(deckCourses, deckSubjects), [deckCourses, deckSubjects])
 
+  // Есть ли в системе из чего выбирать голос — от этого зависит, рисовать ли
+  // карточку «Озвучка»: на одном дикторе она была бы пустой коробкой.
+  const voiceChoice = useVoiceChoice(lang)
+
   // ── Гнёзда созвучий ────────────────────────────────────────────────────────
   const nestsOn = useMemo(() => hasNests(lang), [lang])
   const nests = useMemo(() => nestsUpTo(lang, reach), [lang, reach])
@@ -466,6 +476,23 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return () => { alive = false }
   }, [owner, deckSubjects, knownKey])
 
+  // ── Личный словарь ─────────────────────────────────────────────────────────
+  //
+  // Собранные слова — те же строки колоды, только показанные списком, а не
+  // расписанием (см. trainer/MyWords.tsx). Читаются одним запросом рядом с
+  // памятью колоды и по тому же ключу `knownKey`: слово, забранное из текста,
+  // должно появиться на плитке сразу по возвращении из читалки.
+  const [cards, setCards] = useState<ReviewCard[]>([])
+  useEffect(() => {
+    let alive = true
+    collectedCards(owner, deckSubjects)
+      .then(c => { if (alive) setCards(c) })
+      // Словарь не доехал — вкладка живёт дальше: плитка покажет ноль слов,
+      // а не заменит собой всю витрину наборов ошибкой.
+      .catch(e => console.error('collectedCards:', e))
+    return () => { alive = false }
+  }, [owner, deckSubjects, knownKey])
+
   // Ответ по карточке уже сохранён в базе и вернулся новым состоянием — правим
   // свою копию точечно. Перечитывать всю колоду на каждый свайп значило бы
   // запрос в секунду и мигание счётчиков посреди стопки.
@@ -479,6 +506,31 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   const shelves = useMemo(() => survivalShelves(book ?? undefined), [book])
   const allThemes = useMemo(() => shelves.flatMap(s => s.themes), [shelves])
+
+  // Фразы разговорника — то, чего в личном словаре быть не должно: они уже
+  // разложены по своим плиткам, и словарь с ними стал бы копией всей витрины.
+  const bookPhrases = useMemo(
+    () => new Set(allThemes.flatMap(x => x.phrases.map(p => p.term))),
+    [allThemes],
+  )
+  const myWords = useMemo(() => myWordsFrom(cards, lang, bookPhrases), [cards, lang, bookPhrases])
+  /** Открыт словарь, а не тема: у него свой ключ в том же поле (см. MY_WORDS_ID). */
+  const openMyWords = openTheme === MY_WORDS_ID
+  const myStats = useMemo(() => myWordsStats(myWords, states), [myWords, states])
+
+  /**
+   * Вычеркнуть слово.
+   *
+   * Строка уходит с экрана сразу, до ответа базы: удаление своего же слова — не
+   * то место, где ученик готов ждать сеть. Если база отказала (нет прав, нет
+   * связи), перечитываем словарь — слово возвращается на место, а не пропадает
+   * с экрана, оставшись в расписании.
+   */
+  const forget = useCallback(async (w: MyWord) => {
+    setCards(prev => prev.filter(c => c.id !== w.cardId))
+    const ok = await forgetCard(w.cardId)
+    if (!ok) setKnownKey(k => k + 1)
+  }, [])
 
   // ── Виджет прогресса в верхней строке ──────────────────────────────────────
   //
@@ -613,7 +665,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest))
+  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords))
 
   // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
   // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
@@ -796,7 +848,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {mode === 'vocab' && (hasBook || nestsOn) && !openItem && !openNest && (
+      {mode === 'vocab' && (hasBook || nestsOn) && !openItem && !openNest && !openMyWords && (
         <>
           <RailCard title="Фильтры" accent={palette.accent} icon={<SlidersHorizontal size={15} />}
             action={shelf || fLevel.length > 0
@@ -851,6 +903,28 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
             </RailCard>
           )}
+        </>
+      )}
+
+      {mode === 'vocab' && openMyWords && (
+        <>
+          <RailCard title="Словарь" accent={palette.accent} icon={<BookMarked size={15} />}>
+            <RailStat label="Слов собрано" value={myStats.total} />
+            <RailStat label="Выучено" value={myStats.learned} tone={myStats.learned > 0 ? 'good' : undefined} />
+            <RailStat label="Сегодня в стопке" value={myStats.due} tone={myStats.due > 0 ? 'warn' : undefined} />
+            {/* Откуда берутся слова — здесь, а не только в пустом состоянии:
+                словарь пополняют по ходу дела, и напоминание нужно тому, у
+                кого в нём уже что-то есть, ровно так же. */}
+            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+              {bindShortWords(t('Слова приходят из текстов «Чтения» (нажми на слово → «В словарь»), из уроков курса и из разбора созвучий.'))}
+            </div>
+          </RailCard>
+          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+            <RailToggle label="Романизация" on={phraseView.reading}
+              onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
+            <RailToggle label="Сначала перевод" on={phraseView.reverse}
+              onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
+          </RailCard>
         </>
       )}
 
@@ -926,6 +1000,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           </div>
         </RailCard>
       )}
+
+      {/* Голос — общий на весь язык, поэтому и карточка одна на все режимы.
+          Раньше выбор стоял только в рейле читалки: карточки, разговорник и
+          созвучия читались тем диктором, которого угадала автоматика, и
+          поменять его было негде — при том что ключ в localStorage у них с
+          читалкой один и тот же. */}
+      {voiceChoice && (
+        <RailCard title="Озвучка" accent={palette.accent} icon={<Mic size={15} />}>
+          <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+            {bindShortWords(t('Этим голосом читается всё на этом языке: тексты, карточки, разговорник.'))}
+          </div>
+        </RailCard>
+      )}
     </>
   )
 
@@ -963,6 +1051,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 value={scenePlatforms}
                 onChange={setScenePlatforms}
                 accent={palette.accent}
+                soft={palette.soft}
               />
             )}
             {tagOpts.length > 1 && (
@@ -972,6 +1061,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 value={sceneTags}
                 onChange={setSceneTags}
                 accent={palette.accent}
+                soft={palette.soft}
               />
             )}
           </>
@@ -1011,6 +1101,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </ToolCount>
       </Toolbar>
     )
+  } else if (mode === 'vocab' && openMyWords) {
+    toolbar = (
+      <Toolbar>
+        <BackToSets onBack={() => setOpenTheme(null)} />
+        <div style={{ display: 'flex' }}>
+          <StatusTabs
+            options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
+            value={run}
+            onChange={v => setRun(v as RunMode)}
+            accent={palette.accent}
+          />
+        </div>
+        <ToolCount>{myStats.total} {t('слов')}</ToolCount>
+      </Toolbar>
+    )
   } else if (mode === 'vocab' && hasBook && vocabView === 'sets' && !openItem) {
     toolbar = (
       <Toolbar>
@@ -1030,6 +1135,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <ToolCount>
           {visibleThemes.reduce((n, x) => n + x.phrases.length, 0)} {t('фраз')} · {visibleThemes.length} {t('тем')}
         </ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'speaking' && speakOpen) {
+    toolbar = (
+      <Toolbar>
+        <ToolButton onClick={() => setSpeakOpen(null)}>
+          <ChevronLeft size={14} /> {t('К списку')}
+        </ToolButton>
+        <ToolCount>{t(speakOpen.title)}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'speaking') {
@@ -1171,6 +1285,26 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         />
       </div>
     )
+  } else if (mode === 'vocab' && openMyWords) {
+    content = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <MyWordsSession
+          words={myWords}
+          lang={lang}
+          subjectId={subjectId}
+          accent={palette.accent}
+          owner={owner}
+          view={phraseView}
+          run={run}
+          states={states}
+          statesReady={statesReady}
+          onGraded={onGraded}
+          onForget={forget}
+          tourExtra={runTourStep}
+        />
+        {run === 'swipe' && myWords.length > 0 && <DeckHint />}
+      </div>
+    )
   } else if (mode === 'vocab' && openItem && book) {
     content = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1202,6 +1336,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           soft={palette.soft}
           levelLabel={themeLevel}
           early={themeAhead}
+          lead={
+            <MyWordsTile
+              words={myWords}
+              states={states}
+              accent={palette.accent}
+              soft={palette.soft}
+              // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят
+              // посмотреть, что набрано, — стопка на сегодня в двух кликах,
+              // а обратно из свайпа к списку человек догадается не сразу.
+              onOpen={() => { setOpenTheme(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') }}
+            />
+          }
           onOpen={id => { setOpenTheme(id); setQuery(''); setStatus(''); setRun('swipe') }}
         />
       )
@@ -1253,6 +1399,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         query={query}
         kindFilter={kindFilter}
         status={status}
+        open={speakOpen}
+        onOpen={setSpeakOpen}
         onCounts={setSpeakCounts}
       />
     )
@@ -1393,7 +1541,16 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   const chipsRef = useRef<HTMLDivElement | null>(null)
   const questionsRef = useRef<HTMLDivElement | null>(null)
   const checkRef = useRef<HTMLButtonElement | null>(null)
+  const scoreRef = useRef<HTMLButtonElement | null>(null)
   const [tour, setTour] = useState(false)
+  // Шаг про партитуру не описывает её, а включает: пока подсказка открыта, текст
+  // под ней стоит в партитуре, и ученик видит дорожки вместо описания дорожек.
+  // Отдельным состоянием, а не через setScore: показ не должен переписывать
+  // выбранный вид — после подсказок текст обязан вернуться таким, каким был.
+  const [demoScore, setDemoScore] = useState<boolean | null>(null)
+  const onTourStep = useCallback((id: string | null) => {
+    setDemoScore(id === 'score' ? true : null)
+  }, [])
 
   useEffect(() => {
     try {
@@ -1418,6 +1575,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   // Вид держится между текстами: выбравший партитуру выбрал способ читать, а не
   // способ прочитать один отрывок.
   const [score, setScore] = usePersistentState(`trainer.${lang}.readerScore`, false)
+  const scoreView = demoScore ?? score
 
   const steps: CoachStep[] = [
     {
@@ -1432,8 +1590,10 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       text: t('Наведи курсор или нажми на слово — рядом появится перевод и грамматическая пометка. Пунктир снизу значит, что слово есть в словаре; у остальных работает озвучка.'),
     }] : []),
     ...(hasScore ? [{
+      ref: scoreRef,
+      id: 'score',
       title: t('Проза и партитура'),
-      text: t('Кнопка вверху меняет вид текста. В партитуре под каждым словом стоит транскрипция, перевод идёт колонкой справа по строкам, а голос ведёт по тексту подсветкой.'),
+      text: t('Эта кнопка меняет вид текста — сейчас она показывает партитуру. Под каждым словом стоит транскрипция, перевод идёт колонкой справа по строкам, а голос ведёт по тексту подсветкой.'),
     }] : []),
     {
       ref: audioRef,
@@ -1473,8 +1633,8 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       />
 
       <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
-        <div ref={audioRef}>
-          <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} />
+        <div ref={audioRef} style={{ display: 'grid', gap: 10 }}>
+          <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
           <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
         </div>
       </RailCard>
@@ -1538,8 +1698,8 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
           умолчанию (так текст читается как текст), партитура включается тогда,
           когда нужно разобрать, как это звучит и что значит. */}
       {hasScore && (
-        <ToolButton on={score} onClick={() => setScore(v => !v)} accent={accent}>
-          {score ? <Rows3 size={14} /> : <AlignLeft size={14} />} {score ? t('Партитура') : t('Проза')}
+        <ToolButton btnRef={scoreRef} on={scoreView} onClick={() => setScore(v => !v)} accent={accent}>
+          {scoreView ? <Rows3 size={14} /> : <AlignLeft size={14} />} {scoreView ? t('Партитура') : t('Проза')}
         </ToolButton>
       )}
       <ToolButton onClick={() => setTour(true)} accent={accent}>
@@ -1590,7 +1750,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
         </div>
       )}
 
-      {hasScore && score ? (
+      {hasScore && scoreView ? (
         <div ref={bodyRef}>
           <ScoreReader
             body={text.body}
@@ -1600,6 +1760,9 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
             accent={accent}
             soft={palette.soft}
             highlight={gloss}
+            // С предметом у слова в подсказке появляется «В словарь»: слово
+            // выписывают там, где об него споткнулись, а не вкладкой позже.
+            subject={subjectId}
           />
         </div>
       ) : (
@@ -1613,6 +1776,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
             lang={lang}
             extra={text.glossary}
             accent={accent}
+            subject={subjectId}
             // Слово, выбранное в словаре текста слева, подсвечивается прямо в
             // абзаце: список слов без их места в предложении — просто столбик,
             // а искать слово глазами по тексту ученик не должен.
@@ -1646,6 +1810,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
             // выбора, и подсказка внутри них конфликтует с нажатием.
             glossLang={glossed ? lang : undefined}
             glossExtra={text.glossary}
+            subject={subjectId}
             onPick={v => !checked && setAnswers(a => ({ ...a, [qi]: v }))}
           />
         ))}
@@ -1759,12 +1924,12 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
         </div>
       )}
 
-      <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} />
+      <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} onStepChange={onTourStep} />
     </TrainerShell>
   )
 }
 
-function QuestionCard({ q, index, value, checked, accent, lang, glossLang, glossExtra, onPick }: {
+function QuestionCard({ q, index, value, checked, accent, lang, glossLang, glossExtra, subject, onPick }: {
   q: ReadingQuestion; index: number; value?: number; checked: boolean
   accent: string; onPick: (v: number) => void
   /** Язык материала — по нему ищется перевод вопроса. */
@@ -1772,6 +1937,8 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
   /** Задан — формулировка вопроса тоже переводится по словам. */
   glossLang?: string
   glossExtra?: Gloss[]
+  /** Предмет колоды: с ним слово из вопроса тоже можно взять в словарь. */
+  subject?: string
 }) {
   const t = useT()
   // Перевод вопроса целиком — своей кнопкой у каждого вопроса. Пословная
@@ -1794,7 +1961,7 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
         {on
           ? <span style={{ flex: 1, minWidth: 0, ...proseWrap }}>{bindShortWords(ru!.q)}</span>
           : glossLang
-            ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} style={{ flex: 1, minWidth: 0 }} />
+            ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} subject={subject} style={{ flex: 1, minWidth: 0 }} />
             : <span style={{ flex: 1, minWidth: 0, ...proseWrap }}>{bindShortWords(q.q)}</span>}
         {ru && (
           <button
@@ -1880,7 +2047,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
       <RailHero plain title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
       <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
-        <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} />
+        <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
         <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
         <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
           {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
@@ -2070,7 +2237,7 @@ const KIND_LABEL: Record<SpeakTask['kind'], string> = {
   aloud: 'Чтение вслух',
 }
 
-function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilter, status, onCounts }: {
+function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilter, status, open, onOpen, onCounts }: {
   subjectId: string
   subject: string
   accent: string
@@ -2079,11 +2246,13 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
   query: string
   kindFilter: string
   status: string
+  /** Открытое задание держит родитель — там же живёт кнопка «К списку». */
+  open: SpeakTask | null
+  onOpen: (task: SpeakTask | null) => void
   /** Отдаёт наверх счётчики для рейла и строки — их считает этот компонент. */
   onCounts: (c: { total: number; sent: number; shown: number }) => void
 }) {
   const t = useT()
-  const [open, setOpen] = useState<SpeakTask | null>(null)
   const [entries, setEntries] = useState<VoiceEntry[]>([])
   const [sendState, setSendState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
 
@@ -2146,6 +2315,7 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
             <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[open.kind])}</TileChip>
             <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{open.seconds} {t('с')}</span>
           </div>
+          <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{t(open.title)}</div>
           <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{t(open.prompt)}</p>
         </div>
 
@@ -2200,7 +2370,7 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
       {shown.map(x => {
         const done = sentPrompts.has(x.prompt)
         return (
-          <Tile key={x.id} accent={accent} onClick={() => { setOpen(x); setSendState('idle') }}>
+          <Tile key={x.id} accent={accent} onClick={() => { onOpen(x); setSendState('idle') }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[x.kind])}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{x.seconds} {t('с')}</span>

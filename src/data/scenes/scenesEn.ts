@@ -7938,6 +7938,396 @@ We are aware the revised text does not sound like you. That is deliberate and it
     ],
   },
 
+  {
+    id: 'sc-rwrb-film-2',
+    workId: 'rwrb',
+    lang: 'en', title: 'Две пресс-службы согласуют съёмку', level: 'B2', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина фильма — это две конторы, американская и британская, которые вежливо друг другу не уступают. Ниже наша переписка двух пресс-служб о совместной фотосъёмке. Американская сторона пишет коротко и по делу, британская — длинно и учтиво, и именно длинные учтивые письма здесь означают «нет».',
+    after: 'Во всём письме из Лондона нет слова no. Отказ спрятан в двух формулах: «we are not in a position to» (не отказ, а отсутствие полномочий) и «I should flag that» (не возражение, а забота о собеседнике). Американская сторона в ответ делает единственное, что здесь работает: просит сказать то же самое утвердительно.',
+    body: `SUBJECT: Joint photo call — Thursday
+FROM: Communications, Washington
+TO: Press Office, London
+
+Morning all,
+
+Circling back on Thursday. We are proposing a short photo call at the top of the visit: two minutes, stills only, no questions from the pen. Our team will handle the risers and the lighting. Let me know if that works and I will lock it in today.
+
+Best,
+D.
+
+———
+
+SUBJECT: RE: Joint photo call — Thursday
+FROM: Press Office, London
+TO: Communications, Washington
+
+Dear D.,
+
+Thank you for this, and my apologies for the delay in coming back to you.
+
+We would of course be glad to accommodate a photo call. I should flag, however, that "no questions" is not something we are in a position to guarantee at an outdoor position. We can decline to answer them, which is a rather different thing and reads differently on camera. Might I suggest an indoor position instead?
+
+On the risers: we are most grateful for the offer, but arrangements at this end are handled by the Household, and it may be simpler all round if we take that piece.
+
+Kind regards,
+A.
+
+———
+
+SUBJECT: RE: RE: Joint photo call — Thursday
+FROM: Communications, Washington
+
+A.,
+
+Understood on the questions. Indoor works, we will move the position.
+
+So I have it in writing: are you telling me the risers are yours, or are you asking whether they could be?
+
+D.
+
+———
+
+SUBJECT: RE: RE: RE: Joint photo call — Thursday
+FROM: Press Office, London
+
+Dear D.,
+
+They are ours.
+
+I do hope that is helpful. Happy to jump on a call if it would be easier.
+
+Kind regards,
+A.`,
+    translation: `ТЕМА: Совместная фотосъёмка — четверг
+ОТ: Пресс-служба, Вашингтон
+КОМУ: Пресс-служба, Лондон
+
+Доброе утро всем,
+
+Возвращаюсь к четвергу. Мы предлагаем короткую съёмку в начале визита: две минуты, только фото, вопросов из загона для прессы нет. Помост и свет берём на себя. Дайте знать, подходит ли, и я сегодня же всё зафиксирую.
+
+Всего доброго,
+Д.
+
+———
+
+ТЕМА: RE: Совместная фотосъёмка — четверг
+ОТ: Пресс-служба, Лондон
+КОМУ: Пресс-служба, Вашингтон
+
+Уважаемый Д.,
+
+Спасибо за письмо и простите за задержку с ответом.
+
+Мы, разумеется, будем рады организовать съёмку. Считаю нужным обратить ваше внимание, что «вопросов нет» — не то, что мы вправе гарантировать на уличной точке. Мы можем отказаться отвечать, а это несколько другое дело и на камере выглядит иначе. Позволю себе предложить точку в помещении.
+
+Что до помоста: мы крайне признательны за предложение, но организацией с нашей стороны занимается Двор, и всем будет проще, если эту часть возьмём мы.
+
+С уважением,
+А.
+
+———
+
+ТЕМА: RE: RE: Совместная фотосъёмка — четверг
+ОТ: Пресс-служба, Вашингтон
+
+А.,
+
+По вопросам понял. Помещение подходит, точку перенесём.
+
+Чтобы у меня это было письменно: вы мне сообщаете, что помост ваш, или спрашиваете, может ли он быть вашим?
+
+Д.
+
+———
+
+ТЕМА: RE: RE: RE: Совместная фотосъёмка — четверг
+ОТ: Пресс-служба, Лондон
+
+Уважаемый Д.,
+
+Он наш.
+
+Очень надеюсь, что это помогает. С удовольствием созвонимся, если так будет удобнее.
+
+С уважением,
+А.`,
+    glossary: [
+      { term: 'to circle back on smth', ru: 'вернуться к вопросу (офисное)' },
+      { term: 'photo call', ru: 'фотосъёмка по протоколу, без интервью' },
+      { term: 'stills only', ru: 'только фото, без видео' },
+      { term: 'the pen', ru: 'загон для прессы — огороженное место для журналистов' },
+      { term: 'risers', ru: 'помост, на котором стоят фотографы' },
+      { term: 'to lock smth in', ru: 'окончательно зафиксировать договорённость' },
+      { term: 'I should flag that…', ru: 'считаю нужным обратить внимание, что… (мягкое возражение)' },
+      { term: 'to be in a position to do smth', ru: 'быть вправе / иметь возможность сделать' },
+      { term: 'to accommodate', ru: 'пойти навстречу, организовать по просьбе' },
+      { term: 'the Household', ru: 'Двор — служба, ведущая дела монаршей семьи' },
+      { term: 'all round', ru: 'для всех сторон (брит.)' },
+      { term: 'happy to jump on a call', ru: 'готов созвониться (офисная вежливость)' },
+    ],
+    questions: [
+      {
+        q: 'What does London actually refuse in the second email?',
+        options: [
+          'The photo call itself',
+          'The guarantee of no questions, and the American offer to run the risers',
+          'The date',
+          'Nothing at all — it is a full agreement',
+        ],
+        correct: 1,
+        why: 'Отказов два, и оба обёрнуты: «not in a position to guarantee» и «we are most grateful for the offer, but».',
+      },
+      {
+        q: 'Why does D. ask "are you telling me the risers are yours, or are you asking whether they could be?"',
+        options: [
+          'D. did not read the email',
+          'The polite wording leaves it unclear whether it was a decision or a request',
+          'D. is angry',
+          'The risers were never mentioned',
+        ],
+        correct: 1,
+        why: '«It may be simpler if we take that piece» — грамматически предположение, по смыслу решение. Именно эту двусмысленность и снимают вопросом.',
+      },
+      {
+        q: 'What is the difference London draws between "no questions" and "declining to answer"?',
+        options: [
+          'There is none',
+          'They cannot stop questions being shouted, only refuse to answer — and a refusal is visible on camera',
+          'Questions are allowed indoors only',
+          'Only accredited press may ask',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which phrase carries the most weight in the final email?',
+        options: [
+          'Kind regards',
+          '"They are ours." — three words, no hedging, after two long polite paragraphs',
+          'I do hope that is helpful',
+          'Happy to jump on a call',
+        ],
+        correct: 1,
+        why: 'Приём стоит запомнить: в вежливой переписке вес имеет не длинная фраза, а внезапно короткая.',
+      },
+    ],
+  },
+
+  {
+    id: 'sc-rwrb-film-3',
+    workId: 'rwrb',
+    lang: 'en', title: 'Брифинг: как не отвечать на вопрос', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ежедневный брифинг для прессы: пресс-секретарь стоит у трибуны, зал задаёт вопросы. Ниже наша стенограмма такого брифинга. Смотреть тут надо не на ответы, а на конструкции, которыми ответ заменяют, — их в английском десяток, и они все вежливые.',
+    after: 'Ни один вопрос в этом отрывке не остался без реплики, и ни один не получил ответа. Запомните главное правило зала: отказ подтверждением не является — «I am not going to characterise» не значит ни «да», ни «нет», и журналист, услышавший в этом «да», ошибётся первым.',
+    body: `DAILY BRIEFING — TRANSCRIPT (EXTRACT)
+
+PRESS SECRETARY: Good afternoon. One item at the top, then I will take questions. — Yes, go ahead.
+
+Q: Was the President aware of this before Saturday?
+PRESS SECRETARY: I would refer you to the statement we issued on Sunday.
+
+Q: The statement does not say.
+PRESS SECRETARY: The statement says everything we have to say on it today.
+
+Q: With respect, that is not an answer.
+PRESS SECRETARY: It is the answer I have. Yes, in the second row.
+
+Q: Can you confirm the two of them have spoken since?
+PRESS SECRETARY: I am not going to characterise private conversations.
+
+Q: So they have spoken.
+PRESS SECRETARY: I am not going to characterise private conversations, and I would caution you against reading a confirmation into a refusal. — At the back.
+
+Q: A simple one. Who paid for the cake?
+PRESS SECRETARY: I will come back to you on that.
+
+Q: Is that a "we do not know" or a "we are not saying"?
+PRESS SECRETARY: It is an "I will come back to you". Thanks, everybody.`,
+    translation: `ЕЖЕДНЕВНЫЙ БРИФИНГ — СТЕНОГРАММА (ФРАГМЕНТ)
+
+ПРЕСС-СЕКРЕТАРЬ: Добрый день. Одно объявление, потом вопросы. — Да, прошу вас.
+
+В: Знал ли президент об этом до субботы?
+ПРЕСС-СЕКРЕТАРЬ: Отсылаю вас к заявлению, которое мы выпустили в воскресенье.
+
+В: В заявлении об этом не сказано.
+ПРЕСС-СЕКРЕТАРЬ: В заявлении сказано всё, что мы можем сказать по этому поводу сегодня.
+
+В: При всём уважении, это не ответ.
+ПРЕСС-СЕКРЕТАРЬ: Это тот ответ, который у меня есть. Да, второй ряд.
+
+В: Можете подтвердить, что они с тех пор разговаривали?
+ПРЕСС-СЕКРЕТАРЬ: Я не намерен описывать частные разговоры.
+
+В: Значит, разговаривали.
+ПРЕСС-СЕКРЕТАРЬ: Я не намерен описывать частные разговоры и советую вам не вычитывать подтверждение из отказа. — Там, сзади.
+
+В: Простой вопрос. Кто оплатил торт?
+ПРЕСС-СЕКРЕТАРЬ: Вернусь к вам с этим.
+
+В: Это «мы не знаем» или «мы не говорим»?
+ПРЕСС-СЕКРЕТАРЬ: Это «вернусь к вам с этим». Спасибо всем.`,
+    glossary: [
+      { term: 'to take questions', ru: 'отвечать на вопросы зала' },
+      { term: 'at the top', ru: 'в начале (брифинга, встречи)' },
+      { term: 'I would refer you to…', ru: 'отсылаю вас к… (вежливый отказ отвечать)' },
+      { term: 'with respect', ru: 'при всём уважении — в британском английском предвещает возражение' },
+      { term: 'to characterise smth', ru: 'описывать, давать характеристику' },
+      { term: 'to caution smb against smth', ru: 'предостеречь кого-либо от чего-либо' },
+      { term: 'to read smth into smth', ru: 'вычитывать, приписывать смысл, которого нет' },
+      { term: 'to come back to smb on smth', ru: 'вернуться с ответом позже' },
+      { term: 'at the back / in the second row', ru: 'сзади / во втором ряду — так вызывают журналиста' },
+    ],
+    questions: [
+      {
+        q: 'What does "I would refer you to the statement" do?',
+        options: [
+          'Gives the answer in short form',
+          'Refuses to answer while staying polite: it sends the question to a text that already exists',
+          'Promises a written reply',
+          'Corrects the journalist',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'The journalist says "So they have spoken." Why is that wrong?',
+        options: [
+          'It is right — the refusal confirms it',
+          'A refusal to comment is not a confirmation; it says nothing either way',
+          'They never spoke',
+          'The press secretary was joking',
+        ],
+        correct: 1,
+        why: 'Об этом и предупреждают прямым текстом: reading a confirmation into a refusal. Отказ — не «да».',
+      },
+      {
+        q: 'What does "I will come back to you on that" mean here?',
+        options: [
+          'The answer will arrive within an hour',
+          'It is a holding phrase: it ends the exchange without saying whether the answer exists',
+          'The question is out of order',
+          'The journalist should ask in writing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Where does the phrase "with respect" usually sit in British English?',
+        options: [
+          'Before agreement',
+          'Just before a disagreement, as a polite warning that one is coming',
+          'At the end of a letter',
+          'Only in court',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  {
+    id: 'sc-rwrb-film-4',
+    workId: 'rwrb',
+    lang: 'en', title: 'Памятка: как к кому обращаться', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Перед государственным визитом персоналу рассылают памятку: кого как называть, когда подавать руку, что делать, если всё забыл. Ниже наша такая памятка. Тема скучная только на вид: обращения — это первое, на чём в чужом языке слышно постороннего.',
+    after: 'Обратите внимание на пункт про имя. Формы sir и ma’am в английском не унизительны и не старомодны, они нейтральны; ошибкой считается ровно обратное — обратиться по имени к тому, кто вам этого не предлагал.',
+    body: `BRIEFING NOTE — FORMS OF ADDRESS
+For all staff attending on Thursday. Please read it. It is shorter than the note you were sent last time.
+
+1. THE FIRST TIME
+"Your Royal Highness" on first address. After that, "sir" — or "ma'am", said to rhyme with "jam" and not with "palm". People get this wrong, then apologise at length, and the apology takes longer than the mistake did.
+
+2. ON OUR SIDE
+"Mr President" throughout, including in follow-up. "Sir" is acceptable in conversation; it is not acceptable in writing.
+
+3. HANDSHAKES
+Wait to be offered one. Do not initiate. If a hand is offered, take it — hesitating is worse than either.
+
+4. TITLES YOU WILL HEAR
+A Private Secretary runs the diary and speaks for the principal. An equerry is a serving officer attached to the household for the visit. Neither is "an assistant", and neither will correct you, which is precisely why you are being told now.
+
+5. IF YOU FORGET ALL OF THE ABOVE
+"Sir" and "ma'am" will carry you through the entire evening. Nobody has ever been sent home for being too formal. What gets remembered is the first name — so if you are not certain you have been invited to use it, you have not been.`,
+    translation: `СЛУЖЕБНАЯ ПАМЯТКА — ФОРМЫ ОБРАЩЕНИЯ
+Всем сотрудникам, занятым в четверг. Прочтите, пожалуйста. Она короче прошлой.
+
+1. В ПЕРВЫЙ РАЗ
+«Ваше Королевское Высочество» при первом обращении. Дальше — sir, или ma'am, которое произносится в рифму к jam, а не к palm. Здесь ошибаются, потом долго извиняются, и извинение выходит длиннее самой ошибки.
+
+2. С НАШЕЙ СТОРОНЫ
+«Господин президент» всегда, в том числе в последующей переписке. Sir допустимо в разговоре и недопустимо на бумаге.
+
+3. РУКОПОЖАТИЯ
+Дождитесь, пока руку подадут. Первыми не подавайте. Если подали — пожмите: колебание хуже обеих ошибок.
+
+4. ЧТО ЗА ДОЛЖНОСТИ ВЫ УСЛЫШИТЕ
+Личный секретарь ведёт расписание и говорит от имени своего доверителя. Конюший — действующий офицер, прикомандированный ко Двору на время визита. Ни тот ни другой не «помощник», и ни тот ни другой вас не поправит — именно поэтому вам говорят это сейчас.
+
+5. ЕСЛИ ВЫ ЗАБЫЛИ ВСЁ ВЫШЕПЕРЕЧИСЛЕННОЕ
+Sir и ma'am проведут вас через весь вечер. Домой ещё никого не отправляли за избыточную учтивость. Запоминается другое — обращение по имени. Если вы не уверены, что вам его предложили, значит, не предлагали.`,
+    glossary: [
+      { term: 'form of address', ru: 'форма обращения' },
+      { term: 'on first address', ru: 'при первом обращении' },
+      { term: 'ma’am', ru: 'мэм; здесь рифмуется с jam, а не с palm' },
+      { term: 'to initiate', ru: 'сделать первый шаг, начать (здесь — подать руку первым)' },
+      { term: 'Private Secretary', ru: 'личный секретарь — ведёт расписание и говорит от имени доверителя' },
+      { term: 'equerry', ru: 'конюший — офицер при Дворе' },
+      { term: 'principal', ru: 'доверитель — тот, при ком состоит служба' },
+      { term: 'follow-up', ru: 'последующая переписка, напоминание' },
+      { term: 'at length', ru: 'долго, пространно' },
+    ],
+    questions: [
+      {
+        q: 'How should "ma\'am" be pronounced according to the note?',
+        options: [
+          'To rhyme with "palm"',
+          'To rhyme with "jam"',
+          'Either way',
+          'It should be avoided',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should you do about handshakes?',
+        options: [
+          'Offer your hand first, to be friendly',
+          'Wait to be offered one, but take it without hesitating if it comes',
+          'Avoid them entirely',
+          'Bow instead',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the note explain what a Private Secretary and an equerry are?',
+        options: [
+          'To make the note longer',
+          'Because neither will correct you if you get it wrong',
+          'Because staff must address them by title',
+          'Because they issue the passes',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is treated as the real mistake?',
+        options: [
+          'Being too formal',
+          'Using someone’s first name when you were not invited to',
+          'Saying "sir"',
+          'Speaking first',
+        ],
+        correct: 1,
+        why: 'Прямо в пятом пункте: за излишнюю официальность домой не отправляют, запоминается обращение по имени.',
+      },
+    ],
+  },
+
   // ── Поза: карточка, наш текст ──────────────────────────────────────────────
   //
   // bucket: 'inspired'. Дом, бал и правила вымышлены. От сериала — словарь
@@ -9619,6 +10009,866 @@ Students who are worried about their own manifestation may speak to any member o
           'To explain the settings',
         ],
         correct: 1,
+      },
+    ],
+  },
+
+  // ── Гордость: карточка, наш текст ──────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Кампания, посёлок и профсоюзное отделение вымышлены.
+  // От фильма — жанры, которых на полке не было: агитационная листовка и
+  // протокол собрания, где всё решается голосованием по правилам.
+  {
+    id: 'sc-pride-film-1',
+    workId: 'pride-2014',
+    lang: 'en', title: 'Листовка сбора средств', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сюжет начинается с того, что горстка людей ставит ведро в книжном магазине и начинает собирать деньги для бастующих шахтёров. Ниже наша листовка такой кампании. Агитационный английский устроен жёстко: сначала цифра, потом что она значит, потом одно конкретное действие — и ни одного «мы должны».',
+    after: 'Обратите внимание на предпоследний абзац: кампания сама называет возражение, которое ей чаще всего предъявляют, и отвечает на него до того, как его успели произнести. Это стандартный ход агитационного текста, и он же самый убедительный.',
+    body: `LESBIANS AND GAYS SUPPORT THE MINERS — SOUTH LONDON GROUP
+Collection every Saturday, 11 till 4, outside the bookshop on Marchmont Street.
+
+WHY WE ARE COLLECTING
+The strike is in its twenty-second week. The men are not being paid. The union's funds have been sequestrated by the courts, which means the union cannot pay them either. What is left is what people put in a bucket.
+
+WHERE THE MONEY GOES
+Straight to one village. Not to a fund, not to head office — to the support group in one valley, who buy food and pay electricity bills and tell us exactly what they spent it on. We publish their letter every month on this board.
+
+£8 buys a week of school dinners for one child.
+£25 keeps a family's electricity on for a fortnight.
+£140 fills the food van for one run.
+
+WHAT WE ARE ASKED MOST OFTEN
+"Why this, and why you?" Because we know what it is to have the police turn up at your door and the papers decide in advance what kind of person you are. If that is happening to somebody else this year, the answer is not to look away and hope it is over by Christmas.
+
+WHAT YOU CAN DO ON SATURDAY
+Bring coins, not notes — notes are lovely and coins are what people actually give. Take ten leaflets and put them through ten doors on your own street. Or stand with the bucket for one hour, which is the hardest of the three and the one we are always short of.
+
+We are not asking you to agree with everything. We are asking for an hour and whatever is in your pocket.`,
+    translation: `ЛЕСБИЯНКИ И ГЕИ В ПОДДЕРЖКУ ШАХТЁРОВ — ЮЖНО-ЛОНДОНСКАЯ ГРУППА
+Сбор каждую субботу с 11 до 16, у книжного магазина на Марчмонт-стрит.
+
+ПОЧЕМУ МЫ СОБИРАЕМ
+Идёт двадцать вторая неделя забастовки. Людям не платят. Средства профсоюза арестованы по решению суда — значит, профсоюз тоже не может им платить. Остаётся только то, что люди кладут в ведро.
+
+КУДА ИДУТ ДЕНЬГИ
+Прямо в один посёлок. Не в фонд, не в центральный офис — в группу поддержки одной долины, которая покупает еду, оплачивает электричество и сообщает нам, на что именно потрачено. Их письмо мы каждый месяц вывешиваем на этой доске.
+
+8 фунтов — неделя школьных обедов для одного ребёнка.
+25 фунтов — две недели электричества для семьи.
+140 фунтов — полный фургон продуктов на один рейс.
+
+О ЧЁМ НАС СПРАШИВАЮТ ЧАЩЕ ВСЕГО
+«Почему именно это и почему именно вы?» Потому что мы знаем, каково это — когда полиция приходит к тебе домой, а газеты заранее решили, что ты за человек. И если в этом году это происходит с кем-то другим, правильный ответ — не отвернуться в надежде, что к Рождеству рассосётся.
+
+ЧТО МОЖНО СДЕЛАТЬ В СУББОТУ
+Принесите монеты, а не купюры: купюры — это прекрасно, а монеты — это то, что люди дают на самом деле. Возьмите десять листовок и разнесите по десяти дверям на своей улице. Или постойте час с ведром — из трёх это самое трудное и как раз то, чего нам всегда не хватает.
+
+Мы не просим вас со всем соглашаться. Мы просим час времени и то, что есть в кармане.`,
+    glossary: [
+      { term: 'collection', ru: 'сбор (денег)' },
+      { term: 'to be sequestrated', ru: 'быть арестованным по суду (о средствах)' },
+      { term: 'head office', ru: 'центральный офис' },
+      { term: 'school dinners', ru: 'школьные обеды (брит.)' },
+      { term: 'fortnight', ru: 'две недели' },
+      { term: 'run', ru: 'здесь: рейс, ходка' },
+      { term: 'notes', ru: 'банкноты (брит.); в США bills' },
+      { term: 'to put through the door', ru: 'бросить в почтовый ящик, разнести' },
+      { term: 'to be short of', ru: 'испытывать нехватку' },
+    ],
+    questions: [
+      {
+        q: 'Why can the union not pay the strikers?',
+        options: [
+          'It has no members',
+          'Its funds have been sequestrated by the courts',
+          'It refuses to',
+          'The strike is unofficial',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the point of listing £8, £25 and £140?',
+        options: [
+          'To show how expensive the strike is',
+          'To turn an abstract donation into one concrete thing it buys',
+          'To set a minimum donation',
+          'To report last month’s spending',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the leaflet quote the question "Why this, and why you?"',
+        options: [
+          'To complain about critics',
+          'To answer the main objection before anyone has to raise it',
+          'To ask the reader for an answer',
+          'To fill space',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which of the three requested actions does the leaflet call hardest?',
+        options: [
+          'Bringing coins',
+          'Delivering leaflets',
+          'Standing with the bucket for an hour',
+          'All are equally hard',
+        ],
+        correct: 2,
+      },
+    ],
+  },
+  {
+    id: 'sc-pride-film-2',
+    workId: 'pride-2014',
+    lang: 'en', title: 'Протокол собрания', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему фильма', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вторая половина фильма — про то, как посёлок решает, принимать ли эти деньги, и решает он это на собрании, по правилам. Ниже наш протокол. Английская процедура собрания — отдельный маленький язык: motion, to second, carried, abstention, — и, выучив его один раз, вы поймёте любой протокол, от школьного совета до совета директоров.',
+    after: 'Самое интересное — в цифрах голосования: воздержавшихся больше, чем проголосовавших против. По протоколу это победа, но по составу зала — вовсе не единодушие, и следующая строка про повторное рассмотрение появилась именно поэтому.',
+    body: `MINUTES OF THE MONTHLY MEETING
+Welfare Hall, Tuesday 7.30 p.m. Present: 41 members. In the chair: the Secretary.
+
+1. APOLOGIES
+Apologies received from four members working the late shift. Noted.
+
+2. MINUTES OF THE PREVIOUS MEETING
+Taken as read. Agreed as a correct record.
+
+3. TREASURER'S REPORT
+Balance in hand £312. Outgoings for the month £890, of which £640 on food parcels. The Treasurer reminded the meeting that at the present rate the fund is empty in three weeks.
+
+4. DONATION FROM THE LONDON GROUP
+The Secretary reported an offer of £2,140 from a support group in London, together with an offer to send a delegation.
+
+A member asked whether the money could be accepted without the delegation. The Chair ruled that the two were not conditional on each other and that the meeting should treat them as one question, since separating them would say something the meeting might not wish to say.
+
+Discussion followed. Several members spoke against, on the grounds that the village would be talked about in the papers. Several spoke in favour, on the grounds that the village is already talked about in the papers.
+
+MOTION: That this branch accept the donation and invite the London group to the Welfare Hall as guests of the branch.
+Proposed by the Treasurer. Seconded by a member of the Women's Support Group.
+
+VOTE: For 26. Against 4. Abstentions 11.
+CARRIED.
+
+5. ANY OTHER BUSINESS
+It was agreed that the matter be brought back to the branch in one month, whatever the outcome, and that nobody be asked to attend who does not wish to.
+
+Meeting closed 9.05 p.m.`,
+    translation: `ПРОТОКОЛ ЕЖЕМЕСЯЧНОГО СОБРАНИЯ
+Рабочий клуб, вторник, 19:30. Присутствует: 41 член. Председательствует: секретарь.
+
+1. ОТСУТСТВУЮЩИЕ
+Поступили извинения от четырёх членов, работающих в вечернюю смену. Принято к сведению.
+
+2. ПРОТОКОЛ ПРЕДЫДУЩЕГО СОБРАНИЯ
+Принят без зачитывания. Утверждён как верный.
+
+3. ОТЧЁТ КАЗНАЧЕЯ
+Остаток на руках 312 фунтов. Расходы за месяц 890 фунтов, из них 640 — на продуктовые наборы. Казначей напомнил собранию, что при нынешних темпах фонд опустеет через три недели.
+
+4. ПОЖЕРТВОВАНИЕ ОТ ЛОНДОНСКОЙ ГРУППЫ
+Секретарь сообщил о предложении в 2140 фунтов от группы поддержки из Лондона, а также о предложении прислать делегацию.
+
+Один из членов спросил, можно ли принять деньги без делегации. Председатель постановил, что одно не обусловлено другим и что собранию следует рассматривать это как один вопрос, поскольку разделение сказало бы то, чего собрание, возможно, говорить не хочет.
+
+Состоялось обсуждение. Несколько человек высказались против на том основании, что о посёлке будут писать газеты. Несколько — за, на том основании, что о посёлке газеты уже пишут.
+
+ПРЕДЛОЖЕНИЕ: настоящему отделению принять пожертвование и пригласить лондонскую группу в клуб в качестве гостей отделения.
+Внесено казначеем. Поддержано членом Женской группы поддержки.
+
+ГОЛОСОВАНИЕ: за 26, против 4, воздержалось 11.
+ПРИНЯТО.
+
+5. РАЗНОЕ
+Решено вернуться к вопросу через месяц независимо от исхода и никого не звать на встречу против его желания.
+
+Собрание закрыто в 21:05.`,
+    glossary: [
+      { term: 'minutes', ru: 'протокол собрания' },
+      { term: 'apologies', ru: 'здесь: извинения за отсутствие' },
+      { term: 'taken as read', ru: 'принят без зачитывания' },
+      { term: 'balance in hand', ru: 'остаток средств' },
+      { term: 'motion', ru: 'предложение, выносимое на голосование' },
+      { term: 'to second', ru: 'поддержать предложение (обязательное второе лицо)' },
+      { term: 'abstention', ru: 'воздержавшийся' },
+      { term: 'carried', ru: 'принято (о предложении)' },
+      { term: 'on the grounds that', ru: 'на том основании, что' },
+    ],
+    questions: [
+      {
+        q: 'What does "seconded" mean?',
+        options: [
+          'Voted for second',
+          'A second person formally supported the motion so it could be put to a vote',
+          'Postponed by a second meeting',
+          'Came second in the vote',
+        ],
+        correct: 1,
+        why: 'В английской процедуре предложение без поддержавшего не ставится на голосование вообще. Отсюда и формула proposed by … seconded by …',
+      },
+      {
+        q: 'How did the Chair handle the request to separate the money from the delegation?',
+        options: [
+          'He allowed two separate votes',
+          'He ruled it one question, because splitting it would itself send a message',
+          'He postponed the matter',
+          'He refused to discuss it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is notable about the vote?',
+        options: [
+          'It was unanimous',
+          'There were more abstentions than votes against',
+          'Nobody voted',
+          'The motion failed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What do "for", "against" and "abstentions" record?',
+        options: [
+          'Attendance',
+          'Votes in favour, votes opposed, and those who deliberately did not vote',
+          'Donations',
+          'Speakers in the discussion',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Оранжевый — хит сезона: карточка, наш текст ────────────────────────────
+  //
+  // bucket: 'inspired'. Учреждение и бумаги вымышлены. От сериала — регистр
+  // институции: правила, заявки, разрешения и жаргон, который к ним прилип.
+  {
+    id: 'sc-oitnb-1',
+    workId: 'oitnb',
+    lang: 'en', title: 'Памятка для вновь прибывших', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Первая серия — это человек, которому выдают правила и ни одного объяснения. Ниже наша памятка такого учреждения. Институциональный английский узнаётся мгновенно: существительное вместо глагола (movement, count, commissary), страдательный залог и полное отсутствие того, кто всё это делает.',
+    after: 'Обратите внимание на последнюю строку раздела о перекличке: «во время переклички движение не разрешается ни по какой причине». «Ни по какой причине» в институциональном тексте всегда означает, что причина у кого-то была и её не приняли.',
+    body: `INMATE HANDBOOK — SECTION 1: YOUR FIRST WEEK
+Read this. You are responsible for its contents whether you have read it or not.
+
+COUNT
+Count is at 4:00 p.m. and 9:00 p.m. daily, and at 12:00 a.m. and 5:00 a.m. You will stand at your bunk and remain standing until count clears. Movement during count is not permitted for any reason.
+
+MOVEMENT
+Movement is announced. You may move between units only during announced movement. If you are not where you are scheduled to be, you are "out of place", and out of place is a shot.
+
+COMMISSARY
+Commissary is once a week, on the day assigned to your unit. Orders are placed on the form, in pen, by Wednesday. Funds must be on your account at the time the order is processed, not at the time you write it. Items ordered and not available are not carried over.
+
+MAIL
+Incoming mail is opened and inspected. Legal mail is opened in your presence. Photographs must be no larger than 4x6 and there is a limit of ten per envelope. Do not ask anyone to send stamps; stamps are commissary.
+
+WORK
+Every inmate is assigned a job within fourteen days. Pay begins at 12 cents an hour. Refusal of a work assignment is a shot.
+
+MEDICAL
+Submit a request slip. You will be seen in the order the slips are processed. Emergencies are not handled by slip; tell the officer on the floor.
+
+A NOTE ON THE WORD "SHOT"
+A shot is a written disciplinary report. It goes in your file, and your file is what the parole board reads. Nothing else in this handbook matters as much as that sentence.`,
+    translation: `ПАМЯТКА ЗАКЛЮЧЁННОЙ — РАЗДЕЛ 1: ВАША ПЕРВАЯ НЕДЕЛЯ
+Прочтите. Вы отвечаете за её содержание независимо от того, читали вы её или нет.
+
+ПЕРЕКЛИЧКА
+Перекличка ежедневно в 16:00 и 21:00, а также в 00:00 и 05:00. Вы встаёте у своей койки и остаётесь стоять, пока перекличка не будет закрыта. Движение во время переклички не разрешается ни по какой причине.
+
+ПЕРЕМЕЩЕНИЕ
+О перемещении объявляют. Переходить между отрядами можно только во время объявленного перемещения. Если вы находитесь не там, где положено по расписанию, это считается «не на месте», а «не на месте» — это взыскание.
+
+ЛАВКА
+Лавка работает раз в неделю, в день, закреплённый за вашим отрядом. Заказы подаются на бланке, ручкой, до среды. Деньги должны быть на счету в момент обработки заказа, а не в момент его заполнения. Заказанное, но отсутствующее на следующую неделю не переносится.
+
+ПОЧТА
+Входящая почта вскрывается и досматривается. Юридическая корреспонденция вскрывается в вашем присутствии. Фотографии — не крупнее 10×15, не более десяти в конверте. Не просите никого присылать марки: марки продаются в лавке.
+
+РАБОТА
+Каждой заключённой в течение четырнадцати дней назначается работа. Оплата начинается с 12 центов в час. Отказ от назначенной работы — взыскание.
+
+МЕДИЦИНСКАЯ ЧАСТЬ
+Подайте бланк заявки. Вас примут в порядке обработки заявок. Экстренные случаи по заявке не обрабатываются — скажите дежурному сотруднику.
+
+О СЛОВЕ «ВЗЫСКАНИЕ»
+Взыскание — это письменный рапорт о нарушении. Он ложится в ваше дело, а ваше дело — это то, что читает комиссия по условно-досрочному. Ничто другое в этой памятке не имеет такого значения, как эта фраза.`,
+    glossary: [
+      { term: 'inmate', ru: 'заключённый' },
+      { term: 'count', ru: 'перекличка, пересчёт' },
+      { term: 'to clear (of count)', ru: 'быть закрытой, сойтись' },
+      { term: 'movement', ru: 'разрешённое перемещение по территории' },
+      { term: 'out of place', ru: 'не на месте — нарушение' },
+      { term: 'a shot', ru: 'письменный рапорт о нарушении (жаргон)' },
+      { term: 'commissary', ru: 'тюремная лавка' },
+      { term: 'to be carried over', ru: 'переноситься на следующий раз' },
+      { term: 'parole board', ru: 'комиссия по условно-досрочному освобождению' },
+    ],
+    questions: [
+      {
+        q: 'What is "a shot" in this handbook?',
+        options: [
+          'An injection',
+          'A written disciplinary report that goes in your file',
+          'A photograph',
+          'A work assignment',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'When must the money be on your account for a commissary order?',
+        options: [
+          'When you write the order',
+          'When the order is processed',
+          'Any time that week',
+          'Before Wednesday',
+        ],
+        correct: 1,
+        why: 'Разница названа прямо и именно поэтому важна: заказ можно заполнить, а денег в момент обработки не окажется — и заказ пропадёт.',
+      },
+      {
+        q: 'Why does the handbook end by explaining the parole board?',
+        options: [
+          'To be encouraging',
+          'To say that the real cost of every rule is what ends up in your file',
+          'To describe the appeal process',
+          'To list the officers',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the opening sentence "You are responsible for its contents whether you have read it or not" do?',
+        options: [
+          'Encourages reading',
+          'Removes ignorance as a defence in advance',
+          'Explains the layout',
+          'Sets a deadline',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-oitnb-2',
+    workId: 'oitnb',
+    lang: 'en', title: 'Бланк заявки и что на нём дописали', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале лавка — это экономика: одни товары покупают, чтобы есть, другие — чтобы менять. Ниже наш заполненный бланк заказа с пометками. Полезен он двумя вещами сразу: бытовой лексикой продуктов и гигиены — и тем, как выглядит английский казённый бланк, где на всё есть графа и лимит.',
+    after: 'Приписка внизу — «за прошлую неделю пять заявок вернули из-за того, что суммы не сошлись; считайте дважды, бланк один» — и есть суть всей системы: ошибку исправить нельзя, попытка одна в неделю.',
+    body: `COMMISSARY ORDER FORM — UNIT C — WEEK 34
+Complete in pen. One form per inmate per week. Forms with corrections will be returned unprocessed.
+
+Name ____________________  Number ____________  Balance available: $34.10
+
+QTY  ITEM                          UNIT    TOTAL
+ 2   Ramen, chicken                 0.55     1.10
+ 1   Coffee, instant, 3 oz          4.85     4.85
+ 2   Tuna pouch                     1.90     3.80
+ 1   Peanut butter                  3.25     3.25
+ 4   Soap, bar                      0.95     3.80
+ 1   Shampoo (limit 1/wk)           4.40     4.40
+ 2   Toothpaste                     2.10     4.20
+ 1   Stamps, book of 10             7.30     7.30
+ —   Radio (see note)                  —        —
+
+                                 SUBTOTAL   32.70
+                                 BALANCE     1.40
+
+NOTES BY THE INMATE
+The radio is on the form again this week. It has been on the form for four weeks. Please either sell me the radio or take it off the sheet, because writing it down every Wednesday is starting to feel like the point.
+
+Four bars of soap is not hoarding. Soap is the only thing in here that does not expire and it is the only thing everybody will take.
+
+OFFICE USE ONLY
+Radio: not stocked. Supplier discontinued. Form will be updated at the next printing, which is annual.
+Soap: within limit. No action.
+Order approved. Processed Thursday.
+
+Reminder to all units: five orders were returned last week because the totals did not add up. Check twice. You get one form.`,
+    translation: `БЛАНК ЗАКАЗА В ЛАВКУ — ОТРЯД C — НЕДЕЛЯ 34
+Заполнять ручкой. Один бланк на заключённую в неделю. Бланки с исправлениями возвращаются без обработки.
+
+Имя ____________________ Номер ____________ Доступный остаток: 34,10 $
+
+КОЛ-ВО  ТОВАР                        ЦЕНА    СУММА
+  2   Лапша быстрого приготовления    0,55    1,10
+  1   Кофе растворимый, 85 г          4,85    4,85
+  2   Тунец в пакете                  1,90    3,80
+  1   Арахисовая паста                3,25    3,25
+  4   Мыло кусковое                   0,95    3,80
+  1   Шампунь (лимит 1 в нед.)        4,40    4,40
+  2   Зубная паста                    2,10    4,20
+  1   Марки, набор 10 шт.             7,30    7,30
+  —   Радиоприёмник (см. примечание)     —       —
+
+                                  ИТОГО     32,70
+                                  ОСТАТОК    1,40
+
+ПРИМЕЧАНИЯ ЗАКЛЮЧЁННОЙ
+Радиоприёмник снова в бланке на этой неделе. Он в бланке уже четыре недели. Пожалуйста, либо продайте мне радио, либо уберите его из списка, потому что вписывать его каждую среду начинает казаться самоцелью.
+
+Четыре куска мыла — это не запасание. Мыло — единственное здесь, что не портится, и единственное, что возьмут все.
+
+ДЛЯ СЛУЖЕБНЫХ ОТМЕТОК
+Радио: нет в наличии. Снято с производства поставщиком. Бланк будет обновлён при следующей печати, которая производится раз в год.
+Мыло: в пределах лимита. Мер не требуется.
+Заказ утверждён. Обработан в четверг.
+
+Напоминание всем отрядам: на прошлой неделе пять заказов возвращены из-за того, что суммы не сошлись. Проверяйте дважды. Бланк у вас один.`,
+    glossary: [
+      { term: 'commissary', ru: 'тюремная лавка' },
+      { term: 'unprocessed', ru: 'без обработки' },
+      { term: 'balance available', ru: 'доступный остаток на счету' },
+      { term: 'ramen', ru: 'лапша быстрого приготовления' },
+      { term: 'pouch', ru: 'мягкая упаковка, пакет' },
+      { term: 'bar (of soap)', ru: 'кусок (мыла)' },
+      { term: 'to hoard', ru: 'запасать впрок, копить' },
+      { term: 'not stocked', ru: 'нет в наличии' },
+      { term: 'to discontinue', ru: 'снять с производства' },
+    ],
+    questions: [
+      {
+        q: 'Why does the inmate keep writing the radio on the form?',
+        options: [
+          'She forgets it is unavailable',
+          'It is still printed on the sheet, so she lists it to make the point',
+          'She wants two radios',
+          'It is required',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'When will the form stop listing the radio?',
+        options: [
+          'Next week',
+          'At the next printing, which happens once a year',
+          'Never',
+          'When stock arrives',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the argument about the soap?',
+        options: [
+          'It is over the limit',
+          'It does not expire and everyone will take it — so four bars is stock, not hoarding',
+          'It is too expensive',
+          'It was not delivered',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happens to a form with corrections on it?',
+        options: [
+          'It is corrected by the office',
+          'It is returned unprocessed — and you only get one form a week',
+          'It is processed late',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Присцилла: карточка, наш текст ─────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Маршрут, автобус и записка вымышлены. От фильма — то,
+  // ради чего его сюда взяли: австралийский вариант английского, которого на
+  // полке не было ни в одном произведении.
+  {
+    id: 'sc-priscilla-1',
+    workId: 'priscilla',
+    lang: 'en', title: 'План гастролей', level: 'B1', minutes: 3,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Весь фильм — дорога через пустыню из Сиднея в Алис-Спрингс на старом автобусе. Ниже наш план такой поездки. Ради него произведение и стоит на полке: австралийский английский срезает окончания и лепит -o и -ie почти к чему угодно, и половину слов приходится угадывать по контексту, даже зная язык.',
+    after: 'Строчка «if the arvo gets over 40, we stop and we do not argue about it» — это не про удобство. В центральной Австралии сорок градусов и сломанный радиатор в трёхстах километрах от заправки — реальная причина не спорить.',
+    body: `THE RUN — SYDNEY TO ALICE
+Stick this on the fridge. Everyone has read it, so nobody gets to say they hadn't.
+
+THE BUS
+She's forty years old and she's called Priscilla, and if you call her "the van" once more you're walking. Radiator's been done. Aircon has not, and is not going to be, so stop asking.
+
+THE ROUTE
+Day 1: Sydney to Broken Hill. Long one. Servo at Wilcannia is the last one that's open late.
+Day 2: Broken Hill to Coober Pedy. Bring a hat. Half the town lives underground and there is a reason for that.
+Day 3: Rest day. Costumes, laundry, sleep.
+Day 4: Coober Pedy to Alice. Two shows, Friday and Saturday, then home.
+
+RULES OF THE ROAD
+Fill up at every servo, not every second one. It's four hundred k between some of them and the map lies.
+If the arvo gets over 40, we stop and we do not argue about it.
+Water in the back, two jerry cans, checked every morning by whoever cooked breakfast.
+No one walks off on their own after dark. Not for a smoke, not for a sulk, not for anything.
+
+WHAT TO BRING
+Your own frock bag, one esky between the three of us, sunnies, sunscreen, a jumper — yes, a jumper, it drops to about five overnight and you will be very quiet about it when it does.
+
+THE GIGS
+Alice is a real booking with a real contract and they've already paid half. Whatever happens between here and there, we are on that stage Friday. That is the whole point of the trip and I'd rather say it now than at four in the morning outside Coober Pedy.`,
+    translation: `РЕЙС — СИДНЕЙ — АЛИС
+Повесь на холодильник. Все это прочитали, так что «я не знал» никто сказать не сможет.
+
+АВТОБУС
+Ей сорок лет, её зовут Присцилла, и если ты ещё раз назовёшь её «фургоном», пойдёшь пешком. Радиатор сделали. Кондиционер — нет и не будет, так что перестань спрашивать.
+
+МАРШРУТ
+День 1: Сидней — Брокен-Хилл. Длинный перегон. Заправка в Уилканнии — последняя, которая работает допоздна.
+День 2: Брокен-Хилл — Кубер-Педи. Возьми шляпу. Половина городка живёт под землёй, и на то есть причина.
+День 3: День отдыха. Костюмы, стирка, сон.
+День 4: Кубер-Педи — Алис. Два выступления, в пятницу и субботу, и домой.
+
+ПРАВИЛА ДОРОГИ
+Заправляемся на каждой заправке, а не через одну. Между некоторыми четыреста километров, а карта врёт.
+Если днём переваливает за сорок — останавливаемся и не спорим.
+Вода сзади, две канистры, проверяет каждое утро тот, кто готовил завтрак.
+После темноты никто не уходит один. Ни покурить, ни подуться, ни зачем-либо ещё.
+
+ЧТО ВЗЯТЬ
+Свой чехол с платьями, один холодильник на троих, очки, крем от солнца, свитер — да, свитер: ночью падает примерно до пяти, и тогда ты будешь очень тихо об этом молчать.
+
+ВЫСТУПЛЕНИЯ
+Алис — настоящий ангажемент с настоящим договором, и половину уже заплатили. Что бы ни случилось отсюда и дотуда, в пятницу мы на этой сцене. В этом весь смысл поездки, и я лучше скажу это сейчас, чем в четыре утра под Кубер-Педи.`,
+    glossary: [
+      { term: 'servo', ru: 'заправка (австрал., от service station)' },
+      { term: 'arvo', ru: 'вторая половина дня (австрал., от afternoon)' },
+      { term: 'sunnies', ru: 'солнечные очки (австрал.)' },
+      { term: 'esky', ru: 'сумка-холодильник (австрал.)' },
+      { term: 'jumper', ru: 'свитер (брит./австрал.); в США sweater' },
+      { term: 'jerry can', ru: 'канистра' },
+      { term: 'k', ru: 'километр (сокращение в речи)' },
+      { term: 'gig', ru: 'выступление, концерт' },
+      { term: 'to have a sulk', ru: 'дуться, обижаться' },
+    ],
+    questions: [
+      {
+        q: 'What is a "servo"?',
+        options: ['a servant', 'a petrol station', 'a service road', 'a repair shop'],
+        correct: 1,
+        why: 'Австралийское словообразование: service station → servo. По той же модели arvo, ambo, bottle-o.',
+      },
+      {
+        q: 'What does "if the arvo gets over 40" mean?',
+        options: [
+          'If the afternoon temperature goes above 40 degrees',
+          'If they drive more than 40 km',
+          'If it is after 4 p.m.',
+          'If there are more than 40 people',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why must they fill up at every station?',
+        options: [
+          'Fuel is cheaper',
+          'Some stretches are 400 km and the map is not reliable',
+          'The tank is small',
+          'It is a legal requirement',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the note insist on a jumper?',
+        options: [
+          'For the shows',
+          'Because desert nights drop to about five degrees',
+          'It is part of the costume',
+          'To sit on',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-priscilla-2',
+    workId: 'priscilla',
+    lang: 'en', title: 'Записка, оставленная в мотеле', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему фильма', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Дорожное кино держится на том, что люди в пути наконец договаривают. Ниже наша записка, оставленная одним попутчиком другому на стойке мотеля. Австралийская речь тут в письменном виде: сокращения, mate, no worries — и характерная манера сказать серьёзное между двумя шутками, чтобы оно не выглядело серьёзным.',
+    after: 'Обратите внимание на «no worries» в конце. В австралийском это не «не волнуйся» — это «всё в порядке, вопрос закрыт», и здесь оно закрывает вопрос, который автор записки боялся поднимать три дня.',
+    body: `Left this at reception because you were asleep and because I say things better on paper, which is a terrible thing to admit about yourself at fifty-two.
+
+Gone to get the radiator looked at. There's a bloke in town who'll do it this arvo, cash, no questions, and before you say it — yes, I checked, and no, he is not the same bloke as Wilcannia.
+
+Two things.
+
+One. Sorry about last night. Not for what I said, which was true, but for saying it in front of the kid behind the bar, who did not need to be part of it and who was about nineteen. You were right to walk out. I'd have walked out.
+
+Two. You asked me in the car why I came on this trip when I hate the heat, hate the driving and have said for six years that I'm done with touring. I gave you a smart answer because it was two in the morning and I'm quicker than I am honest. Here's the real one: because you asked me, and because nobody has asked me anything in about four years, and because I did not want to find out what I'd say if I said no.
+
+That's it. That's the whole thing. You can bring it up exactly once, at the pub, when we've done the Friday show, and then never again.
+
+Back by four. Don't let them put the frocks in the sun, they'll go the colour of weak tea.
+
+No worries, mate.`,
+    translation: `Оставляю это на стойке, потому что ты спал и потому что на бумаге у меня выходит лучше, — признаваться в таком про себя в пятьдесят два года ужасно.
+
+Пошёл показать радиатор. В городке есть мужик, который сделает сегодня после обеда, за наличные, без вопросов, и прежде чем ты скажешь: да, я проверил, и нет, это не тот же мужик, что в Уилканнии.
+
+Две вещи.
+
+Первое. Извини за вчерашнее. Не за то, что я сказал, — это правда, — а за то, что сказал при парне за стойкой, которому во всём этом участвовать было незачем и которому лет девятнадцать. Ты правильно вышел. Я бы тоже вышел.
+
+Второе. Ты спросил меня в машине, зачем я поехал, если ненавижу жару, ненавижу вести машину и шесть лет говорю, что с гастролями завязал. Я ответил остроумно, потому что было два часа ночи, а соображаю я быстрее, чем говорю честно. Вот настоящий ответ: потому что ты попросил, потому что меня года четыре никто ни о чём не просил и потому что я не хотел выяснять, что бы я сказал, если бы отказался.
+
+Всё. Вот и вся история. Вспомнить об этом можешь ровно один раз, в пабе, после пятничного выступления, и больше никогда.
+
+Вернусь к четырём. Не давай им выставлять платья на солнце — станут цвета слабого чая.
+
+Всё в порядке, друг.`,
+    glossary: [
+      { term: 'bloke', ru: 'мужик, парень (брит./австрал.)' },
+      { term: 'arvo', ru: 'вторая половина дня (австрал.)' },
+      { term: 'to walk out', ru: 'уйти, демонстративно выйти' },
+      { term: 'a smart answer', ru: 'остроумный ответ (часто вместо честного)' },
+      { term: 'to bring something up', ru: 'поднять тему, вспомнить' },
+      { term: 'frock', ru: 'платье' },
+      { term: 'no worries', ru: 'всё в порядке; вопрос закрыт (австрал.)' },
+      { term: 'mate', ru: 'друг, приятель' },
+    ],
+    questions: [
+      {
+        q: 'What is he apologising for exactly?',
+        options: [
+          'For what he said',
+          'For saying it in front of a nineteen-year-old barman, not for the content',
+          'For leaving',
+          'For the radiator',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why did he give "a smart answer" in the car?',
+        options: [
+          'He did not know the answer',
+          'He is quicker than he is honest, and it was two in the morning',
+          'The question was rude',
+          'He was driving',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the real reason he came on the trip?',
+        options: [
+          'Money',
+          'Because he was asked, after four years of nobody asking him anything',
+          'He likes the desert',
+          'To fix the bus',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "no worries" do at the end of this note?',
+        options: [
+          'Tells the reader not to be anxious',
+          'Closes the subject — Australian for "that\'s that, we\'re fine"',
+          'Apologises again',
+          'Asks a question',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Они оба умрут в конце: сцены 2–3 ───────────────────────────────────────
+  //
+  // Три сцены складываются в дугу: учреждение говорит с человеком (звонок),
+  // человек говорит сам с собой (список), и остаётся запись о нём (заметка в
+  // газете). Регистры при этом разные настолько, насколько это вообще возможно
+  // внутри одного языка, — ради этого книга на полке и стоит.
+  {
+    id: 'sc-they-both-die-2',
+    workId: 'silvera-they-both-die',
+    lang: 'en', title: 'Список на сегодня', level: 'A2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Что человек пишет себе, когда у него остались сутки. Ниже наш текст в жанре списка в заметках — с вычеркнутым, дописанным и переписанным. Грамматически это самое простое, что есть на полке (A2): инфинитив после want to, короткие фразы, отрицания. И при этом хорошо видно, как в английском списке пишут «сделать что-то», ни разу не называя себя.',
+    body: `Notes · today
+edited 11 times
+
+things to do today
+
+1. call Mum — done, 00:40, she cried, I said the wrong thing
+2. call Mum again and say the right thing
+3. eat the good cereal, not the cheap one
+4. ~~go to the beach~~ too far
+5. go to the roof instead. It counts.
+6. return the book to Sam. Do not explain why.
+7. ~~write a long message to everyone~~
+8. write three short ones. Long ones are for me, not for them.
+9. find out the name of the man at the corner shop. Twelve years.
+10. do not spend the whole day on this list
+
+things I am not going to do
+
+— fix anything with Dad. Not today, not in eight hours, not by text.
+— pretend I am fine so other people can be fine
+— look at the countdown again
+
+if there is time
+
+sit somewhere with a view and do nothing at all, on purpose, for one hour`,
+    translation: `Заметки · сегодня
+отредактировано 11 раз
+
+что сделать сегодня
+
+1. позвонить маме — сделано, 00:40, она плакала, я сказал не то
+2. позвонить маме ещё раз и сказать то
+3. съесть хорошие хлопья, а не дешёвые
+4. ~~съездить на море~~ далеко
+5. вместо этого подняться на крышу. Это считается.
+6. вернуть Сэму книгу. Не объяснять зачем.
+7. ~~написать всем длинное сообщение~~
+8. написать три коротких. Длинные — это для меня, а не для них.
+9. узнать, как зовут человека из магазина на углу. Двенадцать лет.
+10. не потратить на этот список весь день
+
+чего я делать не буду
+
+— мириться с отцом. Не сегодня, не за восемь часов и не сообщением.
+— делать вид, что я в порядке, чтобы другим было спокойно
+— снова смотреть на обратный отсчёт
+
+если останется время
+
+сесть где-нибудь с видом и специально ничего не делать, целый час`,
+    glossary: [
+      { term: 'things to do', ru: 'что сделать; список дел' },
+      { term: 'done', ru: 'сделано' },
+      { term: 'I said the wrong thing', ru: 'я сказал не то' },
+      { term: 'It counts.', ru: 'это считается; засчитывается' },
+      { term: 'Do not explain why.', ru: 'не объяснять зачем' },
+      { term: 'I am not going to…', ru: 'я не собираюсь…; о принятом решении' },
+      { term: 'to pretend I am fine', ru: 'делать вид, что я в порядке' },
+      { term: 'on purpose', ru: 'намеренно, специально' },
+      { term: 'if there is time', ru: 'если останется время' },
+    ],
+    questions: [
+      {
+        q: 'Why is item 1 already marked "done" but item 2 exists?',
+        options: [
+          'It is a mistake in the list',
+          'The call happened, but it went wrong, so it has to be done again',
+          'He called the wrong person',
+          'His mother asked him to call twice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "Long ones are for me, not for them." mean?',
+        options: [
+          'He writes badly',
+          'A long message would comfort the writer, not the reader',
+          'He has no time',
+          'The others prefer letters',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is there a separate list of "things I am not going to do"?',
+        options: [
+          'To fill the page',
+          'Deciding what to refuse is a decision too — and it costs the same effort',
+          'He forgot them the first time',
+          'To be funny',
+        ],
+        correct: 1,
+        why: 'Обратите внимание на форму: am not going to — это не «не получится», а принятое решение. Именно поэтому пункты и вынесены отдельным списком.',
+      },
+    ],
+  },
+  {
+    id: 'sc-they-both-die-3',
+    workId: 'silvera-they-both-die',
+    lang: 'en', title: 'Заметка в газете', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Последняя сцена этой книги — не про сам день, а про то, что от него остаётся на бумаге. Ниже наш текст в жанре газетного некролога: формулы is survived by и in lieu of flowers по-английски стоят в каждом таком тексте и практически нигде больше. Читать стоит и ради языка, и ради того, как мало он говорит.',
+    body: `OBITUARIES
+
+RIVERA, Daniel J., 19, of the Bronx, on 5 August, at home, following notification.
+
+Daniel was born in the Bronx and lived there his whole life, which he considered a decision rather than an accident. He worked at the Fordham Road branch of a hardware shop, where he was known for finding the exact screw somebody needed and then refusing to let them buy the whole box.
+
+He is survived by his mother, Ana; his sister, Marisol; his grandmother, Elena; and, as he put it in a note left for this purpose, "one very good friend I met on the last day, which is later than I would have liked but not too late."
+
+He was predeceased by his father, Luis, in 2019.
+
+A gathering will be held on Saturday at 2 p.m. at the community centre on Webster Avenue. Dress as you would to see him. He was specific about this.
+
+In lieu of flowers, the family asks that you call somebody you have been meaning to call.`,
+    translation: `НЕКРОЛОГИ
+
+РИВЕРА, Дэниел Дж., 19 лет, из Бронкса, 5 августа, дома, после оповещения.
+
+Дэниел родился в Бронксе и прожил там всю жизнь, что считал решением, а не случайностью. Работал в магазине хозтоваров на Фордхэм-роуд, где славился тем, что находил ровно тот шуруп, который человеку был нужен, а потом не давал купить целую упаковку.
+
+У него остались мать Ана, сестра Марисоль, бабушка Елена и — как он сам написал в записке, оставленной специально для этого, — «один очень хороший друг, которого я встретил в последний день, что позже, чем мне бы хотелось, но не слишком поздно».
+
+Его отец, Луис, умер раньше, в 2019 году.
+
+Прощание состоится в субботу в 14:00 в общественном центре на Уэбстер-авеню. Одевайтесь так, как оделись бы, идя к нему. На этом он настаивал отдельно.
+
+Вместо цветов семья просит вас позвонить тому, кому вы давно собирались позвонить.`,
+    glossary: [
+      { term: 'obituary', ru: 'некролог' },
+      { term: 'is survived by', ru: 'у него остались (перечисление близких); только в некрологах' },
+      { term: 'was predeceased by', ru: 'кто-то из близких умер раньше него' },
+      { term: 'as he put it', ru: 'как он сам выразился' },
+      { term: 'a gathering will be held', ru: 'состоится прощание, встреча' },
+      { term: 'in lieu of flowers', ru: 'вместо цветов; постоянная формула некролога' },
+      { term: 'you have been meaning to…', ru: 'вы давно собирались…' },
+      { term: 'He was specific about this', ru: 'на этом он настаивал отдельно' },
+    ],
+    questions: [
+      {
+        q: 'What does "is survived by" introduce?',
+        options: [
+          'The cause of death',
+          'The close relatives who are still living',
+          'The people who came to the funeral',
+          'His colleagues',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is unusual about this obituary compared with a standard one?',
+        options: [
+          'It gives an address',
+          'It quotes the person himself and follows his own instructions',
+          'It is very short',
+          'It has no date',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"In lieu of flowers, the family asks that you call somebody you have been meaning to call."',
+        options: [
+          'It is a request for donations',
+          'The fixed formula is kept but the request inside it is changed — that is where the whole text lands',
+          'It forbids flowers',
+          'It is an advertisement',
+        ],
+        correct: 1,
+        why: 'Приём стоит запомнить и вне некрологов: берётся застывшая формула, а внутрь ставится не то, чего ждут. Так по-английски делают и в речах, и в объявлениях.',
       },
     ],
   },

@@ -3,6 +3,7 @@ import { Play, Pause, Turtle } from 'lucide-react'
 import { getMediaUrl } from '../lib/mediaStorage'
 import { useT } from '../lib/i18n'
 import { speak, stopSpeech } from '../lib/speech'
+import VoicePicker from './trainer/VoicePicker'
 
 // Аудио-стимул для языковых заданий (listenType/listenBank/minimalPair). Источник —
 // либо загруженный файл в Storage (audioUrl = путь, 5A), либо текст для браузерного
@@ -31,6 +32,7 @@ export default function AudioPlayer({
   accent,
   soft,
   variant = 'solid',
+  picker = true,
 }: {
   /** Путь в бакете task-media (резолвится в signed URL). */
   audioUrl?: string
@@ -41,7 +43,14 @@ export default function AudioPlayer({
   /** Код языка для синтеза (en, ru…). */
   lang?: string
   compact?: boolean
-  /** Сообщает наружу, идёт ли сейчас звук — по этому родитель рисует индикатор. */
+  /**
+   * Сообщает наружу, идёт ли сейчас ЗВУК — по этому родитель рисует индикатор.
+   *
+   * Именно звук, а не нажатие: между кликом и первым словом синтезатор берёт
+   * своё время (сетевой голос — до секунды), и линия, пущенная по клику, к
+   * началу слова уже на середине. Кнопка переключается сразу, наружу уходит
+   * факт звучания.
+   */
   onPlayingChange?: (playing: boolean) => void
   /**
    * Цвет предмета. Плеер живёт и в домашке (там акцент приложения), и в
@@ -59,11 +68,29 @@ export default function AudioPlayer({
    * перетягивают внимание с самих слов. Заливается только тот, что звучит.
    */
   variant?: 'solid' | 'ghost'
+  /**
+   * Показывать ли рядом выбор голоса.
+   *
+   * По умолчанию — да, и это главное: голос выбирается ОДИН на язык (ключ в
+   * localStorage общий), но пока выбрать его можно было только в читалке
+   * тренажёра, во всей остальной озвучке — в карточках, в разговорнике, в
+   * задании на слух — ученику доставался тот диктор, которого угадала
+   * автоматика. Кнопка стоит там же, где звук, потому что мысль «не тот голос»
+   * приходит ровно в момент прослушивания, а не в настройках.
+   *
+   * Выключают там, где выбор уже стоит рядом отдельной строкой (рейл читалки),
+   * и там, где голос задал учитель (ttsVoice) — его выбор не ученику менять.
+   */
+  picker?: boolean
 }) {
   const t = useT()
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [src, setSrc] = useState<string | null>(null)
   const [playing, setPlaying] = useState(false)
+  // Звук пошёл на самом деле: у файла это событие play, у синтеза — onStart.
+  // Кнопка живёт на `playing` (отклик обязан быть мгновенным), индикаторы
+  // снаружи — на этом.
+  const [sounding, setSounding] = useState(false)
   const [slow, setSlow] = useState(false)
   const usesTts = !audioUrl && !!ttsText
 
@@ -79,7 +106,7 @@ export default function AudioPlayer({
   // менялась бы каждый рендер и гоняла бы эффект вхолостую.
   const notifyRef = useRef(onPlayingChange)
   notifyRef.current = onPlayingChange
-  useEffect(() => { notifyRef.current?.(playing) }, [playing])
+  useEffect(() => { notifyRef.current?.(sounding) }, [sounding])
 
   // Речь не должна продолжаться на следующем экране.
   useEffect(() => () => { if (usesTts) stopSpeech() }, [usesTts])
@@ -90,6 +117,8 @@ export default function AudioPlayer({
   function say(isSlow: boolean) {
     if (!ttsText) return
     setPlaying(true)
+    setSounding(false)
+    // onStart — первый реальный звук: до него наружу «звучит» не уходит.
     // onEnd приходит и когда речь перебили из другого места экрана, так что
     // индикатор гаснет вместе со звуком, а не остаётся гореть навсегда.
     speak(ttsText, {
@@ -97,13 +126,14 @@ export default function AudioPlayer({
       voiceName: ttsVoice,
       rate: isSlow ? TTS_SLOW_RATE : 1,
       gap: isSlow ? SLOW_GAP : GAP,
-      onEnd: () => setPlaying(false),
+      onStart: () => setSounding(true),
+      onEnd: () => { setPlaying(false); setSounding(false) },
     })
   }
 
   function toggle() {
     if (usesTts) {
-      if (playing) { stopSpeech(); setPlaying(false) }
+      if (playing) { stopSpeech(); setPlaying(false); setSounding(false) }
       else say(slow)
       return
     }
@@ -131,6 +161,12 @@ export default function AudioPlayer({
   // белая иконка на нём еле читалась. Цвет предмета, если он задан, остаётся
   // цветом предмета: в тренажёре кнопка обязана попадать в палитру языка.
   const fill = accent ?? 'var(--grad-purple)'
+  // Свечение тоже от градиента, а не от --color-accent: светлый ореол вокруг
+  // кнопки размывал её контур и весь кружок читался лавандовым, хотя залит был
+  // фирменным. Цифры — тёмный конец --grad-purple (#6A5AE6).
+  const glow = accent
+    ? `0 4px 12px -3px color-mix(in srgb, ${accent} 55%, transparent)`
+    : '0 4px 14px rgba(106,90,230,0.34)'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -138,9 +174,9 @@ export default function AudioPlayer({
         <audio
           ref={audioRef}
           src={src ?? undefined}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onEnded={() => setPlaying(false)}
+          onPlay={() => { setPlaying(true); setSounding(true) }}
+          onPause={() => { setPlaying(false); setSounding(false) }}
+          onEnded={() => { setPlaying(false); setSounding(false) }}
           preload="none"
         />
       )}
@@ -159,11 +195,15 @@ export default function AudioPlayer({
               }
             : {
                 border: 'none', background: fill, color: '#fff',
-                boxShadow: `0 4px 12px -3px color-mix(in srgb, ${tone} 55%, transparent)`,
+                boxShadow: glow,
               }),
         }}
       >
-        {playing ? <Pause size={compact ? 16 : 18} /> : <Play size={compact ? 16 : 18} style={{ marginLeft: 2 }} />}
+        {/* Треугольник залит, а не обведён: контурная иконка на цветном кружке
+            выглядит бледной наклейкой поверх заливки, а не одной кнопкой. */}
+        {playing
+          ? <Pause size={compact ? 16 : 18} fill="currentColor" />
+          : <Play size={compact ? 16 : 18} fill="currentColor" style={{ marginLeft: 2 }} />}
       </button>
 
       {allowSlow && hasSource && (
@@ -181,6 +221,13 @@ export default function AudioPlayer({
         >
           <Turtle size={14} /> {t('Медленно')}
         </button>
+      )}
+
+      {/* Выбор голоса — только у синтеза: у загруженной записи диктор один и
+          менять его нечем. Компактный плеер стоит по десятку в ряд (буквы
+          хангыля, словарь урока) — там кнопка была бы у каждого. */}
+      {picker && usesTts && !ttsVoice && !compact && lang && (
+        <VoicePicker lang={lang} accent={tone} soft={toneSoft} variant="icon" />
       )}
 
       {!hasSource && (

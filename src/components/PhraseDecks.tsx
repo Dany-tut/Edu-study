@@ -39,7 +39,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Layers, Sparkles, Check, Volume2, RotateCcw } from 'lucide-react'
+import { ChevronLeft, Layers, Sparkles, Check, Volume2, RotateCcw, Trash2 } from 'lucide-react'
 import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
 import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'
@@ -128,7 +128,7 @@ export function duePhrases(phrases: Phrase[], states: Map<string, CardState>, no
 
 // ─── Витрина ─────────────────────────────────────────────────────────────────
 
-export default function PhraseDecks({ themes, states, accent, soft, levelLabel, early, onOpen }: {
+export default function PhraseDecks({ themes, states, accent, soft, levelLabel, early, lead, onOpen }: {
   /** Уже отфильтрованные темы — фильтрация живёт в рейле. */
   themes: SurvivalThemeCards[]
   /** Что колода помнит про каждую фразу; ключ — оригинал фразы. */
@@ -152,14 +152,31 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
    * все.
    */
   early?: (item: SurvivalThemeCards) => boolean
+  /**
+   * Закреплённая плитка перед сеткой — личный словарь (см. trainer/MyWords).
+   *
+   * Приходит готовым узлом, а не данными: витрина знает про темы разговорника
+   * и не должна знать про колоду ученика, а место у плитки одно и постоянное —
+   * первое. Фильтры и поиск её не двигают: она не тема.
+   */
+  lead?: React.ReactNode
   onOpen: (themeId: string) => void
 }) {
   const t = useT()
   if (themes.length === 0) {
-    return <Empty text="Ничего не нашлось. Сбрось фильтр слева или поищи другое слово." />
+    // Закреплённая плитка остаётся и при пустой выдаче: она не участвует в
+    // фильтре, и убирать её вместе с темами значило бы, что словарь пропадает
+    // от поиска, который его и не искал.
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {lead && <TileGrid min={218}>{lead}</TileGrid>}
+        <Empty text="Ничего не нашлось. Сбрось фильтр слева или поищи другое слово." />
+      </div>
+    )
   }
   return (
     <TileGrid min={218}>
+      {lead}
       {themes.map(x => {
         const st = themeStats(x, states)
         const pct = st.pct
@@ -228,39 +245,60 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
 
 // ─── Прогон одной стопки ─────────────────────────────────────────────────────
 
-export function ThemeSession({ book, item, lang, subjectId, accent, owner, view, run, states, statesReady, onGraded, tourExtra }: {
-  book: SurvivalBook
-  item: SurvivalThemeCards
+/**
+ * Прогон одной стопки — общая машинка тем разговорника и личного словаря.
+ *
+ * ПОЧЕМУ ОБЩАЯ. Стопка — это не «тема»: это список фраз, расписание по ним и
+ * два способа их пройти (глазами списком, памятью свайпом). Тема даёт этому
+ * списку имя и стикер, словарь — своё имя и право вычеркнуть слово; всё
+ * остальное у них совпадает до строчки, и вторая копия разъезжалась бы с
+ * первой ровно там, где чинят одну (направление показа, сборка стопки, запись
+ * ответа в SM-2).
+ */
+export function PhraseRun({
+  runId, phrases, label, reward, doneTitle, emptyTitle, emptyText, intro,
+  lang, subjectId, accent, owner, view, run, states, statesReady, onGraded, onRemove, tourExtra,
+}: {
+  /** Ключ стопки: и синтетический id карточек, и ключ перезапуска колоды. */
+  runId: string
+  phrases: Phrase[]
+  /** Подпись над карточкой — что именно сейчас крутится. */
+  label: string
+  /** Стикер за чистый прогон. Не задан — награды нет (состав стопки плавает). */
+  reward?: { key: string; title: string; size: number }
+  doneTitle: string
+  emptyTitle: string
+  emptyText: string
+  /** Строка над списком: чем эта стопка является. */
+  intro?: React.ReactNode
   lang: string
   subjectId: string
   accent: string
   owner: Owner
   view: PhraseView
   run: RunMode
-  /** Память колоды по фразам темы — из неё собирается сегодняшняя стопка. */
+  /** Память колоды по фразам стопки — из неё собирается сегодняшняя очередь. */
   states: Map<string, CardState>
   /** Память уже прочитана из базы. До этого стопку собирать нельзя. */
   statesReady: boolean
   /** Ответ сохранён: экран обновляет свою копию памяти, не перечитывая базу. */
   onGraded: (prompt: string, state: CardState) => void
+  /** Задан — в списке появляется «убрать» (личный словарь чистят руками). */
+  onRemove?: (phrase: Phrase) => void
   /**
-   * Шаг онбординга про переключатель «Свайп / Списком»: сам переключатель живёт
-   * в строке управления тренажёра, а подсказки — в стопке, поэтому шаг приходит
-   * сюда снаружи и просто пробрасывается дальше.
+   * Шаг онбординга от экрана-владельца: переключатель «Свайп / Списком» живёт
+   * в строке управления тренажёра, а подсказки — в стопке.
    */
   tourExtra?: CoachStep
 }) {
-  const { theme, phrases } = item
-
   // «Пройти заново» — прогон вне расписания. Счётчик, а не флаг: каждое нажатие
   // должно пересобирать стопку, в том числе когда её уже прогнали разок.
   const [drill, setDrill] = useState(0)
 
-  // Стопка фиксируется на момент открытия темы: пересчитывать её на каждый
-  // ответ значило бы, что карточка исчезает из-под пальца ровно в тот момент,
-  // когда её оценили. Поэтому память читается из ref-подобного снимка —
-  // useState с ленивой инициализацией внутри useMemo не годится, а зависимость
-  // от `states` перезапускала бы сессию после каждого ответа.
+  // Стопка фиксируется на момент открытия: пересчитывать её на каждый ответ
+  // значило бы, что карточка исчезает из-под пальца ровно в тот момент, когда
+  // её оценили. Поэтому память читается из снимка — зависимость от `states`
+  // перезапускала бы сессию после каждого ответа.
   const statesRef = useRef(states)
   statesRef.current = states
 
@@ -270,7 +308,7 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
     load: async () => {
       const pick = drill > 0 ? phrases : duePhrases(phrases, statesRef.current)
       return pick.map((ph, i): ReviewCard => ({
-        id: `sv-${book.key}-${theme.id}-${i}`,
+        id: `sv-${runId}-${i}`,
         subject: subjectId,
         source: 'manual',
         // Обратное направление — это другой навык: вспомнить фразу по смыслу
@@ -303,19 +341,21 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
         .catch(e => console.error('PhraseDecks grade:', e))
     },
     judge: true,
-    label: theme.title,
-    doneTitle: 'Стопка пройдена',
-    // Стикер за тему. Ключ без направления показа: прямой и обратный прогон —
-    // один и тот же материал, и второй стикер за него был бы фармом.
-    reward: { key: `sv:${book.key}:${theme.id}`, title: theme.title, size: phrases.length },
-    // Пустая стопка здесь — не «нечего учить», а «всё стоит в расписании»:
-    // формулировка по умолчанию («карточки набираются сами») в этом месте
-    // читалась бы как поломка.
-    emptyTitle: 'На сегодня тема закрыта',
-    emptyText: 'Все фразы этой темы уже разобраны и ждут своего дня.\nМожно прогнать её заново — расписание при этом продолжит считаться.',
-  }), [phrases, drill, book.key, theme.id, theme.title, subjectId, owner, view.reverse, view.reading, onGraded])
+    label,
+    doneTitle,
+    reward,
+    emptyTitle,
+    emptyText,
+  }), [phrases, drill, runId, label, doneTitle, emptyTitle, emptyText, reward, subjectId, owner, view.reverse, view.reading, onGraded])
 
-  if (run === 'list') return <PhraseList phrases={phrases} accent={accent} view={view} lang={lang} />
+  if (run === 'list') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {intro}
+        <PhraseList phrases={phrases} accent={accent} view={view} lang={lang} onRemove={onRemove} />
+      </div>
+    )
+  }
 
   // Список читается и без памяти колоды, а стопка — нет: пустая память сложила
   // бы её из всей темы.
@@ -324,13 +364,60 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
   return (
     <CardDeck
       // Смена направления показа и «пройти заново» пересобирают сессию с нуля.
-      key={`${theme.id}-${view.reverse ? 'r' : 'f'}-${drill}`}
+      key={`${runId}-${view.reverse ? 'r' : 'f'}-${drill}`}
       owner={owner}
       accent={accent}
       lang={view.reverse ? undefined : lang}
       subject={subjectId}
       source={source}
       emptyExtra={<DrillButton accent={accent} onClick={() => setDrill(d => d + 1)} />}
+      tourExtra={tourExtra}
+    />
+  )
+}
+
+export function ThemeSession({ book, item, lang, subjectId, accent, owner, view, run, states, statesReady, onGraded, tourExtra }: {
+  book: SurvivalBook
+  item: SurvivalThemeCards
+  lang: string
+  subjectId: string
+  accent: string
+  owner: Owner
+  view: PhraseView
+  run: RunMode
+  states: Map<string, CardState>
+  statesReady: boolean
+  onGraded: (prompt: string, state: CardState) => void
+  tourExtra?: CoachStep
+}) {
+  const { theme, phrases } = item
+  // Стикер за тему. Ключ без направления показа: прямой и обратный прогон —
+  // один и тот же материал, и второй стикер за него был бы фармом.
+  const reward = useMemo(
+    () => ({ key: `sv:${book.key}:${theme.id}`, title: theme.title, size: phrases.length }),
+    [book.key, theme.id, theme.title, phrases.length],
+  )
+  return (
+    <PhraseRun
+      runId={`${book.key}-${theme.id}`}
+      phrases={phrases}
+      label={theme.title}
+      reward={reward}
+      doneTitle="Стопка пройдена"
+      // Пустая стопка здесь — не «нечего учить», а «всё стоит в расписании»:
+      // формулировка по умолчанию («карточки набираются сами») в этом месте
+      // читалась бы как поломка.
+      emptyTitle="На сегодня тема закрыта"
+      emptyText={'Все фразы этой темы уже разобраны и ждут своего дня.\nМожно прогнать её заново — расписание при этом продолжит считаться.'}
+      lang={lang}
+      subjectId={subjectId}
+      accent={accent}
+      owner={owner}
+      view={view}
+      run={run}
+      states={states}
+      statesReady={statesReady}
+      onGraded={onGraded}
       tourExtra={tourExtra}
     />
   )
@@ -369,8 +456,14 @@ function DrillButton({ accent, onClick }: { accent: string; onClick: () => void 
  * должна раздвинуть соседние, а не наехать на них) и открывает под ним заметку
  * и пример употребления.
  */
-function PhraseList({ phrases, accent, view, lang }: {
+function PhraseList({ phrases, accent, view, lang, onRemove }: {
   phrases: Phrase[]; accent: string; view: PhraseView; lang: string
+  /**
+   * Вычеркнуть строку. Задан только у личного словаря: тему разговорника
+   * ученик не редактирует, а своё слово, взятое по ошибке, обязан уметь убрать
+   * — иначе оно возвращается по расписанию годами.
+   */
+  onRemove?: (phrase: Phrase) => void
 }) {
   const t = useT()
   const [open, setOpen] = useState<number | null>(null)
@@ -488,6 +581,23 @@ function PhraseList({ phrases, accent, view, lang }: {
             <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', flexShrink: 0, maxWidth: '42%', textAlign: 'right', lineHeight: 1.4 }}>
               {p.ru}
             </div>
+            {/* «Убрать» — только у раскрытой строки: корзина у каждого из
+                четырёхсот слов превратила бы словарь в панель управления, а
+                нужна она раз в сто строк. Раскрытая строка — это и есть «я
+                сейчас разбираюсь именно с этим словом». */}
+            {onRemove && on && (
+              <button
+                onClick={e => { e.stopPropagation(); onRemove(p) }}
+                title={t('Убрать из словаря')}
+                aria-label={t('Убрать из словаря')}
+                style={{
+                  flexShrink: 0, display: 'flex', border: 'none', background: 'none', padding: 0,
+                  cursor: 'pointer', color: 'var(--color-text-3)',
+                }}
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
         )
       })}

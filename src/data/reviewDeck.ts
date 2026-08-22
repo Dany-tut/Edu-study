@@ -382,3 +382,59 @@ export async function gradeCard(card: ReviewCard, grade: ReviewGrade): Promise<R
   }).eq('id', card.id)
   return { ...card, ...next }
 }
+
+/**
+ * Источники, которые кладут в колоду СЛОВО, а не вопрос.
+ *
+ * Личный словарь собирается по ним. Разница не формальная: `homework` и
+ * `diagnostic` пишут в колоду формулировку задания («Сколько молей…»), и
+ * словарь, собранный без этой границы, был бы наполовину списком чужих
+ * вопросов — то есть перестал бы быть словарём.
+ */
+export const WORD_SOURCES: ReviewSource[] = ['manual', 'vocab', 'trainer']
+
+/**
+ * Личный словарь: слова, которые ученик собрал сам, новое сверху.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ dueCards. Та отдаёт СЕГОДНЯШНИЙ долг — то, что созрело по
+ * расписанию. Словарь — это всё собранное когда-либо, включая выученное и
+ * назначенное на следующий месяц: его открывают не «позаниматься», а «а как
+ * было то слово из текста».
+ *
+ * Потолок нужен: колода живущего год ученика — это тысячи строк, а витрина
+ * читает их на каждое открытие вкладки. Четырёхсот хватает и на плитку, и на
+ * список; что не влезло, продолжает возвращаться по расписанию само.
+ */
+export async function collectedCards(
+  owner: { studentId?: string; anonName?: string },
+  subjects?: string[],
+  limit = 400,
+): Promise<ReviewCard[]> {
+  const col = owner.studentId ? 'student_id' : 'anon_name'
+  const val = owner.studentId ?? owner.anonName ?? ''
+  if (!val) return []
+  let q = supabase
+    .from('review_cards')
+    .select('*')
+    .eq(col, val)
+    .in('source', WORD_SOURCES)
+  if (subjects?.length) q = q.in('subject', subjects)
+  const { data, error } = await q
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) { console.error('collectedCards:', error); return [] }
+  return (data ?? []).map(rowToCard)
+}
+
+/**
+ * Убрать слово из словаря насовсем.
+ *
+ * Возвращает успех, а не void: словарь чистят руками, и «нажал — строка
+ * осталась» ученик прочитает как поломку. Экран убирает слово оптимистично и
+ * возвращает его на место, если база отказала.
+ */
+export async function forgetCard(id: string): Promise<boolean> {
+  const { error } = await supabase.from('review_cards').delete().eq('id', id)
+  if (error) { console.error('forgetCard:', error); return false }
+  return true
+}

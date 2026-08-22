@@ -3298,7 +3298,6 @@ export default function HomeworkFlow({
                         : flowCorrect ? 'correct' : 'wrong'
                   }
                   answer={flowQuestion && flowDone && flowAuto && !flowCorrect ? flowQuestion.referenceAnswer : undefined}
-                  accent={palette.accent}
                   isMobile={isMobile}
                   navCollapsed={navCollapsed}
                   onPrimary={flowPrimary}

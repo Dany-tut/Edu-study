@@ -12,6 +12,13 @@
 // ломается: каждый раз надо заново прицелиться. Поэтому полоса зафиксирована
 // снизу, а вердикт растёт вверх от неё, а не толкает её вниз.
 //
+// ЦВЕТ ЗДЕСЬ — ФИРМЕННЫЙ, А НЕ ЦВЕТ ПРЕДМЕТА. Кнопка и шкала красились
+// palette.accent, и на уроке без узнанного предмета это давало лиловый запасной
+// цвет химии (#9B6FE8): на одном экране оказывалось два разных фиолетовых — наш
+// в карточках и чужой в кнопке. Главное действие экрана во всём кабинете одно и
+// то же (--grad-purple, см. TestFlow), цветом предмета красится его обстановка,
+// а не CTA.
+//
 // ПОЧЕМУ ЕСТЬ «ПРОПУСТИТЬ». Задание может требовать микрофона в метро или звука
 // на лекции. Тупик в такой ситуации — это брошенная домашка; пропуск честнее:
 // задание остаётся неотвеченным и попадёт в список пропущенных при сдаче.
@@ -32,7 +39,6 @@ export default function HomeworkFlowBar({
   disabled,
   verdict,
   answer,
-  accent,
   isMobile,
   navCollapsed,
   onPrimary,
@@ -47,7 +53,6 @@ export default function HomeworkFlowBar({
   verdict: FlowVerdict
   /** Верный ответ — показывается только когда ошиблись. */
   answer?: string
-  accent: string
   isMobile: boolean
   navCollapsed: boolean
   onPrimary: () => void
@@ -97,7 +102,7 @@ export default function HomeworkFlowBar({
             initial={false}
             animate={{ width: `${total > 0 ? Math.min(100, (step / total) * 100) : 0}%` }}
             transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-            style={{ height: '100%', background: accent, borderRadius: 999 }}
+            style={{ height: '100%', background: 'var(--grad-purple-bar)', borderRadius: 999 }}
           />
         </div>
 
@@ -165,12 +170,12 @@ export default function HomeworkFlowBar({
             style={{
               flex: 1, gap: 8, padding: '15px 22px', borderRadius: 18,
               border: disabled ? '1px solid var(--color-border-soft)' : 'none',
-              background: disabled ? 'rgba(var(--glass-rgb), 0.86)' : accent,
+              background: disabled ? 'rgba(var(--glass-rgb), 0.86)' : 'var(--grad-purple)',
               backdropFilter: disabled ? 'blur(14px)' : undefined,
               color: disabled ? 'var(--color-muted)' : '#fff',
               fontFamily: 'inherit', fontSize: 15, fontWeight: 780,
               cursor: disabled ? 'default' : 'pointer',
-              boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(0,0,0,0.16)',
+              boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(99,84,207,0.35)',
               pointerEvents: 'auto',
               transition: 'background 0.18s ease, color 0.18s ease',
             }}

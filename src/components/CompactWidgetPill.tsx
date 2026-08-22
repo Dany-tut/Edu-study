@@ -18,6 +18,7 @@ import { useTrainerProgress } from '../store/trainerProgressStore'
 import { useTeacher } from '../store/teacherStore'
 import { useTheme } from '../store/themeStore'
 import { getSubject, resolveSubjectPalette } from '../lib/subjects'
+import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { formatShort, GOAL_MS } from '../lib/trainerDay'
 import { tactile } from '../lib/feedback'
 import { t, useT } from '../lib/i18n'
@@ -1137,7 +1138,17 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
 
 export default function CompactWidgetPill() {
   const t = useT()
-  const widgetOrder = useDashboard(s => s.widgetOrder)
+  const rawOrder = useDashboard(s => s.widgetOrder)
+  const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
+  // Пилюля — та же карусель, просто свёрнутая в строку, и фильтры у неё те же:
+  // скрытое учителем + неуместное (чужой предмет / пустой контент). Без этого
+  // ученик-языковик листал в шапке «Химия · Реакция» — виджет, которого на
+  // главной у него уже нет (lib/widgetVisibility.ts).
+  const relevant = useWidgetRelevance()
+  const visibleOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
+  // Если фильтры выели всё (данные ещё не приехали, чужие id в настройках) —
+  // показываем исходный порядок: пустая шапка хуже неточной.
+  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : rawOrder
   // On a scrolled lesson the whole top line docks over the dark video and the
   // top bar switches to its more opaque glass; the pill matches it so every
   // floating surface up there reads as one consistent piece of glass.
@@ -1170,6 +1181,12 @@ export default function CompactWidgetPill() {
   const draggedRef = useRef(false)
 
   useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current) }, [])
+
+  // Набор виджетов сжимается на ходу (сменился курс, догрузились данные) —
+  // старый индекс может указывать за конец списка.
+  useEffect(() => {
+    if (idx >= widgetOrder.length) setIdx([0, 0])
+  }, [widgetOrder.length, idx])
 
   // Trainer idle detection: wave is active for 40s after the last answer
   useEffect(() => {

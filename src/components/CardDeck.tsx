@@ -19,7 +19,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { RotateCcw, Volume2, Undo2, Layers, HelpCircle } from 'lucide-react'
+import { RotateCcw, Volume2, Undo2, Layers, HelpCircle, Check, X } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
@@ -55,6 +55,15 @@ interface Seat {
 
 const TONE: Record<string, string> = {
   bad: 'var(--color-red-text)', hard: '#f59e0b', good: 'var(--color-green-accent)', easy: 'var(--color-green-text)',
+}
+
+/**
+ * Значок к ответу: «знаю/не знаю» и «верно/неверно» распознаются с расстояния
+ * по галочке и крестику раньше, чем прочитано слово. Градациям SM-2 значок не
+ * положен — там вторая строка занята интервалом.
+ */
+const TONE_ICON: Record<string, typeof Check | undefined> = {
+  bad: X, good: Check,
 }
 
 const SWIPE_PX = 96      // порог срыва по смещению
@@ -576,7 +585,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         }}
       >
         {seat.kind === 'judge' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <ActionButton tone="bad" label={t('Неверно')} onClick={() => swipe('left')} />
             <ActionButton tone="good" label={t('Верно')} onClick={() => swipe('right')} />
           </div>
@@ -595,7 +604,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         ) : binary ? (
           // Прогон банка: интервалов у задания нет, поэтому и четырёх градаций
           // не нужно — «не знаю» отправляет задание в колоду повторений.
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <ActionButton tone="bad" label={t('Не знаю')} onClick={() => answer(1)} />
             <ActionButton tone="good" label={t('Знаю')} onClick={() => answer(4)} />
           </div>
@@ -735,9 +744,13 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
   }, [revealed])
 
   /** Идёт ли озвучка: по низу карточки на это время заполняется линия.
+   *  `live` — голос уже зазвучал: между тапом и первым звуком движок берёт своё
+   *  время (сетевой голос — до секунды), и бегунок, пущенный по тапу, к началу
+   *  слова оказывается на середине. До звука показываем пустую пульсирующую
+   *  дорожку, бегунок пускаем по onStart.
    *  `done` — слово уже смолкло: длительность синтеза известна лишь прикидкой,
    *  и линию по факту окончания дотягиваем до конца, а не бросаем на середине. */
-  const [speaking, setSpeaking] = useState<{ run: number; ms: number; done?: boolean } | null>(null)
+  const [speaking, setSpeaking] = useState<{ run: number; ms: number; live?: boolean; done?: boolean } | null>(null)
   const runRef = useRef(0)
   const hideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -789,12 +802,15 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
     setTimeout(() => onSwipe(dir), 170)
   }
 
-  function say(e: React.MouseEvent) {
+  /** Озвучка любого куска карточки: самой фразы или примера с ней.
+   *  Индикатор и номер запуска общие на всю карточку: говорит всегда
+   *  что-то одно, и второй клик прерывает первый, а не звучит поверх него. */
+  function say(e: React.MouseEvent, raw?: string) {
     e.stopPropagation()
     if (!lang) return
     // Романизация из «아이 (ai)» в озвучку не идёт: иначе слышно слово и следом
     // его латинскую запись — как будто оно произнеслось дважды.
-    const text = speechText(seat.card.prompt)
+    const text = speechText(raw ?? seat.card.prompt)
     // Номер запуска нужен и здесь: onEnd прошлой озвучки приходит уже после
     // старта новой, и без сверки он погасил бы индикатор слова, которое только
     // что зазвучало.
@@ -811,7 +827,11 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
     }
     if (hideRef.current) clearTimeout(hideRef.current)
     setSpeaking({ run, ms: speechMs(text) })
-    speak(text, { lang, onEnd: done })
+    speak(text, {
+      lang,
+      onStart: () => setSpeaking(cur => (cur?.run === run ? { ...cur, live: true } : cur)),
+      onEnd: done,
+    })
   }
 
   return (
@@ -984,18 +1004,40 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                     textAlign: 'left',
                   }}
                 >
-                  <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.4 }}>
-                    {lang
-                      ? <GlossedText text={seat.card.ex.term} lang={lang} accent={accent} />
-                      : seat.card.ex.term}
-                  </div>
-                  {seat.card.ex.reading && (
-                    <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, letterSpacing: 0.2 }}>
-                      {seat.card.ex.reading}
+                  {/* Пример слушают отдельно от самой фразы: живое предложение
+                      звучит не так, как слово в одиночку, — там и связки, и
+                      интонация целиком. Кнопка прижата к первой строке примера,
+                      а не к низу блока: она относится к оригиналу, под которым
+                      стоит перевод. */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.4 }}>
+                        {lang
+                          ? <GlossedText text={seat.card.ex.term} lang={lang} accent={accent} />
+                          : seat.card.ex.term}
+                      </div>
+                      {seat.card.ex.reading && (
+                        <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, letterSpacing: 0.2 }}>
+                          {seat.card.ex.reading}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                        {seat.card.ex.ru}
+                      </div>
                     </div>
-                  )}
-                  <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
-                    {seat.card.ex.ru}
+                    {lang && (
+                      <button
+                        onClick={e => say(e, seat.card.ex!.term)}
+                        aria-label={t('Послушать пример')}
+                        style={{
+                          flexShrink: 0, marginTop: -2, padding: '5px 8px', borderRadius: 999, cursor: 'pointer',
+                          border: '1px solid var(--color-border-soft)', background: 'transparent', color: accent,
+                          display: 'flex', alignItems: 'center', fontFamily: 'inherit',
+                        }}
+                      >
+                        <Volume2 size={13} />
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -1043,21 +1085,26 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
       {/* Индикатор озвучки — тот же, что у слов урока: линия по нижнему краю
           заполняется, пока слово произносится. Ключ по номеру запуска, иначе
           повторный клик по уже звучащей карточке не перезапустил бы анимацию.
-          Анимация чисто CSS: rAF в превью не срабатывает. */}
+          Анимация чисто CSS: rAF в превью не срабатывает.
+          Бегунок монтируется вместе с первым звуком — до него видна одна
+          дорожка, и она пульсирует: тап уже принят, движок ещё запрягает. */}
       {speaking && (
         <span
           aria-hidden
+          className={speaking.live || speaking.done ? undefined : 'vocab-speak-wait'}
           style={{
             position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
             background: `${accent}33`, overflow: 'hidden',
             opacity: speaking.done ? 0 : 1, transition: 'opacity 240ms linear',
           }}
         >
-          <span
-            key={speaking.run}
-            className={`vocab-speak-fill${speaking.done ? ' vocab-speak-fill--done' : ''}`}
-            style={{ background: accent, animationDuration: `${speaking.ms}ms` }}
-          />
+          {speaking.live && (
+            <span
+              key={speaking.run}
+              className={`vocab-speak-fill${speaking.done ? ' vocab-speak-fill--done' : ''}`}
+              style={{ background: accent, animationDuration: `${speaking.ms}ms` }}
+            />
+          )}
         </span>
       )}
     </motion.div>
@@ -1180,25 +1227,49 @@ function UndoButton({ onClick, label, disabled, big }: {
   )
 }
 
+/**
+ * Кнопка ответа под стопкой.
+ *
+ * Тон цветом ЗАЛИВКИ, а не контуром. Толстая обводка в чистый красный/зелёный
+ * стояла на мягкой карточке как чужая: две неоновые рамки перетягивали взгляд
+ * с самой фразы и читались как «опасно/готово», а не как «не знаю/знаю».
+ * Здесь цвет уходит в текст, значок и подложку на 12%, рамка — волосок того же
+ * тона. Значок ставим только там, где нет подсказки об интервале: в ряду из
+ * четырёх градаций он спорит со второй строкой.
+ */
 function ActionButton({ tone, label, hint, onClick }: {
   tone: string; label: string; hint?: string; onClick: () => void
 }) {
   const color = TONE[tone] ?? 'var(--color-text-2)'
+  const Icon = TONE_ICON[tone]
+  const [hover, setHover] = useState(false)
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      onHoverStart={() => setHover(true)}
+      onHoverEnd={() => setHover(false)}
+      whileTap={{ scale: 0.975 }}
+      transition={{ type: 'spring', stiffness: 520, damping: 32 }}
       style={{
-        padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${color}`, background: 'transparent',
-        color, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-        display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', justifyContent: 'center',
+        padding: '12px 10px', borderRadius: 14,
+        border: `1px solid color-mix(in srgb, ${color} ${hover ? 42 : 26}%, transparent)`,
+        // Подложка замешана НА материале карточки, а не на прозрачном: на тёмной
+        // теме тон поверх фона страницы проваливался, и кнопки читались как
+        // дырки под карточкой, а не как её продолжение.
+        background: `color-mix(in srgb, ${color} ${hover ? 14 : 8}%, var(--color-bg-2))`,
+        color, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        display: 'flex', flexDirection: hint ? 'column' : 'row',
+        gap: hint ? 2 : 7, alignItems: 'center', justifyContent: 'center',
         // Высота задана, а не набрана содержимым: слот под рядом кнопок считается
         // по этим числам, и «на глаз» они разъезжаются на первом же переводе.
         minHeight: hint ? ACT_H_HINT : ACT_H,
+        transition: 'background 140ms ease, border-color 140ms ease',
       }}
     >
+      {Icon && !hint && <Icon size={15} strokeWidth={2.75} style={{ opacity: 0.9 }} />}
       {label}
       {hint && <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.85 }}>{hint}</span>}
-    </button>
+    </motion.button>
   )
 }
 

@@ -18,7 +18,8 @@
 // до шага в пару единиц: по частым точкам видно, что палец действительно прошёл
 // линию, а не срезал угол. Идём по ним по порядку и засчитываем те, к которым
 // палец подошёл ближе TOLERANCE. Дошёл до конца — черта фиксируется и
-// подсвечивается следующая; отпустил раньше — черту начинают заново.
+// подсвечивается следующая; снял руку раньше — написанное остаётся, и дописать
+// можно со второго захода, от кружка на кончике. Стереть всё — только «Заново».
 //
 // ЧЕРНИЛА ЛОЖАТСЯ ПО ЛИНИИ, А НЕ ПО ПАЛЬЦУ. Сначала рисовался сырой путь
 // указателя — и первое же ведение показало, чем это плохо: рука дрогнула, и в
@@ -86,10 +87,12 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   const [strokeIndex, setStrokeIndex] = useState(0)
   /** Ведём прямо сейчас: пока true, движение и отпускание слушает окно. */
   const [drawing, setDrawing] = useState(false)
-  /** Доля текущей черты, которую уже прошли: по ней буква наливается. */
+  /**
+   * Доля текущей черты, которую уже прошли: по ней буква наливается, и из неё
+   * же считается, откуда продолжать. Отпускание её НЕ обнуляет — руку можно
+   * снять посреди длинной черты и дописать со второго захода.
+   */
   const [progress, setProgress] = useState(0)
-  /** Кончик пера — точка на линии, до которой дописали. */
-  const [head, setHead] = useState<Point | null>(null)
   /** Толчок стартовой точке, когда начали не с неё: анимация проигрывается заново. */
   const [nudge, setNudge] = useState(0)
   /**
@@ -123,12 +126,24 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     return [((clientX - box.left) / box.width) * 100, ((clientY - box.top) / box.height) * 100]
   }
 
+  /**
+   * Откуда продолжать и куда вести.
+   *
+   * Пока черта не начата, это её первая точка; когда руку сняли посреди —
+   * кончик написанного. Направление берём не у соседней точки сгущения, а на
+   * несколько шагов вперёд: у соседней на скруглении дрожит угол, и стрелка
+   * вертелась бы вместо того, чтобы показывать «вниз» или «влево».
+   */
+  const takenIdx = denseCurrent ? Math.max(0, Math.round(progress * denseCurrent.length) - 1) : 0
+  const resumeAt: Point = denseCurrent ? denseCurrent[takenIdx] : [50, 50]
+  const aheadAt: Point = denseCurrent ? denseCurrent[Math.min(denseCurrent.length - 1, takenIdx + 8)] : resumeAt
+  const heading = (Math.atan2(aheadAt[1] - resumeAt[1], aheadAt[0] - resumeAt[0]) * 180) / Math.PI
+
   const reset = () => {
     setStrokeIndex(0)
     taken.current = 0
     setDrawing(false)
     setProgress(0)
-    setHead(null)
     onChange('')
   }
 
@@ -138,15 +153,14 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     e.preventDefault()
     const p = toLocal(e.clientX, e.clientY)
     if (!p) return
-    // Начинать надо от начала черты — с той точки, где пульсирует кружок.
-    if (Math.hypot(p[0] - current.pts[0][0], p[1] - current.pts[0][1]) > START_TOLERANCE) {
+    // Продолжают оттуда, где остановились: с начала черты, а если её уже начали
+    // и отпустили — с кончика написанного. Там же стоит кружок со стрелкой.
+    if (Math.hypot(p[0] - resumeAt[0], p[1] - resumeAt[1]) > START_TOLERANCE) {
       setNudge(n => n + 1)
       return
     }
-    taken.current = 1
-    buzzed.current = 0
-    setProgress(0)
-    setHead(current.pts[0])
+    if (taken.current === 0) taken.current = 1
+    buzzed.current = taken.current
     setDrawing(true)
   }
 
@@ -177,7 +191,6 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
       if (next !== taken.current) {
         taken.current = next
         setProgress(next / denseCurrent.length)
-        setHead(denseCurrent[next - 1])
         // Точки частые, и отклик на каждую превратился бы в непрерывный зуд:
         // отмечаем заметный кусок пути, а не каждый шаг сгущения.
         if (next - buzzed.current >= 10) {
@@ -189,11 +202,11 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
 
     const up = () => {
       setDrawing(false)
-      setProgress(0)
-      setHead(null)
-      const complete = taken.current >= denseCurrent.length
+      // Незаконченную черту не сбрасываем: снял руку — написанное осталось, и
+      // кружок со стрелкой ждёт на кончике. Сбрасывает только «Заново».
+      if (taken.current < denseCurrent.length) return
       taken.current = 0
-      if (!complete) return
+      setProgress(0)
       const next = strokeIndex + 1
       setStrokeIndex(next)
       playPop()
@@ -233,7 +246,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           </div>
         </div>
         <div style={{ flex: 1 }} />
-        {!disabled && strokeIndex > 0 && strokeIndex < strokes.length && (
+        {!disabled && (strokeIndex > 0 || progress > 0) && strokeIndex < strokes.length && (
           <button
             onClick={reset}
             className="flex items-center cursor-pointer"
@@ -297,16 +310,16 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           />
         ))}
 
-        {/* ЗАЛИВКА ТЕКУЩЕЙ ЧЕРТЫ. Буква наливается ровно на столько, сколько
-            пройдено: pathLength=1 делает штрих долей пути, и линия растёт
-            непрерывно, даже когда точки указателя приходят редкими пачками.
-            Чернильный след показывает, где палец, а это — сколько сделано. */}
+        {/* ЧЕРНИЛА. Буква наливается ровно на столько, сколько пройдено:
+            pathLength=1 делает штрих долей пути, и линия растёт непрерывно,
+            даже когда точки указателя приходят редкими пачками. Рисуется по
+            самой черте, поэтому дрогнувшая рука не оставляет кляксу поперёк
+            квадрата — она просто останавливает заливку. */}
         {current && !done && progress > 0 && (
           <path
             d={paths[strokeIndex]}
             fill="none"
-            stroke="currentColor"
-            strokeOpacity={0.75}
+            stroke="var(--color-blue-fill)"
             strokeWidth={9}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -315,18 +328,29 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           />
         )}
 
-        {/* Чернила: путь, который прошёл указатель, сглаженный так же, как сами
-            черты, — иначе на редких точках виден ломаный многоугольник. */}
-        {trail.length > 1 && (
-          <path
-            d={strokePath({ pts: trail, round: true })}
-            fill="none"
-            stroke="var(--color-blue-fill)"
-            strokeWidth={5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeOpacity={0.9}
-          />
+        {/* Кончик пера: видно, где сейчас «рука» и докуда дописано. */}
+        {current && !done && drawing && (
+          <circle cx={resumeAt[0]} cy={resumeAt[1]} r={6.5} fill="var(--color-blue-fill)" />
+        )}
+
+        {/* ОТКУДА ПРОДОЛЖАТЬ И КУДА ВЕСТИ. У ㄴ и ㅁ по одной точке не понять,
+            вниз линия пойдёт или влево, — а ошибка в направлении это уже другая
+            буква. Поэтому рядом с кружком стрелка, повёрнутая по ходу черты; и
+            стоят они не на старте, а там, где руку сняли. */}
+        {current && !done && !disabled && !drawing && (
+          <motion.g
+            key={`${strokeIndex}-${nudge}-${takenIdx}`}
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.4, repeat: Infinity, repeatType: 'reverse' }}
+          >
+            <circle cx={resumeAt[0]} cy={resumeAt[1]} r={7} fill="var(--color-blue-fill)" />
+            <path
+              d="M -3 -4.2 L 3.6 0 L -3 4.2 Z"
+              fill="var(--color-blue-fill)"
+              transform={`translate(${resumeAt[0]} ${resumeAt[1]}) rotate(${heading}) translate(14 0)`}
+            />
+          </motion.g>
         )}
 
         {/* Точка старта текущей черты — с неё и только с неё начинают вести.

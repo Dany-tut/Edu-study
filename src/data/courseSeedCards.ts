@@ -73,7 +73,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → TOPIK I (1급–2급)',
     units: 28,
     vocabCount: 280,
-    taskCount: 260,
+    taskCount: 262,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:
@@ -106,7 +106,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → JLPT N5 → N4',
     units: 26,
     vocabCount: 260,
-    taskCount: 240,
+    taskCount: 241,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:

@@ -453,7 +453,12 @@ Turista: Valeu, obrigado!`,
   },
 ]
 
-export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...MORE]
+// Основной объём материала лежит отдельным файлом: здесь остаются образцы
+// формата, там — библиотека, которая растёт. Импорт внизу, а не наверху, чтобы
+// файл читался как список материалов, а не как список зависимостей.
+import { LISTENING_EXTRA } from './listeningLibraryExtra'
+
+export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...MORE, ...LISTENING_EXTRA]
 
 /** Материалы нужного языка. */
 export function listeningForLang(lang: string): ListeningItem[] {

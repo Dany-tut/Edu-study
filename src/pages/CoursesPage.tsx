@@ -15,6 +15,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { useStudentData } from '../store/studentDataStore'
 import MobileSheet from '../components/MobileSheet'
+import HScrollFade from '../components/HScrollFade'
 import { useT } from '../lib/i18n'
 
 type StatusFilter = 'all' | 'active' | 'done'
@@ -150,7 +151,7 @@ export default function CoursesPage() {
   return (
     <div className="flex flex-col" style={{ gap: 18 }}>
       {/* ── Row 1: search (desktop only) + subject pills ── */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3" style={{ minWidth: 0 }}>
         {/* Search field — desktop only; on mobile it lives in the bottom dock. */}
         {isDesktop && (
         <div
@@ -185,7 +186,9 @@ export default function CoursesPage() {
         </div>
         )}
 
-        {/* Subject pills */}
+        {/* Subject pills — одна строка со скроллом: курсов много, и перенос
+            ронял бы сетку занятий на вторую-третью строку вниз. */}
+        <HScrollFade gap={0} fadeWidth={40} style={{ flex: '1 1 0', minWidth: 0 }} scrollStyle={{ alignItems: 'center' }}>
         <div
           ref={subjectPill.containerRef}
           className="flex items-center gap-2"
@@ -224,6 +227,8 @@ export default function CoursesPage() {
                 style={{
                   position: 'relative',
                   zIndex: isActive ? 3 : 1,
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
                   padding: '8px 22px',
                   borderRadius: 999,
                   fontSize: 14,
@@ -247,12 +252,14 @@ export default function CoursesPage() {
             )
           })}
         </div>
+        </HScrollFade>
       </div>
 
       {/* ── Row 2: module tabs ── */}
+      <HScrollFade gap={0} fadeWidth={40} scrollStyle={{ alignItems: 'center' }}>
       <div
         ref={modulePill.containerRef}
-        className="flex items-center gap-1 flex-wrap"
+        className="flex items-center gap-1"
         style={{ position: 'relative', isolation: 'isolate' }}
       >
         {modulePill.pillRect && (
@@ -294,6 +301,8 @@ export default function CoursesPage() {
               style={{
                 position: 'relative',
                 zIndex: isActive ? 3 : 1,
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 padding: '7px 16px',
                 borderRadius: 999,
                 fontSize: 13,
@@ -348,6 +357,7 @@ export default function CoursesPage() {
           )
         })}
       </div>
+      </HScrollFade>
 
       {/* ── Lesson grid ── */}
       {lessons.length > 0 ? (

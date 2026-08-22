@@ -1832,6 +1832,25 @@ const EN: Record<string, string> = {
   "ошибка из тренажёра": "mistake from the trainer",
   "ошибка из диагностики": "mistake from the diagnostic",
   "Послушать": "Listen",
+  "Послушать пример": "Listen to the example",
+
+  // — Мои слова (личный словарь) —
+  "Мои слова": "My words",
+  "Словарь": "Dictionary",
+  "слов": "words",
+  "выучено": "learned",
+  "на сегодня": "due today",
+  "как наполнить": "how to fill it",
+  "Слова, которые ты забираешь из текстов и уроков. Пока пусто.": "Words you take from texts and lessons. Empty for now.",
+  "Словарь пока пуст": "The dictionary is empty",
+  "Открой любой текст во «Чтении» и нажми на слово — в подсказке будет «В словарь». Там же есть кнопка «Забрать слова текста»: она кладёт сюда весь его словарик разом. Слова уроков приходят сами.": "Open any text in Reading and tap a word — the popup has \u201cAdd to dictionary\u201d. The same screen has \u201cTake the words of this text\u201d, which drops its whole glossary in here at once. Lesson words arrive on their own.",
+  "Новое сверху. Нажми на строку, чтобы разобрать слово по частям, послушать его или убрать из словаря.": "Newest first. Tap a row to break the word down, hear it, or drop it from the dictionary.",
+  "Слова приходят из текстов «Чтения» (нажми на слово → «В словарь»), из уроков курса и из разбора созвучий.": "Words come from Reading texts (tap a word → \u201cAdd to dictionary\u201d), from course lessons, and from the sound-nest drills.",
+  "Убрать из словаря": "Remove from the dictionary",
+  "Слова на сегодня разобраны": "Today's words are done",
+  "На сегодня словарь закрыт": "The dictionary is closed for today",
+  "Все слова уже разобраны и ждут своего дня.\nМожно прогнать словарь заново — расписание при этом продолжит считаться.": "Every word has been worked through and is waiting for its day.\nYou can run the dictionary again — the schedule keeps counting either way.",
+  "Слов собрано": "Words collected",
 
   // — Карточки в банке заданий —
   "Список": "List",
@@ -1891,8 +1910,9 @@ const EN: Record<string, string> = {
   // — Читалка языкового тренажёра: онбординг и пословный перевод —
   "Партитура": "Score",
   "Транскрипция": "Reading",
-  "Справа": "Right",
-  "Снизу": "Below",
+  "Перевод справа": "Translation on the right",
+  "Перевод снизу": "Translation below",
+  "Где это в оригинале": "Where this is in the original",
   "Нажми на слово — перевод и озвучка": "Tap a word — translation and audio",
   "Подсказки": "Tips",
   "Показать подсказки": "Show tips",
@@ -1921,6 +1941,19 @@ const EN: Record<string, string> = {
   "Проверка и перевод": "Checking and translation",
   "Кнопка загорится, когда ответишь на все вопросы. После неё откроется полный перевод текста — до этого он закрыт, иначе читать оригинал незачем.":
     "The button lights up once every question is answered. Then the full translation opens — it stays closed until then, otherwise there's no point reading the original.",
+  // — Выбор голоса —
+  "Голос": "Voice",
+  "Автовыбор": "Auto",
+  "автовыбор": "auto",
+  "как сейчас": "as now",
+  "женский": "female",
+  "мужской": "male",
+  "детский": "child",
+  "Показать все голоса системы": "Show all system voices",
+  "Озвучка": "Voice-over",
+  "Голос озвучки": "Voice-over voice",
+  "Этим голосом читается всё на этом языке: тексты, карточки, разговорник.":
+    "This voice reads everything in this language: texts, cards, phrasebook.",
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

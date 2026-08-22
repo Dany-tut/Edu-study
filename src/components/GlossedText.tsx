@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Volume2 } from 'lucide-react'
+import { Check, Plus, Volume2 } from 'lucide-react'
 import { buildLexicon, wordReading, type Segment } from '../lib/lexicon'
 import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
-import { bindShortWords, proseWrap } from '../lib/typography'
+import { bindShortWords, isDenseScript, langWrap, proseWrap } from '../lib/typography'
 import { hasTiers, tierLabel, tierNote, wordTier } from '../data/coreWords'
 import { speak, type SpeechHandle } from '../lib/speech'
+import { addCards, deckOwner } from '../data/reviewDeck'
 
 // Текст, в котором переводится каждое слово.
 //
@@ -86,7 +87,7 @@ const RUBY_SIZE = '0.52em'
 const RUBY_BLEED = '-0.5em'
 const RUBY_GUTTER = '0.3em'
 
-export default function GlossedText({ text, lang, extra = [], accent, highlight, ruby, spokenChar, style }: {
+export default function GlossedText({ text, lang, extra = [], accent, highlight, ruby, spokenChar, subject, onPick, style }: {
   text: string
   /** Код языка: en, ko, ja, pt-BR — им же озвучиваем. */
   lang: string
@@ -114,6 +115,28 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
    * глазами по абзацу — ровно та работа, которую машина делает лучше.
    */
   highlight?: string | null
+  /**
+   * Предмет для кнопки «В словарь»: слово из текста уезжает карточкой в колоду
+   * повторения (data/reviewDeck.ts). Без предмета кнопки нет — и это не
+   * придирка: колода одна на человека, а экраны предметные, и карточка без
+   * предмета не покажется НИГДЕ (dueCards фильтрует по нему).
+   *
+   * ЗАЧЕМ КНОПКА ЗДЕСЬ. Слово выписывают ровно в ту секунду, когда об него
+   * споткнулись. Всё, что требует уйти со страницы — вкладка «Карточки»,
+   * тетрадь, заметки, — на деле означает «не выпишу»; а «все слова текста
+   * разом» берёт и те двадцать, которые ученик и так знает.
+   */
+  subject?: string
+  /**
+   * Слово, выбранное КЛИКОМ, — наружу. Читалка по нему подсвечивает пару этого
+   * слова в строке перевода (см. lib/pairing.ts), и наоборот: выбранное в
+   * переводе слово приезжает обратно через highlight.
+   *
+   * Наведение сюда не считается. Пара — ответ на вопрос «где это в переводе», а
+   * не подсказка под курсором: мигать ею на каждом слове, мимо которого проехала
+   * мышь, значит превратить строку перевода в рябь.
+   */
+  onPick?: (word: string | null) => void
   style?: React.CSSProperties
 }) {
   const t = useT()
@@ -146,23 +169,47 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     const out: Unit[] = []
     let col: { kind: 'col'; items: Item[]; text: string } | null = null
     const flush = () => { if (col) { out.push(col); col = null } }
+    // В японском пробелов нет, и «колонка до пробела» склеивала ВСЮ реплику в
+    // одну колонку с nowrap: строка переставала переноситься и уезжала поверх
+    // соседней колонки перевода. Значит, границу колонки там задаёт не пробел.
+    const dense = isDenseScript(lang)
     const add = (item: Item, text: string) => {
       if (!col) col = { kind: 'col', items: [], text: '' }
       col.items.push(item)
       col.text += text
     }
+    // Где кончается колонка в плотном письме. Две приметы, обе про начало
+    // СЛЕДУЮЩЕГО слова: словарное совпадение (границу нашёл словарь) и кандзи
+    // после каны — знаменательное слово почти всегда начинается иероглифом, а
+    // кана после него это окончание и частицы, они остаются при своём слове.
+    // Плюс знак препинания: он замыкает колонку, но сам строку не начинает.
+    const KANJI = /[\u4E00-\u9FFF\u3400-\u4DBF\u3005\u3006]/
+    const KANA = /[\u3041-\u309F\u30A0-\u30FF]/
+    const CLOSER = /[、。，．！？…」』）】〉]$/
+    const breaks = (text: string, dict: boolean) => {
+      if (!col) return false
+      if (CLOSER.test(col.text)) return true
+      return dict || (KANJI.test(text[0]) && KANA.test(col.text[col.text.length - 1]))
+    }
 
     segments.forEach((seg, i) => {
-      if (seg.word) { add({ seg: i }, seg.text); return }
+      if (seg.word) {
+        if (dense && breaks(seg.text, !!seg.gloss)) flush()
+        add({ seg: i }, seg.text)
+        return
+      }
       // Пробелы рвут колонку, всё остальное липнет к соседнему слову.
       for (const chunk of seg.text.match(/\s+|\S+/g) ?? []) {
         if (/^\s/.test(chunk)) { flush(); out.push({ kind: 'space', text: chunk }) }
-        else add({ text: chunk }, chunk)
+        else {
+          if (dense && breaks(chunk, false)) flush()
+          add({ text: chunk }, chunk)
+        }
       }
     })
     flush()
     return out
-  }, [segments, ruby])
+  }, [segments, ruby, lang])
 
   // Последнее слово, начавшееся не позже озвученного символа. Именно последнее,
   // а не «в чей диапазон попали»: часть голосов отдаёт позицию пробела перед
@@ -288,6 +335,14 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     }
   }, [active])
 
+  // Выбор наружу — одним местом на все пути закрытия (клик мимо, Esc, уход
+  // курсора, слово уехало под край): каждый из них меняет active, и эффект
+  // ловит их все разом.
+  useEffect(() => {
+    onPick?.(active && pinned ? active.seg.text : null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, pinned])
+
   function close() {
     if (timer.current) { clearTimeout(timer.current); timer.current = null }
     activeEl.current = null
@@ -330,6 +385,54 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   // состав, а не чтобы понять фразу.
   function say(word: string) {
     voiceRef.current = speak(word, { lang, rate: 0.85 })
+  }
+
+  // ── Слово в колоду ──────────────────────────────────────────────────────────
+  //
+  // Состояние по лицу карточки, а не по номеру куска: одно и то же слово стоит
+  // в тексте несколько раз, и «уже добавлено» должно быть видно у каждого
+  // вхождения. Живёт до ухода с экрана — постоянное «что уже в колоде» знает
+  // сама колода, а спрашивать её на каждое наведение курсора значило бы слать
+  // запрос на каждое слово текста.
+  const [saved, setSaved] = useState<Record<string, 'saving' | 'added' | 'known' | 'fail'>>({})
+
+  /**
+   * Лицо и оборот будущей карточки. null — карточки не выйдет.
+   *
+   * Без перевода карточка нерешаема (её оборот пуст), поэтому у слов, которых
+   * нет в словаре, кнопки не будет: обещать «добавлю» и положить пустую
+   * карточку хуже, чем промолчать.
+   *
+   * Лицо — СЛОВАРНАЯ форма (covers → cover): карточка со словоформой учит
+   * форму, а не слово. Оборот — перевод и, если есть, чтение: ровно то же, что
+   * кладут в колоду слова урока (см. lib/reviewCapture.ts).
+   */
+  function cardOf(seg: Segment): { prompt: string; answer: string } | null {
+    const g = seg.gloss
+    if (!g?.ru) return null
+    const prompt = (g.base ?? g.term ?? seg.text).trim()
+    if (!prompt) return null
+    const reading = g.reading || transcribe(prompt, lang) || ''
+    return { prompt, answer: reading ? `${g.ru} — ${reading}` : g.ru }
+  }
+
+  async function collect(seg: Segment) {
+    const card = cardOf(seg)
+    if (!card || !subject) return
+    const k = card.prompt.toLowerCase()
+    if (saved[k] === 'saving' || saved[k] === 'added' || saved[k] === 'known') return
+    setSaved(s => ({ ...s, [k]: 'saving' }))
+    try {
+      const n = await addCards(deckOwner(), [{
+        subject, source: 'manual', prompt: card.prompt, answer: card.answer,
+      }])
+      // Ноль добавленных — слово уже лежит в колоде. Это не ошибка, и сказать
+      // об этом честнее, чем нарисовать галочку «добавил».
+      setSaved(s => ({ ...s, [k]: n > 0 ? 'added' : 'known' }))
+    } catch (e) {
+      console.error('GlossedText collect:', e)
+      setSaved(s => ({ ...s, [k]: 'fail' }))
+    }
   }
 
   /** Слово: кликабельный кусок текста со всеми его состояниями. */
@@ -387,11 +490,21 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     )
   }
 
+  // Что показывает кнопка «В словарь» для открытого слова.
+  const activeCard = active ? cardOf(active.seg) : null
+  const savedState = activeCard ? saved[activeCard.prompt.toLowerCase()] : undefined
+  const inDeck = savedState === 'added' || savedState === 'known'
+  const collectLabel = savedState === 'saving' ? t('Добавляю…')
+    : savedState === 'added' ? t('В словаре')
+    : savedState === 'known' ? t('Уже в словаре')
+    : savedState === 'fail' ? t('Не вышло — ещё раз')
+    : t('В словарь')
+
   return (
     <div
       ref={wrapRef}
       style={{
-        position: 'relative', whiteSpace: 'pre-wrap', ...proseWrap,
+        position: 'relative', whiteSpace: 'pre-wrap', ...langWrap(lang),
         // Расширенный пробел — плата за вынос транскрипции (см. RUBY_GUTTER).
         ...(rubyUnits ? { wordSpacing: RUBY_GUTTER } : null),
         ...style,
@@ -488,6 +601,32 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
             <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
               {bindShortWords(active.seg.gloss.note)}
             </div>
+          )}
+          {/* Слово в колоду повторения — из той же карточки, где его прочитали.
+              Кнопка последней строкой: сперва ответ на вопрос «что это значит»,
+              и только потом решение «беру себе». */}
+          {subject && activeCard && (
+            <button
+              onClick={() => collect(active.seg)}
+              disabled={savedState === 'saving' || inDeck}
+              title={inDeck ? undefined : `${t('Лицом карточки станет')} «${activeCard.prompt}»`}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                width: '100%', marginTop: 9, padding: '7px 10px', borderRadius: 12,
+                fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
+                cursor: savedState === 'saving' || inDeck ? 'default' : 'pointer',
+                border: `1px solid ${inDeck ? 'var(--color-border-soft)' : `${accent}66`}`,
+                background: 'transparent',
+                color: inDeck ? 'var(--color-muted)' : accent,
+                // Карточка не ловит курсор, пока её не прикололи кликом (иначе
+                // она перехватывала бы наведение на текст под собой), поэтому
+                // кнопки внутри включают приём событий сами — как «произнести».
+                pointerEvents: 'auto',
+              }}
+            >
+              {inDeck ? <Check size={13} /> : <Plus size={13} />}
+              {collectLabel}
+            </button>
           )}
         </div>,
         document.body,

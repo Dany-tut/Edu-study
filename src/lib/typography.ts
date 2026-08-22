@@ -47,6 +47,27 @@ export const proseWrap: CSSProperties = {
   overflowWrap: 'break-word',
 }
 
+/**
+ * Письмо без пробелов между словами — японское и китайское.
+ *
+ * Для него правила переноса ровно обратные корейским: там пробел есть, и
+ * `keep-all` бережёт слово от разрыва посреди слога, а здесь пробела нет вовсе
+ * — и `keep-all` означает «не переносить никогда». Реплика становится одним
+ * бесконечным словом и уезжает за край карточки.
+ */
+export function isDenseScript(lang: string): boolean {
+  return /^(ja|zh)/i.test(lang)
+}
+
+/**
+ * Перенос текста на конкретном языке. Везде — proseWrap, в плотном письме с
+ * него снимается keep-all: разрыв строки между двумя знаками там нормален и
+ * единственно возможен.
+ */
+export function langWrap(lang: string): CSSProperties {
+  return isDenseScript(lang) ? { ...proseWrap, wordBreak: 'normal' } : proseWrap
+}
+
 /** Для коротких надписей в 2–3 строки (плашки, подписи): строки равной длины. */
 export const balancedWrap: CSSProperties = {
   textWrap: 'balance',

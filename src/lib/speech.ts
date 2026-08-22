@@ -25,6 +25,38 @@
 //    останется гореть индикатор «звучит».
 // ─────────────────────────────────────────────────────────────────────────────
 
+const BLANKS = [
+  // Подчёркивание в прозе не встречается вовсе — снимаем даже одиночное.
+  /_+/g,
+  // Отточие оглавления («Глава 1 ....... 7»). Три точки — многоточие, оставляем.
+  /\.{4,}/g,
+  // Линейка из дефисов или тире. Одиночное тире — знак препинания.
+  /[-–—]{3,}/g,
+]
+
+/**
+ * Строка для голоса: без «пустых мест» — прочерков, отточий, линеек.
+ *
+ * Договор, заявление, бланк теста кончаются местом для подписи:
+ * «Pupil ______________ Parent or guardian ______________». Синтезатор читает
+ * подчёркивание как слово: вместо подписи ученик слышит «андерскор андерскор
+ * андерскор» сорок раз подряд. То же с отточием оглавления («Глава 1 ....... 7»)
+ * и с линейкой из дефисов вместо разделителя.
+ *
+ * ЧИСТИМ ТОЛЬКО ДЛЯ ГОЛОСА. На экране прочерк обязан остаться: по нему видно,
+ * что и куда вписывают, — поэтому чистка живёт здесь, а не в speechLines(),
+ * которым «партитура» рисует строки.
+ */
+export function voiceText(raw: string): string {
+  let out = raw ?? ''
+  // Прочерк меняем на пробелы ТОЙ ЖЕ ДЛИНЫ, а не выбрасываем: событие boundary
+  // отдаёт позицию символа внутри произносимой строки, и по ней «партитура»
+  // ведёт караоке-подсветку по строке ИСХОДНОЙ. Сдвинь длину — и подсветка
+  // после первого же бланка поедет на пол-слова.
+  for (const re of BLANKS) out = out.replace(re, m => ' '.repeat(m.length))
+  return out
+}
+
 /** Текст для синтеза: без хвостовой подсказки-чтения в скобках.
  *
  *  Лицо словарной карточки у старых заданий хранится одной строкой вида
@@ -32,8 +64,8 @@
  *  целиком — сначала слово, потом латиницу, — и на слух это неотличимо от
  *  «слово произнеслось дважды». */
 export function speechText(raw: string): string {
-  const clean = (raw ?? '').replace(/\s*[([][^)\]]*[)\]]\s*$/, '').trim()
-  return clean || (raw ?? '').trim()
+  const clean = voiceText((raw ?? '').replace(/\s*[([][^)\]]*[)\]]\s*$/, '')).trim()
+  return clean || voiceText(raw ?? '').trim()
 }
 
 /** Полная локаль для голоса: с голым «ko» браузер нередко берёт голос
@@ -57,7 +89,7 @@ export function speechLocale(lang?: string): string | undefined {
  *  посимвольно. Прежние общие 220 мс на знак давали для коротких слов вдвое
  *  больше реального звучания, и бегунок не добегал до конца слова. */
 export function speechMs(text: string): number {
-  const t = (text ?? '').trim()
+  const t = voiceText(text).trim()
   if (!t) return 700
   const syllabic = /[぀-ヿ㐀-鿿가-힯]/.test(t)
   const chars = t.replace(/\s+/g, '').length
@@ -146,6 +178,156 @@ function voicesFor(locale: string): SpeechSynthesisVoice[] {
   return hit.sort((a, b) => Number(b.lang.toLowerCase() === want) - Number(a.lang.toLowerCase() === want))
 }
 
+// ─── Короткий список: между чем вообще выбирать ──────────────────────────────
+
+/** Кто говорит. Ученику важен не движок, а голос: женский, мужской, детский —
+ *  на слух это три разные задачи аудирования. */
+export type VoiceRole = 'f' | 'm' | 'kid'
+
+export interface VoiceOption {
+  voice: SpeechSynthesisVoice
+  /** Короткое имя: «Ava», а не «Microsoft Ava Online (Natural) - English (United States)». */
+  label: string
+  role?: VoiceRole
+}
+
+interface VoicePick { name: RegExp; label: string; role: VoiceRole }
+
+/**
+ * Отобранные дикторы — по три-шесть на язык, и это весь выбор ученика.
+ *
+ * ПОЧЕМУ РУЧНОЙ СПИСОК, А НЕ «ВСЁ ХОРОШЕЕ». В Edge на один английский приходит
+ * под сорок голосов, и все называются одинаково: «Microsoft Ava Multilingual
+ * Online (Natural) - English (United States)» — сорок строк, различающихся
+ * одним словом в середине. Рядом системные шутки Apple («Пузырьки», «Плохие
+ * новости»). Выбрать из такого списка нельзя: имя не говорит ни о поле, ни о
+ * возрасте, ни об акценте, а прослушивать сорок штук никто не станет.
+ *
+ * ЧТО ОТБИРАЛИ. Нейросетевые голоса Microsoft — они заметно живее системных, —
+ * по паре женских и мужских на разных акцентах и детский там, где он есть: та
+ * же фраза детским голосом слышится иначе, и это отдельная тренировка уха.
+ *
+ * ЧЕГО МОЖЕТ НЕ ОКАЗАТЬСЯ. Голоса Microsoft приходят только в Edge, в Chrome и
+ * Safari их нет. Имя, которого в системе нет, просто не появится в списке; если
+ * не найдётся ни одного — список собирается по-старому, из штатных дикторов.
+ */
+const VOICE_PICKS: Record<string, VoicePick[]> = {
+  en: [
+    { name: /^microsoft ava\b/i, label: 'Ava', role: 'f' },
+    { name: /^microsoft andrew\b/i, label: 'Andrew', role: 'm' },
+    { name: /^microsoft ana\b/i, label: 'Ana', role: 'kid' },
+    { name: /^microsoft sonia\b/i, label: 'Sonia', role: 'f' },
+    { name: /^microsoft ryan\b/i, label: 'Ryan', role: 'm' },
+    { name: /^microsoft maisie\b/i, label: 'Maisie', role: 'kid' },
+  ],
+  ru: [
+    { name: /^microsoft svetlana\b/i, label: 'Svetlana', role: 'f' },
+    { name: /^microsoft dmitry\b/i, label: 'Dmitry', role: 'm' },
+    { name: /^microsoft dariya\b/i, label: 'Dariya', role: 'f' },
+  ],
+  ko: [
+    { name: /^microsoft sunhi\b/i, label: 'SunHi', role: 'f' },
+    { name: /^microsoft injoon\b/i, label: 'InJoon', role: 'm' },
+    { name: /^microsoft hyunsu\b/i, label: 'Hyunsu', role: 'm' },
+  ],
+  ja: [
+    { name: /^microsoft nanami\b/i, label: 'Nanami', role: 'f' },
+    { name: /^microsoft keita\b/i, label: 'Keita', role: 'm' },
+    { name: /^microsoft masaru\b/i, label: 'Masaru', role: 'm' },
+  ],
+  zh: [
+    { name: /^microsoft xiaoxiao\b/i, label: 'Xiaoxiao', role: 'f' },
+    { name: /^microsoft yunxi\b/i, label: 'Yunxi', role: 'm' },
+    { name: /^microsoft xiaoyi\b/i, label: 'Xiaoyi', role: 'f' },
+    { name: /^microsoft yunjian\b/i, label: 'Yunjian', role: 'm' },
+  ],
+  es: [
+    { name: /^microsoft elvira\b/i, label: 'Elvira', role: 'f' },
+    { name: /^microsoft alvaro\b/i, label: 'Álvaro', role: 'm' },
+    { name: /^microsoft ximena\b/i, label: 'Ximena', role: 'f' },
+    { name: /^microsoft jorge\b/i, label: 'Jorge', role: 'm' },
+  ],
+  fr: [
+    { name: /^microsoft denise\b/i, label: 'Denise', role: 'f' },
+    { name: /^microsoft henri\b/i, label: 'Henri', role: 'm' },
+    { name: /^microsoft eloise\b/i, label: 'Éloïse', role: 'kid' },
+    { name: /^microsoft vivienne\b/i, label: 'Vivienne', role: 'f' },
+  ],
+  de: [
+    { name: /^microsoft katja\b/i, label: 'Katja', role: 'f' },
+    { name: /^microsoft conrad\b/i, label: 'Conrad', role: 'm' },
+    { name: /^microsoft amala\b/i, label: 'Amala', role: 'f' },
+    { name: /^microsoft killian\b/i, label: 'Killian', role: 'm' },
+  ],
+  it: [
+    { name: /^microsoft elsa\b/i, label: 'Elsa', role: 'f' },
+    { name: /^microsoft diego\b/i, label: 'Diego', role: 'm' },
+    { name: /^microsoft isabella\b/i, label: 'Isabella', role: 'f' },
+    { name: /^microsoft giuseppe\b/i, label: 'Giuseppe', role: 'm' },
+  ],
+  pt: [
+    { name: /^microsoft francisca\b/i, label: 'Francisca', role: 'f' },
+    { name: /^microsoft antonio\b/i, label: 'Antônio', role: 'm' },
+    { name: /^microsoft thalita\b/i, label: 'Thalita', role: 'f' },
+  ],
+}
+
+/**
+ * Имена дикторов на их родном письме → латиница.
+ *
+ * Edge подписывает голос на языке САМОГО ГОЛОСА: корейский InJoon называется
+ * «Microsoft 인준 Online (Natural) - Korean (Korea)», японская Nanami —
+ * «Microsoft 七海 …». Отбор выше ищет их по латинским именам и на такой системе
+ * не находил ни одного: ученику доставался полный список из сорока служебных
+ * строк — ровно то, от чего отбор и заводили.
+ *
+ * Заодно это чинит и подпись: «인준» в списке для начинающего не имя, а
+ * картинка — прочесть её и потом узнать в списке нельзя.
+ */
+const NATIVE_NAMES: [string, string][] = [
+  ['선히', 'SunHi'], ['인준', 'InJoon'], ['현수', 'Hyunsu'], ['지민', 'JiMin'],
+  ['서현', 'SeoHyeon'], ['봉진', 'BongJin'], ['국민', 'GookMin'], ['유진', 'YuJin'],
+  ['七海', 'Nanami'], ['圭太', 'Keita'], ['勝', 'Masaru'], ['大智', 'Daichi'],
+  ['真夕', 'Mayu'], ['直紀', 'Naoki'], ['詩織', 'Shiori'], ['葵', 'Aoi'],
+  ['晓晓', 'Xiaoxiao'], ['云希', 'Yunxi'], ['晓伊', 'Xiaoyi'], ['云健', 'Yunjian'],
+  ['云扬', 'Yunyang'], ['晓辰', 'Xiaochen'], ['晓涵', 'Xiaohan'], ['云夏', 'Yunxia'],
+]
+
+/** Имя голоса, приведённое к латинице: см. NATIVE_NAMES. */
+function latinName(name: string): string {
+  let s = name
+  for (const [native, latin] of NATIVE_NAMES) {
+    if (s.includes(native)) { s = s.replace(native, latin); break }
+  }
+  return s
+}
+
+/** Отобранные голоса, которые в этой системе действительно есть. */
+function shortlist(locale: string): VoiceOption[] {
+  const picks = VOICE_PICKS[langOf(locale)] ?? []
+  const list = voicesFor(locale)
+  const out: VoiceOption[] = []
+  for (const p of picks) {
+    const named = (v: SpeechSynthesisVoice) => p.name.test(latinName(v.name.trim()))
+    // Мультиязычный близнец («Ava Multilingual») читает этим же голосом, но
+    // существует ради чужих языков — берём обычного, если он в системе есть.
+    const hit = list.find(v => named(v) && !/multilingual/i.test(v.name)) ?? list.find(named)
+    if (hit && !out.some(o => o.voice.name === hit.name)) out.push({ voice: hit, label: p.label, role: p.role })
+  }
+  return out
+}
+
+/** Имя для списка: «Microsoft Ava Online (Natural) - English (United States)»
+ *  → «Ava». Локаль и так стоит подписью рядом. */
+function shortName(name: string): string {
+  const s = latinName(name.trim())
+  const ms = /^microsoft\s+(.+?)\s+online\b/i.exec(s)?.[1]
+  if (ms) return ms
+  // Голоса Apple и Google приходят коротким именем сразу, но с хвостом
+  // качества: «Milena (Enhanced)», «Саманта (улучшенный)».
+  return s.replace(/\s*\([^)]*\)\s*$/, '').trim() || s
+}
+
 /**
  * Лучший голос для локали — или undefined, если уверенности нет.
  *
@@ -158,6 +340,10 @@ function voicesFor(locale: string): SpeechSynthesisVoice[] {
 export function pickVoice(locale?: string): SpeechSynthesisVoice | undefined {
   if (!locale || typeof speechSynthesis === 'undefined') return undefined
   if (!voices.length) { refreshVoices(); indexCharacterVoices() }
+  // Отобранный диктор — первый в очереди и на автовыборе: список ученику мы
+  // предлагаем тот же, и слышать по умолчанию он должен голос из этого списка.
+  const short = shortlist(locale)
+  if (short.length) return short[0].voice
   const known = KNOWN_VOICES[langOf(locale)]
   const list = voicesFor(locale)
   return list.find(v => known?.test(v.name.trim()))
@@ -177,23 +363,28 @@ export function hasVoiceFor(lang?: string): boolean {
 }
 
 /**
- * Голоса языка для выбора учеником: сначала штатные дикторы, потом
- * премиальные, потом остальные.
+ * Голоса языка для выбора учеником: отобранные (см. VOICE_PICKS), а если их в
+ * системе нет — штатные дикторы, потом премиальные.
  *
- * ЗАЧЕМ ДАВАТЬ ВЫБОР. Автоматика угадывает по именам, а имена в системах
- * меняются: на одной машине «Саманта», на другой «Google US English», на
- * третьей ни того, ни другого — и ученик слушает урок голосом, который мы для
- * него выбрали вслепую. Разница между дикторами на слух больше, чем всё
- * остальное в озвучке вместе взятое, поэтому последнее слово — за ухом ученика.
+ * ЗАЧЕМ ДАВАТЬ ВЫБОР. Разница между дикторами на слух больше, чем всё остальное
+ * в озвучке вместе взятое, а одна и та же фраза женским, мужским и детским
+ * голосом — это три разных упражнения на слух. Поэтому последнее слово за ухом
+ * ученика, а наше дело — чтобы в списке было между чем выбирать и чтобы выбор
+ * читался с одного взгляда.
  *
  * ЧЕГО В СПИСКЕ НЕТ. Мультиязычного семейства («Eddy», «Grandma» и прочие
  * характерные голоса Apple): они есть на каждом языке, забивают список и звучат
- * как мультфильм.
+ * как мультфильм. Полный системный список остаётся под кнопкой «Показать все».
  */
-export function listVoices(lang?: string, all = false): SpeechSynthesisVoice[] {
+export function voiceOptions(lang?: string, all = false): VoiceOption[] {
   const locale = speechLocale(lang)
   if (!locale || typeof speechSynthesis === 'undefined') return []
   if (!voices.length) refreshVoices()
+  // Один найденный голос — это не выбор: честнее показать системных дикторов.
+  if (!all) {
+    const short = shortlist(locale)
+    if (short.length >= 2) return short
+  }
   const known = KNOWN_VOICES[langOf(locale)]
   const rank = (v: SpeechSynthesisVoice) =>
     known?.test(v.name.trim()) ? 0 : GOOD_VOICE.test(v.name) ? 1 : 2
@@ -204,7 +395,7 @@ export function listVoices(lang?: string, all = false): SpeechSynthesisVoice[] {
   // которых 20 — звуковые шутки системы («Пузырьки», «Плохие новости»): выбирать
   // из такого списка нечего, а найти в нём Саманту трудно.
   const good = list.filter(v => rank(v) < 2)
-  return all || !good.length ? list : good
+  return (all || !good.length ? list : good).map(v => ({ voice: v, label: shortName(v.name) }))
 }
 
 // ─── Выбор ученика ───────────────────────────────────────────────────────────
@@ -290,7 +481,17 @@ export interface SpeakOptions {
   gap?: number
   /** Точное имя голоса (учитель мог выбрать его в редакторе задания). */
   voiceName?: string
-  /** Началась очередная реплика — по этому подсвечивается строка текста. */
+  /**
+   * Голос ЗАЗВУЧАЛ — не «мы попросили», а движок реально начал говорить.
+   *
+   * Между speak() и первым звуком проходит от десятков миллисекунд до секунды:
+   * движок будит голос, а сетевой тянет его из сети. Индикатор, запущенный по
+   * клику, к этому моменту уже на середине, и бегунок кончается раньше слова.
+   * Всё, что рисует ход озвучки, обязано стартовать отсюда.
+   */
+  onStart?: () => void
+  /** Началась очередная реплика — по этому подсвечивается строка текста.
+   *  Зовётся в момент, когда реплика ЗАЗВУЧАЛА, а не когда встала в очередь. */
   onLine?: (index: number, total: number) => void
   /**
    * Голос дошёл до слова: номер реплики и позиция символа ВНУТРИ неё. По этому
@@ -302,9 +503,16 @@ export interface SpeakOptions {
    * текст просто не подсвечивается.
    */
   onWord?: (line: number, char: number) => void
-  /** Речь этого вызова кончилась: дочитана, отменена или перебита другой.
-   *  Зовётся ровно один раз — на нём безопасно гасить индикаторы. */
-  onEnd?: () => void
+  /**
+   * Речь этого вызова кончилась: дочитана, отменена или перебита другой.
+   * Зовётся ровно один раз — на нём безопасно гасить индикаторы.
+   *
+   * `done` отличает дочитанное до конца от оборванного. Читалке это нужно,
+   * чтобы знать, куда возвращаться: текст, прерванный на середине (пауза,
+   * клик по слову), должен продолжиться с той же реплики, а дочитанный —
+   * начаться сначала.
+   */
+  onEnd?: (done: boolean) => void
 }
 
 export interface SpeechHandle {
@@ -319,15 +527,26 @@ const NOOP: SpeechHandle = { stop: () => {} }
 // реплики гасил бы индикатор той, что только что зазвучала.
 let run = 0
 let gapTimer: ReturnType<typeof setTimeout> | null = null
-let activeEnd: (() => void) | null = null
+let startTimer: ReturnType<typeof setTimeout> | null = null
+let activeEnd: ((done: boolean) => void) | null = null
 
-/** Закрыть текущую речь: снять таймер паузы и отдать onEnd тому, кто говорил. */
-function finish() {
+/** Страховка на случай молчащего onstart: столько ждём сигнала от движка,
+ *  прежде чем считать, что реплика всё-таки зазвучала.
+ *
+ *  Заведомо больше любой живой задержки запуска: локальный голос стартует за
+ *  десяток миллисекунд, сетевой — за секунду с небольшим. Сработать раньше
+ *  настоящего onstart этот таймер не должен, иначе он вернёт ровно ту болячку,
+ *  от которой лечит, — бегунок впереди голоса. */
+const START_FALLBACK = 2500
+
+/** Закрыть текущую речь: снять таймеры и отдать onEnd тому, кто говорил. */
+function finish(done = false) {
   run++
   if (gapTimer) { clearTimeout(gapTimer); gapTimer = null }
+  if (startTimer) { clearTimeout(startTimer); startTimer = null }
   const end = activeEnd
   activeEnd = null // до вызова: onEnd вправе сам позвать stopSpeech
-  end?.()
+  end?.(done)
 }
 
 /** Прервать любую речь. */
@@ -361,10 +580,10 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   let i = 0
   const next = () => {
     if (mine !== run) return
-    if (i >= lines.length) { finish(); return }
+    if (i >= lines.length) { finish(true); return }
     const idx = i++
-    opts.onLine?.(idx, lines.length)
-    const u = new SpeechSynthesisUtterance(lines[idx])
+    const said = voiceText(lines[idx])
+    const u = new SpeechSynthesisUtterance(said)
     if (locale) u.lang = locale
     if (voice) u.voice = voice
     u.rate = rate
@@ -373,14 +592,24 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
       if (gap && i < lines.length) gapTimer = setTimeout(next, gap)
       else next()
     }
-    if (opts.onWord) {
-      u.onboundary = e => {
-        if (mine !== run) return
-        // name === 'sentence' приходит от части голосов вперемешку со словами;
-        // для подсветки нужны только слова.
-        if (e.name && e.name !== 'word') return
-        opts.onWord?.(idx, e.charIndex)
-      }
+    // Реплика ЗАЗВУЧАЛА. Признаём это по первому признаку жизни: событию
+    // onstart, первому слову или — если движок молчит про оба — по таймеру.
+    let began = false
+    const begin = () => {
+      if (began || mine !== run) return
+      began = true
+      if (startTimer) { clearTimeout(startTimer); startTimer = null }
+      if (idx === 0) opts.onStart?.()
+      opts.onLine?.(idx, lines.length)
+    }
+    u.onstart = begin
+    u.onboundary = e => {
+      if (mine !== run) return
+      begin()
+      // name === 'sentence' приходит от части голосов вперемешку со словами;
+      // для подсветки нужны только слова.
+      if (e.name && e.name !== 'word') return
+      opts.onWord?.(idx, e.charIndex)
     }
     u.onend = step
     // Ошибка одной реплики не должна ронять весь текст: interrupted/canceled
@@ -391,6 +620,8 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
     // speak() уходит в тишину. resume() на не-паузе безвреден.
     speechSynthesis.resume()
     speechSynthesis.speak(u)
+    if (startTimer) clearTimeout(startTimer)
+    startTimer = setTimeout(begin, START_FALLBACK)
   }
   next()
 

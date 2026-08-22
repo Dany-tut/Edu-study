@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Play, Square, Languages, Type, Volume2, PanelRight, PanelBottom,
+  Play, Pause, Square, Languages, Type, Volume2, PanelRight, PanelBottom,
   Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye,
 } from 'lucide-react'
 import GlossedText from '../GlossedText'
@@ -8,6 +8,7 @@ import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { wordReading } from '../../lib/lexicon'
 import { transcribe } from '../../lib/translit'
+import { pairTranslation } from '../../lib/pairing'
 import { speak, speechLines, type SpeechHandle } from '../../lib/speech'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import type { Gloss } from '../../data/readingLibrary'
@@ -38,6 +39,14 @@ import type { Gloss } from '../../data/readingLibrary'
 //    boundary есть не у всех голосов, поэтому подсветка двухуровневая: строка
 //    подсвечивается всегда (по onLine), слово — где браузер это умеет.
 //
+// 4. СЛОВО И ЕГО ПАРА ГОРЯТ ВМЕСТЕ. Перевод стоит строкой, но вопрос у ученика
+//    пословный: «отзывать» из карточки надо ещё найти в русской строке, а
+//    непонятное место перевода — сопоставить с английским словом. Поэтому клик
+//    по слову — с ЛЮБОЙ стороны — зажигает и слово, и его пару напротив; пары
+//    сводит lib/pairing.ts по огрублённой основе. Правило 2 это не отменяет:
+//    перевод по-прежнему читается строкой, пара — ответ на заданный вопрос, а
+//    не пословная разметка, которой бы строка запестрела.
+//
 // ЕДИНИЦА ЭКРАНА — РЕПЛИКА, А НЕ АБЗАЦ. Строки берём тем же speechLines(), что
 // и озвучка: только так номер звучащей реплики совпадает со строкой на экране.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,6 +66,19 @@ interface Row { chunks: Chunk[] }
 
 /** Блок «оригинал ↔ перевод»: одна строка диалога или целый абзац прозы. */
 interface Unit { rows: Row[]; ru?: string }
+
+/**
+ * Выбранная пара: слово оригинала (в нижнем регистре) и фрагмент, в котором его
+ * выбрали. Фрагмент нужен, чтобы пара горела только в своей строке: одно и то же
+ * слово стоит в тексте пять раз, и подсветка всех пяти строк разом на вопрос
+ * «где это здесь» не отвечает.
+ *
+ * from — с какой стороны выбрали. Нужен ровно для одного: снятие выбора
+ * («ткнули мимо») приходит асинхронно из GlossedText, и без этого поля клик по
+ * слову перевода гасил сам себя — карточка оригинала закрывалась ПОСЛЕ него и
+ * стирала только что сделанный выбор.
+ */
+interface Pick { unit: number; term: string; from: 'orig' | 'ru' }
 
 /**
  * Разложить текст и перевод на пары. Перевод сверяется по абзацам, а внутри
@@ -99,7 +121,19 @@ export function hasReadings(body: string, lang: string, glossary: Gloss[] = []):
   return !!transcribe(body, lang) || glossary.some(g => !!wordReading(g.term, lang))
 }
 
-export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight }: {
+/**
+ * Где останавливается прилипшая шапка плеера.
+ *
+ * Ровно RAIL_TOP скелета тренажёра (trainer/TrainerShell.tsx): рейл слева и
+ * шапка читалки справа прилипают на одной высоте и стоят одной линией.
+ * Смещение отсчитывается от СОДЕРЖИМОГО панели прокрутки, а верхние 100 px
+ * кабинета — её padding, так что 8 — это «там же, где стоит», а не «под
+ * плавающей шапкой». В standalone-режиме на телефоне под чёлку добавляется
+ * safe-area: там панели кабинета нет и отсчёт идёт от края экрана.
+ */
+const STICK_TOP = 'max(8px, env(safe-area-inset-top, 0px))'
+
+export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight, subject }: {
   body: string
   translation?: string
   lang: string
@@ -108,12 +142,17 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   soft: string
   /** Слово, выбранное в словаре текста слева, — подсвечивается и здесь. */
   highlight?: string | null
+  /** Предмет колоды: с ним у слова в подсказке появляется кнопка «В словарь». */
+  subject?: string
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
 
   const { units, loose } = useMemo(() => build(body, translation), [body, translation])
-  const total = useMemo(() => speechLines(body).length, [body])
+  // Реплики теми же кусками, какими их читает озвучка: по ним считается
+  // прогресс, и с них же речь продолжается после паузы.
+  const allLines = useMemo(() => speechLines(body), [body])
+  const total = allLines.length
   const readings = useMemo(() => hasReadings(body, lang, glossary), [body, lang, glossary])
 
   const [playing, setPlaying] = useState(false)
@@ -135,9 +174,31 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // в этом режиме попытка понять самому — часть работы, и открытый перевод
   // следующего фрагмента отнимал бы её молча.
   const [peek, setPeek] = useState(false)
+  // Выбранная пара «слово ↔ его место в переводе».
+  const [pick, setPick] = useState<Pick | null>(null)
+  // Другой текст — выбор ни к чему не относится: читалка при переходе не
+  // размонтируется, и пара осталась бы висеть от прошлой сцены.
+  useEffect(() => { setPick(null) }, [body])
   // Что звучит: номер реплики и позиция символа внутри неё.
   const [line, setLine] = useState<number | null>(null)
   const [char, setChar] = useState<number | null>(null)
+  // Та же строка в ref: onEnd живёт в замыкании своего рендера и через
+  // состояние увидел бы не ту реплику, на которой речь оборвали.
+  const lineRef = useRef<number | null>(null)
+  function markLine(v: number | null) { lineRef.current = v; setLine(v) }
+
+  /**
+   * Реплика, с которой продолжим, — метка паузы.
+   *
+   * ЗАЧЕМ. Кнопка работала как «стоп»: остановил, чтобы выписать слово, — и
+   * текст начинался с начала. Переслушивать пять реплик ради шестой никто не
+   * станет, поэтому оборванную речь помним и продолжаем с той же строки.
+   *
+   * Метку ставит ЛЮБОЙ обрыв, а не только нажатие паузы: клик по слову и по
+   * соседней реплике тоже глушат общий проход — и тоже не должны стоить месту
+   * в тексте. Дочитанный до конца текст метку снимает: продолжать нечего.
+   */
+  const [paused, setPaused] = useState<number | null>(null)
 
   // Реплика, которую слушают отдельно (номер её первого куска). Отдельная от
   // playing: строку слушают ПОВЕРХ чтения всего текста — клик по реплике
@@ -153,6 +214,52 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
 
   const voice = useRef<SpeechHandle | null>(null)
   useEffect(() => () => voice.current?.stop(), [])
+
+  // Новый текст в той же читалке (при переходе к следующему она не
+  // размонтируется): метка паузы от прошлого текста указывала бы на реплику,
+  // которой здесь уже нет.
+  useEffect(() => {
+    voice.current?.stop()
+    setPlaying(false)
+    setSolo(null)
+    setPaused(null)
+    lineRef.current = null
+    setLine(null)
+    setChar(null)
+  }, [body])
+
+  /**
+   * Шапка прилипла к верху экрана — значит текст под ней уже уехал.
+   *
+   * Считаем сравнением двух прямоугольников, а не IntersectionObserver с
+   * rootMargin: смещение sticky в кабинете отсчитывается от содержимого панели
+   * прокрутки (у неё 100 px верхнего отступа под плавающую шапку), и число в
+   * rootMargin пришлось бы держать синхронно с чужой геометрией. Отъехала
+   * шапка от верха карточки — прилипла, и никакой арифметики.
+   */
+  const cardRef = useRef<HTMLDivElement>(null)
+  const barRef = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+  const stuckRef = useRef(false)
+  useEffect(() => {
+    const on = () => {
+      const card = cardRef.current
+      const bar = barRef.current
+      if (!card || !bar) return
+      // 1 px разницы даёт рамка карточки, поэтому порог, а не строгий ноль.
+      const next = bar.getBoundingClientRect().top - card.getBoundingClientRect().top > 2
+      if (next !== stuckRef.current) { stuckRef.current = next; setStuck(next) }
+    }
+    on()
+    // capture: страница кабинета листается во ВНУТРЕННЕЙ панели (.dashboard-main),
+    // и её scroll до window не всплывает.
+    window.addEventListener('scroll', on, true)
+    window.addEventListener('resize', on)
+    return () => {
+      window.removeEventListener('scroll', on, true)
+      window.removeEventListener('resize', on)
+    }
+  }, [])
 
   /**
    * Прочитать одну реплику.
@@ -176,6 +283,10 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
     if (!chunks.length) return
     const key = chunks[0].line
     if (soloRef.current === key) { voice.current?.stop(); return }
+    // Гасим предыдущую речь ДО того, как выставить свои флаги: speak() внутри
+    // сам зовёт onEnd прошлой речи, и делает это синхронно — тот сбрасывал бы
+    // только что поставленный solo (см. play).
+    voice.current?.stop()
     setSolo(key)
     setChar(null)
     voice.current = speak(chunks.map(c => c.text).join('\n'), {
@@ -184,45 +295,79 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
       gap: 240,
       // Внутри реплики номера кусков свои (0, 1, 2…), а подсветка живёт в
       // сквозных номерах текста — переводим одно в другое.
-      onLine: i => { setLine(chunks[i]?.line ?? null); setChar(null) },
-      onWord: (i, c) => { setLine(chunks[i]?.line ?? null); setChar(c) },
-      onEnd: () => { setSolo(null); setLine(null); setChar(null) },
+      onLine: i => { markLine(chunks[i]?.line ?? null); setChar(null) },
+      onWord: (i, c) => { markLine(chunks[i]?.line ?? null); setChar(c) },
+      // Метку паузы отдельная реплика не трогает: её слушают, не бросая общего
+      // чтения, и вернуться оно должно туда же, где его перебили.
+      onEnd: () => { setSolo(null); markLine(null); setChar(null) },
     })
   }
 
-  function play(rate: number) {
+  /** Читать текст с реплики `from` (по умолчанию с начала). */
+  function play(rate: number, from = 0) {
+    // Сначала стоп, потом флаги. speak() отменяет предыдущую речь и синхронно
+    // зовёт её onEnd — а тот снимает playing и ставит метку паузы. Если ставить
+    // флаги до speak(), оба вызова попадают в один рендер и побеждает
+    // последний: смена темпа на ходу возвращала кнопку в «играть», хотя голос
+    // продолжал читать, а продолжение с паузы тут же вернуло бы метку.
+    voice.current?.stop()
+    const start = from > 0 && from < allLines.length ? from : 0
     setPlaying(true)
+    setPaused(null)
     setSolo(null)
-    setLine(null)
+    // Подсветка встаёт на первую реплику сразу, не дожидаясь голоса: между
+    // нажатием и первым словом синтезатор берёт до секунды, и текст, на эту
+    // секунду потерявший метку, читался бы как сброс на начало.
+    markLine(start)
     setChar(null)
-    voice.current = speak(body, {
+    voice.current = speak(allLines.slice(start).join('\n'), {
       lang,
       rate,
       // Пауза между репликами: диалог без неё звучит сплошняком, и глаз не
       // успевает перейти на следующую строку.
       gap: 240,
-      onLine: i => { setLine(i); setChar(null) },
-      onWord: (i, c) => { setLine(i); setChar(c) },
-      onEnd: () => { setPlaying(false); setLine(null); setChar(null) },
+      // Номера реплик внутри запуска свои (0, 1, 2…), а подсветка живёт в
+      // сквозных номерах текста — переводим одно в другое.
+      onLine: i => { markLine(start + i); setChar(null) },
+      onWord: (i, c) => { markLine(start + i); setChar(c) },
+      onEnd: done => {
+        setPlaying(false)
+        setChar(null)
+        // Дочитали — метка не нужна; оборвали — помним, где стояли.
+        if (done) { setPaused(null); markLine(null) }
+        else setPaused(lineRef.current)
+      },
     })
   }
 
   function toggle() {
+    // Пауза, а не стоп: метку ставит onEnd, следующее нажатие продолжает с неё.
     if (playing) voice.current?.stop()
-    else play(slow ? 0.8 : 1)
+    else play(slow ? 0.8 : 1, paused ?? 0)
   }
 
-  /** Смена темпа на ходу перезапускает чтение: менять его молча — обман. */
+  /** Смена темпа на ходу перезапускает чтение: менять его молча — обман.
+   *  Перезапуск — с текущей реплики: темп меняют, чтобы переслушать это место,
+   *  а не чтобы вернуться к началу текста. */
   function setRate(next: boolean) {
     setSlow(next)
-    if (playing) play(next ? 0.8 : 1)
+    if (playing) play(next ? 0.8 : 1, lineRef.current ?? 0)
   }
 
   // Колонка справа возможна не всегда: на телефоне её некуда поставить, а
   // перевод, не разложившийся по строкам (loose), стоять напротив нечему.
   const canSide = isDesktop && units.some(u => u.ru)
   const stepping = step !== null
+  // Индекс подрезаем на каждом рендере: читалка не размонтируется при переходе
+  // к следующему тексту, и шаг 8 в тексте из трёх фрагментов иначе уронил бы
+  // экран на units[8].
+  const at = stepping ? Math.min(step, units.length - 1) : 0
   const twoCol = canSide && showRu && ruSide === 'right' && !stepping
+  // Что подсвечено: звучащая реплика, а в тишине — та, на которой поставили
+  // паузу. Иначе после паузы место в тексте приходится искать глазами заново.
+  const mark = line ?? paused
+  /** Идёт ли звук по кнопке шапки. */
+  const sounding = stepping ? solo !== null : playing
 
   /**
    * Перейти на фрагмент. Речь при этом глохнет: экран сменился, а голос,
@@ -233,18 +378,31 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
     voice.current?.stop()
     setStep(to)
     setPeek(false)
-    setLine(null)
+    markLine(null)
     setChar(null)
   }
 
   /** Включить или выключить режим «строка за строкой». */
   function toggleStepping() {
     voice.current?.stop()
-    setLine(null)
+    markLine(null)
     setChar(null)
     setPeek(false)
     setStep(stepping ? null : 0)
   }
+  /**
+   * Выбрать пару или снять выбор (term === null).
+   *
+   * Снимаем только СВОЙ выбор: сообщение «ничего не выбрано» приходит с обеих
+   * сторон, и клик по слову перевода приходил бы вместе с закрытием карточки
+   * оригинала — то есть гасил бы сам себя (см. Pick.from).
+   */
+  function pickWord(unit: number, term: string | null, from: 'orig' | 'ru') {
+    setPick(p => (term
+      ? { unit, term: term.trim().toLowerCase(), from }
+      : (p && p.unit === unit && p.from === from ? null : p)))
+  }
+
   // Отступы длинной записью: колонки перекрывают их по одной стороне, а смесь
   // padding и paddingLeft в одном стиле React ругает и применяет непредсказуемо.
   const cell = { paddingTop: 9, paddingRight: 14, paddingBottom: 9, paddingLeft: 0 } as const
@@ -253,102 +411,149 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   } as const
 
   return (
-    <div style={{
+    <div ref={cardRef} style={{
       borderRadius: 18, background: 'var(--color-bg-2)',
-      border: '1px solid var(--color-border-soft)', overflow: 'hidden',
+      border: '1px solid var(--color-border-soft)',
+      // clip, а не hidden: hidden делает карточку панелью прокрутки, и sticky
+      // внутри неё прилипает к тому, что никогда не едет, то есть не работает
+      // вовсе. clip обрезает углы так же, но панелью прокрутки не становится.
+      overflow: 'clip',
     }}>
-      {/* Плеер — шапкой над текстом: он ведёт по строкам, а не просто читает. */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '11px 16px', borderBottom: '1px solid var(--color-border-soft)',
-      }}>
-        {/* В режиме «строка за строкой» шапка читает ТЕКУЩИЙ фрагмент, а не
-            текст целиком: экран показывает один фрагмент, и голос, ушедший на
-            три экрана вперёд, подсвечивал бы то, чего не видно. */}
-        <button
-          onClick={() => (stepping ? playUnit(units[step!]) : toggle())}
-          aria-label={(stepping ? solo !== null : playing) ? t('Стоп') : t('Слушать')}
-          style={{
-            width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none',
-            cursor: 'pointer', display: 'grid', placeItems: 'center',
-            background: accent, color: '#fff',
-          }}
-        >
-          {(stepping ? solo !== null : playing)
-            ? <Square size={13} fill="#fff" />
-            : <Play size={14} fill="#fff" style={{ marginLeft: 2 }} />}
-        </button>
-
-        <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--color-border-soft)' }}>
-          <div style={{
-            width: stepping
-              ? `${Math.round(((step! + 1) / units.length) * 100)}%`
-              : `${line === null || !total ? 0 : Math.round(((line + 1) / total) * 100)}%`,
-            height: 4, borderRadius: 2, background: accent, transition: 'width 220ms ease',
-          }} />
-        </div>
-
-        {stepping && (
-          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
-            {step! + 1} / {units.length}
-          </span>
-        )}
-
-        <button
-          onClick={() => setRate(!slow)}
-          style={{
-            padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
-            border: `1px solid ${slow ? accent : 'var(--color-border-medium)'}`,
-            background: slow ? soft : 'transparent',
-            color: slow ? accent : 'var(--color-text-2)',
-          }}
-        >
-          {slow ? '0.75×' : '1.0×'}
-        </button>
-      </div>
-
-      {/* Тумблеры — над текстом, рядом с плеером: включать перевод и
-          транскрипцию ученик решает ДО чтения, а не дочитав до низа карточки. */}
-      {(translation || readings || units.length > 1) && (
+      {/*
+        ПЛЕЕР И ТУМБЛЕРЫ ЕДУТ ЗА ТЕКСТОМ.
+        Управление читалкой нужно ровно там, где спотыкаешься, — на десятой
+        строке, а не в начале текста. Раньше «стоп», темп и «Перевод» уезжали
+        вверх вместе с шапкой: чтобы выключить голос или сверить строку,
+        приходилось листать наверх, терять место и возвращаться.
+        Прилипает вся шапка целиком, а не одна кнопка: «Перевод» и «Справа /
+        Снизу» — такое же решение по ходу чтения, как «стоп».
+        Что НЕ прилипает: подсказка под тумблерами (её читают один раз) и
+        кнопки листания фрагментов — они и так стоят внизу одноэкранной
+        карточки режима «строка за строкой».
+      */}
+      <div
+        ref={barRef}
+        style={{
+          position: 'sticky', top: STICK_TOP, zIndex: 3,
+          // Фон обязателен и непрозрачен: под шапкой едет текст, и полупрозрачная
+          // подложка превращала бы строки в кашу ровно там, где нужны кнопки.
+          background: 'var(--color-bg-2)',
+          boxShadow: stuck ? '0 14px 22px -18px rgba(0,0,0,0.55)' : 'none',
+          transition: 'box-shadow 180ms ease',
+        }}
+      >
+        {/* Плеер — шапкой над текстом: он ведёт по строкам, а не просто читает. */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-          padding: '10px 16px', borderBottom: '1px solid var(--color-border-soft)',
+          display: 'flex', alignItems: 'center', gap: 12,
+          // Прилипшая шапка ужимается: две полные строки управления съедают
+          // четверть экрана телефона именно тогда, когда экрана меньше всего.
+          padding: stuck ? '7px 16px' : '11px 16px',
+          borderBottom: '1px solid var(--color-border-soft)',
+          transition: 'padding 160ms ease',
         }}>
-          {/* Поток или по одному фрагменту. Это не украшение для телефона:
-              поток отвечает на вопрос «о чём тут вообще», а «строка за строкой»
-              — на «разобрать вот это место», и второе на узком экране
-              невозможно, пока текст едет мимо. */}
-          {units.length > 1 && (
-            <ModeSwitch stepping={stepping} onChange={toggleStepping} accent={accent} soft={soft} />
+          {/* В режиме «строка за строкой» шапка читает ТЕКУЩИЙ фрагмент, а не
+              текст целиком: экран показывает один фрагмент, и голос, ушедший на
+              три экрана вперёд, подсвечивал бы то, чего не видно. */}
+          <button
+            onClick={() => (stepping ? playUnit(units[at]) : toggle())}
+            aria-label={sounding
+              ? (stepping ? t('Стоп') : t('Пауза'))
+              : (!stepping && paused !== null ? t('Продолжить') : t('Слушать'))}
+            title={sounding
+              ? (stepping ? t('Стоп') : t('Пауза'))
+              : (!stepping && paused !== null ? t('Продолжить') : t('Слушать'))}
+            style={{
+              width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none',
+              cursor: 'pointer', display: 'grid', placeItems: 'center',
+              background: accent, color: '#fff',
+            }}
+          >
+            {/* Пауза, а не «стоп»: следующее нажатие продолжит с той же
+                реплики. В режиме «строка за строкой» продолжать нечего —
+                фрагмент и так один экран, там честнее «стоп». */}
+            {sounding
+              ? (stepping ? <Square size={13} fill="#fff" /> : <Pause size={13} fill="#fff" />)
+              : <Play size={14} fill="#fff" style={{ marginLeft: 2 }} />}
+          </button>
+
+          <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--color-border-soft)' }}>
+            <div style={{
+              width: stepping
+                ? `${Math.round(((at + 1) / units.length) * 100)}%`
+                : `${mark === null || !total ? 0 : Math.round(((mark + 1) / total) * 100)}%`,
+              height: 4, borderRadius: 2, background: accent, transition: 'width 220ms ease',
+            }} />
+          </div>
+
+          {stepping && (
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+              {at + 1} / {units.length}
+            </span>
           )}
-          {translation && (
-            <Toggle on={showRu} onClick={() => setShowRu(v => !v)} accent={accent} soft={soft}>
-              <Languages size={13} /> {t('Перевод')}
-            </Toggle>
-          )}
-          {/* Сторона — только когда перевод включён: пустой выбор «где его
-              показывать» рядом с выключенным переводом ничего не объясняет. */}
-          {translation && showRu && canSide && (
-            <SideSwitch value={ruSide} onChange={setRuSide} accent={accent} soft={soft} />
-          )}
-          {readings && (
-            <Toggle on={showTr} onClick={() => setShowTr(v => !v)} accent={accent} soft={soft}>
-              <Type size={13} /> {t('Транскрипция')}
-            </Toggle>
-          )}
-          <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
-            {stepping
-              ? t('Листай свайпом или кнопками внизу')
-              : t('Слово — перевод и озвучка, динамик слева — вся реплика')}
-          </span>
+
+          <button
+            onClick={() => setRate(!slow)}
+            style={{
+              padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
+              border: `1px solid ${slow ? accent : 'var(--color-border-medium)'}`,
+              background: slow ? soft : 'transparent',
+              color: slow ? accent : 'var(--color-text-2)',
+            }}
+          >
+            {slow ? '0.75×' : '1.0×'}
+          </button>
         </div>
-      )}
+
+        {/* Тумблеры — над текстом, рядом с плеером: включать перевод и
+            транскрипцию ученик решает ДО чтения, а не дочитав до низа карточки. */}
+        {(translation || readings || units.length > 1) && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+            padding: stuck ? '6px 16px' : '10px 16px',
+            borderBottom: '1px solid var(--color-border-soft)',
+            transition: 'padding 160ms ease',
+          }}>
+            {/* Поток или по одному фрагменту. Это не украшение для телефона:
+                поток отвечает на вопрос «о чём тут вообще», а «строка за строкой»
+                — на «разобрать вот это место», и второе на узком экране
+                невозможно, пока текст едет мимо. */}
+            {units.length > 1 && (
+              <ModeSwitch stepping={stepping} onChange={toggleStepping} accent={accent} />
+            )}
+            {translation && (
+              <Toggle on={showRu} onClick={() => setShowRu(v => !v)} accent={accent} soft={soft}>
+                <Languages size={13} /> {t('Перевод')}
+              </Toggle>
+            )}
+            {/* Сторона — только когда перевод включён: пустой выбор «где его
+                показывать» рядом с выключенным переводом ничего не объясняет. */}
+            {translation && showRu && canSide && (
+              <SideSwitch value={ruSide} onChange={setRuSide} accent={accent} />
+            )}
+            {readings && (
+              <Toggle on={showTr} onClick={() => setShowTr(v => !v)} accent={accent} soft={soft}>
+                <Type size={13} /> {t('Транскрипция')}
+              </Toggle>
+            )}
+            {/* Подсказку читают один раз, в начале. В прилипшей шапке она первой
+                переносится на вторую строку и растит её — а объясняет то, что к
+                середине текста уже известно. */}
+            {!stuck && (
+              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
+                {stepping
+                  ? t('Листай свайпом или кнопками внизу')
+                  : t('Слово — перевод и озвучка, динамик слева — вся реплика')}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {stepping ? (
         <StepCard
-          unit={units[step!]}
-          index={step!}
+          unit={units[at]}
+          index={at}
           count={units.length}
           onGo={goStep}
           cell={cell}
@@ -358,15 +563,18 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           accent={accent}
           soft={soft}
           highlight={highlight}
+          subject={subject}
           ruby={showTr && readings}
-          line={line}
+          line={mark}
           char={char}
           solo={solo}
           onPlayRow={playRow}
+          pick={pick}
+          onPick={pickWord}
           // Перевод в этом режиме открывается на один фрагмент, если общий
           // тумблер выключен: смысл экрана — сперва понять самому.
           showRu={showRu || peek}
-          canPeek={!showRu && !!units[step!].ru}
+          canPeek={!showRu && !!units[at].ru}
           onPeek={() => setPeek(true)}
         />
       ) : (
@@ -379,6 +587,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             <FragmentRow
               key={ui}
               unit={u}
+              index={ui}
               twoCol={twoCol}
               showRu={showRu}
               cell={cell}
@@ -388,11 +597,14 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               accent={accent}
               soft={soft}
               highlight={highlight}
+              subject={subject}
               ruby={showTr && readings}
-              line={line}
+              line={mark}
               char={char}
               solo={solo}
               onPlayRow={playRow}
+              pick={pick}
+              onPick={pickWord}
             />
           ))}
         </div>
@@ -407,50 +619,255 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           </div>
         )}
       </div>
+      )}
     </div>
   )
 }
 
-/** Где показывать перевод: колонкой справа или строкой под оригиналом. */
-function SideSwitch({ value, onChange, accent, soft }: {
+/**
+ * Режим «строка за строкой»: на экране один фрагмент.
+ *
+ * ЗАЧЕМ ОН НУЖЕН ИМЕННО НА ТЕЛЕФОНЕ. В потоке абзац корейской прозы занимает
+ * почти два экрана, и его перевод оказывается там, где начала абзаца уже не
+ * видно, — пара «оригинал ↔ перевод» рассыпается. Здесь фрагмент и перевод
+ * заведомо на одном экране, а вся остальная страница не отвлекает.
+ *
+ * ПЕРЕВОД ЗАКРЫТ ПО УМОЛЧАНИЮ и открывается кнопкой на один фрагмент. Это и
+ * есть учебная нагрузка: сперва попытка понять, потом сверка. Если общий
+ * тумблер «Перевод» включён, ученик уже сказал, что хочет видеть перевод
+ * всегда, — тогда кнопки нет.
+ */
+function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, accent, soft, highlight, subject, ruby, line, char, solo, onPlayRow, pick, onPick, showRu, canPeek, onPeek }: {
+  unit: Unit
+  index: number
+  count: number
+  onGo: (to: number) => void
+  cell: React.CSSProperties
+  ruStyle: React.CSSProperties
+  lang: string
+  glossary: Gloss[]
+  accent: string
+  soft: string
+  highlight?: string | null
+  subject?: string
+  ruby: boolean
+  line: number | null
+  char: number | null
+  solo: number | null
+  onPlayRow: (row: Row) => void
+  pick: Pick | null
+  onPick: (unit: number, term: string | null, from: 'orig' | 'ru') => void
+  showRu: boolean
+  canPeek: boolean
+  onPeek: () => void
+}) {
+  const t = useT()
+  // Свайп ведём руками, без библиотеки: нужен один жест, и тот в одну ось.
+  // Порог в 50px и требование, чтобы горизонталь была явно больше вертикали, —
+  // чтобы обычная прокрутка страницы не листала фрагменты.
+  const touch = useRef<{ x: number; y: number } | null>(null)
+
+  return (
+    <div
+      onTouchStart={e => {
+        const p = e.touches[0]
+        touch.current = { x: p.clientX, y: p.clientY }
+      }}
+      onTouchEnd={e => {
+        const from = touch.current
+        touch.current = null
+        if (!from) return
+        const p = e.changedTouches[0]
+        const dx = p.clientX - from.x
+        const dy = p.clientY - from.y
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+        onGo(dx < 0 ? index + 1 : index - 1)
+      }}
+      style={{ padding: '16px 16px 14px' }}
+    >
+      <FragmentRow
+        unit={unit}
+        index={index}
+        twoCol={false}
+        showRu={showRu}
+        cell={{ ...cell, paddingTop: 0, paddingRight: 0 }}
+        ruStyle={ruStyle}
+        lang={lang}
+        glossary={glossary}
+        accent={accent}
+        soft={soft}
+        highlight={highlight}
+        subject={subject}
+        ruby={ruby}
+        line={line}
+        char={char}
+        solo={solo}
+        onPlayRow={onPlayRow}
+        pick={pick}
+        onPick={onPick}
+      />
+
+      {canPeek && (
+        <button
+          onClick={onPeek}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 28,
+            padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650,
+            border: `1px solid ${accent}66`, background: 'transparent', color: accent,
+          }}
+        >
+          <Eye size={14} /> {t('Показать перевод')}
+        </button>
+      )}
+
+      <div style={{
+        display: 'flex', gap: 8, marginTop: 16,
+        paddingTop: 12, borderTop: '1px solid var(--color-border-soft)',
+      }}>
+        <NavButton onClick={() => onGo(index - 1)} disabled={index === 0} accent={accent} soft={soft}>
+          <ChevronLeft size={15} /> {t('Назад')}
+        </NavButton>
+        <NavButton onClick={() => onGo(index + 1)} disabled={index === count - 1} accent={accent} soft={soft} primary>
+          {t('Дальше')} <ChevronRight size={15} />
+        </NavButton>
+      </div>
+    </div>
+  )
+}
+
+function NavButton({ onClick, disabled, accent, soft, primary, children }: {
+  onClick: () => void
+  disabled: boolean
+  accent: string
+  soft: string
+  primary?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+        padding: '11px 14px', borderRadius: 14,
+        cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
+        fontSize: 13.5, fontWeight: 700,
+        border: primary ? 'none' : `1px solid ${disabled ? 'var(--color-border-soft)' : 'var(--color-border-medium)'}`,
+        background: primary ? (disabled ? 'var(--color-border-soft)' : accent) : (disabled ? 'transparent' : soft),
+        color: primary ? '#fff' : (disabled ? 'var(--color-text-3)' : accent),
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+/** Общий жёлоб с ползунком: два положения, активное — сплошная плашка.
+    Рамка-пилюля у каждого тумблера делала из строки четыре одинаковых по весу
+    кнопки; жёлоб уводит неактивное положение в фон, а ползунок показывает, что
+    выбор один из двух, а не две независимые кнопки. */
+function TrackSwitch({ options, index, onPick, accent }: {
+  options: { icon: typeof PanelRight; label: string; iconOnly?: boolean }[]
+  index: number
+  onPick: (i: number) => void
+  accent: string
+}) {
+  return (
+    <div style={{
+      position: 'relative', display: 'inline-grid', gridAutoFlow: 'column',
+      gridAutoColumns: '1fr', padding: 3, borderRadius: 999,
+      background: 'var(--color-bg-input)',
+    }}>
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute', top: 3, bottom: 3,
+          width: 'calc((100% - 6px) / 2)',
+          left: `calc(3px + ${index} * (100% - 6px) / 2)`,
+          borderRadius: 999, background: accent,
+          transition: 'left 220ms cubic-bezier(.4, 0, .2, 1)',
+        }}
+      />
+      {options.map((o, i) => {
+        const on = i === index
+        const Icon = o.icon
+        return (
+          <button
+            key={o.label}
+            onClick={() => onPick(i)}
+            aria-pressed={on}
+            aria-label={o.iconOnly ? o.label : undefined}
+            title={o.iconOnly ? o.label : undefined}
+            style={{
+              position: 'relative', display: 'inline-flex',
+              alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: o.iconOnly ? '5px 11px' : '5px 12px',
+              border: 'none', background: 'transparent', cursor: 'pointer',
+              // Насыщенность не меняется вместе с выбором: на 500↔700 жёлоб
+              // дёргался бы по ширине при каждом переключении.
+              fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+              color: on ? '#fff' : 'var(--color-text-3)',
+              transition: 'color 160ms ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Icon size={13} /> {o.iconOnly ? null : o.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Как читаем: потоком или по одному фрагменту. */
+function ModeSwitch({ stepping, onChange, accent }: {
+  stepping: boolean
+  onChange: () => void
+  accent: string
+}) {
+  const t = useT()
+  return (
+    <TrackSwitch
+      accent={accent}
+      index={stepping ? 1 : 0}
+      onPick={i => { if ((i === 1) !== stepping) onChange() }}
+      options={[
+        { icon: Rows3, label: t('Потоком') },
+        { icon: GalleryVerticalEnd, label: t('По строке') },
+      ]}
+    />
+  )
+}
+
+/** Где показывать перевод: колонкой справа или строкой под оригиналом.
+    Без подписей: это настройка соседнего тумблера «Перевод», и со словами она
+    весила в строке столько же, сколько он сам. */
+function SideSwitch({ value, onChange, accent }: {
   value: 'right' | 'bottom'
   onChange: (v: 'right' | 'bottom') => void
   accent: string
-  soft: string
 }) {
   const t = useT()
-  const opt = (v: 'right' | 'bottom', Icon: typeof PanelRight, label: string) => {
-    const on = value === v
-    return (
-      <button
-        onClick={() => onChange(v)}
-        aria-pressed={on}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5,
-          padding: '7px 11px', border: 'none', cursor: 'pointer',
-          fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
-          background: on ? soft : 'transparent',
-          color: on ? accent : 'var(--color-text-3)',
-        }}
-      >
-        <Icon size={13} /> {label}
-      </button>
-    )
-  }
   return (
-    <div style={{
-      display: 'inline-flex', borderRadius: 999, overflow: 'hidden',
-      border: '1px solid var(--color-border-medium)',
-    }}>
-      {opt('right', PanelRight, t('Справа'))}
-      {opt('bottom', PanelBottom, t('Снизу'))}
-    </div>
+    <TrackSwitch
+      accent={accent}
+      index={value === 'bottom' ? 1 : 0}
+      onPick={i => onChange(i === 1 ? 'bottom' : 'right')}
+      options={[
+        { icon: PanelRight, label: t('Перевод справа'), iconOnly: true },
+        { icon: PanelBottom, label: t('Перевод снизу'), iconOnly: true },
+      ]}
+    />
   )
 }
 
 /** Строка партитуры: оригинал и, если включён, его перевод. */
-function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, accent, soft, highlight, ruby, line, char, solo, onPlayRow }: {
+function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossary, accent, soft, highlight, subject, ruby, line, char, solo, onPlayRow, pick, onPick }: {
   unit: Unit
+  /** Номер фрагмента: им пара привязана к своей строке (см. Pick). */
+  index: number
   twoCol: boolean
   showRu: boolean
   cell: React.CSSProperties
@@ -460,14 +877,20 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
   accent: string
   soft: string
   highlight?: string | null
+  subject?: string
   ruby: boolean
   line: number | null
   char: number | null
   /** Реплика, которую слушают отдельно, — её кнопка стоит в положении «стоп». */
   solo: number | null
   onPlayRow: (row: Row) => void
+  pick: Pick | null
+  onPick: (unit: number, term: string | null, from: 'orig' | 'ru') => void
 }) {
   const t = useT()
+  // Выбранное слово этой строки. Пара горит на обеих сторонах одним и тем же
+  // ключом: в оригинале его разбирает GlossedText, в переводе — TranslationText.
+  const picked = pick && pick.unit === index ? pick.term : null
   const orig = (
     <div style={{
       ...cell,
@@ -530,7 +953,11 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
                   lang={lang}
                   extra={glossary}
                   accent={accent}
-                  highlight={highlight}
+                  // Выбор пары бьёт слово из словаря слева: подсветка одна на
+                  // двоих, и последнее, о чём спросили, важнее.
+                  highlight={picked ?? highlight}
+                  subject={subject}
+                  onPick={term => onPick(index, term, 'orig')}
                   ruby={ruby}
                   spokenChar={live ? char : null}
                   // Куски одной строки идут в поток, а не блоками: разрыв
@@ -560,9 +987,77 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
         // реплики: 22px жёлоба + 6px зазора (см. сетку строки выше).
         ...(twoCol ? { paddingLeft: 18, paddingRight: 0 } : { paddingTop: 0, paddingLeft: 28 }),
       }}>
-        <div style={ruStyle}>{unit.ru}</div>
+        <TranslationText
+          ru={unit.ru}
+          source={unit.rows.flatMap(r => r.chunks.map(c => c.text)).join('\n')}
+          lang={lang}
+          glossary={glossary}
+          accent={accent}
+          picked={picked}
+          onPick={term => onPick(index, term, 'ru')}
+          style={ruStyle}
+        />
       </div>
     </>
+  )
+}
+
+/**
+ * Перевод, в котором слово можно нажать.
+ *
+ * ЧТО НАЖИМАЕТСЯ. Только слова, у которых пара нашлась (см. lib/pairing.ts), —
+ * они и помечены пунктиром, как знакомые слова в оригинале. Кликабельная строка
+ * целиком врала бы: половина слов ответила бы «ничего», а это читается как
+ * поломка, а не как «пары нет».
+ *
+ * ЧЕГО ЗДЕСЬ НЕТ — карточки. Русское слово ученику объяснять нечем и незачем:
+ * весь вопрос к переводу — «каким словом это сказано в оригинале», и ответ на
+ * него уже виден в загоревшейся строке напротив.
+ */
+function TranslationText({ ru, source, lang, glossary, accent, picked, onPick, style }: {
+  ru: string
+  /** Оригинал этого же фрагмента — по нему и сводятся пары. */
+  source: string
+  lang: string
+  glossary: Gloss[]
+  accent: string
+  picked: string | null
+  onPick: (term: string | null) => void
+  style: React.CSSProperties
+}) {
+  const t = useT()
+  const tokens = useMemo(
+    () => pairTranslation(source, ru, lang, glossary),
+    [source, ru, lang, glossary],
+  )
+  return (
+    <div style={style}>
+      {tokens.map((tk, i) => {
+        if (!tk.pair) return <span key={i}>{tk.text}</span>
+        const on = tk.pair === picked
+        return (
+          <span
+            key={i}
+            role="button"
+            tabIndex={-1}
+            title={t('Где это в оригинале')}
+            onClick={() => onPick(on ? null : tk.pair ?? null)}
+            style={{
+              cursor: 'pointer', borderRadius: 4,
+              // Те же три состояния и те же прозрачности, что у слова в
+              // оригинале (GlossedText): пара — одна вещь, лежащая по двум
+              // сторонам, и выглядеть с разных сторон по-разному не должна.
+              borderBottom: `1px dotted ${accent}80`,
+              background: on ? `${accent}3d` : 'transparent',
+              boxShadow: on ? `0 0 0 2px ${accent}3d` : 'none',
+              transition: 'background 140ms ease',
+            }}
+          >
+            {tk.text}
+          </span>
+        )
+      })}
+    </div>
   )
 }
 
