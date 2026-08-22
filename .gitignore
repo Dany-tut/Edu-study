@@ -23,3 +23,4 @@ src/_*.tsx
 
 # инкрементальный кэш tsc (--noEmit тоже его пишет)
 tsconfig.tsbuildinfo
+scripts/_*.mjs
