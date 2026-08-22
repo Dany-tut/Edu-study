@@ -49,6 +49,18 @@ export function textOfDay(texts: ReadingText[], day: string): ReadingText | unde
   return texts[n % texts.length]
 }
 
+/**
+ * Первая содержательная строка текста.
+ *
+ * Не просто первая: у письма это «Hi Daniil,», у объявления — заголовок в одно
+ * слово, и анонс из такой строки не говорит ни о чём. Берём первую, в которой
+ * есть хотя бы предложение.
+ */
+function preview(body: string): string {
+  const lines = body.split(/\n+/).map(x => x.trim()).filter(Boolean)
+  return lines.find(x => x.length >= 40) ?? lines[0] ?? ''
+}
+
 export default function DailyDoseWidget({ columns }: { columns: number }) {
   const t = useT()
   const { dark } = useTheme()
@@ -140,7 +152,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
           fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.45, marginTop: 5,
           overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
         }}>
-          {text.body.split(/\n+/)[0]}
+          {preview(text.body)}
         </div>
       </a>
 
