@@ -535,7 +535,10 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
  * ОБМАНКИ БЕРУТСЯ ИЗ ЭТОГО ЖЕ ЮНИТА — выбирать между словом урока и словом из
  * другой темы не тренирует ничего: там разводит контекст, а не значение.
  */
-function vocabRecognition(unit: LangUnit, idBase: string, lang: string): SeedTask[] {
+// Возвращаемый тип НЕ аннотируем SeedTask[]: наружу уходит уже готовое задание
+// редактора (editorTask проставляет id, label и язык), а SeedTask — это сид без
+// id, и с ним весь список hwTasks переставал собираться.
+function vocabRecognition(unit: LangUnit, idBase: string, lang: string) {
   const words = unit.vocab.filter(w => w.term?.trim() && w.ru?.trim())
   // Меньше четырёх слов — обманок не набрать, узнавание вырождается в подсказку.
   if (words.length < 4) return []

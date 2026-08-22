@@ -222,7 +222,7 @@ export default function MobileCourses() {
       {/* Module index — jump to any module without scrolling the chip row */}
       <MobileSheet open={moduleSheet} onClose={() => setModuleSheet(false)} title={t('Модули')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <ModuleRow label={t('Все уроки')} total={subject?.modules.flatMap(m => m.lessons).length ?? 0}
+          <ModuleRow pal={pal} label={t('Все уроки')} total={subject?.modules.flatMap(m => m.lessons).length ?? 0}
             done={subject?.modules.flatMap(m => m.lessons).filter(l => l.status === 'completed').length ?? 0}
             active={moduleTab === ALL}
             onClick={() => { setModuleTab(ALL); setModuleSheet(false) }} />

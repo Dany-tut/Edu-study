@@ -129,9 +129,22 @@ async function get(url, retry = true) {
 
 // ─── Разбор ──────────────────────────────────────────────────────────────────
 
-const strip = s => s
+// Порядок здесь важнее содержания. У Agência Brasil разметка приезжает
+// ЭКРАНИРОВАННОЙ (&lt;p&gt;), поэтому мнемоники раскрываются ПЕРВЫМИ, и только
+// потом вырезаются теги. В обратном порядке «<p>» появляется уже после чистки
+// и уезжает в текст заметки как видимые угловые скобки.
+const unescape = s => s
+  .replace(/&nbsp;/g, ' ')
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"').replace(/&#0?39;|&#8217;|&rsquo;/g, '’')
+  .replace(/&#8220;|&ldquo;/g, '“').replace(/&#8221;|&rdquo;/g, '”')
+  .replace(/&#8212;|&mdash;/g, '—').replace(/&#8230;|&hellip;/g, '…')
+  .replace(/&#\d+;/g, '')
+  .replace(/&amp;/g, '&')
+
+const strip = s => unescape(unescape(s)
   .replace(/<!\[CDATA\[|\]\]>/g, '')
-  .replace(/<[^>]+>/g, ' ')
+  .replace(/<[^>]+>/g, ' '))
   .replace(/&nbsp;/g, ' ')
   .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
   .replace(/&quot;/g, '"').replace(/&#0?39;|&#8217;|&rsquo;/g, '’')
@@ -149,11 +162,12 @@ const tag = (xml, name) => {
 /** Абзацы из HTML: <p> сохраняем как границы, всё остальное схлопываем. */
 function paragraphs(html) {
   return html
-    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/p>|<p[^>]*>/gi, '\n\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .split('\n\n')
     .map(strip)
     .filter(p => p.length > 40)
+    .filter(p => !/^(Logo |Notícias relacionadas|Edição:|Ouça na Rádio)/i.test(p))
 }
 
 // ─── Адаптеры ────────────────────────────────────────────────────────────────
