@@ -37,17 +37,19 @@ type Question =
 
 function buildRun(verb: EndingVerb): Question[] {
   const asked = shuffle(KO_ENDINGS.filter(e => verb.forms[e.id]))
-  return asked.map((ending, i) => ({
+  return asked.map((ending, i) => {
     // Оба направления в одном прогоне: только «собери форму» тренирует руку и
     // не трогает понимание, только «что это значит» — наоборот.
     //
     // Слитую форму собрать из плиток нельзя (봐요 — это не 보 + что-то), поэтому
     // её всегда спрашиваем со стороны смысла. Иначе в вариантах ответа она
     // отличалась бы от остальных длиной и выдавала себя без всякого знания.
-    kind: isMerged(verb, ending.id) ? 'sense' : i % 2 === 0 ? 'build' : 'sense',
-    ending,
-    options: shuffle([ending, ...shuffle(asked.filter(e => e.id !== ending.id)).slice(0, 3)]),
-  }))
+    const kind: Question['kind'] = isMerged(verb, ending.id) ? 'sense' : i % 2 === 0 ? 'build' : 'sense'
+    // В «собери форму» вариантами могут быть только отделимые хвосты: у слитой
+    // формы хвоста нет, и кнопка с ней вышла бы пустой.
+    const pool = asked.filter(e => e.id !== ending.id && (kind === 'sense' || !isMerged(verb, e.id)))
+    return { kind, ending, options: shuffle([ending, ...shuffle(pool).slice(0, 3)]) }
+  })
 }
 
 // ─── Витрина ─────────────────────────────────────────────────────────────────

@@ -321,7 +321,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
           {/* Подсказка — значения известных кирпичей: задание про состав слова,
               а не про угадывание перевода по звучанию. */}
           <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', textAlign: 'center', ...proseWrap }}>
-            {q.item.bricks.map((b, i) => (i === q.item.gap ? '?' : `${b.ko} ${b.ru}`)).join(' + ')}
+            {q.item.bricks.map((b, i) => (i === q.item.gap && !picked ? '?' : `${b.ko} ${b.ru}`)).join(' + ')}
           </div>
         </div>
 

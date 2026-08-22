@@ -638,7 +638,7 @@ export function SearchPill({ value, onChange, placeholder }: {
       onClick={() => { setOpen(true); ref.current?.focus() }}
       style={{
         display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderRadius: 999,
-        background: 'rgba(var(--glass-rgb), 0.96)',
+        background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
         width: wide ? 260 : 112, transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
         overflow: 'hidden', cursor: wide ? 'text' : 'pointer', flexShrink: 0,
@@ -778,7 +778,7 @@ export function ToolButton({ children, on, onClick, accent, btnRef }: {
         display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
         cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
         border: `1px solid ${on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-border-medium)'}`,
-        background: 'rgba(var(--glass-rgb), 0.88)',
+        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
         color: on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-text-2)',
         whiteSpace: 'nowrap',
       }}
@@ -791,6 +791,20 @@ export function ToolButton({ children, on, onClick, accent, btnRef }: {
 // Меню строки носят тот же скин, что дропдауны кабинета (lib/dropdownStyle):
 // коробка-стекло, строка с подсветкой под курсором, выбранная — тинтом. Там,
 // где предметного акцента нет (сортировка), берём общий фиолетовый.
+/**
+ * Стекло таблеток строки управления.
+ *
+ * Полупрозрачный фон один, без размытия, спасает не всегда: строка прилипшая,
+ * под ней едет текст, и оставшиеся проценты прозрачности читались как чужие
+ * буквы ПОВЕРХ кнопки. Размытие — то же, что у плавающих таблеток шапки
+ * (blur 14 + saturate 180): содержимое под кнопкой превращается в фон, а не в
+ * рябь, и таблетка остаётся стеклом, а не глухой плашкой.
+ */
+export const PILL_GLASS = {
+  backdropFilter: 'blur(14px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+} as const
+
 const MENU_ACCENT = 'var(--color-purple-text)'
 const MENU_ACCENT_BG = 'var(--color-purple-soft)'
 
@@ -846,7 +860,7 @@ export function SortMenu({ options, value, onChange }: {
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
           cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 500,
           border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.88)',
-          color: 'var(--color-text-2)', whiteSpace: 'nowrap',
+          ...PILL_GLASS, color: 'var(--color-text-2)', whiteSpace: 'nowrap',
         }}
       >
         {t(current?.label ?? '')}
@@ -980,7 +994,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
           cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
           border: `1px solid ${on ? tint : 'var(--color-border-medium)'}`,
-          background: 'rgba(var(--glass-rgb), 0.88)',
+          background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
           color: on ? tint : 'var(--color-text-2)', whiteSpace: 'nowrap',
         }}
       >
