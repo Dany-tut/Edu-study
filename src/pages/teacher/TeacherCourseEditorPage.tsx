@@ -574,8 +574,9 @@ function AssignPicker({
                       <button key={c.id} onClick={() => onPickCard(item, c.id)} style={{
                         padding: '3px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
                         fontSize: 11, fontWeight: 700,
-                        border: active ? '1px solid var(--color-green-text)' : '1px solid var(--color-border-soft)',
-                        background: active ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                        border: '1px solid transparent',
+                        borderColor: active ? 'transparent' : 'var(--color-border-soft)',
+                        background: active ? 'var(--grad-purple)' : 'var(--color-bg-3)',
                         color: active ? '#fff' : 'var(--color-text-2)',
                         transition: 'all 0.14s',
                       }}>
@@ -790,7 +791,7 @@ function CenterCourseAccess({
                   return (
                     <div key={g.id} style={{
                       display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '7px 12px', borderRadius: 12, background: 'var(--color-green-soft)',
+                      padding: '7px 7px 7px 12px', borderRadius: 18, background: 'var(--color-green-soft)',
                     }}>
                       <Users size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                       <span style={{
@@ -808,7 +809,7 @@ function CenterCourseAccess({
                 {assignedStudents.map(s => (
                   <div key={s.id} style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
+                    padding: '7px 7px 7px 12px', borderRadius: 18, background: 'var(--color-bg-3)',
                   }}>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', ...oneLine }} title={s.name}>
@@ -5228,6 +5229,23 @@ export default function TeacherCourseEditorPage() {
 
   const courseTitle = course.title || t('Создать курс')
 
+  // Заголовок шапки стоит абсолютом по центру СТРАНИЦЫ, а не по остатку строки:
+  // иначе он ездил туда-сюда, когда менялась ширина групп кнопок («Курс» у урока
+  // слева, «Сохраняю…»/«Из сида · N» справа). Чтобы центр при этом не заезжал
+  // под кнопки, свободное поле обрезаем симметрично — по большей из двух групп.
+  const headLeftRef = useRef<HTMLDivElement>(null)
+  const headRightRef = useRef<HTMLDivElement>(null)
+  const [headSideW, setHeadSideW] = useState(0)
+  useLayoutEffect(() => {
+    const l = headLeftRef.current, r = headRightRef.current
+    if (!l || !r) return
+    const measure = () => setHeadSideW(Math.max(l.offsetWidth, r.offsetWidth))
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(l); ro.observe(r)
+    return () => ro.disconnect()
+  }, [])
+
   // Страница сама НЕ скроллится: три колонки прокручиваются каждая своим
   // внутренним скроллом и не тянут за собой соседей. Раньше общим скроллером
   // была страница — правая колонка дотягивала прокрутку до неё (chaining) и
@@ -5243,7 +5261,7 @@ export default function TeacherCourseEditorPage() {
       <motion.div
         style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div ref={headLeftRef} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
             style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
             <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
@@ -5262,14 +5280,13 @@ export default function TeacherCourseEditorPage() {
             )}
           </AnimatePresence>
         </div>
-        {/* Заголовок стоит между группами кнопок, а не поверх строки абсолютом.
-            Абсолют центрировал его по странице и потому не знал, сколько места
-            заняли кнопки: правая группа растёт (у курса из сида добавляется
-            «Из сида · N»), и длинное название уезжало под неё. */}
-        <div className="flex-1 min-w-0" style={{ textAlign: 'center', pointerEvents: 'none', padding: '0 12px' }}>
-          <span className="truncate" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
+        {/* Название всегда ровно по центру страницы: абсолют + симметричные
+            отступы по ширине большей группы кнопок. Длинное название не уезжает
+            под кнопки — оно обрезается многоточием. */}
+        <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <span className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div ref={headRightRef} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
               сида, и только когда расхождения реально нашлись: «Подтянуть»,
               которая каждый раз отвечает «всё совпадает», — это шум в шапке. */}

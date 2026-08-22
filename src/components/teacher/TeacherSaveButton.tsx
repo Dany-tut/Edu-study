@@ -94,11 +94,26 @@ export default function TeacherSaveButton({
           />
         </motion.span>
       )}
+      {/* Кнопка держит ширину самого длинного из своих состояний: «Сохранить» →
+          «Сохраняю…» → «Сохранено!» отличаются по длине, и без резерва соседние
+          кнопки в шапке дёргались при каждом сохранении. Все слои лежат в одной
+          ячейке грида — её ширина равна максимуму, а видимый текст центрируется. */}
+      <span style={{ display: 'grid', alignItems: 'center', justifyItems: 'center', position: 'relative' }}>
+        {[
+          <>{icon ?? <Check size={14} strokeWidth={2.5} />} {label}</>,
+          <><Loader2 size={14} strokeWidth={2.5} /> {savingText}</>,
+          <><Check size={15} strokeWidth={2.5} /> {savedText}</>,
+        ].map((content, i) => (
+          <span key={i} aria-hidden
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', visibility: 'hidden', pointerEvents: 'none' }}>
+            {content}
+          </span>
+        ))}
       <AnimatePresence mode="wait" initial={false}>
         {saving ? (
           <motion.span key="saving"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
             <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} style={{ display: 'flex' }}>
               <Loader2 size={14} strokeWidth={2.5} />
             </motion.span>
@@ -107,17 +122,18 @@ export default function TeacherSaveButton({
         ) : saved ? (
           <motion.span key="saved"
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
             <Check size={15} strokeWidth={2.5} /> {savedText}
           </motion.span>
         ) : (
           <motion.span key="save"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
             {icon ?? <Check size={14} strokeWidth={2.5} />} {label}
           </motion.span>
         )}
       </AnimatePresence>
+      </span>
     </motion.button>
   )
 }

@@ -15,9 +15,11 @@ import { useT } from '../lib/i18n'
 const CUSTOM = '__custom__'
 const MAX_ATTACHMENTS = 5
 
-export default function FeedbackModal({ role, onClose, defaultSection, defaultMessage }: {
+export default function FeedbackModal({ role, onClose, onSent, defaultSection, defaultMessage }: {
   role: FeedbackRole
   onClose: () => void
+  /** Заявка реально ушла в базу (в отличие от onClose, который зовётся и при отмене). */
+  onSent?: () => void
   /** Предзаполнить раздел (напр. «Тариф»); если его нет в списке — уйдёт в «Свой вариант». */
   defaultSection?: string
   /** Предзаполнить текст сообщения. */
@@ -91,6 +93,7 @@ export default function FeedbackModal({ role, onClose, defaultSection, defaultMe
     setSaving(false)
     if (error) { setError(t('Не удалось отправить. Попробуйте ещё раз.')); return }
     setDone(true)
+    onSent?.()
     setTimeout(onClose, 1400)
   }
 

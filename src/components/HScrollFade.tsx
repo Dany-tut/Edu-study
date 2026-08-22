@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { glassCircle } from '../lib/mobileTokens'
+import { useWheelHScroll } from '../lib/useWheelHScroll'
 
 /**
  * Horizontal scroller with edge fades that appear only when content is hidden
@@ -74,29 +75,7 @@ export default function HScrollFade({
     setTimeout(() => { if (el.scrollLeft === from && from !== to) el.scrollLeft = to }, 120)
   }
 
-  // Колесо мыши даёт только deltaY, и без перевода в горизонталь длинный ряд
-  // листался бы одним перетаскиванием. Трекпад со своим deltaX браузер крутит
-  // сам — туда не лезем. На краю ряда колесо отдаём странице: иначе прокрутка
-  // упиралась бы в строку под курсором и лист вставал. Слушатель нативный, не
-  // onWheel: React вешает wheel на корень пассивным, и preventDefault из
-  // пропа-обработчика браузер бы не принял.
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
-      const max = el.scrollWidth - el.clientWidth
-      if (max <= 1) return
-      // deltaMode: 0 — пиксели, 1 — строки, 2 — экраны. Мыши часто шлют строки.
-      const step = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? el.clientWidth : 1)
-      const next = Math.max(0, Math.min(max, el.scrollLeft + step))
-      if (next === el.scrollLeft) return
-      e.preventDefault()
-      el.scrollLeft = next
-    }
-    el.addEventListener('wheel', onWheel, { passive: false })
-    return () => el.removeEventListener('wheel', onWheel)
-  }, [])
+  useWheelHScroll(ref)
 
   // Content and width both change without a scroll event (course list loads,
   // window resizes, a pill grows), so re-measure on every commit + on resize.

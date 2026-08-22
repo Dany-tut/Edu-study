@@ -1923,14 +1923,16 @@ export default function HomeworkFlow({
    * именно там, и подниматься за кнопкой обратно наверх ему незачем.
    */
   const nextStepButtons = () => (
-    <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+    // Кнопки делят строку поровну и, когда не помещаются, переносятся во всю
+    // ширину блока: ряд из «полторы кнопки и дырка справа» читался как обрезок.
+    <div className="flex flex-wrap items-stretch" style={{ gap: 10 }}>
       {basicWrong.length > 0 && (
         <motion.button
           whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
           onClick={() => jumpToQuestion(basicWrong[0].q.id)}
-          className="flex items-center cursor-pointer"
+          className="flex items-center justify-center cursor-pointer"
           style={{
-            gap: 8, padding: '12px 18px', borderRadius: 16,
+            flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
             border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
             color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
           }}
@@ -1943,9 +1945,9 @@ export default function HomeworkFlow({
         <motion.button
           whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}
           onClick={() => { setState(current => ({ ...current, selectedLevel: 'hard' })); clearHomeworkWidgetFeedback() }}
-          className="flex items-center cursor-pointer"
+          className="flex items-center justify-center cursor-pointer"
           style={{
-            gap: 8, padding: '12px 18px', borderRadius: 16, border: 'none',
+            flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16, border: 'none',
             background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
             fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(99,84,207,0.2)',
           }}
@@ -1957,9 +1959,9 @@ export default function HomeworkFlow({
       <motion.button
         whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
         onClick={onBack}
-        className="flex items-center cursor-pointer"
+        className="flex items-center justify-center cursor-pointer"
         style={{
-          gap: 8, padding: '12px 18px', borderRadius: 16,
+          flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
           border: '1px solid var(--color-border-medium)', background: 'transparent',
           color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
         }}
@@ -1970,9 +1972,9 @@ export default function HomeworkFlow({
       <motion.button
         whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
         onClick={() => { onBack(); setActivePage('home') }}
-        className="flex items-center cursor-pointer"
+        className="flex items-center justify-center cursor-pointer"
         style={{
-          gap: 8, padding: '12px 18px', borderRadius: 16,
+          flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
           border: '1px solid var(--color-border-medium)', background: 'transparent',
           color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
         }}
@@ -2204,7 +2206,13 @@ export default function HomeworkFlow({
         {(!flowMode || flowFinished || !isMobile) && (
         <aside
           className="flex flex-col"
-          style={{
+          style={isMobile ? {
+            // На мобилке рейл идёт не сбоку, а сверху во всю ширину: коробка
+            // вокруг коробок только съедала поля и растила отступ до первого
+            // задания. Карточки внутри и так отделены друг от друга.
+            padding: 0,
+            gap: 10,
+          } : {
             padding: 16,
             gap: 12,
             borderRadius: 28,
@@ -2213,23 +2221,35 @@ export default function HomeworkFlow({
             boxShadow: '0 8px 32px rgba(17, 12, 34, 0.08)',
           }}
         >
+          {/* На мобилке та же плашка занимала треть экрана до первого задания,
+              хотя несёт одну строку смысла — поэтому там она сворачивается в
+              шапку: подпись и уровень в одну строку, мотивация мелким текстом. */}
           <div
             style={{
-              padding: 16,
+              padding: isMobile ? '12px 14px' : 16,
               borderRadius: 16,
               background: PURPLE.gradient,
               color: '#fff',
-              boxShadow: '0 18px 44px rgba(123, 63, 204, 0.24)',
+              boxShadow: isMobile ? '0 10px 24px rgba(123, 63, 204, 0.18)' : '0 18px 44px rgba(123, 63, 204, 0.24)',
             }}
           >
-            <div className="flex items-center" style={{ gap: 10, marginBottom: 12 }}>
-              <GraduationCap size={18} />
-              <span style={{ fontSize: 13, fontWeight: 700 }}>{t('Структура домашки')}</span>
+            <div className="flex items-center" style={{ gap: 10, marginBottom: isMobile ? 4 : 12 }}>
+              <GraduationCap size={isMobile ? 16 : 18} />
+              <span style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, opacity: isMobile ? 0.86 : 1 }}>
+                {t('Структура домашки')}
+              </span>
+              {isMobile && (
+                <span style={{ marginLeft: 'auto', fontSize: 16, fontWeight: 800 }}>
+                  {selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel}
+                </span>
+              )}
             </div>
-            <p style={{ fontSize: 21, lineHeight: 1.15, fontWeight: 750, marginBottom: 8 }}>
-              {selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel}
-            </p>
-            <p style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.86)' }}>
+            {!isMobile && (
+              <p style={{ fontSize: 21, lineHeight: 1.15, fontWeight: 750, marginBottom: 8 }}>
+                {selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel}
+              </p>
+            )}
+            <p style={{ fontSize: isMobile ? 12.5 : 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.86)' }}>
               {selectedLevel === 'basic' ? basicLevel.motivation : hardLevel.motivation}
             </p>
           </div>
@@ -2636,7 +2656,14 @@ export default function HomeworkFlow({
                   <section
                     ref={el => { questionSectionRefs.current[question.id] = el }}
                     className="flex flex-col"
-                    style={{
+                    style={isMobile ? {
+                      // На узком экране карточка занимает его целиком, и коробка
+                      // вокруг неё ничего не отделяет — зато её рамка и тень
+                      // переезжают на каждом ответе, и экран «скачет». Поэтому
+                      // на мобилке задание рисуется прямо на фоне страницы.
+                      gap: 14,
+                      padding: '4px 0 8px',
+                    } : {
                       gap: 14,
                       padding: 20,
                       borderRadius: 26,
@@ -2718,7 +2745,7 @@ export default function HomeworkFlow({
                         )}
                       </div>
 
-                      {hinted && (
+                      {hinted && !isMobile && (
                         <div
                           className="flex items-start"
                           style={{
@@ -3272,12 +3299,13 @@ export default function HomeworkFlow({
                     ))}
                   </div>
 
-                  <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+                  <div className="flex flex-wrap items-stretch" style={{ gap: 10 }}>
                     <motion.button
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
                       onClick={() => jumpToQuestion(basicUnanswered[0].q.id)}
-                      className="flex items-center cursor-pointer"
+                      className="flex items-center justify-center cursor-pointer"
                       style={{
+                        flex: '1 1 200px', minWidth: 0,
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
                         background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
                         fontSize: 14, fontWeight: 750, boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
@@ -3293,8 +3321,9 @@ export default function HomeworkFlow({
                         submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
                         setShowResultModal('basic')
                       }}
-                      className="flex items-center cursor-pointer"
+                      className="flex items-center justify-center cursor-pointer"
                       style={{
+                        flex: '1 1 200px', minWidth: 0,
                         gap: 8, padding: '13px 20px', borderRadius: 16,
                         border: `1px solid ${confirmSubmitAsIs ? 'var(--color-amber)' : 'var(--color-border-medium)'}`,
                         background: confirmSubmitAsIs ? 'var(--color-amber-soft)' : 'var(--color-bg-input)',
@@ -3302,10 +3331,15 @@ export default function HomeworkFlow({
                         fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
                       }}
                     >
-                      <Send size={15} />
-                      {confirmSubmitAsIs
-                        ? `${t('Точно сдать?')} ${basicUnanswered.length} ${t('без ответа')}`
-                        : t('Сдать как есть')}
+                      <Send size={15} style={{ flexShrink: 0 }} />
+                      {/* Подтверждение длиннее обычной подписи, и по умолчанию
+                          оно разрывалось на вторую строку — кнопка прыгала в
+                          высоту прямо под пальцем. Держим в одну строку. */}
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {confirmSubmitAsIs
+                          ? `${t('Точно сдать?')} ${basicUnanswered.length} ${t('без ответа')}`
+                          : t('Сдать как есть')}
+                      </span>
                     </motion.button>
                   </div>
                 </section>

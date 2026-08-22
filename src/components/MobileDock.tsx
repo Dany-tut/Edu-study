@@ -5,6 +5,7 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { TAP_SCALE } from '../lib/mobileTokens'
+import { useWheelHScroll } from '../lib/useWheelHScroll'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileDock — the floating glass control zone that rides just ABOVE the bottom
@@ -113,11 +114,13 @@ export default function MobileDock({ children }: { children: ReactNode }) {
 
 /** Horizontally-scrollable glass segment control — the course/scope switcher. */
 export function DockSegment<T extends string | number>({
-  options, value, onChange,
+  options, value, onChange, accent,
 }: {
   options: Array<{ id: T; label: ReactNode }>
   value: T
   onChange: (id: T) => void
+  /** Заливка активной чипсы — цвет предмета. Без него: брендовый градиент. */
+  accent?: string
 }) {
   const collapsed = useSmoothCollapse()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -145,6 +148,10 @@ export function DockSegment<T extends string | number>({
     ro.observe(el)
     return () => ro.disconnect()
   }, [sync, options.length])
+
+  // Ряд листается мышью: без этого колесо над доком не делало ничего —
+  // скроллбар спрятан, перетаскивания на десктопе нет, ряд выглядел мёртвым.
+  useWheelHScroll(scrollRef)
 
   // Keep the selected chip centred in the row so the active choice is always
   // fully readable (never clipped under an edge fade).
@@ -198,7 +205,7 @@ export function DockSegment<T extends string | number>({
                 flexShrink: 0, height: 34, padding: '0 15px', borderRadius: 999,
                 border: 'none', cursor: active ? 'default' : 'pointer',
                 fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
-                background: active ? 'var(--color-accent)' : 'transparent',
+                background: active ? (accent ?? 'var(--grad-purple)') : 'transparent',
                 color: active ? '#fff' : 'var(--color-text-2)',
                 transition: 'background 0.2s, color 0.2s',
               }}
@@ -245,10 +252,10 @@ export function DockCircle({
         <span style={{
           position: 'absolute', top: -2, right: -2,
           minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-          background: 'var(--color-accent)', color: '#fff',
+          background: 'var(--grad-purple)', color: '#fff',
           fontSize: 10, fontWeight: 800, border: '1.5px solid var(--color-bg)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>{badge}</span>
+        }}>{badge > 99 ? '99+' : badge}</span>
       )}
     </motion.button>
   )

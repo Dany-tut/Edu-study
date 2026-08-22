@@ -1,51 +1,110 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Полка учебников
 //
-// ПОЧЕМУ КОРЕШОК, А НЕ ОБЛОЖКА. Настоящая обложка — чужая картинка с чужой
-// лицензией и битой ссылкой через год. Книга на полке узнаётся по цвету и
-// названию, а не по фотографии, поэтому корешок рисуется здесь же: цветной
-// блок, название, автор. Заодно полка выглядит одинаково ровно, чего с
-// разномастными сканами обложек не бывает никогда.
+// ПОЧЕМУ РИСОВАННАЯ ОБЛОЖКА, А НЕ СКАН. Настоящая обложка — чужая картинка с
+// чужой лицензией и битой ссылкой через год. Книга узнаётся по цвету, знаку и
+// названию, а не по фотографии; заодно полка выглядит ровно, чего с
+// разномастными сканами не бывает никогда.
+//
+// КАК УСТРОЕНА ОБЛОЖКА. Пропорция книги (2:3), светлая полоса слева — переплёт,
+// крупный знак по типу книги фоном (한 курс, 문 грамматика, 급 экзамен) и
+// КОРОТКОЕ название. Короткое — не украшение: полное («세종한국어 (Sejong
+// Korean)») на 108 пикселях рвалось посреди слова, и полка выглядела как
+// вёрстка с ошибкой. Языкам без иероглифики знак не идёт, поэтому там фоном
+// стоит иконка типа — см. KIND_ICON.
 //
 // ГЛАВНОЕ НА КАРТОЧКЕ — «КОГДА БРАТЬСЯ». Список книг без этого — та самая
 // подборка из соцсетей, после которой человек берёт справочник грамматики,
 // ещё не читая хангыль, и решает, что язык не для него. Поэтому строка «когда»
 // стоит на карточке всегда и выделена, а не спрятана в описании.
+//
+// КНОПКА ОБЕЩАЕТ ТО, ЧТО БУДЕТ. Раньше у всех восьми книг стояла одна подпись
+// «Официальная страница», за которой пряталось разное: бесплатный учебник
+// целиком, витрина магазина, рабочий словарь. Теперь подпись берётся из типа
+// доступа (Textbook.access), а там, где устойчивой ссылки на файл не бывает,
+// под кнопкой написано, что искать на той странице.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { ExternalLink, Gift } from 'lucide-react'
-import type { Textbook } from '../../data/textbooks'
+import { BookOpen, Download, ExternalLink, GraduationCap, Gift, Languages, MessageCircle, ScrollText, ShoppingBag } from 'lucide-react'
+import { bookMark, bookShort, type Textbook, type TextbookAccess, type TextbookKind } from '../../data/textbooks'
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
 import { TileChip } from './TrainerShell'
 
-/** Нарисованный корешок: цвет, название, автор. */
-function Spine({ book }: { book: Textbook }) {
+/** Иконка типа — фоновый знак там, где иероглифического знака у языка нет. */
+const KIND_ICON: Record<TextbookKind, typeof BookOpen> = {
+  'курс': BookOpen,
+  'грамматика': ScrollText,
+  'экзамен': GraduationCap,
+  'самоучитель': MessageCircle,
+  'словарь': Languages,
+}
+
+/** Подпись и иконка кнопки — по типу доступа. */
+const ACTION: Record<TextbookAccess, { label: string; Icon: typeof BookOpen }> = {
+  free: { label: 'Скачать бесплатно', Icon: Download },
+  shop: { label: 'Где купить', Icon: ShoppingBag },
+  service: { label: 'Открыть', Icon: ExternalLink },
+  page: { label: 'Официальная страница', Icon: ExternalLink },
+}
+
+/** Нарисованная обложка: цвет, знак, короткое название. */
+function Cover({ book, lang }: { book: Textbook; lang: string }) {
+  const t = useT()
+  const mark = bookMark(book, lang)
+  const Icon = KIND_ICON[book.kind]
   return (
     <div
-      aria-hidden
       style={{
-        width: 78, minWidth: 78, height: 108, borderRadius: '4px 9px 9px 4px',
+        position: 'relative', width: 112, minWidth: 112, height: 168,
+        borderRadius: '3px 10px 10px 3px', overflow: 'hidden',
         background: book.cover.bg, color: book.cover.fg,
-        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-        padding: '10px 9px 9px 13px', overflow: 'hidden',
-        // Тень и светлая полоса слева — тот самый «переплёт»: без них блок
+        // Светлая полоса слева и тень — тот самый «переплёт»: без них блок
         // читается как цветной прямоугольник, а не как книга.
-        boxShadow: 'inset 5px 0 0 rgba(255,255,255,0.22), 0 6px 16px rgba(0,0,0,0.18)',
+        boxShadow: 'inset 7px 0 0 rgba(255,255,255,0.18), 0 8px 20px rgba(0,0,0,0.22)',
       }}
     >
-      <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.75 }}>
-        {book.publisher}
-      </span>
-      <span style={{ fontSize: 11.5, fontWeight: 800, lineHeight: 1.2 }}>
-        {book.title.split(' ').slice(0, 4).join(' ')}
-      </span>
+      {/* Знак фоном, а не картинкой: он и есть «обложка». Наполовину за
+          краем — так он читается как тиснение, а не как наклейка по центру.
+          Иконка свисает меньше глифа: у неё нет запаса пустоты снизу, который
+          есть у иероглифа, и на тех же -26 от неё осталась бы половина. */}
+      {mark ? (
+        <span aria-hidden style={{
+          position: 'absolute', right: -8, bottom: -26, lineHeight: 1,
+          fontSize: 92, fontWeight: 800, color: 'rgba(255,255,255,0.16)',
+        }}>
+          {mark}
+        </span>
+      ) : (
+        <Icon
+          aria-hidden
+          size={80}
+          strokeWidth={1.5}
+          style={{ position: 'absolute', right: -10, bottom: -12, color: 'rgba(255,255,255,0.16)' }}
+        />
+      )}
+      <div style={{
+        position: 'relative', height: '100%', boxSizing: 'border-box',
+        padding: '13px 12px 13px 18px', display: 'flex', flexDirection: 'column',
+      }}>
+        <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', opacity: 0.72 }}>
+          {t(book.kind)}
+        </span>
+        <span style={{ marginTop: 'auto', fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>
+          {bookShort(book)}
+        </span>
+        <span style={{ fontSize: 10, opacity: 0.75, marginTop: 3, lineHeight: 1.35 }}>
+          {book.publisher} · {book.level}
+        </span>
+      </div>
     </div>
   )
 }
 
-export function BookShelf({ books, accent, soft }: {
+export function BookShelf({ books, lang, accent, soft }: {
   books: Textbook[]
+  /** Код языка — по нему выбирается знак на обложке. */
+  lang: string
   accent: string
   soft: string
 }) {
@@ -61,7 +120,7 @@ export function BookShelf({ books, accent, soft }: {
             border: '1px solid var(--color-border-soft)',
           }}
         >
-          <Spine book={book} />
+          <Cover book={book} lang={lang} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0, flex: 1 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{t(book.kind)}</TileChip>
@@ -110,21 +169,36 @@ export function BookShelf({ books, accent, soft }: {
               </span>
             </div>
 
-            {book.url && (
-              // Официальная страница, а не файл: раздавать чужие учебники мы
-              // не будем, а ссылка на издателя не протухает.
-              <a
-                href={book.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-                  fontSize: 12.5, fontWeight: 700, color: accent, textDecoration: 'none',
-                }}
-              >
-                {t('Официальная страница')} <ExternalLink size={12} />
-              </a>
-            )}
+            {book.url && (() => {
+              // Страница издателя, а не файл: раздавать чужие учебники мы не
+              // будем. Но подпись у кнопки честная — за ней либо бесплатный
+              // учебник, либо магазин, и знать это надо ДО нажатия.
+              const { label, Icon } = ACTION[book.access ?? 'page']
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'flex-start' }}>
+                  <a
+                    href={book.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      fontSize: 12.5, fontWeight: 700, color: accent, textDecoration: 'none',
+                    }}
+                  >
+                    <Icon size={13} />
+                    {/* «Открыть» само по себе не отвечает на вопрос «что
+                        открыть»: у веб-сервиса подпись собирается из типа —
+                        «Открыть словарь». */}
+                    {book.access === 'service' ? `${t(label)} ${t(book.kind)}` : t(label)}
+                  </a>
+                  {book.urlNote && (
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.45, ...proseWrap }}>
+                      {bindShortWords(t(book.urlNote))}
+                    </span>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         </article>
       ))}

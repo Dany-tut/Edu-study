@@ -125,6 +125,18 @@ export const ENSV_VIDEO: Record<string, string> = {
   // Последняя тема разговорника — 39-я, а не 26-я: нумерация тем сквозная
   // по общему костяку, и у английского часть тем не заполнена.
   'ensv-39': yt('ekR-PSvPEBk'), // рабочая переписка и просьбы в офисе
+  // Темы 44–54 дописаны позже: разбор лексики и новые ситуации.
+  'ensv-44': yt('bLlPYnz_Rt4'),
+  'ensv-45': yt('sIPcSP6KmKs'),
+  'ensv-46': yt('LGW2T-Zy18g'),
+  'ensv-47': yt('32v8lH8EWrg'),
+  'ensv-48': yt('qQnOx3N85fc'),
+  'ensv-49': yt('_HPWNOV4xdE'),
+  'ensv-50': yt('3ZxuzipXEMw'), // паспортный контроль
+  'ensv-51': yt('5LXh3oKL1hE'), // бронь билетов
+  'ensv-52': yt('jji_LimlI2I'), // врач и страховка
+  'ensv-53': yt('ekR-PSvPEBk'), // заказ канцелярии и печати
+  'ensv-54': yt('1XctnF7C74s'), // рабочая переписка
   // Темы 26–43 дописаны позже; ролики переиспользуются по ситуации.
   'ensv-26': yt('wbIEm5VvHVA'), // что где лежит в магазине
   'ensv-27': yt('bLlPYnz_Rt4'),
@@ -186,6 +198,11 @@ export const KOSV_VIDEO: Record<string, string> = {
   'kosv-37': yt('l-CpnhbA0LI'),
   'kosv-38': yt('-JnnZ97WbXE'),
   'kosv-39': yt('_3n9Piw9Qq0'), // Conversation #9 친구 — общение с коллегами
+  'kosv-50': yt('FAPfKLxsMIU'),
+  'kosv-51': yt('GwuqlJ9Sb2c'), // Conversation #6 영화관 — кинотеатр
+  'kosv-52': yt('p5ZjHJnKTRE'),
+  'kosv-53': yt('PJtpQ_NP6yE'),
+  'kosv-54': yt('OggBwQO8Wsk'),
   'kosv-41': yt('rX_m0jPd7V4'), // #84 Adding More Emotion — оттенки реакции
   'kosv-42': yt('IMzWqiVG0gg'), // #58 Asking Permission — согласие и отказ
   'kosv-43': yt('9m0TeQ40QFc'), // #72 Showing Contrast — оговорки и связки
@@ -220,6 +237,25 @@ export const JASV_VIDEO: Record<string, string> = {
   'jasv-24': yt('aQsqklA46z0'),
   'jasv-25': yt('xrUMQvdPjLw'), // Can Do #12: погода — опора смолтока
   'jasv-39': yt('mJNsOVYjqjQ'), // деловое кэйго — офис и коллеги
+  'jasv-26': yt('a5U93P0ZzL0'),
+  'jasv-27': yt('tqjxUgO6OXU'),
+  'jasv-28': yt('vb_kAfdq8PI'),
+  'jasv-29': yt('vb_kAfdq8PI'),
+  'jasv-30': yt('-8ckaRazIzc'),
+  'jasv-31': yt('xHMAq9x2cEY'),
+  'jasv-32': yt('ydowfHzzk0k'),
+  'jasv-33': yt('vb_kAfdq8PI'),
+  'jasv-34': yt('-8ckaRazIzc'),
+  'jasv-35': yt('-8ckaRazIzc'),
+  'jasv-36': yt('aQsqklA46z0'),
+  'jasv-37': yt('aQsqklA46z0'),
+  'jasv-38': yt('aQsqklA46z0'),
+  'jasv-40': yt('B_55oW65H4M'),
+  'jasv-50': yt('-8ckaRazIzc'),
+  'jasv-51': yt('xHMAq9x2cEY'),
+  'jasv-52': yt('aQsqklA46z0'),
+  'jasv-53': yt('a5U93P0ZzL0'),
+  'jasv-54': yt('mJNsOVYjqjQ'),
   'jasv-41': yt('aAlDzXxE8pI'), // Can Do #9: обиходные выражения
   'jasv-42': yt('dxPfgNA8bqA'), // Can Do #11: согласие и своё мнение
   'jasv-43': yt('ZKxm8zReoj4'), // Can Do #13: переспрос и оговорки
@@ -253,6 +289,25 @@ export const PTSV_VIDEO: Record<string, string> = {
   'ptsv-24': yt('lo5NteosgP0'),
   'ptsv-25': yt('QigZ7PZF1us'), // ответы на «как дела» — смолток
   'ptsv-39': yt('GPnvU27ZUX0'), // согласие и несогласие — язык переговоров
+  'ptsv-26': yt('snNhQ0RvYfw'),
+  'ptsv-27': yt('WjHtVg9BPbU'),
+  'ptsv-28': yt('U9JBeZvUIzU'),
+  'ptsv-29': yt('VlEw3XMjCF0'),
+  'ptsv-30': yt('U9JBeZvUIzU'),
+  'ptsv-31': yt('GwVBaKnvRoM'), // достопримечательности Бразилии
+  'ptsv-32': yt('0kOlSkzPPBA'),
+  'ptsv-33': yt('VlEw3XMjCF0'),
+  'ptsv-34': yt('snNhQ0RvYfw'),
+  'ptsv-35': yt('0kOlSkzPPBA'),
+  'ptsv-36': yt('lo5NteosgP0'),
+  'ptsv-37': yt('lo5NteosgP0'),
+  'ptsv-38': yt('lo5NteosgP0'),
+  'ptsv-40': yt('Kaip34K9yBU'), // слова о семье
+  'ptsv-50': yt('snNhQ0RvYfw'),
+  'ptsv-51': yt('WjHtVg9BPbU'),
+  'ptsv-52': yt('lo5NteosgP0'),
+  'ptsv-53': yt('VlEw3XMjCF0'),
+  'ptsv-54': yt('GPnvU27ZUX0'),
   'ptsv-41': yt('QigZ7PZF1us'), // ответы на «как дела» — живая реакция
   'ptsv-42': yt('GPnvU27ZUX0'), // согласие и несогласие
   'ptsv-43': yt('VlEw3XMjCF0'), // 25 обязательных фраз — связки речи

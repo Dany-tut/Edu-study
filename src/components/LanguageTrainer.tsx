@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ScrollText } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -17,7 +17,7 @@ import PhraseDecks, {
 import TrainerShell, {
   RailHero, RailCard, RailModes, RailSegment, RailList, RailToggle, RailStat,
   Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, FilterMenu, ToolCount,
-  Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty,
+  Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty, PILL_GLASS,
 } from './trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
@@ -1493,17 +1493,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           icon={<SlidersHorizontal size={15} />}
           action={kindFilter ? { label: t('Все'), onClick: () => setKindFilter('') } : undefined}
         >
+          {/* Четыре подписи в ряд шириной в рейл ломались пополам («Шэдо/уинг»).
+              Название остаётся у выбранного — того, что сейчас и определяет
+              выборку, — остальные ждут значками и называют себя по наведению. */}
           <RailSegment
             options={[
-              ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг' }] : []),
-              { value: 'roleplay', label: 'Ролевые' },
-              { value: 'story', label: 'Рассказ' },
-              { value: 'aloud', label: 'Вслух' },
+              ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг', icon: <Repeat size={15} /> }] : []),
+              { value: 'roleplay', label: 'Ролевые', icon: <MessagesSquare size={15} /> },
+              { value: 'story', label: 'Рассказ', icon: <ScrollText size={15} /> },
+              { value: 'aloud', label: 'Вслух', icon: <Volume2 size={15} /> },
             ]}
             value={kindFilter}
             onChange={setKindFilter}
             accent={palette.accent}
             soft={palette.soft}
+            idleIcon
           />
           <RailStat label="Заданий" value={speakTotal} />
           <RailStat label="Моих записей" value={speakCounts.sent} tone={speakCounts.sent > 0 ? 'good' : undefined} />
@@ -1554,12 +1558,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = (
       <Toolbar>
         {openWork ? (
-          <>
-            <ToolButton onClick={() => setOpenWorkId(null)}>
-              <ChevronLeft size={14} /> {t('К полкам')}
-            </ToolButton>
-            <ShareLink link={{ kind: 'work', workId: openWork.id }} accent={palette.accent} />
-          </>
+          <ToolButton onClick={() => setOpenWorkId(null)}>
+            <ChevronLeft size={14} /> {t('К полкам')}
+          </ToolButton>
         ) : (
           <>
             <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
@@ -1597,11 +1598,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             )}
           </>
         )}
-        <ToolCount>
-          {openWork
-            ? `${scenesOf(openWork.id).length} ${t(scenesWord(scenesOf(openWork.id).length))}`
-            : `${t('Всего:')} ${visibleWorks.length}`}
-        </ToolCount>
+        <ToolRight>
+          <ToolCount>
+            {openWork
+              ? `${scenesOf(openWork.id).length} ${t(scenesWord(scenesOf(openWork.id).length))}`
+              : `${t('Всего:')} ${visibleWorks.length}`}
+          </ToolCount>
+          {openWork && <ShareLink link={{ kind: 'work', workId: openWork.id }} accent={palette.accent} />}
+        </ToolRight>
       </Toolbar>
     )
   } else if (isLang) {
@@ -1978,7 +1982,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       </div>
     )
   } else if (mode === 'guide' && guideView === 'books') {
-    content = <BookShelf books={books} accent={palette.accent} soft={palette.soft} />
+    content = <BookShelf books={books} lang={lang} accent={palette.accent} soft={palette.soft} />
   } else if (mode === 'guide' && openChapter) {
     content = (
       <StoryChapterPage
@@ -2343,10 +2347,13 @@ function ShareLink({ link, accent }: { link: TrainerLink; accent: string }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
+  // Кругляш без подписи и по правому краю. Слово «Поделиться» слева стояло в
+  // одном ряду с «К списку» и «С разбором», то есть среди того, чем читают, —
+  // и весило столько же, сколько они. Это действие редкое и служебное: место
+  // ему с краю, размер — с иконку, а подпись отдана заголовку при наведении.
+  const label = copied ? t('Ссылка скопирована') : t('Скопировать ссылку')
   return (
-    <ToolButton
-      accent={accent}
-      on={copied}
+    <button
       onClick={() => {
         copyToClipboard(trainerShareUrl(link)).then(ok => {
           if (!ok) return
@@ -2355,10 +2362,36 @@ function ShareLink({ link, accent }: { link: TrainerLink; accent: string }) {
           timer.current = setTimeout(() => setCopied(false), 2000)
         })
       }}
+      title={label}
+      aria-label={label}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        // 36 — высота таблеток строки (10px padding + 16 строки): кружок обязан
+        // стоять с ними вровень, иначе правый край строки «проваливается».
+        width: 36, height: 36, borderRadius: 999, flexShrink: 0,
+        cursor: 'pointer', fontFamily: 'inherit',
+        border: `1px solid ${copied ? accent : 'var(--color-border-medium)'}`,
+        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
+        color: copied ? accent : 'var(--color-text-2)',
+      }}
     >
-      {copied ? <Check size={14} /> : <Link2 size={14} />}
-      {copied ? t('Ссылка скопирована') : t('Поделиться')}
-    </ToolButton>
+      {copied ? <Check size={15} /> : <Link2 size={15} />}
+    </button>
+  )
+}
+
+/**
+ * Правый край строки управления: счётчик и служебные кнопки.
+ *
+ * Одна группа с `marginLeft: auto`, а не два отдельных элемента с ним же: два
+ * автоотступа делят свободное место пополам, и счётчик уезжал бы в середину
+ * строки вместо правого края.
+ */
+function ToolRight({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+      {children}
+    </span>
   )
 }
 
@@ -2610,15 +2643,17 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       <ToolButton onClick={() => setTour(true)} accent={accent}>
         <HelpCircle size={14} /> {t('Подсказки')}
       </ToolButton>
-      {/* Ссылка ведёт ровно на этот отрывок, а не «в тренажёр»: сцена
-          адресуется вместе со своим произведением, учебный текст — сам собой. */}
-      <ShareLink
-        link={scene && work
-          ? { kind: 'work', workId: work.id, sceneId: scene.id }
-          : { kind: 'text', textId: text.id }}
-        accent={accent}
-      />
-      {text.credit && <ToolCount>{text.credit}</ToolCount>}
+      <ToolRight>
+        {text.credit && <ToolCount>{text.credit}</ToolCount>}
+        {/* Ссылка ведёт ровно на этот отрывок, а не «в тренажёр»: сцена
+            адресуется вместе со своим произведением, учебный текст — сам собой. */}
+        <ShareLink
+          link={scene && work
+            ? { kind: 'work', workId: work.id, sceneId: scene.id }
+            : { kind: 'text', textId: text.id }}
+          accent={accent}
+        />
+      </ToolRight>
     </Toolbar>
   )
 

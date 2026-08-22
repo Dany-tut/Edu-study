@@ -1,4 +1,4 @@
-import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock } from 'lucide-react'
+import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock, Captions, Ear, Lightbulb, PlayCircle } from 'lucide-react'
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
@@ -105,6 +105,31 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
   )
 }
 
+/**
+ * Строка блока «в оригинале»: значок, подпись, текст.
+ *
+ * Подпись слева, а не в начале предложения: три строки читаются как таблица —
+ * «субтитры / что трудно / как смотреть», — и по ним видно, чего не хватает,
+ * не вчитываясь.
+ */
+function OriginalRow({ Icon, label, accent, children }: {
+  Icon: typeof Captions
+  label: string
+  accent: string
+  children: string
+}) {
+  const t = useT()
+  return (
+    <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+      <Icon size={13} style={{ color: accent, flexShrink: 0, marginTop: 3 }} />
+      <span style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
+        <b style={{ color: 'var(--color-text-3)', fontWeight: 700 }}>{t(label)}. </b>
+        {bindShortWords(t(children))}
+      </span>
+    </div>
+  )
+}
+
 // ─── Карточка произведения и его сцены ───────────────────────────────────────
 
 export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSpoilers }: {
@@ -202,6 +227,46 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
             >
               {t('оригинал')} <ExternalLink size={10} />
             </a>
+          </div>
+        )}
+
+        {/* СМОТРЕТЬ И ЧИТАТЬ ЦЕЛИКОМ.
+            Стоит здесь, а не отдельной витриной «что посмотреть»: та показывала
+            бы те же двадцать карточек во втором месте. Человек уже открыл
+            страницу вещи — здесь и место ответу на единственный вопрос, ради
+            которого он сюда шёл: потяну ли я это целиком. */}
+        {work.inOriginal && (
+          <div style={{
+            padding: '14px 16px', borderRadius: 14,
+            background: soft, border: `1px solid ${accent}33`,
+            display: 'flex', flexDirection: 'column', gap: 10,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {work.medium === 'book'
+                ? <BookOpen size={14} style={{ color: accent, flexShrink: 0 }} />
+                : <PlayCircle size={14} style={{ color: accent, flexShrink: 0 }} />}
+              <span style={{ fontSize: 13.5, fontWeight: 780, color: 'var(--color-text)' }}>
+                {work.medium === 'book' ? t('Читать в оригинале') : t('Смотреть в оригинале')}
+              </span>
+              {/* Уровень — единственное, что человек ищет глазами, поэтому он
+                  плашкой, а не строкой в тексте. */}
+              <TileChip tone="accent" accent={accent} soft="var(--color-bg-2)">
+                {t('с')} {work.inOriginal.from}
+              </TileChip>
+              {work.platform && <TileChip tone="mute">{work.platform}</TileChip>}
+            </div>
+
+            <OriginalRow Icon={Captions} label={work.medium === 'book' ? 'Где текст' : 'Субтитры'} accent={accent}>
+              {work.inOriginal.subs}
+            </OriginalRow>
+            <OriginalRow Icon={Ear} label="Что трудно" accent={accent}>
+              {work.inOriginal.hard}
+            </OriginalRow>
+            {work.inOriginal.how && (
+              <OriginalRow Icon={Lightbulb} label={work.medium === 'book' ? 'Как читать' : 'Как смотреть'} accent={accent}>
+                {work.inOriginal.how}
+              </OriginalRow>
+            )}
           </div>
         )}
 

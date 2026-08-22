@@ -19,7 +19,9 @@ import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useT } from '../lib/i18n'
-import { subjectIcon, subjectRank } from '../lib/subjects'
+import { subjectIcon, subjectRank, resolveSubjectPalette } from '../lib/subjects'
+import type { SubjectPalette } from '../lib/theme'
+import { useTheme } from '../store/themeStore'
 import type { Lesson, LessonStatus } from '../data/mockData'
 
 // MOBILE ONLY course (v2) — premium lesson cards (плашки) + level/XP layer.
@@ -41,6 +43,7 @@ const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
 
 export default function MobileCourses() {
   const t = useT()
+  const { dark } = useTheme()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const stats = useStudentData(s => s.stats)
@@ -56,6 +59,13 @@ export default function MobileCourses() {
   const [moduleSheet, setModuleSheet] = useState(false)
 
   const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
+  // Экран курса красится палитрой предмета, а не общим брендовым фиолетом:
+  // корейский — индиго, японский — красный (lib/subjects.ts).
+  const pal = resolveSubjectPalette(subject?.subject, dark)
+  // «Сейчас» — статус текущего урока — тоже предметный, иначе на корейском
+  // курсе половина экрана фиолетовая ни от чего.
+  const statusVisual = (st: LessonStatus): StatusVisual =>
+    st === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[st]
 
   const lessons = useMemo<Lesson[]>(() => {
     if (!subject) return []
@@ -133,15 +143,15 @@ export default function MobileCourses() {
         ) : (
           <div className="flex flex-col" style={{ gap: 14 }}>
             {/* Level / XP hero */}
-            <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-purple-soft)' }}>
+            <div style={{ borderRadius: 20, padding: '14px 16px', background: pal.soft }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
-                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>{t('Уровень')} {level} · {t(rank)}</span>
-                <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--color-purple-text)' }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: pal.text }}>{t('Уровень')} {level} · {t(rank)}</span>
+                <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: pal.text }}>
                   <Zap size={13} />{xpInLevel}/{XP_PER_LEVEL} XP
                 </span>
               </div>
               <div style={{ height: 8, background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 99, overflow: 'hidden' }}>
-                <div style={{ width: `${Math.round((xpInLevel / XP_PER_LEVEL) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#9B6FE8,#C58BFF)', borderRadius: 99 }} />
+                <div style={{ width: `${Math.round((xpInLevel / XP_PER_LEVEL) * 100)}%`, height: '100%', background: `linear-gradient(90deg, ${pal.accent}, color-mix(in srgb, ${pal.accent} 55%, #FFFFFF))`, borderRadius: 99 }} />
               </div>
             </div>
 
@@ -149,7 +159,7 @@ export default function MobileCourses() {
             {courseStats && (
               <div className="flex" style={{ gap: 8 }}>
                 <CourseStat value={`${courseStats.done}/${courseStats.total}`} label={t('Уроков')} pair={STATUS_VISUAL.completed} />
-                <CourseStat value={`${courseStats.progress}%`} label={t('Пройдено')} pair={STATUS_VISUAL.current} />
+                <CourseStat value={`${courseStats.progress}%`} label={t('Пройдено')} pair={statusVisual('current')} />
                 <CourseStat value={courseStats.avg ? `${courseStats.avg}%` : '—'} label={t('Ср. балл')} pair={STATUS_VISUAL.submitted} />
               </div>
             )}
@@ -180,7 +190,7 @@ export default function MobileCourses() {
               <div className="flex flex-col" style={{ gap: 10 }}>
                 {lessons.map((lesson, i) => (
                   <LessonCard key={lesson.id} lesson={lesson} status={getDisplayLessonStatus(lesson, now)} index={i}
-                    focused={lesson.id === focusLessonId} onOpen={() => openLesson(lesson.id)} />
+                    pal={pal} focused={lesson.id === focusLessonId} onOpen={() => openLesson(lesson.id)} />
                 ))}
               </div>
             ) : (
@@ -200,6 +210,7 @@ export default function MobileCourses() {
               options={subjects.map(s => ({ id: s.id, label: s.name }))}
               value={subject.id}
               onChange={selectSubject}
+              accent={pal.accent}
             />
           )}
           {showModuleIndex && (
@@ -219,7 +230,7 @@ export default function MobileCourses() {
             const total = m.lessons.length
             const done = m.lessons.filter(l => l.status === 'completed').length
             return (
-              <ModuleRow key={m.id} label={m.label} total={total} done={done}
+              <ModuleRow key={m.id} pal={pal} label={m.label} total={total} done={done}
                 active={moduleTab === m.id}
                 onClick={() => { setModuleTab(m.id); setActiveModule(m.id); setModuleSheet(false) }} />
             )
@@ -241,7 +252,7 @@ function CourseStat({ value, label, pair }: { value: string; label: string; pair
   )
 }
 
-function ModuleRow({ label, total, done, active, onClick }: { label: string; total: number; done: number; active: boolean; onClick: () => void }) {
+function ModuleRow({ label, total, done, active, onClick, pal }: { label: string; total: number; done: number; active: boolean; onClick: () => void; pal: SubjectPalette }) {
   const t = useT()
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
@@ -250,22 +261,22 @@ function ModuleRow({ label, total, done, active, onClick }: { label: string; tot
       onClick={() => { tactile(); onClick() }}
       className="flex items-center text-left"
       style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 13, border: 'none', cursor: 'pointer',
-        background: active ? 'var(--color-purple-soft)' : 'transparent' }}
+        background: active ? pal.soft : 'transparent' }}
     >
       <div className="flex-1 min-w-0">
-        <div className="truncate" style={{ fontSize: 14.5, fontWeight: 700, color: active ? 'var(--color-accent)' : 'var(--color-text)' }}>{label}</div>
+        <div className="truncate" style={{ fontSize: 14.5, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
         <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 3 }}>{done} {t('из')} {total} · {pct}%</div>
       </div>
       <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
-        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : 'var(--color-accent)' }} />
+        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : pal.accent }} />
       </div>
     </motion.button>
   )
 }
 
-function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson; status: LessonStatus; index: number; focused: boolean; onOpen: () => void }) {
+function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: Lesson; status: LessonStatus; index: number; focused: boolean; onOpen: () => void; pal: SubjectPalette }) {
   const t = useT()
-  const v = STATUS_VISUAL[status]
+  const v: StatusVisual = status === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[status]
   const Icon = v.icon
   const isLocked = status === 'locked'
   const isCurrent = status === 'current'
@@ -278,8 +289,8 @@ function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson
       style={{
         gap: 12, width: '100%', padding: 12, borderRadius: 20,
         background: 'var(--color-surface)',
-        border: isCurrent ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border-glass)',
-        boxShadow: isCurrent ? '0 0 0 4px rgba(123,63,204,0.12), var(--shadow-sm)' : 'var(--shadow-sm)',
+        border: isCurrent ? `1.5px solid ${pal.accent}` : '1px solid var(--color-border-glass)',
+        boxShadow: isCurrent ? `0 0 0 4px ${pal.ring}, var(--shadow-sm)` : 'var(--shadow-sm)',
         cursor: isLocked ? 'not-allowed' : 'pointer',
         opacity: isLocked ? 0.6 : 1,
       }}

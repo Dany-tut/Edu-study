@@ -82,6 +82,18 @@ export default function TaskVideo({
     onChange(encoded)
   }
 
+  // Объект прогресса для плеера считается ОДИН раз на изменение самого
+  // прогресса. Новый объект на каждый рендер плеер понимает как «прогресс
+  // приехал из базы» и сбрасывает свой — а родитель (домашка) перерисовывается
+  // на каждый ответ в соседнем задании.
+  const initialWatch = useMemo(
+    // Первая точка старта — это не «продолжить», а заданное учителем начало
+    // куска: у часового подкаста разбор нужного места лежит на двадцатой
+    // минуте, и отматывать его руками ученик не должен.
+    () => (watch.position > 0 || !startSeconds ? watch : { ...watch, position: startSeconds }),
+    [watch, startSeconds],
+  )
+
   if (!source) {
     return (
       <div style={{
@@ -105,21 +117,14 @@ export default function TaskVideo({
         <LessonVideoPlayer
           source={source}
           title={title}
-          initialWatch={
-            // Первая точка старта — это не «продолжить», а заданное учителем
-            // начало куска: у часового подкаста разбор нужного места лежит на
-            // двадцатой минуте, и отматывать его руками ученик не должен.
-            watch.position > 0 || !startSeconds
-              ? watch
-              : { ...watch, position: startSeconds }
-          }
+          initialWatch={initialWatch}
+          // onTime не подписываем НАМЕРЕННО. Он зовётся раз в секунду, и любое
+          // обновление watch из него создаёт новый объект initialWatch — а плеер
+          // на смену этого объекта сбрасывает свой внутренний прогресс к
+          // присланному. Получалась гонка: первые секунды просмотра стирались.
+          // Длительность и позиция и так приезжают в onPersist — раз в десять
+          // секунд, на паузе и при уходе с экрана.
           onPersist={persist}
-          onTime={(seconds, duration) => {
-            // Страховка на случай, если плеер закроют раньше первого onPersist:
-            // длительность нужна, чтобы порог «девять десятых» вообще был.
-            if (duration && !watch.duration) setWatch(w => ({ ...w, duration }))
-            if (seconds && !watch.position) setWatch(w => ({ ...w, position: seconds }))
-          }}
         />
       </div>
 

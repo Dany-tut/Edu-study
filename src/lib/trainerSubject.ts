@@ -170,7 +170,20 @@ export function useTrainerSubject(): TrainerSubjectState {
     return out
   }, [courses, tasks, coursesLoaded])
 
-  const [picked, setPicked] = useState(() => read(KEY))
+  /**
+   * Предмет из присланной ссылки. Он СИЛЬНЕЕ и памяти, и курса главной: человек
+   * открыл конкретный рассказ, и показать ему вместо него прошлый предмет —
+   * значит потерять то единственное, зачем он пришёл по этой ссылке.
+   */
+  const linkedSubject = useMemo(() => {
+    const link = bootTrainerLink()
+    return link ? linkSubjectId(link) : undefined
+  }, [])
+
+  const [picked, setPicked] = useState(() => {
+    if (linkedSubject) { write(KEY, linkedSubject); return linkedSubject }
+    return read(KEY)
+  })
 
   /**
    * Предмет курса, открытого на главной.
@@ -199,8 +212,20 @@ export function useTrainerSubject(): TrainerSubjectState {
   // изменился, явный выбор в тренажёре остаётся выбором ученика — иначе
   // «АНГЛИЙСКИЙ», выбранный в меню, слетал на предмет курса при каждом F5.
   const lastCourse = useRef<string>(read(COURSE_KEY))
+  // Курсы приезжают ПОСЛЕ первого кадра, и первый же их приезд выглядит как
+  // смена курса, если в прошлый раз тренажёр синхронизировался с другим. Для
+  // ссылки это означало бы: предмет из ссылки поставили и тут же затёрли
+  // предметом курса главной. Первую синхронизацию после перехода по ссылке
+  // пропускаем — она про память, а не про действие ученика.
+  const linkFresh = useRef(!!linkedSubject)
   useEffect(() => {
     if (!courseSubject) return
+    if (linkFresh.current) {
+      linkFresh.current = false
+      lastCourse.current = courseSubject
+      write(COURSE_KEY, courseSubject)
+      return
+    }
     if (lastCourse.current && lastCourse.current !== courseSubject) {
       write(KEY, courseSubject)
       setPicked(courseSubject)

@@ -42,7 +42,6 @@ import MobileScreen from '../components/MobileScreen'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
 import { useTrainerSubject } from '../lib/trainerSubject'
-import { bootTrainerLink, linkSubjectId } from '../lib/trainerLink'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
@@ -1450,22 +1449,6 @@ export default function TaskBankPage() {
   const subjectState = useTrainerSubject()
   const langSubject = subjectState.current?.def
   const isLangTrainer = !!langSubject?.isLanguage
-
-  // Пришли по ссылке на рассказ — открываем ТОТ предмет, в котором он живёт.
-  // Иначе присланный корейский отрывок открывался бы в том языке, который был
-  // выбран в прошлый раз, то есть в пустой полке (см. lib/trainerLink).
-  // Предмет ждёт загрузки курсов: до неё options пуст и pick некуда применить.
-  const linkedSubject = useMemo(() => {
-    const link = bootTrainerLink()
-    return link ? linkSubjectId(link) : undefined
-  }, [])
-  const linkApplied = useRef(false)
-  useEffect(() => {
-    if (linkApplied.current || !linkedSubject) return
-    if (!subjectState.options.some(o => o.def.id === linkedSubject)) return
-    linkApplied.current = true
-    if (subjectState.current?.def.id !== linkedSubject) subjectState.pick(linkedSubject)
-  }, [linkedSubject, subjectState])
 
   // Часы захода — общие на оба тренажёра, поэтому стоят ДО развилки: время в
   // корейских карточках считается ровно так же, как время в банке ЕГЭ.

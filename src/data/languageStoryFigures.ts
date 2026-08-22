@@ -196,3 +196,150 @@ export function tenseLadderFigure(): string {
 
   return toDataUri(sheet(w, h, 'Похожие звуки выглядят похоже', head + body + note))
 }
+
+// ─── Японский ────────────────────────────────────────────────────────────────
+
+/**
+ * Одно предложение, раскрашенное по письменностям.
+ *
+ * Главный шок первого дня: японский текст написан не одной системой, а тремя
+ * сразу, и они делят работу. Объяснить это словами можно, но человек всё равно
+ * будет видеть «кашу из значков», пока не увидит разметку цветом на живой
+ * фразе.
+ */
+export function scriptMixFigure(): string {
+  const KANJI = '#C8102E'
+  const HIRA = '#2F6DB5'
+  const KATA = '#1F7A5C'
+
+  const parts: { text: string; kind: 'kanji' | 'hira' | 'kata' }[] = [
+    { text: '私', kind: 'kanji' },
+    { text: 'は', kind: 'hira' },
+    { text: 'コーヒー', kind: 'kata' },
+    { text: 'を', kind: 'hira' },
+    { text: '飲', kind: 'kanji' },
+    { text: 'みます', kind: 'hira' },
+  ]
+  const color = { kanji: KANJI, hira: HIRA, kata: KATA }
+
+  const fs = 30
+  // Ширину считаем по знакам: японские рисуются квадратными, ширина ≈ кегль.
+  const widths = parts.map(p => [...p.text].length * fs)
+  const total = widths.reduce((a, b) => a + b, 0)
+  const w = W
+  let x = (w - total) / 2
+
+  const glyphs = parts.map((p, i) => {
+    const at = x
+    x += widths[i]
+    return [
+      `<text x="${at}" y="112" font-size="${fs}" font-weight="600" fill="${color[p.kind]}">${esc(p.text)}</text>`,
+      `<line x1="${at + 2}" y1="124" x2="${at + widths[i] - 2}" y2="124" stroke="${color[p.kind]}" stroke-width="3" stroke-linecap="round"/>`,
+    ].join('')
+  }).join('')
+
+  const legend = [
+    { c: KANJI, name: 'кандзи', what: 'корни слов — смысл' },
+    { c: HIRA, name: 'хирагана', what: 'окончания и частицы — грамматика' },
+    { c: KATA, name: 'катакана', what: 'заимствования и звукоподражания' },
+  ].map((l, i) => {
+    const y = 162 + i * 26
+    return [
+      `<rect x="86" y="${y - 9}" width="14" height="14" rx="4" fill="${l.c}"/>`,
+      `<text x="110" y="${y + 3}" font-size="13" font-weight="700" fill="${INK}">${esc(l.name)}</text>`,
+      `<text x="204" y="${y + 3}" font-size="12.5" fill="${MUTED}">${esc(l.what)}</text>`,
+    ].join('')
+  }).join('')
+
+  const gloss = `<text x="${w / 2}" y="${248}" text-anchor="middle" font-size="12.5" fill="${MUTED}">${esc('«Я пью кофе» — watashi wa kōhī o nomimasu')}</text>`
+
+  return toDataUri(sheet(w, 268, 'Три письменности в одном предложении', glyphs + legend + gloss))
+}
+
+/**
+ * Откуда взялась кана.
+ *
+ * И хирагана, и катакана — это скорописные и урезанные иероглифы. Пока этого не
+ * знаешь, кана выглядит набором произвольных закорючек, которые надо зубрить;
+ * узнав, видишь в ней иероглиф и запоминаешь вдвое быстрее.
+ */
+export function kanaOriginFigure(): string {
+  const rows = [
+    { from: '安', hira: 'あ', kata: '阿', katakana: 'ア', read: 'a' },
+    { from: '加', hira: 'か', kata: '加', katakana: 'カ', read: 'ka' },
+    { from: '毛', hira: 'も', kata: '毛', katakana: 'モ', read: 'mo' },
+  ]
+  const rowH = 62
+  const w = W, h = 96 + rows.length * rowH + 34
+
+  const head = [
+    ['иероглиф', 150], ['скоропись → хирагана', 300], ['часть знака → катакана', 470],
+  ].map(([label, x]) => `<text x="${x}" y="62" text-anchor="middle" font-size="11.5" font-weight="700" fill="${MUTED}">${esc(String(label))}</text>`).join('')
+
+  const body = rows.map((r, i) => {
+    const y = 78 + i * rowH
+    const cell = (x: number, sym: string, accent: boolean) => [
+      `<rect x="${x - 26}" y="${y}" width="52" height="48" rx="10" fill="${accent ? ACCENT_SOFT : TILE}" stroke="${accent ? ACCENT : GRID}" stroke-width="1.2"/>`,
+      `<text x="${x}" y="${y + 34}" text-anchor="middle" font-size="27" font-weight="600" fill="${accent ? ACCENT : INK}">${esc(sym)}</text>`,
+    ].join('')
+    const arrow = (x: number) => `<text x="${x}" y="${y + 30}" text-anchor="middle" font-size="15" fill="${GRID}">→</text>`
+    return [
+      cell(150, r.from, false),
+      arrow(225),
+      cell(300, r.hira, true),
+      arrow(385),
+      cell(470, r.katakana, true),
+      `<text x="536" y="${y + 30}" font-size="13" fill="${MUTED}">${esc(r.read)}</text>`,
+    ].join('')
+  }).join('')
+
+  const note = `<text x="${w / 2}" y="${h - 14}" text-anchor="middle" font-size="11.5" fill="${MUTED}">${esc('Хирагана — иероглиф, написанный скорописью целиком. Катакана — кусок иероглифа, взятый для скорости.')}</text>`
+
+  return toDataUri(sheet(w, h, 'Кана — это бывшие иероглифы', head + body + note))
+}
+
+// ─── Португальский ───────────────────────────────────────────────────────────
+
+/**
+ * Назальные гласные — то, чем португальский отличается от испанского на слух.
+ *
+ * Русскому уху назальный звук не даётся не потому, что он трудный, а потому,
+ * что его не с чем сопоставить: в русском такого нет вовсе. Показать разницу
+ * парами — самый короткий путь: pá и pão различаются ТОЛЬКО носом.
+ */
+export function nasalVowelsFigure(): string {
+  const pairs = [
+    { oral: 'pá', nasal: 'pão', ru: 'лопата — хлеб' },
+    { oral: 'mau', nasal: 'mão', ru: 'плохой — рука' },
+    { oral: 'vi', nasal: 'vim', ru: 'я увидел — я пришёл' },
+    { oral: 'lá', nasal: 'lã', ru: 'там — шерсть' },
+  ]
+  const rowH = 46
+  const w = W, h = 128 + pairs.length * rowH + 34
+
+  // Схема «куда идёт воздух» стоит СЛЕВА от таблицы и без собственных подписей:
+  // сплошная линия и пунктир повторяют цвета заголовков колонок, а вторая пара
+  // слов «рот / нос» рядом с ними налезала на эти же заголовки.
+  const head = [
+    `<circle cx="52" cy="128" r="5" fill="${INK}"/>`,
+    `<path d="M 57 128 L 108 122" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+    `<path d="M 57 125 Q 84 96 108 100" stroke="${ACCENT}" stroke-width="1.8" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>`,
+    `<text x="176" y="76" text-anchor="middle" font-size="11.5" font-weight="700" fill="${MUTED}">через рот</text>`,
+    `<text x="330" y="76" text-anchor="middle" font-size="11.5" font-weight="700" fill="${ACCENT}">через нос</text>`,
+  ].join('')
+
+  const body = pairs.map((p, i) => {
+    const y = 128 + i * rowH
+    return [
+      `<text x="176" y="${y}" text-anchor="middle" font-size="19" font-weight="650" fill="${INK}">${esc(p.oral)}</text>`,
+      `<text x="253" y="${y}" text-anchor="middle" font-size="14" fill="${GRID}">≠</text>`,
+      `<rect x="286" y="${y - 24}" width="88" height="34" rx="9" fill="${ACCENT_SOFT}"/>`,
+      `<text x="330" y="${y}" text-anchor="middle" font-size="19" font-weight="650" fill="${ACCENT}">${esc(p.nasal)}</text>`,
+      `<text x="398" y="${y - 3}" font-size="12.5" fill="${MUTED}">${esc(p.ru)}</text>`,
+    ].join('')
+  }).join('')
+
+  const note = `<text x="${w / 2}" y="${h - 14}" text-anchor="middle" font-size="11.5" fill="${MUTED}">${esc('Тильда (ã, õ) и конечные -m, -n не читаются как звук — они говорят «пустите воздух в нос».')}</text>`
+
+  return toDataUri(sheet(w, h, 'Назальность: главный звук португальского', head + body + note))
+}

@@ -117,13 +117,18 @@ export default function MobileBottomNav() {
                 style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
               />
               {item.id === 'homework' && hwBadge > 0 && (
+                // Сплошная заливка — только --grad-purple: в тёмной теме
+                // --color-accent светло-лавандовый, белые цифры на нём терялись.
+                // Якорь от центра иконки, чтобы трёхзначное число росло вправо,
+                // а не наползало на соседний пункт.
                 <span style={{
-                  position: 'absolute', top: 2, right: 6,
-                  minWidth: 16, height: 16, padding: '0 4px',
-                  borderRadius: 999, background: 'var(--color-accent)',
-                  color: '#fff', fontSize: 9, fontWeight: 700,
+                  position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',
+                  minWidth: 16, height: 16, padding: '0 5px',
+                  borderRadius: 999, background: 'var(--grad-purple)',
+                  color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{hwBadge}</span>
+                  boxShadow: '0 2px 6px rgba(106,90,230,0.45)',
+                }}>{hwBadge > 99 ? '99+' : hwBadge}</span>
               )}
               <motion.span
                 initial={false}

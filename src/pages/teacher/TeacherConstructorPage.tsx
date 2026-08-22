@@ -1510,6 +1510,13 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
  * фильтровать не по чему (один предмет, ни одного заполненного уровня) —
  * кнопка не рисуется вообще, чтобы не занимать строку мёртвым контролом.
  */
+/**
+ * Разделитель в списке опций фасета: строка-маркер, которую дропдаун рисует
+ * тонкой чертой вместо кнопки. Так список предметов делится на «все» → языки →
+ * остальные, не заводя второй тип данных для опций.
+ */
+const FACET_SEP = '\u0000sep'
+
 function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, iconGap = 6, onChange }: {
   value: string
   options: string[]
@@ -1525,10 +1532,13 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
   onChange: (v: string) => void
 }) {
   const [open, setOpen] = useState(false)
-  if (options.length < 2) return null
+  if (options.filter(o => o !== FACET_SEP).length < 2) return null
   const accent = 'var(--color-green-text)'
   const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
-  const rows = ['', ...options]
+  // Группы разделены — значит и «все» отделяем от них, иначе первая группа
+  // слипается с общей строкой.
+  const grouped = options.includes(FACET_SEP)
+  const rows = ['', ...(grouped ? [FACET_SEP] : []), ...options]
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
@@ -1549,7 +1559,9 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
               background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
               border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
             <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
-              {rows.map(val => (
+              {rows.map((val, i) => val === FACET_SEP ? (
+                <div key={`sep${i}`} style={{ height: 1, margin: '5px 8px', background: 'var(--color-border)' }} />
+              ) : (
                 <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                     width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
@@ -7527,10 +7539,14 @@ export default function TeacherConstructorPage() {
     () => [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id))],
     [courses, seedById],
   )
-  const subjectOpts = useMemo(
-    () => [...new Set(allCourses.map(c => c.subject.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru')),
-    [allCourses],
-  )
+  // Языки идут своим блоком: их курсов больше всего, и искать «Корейский»
+  // среди химий неудобно. Между «все предметы», языками и остальным — черта.
+  const subjectOpts = useMemo(() => {
+    const all = [...new Set(allCourses.map(c => c.subject.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'))
+    const langs = all.filter(s => isLanguageSubject(s))
+    const rest = all.filter(s => !isLanguageSubject(s))
+    return langs.length && rest.length ? [...langs, FACET_SEP, ...rest] : all
+  }, [allCourses])
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(

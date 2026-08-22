@@ -425,19 +425,27 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
  * Отдельно от RailModes: тот всегда что-то выбран и живёт как навигация, а
  * сегмент — это фильтр, который можно снять повторным нажатием.
  */
-export function RailSegment({ options, value, onChange, accent, soft, clearable = true }: {
+export function RailSegment({ options, value, onChange, accent, soft, clearable = true, idleIcon = false }: {
   options: { value: string; label: string; badge?: number; icon?: ReactNode }[]
   value: string
   onChange: (v: string) => void
   accent: string
   soft: string
   clearable?: boolean
+  /**
+   * Подпись только у выбранного, у остальных — одна иконка. Четыре подписи в
+   * ряд шириной в рейл ломались пополам («Шэдо/уинг», «Расск/аз»); выбранный
+   * забирает освободившееся место и читается целиком, остальные ждут значками.
+   */
+  idleIcon?: boolean
 }) {
   const t = useT()
   return (
     <div style={{ display: 'flex', gap: 6 }}>
       {options.map(o => {
         const on = value === o.value
+        // Значок вместо подписи — только пока кнопка не выбрана и значок есть.
+        const mute = idleIcon && !on && !!o.icon
         return (
           <button
             key={o.value}
@@ -454,8 +462,8 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               // ломалась пополам. Высота (9 px сверху и снизу) та же.
               // Иконочный вариант не растягивается: подпись ему не нужна, а
               // равная доля ряда только резала бы соседний текст многоточием.
-              flex: o.icon ? '0 0 auto' : 1, minWidth: 0,
-              padding: o.icon ? '9px 11px' : '9px 6px', borderRadius: 13, cursor: 'pointer',
+              flex: (mute || (o.icon && !idleIcon)) ? '0 0 auto' : 1, minWidth: 0,
+              padding: (mute || (o.icon && !idleIcon)) ? '9px 11px' : '9px 6px', borderRadius: 13, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
               border: 'none',
@@ -464,7 +472,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               transition: 'all 0.15s ease',
             }}
           >
-            {o.icon
+            {(mute || (o.icon && !idleIcon))
               ? <span style={{ display: 'flex', alignItems: 'center' }}>{o.icon}</span>
               : <span style={{ lineHeight: 1.2, textAlign: 'center', ...clamp2 }}>{t(o.label)}</span>}
             {o.badge !== undefined && o.badge > 0 && (

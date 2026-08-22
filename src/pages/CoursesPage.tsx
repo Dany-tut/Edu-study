@@ -135,6 +135,29 @@ export default function CoursesPage() {
     return () => document.removeEventListener('pointerdown', onDown)
   }, [searchExpanded])
 
+  // Десктопный кружок: фокус на раскрытии, схлопывание по клику мимо и по Esc.
+  // Запрос при схлопывании сохраняется — кружок красится акцентом, чтобы «занятия
+  // отфильтрованы» не превратилось в невидимое состояние.
+  useEffect(() => {
+    if (deskSearchOpen) dSearchRef.current?.focus({ preventScroll: true })
+    // Схлопнули — снимаем фокус: иначе набор продолжал бы улетать в поле нулевой
+    // ширины, и буквы фильтровали бы занятия невидимо для глаза.
+    else dSearchRef.current?.blur()
+  }, [deskSearchOpen])
+  useEffect(() => {
+    if (!deskSearchOpen) return
+    const onDown = (e: PointerEvent) => {
+      if (!dSearchPillRef.current?.contains(e.target as Node)) setDeskSearchOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDeskSearchOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [deskSearchOpen])
+
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject ? [
     { id: ALL, label: t('Все') },
     ...subject.modules.map(m => ({ id: m.id, label: m.label })),
@@ -158,38 +181,56 @@ export default function CoursesPage() {
     <div className="flex flex-col" style={{ gap: 18 }}>
       {/* ── Row 1: search (desktop only) + subject pills ── */}
       <div className="flex items-center gap-3" style={{ minWidth: 0 }}>
-        {/* Search field — desktop only; on mobile it lives in the bottom dock. */}
+        {/* Search field — desktop only; on mobile it lives in the bottom dock.
+            Свёрнут в кружок: морфится только ШИРИНА (как в доке), поэтому иконка
+            не прыгает, а фон с размытием не мигает. */}
         {isDesktop && (
-        <div
+        <motion.div
+          ref={dSearchPillRef}
           className="flex items-center"
+          initial={false}
+          animate={{ width: deskSearchOpen ? 320 : 40 }}
+          transition={FIELD_MORPH}
+          onClick={() => { if (!deskSearchOpen) setDeskSearchOpen(true) }}
+          aria-label={t('Поиск')}
           style={{
-            gap: 8,
+            gap: deskSearchOpen ? 8 : 0,
             height: 40,
-            padding: '0 16px',
+            flex: '0 0 auto',
+            padding: '0 11px',
+            overflow: 'hidden',
             borderRadius: 999,
             background: 'rgba(var(--glass-rgb), 0.95)',
             border: '1px solid var(--color-border-soft)',
             boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            flex: '1 1 220px',
-            maxWidth: 320,
+            color: search ? 'var(--color-accent)' : 'var(--color-text-3)',
+            cursor: deskSearchOpen ? 'text' : 'pointer',
           }}
         >
-          <Search size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+          <Search size={16} style={{ flexShrink: 0 }} />
           <input
+            ref={dSearchRef}
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('Поиск')}
             style={{
-              flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+              flex: deskSearchOpen ? 1 : 0, width: deskSearchOpen ? undefined : 0,
+              minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
               fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
+              opacity: deskSearchOpen ? 1 : 0,
+              pointerEvents: deskSearchOpen ? 'auto' : 'none',
             }}
           />
-          {search && (
-            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          {deskSearchOpen && (
+            <button
+              onClick={e => { e.stopPropagation(); setSearch(''); setDeskSearchOpen(false) }}
+              aria-label={t('Закрыть поиск')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+            >
               <X size={14} />
             </button>
           )}
-        </div>
+        </motion.div>
         )}
 
         {/* Subject pills — одна строка со скроллом: курсов много, и перенос
