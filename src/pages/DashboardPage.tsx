@@ -37,19 +37,23 @@ function useIsDesktop() {
   return isDesktop
 }
 
-const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile'> = {
+const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile' | 'homeworkList'> = {
   '#/': 'home',
   '#': 'home',
   '': 'home',
   '#/courses': 'courses',
   '#/trainer': 'trainer',
   '#/profile': 'profile',
+  // Вкладка «ДЗ» (каталог занятий). Без слэша и без id — «#/homework/<id>»
+  // ниже разбирает LESSON_HASH_RE, это сама домашка конкретного урока.
+  '#/homework': 'homeworkList',
 }
 const PAGE_TO_HASH: Record<string, string> = {
   home: '#/',
   courses: '#/courses',
   trainer: '#/trainer',
   profile: '#/profile',
+  homeworkList: '#/homework',
 }
 // Lesson & homework encode the lesson id in the hash so a hard refresh (F5)
 // restores the exact view instead of dropping the student back on Home.
@@ -327,6 +331,20 @@ export default function DashboardPage() {
           <MobileProfilePage />
         ) : activePage === 'trainer' ? (
           <TaskBankPage />
+        ) : activePage === 'homeworkList' ? (
+          /* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
+             сортировка в нижнем доке). Отдельная страница, а не 'homework':
+             та открывает домашку текущего урока и без неё отбивает назад. */
+          <div style={{
+            minHeight: '100dvh', background: 'var(--color-bg)',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingLeft: 16, paddingRight: 16,
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
+            overflowX: 'clip', overscrollBehavior: 'contain',
+          }}>
+            <CoursesPage />
+            <MobileBottomNav />
+          </div>
         ) : (
           <div style={{
             minHeight: '100dvh', background: 'var(--color-bg)',

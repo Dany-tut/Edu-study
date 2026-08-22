@@ -25,6 +25,23 @@ export interface SubjectDef {
   /** True for language subjects — unlocks the language task-type palette (audio, word-bank, essay…). */
   isLanguage?: boolean
   /**
+   * Язык РОДНОЙ, а не изучаемый: русский и литература.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНЫЙ ФЛАГ, А НЕ ОТДЕЛЬНЫЙ ДВИЖОК. Вся языковая машина — карточки,
+   * интервальные повторения, стопки, разбор слова по клику — построена на паре
+   * «слово чужого языка → русский перевод». У родного языка перевода нет, и
+   * карточка «слово → перевод» на русском вырождается в бессмыслицу («досада —
+   * досада»). Но сама механика (колода, свайп, SRS, стопки, запись голоса)
+   * подходит идеально, и вторая её копия разъехалась бы с первой на первой же
+   * правке.
+   *
+   * Поэтому движок один, а поля читаются иначе: `ru` — не перевод, а ТОЛКОВАНИЕ
+   * своими словами, `reading` — ударение и произношение (звони́т), `alt` —
+   * синонимы слова, по которым засчитывается ответ. Флаг переключает подписи и
+   * проверку ответа (lib/answerMatch.ts), а не набор экранов.
+   */
+  native?: boolean
+  /**
    * BCP-47 изучаемого языка. Нужен там, где предмет надо сопоставить с
    * контентом на этом языке: библиотека текстов, синтез речи, словари.
    * У неязыковых предметов не заполняется.
@@ -46,6 +63,11 @@ export const DEFAULT_RANKS = ['Старт', 'Новичок', 'Ученик', '�
 // Языкам лестница общая: путь от букв к свободной речи одинаков и для
 // корейского, и для португальского.
 const LANG_RANKS = ['Старт', 'Алфавит', 'Слова', 'Фразы', 'Диалоги', 'Свободная речь', 'Мастер']
+
+// Родному языку та же лестница не годится: «Алфавит» и «Свободная речь» у
+// человека, который говорит по-русски с рождения, уже пройдены при рождении.
+// Русский растёт не вширь, а вглубь: разговор → точность → стиль → публично.
+const NATIVE_RANKS = ['Старт', 'Разговор', 'Точность', 'Стиль', 'Публично', 'Мастерская', 'Мастер']
 
 // ── Palette helpers ──────────────────────────────────────────────────────────
 function hexToRgba(hex: string, a: number): string {
@@ -121,13 +143,14 @@ export const SUBJECTS: SubjectDef[] = [
   { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, ranks: ['Старт', 'Клетка', 'Ткани', 'Организм', 'Экосистема', 'Эксперт', 'Мастер'], light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
   { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ranks: ['Старт', 'Механика', 'Энергия', 'Поля', 'Кванты', 'Эксперт', 'Мастер'], ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
   { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ranks: ['Старт', 'Числа', 'Уравнения', 'Функции', 'Пределы', 'Эксперт', 'Мастер'], ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
-  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, langCode: 'ru', ranks: ['Старт', 'Буквы', 'Слова', 'Предложения', 'Текст', 'Эксперт', 'Мастер'], ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
-  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
+  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: NATIVE_RANKS, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
+  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
   { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ranks: ['Старт', 'Даты', 'Эпохи', 'Реформы', 'Хроника', 'Эксперт', 'Мастер'], ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
   { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
   { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ranks: LANG_RANKS, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
   { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ranks: LANG_RANKS, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
   { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ranks: LANG_RANKS, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
+  { id: 'german', name: 'Немецкий', icon: '🇩🇪', hasBank: false, isLanguage: true, langCode: 'de', ranks: LANG_RANKS, ...palettePair('#3E6B92', '#6E9BC4', '#2C5273', '#9CBEDC') },
 ]
 
 // Lookup by either the English id or the Russian name, case-insensitive.
@@ -147,6 +170,11 @@ export function getSubject(idOrName: string | undefined | null): SubjectDef | un
 export function resolveSubjectPalette(idOrName: string | undefined, dark = false): SubjectPalette {
   const s = getSubject(idOrName) ?? SUBJECTS[0] // SUBJECTS[0] === chemistry
   return dark ? s.dark : s.light
+}
+
+/** Родной язык (русский, литература): карточка несёт толкование, а не перевод. */
+export function isNativeSubject(idOrName: string | undefined): boolean {
+  return !!getSubject(idOrName)?.native
 }
 
 /** Emoji for a subject, '📚' if unknown. */

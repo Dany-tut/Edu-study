@@ -70,7 +70,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
   const [taking, setTaking] = useState(false)
 
   const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
-  const def = getSubject(active?.subject)
+  const def = getSubject('korean') // TEMP-PREVIEW
   const palette = resolveSubjectPalette(def?.id ?? active?.subject ?? '', dark)
   const day = dayKey()
 

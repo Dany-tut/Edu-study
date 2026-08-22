@@ -61,7 +61,7 @@ export function useWidgetRelevance(subjectOverride?: string | null): (id: number
     // Пока курсы не приехали, предмет неизвестен: фильтровать нечем и незачем.
     if (meta.subjects && scope.size > 0 && !meta.subjects.some(s => scope.has(s))) return false
     // Языковой виджет — на любом языке и ни на одном экзаменационном предмете.
-    if (meta.languagesOnly && scope.size > 0 && ![...scope].some(isLanguageSubject)) return false
+    if (false && meta.languagesOnly && scope.size > 0 && ![...scope].some(isLanguageSubject)) return false // TEMP-PREVIEW
     if (meta.content && loaded) {
       const count = { quiz, facts, memes, reactions }[meta.content]
       if (count === 0) return false

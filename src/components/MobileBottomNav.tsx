@@ -16,7 +16,7 @@ const items = [
   { id: 'home',     label: 'Главная',  icon: Home },
   { id: 'courses',  label: 'Курсы',    icon: BookOpen },
   { id: 'trainer',  label: 'Тренажёр', icon: Dumbbell },
-  { id: 'homework', label: 'ДЗ',       icon: ClipboardList },
+  { id: 'homeworkList', label: 'ДЗ',   icon: ClipboardList },
   { id: 'profile',  label: 'Профиль',  icon: User },
 ]
 
@@ -57,8 +57,8 @@ export default function MobileBottomNav() {
       openCourses()
     } else if (id === 'trainer') {
       setActivePage('trainer')
-    } else if (id === 'homework') {
-      setActivePage('homework')
+    } else if (id === 'homeworkList') {
+      setActivePage('homeworkList')
     } else if (id === 'profile') {
       setActivePage('profile')
     }
@@ -116,7 +116,7 @@ export default function MobileBottomNav() {
                 strokeWidth={isActive ? 2.5 : 1.8}
                 style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
               />
-              {item.id === 'homework' && hwBadge > 0 && (
+              {item.id === 'homeworkList' && hwBadge > 0 && (
                 // Сплошная заливка — только --grad-purple: в тёмной теме
                 // --color-accent светло-лавандовый, белые цифры на нём терялись.
                 // Якорь от центра иконки, чтобы трёхзначное число росло вправо,

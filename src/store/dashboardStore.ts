@@ -10,7 +10,11 @@ import { trackEvent } from '../lib/analytics'
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
 // its player + materials (screen 2), 'homework' is the dedicated homework page.
-export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'trainer' | 'profile'
+// 'homework' — это САМА домашка открытого урока (HomeworkFlow), а
+// 'homeworkList' — вкладка «ДЗ» в мобильном доке: каталог занятий со
+// статусами. Их нельзя мешать: страж «домашки у урока нет — вернись в урок»
+// отбивал тап по вкладке, и из урока в «ДЗ» было не попасть.
+export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'homeworkList' | 'trainer' | 'profile'
 
 export interface HomeworkWidgetFeedback {
   lessonTitle: string

@@ -148,6 +148,45 @@ if (VERIFY) {
     .toLowerCase()
     .trim()
 
+  /**
+   * Текст источника — оттуда, где он вообще есть.
+   *
+   * Одной страницей это не решается. У Викиновостей статья лежит в вики-разметке
+   * и отдаётся API целиком — HTML страницы даёт то же, но вперемешку с меню и
+   * сносками. У NASA половина заметок живёт на страницах, которые собираются
+   * джаваскриптом: в HTML текста нет вообще, зато он есть в RSS, откуда мы его
+   * и брали. Поэтому порядок такой: API вики → страница → фид источника.
+   */
+  const feedCache = new Map()
+  async function sourceText(url) {
+    const wiki = url.match(/^https:\/\/(\w+\.wikinews\.org)\/wiki\/(.+)$/)
+    if (wiki) {
+      const api = `https://${wiki[1]}/w/api.php?action=query&prop=extracts&explaintext=1`
+        + `&titles=${encodeURIComponent(decodeURIComponent(wiki[2]).replace(/_/g, ' '))}&format=json`
+      const page = Object.values(JSON.parse(await get(api))?.query?.pages ?? {})[0]
+      if (page?.extract) return page.extract
+    }
+
+    const html = await get(url)
+    if (html.length > 2000) {
+      // Заметка со страницы могла и не приехать (SPA) — тогда добираем фидом.
+      const feed = OUTLET_FEEDS.find(f => url.startsWith(f.host))
+      if (!feed) return html
+      if (!feedCache.has(feed.url)) feedCache.set(feed.url, await get(feed.url))
+      return html + ' ' + feedCache.get(feed.url)
+    }
+    return html
+  }
+
+  // Фиды живых источников — как запасной источник правды для --verify.
+  const OUTLET_FEEDS = [...src.matchAll(/home: '([^']+)',\s*\n\s*feed: '([^']+)',/g)]
+    .map(m => ({ host: new URL(m[1]).origin, url: m[2] }))
+    // NASA раскладывает заметки по двум доменам (nasa.gov и science.nasa.gov),
+    // а фид у них общий — иначе половина ссылок не находит свой фид.
+    .flatMap(f => (f.host.includes('nasa.gov')
+      ? [f, { host: 'https://science.nasa.gov', url: f.url }]
+      : [f]))
+
   for (const [lang, path] of Object.entries(files)) {
     const text = readFileSync(path, 'utf8')
     // Разбираем файл по материалам: id, url, textOrigin и body в бэктиках.

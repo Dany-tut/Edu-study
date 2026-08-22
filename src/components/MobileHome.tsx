@@ -194,7 +194,7 @@ export default function MobileHome() {
           )}
 
           {/* Домашнее задание */}
-          <PendingHWCard subjects={scanSubjects} onOpenHW={() => setActivePage('homework')} />
+          <PendingHWCard subjects={scanSubjects} onOpenHW={() => setActivePage('homeworkList')} />
 
           {/* Быстрые действия */}
           <div className="flex" style={{ gap: 8 }}>
