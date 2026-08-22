@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -25,6 +25,11 @@ import MultiSelectField from './MultiSelectField'
 import { addCards, collectedCards, deckOwner, dueCount, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 import { hasWordPacks, loadWordPacks } from '../data/wordPackBooks'
+import { hasStory, loadStory } from '../data/languageGuides'
+import { hasTextbooks, textbooksForLang } from '../data/textbooks'
+import { StoryGrid, StoryChapterPage } from './trainer/StoryReader'
+import { BookShelf } from './trainer/BookShelf'
+import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import {
   hasScenes, loadScenes, sceneCount, scenesWord, shelvesForLang, worksForLang, workById,
@@ -79,7 +84,7 @@ import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressS
 // ссылки к урокам курса, а не на собственную библиотеку. Говорение записывает
 // ответ и отдаёт учителю — автоматической оценки произношения нет.
 
-type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar'
+type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar' | 'guide'
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
   { id: 'reading',   label: 'Чтение',     hint: 'Тексты с вопросами',       Icon: BookOpen },
@@ -95,7 +100,16 @@ const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] 
   // номер двенадцать не отвечает: форму надо найти, а не пройти. Появляется у
   // языков, для которых справочник написан (см. data/grammar).
   { id: 'grammar',   label: 'Грамматика', hint: 'Справочник форм',          Icon: BookMarked },
+  // Седьмой режим отвечает на вопрос, которого нет ни у одного из остальных:
+  // ПОЧЕМУ язык такой. Справочник объясняет форму, курс ведёт по программе, а
+  // «почему хангыль устроен именно так» и «по какому учебнику заниматься» не
+  // спрашивает никто из них — при том, что оба вопроса человек задаёт на
+  // первой неделе и уходит за ответом наружу.
+  { id: 'guide',     label: 'О языке',    hint: 'Как устроен и что читать',  Icon: Compass },
 ]
+
+/** Две половины вкладки «О языке»: рассказ и полка учебников. */
+type GuideView = 'story' | 'books'
 
 /**
  * Две половины «Конструктора».
@@ -570,6 +584,41 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     [packsList, openPackId],
   )
 
+  // ── О языке: рассказ и полка учебников ────────────────────────────────────
+  //
+  // Рассказ ленивый (текст плюс векторные схемы), полка учебников — нет: восемь
+  // описаний книг весят единицы килобайт, и мигание пустой полки ради них было
+  // бы платой ни за что.
+  const storyOn = useMemo(() => hasStory(lang), [lang])
+  const booksOn = useMemo(() => hasTextbooks(lang), [lang])
+  const guideOn = storyOn || booksOn
+  const books = useMemo(() => textbooksForLang(lang), [lang])
+  const [story, setStory] = useState<LanguageStory | null | undefined>(undefined)
+  useEffect(() => {
+    if (!storyOn) { setStory(null); return }
+    let alive = true
+    setStory(undefined)
+    loadStory(lang).then(x => { if (alive) setStory(x ?? null) })
+    return () => { alive = false }
+  }, [storyOn, lang])
+
+  const [guideView, setGuideView] = usePersistentState<GuideView>(
+    `trainer.${lang}.guideView`, storyOn ? 'story' : 'books',
+  )
+  const [openChapterId, setOpenChapterId] = usePersistentState<string | null>(`trainer.${lang}.chapter`, null)
+  const openChapter = useMemo(
+    () => story?.chapters.find(c => c.id === openChapterId) ?? null,
+    [story, openChapterId],
+  )
+  /**
+   * Докуда дочитана каждая глава.
+   *
+   * Живёт ЗДЕСЬ, а не внутри читалки: ту же цифру показывает витрина полоской
+   * «дочитано», и держи её страница у себя — витрине пришлось бы лезть в чужое
+   * хранилище по угаданному ключу.
+   */
+  const [storyRead, setStoryRead] = usePersistentState<Record<string, number>>(`trainer.${lang}.storyRead`, {})
+
   // Восстановленная половина может оказаться несуществующей: разговорник для
   // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
   // есть, — иначе таблетки в рейле нет, а содержимое от неё показано.
@@ -578,6 +627,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     else if (vocabView === 'nests' && !nestsOn) setVocabView(hasBook ? 'sets' : 'due')
     else if (vocabView === 'packs' && !packsOn) setVocabView(hasBook ? 'sets' : 'due')
   }, [vocabView, hasBook, nestsOn, packsOn, setVocabView])
+
+  // То же для «О языке»: восстановленная половина могла исчезнуть вместе с
+  // языком, а режим целиком — вместе с рассказом и полкой.
+  useEffect(() => {
+    if (mode === 'guide' && !guideOn) setMode('reading')
+  }, [mode, guideOn, setMode])
+  useEffect(() => {
+    if (guideView === 'story' && !storyOn) setGuideView('books')
+    else if (guideView === 'books' && !booksOn) setGuideView('story')
+  }, [guideView, storyOn, booksOn, setGuideView])
 
   // Та же защита для конструктора: восстановленная из sessionStorage половина
   // может оказаться ненаписанной для этого языка, а сам режим — отсутствующим.
@@ -916,7 +975,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openStem || openRoot))
+  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openStem || openRoot || openChapter))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -984,6 +1043,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0),
     // Из синхронного реестра — чтобы бейдж стоял до того, как чанк поехал.
     grammar: grammarOn ? (GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[lang.split('-')[0]]) : undefined,
+    // Главы рассказа плюс книги на полке. Книги известны синхронно, главы — нет
+    // (рассказ едет чанком), поэтому до загрузки в бейдже стоят только книги, а
+    // не ноль: ноль читался бы как «раздел пустой».
+    guide: guideOn ? (story ? story.chapters.length : 0) + books.length : undefined,
   }
 
   const heroSubtitle =
@@ -1005,7 +1068,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
-            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn))
+            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guideOn))
             .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
@@ -1021,11 +1084,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           <RailCard title="Раздел" accent={palette.accent} icon={<BookMarked size={15} />}>
             <RailList
               items={[
-                { id: '', label: t('Все разделы'), sub: String(gram.forms.length) },
+                { id: '', label: t('Все разделы'), hint: String(gram.forms.length) },
                 ...gram.chapters.map(c => ({
                   id: c,
                   label: t(c),
-                  sub: String(gram.forms.filter(f => f.chapter === c).length),
+                  hint: String(gram.forms.filter(f => f.chapter === c).length),
                 })),
               ]}
               value={gChapter}
@@ -1345,6 +1408,46 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
+      {mode === 'guide' && (
+        <>
+          <RailCard title="Раздел" accent={palette.accent} icon={<Compass size={15} />}>
+            <RailSegment
+              options={[
+                ...(storyOn ? [{ value: 'story', label: 'Как устроен' }] : []),
+                ...(booksOn ? [{ value: 'books', label: 'Учебники', badge: books.length, icon: <Library size={15} /> }] : []),
+              ]}
+              value={guideView}
+              onChange={v => v && setGuideView(v as GuideView)}
+              accent={palette.accent}
+              soft={palette.soft}
+              clearable={false}
+            />
+            {/* Главы списком в рейле: из читалки видно, что идёт дальше, и
+                можно перескочить, не возвращаясь на витрину. */}
+            {guideView === 'story' && story && story.chapters.length > 0 && (
+              <RailList
+                items={story.chapters.map(c => ({
+                  id: c.id,
+                  label: t(c.title),
+                  hint: `${Math.min(storyRead[c.id] ?? 0, c.cards.length)}/${c.cards.length}`,
+                }))}
+                value={openChapterId ?? ''}
+                onChange={v => setOpenChapterId(v === openChapterId ? null : v)}
+                accent={palette.accent}
+                soft={palette.soft}
+              />
+            )}
+          </RailCard>
+          {guideView === 'books' && (
+            <RailCard title="Про полку" accent={palette.accent} icon={<Library size={15} />}>
+              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+                {bindShortWords(t('Здесь ссылки на официальные страницы издательств, а не файлы. Главное на карточке — строка «когда браться»: половина брошенных учебников взята не вовремя, а не выбрана неправильно.'))}
+              </div>
+            </RailCard>
+          )}
+        </>
+      )}
+
       {mode === 'speaking' && (
         <RailCard
           title="Фильтры"
@@ -1587,6 +1690,29 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <ToolCount>{t(openPack.title)}</ToolCount>
       </Toolbar>
     )
+  } else if (mode === 'guide' && openChapter) {
+    toolbar = (
+      <Toolbar>
+        <ToolButton onClick={() => setOpenChapterId(null)}>
+          <ChevronLeft size={14} /> {t('К главам')}
+        </ToolButton>
+        <ToolCount>{t(openChapter.title)}</ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'guide' && guideView === 'books') {
+    toolbar = (
+      <Toolbar>
+        <ToolCount>{books.length} {t('книг и ресурсов')}</ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'guide') {
+    toolbar = (
+      <Toolbar>
+        <ToolCount>
+          {story ? `${story.chapters.length} ${t('глав')}` : t('Загружаем…')}
+        </ToolCount>
+      </Toolbar>
+    )
   } else if (mode === 'speaking' && speakOpen) {
     toolbar = (
       <Toolbar>
@@ -1808,6 +1934,39 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {run === 'swipe' && <DeckHint />}
       </div>
     )
+  } else if (mode === 'guide' && guideView === 'books') {
+    content = <BookShelf books={books} accent={palette.accent} soft={palette.soft} />
+  } else if (mode === 'guide' && openChapter) {
+    content = (
+      <StoryChapterPage
+        chapter={openChapter}
+        at={storyRead[openChapter.id] ?? 0}
+        // Пишем максимум: закладка не должна ехать назад от того, что человек
+        // вернулся на карточку перечитать. Полоска на витрине показывает
+        // «сколько прочитано», а не «где сейчас палец».
+        onAt={n => setStoryRead(prev => ({
+          ...prev,
+          [openChapter.id]: Math.max(prev[openChapter.id] ?? 0, n + 1),
+        }))}
+        accent={palette.accent}
+        soft={palette.soft}
+        onDone={() => setOpenChapterId(null)}
+      />
+    )
+  } else if (mode === 'guide') {
+    content = story === undefined
+      ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
+      : story
+        ? (
+          <StoryGrid
+            story={story}
+            read={id => storyRead[id] ?? 0}
+            accent={palette.accent}
+            soft={palette.soft}
+            onOpen={id => setOpenChapterId(id)}
+          />
+        )
+        : <ShellEmpty text="Рассказа об этом языке пока нет." />
   } else if (mode === 'vocab' && openPack) {
     content = (
       <PhraseRun

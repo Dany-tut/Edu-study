@@ -1,4 +1,4 @@
-import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, Award, type LucideIcon } from 'lucide-react'
+import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, Award, Sunrise, type LucideIcon } from 'lucide-react'
 
 // Single source of truth for the carousel widgets. The numeric `id` is the
 // widget's stable identity used by the carousel (renderWidget) and by the
@@ -28,6 +28,12 @@ export type WidgetMeta = {
    * виджет вернётся сам, как только материал появится.
    */
   content?: 'quiz' | 'facts' | 'memes' | 'reactions'
+  /**
+   * Виджет имеет смысл только на языковом предмете, но не привязан к
+   * конкретному языку: перечислять их в `subjects` пришлось бы заново при
+   * каждом новом языке в реестре, и один забытый слаг молча выключал бы виджет.
+   */
+  languagesOnly?: boolean
 }
 
 export const WIDGET_META: WidgetMeta[] = [
@@ -40,6 +46,7 @@ export const WIDGET_META: WidgetMeta[] = [
   { id: 4, label: 'Мемы',          Icon: Laugh,        color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)', subjects: ['chemistry', 'biology'], content: 'memes' },
   { id: 5, label: 'Вопрос дня',    Icon: Sparkles,     color: 'var(--color-teal-pill-text)', soft: 'var(--color-teal-pill-bg)', content: 'quiz' },
   { id: 8, label: 'Стикеры',       Icon: Award,        color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
+  { id: 9, label: 'Доза дня',      Icon: Sunrise,      color: 'var(--color-peach-text)',  soft: 'var(--color-peach-soft)', languagesOnly: true },
 ]
 
 // Default sequence: quiz first, then the rest.

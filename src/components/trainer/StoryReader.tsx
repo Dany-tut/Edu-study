@@ -23,13 +23,12 @@ import { ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react'
 import type { StoryChapter, LanguageStory } from '../../data/languageStory'
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
-import { usePersistentState } from '../../lib/useDraft'
 import { Tile, TileGrid, TileMeter, TileChip } from './TrainerShell'
 
 /** Витрина глав. */
 export function StoryGrid({ story, read, accent, soft, onOpen }: {
   story: LanguageStory
-  /** Докуда дочитана глава: id → номер последней открытой карточки, 0-based. */
+  /** Сколько карточек главы уже открывали: id → 0…cards.length. */
   read: (id: string) => number
   accent: string
   soft: string
@@ -39,8 +38,8 @@ export function StoryGrid({ story, read, accent, soft, onOpen }: {
   return (
     <TileGrid min={248}>
       {story.chapters.map((ch, i) => {
-        const at = read(ch.id)
-        const done = at >= ch.cards.length - 1
+        const seen = Math.min(read(ch.id), ch.cards.length)
+        const done = seen >= ch.cards.length
         return (
           <Tile key={ch.id} accent={accent} onClick={() => onOpen(ch.id)}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -64,7 +63,7 @@ export function StoryGrid({ story, read, accent, soft, onOpen }: {
             {/* Полоска — доля прочитанного, а не «открывал ли». Глава, брошенная
                 на второй карточке из семи, и глава, дочитанная до конца, с
                 витрины должны выглядеть по-разному. */}
-            <TileMeter value={Math.round(((at + (at > 0 || done ? 1 : 0)) / ch.cards.length) * 100)} />
+            <TileMeter value={Math.round((seen / ch.cards.length) * 100)} />
           </Tile>
         )
       })}
@@ -72,20 +71,27 @@ export function StoryGrid({ story, read, accent, soft, onOpen }: {
   )
 }
 
-/** Чтение одной главы. */
-export function StoryChapterPage({ chapter, storyKey, accent, soft, onDone }: {
+/**
+ * Чтение одной главы.
+ *
+ * ПОЗИЦИЯ ПРИХОДИТ СВЕРХУ, А НЕ ЖИВЁТ ЗДЕСЬ. Её показывает не только читалка:
+ * на витрине по ней рисуется полоска «дочитано». Держа закладку внутри
+ * страницы, витрине пришлось бы лезть в чужое хранилище по угаданному ключу —
+ * и разъезжаться с читалкой на первой же правке ключа.
+ */
+export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDone }: {
   chapter: StoryChapter
-  /** Ключ рассказа — часть ключа позиции, чтобы языки не делили одну закладку. */
-  storyKey: string
+  /** Номер открытой карточки, 0-based. */
+  at: number
+  onAt: (n: number) => void
   accent: string
   soft: string
   /** Глава дочитана — вернуться к витрине. */
   onDone: () => void
 }) {
   const t = useT()
-  const [i, setI] = usePersistentState<number>(`story.${storyKey}.${chapter.id}.at`, 0)
   // Позиция могла остаться от прежней, более длинной версии главы.
-  const at = Math.min(Math.max(0, i), chapter.cards.length - 1)
+  const at = Math.min(Math.max(0, rawAt), chapter.cards.length - 1)
   const card = chapter.cards[at]
   const last = at === chapter.cards.length - 1
 
@@ -172,7 +178,7 @@ export function StoryChapterPage({ chapter, storyKey, accent, soft, onDone }: {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <button
-          onClick={() => setI(Math.max(0, at - 1))}
+          onClick={() => onAt(Math.max(0, at - 1))}
           disabled={at === 0}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 42, padding: '0 16px',
@@ -188,7 +194,7 @@ export function StoryChapterPage({ chapter, storyKey, accent, soft, onDone }: {
         </span>
         <div style={{ flex: 1 }} />
         <button
-          onClick={() => (last ? onDone() : setI(at + 1))}
+          onClick={() => (last ? onDone() : onAt(at + 1))}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 42, padding: '0 20px',
             borderRadius: 999, border: 'none', background: accent, color: '#fff',

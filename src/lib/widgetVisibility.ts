@@ -24,10 +24,17 @@ import { useCallback, useMemo } from 'react'
 import { WIDGET_META } from '../data/widgets'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
-import { getSubject } from './subjects'
+import { getSubject, isLanguageSubject } from './subjects'
 
-/** Предикат «показывать ли виджет с таким id». */
-export function useWidgetRelevance(): (id: number) => boolean {
+/**
+ * Предикат «показывать ли виджет с таким id».
+ *
+ * `subjectOverride` — предмет экрана, если он свой: в тренажёре ученик может
+ * решать английский, пока на главной открыт другой курс, и виджеты в шапке
+ * должны быть про то, чем он занят сейчас. Не задан или не опознан — скоуп
+ * прежний, по активному курсу.
+ */
+export function useWidgetRelevance(subjectOverride?: string | null): (id: number) => boolean {
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const quiz = useStudentData(s => s.quizQuestions.length)
@@ -37,12 +44,14 @@ export function useWidgetRelevance(): (id: number) => boolean {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
 
   const scope = useMemo(() => {
+    const override = getSubject(subjectOverride)?.id
+    if (override) return new Set([override])
     const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
     const one = getSubject(active?.subject)?.id
     if (one) return new Set([one])
     const all = subjects.map(s => getSubject(s.subject)?.id).filter((x): x is string => !!x)
     return new Set(all)
-  }, [subjects, activeSubjectId])
+  }, [subjects, activeSubjectId, subjectOverride])
 
   return useCallback((id: number) => {
     const meta = WIDGET_META.find(w => w.id === id)
@@ -51,6 +60,8 @@ export function useWidgetRelevance(): (id: number) => boolean {
     if (!meta) return true
     // Пока курсы не приехали, предмет неизвестен: фильтровать нечем и незачем.
     if (meta.subjects && scope.size > 0 && !meta.subjects.some(s => scope.has(s))) return false
+    // Языковой виджет — на любом языке и ни на одном экзаменационном предмете.
+    if (meta.languagesOnly && scope.size > 0 && ![...scope].some(isLanguageSubject)) return false
     if (meta.content && loaded) {
       const count = { quiz, facts, memes, reactions }[meta.content]
       if (count === 0) return false

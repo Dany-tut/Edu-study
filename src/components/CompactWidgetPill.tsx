@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
 import {
   Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch, TrendingUp,
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen,
@@ -19,7 +19,9 @@ import { useTeacher } from '../store/teacherStore'
 import { useTheme } from '../store/themeStore'
 import { getSubject, resolveSubjectPalette } from '../lib/subjects'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
-import { formatShort, GOAL_MS } from '../lib/trainerDay'
+import { formatShort, GOAL_MS, dayKey } from '../lib/trainerDay'
+import { textsForLang } from '../data/readingLibrary'
+import { textOfDay } from './DailyDoseWidget'
 import { tactile } from '../lib/feedback'
 import { t, useT } from '../lib/i18n'
 
@@ -887,6 +889,42 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
 // timing curve (which was the source of the visible "jitter" on collapse).
 const MORPH = { type: 'spring' as const, stiffness: 220, damping: 28, mass: 1.1 }
 
+/**
+ * Доза дня в пилюле верхней строки.
+ *
+ * Пилюля — это анонс, а не сам виджет: у неё нет места ни на слова, ни на
+ * кнопку «в колоду». Поэтому здесь только название текста и время — то, по
+ * чему принимают решение открыть.
+ */
+function DailyDosePreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
+  const subjects = useStudentData(s => s.subjects)
+  const activeSubjectId = useDashboard(s => s.activeSubjectId)
+  const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
+  const def = getSubject(active?.subject)
+  const day = dayKey()
+  const text = useMemo(() => {
+    if (!def?.langCode) return undefined
+    return textOfDay(textsForLang(def.langCode).filter(x => x.minutes <= 3), day)
+  }, [def?.langCode, day])
+
+  return (
+    <PillContent
+      avatar={
+        <div style={{ width: '100%', height: '100%', background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>
+          🌅
+        </div>
+      }
+      kicker={t('Доза дня')}
+      title={text ? text.title : t('Пять минут языка')}
+      expanded={expanded}
+      detail={text
+        ? `${text.minutes} ${t('мин')} · ${text.level} · ${t('три слова в колоду')}`
+        : t('Появится, когда открыт языковой курс.')}
+    />
+  )
+}
+
 function PillContent({
   avatar,
   kicker,
@@ -1119,6 +1157,7 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
     case 4: return <MemePreview expanded={expanded} paused={paused} />
     case 5: return <QuestionOfDayPreview expanded={expanded} />
     case 7: return <TrainerProgressPreview expanded={expanded} />
+    case 9: return <DailyDosePreview expanded={expanded} />
     case 6: return (
       <PillContent
         avatar={
@@ -1140,15 +1179,6 @@ export default function CompactWidgetPill() {
   const t = useT()
   const rawOrder = useDashboard(s => s.widgetOrder)
   const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
-  // Пилюля — та же карусель, просто свёрнутая в строку, и фильтры у неё те же:
-  // скрытое учителем + неуместное (чужой предмет / пустой контент). Без этого
-  // ученик-языковик листал в шапке «Химия · Реакция» — виджет, которого на
-  // главной у него уже нет (lib/widgetVisibility.ts).
-  const relevant = useWidgetRelevance()
-  const visibleOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
-  // Если фильтры выели всё (данные ещё не приехали, чужие id в настройках) —
-  // показываем исходный порядок: пустая шапка хуже неточной.
-  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : rawOrder
   // On a scrolled lesson the whole top line docks over the dark video and the
   // top bar switches to its more opaque glass; the pill matches it so every
   // floating surface up there reads as one consistent piece of glass.
@@ -1160,6 +1190,19 @@ export default function CompactWidgetPill() {
   const pomoStart = useDashboard(s => s.pomoStart)
   const pomoPause = useDashboard(s => s.pomoPause)
   const { lastAnswerAt, subject: trainerSubject, subjectId: trainerSubjectId } = useTrainerProgress()
+  // Пилюля — та же карусель, просто свёрнутая в строку, и фильтры у неё те же:
+  // скрытое учителем + неуместное (чужой предмет / пустой контент). Без этого
+  // ученик-языковик листал в шапке «Химия · Реакция» — виджет, которого на
+  // главной у него уже нет (lib/widgetVisibility.ts).
+  //
+  // В тренажёре предмет берётся из самого тренажёра: он может отличаться от
+  // курса на главной («выбор тренажёра не меняет курс»), и виджеты в шапке
+  // должны быть про то, чем ученик занят прямо сейчас.
+  const relevant = useWidgetRelevance(activePage === 'trainer' ? (trainerSubjectId || trainerSubject) : null)
+  const visibleOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
+  // Если фильтры выели всё (данные ещё не приехали, чужие id в настройках) —
+  // показываем исходный порядок: пустая шапка хуже неточной.
+  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : rawOrder
   // Волна под виджетом тренажёра красится предметом, а не вечным зелёным:
   // полоска шире самого виджета и на корейском была главным чужим пятном.
   const { dark: darkTheme } = useTheme()

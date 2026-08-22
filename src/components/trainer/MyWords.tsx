@@ -138,9 +138,18 @@ export function MyWordsTile({ words, states, ready, accent, soft, onOpen }: {
   const t = useT()
   const st = useMemo(() => myWordsStats(words, states), [words, states])
   return (
-    <Tile accent={accent} stack onClick={onOpen}>
+    // Цветом, а не размером: плитка стоит в сетке однотипных карточек, и
+    // выделять её высотой или шириной значило бы ломать саму сетку. Оттенок —
+    // акцент предмета: словарь корейского синий ровно настолько, насколько
+    // синий весь корейский. Заливка слабая (8%), рамка втрое заметнее: цветная
+    // плитка должна опознаваться боковым зрением, а не спорить с текстом на
+    // себе. `soft` палитры (14–20%) для целой карточки уже громко — он взят под
+    // чипсы, которые вчетверо меньше.
+    <Tile accent={accent} stack tint={{ surface: `${accent}14`, border: `${accent}4d` }} onClick={onOpen}>
       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <TileChip tone="accent" accent={accent} soft={soft}>
+        {/* Залитый чипс — единственная такая метка на экране: у тем разговорника
+            ступень нарисована мягким, и на их фоне заливка читается первой. */}
+        <TileChip tone="solid" accent={accent} soft={soft}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             <BookMarked size={11} aria-hidden /> {t('Словарь')}
           </span>

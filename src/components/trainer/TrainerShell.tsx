@@ -1097,11 +1097,21 @@ export function ToolCount({ children }: { children: React.ReactNode }) {
  * `stack` дорисовывает две подложки сзади: так плашка читается как пачка
  * карточек, а не как ещё одна кнопка перехода.
  */
-export function Tile({ children, onClick, accent, stack }: {
+export function Tile({ children, onClick, accent, stack, tint }: {
   children: React.ReactNode
   onClick?: () => void
   accent: string
   stack?: boolean
+  /**
+   * Плитка не из библиотеки, а СВОЯ — её содержимое собрал сам ученик.
+   *
+   * Отличается подложкой и рамкой в цвете предмета, а не размером или местом:
+   * в сетке из сорока одинаковых карточек цвет — единственная метка, которую
+   * видно, не читая. `surface` — заливка (палитра предмета, `soft`), `border` —
+   * рамка в покое (`ring`); при наведении рамка становится акцентной, как у
+   * всех остальных.
+   */
+  tint?: { surface: string; border: string }
 }) {
   const [hover, setHover] = useState(false)
   return (
@@ -1112,7 +1122,13 @@ export function Tile({ children, onClick, accent, stack }: {
           aria-hidden
           style={{
             position: 'absolute', inset: 0, left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
-            borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+            borderRadius: 16,
+            // Нижние листы стопки красятся вместе с верхним, иначе цветная
+            // карточка выглядит наклейкой, положенной на чужую пачку.
+            background: tint
+              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
+              : 'var(--color-bg-2)',
+            border: `1px solid ${tint ? tint.border : 'var(--color-border-soft)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
           }}
@@ -1126,8 +1142,14 @@ export function Tile({ children, onClick, accent, stack }: {
           position: 'relative', width: '100%', height: '100%', textAlign: 'left',
           display: 'flex', flexDirection: 'column', gap: 7,
           padding: '13px 15px', borderRadius: 16, cursor: onClick ? 'pointer' : 'default',
-          fontFamily: 'inherit', background: 'var(--color-bg-2)',
-          border: `1px solid ${hover && onClick ? accent : 'var(--color-border)'}`,
+          fontFamily: 'inherit',
+          // Заливка слоем поверх обычной подложки, а не вместо неё: `soft`
+          // палитры полупрозрачен, и без второго слоя сквозь плитку светился
+          // бы фон страницы — в тёмной теме он темнее карточек.
+          background: tint
+            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
+            : 'var(--color-bg-2)',
+          border: `1px solid ${hover && onClick ? accent : tint ? tint.border : 'var(--color-border)'}`,
           transition: 'border-color .16s',
         }}
       >
@@ -1161,16 +1183,22 @@ export function TileMeter({ value }: { value: number }) {
 /** Плашка-подпись в углу карточки: уровень, тип, длительность. */
 export function TileChip({ children, tone, accent, soft }: {
   children: React.ReactNode
-  tone?: 'accent' | 'mute'
+  /**
+   * `accent` — цветной текст на мягкой подложке (ступень, уровень).
+   * `solid` — заливка акцентом и белый текст: метка, которая должна читаться
+   * первой в сетке однотипных плиток, а не встать четвёртой такой же.
+   */
+  tone?: 'accent' | 'mute' | 'solid'
   accent?: string
   soft?: string
 }) {
   const isAccent = tone === 'accent'
+  const solid = tone === 'solid'
   return (
     <span style={{
       padding: '2px 8px', borderRadius: 999, fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap',
-      background: isAccent ? (soft ?? 'var(--color-bg-3)') : 'var(--color-bg-3)',
-      color: isAccent ? (accent ?? 'var(--color-text-2)') : 'var(--color-muted)',
+      background: solid ? (accent ?? 'var(--color-bg-3)') : isAccent ? (soft ?? 'var(--color-bg-3)') : 'var(--color-bg-3)',
+      color: solid ? '#fff' : isAccent ? (accent ?? 'var(--color-text-2)') : 'var(--color-muted)',
     }}>
       {children}
     </span>
