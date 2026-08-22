@@ -38,6 +38,7 @@ import {
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
 import { FeedList } from './trainer/FeedShelf'
+import TaskVideo from './TaskVideo'
 import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
 import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
 import {
@@ -1916,6 +1917,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     ) : (
       <FeedList
         items={feed}
+        lang={lang}
         done={id => !!resultFrom('reading', id, results)}
         accent={palette.accent}
         soft={palette.soft}
@@ -2337,7 +2339,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           topic: openFeedItem.topic,
           skill: 'Аудирование',
           minutes: openFeedItem.minutes,
-          script: openFeedItem.body,
+          // Одно из двух: либо текст на озвучку, либо чужой плеер. Оба сразу
+          // означали бы, что синтез читает пустую строку поверх ролика.
+          script: openFeedItem.embed ? undefined : openFeedItem.body,
+          videoUrl: openFeedItem.embed?.kind === 'youtube'
+            ? `https://www.youtube.com/watch?v=${openFeedItem.embed.id}`
+            : undefined,
           credit: openFeedItem.credit,
           translation: openFeedItem.translation,
           glossary: openFeedItem.glossary,
@@ -3125,7 +3132,11 @@ function Listener({ item, accent, palette, lang, onBack }: {
       <RailHero plain title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
       <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
-        <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
+        {/* Материал ленты из плеера площадки: озвучивать нечего — смотрим
+            ролик там, где он лежит. Плеер тот же, что в домашке и уроке. */}
+        {item.videoUrl
+          ? <TaskVideo url={item.videoUrl} title={item.title} credit={item.credit} onChange={() => {}} />
+          : <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />}
         <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
         <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
           {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { ExternalLink, Headphones, BookOpen, Check, Archive } from 'lucide-react'
+import { ExternalLink, Headphones, BookOpen, Check, Archive, Play } from 'lucide-react'
 import { Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import { byDay, dayLabel, outletById, type FeedItem, type Lane } from '../../data/feed'
+import { FeedComments } from './FeedComments'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Витрина ленты: дни сверху вниз
@@ -38,8 +39,9 @@ const LANE_NOTE: Record<Lane, string> = {
   link: 'Наш текст о событии, оригинал по ссылке',
 }
 
-export function FeedList({ items, done, accent, soft, onOpen }: {
+export function FeedList({ items, lang, done, accent, soft, onOpen }: {
   items: FeedItem[]
+  lang: string
   done: (id: string) => boolean
   accent: string
   soft: string
@@ -88,6 +90,7 @@ export function FeedList({ items, done, accent, soft, onOpen }: {
             <FeedRow
               key={item.id}
               item={item}
+              lang={lang}
               done={done(item.id)}
               accent={accent}
               soft={soft}
@@ -100,8 +103,9 @@ export function FeedList({ items, done, accent, soft, onOpen }: {
   )
 }
 
-function FeedRow({ item, done, accent, soft, onOpen }: {
+function FeedRow({ item, lang, done, accent, soft, onOpen }: {
   item: FeedItem
+  lang: string
   done: boolean
   accent: string
   soft: string
@@ -110,6 +114,7 @@ function FeedRow({ item, done, accent, soft, onOpen }: {
   const t = useT()
   const [hover, setHover] = useState(false)
   const outlet = outletById(item.outletId)
+  const video = item.embed?.kind === 'youtube' ? item.embed.id : null
 
   return (
     <article
@@ -161,19 +166,67 @@ function FeedRow({ item, done, accent, soft, onOpen }: {
         {bindShortWords(item.title)}
       </h3>
 
+      {/* Серая дорожка обязана объясниться до клика, а не после: человек
+          должен знать, что откроет наш текст о событии, а не статью источника. */}
+      {item.lane === 'link' && (
+        <div style={{
+          padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
+          fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5, ...proseWrap,
+        }}>
+          {bindShortWords(t('Читать будете наш текст об этом событии, написанный под уровень: факты события свободны, чужие формулировки — нет. Оригинал — по ссылке.'))}
+        </div>
+      )}
+
+      {/* Кадр ролика тянется у самого YouTube — той же ссылкой, которой
+          пользуется его плеер. Своей копии обложки мы не держим: это уже было
+          бы хранением чужого материала, а не встраиванием. */}
+      {video && (
+        <button
+          onClick={() => onOpen(item.id, 'listen')}
+          style={{
+            position: 'relative', width: '100%', maxWidth: 320, aspectRatio: '16 / 9',
+            border: 'none', padding: 0, borderRadius: 12, overflow: 'hidden',
+            cursor: 'pointer', background: 'var(--color-bg-3)',
+          }}
+        >
+          <img
+            src={`https://i.ytimg.com/vi/${video}/mqdefault.jpg`}
+            alt=""
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <span style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.28)', color: '#fff',
+          }}>
+            <Play size={26} fill="#fff" />
+          </span>
+        </button>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <Btn accent={accent} onClick={() => onOpen(item.id, 'read')}>
-          <BookOpen size={13} />{t('Читать')}
-        </Btn>
-        {/*
-          Слушать — ТОТ ЖЕ материал, озвученный синтезом. Второго комплекта
-          данных для этого не нужно: у заметки уже есть текст, словарь и
-          вопросы, а «показать расшифровку только после ответов» — забота
-          читалки-слушалки, а не ленты.
-        */}
-        <Btn onClick={() => onOpen(item.id, 'listen')}>
-          <Headphones size={13} />{t('Слушать')}
-        </Btn>
+        {/* У материала в плеере читать нечего: кнопка «Читать» на нём открыла
+            бы пустую читалку. Поэтому набор кнопок зависит от дорожки. */}
+        {item.lane === 'embed' ? (
+          <Btn accent={accent} onClick={() => onOpen(item.id, 'listen')}>
+            <Play size={13} />{t('Смотреть')} · {item.questions.length} {t('вопр.')}
+          </Btn>
+        ) : (
+          <>
+            <Btn accent={accent} onClick={() => onOpen(item.id, 'read')}>
+              <BookOpen size={13} />{t('Читать')}
+            </Btn>
+            {/*
+              Слушать — ТОТ ЖЕ материал, озвученный синтезом. Второго комплекта
+              данных для этого не нужно: у заметки уже есть текст, словарь и
+              вопросы, а «показать расшифровку только после ответов» — забота
+              читалки-слушалки, а не ленты.
+            */}
+            <Btn onClick={() => onOpen(item.id, 'listen')}>
+              <Headphones size={13} />{t('Слушать')}
+            </Btn>
+          </>
+        )}
         <a
           href={item.url}
           target="_blank"
@@ -187,6 +240,11 @@ function FeedRow({ item, done, accent, soft, onOpen }: {
           {t('Оригинал')}<ExternalLink size={12} />
         </a>
       </div>
+
+      {/* Обсуждение — прямо в ленте, а не на отдельном экране: реплику пишут
+          сразу после того, как прочли, и уводить за этим со страницы значит не
+          получить реплику вовсе. */}
+      <FeedComments itemId={item.id} lang={lang} accent={accent} />
 
       {/* Лицензия и автор стоят на карточке, а не только в читалке: у CC BY-SA
           атрибуция — условие показа, и оно должно выполняться везде, где виден

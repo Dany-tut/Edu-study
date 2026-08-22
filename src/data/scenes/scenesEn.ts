@@ -11325,4 +11325,227 @@ Now she is waiting for me at six. If I come at seven, she is somewhere up on the
       },
     ],
   },
+
+  // ── Гоголь «Шинель», у портного ────────────────────────────────────────────
+  {
+    id: 'sc-gogol-mantle-2',
+    workId: 'gogol-mantle',
+    lang: 'en', title: 'Нет, поправить нельзя', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 2, where: 'У Петровича', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Nikolai Gogol, “The Mantle”, tr. Claud Field (1916) · Project Gutenberg',
+    setup: 'Шинель Акакия Акакиевича протёрлась на спине и плечах до того, что сквозь неё видно подкладку. Он несёт её к портному Петровичу — одноглазому, рябому и трезвому, что для дела плохо: трезвый Петрович заламывает цену. Акакий Акакиевич идёт наверх, рассчитывая отдать за починку рубль.',
+    after: 'Петрович предложит сшить новую — и назовёт сумму, которой у Акакия Акакиевича нет и быть не может.',
+    body: `Petrovitch took the unfortunate cloak, spread it on the table, contemplated it in silence, and shook his head. Then he stretched his hand towards the window-sill for his snuff-box, a round one with the portrait of a general on the lid. I do not know whose portrait it was, for it had been accidentally injured, and the ingenious tailor had gummed a piece of paper over it.
+
+After Petrovitch had taken a pinch of snuff, he examined the cloak again, held it to the light, and once more shook his head. Then he examined the lining, took a second pinch of snuff, and at last exclaimed, "No! that is a wretched rag! It is beyond repair!"
+
+At these words Akaki's courage fell.
+
+"What!" he cried in the querulous tone of a child. "Can this hole really not be repaired? Look! Petrovitch; there are only two rents, and you have enough pieces of cloth to mend them with."
+
+"Yes, I have enough pieces of cloth; but how should I sew them on? The stuff is quite worn out; it won't bear another stitch."`,
+    translation: `Петрович взял капот, разложил его сначала на стол, рассматривал долго, покачал головою и полез рукою на окно за круглой табакеркой с портретом какого-то генерала, какого именно, неизвестно, потому что место, где находилось лицо, было проткнуто пальцем, и потом заклеено четвероугольным лоскуточком бумажки. Понюхав табаку, Петрович растопырил капот на руках и рассмотрел его против света и опять покачал головою. Потом обратил его подкладкой вверх и вновь покачал, вновь снял крышку с генералом, заклеенным бумажкой, и натащивши в нос табаку, закрыл, спрятал табакерку и наконец сказал:
+
+«Нет, нельзя поправить: худой гардероб!»
+
+У Акакия Акакиевича при этих словах ёкнуло сердце. «Отчего же нельзя, Петрович?» сказал он почти умоляющим голосом ребенка: «ведь только всего что на плечах поистерлось, ведь у тебя есть же какие-нибудь кусочки…»
+
+«Да кусочки-то можно найти, кусочки найдутся», сказал Петрович: «да нашить-то нельзя: дело совсем гнилое, тронешь иглой — а вот уж оно и ползет.»
+
+«Пусть ползет, а ты тотчас заплаточку.»
+
+«Да заплаточки не на чем положить, укрепиться ей не́ за что, подержка больно велика. Только слава что сукно, а подуй ветер, так разлетится.»`,
+    glossary: [
+      { term: 'to contemplate', ru: 'разглядывать, рассматривать' },
+      { term: 'snuff-box', ru: 'табакерка' },
+      { term: 'a pinch of snuff', ru: 'понюшка табаку' },
+      { term: 'lining', ru: 'подкладка' },
+      { term: 'beyond repair', ru: 'не подлежит починке' },
+      { term: 'wretched rag', ru: 'жалкая тряпка' },
+      { term: 'querulous', ru: 'жалобный, ноющий' },
+      { term: 'rent (n.)', ru: 'прореха, разрыв в ткани' },
+      { term: 'to mend', ru: 'чинить, штопать' },
+      { term: 'stitch', ru: 'стежок' },
+    ],
+    questions: [
+      {
+        q: 'What did Petrovitch do before giving his verdict?',
+        options: [
+          'He measured Akaki',
+          'He examined the cloak twice and took snuff twice',
+          'He sent Akaki away',
+          'He started sewing at once',
+        ],
+        correct: 1,
+        why: 'Гоголь строит отказ как ритуал: осмотр, табакерка, снова осмотр, снова табакерка — и только потом приговор. Комизм тут в затянутой паузе.',
+      },
+      {
+        q: 'What was Petrovitch’s verdict?',
+        options: [
+          'It can be repaired cheaply',
+          'It is beyond repair',
+          'It needs a new lining only',
+          'It is not his work',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why can’t the holes be patched, according to Petrovitch?',
+        options: [
+          'He has no cloth',
+          'The stuff is worn out and will not hold a stitch',
+          'It is too expensive',
+          'Akaki did not pay last time',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does Akaki react?',
+        options: [
+          'He gets angry and shouts',
+          'He speaks in the querulous tone of a child',
+          'He leaves without a word',
+          'He offers more money',
+        ],
+        correct: 1,
+        why: 'Взрослый чиновник спорит голосом ребёнка. Эта деталь у Гоголя важнее любого описания характера.',
+      },
+    ],
+  },
+
+  // ── Гоголь «Шинель», где взять восемьдесят рублей ──────────────────────────
+  {
+    id: 'sc-gogol-mantle-3',
+    workId: 'gogol-mantle',
+    lang: 'en', title: 'Половина есть. Где вторая?', level: 'B1', minutes: 4,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 3, where: 'После разговора с портным', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Nikolai Gogol, “The Mantle”, tr. Claud Field (1916) · Project Gutenberg',
+    setup: 'Починки не будет — нужна новая шинель. Акакий Акакиевич получает четыреста рублей в год, шинель стоит восемьдесят. Дальше идёт то, ради чего эту повесть стоит читать на любом языке: точная бухгалтерия человека, который решил накопить.',
+    after: 'Он найдёт и вторую половину — сэкономит на свечах, на чае и на подмётках, — и полгода будет жить одной этой мыслью.',
+    body: `This time Akaki saw that he must follow the tailor's advice, and again all his courage sank. He must have a new mantle made. But how should he pay for it? He certainly expected a Christmas bonus at the office; but that money had been allotted beforehand. He must buy a pair of trousers, and pay his shoemaker for repairing two pairs of boots, and buy some fresh linen. Even if, by an unexpected stroke of good luck, the director raised the usual bonus from forty to fifty roubles, what was such a small amount in comparison with the immense sum which Petrovitch demanded? A mere drop of water in the sea.
+
+At any rate, he might expect that Petrovitch, if he were in a good humour, would lower the price of the cloak to eighty roubles; but where were these eighty roubles to be found? Perhaps he might succeed if he left no stone unturned, in raising half the sum; but he saw no means of procuring the other half. As regards the first half, he had been in the habit, as often as he received a rouble, of placing a kopeck in a money-box. At the end of each half-year he changed these copper coins for silver. He had been doing this for some time, and his savings just now amounted to forty roubles. Thus he already had half the required sum. But the other half!`,
+    translation: `Тут-то увидел Акакий Акакиевич, что без новой шинели нельзя обойтись, и поник совершенно духом. Как же в самом деле, на что̀, на какие деньги ее сделать? Конечно, можно бы отчасти положиться на будущее награждение к празднику, но эти деньги давно уже размещены и распределены вперед. Требовалось завести новые панталоны, заплатить сапожнику старый долг за приставку новых головок к старым голенищам, да следовало заказать швее три рубахи, да штуки две того белья, которое неприлично называть в печатном слоге, словом: все деньги совершенно должны были разойтися, и если бы даже директор был так милостив, что, вместо сорока рублей наградных, определил бы сорок пять или пятьдесят, то всё-таки останется какой-нибудь самый вздор, который в шинельном капитале будет капля в море. Хотя конечно он знал, что за Петровичем водилась блажь заломить вдруг чорт знает какую непомерную цену, так что уж, бывало, сама жена не могла удержаться, чтобы не вскрикнуть: «что ты, с ума сходишь, дурак такой! В другой раз ни за что возьмет работать, а теперь разнесла его нелегкая запросить такую цену, какой и сам не стоит.» Хотя, конечно, он знал, что Петрович и за восемьдесят рублей возьмется сделать; однако всё же, откуда взять эти восемьдесят рублей? Еще половину можно бы найти: половина бы отыскалась; может быть, даже немножко и больше; но где взять другую половину?..`,
+    glossary: [
+      { term: 'bonus', ru: 'наградные, премия к празднику' },
+      { term: 'to allot', ru: 'распределить заранее' },
+      { term: 'a drop of water in the sea', ru: 'капля в море' },
+      { term: 'to lower the price', ru: 'сбавить цену' },
+      { term: 'to leave no stone unturned', ru: 'испробовать все средства' },
+      { term: 'money-box', ru: 'копилка' },
+      { term: 'kopeck / rouble', ru: 'копейка / рубль' },
+      { term: 'savings', ru: 'сбережения' },
+      { term: 'to economise', ru: 'экономить' },
+      { term: 'daily expenses', ru: 'повседневные расходы' },
+    ],
+    questions: [
+      {
+        q: 'How much did Petrovitch ask for the new cloak?',
+        options: ['Forty roubles', 'Eighty roubles', 'A hundred and fifty', 'One rouble'],
+        correct: 1,
+      },
+      {
+        q: 'Why can’t Akaki use his Christmas bonus?',
+        options: [
+          'He will not receive it',
+          'It has already been allotted to trousers, boots and linen',
+          'He gave it away',
+          'It is too small to matter',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How had he saved the first forty roubles?',
+        options: [
+          'He borrowed them',
+          'He put a kopeck in a money-box from every rouble he received',
+          'He sold his old cloak',
+          'A colleague lent them',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the phrase “a mere drop of water in the sea” mean here?',
+        options: [
+          'The bonus would make no real difference',
+          'The bonus would be enough',
+          'The sea is far away',
+          'The price will fall',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Гоголь «Шинель», финал ─────────────────────────────────────────────────
+  {
+    id: 'sc-gogol-mantle-4',
+    workId: 'gogol-mantle',
+    lang: 'en', title: 'Мертвец у Калинкина моста', level: 'B2', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Финал повести', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Nikolai Gogol, “The Mantle”, tr. Claud Field (1916) · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это финал. Шинель, ради которой он голодал полгода, сняли с него в первую же ночь на пустой площади. Помощи он не получил нигде, слёг и умер, и на его место сел другой чиновник — повыше ростом и с почерком покосее. Казалось бы, всё.',
+    after: 'Дальше мертвец доберётся до «значительного лица» — того самого, что накричало на Акакия Акакиевича, — снимет шинель и с него. И только после этого перестанет являться.',
+    body: `It seems as though Akaki's story ended here, and that there was nothing more to be said of him; but the modest titular councillor was destined to attract more notice after his death than during his life, and our tale now assumes a somewhat ghostly complexion.
+
+One day there spread in St Petersburg the report that near the Katinka Bridge there appeared every night a spectre in a uniform like that of the chancellery officials; that he was searching for a stolen cloak, and stripped all passers-by of their cloaks without any regard for rank or title. It mattered not whether they were lined with wadding, mink, cat, otter, bear, or beaverskin; he took all he could get hold of. One of the titular councillor's former colleagues had seen the ghost, and quite clearly recognised Akaki. He ran as hard as he could and managed to escape, but had seen him shaking his fist in the distance. Everywhere it was reported that councillors, and not only titular councillors but also state-councillors, had caught serious colds in their honourable backs on account of these raids.
+
+The police adopted all possible measures in order to get this ghost dead or alive into their power, and to inflict an exemplary punishment on him; but all their attempts were vain.`,
+    translation: `Но кто бы мог вообразить, что здесь еще не всё об Акакии Акакиевиче, что суждено ему на несколько дней прожить шумно после своей смерти, как бы в награду за непримеченную никем жизнь? Но так случилось, и бедная история наша неожиданно принимает фантастическое окончание. По Петербургу пронеслись вдруг слухи, что у Калинкина моста и далеко подальше стал показываться по ночам мертвец в виде чиновника, ищущего какой-то утащенной шинели и под видом стащенной шинели сдирающий со всех плеч, не разбирая чина и звания, всякие шинели: на кошках, на бобрах, на вате, енотовые, лисьи, медвежьи шубы, словом, всякого рода меха и кожи, какие только придумали люди для прикрытия собственной. Один из департаментских чиновников видел своими глазами мертвеца и узнал в нем тотчас Акакия Акакиевича; но это внушило ему однакоже такой страх, что он бросился бежать со всех ног и оттого не мог хорошенько рассмотреть, а видел только, как тот издали погрозил ему пальцем. Со всех сторон поступали беспрестанно жалобы, что спины и плечи, пускай бы еще только титулярных, а то даже самих тайных советников, подвержены совершенной простуде по причине ночного сдергивания шинелей. В полиции сделано было распоряжение поймать мертвеца, во что бы то ни стало, живого или мертвого, и наказать его, в пример другим, жесточайшим образом, и в том едва было даже не успели.`,
+    glossary: [
+      { term: 'spectre', ru: 'призрак, привидение' },
+      { term: 'ghostly complexion', ru: 'здесь: фантастический оборот (о рассказе)' },
+      { term: 'to strip sb of sth', ru: 'сорвать, стащить с кого-то что-то' },
+      { term: 'regardless of rank', ru: 'не разбирая чина' },
+      { term: 'wadding', ru: 'вата (как подкладка)' },
+      { term: 'to shake one’s fist', ru: 'грозить кулаком' },
+      { term: 'raid', ru: 'налёт, набег' },
+      { term: 'exemplary punishment', ru: 'наказание в назидание другим' },
+      { term: 'in vain', ru: 'тщетно, напрасно' },
+    ],
+    questions: [
+      {
+        q: 'Where did the spectre appear?',
+        options: ['Near the Katinka Bridge', 'In the department', 'At Petrovitch’s', 'In Moscow'],
+        correct: 0,
+      },
+      {
+        q: 'What was the spectre doing?',
+        options: [
+          'Looking for Petrovitch',
+          'Searching for a stolen cloak and stripping cloaks from passers-by',
+          'Copying documents',
+          'Asking for money',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Did the spectre choose its victims by rank?',
+        options: [
+          'It attacked only titular councillors',
+          'It took all cloaks without regard for rank or title',
+          'It attacked only the rich',
+          'It attacked nobody',
+        ],
+        correct: 1,
+        why: 'Живой Акакий Акакиевич был последним человеком в департаменте; мёртвый — единственным, для кого чины перестали существовать. В этом весь смысл фантастического финала.',
+      },
+      {
+        q: 'What did the police achieve?',
+        options: [
+          'They caught the ghost',
+          'Nothing — all their attempts were vain',
+          'They closed the bridge',
+          'They found the cloak',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

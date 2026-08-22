@@ -156,7 +156,32 @@ export const OUTLETS: Outlet[] = [
     note: 'Архив: раздел закрыт 4 мая 2026 года и переведён в режим только для чтения.',
   },
 
+  {
+    id: 'ted',
+    name: 'TEDx Talks', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    license: 'Плеер YouTube — встраивание разрешено самой площадкой',
+    home: 'https://www.youtube.com/@TEDx',
+    feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCAuUUnT6oDeKwE6v1NGQxug',
+    note: 'Один спикер, один тезис, живая академическая речь. Смотрим в плеере канала, вопросы наши.',
+  },
+
   // ── Корейский ──────────────────────────────────────────────────────────────
+  {
+    id: 'sbs-news',
+    name: 'SBS 뉴스', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    license: 'Плеер YouTube — встраивание разрешено самой площадкой',
+    home: 'https://www.youtube.com/@SBSNews8',
+    feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCkinYTS9IHqOEwR1Sze2JTw',
+    note: 'Выпуски 8뉴스: дикторская речь, репортажи с улицы, погода. Обновляется несколько раз в день.',
+  },
+  {
+    id: 'samsung-kr',
+    name: 'Samsung Newsroom', lang: 'ko', lane: 'link', kind: 'company', status: 'live',
+    license: 'Заголовок и ссылка. Текст на экране — наш: лицензии на перепечатку у ньюсрума нет',
+    home: 'https://news.samsung.com/kr/',
+    feed: 'https://news.samsung.com/kr/feed',
+    note: 'Деловой корейский, на котором говорят на работе: канцелярит, вежливые формы, числа и даты.',
+  },
   {
     id: 'wikinews-ko',
     name: '위키뉴스', lang: 'ko', lane: 'free', kind: 'agency', status: 'archive',
@@ -166,6 +191,14 @@ export const OUTLETS: Outlet[] = [
   },
 
   // ── Японский ───────────────────────────────────────────────────────────────
+  {
+    id: 'ann-news',
+    name: 'ANNニュース', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    license: 'Плеер YouTube — встраивание разрешено самой площадкой',
+    home: 'https://www.youtube.com/@ANNnewsCH',
+    feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCGCZAYq5Xxojl_tSXcVJhiQ',
+    note: 'Новости телеканала «Асахи». У сюжетов в описании лежит расшифровка — по ней и пишутся вопросы.',
+  },
   {
     id: 'wikinews-ja',
     name: 'ウィキニュース', lang: 'ja', lane: 'free', kind: 'agency', status: 'archive',
@@ -270,9 +303,9 @@ const LOADERS: Record<string, Loader> = {
  * плюс loadFeed ругается в консоль, если приехал список другой длины.
  */
 export const FEED_COUNTS: Record<string, number> = {
-  en: 3,
-  ja: 3,
-  ko: 2,
+  en: 4,
+  ja: 4,
+  ko: 5,
   pt: 3,
 }
 

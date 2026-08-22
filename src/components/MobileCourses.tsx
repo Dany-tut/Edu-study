@@ -20,6 +20,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useT } from '../lib/i18n'
 import { subjectIcon, subjectRank, resolveSubjectPalette } from '../lib/subjects'
+import { stripCommonPrefix } from '../lib/courseLabels'
 import type { SubjectPalette } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 import type { Lesson, LessonStatus } from '../data/mockData'
@@ -66,6 +67,10 @@ export default function MobileCourses() {
   // курсе половина экрана фиолетовая ни от чего.
   const statusVisual = (st: LessonStatus): StatusVisual =>
     st === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[st]
+
+  // Подписи чипс дока: у курсов одного языка общее первое слово съедает
+  // всю ширину, и рядом стоят две одинаковые на вид чипсы (см. courseLabels).
+  const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => s.name)), [subjects])
 
   const lessons = useMemo<Lesson[]>(() => {
     if (!subject) return []
@@ -207,7 +212,7 @@ export default function MobileCourses() {
         <MobileDock>
           {showCourseSwitcher && (
             <DockSegment
-              options={subjects.map(s => ({ id: s.id, label: s.name }))}
+              options={subjects.map((s, i) => ({ id: s.id, label: dockLabels[i] }))}
               value={subject.id}
               onChange={selectSubject}
               accent={pal.accent}

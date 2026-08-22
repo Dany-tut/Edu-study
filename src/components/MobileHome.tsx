@@ -6,6 +6,7 @@ import { useNotificationsStore } from '../store/notificationsStore'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import MobileDock, { DockSegment } from './MobileDock'
+import { stripCommonPrefix } from '../lib/courseLabels'
 import MobileHScroll from './MobileHScroll'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
@@ -62,6 +63,9 @@ export default function MobileHome() {
   // Single course → no dock (В1). Default follows whichever course has the
   // active lesson so "Продолжить" lands where the student left off.
   const multiCourse = subjects.length >= 2
+  // «Все» в подсчёт общего префикса не входит: это не курс, и срезать у него
+  // нечего — иначе одна чужая подпись отменяла бы срез для всех остальных.
+  const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => s.name)), [subjects])
   const [homeSubjectId, setHomeSubjectId] = useState<string | null>(null)
   const scopedSubject = multiCourse
     ? (subjects.find(s => s.id === homeSubjectId) ?? null)
@@ -244,7 +248,7 @@ export default function MobileHome() {
       {multiCourse && (
         <MobileDock>
           <DockSegment
-            options={[{ id: '__all__', label: t('Все') }, ...subjects.map(s => ({ id: s.id, label: s.name }))]}
+            options={[{ id: '__all__', label: t('Все') }, ...subjects.map((s, i) => ({ id: s.id, label: dockLabels[i] }))]}
             value={scopedSubject?.id ?? '__all__'}
             onChange={id => setHomeSubjectId(id === '__all__' ? null : id)}
             accent={scopedSubject ? resolveSubjectPalette(scopedSubject.subject, dark).accent : undefined}

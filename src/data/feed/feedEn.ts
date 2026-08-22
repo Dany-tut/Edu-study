@@ -226,4 +226,73 @@ One NASA photographer in Spain captured the total solar eclipse as well as the p
       },
     ],
   },
+
+  // ── Синяя дорожка: чужой плеер ─────────────────────────────────────────────
+  //
+  // У материала в плеере НЕТ body: читать нечего, смотреть — в плеере канала.
+  // Вопросы наши и написаны по официальному описанию ролика (у TEDx там лежит
+  // и тезис доклада, и кто такой спикер). Расшифровку мы не копируем: она
+  // принадлежит автору, а вопросы к чужому ролику — не воспроизведение.
+  {
+    id: 'en-feed-ted-extreme-heat',
+    outletId: 'ted',
+    lang: 'en',
+    title: 'How to live in extreme heat',
+    date: '2026-08-21',
+    lane: 'embed',
+    textOrigin: 'ours',
+    age: '12+',
+    url: 'https://www.youtube.com/watch?v=VXRwzoFLGaM',
+    byline: 'V. Kelly Turner · TEDxUCLA',
+    embed: { kind: 'youtube', id: 'VXRwzoFLGaM' },
+    origin: 'original',
+    credit: 'TEDx Talks · плеер YouTube',
+    level: 'B2',
+    minutes: 12,
+    topic: 'Погода и природа',
+    skill: 'Аудирование',
+    body: '',
+    glossary: [
+      { term: 'heat', ru: 'жара' },
+      { term: 'quality of life', ru: 'качество жизни' },
+      { term: 'to thrive', ru: 'преуспевать, жить хорошо' },
+      { term: 'urban planning', ru: 'городское планирование' },
+      { term: 'policy', ru: 'политика (как курс действий)' },
+      { term: 'to advise', ru: 'консультировать' },
+      { term: 'conditions', ru: 'условия' },
+    ],
+    questions: [
+      {
+        q: 'What is the speaker’s main point about heat?',
+        options: [
+          'Only record-breaking heat matters',
+          'Hotter-than-usual conditions slowly cost most of us quality of life',
+          'Heat is not a problem in cities',
+          'Air conditioning solves the problem',
+        ],
+        correct: 1,
+        why: 'Тезис доклада: заголовки достаются рекордам, а жизнь портит обычная «чуть жарче обычного» жара.',
+      },
+      {
+        q: 'What does the talk walk you through?',
+        options: [
+          'The history of thermometers',
+          'A typical hot day today, and in a future designed for living well with heat',
+          'A list of the hottest cities',
+          'How to build an air conditioner',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is Dr. Turner’s field?',
+        options: [
+          'Urban planning and geography, with a focus on heat',
+          'Medicine',
+          'Astronomy',
+          'Economics',
+        ],
+        correct: 0,
+      },
+    ],
+  },
 ]
