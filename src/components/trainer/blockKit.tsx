@@ -63,7 +63,9 @@ export function Block({ children, tone, accent, size = 'md', dashed, state, onCl
   const style: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
     padding: pad, borderRadius: 12, minWidth: size === 'lg' ? 62 : 44,
-    border: `2px solid ${fg}`, borderStyle: dashed ? 'dashed' : 'solid',
+    // Рамка longhand'ами, а не сокращением: React ругается на смесь `border` и
+    // `borderStyle` при перерисовке (и правда путает их порядок применения).
+    borderWidth: 2, borderStyle: dashed ? 'dashed' : 'solid', borderColor: fg,
     background: bg, color: fg,
     fontFamily: 'inherit', fontSize: font, fontWeight: 750, lineHeight: 1.15,
     boxShadow: dashed ? 'none' : '2px 2px 0 var(--color-border-medium)',

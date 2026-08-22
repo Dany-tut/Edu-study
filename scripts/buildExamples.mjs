@@ -203,8 +203,13 @@ for (const [lang, c] of Object.entries(corpora)) {
   let own = 0, pat = 0, dash = 0, phr = 0, plain = 0, none = 0
   const misses = []
   for (const [key, term] of [...c.terms].sort(([a], [b]) => a.localeCompare(b))) {
+    // Поле `example` у слова юнита — свободная строка, и там встречается не
+    // предложение, а пояснение по-русски («Читается [한구거] — ㄱ переходит в
+    // следующий слог»). Такое в пример не годится: карточка показала бы
+    // объяснение вместо языка. Пропускаем через ту же проверку, что и всё
+    // остальное, и при отказе идём к следующему источнику.
     const fromOwn = c.own.get(key)
-    if (fromOwn) { map[key] = { term: fromOwn.term }; own++; continue }
+    if (fromOwn && SCRIPT_OK[lang](fromOwn.term)) { map[key] = { term: fromOwn.term }; own++; continue }
     const p = c.pattern.find(s => fits(s.term, term, lang))
     if (p) { map[key] = p; pat++; continue }
     const d = c.dashed.find(s => fits(s.term, term, lang))

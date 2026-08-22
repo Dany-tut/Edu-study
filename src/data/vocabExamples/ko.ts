@@ -300,4 +300,5 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '해결하다': x('문제를 하루 만에 해결했어요.', 'munjereul haru mane haegyeolhaesseoyo.', 'Я решил проблему за один день.'),  // 해결하다
   '혹시 시간 있으세요': x('혹시 시간 있으세요? 잠깐 이야기하고 싶어요.', 'hoksi sigan isseuseyo? jamkkan iyagihago sipeoyo.', 'У вас случайно нет времени? Хочу коротко поговорить.'),  // 혹시 시간 있으세요?
   '확실하다': x('날짜는 아직 확실하지 않아요.', 'naljjaneun ajik hwaksilhaji anayo.', 'Дата пока не точная.'),  // 확실하다
+  '한국말': x('한국말을 조금 할 수 있어요.', 'hangungmareul jogeum hal su isseoyo.', 'Я немного говорю по-корейски.'),  // 한국말
 }

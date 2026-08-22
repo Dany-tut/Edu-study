@@ -9,6 +9,8 @@
     "build": "vite build",
     "check:gloss": "node scripts/checkGloss.mjs",
     "check:questions": "node scripts/checkQuestionRu.mjs",
+    "check:examples": "node scripts/checkExamples.mjs",
+    "build:examples": "node scripts/buildExamples.mjs",
     "check:scenes": "node scripts/checkScenes.mjs",
     "preview": "vite preview",
     "start": "node server/index.js",

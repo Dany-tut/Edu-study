@@ -92,6 +92,8 @@ export interface HomeworkQuizQuestion {
   /** Ширина картинки условия в процентах колонки (по умолчанию 100). */
   imageSize?: number
   responseMode?: 'write' | 'speak'
+  /** Комментарий, который открывается после ответа (слова автора работы). */
+  afterNote?: string
   /** Дополнительные принимаемые формулировки для свободного ввода. */
   altAnswers?: string[]
   /** Текст для чтения над условием; перевод открывается после ответа. */
@@ -333,6 +335,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     image: t.image,
     imageSize: t.imageSize,
     responseMode: t.responseMode,
+    afterNote: t.afterNote,
     passage: t.passage,
     passageTitle: t.passageTitle,
     passageTranslation: t.passageTranslation,

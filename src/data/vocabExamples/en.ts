@@ -378,4 +378,8 @@ export const EN_VOCAB_EXAMPLES: ExampleMap = {
   'working proficiency': x('My English is working proficiency, not native.', 'Мой английский — рабочий уровень, не носитель.'),  // working proficiency
   'you re breaking up': x('You\'re breaking up — could you turn off video?', 'Вас прерывает — можете выключить видео?'),  // You're breaking up
   'young people / the younger generation': x('Young people move often, and the younger generation rents longer.', 'Молодёжь часто переезжает, и молодое поколение дольше снимает жильё.'),  // young people / the younger generation
+  'sheep': x('The farm keeps forty sheep.', 'На ферме держат сорок овец.'),  // sheep
+  'word stress': x('Word stress changes the meaning: REcord and reCORD.', 'Ударение в слове меняет смысл: REcord и reCORD.'),  // word stress
+  'be intelligible': x('Your accent is fine as long as you are intelligible.', 'Акцент не помеха, пока вас понимают.'),  // to be intelligible
+  'chunk': x('Learn a chunk, not a word: "as far as I know".', 'Учите кусок, а не слово: «as far as I know».'),  // a chunk
 }

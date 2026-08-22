@@ -1,4 +1,4 @@
-# en: 365
+# en: 369
 to a certain extent	до определённой степени		ielt
 as a result	в результате		endc
 abbreviation	сокращение		ielt
@@ -35,6 +35,7 @@ to be drawn to	тянуться к		endc
 to be entitled to	иметь право на		текст en-offer-letter
 to be flexible	быть гибким		endc
 to be fluent in	свободно владеть		endc
+to be intelligible	быть разборчивым		ielt
 to be involved in	участвовать в		endc
 to be rejected	получить отказ		endc
 to be replaced by	быть заменённым на		ielt
@@ -52,6 +53,7 @@ a case in point	показательный пример		ielt
 to catch up	догнать, вернуться в темп		ielt
 to cause / to lead to / to result in	вызывать, приводить к		ielt
 to check in	свериться, отметиться		endc
+a chunk	смысловой кусок речи		ielt
 coherence and cohesion	логика и связность		ielt
 comma splice	две части, склеенные запятой		ielt
 a compelling argument	убедительный аргумент		ielt
@@ -274,6 +276,7 @@ screening call	первичный звонок		endc
 the second factor	второй фактор		ielt
 to shadow someone	походить за кем-то, посмотреть как работает		endc
 Shall we get started?	начнём?		endc
+sheep	овца	/ʃiːp/	ielt
 shift in focus	смена фокуса		ielt
 to ship	выпустить, довести до релиза		endc
 shortlist	список финалистов		endc
@@ -357,6 +360,7 @@ which in turn	что, в свою очередь		ielt
 a widely held belief	распространённое мнение		ielt
 wireframe	вайрфрейм, каркас		endc
 word match	совпадение слов		ielt
+word stress	ударение в слове		ielt
 work experience	опыт работы		endc
 working proficiency	рабочий уровень владения		endc
 to wrap up	подытожить		endc
@@ -651,7 +655,7 @@ to zoom in on	подробнее остановиться на		endc
 部長	начальник отдела	buchō	jan3
 関係	отношение, связь	kankei	jan3
 
-# ko: 287
+# ko: 288
 ~(으)ㄴ 적이 있다	доводилось	n jeogi itda	kot2
 ~(으)ㄴ다	письменное окончание глагола	nda	kot2
 ~(으)ㄹ 걸요	думаю, что скорее всего	l geolyo	kot2
@@ -912,6 +916,7 @@ to zoom in on	подробнее остановиться на		endc
 핑계	отговорка	pinggye	kot2
 ㅎ	х	히읗	ko-hangul
 학기	семестр	hakgi	kot2
+한국말	корейская речь	hangungmal	kotp
 한자	ханча, китайские иероглифы в корейском	hanja	kot2
 한자어	слово китайского происхождения	hanjaeo	kot2
 해결책	решение проблемы	haegyeolchaek	kot2

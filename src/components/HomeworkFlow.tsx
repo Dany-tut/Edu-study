@@ -3083,6 +3083,22 @@ export default function HomeworkFlow({
                           }}
                         />
                       )}
+                      {/* Слова автора о работе. Только после отправки: прочитав
+                          трактовку раньше, ученик опишет её, а не то, что видит
+                          сам, — и задание перестанет быть описанием. */}
+                      {question.afterNote && state.basicSubmitted && (
+                        <div style={{
+                          padding: '14px 16px', borderRadius: 18,
+                          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+                        }}>
+                          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 8 }}>
+                            {t('Что говорил автор')}
+                          </p>
+                          <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+                            {question.afterNote}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     ) : (
                     <div className="flex flex-col" style={{ gap: 10 }}>

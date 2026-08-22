@@ -1025,10 +1025,15 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
                 key={ci}
                 style={{
                   borderRadius: 8,
-                  // Воздух по бокам заливки — падингом с равным отрицательным
-                  // отступом: без компенсации текст на каждой подсветке
-                  // подпрыгивал бы вбок, а это бегущая строка.
-                  paddingLeft: 7, paddingRight: 7, marginLeft: -7, marginRight: -7,
+                  // Воздух по бокам заливки — падингом БЕЗ отрицательного
+                  // отступа: отступом заливка наезжала на кнопку реплики в
+                  // жёлобе слева. Падинг стоит всегда, а не только у звучащего
+                  // куска, поэтому строка от подсветки не дёргается.
+                  paddingLeft: 7, paddingRight: 7,
+                  // Перенос строки не должен резать заливку: по умолчанию
+                  // (slice) у второй половины нет ни скругления, ни отступа —
+                  // ровно тот срез, что видно на длинных репликах.
+                  WebkitBoxDecorationBreak: 'clone', boxDecorationBreak: 'clone',
                   background: live ? soft : 'transparent',
                   boxShadow: live ? `0 0 0 4px ${soft}` : 'none',
                   transition: 'background 200ms ease',
@@ -1150,8 +1155,10 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, o
             onClick={() => onPick(on ? null : tk.pair ?? null)}
             style={{
               cursor: 'pointer', borderRadius: 4,
-              // Заливка слова тоже не должна лежать вплотную к буквам.
+              // Заливка слова тоже не должна лежать вплотную к буквам, а
+              // перенос — резать её на половине без скругления.
               paddingLeft: 3, paddingRight: 3, marginLeft: -3, marginRight: -3,
+              WebkitBoxDecorationBreak: 'clone', boxDecorationBreak: 'clone',
               // Те же три состояния и те же прозрачности, что у слова в
               // оригинале (GlossedText): пара — одна вещь, лежащая по двум
               // сторонам, и выглядеть с разных сторон по-разному не должна.

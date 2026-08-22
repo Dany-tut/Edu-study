@@ -433,6 +433,8 @@ export interface ImageTaskHints {
   expectedStructures?: string[]
   responseMode?: 'write' | 'speak'
   responseSeconds?: number
+  /** Что открыть после ответа: слова автора о работе, разбор, комментарий. */
+  afterNote?: string
 }
 
 /** Описать одну картинку — письменно или голосом. */
@@ -443,6 +445,7 @@ export const describeImage = (question: string, image: string, hints: ImageTaskH
   responseSeconds: hints.responseSeconds ?? 90,
   facts: hints.facts ?? [], distractorFacts: hints.distractorFacts ?? [],
   expectedStructures: hints.expectedStructures ?? [],
+  afterNote: hints.afterNote,
 })
 
 /** Сравнить две картинки — «было / стало», «здесь / там». */
