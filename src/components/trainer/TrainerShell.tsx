@@ -265,18 +265,24 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
             marginTop: -8, marginBottom: -10,
             paddingTop: PAD_TOP, paddingBottom: 10,
             display: 'flex', flexDirection: 'column', gap: 12,
-            background: 'rgba(var(--glass-rgb), 0.86)',
-            backdropFilter: stuck ? 'blur(14px) saturate(140%)' : 'none',
-            WebkitBackdropFilter: stuck ? 'blur(14px) saturate(140%)' : 'none',
-            boxShadow: stuck ? '0 14px 22px -18px rgba(0,0,0,0.55)' : 'none',
-            transition: 'box-shadow 180ms ease',
           }}
         >
+          {/* Подложка — не плашка поперёк страницы, а продолжение размытия
+              шапки кабинета (.edge-progressive-blur--top): полоса своего цвета
+              читается как чужая деталь, особенно в тёмной теме, где стекло
+              светлее фона. Здесь текст под кнопками гаснет в цвет фона и
+              растворяется книзу, а таблетки остаются обычным плавающим
+              стеклом — как «Назад» и название урока на строке шапки. */}
+          <div
+            aria-hidden
+            className="sticky-blur-band"
+            style={{ opacity: stuck ? 1 : 0 }}
+          />
         {/* Кнопка открытия шторки идёт ПЕРЕД строкой управления, а не внутри
             неё: строку собирает вызывающий, и вставлять туда чужой элемент
             значило бы, что каждый режим обязан помнить про телефон. */}
         {narrow && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
             {narrowLead}
             <button
               onClick={() => setSheet(true)}
@@ -292,7 +298,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
             </button>
           </div>
         )}
-        {toolbar}
+        {toolbar && <div style={{ position: 'relative' }}>{toolbar}</div>}
         </div>
         )}
         {children}

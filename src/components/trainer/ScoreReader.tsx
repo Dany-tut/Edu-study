@@ -6,7 +6,7 @@ import {
 import GlossedText from '../GlossedText'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
-import { wordReading } from '../../lib/lexicon'
+import { buildLexicon, wordReading } from '../../lib/lexicon'
 import { transcribe } from '../../lib/translit'
 import { pairTranslation } from '../../lib/pairing'
 import { speak, speechLines, type SpeechHandle } from '../../lib/speech'
@@ -134,6 +134,16 @@ export function hasReadings(body: string, lang: string, glossary: Gloss[] = []):
  * чёлку в standalone на телефоне.
  */
 const STICK_TOP = TRAINER_STICK_FALLBACK
+
+/**
+ * Высота всякого управляющего элемента читалки: пилюль «Перевод» и
+ * «Транскрипция», жёлобов «Потоком / По строке» и стороны перевода, кнопки
+ * темпа и «Показать перевод».
+ * Одно число, а не подобранные на глаз паддинги: у пилюли и жёлоба разный
+ * состав (рамка против подложки с ползунком), и при одинаковых паддингах они
+ * вставали в строку на разной высоте — строка управления выглядела рваной.
+ */
+const CTL_H = 30
 
 export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight, subject }: {
   body: string
@@ -368,6 +378,28 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // Что подсвечено: звучащая реплика, а в тишине — та, на которой поставили
   // паузу. Иначе после паузы место в тексте приходится искать глазами заново.
   const mark = line ?? paused
+
+  // ЗВУК ВЕДЁТ ГЛАЗ И ПО ПЕРЕВОДУ. Голос подсвечивает слово в оригинале, но
+  // ученик читает справа: без ответной подсветки он либо теряет строку
+  // перевода, либо перестаёт слушать. Поэтому звучащее слово переводится в тот
+  // же ключ пары, которым связаны стороны (lib/pairing.ts), и загорается
+  // напротив — той же логикой, что и клик по слову, только без клика.
+  const lex = useMemo(() => buildLexicon(lang, glossary), [lang, glossary])
+  const spoken = useMemo(() => {
+    if (mark === null) return null
+    const text = allLines[mark]
+    if (!text) return null
+    // Слова с переводом в словаре — только у них есть пара напротив. Берём
+    // последнее, начавшееся не позже озвученного символа: часть голосов отдаёт
+    // позицию пробела перед словом (та же оговорка, что в GlossedText).
+    let off = 0
+    let best: string | null = null
+    for (const seg of lex.segment(text)) {
+      if (seg.gloss && off <= (char ?? 0)) best = seg.text.trim().toLowerCase()
+      off += seg.text.length
+    }
+    return best
+  }, [lex, allLines, mark, char])
   /** Идёт ли звук по кнопке шапки. */
   const sounding = stepping ? solo !== null : playing
 
@@ -496,8 +528,12 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           <button
             onClick={() => setRate(!slow)}
             style={{
-              padding: '5px 10px', borderRadius: 999, cursor: 'pointer',
+              height: CTL_H, padding: '0 10px', borderRadius: 999, cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
+              // Ширина не пляшет между 0.75× и 1.0×: цифры разной ширины
+              // сдвигали бы край шапки при каждом нажатии.
+              minWidth: 48,
               border: `1px solid ${slow ? accent : 'var(--color-border-medium)'}`,
               background: slow ? soft : 'transparent',
               color: slow ? accent : 'var(--color-text-2)',
@@ -569,6 +605,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           ruby={showTr && readings}
           line={mark}
           char={char}
+          spoken={spoken}
           solo={solo}
           onPlayRow={playRow}
           pick={pick}
@@ -603,6 +640,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               ruby={showTr && readings}
               line={mark}
               char={char}
+              spoken={spoken}
               solo={solo}
               onPlayRow={playRow}
               pick={pick}
@@ -639,7 +677,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
  * тумблер «Перевод» включён, ученик уже сказал, что хочет видеть перевод
  * всегда, — тогда кнопки нет.
  */
-function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, accent, soft, highlight, subject, ruby, line, char, solo, onPlayRow, pick, onPick, showRu, canPeek, onPeek }: {
+function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, accent, soft, highlight, subject, ruby, line, char, spoken, solo, onPlayRow, pick, onPick, showRu, canPeek, onPeek }: {
   unit: Unit
   index: number
   count: number
@@ -655,6 +693,8 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
   ruby: boolean
   line: number | null
   char: number | null
+  /** Звучащее сейчас слово — ключ пары, по которому горит перевод напротив. */
+  spoken: string | null
   solo: number | null
   onPlayRow: (row: Row) => void
   pick: Pick | null
@@ -723,6 +763,7 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
         ruby={ruby}
         line={line}
         char={char}
+        spoken={spoken}
         solo={solo}
         onPlayRow={onPlayRow}
         pick={pick}
@@ -733,9 +774,10 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
         <button
           onClick={onPeek}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 28,
-            padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            marginLeft: 28, height: CTL_H, padding: '0 14px',
+            borderRadius: 999, cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
             border: `1px solid ${accent}66`, background: 'transparent', color: accent,
           }}
         >
@@ -828,7 +870,8 @@ function TrackSwitch({ options, index, onPick, accent }: {
             style={{
               position: 'relative', display: 'inline-flex',
               alignItems: 'center', justifyContent: 'center', gap: 5,
-              padding: o.iconOnly ? '5px 11px' : '5px 12px',
+              // Ровно та же высота, что у пилюль рядом: 3 + 24 + 3 = CTL_H.
+              height: CTL_H - 6, padding: o.iconOnly ? '0 11px' : '0 12px',
               border: 'none', background: 'transparent', cursor: 'pointer',
               // Насыщенность не меняется вместе с выбором: на 500↔700 жёлоб
               // дёргался бы по ширине при каждом переключении.
@@ -889,7 +932,7 @@ function SideSwitch({ value, onChange, accent }: {
 }
 
 /** Строка партитуры: оригинал и, если включён, его перевод. */
-function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossary, accent, soft, highlight, subject, ruby, line, char, solo, onPlayRow, pick, onPick }: {
+function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossary, accent, soft, highlight, subject, ruby, line, char, spoken, solo, onPlayRow, pick, onPick }: {
   unit: Unit
   /** Номер фрагмента: им пара привязана к своей строке (см. Pick). */
   index: number
@@ -906,6 +949,8 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
   ruby: boolean
   line: number | null
   char: number | null
+  /** Звучащее сейчас слово — ключ пары, по которому горит перевод напротив. */
+  spoken: string | null
   /** Реплика, которую слушают отдельно, — её кнопка стоит в положении «стоп». */
   solo: number | null
   onPlayRow: (row: Row) => void
@@ -916,6 +961,9 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
   // Выбранное слово этой строки. Пара горит на обеих сторонах одним и тем же
   // ключом: в оригинале его разбирает GlossedText, в переводе — TranslationText.
   const picked = pick && pick.unit === index ? pick.term : null
+  // Звучит ли что-то в ЭТОМ фрагменте: перевод подсвечивается только у своей
+  // реплики — залитые разом все строки перевода не отвечают на вопрос «где мы».
+  const liveUnit = line !== null && unit.rows.some(r => r.chunks.some(c => c.line === line))
   const orig = (
     <div style={{
       ...cell,
@@ -1019,8 +1067,19 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
           glossary={glossary}
           accent={accent}
           picked={picked}
+          // Слово горит напротив, только пока звучит эта реплика: подсветка —
+          // указатель голоса, и оставшись после него, она врала бы.
+          spoken={liveUnit ? spoken : null}
           onPick={term => onPick(index, term, 'ru')}
-          style={ruStyle}
+          style={{
+            ...ruStyle,
+            // Та же заливка, что у звучащей строки оригинала: строка и её
+            // перевод — одна вещь, и гореть должны одинаково.
+            borderRadius: 8,
+            background: liveUnit ? soft : 'transparent',
+            boxShadow: liveUnit ? `0 0 0 4px ${soft}` : 'none',
+            transition: 'background 200ms ease',
+          }}
         />
       </div>
     </>
@@ -1039,7 +1098,7 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
  * весь вопрос к переводу — «каким словом это сказано в оригинале», и ответ на
  * него уже виден в загоревшейся строке напротив.
  */
-function TranslationText({ ru, source, lang, glossary, accent, picked, onPick, style }: {
+function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, onPick, style }: {
   ru: string
   /** Оригинал этого же фрагмента — по нему и сводятся пары. */
   source: string
@@ -1047,6 +1106,8 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, onPick, s
   glossary: Gloss[]
   accent: string
   picked: string | null
+  /** Слово, которое голос читает прямо сейчас (тот же ключ пары, что у picked). */
+  spoken: string | null
   onPick: (term: string | null) => void
   style: React.CSSProperties
 }) {
@@ -1060,6 +1121,10 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, onPick, s
       {tokens.map((tk, i) => {
         if (!tk.pair) return <span key={i}>{tk.text}</span>
         const on = tk.pair === picked
+        // Голос ведёт мягче выбора: выбранное слово — ответ на вопрос ученика и
+        // держится, пока его не сняли, а звучащее живёт полсекунды и гаснет.
+        // Одинаковая заливка в бегущей строке читалась бы как мигание клика.
+        const now = !on && tk.pair === spoken
         return (
           <span
             key={i}
@@ -1073,8 +1138,8 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, onPick, s
               // оригинале (GlossedText): пара — одна вещь, лежащая по двум
               // сторонам, и выглядеть с разных сторон по-разному не должна.
               borderBottom: `1px dotted ${accent}80`,
-              background: on ? `${accent}3d` : 'transparent',
-              boxShadow: on ? `0 0 0 2px ${accent}3d` : 'none',
+              background: on ? `${accent}3d` : now ? `${accent}26` : 'transparent',
+              boxShadow: on ? `0 0 0 2px ${accent}3d` : now ? `0 0 0 2px ${accent}26` : 'none',
               transition: 'background 140ms ease',
             }}
           >
@@ -1093,12 +1158,17 @@ function Toggle({ on, onClick, accent, soft, children }: {
     <button
       onClick={onClick}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
-        fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        // Высота и вес шрифта одни и те же во всех состояниях: на 500↔700
+        // пилюля дёргалась по ширине при каждом нажатии, а рядом с жёлобом
+        // тумблера стояла на пару пикселей выше него.
+        height: CTL_H, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
+        fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
         border: `1px solid ${on ? accent : 'var(--color-border-medium)'}`,
         background: on ? soft : 'transparent',
         color: on ? accent : 'var(--color-text-2)',
+        whiteSpace: 'nowrap',
+        transition: 'background 160ms ease, border-color 160ms ease, color 160ms ease',
       }}
     >
       {children}

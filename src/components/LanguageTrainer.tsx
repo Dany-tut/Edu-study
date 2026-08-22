@@ -142,6 +142,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [sceneShelf, setSceneShelf] = useState('')
   const [scenePlatforms, setScenePlatforms] = useState<string[]>([])
   const [sceneTags, setSceneTags] = useState<string[]>([])
+  const [sceneLevels, setSceneLevels] = useState<string[]>([])
 
   const sceneLib = hasScenes(lang)
   const sceneWorks = useMemo(() => worksForLang(lang), [lang])
@@ -307,6 +308,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       .map(([value, count]) => ({ value, label: value, count }))
   }, [sceneWorks])
 
+  // Уровень стоит у СЦЕНЫ, а не у произведения, поэтому фильтр отвечает на
+  // вопрос «есть ли здесь что почитать на моём уровне»: книга остаётся в сетке,
+  // если подходит хотя бы одна её сцена. Так «Идиот» не пропадает из-за одного
+  // трудного отрывка (см. соображение выше) — и при этом «A2» больше не значит
+  // «ищи сам». Порядок — по таксономии языка (A1…C1), счётчик — сколько
+  // произведений попадает. До загрузки чанка сцен список пуст, и таблетки нет.
+  const sceneLevelOpts = useMemo(() => {
+    const n = new Map<string, number>()
+    for (const w of sceneWorks) {
+      for (const lv of new Set(scenesOf(w.id).map(s => s.level))) n.set(lv, (n.get(lv) ?? 0) + 1)
+    }
+    return present([...n.keys()], tax?.levels ?? [])
+      .map(value => ({ value, label: value, count: n.get(value) ?? 0 }))
+  }, [sceneWorks, scenesOf, tax])
+
   // Внутри фильтра значения складываются по ИЛИ (Netflix или HBO), между
   // фильтрами — по И. Иначе «Netflix + комедия» показало бы весь Netflix.
   const visibleWorks = useMemo(() => {
@@ -315,10 +331,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (sceneShelf && w.shelf !== sceneShelf) return false
       if (scenePlatforms.length && !(w.platform && scenePlatforms.includes(w.platform))) return false
       if (sceneTags.length && !w.tags.some(tag => sceneTags.includes(tag))) return false
+      if (sceneLevels.length && !scenesOf(w.id).some(s => sceneLevels.includes(s.level))) return false
       if (q && !`${w.title} ${w.origTitle} ${w.author}`.toLowerCase().includes(q)) return false
       return true
     })
-  }, [sceneWorks, sceneShelf, scenePlatforms, sceneTags, query])
+  }, [sceneWorks, sceneShelf, scenePlatforms, sceneTags, sceneLevels, scenesOf, query])
 
   const sceneGroups = useMemo(
     () => sceneShelves
@@ -1047,6 +1064,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
             {/* Платформы показываем, только если они у языка есть: на корейской
                 полке из одних рассказов фильтр «где смотрел» — пустая таблетка. */}
+            {sceneLevelOpts.length > 1 && (
+              <FilterMenu
+                label="Уровень"
+                options={sceneLevelOpts}
+                value={sceneLevels}
+                onChange={setSceneLevels}
+                accent={palette.accent}
+                soft={palette.soft}
+              />
+            )}
             {platformOpts.length > 1 && (
               <FilterMenu
                 label="Платформа"

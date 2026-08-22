@@ -8,7 +8,8 @@
 // показывает «просмотрено 6:12 из 8:00». Держать его в data/ нельзя — там
 // не место логике плеера, а в videoProgress.ts тянется supabase.
 //
-// ФОРМАТ. `w=<просмотрено>;p=<позиция>;d=<длительность>`, секунды целыми.
+// ФОРМАТ. `w=<просмотрено>;p=<позиция>;d=<длительность>;r=<отрезки>`, секунды
+// целыми, отрезки — `0-120_140-300`.
 // Человекочитаемо в логах и в БД, переживает JSON-сериализацию домашки и
 // разбирается назад без схемы. Позиция нужна, чтобы вернуться на то же место
 // после перезагрузки, длительность — чтобы посчитать долю, когда плеер ещё
@@ -17,6 +18,11 @@
 // ПОЧЕМУ «ПРОСМОТРЕНО», А НЕ «ПОЗИЦИЯ». Ровно по той же причине, что и в
 // lib/videoProgress.ts: перемотка в конец не есть просмотр. Секунды копит
 // плеер отрезками, сюда приходит уже сумма.
+//
+// ЗАЧЕМ ХРАНИТЬ И ОТРЕЗКИ. Ученик закрывает домашку на середине серии и
+// возвращается вечером. Без отрезков плеер начинал бы копить просмотр с нуля:
+// либо всё пересматривать, либо складывать старую сумму с новой — а это
+// зачёт за одну и ту же минуту дважды.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Доля ролика, после которой просмотр засчитан, если не задано watchSeconds. */
@@ -29,13 +35,18 @@ export interface VideoAnswer {
   position: number
   /** Длительность ролика, 0 — ещё неизвестна. */
   duration: number
+  /** Отсмотренные отрезки [начало, конец] — чтобы продолжить, а не начать заново. */
+  ranges: Array<[number, number]>
 }
 
-export const emptyVideoAnswer = (): VideoAnswer => ({ watched: 0, position: 0, duration: 0 })
+export const emptyVideoAnswer = (): VideoAnswer =>
+  ({ watched: 0, position: 0, duration: 0, ranges: [] })
 
 export function formatVideoAnswer(v: VideoAnswer): string {
   const n = (x: number) => Math.max(0, Math.round(x))
-  return `w=${n(v.watched)};p=${n(v.position)};d=${n(v.duration)}`
+  const head = `w=${n(v.watched)};p=${n(v.position)};d=${n(v.duration)}`
+  if (!v.ranges.length) return head
+  return `${head};r=${v.ranges.map(([a, b]) => `${n(a)}-${n(b)}`).join('_')}`
 }
 
 export function parseVideoAnswer(raw: string | undefined | null): VideoAnswer {
@@ -48,6 +59,11 @@ export function parseVideoAnswer(raw: string | undefined | null): VideoAnswer {
     if (key === 'w') out.watched = num
     else if (key === 'p') out.position = num
     else if (key === 'd') out.duration = num
+  }
+  const r = raw.split(';').find(part => part.startsWith('r='))?.slice(2)
+  if (r) {
+    out.ranges = r.split('_').map(seg => seg.split('-').map(Number) as [number, number])
+      .filter(([a, b]) => Number.isFinite(a) && Number.isFinite(b) && b > a)
   }
   return out
 }
@@ -73,14 +89,4 @@ export function videoAnswerDone(raw: string | undefined | null, watchSeconds?: n
   // ответ «w=0;p=0;d=0» проходил бы как выполненный.
   if (need <= 0) return false
   return v.watched + 0.5 >= need
-}
-
-/** «6:12» / «1:04:30» — подпись просмотра у ученика и в проверке у учителя. */
-export function videoClock(seconds: number): string {
-  const s = Math.max(0, Math.round(seconds))
-  const h = Math.floor(s / 3600)
-  const m = Math.floor((s % 3600) / 60)
-  const sec = s % 60
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`
 }

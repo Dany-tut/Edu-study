@@ -51,6 +51,11 @@ export interface HomeworkQuizQuestion {
   table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
 
   // ─── языковые задания ───
+  /** videoWatch — ролик задания и условия его зачёта (см. lib/videoAnswer.ts). */
+  videoUrl?: string
+  videoStart?: number
+  videoWatchSeconds?: number
+  videoCredit?: string
   /** trace — буква, которую обводят. Черты берутся из data/hangul.ts по ней же. */
   chamo?: string
   /** buildSyllable — эталонный слог; из чего он состоит, считается по нему. */
@@ -342,6 +347,12 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     // с пустым chamo/syllable и показывалось полем «Развёрнутый ответ».
     chamo: t.chamo,
     syllable: t.syllable,
+    // Видео: ссылка и порог просмотра. Без переноса задание доезжало бы до
+    // ученика пустым — плееру нечего открыть.
+    videoUrl: t.videoUrl,
+    videoStart: t.videoStart,
+    videoWatchSeconds: t.videoWatchSeconds,
+    videoCredit: t.videoCredit,
   }
 }
 
