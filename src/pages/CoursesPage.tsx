@@ -63,6 +63,12 @@ export default function CoursesPage() {
   // ride alongside it above the bottom nav (mirrors the trainer dock). On
   // desktop the dock is hidden and the classic top search field is used.
   const [searchExpanded, setSearchExpanded] = useState(false)
+  // Тот же морф на десктопе: поле лежит кружком и раскрывается по клику, отдавая
+  // ширину ряду курсов. Состояние отдельное от мобильного — ветки живут в DOM
+  // одновременно, и общий флаг наводил бы фокус на скрытый инпут соседней вёрстки.
+  const [deskSearchOpen, setDeskSearchOpen] = useState(false)
+  const dSearchRef = useRef<HTMLInputElement>(null)
+  const dSearchPillRef = useRef<HTMLDivElement>(null)
   const [sortDesc, setSortDesc] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [filterSheet, setFilterSheet] = useState(false)

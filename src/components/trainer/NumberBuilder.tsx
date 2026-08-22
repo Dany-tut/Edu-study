@@ -50,7 +50,11 @@ const NATIVE_FORMS = new Set([
  */
 function numTone(num: string): EndingTone {
   const head = num.split(' ')[0]
-  const native = NATIVE_FORMS.has(head) || [...NATIVE_FORMS].some(f => f.length > 1 && head.startsWith(f))
+  // Сравнение по началу, а не по целому слову: 열두, 스물한 и 마흔다섯 в списке
+  // не лежат, но начинаются с исконного десятка. Ни одна форма китайского ряда
+  // с исконного числительного не начинается, так что ложных срабатываний тут
+  // нет — проверено на всех формах наборов.
+  const native = NATIVE_FORMS.has(head) || [...NATIVE_FORMS].some(f => head.startsWith(f))
   return native ? SYSTEM_TONE.native : SYSTEM_TONE.sino
 }
 

@@ -54,7 +54,7 @@ import { hasEndings, verbByDict, KO_ENDINGS, KO_VERBS } from '../data/koreanEndi
 import { StemGrid, StemPage } from './trainer/EndingBuilder'
 import { hasHanjaRoots, hanjaRootById, HANJA_GROUPS, HANJA_ROOTS } from '../data/koreanHanja'
 import { RootGrid, RootPage } from './trainer/RootBuilder'
-import { hasNumbers, numberSetById, systemLabel, KO_NUMBER_SETS } from '../data/koreanNumbers'
+import { hasNumbers, numberSetById, systemLabel, KO_NUMBER_SETS, SYSTEM_RULES } from '../data/koreanNumbers'
 import { NumberGrid, NumberPage } from './trainer/NumberBuilder'
 import { TONE } from './trainer/blockKit'
 import {
@@ -1402,17 +1402,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           и на витрине, и внутри набора, и посреди прогона. */}
       {mode === 'blocks' && blocksView === 'numbers' && (
         <RailCard title="Каким рядом" accent={palette.accent} icon={<Layers size={15} />}>
-          {KO_NUMBER_SETS.map(set => (
-            <div key={set.id} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+          {SYSTEM_RULES.map(rule => (
+            <div key={rule.system} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{
-                fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
-                color: set.system === 'sino' ? 'var(--color-blue-pill-text)'
-                  : set.system === 'native' ? 'var(--color-peach-text)'
+                fontSize: 12, fontWeight: 800,
+                color: rule.system === 'sino' ? 'var(--color-blue-pill-text)'
+                  : rule.system === 'native' ? 'var(--color-peach-text)'
                   : 'var(--color-purple-text)',
               }}>
-                {t(systemLabel(set.system))}
+                {t(systemLabel(rule.system))}
               </span>
-              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(set.when)}</span>
+              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(rule.what)}</span>
             </div>
           ))}
         </RailCard>

@@ -14,6 +14,8 @@ type Loader = () => Promise<WordPackBook>
 
 const LOADERS: Record<string, Loader> = {
   ko: () => import('./wordPacksKo').then(m => m.KOREAN_WORD_PACKS),
+  ja: () => import('./wordPacksJa').then(m => m.JAPANESE_WORD_PACKS),
+  en: () => import('./wordPacksEn').then(m => m.ENGLISH_WORD_PACKS),
 }
 
 /** Базовый код языка: pt-BR → pt. */
