@@ -55,6 +55,9 @@ interface Seat {
 
 const TONE: Record<string, string> = {
   bad: 'var(--color-red-text)', hard: '#f59e0b', good: 'var(--color-green-accent)', easy: 'var(--color-green-text)',
+  // Нейтральный тон для «не знаю»: это не ответ, а отказ отвечать, и красным
+  // он бы читался как второе «неверно».
+  mute: 'var(--color-text-2)',
 }
 
 /**
@@ -585,8 +588,14 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         }}
       >
         {seat.kind === 'judge' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          // Третья кнопка обязательна: утверждение «слово = перевод» нельзя
+          // перевернуть и подсмотреть, и без «не знаю» единственным выходом
+          // из незнакомой карточки остаётся угадывание — оно засчитывается в
+          // статистику как настоящий ответ и врёт расписанию. «Не знаю» = тот
+          // же провал, что и промах: карточка вернётся recall'ом с ответом.
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.86fr 1fr', gap: 8 }}>
             <ActionButton tone="bad" label={t('Неверно')} onClick={() => swipe('left')} />
+            <ActionButton tone="mute" label={t('Не знаю')} onClick={() => answer(1)} />
             <ActionButton tone="good" label={t('Верно')} onClick={() => swipe('right')} />
           </div>
         ) : !revealed ? (

@@ -11,6 +11,7 @@ import { transcribe } from '../../lib/translit'
 import { pairTranslation } from '../../lib/pairing'
 import { speak, speechLines, type SpeechHandle } from '../../lib/speech'
 import { useIsDesktop } from '../../lib/useIsDesktop'
+import { TRAINER_STICK_FALLBACK } from './TrainerShell'
 import type { Gloss } from '../../data/readingLibrary'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,14 +125,15 @@ export function hasReadings(body: string, lang: string, glossary: Gloss[] = []):
 /**
  * Где останавливается прилипшая шапка плеера.
  *
- * Ровно RAIL_TOP скелета тренажёра (trainer/TrainerShell.tsx): рейл слева и
- * шапка читалки справа прилипают на одной высоте и стоят одной линией.
- * Смещение отсчитывается от СОДЕРЖИМОГО панели прокрутки, а верхние 100 px
- * кабинета — её padding, так что 8 — это «там же, где стоит», а не «под
- * плавающей шапкой». В standalone-режиме на телефоне под чёлку добавляется
- * safe-area: там панели кабинета нет и отсчёт идёт от края экрана.
+ * Под прилипшей строкой управления скелета (trainer/TrainerShell.tsx): её
+ * высоту скелет меряет и отдаёт переменной CSS, потому что она разная у режимов
+ * и переносится на второй ряд на узком экране. Числом здесь стояло бы
+ * «наехать на кнопки» при первом же переносе строки.
+ * Скелета может и не быть (читалку зовут не только из тренажёра) — тогда
+ * работает запасное значение: те же 8 px, что у рейла, плюс safe-area под
+ * чёлку в standalone на телефоне.
  */
-const STICK_TOP = 'max(8px, env(safe-area-inset-top, 0px))'
+const STICK_TOP = TRAINER_STICK_FALLBACK
 
 export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight, subject }: {
   body: string

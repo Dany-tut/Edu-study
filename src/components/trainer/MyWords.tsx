@@ -120,9 +120,17 @@ export function myWordsStats(words: MyWord[], states: Map<string, CardState>, no
  * ПУСТАЯ ПЛИТКА ТОЖЕ ОТКРЫВАЕТСЯ. Иначе про словарь узнаёт только тот, кто уже
  * умеет его наполнять; внутри как раз написано, откуда берутся слова.
  */
-export function MyWordsTile({ words, states, accent, soft, onOpen }: {
+export function MyWordsTile({ words, states, ready, accent, soft, onOpen }: {
   words: MyWord[]
   states: Map<string, CardState>
+  /**
+   * Словарь прочитан из базы.
+   *
+   * До этого плитка молчит про числа: незагруженный словарь неотличим от
+   * пустого, и «Пока пусто» на четверть секунды у человека с двумя сотнями
+   * слов читается как «всё пропало».
+   */
+  ready: boolean
   accent: string
   soft: string
   onOpen: () => void
@@ -137,7 +145,7 @@ export function MyWordsTile({ words, states, accent, soft, onOpen }: {
             <BookMarked size={11} aria-hidden /> {t('Словарь')}
           </span>
         </TileChip>
-        {st.total > 0 && <TileChip>{st.total} {t('слов')}</TileChip>}
+        {ready && st.total > 0 && <TileChip>{st.total} {t('слов')}</TileChip>}
       </span>
       <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
         {t('Мои слова')}
@@ -146,19 +154,23 @@ export function MyWordsTile({ words, states, accent, soft, onOpen }: {
         flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
         overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
       }}>
-        {st.total > 0
-          ? words.slice(0, 4).map(w => w.term).join(' · ')
-          : t('Слова, которые ты забираешь из текстов и уроков. Пока пусто.')}
+        {!ready
+          ? ''
+          : st.total > 0
+            ? words.slice(0, 4).map(w => w.term).join(' · ')
+            : t('Слова, которые ты забираешь из текстов и уроков. Пока пусто.')}
       </span>
       <TileMeter value={st.pct} />
       <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
         <span>
-          {st.total === 0
-            ? t('как наполнить')
-            : `${st.learned} ${t('из')} ${st.total} ${t('выучено')}${st.due > 0 ? ` · ${st.due} ${t('на сегодня')}` : ''}`}
+          {!ready
+            ? '…'
+            : st.total === 0
+              ? t('как наполнить')
+              : `${st.learned} ${t('из')} ${st.total} ${t('выучено')}${st.due > 0 ? ` · ${st.due} ${t('на сегодня')}` : ''}`}
         </span>
         <span style={{ color: st.pct > 0 ? 'var(--color-green-text)' : undefined, fontWeight: st.pct > 0 ? 700 : 400 }}>
-          {st.pct > 0 ? `${st.pct}%` : '—'}
+          {ready && st.pct > 0 ? `${st.pct}%` : '—'}
         </span>
       </span>
     </Tile>

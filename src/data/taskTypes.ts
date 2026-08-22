@@ -20,12 +20,13 @@
 import type { ElementType } from 'react'
 import {
   AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Layers,
-  Mic, PenLine, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
+  Mic, PenLine, Play, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
 import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
 import { chamoOf } from './hangul'
+import { videoAnswerDone } from '../lib/videoAnswer'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -49,6 +50,7 @@ export type TaskTypeId =
   | 'imageDescribe' // описать картинку (письменно или устно)
   | 'imageCompare'  // сравнить две-три картинки
   | 'flashcard'     // словарная карточка
+  | 'videoWatch'    // посмотреть ролик (серию, фильм) — засчитывается просмотром
   | 'pattern'       // подстановочный дрилл: один шаблон, несколько замен
   // — письменность (алфавитные уроки) —
   | 'trace'         // обвести букву по чертам, в правильном порядке
@@ -146,6 +148,23 @@ export interface TaskPayload {
   ttsVoice?: string
   /** Разрешить замедленное воспроизведение (кнопка «черепаха»). */
   allowSlow?: boolean
+
+  /**
+   * videoWatch — ссылка на ролик: YouTube, RuTube, свой файл (см.
+   * lib/videoSource.ts). Ролик встраивается плеером, а не скачивается.
+   */
+  videoUrl?: string
+  /** videoWatch — с какой секунды начинать: у длинного ролика нужен один кусок. */
+  videoStart?: number
+  /**
+   * videoWatch — сколько секунд нужно реально просмотреть, чтобы задание было
+   * выполнено. Не задано — девять десятых длительности (VIDEO_DONE_RATIO).
+   * У серии мультика или фильма порог ставят руками: смотреть целиком —
+   * это не домашка на вечер, а «посмотри двадцать минут и перескажи».
+   */
+  videoWatchSeconds?: number
+  /** videoWatch — чей ролик: канал/автор. Показывается ученику рядом с видео. */
+  videoCredit?: string
 
   /** minimalPair — два похожих варианта и какой из них прозвучал. */
   pairA?: string
@@ -627,6 +646,29 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       return { auto: true, correct: typeof a === 'string' && matchTranslation(a, t.back, t.altAnswers) }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  /**
+   * Посмотреть ролик. Ответ набирает плеер: сумма отсмотренных отрезков,
+   * закодированная lib/videoAnswer.ts. Проверка машинная и ровно одна —
+   * «посмотрел столько, сколько просили»; понимание проверяют соседние
+   * задания (вопрос по ролику, пересказ), а не это.
+   *
+   * НЕ languageOnly: разбор реакции, лекция, запись опыта одинаково уместны
+   * и вне языков.
+   */
+  videoWatch: def({
+    id: 'videoWatch', family: 'audio',
+    label: 'Посмотреть видео', hint: 'Ролик, серия или фильм — с учётом просмотра',
+    Icon: Play,
+    makeDefault: () => ({ videoUrl: '' }),
+    isGradable: t => !!t.videoUrl?.trim(),
+    grade: (t, a) => {
+      if (!TASK_TYPES.videoWatch.isGradable(t)) return NOT_AUTO
+      if (typeof a !== 'string') return { auto: true, correct: false }
+      return { auto: true, correct: videoAnswerDone(a, t.videoWatchSeconds) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
   }),
 }
 

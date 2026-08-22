@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Plus } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -483,13 +483,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // памятью колоды и по тому же ключу `knownKey`: слово, забранное из текста,
   // должно появиться на плитке сразу по возвращении из читалки.
   const [cards, setCards] = useState<ReviewCard[]>([])
+  // Пока словарь не прочитан, «пусто» и «не доехало» неотличимы, и плитка
+  // сообщала бы человеку с двумя сотнями слов, что у него их нет.
+  const [cardsReady, setCardsReady] = useState(false)
   useEffect(() => {
     let alive = true
     collectedCards(owner, deckSubjects)
-      .then(c => { if (alive) setCards(c) })
+      .then(c => { if (alive) { setCards(c); setCardsReady(true) } })
       // Словарь не доехал — вкладка живёт дальше: плитка покажет ноль слов,
       // а не заменит собой всю витрину наборов ошибкой.
-      .catch(e => console.error('collectedCards:', e))
+      .catch(e => { console.error('collectedCards:', e); if (alive) setCardsReady(true) })
     return () => { alive = false }
   }, [owner, deckSubjects, knownKey])
 
@@ -1286,7 +1289,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       </div>
     )
   } else if (mode === 'vocab' && openMyWords) {
-    content = (
+    // Книга нужна не ради показа, а ради вычитания: пока она едет, фразы
+    // разговорника не отличить от своих слов, и словарь на секунду показал бы
+    // все шестьсот. Поэтому ждём и её, и саму колоду.
+    content = !cardsReady || (hasBook && book === undefined) ? (
+      <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
+    ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <MyWordsSession
           words={myWords}
@@ -1340,6 +1348,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             <MyWordsTile
               words={myWords}
               states={states}
+              ready={cardsReady}
               accent={palette.accent}
               soft={palette.soft}
               // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят

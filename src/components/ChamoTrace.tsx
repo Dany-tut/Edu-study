@@ -147,6 +147,31 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   const aheadAt: Point = denseCurrent ? denseCurrent[Math.min(denseCurrent.length - 1, takenIdx + 8)] : resumeAt
   const heading = (Math.atan2(aheadAt[1] - resumeAt[1], aheadAt[0] - resumeAt[0]) * 180) / Math.PI
 
+  /**
+   * ПОДСКАЗКА-СТРЕЛКА ВДОЛЬ ВСЕЙ ОСТАВШЕЙСЯ ЧЕРТЫ, А НЕ ГАЛОЧКА У КРУЖКА.
+   *
+   * Один наконечник рядом со стартом отвечает только на вопрос «в какую сторону
+   * трогаться». У ㄱ, ㄹ, ㅌ этого мало: черта поворачивает, и с первого шага не
+   * видно, что дальше линия уйдёт вниз. Поэтому здесь рисуется весь путь пальца
+   * тонкой линией по самой черте — от того места, где руку сняли, до конца, — а
+   * наконечник стоит там, где черту нужно закончить.
+   *
+   * Хвост укорочен на пару точек сгущения: иначе наконечник вылезал бы за
+   * скруглённый торец подложки и черта выглядела бы длиннее, чем она есть.
+   */
+  const guide = useMemo(() => {
+    if (!denseCurrent || takenIdx >= denseCurrent.length - 3) return null
+    const rest = denseCurrent.slice(takenIdx)
+    const tip = rest[rest.length - 1]
+    const body = rest.slice(0, Math.max(2, rest.length - 2))
+    const back = rest[Math.max(0, rest.length - 6)]
+    return {
+      d: `M ${body.map(([x, y]) => `${Math.round(x * 100) / 100} ${Math.round(y * 100) / 100}`).join(' L ')}`,
+      tip,
+      angle: (Math.atan2(tip[1] - back[1], tip[0] - back[0]) * 180) / Math.PI,
+    }
+  }, [denseCurrent, takenIdx])
+
   const reset = () => {
     setStrokeIndex(0)
     taken.current = 0
@@ -368,12 +393,32 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             animate={{ opacity: 1 }}
             transition={{ duration: 1.4, repeat: Infinity, repeatType: 'reverse' }}
           >
-            <circle cx={resumeAt[0]} cy={resumeAt[1]} r={7} fill="var(--color-blue-fill)" />
-            <path
-              d="M -3 -4.2 L 3.6 0 L -3 4.2 Z"
-              fill="var(--color-blue-fill)"
-              transform={`translate(${resumeAt[0]} ${resumeAt[1]}) rotate(${heading}) translate(14 0)`}
-            />
+            {/* Кружок на кончике написанного: с него продолжают, если руку
+                сняли посреди черты. */}
+            {takenIdx > 0 && <circle cx={resumeAt[0]} cy={resumeAt[1]} r={6} fill="var(--color-blue-fill)" />}
+            {guide ? (
+              <>
+                <path
+                  d={guide.d}
+                  fill="none"
+                  stroke="var(--color-blue-fill)"
+                  strokeWidth={2.2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M -4 -4.6 L 4.2 0 L -4 4.6 Z"
+                  fill="var(--color-blue-fill)"
+                  transform={`translate(${guide.tip[0]} ${guide.tip[1]}) rotate(${guide.angle})`}
+                />
+              </>
+            ) : (
+              <path
+                d="M -3 -4.2 L 3.6 0 L -3 4.2 Z"
+                fill="var(--color-blue-fill)"
+                transform={`translate(${resumeAt[0]} ${resumeAt[1]}) rotate(${heading}) translate(14 0)`}
+              />
+            )}
           </motion.g>
         )}
 

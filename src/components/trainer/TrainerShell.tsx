@@ -68,6 +68,28 @@ const RAIL_TOP = 8
 /** Просвет под рейлом до низа окна. */
 const RAIL_BOTTOM = 24
 
+/**
+ * Верх прилипшей строки управления.
+ *
+ * Ноль, а не RAIL_TOP: полоса обязана дотягиваться до самого верха панели
+ * прокрутки, иначе в просвете над ней видно уезжающий текст. Отступ до кнопок
+ * даёт собственный padding полосы (PAD_TOP) — вровень с рейлом.
+ */
+const PAD_TOP = 'max(8px, env(safe-area-inset-top, 0px))'
+
+/**
+ * Имя переменной, которой полоса сообщает свою высоту содержимому.
+ *
+ * Внутри читалки прилипает ещё и шапка плеера (trainer/ScoreReader.tsx). Обе
+ * полосы на одном top наехали бы друг на друга, а прописать высоту строки
+ * управления числом нельзя: она разная у режимов и переносится на второй ряд.
+ * Поэтому высота меряется по факту и отдаётся вниз переменной CSS.
+ */
+export const TRAINER_STICK_TOP = '--trainer-stick-top'
+
+/** Куда прилипает содержимое под строкой управления, если её нет вовсе. */
+export const TRAINER_STICK_FALLBACK = `var(${TRAINER_STICK_TOP}, ${PAD_TOP})`
+
 /** Высота рейла на первом кадре, до замера: экран минус шапка кабинета. */
 const RAIL_MAX_FALLBACK = `calc(100vh - ${100 + RAIL_TOP + RAIL_BOTTOM}px)`
 
@@ -114,6 +136,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
   const narrow = useNarrow()
   const [sheet, setSheet] = useState(false)
   const railRef = useRef<HTMLElement>(null)
+  const barRef = useRef<HTMLDivElement>(null)
 
   // Ушли с телефона на десктоп — шторка обязана закрыться сама, иначе она
   // останется висеть поверх уже нарисованного рейла.
@@ -137,6 +160,43 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
   }, [narrow])
+
+  // Высота прилипшей строки — тем же замером и по той же причине, что и высота
+  // рейла: под ней стоит вторая прилипающая полоса (шапка читалки), и она
+  // должна вставать ровно под кнопки, а не поверх них.
+  const [barH, setBarH] = useState(0)
+  useLayoutEffect(() => {
+    const el = barRef.current
+    if (!el) { setBarH(0); return }
+    const measure = () => setBarH(el.getBoundingClientRect().height)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
+  }, [toolbar, narrow])
+
+  // Прилипла — значит содержимое под ней уже поехало, и полосе нужен край.
+  // Сравнением прямоугольников, а не числом: см. ту же мысль в ScoreReader.
+  const [stuck, setStuck] = useState(false)
+  const stuckRef = useRef(false)
+  useEffect(() => {
+    const on = () => {
+      const el = barRef.current
+      const parent = el?.parentElement
+      if (!el || !parent) return
+      const next = el.getBoundingClientRect().top - parent.getBoundingClientRect().top > 2
+      if (next !== stuckRef.current) { stuckRef.current = next; setStuck(next) }
+    }
+    on()
+    // capture: кабинет листается во внутренней панели, её scroll до window не всплывает.
+    window.addEventListener('scroll', on, true)
+    window.addEventListener('resize', on)
+    return () => {
+      window.removeEventListener('scroll', on, true)
+      window.removeEventListener('resize', on)
+    }
+  }, [toolbar])
 
   return (
     <div style={{
@@ -184,7 +244,34 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
         </aside>
       </div>
 
-      <main style={{ flex: 1, minWidth: 0, width: narrow ? '100%' : undefined, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <main style={{
+        flex: 1, minWidth: 0, width: narrow ? '100%' : undefined,
+        display: 'flex', flexDirection: 'column', gap: 16,
+        ...(barH ? { [TRAINER_STICK_TOP]: `${Math.round(barH)}px` } as CSSProperties : null),
+      }}>
+        {/* СТРОКА УПРАВЛЕНИЯ ЕДЕТ ЗА СОДЕРЖИМЫМ.
+            «К списку», вид текста и подсказки — решения по ходу работы, а не
+            только на первом экране: на середине длинного текста выйти к списку
+            или переключить партитуру можно было, лишь пролистав всё обратно
+            наверх. Рейл слева прилипал давно; строка оставалась единственным
+            управлением, которое уезжало.
+            Полоса непрозрачна и с размытием: под ней едет текст, и сквозь
+            промежутки между таблетками он превращал бы кнопки в кашу. */}
+        {(toolbar || narrow) && (
+        <div
+          ref={barRef}
+          style={{
+            position: 'sticky', top: 0, zIndex: 5,
+            marginTop: -8, marginBottom: -10,
+            paddingTop: PAD_TOP, paddingBottom: 10,
+            display: 'flex', flexDirection: 'column', gap: 12,
+            background: 'rgba(var(--glass-rgb), 0.86)',
+            backdropFilter: stuck ? 'blur(14px) saturate(140%)' : 'none',
+            WebkitBackdropFilter: stuck ? 'blur(14px) saturate(140%)' : 'none',
+            boxShadow: stuck ? '0 14px 22px -18px rgba(0,0,0,0.55)' : 'none',
+            transition: 'box-shadow 180ms ease',
+          }}
+        >
         {/* Кнопка открытия шторки идёт ПЕРЕД строкой управления, а не внутри
             неё: строку собирает вызывающий, и вставлять туда чужой элемент
             значило бы, что каждый режим обязан помнить про телефон. */}
@@ -206,6 +293,8 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
           </div>
         )}
         {toolbar}
+        </div>
+        )}
         {children}
       </main>
     </div>

@@ -339,7 +339,6 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   // курсора, слово уехало под край): каждый из них меняет active, и эффект
   // ловит их все разом.
   useEffect(() => {
-    ;(window as any).__pickLog = [...((window as any).__pickLog ?? []), [active?.seg.text ?? null, pinned, typeof onPick]]
     onPick?.(active && pinned ? active.seg.text : null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, pinned])
