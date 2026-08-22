@@ -29,7 +29,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'A2 → B1',
     units: 28,
     vocabCount: 280,
-    taskCount: 223,
+    taskCount: 225,
     guidedHours: '180–200',
     lessonMinutes: 90,
     scopeNote:
@@ -40,7 +40,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'B1 → B2 (IELTS Academic)',
     units: 21,
     vocabCount: 210,
-    taskCount: 218,
+    taskCount: 220,
     guidedHours: '120–160',
     lessonMinutes: 90,
     scopeNote:
@@ -49,13 +49,13 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
   ensv: {
     title: 'Английский: язык выживания',
     level: 'С нуля → B2 (от «здравствуйте» до визы и аренды)',
-    units: 53,
-    vocabCount: 814,
-    taskCount: 848,
-    guidedHours: '106',
+    units: 54,
+    vocabCount: 838,
+    taskCount: 864,
+    guidedHours: '108',
     lessonMinutes: 60,
     scopeNote:
-      'Разговорник, а не грамматический курс: 814 готовых фраз по 53 ситуациям — по одной фразе на смысл. Шесть тем в конце — не ситуации, а сочетаемость: устойчивые пары, фразовые глаголы, идиомы, степень, предлоги и слова, которые русский путает. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через интервальные повторения.',
+      'Разговорник, а не грамматический курс: 838 готовых фраз по 54 ситуациям — по одной фразе на смысл. Семь тем в конце — не ситуации, а сочетаемость и регистр: устойчивые пары, фразовые глаголы, идиомы, степень, предлоги, слова, которые русский путает, и офисный жаргон переписки. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через интервальные повторения.',
   },
   kohg: {
     title: 'Корейский с нуля: хангыль',
@@ -73,7 +73,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → TOPIK I (1급–2급)',
     units: 28,
     vocabCount: 280,
-    taskCount: 262,
+    taskCount: 263,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:
@@ -84,7 +84,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'TOPIK I → TOPIK II (3급–4급)',
     units: 21,
     vocabCount: 220,
-    taskCount: 203,
+    taskCount: 204,
     guidedHours: '280–340',
     lessonMinutes: 90,
     scopeNote:
@@ -106,7 +106,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → JLPT N5 → N4',
     units: 26,
     vocabCount: 260,
-    taskCount: 241,
+    taskCount: 242,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:
@@ -139,7 +139,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'A1 → A2 (фундамент под CELPE-Bras)',
     units: 22,
     vocabCount: 220,
-    taskCount: 212,
+    taskCount: 213,
     guidedHours: '180–220',
     lessonMinutes: 90,
     scopeNote:

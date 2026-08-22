@@ -12,6 +12,8 @@ import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
 import { useStudentData } from '../store/studentDataStore'
+import { useDashboard } from '../store/dashboardStore'
+import { subjectRank } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { useT, useLang, type Lang } from '../lib/i18n'
 import { PAIR } from '../lib/mobileTokens'
@@ -24,7 +26,6 @@ import type { Subject } from '../data/mockData'
 // (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
 
 const XP_PER_LEVEL = 200
-const RANKS = ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер']
 
 // Soft colour pairs cycled across the subject chips under the name.
 const CHIP_PALETTE = [PAIR.focus, PAIR.accent2, PAIR.info, PAIR.warning, PAIR.rose, PAIR.success]
@@ -47,6 +48,7 @@ export default function MobileProfilePage() {
   const initial = name.charAt(0).toUpperCase()
   const stats = useStudentData(s => s.stats)
   const subjects = useStudentData(s => s.subjects)
+  const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const { dark, toggle } = useTheme()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   // Stats scope: 'all' = account-wide totals, or a single subject's own numbers.
@@ -74,7 +76,11 @@ export default function MobileProfilePage() {
 
   const level = Math.floor(stats.totalPoints / XP_PER_LEVEL) + 1
   const xpInLevel = stats.totalPoints % XP_PER_LEVEL
-  const rank = t(RANKS[Math.min(level - 1, RANKS.length - 1)])
+  // Звание берётся из предмета, по которому смотрят статистику (а при «Все
+  // предметы» — из активного курса): химические «Молекулы» ученику языка ничего
+  // не говорят (lib/subjects.ts).
+  const rankSubject = scopeSubject ?? subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
+  const rank = t(subjectRank(rankSubject?.subject, level))
 
   const logout = () => {
     tactile()

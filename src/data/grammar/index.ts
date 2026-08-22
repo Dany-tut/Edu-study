@@ -106,6 +106,18 @@ export interface GrammarRef {
   forms: GrammarForm[]
 }
 
+/**
+ * Сколько форм в справочнике каждого языка — СИНХРОННО.
+ *
+ * Той же логикой, что и SCENE_COUNTS у сцен: бейдж на пункте меню нужен до
+ * того, как чанк поехал, иначе цифра появляется через секунду после самого
+ * пункта и прыгает. Расхождение с настоящим списком ловится при первой же
+ * загрузке — см. проверку в loadGrammarRef.
+ */
+export const GRAMMAR_COUNTS: Record<string, number> = {
+  ko: 85,
+}
+
 type Loader = () => Promise<GrammarRef>
 
 const LOADERS: Record<string, Loader> = {
@@ -125,7 +137,12 @@ export async function loadGrammarRef(lang: string | undefined): Promise<GrammarR
   const load = LOADERS[lang] ?? LOADERS[base(lang)]
   if (!load) return undefined
   try {
-    return await load()
+    const ref = await load()
+    const claimed = GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[base(lang)]
+    if (claimed !== undefined && claimed !== ref.forms.length) {
+      console.warn(`GRAMMAR_COUNTS[${lang}] разошёлся со справочником: подпись ${claimed}, форм ${ref.forms.length}`)
+    }
+    return ref
   } catch (e) {
     // Чанк мог не догрузиться на плохой сети: пустой раздел лучше белой страницы.
     console.error('loadGrammarRef:', e)

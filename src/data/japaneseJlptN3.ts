@@ -43,6 +43,7 @@ import { JAPANESE3_THEORY } from './japaneseJlptN3Theory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { JAN3_VIDEO } from './languageVideosExtra'
+import { JAN3_HOMEWORK_VIDEO } from './homeworkVideos'
 import { JAPANESE3_FIGURES_EXTRA } from './japaneseJlptN3Figures'
 import { JAPANESE3_EXTRA } from './japaneseJlptN3Extra'
 
@@ -1363,6 +1364,8 @@ export const JAPANESE_JLPT_N3: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...JAPANESE3_FIGURES, ...JAPANESE3_FIGURES_EXTRA },
+  // Живая речь в домашке — см. homeworkVideos.ts.
+  homeworkVideos: JAN3_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(JAPANESE_JLPT_N3)

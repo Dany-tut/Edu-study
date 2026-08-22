@@ -35,6 +35,7 @@ import {
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
   dictation, dictationBank, drill,
 } from './languageCourse'
+import { art } from './artworks'
 import { formTable, contrastPair, ladderFigure } from './lessonFigures'
 import { KOREAN2_THEORY } from './koreanTopik2Theory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
@@ -43,6 +44,7 @@ import { KOT2_VIDEO } from './languageVideosExtra'
 import { KOT2_HOMEWORK_VIDEO } from './homeworkVideos'
 import { KOREAN2_FIGURES_EXTRA } from './koreanTopik2Figures'
 import { KOREAN2_EXTRA } from './koreanTopik2Extra'
+import { KOREAN2_CHECKLIST } from './koreanChecklists'
 
 export const KOREAN2_MODULES: LangModule[] = [
   { title: 'Оттенки и связность', subtitle: 'Субстантивация, причины, модальные концовки', units: [1, 2, 3, 4] },
@@ -265,6 +267,10 @@ export const KOREAN2_UNITS: LangUnit[] = [
       wb('제가 지금 사무실에 있는데 잠깐 오실 수 있어요?', 'Соберите просьбу с подводкой.', ['잖아요', '때문에']),
       say('Обратитесь с пятью разными просьбами, каждый раз начиная с обстоятельства через ~는데.', 90),
       write('Напишите три предложения, где ~는데 = фон, три, где = противопоставление, и три, где = подводка к просьбе. Подпишите каждую группу.'),
+      // «씨름» Ким Хондо — готовая сцена под ~는데: все смотрят на борьбу,
+      // а торговец сладостями отвернулся. После ответа — то, о чём спорят
+      // искусствоведы, включая перепутанные руки у зрителя.
+      art('ssireum', 'ko'),
     ],
   },
 
@@ -1379,6 +1385,8 @@ export const KOREAN_TOPIK2: LanguageCourseSpec = {
   units: KOREAN2_UNITS.map(u => ({
     ...u,
     theory: KOREAN2_THEORY[u.shortId] ?? u.theory,
+    // Чек-лист форм юнита — отдельным файлом по той же причине, что и конспекты.
+    checklist: KOREAN2_CHECKLIST[u.shortId] ?? u.checklist,
     // Видео добрано по итогам аудита: курс шёл без единого ролика.
     videoUrl: KOT2_VIDEO[u.shortId] ?? u.videoUrl,
     // Добор аудирования, говорения и письма в юниты, где их не было (см. аудит).

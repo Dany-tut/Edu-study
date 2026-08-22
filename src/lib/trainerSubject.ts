@@ -40,6 +40,7 @@ import { textsForLang } from '../data/readingLibrary'
 import { sceneCount } from '../data/scenes'
 import { hasSurvivalBook } from '../data/survivalBooks'
 import { deckOwner, dueCount } from '../data/reviewDeck'
+import { bootTrainerLink, linkSubjectId } from './trainerLink'
 
 const KEY = 'trainer_subject'
 /**
@@ -147,6 +148,22 @@ export function useTrainerSubject(): TrainerSubjectState {
       for (const id of (bank.length ? bank : BANK_SUBJECT_IDS)) {
         const def = getSubject(id)
         if (def) add(def, 'bank', tasks.filter(t => t.subject === id).length)
+      }
+    }
+
+    // 3. Предмет из присланной ссылки — даже если такого курса у ученика нет.
+    //
+    // Полка отрывков не выдаётся курсом: она общая, как и учебные тексты. Если
+    // человеку прислали корейский рассказ, ссылка обязана его открыть, иначе
+    // «уникальный адрес истории» работает только у тех, кто и так этот язык
+    // учит. Пункт появляется в меню предметов — вернуться к своему языку есть
+    // чем, и видно, куда именно попал.
+    const link = bootTrainerLink()
+    const linked = link ? linkSubjectId(link) : undefined
+    if (linked && !seen.has(linked)) {
+      const def = getSubject(linked)
+      if (def?.isLanguage) {
+        add(def, 'lang', textsForLang(def.langCode ?? '').length + sceneCount(def.langCode))
       }
     }
 

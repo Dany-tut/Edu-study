@@ -24,10 +24,15 @@ import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
+import TheoryChecklist from './TheoryChecklist'
+import { parseChecklist } from '../lib/theoryChecklist'
 
-export default function TheorySheet({ open, onClose, lessonTitle, paragraphs, accent, soft }: {
+export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft }: {
   open: boolean
   onClose: () => void
+  /** Ключ отметок чек-листа — тот же, что на странице урока: галочка,
+   *  поставленная в шторке, должна стоять и в конспекте. */
+  lessonId?: string
   lessonTitle: string
   paragraphs: LessonParagraph[]
   accent: string
@@ -149,6 +154,13 @@ export default function TheorySheet({ open, onClose, lessonTitle, paragraphs, ac
                     </figcaption>
                   )}
                 </figure>
+              ) : parseChecklist(p.text) ? (
+                <TheoryChecklist
+                  key={p.id}
+                  scope={`${lessonId ?? lessonTitle}:${p.id}`}
+                  list={parseChecklist(p.text)!}
+                  accent={accent}
+                />
               ) : (
                 <p key={p.id} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, whiteSpace: 'pre-wrap', ...proseWrap }}>
                   {bindShortWords(p.text)}

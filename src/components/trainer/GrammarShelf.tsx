@@ -110,10 +110,16 @@ function formsWord(n: number): string {
 
 // ─── Карточка формы ──────────────────────────────────────────────────────────
 
-export function GrammarPage({ form, ref, lang, subject, accent, soft, onOpenForm, onQuizDone }: {
+export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm, onQuizDone }: {
   form: GrammarForm
-  /** Весь справочник — нужен для подписей к формам в блоке сравнения. */
-  ref: GrammarRef
+  /**
+   * Весь справочник — нужен для подписей к формам в блоке сравнения.
+   *
+   * Имя `all`, а не `ref`: у функционального компонента `ref` — служебный проп
+   * React, и обычный объект под этим именем React попытается разобрать как
+   * ссылку на узел.
+   */
+  all: GrammarRef
   lang: string
   /** Предмет для кнопки «в словарь» в примерах. */
   subject?: string
@@ -212,7 +218,7 @@ export function GrammarPage({ form, ref, lang, subject, accent, soft, onOpenForm
         <Section title={t('Не путать с')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {form.contrast.map(c => {
-              const other = ref.forms.find(f => f.id === c.with)
+              const other = all.forms.find(f => f.id === c.with)
               return (
                 <button
                   key={c.with}

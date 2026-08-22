@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import Skeleton from './Skeleton'
 import { motion } from 'framer-motion'
 import {
-  FlaskConical, Star, Lock, ChevronRight, Zap,
+  Star, Lock, ChevronRight, Zap,
   CheckCircle2, Play, RotateCcw, Clock, Video, LayoutList,
 } from 'lucide-react'
 import MobileScreen from './MobileScreen'
@@ -19,6 +19,7 @@ import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useT } from '../lib/i18n'
+import { subjectIcon, subjectRank } from '../lib/subjects'
 import type { Lesson, LessonStatus } from '../data/mockData'
 
 // MOBILE ONLY course (v2) — premium lesson cards (плашки) + level/XP layer.
@@ -27,7 +28,6 @@ import type { Lesson, LessonStatus } from '../data/mockData'
 
 const ALL = 'all' as const
 const XP_PER_LEVEL = 200
-const RANKS = ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер']
 
 type StatusVisual = { icon: typeof CheckCircle2; tintBg: string; tint: string; label: string }
 const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
@@ -82,7 +82,9 @@ export default function MobileCourses() {
   // Level / XP from points.
   const level = Math.floor(stats.totalPoints / XP_PER_LEVEL) + 1
   const xpInLevel = stats.totalPoints % XP_PER_LEVEL
-  const rank = RANKS[Math.min(level - 1, RANKS.length - 1)]
+  // Звание — из лестницы предмета: у языка «Слова · Фразы · Диалоги», а не
+  // химические «Молекулы» (lib/subjects.ts).
+  const rank = subjectRank(subject?.subject, level)
 
   const selectSubject = (id: string) => {
     setActiveSubject(id)
@@ -101,7 +103,7 @@ export default function MobileCourses() {
   const topZone = (
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
       <GlassPill>
-        <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
+        <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>{subject ? subjectIcon(subject.subject) : '📚'}</span>
         {subject?.name ?? t('Курс')}
       </GlassPill>
       <div className="flex items-center" style={{ gap: 8 }}>

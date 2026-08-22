@@ -404,14 +404,38 @@ export function artworkAfterNote(a: Artwork): string {
  * Возвращает null, если для этого языка опор нет: молча собрать задание без
  * фактов значило бы отдать проверяющему описание, с которым нечего сверить.
  */
-export function artworkTask(a: Artwork, lang: ArtLang, responseSeconds = 900): SeedTask | null {
+export function artworkTask(
+  a: Artwork,
+  lang: ArtLang,
+  opts: { responseMode?: 'write' | 'speak'; responseSeconds?: number } = {},
+): SeedTask | null {
   const s = a.support[lang]
   if (!s) return null
   return describeImage(s.prompt, a.image, {
-    responseSeconds,
+    responseMode: opts.responseMode ?? 'write',
+    responseSeconds: opts.responseSeconds ?? (opts.responseMode === 'speak' ? 120 : 900),
     facts: s.facts,
     distractorFacts: s.notThere,
     expectedStructures: s.structures,
     afterNote: artworkAfterNote(a),
   })
+}
+
+/**
+ * То же самое по ключу работы — так это и вставляется в курсы-сиды.
+ *
+ * Ошибка в ключе или в языке роняет сборку сида сразу, а не оставляет юнит без
+ * задания: сид собирается детерминированно, и молчаливая дыра в нём нашлась бы
+ * только у ученика.
+ */
+export function art(
+  id: string,
+  lang: ArtLang,
+  opts: { responseMode?: 'write' | 'speak'; responseSeconds?: number } = {},
+): SeedTask {
+  const a = artworkById(id)
+  if (!a) throw new Error(`artworks: нет работы «${id}»`)
+  const task = artworkTask(a, lang, opts)
+  if (!task) throw new Error(`artworks: у работы «${id}» нет опор для языка ${lang}`)
+  return task
 }

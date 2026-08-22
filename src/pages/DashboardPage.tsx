@@ -54,6 +54,10 @@ const PAGE_TO_HASH: Record<string, string> = {
 // Lesson & homework encode the lesson id in the hash so a hard refresh (F5)
 // restores the exact view instead of dropping the student back on Home.
 const LESSON_HASH_RE = /^#\/(lesson|homework)\/(.+)$/
+// Присланный рассказ («#/trainer/work/hyun-unsu/sc-unsu-1») — это тот же
+// тренажёр: что именно в нём открыть, разбирает сам тренажёр (lib/trainerLink),
+// кабинету достаточно не считать такой адрес неизвестным и не увести на главную.
+const TRAINER_HASH_RE = /^#\/trainer\//
 
 export default function DashboardPage() {
   useStudentPrefsSync()
@@ -93,6 +97,8 @@ export default function DashboardPage() {
       const id = decodeURIComponent(m[2])
       if (m[1] === 'homework') openHomeworkForLesson(id)
       else openLesson(id)
+    } else if (TRAINER_HASH_RE.test(bootHash.current)) {
+      if (activePage !== 'trainer') setActivePage('trainer')
     } else {
       const page = HASH_TO_PAGE[bootHash.current]
       if (page && page !== activePage) setActivePage(page)

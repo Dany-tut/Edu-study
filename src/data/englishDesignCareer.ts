@@ -26,6 +26,7 @@ import {
   unitByShortId as findUnit, moduleOfUnit,
   one, many, fill, wb, pairsOf, write, say, drill,
 } from './languageCourse'
+import { art } from './artworks'
 import { ENDC_THEORY, ENDC_VIDEO } from './englishDesignCareerTheory'
 import { ENDC_LISTENING } from './englishDesignCareerListening'
 import { ENDC_EXTRA } from './englishDesignCareerExtra'
@@ -34,6 +35,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { ENDC_FIGURES_EXTRA } from './englishDesignCareerFigures'
 import { ENDC_VIDEO_EXTRA } from './languageVideos'
+import { ENDC_HOMEWORK_VIDEO } from './homeworkVideos'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
 //
@@ -713,6 +715,10 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
       fill('Complete: I see your ___. (noun)', 'point'),
       wb('That is a valid concern, and I will iterate on it.', 'Put the words in order.', ['was', 'am']),
       write('Someone says: "The onboarding feels too long." Write three different replies: agree, partly agree, politely disagree.'),
+      // «Впечатление» Моне: название родилось из отговорки, а из насмешки
+      // критика выросло имя целого направления. Лучший пример того, что
+      // делает с работой чужая реакция.
+      art('sunrise', 'en'),
     ],
   },
   {
@@ -758,6 +764,11 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
       fill('Complete: It might be ___ testing on mobile. (verb + -ing form follows)', 'worth'),
       wb('What was the thinking behind this navigation pattern?', 'Put the words in order.', ['is', 'were']),
       write("Review a colleague's screen in 100 words: one strong point, one question, one concern. Use hedging language throughout."),
+      // Разбор чужой работы на живом примере: студент описывает «Спальню»
+      // Ван Гога, а после ответа читает письмо, где автор говорит, что писал
+      // покой. Расхождение с собственным впечатлением — и есть предмет
+      // критики: своё прочтение приходится обосновать, а не объявить.
+      art('bedroom', 'en'),
     ],
   },
   {
@@ -1343,6 +1354,8 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...ENDC_FIGURES, ...ENDC_FIGURES_EXTRA },
+  // Живая речь в домашке — см. homeworkVideos.ts.
+  homeworkVideos: ENDC_HOMEWORK_VIDEO,
 }
 
 /** Все слова курса — основа словарной колоды и интервальных повторений. */

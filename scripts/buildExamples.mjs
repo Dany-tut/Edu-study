@@ -236,13 +236,21 @@ for (const [lang, c] of Object.entries(corpora)) {
   console.log(`${file}: ${Object.keys(map).length} из ${c.terms.size} слов · свой ${own} · конструкция ${pat} · строка «— перевод» ${dash} · разговорник ${phr} · предложение ${plain} · пусто ${none}`)
 }
 
-// Список слов, к которым пример не нашёлся, — это ТЗ на ручную работу.
-const gapsFile = 'scripts/examples-gaps.txt'
-const gaps = Object.entries(stats)
-  .map(([lang, s]) => `# ${lang}: ${s.misses.length}\n${s.misses.join('\n')}`)
-  .join('\n\n')
-writeFileSync(gapsFile, `${gaps}\n`)
-console.log(`\nСлова без примера выписаны в ${gapsFile}`)
+// Слова, к которым в уроках предложения не нашлось, — это ТЗ на ручную работу
+// (файл нужен, только когда садишься его выполнять, поэтому по флагу).
+const missed = Object.values(stats).reduce((n, s) => n + s.misses.length, 0)
+if (process.argv.includes('--gaps')) {
+  const gapsFile = 'scripts/examples-gaps.txt'
+  const gaps = Object.entries(stats)
+    .map(([lang, s]) => `# ${lang}: ${s.misses.length}\n${s.misses.join('\n')}`)
+    .join('\n\n')
+  writeFileSync(gapsFile, `${gaps}\n`)
+  console.log(`\nСлова без предложения в уроках (${missed}) выписаны в ${gapsFile}`)
+} else {
+  console.log(`\nБез предложения в уроках: ${missed} слов — их примеры написаны руками`)
+  console.log('в src/data/vocabExamples/<lang>.ts. Список: npm run build:examples -- --gaps')
+}
+console.log('Проверка полноты: npm run check:examples')
 
 // Пустые заглушки ручных файлов, если их ещё нет: реестр импортирует оба.
 for (const lang of Object.keys(corpora)) {

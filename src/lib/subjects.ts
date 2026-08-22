@@ -30,9 +30,22 @@ export interface SubjectDef {
    * У неязыковых предметов не заполняется.
    */
   langCode?: string
+  /**
+   * Лестница званий по уровням (индекс = уровень−1, дальше держится последнее).
+   * Пусто — берётся нейтральная DEFAULT_RANKS: химические «Атомы · Молекулы ·
+   * Реакции» ученику корейского не говорят ни о чём.
+   */
+  ranks?: string[]
   light: SubjectPalette
   dark: SubjectPalette
 }
+
+/** Звания, когда у предмета нет своих (или предмет вообще неизвестен). */
+export const DEFAULT_RANKS = ['Старт', 'Новичок', 'Ученик', 'Практик', 'Знаток', 'Эксперт', 'Мастер']
+
+// Языкам лестница общая: путь от букв к свободной речи одинаков и для
+// корейского, и для португальского.
+const LANG_RANKS = ['Старт', 'Алфавит', 'Слова', 'Фразы', 'Диалоги', 'Свободная речь', 'Мастер']
 
 // ── Palette helpers ──────────────────────────────────────────────────────────
 function hexToRgba(hex: string, a: number): string {
@@ -104,17 +117,17 @@ const CHEMISTRY_DARK: SubjectPalette = { text: '#C08AFF', soft: '#201336', accen
 // ── The registry ─────────────────────────────────────────────────────────────
 // Order here is the order used in dropdowns/option lists.
 export const SUBJECTS: SubjectDef[] = [
-  { id: 'chemistry', name: 'Химия', icon: '🧪', hasBank: true, light: CHEMISTRY_LIGHT, dark: CHEMISTRY_DARK },
-  { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
-  { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
-  { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
-  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, langCode: 'ru', ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
-  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
-  { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
-  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
-  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
-  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
-  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
+  { id: 'chemistry', name: 'Химия', icon: '🧪', hasBank: true, ranks: ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер'], light: CHEMISTRY_LIGHT, dark: CHEMISTRY_DARK },
+  { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, ranks: ['Старт', 'Клетка', 'Ткани', 'Организм', 'Экосистема', 'Эксперт', 'Мастер'], light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
+  { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ranks: ['Старт', 'Механика', 'Энергия', 'Поля', 'Кванты', 'Эксперт', 'Мастер'], ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
+  { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ranks: ['Старт', 'Числа', 'Уравнения', 'Функции', 'Пределы', 'Эксперт', 'Мастер'], ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
+  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, langCode: 'ru', ranks: ['Старт', 'Буквы', 'Слова', 'Предложения', 'Текст', 'Эксперт', 'Мастер'], ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
+  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
+  { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ranks: ['Старт', 'Даты', 'Эпохи', 'Реформы', 'Хроника', 'Эксперт', 'Мастер'], ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
+  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ranks: LANG_RANKS, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
+  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ranks: LANG_RANKS, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
+  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ranks: LANG_RANKS, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
 ]
 
 // Lookup by either the English id or the Russian name, case-insensitive.
@@ -139,6 +152,15 @@ export function resolveSubjectPalette(idOrName: string | undefined, dark = false
 /** Emoji for a subject, '📚' if unknown. */
 export function subjectIcon(idOrName: string | undefined): string {
   return getSubject(idOrName)?.icon ?? '📚'
+}
+
+/**
+ * Звание ученика на уровне `level` (1-based) по его предмету. Выше последней
+ * ступени звание не растёт — уровни бесконечные, лестница нет.
+ */
+export function subjectRank(idOrName: string | undefined, level: number): string {
+  const ranks = getSubject(idOrName)?.ranks ?? DEFAULT_RANKS
+  return ranks[Math.min(Math.max(level, 1) - 1, ranks.length - 1)]
 }
 
 /** name → icon map — drop-in for the old inline SUBJECT_ICONS Records. */

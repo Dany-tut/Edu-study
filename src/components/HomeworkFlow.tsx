@@ -2073,6 +2073,7 @@ export default function HomeworkFlow({
     <TheorySheet
       open={showTheory}
       onClose={() => setShowTheory(false)}
+      lessonId={lessonId}
       lessonTitle={lessonTitle}
       paragraphs={theoryParagraphs}
       accent={palette.accent}

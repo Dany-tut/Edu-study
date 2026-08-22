@@ -20,6 +20,8 @@ import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
+import TheoryChecklist from '../components/TheoryChecklist'
+import { parseChecklist } from '../lib/theoryChecklist'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 
 /** «1 файл / 2 файла / 5 файлов». */
@@ -1179,6 +1181,13 @@ export default function LessonPage() {
           </div>
           {detail.paragraphs.map(p => p.image ? (
             <TheoryFigure key={p.id} src={p.image} caption={p.text} scale={scale} />
+          ) : parseChecklist(p.text) ? (
+            <TheoryChecklist
+              key={p.id}
+              scope={`${lesson.id}:${p.id}`}
+              list={parseChecklist(p.text)!}
+              scale={scale}
+            />
           ) : (
             <div
               key={p.id}

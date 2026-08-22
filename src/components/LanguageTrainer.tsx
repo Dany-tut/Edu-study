@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -31,6 +31,13 @@ import {
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
+import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
+import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
+import {
+  bootTrainerLink, linkLang, sameLang, takeBootTrainerLink, trainerShareUrl, writeTrainerHash,
+  type TrainerLink,
+} from '../lib/trainerLink'
+import { copyToClipboard } from '../lib/clipboard'
 import ScoreReader, { hasReadings } from './trainer/ScoreReader'
 import {
   survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
@@ -49,6 +56,8 @@ import {
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
 import { courseReach, reachLevelIndex, reachNote } from '../lib/courseReach'
 import VoiceRecorder from './VoiceRecorder'
+import Shadowing, { type ShadowLine } from './trainer/Shadowing'
+import { hasVoiceFor } from '../lib/speech'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
@@ -70,7 +79,7 @@ import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressS
 // ссылки к урокам курса, а не на собственную библиотеку. Говорение записывает
 // ответ и отдаёт учителю — автоматической оценки произношения нет.
 
-type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks'
+type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar'
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
   { id: 'reading',   label: 'Чтение',     hint: 'Тексты с вопросами',       Icon: BookOpen },
@@ -81,6 +90,11 @@ const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] 
   // слово», а «увидь, из чего оно собрано». Появляется только у языков, где
   // такая сборка вообще описана (см. blocksOn).
   { id: 'blocks',    label: 'Конструктор', hint: 'Из чего собраны слова',    Icon: Blocks },
+  // Шестой режим — справочник, а не курс. В курс приходят с вопросом «что
+  // дальше», сюда — с вопросом «чем 은/는 отличается от 이/가», и на него урок
+  // номер двенадцать не отвечает: форму надо найти, а не пройти. Появляется у
+  // языков, для которых справочник написан (см. data/grammar).
+  { id: 'grammar',   label: 'Грамматика', hint: 'Справочник форм',          Icon: BookMarked },
 ]
 
 /**
@@ -198,11 +212,53 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return (workId: string) => byWork.get(workId) ?? []
   }, [scenes])
 
-  const openWork: Work | null = openWorkId ? workById(openWorkId) ?? null : null
+  // Произведение ищется СРЕДИ ПРОИЗВЕДЕНИЙ ЯЗЫКА, а не по всему реестру: id из
+  // чужой ссылки (или из памяти другого предмета) иначе открывал бы корейский
+  // рассказ в английском — с пустым списком сцен, потому что сцены приезжают
+  // английские. Не нашли — просто витрина полок.
+  const openWork: Work | null = openWorkId ? sceneWorks.find(w => w.id === openWorkId) ?? null : null
   const openScene: Scene | null = useMemo(
     () => (openSceneId ? (scenes ?? []).find(s => s.id === openSceneId) ?? null : null),
     [scenes, openSceneId],
   )
+
+  // ── Ссылка на материал ─────────────────────────────────────────────────────
+  //
+  // Присланный адрес применяется ОДИН раз и только когда открыт нужный язык:
+  // предмет переключается уровнем выше (см. TaskBankPage), и до этого момента
+  // тренажёр показывает чужую библиотеку, в которой такого рассказа нет.
+  const bootDone = useRef(false)
+  useEffect(() => {
+    if (bootDone.current) return
+    const link = bootTrainerLink()
+    if (!link) { bootDone.current = true; return }
+    if (!sameLang(linkLang(link), lang)) return
+    takeBootTrainerLink()
+    bootDone.current = true
+    setMode('reading')
+    if (link.kind === 'text') {
+      setReadingView('texts')
+      setOpenTextId(link.textId)
+      setOpenWorkId(null)
+      setOpenSceneId(null)
+    } else {
+      setReadingView('scenes')
+      setOpenWorkId(link.workId)
+      setOpenSceneId(link.sceneId ?? null)
+      setOpenTextId(null)
+    }
+  }, [lang, setMode, setReadingView, setOpenTextId, setOpenWorkId, setOpenSceneId])
+
+  // Обратная сторона: открытое всегда видно в адресе, поэтому «скопировать
+  // ссылку» работает и без кнопки — из строки браузера. replaceState, а не
+  // переход: листать «Назад» двадцать открытых сцен никто не собирался.
+  const openLink: TrainerLink | null = useMemo(() => (
+    mode !== 'reading' ? null
+      : openTextId ? { kind: 'text', textId: openTextId }
+      : openWork ? { kind: 'work', workId: openWork.id, sceneId: openSceneId ?? undefined }
+      : null
+  ), [mode, openTextId, openWork, openSceneId])
+  useEffect(() => { writeTrainerHash(openLink) }, [openLink])
 
   // Материал мог исчезнуть из библиотеки — тогда просто открывается список.
   const openText = useMemo(
@@ -257,6 +313,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
     setSceneShelf(''); setSpeakOpen(null)
+    setGChapter(''); setGLevel('')
   }
 
   /** Переключение половин «Конструктора». Открытое при этом закрывается. */
@@ -416,6 +473,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // цифры на таблетке, и ждать его, чтобы решить, что рисовать, значило бы
   // моргать вкладкой на каждом открытии.
   const hasBook = useMemo(() => hasSurvivalBook(lang), [lang])
+  /** Есть ли для языка справочник грамматики. Синхронно — по нему рисуется пункт меню. */
+  const grammarOn = useMemo(() => hasGrammarRef(lang), [lang])
   // Выбранная половина переживает F5, как и остальное во вкладке: ученик,
   // разбиравший гнездо, после перезагрузки должен вернуться в гнездо, а не в
   // наборы фраз. Ключ по языку — у каждого предмета свой набор половин.
@@ -579,6 +638,31 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     loadSurvivalBook(lang).then(b => { if (alive) setBook(b ?? null) })
     return () => { alive = false }
   }, [hasBook, lang])
+
+  // ── Справочник грамматики ──────────────────────────────────────────────────
+  //
+  // Ленивый по той же причине, что и разговорник: восемьсот примеров одного
+  // языка не должны приезжать тому, кто открыл тренажёр на «Чтении». Счётчик
+  // для пункта меню при этом синхронный (GRAMMAR_COUNTS).
+  const [gram, setGram] = useState<GrammarRef | null | undefined>(undefined)
+  // Открытая форма переживает F5 — как открытый текст и открытая тема.
+  const [openFormId, setOpenFormId] = usePersistentState<string | null>(`trainer.${lang}.form`, null)
+  const [gChapter, setGChapter] = useState('')
+  const [gLevel, setGLevel] = useState('')
+
+  useEffect(() => {
+    if (!grammarOn) { setGram(null); return }
+    let alive = true
+    setGram(undefined)
+    loadGrammarRef(lang).then(r => { if (alive) setGram(r ?? null) })
+    return () => { alive = false }
+  }, [grammarOn, lang])
+
+  // Язык сменился на тот, где справочника нет, — режим обязан уступить, иначе
+  // экран остаётся на пустой вкладке, которой в меню уже нет.
+  useEffect(() => {
+    if (mode === 'grammar' && !grammarOn) setMode('reading')
+  }, [mode, grammarOn, setMode])
 
   // Что колода помнит про фразы — по одному запросу на экран, а не на тему.
   useEffect(() => {
@@ -834,55 +918,50 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
   useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openStem || openRoot))
 
-  // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
-  // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
-  if (openScene) {
-    return (
-      <Reader
-        text={openScene}
-        scene={openScene}
-        work={workById(openScene.workId)}
-        accent={palette.accent}
-        palette={palette}
-        lang={lang}
-        owner={owner}
-        subjectId={subjectId}
-        onBack={() => { setOpenSceneId(null); setResultsKey(k => k + 1) }}
-      />
-    )
-  }
-  if (openText) {
-    return (
-      <Reader
-        text={openText}
-        accent={palette.accent}
-        palette={palette}
-        lang={lang}
-        owner={owner}
-        subjectId={subjectId}
-        onBack={() => { setOpenTextId(null); setResultsKey(k => k + 1) }}
-      />
-    )
-  }
-  if (openAudio) {
-    return (
-      <Listener
-        item={openAudio}
-        accent={palette.accent}
-        palette={palette}
-        lang={lang}
-        onBack={() => { setOpenAudioId(null); setResultsKey(k => k + 1) }}
-      />
-    )
-  }
-
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
   // Собирается здесь целиком, а не по кускам из режимов: рейл общий, и если
   // каждый режим дорисовывал бы в него свою часть, при переключении половина
   // колонки перерисовывалась бы из другого места.
 
-  const speakTotal = countSpeakTasks(allThemes)
+  const speakTotal = countSpeakTasks(allThemes, hasVoiceFor(lang))
+
+  // ── Выборка справочника ────────────────────────────────────────────────────
+  //
+  // Три сита: раздел, уровень и строка поиска. Поиск идёт и по самой форме, и по
+  // русскому названию, и по объяснению: человек помнит либо «는데», либо «то,
+  // что ставят перед просьбой», и справочник обязан находиться по обоим.
+  const openForm = useMemo(
+    () => (gram && openFormId ? gram.forms.find(f => f.id === openFormId) ?? null : null),
+    [gram, openFormId],
+  )
+
+  const gramGroups = useMemo(() => {
+    if (!gram) return []
+    const q = query.trim().toLowerCase()
+    const hit = gram.forms.filter(f => {
+      if (gChapter && f.chapter !== gChapter) return false
+      if (gLevel && f.level !== gLevel) return false
+      if (!q) return true
+      const hay = `${f.form} ${f.title} ${f.short} ${f.attach} ${f.rule} ${f.examples.map(e => `${e.text} ${e.ru}`).join(' ')}`
+      return hay.toLowerCase().includes(q)
+    })
+    // Порядок разделов задаёт сам справочник, а не порядок находок: витрина
+    // должна выглядеть одинаково при любом фильтре.
+    return gram.chapters
+      .map(chapter => ({ chapter, forms: hit.filter(f => f.chapter === chapter) }))
+      .filter(g => g.forms.length > 0)
+  }, [gram, gChapter, gLevel, query])
+
+  const gramFound = useMemo(() => gramGroups.reduce((n, g) => n + g.forms.length, 0), [gramGroups])
+
+  /** Ступени, которые вообще встречаются в справочнике, — для фильтра. */
+  const gramLevels = useMemo(() => {
+    if (!gram) return []
+    const seen: string[] = []
+    for (const f of gram.forms) if (!seen.includes(f.level)) seen.push(f.level)
+    return seen.sort()
+  }, [gram])
 
   const modeCounts: Record<Mode, number | undefined> = {
     // «Чтение» — ВСЁ, что в этом режиме можно открыть: учебные тексты ПЛЮС
@@ -903,6 +982,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Всё, что в режиме можно открыть: основы плюс корни. Обе таблицы лежат в
     // коде, поэтому цифра известна синхронно и не прыгает после загрузки.
     blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0),
+    // Из синхронного реестра — чтобы бейдж стоял до того, как чанк поехал.
+    grammar: grammarOn ? (GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[lang.split('-')[0]]) : undefined,
   }
 
   const heroSubtitle =
@@ -911,6 +992,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
     : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')}`
+    : mode === 'grammar' && gram ? `${gram.forms.length} ${t('форм')} · ${gram.forms.reduce((n, f) => n + f.examples.length, 0)} ${t('примеров')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
   const filtersOn = fLevel.length > 0 || fTopic.length > 0 || fSkill.length > 0 || !!fLen
@@ -923,7 +1005,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
-            .filter(m => m.id !== 'blocks' || blocksOn)
+            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn))
             .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
@@ -931,6 +1013,45 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           soft={palette.soft}
         />
       </RailCard>
+
+      {/* Разделы справочника. Раздел — главное деление, а не уровень: человек
+          помнит, что искал «что-то про частицы», а не что это было 1급. */}
+      {mode === 'grammar' && gram && !openForm && (
+        <>
+          <RailCard title="Раздел" accent={palette.accent} icon={<BookMarked size={15} />}>
+            <RailList
+              items={[
+                { id: '', label: t('Все разделы'), sub: String(gram.forms.length) },
+                ...gram.chapters.map(c => ({
+                  id: c,
+                  label: t(c),
+                  sub: String(gram.forms.filter(f => f.chapter === c).length),
+                })),
+              ]}
+              value={gChapter}
+              onChange={setGChapter}
+              accent={palette.accent}
+              soft={palette.soft}
+            />
+          </RailCard>
+
+          {gramLevels.length > 1 && (
+            <RailCard title="Уровень" accent={palette.accent} icon={<Languages size={15} />}>
+              <RailSegment
+                options={gramLevels.map(l => ({
+                  value: l,
+                  label: l,
+                  badge: gram.forms.filter(f => f.level === l).length,
+                }))}
+                value={gLevel}
+                onChange={setGLevel}
+                accent={palette.accent}
+                soft={palette.soft}
+              />
+            </RailCard>
+          )}
+        </>
+      )}
 
       {/* Две половины «Чтения». Показываем переключатель только там, где сцены
           для языка вообще написаны: пустая вкладка хуже отсутствующей. */}
@@ -1233,6 +1354,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         >
           <RailSegment
             options={[
+              ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг' }] : []),
               { value: 'roleplay', label: 'Ролевые' },
               { value: 'story', label: 'Рассказ' },
               { value: 'aloud', label: 'Вслух' },
@@ -1291,9 +1413,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = (
       <Toolbar>
         {openWork ? (
-          <ToolButton onClick={() => setOpenWorkId(null)}>
-            <ChevronLeft size={14} /> {t('К полкам')}
-          </ToolButton>
+          <>
+            <ToolButton onClick={() => setOpenWorkId(null)}>
+              <ChevronLeft size={14} /> {t('К полкам')}
+            </ToolButton>
+            <ShareLink link={{ kind: 'work', workId: openWork.id }} accent={palette.accent} />
+          </>
         ) : (
           <>
             <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
@@ -1354,6 +1479,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         />
         <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} />
         <ToolCount>{t('Всего:')} {library.length}</ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'grammar') {
+    toolbar = (
+      <Toolbar>
+        {openForm ? (
+          <ToolButton onClick={() => setOpenFormId(null)}>
+            <ChevronLeft size={14} /> {t('К справочнику')}
+          </ToolButton>
+        ) : (
+          <>
+            <SearchPill value={query} onChange={setQuery} placeholder={t('Форма, название или пример…')} />
+            <ToolCount>{gramFound} {t('форм')}</ToolCount>
+          </>
+        )}
       </Toolbar>
     )
   } else if (mode === 'blocks' && !openStem && !openRoot) {
@@ -1497,7 +1637,35 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   let content: React.ReactNode = null
 
-  if (scenesOn) {
+  if (mode === 'grammar') {
+    content = gram === undefined ? (
+      <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
+    ) : gram === null ? (
+      <ShellEmpty text="Для этого языка справочник пока не написан." />
+    ) : openForm ? (
+      <GrammarPage
+        form={openForm}
+        all={gram}
+        lang={lang}
+        subject={subjectId}
+        accent={palette.accent}
+        soft={palette.soft}
+        onOpenForm={id => setOpenFormId(id)}
+        onQuizDone={(id, score, total) => {
+          saveResult('grammar', id, score, total)
+          setResultsKey(k => k + 1)
+        }}
+      />
+    ) : (
+      <GrammarGrid
+        groups={gramGroups}
+        result={id => resultFrom('grammar', id, results)}
+        accent={palette.accent}
+        soft={palette.soft}
+        onOpen={id => setOpenFormId(id)}
+      />
+    )
+  } else if (scenesOn) {
     content = scenes === undefined ? (
       <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
     ) : openWork ? (
@@ -1814,6 +1982,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <Speaking
         subjectId={subjectId}
         subject={subject}
+        lang={lang}
         accent={palette.accent}
         palette={palette}
         themes={allThemes}
@@ -1826,6 +1995,56 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       />
     )
   }
+
+  // ── Открытый материал ──────────────────────────────────────────────────────
+  //
+  // Ранние возвраты стоят ПОСЛЕ ВСЕХ хуков компонента, а не там, где читаются
+  // по смыслу. Иначе открытие сцены — это рендер с меньшим числом хуков, чем
+  // предыдущий, то есть падение всего тренажёра в ErrorBoundary. Раньше сцену
+  // открывали только кликом с витрины, где хуков ниже не было; ссылка на
+  // рассказ открывает её сразу на монтировании — и правило стало обязательным.
+  // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
+  // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
+  if (openScene) {
+    return (
+      <Reader
+        text={openScene}
+        scene={openScene}
+        work={workById(openScene.workId)}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        owner={owner}
+        subjectId={subjectId}
+        onBack={() => { setOpenSceneId(null); setResultsKey(k => k + 1) }}
+      />
+    )
+  }
+  if (openText) {
+    return (
+      <Reader
+        text={openText}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        owner={owner}
+        subjectId={subjectId}
+        onBack={() => { setOpenTextId(null); setResultsKey(k => k + 1) }}
+      />
+    )
+  }
+  if (openAudio) {
+    return (
+      <Listener
+        item={openAudio}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        onBack={() => { setOpenAudioId(null); setResultsKey(k => k + 1) }}
+      />
+    )
+  }
+
 
   return (
     <TrainerShell
@@ -1880,6 +2099,37 @@ export function Chips({ label, value, options, onChange, accent }: {
 const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' } as const
 
 /** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
+/**
+ * «Поделиться» — адрес открытого материала в буфер обмена.
+ *
+ * Кнопка, а не «скопируйте из строки браузера»: на телефоне адресной строки
+ * половину времени не видно вовсе, а в установленном PWA её нет никогда.
+ */
+function ShareLink({ link, accent }: { link: TrainerLink; accent: string }) {
+  const t = useT()
+  const [copied, setCopied] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  return (
+    <ToolButton
+      accent={accent}
+      on={copied}
+      onClick={() => {
+        copyToClipboard(trainerShareUrl(link)).then(ok => {
+          if (!ok) return
+          setCopied(true)
+          if (timer.current) clearTimeout(timer.current)
+          timer.current = setTimeout(() => setCopied(false), 2000)
+        })
+      }}
+    >
+      {copied ? <Check size={14} /> : <Link2 size={14} />}
+      {copied ? t('Ссылка скопирована') : t('Поделиться')}
+    </ToolButton>
+  )
+}
+
 const TOUR_KEY = 'lang-reader-tour-v1'
 
 /** Кнопки служебной строки на титрах: все одного роста, различаются только цветом. */
@@ -2128,6 +2378,14 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       <ToolButton onClick={() => setTour(true)} accent={accent}>
         <HelpCircle size={14} /> {t('Подсказки')}
       </ToolButton>
+      {/* Ссылка ведёт ровно на этот отрывок, а не «в тренажёр»: сцена
+          адресуется вместе со своим произведением, учебный текст — сам собой. */}
+      <ShareLink
+        link={scene && work
+          ? { kind: 'work', workId: work.id, sceneId: scene.id }
+          : { kind: 'text', textId: text.id }}
+        accent={accent}
+      />
       {text.credit && <ToolCount>{text.credit}</ToolCount>}
     </Toolbar>
   )
@@ -2584,10 +2842,15 @@ function Listener({ item, accent, palette, lang, onBack }: {
  */
 interface SpeakTask {
   id: string
-  kind: 'story' | 'roleplay' | 'aloud'
+  kind: 'story' | 'roleplay' | 'aloud' | 'shadow'
   title: string
   prompt: string
   seconds: number
+  /**
+   * Реплики для шэдоуинга. Есть только у своего вида: остальные задания —
+   * монолог по формулировке, и разбивать его на строки нечего.
+   */
+  lines?: ShadowLine[]
 }
 
 /**
@@ -2627,11 +2890,20 @@ const STORY_TASKS: SpeakTask[] = SPEAKING_PROMPTS.map((prompt, i) => ({
  * рейлу на всех режимах, в том числе пока говорение ни разу не открывали, а
  * строить ради неё восемьдесят объектов на каждый рендер незачем.
  */
-function countSpeakTasks(themes: SurvivalThemeCards[]): number {
-  return themes.reduce((n, x) => n + 1 + (x.phrases.length >= 5 ? 1 : 0), 0) + STORY_TASKS.length
+function countSpeakTasks(themes: SurvivalThemeCards[], shadow: boolean): number {
+  return themes.reduce((n, x) => n + 1 + (x.phrases.length >= 5 ? (shadow ? 2 : 1) : 0), 0) + STORY_TASKS.length
 }
 
-function bookTasks(themes: SurvivalThemeCards[]): SpeakTask[] {
+/**
+ * Сколько реплик даём за подход.
+ *
+ * Не вся тема: сорок фраз подряд с записью каждой — это сорок минут, и до
+ * середины никто не доходит. Восемь реплик проходятся за пять-семь минут, а
+ * тема из сорока фраз становится пятью подходами, а не одним неподъёмным.
+ */
+const SHADOW_LINES = 8
+
+function bookTasks(themes: SurvivalThemeCards[], shadow: boolean): SpeakTask[] {
   const out: SpeakTask[] = []
   for (const x of themes) {
     out.push({
@@ -2642,6 +2914,21 @@ function bookTasks(themes: SurvivalThemeCards[]): SpeakTask[] {
       seconds: 90,
     })
     if (x.phrases.length >= 5) {
+      // Реплика для повтора — это предложение, а не словарная форма: интонацию
+      // и связки слышно только на целой фразе, а «Excuse me» отработать нечем.
+      if (shadow) {
+        out.push({
+          id: `shadow-${x.theme.id}`,
+          kind: 'shadow',
+          title: x.theme.title,
+          prompt: `Повторите за эталоном ${SHADOW_LINES} реплик темы и сравните со своей записью.`,
+          seconds: 0,
+          lines: x.phrases.slice(0, SHADOW_LINES).map(ph => ({
+            text: ph.ex?.term ?? ph.term,
+            ru: ph.ex?.ru ?? ph.ru,
+          })),
+        })
+      }
       out.push({
         id: `aloud-${x.theme.id}`,
         kind: 'aloud',
@@ -2655,14 +2942,17 @@ function bookTasks(themes: SurvivalThemeCards[]): SpeakTask[] {
 }
 
 const KIND_LABEL: Record<SpeakTask['kind'], string> = {
+  shadow: 'Шэдоуинг',
   story: 'Рассказ',
   roleplay: 'Ролевое',
   aloud: 'Чтение вслух',
 }
 
-function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilter, status, open, onOpen, onCounts }: {
+function Speaking({ subjectId, subject, lang, accent, palette, themes, query, kindFilter, status, open, onOpen, onCounts }: {
   subjectId: string
   subject: string
+  /** Код языка — по нему берётся голос эталона в шэдоуинге. */
+  lang: string
   accent: string
   palette: { accent: string; text: string; soft: string; ring: string }
   themes: SurvivalThemeCards[]
@@ -2684,7 +2974,9 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
   // Занятие в говорении — это открытое задание с диктофоном, а не список.
   useTrainerEngaged(!!open)
 
-  const tasks = useMemo(() => [...bookTasks(themes), ...STORY_TASKS], [themes])
+  // Без голоса шэдоуинга нет: сравнивать себя не с чем.
+  const canShadow = hasVoiceFor(lang)
+  const tasks = useMemo(() => [...bookTasks(themes, canShadow), ...STORY_TASKS], [themes, canShadow])
 
   useEffect(() => {
     let alive = true
@@ -2736,23 +3028,31 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[open.kind])}</TileChip>
-            <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{open.seconds} {t('с')}</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+              {open.lines ? `${open.lines.length} ${t('реплик')}` : `${open.seconds} ${t('с')}`}
+            </span>
           </div>
           <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{t(open.title)}</div>
           <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{t(open.prompt)}</p>
         </div>
 
-        <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={open.seconds + 30} accent={palette.accent} />
+        {/* Шэдоуинг живёт по своим правилам: не одна запись на всё задание, а
+            петля по репликам, и наружу ничего не уходит (см. Shadowing.tsx). */}
+        {open.kind === 'shadow' && open.lines ? (
+          <Shadowing lines={open.lines} lang={lang} accent={palette.accent} soft={palette.soft} />
+        ) : (
+          <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={open.seconds + 30} accent={palette.accent} />
+        )}
 
-        {sendState === 'sending' && (
+        {open.kind !== 'shadow' && sendState === 'sending' && (
           <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Отправляем преподавателю…')}</p>
         )}
-        {sendState === 'done' && (
+        {open.kind !== 'shadow' && sendState === 'done' && (
           <p style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>
             {t('Записано и отправлено. Преподаватель послушает и разберёт.')}
           </p>
         )}
-        {sendState === 'error' && (
+        {open.kind !== 'shadow' && sendState === 'error' && (
           <p style={{ fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600 }}>
             {t('Не получилось отправить. Проверь связь и попробуй ещё раз.')}
           </p>
@@ -2796,7 +3096,9 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
           <Tile key={x.id} accent={accent} onClick={() => { onOpen(x); setSendState('idle') }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[x.kind])}</TileChip>
-              <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{x.seconds} {t('с')}</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                {x.lines ? `${x.lines.length} ${t('реплик')}` : `${x.seconds} ${t('с')}`}
+              </span>
             </span>
             <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {t(x.title)}

@@ -144,3 +144,15 @@ if (bad) {
   process.exit(1)
 }
 console.log('\nПримеры на месте.')
+
+// Список примеров без перевода — ТЗ на дописывание второй строки руками.
+if (process.argv.includes('--no-ru')) {
+  for (const [lang, map] of Object.entries(terms)) {
+    const ix = index[lang]
+    console.log(`\n# ${lang}`)
+    for (const [key, term] of map) {
+      const ex = ix[key]
+      if (ex && !ex.ru) console.log([term, ex.term].join('\t'))
+    }
+  }
+}

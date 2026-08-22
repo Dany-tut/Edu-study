@@ -33,6 +33,7 @@ import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { nestById } from './soundNests'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
+import { checklistBlock } from '../lib/theoryChecklist'
 import { vocabImage } from './vocabImages'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -114,6 +115,23 @@ export interface LangUnit {
    * отрабатывать нечего: письмо, чтение правил, экзаменационные стратегии.
    */
   pattern?: UnitPattern
+  /**
+   * Чек-лист юнита — формы, которые должны остаться в руке к его концу.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНО ОТ `grammar`. Поле `grammar` описывает грамматику юнита одной
+   * фразой для конспекта и карточки урока — прочитать её можно, отметиться по
+   * ней нельзя. Чек-лист разбирает ту же грамматику на пункты, каждый из
+   * которых ученик либо ставит себе в актив, либо нет; вопрос «я это уже умею»
+   * иначе не задаётся вовсе и решается ощущением «вроде проходили».
+   *
+   * ПУНКТ — ФОРМА, А НЕ ТЕМА. «Отрицания (안 / ~지 않다)» проверяемо, «понимать
+   * отрицание» — нет. Поэтому в пункте стоит сама форма и короткая подпись, по
+   * которой её узнают.
+   *
+   * Не задан — чек-листа в конспекте просто нет: списка ради списка (юниты
+   * чтения, экзаменационные стратегии) быть не должно.
+   */
+  checklist?: string[]
   /** Словарь юнита. */
   vocab: VocabItem[]
   /** Задания домашней работы. */
@@ -591,6 +609,9 @@ function composeTheory(unit: LangUnit): string {
   ].join('\n\n')
 }
 
+/** Заголовок чек-листа — один на все курсы: ученик узнаёт блок в лицо. */
+const CHECKLIST_TITLE = 'Чек-лист: что должно остаться в руке'
+
 /**
  * Конспект юнита для редактора: текст плюс иллюстрации.
  *
@@ -600,7 +621,12 @@ function composeTheory(unit: LangUnit): string {
  * (разбор маркеров — в lib/theoryImages.ts).
  */
 function theoryOf(unit: LangUnit, figures: UnitFigure[] = []): { theory: string; theoryImages: TheoryImage[] } {
-  const text = unit.theory?.trim() || composeTheory(unit)
+  const body = unit.theory?.trim() || composeTheory(unit)
+  // Чек-лист всегда последним абзацем: это не часть объяснения, а то, с чем
+  // ученик к объяснению возвращается. Стоя в середине, он разрывал бы правило.
+  const text = unit.checklist?.length
+    ? `${body}\n\n${checklistBlock(CHECKLIST_TITLE, unit.checklist)}`
+    : body
   if (!figures.length) return { theory: text, theoryImages: [] }
 
   const paras = text.split(/\n\s*\n/)

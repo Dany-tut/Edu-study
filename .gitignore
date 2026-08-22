@@ -20,3 +20,6 @@ dist/
 _*.html
 public/_*.html
 src/_*.tsx
+
+# инкрементальный кэш tsc (--noEmit тоже его пишет)
+tsconfig.tsbuildinfo

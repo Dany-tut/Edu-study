@@ -6993,6 +6993,337 @@ no. you didn’t.`,
     ],
   },
 
+  {
+    id: 'sc-rwrb-2',
+    workId: 'mcquiston-rwrb',
+    lang: 'en', title: 'Расписание на неделю кампании', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Полкниги её герои живут по расписанию, которое им присылают чужие люди. Ниже наше такое расписание — внутренний график предвыборной поездки. Читается почти как шифр: половина слов тут значит не то, что в словаре, и именно этим слоем английского живут все, кто работает в политике, на телевидении и в гастрольном туре.',
+    after: 'Главное умение при чтении таких бумаг — видеть, где расписание оставляет вам выбор, а где нет. HOLD — это уже занятое время, а не свободное; OTR — единственная строчка, которую могут отменить за десять минут; RON отвечает на вопрос, везти ли с собой чемодан.',
+    body: `WEEK AHEAD — INTERNAL. DO NOT FORWARD.
+
+MONDAY
+06:15  Wheels up. Two-hour flight, staff briefing in the air.
+09:00  Arrival. Pool spray on the tarmac — no questions taken.
+09:40  Site visit. Hard hats provided, please wear them; the photograph is the point of the stop.
+12:00  HOLD. This is not free time. It is held in case Monday goes wrong.
+19:30  RON: Columbus.
+
+TUESDAY
+08:00  Breakfast event, 400 confirmed. Remarks: eight minutes, no Q&A.
+10:30  Possible OTR — coffee shop, ten minutes, walk-in. Advance will confirm on the day or drop it entirely.
+14:00  Ropeline after remarks. Twenty minutes. Please do not extend it; the schedule after this point has no give in it.
+17:00  Filing time for the travelling press. Nothing scheduled against it — they cannot write and follow us at once.
+
+WEDNESDAY
+All day  Down day. Down means down. If you are asked to fill it, the answer is no.
+
+NOTES
+— Anything added after this goes out must be cleared by the trip director, not by the person asking you.
+— If it is not on this sheet, it is not happening, however senior the person telling you it is.`,
+    translation: `НЕДЕЛЯ ВПЕРЁД — ДЛЯ ВНУТРЕННЕГО ПОЛЬЗОВАНИЯ. НЕ ПЕРЕСЫЛАТЬ.
+
+ПОНЕДЕЛЬНИК
+06:15  Взлёт. Два часа в воздухе, летучка со штабом на борту.
+09:00  Прилёт. Короткая съёмка у трапа — вопросов не принимаем.
+09:40  Выезд на объект. Каски выдают, наденьте их: ради этой фотографии остановка и делается.
+12:00  РЕЗЕРВ. Это не свободное время. Оно оставлено на случай, если понедельник пойдёт не так.
+19:30  Ночёвка: Колумбус.
+
+ВТОРНИК
+08:00  Завтрак-мероприятие, 400 подтверждённых гостей. Выступление: восемь минут, без вопросов.
+10:30  Возможный незапланированный заезд — кофейня, десять минут, без предупреждения. Передовая группа подтвердит в тот же день либо снимет совсем.
+14:00  Проход вдоль ограждения после выступления. Двадцать минут. Не растягивайте: дальше в расписании нет ни минуты запаса.
+17:00  Время на сдачу материалов для едущей с нами прессы. Против него ничего не ставим — писать и ехать за нами одновременно они не могут.
+
+СРЕДА
+Весь день  Выходной. Выходной значит выходной. Если вас попросят его заполнить, ответ — нет.
+
+ПРИМЕЧАНИЯ
+— Всё, что добавляется после рассылки этого листа, согласует руководитель поездки, а не тот, кто вас просит.
+— Чего нет на этом листе, того не происходит, каким бы высоким начальством вам это ни сообщали.`,
+    glossary: [
+      { term: 'wheels up', ru: 'взлёт (буквально «колёса подняты»)' },
+      { term: 'pool spray', ru: 'короткий допуск дежурной группы прессы для съёмки, без вопросов' },
+      { term: 'HOLD', ru: 'резерв в расписании — время занято, хотя мероприятия нет' },
+      { term: 'RON (remain overnight)', ru: 'место ночёвки' },
+      { term: 'remarks', ru: 'выступление (в расписании — почти всегда именно так, не speech)' },
+      { term: 'OTR (off-the-record stop)', ru: 'незаявленная остановка вне объявленного маршрута' },
+      { term: 'walk-in', ru: 'заход без предупреждения' },
+      { term: 'advance (team)', ru: 'передовая группа, готовящая точки заранее' },
+      { term: 'ropeline', ru: 'проход вдоль ограждения, рукопожатия с публикой' },
+      { term: 'to have no give in it', ru: 'не иметь запаса, быть впритык' },
+      { term: 'filing time', ru: 'время, оставленное журналистам на отправку материала' },
+      { term: 'down day', ru: 'день без мероприятий' },
+      { term: 'to clear smth with smb', ru: 'согласовать с кем-либо' },
+    ],
+    questions: [
+      {
+        q: 'What does HOLD at 12:00 on Monday mean?',
+        options: [
+          'A free hour for lunch',
+          'Reserved time kept empty on purpose, in case the day slips',
+          'A meeting that has no name yet',
+          'A cancelled event',
+        ],
+        correct: 1,
+        why: 'Прямо сказано: «This is not free time». HOLD — занятое время без мероприятия, страховка расписания.',
+      },
+      {
+        q: 'Which item is the most likely to disappear?',
+        options: [
+          'The breakfast event',
+          'The possible OTR at 10:30',
+          'The ropeline',
+          'Wheels up',
+        ],
+        correct: 1,
+        why: '«Advance will confirm on the day or drop it entirely» — эта строчка и написана как необязательная.',
+      },
+      {
+        q: 'Why is nothing scheduled against filing time?',
+        options: [
+          'It is a union rule',
+          'Reporters cannot write and travel at the same time — if they are moving, nothing gets filed',
+          'The venue is closed',
+          'It is a meal break',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the last note tell staff to do when a senior person adds something?',
+        options: [
+          'Do it immediately',
+          'Treat it as not happening until the trip director clears it',
+          'Ask the press office',
+          'Move the down day',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  {
+    id: 'sc-rwrb-3',
+    workId: 'mcquiston-rwrb',
+    lang: 'en', title: 'Служебная почта — это архив', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Весь сюжет книги держится на том, что личная переписка однажды становится документом. Ниже наша служебная памятка ровно об этом: что происходит с письмом, отправленным с рабочей почты. Тон здесь особенный — предупреждение, написанное так, чтобы никого не обвинить заранее.',
+    after: 'Обратите внимание на последнюю строку: там весь жанр целиком. «Мы не читаем вашу почту» и «ваша почта хранится» — утверждения, которые не противоречат друг другу, и стоят они рядом намеренно.',
+    body: `RECORDS AND CORRESPONDENCE — ANNUAL REMINDER
+To: All staff and detailees
+From: Office of the Counsel
+
+This note goes out every year. Please read it every year.
+
+1. WHAT COUNTS AS A RECORD
+A record is not a document you have decided to keep. It is any message sent or received on this system in the course of your work, including one-word replies, calendar invitations, and messages you sent to yourself. Format is irrelevant. Intention is irrelevant.
+
+2. DELETING
+Deleting a message removes it from your view. It does not remove it from the system, and it does not remove it from the copy held on the recipient's side, over which you have no control at all. Nobody in this building can un-send anything.
+
+3. PERSONAL MESSAGES
+Occasional personal use is permitted and is not the subject of this note. What is the subject of this note is the assumption that personal messages are treated differently by the retention policy. They are not.
+
+4. THE PRACTICAL TEST
+Before you send anything from this address, apply the standard test: would you be comfortable if this message were read aloud, in full, by someone who does not like you and is not obliged to explain the context? If the answer is no, the medium is wrong, not the sentence.
+
+5. FINALLY
+We do not read your correspondence. We do keep it. Both of those statements are true at the same time, and the second one is the one people forget.`,
+    translation: `ДОКУМЕНТЫ И ПЕРЕПИСКА — ЕЖЕГОДНОЕ НАПОМИНАНИЕ
+Кому: всем сотрудникам и прикомандированным
+От кого: Юридическая служба
+
+Эта записка рассылается каждый год. Пожалуйста, читайте её каждый год.
+
+1. ЧТО СЧИТАЕТСЯ ДОКУМЕНТОМ
+Документ — это не то, что вы решили сохранить. Это любое сообщение, отправленное или полученное в этой системе по работе, включая ответы из одного слова, приглашения в календарь и письма самому себе. Формат значения не имеет. Намерение значения не имеет.
+
+2. УДАЛЕНИЕ
+Удаление убирает сообщение из вашего вида. Оно не убирает его из системы и тем более не убирает копию на стороне получателя, которой вы не управляете вовсе. Отозвать отправленное в этом здании не может никто.
+
+3. ЛИЧНАЯ ПЕРЕПИСКА
+Эпизодическое личное использование разрешено, и речь в записке не о нём. Речь о распространённом убеждении, будто к личным письмам правила хранения применяются как-то иначе. Не применяются.
+
+4. ПРАКТИЧЕСКАЯ ПРОВЕРКА
+Прежде чем отправить что-либо с этого адреса, примените обычную проверку: спокойно ли вам будет, если это письмо прочтут вслух, целиком, устами человека, который вас недолюбливает и не обязан объяснять контекст? Если нет, то ошибка не во фразе, а в канале.
+
+5. И ПОСЛЕДНЕЕ
+Мы вашу переписку не читаем. Мы её храним. Оба утверждения верны одновременно, и забывают обычно второе.`,
+    glossary: [
+      { term: 'record', ru: 'документ, подлежащий хранению (не «запись» в бытовом смысле)' },
+      { term: 'detailee', ru: 'прикомандированный сотрудник' },
+      { term: 'counsel', ru: 'юридическая служба; юрисконсульт' },
+      { term: 'in the course of your work', ru: 'в ходе исполнения обязанностей' },
+      { term: 'retention policy', ru: 'правила хранения документов' },
+      { term: 'to un-send', ru: 'отозвать отправленное' },
+      { term: 'to be the subject of smth', ru: 'быть предметом (речи, записки)' },
+      { term: 'to apply a test', ru: 'применить проверку, критерий' },
+      { term: 'the medium', ru: 'канал, средство передачи (в отличие от самого сообщения)' },
+    ],
+    questions: [
+      {
+        q: 'According to the note, what makes a message a record?',
+        options: [
+          'The sender decides it is important',
+          'It was sent or received on the system in the course of work — length and intention do not matter',
+          'It is longer than one line',
+          'It has an attachment',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does deleting a message actually do?',
+        options: [
+          'Removes it everywhere',
+          'Removes it from your own view only — the system and the recipient still hold it',
+          'Nothing at all',
+          'Sends it to the counsel',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the "practical test" in point 4?',
+        options: [
+          'Whether the message is grammatically correct',
+          'Whether you would be comfortable with it read aloud in full by an unfriendly reader',
+          'Whether your manager approves it',
+          'Whether it is under 200 words',
+        ],
+        correct: 1,
+        why: 'Формулировка стоит того, чтобы её запомнить: если ответ «нет», то «the medium is wrong, not the sentence» — менять надо канал, а не фразу.',
+      },
+      {
+        q: 'Why are the two sentences in point 5 placed together?',
+        options: [
+          'They contradict each other',
+          'They are both true, and the reassuring one distracts from the important one',
+          'It is a printing error',
+          'The second cancels the first',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  {
+    id: 'sc-rwrb-4',
+    workId: 'mcquiston-rwrb',
+    lang: 'en', title: 'Заметки к тосту на приёме', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Приёмы в книге кончаются одинаково: кто-то встаёт с бокалом и говорит формулами, которых на самом деле никто не придумывает заново. Ниже наши заметки к тосту — с пометками для себя. Тост по-английски строится по жёсткой схеме, и, зная её, можно выступить на чужой свадьбе, конференции и корпоративе одинаково прилично.',
+    after: 'Схема тоста всегда одна: обращение — благодарность хозяевам — одна короткая история — переход через «but» к серьёзному — формула подъёма бокалов. Держится всё на последней строке: «please be upstanding» и «I give you…» — это команда встать и чокнуться, после них тост заканчивают, а не продолжают.',
+    body: `TOAST — NOTES. Six minutes. Do not go to seven.
+
+[stand, wait for the room, do not start over the noise]
+
+Ladies and gentlemen. Thank you — and thank you in particular to our hosts, who have fed two hundred people tonight and have not once looked at their watches, which is more than I managed at dinner.
+
+[pause — small laugh, do not wait for a big one]
+
+I was asked to keep this short, warm and free of anything that will end up in a newspaper. Two of those three I can promise.
+
+[the story — thirty seconds, no more]
+
+When we first worked together, I was handed a folder and told it was "self-explanatory". It was ninety pages long. I read all ninety of them on the flight and understood four. The next morning, someone sat down beside me and explained the other eighty-six without once suggesting that I should have understood them already. I have never forgotten that, and it is the reason I am standing up tonight.
+
+[turn to the point — this is the only serious line, do not rush it]
+
+We are very good, in this line of work, at thanking people for what they have achieved. We are much worse at thanking them for how they treated the people around them while they were doing it. Tonight is the second kind of thank you.
+
+[raise glass — everyone stands]
+
+So: ladies and gentlemen, please be upstanding. To our hosts, to the summer ahead, and to being kind to whoever is holding the folder.
+
+I give you — our hosts.
+
+[sit down. Do not add anything.]`,
+    translation: `ТОСТ — ЗАМЕТКИ. Шесть минут. Семь — уже нет.
+
+[встать, дождаться зала, не начинать поверх шума]
+
+Дамы и господа. Спасибо — и отдельное спасибо хозяевам вечера, которые накормили сегодня двести человек и ни разу не посмотрели на часы, чего не могу сказать о себе за ужином.
+
+[пауза — короткий смех, большого не ждать]
+
+Меня попросили говорить коротко, тепло и без того, что назавтра окажется в газете. Два из трёх обещаю.
+
+[история — тридцать секунд, не больше]
+
+Когда мы только начали работать вместе, мне вручили папку и сказали, что там «всё понятно». В ней было девяносто страниц. Все девяносто я прочитал в самолёте и понял четыре. Наутро рядом сел человек и объяснил мне остальные восемьдесят шесть, ни разу не намекнув, что понимать это я был обязан и сам. Я этого не забыл, и ровно поэтому сегодня стою.
+
+[переход к сути — единственная серьёзная фраза, не частить]
+
+В нашем деле мы прекрасно умеем благодарить людей за то, чего они добились. И гораздо хуже — за то, как они обходились с окружающими, пока добивались. Сегодня благодарность второго рода.
+
+[поднять бокал — все встают]
+
+Итак: дамы и господа, прошу подняться. За хозяев этого вечера, за лето впереди и за то, чтобы быть добрее к тому, кто держит папку.
+
+Поднимем бокалы — за хозяев.
+
+[сесть. Ничего не добавлять.]`,
+    glossary: [
+      { term: 'to keep smth short and warm', ru: 'говорить коротко и тепло' },
+      { term: 'self-explanatory', ru: 'не требующий пояснений; «тут всё понятно»' },
+      { term: 'in this line of work', ru: 'в нашем деле, в этой профессии' },
+      { term: 'please be upstanding', ru: 'прошу подняться (формула перед тостом, брит.)' },
+      { term: 'I give you…', ru: 'формула, которой объявляют, за кого пьют' },
+      { term: 'to raise a glass to smb', ru: 'поднять бокал за кого-либо' },
+      { term: 'to go to seven', ru: 'здесь: затянуть до семи минут' },
+      { term: 'to start over the noise', ru: 'начать говорить, не дождавшись тишины' },
+    ],
+    questions: [
+      {
+        q: 'What is "please be upstanding" for?',
+        options: [
+          'Asking the room to be honest',
+          'Asking everyone to stand up before the toast is drunk',
+          'Praising the hosts',
+          'Ending the dinner',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the note say "small laugh, do not wait for a big one"?',
+        options: [
+          'The joke is bad',
+          'Waiting for a laugh that does not come is worse than moving straight on',
+          'The room is empty',
+          'Laughing is impolite here',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the serious point of the toast?',
+        options: [
+          'Thanking people for what they achieved',
+          'Thanking people for how they treated others while achieving it',
+          'Announcing the summer programme',
+          'Introducing the hosts',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What structure does an English toast follow here?',
+        options: [
+          'Story, joke, story, joke',
+          'Address — thanks to the hosts — one short story — a turn to the serious — the raising of glasses',
+          'Only a list of names',
+          'It has no structure',
+        ],
+        correct: 1,
+        why: 'Эту схему стоит помнить целиком: она одна и та же на свадьбе, конференции и корпоративе, меняется только история в середине.',
+      },
+    ],
+  },
+
   // ── Семь мужей Эвелин Хьюго: карточка, наш текст ───────────────────────────
   {
     id: 'sc-evelyn-hugo-1',

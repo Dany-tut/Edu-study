@@ -49,6 +49,7 @@ import { PORTUGUESE2_THEORY } from './portugueseIntermediateTheory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { PTB2_VIDEO } from './languageVideosExtra'
+import { PTB2_HOMEWORK_VIDEO } from './homeworkVideos'
 import { PORTUGUESE2_FIGURES_EXTRA } from './portugueseIntermediateFigures'
 import { PORTUGUESE2_EXTRA } from './portugueseIntermediateExtra'
 
@@ -1216,6 +1217,8 @@ export const PORTUGUESE_INTERMEDIATE: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...PORTUGUESE2_FIGURES, ...PORTUGUESE2_FIGURES_EXTRA },
+  // Живая речь в домашке — см. homeworkVideos.ts.
+  homeworkVideos: PTB2_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(PORTUGUESE_INTERMEDIATE)

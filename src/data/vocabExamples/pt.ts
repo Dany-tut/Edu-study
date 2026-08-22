@@ -20,9 +20,11 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'prova': x('A prova acontece em novembro.', 'Экзамен проходит в ноябре.'),  // a prova
   'quem': x('A quem devo entregar o formulário?', 'Кому мне отдать бланк?'),  // a quem
   'tarefa': x('A tarefa pede trinta linhas, no mínimo.', 'Задание требует минимум тридцать строк.'),  // a tarefa
+  'academia': x('Vou à academia três vezes por semana.', 'Я хожу в спортзал три раза в неделю.'),  // academia
   'acontecer': x('O que aconteceu com o seu telefone?', 'Что случилось с твоим телефоном?'),  // acontecer
   'acordar': x('Eu acordo às sete todos os dias.', 'Я просыпаюсь в семь каждый день.'),  // acordar
   'acrescentar': x('Quero acrescentar uma coisa ao que ele disse.', 'Хочу добавить кое-что к тому, что он сказал.'),  // acrescentar
+  'adorei': x('Adorei o seu novo apartamento!', 'Мне очень понравилась твоя новая квартира!'),  // adorei
   'afirmou': x('O diretor afirmou que a obra termina em maio.', 'Директор заявил, что работы закончатся в мае.'),  // afirmou
   'agradeceria': x('Agradeceria uma resposta até sexta-feira.', 'Был бы благодарен за ответ до пятницы.'),  // agradeceria
   'aguardo providências': x('Aguardo providências no prazo de cinco dias.', 'Жду принятия мер в течение пяти дней.'),  // aguardo providências
@@ -40,6 +42,7 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'apressar-se': x('Não se apresse, ainda temos tempo.', 'Не торопись, у нас ещё есть время.'),  // apressar-se
   'aprofundar': x('Vou aprofundar esse ponto no segundo parágrafo.', 'Я углублю эту мысль во втором абзаце.'),  // aprofundar
   'aproveitar': x('Aproveite o fim de semana!', 'Хороших выходных! (буквально: воспользуйтесь выходными)'),  // aproveitar
+  'armário': x('O armário custa cinco reais por dia.', 'Шкафчик стоит пять реалов в день.'),  // armário
   'arriscar': x('Não quero arriscar tudo em um projeto.', 'Не хочу рисковать всем ради одного проекта.'),  // arriscar
   'arroz e feijão': x('No almoço tem arroz e feijão todos os dias.', 'На обед каждый день рис с фасолью.'),  // arroz e feijão
   'artigo de opinião': x('Escreva um artigo de opinião de trinta linhas.', 'Напишите статью-мнение в тридцать строк.'),  // artigo de opinião
@@ -51,11 +54,13 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'beber': x('Você quer beber alguma coisa?', 'Хочешь что-нибудь выпить?'),  // beber
   'beleza': x('Beleza, a gente se vê amanhã.', 'Договорились, увидимся завтра.'),  // beleza
   'brincar': x('As crianças brincam no parque.', 'Дети играют в парке.'),  // brincar
+  'cadê': x('Cadê a chave do armário?', 'Где ключ от шкафчика?'),  // cadê
   'cara': x('Aquele cara trabalha comigo.', 'Тот парень работает со мной.'),  // cara
   'caro / barato': x('O hotel é caro, mas o metrô é barato.', 'Отель дорогой, но метро дешёвое.'),  // caro / barato
   'chamar-se': x('Eu me chamo Ana, e você?', 'Меня зовут Ана, а тебя?'),  // chamar-se
   'chegarmos': x('Depois de chegarmos, ligamos para você.', 'После того как мы приедем, позвоним тебе.'),  // chegarmos
   'citar': x('Vou citar o texto de apoio uma vez.', 'Процитирую вспомогательный текст один раз.'),  // citar
+  'clt': x('O contrato é CLT, com férias e décimo terceiro.', 'Договор по трудовому кодексу, с отпуском и тринадцатой зарплатой.'),  // CLT
   'com gelo': x('Uma água com gelo, por favor.', 'Воду со льдом, пожалуйста.'),  // com gelo
   'com todo o respeito': x('Com todo o respeito, discordo dessa ideia.', 'При всём уважении, я не согласен с этой мыслью.'),  // com todo o respeito
   'compras': x('Vou fazer compras no sábado de manhã.', 'В субботу утром пойду за покупками.'),  // compras
@@ -64,6 +69,7 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'conseguir': x('Não consegui abrir o arquivo.', 'Я не смог открыть файл.'),  // conseguir
   'contra-argumento': x('Apresente um contra-argumento e responda a ele.', 'Приведите контраргумент и ответьте на него.'),  // contra-argumento
   'convém': x('Convém enviar o pedido por escrito.', 'Заявку целесообразно отправить письменно.'),  // convém
+  'coração': x('Ele fez isso de coração.', 'Он сделал это от души.'),  // coração
   'costumava': x('Eu costumava correr todas as manhãs.', 'Раньше я обычно бегал каждое утро.'),  // costumava
   'cujo / cuja': x('A empresa cujo nome esqueci fica no centro.', 'Компания, название которой я забыл, находится в центре.'),  // cujo / cuja
   'cê': x('Cê vai à festa hoje?', 'Ты пойдёшь сегодня на праздник?'),  // cê (você)
@@ -79,6 +85,7 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'destacar': x('Quero destacar dois pontos do texto.', 'Хочу выделить два момента в тексте.'),  // destacar
   'detalhe secundário': x('Não comece pelo detalhe secundário.', 'Не начинайте со второстепенной детали.'),  // detalhe secundário
   'deveria': x('Você deveria falar com o gerente.', 'Тебе следовало бы поговорить с менеджером.'),  // deveria
+  'diferencial': x('Falar inglês é um diferencial.', 'Знание английского будет преимуществом.'),  // diferencial
   'discordo em parte': x('Discordo em parte: o problema não é o preço.', 'Частично не согласен: дело не в цене.'),  // discordo em parte
   'divulgar': x('O jornal divulgou os números na terça.', 'Газета обнародовала цифры во вторник.'),  // divulgar
   'do qual': x('Este é o relatório do qual eu falei.', 'Это тот отчёт, о котором я говорил.'),  // do qual
@@ -104,6 +111,7 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'fala-se': x('Aqui se fala português e espanhol.', 'Здесь говорят по-португальски и по-испански.'),  // fala-se
   'filho / filha': x('Tenho um filho e uma filha.', 'У меня сын и дочь.'),  // filho / filha
   'finalidade': x('A finalidade da carta é pedir uma providência.', 'Назначение письма — попросить принять меры.'),  // finalidade
+  'fiz': x('Eu fiz o relatório sozinho.', 'Я сделал отчёт сам.'),  // fiz
   'foi construído': x('O museu foi construído em 1950.', 'Музей был построен в 1950 году.'),  // foi construído
   'ganhar tempo': x('Fazer a lista antes ajuda a ganhar tempo.', 'Список заранее помогает выиграть время.'),  // ganhar tempo
   'garçom': x('O garçom trouxe a conta.', 'Официант принёс счёт.'),  // garçom
@@ -130,6 +138,7 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'morar': x('Eu moro em São Paulo há três anos.', 'Я живу в Сан-Паулу три года.'),  // morar
   'moço / moça': x('Moço, pode trazer a conta?', 'Молодой человек, можете принести счёт?'),  // moço / moça
   'mudar de vida': x('Ele mudou de vida depois dos quarenta.', 'Он изменил жизнь после сорока.'),  // mudar de vida
+  'mãe': x('Minha mãe mora no interior.', 'Моя мама живёт в глубинке.'),  // mãe
   'na minha experiência': x('Na minha experiência, isso raramente funciona.', 'По моему опыту, это редко работает.'),  // na minha experiência
   'na minha opinião': x('Na minha opinião, a escola deveria começar mais tarde.', 'По моему мнению, школа должна начинаться позже.'),  // na minha opinião
   'na prática': x('Na teoria é simples; na prática, não.', 'В теории просто; на практике — нет.'),  // na prática
@@ -158,16 +167,22 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'parece que': x('Parece que vai chover à tarde.', 'Кажется, днём пойдёт дождь.'),  // parece que
   'perceber': x('Percebi que ninguém tinha lido o aviso.', 'Я заметил, что объявление никто не прочитал.'),  // perceber
   'perguntou se': x('Ele perguntou se eu falava português.', 'Он спросил, говорю ли я по-португальски.'),  // perguntou se
+  'permitido': x('Não é permitido comer na sala.', 'В зале есть не разрешается.'),  // permitido
   'permitir': x('O prédio não permite animais.', 'В доме не разрешают животных.'),  // permitir
   'perto de': x('Moro perto do centro.', 'Я живу рядом с центром.'),  // perto de
+  'pleno': x('A vaga é de nível pleno, não sênior.', 'Вакансия среднего уровня, не сеньорская.'),  // pleno
   'polêmica': x('O texto trata de uma polêmica antiga.', 'Текст касается давней полемики.'),  // polêmica
   'ponto de vista': x('Do meu ponto de vista, o custo é alto.', 'С моей точки зрения, стоимость высокая.'),  // ponto de vista
   'por exemplo': x('Muitas cidades, por exemplo Recife, cresceram rápido.', 'Многие города, например Ресифи, быстро выросли.'),  // por exemplo
+  'por isso': x('Estava chovendo, por isso ficamos em casa.', 'Шёл дождь, поэтому мы остались дома.'),  // por isso
   'por outro lado': x('Por outro lado, o transporte melhorou.', 'С другой стороны, транспорт стал лучше.'),  // por outro lado
+  'por que': x('Por que você não avisou?', 'Почему ты не предупредил?'),  // por que
+  'porque': x('Cheguei tarde porque perdi o ônibus.', 'Я опоздал, потому что не успел на автобус.'),  // porque
   'portanto': x('Chove muito; portanto, o jogo foi adiado.', 'Идёт сильный дождь, следовательно, матч перенесли.'),  // portanto
   'prejuízo': x('O atraso causou prejuízo à empresa.', 'Задержка причинила ущерб компании.'),  // prejuízo
   'pretender': x('Pretendo morar no Brasil por dois anos.', 'Я намереваюсь прожить в Бразилии два года.'),  // pretender
   'prezado / prezada': x('Prezado senhor, venho por meio desta solicitar…', 'Уважаемый господин, настоящим обращаюсь с просьбой…'),  // prezado / prezada
+  'professor': x('O professor chega às oito.', 'Преподаватель приходит в восемь.'),  // professor
   'protocolo': x('Anote o número de protocolo do pedido.', 'Запишите номер обращения.'),  // protocolo
   'providência': x('Peço uma providência até o dia dez.', 'Прошу принять меры до десятого числа.'),  // providência
   'público-alvo': x('O público-alvo do texto são os moradores.', 'Целевая аудитория текста — жители.'),  // público-alvo
@@ -182,11 +197,15 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'reformular': x('Vou reformular a frase para ficar mais clara.', 'Переформулирую фразу, чтобы было понятнее.'),  // reformular
   'relatar': x('A carta relata o que aconteceu na segunda.', 'Письмо излагает, что произошло в понедельник.'),  // relatar
   'reportagem': x('A reportagem mostra os dois lados.', 'Репортаж показывает обе стороны.'),  // reportagem
+  'requisito': x('O requisito principal é ter portfólio.', 'Главное требование — наличие портфолио.'),  // requisito
   'ressaltar': x('Ressalto que o prazo já passou.', 'Подчёркиваю, что срок уже прошёл.'),  // ressaltar
   'ressarcimento': x('Solicito o ressarcimento do valor pago.', 'Прошу возместить уплаченную сумму.'),  // ressarcimento
   'resumir': x('Resuma o texto em três frases.', 'Кратко изложите текст в трёх предложениях.'),  // resumir
   'resumo': x('O resumo tem no máximo dez linhas.', 'Краткое изложение — максимум десять строк.'),  // resumo
+  'se candidatar': x('Para se candidatar, envie o currículo até sexta.', 'Чтобы подать заявку, пришлите резюме до пятницы.'),  // se candidatar
+  'se eu fosse': x('Se eu fosse você, eu aceitaria.', 'На твоём месте я бы согласился.'),  // se eu fosse
   'se eu puder': x('Se eu puder, passo aí amanhã.', 'Если смогу, зайду завтра.'),  // se eu puder
+  'se eu pudesse': x('Se eu pudesse, eu moraria no litoral.', 'Если бы я мог, я жил бы на побережье.'),  // se eu pudesse
   'segunda-feira': x('A reunião é na segunda-feira de manhã.', 'Встреча в понедельник утром.'),  // segunda-feira
   'sempre que': x('Sempre que chove, o trânsito para.', 'Всякий раз, когда идёт дождь, движение встаёт.'),  // sempre que
   'senhor / senhora': x('Com licença, senhor, este lugar está livre?', 'Извините, сударь, это место свободно?'),  // senhor / senhora
@@ -204,17 +223,24 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'sonhar': x('Sonho em morar perto do mar.', 'Мечтаю жить у моря.'),  // sonhar
   'sonho': x('Meu sonho é abrir um café.', 'Моя мечта — открыть кофейню.'),  // sonho
   'sugerir': x('Sugiro começar pela parte mais difícil.', 'Предлагаю начать с самой трудной части.'),  // sugerir
+  'só é permitido': x('Só é permitido trazer água.', 'Проносить можно только воду.'),  // só é permitido
   'talvez fosse melhor': x('Talvez fosse melhor esperar mais uma semana.', 'Возможно, было бы лучше подождать ещё неделю.'),  // talvez fosse melhor
   'te ajudo': x('Se quiser, te ajudo com a mudança.', 'Если хочешь, помогу тебе с переездом.'),  // te ajudo
   'tende a': x('O preço tende a subir no verão.', 'Летом цена имеет тенденцию расти.'),  // tende a
+  'ter': x('Preciso ter mais paciência.', 'Мне нужно иметь больше терпения.'),  // ter
   'ter que': x('Tenho que sair às cinco.', 'Мне надо уйти в пять.'),  // ter que
   'terminar': x('Terminei o relatório ontem à noite.', 'Я закончил отчёт вчера вечером.'),  // terminar
+  'tinha feito': x('Quando ele chegou, eu já tinha feito tudo.', 'Когда он пришёл, я уже всё сделал.'),  // tinha feito
+  'tive': x('Ontem eu tive uma ideia boa.', 'Вчера у меня появилась хорошая мысль.'),  // tive
   'todos os dias': x('Eu tomo café todos os dias às oito.', 'Я пью кофе каждый день в восемь.'),  // todos os dias
   'trecho': x('Leia o trecho final do texto.', 'Прочитайте заключительный фрагмент текста.'),  // trecho
   'trecho principal': x('Sublinhe o trecho principal antes de responder.', 'Подчеркните ключевой фрагмент перед ответом.'),  // trecho principal
   'tu': x('Tu vais à praia hoje?', 'Ты пойдёшь сегодня на пляж?'),  // tu
   'tá': x('Tá bom, a gente faz assim.', 'Ладно, сделаем так.'),  // tá (está)
+  'tênis': x('Comprei um tênis novo para correr.', 'Я купил новые кроссовки для бега.'),  // tênis
   'vez que': x('Uma vez que o prazo passou, o pedido foi cancelado.', 'Поскольку срок прошёл, заказ отменили.'),  // uma vez que
+  'vaga': x('A vaga é para designer de produto.', 'Вакансия на продуктового дизайнера.'),  // vaga
+  'vale-refeição': x('A empresa oferece vale-refeição e plano de saúde.', 'Компания даёт талоны на питание и медстраховку.'),  // vale-refeição
   'valer a pena': x('Vale a pena visitar o museu.', 'Музей стоит посетить.'),  // valer a pena
   'valeu': x('Valeu pela ajuda!', 'Спасибо за помощь!'),  // valeu
   'vela': x('Acendi uma vela quando faltou luz.', 'Я зажёг свечу, когда отключили свет.'),  // vela
@@ -224,5 +250,6 @@ export const PT_VOCAB_EXAMPLES: ExampleMap = {
   'vestir-se': x('Ele se veste muito bem.', 'Он очень хорошо одевается.'),  // vestir-se
   'veículo': x('A notícia saiu em um veículo local.', 'Новость вышла в местном издании.'),  // veículo
   'vontade': x('Não tenho vontade de sair hoje.', 'Сегодня у меня нет желания выходить.'),  // vontade
+  'é obrigatório': x('É obrigatório usar tênis na quadra.', 'На корте обязательно быть в кроссовках.'),  // é obrigatório
   'é possível que': x('É possível que a reunião mude de dia.', 'Возможно, встреча перенесётся на другой день.'),  // é possível que
 }

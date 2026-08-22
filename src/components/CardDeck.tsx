@@ -269,16 +269,16 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
     let alive = true
     const load = source ? source.load() : dueCards(owner ?? {}, 20, subjects)
     load
+      // Демо-подмена только у колоды повторений: своя стопка пустая значит
+      // пустая, и подсовывать в неё корейские слова было бы враньём.
+      .then(cards => (cards.length === 0 && import.meta.env.DEV && !source ? DEMO_CARDS : cards))
       // Пример к слову не хранится в БД, он подбирается на чтении — по самому
       // слову, как и картинка. Ждём его ДО показа стопки: дописать пример уже
-      // перевёрнутой карточке значит подсунуть ученику новый текст под рукой.
+      // перевёрнутой карточке значит подменить текст под рукой у ученика.
       .then(cards => withExamples(cards, lang))
       .then(cards => {
         if (!alive) return
-        // Демо-подмена только у колоды повторений: своя стопка пустая значит
-        // пустая, и подсовывать в неё корейские слова было бы враньём.
-        const use = cards.length === 0 && import.meta.env.DEV && !source ? DEMO_CARDS : cards
-        setQueue(buildQueue(use, source ? source.judge ?? false : true))
+        setQueue(buildQueue(cards, source ? source.judge ?? false : true))
       })
     return () => { alive = false }
   }, [owner?.studentId, owner?.anonName, source, subjects, lang])
@@ -1254,7 +1254,7 @@ function UndoButton({ onClick, label, disabled, big }: {
  * Тон цветом ЗАЛИВКИ, а не контуром. Толстая обводка в чистый красный/зелёный
  * стояла на мягкой карточке как чужая: две неоновые рамки перетягивали взгляд
  * с самой фразы и читались как «опасно/готово», а не как «не знаю/знаю».
- * Здесь цвет уходит в текст, значок и подложку на 12%, рамка — волосок того же
+ * Здесь цвет уходит в текст, значок и подложку на 8%, рамка — волосок того же
  * тона. Значок ставим только там, где нет подсказки об интервале: в ряду из
  * четырёх градаций он спорит со второй строкой.
  */

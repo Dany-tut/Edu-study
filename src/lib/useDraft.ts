@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 
 // Draft persistence for form state. Any in-progress user input must survive a
 // page reload / remount (tab switch triggering a dev-server reload, the
@@ -48,12 +48,41 @@ export function clearDrafts(prefix: string) {
 // restores it on mount. Use for every user-entered field of a form, plus the
 // "is this modal open" flag so an open form re-opens after a reload.
 // `initial` may be a value or lazy initializer, like useState.
+//
+// КЛЮЧ — ЭТО АДРЕС ЗНАЧЕНИЯ, А НЕ ПОДПИСЬ К НЕМУ. Динамический ключ
+// (`trainer.${lang}.work`, `${draftScope}.meta`) означает «другая вещь», и при
+// его смене состояние перечитывается из хранилища по НОВОМУ ключу. Раньше оно
+// оставалось прежним и тут же записывалось в новый ключ: открытый корейский
+// рассказ «переезжал» в английский вместе с переключением предмета, а черновик
+// одной формы затирал черновик другой.
 export function usePersistentState<T>(key: string, initial: T | (() => T)): [T, Dispatch<SetStateAction<T>>] {
-  const [value, setValue] = useState<T>(() => {
-    const draft = readDraft<T>(key)
+  // Начальное значение фиксируется на первом рендере: оно нужно как запасное
+  // при каждой смене ключа, а пересобранный на лету литерал (`{}`, `[]`) делал
+  // бы каждый такой переход новым объектом.
+  const initialRef = useRef(initial)
+  const load = useCallback((k: string): T => {
+    const draft = readDraft<T>(k)
     if (draft !== null) return draft
-    return typeof initial === 'function' ? (initial as () => T)() : initial
-  })
+    const seed = initialRef.current
+    return typeof seed === 'function' ? (seed as () => T)() : seed
+  }, [])
+
+  const [state, setState] = useState<{ key: string; value: T }>(() => ({ key, value: load(key) }))
+  // Ключ уже сменился, а состояние догонит на эффекте — до тех пор значение
+  // берём по новому ключу прямо здесь, иначе один кадр показывал бы чужое.
+  const value = state.key === key ? state.value : load(key)
+  useEffect(() => {
+    setState(prev => (prev.key === key ? prev : { key, value: load(key) }))
+  }, [key, load])
+
   useEffect(() => { writeDraft(key, value) }, [key, value])
+
+  const setValue = useCallback<Dispatch<SetStateAction<T>>>(next => {
+    setState(prev => {
+      const base = prev.key === key ? prev.value : load(key)
+      return { key, value: typeof next === 'function' ? (next as (p: T) => T)(base) : next }
+    })
+  }, [key, load])
+
   return [value, setValue]
 }

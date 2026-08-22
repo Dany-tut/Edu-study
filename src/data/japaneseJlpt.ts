@@ -45,6 +45,7 @@ import {
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
   dictation, dictationBank, minPair, describeImage, drill, nestTasks,
 } from './languageCourse'
+import { art } from './artworks'
 import { roomSceneImage } from './seedImages'
 import { JAPANESE_THEORY, JAPANESE_VIDEO } from './japaneseJlptTheory'
 import { JAPANESE_EXTRA } from './japaneseJlptExtra'
@@ -53,6 +54,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { JAPANESE_FIGURES_EXTRA } from './japaneseJlptFigures'
 import { JAPANESE_VIDEO_EXTRA } from './languageVideos'
+import { JAJL_HOMEWORK_VIDEO } from './homeworkVideos'
 
 export const JAPANESE_MODULES: LangModule[] = [
   { title: 'Кана и первые фразы', subtitle: 'Хирагана, катакана, долгота, です', units: [1, 2, 3, 4, 5, 6] },
@@ -573,6 +575,10 @@ export const JAPANESE_UNITS: LangUnit[] = [
           expectedStructures: ['あります / います', 'の うえに / の したに / の となりに', 'が для подлежащего'],
         },
       ),
+      // «Большая волна» Хокусая: があります／います на настоящей гравюре.
+      // После ответа — колофон самого Хокусая и то, что волну ошибочно
+      // считают цунами.
+      art('wave', 'ja'),
     ],
   },
   {
@@ -1591,6 +1597,8 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...JAPANESE_FIGURES, ...JAPANESE_FIGURES_EXTRA },
+  // Живая речь в домашке — см. homeworkVideos.ts.
+  homeworkVideos: JAJL_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(JAPANESE_JLPT)

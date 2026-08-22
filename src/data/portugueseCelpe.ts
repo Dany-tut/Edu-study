@@ -43,6 +43,7 @@ import {
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
   dictation, dictationBank, minPair, describeImage, drill, nestTasks,
 } from './languageCourse'
+import { art } from './artworks'
 import { streetMapImage } from './seedImages'
 import { PORTUGUESE_THEORY, PORTUGUESE_VIDEO } from './portugueseCelpeTheory'
 import { PORTUGUESE_EXTRA } from './portugueseCelpeExtra'
@@ -51,6 +52,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { PORTUGUESE_FIGURES_EXTRA } from './portugueseCelpeFigures'
 import { PORTUGUESE_VIDEO_EXTRA } from './languageVideos'
+import { PTBR_HOMEWORK_VIDEO } from './homeworkVideos'
 
 export const PORTUGUESE_MODULES: LangModule[] = [
   { title: 'Звучание и первые фразы', subtitle: 'Носовые, открытые гласные, ser/estar', units: [1, 2, 3, 4, 5] },
@@ -843,6 +845,9 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
       wb('Eu estou estudando português agora.', 'Соберите предложение «Я сейчас учу португальский».', ['estudo', 'a']),
       dictation('Напечатайте услышанный вопрос.', 'O que você está fazendo agora?'),
       say('Расскажите, чем вы заняты прямо сейчас, что уже сделали и что ещё не закончили.', 60),
+      // «Caipira picando fumo» — estar + gerúndio на бразильской картине
+      // 1893 года: он режет табак, а не курит, и это первая ошибка описания.
+      art('caipira', 'pt-BR'),
     ],
   },
   {
@@ -1328,6 +1333,8 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...PORTUGUESE_FIGURES, ...PORTUGUESE_FIGURES_EXTRA },
+  // Живая речь в домашке — см. homeworkVideos.ts.
+  homeworkVideos: PTBR_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(PORTUGUESE_CELPE)

@@ -41,6 +41,7 @@ import {
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
   dictation, describeImage, compareImages, drill, nestTasks,
 } from './languageCourse'
+import { art } from './artworks'
 import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
 import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
 import { IELTS_THEORY } from './englishIeltsTheory'
@@ -50,6 +51,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { IELTS_FIGURES_EXTRA } from './englishIeltsFigures'
 import { IELTS_VIDEO_EXTRA } from './languageVideos'
+import { IELT_HOMEWORK_VIDEO } from './homeworkVideos'
 
 // ─── Материал для Writing Task 1 ─────────────────────────────────────────────
 //
@@ -1308,6 +1310,9 @@ export const IELTS_UNITS: LangUnit[] = [
       say('Card: Describe a skill you learned that turned out to be useful. Say what the skill is, when and how you learned it, how you use it now, and explain why it has been useful. You have one minute to prepare, then speak for at least 1 minute 30 seconds.', 150),
       say('Card: Describe a decision you took that you are glad about. Say what the decision was, when you took it, what made it difficult, and explain why you are glad about it now. Prepare for one minute, then speak for at least 1 minute 30 seconds.', 150),
       write('For three more Part 2 cards of your own choosing, write only the one-minute keyword plan — four to six keywords per card, with the «why» point expanded into three keywords. Do not write sentences.'),
+      // Карточка «опишите произведение искусства» — обычная тема Part 2.
+      // Говорить две минуты, потом прочитать, что об этом писал сам Мунк.
+      art('scream', 'en', { responseMode: 'speak', responseSeconds: 120 }),
     ],
   },
   {
@@ -1381,6 +1386,9 @@ export const IELTS_UNITS: LangUnit[] = [
       ]),
       say('Answer these Part 3 questions, 40–60 seconds each, using position → reason → concession → conclusion: Why do you think fewer young people read newspapers now? Should employers be allowed to monitor remote workers? Is it better for children to learn a language at school or at home?', 180),
       say('Answer three harder Part 3 questions with no preparation: How might cities change in the next fifty years? Do you think economic growth always improves quality of life? Should governments be responsible for reducing food waste?', 180),
+      // Part 3 требует обобщения и уступки: «Охотники на снегу» дают повод
+      // спорить о том, что видно в работе, а что мы в неё вносим сами.
+      art('hunters', 'en', { responseMode: 'speak', responseSeconds: 180 }),
     ],
   },
   {
@@ -1586,6 +1594,8 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...IELTS_FIGURES, ...IELTS_FIGURES_EXTRA },
+  // Живая речь в домашке — см. homeworkVideos.ts.
+  homeworkVideos: IELT_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(ENGLISH_IELTS)

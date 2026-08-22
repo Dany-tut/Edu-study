@@ -45,6 +45,7 @@ import {
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, drill,
   dictation, dictationBank, minPair, describeImage, reading, nestTasks,
 } from './languageCourse'
+import { art } from './artworks'
 import { roomSceneImage } from './seedImages'
 import {
   charGrid, formTable, formulaStrip, contrastPair, ladderFigure, clockRow,
@@ -52,6 +53,7 @@ import {
 } from './lessonFigures'
 import { KOREAN_THEORY, KOREAN_VIDEO } from './koreanTopikTheory'
 import { KOREAN_EXTRA } from './koreanTopikExtra'
+import { KOREAN_CHECKLIST } from './koreanChecklists'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_FIGURES_EXTRA } from './koreanTopikFigures'
@@ -639,6 +641,10 @@ export const KOREAN_UNITS: LangUnit[] = [
           expectedStructures: ['이/가 + 있어요 / 없어요', '에 для места', '위 / 아래 / 옆 если знаете'],
         },
       ),
+      // То же описание комнаты, но на настоящей картине: «Спальня» Ван Гога.
+      // После ответа открывается письмо художника — он писал о покое, а комнату
+      // почти все описывают как тревожную, и это уже повод сказать своё.
+      art('bedroom', 'ko'),
     ],
   },
   {
@@ -1831,6 +1837,8 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   units: KOREAN_UNITS.map(u => ({
     ...u,
     theory: KOREAN_THEORY[u.shortId] ?? u.theory,
+    // Чек-лист форм юнита — отдельным файлом по той же причине, что и конспекты.
+    checklist: KOREAN_CHECKLIST[u.shortId] ?? u.checklist,
     videoUrl: KOREAN_VIDEO[u.shortId] ?? KOREAN_VIDEO_EXTRA[u.shortId] ?? u.videoUrl,
     // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
     tasks: [...u.tasks, ...(KOREAN_EXTRA[u.shortId] ?? [])],
