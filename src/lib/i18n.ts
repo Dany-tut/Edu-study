@@ -538,6 +538,28 @@ const EN: Record<string, string> = {
   "Обычная": "Normal",
   "Во весь экран": "Fullscreen",
   "Просмотрено": "Watched",
+  // — Задание «посмотреть видео» (TaskVideo, редактор курса) —
+  "нужно": "need",
+  "Просмотр не начат": "Not started",
+  "Ссылка на видео не распознана — попроси преподавателя проверить её.":
+    "This video link could not be read — ask your teacher to check it.",
+  "Ссылка на видео": "Video link",
+  "Ссылка распознана — ролик откроется прямо в домашке.":
+    "Link recognised — the video will open right inside the homework.",
+  "Ссылка не распознана: нужен YouTube, RuTube, своя страница записи или файл видео.":
+    "Link not recognised: use YouTube, RuTube, your own recording page or a video file.",
+  "Без ссылки задание покажется ученику обычным полем ответа.":
+    "Without a link the student just sees a plain answer box.",
+  "Начать с минуты": "Start at minute",
+  "Сколько смотреть, минут": "Minutes to watch",
+  "весь ролик": "whole video",
+  "Чей ролик": "Whose video",
+  "Канал или автор": "Channel or author",
+  "Задание закроется, когда ученик просмотрит столько минут. Перемотка не засчитывается.":
+    "The task closes once the student has watched that many minutes. Skipping ahead does not count.",
+  "Задание закроется, когда просмотрено 90% ролика. Для серии или фильма поставь минуты — иначе домашка займёт весь вечер.":
+    "The task closes at 90% of the video. For an episode or a film set the minutes instead — otherwise the homework eats the whole evening.",
+  "Видео": "Video",
   "Запись просмотрена": "Recording watched",
   "Глава...": "Chapter...",
   "Добавьте главы видео": "Add video chapters",
@@ -1908,7 +1930,9 @@ const EN: Record<string, string> = {
   "Ошибка при сохранении. Попробуйте ещё раз.": "Save failed. Please try again.",
   "Не удалось сохранить профиль. Попробуйте ещё раз.": "Couldn't save the profile. Please try again.",
   // — Читалка языкового тренажёра: онбординг и пословный перевод —
-  "Партитура": "Score",
+  "С разбором": "With breakdown",
+  "Просто текст": "Plain text",
+  "Текст с разбором": "Text with a breakdown",
   "Транскрипция": "Reading",
   "Перевод справа": "Translation on the right",
   "Перевод снизу": "Translation below",

@@ -75,6 +75,22 @@ export type RunMode = 'swipe' | 'list'
  */
 const LEARNED_DAYS = 21
 
+/**
+ * Стопка витрины: имя и список карточек.
+ *
+ * Структурный тип, а не SurvivalThemeCards, — и это не мелочь. Витрина умеет
+ * ровно две вещи: посчитать по списку карточек состояние памяти и нарисовать
+ * плитку с именем. Ни ситуация разговорника, ни уровень, ни сценарий ролевой
+ * игры ей для этого не нужны. Пока в сигнатуре стояла тема разговорника, любой
+ * второй источник стопок (наборы слов, гнёзда, личный словарь) обязан был либо
+ * притвориться темой разговорника, либо завести вторую копию этой витрины.
+ * SurvivalThemeCards подходит под этот тип как есть — менять его не пришлось.
+ */
+export interface DeckCard {
+  theme: { id: string; title: string }
+  phrases: Phrase[]
+}
+
 export interface ThemeStats {
   total: number
   /** Ни разу не отвечали. */
@@ -102,7 +118,7 @@ export interface ThemeStats {
  * нулём.
  */
 export function themeStats(
-  item: SurvivalThemeCards,
+  item: DeckCard,
   states: Map<string, CardState>,
   nowMs = Date.now(),
 ): ThemeStats {
@@ -128,9 +144,9 @@ export function duePhrases(phrases: Phrase[], states: Map<string, CardState>, no
 
 // ─── Витрина ─────────────────────────────────────────────────────────────────
 
-export default function PhraseDecks({ themes, states, accent, soft, levelLabel, early, lead, onOpen }: {
-  /** Уже отфильтрованные темы — фильтрация живёт в рейле. */
-  themes: SurvivalThemeCards[]
+export default function PhraseDecks<T extends DeckCard>({ themes, states, accent, soft, levelLabel, early, lead, onOpen }: {
+  /** Уже отфильтрованные стопки — фильтрация живёт в рейле. */
+  themes: T[]
   /** Что колода помнит про каждую фразу; ключ — оригинал фразы. */
   states: Map<string, CardState>
   accent: string
@@ -140,7 +156,7 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
    * строкой: сетка ситуаций одна на все языки, а подписывается по-разному —
    * «B1» у английского и «TOPIK 3급» у корейского.
    */
-  levelLabel: (item: SurvivalThemeCards) => string
+  levelLabel: (item: T) => string
   /**
    * Тема выше глубины ученика по курсу.
    *
@@ -151,7 +167,7 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
    * чего начинать. Поэтому плитка гасится и подписывается, а открывается как
    * все.
    */
-  early?: (item: SurvivalThemeCards) => boolean
+  early?: (item: T) => boolean
   /**
    * Закреплённая плитка перед сеткой — личный словарь (см. trainer/MyWords).
    *

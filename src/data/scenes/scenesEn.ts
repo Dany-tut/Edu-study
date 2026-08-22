@@ -10872,4 +10872,126 @@ In lieu of flowers, the family asks that you call somebody you have been meaning
       },
     ],
   },
+  // ── «Маленький принц»: наши тексты ─────────────────────────────────────────
+  //
+  // Подлинного текста здесь нет (см. комментарий у работы prince-en в index.ts):
+  // книга под охраной в США до 2039 года, а английский текст — ещё и перевод со
+  // своим сроком. Поэтому берём у книги то, что не охраняется: её вопрос
+  // («взрослые меряют числами») и её регистр — короткие фразы, настоящее время,
+  // детский рассказчик. Люди и истории свои.
+  {
+    id: 'sc-prince-en-1',
+    workId: 'prince-en',
+    lang: 'en', title: 'The questions grown-ups ask', level: 'A2', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему книги', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Главная мысль книги: взрослые спрашивают про числа — сколько лет, сколько стоит дом, сколько зарабатывает отец — и думают, что после этого знают человека. Ниже наш текст с той же мыслью и в том же регистре: рассказывает ребёнок, предложения короткие, время настоящее. Читайте, обращая внимание на то, какие вопросы в тексте задают взрослые, а какие — рассказчик.',
+    after: 'В книге этот приём доведён до предела: там взрослому нельзя сказать «я видел красивый дом», ему нужно назвать цену — и только тогда он воскликнет, как красиво. Наш текст об этом же, но про соседа с балконом.',
+    body: `When I tell grown-ups about my friend, they never ask the right questions.
+
+They do not ask, "What does his voice sound like?" or "Does he laugh at his own jokes?" or "What grows on his balcony?" They ask, "How old is he? What did his father do? How much did that flat cost?" And then they think they know him.
+
+My friend lives on the fourth floor. He is seventy-one. Every evening he waters six plants, always in the same order, and he says the smallest one is the bravest, because it grows in the worst light.
+
+When I say this, grown-ups say, "Seventy-one? And you are eleven. What do you two talk about?"
+
+When I say, "He knows the name of every bird that lands on his balcony," they say nothing at all.
+
+So now I say: "He is a retired engineer." Grown-ups nod. They are happy. And they never ask about the birds.`,
+    translation: `Когда я рассказываю взрослым про своего друга, они никогда не задают правильных вопросов.
+
+Они не спрашивают: «А какой у него голос?», «А он смеётся над своими шутками?», «А что растёт у него на балконе?» Они спрашивают: «Сколько ему лет? Кем был его отец? Сколько стоила эта квартира?» И после этого считают, что знают его.
+
+Мой друг живёт на четвёртом этаже. Ему семьдесят один. Каждый вечер он поливает шесть растений, всегда в одном и том же порядке, и говорит, что самое маленькое — самое смелое, потому что растёт в самом плохом свете.
+
+Когда я это говорю, взрослые отвечают: «Семьдесят один? А тебе одиннадцать. О чём вы вообще разговариваете?»
+
+Когда я говорю: «Он знает по имени каждую птицу, которая садится к нему на балкон», — они не отвечают ничего.
+
+Поэтому теперь я говорю: «Он инженер на пенсии». Взрослые кивают. Они довольны. И про птиц уже не спрашивают.`,
+    glossary: [
+      { term: 'grown-ups', ru: 'взрослые (детское слово, не adults)' },
+      { term: 'flat', ru: 'квартира (британское; американское — apartment)' },
+      { term: 'to water', ru: 'поливать' },
+      { term: 'in the same order', ru: 'в том же порядке' },
+      { term: 'brave', ru: 'смелый' },
+      { term: 'to land', ru: 'садиться, приземляться (о птице)' },
+      { term: 'retired', ru: 'на пенсии' },
+      { term: 'to nod', ru: 'кивать' },
+    ],
+    questions: [
+      {
+        q: 'What do the grown-ups want to know about the friend?',
+        options: ['His age, his father’s job, the price of his flat', 'The names of the birds', 'What his voice sounds like', 'Which plant is the bravest'],
+        correct: 0,
+        why: 'Все три вопроса взрослых — про числа и статус: возраст, работа отца, цена квартиры.',
+      },
+      {
+        q: 'Why does the narrator say "He is a retired engineer"?',
+        options: ['Because it is the most interesting thing about him', 'Because grown-ups accept that answer and stop asking', 'Because the friend asked him to say it', 'Because he does not know him well'],
+        correct: 1,
+        why: 'Рассказчик выучил ответ, который взрослых устраивает: после него разговор заканчивается.',
+      },
+      {
+        q: 'Which plant does the friend call the bravest?',
+        options: ['The oldest one', 'The tallest one', 'The smallest one', 'The one he waters first'],
+        correct: 2,
+        why: '«The smallest one is the bravest, because it grows in the worst light.»',
+      },
+    ],
+  },
+  {
+    id: 'sc-prince-en-2',
+    workId: 'prince-en',
+    lang: 'en', title: 'Six o’clock', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему книги', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Второй большой вопрос книги — как вообще получается дружба. Ответ там неожиданный: не через слова, а через время и повторение — приходить в один и тот же час, садиться чуть ближе, ничего не требовать. Наш текст берёт этот же механизм и рассказывает его на бытовой истории: девочка приручает дворовую кошку. Слово «tame» — то самое, вокруг которого всё и строится.',
+    after: 'В книге за это отвечает лис, и там же сказано, почему приходить надо в один и тот же час: тогда ожидание начинается заранее. Наш текст ровно про этот эффект — в последнем абзаце.',
+    body: `There is a grey cat behind our building. For a long time she ran away when anyone came near.
+
+My grandmother told me what to do. "Sit down," she said. "Not too close. Say nothing. Come at the same time every day, and each day sit one step nearer. And don’t look straight at her — she reads that as a question, and she isn’t ready to answer it."
+
+So that is what I did. The first week I sat by the door. The second week I sat by the third step. On the Thursday of the third week she stayed and ate while I was watching.
+
+Now she is waiting for me at six. If I come at seven, she is somewhere up on the roof and does not come down. My grandmother says that is fair. I taught her six o’clock, so six o’clock is what she keeps.`,
+    translation: `За нашим домом живёт серая кошка. Долго она убегала, как только кто-нибудь подходил.
+
+Бабушка объяснила мне, что делать. «Сядь, — сказала она. — Не слишком близко. Ничего не говори. Приходи каждый день в одно и то же время и каждый день садись на ступеньку ближе. И не смотри ей прямо в глаза — она читает это как вопрос, а отвечать на него пока не готова».
+
+Так я и делала. Первую неделю я сидела у двери. Вторую — у третьей ступеньки. В четверг третьей недели она осталась и ела, пока я смотрела.
+
+Теперь в шесть она уже ждёт. Если я прихожу в семь, она где-то на крыше и не спускается. Бабушка говорит, что это честно: я научила её шести часам — шесть часов она и держит.`,
+    glossary: [
+      { term: 'to tame', ru: 'приручить' },
+      { term: 'to run away', ru: 'убегать' },
+      { term: 'come near', ru: 'подходить близко' },
+      { term: 'step', ru: 'ступенька; шаг' },
+      { term: 'straight at', ru: 'прямо на (кого-то)' },
+      { term: 'to keep (a time)', ru: 'держаться времени, соблюдать его' },
+      { term: 'fair', ru: 'справедливо, честно' },
+    ],
+    questions: [
+      {
+        q: 'What is the grandmother’s advice?',
+        options: ['Feed the cat as much as possible', 'Come at the same time and sit a little nearer each day', 'Catch the cat and take her home', 'Look at the cat and call her'],
+        correct: 1,
+        why: 'Весь совет держится на двух вещах: одно и то же время и один шаг ближе каждый день.',
+      },
+      {
+        q: 'Why should the girl not look straight at the cat?',
+        options: ['The cat reads it as a question she isn’t ready to answer', 'The cat cannot see well', 'It is impolite to grandmothers', 'The cat only eats in the dark'],
+        correct: 0,
+        why: 'Прямо об этом сказано в совете бабушки.',
+      },
+      {
+        q: 'What happens if the girl comes at seven?',
+        options: ['The cat comes down anyway', 'The cat runs away for good', 'The cat stays on the roof', 'The cat waits by the door'],
+        correct: 2,
+        why: 'Час назначен вместе, и кошка держит именно его.',
+      },
+    ],
+  },
 ]

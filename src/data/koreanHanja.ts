@@ -362,3 +362,69 @@ export const hanjaWordCount = (): number =>
  */
 export const wordsWithRoot = (ko: string): HanjaWord[] =>
   HANJA_ROOTS.flatMap(r => r.words).filter(word => word.parts.includes(ko))
+
+// ─── Кирпичи слова ───────────────────────────────────────────────────────────
+//
+// Разбор в поле `parts` написан для чтения человеком: «학 учёба + 교 (校)
+// заведение». Экрану-конструктору нужно то же самое, но разобранным на блоки —
+// слог, знак и значение по отдельности, чтобы слово можно было собрать из
+// плиток и проверить сборку.
+//
+// РАЗБИРАЕМ, А НЕ ДУБЛИРУЕМ. Второе поле рядом с `parts` разошлось бы с ним на
+// первой же правке: почти двести разборов, и человек правит тот, что видит.
+// Поэтому источник один, а блоки из него вычитаются.
+
+/** Один кирпич слова. */
+export interface HanjaBrick {
+  /** Слог хангылем: 교. */
+  ko: string
+  /** Иероглиф, если он указан в разборе. */
+  cn?: string
+  /** Значение кирпича: «заведение». */
+  ru: string
+}
+
+/** `'교 (校) заведение'` → `{ ko: '교', cn: '校', ru: 'заведение' }`. */
+function parseBrick(segment: string): HanjaBrick | null {
+  const m = segment.trim().match(/^(\S+)\s*(?:\(([^)]+)\))?\s*(.*)$/)
+  if (!m) return null
+  return { ko: m[1], cn: m[2], ru: m[3].trim() }
+}
+
+/**
+ * Слово, разобранное на кирпичи, — или null, если разбор не складывается в само
+ * слово.
+ *
+ * ЗАЧЕМ ПРОВЕРКА СКЛЕЙКОЙ. Часть разборов объясняет смысл, а не состав:
+ * «안녕하세요 = 안 покой + 녕 мир» — это два слога из пяти. Собрать такое слово
+ * из плиток нельзя, и задание по нему было бы заданием без верного ответа.
+ * Условие «слоги подряд дают ровно термин» отсекает такие случаи само, без
+ * ручного списка исключений.
+ */
+export function wordBricks(word: HanjaWord): HanjaBrick[] | null {
+  const bricks = word.parts.split('+').map(parseBrick)
+  if (bricks.some(b => b === null || !b.ko)) return null
+  const list = bricks as HanjaBrick[]
+  if (list.length < 2) return null
+  return list.map(b => b.ko).join('') === word.term ? list : null
+}
+
+/** Корень по чтению — экран открывает гнездо по id из адреса. */
+export const hanjaRootById = (ko: string): HanjaRoot | undefined =>
+  HANJA_ROOTS.find(r => r.ko === ko)
+
+/** Есть ли разбор по корням для языка. Ханча — корейская история. */
+export const hasHanjaRoots = (lang: string): boolean => lang === 'ko'
+
+/** Все кирпичи, встречающиеся в разборах, — из них набираются неверные варианты. */
+export function allBricks(): HanjaBrick[] {
+  const seen = new Map<string, HanjaBrick>()
+  for (const root of HANJA_ROOTS) {
+    for (const word of root.words) {
+      for (const brick of wordBricks(word) ?? []) {
+        if (!seen.has(brick.ko)) seen.set(brick.ko, brick)
+      }
+    }
+  }
+  return [...seen.values()]
+}

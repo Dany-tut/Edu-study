@@ -144,6 +144,8 @@ const STICK_TOP = TRAINER_STICK_FALLBACK
  * вставали в строку на разной высоте — строка управления выглядела рваной.
  */
 const CTL_H = 30
+/** Высота сегмента внутри рейки: 3 + 26 + 3 = CTL_H, вровень с кнопкой темпа. */
+const SEG_H = CTL_H - 6
 
 export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight, subject }: {
   body: string
@@ -386,7 +388,9 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // напротив — той же логикой, что и клик по слову, только без клика.
   const lex = useMemo(() => buildLexicon(lang, glossary), [lang, glossary])
   const spoken = useMemo(() => {
-    if (mark === null) return null
+    // Без позиции символа (тишина, пауза, голос без события boundary) слова
+    // нет: подсветилось бы первое слово строки и висело бы там молча.
+    if (mark === null || char === null) return null
     const text = allLines[mark]
     if (!text) return null
     // Слова с переводом в словаре — только у них есть пара напротив. Берём
@@ -395,7 +399,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
     let off = 0
     let best: string | null = null
     for (const seg of lex.segment(text)) {
-      if (seg.gloss && off <= (char ?? 0)) best = seg.text.trim().toLowerCase()
+      if (seg.gloss && off <= char) best = seg.text.trim().toLowerCase()
       off += seg.text.length
     }
     return best
@@ -533,47 +537,95 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
               // Ширина не пляшет между 0.75× и 1.0×: цифры разной ширины
               // сдвигали бы край шапки при каждом нажатии.
-              minWidth: 48,
-              border: `1px solid ${slow ? accent : 'var(--color-border-medium)'}`,
-              background: slow ? soft : 'transparent',
+              minWidth: 48, border: 'none',
+              background: slow ? soft : 'var(--color-bg-input)',
               color: slow ? accent : 'var(--color-text-2)',
+              transition: 'background 160ms ease, color 160ms ease',
             }}
           >
             {slow ? '0.75×' : '1.0×'}
           </button>
         </div>
 
-        {/* Тумблеры — над текстом, рядом с плеером: включать перевод и
-            транскрипцию ученик решает ДО чтения, а не дочитав до низа карточки. */}
+        {/*
+          СТРОКА УПРАВЛЕНИЯ — ОДИН ПРЕДМЕТ, А НЕ ЧЕТЫРЕ.
+          Раньше здесь стояли рядом жёлоб с ползунком, две пилюли в рамке и ещё
+          один жёлоб: четыре разные подложки на четыре решения об одном и том же
+          тексте. Глаз читал их как несвязанные кнопки и каждый раз заново искал,
+          где тут что. Теперь подложка одна — рейка, — а внутри неё сегменты
+          одного размера, разделённые волосяными чертами по смыслу:
+            «как читаем» | «что показываем» | «где перевод».
+          Рамок нет ни у кого: состояние показывает заливка, и включение больше
+          не добавляет элементу лишний пиксель по краю.
+        */}
         {(translation || readings || units.length > 1) && (
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
             padding: stuck ? '6px 16px' : '10px 16px',
             borderBottom: '1px solid var(--color-border-soft)',
             transition: 'padding 160ms ease',
           }}>
-            {/* Поток или по одному фрагменту. Это не украшение для телефона:
-                поток отвечает на вопрос «о чём тут вообще», а «строка за строкой»
-                — на «разобрать вот это место», и второе на узком экране
-                невозможно, пока текст едет мимо. */}
-            {units.length > 1 && (
-              <ModeSwitch stepping={stepping} onChange={toggleStepping} accent={accent} />
-            )}
-            {translation && (
-              <Toggle on={showRu} onClick={() => setShowRu(v => !v)} accent={accent} soft={soft}>
-                <Languages size={13} /> {t('Перевод')}
-              </Toggle>
-            )}
-            {/* Сторона — только когда перевод включён: пустой выбор «где его
-                показывать» рядом с выключенным переводом ничего не объясняет. */}
-            {translation && showRu && canSide && !stepping && (
-              <SideSwitch value={ruSide} onChange={setRuSide} accent={accent} />
-            )}
-            {readings && (
-              <Toggle on={showTr} onClick={() => setShowTr(v => !v)} accent={accent} soft={soft}>
-                <Type size={13} /> {t('Транскрипция')}
-              </Toggle>
-            )}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 2,
+              padding: 3, borderRadius: 999, background: 'var(--color-bg-input)',
+            }}>
+              {/* Поток или по одному фрагменту. Это не украшение для телефона:
+                  поток отвечает на вопрос «о чём тут вообще», а «строка за
+                  строкой» — на «разобрать вот это место», и второе на узком
+                  экране невозможно, пока текст едет мимо.
+                  Заливка сплошная, а не мягкая: из двух положений выбрано одно,
+                  и это другой род решения, чем «показать перевод». */}
+              {units.length > 1 && (
+                <>
+                  <Seg
+                    icon={Rows3} label={t('Потоком')} on={!stepping} solid
+                    accent={accent} soft={soft}
+                    onClick={() => { if (stepping) toggleStepping() }}
+                  />
+                  <Seg
+                    icon={GalleryVerticalEnd} label={t('По строке')} on={stepping} solid
+                    accent={accent} soft={soft}
+                    onClick={() => { if (!stepping) toggleStepping() }}
+                  />
+                </>
+              )}
+              {units.length > 1 && (translation || readings) && <SegSep />}
+              {translation && (
+                <Seg
+                  icon={Languages} label={t('Перевод')} on={showRu}
+                  accent={accent} soft={soft}
+                  onClick={() => setShowRu(v => !v)}
+                />
+              )}
+              {readings && (
+                <Seg
+                  icon={Type} label={t('Транскрипция')} on={showTr}
+                  accent={accent} soft={soft}
+                  onClick={() => setShowTr(v => !v)}
+                />
+              )}
+              {/* Сторона — только когда перевод включён: пустой выбор «где его
+                  показывать» рядом с выключенным переводом ничего не объясняет.
+                  Стоит в конце рейки, а не вплотную к «Переводу», хотя настраивает
+                  именно его: появляясь в середине, он расталкивал соседние
+                  сегменты вбок, и включение перевода читалось как прыжок строки. */}
+              {translation && showRu && canSide && !stepping && (
+                <>
+                  <SegSep />
+                  <Seg
+                    icon={PanelRight} label={t('Перевод справа')} iconOnly
+                    on={ruSide === 'right'} solid accent={accent} soft={soft}
+                    onClick={() => setRuSide('right')}
+                  />
+                  <Seg
+                    icon={PanelBottom} label={t('Перевод снизу')} iconOnly
+                    on={ruSide === 'bottom'} solid accent={accent} soft={soft}
+                    onClick={() => setRuSide('bottom')}
+                  />
+                </>
+              )}
+            </div>
+
             {/* Подсказку читают один раз, в начале. В прилипшей шапке она первой
                 переносится на вторую строку и растит её — а объясняет то, что к
                 середине текста уже известно. */}
@@ -778,7 +830,8 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
             marginLeft: 28, height: CTL_H, padding: '0 14px',
             borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
-            border: `1px solid ${accent}66`, background: 'transparent', color: accent,
+            // Тем же языком, что рейка сверху: заливка вместо рамки.
+            border: 'none', background: soft, color: accent,
           }}
         >
           <Eye size={14} /> {t('Показать перевод')}
@@ -831,102 +884,59 @@ function NavButton({ onClick, disabled, accent, soft, primary, children }: {
   )
 }
 
-/** Общий жёлоб с ползунком: два положения, активное — сплошная плашка.
-    Рамка-пилюля у каждого тумблера делала из строки четыре одинаковых по весу
-    кнопки; жёлоб уводит неактивное положение в фон, а ползунок показывает, что
-    выбор один из двух, а не две независимые кнопки. */
-function TrackSwitch({ options, index, onPick, accent }: {
-  options: { icon: typeof PanelRight; label: string; iconOnly?: boolean }[]
-  index: number
-  onPick: (i: number) => void
+/**
+ * СЕГМЕНТ РЕЙКИ УПРАВЛЕНИЯ.
+ * Один размер на все решения читалки: «как читаем», «что показываем», «где
+ * перевод» — это соседние переключатели в одной строке, и разный вес у них
+ * означал бы разную важность, которой нет.
+ * Рамки нет ни в одном состоянии: рамка добавляет предмету пиксель по краю при
+ * включении, и строка дышала при каждом нажатии. Состояние — только заливка.
+ *   solid — выбор один из нескольких (сплошная заливка: выбрано ровно одно);
+ *   иначе — самостоятельный тумблер (мягкая заливка: включён сам по себе).
+ * Насыщенность шрифта постоянна: на 500↔700 сегмент менял бы ширину под пальцем.
+ */
+function Seg({ icon: Icon, label, on, solid, iconOnly, accent, soft, onClick }: {
+  icon: typeof PanelRight
+  label: string
+  on: boolean
+  solid?: boolean
+  iconOnly?: boolean
   accent: string
+  soft: string
+  onClick: () => void
 }) {
   return (
-    <div style={{
-      position: 'relative', display: 'inline-grid', gridAutoFlow: 'column',
-      gridAutoColumns: '1fr', padding: 3, borderRadius: 999,
-      background: 'var(--color-bg-input)',
-    }}>
-      <span
-        aria-hidden
-        style={{
-          position: 'absolute', top: 3, bottom: 3,
-          width: 'calc((100% - 6px) / 2)',
-          left: `calc(3px + ${index} * (100% - 6px) / 2)`,
-          borderRadius: 999, background: accent,
-          transition: 'left 220ms cubic-bezier(.4, 0, .2, 1)',
-        }}
-      />
-      {options.map((o, i) => {
-        const on = i === index
-        const Icon = o.icon
-        return (
-          <button
-            key={o.label}
-            onClick={() => onPick(i)}
-            aria-pressed={on}
-            aria-label={o.iconOnly ? o.label : undefined}
-            title={o.iconOnly ? o.label : undefined}
-            style={{
-              position: 'relative', display: 'inline-flex',
-              alignItems: 'center', justifyContent: 'center', gap: 5,
-              // Ровно та же высота, что у пилюль рядом: 3 + 24 + 3 = CTL_H.
-              height: CTL_H - 6, padding: o.iconOnly ? '0 11px' : '0 12px',
-              border: 'none', background: 'transparent', cursor: 'pointer',
-              // Насыщенность не меняется вместе с выбором: на 500↔700 жёлоб
-              // дёргался бы по ширине при каждом переключении.
-              fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
-              color: on ? '#fff' : 'var(--color-text-3)',
-              transition: 'color 160ms ease',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Icon size={13} /> {o.iconOnly ? null : o.label}
-          </button>
-        )
-      })}
-    </div>
+    <button
+      onClick={onClick}
+      aria-pressed={on}
+      aria-label={iconOnly ? label : undefined}
+      title={iconOnly ? label : undefined}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        height: SEG_H, padding: iconOnly ? '0 10px' : '0 12px',
+        borderRadius: 999, border: 'none', cursor: 'pointer',
+        fontFamily: 'inherit', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+        background: on ? (solid ? accent : soft) : 'transparent',
+        color: on ? (solid ? '#fff' : accent) : 'var(--color-text-3)',
+        transition: 'background 160ms ease, color 160ms ease',
+      }}
+      onMouseEnter={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-2)' }}
+      onMouseLeave={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-3)' }}
+    >
+      <Icon size={13} /> {iconOnly ? null : label}
+    </button>
   )
 }
 
-/** Как читаем: потоком или по одному фрагменту. */
-function ModeSwitch({ stepping, onChange, accent }: {
-  stepping: boolean
-  onChange: () => void
-  accent: string
-}) {
-  const t = useT()
+/** Волосяная черта между смысловыми частями рейки. */
+function SegSep() {
   return (
-    <TrackSwitch
-      accent={accent}
-      index={stepping ? 1 : 0}
-      onPick={i => { if ((i === 1) !== stepping) onChange() }}
-      options={[
-        { icon: Rows3, label: t('Потоком') },
-        { icon: GalleryVerticalEnd, label: t('По строке') },
-      ]}
-    />
-  )
-}
-
-/** Где показывать перевод: колонкой справа или строкой под оригиналом.
-    Без подписей: это настройка соседнего тумблера «Перевод», и со словами она
-    весила в строке столько же, сколько он сам. */
-function SideSwitch({ value, onChange, accent }: {
-  value: 'right' | 'bottom'
-  onChange: (v: 'right' | 'bottom') => void
-  accent: string
-}) {
-  const t = useT()
-  return (
-    <TrackSwitch
-      accent={accent}
-      index={value === 'bottom' ? 1 : 0}
-      onPick={i => onChange(i === 1 ? 'bottom' : 'right')}
-      options={[
-        { icon: PanelRight, label: t('Перевод справа'), iconOnly: true },
-        { icon: PanelBottom, label: t('Перевод снизу'), iconOnly: true },
-      ]}
+    <span
+      aria-hidden
+      style={{
+        width: 1, height: 16, margin: '0 5px', flexShrink: 0,
+        background: 'var(--color-border-medium)', opacity: 0.7,
+      }}
     />
   )
 }
@@ -1015,6 +1025,10 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
                 key={ci}
                 style={{
                   borderRadius: 8,
+                  // Воздух по бокам заливки — падингом с равным отрицательным
+                  // отступом: без компенсации текст на каждой подсветке
+                  // подпрыгивал бы вбок, а это бегущая строка.
+                  paddingLeft: 7, paddingRight: 7, marginLeft: -7, marginRight: -7,
                   background: live ? soft : 'transparent',
                   boxShadow: live ? `0 0 0 4px ${soft}` : 'none',
                   transition: 'background 200ms ease',
@@ -1076,6 +1090,8 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
             // Та же заливка, что у звучащей строки оригинала: строка и её
             // перевод — одна вещь, и гореть должны одинаково.
             borderRadius: 8,
+            // Тот же воздух по бокам, что у оригинала (см. строку выше).
+            paddingLeft: 10, paddingRight: 10, marginLeft: -10, marginRight: -10,
             background: liveUnit ? soft : 'transparent',
             boxShadow: liveUnit ? `0 0 0 4px ${soft}` : 'none',
             transition: 'background 200ms ease',
@@ -1134,6 +1150,8 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, o
             onClick={() => onPick(on ? null : tk.pair ?? null)}
             style={{
               cursor: 'pointer', borderRadius: 4,
+              // Заливка слова тоже не должна лежать вплотную к буквам.
+              paddingLeft: 3, paddingRight: 3, marginLeft: -3, marginRight: -3,
               // Те же три состояния и те же прозрачности, что у слова в
               // оригинале (GlossedText): пара — одна вещь, лежащая по двум
               // сторонам, и выглядеть с разных сторон по-разному не должна.
@@ -1148,30 +1166,5 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, o
         )
       })}
     </div>
-  )
-}
-
-function Toggle({ on, onClick, accent, soft, children }: {
-  on: boolean; onClick: () => void; accent: string; soft: string; children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        // Высота и вес шрифта одни и те же во всех состояниях: на 500↔700
-        // пилюля дёргалась по ширине при каждом нажатии, а рядом с жёлобом
-        // тумблера стояла на пару пикселей выше него.
-        height: CTL_H, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
-        fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
-        border: `1px solid ${on ? accent : 'var(--color-border-medium)'}`,
-        background: on ? soft : 'transparent',
-        color: on ? accent : 'var(--color-text-2)',
-        whiteSpace: 'nowrap',
-        transition: 'background 160ms ease, border-color 160ms ease, color 160ms ease',
-      }}
-    >
-      {children}
-    </button>
   )
 }

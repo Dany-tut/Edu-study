@@ -24,6 +24,7 @@ import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
+import { withExamples } from '../lib/cardExamples'
 import { haptic } from '../lib/feedback'
 import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
 import { useT } from '../lib/i18n'
@@ -267,15 +268,20 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   useEffect(() => {
     let alive = true
     const load = source ? source.load() : dueCards(owner ?? {}, 20, subjects)
-    load.then(cards => {
-      if (!alive) return
-      // Демо-подмена только у колоды повторений: своя стопка пустая значит
-      // пустая, и подсовывать в неё корейские слова было бы враньём.
-      const use = cards.length === 0 && import.meta.env.DEV && !source ? DEMO_CARDS : cards
-      setQueue(buildQueue(use, source ? source.judge ?? false : true))
-    })
+    load
+      // Пример к слову не хранится в БД, он подбирается на чтении — по самому
+      // слову, как и картинка. Ждём его ДО показа стопки: дописать пример уже
+      // перевёрнутой карточке значит подсунуть ученику новый текст под рукой.
+      .then(cards => withExamples(cards, lang))
+      .then(cards => {
+        if (!alive) return
+        // Демо-подмена только у колоды повторений: своя стопка пустая значит
+        // пустая, и подсовывать в неё корейские слова было бы враньём.
+        const use = cards.length === 0 && import.meta.env.DEV && !source ? DEMO_CARDS : cards
+        setQueue(buildQueue(use, source ? source.judge ?? false : true))
+      })
     return () => { alive = false }
-  }, [owner?.studentId, owner?.anonName, source, subjects])
+  }, [owner?.studentId, owner?.anonName, source, subjects, lang])
 
   const seat = queue && idx < queue.length ? queue[idx] : null
 
@@ -1030,9 +1036,15 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                           {seat.card.ex.reading}
                         </div>
                       )}
-                      <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
-                        {seat.card.ex.ru}
-                      </div>
+                      {/* Перевода может не быть: пример, добытый из теории
+                          урока, приходит одной строкой (см. lib/cardExamples).
+                          Пустой строкой её не заменяем — под предложением
+                          висел бы пустой отступ. */}
+                      {seat.card.ex.ru && (
+                        <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                          {seat.card.ex.ru}
+                        </div>
+                      )}
                     </div>
                     {lang && (
                       <button

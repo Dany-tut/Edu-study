@@ -56,6 +56,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_FIGURES_EXTRA } from './koreanTopikFigures'
 import { KOREAN_VIDEO_EXTRA } from './languageVideos'
+import { KOTP_HOMEWORK_VIDEO } from './homeworkVideos'
 
 // Порядок юнитов выстроен по принципу, который вытащен из разбора TTMIK:
 // сначала всё, что цепляется к голой основе глагола (не требует выбора 아/어),
@@ -1836,6 +1837,8 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...KOREAN_FIGURES, ...KOREAN_FIGURES_EXTRA },
+  // Живая речь в домашке — подкасты и шоу (см. homeworkVideos.ts).
+  homeworkVideos: KOTP_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(KOREAN_TOPIK)

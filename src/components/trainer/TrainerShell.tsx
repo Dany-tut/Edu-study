@@ -176,28 +176,6 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
     return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
   }, [toolbar, narrow])
 
-  // Прилипла — значит содержимое под ней уже поехало, и полосе нужен край.
-  // Сравнением прямоугольников, а не числом: см. ту же мысль в ScoreReader.
-  const [stuck, setStuck] = useState(false)
-  const stuckRef = useRef(false)
-  useEffect(() => {
-    const on = () => {
-      const el = barRef.current
-      const parent = el?.parentElement
-      if (!el || !parent) return
-      const next = el.getBoundingClientRect().top - parent.getBoundingClientRect().top > 2
-      if (next !== stuckRef.current) { stuckRef.current = next; setStuck(next) }
-    }
-    on()
-    // capture: кабинет листается во внутренней панели, её scroll до window не всплывает.
-    window.addEventListener('scroll', on, true)
-    window.addEventListener('resize', on)
-    return () => {
-      window.removeEventListener('scroll', on, true)
-      window.removeEventListener('resize', on)
-    }
-  }, [toolbar])
-
   return (
     <div style={{
       width: '100%', padding: narrow ? '8px 16px 80px' : '8px 0 80px',
@@ -267,17 +245,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
             display: 'flex', flexDirection: 'column', gap: 12,
           }}
         >
-          {/* Подложка — не плашка поперёк страницы, а продолжение размытия
-              шапки кабинета (.edge-progressive-blur--top): полоса своего цвета
-              читается как чужая деталь, особенно в тёмной теме, где стекло
-              светлее фона. Здесь текст под кнопками гаснет в цвет фона и
-              растворяется книзу, а таблетки остаются обычным плавающим
-              стеклом — как «Назад» и название урока на строке шапки. */}
-          <div
-            aria-hidden
-            className="sticky-blur-band"
-            style={{ opacity: stuck ? 1 : 0 }}
-          />
+
         {/* Кнопка открытия шторки идёт ПЕРЕД строкой управления, а не внутри
             неё: строку собирает вызывающий, и вставлять туда чужой элемент
             значило бы, что каждый режим обязан помнить про телефон. */}

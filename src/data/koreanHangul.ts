@@ -39,6 +39,7 @@ import { transcribe } from '../lib/translit'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_HANGUL_FIGURES } from './koreanHangulFigures'
 import { KOHG_VIDEO } from './languageVideosExtra'
+import { KOHG_HOMEWORK_VIDEO } from './homeworkVideos'
 import { KOREAN_HANGUL_EXTRA } from './koreanHangulExtra'
 import { KOREAN_HANGUL_THEORY } from './koreanHangulTheory'
 
@@ -259,6 +260,8 @@ export const KOREAN_HANGUL_COURSE: LanguageCourseSpec = {
   units: HANGUL_UNITS,
   // Схемы собираются из тех же данных, что и уроки (см. koreanHangulFigures.ts).
   figures: KOREAN_HANGUL_FIGURES,
+  // Живая речь в домашке — мультик и подкаст (см. homeworkVideos.ts).
+  homeworkVideos: KOHG_HOMEWORK_VIDEO,
 }
 
 /** Сводка курса — по ней реестр сидов сверяет подписи карточки с содержимым. */

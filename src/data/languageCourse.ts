@@ -194,6 +194,18 @@ export interface LanguageCourseSpec {
   units: LangUnit[]
   /** Иллюстрации конспекта по shortId юнита — см. CourseFigures. */
   figures?: CourseFigures
+  /**
+   * Домашние видео по shortId юнита: живая речь (серия, подкаст, стрим) плюс
+   * задание на понимание к ней. Лежат отдельным файлом (data/homeworkVideos.ts)
+   * по той же причине, что и схемы: юнит — это данные, а подборка материала
+   * живёт своей жизнью, у неё свои правила проверки ссылок и своя судьба
+   * (ролики умирают, каналы закрываются).
+   *
+   * Идут ПЕРВЫМИ в домашке: сначала вход — послушал живую речь, — и только
+   * потом отработка. В обратном порядке ролик превращается в необязательный
+   * хвост, до которого не доходят.
+   */
+  homeworkVideos?: Record<string, SeedTask[]>
 }
 
 // ─── Хелперы для заданий ─────────────────────────────────────────────────────
@@ -281,6 +293,37 @@ export const reading = (
     passageTitle: opts.title,
     passageTranslation: opts.translation,
   }))
+
+/**
+ * Посмотреть ролик — серию мультика, подкаст, отрывок фильма.
+ *
+ * ЗАЧЕМ ВИДЕО В ДОМАШКЕ, ЕСЛИ ОНО УЖЕ ЕСТЬ У УРОКА. Видео урока — это
+ * объяснение правила: там носитель разбирает конструкцию по-русски или
+ * медленно и специально для учебника. Домашнее видео — противоположное:
+ * живая речь на скорости, ради которой язык и учат. Одно не заменяет другое,
+ * и первое без второго даёт человека, знающего правила и не понимающего
+ * ни слова в сериале.
+ *
+ * ПОЧЕМУ ЭТО ОТДЕЛЬНОЕ ЗАДАНИЕ, А НЕ ССЫЛКА В ТЕКСТЕ. Ссылку в формулировке
+ * ученик открывает в новой вкладке — там YouTube с рекомендациями, и домашка
+ * заканчивается. Задание держит ролик внутри домашки, считает реально
+ * отсмотренное (перемотка не в счёт) и само закрывается по порогу.
+ *
+ * `watchMinutes` — для длинного: серию, стрим и фильм целиком в домашку на
+ * вечер не ставят, ставят двадцать минут. Не задано — девять десятых ролика.
+ */
+export const watch = (
+  question: string,
+  videoUrl: string,
+  opts: { credit?: string; startMinutes?: number; watchMinutes?: number } = {},
+): SeedTask => ({
+  type: 'videoWatch',
+  question,
+  videoUrl,
+  videoCredit: opts.credit,
+  videoStart: opts.startMinutes ? Math.round(opts.startMinutes * 60) : undefined,
+  videoWatchSeconds: opts.watchMinutes ? Math.round(opts.watchMinutes * 60) : undefined,
+})
 
 /** Записать голос — учитель слушает; при подключённом ИИ добавится разбор. */
 export const say = (question: string, responseSeconds = 90): SeedTask =>
@@ -650,6 +693,9 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     hwTitle: `Юнит ${unit.n}. ${unit.title}`,
     hwTarget: unit.artifact,
     hwTasks: [
+      // Живая речь — до отработки: см. homeworkVideos в LanguageCourseSpec.
+      ...(spec.homeworkVideos?.[unit.shortId] ?? [])
+        .map((task, i) => editorTask(task, `${unit.shortId}-hv${i + 1}`, spec.lang)),
       // Дрилл идёт первым: конструкция сначала ставится в руку подстановкой, и
       // только потом проверяется вразбивку остальными заданиями. В обратном
       // порядке первые упражнения проверяли бы то, что ещё не отработано.

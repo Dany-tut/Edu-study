@@ -2618,6 +2618,78 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 </div>
               )}
 
+              {/* videoWatch — ссылка на ролик и условия зачёта. Скачивать и
+                  перезаливать ничего не нужно: ролик встраивается плеером,
+                  как и запись урока (см. lib/videoSource.ts). */}
+              {task.type === 'videoWatch' && (() => {
+                const src = parseVideoSource(task.videoUrl)
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div>
+                      <Label>{t('Ссылка на видео')}</Label>
+                      <input
+                        value={task.videoUrl ?? ''}
+                        onChange={e => onUpdate({ ...task, videoUrl: e.target.value.trim() })}
+                        placeholder="https://youtu.be/…"
+                        style={{ ...inputSt, width: '100%' }}
+                      />
+                      <div style={{
+                        fontSize: 11, marginTop: 6,
+                        color: src ? 'var(--color-text-3)' : 'var(--color-red-text)',
+                      }}>
+                        {src
+                          ? t('Ссылка распознана — ролик откроется прямо в домашке.')
+                          : task.videoUrl
+                            ? t('Ссылка не распознана: нужен YouTube, RuTube, своя страница записи или файл видео.')
+                            : t('Без ссылки задание покажется ученику обычным полем ответа.')}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <div>
+                        <Label>{t('Начать с минуты')}</Label>
+                        <input
+                          value={task.videoStart ? String(Math.round(task.videoStart / 60)) : ''}
+                          onChange={e => {
+                            const min = Number(e.target.value.replace(/[^0-9]/g, ''))
+                            onUpdate({ ...task, videoStart: min > 0 ? min * 60 : undefined })
+                          }}
+                          placeholder="0"
+                          style={{ ...inputSt, width: 90, textAlign: 'center' }}
+                        />
+                      </div>
+                      <div>
+                        <Label>{t('Сколько смотреть, минут')}</Label>
+                        <input
+                          value={task.videoWatchSeconds ? String(Math.round(task.videoWatchSeconds / 60)) : ''}
+                          onChange={e => {
+                            const min = Number(e.target.value.replace(/[^0-9]/g, ''))
+                            onUpdate({ ...task, videoWatchSeconds: min > 0 ? min * 60 : undefined })
+                          }}
+                          placeholder={t('весь ролик')}
+                          style={{ ...inputSt, width: 150, textAlign: 'center' }}
+                        />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 180 }}>
+                        <Label>{t('Чей ролик')}</Label>
+                        <input
+                          value={task.videoCredit ?? ''}
+                          onChange={e => onUpdate({ ...task, videoCredit: e.target.value })}
+                          placeholder={t('Канал или автор')}
+                          style={{ ...inputSt, width: '100%' }}
+                        />
+                      </div>
+                    </div>
+                    {/* Порог считается по РЕАЛЬНО отсмотренному, а не по позиции
+                        ползунка: перемотка в конец не засчитывает ничего. */}
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                      {task.videoWatchSeconds
+                        ? t('Задание закроется, когда ученик просмотрит столько минут. Перемотка не засчитывается.')
+                        : t('Задание закроется, когда просмотрено 90% ролика. Для серии или фильма поставь минуты — иначе домашка займёт весь вечер.')}
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* trace — какую букву обводят. Выбор из алфавита, а не поле
                   ввода: черты берутся из data/hangul.ts по самой букве, и
                   напечатанный слог (이) или латиница дали бы пустой холст. */}

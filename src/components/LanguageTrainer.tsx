@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -11,7 +11,7 @@ import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import CardDeck, { DECK_CTA } from './CardDeck'
 import PhraseDecks, {
-  ThemeSession, BackToSets, TakeWholeTheme, DeckHint, themeStats,
+  ThemeSession, PhraseRun, BackToSets, TakeWholeTheme, DeckHint, themeStats,
   type PhraseView, type RunMode,
 } from './PhraseDecks'
 import TrainerShell, {
@@ -24,6 +24,8 @@ import type { TrainerSubjectState } from '../lib/trainerSubject'
 import MultiSelectField from './MultiSelectField'
 import { addCards, collectedCards, deckOwner, dueCount, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
+import { hasWordPacks, loadWordPacks } from '../data/wordPackBooks'
+import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import {
   hasScenes, loadScenes, sceneCount, scenesWord, shelvesForLang, worksForLang, workById,
   type Scene, type Work,
@@ -36,6 +38,11 @@ import {
 } from '../data/survivalPhrases'
 import { hasNests, nestById, nestsForLang, nestsUpTo } from '../data/soundNests'
 import { NestGrid, NestPage } from './trainer/SoundNestDrill'
+import { hasEndings, verbByDict, KO_ENDINGS, KO_VERBS } from '../data/koreanEndings'
+import { StemGrid, StemPage } from './trainer/EndingBuilder'
+import { hasHanjaRoots, hanjaRootById, HANJA_GROUPS, HANJA_ROOTS } from '../data/koreanHanja'
+import { RootGrid, RootPage } from './trainer/RootBuilder'
+import { TONE } from './trainer/blockKit'
 import {
   MyWordsSession, MyWordsTile, myWordsFrom, myWordsStats, MY_WORDS_ID, type MyWord,
 } from './trainer/MyWords'
@@ -63,14 +70,27 @@ import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressS
 // ссылки к урокам курса, а не на собственную библиотеку. Говорение записывает
 // ответ и отдаёт учителю — автоматической оценки произношения нет.
 
-type Mode = 'reading' | 'vocab' | 'listening' | 'speaking'
+type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks'
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
   { id: 'reading',   label: 'Чтение',     hint: 'Тексты с вопросами',       Icon: BookOpen },
   { id: 'vocab',     label: 'Карточки',   hint: 'Свайп: знаю / не помню',   Icon: Layers },
   { id: 'listening', label: 'Аудирование', hint: 'Лекции и разговоры',      Icon: Headphones },
   { id: 'speaking',  label: 'Говорение',  hint: 'Записать и отправить',     Icon: Mic },
+  // Пятый режим — не «ещё одна библиотека», а другой взгляд на язык: не «выучи
+  // слово», а «увидь, из чего оно собрано». Появляется только у языков, где
+  // такая сборка вообще описана (см. blocksOn).
+  { id: 'blocks',    label: 'Конструктор', hint: 'Из чего собраны слова',    Icon: Blocks },
 ]
+
+/**
+ * Две половины «Конструктора».
+ *
+ * `stems` — основа глагола и хвосты (одна основа, восемь смыслов), `roots` —
+ * корень-кирпич и его слова (одно знание, семь слов). Материал разный, движение
+ * одно: слово разложено на плитки, и одна плитка ставится вручную.
+ */
+type BlocksView = 'stems' | 'roots'
 
 /**
  * Корзины длительности — общий фильтр чтения и аудирования.
@@ -91,12 +111,12 @@ const anyOf = (picked: string[], value: string) => picked.length === 0 || picked
 /**
  * Три половины вкладки «Карточки».
  *
- * `sets` — готовый разговорник по ситуациям, `due` — личная колода повторений,
- * `nests` — гнёзда созвучий. Последнее стоит именно здесь, а не отдельным
+ * `sets` — готовый разговорник по ситуациям, `packs` — наборы слов пачками,
+ * `due` — личная колода повторений, `nests` — гнёзда созвучий. Последнее стоит именно здесь, а не отдельным
  * режимом рядом с «Чтением»: гнездо тоже работает через колоду (ошибки уходят
  * в SM-2), и пятая таблетка в рейле ради одного экрана — перебор.
  */
-type VocabView = 'due' | 'sets' | 'nests'
+type VocabView = 'due' | 'sets' | 'nests' | 'packs'
 
 export default function LanguageTrainer({ lang, subject, subjectId, dark, subjectState }: {
   /** Код изучаемого языка: en, ko, ja, pt-BR. */
@@ -237,6 +257,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
     setSceneShelf(''); setSpeakOpen(null)
+  }
+
+  /** Переключение половин «Конструктора». Открытое при этом закрывается. */
+  function switchBlocksView(v: BlocksView) {
+    setBlocksView(v)
+    setOpenStemDict(null); setOpenRootKo(null)
+    setQuery('')
   }
 
   /** Переключение половин «Чтения». Открытое произведение при этом закрывается. */
@@ -397,6 +424,41 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   )
   const [due, setDue] = useState(0)
 
+  // ── Конструктор: основы с хвостами и корни слов ────────────────────────────
+  //
+  // Обе половины пока корейские: матрица форм и гнёзда ханча написаны только для
+  // ko. Режим целиком прячется там, где нет ни того ни другого, — пустая вкладка
+  // хуже отсутствующей (то же правило, что у сцен и созвучий).
+  const stemsOn = useMemo(() => hasEndings(lang), [lang])
+  const rootsOn = useMemo(() => hasHanjaRoots(lang), [lang])
+  const blocksOn = stemsOn || rootsOn
+  const [blocksView, setBlocksView] = usePersistentState<BlocksView>(
+    `trainer.${lang}.blocksView`, 'stems',
+  )
+  const [openStemDict, setOpenStemDict] = usePersistentState<string | null>(`trainer.${lang}.stem`, null)
+  const [openRootKo, setOpenRootKo] = usePersistentState<string | null>(`trainer.${lang}.root`, null)
+  const openStem = useMemo(() => (openStemDict ? verbByDict(openStemDict) ?? null : null), [openStemDict])
+  const openRoot = useMemo(() => (openRootKo ? hanjaRootById(openRootKo) ?? null : null), [openRootKo])
+  /** Полка корней: ханча раскладывается по смысловым группам. */
+  const [rootGroup, setRootGroup] = usePersistentState<string>(`trainer.${lang}.rootGroup`, '')
+  // Поиск идёт и по самим формам: ученик ищет «хочу» или «갔어요», а не «가다».
+  const visibleStems = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return KO_VERBS
+    return KO_VERBS.filter(v =>
+      `${v.dict} ${v.stem} ${v.reading} ${v.ru} ${Object.values(v.forms).map(x => `${x.form} ${x.ru}`).join(' ')}`
+        .toLowerCase().includes(q))
+  }, [query])
+  const visibleRoots = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return HANJA_ROOTS.filter(r => {
+      if (rootGroup && r.group !== rootGroup) return false
+      if (!q) return true
+      return `${r.ko} ${r.cn} ${r.ru} ${r.words.map(w => `${w.term} ${w.reading} ${w.ru}`).join(' ')}`
+        .toLowerCase().includes(q)
+    })
+  }, [query, rootGroup])
+
   // ── Глубина по курсу ───────────────────────────────────────────────────────
   //
   // Докуда открыт курс — по нему тренажёр дозирует материал: гнёзда созвучий
@@ -424,13 +486,49 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         .toLowerCase().includes(q))
   }, [nests, query])
 
+  // ── Наборы слов ────────────────────────────────────────────────────────────
+  //
+  // Четвёртая половина вкладки. Разговорник отвечает на вопрос «что сказать в
+  // этой ситуации», набор — на вопрос «дайте мне все слова про еду разом»
+  // (см. data/wordPacks.ts). Книга ленивая по той же причине, что и
+  // разговорник: две сотни слов не должны ехать тому, кто читает тексты.
+  const packsOn = useMemo(() => hasWordPacks(lang), [lang])
+  const [packBook, setPackBook] = useState<WordPackBook | null | undefined>(undefined)
+  useEffect(() => {
+    if (!packsOn) { setPackBook(null); return }
+    let alive = true
+    setPackBook(undefined)
+    loadWordPacks(lang).then(b => { if (alive) setPackBook(b ?? null) })
+    return () => { alive = false }
+  }, [packsOn, lang])
+
+  const packShelvesList = useMemo(() => wordPackShelves(packBook ?? undefined), [packBook])
+  const packsList = useMemo(() => allPacks(packBook ?? undefined), [packBook])
+  const [packShelf, setPackShelf] = useState('')
+  const [openPackId, setOpenPackId] = usePersistentState<string | null>(`trainer.${lang}.pack`, null)
+  const openPack = useMemo(
+    () => packsList.find(p => p.id === openPackId) ?? null,
+    [packsList, openPackId],
+  )
+
   // Восстановленная половина может оказаться несуществующей: разговорник для
   // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
   // есть, — иначе таблетки в рейле нет, а содержимое от неё показано.
   useEffect(() => {
     if (vocabView === 'sets' && !hasBook) setVocabView('due')
     else if (vocabView === 'nests' && !nestsOn) setVocabView(hasBook ? 'sets' : 'due')
-  }, [vocabView, hasBook, nestsOn, setVocabView])
+    else if (vocabView === 'packs' && !packsOn) setVocabView(hasBook ? 'sets' : 'due')
+  }, [vocabView, hasBook, nestsOn, packsOn, setVocabView])
+
+  // Та же защита для конструктора: восстановленная из sessionStorage половина
+  // может оказаться ненаписанной для этого языка, а сам режим — отсутствующим.
+  useEffect(() => {
+    if (blocksView === 'stems' && !stemsOn && rootsOn) setBlocksView('roots')
+    else if (blocksView === 'roots' && !rootsOn && stemsOn) setBlocksView('stems')
+  }, [blocksView, stemsOn, rootsOn, setBlocksView])
+  useEffect(() => {
+    if (mode === 'blocks' && !blocksOn) setMode('reading')
+  }, [mode, blocksOn, setMode])
 
   useEffect(() => {
     if (!hasBook) return
@@ -655,6 +753,55 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
     return out
   }, [allThemes, shelves, shelf, query, status, sort, states, fLevel, themeLevel, themeAhead])
+  /**
+   * Наборы слов под витрину.
+   *
+   * Форма — стопка витрины (DeckCard): имя и список карточек. Ничего больше
+   * PhraseDecks и не спрашивает, поэтому наборы показываются той же витриной,
+   * что и разговорник, без второй её копии. Сам набор остаётся рядом в `pack`
+   * — из него берутся ступень, тема и описание.
+   */
+  const packDecks = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    // Поиск идёт по всем полкам и снимает выбор слева: человек ищет «острый»,
+    // а не «в каком разделе лежит острый».
+    const base = q
+      ? packsList
+      : (packShelf ? (packShelvesList.find(x => x.title === packShelf)?.packs ?? []) : packsList)
+    return base
+      .filter(pack => {
+        if (!anyOf(fLevel, survivalLevelLabel(pack.level, subject))) return false
+        if (q) {
+          // Ищем и по самим словам: набор «Вкус» должен находиться по 맵다 и по
+          // «острый», а не только по своему названию.
+          const hay = `${pack.title} ${pack.about} ${pack.topic} ${pack.words.map(w => `${w.term} ${w.ru} ${w.reading ?? ''}`).join(' ')}`
+          if (!hay.toLowerCase().includes(q)) return false
+        }
+        const st = themeStats({ theme: { id: pack.id, title: pack.title }, phrases: pack.words }, states)
+        const started = st.total - st.fresh > 0
+        const done = st.total > 0 && st.learned === st.total
+        if (status === 'new' && started) return false
+        if (status === 'wip' && (!started || done)) return false
+        if (status === 'done' && !done) return false
+        return true
+      })
+      .map(pack => ({ pack, theme: { id: pack.id, title: pack.title }, phrases: pack.words }))
+  }, [packsList, packShelvesList, packShelf, query, status, states, fLevel, subject])
+
+  /** Ступени, которые вообще встречаются среди наборов, — для фильтра. */
+  const packLevelOpts = useMemo(() => {
+    const found = new Set(packsList.map(p => p.level))
+    return SURVIVAL_LEVELS.filter(l => found.has(l)).map(l => survivalLevelLabel(l, subject))
+  }, [packsList, subject])
+
+  /** Состояние памяти по открытому набору — для чисел в рейле. */
+  const packStats = useMemo(
+    () => (openPack
+      ? themeStats({ theme: { id: openPack.id, title: openPack.title }, phrases: openPack.words }, states)
+      : { total: 0, fresh: 0, learning: 0, learned: 0, due: 0, lapses: 0, pct: 0 }),
+    [openPack, states],
+  )
+
   const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
     subject: subjectId,
     source: 'manual' as const,
@@ -685,7 +832,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords))
+  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openStem || openRoot))
 
   // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
   // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
@@ -753,6 +900,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speakTotal,
+    // Всё, что в режиме можно открыть: основы плюс корни. Обе таблицы лежат в
+    // коде, поэтому цифра известна синхронно и не прыгает после загрузки.
+    blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0),
   }
 
   const heroSubtitle =
@@ -760,6 +910,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
+    : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
   const filtersOn = fLevel.length > 0 || fTopic.length > 0 || fSkill.length > 0 || !!fLen
@@ -771,7 +922,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
-          items={MODES.map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
+          items={MODES
+            .filter(m => m.id !== 'blocks' || blocksOn)
+            .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
           accent={palette.accent}
@@ -868,15 +1021,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {mode === 'vocab' && (hasBook || nestsOn) && !openItem && !openNest && !openMyWords && (
+      {mode === 'vocab' && (hasBook || nestsOn || packsOn) && !openItem && !openNest && !openMyWords && !openPack && (
         <>
           <RailCard title="Фильтры" accent={palette.accent} icon={<SlidersHorizontal size={15} />}
-            action={shelf || fLevel.length > 0
-              ? { label: t('Сбросить'), onClick: () => { setShelf(''); setFLevel([]) } }
+            action={shelf || packShelf || fLevel.length > 0
+              ? { label: t('Сбросить'), onClick: () => { setShelf(''); setPackShelf(''); setFLevel([]) } }
               : undefined}>
             <RailSegment
               options={[
                 ...(hasBook ? [{ value: 'sets', label: 'Наборы' }] : []),
+                // «Слова» отдельной таблеткой от «Наборов»: это разный
+                // материал, а не разный фильтр одного. В наборах — готовые
+                // фразы под ситуацию, здесь — лексика пачкой по смыслу.
+                ...(packsOn ? [{ value: 'packs', label: 'Слова', icon: <Languages size={15} /> }] : []),
                 // Иконкой, а не подписью: «Повторение» рядом с «Наборами» не
                 // влезало в рейл и обрезалось в «Повторе…».
                 { value: 'due', label: 'Повторение', badge: due, icon: <RotateCcw size={15} /> },
@@ -903,6 +1060,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 soft={palette.soft}
               />
             )}
+            {vocabView === 'packs' && packLevelOpts.length > 1 && (
+              <MultiSelectField label={t('Уровень')} options={packLevelOpts} values={fLevel} onChange={setFLevel}
+                accent={palette.accent} accentBg={palette.soft} lockScroll />
+            )}
+            {vocabView === 'packs' && packShelvesList.length > 0 && (
+              <RailList
+                items={packShelvesList.map(x => ({ id: x.title, label: t(x.title), sub: t(x.subtitle), hint: String(x.count) }))}
+                value={packShelf}
+                onChange={v => setPackShelf(v === packShelf ? '' : v)}
+                accent={palette.accent}
+                soft={palette.soft}
+              />
+            )}
           </RailCard>
           {/* Глубина по курсу. Стоит рядом с материалом, а не в шапке: цифра
               объясняет ровно то, почему список именно такой длины. */}
@@ -915,7 +1085,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               </div>
             </RailCard>
           )}
-          {hasBook && vocabView !== 'nests' && (
+          {(hasBook || packsOn) && vocabView !== 'nests' && (
             <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
               <RailToggle label="Романизация" on={phraseView.reading}
                 onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
@@ -987,6 +1157,71 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
           </RailCard>
         </>
+      )}
+
+      {mode === 'blocks' && !openStem && !openRoot && (
+        <RailCard title="Что собираем" accent={palette.accent} icon={<Blocks size={15} />}>
+          <RailSegment
+            options={[
+              ...(stemsOn ? [{ value: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
+              ...(rootsOn ? [{ value: 'roots', label: 'Корни', badge: HANJA_ROOTS.length }] : []),
+            ]}
+            value={blocksView}
+            onChange={v => v && switchBlocksView(v as BlocksView)}
+            accent={palette.accent}
+            soft={palette.soft}
+            clearable={false}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+            {blocksView === 'stems'
+              ? t('Глагол не спрягается по лицам: основа стоит, меняется хвост.')
+              : t('Слово китайского происхождения собрано из односложных кирпичей.')}
+          </div>
+        </RailCard>
+      )}
+
+      {/* Справочник хвостов. Стоит в рейле, а не на странице: он нужен и на
+          витрине, и внутри основы, и внутри прогона — то есть везде, где рейл
+          и так виден. */}
+      {mode === 'blocks' && blocksView === 'stems' && (
+        <RailCard title="Хвосты" accent={palette.accent} icon={<Layers size={15} />}>
+          {KO_ENDINGS.map(e => (
+            <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: TONE[e.tone].fg, whiteSpace: 'nowrap' }}>
+                {e.block}
+              </span>
+              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(e.label)}</span>
+            </div>
+          ))}
+        </RailCard>
+      )}
+
+      {mode === 'blocks' && blocksView === 'roots' && !openRoot && (
+        <RailCard
+          title="Полки"
+          accent={palette.accent}
+          icon={<SlidersHorizontal size={15} />}
+          action={rootGroup ? { label: t('Все полки'), onClick: () => setRootGroup('') } : undefined}
+        >
+          <RailList
+            items={HANJA_GROUPS.map(g => ({
+              id: g,
+              label: t(g),
+              hint: String(HANJA_ROOTS.filter(r => r.group === g).length),
+            }))}
+            value={rootGroup}
+            onChange={v => setRootGroup(v === rootGroup ? '' : v)}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        </RailCard>
+      )}
+
+      {mode === 'blocks' && (
+        <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+          <RailToggle label="Романизация" on={phraseView.reading}
+            onChange={v => setPhraseView(st => ({ ...st, reading: v }))} accent={palette.accent} />
+        </RailCard>
       )}
 
       {mode === 'speaking' && (
@@ -1121,6 +1356,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <ToolCount>{t('Всего:')} {library.length}</ToolCount>
       </Toolbar>
     )
+  } else if (mode === 'blocks' && !openStem && !openRoot) {
+    toolbar = (
+      <Toolbar>
+        <SearchPill value={query} onChange={setQuery}
+          placeholder={t(blocksView === 'stems' ? 'Найти форму или смысл…' : 'Найти слово или корень…')} />
+        <ToolCount>
+          {blocksView === 'stems'
+            ? `${visibleStems.length} ${t('основ')}`
+            : `${visibleRoots.length} ${t('корней')}`}
+        </ToolCount>
+      </Toolbar>
+    )
   } else if (mode === 'vocab' && vocabView === 'nests' && !openNest) {
     toolbar = (
       <Toolbar>
@@ -1165,6 +1412,39 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <ToolCount>
           {visibleThemes.reduce((n, x) => n + x.phrases.length, 0)} {t('фраз')} · {visibleThemes.length} {t('тем')}
         </ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'vocab' && packsOn && vocabView === 'packs' && !openPack) {
+    toolbar = (
+      <Toolbar>
+        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или набор…')} />
+        <StatusTabs
+          options={[
+            { value: '', label: 'Все' },
+            { value: 'new', label: 'Не начатые' },
+            { value: 'wip', label: 'В работе' },
+            { value: 'done', label: 'Выучено' },
+          ]}
+          value={status}
+          onChange={setStatus}
+          accent={palette.accent}
+        />
+        <ToolCount>
+          {packDecks.reduce((n, x) => n + x.phrases.length, 0)} {t('слов')} · {packDecks.length} {t('наборов')}
+        </ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'vocab' && openPack) {
+    toolbar = (
+      <Toolbar>
+        <BackToSets onBack={() => setOpenPackId(null)} />
+        <StatusTabs
+          options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
+          value={run}
+          onChange={v => setRun(v as RunMode)}
+          accent={palette.accent}
+        />
+        <ToolCount>{t(openPack.title)}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'speaking' && speakOpen) {
@@ -1360,6 +1640,42 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {run === 'swipe' && <DeckHint />}
       </div>
     )
+  } else if (mode === 'vocab' && openPack) {
+    content = (
+      <PhraseRun
+        runId={`${packBook?.key ?? 'wp'}-${openPack.id}`}
+        phrases={openPack.words}
+        label={openPack.title}
+        // Стикер за чистый прогон — как у темы разговорника: набор такая же
+        // стопка, и повод для награды у них один.
+        reward={{ key: `wp:${packBook?.key ?? 'wp'}:${openPack.id}`, title: openPack.title, size: openPack.words.length }}
+        doneTitle="Набор пройден"
+        emptyTitle="На сегодня набор закрыт"
+        emptyText={'Все слова набора уже разобраны и ждут своего дня.\nМожно прогнать его заново — расписание при этом продолжит считаться.'}
+        lang={lang}
+        subjectId={subjectId}
+        accent={palette.accent}
+        owner={owner}
+        view={phraseView}
+        run={run}
+        states={states}
+        statesReady={statesReady}
+        onGraded={onGraded}
+      />
+    )
+  } else if (mode === 'vocab' && vocabView === 'packs' && packsOn) {
+    content = packBook === undefined
+      ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
+      : (
+        <PhraseDecks
+          themes={packDecks}
+          states={states}
+          accent={palette.accent}
+          soft={palette.soft}
+          levelLabel={x => survivalLevelLabel(x.pack.level, subject)}
+          onOpen={id => { setOpenPackId(id); setQuery(''); setStatus(''); setRun('list') }}
+        />
+      )
   } else if (mode === 'vocab' && vocabView === 'sets' && hasBook) {
     content = book === undefined
       ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
@@ -1422,6 +1738,75 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {seedNote && (
           <div style={{ marginTop: 12, textAlign: 'center', fontSize: 12, color: 'var(--color-muted)' }}>{seedNote}</div>
         )}
+      </div>
+    )
+  } else if (mode === 'blocks') {
+    // Конструктор. Прогон пишет результат в общий журнал материалов, как текст
+    // и гнездо созвучий: плитка основы показывает счёт ровно так же.
+    const intro = blocksView === 'stems'
+      ? 'Одна основа и восемь хвостов. Хвост цепляется одинаково к любому глаголу, поэтому выучить нужно восемь хвостов, а не сорок форм.'
+      : 'Больше половины корейских слов собрано из односложных кирпичей. Один кирпич открывает сразу гнездо слов, а промахи прогона уходят в колоду повторений.'
+    const grid = blocksView === 'stems' ? (
+      visibleStems.length === 0 ? (
+        <ShellEmpty text="Под поиск ничего не подошло." />
+      ) : (
+        <StemGrid
+          verbs={visibleStems}
+          results={dict => resultFrom('ending', dict, results)}
+          accent={palette.accent}
+          soft={palette.soft}
+          onOpen={dict => { setOpenStemDict(dict); setQuery('') }}
+        />
+      )
+    ) : visibleRoots.length === 0 ? (
+      <ShellEmpty text="Под поиск ничего не подошло." />
+    ) : (
+      <RootGrid
+        roots={visibleRoots}
+        results={ko => resultFrom('root', ko, results)}
+        accent={palette.accent}
+        soft={palette.soft}
+        onOpen={ko => { setOpenRootKo(ko); setQuery('') }}
+      />
+    )
+    content = openStem ? (
+      <StemPage
+        verb={openStem}
+        lang={lang}
+        accent={palette.accent}
+        soft={palette.soft}
+        owner={owner}
+        subjectId={subjectId}
+        reading={phraseView.reading}
+        onFinished={(score, total) => {
+          saveResult('ending', openStem.dict, score, total)
+          setResultsKey(k => k + 1)
+          setKnownKey(k => k + 1)
+        }}
+        onBack={() => setOpenStemDict(null)}
+      />
+    ) : openRoot ? (
+      <RootPage
+        root={openRoot}
+        lang={lang}
+        accent={palette.accent}
+        soft={palette.soft}
+        owner={owner}
+        subjectId={subjectId}
+        reading={phraseView.reading}
+        onFinished={(score, total) => {
+          saveResult('root', openRoot.ko, score, total)
+          setResultsKey(k => k + 1)
+          setKnownKey(k => k + 1)
+        }}
+        onBack={() => setOpenRootKo(null)}
+      />
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0, lineHeight: 1.6, ...proseWrap }}>
+          {bindShortWords(t(intro))}
+        </p>
+        {grid}
       </div>
     )
   } else {
@@ -1579,8 +1964,8 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   const checkRef = useRef<HTMLButtonElement | null>(null)
   const scoreRef = useRef<HTMLButtonElement | null>(null)
   const [tour, setTour] = useState(false)
-  // Шаг про партитуру не описывает её, а включает: пока подсказка открыта, текст
-  // под ней стоит в партитуре, и ученик видит дорожки вместо описания дорожек.
+  // Шаг про разбор не описывает его, а включает: пока подсказка открыта, текст
+  // под ней стоит в разборе, и ученик видит дорожки вместо описания дорожек.
   // Отдельным состоянием, а не через setScore: показ не должен переписывать
   // выбранный вид — после подсказок текст обязан вернуться таким, каким был.
   const [demoScore, setDemoScore] = useState<boolean | null>(null)
@@ -1604,11 +1989,11 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   // «нет в словаре» — хуже, чем не кликать вовсе.
   const glossed = hasLexicon(lang)
 
-  // Партитура (см. trainer/ScoreReader.tsx) имеет смысл там, где есть что
+  // Разбор (см. trainer/ScoreReader.tsx) имеет смысл там, где есть что
   // положить во вторую и третью дорожку: перевод или транскрипция. У текста без
   // того и другого она была бы той же прозой с лишней кнопкой.
   const hasScore = !!text.translation || hasReadings(text.body, lang, text.glossary)
-  // Вид держится между текстами: выбравший партитуру выбрал способ читать, а не
+  // Вид держится между текстами: выбравший разбор выбрал способ читать, а не
   // способ прочитать один отрывок.
   const [score, setScore] = usePersistentState(`trainer.${lang}.readerScore`, false)
   const scoreView = demoScore ?? score
@@ -1628,8 +2013,8 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
     ...(hasScore ? [{
       ref: scoreRef,
       id: 'score',
-      title: t('Проза и партитура'),
-      text: t('Эта кнопка меняет вид текста — сейчас она показывает партитуру. Под каждым словом стоит транскрипция, перевод идёт колонкой справа по строкам, а голос ведёт по тексту подсветкой.'),
+      title: t('Текст с разбором'),
+      text: t('Эта кнопка меняет вид текста — сейчас включён разбор. Под каждым словом стоит транскрипция, перевод идёт колонкой справа по строкам, а голос ведёт по тексту подсветкой.'),
     }] : []),
     {
       ref: audioRef,
@@ -1730,12 +2115,14 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       <ToolButton onClick={onBack}>
         <ChevronLeft size={14} /> {t('К списку')}
       </ToolButton>
-      {/* Вид текста — переключатель, а не замена: проза остаётся видом по
-          умолчанию (так текст читается как текст), партитура включается тогда,
-          когда нужно разобрать, как это звучит и что значит. */}
+      {/* Вид текста — переключатель, а не замена: обычный текст остаётся видом
+          по умолчанию (так текст читается как текст), разбор включается тогда,
+          когда нужно понять, как это звучит и что значит.
+          Подписи называют вид словами ученика: «Партитура» и «Проза» — термины
+          из чужих ремёсел, и по ним не угадать, что кнопка вообще делает. */}
       {hasScore && (
         <ToolButton btnRef={scoreRef} on={scoreView} onClick={() => setScore(v => !v)} accent={accent}>
-          {scoreView ? <Rows3 size={14} /> : <AlignLeft size={14} />} {scoreView ? t('Партитура') : t('Проза')}
+          {scoreView ? <Rows3 size={14} /> : <AlignLeft size={14} />} {scoreView ? t('С разбором') : t('Просто текст')}
         </ToolButton>
       )}
       <ToolButton onClick={() => setTour(true)} accent={accent}>

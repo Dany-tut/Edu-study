@@ -40,6 +40,7 @@ import { KOREAN2_THEORY } from './koreanTopik2Theory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOT2_VIDEO } from './languageVideosExtra'
+import { KOT2_HOMEWORK_VIDEO } from './homeworkVideos'
 import { KOREAN2_FIGURES_EXTRA } from './koreanTopik2Figures'
 import { KOREAN2_EXTRA } from './koreanTopik2Extra'
 
@@ -1385,6 +1386,8 @@ export const KOREAN_TOPIK2: LanguageCourseSpec = {
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...KOREAN2_FIGURES, ...KOREAN2_FIGURES_EXTRA },
+  // Живая речь в домашке — подкасты и стрим (см. homeworkVideos.ts).
+  homeworkVideos: KOT2_HOMEWORK_VIDEO,
 }
 
 export const COURSE_SUMMARY = courseSummary(KOREAN_TOPIK2)

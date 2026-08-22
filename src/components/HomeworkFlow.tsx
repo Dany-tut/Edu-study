@@ -35,6 +35,9 @@ import MatchingSolver, {
   parseMatchingCsv, matchingCsv, matchingIsComplete, matchingIsCorrect, formatMatching,
 } from './MatchingSolver'
 import AudioPlayer from './AudioPlayer'
+import TaskVideo from './TaskVideo'
+import { videoAnswerDone, parseVideoAnswer, videoRequiredSeconds } from '../lib/videoAnswer'
+import { formatClock } from '../lib/videoProgress'
 import VoiceRecorder from './VoiceRecorder'
 import { sentenceTokens } from '../data/taskTypes'
 import { addCards, deckOwner } from '../data/reviewDeck'
@@ -768,6 +771,9 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
     const given = parseDrillAnswer(ans)
     return items.every((_, i) => !!given[String(i)]?.trim())
   }
+  // Видео: сделано, когда просмотрено сколько просили. Непустая строка ответа
+  // тут ничего не значит — плеер пишет её с первой же секунды.
+  if (qType(q) === 'videoWatch') return videoAnswerDone(ans, q.videoWatchSeconds)
   // Сопоставление — то же правило: пара строк без пары не ответ.
   if (qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2) {
     return matchingIsComplete(parseMatchingCsv(ans, q.pairs!.length))
@@ -784,6 +790,8 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'minimalPair') return !!q.pairA && !!q.pairB && !!q.correctPair
   if (langTp === 'flashcard') return !!q.back?.trim()
   if (langTp === 'pattern') return drillItems(q).length > 0
+  // Видео: проверяет плеер — засчитан просмотр или нет.
+  if (langTp === 'videoWatch') return !!q.videoUrl?.trim()
   // Обводка: проверяет сам холст — он и есть эталон, сверять нечего.
   if (langTp === 'trace') return !!q.chamo
   if (langTp === 'buildSyllable') return chamoOf(q.syllable ?? '').length >= 2
@@ -813,6 +821,7 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       if (!questionAutoGradable(q)) return false
       return matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
     }
+    if (langTp === 'videoWatch') return videoAnswerDone(ans, q.videoWatchSeconds)
     if (langTp === 'minimalPair') return ans === q.correctPair
     if (langTp === 'trace') return ans === 'done'
     if (langTp === 'buildSyllable') {
@@ -1443,6 +1452,14 @@ export default function HomeworkFlow({
         answer = formatMatching(question.pairs!, parseMatchingCsv(raw, question.pairs!.length))
       } else if (tp === 'minimalPair') {
         answer = (raw === 'B' ? question.pairB : raw === 'A' ? question.pairA : '') ?? ''
+      } else if (tp === 'videoWatch') {
+        // Ответ на видео — служебная строка плеера. Преподавателю нужен не
+        // «w=372;p=150», а сколько ученик реально отсмотрел.
+        const v = parseVideoAnswer(raw)
+        const need = videoRequiredSeconds(question.videoWatchSeconds, v.duration)
+        answer = v.watched > 0
+          ? `${formatClock(v.watched)}${need > 0 ? ` ${tStatic('из')} ${formatClock(need)}` : ''}`
+          : ''
       } else if (tp === 'pattern') {
         // Дрилл хранится JSON-картой «строка → что вписали»: преподавателю она
         // нечитаема, разворачиваем в те же строки, что видел ученик.
@@ -1468,6 +1485,11 @@ export default function HomeworkFlow({
         correct = (question.pairs ?? []).map(p => `${p.left} → ${p.right}`).join('; ')
       } else if (tp === 'pattern') {
         correct = drillItems(question).map(item => item.answer).join('; ')
+      } else if (tp === 'videoWatch') {
+        const need = videoRequiredSeconds(
+          question.videoWatchSeconds, parseVideoAnswer(raw).duration,
+        )
+        correct = need > 0 ? `${tStatic('нужно')} ${formatClock(need)}` : ''
       }
 
       const verdict: BasicAnswerVerdict =
@@ -2881,6 +2903,20 @@ export default function HomeworkFlow({
                         onChange={words => setFreeAnswer(question.id, joinWords(words))}
                       />
                     </div>
+
+                    /* Видео: ролик, серия, фильм. Ответ набирает плеер —
+                       засчитанный просмотр и есть выполненное задание. */
+                    ) : qType(question) === 'videoWatch' && question.videoUrl ? (
+                    <TaskVideo
+                      url={question.videoUrl}
+                      title={question.prompt}
+                      credit={question.videoCredit}
+                      startSeconds={question.videoStart}
+                      watchSeconds={question.videoWatchSeconds}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
 
                     /* Диктант: слушаешь и печатаешь. */
                     ) : qType(question) === 'listenType' ? (

@@ -10,6 +10,7 @@ import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import MatchingSolver, { matchingFromMap, matchingToMap } from './MatchingSolver'
 import AudioPlayer from './AudioPlayer'
+import TaskVideo from './TaskVideo'
 import { upsertLessonProgress } from '../lib/db'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
@@ -353,6 +354,22 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   <div style={{ paddingLeft: 36 }}>
                     <ChamoTrace
                       chamo={task.chamo}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* videoWatch — ролик прямо в тесте. Ответ набирает плеер:
+                    засчитанный просмотр и есть выполненное задание. */}
+                {tp === 'videoWatch' && task.videoUrl && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <TaskVideo
+                      url={task.videoUrl}
+                      title={task.question?.trim() || task.label || t('Видео')}
+                      credit={task.videoCredit}
+                      startSeconds={task.videoStart}
+                      watchSeconds={task.videoWatchSeconds}
                       value={(answers[task.id] as string) ?? undefined}
                       onChange={v => setAnswer(task.id, v)}
                     />
