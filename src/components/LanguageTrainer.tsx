@@ -54,6 +54,8 @@ import { hasEndings, verbByDict, KO_ENDINGS, KO_VERBS } from '../data/koreanEndi
 import { StemGrid, StemPage } from './trainer/EndingBuilder'
 import { hasHanjaRoots, hanjaRootById, HANJA_GROUPS, HANJA_ROOTS } from '../data/koreanHanja'
 import { RootGrid, RootPage } from './trainer/RootBuilder'
+import { hasNumbers, numberSetById, systemLabel, KO_NUMBER_SETS } from '../data/koreanNumbers'
+import { NumberGrid, NumberPage } from './trainer/NumberBuilder'
 import { TONE } from './trainer/blockKit'
 import {
   MyWordsSession, MyWordsTile, myWordsFrom, myWordsStats, MY_WORDS_ID, type MyWord,
@@ -118,7 +120,7 @@ type GuideView = 'story' | 'books'
  * корень-кирпич и его слова (одно знание, семь слов). Материал разный, движение
  * одно: слово разложено на плитки, и одна плитка ставится вручную.
  */
-type BlocksView = 'stems' | 'roots'
+type BlocksView = 'stems' | 'roots' | 'numbers'
 
 /**
  * Корзины длительности — общий фильтр чтения и аудирования.
@@ -333,7 +335,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   /** Переключение половин «Конструктора». Открытое при этом закрывается. */
   function switchBlocksView(v: BlocksView) {
     setBlocksView(v)
-    setOpenStemDict(null); setOpenRootKo(null)
+    setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null)
     setQuery('')
   }
 
@@ -504,14 +506,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // хуже отсутствующей (то же правило, что у сцен и созвучий).
   const stemsOn = useMemo(() => hasEndings(lang), [lang])
   const rootsOn = useMemo(() => hasHanjaRoots(lang), [lang])
-  const blocksOn = stemsOn || rootsOn
+  const numbersOn = useMemo(() => hasNumbers(lang), [lang])
+  const blocksOn = stemsOn || rootsOn || numbersOn
   const [blocksView, setBlocksView] = usePersistentState<BlocksView>(
     `trainer.${lang}.blocksView`, 'stems',
   )
   const [openStemDict, setOpenStemDict] = usePersistentState<string | null>(`trainer.${lang}.stem`, null)
   const [openRootKo, setOpenRootKo] = usePersistentState<string | null>(`trainer.${lang}.root`, null)
+  const [openNumId, setOpenNumId] = usePersistentState<string | null>(`trainer.${lang}.numbers`, null)
   const openStem = useMemo(() => (openStemDict ? verbByDict(openStemDict) ?? null : null), [openStemDict])
   const openRoot = useMemo(() => (openRootKo ? hanjaRootById(openRootKo) ?? null : null), [openRootKo])
+  const openNum = useMemo(() => (openNumId ? numberSetById(openNumId) ?? null : null), [openNumId])
   /** Полка корней: ханча раскладывается по смысловым группам. */
   const [rootGroup, setRootGroup] = usePersistentState<string>(`trainer.${lang}.rootGroup`, '')
   // Поиск идёт и по самим формам: ученик ищет «хочу» или «갔어요», а не «가다».
@@ -520,6 +525,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     if (!q) return KO_VERBS
     return KO_VERBS.filter(v =>
       `${v.dict} ${v.stem} ${v.reading} ${v.ru} ${Object.values(v.forms).map(x => `${x.form} ${x.ru}`).join(' ')}`
+        .toLowerCase().includes(q))
+  }, [query])
+  const visibleNums = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return KO_NUMBER_SETS
+    return KO_NUMBER_SETS.filter(set =>
+      `${set.title} ${set.when} ${set.rows.map(x => `${x.form} ${x.reading} ${x.ru}`).join(' ')}`
         .toLowerCase().includes(q))
   }, [query])
   const visibleRoots = useMemo(() => {
@@ -641,9 +653,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Та же защита для конструктора: восстановленная из sessionStorage половина
   // может оказаться ненаписанной для этого языка, а сам режим — отсутствующим.
   useEffect(() => {
-    if (blocksView === 'stems' && !stemsOn && rootsOn) setBlocksView('roots')
-    else if (blocksView === 'roots' && !rootsOn && stemsOn) setBlocksView('stems')
-  }, [blocksView, stemsOn, rootsOn, setBlocksView])
+    const on = { stems: stemsOn, roots: rootsOn, numbers: numbersOn }
+    if (on[blocksView]) return
+    const fallback = (['stems', 'roots', 'numbers'] as BlocksView[]).find(v => on[v])
+    if (fallback) setBlocksView(fallback)
+  }, [blocksView, stemsOn, rootsOn, numbersOn, setBlocksView])
   useEffect(() => {
     if (mode === 'blocks' && !blocksOn) setMode('reading')
   }, [mode, blocksOn, setMode])
@@ -1040,7 +1054,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     speaking: speakTotal,
     // Всё, что в режиме можно открыть: основы плюс корни. Обе таблицы лежат в
     // коде, поэтому цифра известна синхронно и не прыгает после загрузки.
-    blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0),
+    blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0)
+      + (numbersOn ? KO_NUMBER_SETS.length : 0),
     // Из синхронного реестра — чтобы бейдж стоял до того, как чанк поехал.
     grammar: grammarOn ? (GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[lang.split('-')[0]]) : undefined,
     // Главы рассказа плюс книги на полке. Книги известны синхронно, главы — нет
@@ -1054,7 +1069,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
-    : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')}`
+    : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')} · ${KO_NUMBER_SETS.length} ${t('наборов чисел')}`
     : mode === 'grammar' && gram ? `${gram.forms.length} ${t('форм')} · ${gram.forms.reduce((n, f) => n + f.examples.length, 0)} ${t('примеров')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
@@ -1343,12 +1358,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </>
       )}
 
-      {mode === 'blocks' && !openStem && !openRoot && (
+      {mode === 'blocks' && !openStem && !openRoot && !openNum && (
         <RailCard title="Что собираем" accent={palette.accent} icon={<Blocks size={15} />}>
           <RailSegment
             options={[
               ...(stemsOn ? [{ value: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
               ...(rootsOn ? [{ value: 'roots', label: 'Корни', badge: HANJA_ROOTS.length }] : []),
+              ...(numbersOn ? [{ value: 'numbers', label: 'Числа', badge: KO_NUMBER_SETS.length }] : []),
             ]}
             value={blocksView}
             onChange={v => v && switchBlocksView(v as BlocksView)}
@@ -1359,7 +1375,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {blocksView === 'stems'
               ? t('Глагол не спрягается по лицам: основа стоит, меняется хвост.')
-              : t('Слово китайского происхождения собрано из односложных кирпичей.')}
+              : blocksView === 'roots'
+              ? t('Слово китайского происхождения собрано из односложных кирпичей.')
+              : t('Рядов счёта два, и выбирает между ними не число, а то, что считают.')}
           </div>
         </RailCard>
       )}
@@ -1375,6 +1393,26 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 {e.block}
               </span>
               <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(e.label)}</span>
+            </div>
+          ))}
+        </RailCard>
+      )}
+
+      {/* Тот же приём, что и со справочником хвостов: правило выбора ряда нужно
+          и на витрине, и внутри набора, и посреди прогона. */}
+      {mode === 'blocks' && blocksView === 'numbers' && (
+        <RailCard title="Каким рядом" accent={palette.accent} icon={<Layers size={15} />}>
+          {KO_NUMBER_SETS.map(set => (
+            <div key={set.id} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+              <span style={{
+                fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
+                color: set.system === 'sino' ? 'var(--color-blue-pill-text)'
+                  : set.system === 'native' ? 'var(--color-peach-text)'
+                  : 'var(--color-purple-text)',
+              }}>
+                {t(systemLabel(set.system))}
+              </span>
+              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(set.when)}</span>
             </div>
           ))}
         </RailCard>
@@ -1599,15 +1637,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         )}
       </Toolbar>
     )
-  } else if (mode === 'blocks' && !openStem && !openRoot) {
+  } else if (mode === 'blocks' && !openStem && !openRoot && !openNum) {
     toolbar = (
       <Toolbar>
         <SearchPill value={query} onChange={setQuery}
-          placeholder={t(blocksView === 'stems' ? 'Найти форму или смысл…' : 'Найти слово или корень…')} />
+          placeholder={t(
+            blocksView === 'stems' ? 'Найти форму или смысл…'
+            : blocksView === 'roots' ? 'Найти слово или корень…'
+            : 'Найти число или ситуацию…')} />
         <ToolCount>
           {blocksView === 'stems'
             ? `${visibleStems.length} ${t('основ')}`
-            : `${visibleRoots.length} ${t('корней')}`}
+            : blocksView === 'roots'
+            ? `${visibleRoots.length} ${t('корней')}`
+            : `${visibleNums.length} ${t('наборов')}`}
         </ToolCount>
       </Toolbar>
     )
@@ -2072,8 +2115,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // и гнездо созвучий: плитка основы показывает счёт ровно так же.
     const intro = blocksView === 'stems'
       ? 'Одна основа и восемь хвостов. Хвост цепляется одинаково к любому глаголу, поэтому выучить нужно восемь хвостов, а не сорок форм.'
-      : 'Больше половины корейских слов собрано из односложных кирпичей. Один кирпич открывает сразу гнездо слов, а промахи прогона уходят в колоду повторений.'
-    const grid = blocksView === 'stems' ? (
+      : blocksView === 'roots'
+      ? 'Больше половины корейских слов собрано из односложных кирпичей. Один кирпич открывает сразу гнездо слов, а промахи прогона уходят в колоду повторений.'
+      : 'Рядов счёта два, и выбирают между ними не по числу, а по тому, что считают: людей и часы — исконным, деньги, минуты и даты — китайским. Наборы здесь и есть эти ситуации.'
+    const grid = blocksView === 'numbers' ? (
+      visibleNums.length === 0 ? (
+        <ShellEmpty text="Под поиск ничего не подошло." />
+      ) : (
+        <NumberGrid
+          sets={visibleNums}
+          results={id => resultFrom('number', id, results)}
+          accent={palette.accent}
+          soft={palette.soft}
+          onOpen={id => { setOpenNumId(id); setQuery('') }}
+        />
+      )
+    ) : blocksView === 'stems' ? (
       visibleStems.length === 0 ? (
         <ShellEmpty text="Под поиск ничего не подошло." />
       ) : (
@@ -2111,6 +2168,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           setKnownKey(k => k + 1)
         }}
         onBack={() => setOpenStemDict(null)}
+      />
+    ) : openNum ? (
+      <NumberPage
+        set={openNum}
+        lang={lang}
+        accent={palette.accent}
+        soft={palette.soft}
+        owner={owner}
+        subjectId={subjectId}
+        reading={phraseView.reading}
+        onFinished={(score, total) => {
+          saveResult('number', openNum.id, score, total)
+          setResultsKey(k => k + 1)
+          setKnownKey(k => k + 1)
+        }}
+        onBack={() => setOpenNumId(null)}
       />
     ) : openRoot ? (
       <RootPage

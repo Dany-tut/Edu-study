@@ -402,12 +402,16 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
                   d={guide.d}
                   fill="none"
                   stroke="var(--color-blue-fill)"
-                  strokeWidth={2.2}
+                  // Тонко и заметно тоньше самой черты: подсказка показывает
+                  // путь, а не изображает уже написанное. На толщине 2.2 линия
+                  // читалась как налитые чернила, и было непонятно, обведено уже
+                  // или нет.
+                  strokeWidth={1.7}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M -4 -4.6 L 4.2 0 L -4 4.6 Z"
+                  d="M -3.4 -3.9 L 3.6 0 L -3.4 3.9 Z"
                   fill="var(--color-blue-fill)"
                   transform={`translate(${guide.tip[0]} ${guide.tip[1]}) rotate(${guide.angle})`}
                 />

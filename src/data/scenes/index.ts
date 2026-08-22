@@ -1125,7 +1125,7 @@ const LOADERS: Record<string, Loader> = {
 export const SCENE_COUNTS: Record<string, number> = {
   en: 119,
   ja: 9,
-  ko: 49,
+  ko: 63,
   pt: 4,
 }
 
