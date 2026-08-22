@@ -813,14 +813,26 @@ export const PILL_GLASS = {
   WebkitBackdropFilter: 'blur(14px) saturate(180%)',
 } as const
 
+/**
+ * Цвет выбранной строки в меню, когда предмет не задан.
+ *
+ * Фиолетовый — «текущее / сейчас» бренда, а не цвет раздела. Он остаётся
+ * запасным вариантом для экранов вне предмета; там, где предмет есть, меню
+ * красится ЕГО палитрой: экран английского оранжевый целиком, и лиловая
+ * галочка в сортировке читается как деталь из другого приложения.
+ */
 const MENU_ACCENT = 'var(--color-purple-text)'
 const MENU_ACCENT_BG = 'var(--color-purple-soft)'
 
 /** Сортировка — выпадающий список, портал поверх всего. */
-export function SortMenu({ options, value, onChange }: {
+export function SortMenu({ options, value, onChange, accent, soft }: {
   options: { value: string; label: string }[]
   value: string
   onChange: (v: string) => void
+  /** Цвет выбранной строки — акцент предмета. Без него фиолетовый бренда. */
+  accent?: string
+  /** Заливка выбранной строки — мягкий тон предмета. */
+  soft?: string
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -828,6 +840,8 @@ export function SortMenu({ options, value, onChange }: {
   const btn = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
   const current = options.find(o => o.value === value) ?? options[0]
+  const tint = accent ?? MENU_ACCENT
+  const tintBg = soft ?? MENU_ACCENT_BG
 
   // Фон на время выбора стоит: меню висит фиксированной коробкой у кнопки, и
   // уехавшая под ним страница отрывала бы список от своего триггера.
@@ -897,11 +911,11 @@ export function SortMenu({ options, value, onChange }: {
                   <button
                     key={o.value}
                     onClick={() => { onChange(o.value); setOpen(false) }}
-                    style={dropdownRow(on, { accent: MENU_ACCENT, accentBg: MENU_ACCENT_BG })}
+                    style={dropdownRow(on, { accent: tint, accentBg: tintBg })}
                     {...dropdownRowHover(on)}
                   >
                     <span style={{ flex: 1 }}>{t(o.label)}</span>
-                    {on && <Check size={14} strokeWidth={2.5} style={{ color: MENU_ACCENT }} />}
+                    {on && <Check size={14} strokeWidth={2.5} style={{ color: tint }} />}
                   </button>
                 )
               })}

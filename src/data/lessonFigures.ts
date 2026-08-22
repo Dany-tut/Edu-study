@@ -278,7 +278,10 @@ export function formulaStrip(
     parts.push(
       `<rect x="${x}" y="${y0}" width="${cw}" height="${boxH}" rx="12" fill="${chunk.key ? ACCENT_SOFT : TILE}" stroke="${chunk.key ? ACCENT : INK}" stroke-width="1.4"/>` +
       `<text x="${x + cw / 2}" y="${y0 + 29}" text-anchor="middle" font-size="15" font-weight="700" fill="${chunk.key ? ACCENT : INK}">${esc(chunk.text)}</text>` +
-      (chunk.note ? `<text x="${x + cw / 2}" y="${y0 + boxH + 18}" text-anchor="middle" font-size="11" fill="${MUTED}">${esc(chunk.note)}</text>` : ''),
+      // Подпись ужимается под блок: ширина блока ограничена 160 px (см. boxW),
+      // а подпись рисуется от его середины в обе стороны — длинное пояснение
+      // вроде «부탁드립니다, 공유드립니다, 회신드리겠습니다» уезжало за край листа.
+      (chunk.note ? `<text x="${x + cw / 2}" y="${y0 + boxH + 18}" text-anchor="middle" font-size="${fitFs(chunk.note, cw + gap, 11, 7.5)}" fill="${MUTED}">${esc(chunk.note)}</text>` : ''),
     )
     if (i < chunks.length - 1) {
       parts.push(`<text x="${x + cw + gap / 2}" y="${y0 + 30}" text-anchor="middle" font-size="15" font-weight="700" fill="${MUTED}">+</text>`)

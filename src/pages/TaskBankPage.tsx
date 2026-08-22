@@ -2314,6 +2314,8 @@ export default function TaskBankPage() {
             options={SORT_OPTIONS.map(([value, label]) => ({ value, label }))}
             value={sortMode}
             onChange={v => setSortMode(v as SortMode)}
+            accent={palette.accent}
+            soft={palette.soft}
           />
 
           <button onClick={() => setShowFavOnly(f => !f)}

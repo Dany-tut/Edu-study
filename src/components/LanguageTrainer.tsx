@@ -1622,7 +1622,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           onChange={setStatus}
           accent={palette.accent}
         />
-        <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} />
+        <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} accent={palette.accent} soft={palette.soft} />
         <ToolCount>{t('Всего:')} {library.length}</ToolCount>
       </Toolbar>
     )
@@ -1698,7 +1698,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           onChange={setStatus}
           accent={palette.accent}
         />
-        <SortMenu options={SORTS_SETS} value={sort} onChange={setSort} />
+        <SortMenu options={SORTS_SETS} value={sort} onChange={setSort} accent={palette.accent} soft={palette.soft} />
         <ToolCount>
           {visibleThemes.reduce((n, x) => n + x.phrases.length, 0)} {t('фраз')} · {visibleThemes.length} {t('тем')}
         </ToolCount>
