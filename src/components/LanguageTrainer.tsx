@@ -1050,11 +1050,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // разные экраны, а прокрутка у страницы одна на всех. Пролистав ленту вниз и
   // нажав «Тексты», он попадал в середину нового списка. Ключ собран из всего,
   // что меняет содержимое справа; см. lib/useScreenTop.ts.
+  //
+  // ФИЛЬТРЫ ТОЖЕ. Нажатая пилюля («Вслух», уровень, полка, поиск) — это новая
+  // выборка, а не та же с пропусками: 167 карточек превращаются в 59, и место,
+  // где человек стоял, ни на что в новом списке не указывает. Поэтому сита
+  // сидят в том же ключе, что и режимы.
   useScreenTop([
     lang, mode, readingView, vocabView, blocksView, guideView,
     openTextId, openAudioId, openWorkId, openSceneId, openTheme,
     openNestId, openPackId, openStemDict, openRootKo, openNumId,
     openChapterId, openFormId, speakOpen ? '1' : '',
+    kindFilter, fLen, status, query, sort,
+    fLevel.join(','), fSkill.join(','), fTopic.join(','),
+    sceneShelf, scenePlatforms.join(','), sceneTags.join(','), sceneLevels.join(','),
+    shelf, packShelf, rootGroup, gChapter, gLevel,
   ].join('|'))
 
   const gramGroups = useMemo(() => {
