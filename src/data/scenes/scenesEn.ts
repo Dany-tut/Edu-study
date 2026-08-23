@@ -19893,4 +19893,644 @@ _(следующие четыре строки зачёркнуты так, чт
       },
     ],
   },
+
+  // ── Они оба умрут в конце, 4: как работает приложение ──────────────────────
+  {
+    id: 'sc-they-both-die-4',
+    workId: 'silvera-they-both-die',
+    lang: 'en', title: 'Как работает Last Friend', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В романе есть приложение, которое сводит двух незнакомых людей на один день. Ниже наш текст — экран знакомства с ним. Жанр удобный: интерфейсный английский короткий, кнопочный и очень предсказуемый, а выучив его один раз, вы читаете любое приложение.',
+    body: `LAST FRIEND — how it works
+
+1. We match you with one person. Not a list. One.
+2. You both have to accept. If either of you taps “not today”, nobody is told why.
+3. You choose where to meet. We suggest public places. We do not send your address anywhere, ever.
+4. There is no chat before you meet. This is on purpose. People who chat first do not turn up.
+
+Before you continue, please read:
+
+• We cannot check that anyone is who they say they are.
+• Meet in daylight. Tell one person where you are going.
+• You can end the day at any time. You do not owe anyone an explanation. Tap the red button and walk away.
+
+FREQUENTLY ASKED
+
+_What if we have nothing in common?_
+Most matches have nothing in common. That is not a bug. You are not looking for a friend of many years. You are looking for someone to spend today with.
+
+_Can I ask for a different person?_
+Once. After that, we stop matching you for 24 hours, because at that point the problem is probably not the matching.
+
+[ I understand — find my Last Friend ]     [ Not today ]`,
+    translation: `LAST FRIEND — как это работает
+
+1. Мы подбираем вам одного человека. Не список. Одного.
+2. Согласиться должны оба. Если кто-то нажмёт «не сегодня», второму не сообщают причину.
+3. Место встречи выбираете вы. Мы советуем людные места. Ваш адрес мы никуда не передаём — никогда.
+4. До встречи переписки нет. Это сделано намеренно. Те, кто сперва переписывается, не приходят.
+
+Прежде чем продолжить, прочитайте:
+
+• Мы не можем проверить, что человек — тот, за кого себя выдаёт.
+• Встречайтесь при свете дня. Скажите одному человеку, куда идёте.
+• Вы можете закончить день в любой момент. Вы никому ничего не должны объяснять. Нажмите красную кнопку и уходите.
+
+ЧАСТЫЕ ВОПРОСЫ
+
+_А если у нас нет ничего общего?_
+У большинства пар нет ничего общего. Это не сбой. Вы ищете не друга на много лет. Вы ищете, с кем провести сегодняшний день.
+
+_Можно попросить другого человека?_
+Один раз. После этого мы перестаём подбирать вам пару на 24 часа, потому что в этот момент дело, скорее всего, уже не в подборе.
+
+[ Понятно — найти Last Friend ]     [ Не сегодня ]`,
+    glossary: [
+      { term: 'to match sb with sb', ru: 'подбирать пару, сводить' },
+      { term: 'to accept', ru: 'принять, согласиться' },
+      { term: 'to tap', ru: 'нажать (по экрану)' },
+      { term: 'on purpose', ru: 'намеренно' },
+      { term: 'to turn up', ru: 'прийти, явиться' },
+      { term: 'in daylight', ru: 'при свете дня' },
+      { term: 'to owe sb an explanation', ru: 'быть обязанным объясниться' },
+      { term: 'bug', ru: 'сбой, ошибка в программе' },
+      { term: 'frequently asked questions', ru: 'частые вопросы' },
+    ],
+    questions: [
+      {
+        q: 'How many people are you matched with?',
+        options: ['A list of ten', 'One', 'As many as you like', 'Nobody until you pay'],
+        correct: 1,
+      },
+      {
+        q: 'Why is there no chat before meeting?',
+        options: [
+          'For safety',
+          'Because people who chat first do not turn up',
+          'To save data',
+          'It is a technical limit',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happens if you ask for a different person twice?',
+        options: [
+          'Nothing',
+          'Matching stops for 24 hours',
+          'The account is closed',
+          'You pay a fee',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the app admit it cannot do?',
+        options: [
+          'Find matches at night',
+          'Check that anyone is who they say they are',
+          'Work abroad',
+          'Send messages',
+        ],
+        correct: 1,
+        why: 'Приложение прямо называет, чего оно не гарантирует. Именно такие абзацы стоит уметь читать в любом сервисе — они всегда написаны просто и всегда самые важные.',
+      },
+    ],
+  },
+
+  // ── Скорее счастлив, чем нет, 4: анкета перед процедурой ───────────────────
+  {
+    id: 'sc-more-happy-4',
+    workId: 'silvera-more-happy',
+    lang: 'en', title: 'Анкета перед процедурой', level: 'B2', minutes: 4,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В романе существует клиника, которая стирает выбранные воспоминания. Ниже наш текст — предварительная анкета такой клиники. Жанр медицинского опросника полезен сам по себе, а здесь он ещё и делает всю работу за автора: вопросы страшнее любого описания.',
+    body: `LETEO INSTITUTE — PRE-PROCEDURE QUESTIONNAIRE (Form B)
+To be completed by the patient, alone, in one sitting. Do not discuss with family before completing.
+
+1. In your own words, what would you like removed? Be specific. “Everything about X” is not specific.
+
+2. How long ago did it occur? _____ years _____ months
+
+3. Who else was present? For each person, state whether they remain in your life.
+
+4. Is there anyone who would notice a change in you? List them.
+
+5. Have you attempted other methods first? Tick all that apply:
+□ counselling  □ moving away  □ changing work  □ not talking about it  □ talking about it constantly  □ none
+
+6. What do you expect to feel afterwards?
+
+7. What do you expect to do afterwards, on an ordinary Tuesday, at four in the afternoon?
+
+8. If the procedure removes more than requested — this occurs in a minority of cases and cannot be predicted — which of the following would you least want to lose? Rank 1–5.
+___ your childhood  ___ your languages  ___ your skills  ___ the people still living  ___ the reason you are here today
+
+9. Signature. By signing you confirm that you understand the following: the memory is removed, the consequences are not. Your life will still be the life that happened. You will simply no longer know why.
+
+_Do not sign today. Take this home. Come back on Thursday._`,
+    translation: `ИНСТИТУТ ЛЕТЕО — АНКЕТА ПЕРЕД ПРОЦЕДУРОЙ (форма Б)
+Заполняется пациентом, в одиночку, за один раз. До заполнения не обсуждать с семьёй.
+
+1. Своими словами: что вы хотели бы удалить? Как можно конкретнее. «Всё, что связано с Х» — недостаточно конкретно.
+
+2. Сколько времени назад это произошло? _____ лет _____ месяцев
+
+3. Кто ещё при этом присутствовал? По каждому укажите, остался ли он в вашей жизни.
+
+4. Есть ли те, кто заметит в вас перемену? Перечислите.
+
+5. Пробовали ли вы сначала другие способы? Отметьте всё подходящее:
+□ психотерапия □ переезд □ смена работы □ не говорить об этом □ говорить об этом постоянно □ ничего
+
+6. Что вы рассчитываете почувствовать после?
+
+7. Что вы рассчитываете делать после — в обычный вторник, в четыре часа дня?
+
+8. Если процедура удалит больше, чем запрошено (такое случается в меньшинстве случаев и не поддаётся предсказанию), что из перечисленного вы менее всего хотели бы потерять? Расставьте от 1 до 5.
+___ детство ___ владение языками ___ навыки ___ тех, кто ещё жив ___ причину, по которой вы сегодня здесь
+
+9. Подпись. Подписывая, вы подтверждаете, что понимаете следующее: удаляется воспоминание, а не последствия. Ваша жизнь останется той жизнью, которая произошла. Вы просто больше не будете знать почему.
+
+_Сегодня не подписывайте. Возьмите домой. Приходите в четверг._`,
+    glossary: [
+      { term: 'questionnaire', ru: 'анкета, опросник' },
+      { term: 'in one sitting', ru: 'за один раз, не прерываясь' },
+      { term: 'to occur', ru: 'происходить, случаться' },
+      { term: 'to be present', ru: 'присутствовать' },
+      { term: 'to tick all that apply', ru: 'отметить всё подходящее' },
+      { term: 'counselling', ru: 'психологическая помощь, консультирование' },
+      { term: 'to rank', ru: 'расставить по порядку значимости' },
+      { term: 'a minority of cases', ru: 'меньшинство случаев' },
+      { term: 'consequences', ru: 'последствия' },
+    ],
+    questions: [
+      {
+        q: 'Why does question 1 reject “everything about X”?',
+        options: [
+          'It is too long',
+          'Because it is not specific',
+          'It is against the rules',
+          'The form has no space',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is unusual about question 7?',
+        options: [
+          'It asks about feelings',
+          'It asks what an ordinary afternoon will look like afterwards',
+          'It asks about money',
+          'It repeats question 6',
+        ],
+        correct: 1,
+        why: 'Шестой вопрос — про чувства, седьмой — про обычный вторник в четыре. Второй куда труднее, и именно он проверяет, продумал ли человек последствия.',
+      },
+      {
+        q: 'What does the signature clause say is NOT removed?',
+        options: [
+          'The memory',
+          'The consequences',
+          'The paperwork',
+          'The fee',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the last line instruct?',
+        options: [
+          'To sign immediately',
+          'Not to sign today — take it home and come back Thursday',
+          'To bring a relative',
+          'To call the institute',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Что, если это мы, 4: объявление «ищу» ──────────────────────────────────
+  {
+    id: 'sc-what-if-4',
+    workId: 'silvera-albertalli-what-if',
+    lang: 'en', title: 'Ищу человека с коробкой', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сюжет романа держится на попытке найти человека, с которым столкнулся один раз. Ниже наш текст в жанре «missed connections» — рубрики объявлений, где ищут случайных встречных. Английский тут телеграфный, с приметами, и почти весь состоит из деталей.',
+    body: `MISSED CONNECTIONS — New York — posted 2 days ago
+
+To the guy with the cardboard box outside the post office on 8th, Tuesday around 4:30
+
+You had a box. The box had a hole in the bottom and you were holding it from underneath like it was a baby or a bomb. You were wearing a yellow jacket. There was a fire alarm and everyone came out onto the pavement and we stood next to each other for about six minutes.
+
+You said the thing about the pigeon. I laughed at the thing about the pigeon. Then the alarm stopped and everyone went back in and I went back in too, which I have thought about approximately nine hundred times since.
+
+I don’t know your name. I know that you were posting something you did not want to post, because you looked at the box the entire time and not at the post office.
+
+If this is you: what was in the box? If you tell me what was in the box I will know it’s you.
+
+If this is not you but you know him: I promise this is not weird. Or it is a normal amount of weird. It is the amount of weird that a person is allowed to be once.
+
+— the person who laughed at the pigeon thing`,
+    translation: `ПРОПУЩЕННЫЕ ВСТРЕЧИ — Нью-Йорк — опубликовано 2 дня назад
+
+Парню с картонной коробкой у почты на Восьмой, во вторник около 16:30
+
+У тебя была коробка. В коробке снизу была дыра, и ты держал её подхватом, как ребёнка или как бомбу. Ты был в жёлтой куртке. Сработала пожарная сигнализация, все вышли на тротуар, и мы простояли рядом минут шесть.
+
+Ты сказал про голубя. Я засмеялась про голубя. Потом сигнализация замолчала, все вернулись внутрь, и я тоже вернулась внутрь, — и с тех пор думала об этом примерно девятьсот раз.
+
+Я не знаю, как тебя зовут. Я знаю, что ты отправлял что-то, чего отправлять не хотел, потому что всё время смотрел на коробку, а не на почту.
+
+Если это ты: что было в коробке? Если ты скажешь, что было в коробке, я пойму, что это ты.
+
+Если это не ты, но ты его знаешь: обещаю, это не странно. Или это нормальное количество странности. Это то количество, которое человеку разрешается один раз.
+
+— та, что засмеялась про голубя`,
+    glossary: [
+      { term: 'missed connections', ru: 'рубрика объявлений «разминулись»' },
+      { term: 'cardboard box', ru: 'картонная коробка' },
+      { term: 'from underneath', ru: 'снизу, подхватом' },
+      { term: 'fire alarm', ru: 'пожарная сигнализация' },
+      { term: 'pavement', ru: 'тротуар' },
+      { term: 'approximately', ru: 'примерно' },
+      { term: 'to post sth', ru: 'отправить почтой (брит.); в США to mail' },
+      { term: 'weird', ru: 'странный' },
+      { term: 'a normal amount of weird', ru: 'нормальное количество странности' },
+    ],
+    questions: [
+      {
+        q: 'How long did they stand next to each other?',
+        options: ['A minute', 'About six minutes', 'Half an hour', 'All afternoon'],
+        correct: 1,
+      },
+      {
+        q: 'What is the test to prove it is really him?',
+        options: [
+          'His name',
+          'What was in the box',
+          'The colour of his jacket',
+          'The time of the alarm',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the writer know he did not want to post the parcel?',
+        options: [
+          'He said so',
+          'He looked at the box the whole time and not at the post office',
+          'He left without posting it',
+          'He asked her advice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does she head off the accusation of being strange?',
+        options: [
+          'By apologising',
+          'By calling it the amount of weird a person is allowed to be once',
+          'By hiding her name',
+          'By deleting the post',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── За нас, 4: заказ в кафе ────────────────────────────────────────────────
+  {
+    id: 'sc-heres-to-us-4',
+    workId: 'silvera-albertalli-heres-to-us',
+    lang: 'en', title: 'Заказ на двоих', level: 'B1', minutes: 3,
+    topic: 'Еда', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман про лето в Нью-Йорке, и половина его — заведения. Ниже наш текст: меню маленькой закусочной и заказ. Полезен он тем, что американский общепит устроен вокруг вопросов, которых в других странах не задают: как готовить, что вместо, что на сторону.',
+    body: `NICK’S — ALL DAY BREAKFAST
+
+Two eggs any style, toast, home fries ......... 8.50
+add: bacon 3 · avocado 3 · extra egg 2
+Pancakes, short stack (2) ......... 7 · tall (3) ......... 9
+Grilled cheese, side of soup ......... 9
+Coffee ......... 2.50 (refills free, we are not monsters)
+
+“What can I get you?”
+“Two eggs, please.”
+“Any style?”
+“…Sorry, what are the styles?”
+“Scrambled, fried, over easy, over hard, poached, sunny side up.”
+“What’s over easy?”
+“Fried, flipped, yolk still runny. Over hard is flipped and cooked through.”
+“Over easy, then. And the home fries.”
+“Toast? White, wheat, rye, sourdough.”
+“Sourdough.”
+“Butter on it or dry?”
+“Butter. Is this always this many questions?”
+“Only if you want it the way you want it. For you?”
+
+“Short stack, and can I get the bacon on the side instead of on top?”
+“You can.”
+“And two coffees.”
+“Refills are free.”
+“I know. That’s why we come here.”
+“That’s why everybody comes here. That and the fact that I remember what you had last time, which is either service or surveillance, depending on your mood.”`,
+    translation: `NICK’S — ЗАВТРАКИ ВЕСЬ ДЕНЬ
+
+Два яйца в любом виде, тост, домашняя картошка ......... 8,50
+добавить: бекон 3 · авокадо 3 · ещё яйцо 2
+Панкейки, малая стопка (2) ......... 7 · большая (3) ......... 9
+Горячий сэндвич с сыром, суп в довесок ......... 9
+Кофе ......... 2,50 (доливы бесплатно, мы не звери)
+
+— Что вам принести?
+— Два яйца, пожалуйста.
+— Как приготовить?
+— …Простите, а как можно?
+— Болтунья, жареные, over easy, over hard, пашот, глазунья.
+— А что такое over easy?
+— Жареные, перевёрнутые, желток ещё жидкий. Over hard — перевёрнутые и прожаренные насквозь.
+— Тогда over easy. И домашнюю картошку.
+— Тост? Белый, пшеничный, ржаной, на закваске.
+— На закваске.
+— С маслом или сухой?
+— С маслом. Здесь всегда столько вопросов?
+— Только если хотите так, как хотите. Вам?
+
+— Малую стопку, и можно бекон отдельно, а не сверху?
+— Можно.
+— И два кофе.
+— Доливы бесплатные.
+— Я знаю. Мы поэтому сюда и ходим.
+— Все поэтому сюда и ходят. И ещё потому, что я помню, что вы брали в прошлый раз, — а это либо сервис, либо слежка, смотря какое у вас настроение.`,
+    glossary: [
+      { term: 'any style', ru: 'в любом виде (о яйцах)' },
+      { term: 'scrambled', ru: 'болтунья' },
+      { term: 'over easy / over hard', ru: 'перевёрнутые с жидким / прожаренным желтком' },
+      { term: 'poached', ru: 'пашот' },
+      { term: 'sunny side up', ru: 'глазунья, не перевёрнутая' },
+      { term: 'home fries', ru: 'домашняя жареная картошка' },
+      { term: 'short stack', ru: 'малая стопка панкейков' },
+      { term: 'sourdough', ru: 'хлеб на закваске' },
+      { term: 'on the side', ru: 'отдельно, не сверху' },
+      { term: 'refill', ru: 'долив, добавка' },
+    ],
+    questions: [
+      {
+        q: 'What does “over easy” mean?',
+        options: [
+          'Not flipped, soft yolk',
+          'Flipped, yolk still runny',
+          'Flipped, cooked through',
+          'Boiled',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “on the side” mean in the order?',
+        options: ['Extra portion', 'Served separately, not on top', 'Half portion', 'To take away'],
+        correct: 1,
+      },
+      {
+        q: 'Why are there so many questions?',
+        options: [
+          'It is a rule',
+          'Only if you want it the way you want it',
+          'The waiter is new',
+          'To slow the queue',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the waiter’s joke at the end?',
+        options: [
+          'That the coffee is bad',
+          'That remembering the order is either service or surveillance',
+          'That refills cost money',
+          'That they come too often',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Сын бесконечности, 4: карточка существа ────────────────────────────────
+  {
+    id: 'sc-infinity-son-4',
+    workId: 'silvera-infinity-son',
+    lang: 'en', title: 'Карточка из бестиария', level: 'B2', minutes: 3,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В романе есть существа, силы которых люди себе присваивают, и справочный аппарат вокруг них — отдельное удовольствие. Ниже наш текст в жанре карточки бестиария: сухая справка, в которой самое интересное написано мелким шрифтом внизу.',
+    body: `SPECIMEN 14 — HALO CROWN PHOENIX
+Classification: celestial. Status: protected (Tier 1). Population, wild: 40–60.
+
+Description. Wingspan two to three metres. Plumage white to pale gold; the crown feathers hold light for several seconds after the source is removed, which is the origin of the common name. Weight is far lower than the size suggests — a full-grown adult is roughly as heavy as a large cat.
+
+Life cycle. Death by fire and return from the ashes occurs on average once every forty years, or sooner under stress. The returning bird is the same bird. This has been confirmed and is not a matter of belief.
+
+Range. Formerly across three continents. Now four known nesting sites, none of which are printed in this guide.
+
+Diet. Fruit, insects, and, in captivity, whatever is offered, which is one reason captivity is fatal to them within a decade.
+
+Legal note. Possession of a feather is an offence. Possession of the blood is a serious offence. The court has held that “I found it already shed” is not a defence, because the person who found it could not have known that, and neither can we.
+
+Field note, added by hand: “They are not rare because they are weak. They are rare because they are worth money. Write that down somewhere it will be read.”`,
+    translation: `ОБРАЗЕЦ 14 — ФЕНИКС С СИЯЮЩИМ ВЕНЦОМ
+Классификация: небесный. Статус: под охраной (уровень 1). Численность в природе: 40–60.
+
+Описание. Размах крыльев два-три метра. Оперение от белого до бледно-золотого; перья венца удерживают свет несколько секунд после того, как источник убран, — отсюда обиходное название. Вес намного меньше, чем можно предположить по размеру: взрослая птица весит примерно как крупная кошка.
+
+Жизненный цикл. Гибель в огне и возвращение из пепла происходят в среднем раз в сорок лет, при стрессе — чаще. Возвращающаяся птица — та же самая птица. Это подтверждено и не является предметом веры.
+
+Ареал. Прежде — на трёх континентах. Ныне известны четыре гнездовья, ни одно из которых в этом справочнике не печатается.
+
+Питание. Плоды, насекомые, а в неволе — всё, что дают; это одна из причин, по которым неволя убивает их в течение десяти лет.
+
+Правовая справка. Хранение пера является правонарушением. Хранение крови — тяжким правонарушением. Суд постановил, что «я нашёл его уже оброненным» не является оправданием, поскольку нашедший не мог этого знать — и мы не можем.
+
+Полевая пометка, сделанная от руки: «Они редки не потому, что слабы. Они редки потому, что стоят денег. Запишите это там, где прочтут».`,
+    glossary: [
+      { term: 'specimen', ru: 'образец, экземпляр' },
+      { term: 'wingspan', ru: 'размах крыльев' },
+      { term: 'plumage', ru: 'оперение' },
+      { term: 'crown feathers', ru: 'перья на голове, венец' },
+      { term: 'full-grown', ru: 'взрослый, полностью выросший' },
+      { term: 'ashes', ru: 'пепел' },
+      { term: 'nesting site', ru: 'гнездовье' },
+      { term: 'in captivity', ru: 'в неволе' },
+      { term: 'offence', ru: 'правонарушение' },
+      { term: 'to shed (a feather)', ru: 'ронять, сбрасывать перо' },
+      { term: 'defence', ru: 'здесь: оправдание в суде' },
+    ],
+    questions: [
+      {
+        q: 'Where does the common name come from?',
+        options: [
+          'The wingspan',
+          'The crown feathers hold light after the source is removed',
+          'The colour of the eggs',
+          'The nesting sites',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How often does the fire-and-return cycle occur?',
+        options: [
+          'Every year',
+          'On average every forty years, or sooner under stress',
+          'Once in a lifetime',
+          'It is unknown',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why are the nesting sites not printed?',
+        options: [
+          'They are unknown',
+          'To protect the birds from people',
+          'They change every year',
+          'The guide is out of date',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the point of the handwritten field note?',
+        options: [
+          'That the birds are weak',
+          'That they are rare because they are valuable — that is, because of people',
+          'That the guide is wrong about the diet',
+          'That the law is too strict',
+        ],
+        correct: 1,
+        why: 'Вся карточка написана нейтральным справочным языком, и только приписка от руки называет причину. Приём тот же, что у карточки библиотеки в «Центре моей вселенной».',
+      },
+    ],
+  },
+
+  // ── Уэнздей, 4: запись в общества ──────────────────────────────────────────
+  {
+    id: 'sc-wednesday-4',
+    workId: 'wednesday',
+    lang: 'en', title: 'Запись в общества', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Юмор сериала строится на том, что чудовищное описывают самым будничным канцелярским языком. Ниже наш текст в этом ключе: объявление о наборе в школьные общества и одна заявка, поданная героиней.',
+    body: `NEVERMORE ACADEMY — SOCIETIES FAIR, FRIDAY 4 P.M., GREAT HALL
+
+Beekeeping Society. Meets Sundays. All welcome. Please note that “all welcome” includes the bees, and that the bees have been informed.
+
+Fencing. Tuesdays and Fridays. Two places remain. Applicants must provide their own kit and their own reason.
+
+Choral Society. No audition required. There is, however, an audition.
+
+Poe Cup Committee. Meets when it must. Membership is by invitation and by survival of the previous year.
+
+Botanical Society. Wednesdays, greenhouse. We are aware of the name. Please stop asking.
+
+—— APPLICATION FORM ——
+
+Name: Wednesday Addams
+Year: transfer, second
+Society applied for: Botanical Society
+
+Reason for joining (one line):
+The greenhouse holds nineteen species that are lethal in domestic quantities and the school has classified it as an extracurricular activity. I would like to see the paperwork that made that possible.
+
+Previous relevant experience:
+Extensive. Unsupervised.
+
+Referee: none required, and none would agree.
+
+—— committee response ——
+Accepted. Please do not bring your own specimens. We say this to everyone. We mean it about you.`,
+    translation: `АКАДЕМИЯ «НЕВЕРМОР» — ЯРМАРКА ОБЩЕСТВ, ПЯТНИЦА, 16:00, БОЛЬШОЙ ЗАЛ
+
+Общество пчеловодства. Собирается по воскресеньям. Приглашаются все. Обращаем внимание, что «все» включает пчёл и что пчёлы поставлены в известность.
+
+Фехтование. Вторник и пятница. Осталось два места. Кандидаты должны иметь собственное снаряжение и собственную причину.
+
+Хоровое общество. Прослушивание не требуется. Прослушивание, впрочем, будет.
+
+Комитет Кубка По. Собирается по необходимости. Членство — по приглашению и по факту выживания в прошлом году.
+
+Ботаническое общество. Среда, оранжерея. О названии нам известно. Пожалуйста, перестаньте спрашивать.
+
+—— ЗАЯВЛЕНИЕ ——
+
+Имя: Уэнздей Аддамс
+Курс: перевод, второй
+Общество: Ботаническое
+
+Причина вступления (одна строка):
+В оранжерее содержится девятнадцать видов, смертельных в бытовых количествах, и школа отнесла это к внеклассной деятельности. Я хотела бы увидеть документы, сделавшие это возможным.
+
+Имеющийся опыт по профилю:
+Обширный. Без надзора.
+
+Поручитель: не требуется, и никто бы не согласился.
+
+—— ответ комитета ——
+Принята. Просим не приносить собственные образцы. Мы говорим это всем. В вашем случае мы это имеем в виду.`,
+    glossary: [
+      { term: 'society', ru: 'кружок, общество (в британской школе)' },
+      { term: 'to be informed', ru: 'быть поставленным в известность' },
+      { term: 'applicant', ru: 'кандидат, подающий заявку' },
+      { term: 'kit', ru: 'снаряжение, экипировка' },
+      { term: 'audition', ru: 'прослушивание' },
+      { term: 'by invitation', ru: 'по приглашению' },
+      { term: 'lethal', ru: 'смертельный' },
+      { term: 'extracurricular', ru: 'внеклассный' },
+      { term: 'paperwork', ru: 'документы, бумаги' },
+      { term: 'unsupervised', ru: 'без присмотра, без надзора' },
+      { term: 'referee', ru: 'поручитель, дающий рекомендацию' },
+    ],
+    questions: [
+      {
+        q: 'What is the joke about the Choral Society?',
+        options: [
+          'It has no members',
+          '“No audition required” is immediately followed by “there is an audition”',
+          'It meets at night',
+          'It sings badly',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does one join the Poe Cup Committee?',
+        options: [
+          'By application',
+          'By invitation and by surviving the previous year',
+          'By paying',
+          'Anyone may join',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is Wednesday’s stated reason for joining?',
+        options: [
+          'She likes plants',
+          'She wants to see the paperwork that classified lethal species as an extracurricular activity',
+          'Her friend joined',
+          'It meets on Wednesdays',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the effect of the committee’s reply?',
+        options: [
+          'It rejects her',
+          'It accepts her and quietly admits she is the reason for the rule',
+          'It asks for a referee',
+          'It postpones the decision',
+        ],
+        correct: 1,
+        why: '«Мы говорим это всем. В вашем случае мы это имеем в виду» — весь юмор сериала в одном предложении: канцелярская формула и признание под ней.',
+      },
+    ],
+  },
 ]

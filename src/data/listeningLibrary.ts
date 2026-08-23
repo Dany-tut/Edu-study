@@ -453,12 +453,194 @@ Turista: Valeu, obrigado!`,
   },
 ]
 
+
+// ─── Немецкий ────────────────────────────────────────────────────────────────
+//
+// Скрипты написаны нами и озвучиваются синтезом: объявления на вокзале и
+// автоответчики ведомств — именно то, что приезжий не понимает первым, потому
+// что там быстро, без пауз и с числами. Числа тут не случайно почти в каждой
+// записи: перевёрнутый порядок (einundzwanzig) на слух ломается первым.
+
+const DE_LISTEN: ListeningItem[] = [
+  {
+    id: 'de-l-bahnhof',
+    lang: 'de', title: 'Ansage am Bahnhof (объявление на вокзале)', level: 'A2',
+    topic: 'Путешествия', skill: 'Аудирование', minutes: 1,
+    script: `Achtung an Gleis sieben. Der Intercity-Express 1592 nach Hamburg Hauptbahnhof, planmäßige Abfahrt vierzehn Uhr zweiundzwanzig, hat heute etwa fünfzehn Minuten Verspätung. Grund dafür ist eine Verzögerung im Betriebsablauf. Der Zug fährt heute abweichend von Gleis neun ab. Wir bitten um Ihr Verständnis.`,
+    translation: `Внимание на седьмом пути. Поезд ICE 1592 до Гамбурга, отправление по расписанию в 14:22, сегодня опаздывает примерно на пятнадцать минут. Причина — задержка в движении. Сегодня поезд отправляется не с седьмого, а с девятого пути. Просим отнестись с пониманием.`,
+    glossary: [
+      { term: 'das Gleis', ru: 'путь (платформа)' },
+      { term: 'planmäßig', ru: 'по расписанию' },
+      { term: 'die Abfahrt', ru: 'отправление' },
+      { term: 'die Verspätung', ru: 'опоздание' },
+      { term: 'die Verzögerung im Betriebsablauf', ru: 'задержка в движении — фирменная формула Deutsche Bahn' },
+      { term: 'abweichend von', ru: 'в отличие от, не с обычного (пути)' },
+    ],
+    questions: [
+      {
+        q: 'Wohin fährt der Zug?',
+        options: ['Nach München', 'Nach Hamburg', 'Nach Köln', 'Nach Berlin'],
+        correct: 1,
+      },
+      {
+        q: 'Von welchem Gleis fährt der Zug heute ab?',
+        options: ['Gleis sieben', 'Gleis neun', 'Gleis zwei', 'Das wird nicht gesagt'],
+        correct: 1,
+        why: 'Именно это и есть смысл объявления: путь изменён, а сказано об этом в самом конце — как всегда.',
+      },
+      {
+        q: 'Wie viel Verspätung hat der Zug?',
+        options: ['Fünf Minuten', 'Fünfzehn Minuten', 'Fünfzig Minuten', 'Eine Stunde'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-l-anrufbeantworter',
+    lang: 'de', title: 'Anrufbeantworter des Bürgeramts (автоответчик ведомства)', level: 'B1',
+    topic: 'Ведомства и бумаги', skill: 'Аудирование', minutes: 2,
+    script: `Guten Tag und willkommen beim Bürgeramt Mitte. Unsere Öffnungszeiten sind montags und dienstags von acht bis fünfzehn Uhr, donnerstags von zehn bis achtzehn Uhr, mittwochs und freitags geschlossen. Termine vereinbaren Sie bitte online über unsere Internetseite. Wenn Sie Ihren Termin absagen möchten, drücken Sie die Eins. Für Fragen zur Anmeldung einer Wohnung drücken Sie die Zwei. Für alle anderen Anliegen bleiben Sie bitte in der Leitung. Die durchschnittliche Wartezeit beträgt derzeit acht Minuten.`,
+    translation: `Здравствуйте, вы позвонили в ведомство района Митте. Часы работы: понедельник и вторник с восьми до пятнадцати, четверг с десяти до восемнадцати, среда и пятница — закрыто. Запись на приём — через наш сайт. Если вы хотите отменить запись, нажмите единицу. По вопросам регистрации по месту жительства нажмите двойку. По всем остальным вопросам оставайтесь на линии. Среднее время ожидания сейчас — восемь минут.`,
+    glossary: [
+      { term: 'die Öffnungszeiten', ru: 'часы работы' },
+      { term: 'einen Termin vereinbaren', ru: 'договориться о приёме' },
+      { term: 'absagen', ru: 'отменить' },
+      { term: 'das Anliegen', ru: 'вопрос, обращение (ведомственное слово)' },
+      { term: 'in der Leitung bleiben', ru: 'оставаться на линии' },
+      { term: 'die Wartezeit', ru: 'время ожидания' },
+    ],
+    questions: [
+      {
+        q: 'An welchen Tagen ist das Amt geschlossen?',
+        options: ['Montag und Dienstag', 'Mittwoch und Freitag', 'Donnerstag', 'Nur am Wochenende'],
+        correct: 1,
+      },
+      {
+        q: 'Wie vereinbart man einen Termin?',
+        options: ['Am Telefon', 'Online über die Internetseite', 'Persönlich vor Ort', 'Per Brief'],
+        correct: 1,
+      },
+      {
+        q: 'Welche Taste drückt man für Fragen zur Anmeldung?',
+        options: ['Die Eins', 'Die Zwei', 'Die Drei', 'Keine'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-l-baeckerei',
+    lang: 'de', title: 'In der Bäckerei (в пекарне)', level: 'A1',
+    topic: 'Еда', skill: 'Аудирование', minutes: 1,
+    script: `— Der Nächste bitte!
+— Guten Morgen. Ich hätte gern vier Brötchen und ein Bauernbrot.
+— Geschnitten oder am Stück?
+— Geschnitten, bitte.
+— Sonst noch etwas?
+— Ja, einen Kaffee zum Mitnehmen.
+— Mit Milch?
+— Ohne, danke. Was macht das zusammen?
+— Sieben Euro achtzig.
+— Zahle ich mit Karte?
+— Bei uns leider nur bar.
+— Oh. Moment … acht Euro.
+— Und zwanzig Cent zurück. Einen schönen Tag noch!`,
+    translation: `— Следующий, пожалуйста!
+— Доброе утро. Мне четыре булочки и деревенский хлеб.
+— Нарезать или целиком?
+— Нарезать, пожалуйста.
+— Что-нибудь ещё?
+— Да, кофе с собой.
+— С молоком?
+— Без, спасибо. Сколько всего?
+— Семь евро восемьдесят.
+— Картой можно?
+— У нас, к сожалению, только наличные.
+— О. Секунду… восемь евро.
+— И двадцать центов сдачи. Хорошего дня!`,
+    glossary: [
+      { term: 'der Nächste bitte', ru: 'следующий, пожалуйста' },
+      { term: 'das Bauernbrot', ru: 'деревенский хлеб' },
+      { term: 'geschnitten / am Stück', ru: 'нарезанный / целым куском' },
+      { term: 'zum Mitnehmen', ru: 'с собой' },
+      { term: 'Was macht das?', ru: 'сколько с меня?' },
+      { term: 'nur bar', ru: 'только наличные' },
+    ],
+    questions: [
+      {
+        q: 'Was kauft der Kunde?',
+        options: ['Nur Kaffee', 'Vier Brötchen, ein Brot und einen Kaffee', 'Kuchen', 'Zwei Brote'],
+        correct: 1,
+      },
+      {
+        q: 'Warum zahlt der Kunde bar?',
+        options: ['Er hat keine Karte', 'Die Bäckerei nimmt nur Bargeld', 'Es ist billiger', 'Der Automat ist kaputt'],
+        correct: 1,
+        why: 'Nur Bargeld — обычная ситуация в маленьких немецких кафе и пекарнях.',
+      },
+      {
+        q: 'Wie viel Wechselgeld bekommt er?',
+        options: ['Achtzig Cent', 'Zwanzig Cent', 'Einen Euro', 'Nichts'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-l-nachbar',
+    lang: 'de', title: 'Der Nachbar an der Tür (сосед у двери)', level: 'B1',
+    topic: 'Аренда и Anmeldung', skill: 'Аудирование', minutes: 2,
+    script: `— Guten Abend. Entschuldigen Sie die Störung. Ich bin Ihr Nachbar von unten, Herr Kluge.
+— Guten Abend. Ist etwas passiert?
+— Nichts Schlimmes. Aber es ist kurz nach zweiundzwanzig Uhr, und bei Ihnen läuft die Waschmaschine. Wir hören das durch die Decke.
+— Oh. Das tut mir leid, das wusste ich nicht.
+— Ist kein Drama. Nach zweiundzwanzig Uhr ist eben Ruhezeit, so steht es in der Hausordnung. Bohren und Waschen dann bitte am nächsten Tag.
+— Verstehe. Ich stelle sie sofort ab. Und sonntags?
+— Sonntags am besten gar nicht. Da ist den ganzen Tag Ruhe.
+— Gut zu wissen. Danke, dass Sie es direkt sagen.
+— Immer besser als ein Zettel im Flur. Schönen Abend noch.`,
+    translation: `— Добрый вечер. Извините за беспокойство. Я ваш сосед снизу, господин Клуге.
+— Добрый вечер. Что-то случилось?
+— Ничего страшного. Но сейчас начало одиннадцатого, а у вас работает стиральная машина. Нам слышно через потолок.
+— О. Извините, я не знал.
+— Не драма. Просто после двадцати двух — тихие часы, так написано в правилах дома. Сверлить и стирать — на следующий день.
+— Понял. Сейчас же выключу. А по воскресеньям?
+— По воскресеньям лучше вообще нет. Там тишина весь день.
+— Хорошо, что сказали. Спасибо, что напрямую.
+— Всяко лучше записки в подъезде. Хорошего вечера.`,
+    glossary: [
+      { term: 'die Störung', ru: 'беспокойство, помеха' },
+      { term: 'durch die Decke', ru: 'через потолок' },
+      { term: 'die Hausordnung', ru: 'правила дома' },
+      { term: 'bohren', ru: 'сверлить' },
+      { term: 'abstellen', ru: 'выключить, отключить' },
+      { term: 'der Zettel', ru: 'записка' },
+    ],
+    questions: [
+      {
+        q: 'Warum kommt der Nachbar?',
+        options: ['Er braucht Hilfe', 'Wegen des Lärms nach 22 Uhr', 'Er bringt ein Paket', 'Er will sich vorstellen'],
+        correct: 1,
+      },
+      {
+        q: 'Was sagt der Nachbar über Sonntag?',
+        options: ['Sonntags ist alles erlaubt', 'Sonntags ist den ganzen Tag Ruhezeit', 'Sonntags nur bis Mittag', 'Darüber wird nicht gesprochen'],
+        correct: 1,
+      },
+      {
+        q: 'Wie ist der Ton des Gesprächs?',
+        options: ['Streit', 'Sachlich und freundlich', 'Drohend', 'Gleichgültig'],
+        correct: 1,
+        why: 'Немецкое замечание соседа звучит буднично и заканчивается пожеланием хорошего вечера — конфликта в этом нет.',
+      },
+    ],
+  },
+]
+
 // Основной объём материала лежит отдельным файлом: здесь остаются образцы
 // формата, там — библиотека, которая растёт. Импорт внизу, а не наверху, чтобы
 // файл читался как список материалов, а не как список зависимостей.
 import { LISTENING_EXTRA } from './listeningLibraryExtra'
 
-export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...MORE, ...LISTENING_EXTRA]
+export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...DE_LISTEN, ...MORE, ...LISTENING_EXTRA]
 
 /** Материалы нужного языка. */
 export function listeningForLang(lang: string): ListeningItem[] {

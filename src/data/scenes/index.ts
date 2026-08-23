@@ -1868,11 +1868,11 @@ const LOADERS: Record<string, Loader> = {
  * берётся уже из самого списка (см. LanguageTrainer).
  */
 export const SCENE_COUNTS: Record<string, number> = {
-  en: 188,
+  en: 220,
   ja: 32,
   ko: 80,
-  pt: 4,
   de: 7,
+  pt: 4,
 }
 
 /** Базовый код языка: pt-BR → pt. */
