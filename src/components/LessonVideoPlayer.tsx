@@ -89,6 +89,25 @@ export const PLAYER_MAX_W = `calc(${MAX_VH}vh * 16 / 9)`
 /** Предельная высота плеера — по ней равняется и панель таймкодов рядом. */
 export const PLAYER_MAX_H = `${MAX_VH}vh`
 
+/**
+ * Тач-экран. По нему прячем ползунок громкости: пальцем его не поймать, а
+ * громкость на телефоне и так железная — кнопками сбоку. Проверяем именно
+ * pointer, а не ширину: узкое окно на десктопе остаётся с мышью, и ползунок
+ * там нужен.
+ */
+function useCoarsePointer(): boolean {
+  const [coarse, setCoarse] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const onChange = (e: MediaQueryListEvent) => setCoarse(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return coarse
+}
+
 export interface LessonVideoHandle {
   /** Открыть плеер на этой секунде (или перемотать, если он уже играет). */
   playFrom(seconds: number): void
@@ -169,6 +188,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   { source, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
 ) {
   const t = useT()
+  const touch = useCoarsePointer()
 
   // Своих кнопок у чужой страницы быть не может — там нет API, чтобы они
   // работали. Такой источник показываем как раньше, голым iframe.
@@ -1122,13 +1142,11 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
               <button onClick={() => (paused ? doPlay() : doPause())} style={iconBtn()} aria-label={paused ? t('Продолжить') : t('Пауза')}>
                 {paused ? <Play size={19} fill="#fff" /> : <Pause size={19} fill="#fff" />}
               </button>
-              <button onClick={() => doSeek(current - 10)} style={iconBtn()} aria-label={t('Назад на 10 секунд')}>
-                <RotateCcw size={17} />
-              </button>
-              <button onClick={() => doSeek(current + 10)} style={iconBtn()} aria-label={t('Вперёд на 10 секунд')}>
-                <RotateCw size={17} />
-              </button>
-
+              {/* Кнопок «−10 / +10» в строке нет НАМЕРЕННО. У длинного ролика
+                  время занимает всю строку («5:41 / 1:26:56»), и первым из неё
+                  выдавливалось ускорение — а оно нужнее: перемотка живёт в
+                  жестах по кадру (двойной тап по краю, удержание), скорость же
+                  нажимается только отсюда. */}
               {/* Громкость: ползунок раскрывается при наведении на группу. */}
               <div className="flex items-center group" style={{ gap: 2 }}>
                 <button
@@ -1138,17 +1156,19 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                 >
                   {muted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
                 </button>
-                <input
-                  type="range" min={0} max={1} step={0.05}
-                  value={muted ? 0 : volume}
-                  onChange={e => {
-                    const v = Number(e.target.value)
-                    setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
-                  }}
-                  aria-label={t('Громкость')}
-                  className="video-volume"
-                  style={{ width: 72, accentColor: '#fff' }}
-                />
+                {!touch && (
+                  <input
+                    type="range" min={0} max={1} step={0.05}
+                    value={muted ? 0 : volume}
+                    onChange={e => {
+                      const v = Number(e.target.value)
+                      setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
+                    }}
+                    aria-label={t('Громкость')}
+                    className="video-volume"
+                    style={{ width: 72, accentColor: '#fff' }}
+                  />
+                )}
               </div>
 
               <span style={{ marginLeft: 8, fontSize: 12.5, fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
