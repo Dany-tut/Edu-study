@@ -878,14 +878,13 @@ input::-webkit-textfield-decoration-container {
    phones, floor interactive text inputs at 16px so focusing them never triggers
    the jarring auto-zoom. Desktop (fine pointer) is untouched. */
 @media (pointer: coarse) and (max-width: 1023px) {
+  /* !important, потому что почти все поля в проекте задают размер инлайном
+     (style={{ fontSize: 14 }}), а инлайн бьёт обычное правило таблицы стилей:
+     без !important поле ответа в домашке продолжало зумить страницу. */
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   textarea,
-  select {
-    font-size: 16px;
-  }
-  /* Inputs that set an inline font-size < 16px (e.g. the filter combobox search
-     fields) escape the rule above — inline styles win. Force them back to 16px
-     so tapping them never triggers iOS's focus auto-zoom. */
+  select,
+  [contenteditable="true"],
   .mobile-input-16 {
     font-size: 16px !important;
   }

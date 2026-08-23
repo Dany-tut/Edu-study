@@ -8,7 +8,7 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
-import { MOBILE_BOTTOM_SAFE } from '../lib/mobileTokens'
+import { useBottomSafe } from '../lib/bottomSafe'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -39,6 +39,8 @@ export default function MobileBottomNav() {
   // nav straight down out of view so it never crowds the field; it springs
   // back up when the keyboard dismisses.
   const kbOpen = useKeyboardInset() > 0
+  // Отступ снизу — разрешённое число, а не живой env(): см. lib/bottomSafe.ts.
+  const bottomSafe = useBottomSafe()
 
   // Badge: count lessons with status that implies pending homework (current / returned)
   const hwBadge = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
@@ -76,11 +78,10 @@ export default function MobileBottomNav() {
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
-      // Отступ снизу с потолком (MOBILE_BOTTOM_SAFE), а не сырой env(): на
-      // короткой странице, которая не листается, Safari кладёт в
-      // safe-area-inset-bottom ещё и свою нижнюю панель, и док уезжал вверх
-      // сильно выше домашней полосы.
-      style={{ paddingBottom: MOBILE_BOTTOM_SAFE, pointerEvents: kbOpen ? 'none' : 'auto' }}
+      // Отступ снизу — из useBottomSafe(), а не сырой env(): и Safari, и
+      // WKWebView какое-то время кладут в safe-area-inset-bottom свою нижнюю
+      // панель, и док висел выше домашней полосы, пока экран не прокрутят.
+      style={{ paddingBottom: bottomSafe, pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div
         className="mb-4 flex items-center justify-around px-2"

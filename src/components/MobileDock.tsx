@@ -4,7 +4,8 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
-import { TAP_SCALE, MOBILE_BOTTOM_SAFE } from '../lib/mobileTokens'
+import { TAP_SCALE } from '../lib/mobileTokens'
+import { useBottomSafe } from '../lib/bottomSafe'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ const glassBase: CSSProperties = {
 export default function MobileDock({ children }: { children: ReactNode }) {
   const collapsed = useSmoothCollapse()
   const kbOpen = useKeyboardInset() > 0
+  const bottomSafe = useBottomSafe()
   return (
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the
@@ -83,9 +85,9 @@ export default function MobileDock({ children }: { children: ReactNode }) {
       transition={COLLAPSE}
       style={{
         position: 'fixed', left: 0, right: 0,
-        // Тот же потолок, что у навигации: сырой env() на короткой странице
-        // включает нижнюю панель Safari и задирает док вверх.
-        bottom: MOBILE_BOTTOM_SAFE,
+        // То же разрешённое число, что у навигации (lib/bottomSafe.ts): сырой
+        // env() до первой прокрутки включает нижнюю панель и задирает док вверх.
+        bottom: bottomSafe,
         // Below the bottom nav (z-50) so the collapsing pill tucks UNDER it.
         zIndex: 40, display: 'flex', justifyContent: 'center',
         // Outer layer never intercepts taps — empty areas pass through to the
