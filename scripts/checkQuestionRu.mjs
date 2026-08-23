@@ -12,12 +12,20 @@
 // вопрос с переведённой формулировкой и одним непереведённым вариантом здесь
 // считается непереведённым — ученик увидит ровно это.
 //
+// ВТОРАЯ ПРОВЕРКА — ДУБЛИ КЛЮЧЕЙ. Словарь переводов это обычный объектный
+// литерал, и повторный ключ в нём не ошибка, а тихая замена: вторая запись
+// затирает первую, и один из двух переводов написан зря. Заметить это по
+// собранному объекту невозможно — там уже остался один ключ, — поэтому дубли
+// ищутся ПО ИСХОДНОМУ ТЕКСТУ файла, отдельно внутри каждого языкового блока.
+// Одинаковый ключ в разных языках дублем не считается: «No» по-английски и
+// «No» в португальском — разные слова.
+//
 // Запуск: npm run check:questions
 
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { dirname, join } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const { build } = await import('esbuild')
 const tmp = mkdtempSync(join(tmpdir(), 'qru-'))
@@ -74,11 +82,47 @@ for (const d of docs) {
   console.log()
 }
 
+// ─── Дубли ключей в самом словаре ────────────────────────────────────────────
+//
+// Ключи разбираются построчно: файл написан по одной записи в строке, и полный
+// разбор TypeScript здесь был бы дороже задачи. Строка, не похожая на запись
+// «'ключ': 'перевод',», просто пропускается — комментарии и переносы не мешают.
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const src = readFileSync(join(root, 'src/data/questionRu.ts'), 'utf8').split('\n')
+
+const LANG_OPEN = /^  ('?[\w-]+'?): \{$/
+const ENTRY = /^    ('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"): /
+
+let lang = null
+const seen = new Map()
+const dups = []
+for (const [i, line] of src.entries()) {
+  const open = line.match(LANG_OPEN)
+  if (open) { lang = open[1].replace(/'/g, ''); seen.set(lang, new Map()); continue }
+  if (line === '  },') { lang = null; continue }
+  if (!lang) continue
+  const entry = line.match(ENTRY)
+  if (!entry) continue
+  const key = entry[1]
+  const keys = seen.get(lang)
+  if (keys.has(key)) dups.push({ lang, key, first: keys.get(key), second: i + 1 })
+  else keys.set(key, i + 1)
+}
+
+for (const d of dups) {
+  bad++
+  console.log(`❌ ${d.lang}: ключ ${d.key} записан дважды — строки ${d.first} и ${d.second}`)
+  console.log('   Вторая запись затирает первую; оставить нужно одну.\n')
+}
+
 console.log('─'.repeat(60))
 for (const [lang, st] of Object.entries(perLang).sort()) {
   const done = st.total - st.holes
   const pct = st.total ? Math.round((done / st.total) * 100) : 100
   console.log(`${st.holes ? '❌' : '✅'} ${lang}: переведено ${done} из ${st.total} вопросов (${pct}%)`)
 }
+
+console.log(dups.length ? `❌ дублей ключей: ${dups.length}` : '✅ дублей ключей нет')
 
 process.exit(bad ? 1 : 0)
