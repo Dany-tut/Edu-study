@@ -12368,4 +12368,453 @@ Gania certainly did look dreadfully abashed. Colia rushed up to comfort the prin
       },
     ],
   },
+
+  // ── Фицджеральд «Великий Гэтсби», диван ────────────────────────────────────
+  {
+    id: 'sc-gatsby-2',
+    workId: 'fitzgerald-gatsby',
+    lang: 'en', title: 'Две женщины на диване', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 2, where: 'Глава 1, дом Бьюкененов', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'F. Scott Fitzgerald, The Great Gatsby · Project Gutenberg',
+    setup: 'Ник приезжает ужинать к Бьюкененам — к своей троюродной сестре Дэйзи и её мужу Тому. Дом на берегу, все окна распахнуты, и первое, что видит рассказчик, — комнату, в которой ветер шевелит всё, кроме одного предмета.',
+    after: 'Том закроет окна, комната замрёт, и вторая женщина окажется Джордан Бейкер — известной гольфисткой, о которой Ник что-то слышал, но не помнит что.',
+    body: `The only completely stationary object in the room was an enormous couch on which two young women were buoyed up as though upon an anchored balloon. They were both in white, and their dresses were rippling and fluttering as if they had just been blown back in after a short flight around the house. I must have stood for a few moments listening to the whip and snap of the curtains and the groan of a picture on the wall. Then there was a boom as Tom Buchanan shut the rear windows and the caught wind died out about the room, and the curtains and the rugs and the two young women ballooned slowly to the floor.
+
+The younger of the two was a stranger to me. She was extended full length at her end of the divan, completely motionless, and with her chin raised a little, as if she were balancing something on it which was quite likely to fall. If she saw me out of the corner of her eyes she gave no hint of it—indeed, I was almost surprised into murmuring an apology for having disturbed her by coming in.`,
+    translation: `Единственным совершенно неподвижным предметом в комнате был огромный диван, на котором, точно на пришвартованном воздушном шаре, парили две молодые женщины. Обе были в белом, и платья их зыбились и трепетали, будто их только что снесло обратно в дом после недолгого полёта вокруг него. Должно быть, я несколько мгновений простоял, слушая, как хлопают и щёлкают занавеси и постанывает картина на стене. Потом раздался гул: Том Бьюкенен затворил задние окна, пойманный ветер угас, и занавеси, ковры и обе молодые женщины медленно опустились на пол.
+
+Та, что моложе, была мне незнакома. Она лежала во весь рост на своём конце дивана, совершенно неподвижно, чуть приподняв подбородок, — будто удерживала на нём что-то, готовое вот-вот упасть. Если она и заметила меня краем глаза, то ничем этого не показала; я даже едва не пробормотал извинение за то, что помешал ей своим приходом.`,
+    glossary: [
+      { term: 'stationary', ru: 'неподвижный' },
+      { term: 'to buoy up', ru: 'держать на плаву, приподнимать' },
+      { term: 'anchored balloon', ru: 'привязанный аэростат' },
+      { term: 'to ripple', ru: 'струиться, идти волнами' },
+      { term: 'to flutter', ru: 'трепетать' },
+      { term: 'whip and snap', ru: 'хлопанье и щёлканье (о ткани)' },
+      { term: 'to groan', ru: 'постанывать, поскрипывать' },
+      { term: 'divan', ru: 'диван, кушетка' },
+      { term: 'out of the corner of one’s eyes', ru: 'краем глаза' },
+      { term: 'to murmur an apology', ru: 'пробормотать извинение' },
+    ],
+    questions: [
+      {
+        q: 'What was the only motionless thing in the room?',
+        options: ['A picture', 'An enormous couch', 'The curtains', 'A table'],
+        correct: 1,
+      },
+      {
+        q: 'What image does Fitzgerald use for the two women?',
+        options: [
+          'Statues',
+          'Two young women buoyed up as though upon an anchored balloon',
+          'Birds in a cage',
+          'Guests at a ball',
+        ],
+        correct: 1,
+        why: 'Весь абзац построен на одном образе — комната как воздушный шар. Женщины не сидят, а «парят», и опускаются на пол только когда закрывают окна.',
+      },
+      {
+        q: 'What ended the movement in the room?',
+        options: [
+          'The wind dropped',
+          'Tom Buchanan shut the rear windows',
+          'Daisy stood up',
+          'It began to rain',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How did the younger woman react to the narrator?',
+        options: [
+          'She greeted him',
+          'She gave no hint of having seen him',
+          'She stood up',
+          'She laughed',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Фицджеральд «Великий Гэтсби», вечеринка ────────────────────────────────
+  {
+    id: 'sc-gatsby-3',
+    workId: 'fitzgerald-gatsby',
+    lang: 'en', title: 'Пять ящиков апельсинов в неделю', level: 'C1', minutes: 8,
+    topic: 'Еда', skill: 'Чтение',
+    order: 3, where: 'Глава 3, начало', size: 'long', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'F. Scott Fitzgerald, The Great Gatsby · Project Gutenberg',
+    setup: 'Всё лето по ночам у соседа играет музыка. Ник ещё ни разу там не был и знает о хозяине только по слухам. Глава начинается описанием вечеринок — и это самое цитируемое место романа после финала.',
+    after: 'Ник получит письменное приглашение — единственный из всех, кто там бывал, — и придёт, чтобы обнаружить, что хозяина никто не видел в лицо.',
+    body: `There was music from my neighbour’s house through the summer nights. In his blue gardens men and girls came and went like moths among the whisperings and the champagne and the stars. At high tide in the afternoon I watched his guests diving from the tower of his raft, or taking the sun on the hot sand of his beach while his two motorboats slit the waters of the Sound, drawing aquaplanes over cataracts of foam. On weekends his Rolls-Royce became an omnibus, bearing parties to and from the city between nine in the morning and long past midnight, while his station wagon scampered like a brisk yellow bug to meet all trains. And on Mondays eight servants, including an extra gardener, toiled all day with mops and scrubbing-brushes and hammers and garden-shears, repairing the ravages of the night before.
+
+Every Friday five crates of oranges and lemons arrived from a fruiterer in New York—every Monday these same oranges and lemons left his back door in a pyramid of pulpless halves. There was a machine in the kitchen which could extract the juice of two hundred oranges in half an hour if a little button was pressed two hundred times by a butler’s thumb.
+
+At least once a fortnight a corps of caterers came down with several hundred feet of canvas and enough coloured lights to make a Christmas tree of Gatsby’s enormous garden. On buffet tables, garnished with glistening hors-d’oeuvre, spiced baked hams crowded against salads of harlequin designs and pastry pigs and turkeys bewitched to a dark gold. In the main hall a bar with a real brass rail was set up, and stocked with gins and liquors and with cordials so long forgotten that most of his female guests were too young to know one from another.
+
+By seven o’clock the orchestra has arrived, no thin five-piece affair, but a whole pitful of oboes and trombones and saxophones and viols and cornets and piccolos, and low and high drums. The last swimmers have come in from the beach now and are dressing upstairs; the cars from New York are parked five deep in the drive, and already the halls and salons and verandas are gaudy with primary colours, and hair bobbed in strange new ways, and shawls beyond the dreams of Castile. The bar is in full swing, and floating rounds of cocktails permeate the garden outside`,
+    translation: `Всё лето по ночам из соседского дома доносилась музыка. В его синих садах мужчины и девушки появлялись и исчезали, как мотыльки, среди шёпота, шампанского и звёзд. Днём, в прилив, я смотрел, как его гости ныряют с вышки его плота или загорают на горячем песке его пляжа, пока два его моторных катера режут воду пролива, волоча за собой аквапланы по водопадам пены. По выходным его «роллс-ройс» становился омнибусом и возил компании в город и обратно с девяти утра и далеко за полночь, а его фургон резвым жёлтым жуком сновал ко всем поездам. А по понедельникам восемь слуг, включая садовника, нанятого сверх штата, весь день трудились со швабрами, щётками, молотками и садовыми ножницами, устраняя разрушения минувшей ночи.
+
+Каждую пятницу от торговца фруктами из Нью-Йорка прибывало пять ящиков апельсинов и лимонов — и каждый понедельник те же апельсины и лимоны покидали его чёрный ход пирамидой выжатых половинок. На кухне стояла машина, способная выжать сок из двухсот апельсинов за полчаса, если большой палец дворецкого двести раз нажмёт на маленькую кнопку.
+
+Не реже раза в две недели являлся отряд поставщиков еды с несколькими сотнями футов парусины и таким количеством цветных фонариков, что огромный сад Гэтсби превращался в рождественскую ёлку. На столах, убранных блестящими закусками, пряные запечённые окорока теснились рядом с салатами арлекинных узоров, поросятами из теста и индейками, заколдованными в тёмное золото. В главном зале ставили бар с настоящей латунной подставкой для ног, и в нём водились джины, ликёры и такие давно забытые настойки, что большинство его гостий были слишком молоды, чтобы отличить одну от другой.
+
+К семи часам оркестр уже на месте — не жиденький состав из пяти человек, а целая яма гобоев, тромбонов, саксофонов, виол, корнетов, флейт-пикколо и барабанов, низких и высоких. Последние купальщики вернулись с пляжа и одеваются наверху; машины из Нью-Йорка стоят на подъездной дороге в пять рядов, а залы, гостиные и веранды уже пестрят основными цветами, стрижками невиданных фасонов и шалями, о каких в Кастилии и не мечтали. Бар работает вовсю, и плывущие подносы с коктейлями просачиваются в сад`,
+    glossary: [
+      { term: 'moth', ru: 'мотылёк' },
+      { term: 'at high tide', ru: 'в прилив' },
+      { term: 'raft', ru: 'плот' },
+      { term: 'the Sound', ru: 'пролив (здесь: Лонг-Айлендский)' },
+      { term: 'to scamper', ru: 'носиться, сновать' },
+      { term: 'to toil', ru: 'трудиться, вкалывать' },
+      { term: 'ravages', ru: 'разрушения, следы разгрома' },
+      { term: 'fruiterer', ru: 'торговец фруктами' },
+      { term: 'pulpless', ru: 'без мякоти, выжатый' },
+      { term: 'caterer', ru: 'поставщик еды на приём' },
+      { term: 'hors-d’oeuvre', ru: 'закуски' },
+      { term: 'in full swing', ru: 'вовсю, полным ходом' },
+    ],
+    questions: [
+      {
+        q: 'What happens to the oranges and lemons?',
+        options: [
+          'They are eaten whole',
+          'They arrive on Friday and leave on Monday as pulpless halves',
+          'They are given to the servants',
+          'They are sold in the city',
+        ],
+        correct: 1,
+        why: 'Фицджеральд описывает праздник не через веселье, а через логистику: сколько привезли, сколько вывезли, сколько человек убирало. Оценка возникает у читателя сама.',
+      },
+      {
+        q: 'How many servants worked on Mondays?',
+        options: ['Two', 'Five', 'Eight, including an extra gardener', 'Twenty'],
+        correct: 2,
+      },
+      {
+        q: 'What is said about the orchestra?',
+        options: [
+          'It was a thin five-piece affair',
+          'It was a whole pitful of instruments',
+          'There was no orchestra',
+          'It played only at midnight',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What tense does the last paragraph switch to?',
+        options: [
+          'Past simple',
+          'Present tense — the scene starts happening now',
+          'Future',
+          'It does not change',
+        ],
+        correct: 1,
+        why: 'До этого — прошедшее время и «каждую пятницу»; с семи вечера Фицджеральд переходит на настоящее, и вечеринка перестаёт быть воспоминанием.',
+      },
+    ],
+  },
+
+  // ── Фицджеральд «Великий Гэтсби», финал ────────────────────────────────────
+  {
+    id: 'sc-gatsby-4',
+    workId: 'fitzgerald-gatsby',
+    lang: 'en', title: 'Лодки против течения', level: 'C1', minutes: 2,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Глава 9, последние строки', size: 'flash', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'F. Scott Fitzgerald, The Great Gatsby · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это последние строки романа. Ник в последний вечер перед отъездом лежит на пустом пляже у брошенного дома и думает про зелёный огонёк на причале Дэйзи — тот самый, к которому Гэтсби тянул руку в конце первой главы.',
+    after: 'Этими двумя предложениями кончается книга. Их знают наизусть, и они выбиты на надгробии Фицджеральда.',
+    body: `Gatsby believed in the green light, the orgiastic future that year by year recedes before us. It eluded us then, but that’s no matter—tomorrow we will run faster, stretch out our arms further … And one fine morning—
+
+So we beat on, boats against the current, borne back ceaselessly into the past.`,
+    translation: `Гэтсби верил в зелёный огонёк, в упоительное будущее, которое год за годом отступает от нас. Тогда оно ускользнуло, но это неважно — завтра мы побежим быстрее, вытянем руки дальше… И в одно прекрасное утро —
+
+Так мы и бьёмся, лодки против течения, и нас безостановочно сносит назад, в прошлое.`,
+    glossary: [
+      { term: 'orgiastic', ru: 'упоительный, исступлённый' },
+      { term: 'to recede', ru: 'отступать, отодвигаться' },
+      { term: 'to elude', ru: 'ускользать' },
+      { term: 'that’s no matter', ru: 'это неважно' },
+      { term: 'to stretch out one’s arms', ru: 'вытянуть руки' },
+      { term: 'to beat on', ru: 'здесь: продолжать грести, биться дальше' },
+      { term: 'current', ru: 'течение' },
+      { term: 'borne (from bear)', ru: 'несомый, уносимый' },
+      { term: 'ceaselessly', ru: 'безостановочно' },
+    ],
+    questions: [
+      {
+        q: 'What did Gatsby believe in?',
+        options: ['Money', 'The green light and the future it promised', 'Tom', 'The war'],
+        correct: 1,
+      },
+      {
+        q: 'What happens to that future, according to the narrator?',
+        options: [
+          'It arrives',
+          'It recedes before us year by year',
+          'It is destroyed',
+          'It repeats',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the sentence “And one fine morning—” break off?',
+        options: [
+          'It is a printing error',
+          'The promise is never completed — the dash is the point',
+          'The next chapter continues it',
+          'Nick is interrupted',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the direction of movement in the last line?',
+        options: [
+          'Forward, into the future',
+          'Forward in effort, backward in fact',
+          'Nowhere',
+          'Downward',
+        ],
+        correct: 1,
+        why: 'Грамматика делает ровно то, о чём книга: активное «we beat on» и пассивное «borne back» в одном предложении. Плывём вперёд — сносит назад.',
+      },
+    ],
+  },
+
+  // ── Уайльд «Портрет Дориана Грея», желание ─────────────────────────────────
+  {
+    id: 'sc-dorian-2',
+    workId: 'wilde-dorian',
+    lang: 'en', title: 'Я отдал бы душу за это', level: 'C1', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 2, where: 'Глава 2, мастерская', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Oscar Wilde, The Picture of Dorian Gray · Project Gutenberg',
+    setup: 'Портрет закончен. Лорд Генри только что впервые в жизни объяснил Дориану, что тот молод и красив — и что это ненадолго. Дориан смотрит на собственное изображение и впервые понимает, что оно переживёт его.',
+    after: 'Лорд Генри отшутится, Бэзил предложит уничтожить холст, и никто не заметит, что желание было высказано вслух. Заметят через восемнадцать лет.',
+    body: `As he thought of it, a sharp pang of pain struck through him like a knife and made each delicate fibre of his nature quiver. His eyes deepened into amethyst, and across them came a mist of tears. He felt as if a hand of ice had been laid upon his heart.
+
+“Don’t you like it?” cried Hallward at last, stung a little by the lad’s silence, not understanding what it meant.
+
+“Of course he likes it,” said Lord Henry. “Who wouldn’t like it? It is one of the greatest things in modern art. I will give you anything you like to ask for it. I must have it.”
+
+“It is not my property, Harry.”
+
+“Whose property is it?”
+
+“Dorian’s, of course,” answered the painter.
+
+“He is a very lucky fellow.”
+
+“How sad it is!” murmured Dorian Gray with his eyes still fixed upon his own portrait. “How sad it is! I shall grow old, and horrible, and dreadful. But this picture will remain always young. It will never be older than this particular day of June.... If it were only the other way! If it were I who was to be always young, and the picture that was to grow old! For that—for that—I would give everything! Yes, there is nothing in the whole world I would not give! I would give my soul for that!”`,
+    translation: `При этой мысли острая боль пронзила его, как нож, и заставила задрожать каждую тонкую жилку его существа. Глаза его потемнели до аметистового, и по ним прошла пелена слёз. Он почувствовал, будто ему на сердце легла ледяная рука.
+
+— Вам разве не нравится? — воскликнул наконец Холлуорд, слегка задетый молчанием юноши и не понимая, что оно означает.
+
+— Конечно нравится, — сказал лорд Генри. — Кому бы не понравилось? Это одна из величайших вещей современного искусства. Я дам вам за неё всё, что вы попросите. Я должен её иметь.
+
+— Она не моя, Гарри.
+
+— А чья же?
+
+— Дориана, разумеется, — ответил художник.
+
+— Везучий малый.
+
+— Как это грустно! — пробормотал Дориан Грей, всё ещё не сводя глаз с собственного портрета. — Как это грустно! Я состарюсь, стану отвратительным, ужасным. А эта картина навсегда останется молодой. Она никогда не станет старше вот этого июньского дня… Если бы только было наоборот! Если бы вечно молодым оставался я, а старела картина! За это — за это — я отдал бы всё! Да, нет на свете ничего, чего я не отдал бы! Я отдал бы за это душу!`,
+    glossary: [
+      { term: 'pang of pain', ru: 'приступ боли' },
+      { term: 'to quiver', ru: 'дрожать, трепетать' },
+      { term: 'amethyst', ru: 'аметистовый' },
+      { term: 'a mist of tears', ru: 'пелена слёз' },
+      { term: 'to sting', ru: 'здесь: задеть, уколоть' },
+      { term: 'property', ru: 'собственность' },
+      { term: 'to murmur', ru: 'пробормотать' },
+      { term: 'the other way', ru: 'наоборот' },
+      { term: 'to give one’s soul', ru: 'отдать душу' },
+    ],
+    questions: [
+      {
+        q: 'Why does Dorian feel pain?',
+        options: [
+          'He dislikes the portrait',
+          'He has understood that he will grow old and the picture will not',
+          'Basil offended him',
+          'He is ill',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Whose property is the picture?',
+        options: ['Basil’s', 'Lord Henry’s', 'Dorian’s', 'Nobody’s'],
+        correct: 2,
+      },
+      {
+        q: 'What exactly does Dorian wish for?',
+        options: [
+          'To be rich',
+          'That he should stay young and the picture grow old',
+          'That the picture be destroyed',
+          'To be a painter',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How do the other two react to the wish?',
+        options: [
+          'They are frightened',
+          'They treat it as an ordinary remark',
+          'They laugh at him',
+          'They leave the room',
+        ],
+        correct: 1,
+        why: 'Уайльд не отмечает этот момент ничем: ни грома, ни знака. Сделка совершается посреди светской болтовни, и в этом её ужас.',
+      },
+    ],
+  },
+
+  // ── Уайльд «Портрет Дориана Грея», первая перемена ─────────────────────────
+  {
+    id: 'sc-dorian-3',
+    workId: 'wilde-dorian',
+    lang: 'en', title: 'Складка жестокости у рта', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Глава 7, на рассвете', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Oscar Wilde, The Picture of Dorian Gray · Project Gutenberg',
+    setup: 'Ночью Дориан жестоко порвал с Сибилой Вейн — актрисой, в которую был влюблён, — и бросил ей в лицо, что без её таланта она ему не нужна. Он вернулся домой на рассвете и по дороге в спальню задел взглядом свой портрет.',
+    after: 'Он напишет Сибиле письмо с раскаянием, но получит известие, что она мертва. Лорд Генри объяснит ему, что горевать пошло, и Дориан согласится.',
+    body: `As he was turning the handle of the door, his eye fell upon the portrait Basil Hallward had painted of him. He started back as if in surprise. Then he went on into his own room, looking somewhat puzzled. After he had taken the button-hole out of his coat, he seemed to hesitate. Finally, he came back, went over to the picture, and examined it. In the dim arrested light that struggled through the cream-coloured silk blinds, the face appeared to him to be a little changed. The expression looked different. One would have said that there was a touch of cruelty in the mouth. It was certainly strange.
+
+He turned round and, walking to the window, drew up the blind. The bright dawn flooded the room and swept the fantastic shadows into dusky corners, where they lay shuddering. But the strange expression that he had noticed in the face of the portrait seemed to linger there, to be more intensified even. The quivering ardent sunlight showed him the lines of cruelty round the mouth as clearly as if he had been looking into a mirror after he had done some dreadful thing.`,
+    translation: `Уже поворачивая ручку двери, он задел взглядом портрет, написанный с него Бэзилом Холлуордом. Он отшатнулся, будто в изумлении. Потом прошёл к себе в комнату с несколько озадаченным видом. Вынув из петлицы цветок, он словно бы заколебался. В конце концов вернулся, подошёл к картине и стал её рассматривать. В скудном свете, пробивавшемся сквозь кремовые шёлковые шторы, лицо показалось ему слегка изменившимся. Выражение стало другим. Можно было сказать, что у рта появилась складка жестокости. Это было по меньшей мере странно.
+
+Он отвернулся, подошёл к окну и поднял штору. Яркий рассвет залил комнату и смёл причудливые тени в тёмные углы, где они и залегли, вздрагивая. Но странное выражение, замеченное им на лице портрета, никуда не делось — оно даже как будто усилилось. Дрожащий жаркий солнечный свет показал ему складки жестокости у рта так же ясно, как если бы он смотрелся в зеркало после того, как совершил что-то страшное.`,
+    glossary: [
+      { term: 'to turn the handle', ru: 'повернуть дверную ручку' },
+      { term: 'one’s eye falls upon sth', ru: 'взгляд падает на что-то' },
+      { term: 'to start back', ru: 'отшатнуться' },
+      { term: 'button-hole', ru: 'цветок в петлице' },
+      { term: 'blind (n.)', ru: 'штора, жалюзи' },
+      { term: 'a touch of cruelty', ru: 'оттенок, складка жестокости' },
+      { term: 'to shudder', ru: 'вздрагивать' },
+      { term: 'ardent', ru: 'жаркий, пылкий' },
+      { term: 'to wince', ru: 'поморщиться, дёрнуться' },
+    ],
+    questions: [
+      {
+        q: 'When does this scene take place?',
+        options: ['At midnight', 'At dawn', 'At noon', 'In the evening'],
+        correct: 1,
+      },
+      {
+        q: 'What did Dorian notice in the portrait?',
+        options: [
+          'A crack in the canvas',
+          'A touch of cruelty round the mouth',
+          'That it had been moved',
+          'That it was darker',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happened when he let the daylight in?',
+        options: [
+          'The expression disappeared',
+          'It seemed even more intensified',
+          'The picture fell',
+          'He saw nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What comparison does Wilde use for the sunlight?',
+        options: [
+          'Like a candle',
+          'Like looking into a mirror after doing something dreadful',
+          'Like a stage light',
+          'Like fire',
+        ],
+        correct: 1,
+        why: 'Портрет здесь ещё не чудо, а зеркало: он показывает не будущее, а то, что Дориан только что сделал.',
+      },
+    ],
+  },
+
+  // ── Уайльд «Портрет Дориана Грея», финал ───────────────────────────────────
+  {
+    id: 'sc-dorian-4',
+    workId: 'wilde-dorian',
+    lang: 'en', title: 'Он ударил ножом картину', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Глава 20, финал', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Oscar Wilde, The Picture of Dorian Gray · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это финал. Прошло восемнадцать лет. Дориан не постарел ни на день; портрет наверху сделался чудовищным. Бэзил Холлуорд, увидевший его, убит тем же самым ножом. Дориан решает, что уничтожит последнего свидетеля.',
+    after: 'Слуги поднимутся наверх и найдут портрет прежним — прекрасным юношей, — а на полу мёртвого старика, которого узнают только по кольцам на руках.',
+    body: `He looked round and saw the knife that had stabbed Basil Hallward. He had cleaned it many times, till there was no stain left upon it. It was bright, and glistened. As it had killed the painter, so it would kill the painter’s work, and all that that meant. It would kill the past, and when that was dead, he would be free. It would kill this monstrous soul-life, and without its hideous warnings, he would be at peace. He seized the thing, and stabbed the picture with it.
+
+There was a cry heard, and a crash. The cry was so horrible in its agony that the frightened servants woke and crept out of their rooms. Two gentlemen, who were passing in the square below, stopped and looked up at the great house. They walked on till they met a policeman and brought him back. The man rang the bell several times, but there was no answer. Except for a light in one of the top windows, the house was all dark.`,
+    translation: `Он огляделся и увидел нож, которым был убит Бэзил Холлуорд. Он много раз его чистил, и на лезвии не осталось ни пятнышка. Нож был светел и блестел. Как он убил художника, так убьёт и работу художника, и всё, что она значит. Он убьёт прошлое, а когда прошлое умрёт, Дориан будет свободен. Он убьёт эту чудовищную жизнь души, и без её отвратительных предостережений настанет покой. Дориан схватил нож и ударил им картину.
+
+Раздался крик и грохот. Крик был так ужасен в своей муке, что перепуганные слуги проснулись и выбрались из своих комнат. Двое господ, проходивших внизу по площади, остановились и посмотрели на большой дом. Они пошли дальше, пока не встретили полицейского, и привели его обратно. Тот несколько раз позвонил, но никто не ответил. Если не считать света в одном из верхних окон, дом был совершенно тёмен.`,
+    glossary: [
+      { term: 'to stab', ru: 'ударить ножом, заколоть' },
+      { term: 'stain', ru: 'пятно' },
+      { term: 'to glisten', ru: 'блестеть' },
+      { term: 'monstrous', ru: 'чудовищный' },
+      { term: 'hideous', ru: 'отвратительный' },
+      { term: 'warning', ru: 'предостережение' },
+      { term: 'to seize', ru: 'схватить' },
+      { term: 'agony', ru: 'мука, агония' },
+      { term: 'half-clad', ru: 'полуодетый' },
+    ],
+    questions: [
+      {
+        q: 'What weapon does Dorian use?',
+        options: [
+          'A new knife',
+          'The same knife that killed Basil Hallward',
+          'A pistol',
+          'Fire',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does he think destroying the picture will do?',
+        options: [
+          'Restore his youth',
+          'Kill the past and set him free',
+          'Bring Basil back',
+          'Make him rich',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did the passers-by do?',
+        options: [
+          'They entered the house',
+          'They fetched a policeman',
+          'They ran away',
+          'They called for a doctor',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Wilde describes the death from outside the house. Why is that effective?',
+        options: [
+          'It saves space',
+          'The reader hears only a cry and a crash, and must work out what happened',
+          'It is a mistake',
+          'The narrator was not present',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

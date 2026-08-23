@@ -327,11 +327,34 @@ export function byDay(items: FeedItem[]): { date: string; items: FeedItem[] }[] 
 
 type Loader = () => Promise<FeedItem[]>
 
+/**
+ * ДВА ФАЙЛА НА ЯЗЫК, И ЭТО НЕ ИЗБЫТОЧНОСТЬ.
+ *
+ * feed<Lang> — РУЧНОЙ: материалы с переводом целиком и разбором, их писал
+ * человек. auto<Lang> — МАШИННЫЙ: его целиком перезаписывает `npm run
+ * build:feed` при каждом прогоне. Будь файл один, первая же автосборка стёрла
+ * бы ручную работу, а слияние двух источников в один файл — это код, который
+ * однажды ошибётся молча и потеряет чужой труд.
+ *
+ * Для ленты разницы нет: оба списка склеиваются и сортируются по дате.
+ */
 const LOADERS: Record<string, Loader> = {
-  en: () => import('./feedEn').then(m => m.EN_FEED),
-  ja: () => import('./feedJa').then(m => m.JA_FEED),
-  ko: () => import('./feedKo').then(m => m.KO_FEED),
-  pt: () => import('./feedPt').then(m => m.PT_FEED),
+  en: () => Promise.all([
+    import('./feedEn').then(m => m.EN_FEED),
+    import('./autoEn').then(m => m.EN_AUTO),
+  ]).then(x => x.flat()),
+  ja: () => Promise.all([
+    import('./feedJa').then(m => m.JA_FEED),
+    import('./autoJa').then(m => m.JA_AUTO),
+  ]).then(x => x.flat()),
+  ko: () => Promise.all([
+    import('./feedKo').then(m => m.KO_FEED),
+    import('./autoKo').then(m => m.KO_AUTO),
+  ]).then(x => x.flat()),
+  pt: () => Promise.all([
+    import('./feedPt').then(m => m.PT_FEED),
+    import('./autoPt').then(m => m.PT_AUTO),
+  ]).then(x => x.flat()),
 }
 
 /**
@@ -344,10 +367,10 @@ const LOADERS: Record<string, Loader> = {
  * плюс loadFeed ругается в консоль, если приехал список другой длины.
  */
 export const FEED_COUNTS: Record<string, number> = {
-  en: 4,
-  ja: 4,
-  ko: 5,
-  pt: 3,
+  en: 22,
+  ja: 11,
+  ko: 11,
+  pt: 12,
 }
 
 /** Есть ли для языка лента. Синхронно — по этому решается, рисовать ли сегмент. */

@@ -45,18 +45,26 @@ if (!loaders) {
   process.exit(1)
 }
 
+// У языка ДВА файла: ручной и машинный (см. LOADERS). Считаем оба — иначе
+// счётчик показывает половину ленты, а автосборка выглядит как поломка.
 const files = {}
-for (const [, lang, file] of loaders[1].matchAll(/(\w+): \(\) => import\('\.\/(\w+)'\)/g)) {
-  files[lang] = join(dir, `${file}.ts`)
+for (const m of loaders[1].matchAll(/(\w+): \(\) => Promise\.all\(\[([\s\S]*?)\]\)/g)) {
+  const lang = m[1]
+  files[lang] = [...m[2].matchAll(/import\('\.\/(\w+)'\)/g)].map(x => join(dir, `${x[1]}.ts`))
+}
+// Старая форма — один файл на язык. Оставлена, чтобы проверка не падала на
+// языке, у которого автоленты ещё нет.
+for (const m of loaders[1].matchAll(/(\w+): \(\) => import\('\.\/(\w+)'\)\.then/g)) {
+  files[m[1]] = [join(dir, `${m[2]}.ts`)]
 }
 
 // ─── 1. Счётчики ─────────────────────────────────────────────────────────────
 
 const real = {}
-for (const [lang, path] of Object.entries(files)) {
-  const text = readFileSync(path, 'utf8')
+for (const [lang, paths] of Object.entries(files)) {
   // Один материал — одно поле outletId на четырёх пробелах отступа.
-  real[lang] = (text.match(/^ {4}outletId:/gm) ?? []).length
+  real[lang] = paths.reduce((n, path) =>
+    n + (readFileSync(path, 'utf8').match(/^ {4}outletId:/gm) ?? []).length, 0)
 }
 
 const block = src.match(/export const FEED_COUNTS: Record<string, number> = \{([\s\S]*?)\n\}/)
@@ -92,8 +100,8 @@ if (FIX && off.length) {
 const outletIds = new Set([...src.matchAll(/^\s{4}id: '([\w-]+)',$/gm)].map(m => m[1]))
 
 console.log('\nИсточники:')
-for (const [lang, path] of Object.entries(files)) {
-  const text = readFileSync(path, 'utf8')
+for (const [lang, paths] of Object.entries(files)) {
+  const text = paths.map(p => readFileSync(p, 'utf8')).join('\n')
   const used = new Set([...text.matchAll(/outletId: '([\w-]+)'/g)].map(m => m[1]))
   for (const id of used) {
     if (outletIds.has(id)) console.log(`  ✓ ${lang}: ${id}`)
@@ -187,8 +195,8 @@ if (VERIFY) {
       ? [f, { host: 'https://science.nasa.gov', url: f.url }]
       : [f]))
 
-  for (const [lang, path] of Object.entries(files)) {
-    const text = readFileSync(path, 'utf8')
+  for (const [lang, paths] of Object.entries(files)) {
+    const text = paths.map(p => readFileSync(p, 'utf8')).join('\n')
     // Разбираем файл по материалам: id, url, textOrigin и body в бэктиках.
     const items = [...text.matchAll(
       /id: '([\w-]+)',[\s\S]*?url: '([^']+)',[\s\S]*?body: `([\s\S]*?)`,/g,
