@@ -60,6 +60,7 @@ const WORD_CHAR = /[\p{L}\p{N}]/u
 const SCRIPT: Record<string, RegExp> = {
   en: /[A-Za-z]/,
   'pt-BR': /[A-Za-zÀ-ÖØ-öø-ÿ]/,
+  de: /[A-Za-zÄÖÜäöüß]/,
   ko: /[가-힣ㄱ-ㅎㅏ-ㅣ]/,
   ja: /[぀-ヿ㐀-䶿一-鿿々ー]/,
 }

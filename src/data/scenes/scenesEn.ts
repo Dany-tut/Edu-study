@@ -22150,4 +22150,827 @@ _Разница не в батарее. Разница в проверке._
       },
     ],
   },
+
+  // ── Друзья, 3: доска в кофейне ─────────────────────────────────────────────
+  {
+    id: 'sc-friends-3',
+    workId: 'friends',
+    lang: 'en', title: 'Доска в кофейне', level: 'B1', minutes: 3,
+    topic: 'Еда', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина сериала происходит в одной кофейне, и её меню — готовый учебник по американскому кофе. Ниже наш текст: доска над стойкой и приписки менеджера. Заодно тут разница между американскими и британскими названиями напитков.',
+    body: `CENTRAL PERK — since 1994
+
+COFFEE
+Drip, regular ............................... 1.50 (refills .50)
+Drip, decaf ................................. 1.50
+Espresso, single / double ................... 1.75 / 2.25
+Americano ................................... 2.00
+Latte ....................................... 2.75
+Cappuccino .................................. 2.75
+Mocha ....................................... 3.25
+Iced anything, add .......................... .50
+
+MILK: whole, 2 %, skim, half-and-half. Soy on request, and yes we have started stocking it, and no it is not a phase, Gunther says.
+
+FOOD
+Muffin, blueberry or bran ................... 1.75
+Cheesecake, slice ........................... 3.50
+Bagel with cream cheese ..................... 2.25
+Cookie, enormous ............................ 2.00
+
+—— NOTES FROM THE MANAGER, taped beside the board ——
+
+• The orange sofa is not reserved. It has never been reserved. It is a sofa. I am aware that this is not how anyone here treats it and I have made my peace with that.
+• “The usual” is not an order. Say the drink. There are eleven of you and four of you have a different “usual” on Fridays.
+• If you are here for four hours you may buy a second coffee. This is not a rule, this is a hint, and it has been a hint since 1994.
+• Open mic night is Tuesday. It is open to everyone. It is, unfortunately, open to everyone.`,
+    translation: `CENTRAL PERK — с 1994 года
+
+КОФЕ
+Фильтр, обычный ............................. 1,50 (доливы 0,50)
+Фильтр, без кофеина ......................... 1,50
+Эспрессо, одинарный / двойной ............... 1,75 / 2,25
+Американо ................................... 2,00
+Латте ....................................... 2,75
+Капучино .................................... 2,75
+Мокко ....................................... 3,25
+Любое со льдом, доплата ..................... 0,50
+
+МОЛОКО: цельное, 2 %, обезжиренное, сливки пополам. Соевое по запросу — да, мы начали его держать, и нет, это не мода, говорит Гантер.
+
+ЕДА
+Маффин, черничный или отрубной .............. 1,75
+Чизкейк, кусок .............................. 3,50
+Бейгл со сливочным сыром .................... 2,25
+Печенье, огромное ........................... 2,00
+
+—— ЗАМЕТКИ УПРАВЛЯЮЩЕГО, приклеены рядом с доской ——
+
+• Оранжевый диван не забронирован. Он никогда не был забронирован. Это диван. Мне известно, что здесь к нему относятся иначе, и я с этим смирился.
+• «Как обычно» — не заказ. Называйте напиток. Вас одиннадцать человек, и у четверых по пятницам «обычное» другое.
+• Если вы сидите тут четыре часа, можно купить второй кофе. Это не правило, это намёк, и намёк этот действует с 1994 года.
+• Вечер открытого микрофона — во вторник. Он открыт для всех. Он, к сожалению, открыт для всех.`,
+    glossary: [
+      { term: 'drip coffee', ru: 'фильтр-кофе (амер.)' },
+      { term: 'decaf', ru: 'без кофеина' },
+      { term: 'refill', ru: 'долив' },
+      { term: 'whole / skim milk', ru: 'цельное / обезжиренное молоко' },
+      { term: 'half-and-half', ru: 'смесь молока и сливок (амер.)' },
+      { term: 'on request', ru: 'по запросу' },
+      { term: 'a phase', ru: 'временное увлечение, «это пройдёт»' },
+      { term: 'bran', ru: 'отруби' },
+      { term: 'to make one’s peace with sth', ru: 'смириться с чем-то' },
+      { term: 'open mic night', ru: 'вечер открытого микрофона' },
+    ],
+    questions: [
+      {
+        q: 'How much are refills of drip coffee?',
+        options: ['Free', '50 cents', '1.50', 'Not available'],
+        correct: 1,
+      },
+      {
+        q: 'What is the manager’s position on the orange sofa?',
+        options: [
+          'It is reserved for regulars',
+          'It has never been reserved, and he has made his peace with how people treat it',
+          'It is being removed',
+          'It costs extra',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is “the usual” not an order?',
+        options: [
+          'It is rude',
+          'Because four of the regulars have a different “usual” on Fridays',
+          'The staff change',
+          'It costs more',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the joke about open mic night?',
+        options: [
+          'It is cancelled',
+          'The repeated “open to everyone” turns from a welcome into a complaint',
+          'It is on Wednesdays',
+          'It costs money',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Друзья, 4: делёж при переезде ──────────────────────────────────────────
+  {
+    id: 'sc-friends-4',
+    workId: 'friends',
+    lang: 'en', title: 'Кто что забирает', level: 'A2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал постоянно переезжает: кто-то съезжается, кто-то разъезжается, и всякий раз это заканчивается списком. Ниже наш текст в этом жанре, на уровне A2. Полезен он бытовой лексикой квартиры и конструкцией «кто чей».',
+    body: `MOVING SATURDAY — WHO TAKES WHAT
+
+Mine (I bought them, I have the receipts, I checked):
+– the small television
+– the blue chair
+– the coffee table with the burn on it. Yes I still want it. It is my burn.
+– half the plates. Six of the twelve. Not the good six, I am not a monster, but six.
+
+Yours:
+– the big television
+– the bookcase
+– the plant. Please take the plant. It has been alive for four years out of politeness.
+– the poster. It was always your poster. I have never liked the poster.
+
+Ours, and therefore a problem:
+– the kettle
+– the good frying pan
+– the corkscrew (there is only one and we both know it)
+
+PROPOSAL: you take the kettle and the pan, I take the corkscrew, and we do not discuss this again.
+
+COUNTER-PROPOSAL, added in different handwriting: I take the pan, you take the kettle and the corkscrew, and we do not discuss this again, and also you keep the mug that says WORLD’S OKAYEST ROOMMATE, which was a joke and has now been a joke for four years.
+
+FINAL, in the first handwriting: Agreed. Van comes at nine. Do not be asleep at nine.`,
+    translation: `ПЕРЕЕЗД В СУББОТУ — КТО ЧТО ЗАБИРАЕТ
+
+Моё (я это покупала, у меня есть чеки, я проверила):
+– маленький телевизор
+– синее кресло
+– журнальный столик с прожжённым пятном. Да, он мне всё ещё нужен. Это моё пятно.
+– половину тарелок. Шесть из двенадцати. Не хорошие шесть, я же не чудовище, но шесть.
+
+Твоё:
+– большой телевизор
+– книжный шкаф
+– растение. Пожалуйста, забери растение. Оно четыре года живо из вежливости.
+– постер. Это всегда был твой постер. Мне постер никогда не нравился.
+
+Общее, а значит, проблема:
+– чайник
+– хорошая сковородка
+– штопор (он один, и мы оба это знаем)
+
+ПРЕДЛОЖЕНИЕ: ты берёшь чайник и сковородку, я беру штопор, и мы к этому больше не возвращаемся.
+
+ВСТРЕЧНОЕ ПРЕДЛОЖЕНИЕ, дописано другим почерком: я беру сковородку, ты берёшь чайник и штопор, мы к этому больше не возвращаемся, и ещё ты оставляешь себе кружку с надписью «САМЫЙ СНОСНЫЙ В МИРЕ СОСЕД», которая была шуткой и остаётся шуткой уже четыре года.
+
+ОКОНЧАТЕЛЬНО, первым почерком: Согласна. Фургон в девять. Не спи в девять.`,
+    glossary: [
+      { term: 'receipt', ru: 'чек' },
+      { term: 'coffee table', ru: 'журнальный столик' },
+      { term: 'burn', ru: 'прожжённое пятно' },
+      { term: 'bookcase', ru: 'книжный шкаф' },
+      { term: 'out of politeness', ru: 'из вежливости' },
+      { term: 'frying pan', ru: 'сковородка' },
+      { term: 'corkscrew', ru: 'штопор' },
+      { term: 'proposal / counter-proposal', ru: 'предложение / встречное предложение' },
+      { term: 'roommate', ru: 'сосед по квартире (амер.); брит. flatmate' },
+      { term: 'van', ru: 'фургон' },
+    ],
+    questions: [
+      {
+        q: 'Why does she want the coffee table with the burn?',
+        options: [
+          'It is new',
+          '“It is my burn”',
+          'It was a gift',
+          'It matches the chair',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is said about the plant?',
+        options: [
+          'It is dead',
+          'It has been alive for four years out of politeness',
+          'It needs repotting',
+          'It belongs to the landlord',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the only genuinely contested item in the end?',
+        options: ['The televisions', 'The kettle, the pan and the corkscrew', 'The plates', 'The poster'],
+        correct: 1,
+      },
+      {
+        q: 'What extra condition does the counter-proposal add?',
+        options: [
+          'Money',
+          'That she keeps the “World’s Okayest Roommate” mug',
+          'A later start',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Корона, 3: коммюнике дворца ────────────────────────────────────────────
+  {
+    id: 'sc-the-crown-3',
+    workId: 'the-crown',
+    lang: 'en', title: 'Коммюнике дворца', level: 'C1', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал во многом про то, что дворец говорит с миром только через короткие официальные сообщения, и каждое слово в них выбрано юристом. Ниже наш текст — коммюнике и служебная переписка о том, как его писали. Английский тут высший официальный: пассив, отглагольные существительные, ни одного действующего лица.',
+    body: `BUCKINGHAM PALACE — COMMUNIQUÉ
+For immediate release. 11 a.m.
+
+It is announced from Buckingham Palace that Her Majesty has been advised by her doctors to cancel her engagements for the coming week and to rest. Her Majesty’s programme will be reviewed in due course.
+
+There will be no further statement at this time.
+
+—— INTERNAL, NOT FOR RELEASE ——
+
+Draft 1: “The Queen is unwell.” — Rejected. States a fact and invites a follow-up question.
+Draft 2: “The Queen is suffering from a heavy cold.” — Rejected. Names a condition. Naming a condition means that any later condition must also be named, and we will not be able to stop.
+Draft 3: “Her Majesty has been advised by her doctors to rest.” — Approved in principle. Note that the sentence has no subject who decides. The doctors advise; Her Majesty is advised; nobody is described as being ill.
+
+On “in due course”: retained. It commits to nothing and yet is not evasive, and the press have accepted it for forty years, largely because there is no alternative form of words that is shorter.
+
+On “no further statement at this time”: retained, but note that “at this time” is doing considerable work and should not be removed by anyone editing for length.
+
+Circulation: Private Secretary, Press Secretary, Lord Chamberlain. Not the Household generally.`,
+    translation: `БУКИНГЕМСКИЙ ДВОРЕЦ — КОММЮНИКЕ
+К немедленному опубликованию. 11:00.
+
+Из Букингемского дворца сообщается, что врачи рекомендовали Её Величеству отменить мероприятия на предстоящую неделю и отдохнуть. Программа Её Величества будет пересмотрена в надлежащее время.
+
+Иных заявлений в настоящее время не последует.
+
+—— ВНУТРЕННЕЕ, НЕ ДЛЯ ПЕЧАТИ ——
+
+Черновик 1: «Королева нездорова». — Отклонён. Излагает факт и вызывает следующий вопрос.
+Черновик 2: «У Королевы сильная простуда». — Отклонён. Называет заболевание. Назвав одно, придётся называть и всякое последующее, и остановиться мы уже не сможем.
+Черновик 3: «Врачи рекомендовали Её Величеству отдохнуть». — Одобрен в принципе. Обратите внимание: в этой фразе нет лица, принимающего решение. Врачи рекомендуют; Её Величеству рекомендовано; больным не назван никто.
+
+О «в надлежащее время»: сохранить. Ни к чему не обязывает и при этом не выглядит уклончивым; пресса принимает это уже сорок лет — в основном потому, что более короткой формулы не существует.
+
+О «в настоящее время»: сохранить, но учтите, что «в настоящее время» несёт здесь немалую нагрузку и не подлежит вычёркиванию теми, кто сокращает текст по объёму.
+
+Рассылка: личный секретарь, пресс-секретарь, лорд-камергер. Не по двору в целом.`,
+    glossary: [
+      { term: 'communiqué', ru: 'коммюнике, официальное сообщение' },
+      { term: 'for immediate release', ru: 'к немедленному опубликованию' },
+      { term: 'engagement', ru: 'официальное мероприятие' },
+      { term: 'to be advised by', ru: 'получить рекомендацию от' },
+      { term: 'in due course', ru: 'в надлежащее время' },
+      { term: 'to invite a follow-up question', ru: 'напрашиваться на уточняющий вопрос' },
+      { term: 'evasive', ru: 'уклончивый' },
+      { term: 'to commit to sth', ru: 'связывать себя обязательством' },
+      { term: 'to do considerable work', ru: 'нести немалую нагрузку (о слове)' },
+      { term: 'circulation', ru: 'рассылка, круг ознакомления' },
+    ],
+    questions: [
+      {
+        q: 'Why was “The Queen is unwell” rejected?',
+        options: [
+          'It is untrue',
+          'It states a fact and invites a follow-up question',
+          'It is too long',
+          'It is impolite',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must a condition never be named?',
+        options: [
+          'Privacy law',
+          'Because then every later condition must also be named, and it cannot be stopped',
+          'The doctors forbid it',
+          'The press would not print it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is special about the approved sentence?',
+        options: [
+          'It is shorter',
+          'It has no subject who decides — nobody is described as ill',
+          'It names the doctors',
+          'It gives a date',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “at this time” do?',
+        options: [
+          'Nothing — it is filler',
+          'It quietly leaves the door open, and must not be cut for length',
+          'It sets a deadline',
+          'It refers to the hour of release',
+        ],
+        correct: 1,
+        why: 'Три слова, которые ничего не обещают и ничего не закрывают. Разбирать такие обороты полезно: их полно в любом корпоративном сообщении.',
+      },
+    ],
+  },
+
+  // ── Корона, 4: программа визита ────────────────────────────────────────────
+  {
+    id: 'sc-the-crown-4',
+    workId: 'the-crown',
+    lang: 'en', title: 'Программа государственного визита', level: 'B2', minutes: 4,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Государственный визит расписан по минутам, и в сериале это постоянный источник напряжения: расписание не гнётся, а люди гнутся. Ниже наш текст — программа дня с примечаниями протокольной службы. Полезно тем, что это тот же язык, каким пишут любую деловую программу.',
+    body: `STATE VISIT — DAY TWO — PROVISIONAL PROGRAMME (v4)
+
+08:55 Motorcade departs. Route B. Journey time 14 minutes, allowing 4.
+09:15 Arrival, National Museum. Greeted by the Director and two members of the board. NOT the Minister; the Minister is at 11:40 and must not appear twice.
+09:20 Tour, six rooms. The seventh room has been removed from the tour at the request of the host government. Do not ask about the seventh room.
+10:05 Presentation of a gift. The gift is a book. Please ensure someone can pronounce the title.
+10:15 Depart. 8 minutes.
+10:25 Wreath. Two minutes of silence. No photographs during; the press are aware and will be reminded anyway.
+10:45 Reception, 120 guests. Forty introductions maximum; the list is attached and the order on it is not alphabetical and not accidental.
+11:40 Bilateral meeting, 30 minutes, interpreters only.
+12:30 Lunch, 40 covers.
+
+NOTES
+– The programme is provisional until the host government confirms 10:25. They have not confirmed 10:25. They know we know.
+– Standing time today: 3 hours 40 minutes. This is above the agreed maximum and the Household has been asked twice to reduce it and has twice replied that it cannot.
+– Weather forecast: rain from eleven. There is no covered route between the car and the wreath. This has been raised.`,
+    translation: `ГОСУДАРСТВЕННЫЙ ВИЗИТ — ДЕНЬ ВТОРОЙ — ПРЕДВАРИТЕЛЬНАЯ ПРОГРАММА (ред. 4)
+
+08:55 Кортеж отбывает. Маршрут Б. Время в пути 14 минут, заложено 4 про запас.
+09:15 Прибытие, Национальный музей. Встречают директор и двое членов совета. НЕ министр; министр в 11:40 и не должен появляться дважды.
+09:20 Осмотр, шесть залов. Седьмой зал исключён из осмотра по просьбе принимающей стороны. О седьмом зале не спрашивать.
+10:05 Вручение подарка. Подарок — книга. Просьба обеспечить, чтобы кто-нибудь мог выговорить название.
+10:15 Отъезд. 8 минут.
+10:25 Возложение венка. Две минуты молчания. Съёмка в это время не ведётся; прессе известно, и ей всё равно напомнят.
+10:45 Приём, 120 гостей. Не более сорока представлений; список приложен, и порядок в нём не алфавитный и не случайный.
+11:40 Двусторонняя встреча, 30 минут, только переводчики.
+12:30 Обед, 40 кувертов.
+
+ПРИМЕЧАНИЯ
+– Программа предварительна до подтверждения принимающей стороной пункта 10:25. Пункт 10:25 они не подтвердили. Они знают, что мы знаем.
+– Время на ногах сегодня: 3 часа 40 минут. Это выше согласованного предела; двор дважды просили сократить и дважды получили ответ, что сократить нельзя.
+– Прогноз: дождь с одиннадцати. Крытого перехода от машины к месту возложения нет. Вопрос поднят.`,
+    glossary: [
+      { term: 'provisional', ru: 'предварительный' },
+      { term: 'motorcade', ru: 'кортеж' },
+      { term: 'journey time', ru: 'время в пути' },
+      { term: 'board', ru: 'совет (директоров, попечителей)' },
+      { term: 'wreath', ru: 'венок; to lay a wreath — возложить венок' },
+      { term: 'reception', ru: 'приём' },
+      { term: 'introductions', ru: 'представления гостей' },
+      { term: 'bilateral meeting', ru: 'двусторонняя встреча' },
+      { term: 'covers', ru: 'куверты — число приборов за столом' },
+      { term: 'to raise an issue', ru: 'поднять вопрос' },
+    ],
+    questions: [
+      {
+        q: 'Why must the Minister not appear at 09:15?',
+        options: [
+          'He is unavailable',
+          'Because he is at 11:40 and must not appear twice',
+          'He was not invited',
+          'Security',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is said about the seventh room?',
+        options: [
+          'It is closed for repairs',
+          'It has been removed at the host government’s request — and must not be asked about',
+          'It will be visited later',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is unusual about the order of the introductions list?',
+        options: [
+          'It is alphabetical',
+          'It is neither alphabetical nor accidental',
+          'It is random',
+          'It is by age',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What are the two problems the notes admit cannot be solved?',
+        options: [
+          'The route and the gift',
+          'Standing time above the maximum, and rain with no covered route',
+          'The interpreters and the lunch',
+          'The museum and the minister',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Разделение, 3: что нельзя проносить ────────────────────────────────────
+  {
+    id: 'sc-severance-3',
+    workId: 'severance',
+    lang: 'en', title: 'Что нельзя проносить', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Юмор и ужас сериала в том, что корпоративная забота сформулирована безупречно вежливо и означает совершенно не то, что говорит. Ниже наш текст — инструктаж на входе. Полезен как образец пассивного корпоративного английского: субъект отсутствует, требования — существительные.',
+    body: `LUMON INDUSTRIES — SEVERED FLOOR
+PERMITTED AND PROHIBITED ITEMS — REVISION 12
+
+The following may be brought onto the severed floor: nothing.
+
+This is not a restriction on personal property. Personal property does not travel to the severed floor, because you do not travel to the severed floor. The elevator is the boundary of the arrangement, and the arrangement is the benefit.
+
+Frequently misunderstood points:
+
+“May I bring a photograph of my family?” The question cannot be answered as asked, because on the severed floor the word “family” has no referent. A photograph of persons unknown to you would be a distraction and is therefore not permitted.
+
+“May I bring a book?” Books are provided. The Compliance Handbook is provided. It is a book.
+
+“May I bring a watch?” Time is displayed. A second display would introduce the possibility of disagreement between displays.
+
+“What if I write something on my hand?” Hands are checked. This is not a suspicion of you. It is a courtesy to you, since anything written would be written by a person you will not meet and would arrive as an instruction from a stranger.
+
+Employees occasionally describe the above as strict. The company prefers “complete”. A rule with an exception requires judgement, judgement requires context, and context is precisely what the severance procedure has kindly removed.
+
+Questions may be raised with your department head, who will be glad to explain this document, which he has also read, for the first time, this morning.`,
+    translation: `LUMON INDUSTRIES — РАЗДЕЛЁННЫЙ ЭТАЖ
+РАЗРЕШЁННЫЕ И ЗАПРЕЩЁННЫЕ ПРЕДМЕТЫ — РЕДАКЦИЯ 12
+
+На разделённый этаж разрешается проносить: ничего.
+
+Это не ограничение личной собственности. Личная собственность на разделённый этаж не попадает, потому что вы на разделённый этаж не попадаете. Лифт есть граница соглашения, а соглашение и есть благо.
+
+Часто неверно понимаемые пункты:
+
+«Можно ли принести фотографию семьи?» Вопрос не может быть отвечен в том виде, в каком задан, поскольку на разделённом этаже у слова «семья» нет соответствия. Фотография неизвестных вам людей отвлекала бы и потому не разрешается.
+
+«Можно ли принести книгу?» Книги предоставляются. Устав предоставляется. Это книга.
+
+«Можно ли принести часы?» Время отображается. Второе отображение создало бы возможность расхождения между отображениями.
+
+«А если я напишу что-нибудь на руке?» Руки проверяются. Это не подозрение в ваш адрес. Это любезность по отношению к вам, поскольку написанное было бы написано человеком, которого вы не встретите, и пришло бы как распоряжение от постороннего.
+
+Сотрудники порой называют вышеизложенное строгим. Компания предпочитает слово «полное». Правило с исключением требует суждения, суждение требует контекста, а контекст — ровно то, что процедура разделения любезно устранила.
+
+Вопросы можно адресовать руководителю отдела, который с удовольствием разъяснит этот документ, прочитанный им, впервые, сегодня утром.`,
+    glossary: [
+      { term: 'permitted / prohibited', ru: 'разрешённый / запрещённый' },
+      { term: 'revision', ru: 'редакция (документа)' },
+      { term: 'restriction', ru: 'ограничение' },
+      { term: 'boundary', ru: 'граница' },
+      { term: 'arrangement', ru: 'соглашение, устройство дела' },
+      { term: 'referent', ru: 'то, к чему отсылает слово' },
+      { term: 'distraction', ru: 'то, что отвлекает' },
+      { term: 'compliance', ru: 'соблюдение правил' },
+      { term: 'courtesy', ru: 'любезность' },
+      { term: 'judgement', ru: 'суждение, оценка по обстоятельствам' },
+    ],
+    questions: [
+      {
+        q: 'What may be brought onto the severed floor?',
+        options: ['Books', 'Photographs', 'Nothing', 'A watch'],
+        correct: 2,
+      },
+      {
+        q: 'Why can the question about a family photograph not be answered?',
+        options: [
+          'It is against policy',
+          'Because on that floor the word “family” has no referent',
+          'Photographs are fragile',
+          'The form is wrong',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the company prefer “complete” to “strict”?',
+        options: [
+          'It sounds friendlier',
+          'Because a rule with an exception would require judgement, which requires context',
+          'It is shorter',
+          'Legal advice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the joke in the final sentence?',
+        options: [
+          'The department head is unavailable',
+          'He will gladly explain a document he himself read for the first time this morning',
+          'There are no questions',
+          'He wrote it',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Разделение, 4: анкета о себе ───────────────────────────────────────────
+  {
+    id: 'sc-severance-4',
+    workId: 'severance',
+    lang: 'en', title: 'Анкета: расскажите о себе', level: 'B2', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Обычная анкета «расскажите о себе» становится в мире сериала неразрешимой: у сотрудника нет ничего за пределами этажа. Ниже наш текст — такая анкета, заполненная. Полезен разбором того, как по-английски отвечают на стандартные вопросы о себе, — и что остаётся, когда отвечать нечем.',
+    body: `LUMON — WELLNESS INTAKE (ANNUAL) — please complete in your own words
+
+1. Where are you from?
+Here.
+
+2. Please describe a happy memory.
+The lift doors open and the corridor is lit and it is the beginning of the day. I understand from the wording of this question that a happy memory is expected to be older than four hours. I have written the one I have.
+
+3. Name three people who are important to you.
+Irving. Dylan. Mark S. I am aware these are the only three people I have met.
+
+4. What do you do to relax?
+There is no relaxing to compare it to, so I do not know whether what I do counts. I count the ceiling tiles by the water cooler. There are 148 and I have checked twice, which is itself possibly the answer to this question.
+
+5. What would you change about your life?
+The question assumes a life of which this is a part. I am not being difficult. I am pointing out that the form was written by someone on the other side of the lift, and that person has never had to fill it in.
+
+6. Is there anything you would like the Wellness Department to know?
+Yes. The person who wrote question 2 should read question 5 before next year’s form.
+
+Counselor’s note: employee is well adjusted. Recommend no action.`,
+    translation: `LUMON — АНКЕТА СЛУЖБЫ БЛАГОПОЛУЧИЯ (ЕЖЕГОДНАЯ) — заполните своими словами
+
+1. Откуда вы родом?
+Отсюда.
+
+2. Опишите счастливое воспоминание.
+Двери лифта открываются, коридор освещён, и это начало дня. Из формулировки вопроса я понимаю, что счастливое воспоминание должно быть старше четырёх часов. Я записал то, которое у меня есть.
+
+3. Назовите трёх важных для вас людей.
+Ирвинг. Дилан. Марк С. Мне известно, что это единственные три человека, которых я встречал.
+
+4. Что вы делаете, чтобы расслабиться?
+Мне не с чем сравнить расслабление, поэтому я не знаю, засчитывается ли то, что я делаю. Я считаю плитки на потолке у кулера. Их 148, и я перепроверял дважды, — что, возможно, и есть ответ на этот вопрос.
+
+5. Что бы вы изменили в своей жизни?
+Вопрос предполагает жизнь, частью которой всё это является. Я не придираюсь. Я указываю, что форму составлял человек по ту сторону лифта и что этому человеку никогда не приходилось её заполнять.
+
+6. Хотите ли вы что-нибудь сообщить службе благополучия?
+Да. Тому, кто написал вопрос 2, следует прочесть вопрос 5 до того, как будет составлена анкета на будущий год.
+
+Пометка психолога: сотрудник хорошо адаптирован. Мер не требуется.`,
+    glossary: [
+      { term: 'intake (form)', ru: 'первичная анкета' },
+      { term: 'in your own words', ru: 'своими словами' },
+      { term: 'wording', ru: 'формулировка' },
+      { term: 'to count', ru: 'считать; также «засчитываться»' },
+      { term: 'ceiling tile', ru: 'потолочная плитка' },
+      { term: 'water cooler', ru: 'кулер' },
+      { term: 'to assume', ru: 'предполагать' },
+      { term: 'to be difficult', ru: 'придираться, вредничать' },
+      { term: 'well adjusted', ru: 'хорошо адаптированный' },
+    ],
+    questions: [
+      {
+        q: 'What is his answer to “Where are you from?”',
+        options: ['A city', '“Here”', 'He refuses', 'He does not know'],
+        correct: 1,
+      },
+      {
+        q: 'Why does he explain his happy memory at such length?',
+        options: [
+          'He is proud of it',
+          'Because the question assumes memories older than four hours',
+          'He misread the question',
+          'To fill space',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What point does he make about question 5?',
+        options: [
+          'It is badly spelled',
+          'It was written by someone who has never had to fill the form in',
+          'It repeats question 4',
+          'It is optional',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the effect of the counselor’s note?',
+        options: [
+          'It agrees with him',
+          'It ignores everything he wrote and files him as fine',
+          'It orders an investigation',
+          'It corrects the form',
+        ],
+        correct: 1,
+        why: 'Одна строка отменяет весь документ. Так этот сериал и работает: человек говорит внятно, и его ответ подшивают.',
+      },
+    ],
+  },
+
+  // ── Утреннее шоу, 3: записка о рейтингах ───────────────────────────────────
+  {
+    id: 'sc-morning-show-3',
+    workId: 'morning-show',
+    lang: 'en', title: 'Записка о рейтингах', level: 'B2', minutes: 4,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале всё решают цифры аудитории, и разговоры о людях всегда ведутся языком долей и демографии. Ниже наш текст — служебная записка с рейтингами. Тут стоит выучить, как по-английски говорят о росте и падении: up, down, flat, year on year.',
+    body: `INTERNAL MEMO — NOT FOR DISTRIBUTION OUTSIDE THE FLOOR
+From: Research. To: EP, Talent, Sales. Re: Week 41 overnights.
+
+Total audience, week: 3.42 m, down 1.8 % week on week, down 6.1 % year on year.
+Key demo (25–54): 780 k, flat week on week, down 11 % year on year.
+Share, 7–9 a.m.: 18.4. Competitor A: 19.1. Competitor B: 12.0.
+
+By half-hour:
+7:00–7:30 — 3.9 m (our strongest block, unchanged for two years)
+7:30–8:00 — 3.5 m
+8:00–8:30 — 3.2 m (down 9 % on the same block last quarter)
+8:30–9:00 — 3.0 m
+
+Notes:
+– The Thursday interview delivered 4.1 m, our highest single half-hour since March, and 62 % of that audience did not watch us on Wednesday or Friday. They came for one thing and left.
+– Social clips from that segment: 11 m views. Views are not audience. Sales are aware. Sales are being reminded.
+– The 8:00–8:30 decline is not the segment. We have changed the segment twice. It is the hour.
+
+Recommendation: none this week. Research is not going to recommend a change of talent on the basis of eleven days of data, and would like it recorded that it was asked to.`,
+    translation: `ВНУТРЕННЯЯ ЗАПИСКА — НЕ ДЛЯ РАСПРОСТРАНЕНИЯ ЗА ПРЕДЕЛАМИ ЭТАЖА
+От: исследовательский отдел. Кому: исполнительному продюсеру, дирекции по ведущим, отделу продаж. Тема: предварительные данные за 41-ю неделю.
+
+Совокупная аудитория за неделю: 3,42 млн, −1,8 % к прошлой неделе, −6,1 % к прошлому году.
+Ключевая демография (25–54): 780 тыс., без изменений к неделе, −11 % к году.
+Доля, 7:00–9:00: 18,4. Конкурент А: 19,1. Конкурент Б: 12,0.
+
+По получасам:
+7:00–7:30 — 3,9 млн (наш сильнейший блок, без изменений два года)
+7:30–8:00 — 3,5 млн
+8:00–8:30 — 3,2 млн (−9 % к тому же блоку прошлого квартала)
+8:30–9:00 — 3,0 млн
+
+Примечания:
+– Четверговое интервью дало 4,1 млн — наш лучший получас с марта, причём 62 % этой аудитории не смотрели нас ни в среду, ни в пятницу. Пришли за одним и ушли.
+– Клипы этого сегмента в соцсетях: 11 млн просмотров. Просмотры — не аудитория. Отделу продаж это известно. Отделу продаж об этом напоминают.
+– Падение в блоке 8:00–8:30 — не в сегменте. Сегмент мы меняли дважды. Дело в часе.
+
+Рекомендация: на этой неделе никакой. Исследовательский отдел не станет рекомендовать смену ведущего на основании одиннадцати дней данных и просит зафиксировать, что его об этом просили.`,
+    glossary: [
+      { term: 'overnights', ru: 'предварительные данные о вчерашней аудитории' },
+      { term: 'EP (executive producer)', ru: 'исполнительный продюсер' },
+      { term: 'key demo', ru: 'ключевая демографическая группа' },
+      { term: 'week on week / year on year', ru: 'к прошлой неделе / к прошлому году' },
+      { term: 'flat', ru: 'без изменений' },
+      { term: 'share', ru: 'доля аудитории' },
+      { term: 'block', ru: 'блок эфира' },
+      { term: 'segment', ru: 'рубрика, сюжет' },
+      { term: 'views are not audience', ru: 'просмотры — не аудитория' },
+      { term: 'to have sth recorded', ru: 'потребовать занести в протокол' },
+    ],
+    questions: [
+      {
+        q: 'Which figure is unchanged week on week?',
+        options: ['Total audience', 'The key demo', 'The share', 'The 8:00 block'],
+        correct: 1,
+      },
+      {
+        q: 'What is notable about the Thursday interview audience?',
+        options: [
+          'It was the smallest',
+          '62 % of them did not watch on Wednesday or Friday',
+          'It was mostly online',
+          'It was repeated',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Research say is causing the 8:00–8:30 decline?',
+        options: [
+          'The segment',
+          'The hour itself',
+          'The competitor',
+          'The presenter',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the memo end by asking to have something recorded?',
+        options: [
+          'For the archive',
+          'Because Research was asked to recommend firing someone and refuses to on this data',
+          'To request a budget',
+          'To correct an error',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Утреннее шоу, 4: расписание эфира ──────────────────────────────────────
+  {
+    id: 'sc-morning-show-4',
+    workId: 'morning-show',
+    lang: 'en', title: 'Расписание эфира', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Rundown — поминутный план эфира, главный документ любой телепрограммы. Ниже наш текст в этом виде, с правками, внесёнными за минуту до эфира. Здесь удобно смотреть на профессиональные сокращения и на то, как английский считает время: 1:20, 0:45, LIVE, VT.',
+    body: `RUNDOWN — 7:00 a.m. HOUR — as of 06:58 (v7)
+
+7:00:00  OPEN / titles ................................ 0:30
+7:00:30  A-block headlines, both presenters ........... 1:20
+7:01:50  LEAD — VT, storm damage, north coast ......... 2:10
+7:04:00  LIVE two-way, reporter on location ........... 3:00
+7:07:00  Weather, national ............................ 1:30
+7:08:30  BREAK 1 ...................................... 2:30
+7:11:00  Interview, guest in studio ................... 6:00
+7:17:00  VT, consumer piece, airline refunds .......... 2:40
+7:19:40  Presenter chat / tease next hour ............. 0:50
+7:20:30  BREAK 2 ...................................... 3:00
+7:23:30  Local opt-out ................................ 3:00
+7:26:30  Sport ........................................ 3:30
+7:30:00  HOUR ENDS
+
+CHANGES SINCE v6, made at 06:52:
+– LIVE two-way cut from 4:00 to 3:00. Reporter has been told. Reporter has not acknowledged. Assume 4:00 and be ready to lose the weather.
+– Consumer piece moved after the interview because the interview may overrun and the consumer piece is the only thing on this page nobody will notice missing.
+– Presenter chat is 0:50 and is written. Please do not improvise today.
+
+STANDING NOTE: if we are late into BREAK 2 we do not take it out of Sport. We have taken it out of Sport eleven times this year and Sport has stopped believing the rundown.`,
+    translation: `ПЛАН ЭФИРА — ЧАС С 7:00 — по состоянию на 06:58 (ред. 7)
+
+7:00:00  ЗАСТАВКА / титры .............................. 0:30
+7:00:30  Блок А, анонсы, оба ведущих ................... 1:20
+7:01:50  ГЛАВНОЕ — сюжет, ущерб от шторма, север ....... 2:10
+7:04:00  ПРЯМОЕ включение, корреспондент на месте ...... 3:00
+7:07:00  Погода, по стране ............................. 1:30
+7:08:30  РЕКЛАМА 1 ..................................... 2:30
+7:11:00  Интервью, гость в студии ...................... 6:00
+7:17:00  Сюжет, потребительский, возвраты авиабилетов .. 2:40
+7:19:40  Разговор ведущих / анонс следующего часа ...... 0:50
+7:20:30  РЕКЛАМА 2 ..................................... 3:00
+7:23:30  Региональная врезка ........................... 3:00
+7:26:30  Спорт ......................................... 3:30
+7:30:00  ЧАС ЗАКАНЧИВАЕТСЯ
+
+ИЗМЕНЕНИЯ К РЕД. 6, внесены в 06:52:
+– Прямое включение сокращено с 4:00 до 3:00. Корреспонденту сообщили. Корреспондент не подтвердил. Исходим из 4:00 и готовимся потерять погоду.
+– Потребительский сюжет перенесён после интервью, потому что интервью может затянуться, а этот сюжет — единственное на странице, чьё отсутствие никто не заметит.
+– Разговор ведущих — 0:50 и написан. Пожалуйста, сегодня не импровизируйте.
+
+ПОСТОЯННОЕ ПРИМЕЧАНИЕ: если опаздываем в РЕКЛАМУ 2, не забираем время у спорта. В этом году мы забирали его у спорта одиннадцать раз, и спорт перестал верить плану эфира.`,
+    glossary: [
+      { term: 'rundown', ru: 'поминутный план эфира' },
+      { term: 'titles', ru: 'заставка, титры' },
+      { term: 'headlines', ru: 'анонсы новостей' },
+      { term: 'lead', ru: 'главная новость выпуска' },
+      { term: 'VT', ru: 'videotape — заранее смонтированный сюжет' },
+      { term: 'two-way', ru: 'прямое включение с корреспондентом' },
+      { term: 'break', ru: 'рекламная пауза' },
+      { term: 'to tease', ru: 'анонсировать, дразнить будущим материалом' },
+      { term: 'opt-out', ru: 'региональная врезка' },
+      { term: 'to overrun', ru: 'затянуться, выйти за отведённое время' },
+    ],
+    questions: [
+      {
+        q: 'How long is the live two-way scheduled for in v7?',
+        options: ['4:00', '3:00', '2:10', '6:00'],
+        correct: 1,
+      },
+      {
+        q: 'Why does the note say “assume 4:00”?',
+        options: [
+          'The change was cancelled',
+          'The reporter has not acknowledged the cut',
+          'The producer prefers it',
+          'The weather is short',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why was the consumer piece moved?',
+        options: [
+          'It is more interesting later',
+          'It is the only item nobody will notice missing if the interview overruns',
+          'The guest asked',
+          'Legal reasons',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must time not be taken from Sport again?',
+        options: [
+          'Sport is contractually protected',
+          'It has happened eleven times and Sport no longer believes the rundown',
+          'Sport is the most watched',
+          'It is a union rule',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]
