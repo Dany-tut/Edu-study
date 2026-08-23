@@ -58,7 +58,7 @@ export function exampleKey(term: string): string {
     .toLowerCase()
     .replace(/\([^)]*\)/g, ' ')
     .replace(/[.!?,;:«»"'`´]/g, ' ')
-    .replace(/^(to|the|a|an|o|as|os|um|uma)\s+/, '')
+    .replace(/^(to|the|a|an|o|as|os|um|uma|der|die|das|ein|eine)\s+/, '')
     .replace(/\s+/g, ' ')
     .trim()
 }

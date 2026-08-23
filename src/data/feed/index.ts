@@ -577,7 +577,7 @@ const LOADERS: Record<string, Loader> = {
  */
 export const FEED_COUNTS: Record<string, number> = {
   en: 44,
-  ja: 44,
+  ja: 42,
   ko: 48,
   pt: 13,
 }

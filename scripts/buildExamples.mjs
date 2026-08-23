@@ -42,15 +42,18 @@ await build({
       export { KOREAN_TOPIK2 } from './src/data/koreanTopik2'
       export { PORTUGUESE_CELPE } from './src/data/portugueseCelpe'
       export { PORTUGUESE_INTERMEDIATE } from './src/data/portugueseIntermediate'
+      export { GERMAN_A1B1_SPEC } from './src/data/germanA1B1'
       export { READING_LIBRARY } from './src/data/readingLibrary'
       export { KOREAN_SURVIVAL } from './src/data/survivalKo'
       export { JAPANESE_SURVIVAL } from './src/data/survivalJa'
       export { PORTUGUESE_SURVIVAL } from './src/data/survivalPt'
       export { ENGLISH_SURVIVAL } from './src/data/survivalEn'
+      export { GERMAN_SURVIVAL } from './src/data/survivalDe'
       export { EN_SCENES } from './src/data/scenes/scenesEn'
       export { KO_SCENES } from './src/data/scenes/scenesKo'
       export { JA_SCENES } from './src/data/scenes/scenesJa'
       export { PT_SCENES } from './src/data/scenes/scenesPt'
+      export { DE_SCENES } from './src/data/scenes/scenesDe'
       export { exampleKey } from './src/data/vocabExamples/model'
     `,
     resolveDir: process.cwd(),
@@ -62,12 +65,13 @@ const M = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
 
 const { exampleKey, READING_LIBRARY } = M
-const BOOKS = { ko: M.KOREAN_SURVIVAL, ja: M.JAPANESE_SURVIVAL, pt: M.PORTUGUESE_SURVIVAL, en: M.ENGLISH_SURVIVAL }
+const BOOKS = { ko: M.KOREAN_SURVIVAL, ja: M.JAPANESE_SURVIVAL, pt: M.PORTUGUESE_SURVIVAL, en: M.ENGLISH_SURVIVAL, de: M.GERMAN_SURVIVAL }
 const SPECS = [
   M.ENGLISH_DESIGN_CAREER_SPEC, M.ENGLISH_IELTS,
   M.JAPANESE_JLPT, M.JAPANESE_JLPT_N3,
   M.KOREAN_HANGUL_COURSE, M.KOREAN_TOPIK, M.KOREAN_TOPIK2,
   M.PORTUGUESE_CELPE, M.PORTUGUESE_INTERMEDIATE,
+  M.GERMAN_A1B1_SPEC,
 ]
 
 const base = l => l.split('-')[0].toLowerCase()
@@ -81,6 +85,8 @@ const SCRIPT_OK = {
   pt: s => /[A-Za-zÀ-ÿ]/.test(s) && !CYR.test(s),
   ko: s => /[가-힣]/.test(s) && !CYR.test(s),
   ja: s => /[ぁ-んァ-ヶ一-龯]/.test(s) && !CYR.test(s),
+  // Немецкий — та же латиница, что и английский, плюс умлауты и ß.
+  de: s => /[A-Za-zÄÖÜäöüß]/.test(s) && !CYR.test(s),
 }
 
 const MIN = 12
@@ -161,7 +167,7 @@ for (const [lang, book] of Object.entries(BOOKS)) {
 }
 
 // Сцены — подлинные тексты полки «Сцены»: живой язык, перевода построчно нет.
-for (const sc of [...M.EN_SCENES, ...M.KO_SCENES, ...M.JA_SCENES, ...M.PT_SCENES]) {
+for (const sc of [...M.EN_SCENES, ...M.KO_SCENES, ...M.JA_SCENES, ...M.PT_SCENES, ...M.DE_SCENES]) {
   const lang = base(sc.lang)
   if (!SCRIPT_OK[lang]) continue
   corpus(lang).plain.push(...sentences(sc.body))

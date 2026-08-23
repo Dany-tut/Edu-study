@@ -34,6 +34,10 @@ const LOADERS: Record<string, Loader> = {
     import('./pt').then(m => m.PT_VOCAB_EXAMPLES),
     import('./ptMined').then(m => m.PT_MINED_EXAMPLES),
   ]),
+  de: () => Promise.all([
+    import('./de').then(m => m.DE_VOCAB_EXAMPLES),
+    import('./deMined').then(m => m.DE_MINED_EXAMPLES),
+  ]),
 }
 
 /** Базовый код языка: pt-BR → pt. Примеры общие на язык, а не на диалект. */

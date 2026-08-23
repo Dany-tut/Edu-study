@@ -34,20 +34,24 @@ await build({
       export { KOREAN_TOPIK2 } from './src/data/koreanTopik2'
       export { PORTUGUESE_CELPE } from './src/data/portugueseCelpe'
       export { PORTUGUESE_INTERMEDIATE } from './src/data/portugueseIntermediate'
+      export { GERMAN_A1B1_SPEC } from './src/data/germanA1B1'
       export { READING_LIBRARY } from './src/data/readingLibrary'
       export { KOREAN_SURVIVAL } from './src/data/survivalKo'
       export { JAPANESE_SURVIVAL } from './src/data/survivalJa'
       export { PORTUGUESE_SURVIVAL } from './src/data/survivalPt'
       export { ENGLISH_SURVIVAL } from './src/data/survivalEn'
+      export { GERMAN_SURVIVAL } from './src/data/survivalDe'
       export { exampleKey } from './src/data/vocabExamples/model'
       export { EN_VOCAB_EXAMPLES } from './src/data/vocabExamples/en'
       export { KO_VOCAB_EXAMPLES } from './src/data/vocabExamples/ko'
       export { JA_VOCAB_EXAMPLES } from './src/data/vocabExamples/ja'
       export { PT_VOCAB_EXAMPLES } from './src/data/vocabExamples/pt'
+      export { DE_VOCAB_EXAMPLES } from './src/data/vocabExamples/de'
       export { EN_MINED_EXAMPLES } from './src/data/vocabExamples/enMined'
       export { KO_MINED_EXAMPLES } from './src/data/vocabExamples/koMined'
       export { JA_MINED_EXAMPLES } from './src/data/vocabExamples/jaMined'
       export { PT_MINED_EXAMPLES } from './src/data/vocabExamples/ptMined'
+      export { DE_MINED_EXAMPLES } from './src/data/vocabExamples/deMined'
     `,
     resolveDir: process.cwd(),
     loader: 'ts',
@@ -59,14 +63,15 @@ rmSync(tmp, { recursive: true, force: true })
 
 const { exampleKey } = M
 const base = l => l.split('-')[0].toLowerCase()
-const BOOKS = { ko: M.KOREAN_SURVIVAL, ja: M.JAPANESE_SURVIVAL, pt: M.PORTUGUESE_SURVIVAL, en: M.ENGLISH_SURVIVAL }
-const HAND = { en: M.EN_VOCAB_EXAMPLES, ko: M.KO_VOCAB_EXAMPLES, ja: M.JA_VOCAB_EXAMPLES, pt: M.PT_VOCAB_EXAMPLES }
-const MINED = { en: M.EN_MINED_EXAMPLES, ko: M.KO_MINED_EXAMPLES, ja: M.JA_MINED_EXAMPLES, pt: M.PT_MINED_EXAMPLES }
+const BOOKS = { ko: M.KOREAN_SURVIVAL, ja: M.JAPANESE_SURVIVAL, pt: M.PORTUGUESE_SURVIVAL, en: M.ENGLISH_SURVIVAL, de: M.GERMAN_SURVIVAL }
+const HAND = { en: M.EN_VOCAB_EXAMPLES, ko: M.KO_VOCAB_EXAMPLES, ja: M.JA_VOCAB_EXAMPLES, pt: M.PT_VOCAB_EXAMPLES, de: M.DE_VOCAB_EXAMPLES }
+const MINED = { en: M.EN_MINED_EXAMPLES, ko: M.KO_MINED_EXAMPLES, ja: M.JA_MINED_EXAMPLES, pt: M.PT_MINED_EXAMPLES, de: M.DE_MINED_EXAMPLES }
 const SPECS = [
   M.ENGLISH_DESIGN_CAREER_SPEC, M.ENGLISH_IELTS,
   M.JAPANESE_JLPT, M.JAPANESE_JLPT_N3,
   M.KOREAN_HANGUL_COURSE, M.KOREAN_TOPIK, M.KOREAN_TOPIK2,
   M.PORTUGUESE_CELPE, M.PORTUGUESE_INTERMEDIATE,
+  M.GERMAN_A1B1_SPEC,
 ]
 
 // Индекс — ровно тот же, что собирает приложение: ручное сильнее разговорника,
