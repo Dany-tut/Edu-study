@@ -18,6 +18,8 @@ import { useEffect, useState } from 'react'
 
 /** Домашняя полоса iPhone — 34pt. Выше дока быть незачем никому. */
 const CAP = 34
+/** Пол: даже когда система честно отдаёт 0, док не липнет к самому краю. */
+const FLOOR = 18
 const KEY = 'mobile-bottom-safe'
 
 const orientation = () => (window.innerHeight >= window.innerWidth ? 'portrait' : 'landscape')
@@ -39,12 +41,12 @@ function measure(): number {
   return Math.round(probe.getBoundingClientRect().height)
 }
 
-function clamp(v: number) { return Math.max(0, Math.min(CAP, v)) }
+function clamp(v: number) { return Math.max(FLOOR, Math.min(CAP, v)) }
 
 function stored(): number | null {
   try {
     const raw = Number(localStorage.getItem(storeKey()))
-    return Number.isFinite(raw) && raw >= 0 && raw <= CAP ? raw : null
+    return Number.isFinite(raw) && raw >= 0 && raw <= CAP ? clamp(raw) : null
   } catch { return null }
 }
 

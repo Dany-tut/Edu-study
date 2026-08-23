@@ -94,6 +94,15 @@ export function useFeedComments(itemId: string, lang: string) {
   const [list, setList] = useState<FeedComment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  /**
+   * Есть ли у читателя свой вход.
+   *
+   * С миграции 0060 обсуждения живут только под auth-аккаунтом: у общего
+   * anon-ключа нет личности, и «видно своей группе» для него было неправдой —
+   * реплики читались между группами разных учителей. Ученику со старым входом
+   * по временному паролю тред не показывается, и он должен видеть ПОЧЕМУ.
+   */
+  const [authed, setAuthed] = useState<boolean | null>(null)
 
   const session = getStudentSession()
   const groupId = session?.groupId || ''
@@ -104,6 +113,8 @@ export function useFeedComments(itemId: string, lang: string) {
     setError(null)
     try {
       const me = (await supabase.auth.getUser()).data.user?.id ?? null
+      setAuthed(!!me)
+      if (!me) { setList([]); setLoading(false); return }
       let q = supabase
         .from('feed_comments')
         .select('id,item_id,author_name,student_id,author_user,body,parent_id,hidden,created_at')
@@ -179,7 +190,9 @@ export function useFeedComments(itemId: string, lang: string) {
     loading,
     error,
     /** Писать некуда, если ученик не в группе: тред у материала — это тред класса. */
-    canWrite: !!groupId,
+    canWrite: !!groupId && authed === true,
+    /** Тред закрыт не «потому что нельзя», а потому что нет своего входа. */
+    needsAccount: authed === false,
     add,
     remove,
     reload: load,

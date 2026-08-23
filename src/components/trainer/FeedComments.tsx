@@ -32,7 +32,7 @@ export function FeedComments({ itemId, lang, accent, open, onCount }: {
   onCount?: (n: number) => void
 }) {
   const t = useT()
-  const { threads, list, loading, error, canWrite, add, remove } = useFeedComments(itemId, lang)
+  const { threads, list, loading, error, canWrite, needsAccount, add, remove } = useFeedComments(itemId, lang)
 
   // Счётчик считается здесь и уезжает наверх: две реализации подсчёта дали бы
   // два разных числа — у иконки одно, в треде другое.
@@ -45,7 +45,11 @@ export function FeedComments({ itemId, lang, accent, open, onCount }: {
           {loading && <Muted>{t('Загружаем…')}</Muted>}
           {error && <Muted tone="bad">{t(error)}</Muted>}
 
-          {!loading && threads.length === 0 && (
+          {!loading && needsAccount && (
+            <Muted>{t('Обсуждение открыто ученикам со своим входом — попросите учителя прислать ссылку для входа.')}</Muted>
+          )}
+
+          {!loading && !needsAccount && threads.length === 0 && (
             <Muted>{t('Пока никто не написал. Будете первым.')}</Muted>
           )}
 
@@ -66,7 +70,7 @@ export function FeedComments({ itemId, lang, accent, open, onCount }: {
 
           {canWrite
             ? <Composer accent={accent} placeholder="Написать в обсуждение" onSend={b => add(b, null)} />
-            : <Muted>{t('Обсуждение доступно ученикам группы: тред у материала — это тред вашего класса.')}</Muted>}
+            : !needsAccount && <Muted>{t('Обсуждение доступно ученикам группы: тред у материала — это тред вашего класса.')}</Muted>}
         </div>
       )}
     </>

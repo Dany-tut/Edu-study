@@ -16,6 +16,10 @@ export function useFeedLikes(itemId: string) {
   const [count, setCount] = useState(0)
   const [liked, setLiked] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Как и обсуждение (миграция 0060), лайки живут только под своим входом:
+  // общему anon-ключу их не отдают. Без аккаунта сердце просто не показываем —
+  // нажатие, которое гарантированно откатится, хуже его отсутствия.
+  const [authed, setAuthed] = useState(false)
 
   const session = getStudentSession()
   const groupId = session?.groupId || ''
@@ -24,6 +28,8 @@ export function useFeedLikes(itemId: string) {
     if (!itemId || !groupId) return
     try {
       const me = (await supabase.auth.getUser()).data.user?.id ?? null
+      setAuthed(!!me)
+      if (!me) { setCount(0); setLiked(false); return }
       const { data, error } = await supabase
         .from('feed_likes')
         .select('student_id,author_user')
@@ -44,7 +50,7 @@ export function useFeedLikes(itemId: string) {
   useEffect(() => { void load() }, [load])
 
   const toggle = useCallback(async () => {
-    if (!groupId || busy) return
+    if (!groupId || busy || !authed) return
     const was = liked
     setBusy(true)
     setLiked(!was)
@@ -74,7 +80,7 @@ export function useFeedLikes(itemId: string) {
     } finally {
       setBusy(false)
     }
-  }, [itemId, groupId, liked, busy, session?.id])
+  }, [itemId, groupId, liked, busy, authed, session?.id])
 
-  return { count, liked, toggle, canLike: !!groupId }
+  return { count, liked, toggle, canLike: !!groupId && authed }
 }

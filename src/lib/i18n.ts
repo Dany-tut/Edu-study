@@ -1594,6 +1594,7 @@ const EN: Record<string, string> = {
   "Версия": "Version",
   "Сообщить об ошибке": "Report a problem",
   "Отправить ещё раз": "Send again",
+  "Обсуждение открыто ученикам со своим входом — попросите учителя прислать ссылку для входа.": "Discussion is open to students with their own login — ask your teacher for a sign-in link.",
   "Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.": "Could not save the review — check your connection and try again.",
   "Ответы не отправлены — проверьте связь и повторите.": "Answers were not sent — check your connection and try again.",
   "Решение не отправлено — проверьте связь и повторите.": "The solution was not sent — check your connection and try again.",
