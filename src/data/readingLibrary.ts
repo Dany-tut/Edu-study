@@ -842,7 +842,470 @@ Para se candidatar, envie currículo e link do portfólio. Respondemos todas as 
   },
 ]
 
-export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...JA, ...PT, ...MORE]
+
+// ─── Немецкий: бытовые бумаги и объявления, с которыми сталкиваются сразу ────
+//
+// Тексты написаны нами и нарочно не «про Германию вообще», а про то, что
+// человек читает в первую неделю: объявление в подъезде, письмо из ведомства,
+// объявление о квартире, чек и рецепт. Это ровно те бумаги, из-за которых
+// приезжий чувствует себя беспомощным при вполне сносном разговорном языке.
+
+const DE: ReadingText[] = [
+  {
+    id: 'de-hausordnung',
+    lang: 'de', title: 'Объявление в подъезде', level: 'A2', minutes: 3,
+    topic: 'Аренда и Anmeldung', skill: 'Чтение',
+    origin: 'original',
+    body: `Liebe Hausbewohner,
+
+ab Montag, dem 4. März, wird das Treppenhaus gestrichen. Die Arbeiten dauern etwa eine Woche.
+
+Bitte beachten Sie:
+• Stellen Sie keine Schuhe, Kinderwagen oder Pflanzen ins Treppenhaus.
+• Die Handläufe sind am Montag und Dienstag frisch gestrichen. Bitte nicht anfassen.
+• Der Aufzug funktioniert normal.
+
+Der Müllraum bleibt in dieser Woche geschlossen. Die Tonnen stehen im Hof neben der Garage. Bitte trennen Sie den Müll weiterhin: Papier (blau), Verpackungen (gelb), Bio (braun), Restmüll (grau).
+
+Wir erinnern außerdem an die Ruhezeit: werktags von 22 bis 6 Uhr sowie sonn- und feiertags ganztägig.
+
+Bei Fragen wenden Sie sich bitte an den Hausmeister, Herrn Krause (Wohnung 2, Telefon 0176 22 33 44).
+
+Mit freundlichen Grüßen
+Die Hausverwaltung`,
+    translation: `Уважаемые жильцы,
+
+с понедельника, 4 марта, будет производиться покраска лестничной клетки. Работы займут около недели.
+
+Просим обратить внимание:
+• Не оставляйте на лестнице обувь, коляски и растения.
+• В понедельник и вторник перила будут свежевыкрашены. Просьба не трогать.
+• Лифт работает в обычном режиме.
+
+Мусорная комната на этой неделе закрыта. Баки стоят во дворе рядом с гаражом. Просим и дальше сортировать мусор: бумага (синий), упаковка (жёлтый), органика (коричневый), прочие отходы (серый).
+
+Напоминаем также о тихих часах: в будни с 22 до 6, а также по воскресеньям и праздникам круглосуточно.
+
+По вопросам обращайтесь к управдому, господину Краузе (квартира 2, телефон 0176 22 33 44).
+
+С уважением,
+управляющая компания`,
+    glossary: [
+      { term: 'der Hausbewohner', ru: 'жилец дома' },
+      { term: 'das Treppenhaus', ru: 'лестничная клетка, подъезд' },
+      { term: 'streichen', ru: 'красить' },
+      { term: 'der Handlauf', ru: 'перила' },
+      { term: 'die Tonne', ru: 'мусорный бак' },
+      { term: 'der Restmüll', ru: 'несортируемый остаток' },
+      { term: 'die Ruhezeit', ru: 'тихие часы' },
+      { term: 'werktags', ru: 'по будням' },
+      { term: 'die Hausverwaltung', ru: 'управляющая компания' },
+    ],
+    questions: [
+      {
+        q: 'Was darf man während der Arbeiten nicht ins Treppenhaus stellen?',
+        options: ['Nur Fahrräder', 'Schuhe, Kinderwagen und Pflanzen', 'Nichts wird verboten', 'Nur Müll'],
+        correct: 1,
+      },
+      {
+        q: 'Wo stehen die Mülltonnen in dieser Woche?',
+        options: ['Im Müllraum', 'Vor der Haustür', 'Im Hof neben der Garage', 'Auf der Straße'],
+        correct: 2,
+      },
+      {
+        q: 'Wann gilt die Ruhezeit?',
+        options: ['Nur nachts von 0 bis 6', 'Werktags 22–6 Uhr und sonntags den ganzen Tag', 'Nur am Wochenende', 'Immer'],
+        correct: 1,
+        why: 'Именно из-за этого правила соседи звонят в дверь: воскресенье в Германии тихое целиком.',
+      },
+      {
+        q: 'Welche Farbe hat die Tonne für Papier?',
+        options: ['gelb', 'blau', 'braun', 'grau'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-wohnungsanzeige',
+    lang: 'de', title: 'Объявление о квартире', level: 'B1', minutes: 3,
+    topic: 'Аренда и Anmeldung', skill: 'Чтение',
+    origin: 'original',
+    body: `2-Zimmer-Wohnung, 54 m², Leipzig-Süd, ab 1. Juni
+
+Kaltmiete: 640 €
+Nebenkosten: 180 € (Heizung, Wasser, Müll, Hausreinigung)
+Warmmiete: 820 €
+Kaution: 3 Kaltmieten (1 920 €)
+
+Die Wohnung liegt im 3. Obergeschoss (kein Aufzug), Altbau, Parkett, Balkon nach Süden. Bad mit Fenster und Dusche, keine Badewanne. Eine Einbauküche ist nicht vorhanden.
+
+Erforderliche Unterlagen für die Besichtigung:
+• Kopie des Ausweises
+• Gehaltsnachweise der letzten drei Monate
+• SCHUFA-Auskunft (nicht älter als 3 Monate)
+• Mietschuldenfreiheitsbescheinigung des bisherigen Vermieters
+
+Haustiere nach Absprache. WG-geeignet. Nichtraucherwohnung.
+
+Besichtigungstermine: Samstag, 10 und 12 Uhr. Bitte nur mit vollständigen Unterlagen erscheinen. Anfragen ohne Unterlagen werden nicht beantwortet.`,
+    translation: `Двухкомнатная квартира, 54 м², Лейпциг-Юг, с 1 июня
+
+Аренда без коммунальных: 640 €
+Коммунальные: 180 € (отопление, вода, мусор, уборка дома)
+Итого: 820 €
+Залог: три месячные аренды (1 920 €)
+
+Квартира на 4-м этаже (лифта нет), старый фонд, паркет, балкон на юг. Ванная с окном и душем, ванны нет. Встроенной кухни нет.
+
+Документы, необходимые для просмотра:
+• копия удостоверения личности
+• справки о зарплате за последние три месяца
+• справка SCHUFA (не старше 3 месяцев)
+• справка от прежнего арендодателя об отсутствии задолженности
+
+С животными — по договорённости. Подходит для совместной аренды. Квартира для некурящих.
+
+Просмотры: суббота, 10 и 12 часов. Просьба приходить только с полным комплектом документов. Обращения без документов остаются без ответа.`,
+    glossary: [
+      { term: 'die Kaltmiete', ru: 'аренда без коммунальных' },
+      { term: 'die Nebenkosten', ru: 'коммунальные расходы' },
+      { term: 'die Kaution', ru: 'залог' },
+      { term: 'das Obergeschoss', ru: 'этаж выше первого: 3. OG — наш четвёртый' },
+      { term: 'der Altbau', ru: 'дом старой постройки, обычно до 1949 года' },
+      { term: 'die Einbauküche', ru: 'встроенная кухня' },
+      { term: 'der Gehaltsnachweis', ru: 'справка о зарплате' },
+      { term: 'die SCHUFA-Auskunft', ru: 'справка о кредитной истории' },
+      { term: 'WG-geeignet', ru: 'подходит для совместного проживания (Wohngemeinschaft)' },
+      { term: 'nach Absprache', ru: 'по договорённости' },
+    ],
+    questions: [
+      {
+        q: 'Wie viel kostet die Wohnung insgesamt pro Monat?',
+        options: ['640 €', '820 €', '180 €', '1 920 €'],
+        correct: 1,
+        why: 'Warmmiete — это Kaltmiete плюс Nebenkosten: именно эту сумму вы платите каждый месяц.',
+      },
+      {
+        q: 'Was muss man vor dem Einzug einmalig bezahlen?',
+        options: ['Nichts', 'Eine Kaution von 1 920 €', 'Die Maklergebühr', 'Ein Jahr im Voraus'],
+        correct: 1,
+      },
+      {
+        q: 'Gibt es eine Küche?',
+        options: ['Ja, mit allen Geräten', 'Nein, eine Einbauküche ist nicht vorhanden', 'Nur eine Kochplatte', 'Das steht nicht im Text'],
+        correct: 1,
+        why: 'Это типично: немецкие квартиры часто сдают буквально с пустой стеной вместо кухни.',
+      },
+      {
+        q: 'Was passiert mit Anfragen ohne Unterlagen?',
+        options: ['Sie werden später beantwortet', 'Sie werden nicht beantwortet', 'Man bekommt einen zweiten Termin', 'Man zahlt eine Gebühr'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-amt-brief',
+    lang: 'de', title: 'Письмо из ведомства', level: 'B1', minutes: 4,
+    topic: 'Ведомства и бумаги', skill: 'Чтение',
+    origin: 'original',
+    body: `Bürgeramt Mitte
+Anmeldung einer Wohnung — Ihr Termin
+
+Sehr geehrte Frau Petrowa,
+
+Ihr Termin zur Anmeldung findet am Donnerstag, dem 14. März, um 9:20 Uhr statt, Raum 214.
+
+Bitte bringen Sie folgende Unterlagen mit:
+1. Ihren Reisepass oder Personalausweis
+2. Die Wohnungsgeberbestätigung Ihres Vermieters (Original, unterschrieben)
+3. Das ausgefüllte Anmeldeformular (liegt diesem Schreiben bei)
+
+Ohne die Wohnungsgeberbestätigung kann die Anmeldung nicht durchgeführt werden. Ein neuer Termin muss dann online gebucht werden; die Wartezeit beträgt zurzeit etwa vier Wochen.
+
+Bitte erscheinen Sie pünktlich. Bei einer Verspätung von mehr als zehn Minuten verfällt der Termin.
+
+Die Meldebescheinigung erhalten Sie direkt im Anschluss. Ihre Steuer-Identifikationsnummer wird Ihnen innerhalb von zwei bis drei Wochen automatisch per Post zugesandt; ein gesonderter Antrag ist nicht erforderlich.
+
+Mit freundlichen Grüßen
+i. A. Schneider
+Bürgeramt Mitte`,
+    translation: `Ведомство района Митте
+Регистрация по месту жительства — ваша запись
+
+Уважаемая госпожа Петрова,
+
+ваш приём по вопросу регистрации состоится в четверг, 14 марта, в 9:20, кабинет 214.
+
+Просим взять с собой следующие документы:
+1. загранпаспорт или удостоверение личности
+2. подтверждение от арендодателя (оригинал, с подписью)
+3. заполненный бланк регистрации (приложен к этому письму)
+
+Без подтверждения от арендодателя регистрация не может быть проведена. В этом случае потребуется записаться заново через интернет; время ожидания в настоящий момент составляет около четырёх недель.
+
+Просим приходить вовремя. При опоздании более чем на десять минут запись аннулируется.
+
+Справку о регистрации вы получите сразу после приёма. Налоговый номер будет выслан вам почтой автоматически в течение двух-трёх недель; отдельное заявление подавать не нужно.
+
+С уважением,
+по поручению — Шнайдер
+Ведомство района Митте`,
+    glossary: [
+      { term: 'die Anmeldung', ru: 'регистрация по месту жительства' },
+      { term: 'stattfinden', ru: 'состояться' },
+      { term: 'die Wohnungsgeberbestätigung', ru: 'подтверждение от арендодателя' },
+      { term: 'beiliegen', ru: 'прилагаться (к письму)' },
+      { term: 'durchführen', ru: 'проводить, осуществлять' },
+      { term: 'verfallen', ru: 'аннулироваться, пропадать (о записи, билете)' },
+      { term: 'im Anschluss', ru: 'сразу после' },
+      { term: 'zusenden', ru: 'высылать' },
+      { term: 'i. A. (im Auftrag)', ru: 'по поручению — стандартная подпись в письмах ведомств' },
+    ],
+    questions: [
+      {
+        q: 'Was passiert, wenn die Wohnungsgeberbestätigung fehlt?',
+        options: ['Man kann sie nachreichen', 'Die Anmeldung kann nicht durchgeführt werden', 'Man zahlt eine Gebühr', 'Der Termin wird verlängert'],
+        correct: 1,
+        why: 'Ключевая логика немецких ведомств: недостающая бумага означает новую запись, а не «донесёте потом».',
+      },
+      {
+        q: 'Wie lange wartet man zurzeit auf einen neuen Termin?',
+        options: ['Zwei Tage', 'Eine Woche', 'Etwa vier Wochen', 'Drei Monate'],
+        correct: 2,
+      },
+      {
+        q: 'Was passiert bei einer Verspätung von 15 Minuten?',
+        options: ['Nichts', 'Der Termin verfällt', 'Man wird als Letzter drangenommen', 'Man zahlt 10 Euro'],
+        correct: 1,
+      },
+      {
+        q: 'Muss man die Steuer-ID beantragen?',
+        options: ['Ja, mit einem Formular', 'Nein, sie kommt automatisch per Post', 'Ja, online', 'Nur wenn man arbeitet'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-arzt-termin',
+    lang: 'de', title: 'Запись к врачу по телефону', level: 'A2', minutes: 3,
+    topic: 'Здоровье', skill: 'Чтение',
+    origin: 'original',
+    body: `— Praxis Dr. Berger, Sie sprechen mit Frau Lehmann. Was kann ich für Sie tun?
+— Guten Tag, mein Name ist Sokolow. Ich hätte gern einen Termin.
+— Sind Sie bei uns schon Patient?
+— Nein, ich bin neu. Ich bin vor zwei Monaten hergezogen.
+— Kein Problem. Sind Sie gesetzlich oder privat versichert?
+— Gesetzlich. Ich habe die Karte.
+— Sehr gut. Worum geht es denn?
+— Ich habe seit einer Woche Rückenschmerzen. Es wird nicht besser.
+— Dann schauen wir mal. Wäre Donnerstag um 15:40 Uhr möglich?
+— Donnerstag ist schwierig, da arbeite ich bis 17 Uhr. Geht es auch morgens?
+— Morgens habe ich erst wieder am 26. etwas frei, um 8:10 Uhr.
+— Das ist in zwei Wochen … Und wenn es schlimmer wird?
+— Dann rufen Sie an, wir haben jeden Tag eine offene Sprechstunde von 8 bis 9. Da müssen Sie allerdings mit Wartezeit rechnen.
+— Gut, dann nehme ich den 26. um 8:10 Uhr.
+— Notiert. Bitte bringen Sie Ihre Versichertenkarte mit und kommen Sie zehn Minuten früher, wegen des Anmeldebogens.
+— Mache ich. Vielen Dank!
+— Gern. Gute Besserung und bis dann.`,
+    translation: `— Кабинет доктора Бергера, вы говорите с госпожой Леман. Чем могу помочь?
+— Здравствуйте, моя фамилия Соколов. Я хотел бы записаться на приём.
+— Вы уже наш пациент?
+— Нет, я новый. Я переехал сюда два месяца назад.
+— Ничего страшного. У вас государственная или частная страховка?
+— Государственная. Карточка у меня есть.
+— Очень хорошо. А по какому поводу?
+— У меня неделю болит спина. Лучше не становится.
+— Тогда посмотрим. Четверг в 15:40 подошёл бы?
+— Четверг сложно, я работаю до пяти. Утром возможно?
+— Утром свободное время есть только 26-го, в 8:10.
+— Это через две недели… А если станет хуже?
+— Тогда звоните, у нас каждый день открытый приём с 8 до 9. Правда, придётся подождать.
+— Хорошо, тогда беру 26-е, 8:10.
+— Записала. Возьмите с собой карточку страховки и приходите на десять минут раньше — заполнить анкету.
+— Хорошо. Большое спасибо!
+— Пожалуйста. Выздоравливайте, до встречи.`,
+    glossary: [
+      { term: 'die Praxis', ru: 'врачебный кабинет, практика' },
+      { term: 'gesetzlich / privat versichert', ru: 'с государственной / частной страховкой' },
+      { term: 'die Versichertenkarte', ru: 'карточка медицинской страховки' },
+      { term: 'Worum geht es?', ru: 'о чём речь, по какому вопросу' },
+      { term: 'die Rückenschmerzen', ru: 'боли в спине' },
+      { term: 'die offene Sprechstunde', ru: 'приём без записи' },
+      { term: 'mit Wartezeit rechnen', ru: 'рассчитывать на ожидание' },
+      { term: 'der Anmeldebogen', ru: 'анкета пациента' },
+      { term: 'Gute Besserung', ru: 'выздоравливайте' },
+    ],
+    questions: [
+      {
+        q: 'Warum passt der Donnerstag nicht?',
+        options: ['Der Patient ist im Urlaub', 'Er arbeitet bis 17 Uhr', 'Die Praxis ist geschlossen', 'Er hat keine Karte'],
+        correct: 1,
+      },
+      {
+        q: 'Was kann man tun, wenn es vor dem Termin schlimmer wird?',
+        options: ['In die Notaufnahme fahren', 'Anrufen und in die offene Sprechstunde kommen', 'Nichts', 'Den Arzt zu Hause besuchen'],
+        correct: 1,
+      },
+      {
+        q: 'Warum soll der Patient zehn Minuten früher kommen?',
+        options: ['Wegen der Zahlung', 'Wegen des Anmeldebogens', 'Weil der Arzt früher anfängt', 'Wegen der Parkplatzsuche'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-kassenbon',
+    lang: 'de', title: 'Чек из супермаркета', level: 'A1', minutes: 2,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    origin: 'original',
+    body: `SUPERMARKT AM MARKT
+Marktstraße 12, 04109 Leipzig
+
+Brötchen 6 St.            2,40
+Milch 1,5 %               1,09
+Butter 250 g              2,49
+Käse Gouda                3,19
+Äpfel 1,2 kg              2,63
+Wasser 6 x 1,5 l          3,54
+    Pfand 6 x 0,25        1,50
+Tüte                      0,20
+------------------------------
+SUMME                    17,04
+Gegeben  EC-Karte        17,04
+
+MwSt 7 %          1,03
+MwSt 19 %         0,28
+
+Pfandrückgabe? Automat am Eingang.
+Bitte Kassenbon aufbewahren.
+Vielen Dank für Ihren Einkauf!`,
+    translation: `СУПЕРМАРКЕТ НА РЫНКЕ
+Марктштрассе 12, 04109 Лейпциг
+
+Булочки, 6 шт.            2,40
+Молоко 1,5 %              1,09
+Масло 250 г               2,49
+Сыр гауда                 3,19
+Яблоки 1,2 кг             2,63
+Вода 6 × 1,5 л            3,54
+    Залог 6 × 0,25        1,50
+Пакет                     0,20
+------------------------------
+ИТОГО                    17,04
+Оплачено картой          17,04
+
+НДС 7 %           1,03
+НДС 19 %          0,28
+
+Сдать бутылки? Автомат у входа.
+Сохраняйте чек.
+Спасибо за покупку!`,
+    glossary: [
+      { term: 'das Pfand', ru: 'залог за бутылку — возвращается в автомате' },
+      { term: 'die Tüte', ru: 'пакет (платный)' },
+      { term: 'die Summe', ru: 'итого' },
+      { term: 'die MwSt (Mehrwertsteuer)', ru: 'НДС: 7 % на продукты, 19 % на прочее' },
+      { term: 'die Pfandrückgabe', ru: 'приём тары' },
+      { term: 'aufbewahren', ru: 'сохранять, хранить' },
+      { term: 'der Kassenbon', ru: 'кассовый чек' },
+    ],
+    questions: [
+      {
+        q: 'Wie viel Pfand ist im Preis enthalten?',
+        options: ['0,20 €', '1,50 €', '3,54 €', 'Kein Pfand'],
+        correct: 1,
+        why: '25 центов за бутылку, шесть бутылок — 1,50 €. Эти деньги возвращаются, когда вы сдаёте тару в автомат.',
+      },
+      {
+        q: 'Warum kostet die Tüte Geld?',
+        options: ['Sie ist aus Stoff', 'Tüten sind in Deutschland kostenpflichtig', 'Es ist ein Fehler', 'Sie ist besonders groß'],
+        correct: 1,
+      },
+      {
+        q: 'Wie wurde bezahlt?',
+        options: ['Bar', 'Mit EC-Karte', 'Mit Kreditkarte', 'Per Rechnung'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'de-mail-kollege',
+    lang: 'de', title: 'Письмо коллеге', level: 'B1', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    origin: 'original',
+    body: `Betreff: Krankmeldung und Übergabe
+
+Sehr geehrte Frau Bauer,
+
+leider bin ich seit gestern krank und werde diese Woche nicht ins Büro kommen können. Die Arbeitsunfähigkeitsbescheinigung habe ich heute Morgen beim Arzt geholt; sie geht direkt an die Personalabteilung.
+
+Damit nichts liegen bleibt, hier kurz der Stand:
+
+• Die Präsentation für Montag ist fertig und liegt im gemeinsamen Ordner unter „Q2/Final“.
+• Herr Weber wartet noch auf die Zahlen für März. Die Datei ist vorbereitet, es fehlt nur die Freigabe.
+• Der Termin mit dem Lieferanten am Mittwoch: Können Sie den bitte übernehmen oder verschieben? Ich schaffe es sicher nicht.
+
+Wenn etwas dringend ist, schreiben Sie mir gern eine kurze Nachricht — ich schaue einmal am Tag in die Mails, aber bitte rechnen Sie nicht mit einer sofortigen Antwort.
+
+Ich melde mich, sobald ich wieder arbeitsfähig bin.
+
+Mit freundlichen Grüßen
+Anna Petrowa`,
+    translation: `Тема: Больничный и передача дел
+
+Уважаемая госпожа Бауэр,
+
+к сожалению, со вчерашнего дня я болею и на этой неделе не смогу выйти в офис. Справку о нетрудоспособности я получила сегодня утром у врача; она уходит напрямую в отдел кадров.
+
+Чтобы ничего не встало, коротко о состоянии дел:
+
+• Презентация к понедельнику готова и лежит в общей папке в «Q2/Final».
+• Господин Вебер всё ещё ждёт цифры за март. Файл подготовлен, не хватает только согласования.
+• Встреча с поставщиком в среду: не могли бы вы её взять на себя или перенести? Я точно не успею.
+
+Если что-то срочное, напишите мне короткое сообщение — почту я смотрю раз в день, но, пожалуйста, не рассчитывайте на мгновенный ответ.
+
+Я дам знать, как только снова смогу работать.
+
+С уважением,
+Анна Петрова`,
+    glossary: [
+      { term: 'der Betreff', ru: 'тема письма' },
+      { term: 'die Krankmeldung', ru: 'больничный, уведомление о болезни' },
+      { term: 'die Arbeitsunfähigkeitsbescheinigung (AU)', ru: 'справка о нетрудоспособности' },
+      { term: 'die Personalabteilung', ru: 'отдел кадров' },
+      { term: 'liegen bleiben', ru: 'остаться несделанным, встать' },
+      { term: 'die Freigabe', ru: 'согласование, разрешение выпустить' },
+      { term: 'übernehmen', ru: 'взять на себя' },
+      { term: 'verschieben', ru: 'перенести (встречу)' },
+      { term: 'arbeitsfähig', ru: 'трудоспособный' },
+    ],
+    questions: [
+      {
+        q: 'Wohin geht die AU-Bescheinigung?',
+        options: ['An die Kollegin', 'An die Personalabteilung', 'An den Lieferanten', 'Nirgendwohin'],
+        correct: 1,
+      },
+      {
+        q: 'Was fehlt bei den März-Zahlen?',
+        options: ['Die Datei', 'Die Freigabe', 'Die Unterschrift von Herrn Weber', 'Nichts'],
+        correct: 1,
+      },
+      {
+        q: 'Worum bittet Anna die Kollegin?',
+        options: ['Die Präsentation zu schreiben', 'Den Termin am Mittwoch zu übernehmen oder zu verschieben', 'Sie zu Hause zu besuchen', 'Den Arzt anzurufen'],
+        correct: 1,
+      },
+      {
+        q: 'Wie schnell antwortet Anna auf Mails?',
+        options: ['Sofort', 'Gar nicht', 'Sie schaut einmal am Tag hinein', 'Erst nächste Woche'],
+        correct: 2,
+      },
+    ],
+  },
+]
+
+export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...JA, ...PT, ...DE, ...MORE]
 
 /** Тексты нужного языка, по возрастанию уровня. */
 export function textsForLang(lang: string): ReadingText[] {

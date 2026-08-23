@@ -50,6 +50,7 @@ import { useScrollLock } from '../../lib/useScrollLock'
 import ScrollFade from '../ScrollFade'
 import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
+import { MOBILE_TOP_GAP } from '../../lib/mobileTokens'
 
 const RAIL_W = 300
 
@@ -75,7 +76,10 @@ const RAIL_BOTTOM = 24
  * прокрутки, иначе в просвете над ней видно уезжающий текст. Отступ до кнопок
  * даёт собственный padding полосы (PAD_TOP) — вровень с рейлом.
  */
-const PAD_TOP = 'max(8px, env(safe-area-inset-top, 0px))'
+// Раньше здесь стоял max(8px, safe-area): на телефоне это ровно граница выреза,
+// и строка управления вставала под собственное размытие статус-бара — «всё
+// скрылось под чёлку». Зазор берём общий для всех мобильных экранов.
+const PAD_TOP = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
 
 /**
  * Имя переменной, которой полоса сообщает свою высоту содержимому.

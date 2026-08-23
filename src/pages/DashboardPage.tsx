@@ -25,6 +25,7 @@ import { getStudentSession } from '../lib/studentSession'
 import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment } from '../data/diagnosticData'
 import { ClipboardList, ChevronRight } from 'lucide-react'
 import { useT } from '../lib/i18n'
+import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -337,7 +338,7 @@ export default function DashboardPage() {
              та открывает домашку текущего урока и без неё отбивает назад. */
           <div style={{
             minHeight: '100dvh', background: 'var(--color-bg)',
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingTop: MOBILE_TOP_INSET,
             paddingLeft: 16, paddingRight: 16,
             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
             overflowX: 'clip', overscrollBehavior: 'contain',
@@ -348,7 +349,7 @@ export default function DashboardPage() {
         ) : (
           <div style={{
             minHeight: '100dvh', background: 'var(--color-bg)',
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingTop: MOBILE_TOP_INSET,
             paddingLeft: 16, paddingRight: 16,
             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
             overflowX: 'clip', overscrollBehavior: 'contain',

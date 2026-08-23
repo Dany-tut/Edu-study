@@ -46,7 +46,7 @@ import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
 import MobileBell from '../components/MobileBell'
-import { glassCircle } from '../lib/mobileTokens'
+import { glassCircle, MOBILE_TOP_GAP } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
@@ -1755,7 +1755,7 @@ export default function TaskBankPage() {
             отступ под чёлку и нижний под навигацию скелетон несёт сам. */}
         <div style={isDesktop ? undefined : {
           minHeight: '100dvh', background: 'var(--color-bg)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 66px)',
+          paddingTop: `calc(env(safe-area-inset-top, 0px) + ${58 + MOBILE_TOP_GAP}px)`,
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
         }}>
           <TrainerSkeleton />

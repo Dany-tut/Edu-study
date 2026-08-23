@@ -58,6 +58,7 @@ import {
   type BasicAnswerRow, type BasicAnswerVerdict, type BasicAnswersPayload,
 } from '../lib/basicAnswers'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
+import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -2189,7 +2190,7 @@ export default function HomeworkFlow({
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
           the topbar row (mini topbar centred between them and the widget pill). */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 14px)' : 30, left: isMobile ? 16 : 32, right: isMobile ? 16 : 32, zIndex: 80, pointerEvents: 'none' }}>
+      <div className="docked-pills-row" style={{ position: 'fixed', top: isMobile ? MOBILE_TOP_INSET : 30, left: isMobile ? 16 : 32, right: isMobile ? 16 : 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
