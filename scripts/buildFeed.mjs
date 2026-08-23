@@ -170,6 +170,28 @@ const SOURCES = {
     topic: 'Путешествия', channel: 'UC5BMQOsAB8hKUyHu9KI6yig',
   },
 
+  // ТЕКСТ ПО-КОРЕЙСКИ, А НЕ ШЕСТЬ РОЛИКОВ ПОДРЯД. До этих двух источников вся
+  // корейская лента была видео: живых корейских текстов со свободной лицензией
+  // в фидах попросту нет — Викиновости закрыты, у прессы лицензии нет, а
+  // государственные RSS отдают заголовок без текста. KOGL закрывает дыру:
+  // 정책브리핑 пишет ведомственные новости обычным газетным языком и отдаёт их
+  // под первым типом лицензии.
+  //
+  // Разделов взято ДВА, и не ради количества. «Общество» — это школа,
+  // транспорт, жильё, здоровье: то, о чём в Корее говорят каждый день.
+  // «Культура» — выставки, парки, фестивали, туризм. Экономику не берём: там
+  // язык отчёта, а не язык жизни, и половину заметок съедает стоп-список.
+  'korea-kr-society': {
+    lang: 'ko', name: '정책브리핑 · 사회', kind: 'kogl', lane: 'free', level: 'TOPIK 4급',
+    topic: 'Дом и город',
+    url: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS02',
+  },
+  'korea-kr-culture': {
+    lang: 'ko', name: '정책브리핑 · 문화', kind: 'kogl', lane: 'free', level: 'TOPIK 4급',
+    topic: 'Путешествия',
+    url: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS03',
+  },
+
   'ann-news': {
     lang: 'ja', name: 'ANNニュース', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
     topic: 'Технологии и медиа',
@@ -572,6 +594,80 @@ async function fromAtom(id, src) {
   return out
 }
 
+/**
+ * KOGL — 공공누리, корейская государственная лицензия. Первый тип
+ * («출처표시») разрешает любое использование с указанием источника: это
+ * единственная корейская дорожка, где текст можно показать целиком, а не
+ * пересказать.
+ *
+ * ПОЧЕМУ ЭТО ОТДЕЛЬНЫЙ АДАПТЕР, А НЕ ЕЩЁ ОДИН RSS. Проверено 23.08.2026: RSS у
+ * 정책브리핑 отключён совсем (korea.kr/etc/rss.do отдаёт объявление о
+ * прекращении услуги), а те министерские фиды, что живы, отдают ОДИН
+ * ЗАГОЛОВОК — ни описания, ни текста. Читать в ленте там нечего. Поэтому
+ * список берём со страницы раздела, а текст — со страницы заметки.
+ *
+ * ЛИЦЕНЗИЮ ПРОВЕРЯЕМ У КАЖДОЙ ЗАМЕТКИ, а не у раздела. В тех же списках рядом
+ * с материалами ведомств лежат колонки и репортажи сторонних редакций, у
+ * которых KOGL нет: у них внизу стоит чужой копирайт. Нет на странице метки
+ * первого типа — материал не берём, и это не перестраховка: без неё в ленту
+ * первым же прогоном приехал репортаж с фотографиями C영상미디어.
+ *
+ * ФОТОГРАФИИ НЕ БЕРЁМ НИКОГДА. Лицензия покрывает ТОЛЬКО ТЕКСТ — это написано
+ * на самой странице: «단, 텍스트를 제외한 사진·이미지…». Подписи под снимками
+ * приходят внутри текста заметки, поэтому их вырезаем отдельно.
+ */
+async function fromKogl(id, src) {
+  const list = await get(src.url)
+
+  const newsIds = []
+  for (const m of list.matchAll(/policyNewsView\.do\?newsId=(\d+)/g)) {
+    if (!newsIds.includes(m[1])) newsIds.push(m[1])
+  }
+
+  // Подпись под фотографией, копирайт фотобанка и служебный хвост заметки.
+  // Всё это лежит в тексте абзацами и без отсева читается как часть новости.
+  const SERVICE = /\(사진=|사진 제공|사진=|저작권자|무단 전재|무단전재|재배포 금지|^문의\s*[:：]|정책브리핑.{0,24}자료는|공공누리/
+
+  const out = []
+  for (const newsId of newsIds) {
+    if (out.length >= LIMIT) break
+
+    const url = `https://www.korea.kr/news/policyNewsView.do?newsId=${newsId}`
+    const page = await get(url)
+
+    if (!page.includes('공공누리 제1유형')) {
+      console.log(`  ✕ ${newsId} — нет метки 공공누리 제1유형, текст чужой`)
+      continue
+    }
+
+    const title = strip((page.match(/<meta property="og:title" content="([^"]*)"/) ?? [])[1] ?? '')
+    const dept = strip((page.match(/<a class="gotosite"[^>]*>([\s\S]*?)<i /) ?? [])[1] ?? '')
+    const day = (page.match(/<div class="info">[\s\S]{0,200}?<span>\s*(\d{4})\.(\d{2})\.(\d{2})/) ?? [])
+    const date = day.length ? `${day[1]}-${day[2]}-${day[3]}` : new Date().toISOString().slice(0, 10)
+
+    const bodyHtml = ((page.match(/<div class="article_body">([\s\S]*?)<div class="article_footer"/) ?? [])[1] ?? '')
+      .replace(/<(script|style)[\s\S]*?<\/\1>/g, '')
+    const paras = paragraphs(bodyHtml).filter(p => !SERVICE.test(p))
+    if (!title || paras.length === 0) {
+      console.log(`  ✕ ${newsId} — на странице не нашлось текста`)
+      continue
+    }
+
+    const hit = stopped(`${title} ${paras.join(' ')}`)
+    if (hit) { console.log(`  ✕ «${title.slice(0, 48)}…» — стоп-слово «${hit}»`); continue }
+
+    out.push({
+      outletId: id, lang: src.lang, lane: src.lane, level: src.level, topic: src.topic,
+      title, url, date,
+      // Атрибуция у KOGL — условие лицензии. Ведомство, выпустившее заметку,
+      // указано на странице; сам сайт подписан названием источника на карточке.
+      byline: dept || src.byline || undefined,
+      text: paras.slice(0, 3).join('\n\n'),
+    })
+  }
+  return out
+}
+
 async function fromYoutube(id, src) {
   const xml = await get(`https://www.youtube.com/feeds/videos.xml?channel_id=${src.channel}`)
   const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? []
@@ -745,6 +841,7 @@ for (const id of ids) {
     const raw = src.kind === 'wikinews' ? await fromWikinews(id, src)
       : src.kind === 'youtube' ? await fromYoutube(id, src)
       : src.kind === 'atom' ? await fromAtom(id, src)
+      : src.kind === 'kogl' ? await fromKogl(id, src)
       : await fromRss(id, src)
 
     const langKey = base(src.lang)

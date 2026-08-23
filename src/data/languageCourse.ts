@@ -210,6 +210,20 @@ export interface LanguageCourseSpec {
   scopeNote?: string
   modules: LangModule[]
   units: LangUnit[]
+  /**
+   * Курс РОДНОГО языка (русский, литература), а не изучаемого.
+   *
+   * ЧТО МЕНЯЕТСЯ. Карточка переворачивается. У иностранного языка ученик видит
+   * слово и вспоминает перевод; у родного переводить нечего — «досада» и есть
+   * «досада». Поэтому здесь на лице карточки стоит ТОЛКОВАНИЕ (поле `ru`), а
+   * ответом служит само слово (`term`): человек ищет точное слово по описанию —
+   * ровно та операция, ради которой предмет и заведён.
+   *
+   * Проверка ответа при этом становится честнее, а не мягче: ответ — одно
+   * слово, синонимы перечислены в `alt`, и матчинг по смыслу (lib/answerMatch)
+   * работает как обычно.
+   */
+  native?: boolean
   /** Иллюстрации конспекта по shortId юнита — см. CourseFigures. */
   figures?: CourseFigures
   /**
@@ -501,14 +515,19 @@ function editorTask(seed: SeedTask, id: string, lang: string) {
  * в редакторе одинаковыми пустыми блоками «без текста», и понять, какое слово в
  * какой, было нельзя.
  */
-function vocabCard(word: VocabItem, id: string, lang: string) {
+function vocabCard(word: VocabItem, id: string, lang: string, native = false) {
   const label = word.reading ? `${word.term} (${word.reading})` : word.term
   // Картинка ищется по русскому значению, поэтому один рисунок обслуживает все
   // языки курса-сида (см. vocabImages.ts). У абстрактных слов её нет — и это
   // норма, карточка остаётся текстовой.
   const image = vocabImage(word.ru)
+  // У родного языка карточка перевёрнута: на лице толкование, в ответе — само
+  // слово (см. LanguageCourseSpec.native). Чтение при этом становится
+  // подсказкой ударения и уходит на оборот, к слову, а не к описанию.
   return editorTask(
-    { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt },
+    native
+      ? { type: 'flashcard', question: label, front: word.ru, back: word.term, reading: word.reading, image, altAnswers: word.alt }
+      : { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt },
     id, lang,
   )
 }
@@ -538,7 +557,7 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
 // Возвращаемый тип НЕ аннотируем SeedTask[]: наружу уходит уже готовое задание
 // редактора (editorTask проставляет id, label и язык), а SeedTask — это сид без
 // id, и с ним весь список hwTasks переставал собираться.
-function vocabRecognition(unit: LangUnit, idBase: string, lang: string) {
+function vocabRecognition(unit: LangUnit, idBase: string, lang: string, native = false) {
   const words = unit.vocab.filter(w => w.term?.trim() && w.ru?.trim())
   // Меньше четырёх слов — обманок не набрать, узнавание вырождается в подсказку.
   if (words.length < 4) return []
@@ -567,7 +586,7 @@ function vocabRecognition(unit: LangUnit, idBase: string, lang: string) {
     const block = pairPool.slice(i, i + 5)
     if (block.length < 3) break
     out.push(pairsOf(
-      'Соедините слово и перевод.',
+      native ? 'Соедините слово и толкование.' : 'Соедините слово и перевод.',
       block.map(w => [label(w), w.ru] as [string, string]),
     ))
   }
@@ -596,9 +615,11 @@ function vocabRecognition(unit: LangUnit, idBase: string, lang: string) {
     const w = words[idx]
     const wrong = wrongFor(idx, x => (reverse ? x.term : x.ru))
     if (wrong.length < 2) return
+    // Формулировки родного языка спрашивают не о переводе, а о точности слова:
+    // «какое слово это описывает» и «что именно значит это слово».
     out.push(reverse
-      ? one(`Как будет «${w.ru}»?`, [w.term, ...wrong], 0)
-      : one(`Что значит ${label(w)}?`, [w.ru, ...wrong], 0))
+      ? one(native ? `Какое слово это описывает: «${w.ru}»?` : `Как будет «${w.ru}»?`, [w.term, ...wrong], 0)
+      : one(native ? `Что точно значит «${label(w)}»?` : `Что значит ${label(w)}?`, [w.ru, ...wrong], 0))
   }
   ask(Math.floor(words.length / 2), false)
   ask(words.length - 1, true)
@@ -828,8 +849,8 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       ...pictureTasks(unit, `${unit.shortId}-pic`, spec.lang),
       // Узнавание идёт перед карточками: к вводу перевода ученик приходит,
       // увидев слово третий раз, а не первый (см. vocabRecognition).
-      ...vocabRecognition(unit, `${unit.shortId}-r`, spec.lang),
-      ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang)),
+      ...vocabRecognition(unit, `${unit.shortId}-r`, spec.lang, spec.native),
+      ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang, spec.native)),
     ],
   }))
 

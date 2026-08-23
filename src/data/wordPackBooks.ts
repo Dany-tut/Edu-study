@@ -18,6 +18,7 @@ const LOADERS: Record<string, Loader> = {
   en: () => import('./wordPacksEn').then(m => m.ENGLISH_WORD_PACKS),
   pt: () => import('./wordPacksPt').then(m => m.PORTUGUESE_WORD_PACKS),
   de: () => import('./wordPacksDe').then(m => m.GERMAN_WORD_PACKS),
+  ru: () => import('./wordPacksRu').then(m => m.RUSSIAN_WORD_PACKS),
 }
 
 /** Базовый код языка: pt-BR → pt. */

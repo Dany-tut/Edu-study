@@ -50,6 +50,7 @@ import { useScrollLock } from '../../lib/useScrollLock'
 import ScrollFade from '../ScrollFade'
 import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
+import MobileDock, { DockCircle, DockSlot } from '../MobileDock'
 import { MOBILE_TOP_GAP } from '../../lib/mobileTokens'
 
 const RAIL_W = 300
@@ -126,7 +127,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
   /** Строка управления над содержимым. */
   toolbar?: React.ReactNode
   /**
-   * Что встаёт слева от кнопки шторки на узком экране — переключатель предмета.
+   * Что встаёт в нижнем доке рядом с кнопкой шторки — переключатель предмета.
    *
    * Своим местом, а не внутри рейла: на телефоне рейл целиком уезжает в шторку,
    * и предмет — единственное, что оттуда обязано остаться на виду. Ученику,
@@ -182,7 +183,9 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
 
   return (
     <div style={{
-      width: '100%', padding: narrow ? '8px 16px 80px' : '8px 0 80px',
+      // Низ на телефоне длиннее: под содержимым стоят навигация и плавающий
+      // док управления, и без запаса последняя карточка уезжает под них.
+      width: '100%', padding: narrow ? '8px 16px 150px' : '8px 0 80px',
       display: 'flex', flexDirection: narrow ? 'column' : 'row',
       gap: narrow ? 16 : 22, alignItems: 'flex-start',
     }}>
@@ -239,7 +242,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
             управлением, которое уезжало.
             Полоса непрозрачна и с размытием: под ней едет текст, и сквозь
             промежутки между таблетками он превращал бы кнопки в кашу. */}
-        {(toolbar || narrow) && (
+        {toolbar && (
         <div
           ref={barRef}
           style={{
@@ -250,31 +253,29 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
           }}
         >
 
-        {/* Кнопка открытия шторки идёт ПЕРЕД строкой управления, а не внутри
-            неё: строку собирает вызывающий, и вставлять туда чужой элемент
-            значило бы, что каждый режим обязан помнить про телефон. */}
-        {narrow && (
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
-            {narrowLead}
-            <button
-              onClick={() => setSheet(true)}
-              style={{
-                flex: 1, minWidth: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                padding: '11px 16px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)',
-                background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-medium)',
-              }}
-            >
-              <SlidersHorizontal size={15} /> {t('Режим и фильтры')}
-            </button>
-          </div>
-        )}
-        {toolbar && <div style={{ position: 'relative' }}>{toolbar}</div>}
+        <div style={{ position: 'relative' }}>{toolbar}</div>
         </div>
         )}
         {children}
       </main>
+
+      {/* УПРАВЛЕНИЕ НА ТЕЛЕФОНЕ ЖИВЁТ ВНИЗУ, У БОЛЬШОГО ПАЛЬЦА.
+          Раньше предмет и «Режим и фильтры» стояли строкой наверху — там же,
+          где чёлка и шапка кабинета: чтобы сменить язык посреди ленты, нужно
+          было пролистать всё обратно наверх, а на большом экране до верхнего
+          края ещё и не дотянуться. Плавающий док — тот же приём, что в ДЗ и
+          курсах: он едет над навигацией, прячется под неё при листании вниз и
+          возвращается при листании вверх. */}
+      {narrow && (
+        <MobileDock>
+          {narrowLead && <DockSlot>{narrowLead}</DockSlot>}
+          <DockCircle
+            icon={<SlidersHorizontal size={20} />}
+            ariaLabel={t('Режим и фильтры')}
+            onClick={() => setSheet(true)}
+          />
+        </MobileDock>
+      )}
     </div>
   )
 }

@@ -252,10 +252,21 @@ export function SubjectPill({ state, palette, onOpenList }: {
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
+  /**
+   * Список раскрывается ВВЕРХ, если снизу места нет.
+   *
+   * На телефоне таблетка уехала в нижний док, и меню, всегда падавшее вниз,
+   * оказывалось за краем экрана: видна была одна строка списка, а прокрутить
+   * его было некуда.
+   */
+  const [up, setUp] = useState(false)
+
   const toggle = () => {
     if (!many) return
     loadDue()
     if (onOpenList) { onOpenList(); return }
+    const r = ref.current?.getBoundingClientRect()
+    if (r) setUp(window.innerHeight - r.bottom < 260 && r.top > window.innerHeight - r.bottom)
     setOpen(o => !o)
   }
 
@@ -281,7 +292,8 @@ export function SubjectPill({ state, palette, onOpenList }: {
 
       {open && (
         <div ref={menuRef} className="no-scrollbar" style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 60, minWidth: 280,
+          position: 'absolute', left: 0, zIndex: 60, minWidth: 280,
+          ...(up ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
           border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
           maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',

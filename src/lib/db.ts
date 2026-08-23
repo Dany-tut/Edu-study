@@ -159,7 +159,8 @@ export type ProgressMap = Record<string, {
 // Resolve every student row + group the logged-in person belongs to (all their
 // subject cards AND any regular group they were enrolled into). Lets the student
 // track show ALL their courses regardless of which subject session is active.
-// Falls back to the single session ids when there's no linked auth account.
+// Строки резолвятся по person_id через RPC (работает и без auth-сессии),
+// auth-аккаунт лишь дополняет список; в крайнем случае — одна строка сессии.
 export type PersonScope = {
   studentIds: string[]
   groupIds: string[]
@@ -168,15 +169,33 @@ export type PersonScope = {
 export async function fetchPersonScope(
   fallback: { id: string; groupId: string },
 ): Promise<PersonScope> {
-  const fb = { studentIds: [fallback.id], groupIds: [fallback.groupId], rows: [{ id: fallback.id, groupId: fallback.groupId }] }
+  const raw: Array<{ id: string; group_id: string }> = []
+
+  // 1) Строки по person_id — RPC person_student_rows (SECURITY DEFINER). Работает
+  // и БЕЗ auth-сессии: легаси-вход (student_login) и протухший токен раньше
+  // схлопывали охват до одной строки из localStorage, и курсы остальных
+  // предметов человека пропадали из кабинета, хотя назначены верно.
+  if (isUuid(fallback.id)) {
+    const { data, error } = await supabase.rpc('person_student_rows', { p_student: fallback.id })
+    if (error) reportDbError('fetchPersonScope.rpc', error)
+    for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
+  }
+
+  // 2) Строки по auth-аккаунту — дополняют RPC (строка без person_id, но под тем
+  // же логином) и держат кабинет живым, если RPC ещё не раскатан в базе.
   const { data: auth } = await supabase.auth.getUser()
-  if (!auth?.user) return fb
-  const { data, error } = await supabase
-    .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
-  if (error) reportDbError('fetchPersonScope', error)
-  const raw = (data ?? []) as Array<{ id: string; group_id: string }>
-  if (raw.length === 0) return fb
-  const rows = raw.map(r => ({ id: r.id, groupId: r.group_id }))
+  if (auth?.user) {
+    const { data, error } = await supabase
+      .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
+    if (error) reportDbError('fetchPersonScope', error)
+    for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
+  }
+
+  const rows: Array<{ id: string; groupId: string }> = []
+  for (const r of raw) {
+    if (!r?.id || rows.some(x => x.id === r.id)) continue
+    rows.push({ id: r.id, groupId: r.group_id ?? '' })
+  }
   if (!rows.some(r => r.id === fallback.id)) rows.push({ id: fallback.id, groupId: fallback.groupId })
   return {
     studentIds: [...new Set(rows.map(r => r.id))],

@@ -299,3 +299,25 @@ export function DockCircle({
     </motion.button>
   )
 }
+
+/**
+ * Чужой элемент в доке — переключатель предмета тренажёра.
+ *
+ * Соседние круги гаснут сами (DockCircle), и без такой обёртки посторонняя
+ * таблетка оставалась бы висеть одна посреди экрана, когда весь док уже уехал
+ * под навигацию. Размытия здесь нет намеренно: `filter` на обёртке глушит
+ * backdrop-filter ребёнка, и на возврате его матовость вспыхивает через кадр.
+ */
+export function DockSlot({ children }: { children: ReactNode }) {
+  const collapsed = useSmoothCollapse()
+  return (
+    <motion.div
+      initial={false}
+      animate={{ opacity: collapsed ? 0 : 1, scale: collapsed ? 0.9 : 1, y: collapsed ? 46 : 0 }}
+      transition={collapseTransition(collapsed)}
+      style={{ display: 'flex', minWidth: 0, transformOrigin: 'bottom center' }}
+    >
+      {children}
+    </motion.div>
+  )
+}

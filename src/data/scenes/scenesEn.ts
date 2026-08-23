@@ -22973,4 +22973,1773 @@ STANDING NOTE: if we are late into BREAK 2 we do not take it out of Sport. We ha
       },
     ],
   },
+
+  // ── Кремниевая долина, 3: условия сделки ───────────────────────────────────
+  {
+    id: 'sc-silicon-valley-3',
+    workId: 'silicon-valley',
+    lang: 'en', title: 'Условия сделки, одна страница', level: 'B2', minutes: 4,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина сериала — про то, что основатели подписывают бумаги, которых не читают. Ниже наш текст: term sheet, короткое соглашение об условиях инвестиции, и приписки юриста на полях. Это ровно та лексика, которую нужно знать, прежде чем что-то подписывать.',
+    body: `TERM SHEET — SERIES A — NON-BINDING EXCEPT WHERE STATED
+
+Company: Pied Piper, Inc.
+Investor: Raviga Capital
+Investment: $5,000,000
+Pre-money valuation: $45,000,000
+Post-money: $50,000,000 (Investor holds 10 %)
+
+Board: five seats. Two Investor, two Founders, one independent, appointed by mutual agreement.
+_(margin: “Mutual agreement” means the independent seat is empty until someone gives way. It is never the investor.)_
+
+Liquidation preference: 1× participating.
+_(margin: Read this one twice. On a sale, the Investor takes $5 m back FIRST, and then also takes 10 % of what is left. “Participating” is the whole word that matters on this page.)_
+
+Vesting: Founders’ shares, four years, one-year cliff, from the date of this agreement.
+_(margin: From the date of THIS agreement. Not from when you founded the company. You have just restarted your own clock.)_
+
+Protective provisions: Investor consent required to sell the company, raise further capital, change the board, or issue new shares.
+_(margin: This is the section people mean when they say “we still control the company”. You do not, for four of the things you would ever want to do.)_
+
+No-shop: 45 days, binding.
+_(margin: THIS clause is binding even though the top of the page says the sheet is not. Read “except where stated”. That is what it was for.)_
+
+Founder’s note at the bottom, in a third hand:
+“Is 45 days long?”
+Lawyer: “It is if the money runs out in 30.”`,
+    translation: `СОГЛАШЕНИЕ ОБ УСЛОВИЯХ — РАУНД A — НЕОБЯЗЫВАЮЩЕЕ, КРОМЕ ОГОВОРЁННОГО
+
+Компания: Pied Piper, Inc.
+Инвестор: Raviga Capital
+Инвестиция: 5 000 000 $
+Оценка до вложения: 45 000 000 $
+После вложения: 50 000 000 $ (доля инвестора 10 %)
+
+Совет директоров: пять мест. Два от инвестора, два от основателей, одно независимое, назначается по взаимному согласию.
+_(на полях: «По взаимному согласию» означает, что независимое место пустует, пока кто-нибудь не уступит. Уступает не инвестор.)_
+
+Ликвидационная привилегия: 1×, участвующая.
+_(на полях: Прочтите это дважды. При продаже инвестор СНАЧАЛА забирает свои 5 млн, а потом ещё и 10 % от остатка. «Участвующая» — единственное слово на этой странице, которое имеет значение.)_
+
+Вестинг: доли основателей, четыре года, годовой обрыв, с даты настоящего соглашения.
+_(на полях: С даты ЭТОГО соглашения. Не с момента, когда вы основали компанию. Вы только что перезапустили собственные часы.)_
+
+Защитные положения: согласие инвестора требуется для продажи компании, привлечения нового капитала, изменения состава совета и выпуска новых долей.
+_(на полях: Именно этот раздел имеют в виду, когда говорят «компания всё ещё наша». Она не ваша — в четырёх случаях из тех, что вам вообще могут понадобиться.)_
+
+Эксклюзивность: 45 дней, обязывающее условие.
+_(на полях: ЭТОТ пункт обязывает, хотя вверху страницы написано, что документ не обязывает. Перечитайте «кроме оговорённого». Оговорка была ради него.)_
+
+Приписка основателя внизу, третьим почерком:
+«45 дней — это много?»
+Юрист: «Много, если деньги кончатся через 30».`,
+    glossary: [
+      { term: 'term sheet', ru: 'соглашение об основных условиях' },
+      { term: 'non-binding', ru: 'необязывающий' },
+      { term: 'valuation', ru: 'оценка стоимости компании' },
+      { term: 'board seat', ru: 'место в совете директоров' },
+      { term: 'liquidation preference', ru: 'ликвидационная привилегия' },
+      { term: 'participating', ru: 'участвующая — забирает и вложенное, и долю остатка' },
+      { term: 'vesting', ru: 'постепенное получение прав на долю' },
+      { term: 'cliff', ru: 'обрыв — срок, до которого не получаешь ничего' },
+      { term: 'protective provisions', ru: 'защитные положения инвестора' },
+      { term: 'no-shop', ru: 'запрет вести переговоры с другими' },
+    ],
+    questions: [
+      {
+        q: 'Why does the lawyer say “participating” is the word that matters?',
+        options: [
+          'It sets the price',
+          'On a sale the investor takes the money back first and then also a share of the rest',
+          'It names the board',
+          'It is a typo',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the problem with the vesting date?',
+        options: [
+          'It is too short',
+          'It runs from this agreement, not from when the company was founded',
+          'It has no cliff',
+          'It applies to the investor',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which clause is binding despite the heading?',
+        options: ['Vesting', 'The no-shop', 'The board composition', 'The valuation'],
+        correct: 1,
+      },
+      {
+        q: 'What does the lawyer’s last line mean?',
+        options: [
+          '45 days is a normal period',
+          'It is too long if the company runs out of money in 30 days',
+          'The money is already gone',
+          'The deal is off',
+        ],
+        correct: 1,
+        why: 'Эксклюзивность связывает руки ровно тогда, когда искать альтернативу уже поздно. Это и есть механизм, а не срок.',
+      },
+    ],
+  },
+
+  // ── Кремниевая долина, 4: баг-репорт ───────────────────────────────────────
+  {
+    id: 'sc-silicon-valley-4',
+    workId: 'silicon-valley',
+    lang: 'en', title: 'Тикет в трекере', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Инженерная переписка — отдельный жанр английского: короткие строки, много сокращений, вежливость нулевая, но не грубая. Ниже наш текст — заведённый баг и комментарии под ним. Полезно всякому, кто работает в командах с англоязычным трекером.',
+    body: `ISSUE #2291 — Compression fails on files > 2 GB
+Status: Open · Priority: P1 · Assignee: unassigned · Reported by: gilfoyle
+
+DESCRIPTION
+Repro: upload any file over 2 GB. Compression starts, reaches ~87 %, then hangs. No error, no timeout, no log line. Process must be killed manually.
+
+Environment: prod and staging. Not reproducible locally, which is the annoying part.
+Frequency: 6 of 6 attempts.
+Regression: not present in build 4.1.7. Present in 4.1.8.
+
+COMMENTS
+
+dinesh: 4.1.8 is only my refactor and the new progress bar. It cannot be the progress bar.
+gilfoyle: It is never the progress bar. It is always the progress bar.
+dinesh: The progress bar does not touch the buffer.
+gilfoyle: Then explain 87 %.
+dinesh: 87 % is a coincidence.
+gilfoyle: It was 87 % six times.
+
+richard: Can we not do this here. Everything in this tracker is discoverable in due diligence and I would like the investors to read something other than you two.
+
+jared: Flagging gently that we told the customer this was fixed on Tuesday. I said “resolved”. I used the word “resolved”. I would like to un-use it.
+
+dinesh: ...it is the progress bar.
+gilfoyle: I know.
+dinesh: How did you know.
+gilfoyle: I did not know. I said it, and now it is true, and this is the only part of the job I enjoy.
+
+Status changed to: In Progress · Assignee: dinesh`,
+    translation: `ТИКЕТ #2291 — Сжатие падает на файлах > 2 ГБ
+Статус: открыт · Приоритет: P1 · Исполнитель: не назначен · Автор: gilfoyle
+
+ОПИСАНИЕ
+Воспроизведение: загрузить любой файл больше 2 ГБ. Сжатие стартует, доходит до ~87 % и виснет. Ошибки нет, таймаута нет, в логах пусто. Процесс приходится убивать вручную.
+
+Окружение: прод и стейджинг. Локально не воспроизводится, и это самое неприятное.
+Частота: 6 из 6 попыток.
+Регрессия: в сборке 4.1.7 нет. В 4.1.8 есть.
+
+КОММЕНТАРИИ
+
+dinesh: В 4.1.8 только мой рефакторинг и новый прогресс-бар. Прогресс-бар тут ни при чём.
+gilfoyle: Прогресс-бар всегда ни при чём. И всегда дело в прогресс-баре.
+dinesh: Прогресс-бар не трогает буфер.
+gilfoyle: Тогда объясни 87 %.
+dinesh: 87 % — совпадение.
+gilfoyle: Оно было 87 % шесть раз.
+
+richard: Давайте не здесь. Всё в этом трекере попадает в due diligence, и мне бы хотелось, чтобы инвесторы читали что-нибудь кроме вас двоих.
+
+jared: Мягко отмечаю, что во вторник мы сообщили клиенту, что это исправлено. Я сказал «решено». Я употребил слово «решено». Мне бы хотелось его разупотребить.
+
+dinesh: …дело в прогресс-баре.
+gilfoyle: Знаю.
+dinesh: Откуда ты знал.
+gilfoyle: Я не знал. Я это сказал, и теперь это правда, и это единственная часть работы, которая мне нравится.
+
+Статус изменён на: в работе · Исполнитель: dinesh`,
+    glossary: [
+      { term: 'issue / ticket', ru: 'заявка, тикет в трекере' },
+      { term: 'repro (reproduction)', ru: 'шаги воспроизведения' },
+      { term: 'to hang', ru: 'зависать' },
+      { term: 'staging / prod', ru: 'тестовая / боевая среда' },
+      { term: 'regression', ru: 'регрессия — то, что работало и сломалось' },
+      { term: 'build', ru: 'сборка' },
+      { term: 'refactor', ru: 'рефакторинг, переписывание кода' },
+      { term: 'buffer', ru: 'буфер' },
+      { term: 'due diligence', ru: 'проверка компании перед сделкой' },
+      { term: 'to flag sth', ru: 'обратить внимание, пометить' },
+    ],
+    questions: [
+      {
+        q: 'At what point does compression hang?',
+        options: ['At the start', 'Around 87 %', 'At 100 %', 'Randomly'],
+        correct: 1,
+      },
+      {
+        q: 'Why is “not reproducible locally” annoying?',
+        options: [
+          'It means the bug is not real',
+          'Because it can only be investigated where it also breaks users',
+          'It is a hardware issue',
+          'It saves time',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does Richard ask them to stop?',
+        options: [
+          'It is off topic',
+          'Everything in the tracker is discoverable in due diligence',
+          'It is too long',
+          'The customer can see it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is Jared’s actual problem?',
+        options: [
+          'He cannot reproduce it',
+          'He told the customer it was “resolved”',
+          'He assigned the ticket wrongly',
+          'He wrote the progress bar',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Чернобыль, 3: инструкция по дозиметрам ─────────────────────────────────
+  {
+    id: 'sc-chernobyl-3',
+    workId: 'chernobyl',
+    lang: 'en', title: 'Инструкция по дозиметрам', level: 'B2', minutes: 4,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Главная мысль сериала — что предел прибора становится пределом правды: если дозиметр показывает максимум 3,6, то в отчёте будет 3,6. Ниже наш текст в этом ключе — инструкция по приборам. Английский тут технический и предельно нейтральный.',
+    body: `INSTRUMENT INSTRUCTION — RADIATION SURVEY METERS
+For personnel of the site and of the exclusion zone. Read before your first shift.
+
+1. DP-5 (issued as standard)
+Range: 0.05 to 200 roentgen per hour, in six sub-ranges.
+Note: the instrument does not read above its range. When the needle rests at the top of the scale, the reading is not the number shown. The reading is “at least that number”. This distinction has caused more harm than any fault in any instrument.
+
+2. Pocket dosimeter (issued to each worker)
+Cumulative, not instantaneous. Tells you what you have already received. Cannot tell you what you are receiving now. Read it at the end of the shift, not during, because reading it during changes nothing and changes how you work.
+
+3. High-range meter (limited issue, signed for)
+Range: to 2,000 R/h. Held by the shift supervisor. If you believe a high-range reading is required, you are to request it and record that you requested it, in writing, with the time.
+
+REPORTING
+All readings are to be reported as taken. A reading is not to be adjusted for plausibility. If a reading appears impossible, report it as impossible; do not report a lower number that appears possible.
+
+If the number you have is the highest number your instrument can produce, write on the form: “≥ [reading] — instrument at limit”. Those five words are the entire purpose of this instruction.
+
+WHAT AN INSTRUMENT CANNOT TELL YOU
+It cannot tell you that it is broken. It cannot tell you that it is the wrong instrument. It cannot tell you that the number is small because the instrument is small. Only a person can notice that, and only if the person is permitted to say it.`,
+    translation: `ИНСТРУКЦИЯ ПО ПРИБОРАМ — ИЗМЕРИТЕЛИ МОЩНОСТИ ДОЗЫ
+Для персонала станции и зоны отчуждения. Прочесть до первой смены.
+
+1. ДП-5 (штатный)
+Диапазон: от 0,05 до 200 рентген в час, шесть поддиапазонов.
+Примечание: прибор не показывает выше своего диапазона. Когда стрелка стоит в конце шкалы, показание — не то число, которое видно. Показание — «не менее этого числа». Это различие принесло больше вреда, чем любая неисправность любого прибора.
+
+2. Карманный дозиметр (выдаётся каждому)
+Накопительный, не мгновенный. Сообщает, сколько вы уже получили. Не сообщает, сколько получаете сейчас. Снимать показание в конце смены, а не во время: во время это ничего не меняет, кроме того, как вы работаете.
+
+3. Прибор высокого диапазона (ограниченная выдача, под роспись)
+Диапазон: до 2000 Р/ч. Хранится у начальника смены. Если вы считаете, что нужен замер высокого диапазона, вы обязаны его запросить и зафиксировать факт запроса письменно, с указанием времени.
+
+ОТЧЁТНОСТЬ
+Все показания передаются как снятые. Показание не подлежит правке ради правдоподобия. Если показание кажется невозможным, так и сообщайте: невозможное; не сообщайте меньшее число, которое выглядит возможным.
+
+Если полученное число — наибольшее, какое ваш прибор способен выдать, в бланке пишите: «≥ [показание] — прибор на пределе». Ради этих пяти слов инструкция и написана.
+
+ЧЕГО ПРИБОР СООБЩИТЬ НЕ МОЖЕТ
+Он не может сообщить, что он неисправен. Не может сообщить, что это не тот прибор. Не может сообщить, что число мало потому, что мал прибор. Это способен заметить только человек — и только если человеку позволено об этом сказать.`,
+    glossary: [
+      { term: 'survey meter', ru: 'измеритель мощности дозы' },
+      { term: 'range / sub-range', ru: 'диапазон / поддиапазон' },
+      { term: 'needle', ru: 'стрелка прибора' },
+      { term: 'scale', ru: 'шкала' },
+      { term: 'cumulative', ru: 'накопительный' },
+      { term: 'instantaneous', ru: 'мгновенный' },
+      { term: 'to sign for sth', ru: 'получить под роспись' },
+      { term: 'to adjust for plausibility', ru: 'подправить ради правдоподобия' },
+      { term: 'at limit', ru: 'на пределе (о приборе)' },
+      { term: 'exclusion zone', ru: 'зона отчуждения' },
+    ],
+    questions: [
+      {
+        q: 'What does a needle resting at the top of the scale mean?',
+        options: [
+          'Exactly that number',
+          '“At least that number”',
+          'The instrument is broken',
+          'Zero',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why read the pocket dosimeter at the end of the shift?',
+        options: [
+          'It is more accurate then',
+          'Reading it during changes nothing except how you work',
+          'The rules require it',
+          'It resets hourly',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What must never be done with a reading?',
+        options: [
+          'Report it',
+          'Adjust it so that it appears possible',
+          'Write the time',
+          'Repeat it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What can only a person notice?',
+        options: [
+          'The exact dose',
+          'That the number is small because the instrument is small',
+          'The shift schedule',
+          'The battery level',
+        ],
+        correct: 1,
+        why: 'Последний абзац переводит техническую инструкцию в главную тему сериала: прибор не врёт, врёт система, которая не даёт человеку сказать, что прибор не тот.',
+      },
+    ],
+  },
+
+  // ── Чернобыль, 4: протокол заседания ───────────────────────────────────────
+  {
+    id: 'sc-chernobyl-4',
+    workId: 'chernobyl',
+    lang: 'en', title: 'Протокол заседания комиссии', level: 'C1', minutes: 4,
+    topic: 'Работа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал построен на разнице между тем, что произошло, и тем, что записано. Ниже наш текст — протокол заседания. Формулировки здесь стоит разбирать по одной: почти каждая существует, чтобы не написать чего-то другого.',
+    body: `MINUTES OF THE COMMISSION — SESSION 3 — 12:40
+Present: eleven. Chair: Deputy Chairman. Recording secretary: comrade Volkova.
+
+1. The Chair opened by noting that the situation is under control and that the purpose of the session is to determine the sequence of measures, not to establish causes. Causes will be established by a separate commission at a later date.
+
+2. The report from the site was read. The reported figure is 3.6 roentgen per hour. Comrade Legasov asked what instrument produced the figure. The site representative stated that he would establish this. The Chair ruled that the question be minuted and answered in writing.
+_(Secretary’s note: the question was not answered in writing during this session.)_
+
+3. On evacuation. Two positions were put. The first, that evacuation of the town be ordered today. The second, that evacuation would cause alarm disproportionate to a situation described as under control, and that the decision therefore belongs to the higher body.
+Decision: refer to the higher body. Recorded as unanimous.
+_(Secretary’s note: two members did not vote. Under the standing rules a member who does not vote is recorded with the majority. This is why the word “unanimous” appears above.)_
+
+4. On telephone lines. It was resolved to restrict long-distance connection from the town, in order to prevent the spread of unverified information.
+The measure was described in discussion as temporary. The word “temporary” does not appear in the resolution.
+
+5. Any other business: none.
+
+Session closed 13:25. Duration 45 minutes.
+
+_Final note by the secretary, unsigned: I have recorded this session as it was conducted. I have not recorded it as it was understood. I do not know how one would do that, and I do not know whether I would be permitted to._`,
+    translation: `ПРОТОКОЛ КОМИССИИ — ЗАСЕДАНИЕ 3 — 12:40
+Присутствовали: одиннадцать. Председательствующий: заместитель председателя. Секретарь: тов. Волкова.
+
+1. Председательствующий открыл заседание, отметив, что обстановка находится под контролем и что цель заседания — определить последовательность мер, а не установить причины. Причины будут установлены отдельной комиссией в более поздний срок.
+
+2. Оглашён доклад с объекта. Приводимая величина — 3,6 рентгена в час. Тов. Легасов спросил, каким прибором получена величина. Представитель объекта заявил, что это будет установлено. Председательствующий постановил вопрос занести в протокол и ответить письменно.
+_(Пометка секретаря: письменного ответа в ходе заседания не последовало.)_
+
+3. Об эвакуации. Заявлены две позиции. Первая — эвакуацию города назначить сегодня. Вторая — эвакуация вызовет тревогу, несоразмерную обстановке, которая описана как контролируемая, и потому решение относится к компетенции вышестоящего органа.
+Решение: передать в вышестоящий орган. Записано как единогласное.
+_(Пометка секретаря: двое присутствующих не голосовали. По действующему регламенту не голосовавший записывается с большинством. По этой причине выше стоит слово «единогласно».)_
+
+4. О телефонной связи. Постановлено ограничить междугородную связь из города в целях недопущения распространения непроверенных сведений.
+В обсуждении мера названа временной. Слово «временная» в постановлении отсутствует.
+
+5. Разное: не имеется.
+
+Заседание закрыто в 13:25. Продолжительность 45 минут.
+
+_Заключительная пометка секретаря, без подписи: я записала это заседание так, как оно велось. Я не записала его так, как оно было понято. Я не знаю, как это сделать, и не знаю, было бы мне это позволено._`,
+    glossary: [
+      { term: 'minutes', ru: 'протокол заседания' },
+      { term: 'the Chair', ru: 'председательствующий' },
+      { term: 'to minute sth', ru: 'занести в протокол' },
+      { term: 'to rule', ru: 'постановить (о председателе)' },
+      { term: 'to refer sth to', ru: 'передать на рассмотрение' },
+      { term: 'unanimous', ru: 'единогласный' },
+      { term: 'standing rules', ru: 'действующий регламент' },
+      { term: 'to resolve', ru: 'постановить' },
+      { term: 'unverified', ru: 'непроверенный' },
+      { term: 'any other business', ru: '«разное» — последний пункт повестки' },
+    ],
+    questions: [
+      {
+        q: 'What did the Chair say the session was NOT for?',
+        options: [
+          'Ordering measures',
+          'Establishing causes',
+          'Reading the site report',
+          'Recording votes',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the word “unanimous” appear?',
+        options: [
+          'Everyone agreed',
+          'Because non-voting members are recorded with the majority',
+          'The Chair required it',
+          'It was a mistake',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is missing from the resolution on telephone lines?',
+        options: [
+          'The date',
+          'The word “temporary”, although it was used in discussion',
+          'A signature',
+          'The reason',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the secretary’s unsigned note admit?',
+        options: [
+          'That she made errors',
+          'That the record is accurate about the procedure and silent about the meaning',
+          'That she was absent',
+          'That the session was longer',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Медведь, 3: список заготовок ───────────────────────────────────────────
+  {
+    id: 'sc-the-bear-3',
+    workId: 'the-bear',
+    lang: 'en', title: 'Список заготовок', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ресторанная кухня живёт по prep list — списку заготовок на день. Ниже наш текст в этом виде. Это очень концентрированный кулинарный английский: глаголы в повелительном наклонении, количества, время, и ни одного лишнего слова.',
+    body: `PREP LIST — TUESDAY — SERVICE 5 P.M.
+Board wiped by 4:45 or it did not happen.
+
+CARMY
+– stock: pull the bones at 11, strain at 3, do NOT boil, we have had this conversation
+– braise: 6 shoulders, sear hard, oven at 135 until it goes at a spoon
+– sauce: reduce by half, taste at half, taste again at cold
+
+SYD
+– mise for the whole line, 6 covers deep minimum
+– onions, 8 kg, brunoise. Yes 8. Yes brunoise
+– herb oil, blanch and shock, blend 90 seconds max or it goes brown and we serve pond
+– family meal at 4. Something with a vegetable in it. Actual vegetable
+
+TINA
+– stock rotation, front to back, label EVERYTHING with the date, and the date means the date it was made not the date you wrote the label
+– par-cook potatoes, cool on trays uncovered, then cover
+– 200 portions of the bread. Two hundred. Not “about two hundred”
+
+MARCUS
+– dough at 8, second proof by 1, bake in two batches
+– do not open the oven to look. You know why we are saying it
+
+ALL
+– yes chef means heard. Say it or say “heard”. Silence is not an answer and I cannot hear a nod.
+– if you break something, say it now. Everything is fixable at three and nothing is fixable at seven.`,
+    translation: `СПИСОК ЗАГОТОВОК — ВТОРНИК — СЕРВИС В 17:00
+Доска вытерта к 16:45, иначе считается, что этого не было.
+
+КАРМИ
+– бульон: кости в 11, процедить в 15, НЕ кипятить, мы это уже обсуждали
+– тушение: 6 лопаток, обжарить жёстко, духовка 135 до состояния «идёт под ложкой»
+– соус: уварить вдвое, пробовать на половине, пробовать ещё раз холодным
+
+СИД
+– мизанплас на всю линию, минимум с запасом на 6 подач
+– лук, 8 кг, брюнуаз. Да, 8. Да, брюнуаз
+– травяное масло: бланшировать и в лёд, блендер максимум 90 секунд, иначе побуреет и мы подаём пруд
+– обед для персонала в 16. Что-нибудь с овощем. С настоящим овощем
+
+ТИНА
+– ротация запасов, старое вперёд, подписывать ВСЁ с датой, и дата — это дата изготовления, а не дата, когда ты написала этикетку
+– картофель припустить, остудить на противнях открытым, потом накрыть
+– 200 порций хлеба. Двести. Не «примерно двести»
+
+МАРКУС
+– тесто в 8, вторая расстойка к 13, выпекать в две загрузки
+– духовку не открывать, чтобы посмотреть. Сам знаешь, почему мы это пишем
+
+ВСЕМ
+– «да, шеф» значит «услышал». Говорите так или говорите «услышал». Молчание — не ответ, а кивок я не слышу.
+– если что-то сломали, скажите сейчас. В три чинится всё, в семь не чинится ничего.`,
+    glossary: [
+      { term: 'prep list', ru: 'список заготовок на смену' },
+      { term: 'service', ru: 'сервис — время работы зала' },
+      { term: 'stock', ru: 'бульон; также «запасы»' },
+      { term: 'to strain', ru: 'процеживать' },
+      { term: 'to braise', ru: 'тушить' },
+      { term: 'to sear', ru: 'обжарить до корочки' },
+      { term: 'mise (mise en place)', ru: 'мизанплас — всё нарезано и расставлено' },
+      { term: 'brunoise', ru: 'брюнуаз — мелкий кубик' },
+      { term: 'to blanch and shock', ru: 'бланшировать и охладить в льду' },
+      { term: 'par-cook', ru: 'припустить, довести до полуготовности' },
+      { term: 'proof (dough)', ru: 'расстойка теста' },
+      { term: 'heard', ru: '«услышал» — подтверждение на кухне' },
+    ],
+    questions: [
+      {
+        q: 'What does the date on a label mean?',
+        options: [
+          'The date the label was written',
+          'The date the item was made',
+          'The use-by date',
+          'The delivery date',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must the herb oil be blended for 90 seconds at most?',
+        options: [
+          'The blender overheats',
+          'Longer and it goes brown',
+          'It splits',
+          'It is a timing rule only',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is “yes chef” equivalent to?',
+        options: ['Agreement', '“Heard” — confirmation that the instruction was received', 'A greeting', 'An apology'],
+        correct: 1,
+      },
+      {
+        q: 'Why must breakages be reported immediately?',
+        options: [
+          'For insurance',
+          'Everything is fixable at three and nothing is fixable at seven',
+          'To assign blame',
+          'To order replacements',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Медведь, 4: разговор с поставщиком ─────────────────────────────────────
+  {
+    id: 'sc-the-bear-4',
+    workId: 'the-bear',
+    lang: 'en', title: 'Звонок поставщику', level: 'B2', minutes: 4,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вторая половина сериала — про то, что ресторан это бизнес с долгами и поставщиками. Ниже наш текст: накладная и разговор по телефону. Тут вся лексика закупок и, заодно, английский, каким по телефону просят отсрочку.',
+    body: `DELIVERY NOTE 88214 — PALMER MEATS
+Short-delivered: 2 cases chicken thigh (of 6). Reason given: allocation.
+Price change: beef shoulder $6.10/lb → $7.45/lb, effective this delivery.
+Account status: 62 days. Terms are 30.
+
+—— the call ——
+
+“Palmer.”
+“Hi, it’s the Beef on Orleans. Two questions and one is going to be worse than the other.”
+“Do the worse one first, I have a truck.”
+“You short-shipped me two cases of thigh and put beef up twenty-two per cent on the same delivery.”
+“Allocation on the thigh, everybody got cut. The beef is the beef, it went up for me on Monday.”
+“Twenty-two per cent went up for you on Monday?”
+“Nineteen. I took three.”
+“Okay. That’s fair. I’m not going to argue with three.”
+
+“And the other question?”
+“Sixty-two days.”
+“I know it’s sixty-two days.”
+“I can do half on Friday and half on the fifteenth. I am not asking you to carry me longer, I am asking you to carry me differently.”
+
+A pause, and paper being moved.
+
+“Friday is real? Not Friday-ish?”
+“Friday. If it isn’t, you stop delivering and I won’t say a word about it.”
+“…All right. Half Friday. I’ll leave the thigh on the next truck and I won’t charge the new price on it, since it should have come Tuesday.”
+“Thank you.”
+“Don’t thank me, put it in the book. And answer the phone next time, it took four calls.”`,
+    translation: `НАКЛАДНАЯ 88214 — PALMER MEATS
+Недопоставка: 2 ящика куриного бедра (из 6). Причина: квотирование.
+Изменение цены: говяжья лопатка 6,10 $/фунт → 7,45 $/фунт, с этой поставки.
+Состояние счёта: 62 дня. Условия — 30.
+
+—— звонок ——
+
+— Палмер.
+— Здравствуйте, это «Биф на Орлеан». Два вопроса, и один хуже другого.
+— Начинай с худшего, у меня фура.
+— Вы недовезли два ящика бедра и в ту же поставку подняли говядину на двадцать два процента.
+— По бедру квота, урезали всем. Говядина — это говядина, у меня она подорожала в понедельник.
+— На двадцать два процента подорожала у вас в понедельник?
+— На девятнадцать. Три взял я.
+— Ладно. Это честно. Из-за трёх я спорить не буду.
+
+— А второй вопрос?
+— Шестьдесят два дня.
+— Я знаю, что шестьдесят два.
+— Могу половину в пятницу и половину пятнадцатого. Я не прошу вас тянуть меня дольше, я прошу тянуть иначе.
+
+Пауза, шелест бумаг.
+
+— Пятница настоящая? Не «где-то в пятницу»?
+— Пятница. Если нет — прекращаете поставки, и я слова не скажу.
+— …Хорошо. Половину в пятницу. Бедро оставлю на следующую машину и новую цену на него не поставлю, раз оно должно было прийти во вторник.
+— Спасибо.
+— Не благодари, запиши в книгу. И бери трубку, я звонил четыре раза.`,
+    glossary: [
+      { term: 'delivery note', ru: 'накладная' },
+      { term: 'short-delivered / to short-ship', ru: 'недопоставить' },
+      { term: 'allocation', ru: 'квотирование, распределение дефицита' },
+      { term: 'effective', ru: 'вступающий в силу' },
+      { term: 'account status', ru: 'состояние расчётов' },
+      { term: 'terms are 30', ru: 'отсрочка платежа 30 дней' },
+      { term: 'to carry sb', ru: 'кредитовать, тянуть на себе' },
+      { term: 'to put sth up', ru: 'повысить (цену)' },
+      { term: 'case', ru: 'ящик, коробка (единица поставки)' },
+      { term: 'to put it in the book', ru: 'записать в учёт' },
+    ],
+    questions: [
+      {
+        q: 'Why were two cases missing?',
+        options: ['A delivery error', 'Allocation — everybody was cut', 'Non-payment', 'The truck was full'],
+        correct: 1,
+      },
+      {
+        q: 'What does the supplier admit about the price rise?',
+        options: [
+          'It was a mistake',
+          'Nineteen per cent came from his cost and three per cent he added himself',
+          'It was twenty-two from his cost',
+          'It will be reversed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What exactly is being asked about the debt?',
+        options: [
+          'To cancel it',
+          'Not longer credit — a different schedule: half Friday, half on the 15th',
+          'A discount',
+          'More time overall',
+        ],
+        correct: 1,
+        why: '«Тянуть иначе, а не дольше» — точная формулировка, которая и решает разговор. Просьба о том же сроке, но разбитая на части, воспринимается совсем не как просьба об отсрочке.',
+      },
+      {
+        q: 'What does the supplier do about the late thigh?',
+        options: [
+          'Cancels it',
+          'Sends it later at the old price, since it should have arrived Tuesday',
+          'Charges the new price',
+          'Refunds it',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Убийства в одном здании, 3: доска с хронологией ────────────────────────
+  {
+    id: 'sc-only-murders-3',
+    workId: 'only-murders',
+    lang: 'en', title: 'Доска с хронологией', level: 'B2', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Расследование в сериале ведут три любителя, и их главный инструмент — доска с нитками. Ниже наш текст в этом виде: восстановленная хронология вечера и споры на полях. Хорошая тренировка на времена: past simple против past perfect решает здесь всё.',
+    body: `THE NIGHT OF THE 14th — TIMELINE (v3, please stop writing on v2)
+
+18:40  Doorman logs a food delivery for apartment 12F. Delivery driver is on camera. Face not visible; hood.
+19:05  Victim answers the buzzer. Confirmed: intercom log, 4 seconds.
+19:10  Victim is seen at the mailboxes by Mrs Gambolini. She says he “looked normal, but he had already looked normal on Tuesday, which by then meant nothing”.
+_(margin: what does that mean — O)_
+_(margin: it means Mrs Gambolini has a theory and is saving it — C)_
+19:22  Elevator to 12. One passenger. Camera in the elevator has been broken since March.
+_(margin: SINCE MARCH. Who has been fixing nothing since March — M)_
+19:40  Fire alarm, third floor. False. Everyone in the stairwell for eleven minutes.
+_(margin: this is the eleven minutes. Everything is in the eleven minutes — C)_
+19:51  Alarm cleared.
+20:04  Neighbour in 12E hears “a chair, or something like a chair”.
+20:30  Nothing.
+21:15  Nothing.
+22:02  Body found.
+
+WHAT WE ACTUALLY KNOW
+– He had already spoken to someone before the alarm. He had not spoken to anyone after it.
+– The alarm was pulled by hand. Alarms do not decide to be false.
+– The delivery arrived at 18:40 and the food was untouched at 22:02, which either means he never ate it, or means the delivery was not food.
+
+NEXT: find out who called in the alarm. Ask the doorman what he did NOT log.`,
+    translation: `НОЧЬ 14-го — ХРОНОЛОГИЯ (ред. 3, перестаньте писать на ред. 2)
+
+18:40  Консьерж регистрирует доставку еды в квартиру 12F. Курьер попал на камеру. Лицо не видно, капюшон.
+19:05  Погибший отвечает на домофон. Подтверждено: журнал домофона, 4 секунды.
+19:10  Погибшего видит у почтовых ящиков миссис Гамболини. Она говорит, что он «выглядел обычно, но обычно он выглядел уже во вторник, а к тому времени это ничего не значило».
+_(на полях: это как понимать — О)_
+_(на полях: это значит, что у миссис Гамболини есть версия и она её приберегает — Ч)_
+19:22  Лифт на 12-й. Один пассажир. Камера в лифте не работает с марта.
+_(на полях: С МАРТА. Кто у нас с марта ничего не чинит — М)_
+19:40  Пожарная тревога, третий этаж. Ложная. Все на лестнице одиннадцать минут.
+_(на полях: вот эти одиннадцать минут. Всё внутри этих одиннадцати минут — Ч)_
+19:51  Тревога снята.
+20:04  Сосед из 12E слышит «стул или что-то вроде стула».
+20:30  Ничего.
+21:15  Ничего.
+22:02  Тело обнаружено.
+
+ЧТО МЫ НА САМОМ ДЕЛЕ ЗНАЕМ
+– До тревоги он уже с кем-то поговорил. После неё он ни с кем не разговаривал.
+– Тревогу включили вручную. Тревоги не решают сами быть ложными.
+– Доставка пришла в 18:40, а еда в 22:02 была нетронута; значит, либо он её так и не съел, либо доставка была не едой.
+
+ДАЛЬШЕ: выяснить, кто поднял тревогу. Спросить консьержа, чего он НЕ записал.`,
+    glossary: [
+      { term: 'timeline', ru: 'хронология' },
+      { term: 'doorman', ru: 'консьерж, швейцар' },
+      { term: 'to log', ru: 'заносить в журнал' },
+      { term: 'buzzer / intercom', ru: 'домофон' },
+      { term: 'mailboxes', ru: 'почтовые ящики' },
+      { term: 'stairwell', ru: 'лестничная клетка' },
+      { term: 'to clear (an alarm)', ru: 'снять тревогу' },
+      { term: 'to pull an alarm', ru: 'включить тревогу вручную' },
+      { term: 'untouched', ru: 'нетронутый' },
+      { term: 'to call in an alarm', ru: 'сообщить о тревоге' },
+    ],
+    questions: [
+      {
+        q: 'How long were the residents in the stairwell?',
+        options: ['Four minutes', 'Eleven minutes', 'Half an hour', 'It is unknown'],
+        correct: 1,
+      },
+      {
+        q: 'Why is the elevator camera important?',
+        options: [
+          'It shows the passenger',
+          'It has been broken since March, so it shows nothing',
+          'It was switched off that night',
+          'It recorded the alarm',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “He had already spoken to someone before the alarm” use past perfect for?',
+        options: [
+          'To sound formal',
+          'To fix the order of two past events',
+          'To describe a habit',
+          'For politeness',
+        ],
+        correct: 1,
+        why: 'Past perfect здесь не украшение, а инструмент следствия: он расставляет события по порядку, а порядок и есть всё дело.',
+      },
+      {
+        q: 'What two explanations are offered for the untouched food?',
+        options: [
+          'He was not hungry, or he was out',
+          'He never ate it, or the delivery was not food',
+          'It was the wrong order, or it was cold',
+          'None',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Убийства в одном здании, 4: объявление правления ───────────────────────
+  {
+    id: 'sc-only-murders-4',
+    workId: 'only-murders',
+    lang: 'en', title: 'Объявление правления дома', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Настоящий герой сериала — старый нью-йоркский дом со своим правлением, слухами и объявлениями в лифте. Ниже наш текст: объявление правления и то, что дописали жильцы. Полезно бытовой лексикой многоквартирного дома.',
+    body: `THE ARCONIA — NOTICE FROM THE BOARD
+Posted in both elevators and by the mailboxes. Please do not remove.
+
+1. LOBBY. The renovation is now scheduled for spring. The board is aware that it was scheduled for last spring. The board is also aware that some residents have begun referring to it as “the eternal lobby”. The board finds this less funny than the residents do.
+
+2. NOISE. Quiet hours remain 10 p.m. to 8 a.m. This includes the piano in 6C, which is a beautiful instrument and is not a quiet one.
+
+3. PACKAGES. The doorman will hold packages for 72 hours. After 72 hours they go to the storage room. After the storage room, honestly, nobody knows.
+
+4. RECORDING. Several residents have asked about the podcast being made in this building. The board has taken advice. Residents may record their own conversations. Residents may not record other residents in common areas without consent. The lobby, the elevators, the roof and the laundry are common areas. The stairwell is, apparently, a grey area, and the board would prefer nobody test this.
+
+5. THE ROOF. The roof is not a common area at night. It has never been a common area at night. We do not know who has the key. We are working on it.
+
+—— written underneath, three different hands ——
+
+“Who is ‘we’ on point 5?”
+“Point 4 says we can record ourselves. Two of us in the elevator is two people recording themselves at once.”
+“That is not what it says and you know it is not what it says.”`,
+    translation: `«АРКОНИЯ» — ОБЪЯВЛЕНИЕ ПРАВЛЕНИЯ
+Размещено в обоих лифтах и у почтовых ящиков. Просьба не снимать.
+
+1. ХОЛЛ. Ремонт теперь запланирован на весну. Правлению известно, что он был запланирован на прошлую весну. Правлению также известно, что часть жильцов начала называть его «вечным холлом». Правлению это смешно меньше, чем жильцам.
+
+2. ШУМ. Часы тишины прежние: с 22:00 до 8:00. Это относится и к роялю в 6C, который прекрасный инструмент, но не тихий.
+
+3. ПОСЫЛКИ. Консьерж хранит посылки 72 часа. По истечении 72 часов они уходят в кладовую. Что бывает после кладовой, честно говоря, не знает никто.
+
+4. ЗАПИСЬ. Несколько жильцов спрашивали о подкасте, который снимают в этом доме. Правление получило консультацию. Жильцы вправе записывать собственные разговоры. Жильцы не вправе записывать других жильцов в местах общего пользования без согласия. Холл, лифты, крыша и прачечная — места общего пользования. Лестничная клетка, судя по всему, зона неопределённости, и правление предпочло бы, чтобы её никто не проверял.
+
+5. КРЫША. Ночью крыша местом общего пользования не является. Она никогда не была местом общего пользования ночью. Мы не знаем, у кого ключ. Мы работаем над этим.
+
+—— дописано ниже, тремя почерками ——
+
+«Кто такие „мы“ в пункте 5?»
+«В пункте 4 сказано, что себя записывать можно. Двое в лифте — это двое, которые одновременно записывают себя».
+«Там написано не это, и ты сам знаешь, что не это».`,
+    glossary: [
+      { term: 'board', ru: 'правление дома' },
+      { term: 'lobby', ru: 'холл, вестибюль' },
+      { term: 'renovation', ru: 'ремонт' },
+      { term: 'quiet hours', ru: 'часы тишины' },
+      { term: 'to hold a package', ru: 'придержать посылку' },
+      { term: 'storage room', ru: 'кладовая' },
+      { term: 'common area', ru: 'место общего пользования' },
+      { term: 'consent', ru: 'согласие' },
+      { term: 'grey area', ru: 'зона неопределённости' },
+      { term: 'laundry', ru: 'прачечная' },
+    ],
+    questions: [
+      {
+        q: 'How long does the doorman hold packages?',
+        options: ['24 hours', '72 hours', 'A week', 'Indefinitely'],
+        correct: 1,
+      },
+      {
+        q: 'Which places are named as common areas?',
+        options: [
+          'Only the lobby',
+          'The lobby, elevators, roof and laundry',
+          'All of the building',
+          'None',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the board say about the stairwell?',
+        options: [
+          'It is a common area',
+          'It is a grey area, and they would prefer nobody test it',
+          'It is private',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the effect of the three handwritten lines?',
+        options: [
+          'They agree with the board',
+          'They immediately start looking for the loophole in point 4',
+          'They complain about noise',
+          'They ask about the lobby',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Наша планета, 3: полевой дневник ───────────────────────────────────────
+  {
+    id: 'sc-our-planet-3',
+    workId: 'our-planet',
+    lang: 'en', title: 'Полевой дневник съёмочной группы', level: 'B2', minutes: 4,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'За тридцатью секундами в кадре стоят недели ожидания, и в титрах об этом говорят одной строкой. Ниже наш текст — дневник съёмочной группы. Английский тут полевой: погода, техника, сроки, и очень сдержанные оценки.',
+    body: `FIELD DIARY — HIDE 2 — DAYS 19 TO 27
+
+Day 19. Wind 30 knots, gusting. Nothing moved all day, including us. Battery discipline: two cameras on, one charging, one off. We are now four days behind schedule, which the office knows.
+
+Day 20. Same wind. Read the whole of a paperback somebody left in 2019.
+
+Day 21. Wind dropped at first light. Twelve birds on the ridge at 06:40. Filmed nine minutes. Of the nine, perhaps forty seconds is usable, because for the rest of it the long lens was fogged and we did not know until we played it back. This is the job.
+
+Day 22. Cleaned everything. Made a list of everything that had gone wrong so far and it came to eleven items, nine of which were weather and two of which were us.
+
+Day 23. First good light in a week. The colony did the thing we came for, at 07:15, for about ninety seconds, and we got it. Nobody said anything for a while afterwards. Then Kat said, “Was that it?” and it was.
+
+Day 24. Filmed the same behaviour twice more, worse each time. Kept the first.
+
+Day 25. Packed the hide. Local guide, Aput, has been with us since day one and has caught more of what mattered than any of us, because he watches the animals and we watch the viewfinder.
+
+Day 26–27. Weather-bound. Flew out on the 27th.
+
+TOTAL: 9 days on site, 41 minutes of footage, roughly 90 seconds we would defend.`,
+    translation: `ПОЛЕВОЙ ДНЕВНИК — УКРЫТИЕ 2 — ДНИ С 19-го ПО 27-й
+
+День 19. Ветер 30 узлов, порывами. За весь день ничто не двигалось, включая нас. Дисциплина по батареям: две камеры включены, одна на зарядке, одна выключена. Мы теперь на четыре дня отстаём от графика, и в офисе об этом знают.
+
+День 20. Ветер тот же. Прочёл целиком книжку в мягкой обложке, оставленную кем-то в 2019-м.
+
+День 21. На рассвете ветер стих. Двенадцать птиц на гребне в 06:40. Отсняли девять минут. Из девяти пригодны, пожалуй, сорок секунд: всё остальное время длинный объектив запотел, а мы этого не знали, пока не отсмотрели. Такая работа.
+
+День 22. Всё вычистили. Составили список того, что до сих пор пошло не так; вышло одиннадцать пунктов, девять из них — погода, два — мы сами.
+
+День 23. Первый нормальный свет за неделю. Колония сделала то, ради чего мы приехали, в 07:15, секунд девяносто, и мы это сняли. Потом какое-то время никто ничего не говорил. Потом Кэт сказала: «И это всё?» — и это было всё.
+
+День 24. Сняли то же поведение ещё дважды, каждый раз хуже. Оставили первый дубль.
+
+День 25. Свернули укрытие. Местный проводник Апут был с нами с первого дня и заметил больше важного, чем любой из нас, потому что он смотрит на животных, а мы смотрим в видоискатель.
+
+Дни 26–27. Сидели из-за погоды. Вылетели 27-го.
+
+ИТОГО: 9 дней на точке, 41 минута материала, около 90 секунд, за которые мы готовы поручиться.`,
+    glossary: [
+      { term: 'hide', ru: 'укрытие для съёмки животных' },
+      { term: 'knot', ru: 'узел — единица скорости ветра' },
+      { term: 'to gust', ru: 'дуть порывами' },
+      { term: 'behind schedule', ru: 'с отставанием от графика' },
+      { term: 'first light', ru: 'рассвет, первый свет' },
+      { term: 'ridge', ru: 'гребень, хребет' },
+      { term: 'long lens', ru: 'длиннофокусный объектив' },
+      { term: 'to fog', ru: 'запотевать' },
+      { term: 'to play sth back', ru: 'отсмотреть отснятое' },
+      { term: 'viewfinder', ru: 'видоискатель' },
+      { term: 'weather-bound', ru: 'застрявший из-за погоды' },
+      { term: 'footage', ru: 'отснятый материал' },
+    ],
+    questions: [
+      {
+        q: 'Why was most of the nine minutes unusable?',
+        options: [
+          'The birds left',
+          'The long lens had fogged and they did not know until playback',
+          'The battery died',
+          'The wind shook the camera',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Of eleven things that went wrong, how many were weather?',
+        options: ['Two', 'Nine', 'All eleven', 'None'],
+        correct: 1,
+      },
+      {
+        q: 'Why did the guide notice more than the crew?',
+        options: [
+          'He had better equipment',
+          'He watches the animals while they watch the viewfinder',
+          'He had been there before',
+          'He was closer',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the ratio in the final line?',
+        options: [
+          '41 minutes filmed, about 90 seconds worth defending',
+          '9 days, 9 minutes',
+          '90 minutes filmed',
+          'It is not given',
+        ],
+        correct: 0,
+        why: 'Одна строка объясняет весь жанр: девять дней ради полутора минут. Именно поэтому в закадровом тексте не бывает лишних слов — их некуда девать.',
+      },
+    ],
+  },
+
+  // ── Наша планета, 4: карточка вида ─────────────────────────────────────────
+  {
+    id: 'sc-our-planet-4',
+    workId: 'our-planet',
+    lang: 'en', title: 'Карточка вида', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'К каждой серии прилагается справка: где живёт, сколько осталось, что происходит. Ниже наш текст в этом виде. Полезно тем, что это стандартный формат природоохранных документов: статус, тренд, угрозы — и одинаковые формулировки во всём мире.',
+    body: `SPECIES CARD — SAIGA ANTELOPE (Saiga tatarica)
+
+Status: Critically Endangered (IUCN)
+Population trend: increasing
+Range: steppe and semi-desert of Central Asia. Four populations, one of which holds over 90 % of the total.
+
+WHY THE NOSE
+The large, downward-pointing nose filters dust in summer and warms freezing air in winter. It looks improbable. It is not decoration; it is the reason the animal can live where it lives.
+
+NUMBERS
+1950s ...................... over 2 million
+1990s ...................... approx. 1 million
+2003 ....................... approx. 21,000
+2015 ....................... mass mortality event; 200,000 died in three weeks
+2024 ....................... approx. 2.8 million
+
+The 2015 event was caused by a bacterium normally harmless to the animal, which became lethal under specific weather conditions. It is the fastest recorded die-off of a large mammal. The recovery since is the fastest recorded recovery of a large mammal. Both facts are about the same species, in the same decade, and both are true.
+
+WHAT CHANGED
+Anti-poaching enforcement, protected calving grounds, and — the part that is never in the headline — nine years of unglamorous fieldwork by people whose names are not in the credits of anything.
+
+FILMING NOTE
+Calving happens in a window of about ten days, in one place, once a year. If you miss the window you wait a year. Everyone waits a year at least once.`,
+    translation: `КАРТОЧКА ВИДА — САЙГАК (Saiga tatarica)
+
+Статус: на грани исчезновения (МСОП)
+Тренд численности: рост
+Ареал: степи и полупустыни Центральной Азии. Четыре популяции, одна из которых даёт свыше 90 % общей численности.
+
+ЗАЧЕМ НОС
+Крупный, опущенный вниз нос фильтрует пыль летом и согревает морозный воздух зимой. Выглядит неправдоподобно. Это не украшение; это причина, по которой животное может жить там, где живёт.
+
+ЧИСЛА
+1950-е ..................... свыше 2 млн
+1990-е ..................... около 1 млн
+2003 ....................... около 21 000
+2015 ....................... массовый падёж; 200 000 погибли за три недели
+2024 ....................... около 2,8 млн
+
+Событие 2015 года вызвала бактерия, обычно для животного безвредная, которая при определённых погодных условиях стала смертельной. Это самый быстрый зафиксированный падёж крупного млекопитающего. Последовавшее восстановление — самое быстрое зафиксированное восстановление крупного млекопитающего. Оба факта относятся к одному виду, к одному десятилетию, и оба верны.
+
+ЧТО ИЗМЕНИЛОСЬ
+Борьба с браконьерством, охрана мест отёла и — та часть, которая никогда не попадает в заголовок, — девять лет неэффектной полевой работы людей, чьих имён нет ни в чьих титрах.
+
+ЗАМЕТКА ДЛЯ СЪЁМОК
+Отёл происходит в окне примерно в десять дней, в одном месте, раз в году. Пропустил окно — ждёшь год. Год ждали все хотя бы однажды.`,
+    glossary: [
+      { term: 'critically endangered', ru: 'на грани исчезновения' },
+      { term: 'population trend', ru: 'динамика численности' },
+      { term: 'range', ru: 'ареал' },
+      { term: 'improbable', ru: 'неправдоподобный' },
+      { term: 'mass mortality event', ru: 'массовый падёж' },
+      { term: 'die-off', ru: 'вымирание, падёж' },
+      { term: 'recovery', ru: 'восстановление численности' },
+      { term: 'anti-poaching', ru: 'борьба с браконьерством' },
+      { term: 'calving grounds', ru: 'места отёла' },
+      { term: 'unglamorous', ru: 'неэффектный, чёрный (о работе)' },
+    ],
+    questions: [
+      {
+        q: 'What is the nose for?',
+        options: [
+          'Display',
+          'Filtering dust in summer and warming freezing air in winter',
+          'Digging',
+          'Smell only',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What caused the 2015 die-off?',
+        options: [
+          'Poaching',
+          'A normally harmless bacterium that became lethal under certain weather',
+          'Drought',
+          'Disease brought by livestock',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What two records does the species hold?',
+        options: [
+          'Largest herd and longest migration',
+          'The fastest recorded die-off and the fastest recorded recovery',
+          'Oldest species and rarest',
+          'Neither',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the card say never makes the headline?',
+        options: [
+          'The numbers',
+          'Nine years of unglamorous fieldwork by uncredited people',
+          'The bacterium',
+          'The nose',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Половое воспитание, 3: расписание кабинета ─────────────────────────────
+  {
+    id: 'sc-sex-education-3',
+    workId: 'sex-education',
+    lang: 'en', title: 'Расписание школьного кабинета', level: 'B1', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал держится на том, что подросткам нужна не лекция, а понятная процедура: куда прийти, кто там будет, что будет дальше. Ниже наш текст — расписание школьного кабинета и правила. Английский простой и обращён прямо к читателю.',
+    body: `MOORDALE — STUDENT SUPPORT ROOM (Room 12, past the science block, blue door)
+
+OPEN
+Mon–Fri, 12:30–13:30 (drop in, no appointment)
+Tue & Thu, 15:45–17:00 (appointment, book on the sheet outside)
+
+WHO IS HERE
+Mrs Okonjo (school nurse) — Mon, Wed, Fri
+Mr Hendricks (student welfare) — Tue, Thu
+Sixth-form peer listeners — Wednesday lunchtime only. They are students. They are trained. They are not staff and they do not write anything down.
+
+WHAT WE CAN DO
+Answer questions. Give you a leaflet you can read on your own. Book you an appointment somewhere else and, if you want, come with you to the first one.
+
+WHAT WE CANNOT DO
+Promise that nothing will ever be passed on. If we believe someone is at serious risk of harm, we have to tell one named person, and we will tell YOU first, to your face, before we tell anybody. That is the whole limit and there is nothing hidden behind it.
+
+THINGS PEOPLE ASK BEFORE THEY COME IN
+_Will my parents be told?_ Not by us, unless the paragraph above applies.
+_Will it go on my record?_ No. There is no record.
+_Can I come in and not say anything?_ Yes. Several people do. There is a chair.
+_Can I come in for someone else?_ Yes, and that is often how it starts.
+
+If the door is shut, someone is in. Knock and wait, or come back. Do not walk away because you were seen in the corridor — everyone in that corridor is going somewhere and most of them are going here.`,
+    translation: `МУРДЕЙЛ — КАБИНЕТ ПОДДЕРЖКИ УЧЕНИКОВ (кабинет 12, за корпусом естествознания, синяя дверь)
+
+ОТКРЫТО
+Пн–пт, 12:30–13:30 (без записи, просто заходите)
+Вт и чт, 15:45–17:00 (по записи, список на двери)
+
+КТО ЗДЕСЬ
+Миссис Оконджо (школьная медсестра) — пн, ср, пт
+Мистер Хендрикс (служба благополучия учеников) — вт, чт
+Старшеклассники-волонтёры — только в среду в обед. Это ученики. Они обучены. Они не сотрудники и ничего не записывают.
+
+ЧТО МЫ МОЖЕМ
+Ответить на вопросы. Дать листовку, которую вы прочтёте сами. Записать вас к специалисту в другом месте и, если хотите, пойти с вами на первый приём.
+
+ЧЕГО МЫ НЕ МОЖЕМ
+Пообещать, что никогда и ничего не будет передано дальше. Если мы считаем, что кому-то грозит серьёзный вред, мы обязаны сообщить одному named-лицу, и мы скажем ВАМ первым, в лицо, прежде чем скажем кому-либо. Это весь предел, и за ним ничего не спрятано.
+
+О ЧЁМ СПРАШИВАЮТ, ПРЕЖДЕ ЧЕМ ЗАЙТИ
+_Сообщат ли родителям?_ Нами — нет, если не применяется абзац выше.
+_Попадёт ли это в личное дело?_ Нет. Никакого дела не ведётся.
+_Можно зайти и ничего не говорить?_ Да. Так делают многие. Стул есть.
+_Можно прийти за другого человека?_ Да, и часто именно так всё и начинается.
+
+Если дверь закрыта — внутри кто-то есть. Постучите и подождите или зайдите позже. Не разворачивайтесь оттого, что вас заметили в коридоре: все в этом коридоре куда-то идут, и большинство идёт сюда.`,
+    glossary: [
+      { term: 'drop in', ru: 'зайти без записи' },
+      { term: 'appointment', ru: 'запись, назначенное время' },
+      { term: 'welfare', ru: 'благополучие, социальная поддержка' },
+      { term: 'sixth form', ru: 'старшие два года британской школы' },
+      { term: 'peer listener', ru: 'сверстник-волонтёр, который выслушивает' },
+      { term: 'leaflet', ru: 'листовка, буклет' },
+      { term: 'to pass sth on', ru: 'передать дальше (сведения)' },
+      { term: 'at risk of harm', ru: 'под угрозой причинения вреда' },
+      { term: 'record', ru: 'личное дело, запись' },
+    ],
+    questions: [
+      {
+        q: 'When can you come without an appointment?',
+        options: [
+          'Tuesdays and Thursdays after school',
+          'Weekdays 12:30–13:30',
+          'Only Wednesday',
+          'Never',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is promised about confidentiality?',
+        options: [
+          'Nothing is ever passed on',
+          'If there is serious risk, one named person is told — and the student is told first',
+          'Parents are always informed',
+          'Everything is recorded',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is said about the peer listeners?',
+        options: [
+          'They are teachers',
+          'They are trained students who write nothing down',
+          'They are nurses',
+          'They only book appointments',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the last paragraph address?',
+        options: [
+          'Opening hours',
+          'The fear of being seen going in',
+          'How to knock',
+          'The location',
+        ],
+        correct: 1,
+        why: 'Последний абзац отвечает на возражение, которого никто не произносит вслух, — и в этом весь метод сериала: снять стыд, а не прочитать лекцию.',
+      },
+    ],
+  },
+
+  // ── Половое воспитание, 4: ящик вопросов ───────────────────────────────────
+  {
+    id: 'sc-sex-education-4',
+    workId: 'sex-education',
+    lang: 'en', title: 'Ящик анонимных вопросов', level: 'B2', minutes: 4,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Формат сериала — вопрос и внятный ответ без морали. Ниже наш текст в этом жанре: анонимный ящик и ответы, вывешенные на доске. Английский простой, а полезен он тем, как формулируются вежливые, прямые ответы на неудобные вопросы.',
+    body: `THE BOX — questions from the box, answered on the board, Friday
+
+Q. How do you know if you like someone or you just like that they like you?
+A. Ask yourself what you would think about them if they stopped tomorrow. If the answer is “not much”, you liked being liked, which is a real feeling and not a bad one, it is just a different feeling and it will not survive a Tuesday.
+
+Q. Everyone talks like they have done things and I have not done anything. Is that bad?
+A. No. Also, most of them have not either. There is a well-known gap between what a room says and what a room has done, and it is wider at sixteen than at any other age. You are not behind. There is no line to be behind.
+
+Q. How do I say no without a big scene?
+A. “No, I don’t want to.” Full stop. You do not owe a reason, and adding a reason invites a negotiation about the reason. If they argue with a plain no, the problem is not your wording.
+
+Q. I think I am not into anyone at all. Is something wrong with me?
+A. No. That is a thing people are, and there is a word for it, and the word is fine. Come and get the leaflet if you want it, or don’t.
+
+Q. Who reads these?
+A. Two people. Neither of us knows your handwriting, and we would not say if we did.
+
+Q. Can we have the box back after Christmas, the questions were good.
+A. The box is not going anywhere. Somebody put a KitKat in it. Thank you. Please stop.`,
+    translation: `ЯЩИК — вопросы из ящика, ответы на доске, пятница
+
+В. Как понять, нравится ли тебе человек — или нравится, что ты нравишься ему?
+О. Спроси себя, что ты будешь о нём думать, если он завтра перестанет. Если ответ «да ничего», то тебе нравилось нравиться; это настоящее чувство и не плохое, просто другое, и вторника оно не переживёт.
+
+В. Все говорят так, будто у них что-то было, а у меня ничего не было. Это плохо?
+О. Нет. И у большинства из них тоже ничего не было. Есть известный разрыв между тем, что говорит компания, и тем, что компания делала, и в шестнадцать он шире, чем в любом другом возрасте. Ты не отстаёшь. Никакой черты, от которой отстают, не существует.
+
+В. Как сказать «нет» без большой сцены?
+О. «Нет, я не хочу». Точка. Причину ты не должен, а если её добавить, начнутся переговоры о причине. Если человек спорит с простым «нет», дело не в твоей формулировке.
+
+В. Кажется, мне вообще никто не нравится. Со мной что-то не так?
+О. Нет. Такое бывает, для этого есть слово, и слово нормальное. Зайди за листовкой, если хочешь. Или не заходи.
+
+В. А кто это всё читает?
+О. Двое. Ни один из нас не знает твоего почерка, а если бы знал, не сказал бы.
+
+В. Можно вернуть ящик после Рождества, вопросы были хорошие.
+О. Ящик никуда не денется. Кто-то положил в него батончик. Спасибо. Пожалуйста, перестаньте.`,
+    glossary: [
+      { term: 'to be into sb', ru: 'испытывать интерес к кому-то' },
+      { term: 'a big scene', ru: 'большая сцена, скандал' },
+      { term: 'full stop', ru: 'точка (брит.); в США period' },
+      { term: 'to owe sb a reason', ru: 'быть обязанным объяснять причину' },
+      { term: 'to invite a negotiation', ru: 'спровоцировать торг' },
+      { term: 'wording', ru: 'формулировка' },
+      { term: 'to be behind', ru: 'отставать' },
+      { term: 'handwriting', ru: 'почерк' },
+      { term: 'leaflet', ru: 'листовка' },
+    ],
+    questions: [
+      {
+        q: 'What test is offered for “do I like them?”',
+        options: [
+          'Ask a friend',
+          'Imagine they stopped tomorrow and see what you still think about them',
+          'Wait a month',
+          'Count how often you text',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why should you not add a reason to “no”?',
+        options: [
+          'It is impolite',
+          'Because it invites a negotiation about the reason',
+          'It takes too long',
+          'It is untrue',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is said about the gap between talk and experience?',
+        options: [
+          'It does not exist',
+          'It is widest at sixteen',
+          'It only affects boys',
+          'It closes at eighteen',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the tone of the answers?',
+        options: [
+          'Moralising',
+          'Direct, practical, and without judgement',
+          'Evasive',
+          'Formal',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Попутчики, 3: стенограмма слушания ─────────────────────────────────────
+  {
+    id: 'sc-fellow-travelers-3',
+    workId: 'fellow-travelers',
+    lang: 'en', title: 'Стенограмма закрытого слушания', level: 'C1', minutes: 5,
+    topic: 'Работа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал о Вашингтоне пятидесятых, когда госслужащих увольняли по подозрению, и главным жанром эпохи была стенограмма. Ниже наш текст в этом виде. Английский тут юридически-канцелярский, и следить надо за тем, как формулируются вопросы: почти все они устроены так, что любой ответ вредит.',
+    body: `EXECUTIVE SESSION — SUBCOMMITTEE ON GOVERNMENT OPERATIONS
+Transcript, partial. Witness sworn.
+
+COUNSEL: You have been employed by the Department since 1949.
+WITNESS: Yes, sir.
+COUNSEL: And you are aware of Executive Order 10450.
+WITNESS: I am.
+COUNSEL: Would you read the relevant clause aloud.
+WITNESS: “Any behavior, activities or associations which tend to show that the individual is not reliable or trustworthy.”
+COUNSEL: Thank you. Do you consider yourself reliable?
+WITNESS: I do.
+COUNSEL: Then you would agree that the question is not what you consider.
+
+_(Pause noted by the reporter.)_
+
+COUNSEL: Do you know a Mr T—?
+WITNESS: I know him.
+COUNSEL: In what capacity.
+WITNESS: We worked in the same building.
+COUNSEL: That is where you know him from. I asked in what capacity you know him.
+WITNESS: I am not sure I understand the distinction.
+COUNSEL: I think you do.
+
+CHAIRMAN: Counsel will put the question in a form the witness can answer.
+COUNSEL: Have you ever been in the witness’s apartment.
+CHAIRMAN: In Mr T—’s apartment.
+COUNSEL: In Mr T—’s apartment.
+WITNESS: I decline to answer.
+COUNSEL: On what grounds.
+WITNESS: On the grounds that the answer to any question in this room becomes the next question.
+
+CHAIRMAN: That is not a ground recognised by this subcommittee.
+WITNESS: No, sir. I am aware that it is not.
+
+_(The witness was excused. The witness’s employment was terminated eleven days later, on grounds unrelated, per the Department’s letter, to this session.)_`,
+    translation: `ЗАКРЫТОЕ ЗАСЕДАНИЕ — ПОДКОМИТЕТ ПО ДЕЯТЕЛЬНОСТИ ПРАВИТЕЛЬСТВЕННЫХ ОРГАНОВ
+Стенограмма, частично. Свидетель приведён к присяге.
+
+ЮРИСТ КОМИТЕТА: Вы служите в министерстве с 1949 года.
+СВИДЕТЕЛЬ: Да, сэр.
+ЮРИСТ: И вам известен исполнительный указ 10450.
+СВИДЕТЕЛЬ: Известен.
+ЮРИСТ: Прочтите соответствующий пункт вслух.
+СВИДЕТЕЛЬ: «Любое поведение, деятельность или связи, которые склонны показывать, что лицо не является надёжным или заслуживающим доверия».
+ЮРИСТ: Благодарю. Считаете ли вы себя надёжным?
+СВИДЕТЕЛЬ: Считаю.
+ЮРИСТ: Тогда вы согласитесь, что вопрос не в том, что считаете вы.
+
+_(Пауза, отмечена стенографистом.)_
+
+ЮРИСТ: Знаете ли вы господина Т.?
+СВИДЕТЕЛЬ: Знаю.
+ЮРИСТ: В каком качестве.
+СВИДЕТЕЛЬ: Мы работали в одном здании.
+ЮРИСТ: Это откуда вы его знаете. Я спросил, в каком качестве вы его знаете.
+СВИДЕТЕЛЬ: Не уверен, что понимаю различие.
+ЮРИСТ: Полагаю, понимаете.
+
+ПРЕДСЕДАТЕЛЬ: Юрист сформулирует вопрос в виде, на который свидетель может ответить.
+ЮРИСТ: Бывали ли вы когда-либо в квартире свидетеля.
+ПРЕДСЕДАТЕЛЬ: В квартире господина Т.
+ЮРИСТ: В квартире господина Т.
+СВИДЕТЕЛЬ: Отказываюсь отвечать.
+ЮРИСТ: На каком основании.
+СВИДЕТЕЛЬ: На том основании, что ответ на любой вопрос в этой комнате становится следующим вопросом.
+
+ПРЕДСЕДАТЕЛЬ: Такое основание настоящим подкомитетом не признаётся.
+СВИДЕТЕЛЬ: Да, сэр. Мне известно, что не признаётся.
+
+_(Свидетель отпущен. Служба свидетеля прекращена одиннадцать дней спустя по основаниям, не связанным, согласно письму министерства, с настоящим заседанием.)_`,
+    glossary: [
+      { term: 'executive session', ru: 'закрытое заседание' },
+      { term: 'subcommittee', ru: 'подкомитет' },
+      { term: 'sworn', ru: 'приведённый к присяге' },
+      { term: 'counsel', ru: 'юрист комитета, ведущий допрос' },
+      { term: 'clause', ru: 'пункт, положение' },
+      { term: 'trustworthy', ru: 'заслуживающий доверия' },
+      { term: 'in what capacity', ru: 'в каком качестве' },
+      { term: 'to decline to answer', ru: 'отказаться отвечать' },
+      { term: 'on what grounds', ru: 'на каком основании' },
+      { term: 'to be excused', ru: 'быть отпущенным (о свидетеле)' },
+      { term: 'to terminate employment', ru: 'прекратить трудовые отношения' },
+    ],
+    questions: [
+      {
+        q: 'What does counsel do after the witness says he is reliable?',
+        options: [
+          'Accepts it',
+          'Points out that the question is not what the witness considers',
+          'Moves on',
+          'Asks for evidence',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does “in what capacity” matter so much?',
+        options: [
+          'It is a formality',
+          'It asks for a category of relationship, and any answer given can be used',
+          'It is about job titles',
+          'It is a translation error',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What ground does the witness give for declining?',
+        options: [
+          'Self-incrimination',
+          'That any answer in that room becomes the next question',
+          'Legal privilege',
+          'He gives none',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the closing note say about the dismissal?',
+        options: [
+          'It was caused by the session',
+          'It was on grounds unrelated to the session, per the Department’s letter',
+          'It never happened',
+          'It was appealed',
+        ],
+        correct: 1,
+        why: 'Формула «по основаниям, не связанным» существует именно для таких случаев. Стенограмма ничего не утверждает — и говорит всё.',
+      },
+    ],
+  },
+
+  // ── Попутчики, 4: сдаётся квартира ─────────────────────────────────────────
+  {
+    id: 'sc-fellow-travelers-4',
+    workId: 'fellow-travelers',
+    lang: 'en', title: 'Сдаётся квартира, Вашингтон', level: 'B2', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале постоянно снимают жильё, и хозяйка — фигура почти следственная: она задаёт те же вопросы, что и комитет, только за чашкой чая. Ниже наш текст: объявление о сдаче и разговор при осмотре.',
+    body: `TO LET — Georgetown — two rooms and kitchenette, second floor, quiet street.
+$62 per month, gas included, electricity not. References required. No pets. Prefer a settled tenant.
+Apply Mrs Adele Frye, evenings.
+
+—— the viewing ——
+
+“It’s a good room. Gets the morning.”
+“It does. Is that the boiler?”
+“That is the boiler and it is loud and I will not pretend otherwise. Now. You are with the Department?”
+“State. Third year.”
+“Married?”
+“No, ma’am.”
+“Hm. And you would be here alone.”
+“Yes.”
+“I ask because my last gentleman was also here alone, and then he was not, and I do not object to company, I object to being the last to know.”
+
+She poured the tea she had already poured.
+
+“I keep a quiet house. What that means is: no noise after ten, and no callers I have not seen before, after nine. It is not a moral position. It is that Mrs Kessler downstairs keeps a list, and she has shown it to me, and I would rather my tenants were not on it.”
+“There is a list.”
+“There is always a list, Mr—?”
+“Hawkins.”
+“Mr Hawkins. In this city there is always a list, and the trick is not to be interesting enough for it. Sixty-two dollars, first and last in advance, and I will need one reference that is not from the Department.”
+“Why not from the Department?”
+“Because a reference from the Department tells me what they think of you, and I already know what they think of everybody. Bring me one from somebody who has had dinner with you.”`,
+    translation: `СДАЁТСЯ — Джорджтаун — две комнаты и кухонный уголок, второй этаж, тихая улица.
+62 доллара в месяц, газ включён, электричество нет. Требуются рекомендации. Без животных. Предпочтителен основательный жилец.
+Обращаться к миссис Адели Фрай, по вечерам.
+
+—— осмотр ——
+
+— Комната хорошая. Утреннее солнце.
+— Да. Это котёл?
+— Это котёл, он громкий, и я не буду делать вид, что нет. Итак. Вы из министерства?
+— Госдеп. Третий год.
+— Женаты?
+— Нет, мэм.
+— Хм. И жить будете один.
+— Да.
+— Спрашиваю потому, что мой прошлый жилец тоже жил один, а потом уже не один; и я не против общества, я против того, чтобы узнавать последней.
+
+Она долила чай, который уже долила.
+
+— У меня тихий дом. Это значит: после десяти никакого шума, а после девяти — никаких посетителей, которых я раньше не видела. Это не нравственная позиция. Это оттого, что миссис Кесслер снизу ведёт список, она мне его показывала, и я предпочла бы, чтобы моих жильцов в нём не было.
+— Есть список.
+— Список есть всегда, мистер?..
+— Хокинс.
+— Мистер Хокинс. В этом городе список есть всегда, и весь фокус в том, чтобы не быть для него достаточно интересным. Шестьдесят два доллара, первый и последний месяц вперёд, и мне понадобится одна рекомендация не из министерства.
+— Почему не из министерства?
+— Потому что рекомендация из министерства скажет мне, что они о вас думают, а я и так знаю, что они думают обо всех. Принесите мне от того, кто с вами ужинал.`,
+    glossary: [
+      { term: 'to let', ru: 'сдаётся (брит.); в США for rent' },
+      { term: 'kitchenette', ru: 'кухонный уголок' },
+      { term: 'references', ru: 'рекомендации' },
+      { term: 'settled tenant', ru: 'основательный, надёжный жилец' },
+      { term: 'boiler', ru: 'котёл, бойлер' },
+      { term: 'caller', ru: 'посетитель, гость' },
+      { term: 'moral position', ru: 'нравственная позиция' },
+      { term: 'first and last in advance', ru: 'первый и последний месяц вперёд' },
+      { term: 'the trick is', ru: 'весь фокус в том, чтобы…' },
+    ],
+    questions: [
+      {
+        q: 'Why does the landlady ask whether he will live alone?',
+        options: [
+          'For the rent calculation',
+          'Because her last tenant was alone and then was not, and she objects to being the last to know',
+          'For the lease',
+          'Fire regulations',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the real reason for the house rules?',
+        options: [
+          'Her own morals',
+          'Mrs Kessler downstairs keeps a list',
+          'The landlord’s instructions',
+          'Noise complaints',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is her advice about the list?',
+        options: [
+          'To get removed from it',
+          'Not to be interesting enough for it',
+          'To befriend Mrs Kessler',
+          'To ignore it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must one reference not come from the Department?',
+        options: [
+          'They refuse to write them',
+          'Because it tells her what they think, and she already knows what they think of everybody',
+          'It costs money',
+          'It takes too long',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Поза, 3: судейские листы ───────────────────────────────────────────────
+  {
+    id: 'sc-pose-3',
+    workId: 'pose',
+    lang: 'en', title: 'Судейские листы', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Бал — соревнование с категориями, судьями и оценками, и лексика у него своя, сложившаяся в Нью-Йорке восьмидесятых. Ниже наш текст: порядок вечера и судейские листы. Слова здесь настоящие и до сих пор в ходу.',
+    body: `THE LEGENDARY BALL — SATURDAY — DOORS 10, FIRST CATEGORY 11:30
+
+RUNNING ORDER
+1. Grand march (all houses)
+2. Best dressed
+3. Runway — European runway, then all-American runway
+4. Face
+5. Realness — three sub-categories, announced on the night
+6. Vogue — performance
+7. Grand prize
+
+SCORING
+Five judges. Each gives 10 or a chop. There is no 8, there is no 9. Either it is a ten across the board or you are chopped, and the crowd will know which before the judges do.
+
+Ties are settled by a walk-off. Walk-offs are settled by the crowd. The crowd has never once been wrong and has frequently been unfair, and those are different things.
+
+JUDGES’ SHEET — CATEGORY 4: FACE
+
+Contestant 1 (House of Ferrara) ....... 10 10 10 10 10 — GRAND
+Contestant 2 ........................... 10 10 CHOP 10 10 — out
+Contestant 3 ........................... CHOP — out
+Contestant 4 (House of Evangelista) .... 10 10 10 10 10 — GRAND
+→ walk-off: 1 vs 4
+
+NOTE FOR NEW JUDGES
+You are not scoring who is prettiest. Face is bone structure, skin, teeth, eyes, and the ability to hold the room while doing nothing at all. If a contestant moves to keep your attention, they have already lost the category, because Face is the one thing that must work standing still.
+
+And: chop early or do not chop. A slow chop humiliates. We are not here for that. We have all had enough of that outside.`,
+    translation: `ЛЕГЕНДАРНЫЙ БАЛ — СУББОТА — ДВЕРИ В 22:00, ПЕРВАЯ КАТЕГОРИЯ В 23:30
+
+ПОРЯДОК ВЕЧЕРА
+1. Общий выход (все дома)
+2. Лучший наряд
+3. Проход — европейский проход, затем всеамериканский
+4. Лицо
+5. Реалнесс — три подкатегории, объявляются в тот же вечер
+6. Вог — выступление
+7. Гран-при
+
+СУДЕЙСТВО
+Пять судей. Каждый ставит 10 или «чоп». Восьмёрки нет, девятки нет. Либо десятки от всех, либо тебя срубили, и зал поймёт это раньше судей.
+
+Ничьи решаются вокэ-оффом. Вокэ-оффы решает зал. Зал не ошибся ни разу и бывал несправедлив постоянно, а это разные вещи.
+
+СУДЕЙСКИЙ ЛИСТ — КАТЕГОРИЯ 4: ЛИЦО
+
+Участник 1 (дом Феррара) ............. 10 10 10 10 10 — ГРАН
+Участник 2 ........................... 10 10 ЧОП 10 10 — выбывает
+Участник 3 ........................... ЧОП — выбывает
+Участник 4 (дом Эванджелиста) ........ 10 10 10 10 10 — ГРАН
+→ вокэ-офф: 1 против 4
+
+ПАМЯТКА НОВЫМ СУДЬЯМ
+Вы оцениваете не то, кто красивее. Лицо — это структура кости, кожа, зубы, глаза и способность держать зал, не делая ровно ничего. Если участник начинает двигаться, чтобы удержать ваше внимание, категорию он уже проиграл: Лицо — единственное, что обязано работать неподвижно.
+
+И ещё: рубите сразу или не рубите вовсе. Медленный чоп унижает. Мы здесь не за этим. Этого нам всем хватает снаружи.`,
+    glossary: [
+      { term: 'ball', ru: 'бал — соревнование ballroom-культуры' },
+      { term: 'house', ru: 'дом — команда и семья участников' },
+      { term: 'runway', ru: 'проход, дефиле' },
+      { term: 'realness', ru: 'реалнесс — категория на убедительность образа' },
+      { term: 'vogue', ru: 'вог — танцевальный стиль' },
+      { term: 'chop', ru: 'чоп — судейское отсечение, выбывание' },
+      { term: 'across the board', ru: 'от всех сразу, поголовно' },
+      { term: 'tie', ru: 'ничья' },
+      { term: 'walk-off', ru: 'дополнительный проход для решения ничьей' },
+      { term: 'to hold the room', ru: 'держать зал' },
+    ],
+    questions: [
+      {
+        q: 'What scores can a judge give?',
+        options: ['1 to 10', 'Only 10 or a chop', '8, 9 or 10', 'Any number'],
+        correct: 1,
+      },
+      {
+        q: 'How are ties settled?',
+        options: ['By the judges', 'By a walk-off, decided by the crowd', 'By lot', 'They stand'],
+        correct: 1,
+      },
+      {
+        q: 'What loses the Face category immediately?',
+        options: [
+          'Wrong costume',
+          'Moving in order to keep the judges’ attention',
+          'Arriving late',
+          'Smiling',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why should judges chop early or not at all?',
+        options: [
+          'To save time',
+          'Because a slow chop humiliates — and they get enough of that outside',
+          'The rules require it',
+          'The crowd prefers it',
+        ],
+        correct: 1,
+        why: 'Последние две строки объясняют, чем бал отличается от любого другого конкурса: жёсткость правил здесь есть, а унижения быть не должно.',
+      },
+    ],
+  },
+
+  // ── Поза, 4: памятка клиники ───────────────────────────────────────────────
+  {
+    id: 'sc-pose-4',
+    workId: 'pose',
+    lang: 'en', title: 'Памятка бесплатной клиники', level: 'B2', minutes: 4,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'ВНИМАНИЕ: тема тяжёлая. Действие сериала приходится на разгар эпидемии, и половина сюжета — про то, куда идти без страховки и без документов. Ниже наш текст: памятка бесплатной клиники. Медицинский английский тут максимально простой — потому что так и было нужно.',
+    body: `COMMUNITY HEALTH — 14th STREET — WALK-IN CLINIC
+Open Tue, Thu, Sat, 9 a.m. to 7 p.m. No insurance needed. No ID needed. No questions about how you make a living.
+
+WHAT WE DO HERE
+Testing, results in two weeks. Basic care. Prescriptions we can fill from our own shelf, free. Referrals to two hospitals that we know will treat you, and we will telephone ahead so that you are expected.
+
+HOW TO GIVE YOUR NAME
+Any name. The name on the card is the name you will be called in the waiting room, so choose one you will answer to. We keep files under a number, not a name, and the number is on the card. If you lose the card we can find you by the number and only by the number, so keep it.
+
+BRINGING SOMEONE
+You may bring one person into the room with you. If you have nobody to bring, tell the front desk, and one of the volunteers will come in and sit with you. This is not unusual. It is asked for most days.
+
+WHAT WE CANNOT DO
+We cannot admit you. We cannot make a hospital treat you, we can only call ahead and be a witness that you were sent. We cannot promise the results will be quick and we will not tell you they will be.
+
+IF THE RESULT IS POSITIVE
+You will be told in a room with the door shut and no one waiting behind you. You will be given as long as you want. Nobody has ever been hurried out of that room, and if anyone tries it, ask for Mrs Osei and say I sent you.
+
+WE ARE HERE ON SATURDAYS BECAUSE PEOPLE WORK. That is the whole reason. Come on Saturday.`,
+    translation: `ОБЩЕСТВЕННОЕ ЗДОРОВЬЕ — 14-я УЛИЦА — КЛИНИКА БЕЗ ЗАПИСИ
+Открыто вт, чт, сб, с 9:00 до 19:00. Страховка не нужна. Документы не нужны. Вопросов о том, чем вы зарабатываете, не будет.
+
+ЧТО МЫ ДЕЛАЕМ
+Анализы, результат через две недели. Базовая помощь. Лекарства, которые можем выдать со своей полки, — бесплатно. Направления в две больницы, о которых мы знаем, что там вас примут; мы позвоним заранее, чтобы вас ждали.
+
+КАК НАЗВАТЬ ИМЯ
+Любое. Имя на карточке — то, которым вас позовут в зале ожидания, так что выберите такое, на которое откликнетесь. Дела мы ведём по номеру, а не по имени, и номер стоит на карточке. Потеряете карточку — найдём вас по номеру и только по номеру, так что сохраните её.
+
+ЕСЛИ ПРИВЕСТИ КОГО-ТО С СОБОЙ
+В кабинет можно взять одного человека. Если брать некого — скажите на стойке, и кто-нибудь из волонтёров зайдёт и посидит с вами. Это не редкость. Об этом просят почти каждый день.
+
+ЧЕГО МЫ НЕ МОЖЕМ
+Мы не можем вас госпитализировать. Мы не можем заставить больницу вас принять — только позвонить заранее и быть свидетелем, что вас направили. Мы не можем обещать, что результат придёт быстро, и не станем этого говорить.
+
+ЕСЛИ РЕЗУЛЬТАТ ПОЛОЖИТЕЛЬНЫЙ
+Вам скажут это в кабинете с закрытой дверью и без очереди за спиной. Времени вам дадут столько, сколько нужно. Из этого кабинета ещё никого не выпроваживали, а если кто-то попробует — спросите миссис Осей и скажите, что от меня.
+
+ПО СУББОТАМ МЫ РАБОТАЕМ ПОТОМУ, ЧТО ЛЮДИ РАБОТАЮТ. Это вся причина. Приходите в субботу.`,
+    glossary: [
+      { term: 'walk-in clinic', ru: 'клиника без записи' },
+      { term: 'insurance', ru: 'медицинская страховка' },
+      { term: 'ID', ru: 'удостоверение личности' },
+      { term: 'to fill a prescription', ru: 'выдать лекарство по рецепту' },
+      { term: 'referral', ru: 'направление' },
+      { term: 'to call ahead', ru: 'позвонить заранее' },
+      { term: 'front desk', ru: 'стойка регистрации' },
+      { term: 'to admit sb', ru: 'госпитализировать' },
+      { term: 'to be hurried out', ru: 'быть выпровоженным' },
+      { term: 'witness', ru: 'свидетель' },
+    ],
+    questions: [
+      {
+        q: 'What is needed to be seen at the clinic?',
+        options: [
+          'Insurance and ID',
+          'Neither — and no questions about how you make a living',
+          'A referral',
+          'An appointment',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why should you choose a name you will answer to?',
+        options: [
+          'For the records',
+          'Because it is what will be called out in the waiting room',
+          'For the prescription',
+          'For the hospital',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happens if you have nobody to bring with you?',
+        options: [
+          'You go in alone',
+          'A volunteer will come in and sit with you',
+          'You must reschedule',
+          'A nurse decides',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the clinic open on Saturdays?',
+        options: [
+          'Funding rules',
+          'Because people work — that is the whole reason',
+          'The doctors are free',
+          'It is less busy',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]
