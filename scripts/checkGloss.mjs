@@ -39,6 +39,10 @@ await build({
       export { KO_SCENES } from './src/data/scenes/scenesKo'
       export { JA_SCENES } from './src/data/scenes/scenesJa'
       export { PT_SCENES } from './src/data/scenes/scenesPt'
+      export { EN_FEED } from './src/data/feed/feedEn'
+      export { KO_FEED } from './src/data/feed/feedKo'
+      export { JA_FEED } from './src/data/feed/feedJa'
+      export { PT_FEED } from './src/data/feed/feedPt'
     `,
     resolveDir: process.cwd(),
     loader: 'ts',
@@ -47,6 +51,7 @@ await build({
 })
 const {
   WORD_GLOSS, buildLexicon, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
+  EN_FEED, KO_FEED, JA_FEED, PT_FEED,
 } = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
 
@@ -66,6 +71,12 @@ const push = (d, kind) => {
 }
 for (const s of [...EN_SCENES, ...KO_SCENES, ...JA_SCENES, ...PT_SCENES]) push(s, 'сцена')
 for (const t of READING_LIBRARY) push(t, 'текст')
+// Лента обновляется сама и приезжает чанком на язык — то есть слово в ней
+// появляется без правки словаря. Заголовок кликается наравне с телом, поэтому
+// в проверку идёт и он.
+for (const f of [...EN_FEED, ...KO_FEED, ...JA_FEED, ...PT_FEED]) {
+  push({ ...f, body: `${f.title}\n${f.body ?? ''}` }, 'лента')
+}
 
 const perLang = {}
 for (const d of docs) {

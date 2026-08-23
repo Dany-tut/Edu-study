@@ -482,10 +482,13 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                   {t(o.label)}
                 </span>
               )}
-            {o.badge !== undefined && o.badge > 0 && (
+            {/* У активной кнопки бейдж прячется: имя и так забрало почти всю
+                ширину строки, а число рядом обрезало «Тексты» в «Текс…».
+                Счётчик остаётся только на неактивных значках. */}
+            {o.badge !== undefined && o.badge > 0 && !on && (
               <span style={{
                 padding: '1px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
-                background: on ? 'var(--color-bg-2)' : soft, color: accent, fontVariantNumeric: 'tabular-nums',
+                background: soft, color: accent, fontVariantNumeric: 'tabular-nums',
               }}>
                 {o.badge}
               </span>

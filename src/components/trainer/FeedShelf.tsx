@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Languages, ChevronDown } from 'lucide-react'
+import { Languages, ChevronDown, Heart, MessageCircle } from 'lucide-react'
 import { Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
-import { byDay, dayLabel, outletById, type FeedItem } from '../../data/feed'
+import { byDay, dayLabel, outletById, outletHandle, type FeedItem, type Outlet } from '../../data/feed'
 import { FeedComments } from './FeedComments'
+import { useFeedLikes } from '../../lib/feedLikes'
 import GlossedText from '../GlossedText'
 import AudioPlayer from '../AudioPlayer'
 
@@ -23,7 +24,14 @@ import AudioPlayer from '../AudioPlayer'
 //
 // И НЕТ СЛУЖЕБНЫХ ПОДПИСЕЙ. Ни цветных меток «дорожки», ни строки «источник ·
 // что это такое», ни ссылки «оригинал» под каждым постом. Карточка — это пост:
-// заголовок, содержимое, обсуждение. Как в мессенджере.
+// шапка автора, содержимое, обсуждение. Как в мессенджере.
+//
+// ШАПКА АВТОРА — НЕ ИСКЛЮЧЕНИЕ ИЗ ЭТОГО ПРАВИЛА, А ЕГО ПРОДОЛЖЕНИЕ. Пост без
+// автора читается как объявление платформы: непонятно, чей это язык — диктора
+// новостей, пресс-службы или нашего пересказа. Поэтому сверху стоит ровно то,
+// что стоит в любой ленте: аватарка, имя канала и его ручка. Это подпись
+// автора, а не служебная метка «дорожка · лицензия · оригинал», которых здесь
+// по-прежнему нет.
 //
 // ЕДИНСТВЕННОЕ, ЧТО ОСТАЛОСЬ ОТ СЛУЖЕБНОГО, — крохотная строка внизу поста, и
 // только у текстов под CC BY / CC BY-SA. Это не подпись «откуда» и не
@@ -81,6 +89,9 @@ function Post({ item, lang, accent, subjectId }: {
   const [expanded, setExpanded] = useState(false)
   const [translated, setTranslated] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [thread, setThread] = useState(false)
+  const [replies, setReplies] = useState(0)
+  const { count: likes, liked, toggle: like, canLike } = useFeedLikes(item.id)
 
   const video = item.embed?.kind === 'youtube' ? item.embed.id : null
   const outlet = outletById(item.outletId)
@@ -104,6 +115,35 @@ function Post({ item, lang, accent, subjectId }: {
       padding: 16,
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>
+      {/* ── Кто это написал ─────────────────────────────────────────────── */}
+      {outlet && (
+        <header style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <Avatar outlet={outlet} />
+          <a
+            href={outlet.home}
+            target="_blank"
+            rel="noreferrer noopener"
+            style={{
+              display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0,
+              textDecoration: 'none',
+            }}
+          >
+            <span style={{
+              fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {outlet.name}
+            </span>
+            <span style={{
+              fontSize: 12.5, color: 'var(--color-muted)',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {outletHandle(outlet)}
+            </span>
+          </a>
+        </header>
+      )}
+
       <h3 style={{
         margin: 0, fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
         color: 'var(--color-text)', ...proseWrap,
@@ -206,10 +246,12 @@ function Post({ item, lang, accent, subjectId }: {
         </div>
       )}
 
-      {/* ── Что вообще можно сделать с постом ───────────────────────────────
-          Послушать, посмотреть перевод, ответить. Никаких «начать», «пройти»
-          и «проверить»: за этим человек идёт в «Тексты» и «Сцены». */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      {/* ── Одна строка действий, всё иконками ──────────────────────────────
+          Ни разделительной черты, ни подписей: под постом в ленте подпись
+          «Обсудить» читается как заголовок раздела, а не как кнопка. Слева —
+          что сделать с материалом (послушать, перевести), справа — что сделать
+          с постом (сердце, реплики), как в любой ленте. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {item.body && (
           <AudioPlayer
             ttsText={item.body}
@@ -220,29 +262,106 @@ function Post({ item, lang, accent, subjectId }: {
           />
         )}
         {item.translation && (
-          <button
+          <IconBtn
+            on={translated}
+            accent={accent}
+            title={t('Перевод')}
             onClick={() => setTranslated(v => !v)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              fontSize: 12.5, fontWeight: 650,
-              color: translated ? accent : 'var(--color-muted)',
-            }}
           >
-            <Languages size={14} />{t('Перевод')}
-          </button>
+            <Languages size={17} />
+          </IconBtn>
         )}
+
+        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
+          {canLike && (
+            <IconBtn on={liked} accent={accent} title={t('Нравится')} onClick={() => void like()} count={likes}>
+              {/* Закрашенное сердце вместо цветного контура: на тёмной теме
+                  тонкий контур в акцентном цвете почти не отличается от
+                  серого, а заливка видна сразу. */}
+              <Heart size={17} fill={liked ? accent : 'none'} />
+            </IconBtn>
+          )}
+          <IconBtn
+            on={thread}
+            accent={accent}
+            title={t('Комментарии')}
+            onClick={() => setThread(v => !v)}
+            count={replies}
+          >
+            <MessageCircle size={17} />
+          </IconBtn>
+        </span>
       </div>
 
-      <FeedComments itemId={item.id} lang={lang} accent={accent} />
+      <FeedComments
+        itemId={item.id}
+        lang={lang}
+        accent={accent}
+        open={thread}
+        onCount={setReplies}
+      />
 
       {mustCredit && (
         <div style={{ fontSize: 10.5, color: 'var(--color-text-4)', lineHeight: 1.4 }}>
-          {[outlet?.name, item.byline, (outlet?.license ?? '').split('—')[0].trim()]
+          {/* Имя источника теперь в шапке — здесь остаётся то, чего в шапке
+              нет: автор текста и лицензия. */}
+          {[item.byline, (outlet?.license ?? '').split('—')[0].trim()]
             .filter(Boolean)
             .join(' · ')}
         </div>
       )}
     </article>
+  )
+}
+
+/**
+ * Аватарка источника. Рисуется знаком из реестра, а не картинкой с чужого
+ * сайта: логотип телеканала — его товарный знак, а десять постов в ленте — это
+ * десять запросов к чужому хосту ради кружка 40×40.
+ */
+function Avatar({ outlet }: { outlet: Outlet }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        flexShrink: 0, width: 38, height: 38, borderRadius: 999,
+        background: outlet.tint, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        // Знак бывает и в три буквы (SBS), и в один иероглиф (위): кегль
+        // подбираем по длине, иначе трёхбуквенный вылезает из кружка.
+        fontSize: outlet.mark.length > 2 ? 12.5 : outlet.mark.length > 1 ? 14.5 : 17,
+        fontWeight: 800, letterSpacing: outlet.mark.length > 1 ? -0.2 : 0,
+        lineHeight: 1,
+      }}
+    >
+      {outlet.mark}
+    </span>
+  )
+}
+
+/** Иконка-действие в строке поста: с числом, если есть что показывать. */
+function IconBtn({ children, on, accent, title, count, onClick }: {
+  children: React.ReactNode
+  on?: boolean
+  accent: string
+  title: string
+  count?: number
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+        color: on ? accent : 'var(--color-muted)',
+        fontSize: 12.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+      }}
+    >
+      {children}
+      {!!count && count > 0 && <span>{count}</span>}
+    </button>
   )
 }

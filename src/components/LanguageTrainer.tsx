@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ScrollText, ExternalLink } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, type FeedItem } from '../data/feed'
 import { languageTaxonomy } from '../data/languageTaxonomy'
@@ -73,6 +73,7 @@ import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
 import { hasLexicon, wordReading } from '../lib/lexicon'
 import { usePersistentState } from '../lib/useDraft'
+import { useScreenTop } from '../lib/useScreenTop'
 import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
@@ -1043,6 +1044,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     [gram, openFormId],
   )
 
+  // ── Смена экрана — вид сверху ──────────────────────────────────────────────
+  //
+  // Режим, половина «Чтения», витрина или открытый материал — для ученика это
+  // разные экраны, а прокрутка у страницы одна на всех. Пролистав ленту вниз и
+  // нажав «Тексты», он попадал в середину нового списка. Ключ собран из всего,
+  // что меняет содержимое справа; см. lib/useScreenTop.ts.
+  useScreenTop([
+    lang, mode, readingView, vocabView, blocksView, guideView,
+    openTextId, openAudioId, openWorkId, openSceneId, openTheme,
+    openNestId, openPackId, openStemDict, openRootKo, openNumId,
+    openChapterId, openFormId, speakOpen ? '1' : '',
+  ].join('|'))
+
   const gramGroups = useMemo(() => {
     if (!gram) return []
     const q = query.trim().toLowerCase()
@@ -1539,7 +1553,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               { value: '', label: 'Все', icon: <ListChecks size={15} /> },
               ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг', icon: <Repeat size={15} /> }] : []),
               { value: 'roleplay', label: 'Ролевые', icon: <MessagesSquare size={15} /> },
-              { value: 'story', label: 'Рассказ', icon: <ScrollText size={15} /> },
+              // Рассказ о себе и чтение фраз вслух — оба монолог без диалога
+              // и без эталона для повтора, отдельной кнопкой «Рассказ» не
+              // помещались в ряд. См. фильтр в Speaking().
               { value: 'aloud', label: 'Вслух', icon: <Volume2 size={15} /> },
             ]}
             value={kindFilter}
@@ -3345,7 +3361,10 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
     return tasks.filter(x => {
-      if (kindFilter && x.kind !== kindFilter) return false
+      // «Вслух» в фильтре — это рассказ о себе и чтение фраз разом: оба вида
+      // монолог без диалога и без эталона для повтора, отдельными кнопками
+      // они просто не помещались в рейл рядом с «Шэдоуингом» и «Ролевыми».
+      if (kindFilter === 'aloud' ? (x.kind !== 'aloud' && x.kind !== 'story') : kindFilter && x.kind !== kindFilter) return false
       const done = sentPrompts.has(x.prompt)
       if (status === 'new' && done) return false
       if (status === 'done' && !done) return false

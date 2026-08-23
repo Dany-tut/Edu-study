@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { MessageSquare, CornerDownRight, Trash2, Send } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CornerDownRight, Trash2, Send } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { useFeedComments, whenLabel, type FeedComment } from '../../lib/feedComments'
@@ -15,39 +15,33 @@ import { useFeedComments, whenLabel, type FeedComment } from '../../lib/feedComm
 // миграцию 0057, там же и причина. Ученику без группы поле ввода не
 // показывается, и он видит, ПОЧЕМУ, а не пустоту.
 //
-// СВЁРНУТО ПО УМОЛЧАНИЮ. Материал в ленте — про материал; обсуждение
-// разворачивается по кнопке со счётчиком. Развёрнутый тред на каждой карточке
-// превратил бы ленту из десяти заметок в ленту из ста реплик.
+// СВЁРНУТО ПО УМОЛЧАНИЮ, А КНОПКА ЖИВЁТ СНАРУЖИ. Разворачивает тред иконка в
+// строке поста — рядом с сердцем, как в любой ленте. Сюда она не входит: своя
+// подпись «Обсудить» под каждым постом читалась как раздел документа, а не как
+// действие. Развёрнутый тред на каждой карточке превратил бы ленту из десяти
+// заметок в ленту из ста реплик.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function FeedComments({ itemId, lang, accent }: {
+export function FeedComments({ itemId, lang, accent, open, onCount }: {
   itemId: string
   lang: string
   accent: string
+  /** Развёрнут ли тред. Кнопкой управляет пост — она стоит в его строке. */
+  open: boolean
+  /** Сколько реплик — для счётчика у иконки в посте. */
+  onCount?: (n: number) => void
 }) {
   const t = useT()
-  const [open, setOpen] = useState(false)
   const { threads, list, loading, error, canWrite, add, remove } = useFeedComments(itemId, lang)
 
-  const total = list.length
+  // Счётчик считается здесь и уезжает наверх: две реализации подсчёта дали бы
+  // два разных числа — у иконки одно, в треде другое.
+  useEffect(() => { onCount?.(list.length) }, [list.length, onCount])
 
   return (
-    <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 7,
-          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-          fontSize: 12.5, fontWeight: 650,
-          color: open ? accent : 'var(--color-muted)',
-        }}
-      >
-        <MessageSquare size={14} />
-        {total > 0 ? `${t('Обсуждение')} · ${total}` : t('Обсудить')}
-      </button>
-
+    <>
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {loading && <Muted>{t('Загружаем…')}</Muted>}
           {error && <Muted tone="bad">{t(error)}</Muted>}
 
@@ -75,7 +69,7 @@ export function FeedComments({ itemId, lang, accent }: {
             : <Muted>{t('Обсуждение доступно ученикам группы: тред у материала — это тред вашего класса.')}</Muted>}
         </div>
       )}
-    </div>
+    </>
   )
 }
 

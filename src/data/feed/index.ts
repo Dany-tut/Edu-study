@@ -92,6 +92,17 @@ export interface Outlet {
   feed?: string
   /** Что это за источник и зачем он в ленте. Одна строка для рейла. */
   note: string
+  /**
+   * Аватарка источника — то, что стоит слева от имени в шапке поста.
+   *
+   * Не логотип: чужие логотипы это чужие товарные знаки, и тянуть их картинкой
+   * с сайта источника значит грузить чужой хост на каждый пост. Поэтому знак
+   * рисуем сами — одна-две буквы алфавита источника в кружке его цвета.
+   * Читается так же, как аватарка канала в мессенджере, и ничего не стоит.
+   */
+  mark: string
+  /** Цвет кружка. Литеральный hex — как в палитре предметов. */
+  tint: string
 }
 
 /**
@@ -154,6 +165,7 @@ export const OUTLETS: Outlet[] = [
     home: 'https://www.nasa.gov/news/',
     feed: 'https://www.nasa.gov/news-release/feed/',
     note: 'Пресс-релизы о полётах и наблюдениях. Свободны от авторского права полностью, включая фотографии.',
+    mark: 'NA', tint: '#2C5AA0',
   },
   {
     id: 'wikinews-en',
@@ -161,6 +173,7 @@ export const OUTLETS: Outlet[] = [
     license: 'CC BY-SA 2.5 — свободная лицензия, нужна атрибуция',
     home: 'https://en.wikinews.org/',
     note: 'Архив: раздел закрыт 4 мая 2026 года и переведён в режим только для чтения.',
+    mark: 'W', tint: '#4B6A88',
   },
 
   {
@@ -170,6 +183,7 @@ export const OUTLETS: Outlet[] = [
     home: 'https://www.youtube.com/@TEDx',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCAuUUnT6oDeKwE6v1NGQxug',
     note: 'Один спикер, один тезис, живая академическая речь. Смотрим в плеере канала, вопросы наши.',
+    mark: 'TX', tint: '#C4302B',
   },
 
   // ── Корейский ──────────────────────────────────────────────────────────────
@@ -180,6 +194,7 @@ export const OUTLETS: Outlet[] = [
     home: 'https://www.youtube.com/@SBSNews8',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCkinYTS9IHqOEwR1Sze2JTw',
     note: 'Выпуски 8뉴스: дикторская речь, репортажи с улицы, погода. Обновляется несколько раз в день.',
+    mark: 'SBS', tint: '#0F4CA8',
   },
   {
     id: 'samsung-kr',
@@ -188,6 +203,7 @@ export const OUTLETS: Outlet[] = [
     home: 'https://news.samsung.com/kr/',
     feed: 'https://news.samsung.com/kr/feed',
     note: 'Деловой корейский, на котором говорят на работе: канцелярит, вежливые формы, числа и даты.',
+    mark: 'S', tint: '#1428A0',
   },
   {
     id: 'wikinews-ko',
@@ -195,6 +211,7 @@ export const OUTLETS: Outlet[] = [
     license: 'CC BY-SA 2.5 — свободная лицензия, нужна атрибуция',
     home: 'https://ko.wikinews.org/',
     note: 'Архив на 827 заметок. Короткие сообщения о событиях — ровно тот формат, который нужен для чтения на уровне.',
+    mark: '위', tint: '#4B6A88',
   },
 
   // ── Японский ───────────────────────────────────────────────────────────────
@@ -205,6 +222,7 @@ export const OUTLETS: Outlet[] = [
     home: 'https://www.youtube.com/@ANNnewsCH',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCGCZAYq5Xxojl_tSXcVJhiQ',
     note: 'Новости телеканала «Асахи». У сюжетов в описании лежит расшифровка — по ней и пишутся вопросы.',
+    mark: 'ANN', tint: '#1F6FB2',
   },
   {
     id: 'wikinews-ja',
@@ -212,6 +230,7 @@ export const OUTLETS: Outlet[] = [
     license: 'CC BY-SA 2.5 — свободная лицензия, нужна атрибуция',
     home: 'https://ja.wikinews.org/',
     note: 'Архив на 4104 заметки — самый большой из закрытых разделов.',
+    mark: 'ウ', tint: '#4B6A88',
   },
 
   // ── Португальский ──────────────────────────────────────────────────────────
@@ -222,10 +241,25 @@ export const OUTLETS: Outlet[] = [
     home: 'https://agenciabrasil.ebc.com.br/',
     feed: 'https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml',
     note: 'Государственное агентство Бразилии. Единственное крупное новостное агентство, которое отдаёт свои тексты под свободной лицензией.',
+    mark: 'AB', tint: '#1E7C3C',
   },
 ]
 
 export const outletById = (id: string): Outlet | undefined => OUTLETS.find(o => o.id === id)
+
+/**
+ * «Ручка» источника под именем в шапке поста — @TEDx, nasa.gov.
+ *
+ * Не отдельное поле: адрес источника уже лежит в `home`, и второе место, где
+ * то же самое написано руками, рано или поздно разойдётся с первым. У каналов
+ * YouTube ручка есть в самом адресе, у остальных её роль играет домен.
+ */
+export function outletHandle(o: Outlet): string {
+  const at = o.home.match(/\/@([\w.-]+)/)
+  if (at) return '@' + at[1]
+  const host = o.home.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+  return host
+}
 
 /** Базовый код языка: pt-BR → pt. */
 const base = (lang: string) => lang.split('-')[0].toLowerCase()

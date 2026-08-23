@@ -563,7 +563,11 @@ function AssignPicker({
                     </span>
                   )}
                 </span>
-                {on && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
+                {on && (
+                  <span style={{ display: 'flex', flexShrink: 0, lineHeight: 0 }}>
+                    <X size={12} strokeWidth={2.25} style={{ color: 'var(--color-green-text)' }} />
+                  </span>
+                )}
               </button>
 
               {chips.length > 1 && onPickCard && (
@@ -576,8 +580,8 @@ function AssignPicker({
                         fontSize: 11, fontWeight: 700,
                         border: '1px solid transparent',
                         borderColor: active ? 'transparent' : 'var(--color-border-soft)',
-                        background: active ? '#1C7A45' : 'var(--color-bg-3)',
-                        color: active ? '#fff' : 'var(--color-text-2)',
+                        background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
+                        color: active ? 'var(--color-green-text)' : 'var(--color-text-2)',
                         transition: 'all 0.14s',
                       }}>
                         {c.subject || t('Без предмета')}

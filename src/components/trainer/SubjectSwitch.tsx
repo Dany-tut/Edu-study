@@ -196,7 +196,15 @@ export function SubjectHero({ state, subtitle, palette }: {
           )}
         </div>
         {subtitle && (
-          <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>{subtitle}</p>
+          // Высота строки контекста прибита к двум строкам: у режимов она то
+          // короткая («142 текстов»), то длинная («4 материала из свободных
+          // источников»), и на переключении весь рейл прыгал вверх-вниз.
+          // Что не влезло — под срез, а не в третью строку.
+          <p style={{
+            margin: '8px 0 0', fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)',
+            height: 'calc(13px * 1.45 * 2)', overflow: 'hidden',
+            display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+          }}>{subtitle}</p>
         )}
       </div>
 
