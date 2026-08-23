@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRef, useState, useLayoutEffect, useCallback, useEffect } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
@@ -156,20 +155,6 @@ export function DockSegment<T extends string | number>({
   // скроллбар спрятан, перетаскивания на десктопе нет, ряд выглядел мёртвым.
   useWheelHScroll(scrollRef)
 
-  // Клик по стрелке листает на 3/4 видимой ширины — на краю остаётся «якорь»
-  // из предыдущего экрана, и ряд не перепрыгивает вслепую.
-  const nudge = (dir: 'left' | 'right') => {
-    const el = scrollRef.current
-    if (!el) return
-    const step = Math.max(90, el.clientWidth * 0.75)
-    const from = el.scrollLeft
-    const to = Math.max(0, Math.min(el.scrollWidth - el.clientWidth, from + (dir === 'left' ? -step : step)))
-    el.scrollTo({ left: to, behavior: 'smooth' })
-    // Плавность глушат prefers-reduced-motion и часть вебвью — молча. Если через
-    // кадр ряд не тронулся, доводим рывком: кнопка обязана листать всегда.
-    setTimeout(() => { if (el.scrollLeft === from && from !== to) el.scrollLeft = to }, 120)
-  }
-
   // Keep the selected chip centred in the row so the active choice is always
   // fully readable (never clipped under an edge fade).
   useLayoutEffect(() => {
@@ -205,10 +190,7 @@ export function DockSegment<T extends string | number>({
         className="no-scrollbar"
         style={{
           display: 'flex', alignItems: 'center', gap: 3,
-          // Место под стрелки, но только когда ряд правда листается: иначе
-          // крайняя чипса (а это чаще всего выбранная) уезжает под стрелку и
-          // читается как «Сцен…».
-          padding: edges.over ? '3px 24px' : 3,
+          padding: 3,
           overflowX: 'auto',
           maskImage: mask, WebkitMaskImage: mask,
         }}
@@ -236,30 +218,6 @@ export function DockSegment<T extends string | number>({
           )
         })}
       </div>
-      {/* Стрелки у краёв. Маска-фейд по тёмному фону глазом не читается, и ряд
-          выглядит просто обрезанным — «курсы кончились». Кнопка появляется
-          только с той стороны, где спрятаны чипсы. [[reference-invisible-in-dark]] */}
-      {(['left', 'right'] as const).map(side => (
-        <button
-          key={side}
-          type="button"
-          aria-hidden={!edges[side]}
-          tabIndex={-1}
-          onClick={() => nudge(side)}
-          style={{
-            position: 'absolute', [side]: 2, top: '50%', transform: 'translateY(-50%)',
-            width: 22, height: 22, padding: 0, borderRadius: 999, border: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
-            cursor: 'pointer', zIndex: 2,
-            opacity: edges[side] ? 1 : 0,
-            pointerEvents: edges[side] ? 'auto' : 'none',
-            transition: 'opacity 0.18s ease',
-          }}
-        >
-          {side === 'left' ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-        </button>
-      ))}
     </motion.div>
   )
 }

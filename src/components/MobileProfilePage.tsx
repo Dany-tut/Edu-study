@@ -170,7 +170,7 @@ export default function MobileProfilePage() {
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)' }}>{t('тап — статистика курса')}</span>
               </div>
-              <HScrollFade gap={8} arrows fade="var(--color-bg)" padBottom={2}>
+              <HScrollFade gap={8} fade="var(--color-bg)" padBottom={2}>
                 <CourseCard
                   title={t('Все курсы')}
                   icon="✨"
