@@ -12,6 +12,7 @@ import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow, lessonTimeState } from '../lib/useNow'
 import MobileStickersRow from './MobileStickersRow'
+import Skeleton from './Skeleton'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
@@ -47,6 +48,7 @@ function fmtUntil(mins: number) {
 
 export default function MobileHome() {
   const t = useT()
+  const loaded = useStudentData(s => s.loaded)
   const subjects = useStudentData(s => s.subjects)
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const stats = useStudentData(s => s.stats)
@@ -138,6 +140,9 @@ export default function MobileHome() {
             <Calendar size={15} style={{ color: 'var(--color-accent)' }} />
             <span>{t('Урок')} {fmtUntil(nextToday.st.minutesUntil)}</span>
           </>
+        ) : !loaded ? (
+          // Пока данные едут, ноль — это не «ноль дней», а «мы ещё не знаем».
+          <Skeleton w={92} h={13} radius={999} />
         ) : (
           <>
             <Flame size={15} style={{ color: '#F8A23B' }} />
@@ -158,6 +163,7 @@ export default function MobileHome() {
   return (
     <>
       <MobileScreen topZone={topZone} topPad={72}>
+        {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* Hero — Продолжить */}
           {continueInfo ? (
@@ -249,6 +255,7 @@ export default function MobileHome() {
             </div>
           )}
         </div>
+        )}
       </MobileScreen>
 
       {/* В2 — course scope switcher (only with 2–4 courses) */}
@@ -265,6 +272,82 @@ export default function MobileHome() {
 
       <MobileBottomNav />
     </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Скелетон «Главной»
+//
+// ЗАЧЕМ ОН ИМЕННО ТАКОЙ. До прихода данных экран рисовал НАСТОЯЩИЙ пустой
+// экран: «Курс ещё не открыт» и нули в статистике. Это враньё двух сортов.
+// Смысловое — ученик читает «курса нет», хотя курс есть и сейчас появится.
+// И механическое: пустой экран короче настоящего, он не прокручивается, а на
+// нелистающейся странице и Safari, и WKWebView держат в safe-area-inset-bottom
+// свою нижнюю панель — из-за чего док стоял выше домашней полосы, пока экран
+// не потянут (см. lib/bottomSafe.ts).
+//
+// Поэтому блоки скелетона повторяют РЕАЛЬНЫЕ: те же радиусы, отступы и высоты,
+// что у Hero, полосы статистики, «Сегодня» и быстрых действий. Экран сразу
+// нужной длины — контент потом встаёт на свои места, ничего не прыгает.
+// ─────────────────────────────────────────────────────────────────────────────
+function HomeSkeleton() {
+  return (
+    <div className="flex flex-col" style={{ gap: 10 }} aria-hidden>
+      {/* Hero: те же 20px радиуса и padding 14, что у HeroContinue */}
+      <div style={{ borderRadius: 20, padding: 14, background: 'var(--color-bg-3)' }}>
+        <Skeleton w={120} h={10} radius={999} />
+        <Skeleton w="82%" h={19} style={{ margin: '6px 0 12px' }} />
+        <Skeleton w="100%" h={5} radius={99} style={{ marginBottom: 10 }} />
+        <div className="flex items-center justify-between">
+          <Skeleton w={78} h={11} radius={999} />
+          <Skeleton w={104} h={30} radius={999} />
+        </div>
+      </div>
+
+      {/* Полоса статистики: четыре плитки той же высоты, что MiniStat */}
+      <div className="flex" style={{ gap: 6 }}>
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} style={{ flex: 1, minWidth: 0, borderRadius: 12, padding: '7px 8px', background: 'var(--color-bg-3)' }}>
+            <Skeleton w="70%" h={15} radius={6} />
+            <Skeleton w="52%" h={10} radius={6} style={{ marginTop: 3 }} />
+          </div>
+        ))}
+      </div>
+
+      {/* «Сегодня»: карточка со строками расписания */}
+      <div style={{ borderRadius: 16, background: 'var(--color-surface)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-sm)', padding: 12 }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+          <Skeleton w={62} h={13} radius={6} />
+          <Skeleton w={54} h={11} radius={6} />
+        </div>
+        {[0, 1].map(i => (
+          <div key={i} className="flex items-center" style={{ gap: 10, padding: '7px 0', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)' }}>
+            <Skeleton w={44} h={13} radius={6} />
+            <Skeleton w="62%" h={13} radius={6} />
+          </div>
+        ))}
+      </div>
+
+      {/* Быстрые действия — те же две плитки */}
+      <div className="flex" style={{ gap: 8 }}>
+        {[0, 1].map(i => (
+          <div key={i} className="flex items-center" style={{ flex: 1, minWidth: 0, gap: 9, padding: '10px 12px', borderRadius: 14, background: 'var(--color-bg-3)' }}>
+            <Skeleton circle w={18} />
+            <span className="flex flex-col min-w-0" style={{ gap: 3, flex: 1 }}>
+              <Skeleton w="58%" h={13} radius={6} />
+              <Skeleton w="80%" h={10} radius={6} />
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Лента: горизонтальная полоса карточек */}
+      <div className="flex" style={{ gap: 10, overflow: 'hidden' }}>
+        {[0, 1].map(i => (
+          <Skeleton key={i} w={232} h={96} radius={16} style={{ flexShrink: 0 }} />
+        ))}
+      </div>
+    </div>
   )
 }
 

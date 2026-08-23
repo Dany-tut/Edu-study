@@ -135,16 +135,13 @@ export default function MobileCourses() {
     <>
       <MobileScreen topZone={topZone} topPad={72} topRaise={0} scrollKey={`${activeSubjectId}-${moduleTab}`}>
         {!subject ? (
-          <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 240, gap: 6 }}>
-            {loaded && (
-              <>
-                <Lock size={22} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
-                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
-                <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
-              </>
-            )}
-            {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}
-          </div>
+          !loaded ? <CoursesSkeleton /> : (
+            <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 240, gap: 6 }}>
+              <Lock size={22} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
+              <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
+              <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
+            </div>
+          )
         ) : (
           <div className="flex flex-col" style={{ gap: 14 }}>
             {/* Level / XP hero */}
@@ -245,6 +242,50 @@ export default function MobileCourses() {
 
       <MobileBottomNav />
     </>
+  )
+}
+
+// Скелетон «Курсов»: те же блоки, что у настоящего экрана, — герой уровня,
+// полоса статистики, чипсы модулей и карточки уроков. Раньше здесь стояли три
+// строки Skeleton.Text по центру: экран получался короче настоящего и не
+// прокручивался, а на нелистающейся странице вебвью держит свою нижнюю панель
+// в safe-area-inset-bottom, и док встаёт выше домашней полосы (lib/bottomSafe.ts).
+function CoursesSkeleton() {
+  return (
+    <div className="flex flex-col" style={{ gap: 14 }} aria-hidden>
+      <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-bg-3)' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
+          <Skeleton w={148} h={14} radius={6} />
+          <Skeleton w={72} h={12} radius={6} />
+        </div>
+        <Skeleton w="100%" h={8} radius={99} />
+      </div>
+
+      <div className="flex" style={{ gap: 8 }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{ flex: 1, minWidth: 0, borderRadius: 12, padding: '8px 10px', background: 'var(--color-bg-3)' }}>
+            <Skeleton w="64%" h={15} radius={6} />
+            <Skeleton w="80%" h={10} radius={6} style={{ marginTop: 4 }} />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex" style={{ gap: 8, overflow: 'hidden' }}>
+        {[64, 92, 78].map((w, i) => <Skeleton key={i} w={w} h={30} radius={999} style={{ flexShrink: 0 }} />)}
+      </div>
+
+      <div className="flex flex-col" style={{ gap: 10 }}>
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="flex items-center" style={{ gap: 12, padding: 12, borderRadius: 16, background: 'var(--color-surface)', border: '1px solid var(--color-border-glass)' }}>
+            <Skeleton circle w={34} />
+            <span className="flex flex-col min-w-0" style={{ gap: 5, flex: 1 }}>
+              <Skeleton w={i % 2 ? '54%' : '72%'} h={14} radius={6} />
+              <Skeleton w="38%" h={11} radius={6} />
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
