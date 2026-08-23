@@ -226,7 +226,15 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
           пролистать фильтры, которыми в тот момент никто не пользуется. */}
       {narrow ? (
         <>
-          <MobileSheet open={sheet} onClose={() => setSheet(false)} title={t('Фильтры')}>
+          {/* Заголовок — название режима, а не слово «Фильтры»: внутри у
+              половины режимов лежит карточка с ровно таким же заголовком, и
+              шторка открывалась «Фильтры / Фильтры». Заодно видно, к чему эти
+              фильтры относятся — список-то теперь свой у каждого режима. */}
+          <MobileSheet
+            open={sheet}
+            onClose={() => setSheet(false)}
+            title={t(nav?.modes.find(m => m.id === nav.mode)?.label ?? 'Фильтры')}
+          >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{rail}</div>
           </MobileSheet>
           {/* Шторка-навигация: только «куда пойти». Закрывается сама, потому
@@ -326,13 +334,13 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
             <DockCircle
               icon={<ModeIcon nav={nav} />}
               ariaLabel={t('Режим')}
-              onClick={() => setNavSheet(true)}
+              onClick={() => { setSheet(false); setNavSheet(true) }}
             />
           )}
           <DockCircle
             icon={<SlidersHorizontal size={20} />}
             ariaLabel={t('Фильтры')}
-            onClick={() => setSheet(true)}
+            onClick={() => { setNavSheet(false); setSheet(true) }}
           />
         </MobileDock>
       )}

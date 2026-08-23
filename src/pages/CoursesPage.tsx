@@ -235,7 +235,7 @@ export default function CoursesPage() {
 
         {/* Subject pills — одна строка со скроллом: курсов много, и перенос
             ронял бы сетку занятий на вторую-третью строку вниз. */}
-        <HScrollFade gap={0} fadeWidth={40} arrows style={{ flex: '1 1 0', minWidth: 0 }} scrollStyle={{ alignItems: 'center' }}>
+        <HScrollFade gap={0} fadeWidth={40} style={{ flex: '1 1 0', minWidth: 0 }} scrollStyle={{ alignItems: 'center' }}>
         <div
           ref={subjectPill.containerRef}
           className="flex items-center gap-2"
@@ -275,7 +275,13 @@ export default function CoursesPage() {
                   position: 'relative',
                   zIndex: isActive ? 3 : 1,
                   flexShrink: 0,
-                  whiteSpace: 'nowrap',
+                  // Длинное название курса ломается на вторую строку, а не тянет
+                  // таблетку через пол-экрана: узкий столбик читается быстрее
+                  // длинной строки, и соседние курсы остаются в поле зрения.
+                  whiteSpace: 'normal',
+                  maxWidth: 190,
+                  textAlign: 'center',
+                  lineHeight: 1.2,
                   padding: '8px 22px',
                   borderRadius: 999,
                   fontSize: 14,
@@ -294,7 +300,19 @@ export default function CoursesPage() {
                   WebkitTapHighlightColor: 'transparent',
                 }}
               >
-                <span style={{ position: 'relative', zIndex: 1 }}>{s.name}</span>
+                <span
+                  style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2,
+                    overflow: 'hidden',
+                    overflowWrap: 'anywhere',
+                  }}
+                >
+                  {s.name}
+                </span>
               </motion.button>
             )
           })}
@@ -303,7 +321,7 @@ export default function CoursesPage() {
       </div>
 
       {/* ── Row 2: module tabs ── */}
-      <HScrollFade gap={0} fadeWidth={40} arrows scrollStyle={{ alignItems: 'center' }}>
+      <HScrollFade gap={0} fadeWidth={40} scrollStyle={{ alignItems: 'center' }}>
       <div
         ref={modulePill.containerRef}
         className="flex items-center gap-1"

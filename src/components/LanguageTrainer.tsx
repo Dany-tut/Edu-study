@@ -2440,7 +2440,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       rail={rail}
       toolbar={toolbar}
       nav={nav}
-      narrowLead={<SubjectPill state={subjectState} palette={palette} compact />}
+      // Круг предмета — только когда предметов правда несколько. У ученика с
+      // одним языком это была мёртвая кнопка, занимавшая в доке ровно ту
+      // ширину, в которой не помещались половины режима.
+      narrowLead={subjectState.options.length > 1
+        ? <SubjectPill state={subjectState} palette={palette} compact />
+        : null}
     >
       {content}
     </TrainerShell>

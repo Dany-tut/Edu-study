@@ -464,6 +464,38 @@ type AssignItem = {
 }
 
 const ASSIGN_PREVIEW = 5
+/**
+ * Крестик «снять выбор» в углу карточки.
+ *
+ * Отдельной кнопкой, а не значком внутри строки-кнопки: вложенная кнопка в
+ * кнопке невалидна, поэтому крестик лежит абсолютом поверх карточки. Область
+ * нажатия 26×26 (по значку 12px промахивались), ховер — заливка акцентом.
+ */
+function RemoveDot({ onClick, label }: { onClick: () => void; label: string }) {
+  const [hover, setHover] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      aria-label={label}
+      title={label}
+      style={{
+        position: 'absolute', top: 9, right: 9,
+        width: 26, height: 26, borderRadius: 8,
+        display: 'grid', placeItems: 'center',
+        border: 'none', cursor: 'pointer', padding: 0,
+        background: hover ? 'var(--color-green-text)' : 'transparent',
+        color: hover ? 'var(--color-bg)' : 'var(--color-green-text)',
+        opacity: hover ? 1 : 0.7,
+        transition: 'background 0.14s, color 0.14s, opacity 0.14s',
+      }}
+    >
+      <X size={14} strokeWidth={2.5} />
+    </button>
+  )
+}
+
 function AssignPicker({
   items, selectedIdOf, onToggle, onPickCard, pickHintId, kind,
 }: {
@@ -532,6 +564,7 @@ function AssignPicker({
           const needsPick = pickHintId === item.id && !on
           return (
             <div key={item.id} style={{
+              position: 'relative',
               borderRadius: 12,
               border: on ? '1.5px solid var(--color-green-text)'
                 : needsPick ? '1.5px solid var(--color-yellow-text)'
@@ -541,7 +574,7 @@ function AssignPicker({
             }}>
               <button onClick={() => onToggle(item)} style={{
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                padding: '9px 14px', border: 'none', background: 'transparent',
+                padding: on ? '9px 42px 9px 14px' : '9px 14px', border: 'none', background: 'transparent',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 <div style={{
@@ -563,12 +596,14 @@ function AssignPicker({
                     </span>
                   )}
                 </span>
-                {on && (
-                  <span style={{ display: 'flex', flexShrink: 0, lineHeight: 0 }}>
-                    <X size={12} strokeWidth={2.25} style={{ color: 'var(--color-green-text)' }} />
-                  </span>
-                )}
               </button>
+
+              {/* Крестик — своя кнопка поверх карточки, а не значок внутри
+                  строки: у значка не было ни своей области нажатия, ни ховера,
+                  а с чипсами предметов он ещё и уезжал от имени. */}
+              {on && (
+                <RemoveDot onClick={() => onToggle(item)} label={kind === 'group' ? t('Убрать группу') : t('Убрать ученика')} />
+              )}
 
               {chips.length > 1 && onPickCard && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '0 14px 9px 48px' }}>
