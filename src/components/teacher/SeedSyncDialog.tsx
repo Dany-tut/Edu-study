@@ -12,7 +12,7 @@
 // страницы, и это честнее любого «вы уверены?».
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Check, Plus, RefreshCw, Trash2, X } from 'lucide-react'
@@ -93,8 +93,47 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
     </div>
   )
 
-  const group = (title: string, note: string, Icon: typeof Plus, list: SeedChange[], tone: string) => list.length > 0 && (
-    <section style={{ marginBottom: 20 }}>
+  // Группы описаны данными, а не тремя вызовами подряд: по этому же списку
+  // рисуется полоса под шапкой, и разъехаться с телом окна она не может.
+  const groups = [
+    {
+      id: 'add',
+      title: t('Добавится'),
+      note: t('Ничего не затирает: этих уроков и заданий в курсе просто нет.'),
+      Icon: Plus,
+      list: additions,
+      tone: 'var(--color-green-text)',
+    },
+    {
+      id: 'over',
+      title: t('Перезапишется'),
+      note: t('Может стереть ваши правки — отметьте только то, что готовы отдать сиду.'),
+      Icon: AlertTriangle,
+      list: overwrites,
+      tone: 'var(--color-yellow-text)',
+    },
+    {
+      id: 'gone',
+      title: t('Удалится'),
+      note: t('Эти уроки и задания убрали из готового курса. Ответы учеников на них останутся в базе, но перестанут показываться.'),
+      Icon: Trash2,
+      list: removals,
+      tone: 'var(--color-red-text)',
+    },
+  ].filter(g => g.list.length > 0)
+
+  const bodyRef = useRef<HTMLDivElement>(null)
+  // Не scrollIntoView: у вложенного контейнера он молча не срабатывает (проверено
+  // на стенде — scrollTop оставался нулём). Считаем смещение сами.
+  const jumpTo = (id: string) => {
+    const body = bodyRef.current
+    const el = body?.querySelector(`[data-group="${id}"]`)
+    if (!body || !el) return
+    body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top - 8
+  }
+
+  const group = ({ id, title, note, Icon, list, tone }: (typeof groups)[number]) => (
+    <section key={id} data-group={id} style={{ marginBottom: 20, scrollMarginTop: 4 }}>
       <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
         <Icon size={15} style={{ color: tone, flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 750, color: tone }}>{title} · {list.length}</span>
@@ -142,29 +181,43 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           </button>
         </header>
 
-        <div style={{ overflowY: 'auto', padding: '16px 22px' }}>
+        {/* Полоса групп. Отметить «все добавления» или снять «все перезаписи» —
+            самое частое действие в этом окне, и ради него не должно приходиться
+            листать список на сотню строк до нужного заголовка. Клик по названию
+            прокручивает тело к самой группе. */}
+        {groups.length > 0 && (
+          <div className="flex flex-wrap items-center flex-shrink-0"
+            style={{ gap: 8, padding: '10px 22px', borderBottom: '1px solid var(--color-border-soft)' }}>
+            {groups.map(g => {
+              const n = g.list.filter(c => picked.has(c.key)).length
+              return (
+                <span key={g.id} className="flex items-center"
+                  style={{
+                    gap: 7, padding: '5px 11px 5px 9px', borderRadius: 999,
+                    border: '1px solid var(--color-border-soft)',
+                    background: n ? 'var(--color-bg-input)' : 'transparent',
+                  }}
+                >
+                  <Checkbox size={16} checked={n === g.list.length} onChange={v => toggleAll(g.list, v)} />
+                  <button onClick={() => jumpTo(g.id)} className="cursor-pointer flex items-center"
+                    style={{ gap: 6, border: 'none', background: 'none', padding: 0, fontFamily: 'inherit' }}>
+                    <g.Icon size={13} style={{ color: g.tone, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{g.title}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{n}/{g.list.length}</span>
+                  </button>
+                </span>
+              )
+            })}
+          </div>
+        )}
+
+        <div ref={bodyRef} style={{ overflowY: 'auto', padding: '16px 22px' }}>
           {diff.changes.length === 0 ? (
             <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.55, padding: '12px 0' }}>
               {t('Расхождений нет — курс совпадает с готовым.')}
             </p>
           ) : (
-            <>
-              {group(
-                t('Добавится'),
-                t('Ничего не затирает: этих уроков и заданий в курсе просто нет.'),
-                Plus, additions, 'var(--color-green-text)',
-              )}
-              {group(
-                t('Перезапишется'),
-                t('Может стереть ваши правки — отметьте только то, что готовы отдать сиду.'),
-                AlertTriangle, overwrites, 'var(--color-yellow-text)',
-              )}
-              {group(
-                t('Удалится'),
-                t('Эти уроки и задания убрали из готового курса. Ответы учеников на них останутся в базе, но перестанут показываться.'),
-                Trash2, removals, 'var(--color-red-text)',
-              )}
-            </>
+            <>{groups.map(group)}</>
           )}
         </div>
 
