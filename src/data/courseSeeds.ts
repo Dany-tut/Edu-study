@@ -149,6 +149,12 @@ export const COURSE_SEEDS: CourseSeed[] = [
     // Немецкий пока один курс — бытовой. Экзаменационного (Goethe, telc) нет
     // намеренно: предмет заведён ради «завтра выйти из аэропорта и дожить до
     // Anmeldung», а не ради сертификата.
+    key: 'deab',
+    subject: 'Немецкий',
+    summary: SEED_CARDS.deab,
+    build: lazy('deab', () => import('./germanA1B1'), m => m.buildGermanA1B1Course),
+  },
+  {
     key: 'desv',
     subject: 'Немецкий',
     summary: SEED_CARDS.desv,

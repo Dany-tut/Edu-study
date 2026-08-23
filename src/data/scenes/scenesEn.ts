@@ -20533,4 +20533,1621 @@ Accepted. Please do not bring your own specimens. We say this to everyone. We me
       },
     ],
   },
+
+  // ── Лунный свет, 2: направление из школы ───────────────────────────────────
+  {
+    id: 'sc-moonlight-2',
+    workId: 'moonlight',
+    lang: 'en', title: 'Направление из школы', level: 'B2', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фильм почти без слов: половина сказанного о герое сказана о нём другими и в его отсутствие. Ниже наш текст в этом ключе — школьный бланк направления к психологу. Канцелярский английский тут делает всю работу: человека описывают, ни разу с ним не поговорив.',
+    body: `MIAMI–DADE PUBLIC SCHOOLS
+REFERRAL TO SCHOOL COUNSELING SERVICES — FORM 22
+
+Student: CHIRON H., grade 6
+Referred by: Ms Delgado, homeroom
+Date: 11 October
+
+Reason for referral (check all that apply):
+☐ academic concern  ☑ behavioural concern  ☑ peer relations  ☐ attendance  ☑ other
+
+Description of concern (be factual):
+Student does not participate. Student has been absent from PE four times this month; on each occasion he was found in the building, not off campus. Two incidents reported by other students in the past three weeks; in both, the student was described by staff as “not fighting back”. He has not reported anything himself.
+
+Has the student been spoken to? Yes / No — Yes, twice. He said “I’m fine” both times.
+
+Has the parent/guardian been contacted? Yes / No — Two calls, no answer. One message left.
+
+Recommended action:
+Weekly check-in. Please do not conduct the first meeting in the main office; it has a window onto the corridor and everyone can see who is inside. This matters more than it sounds like it matters.
+
+Counselor’s note, added later:
+Met 18 Oct. Student said very little. When asked what he would like to be different, he said, “Nothing. Just less of it.” I have no idea yet what to do with that, but I am writing it down because somebody should have written it down two years ago.`,
+    translation: `ГОСУДАРСТВЕННЫЕ ШКОЛЫ ОКРУГА МАЙАМИ-ДЕЙД
+НАПРАВЛЕНИЕ К ШКОЛЬНОМУ ПСИХОЛОГУ — ФОРМА 22
+
+Ученик: ХАЙРОН Х., 6-й класс
+Направил: мисс Дельгадо, классный руководитель
+Дата: 11 октября
+
+Основание (отметьте всё подходящее):
+☐ успеваемость ☑ поведение ☑ отношения со сверстниками ☐ посещаемость ☑ иное
+
+Описание проблемы (излагайте фактически):
+Ученик не участвует. За месяц четыре раза отсутствовал на физкультуре; каждый раз обнаруживался в здании, а не за пределами школы. За последние три недели другие ученики сообщили о двух происшествиях; в обоих сотрудники описали поведение ученика как «не даёт сдачи». Сам он ни о чём не сообщал.
+
+Проводилась ли беседа с учеником? Да / Нет — Да, дважды. Оба раза сказал: «Всё нормально».
+
+Связывались ли с родителем/опекуном? Да / Нет — Два звонка, никто не ответил. Оставлено одно сообщение.
+
+Рекомендуемые меры:
+Еженедельные встречи. Пожалуйста, не проводите первую встречу в главном кабинете: там окно в коридор и всем видно, кто внутри. Это важнее, чем звучит.
+
+Пометка психолога, добавлена позже:
+Встреча 18 октября. Ученик говорил очень мало. На вопрос, что он хотел бы изменить, ответил: «Ничего. Просто поменьше этого». Пока не знаю, что с этим делать, но записываю, потому что кому-то следовало записать это два года назад.`,
+    glossary: [
+      { term: 'referral', ru: 'направление (к специалисту)' },
+      { term: 'homeroom', ru: 'классный руководитель / свой класс (амер. школа)' },
+      { term: 'check all that apply', ru: 'отметьте всё подходящее' },
+      { term: 'peer relations', ru: 'отношения со сверстниками' },
+      { term: 'off campus', ru: 'за пределами школы' },
+      { term: 'incident', ru: 'происшествие' },
+      { term: 'to fight back', ru: 'давать сдачи' },
+      { term: 'guardian', ru: 'опекун' },
+      { term: 'check-in', ru: 'короткая регулярная встреча' },
+      { term: 'to be factual', ru: 'излагать фактически, без оценок' },
+    ],
+    questions: [
+      {
+        q: 'Where was the student found when absent from PE?',
+        options: ['Off campus', 'In the building', 'At home', 'It is not recorded'],
+        correct: 1,
+      },
+      {
+        q: 'Who reported the two incidents?',
+        options: ['The student', 'Other students', 'A parent', 'A teacher who saw them'],
+        correct: 1,
+      },
+      {
+        q: 'Why should the first meeting not be in the main office?',
+        options: [
+          'It is too small',
+          'It has a window onto the corridor and everyone can see who is inside',
+          'It is used for exams',
+          'It is far from the classrooms',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did the student say he wanted?',
+        options: [
+          'A new class',
+          '“Nothing. Just less of it.”',
+          'To go home',
+          'He said nothing',
+        ],
+        correct: 1,
+        why: 'Четыре слова — единственное, что герой говорит от себя во всём документе. Фильм устроен так же: главное сказано короче всего.',
+      },
+    ],
+  },
+
+  // ── Лунный свет, 3: закусочная ─────────────────────────────────────────────
+  {
+    id: 'sc-moonlight-3',
+    workId: 'moonlight',
+    lang: 'en', title: 'Шеф-повар готовит для одного', level: 'B1', minutes: 3,
+    topic: 'Еда', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Кульминация фильма — не разговор, а тарелка: человек готовит для того, кого не видел десять лет, и почти всё говорится через еду. Ниже наш текст в этом регистре — закусочная поздно вечером.',
+    body: `“Kitchen’s closed.”
+“Sign says open till twelve.”
+“Sign’s from before. Kitchen’s closed.”
+
+He looked at the man in the booth for a second longer than you look at a customer.
+
+“…Sit down,” he said. “I’ll make you something.”
+“You just said—”
+“I said the kitchen’s closed. I didn’t say I wasn’t cooking.”
+
+He cooked. He did not ask what the man wanted. He put down rice, beans, plantain, and a piece of fish with the skin still crisp, and he stood there for a second with the towel over his shoulder before he sat down opposite.
+
+“You still don’t eat first?”
+“I eat after. Habit.”
+“That’s not a habit, that’s a job.”
+“Same thing after a while.”
+
+The man ate. Neither of them said anything for a long time, which was the easiest part of the evening.
+
+“It’s good.”
+“It’s all right.”
+“It’s good, man.”
+“…Yeah,” he said. “It is.”
+
+He got up to get the water without being asked, because he had noticed the glass was empty two minutes before it was empty, which is a thing you learn in kitchens and also a thing you cannot learn at all.`,
+    translation: `— Кухня закрыта.
+— На табличке до двенадцати.
+— Табличка старая. Кухня закрыта.
+
+Он посмотрел на человека в кабинке на секунду дольше, чем смотрят на посетителя.
+
+— …Садись, — сказал он. — Сделаю тебе что-нибудь.
+— Ты же только что сказал…
+— Я сказал, что кухня закрыта. Я не сказал, что не готовлю.
+
+Он приготовил. Не спросил, чего человек хочет. Поставил рис, фасоль, жареный банан и кусок рыбы с ещё хрустящей кожей, постоял секунду с полотенцем на плече и сел напротив.
+
+— Ты всё так же не ешь первым?
+— Я ем после. Привычка.
+— Это не привычка, это работа.
+— Через какое-то время одно и то же.
+
+Человек ел. Оба долго ничего не говорили, и это была самая лёгкая часть вечера.
+
+— Вкусно.
+— Нормально.
+— Вкусно, слушай.
+— …Да, — сказал он. — Вкусно.
+
+Он встал за водой, хотя его не просили, потому что заметил, что стакан пуст, за две минуты до того, как тот опустел, — этому учатся на кухне, и этому же научиться нельзя вовсе.`,
+    glossary: [
+      { term: 'booth', ru: 'кабинка в кафе' },
+      { term: 'plantain', ru: 'плантан, жареный банан' },
+      { term: 'crisp', ru: 'хрустящий' },
+      { term: 'towel over one’s shoulder', ru: 'полотенце на плече (примета повара)' },
+      { term: 'opposite', ru: 'напротив' },
+      { term: 'habit', ru: 'привычка' },
+      { term: 'after a while', ru: 'через какое-то время' },
+      { term: 'without being asked', ru: 'без просьбы' },
+      { term: 'It’s all right', ru: 'нормально — сдержанное согласие' },
+    ],
+    questions: [
+      {
+        q: 'What is the distinction he makes about the kitchen?',
+        options: [
+          'It is closed but he is still cooking',
+          'It closes at twelve',
+          'It reopens tomorrow',
+          'He is not the cook',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Did he ask what the man wanted?',
+        options: ['Yes', 'No — he simply cooked', 'He offered a menu', 'He asked once'],
+        correct: 1,
+      },
+      {
+        q: 'Why does he eat after?',
+        options: [
+          'He is not hungry',
+          'Habit — which the other calls a job',
+          'He is on a diet',
+          'He already ate',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the last paragraph really about?',
+        options: [
+          'Restaurant service',
+          'Noticing another person before they ask',
+          'Water',
+          'Kitchen training',
+        ],
+        correct: 1,
+        why: 'Последняя фраза говорит и про профессию, и не про профессию. Фильм так и сделан: нежность показывается через работу рук.',
+      },
+    ],
+  },
+
+  // ── Лунный свет, 4: три подписи ────────────────────────────────────────────
+  {
+    id: 'sc-moonlight-4',
+    workId: 'moonlight',
+    lang: 'en', title: 'Три подписи к трём фотографиям', level: 'B2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему фильма', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фильм состоит из трёх частей, и в каждой у героя другое имя. Ниже наш текст в том же устройстве — три подписи под тремя фотографиями одного человека. Полезно посмотреть, как английский обозначает возраст и время: at nine, aged sixteen, in his thirties.',
+    body: `THREE PHOTOGRAPHS, ONE PERSON
+
+I.
+Boy, about nine, standing at the edge of the water with his arms at his sides. Somebody is out of frame to the left; you can tell because he is looking at them and not at the camera. The picture is badly composed and it is the only one of the three in which he is not being careful.
+
+Caption on the back, in pencil: “Little.”
+
+II.
+Sixteen. School photograph, so the smile is the school smile, which is not information. Blue shirt, top button done up. His hands are not in the picture. The photographer has asked him to turn his head slightly and he has turned it exactly as much as he was asked and no further.
+
+Caption: “Chiron. Grade 11. Do not reorder.”
+
+III.
+A man in his thirties, in a car, photographed by someone in the passenger seat without warning. He is halfway through saying something. It is the only picture of the three in which his mouth is open.
+
+No caption. On the back, in a different hand: “Black — but that’s not his name, that’s what they call him. Ask him what he wants to be called. Then use that.”`,
+    translation: `ТРИ ФОТОГРАФИИ, ОДИН ЧЕЛОВЕК
+
+I.
+Мальчик, лет девяти, стоит у самой воды, руки по швам. Кто-то остался за кадром слева — это понятно, потому что он смотрит на них, а не в объектив. Кадр выстроен плохо, и это единственная из трёх фотографий, где он не осторожничает.
+
+Подпись на обороте, карандашом: «Малой».
+
+II.
+Шестнадцать. Школьная съёмка, поэтому улыбка школьная, а это не сведения. Синяя рубашка, верхняя пуговица застёгнута. Рук в кадре нет. Фотограф попросил чуть повернуть голову, и он повернул ровно настолько, насколько попросили, и ни на градус больше.
+
+Подпись: «Хайрон. 11-й класс. Повторно не заказывать».
+
+III.
+Мужчина за тридцать, в машине, снят без предупреждения кем-то с пассажирского сиденья. Он на середине фразы. Это единственная из трёх фотографий, где у него открыт рот.
+
+Подписи нет. На обороте, другой рукой: «Блэк — но это не имя, это как его зовут. Спроси, как он хочет, чтобы его называли. И называй так».`,
+    glossary: [
+      { term: 'at one’s sides', ru: 'руки по швам' },
+      { term: 'out of frame', ru: 'за кадром' },
+      { term: 'badly composed', ru: 'плохо выстроенный (о кадре)' },
+      { term: 'caption', ru: 'подпись под фотографией' },
+      { term: 'top button done up', ru: 'верхняя пуговица застёгнута' },
+      { term: 'to reorder', ru: 'заказать повторно' },
+      { term: 'without warning', ru: 'без предупреждения' },
+      { term: 'halfway through saying sth', ru: 'на середине фразы' },
+      { term: 'in a different hand', ru: 'другим почерком' },
+    ],
+    questions: [
+      {
+        q: 'How do we know someone is standing off to the left in the first picture?',
+        options: [
+          'A shadow',
+          'He is looking at them instead of at the camera',
+          'It says so in the caption',
+          'Their hand is visible',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “so the smile is the school smile, which is not information” mean?',
+        options: [
+          'He is happy',
+          'The smile is required, so it tells you nothing about him',
+          'The photograph is blurred',
+          'He refused to smile',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is unique about the third photograph?',
+        options: [
+          'It is in colour',
+          'It is the only one in which his mouth is open',
+          'He is smiling',
+          'He is alone',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the note on the back of the third instruct?',
+        options: [
+          'To file it correctly',
+          'To ask him what he wants to be called, and then use that',
+          'Not to show it to anyone',
+          'To write his full name',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Божья земля, 2: счёт от ветеринара ─────────────────────────────────────
+  {
+    id: 'sc-gods-own-2',
+    workId: 'gods-own-country',
+    lang: 'en', title: 'Счёт от ветеринара', level: 'B2', minutes: 3,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фильм про йоркширскую ферму, где всё меряется деньгами и погодой, а чувства не называют вовсе. Ниже наш текст в этом духе — ветеринарный счёт с приписками. Хозяйство здесь описано точнее, чем это сделал бы любой диалог.',
+    body: `J. HARTLEY & SON, VETERINARY SURGEONS — Hawes, North Yorkshire
+Invoice 4471 · Account: Saxby Farm, Marsden
+
+Visit, out of hours (03:40, 12 March) ................... £96.00
+Assisted lambing, ewe no. 214, malpresentation .......... £45.00
+Lamb, single, live ....................................... —
+Antibiotic course, ewe ................................... £18.40
+Foot trimming, 6 ewes .................................... £30.00
+Visit, second (18 March), ewe no. 214, mastitis .......... £64.00
+Mileage, 2 visits, 22 miles ............................. £13.20
+
+Subtotal .............................................. £266.60
+Previous balance, 90+ days ............................ £412.05
+TOTAL DUE ............................................. £678.65
+
+Handwritten at the bottom:
+“John — I’ve left the second visit off the reminder letter for now. Pay what you can and tell me before the end of the month rather than after, and I will not chase it. You are not the only farm in this valley in this position and you are the only one who has not rung me about it. Ring me about it.
+Also: 214 will be fine. She is a better mother than she looks. — D. Hartley”`,
+    translation: `«ДЖ. ХАРТЛИ И СЫН», ВЕТЕРИНАРНЫЕ ВРАЧИ — Хос, Северный Йоркшир
+Счёт № 4471 · Клиент: ферма Саксби, Марсден
+
+Выезд во внеурочное время (03:40, 12 марта) ............ £96,00
+Помощь при окоте, овца № 214, неправильное предлежание .. £45,00
+Ягнёнок, один, живой .................................... —
+Курс антибиотиков, овца ................................. £18,40
+Обрезка копыт, 6 овец ................................... £30,00
+Второй выезд (18 марта), овца № 214, мастит ............. £64,00
+Пробег, 2 выезда, 22 мили ............................... £13,20
+
+Промежуточный итог .................................... £266,60
+Задолженность свыше 90 дней ........................... £412,05
+ИТОГО К ОПЛАТЕ ........................................ £678,65
+
+Внизу от руки:
+«Джон — второй выезд я пока не включил в письмо-напоминание. Заплати сколько сможешь и скажи мне до конца месяца, а не после, и я не стану дёргать. Ты не единственная ферма в этой долине в таком положении, и ты единственный, кто мне об этом не позвонил. Позвони.
+И ещё: с 214-й всё будет хорошо. Она мать получше, чем кажется. — Д. Хартли»`,
+    glossary: [
+      { term: 'veterinary surgeon', ru: 'ветеринарный врач (брит.)' },
+      { term: 'invoice', ru: 'счёт на оплату' },
+      { term: 'out of hours', ru: 'во внеурочное время' },
+      { term: 'lambing', ru: 'окот' },
+      { term: 'ewe', ru: 'овца (самка)' },
+      { term: 'malpresentation', ru: 'неправильное предлежание плода' },
+      { term: 'foot trimming', ru: 'обрезка копыт' },
+      { term: 'mastitis', ru: 'мастит' },
+      { term: 'mileage', ru: 'пробег, плата за километраж' },
+      { term: 'balance', ru: 'остаток задолженности' },
+      { term: 'to chase (a debt)', ru: 'дёргать, требовать долг' },
+    ],
+    questions: [
+      {
+        q: 'What time was the first visit?',
+        options: ['Midday', '03:40', '18:00', 'It is not stated'],
+        correct: 1,
+      },
+      {
+        q: 'How much of the total is old debt?',
+        options: ['£266.60', '£412.05', '£678.65', 'None'],
+        correct: 1,
+      },
+      {
+        q: 'What does the vet ask in the handwritten note?',
+        options: [
+          'To pay in full immediately',
+          'To pay what he can and to ring before the end of the month',
+          'To sell the ewe',
+          'To find another vet',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the point of the last line about ewe 214?',
+        options: [
+          'A medical detail',
+          'It is the only warm thing in the document, and it is said about a sheep',
+          'A warning',
+          'An extra charge',
+        ],
+        correct: 1,
+        why: 'В этом фильме прямо о людях не говорят. Сочувствие приходится передавать через овцу — и оно доходит.',
+      },
+    ],
+  },
+
+  // ── Божья земля, 3: объявление о найме ─────────────────────────────────────
+  {
+    id: 'sc-gods-own-3',
+    workId: 'gods-own-country',
+    lang: 'en', title: 'Требуется работник на окот', level: 'B1', minutes: 3,
+    topic: 'Поиск работы', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Всё в фильме начинается с найма сезонного работника на несколько недель окота. Ниже наш текст — такое объявление и два отклика. Здесь удобно посмотреть на британский рабочий английский: он короткий, без вежливых оборотов и совершенно честный насчёт условий.',
+    body: `SEASONAL FARM WORKER — LAMBING — 3 WEEKS
+
+Saxby Farm, Marsden, North Yorkshire. Hill farm, 400 ewes.
+
+Dates: mid-March to early April. Start date depends on the sheep, not on us.
+
+The work: nights. Checking, assisting, moving ewes and lambs, feeding, mucking out. You will be cold, you will be wet, and you will not sleep in a normal pattern for three weeks.
+
+Pay: weekly, cash or transfer. Accommodation provided — a caravan with a heater that works. Food provided, cooked by whoever is awake.
+
+Required: experience with sheep. Not with animals. With sheep.
+
+Not required: references, a driving licence, English as a first language, or anything about you that is not the above.
+
+Apply: turn up, or ring the number on the gate. Do not email. Nobody here checks it.
+
+—— two replies, in the notebook by the phone ——
+
+“Polish lad, worked lambing in Cumbria two seasons, can start the 14th. Sounded like he knew what he was talking about. Said he would bring his own knife, which is either a good sign or the best sign.”
+
+“Woman from Halifax, very keen, has kept chickens. Told her chickens are not sheep. She agreed and thanked me, which was decent of her.”`,
+    translation: `СЕЗОННЫЙ РАБОТНИК НА ФЕРМУ — ОКОТ — 3 НЕДЕЛИ
+
+Ферма Саксби, Марсден, Северный Йоркшир. Горная ферма, 400 овец.
+
+Сроки: с середины марта по начало апреля. Дата начала зависит от овец, а не от нас.
+
+Работа: ночная. Обход, помощь при окоте, перегон овец и ягнят, кормление, чистка. Вам будет холодно, вам будет мокро, и три недели вы не будете спать по-человечески.
+
+Оплата: еженедельно, наличными или переводом. Жильё предоставляется — вагончик с работающим обогревателем. Еда есть, готовит тот, кто не спит.
+
+Требуется: опыт работы с овцами. Не с животными. С овцами.
+
+Не требуется: рекомендации, водительские права, английский как родной и вообще ничего о вас, кроме перечисленного выше.
+
+Как откликнуться: приехать или позвонить по номеру на воротах. Не пишите на почту. Её здесь никто не проверяет.
+
+—— два отклика, в тетради у телефона ——
+
+«Парень поляк, два сезона на окоте в Камбрии, может с 14-го. По разговору похоже, что понимает, о чём говорит. Сказал, что привезёт свой нож, — это либо хороший знак, либо лучший знак».
+
+«Женщина из Галифакса, очень рвётся, держала кур. Сказал ей, что куры — не овцы. Она согласилась и поблагодарила, что было с её стороны порядочно».`,
+    glossary: [
+      { term: 'seasonal', ru: 'сезонный' },
+      { term: 'hill farm', ru: 'горная ферма' },
+      { term: 'to assist', ru: 'помогать (при окоте)' },
+      { term: 'to muck out', ru: 'чистить хлев' },
+      { term: 'accommodation', ru: 'жильё' },
+      { term: 'caravan', ru: 'жилой вагончик, прицеп (брит.)' },
+      { term: 'references', ru: 'рекомендации от прежних работодателей' },
+      { term: 'to turn up', ru: 'явиться, прийти' },
+      { term: 'keen', ru: 'рвущийся, очень заинтересованный (брит.)' },
+      { term: 'decent', ru: 'порядочный' },
+    ],
+    questions: [
+      {
+        q: 'What determines the start date?',
+        options: ['The farmer', 'The sheep', 'The weather', 'The council'],
+        correct: 1,
+      },
+      {
+        q: 'What experience is required?',
+        options: [
+          'Any animals',
+          'Sheep specifically',
+          'Farm machinery',
+          'None',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why should applicants not email?',
+        options: [
+          'There is no internet',
+          'Nobody there checks it',
+          'It is against the rules',
+          'The address is wrong',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the note mean by “his own knife… the best sign”?',
+        options: [
+          'He is dangerous',
+          'Bringing your own tools shows real experience',
+          'He is a cook',
+          'He cannot afford one',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Божья земля, 4: тетрадь фермы ──────────────────────────────────────────
+  {
+    id: 'sc-gods-own-4',
+    workId: 'gods-own-country',
+    lang: 'en', title: 'Тетрадь фермы, март', level: 'B1', minutes: 3,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'На ферме ведут тетрадь: погода, работы, цифры. Ниже наш текст в этом виде — две недели марта. Лексика погоды здесь британская и очень точная; заодно видно, как за строчками про ветер появляется второй человек, о котором прямо не сказано ни слова.',
+    body: `FARM BOOK — MARCH
+
+10th. Wind SW, strong. Rain from noon. Wall down at Fell Gate, 6 yards. Did not fix. 3 lambs.
+11th. Same wind. Colder. Fixed wall, badly. 5 lambs, one dead. Ordered feed.
+12th. Snow overnight, 2 in. Vet out at 3.40 a.m. Ewe 214. Lamb live. 7 lambs today.
+13th. Clear, hard frost. New lad arrived, 14th was agreed, came a day early, said the bus was going. Put him in the caravan. Heater works.
+14th. Wind dropped. He did the night on his own. I did not check on him. 11 lambs.
+15th. Rain. He fixed the wall at Fell Gate properly. Did not say anything about it and neither did I.
+16th. Fog to the ground all day. Cannot see the top field from the yard. 9 lambs.
+17th. Fine. First dry day since the 8th. We got the whole of the low ground done by four.
+18th. Vet again, 214, mastitis. Cost.
+19th. Wind NE, bitter. He cooked. Nobody has cooked in this house since Mother.
+20th. Rain. 4 lambs.
+21st. Rain.
+22nd. Rain. Nothing to report and I wrote in the book anyway, which is not like me.`,
+    translation: `ТЕТРАДЬ ФЕРМЫ — МАРТ
+
+10-е. Ветер юго-западный, сильный. Дождь с полудня. Обвалилась стена у Фелл-Гейт, 6 ярдов. Не чинил. 3 ягнёнка.
+11-е. Ветер тот же. Холоднее. Починил стену, плохо. 5 ягнят, один мёртвый. Заказал корм.
+12-е. Ночью снег, 2 дюйма. Ветеринар выезжал в 3:40. Овца 214. Ягнёнок живой. Сегодня 7 ягнят.
+13-е. Ясно, крепкий мороз. Приехал новый парень; договаривались на 14-е, приехал на день раньше, сказал, что автобус шёл. Поселил в вагончик. Обогреватель работает.
+14-е. Ветер стих. Ночь отработал один. Я не ходил проверять. 11 ягнят.
+15-е. Дождь. Он как следует починил стену у Фелл-Гейт. Ничего про это не сказал, и я тоже.
+16-е. Туман до земли весь день. Со двора не видно верхнего поля. 9 ягнят.
+17-е. Хорошо. Первый сухой день с 8-го. Всю низину закончили к четырём.
+18-е. Опять ветеринар, 214, мастит. Расход.
+19-е. Ветер северо-восточный, злой. Он готовил. В этом доме никто не готовил со времён матери.
+20-е. Дождь. 4 ягнёнка.
+21-е. Дождь.
+22-е. Дождь. Сообщать нечего, а я всё равно записал в тетрадь, что на меня не похоже.`,
+    glossary: [
+      { term: 'wind SW / NE', ru: 'ветер юго-западный / северо-восточный' },
+      { term: 'hard frost', ru: 'крепкий мороз' },
+      { term: 'to drop (of wind)', ru: 'стихать' },
+      { term: 'fog to the ground', ru: 'туман до земли' },
+      { term: 'yard', ru: 'ярд (0,91 м); также двор фермы' },
+      { term: 'low ground', ru: 'низина' },
+      { term: 'bitter (of wind)', ru: 'злой, пронизывающий' },
+      { term: 'feed', ru: 'корм' },
+      { term: 'nothing to report', ru: 'сообщать нечего' },
+    ],
+    questions: [
+      {
+        q: 'When did the new worker arrive?',
+        options: ['On the 14th as agreed', 'A day early, on the 13th', 'On the 10th', 'He did not come'],
+        correct: 1,
+      },
+      {
+        q: 'What happened to the wall at Fell Gate?',
+        options: [
+          'It stayed down',
+          'The farmer fixed it badly, then the worker fixed it properly',
+          'It was rebuilt by a contractor',
+          'It fell again',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which entry is not about weather or work?',
+        options: [
+          'The 12th',
+          'The 19th — “He cooked. Nobody has cooked in this house since Mother.”',
+          'The 17th',
+          'The 20th',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the entry for the 22nd significant?',
+        options: [
+          'It rained',
+          'He wrote in the book although there was nothing to report — “which is not like me”',
+          'It is the last entry',
+          'The lambs stopped',
+        ],
+        correct: 1,
+        why: 'Тетрадь заводят для цифр. Когда человек начинает писать в неё без нужды, это и есть событие — единственное, о котором фильм говорит прямо.',
+      },
+    ],
+  },
+
+  // ── Это грех, 3: правила квартиры ──────────────────────────────────────────
+  {
+    id: 'sc-its-a-sin-3',
+    workId: 'its-a-sin',
+    lang: 'en', title: 'Правила квартиры', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал во многом про квартиру, где живёт компания молодых людей, и про то, что она была для них домом в самом точном смысле. Ниже наш текст — лист правил, приколотый к двери кухни. Английский тут разговорный и британский; смешное и серьёзное идут одним списком, как и было.',
+    body: `THE PINK PALACE — HOUSE RULES
+(pinned to the kitchen door, amended in three different pens)
+
+1. Rent is Friday. Not “around Friday”. Friday.
+2. If you finish the milk, you buy the milk. This has been rule 2 since 1981 and has never once worked.
+3. Guests are welcome. Guests who are still here on Sunday are flatmates and owe rent, see rule 1.
+4. The phone is for everyone. Long-distance calls go in the tin. Yes, we can tell.
+5. Nobody sleeps on the sofa if there is a bed free. Ask. Somebody will move.
+6. If you are going to be out all night that is your business, but write “out” on the pad by the door, because otherwise somebody sits up.
+
+_added later, in green ink:_
+
+7. If somebody in this flat is in hospital, we do not all go at once. Two at a time. Take turns. Bring something that is not flowers, because the wards are full of flowers and nobody has any socks.
+8. If somebody’s family will not come, we are the family that comes. This is not a rule for a door, but it is going on the door.
+
+_added later still, in pencil:_
+
+9. Rule 2 is now enforced. Nobody knows by whom. It simply is.`,
+    translation: `РОЗОВЫЙ ДВОРЕЦ — ПРАВИЛА ДОМА
+(приколото к кухонной двери, дописано тремя разными ручками)
+
+1. Аренда в пятницу. Не «примерно в пятницу». В пятницу.
+2. Допил молоко — покупаешь молоко. Это правило номер 2 с 1981 года, и оно не сработало ни разу.
+3. Гостям мы рады. Гость, который всё ещё здесь в воскресенье, — сосед и платит аренду, см. правило 1.
+4. Телефон общий. Междугородние звонки — в жестянку. Да, мы видим.
+5. Никто не спит на диване, если есть свободная кровать. Спроси. Кто-нибудь подвинется.
+6. Если тебя не будет всю ночь — это твоё дело, но напиши «нет» на блокноте у двери, иначе кто-нибудь не ляжет.
+
+_дописано позже, зелёными чернилами:_
+
+7. Если кто-то из этой квартиры в больнице, мы не ходим все разом. По двое. По очереди. Приносите что-нибудь, кроме цветов, потому что палаты завалены цветами, а носков нет ни у кого.
+8. Если чья-то семья не приедет, семья, которая приезжает, — это мы. Такое на дверь не вешают, но это будет висеть на двери.
+
+_дописано ещё позже, карандашом:_
+
+9. Правило 2 теперь соблюдается. Никто не знает кем. Просто соблюдается.`,
+    glossary: [
+      { term: 'to pin sth to sth', ru: 'приколоть к чему-то' },
+      { term: 'amended', ru: 'с внесёнными изменениями' },
+      { term: 'rent', ru: 'арендная плата' },
+      { term: 'flatmate', ru: 'сосед по квартире (брит.)' },
+      { term: 'long-distance call', ru: 'междугородний звонок' },
+      { term: 'tin', ru: 'жестянка, банка (для общих денег)' },
+      { term: 'to sit up', ru: 'не ложиться, дожидаться' },
+      { term: 'pad', ru: 'блокнот' },
+      { term: 'ward', ru: 'больничная палата' },
+      { term: 'to take turns', ru: 'делать по очереди' },
+      { term: 'to enforce a rule', ru: 'следить за исполнением правила' },
+    ],
+    questions: [
+      {
+        q: 'What happens to a guest who is still there on Sunday?',
+        options: [
+          'They must leave',
+          'They are a flatmate and owe rent',
+          'They pay double',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why should you write “out” on the pad?',
+        options: [
+          'For the landlord',
+          'Because otherwise somebody sits up waiting',
+          'To claim the phone',
+          'For the rent record',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does rule 7 ask people to bring instead of flowers?',
+        options: [
+          'Food',
+          'Socks — the wards are full of flowers and nobody has any',
+          'Books',
+          'Money',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does rule 8 say “this is not a rule for a door, but it is going on the door”?',
+        options: [
+          'It is a joke',
+          'Because it is a promise rather than a rule, and they want it visible anyway',
+          'There is no space elsewhere',
+          'The landlord requires it',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Это грех, 4: график дежурств ───────────────────────────────────────────
+  {
+    id: 'sc-its-a-sin-4',
+    workId: 'its-a-sin',
+    lang: 'en', title: 'График дежурств', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'ВНИМАНИЕ: тема тяжёлая. В сериале друзья по очереди дежурят у постели, и организовано это как обычное расписание — потому что иначе не выдержать. Ниже наш текст в этом виде. Он написан деловито, и это единственный способ, которым такое пишут.',
+    body: `WARD 12 — VISITING ROTA, WEEK BEGINNING 4 NOVEMBER
+
+Visiting is 2–4 and 6–8. Two at a time is the rule and the sister enforces it, so do not all turn up.
+
+Mon 2–4: Jill. 6–8: Roscoe
+Tue 2–4: Ash. 6–8: Jill
+Wed 2–4: Roscoe. 6–8: Ash
+Thu 2–4: Jill. 6–8: Jill (I have swapped, do not argue with me about it)
+Fri 2–4: Ash. 6–8: Roscoe
+Sat: open. Come when you can.
+Sun 2–4: Jill.
+
+NOTES
+
+Bring: clean socks, boiled sweets, the Radio Times, and anything with a headline that is not about this.
+Do not bring: flowers (no room), grapes (he says everyone brings grapes and nobody eats grapes), news from work.
+
+If he is asleep, stay anyway. Sit down. Read your own book. He knows the difference between an empty chair and a full one even with his eyes shut.
+
+If a nurse asks who you are, say “family”. Nobody has ever asked us for more than that, and the two who did stopped when Jill looked at them.
+
+His mother has not returned the last three calls. I am going to keep ringing on Sundays. If she comes, everything above is cancelled and we go home and let her have him, and nobody is to say one word about the three years. Not one. — Jill`,
+    translation: `ПАЛАТА 12 — ГРАФИК ПОСЕЩЕНИЙ, НЕДЕЛЯ С 4 НОЯБРЯ
+
+Посещение с 14 до 16 и с 18 до 20. Правило — по двое, и старшая сестра за этим следит, так что не приходите все разом.
+
+Пн 14–16: Джилл. 18–20: Роско
+Вт 14–16: Эш. 18–20: Джилл
+Ср 14–16: Роско. 18–20: Эш
+Чт 14–16: Джилл. 18–20: Джилл (я поменялась, спорить со мной не надо)
+Пт 14–16: Эш. 18–20: Роско
+Сб: свободно. Приходите, когда сможете.
+Вс 14–16: Джилл.
+
+ПОМЕТКИ
+
+Приносить: чистые носки, леденцы, программу телепередач и что угодно, где на первой полосе не про это.
+Не приносить: цветы (некуда), виноград (он говорит, виноград приносят все, а не ест никто), новости с работы.
+
+Если он спит, всё равно оставайтесь. Сядьте. Читайте свою книжку. Он и с закрытыми глазами отличает пустой стул от занятого.
+
+Если медсестра спросит, кто вы, говорите «семья». Больше этого у нас ни разу не спрашивали, а те двое, кто спросил, перестали, когда на них посмотрела Джилл.
+
+Его мать не ответила на три последних звонка. Я буду звонить по воскресеньям и дальше. Если она приедет, всё написанное выше отменяется, мы уходим домой и оставляем его ей, и никто не скажет ни слова про эти три года. Ни одного. — Джилл`,
+    glossary: [
+      { term: 'rota', ru: 'график дежурств (брит.)' },
+      { term: 'week beginning', ru: 'неделя, начинающаяся с…' },
+      { term: 'sister (hospital)', ru: 'старшая медсестра отделения (брит.)' },
+      { term: 'to enforce', ru: 'следить за соблюдением' },
+      { term: 'to turn up', ru: 'явиться' },
+      { term: 'to swap', ru: 'поменяться' },
+      { term: 'boiled sweets', ru: 'леденцы' },
+      { term: 'Radio Times', ru: 'британский журнал телепрограмм' },
+      { term: 'headline', ru: 'заголовок, первая полоса' },
+      { term: 'to ring', ru: 'звонить (брит.)' },
+    ],
+    questions: [
+      {
+        q: 'How many visitors are allowed at a time?',
+        options: ['One', 'Two', 'Four', 'No limit'],
+        correct: 1,
+      },
+      {
+        q: 'Why should you stay if he is asleep?',
+        options: [
+          'The nurses require it',
+          'He knows the difference between an empty chair and a full one',
+          'To wait for the doctor',
+          'To keep the bed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should visitors say if asked who they are?',
+        options: ['A friend', '“Family”', 'A colleague', 'Nothing'],
+        correct: 1,
+      },
+      {
+        q: 'What is the instruction if his mother comes?',
+        options: [
+          'To stay and share the visits',
+          'Everything is cancelled, they go home, and nobody mentions the three years',
+          'To ask her to leave',
+          'To keep ringing',
+        ],
+        correct: 1,
+        why: 'Последний абзац — единственное место, где расписание перестаёт быть расписанием. И даже там оно остаётся распоряжением: обиду решено не предъявлять.',
+      },
+    ],
+  },
+
+  // ── Шиттс-Крик, 4: витрина магазина ────────────────────────────────────────
+  {
+    id: 'sc-schitts-creek-4',
+    workId: 'schitts-creek',
+    lang: 'en', title: 'Ценники в лавке', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Юмор сериала — в столкновении дорогого городского языка с деревенской практичностью. Ниже наш текст ровно об этом: витрина маленькой лавки, где ценники написаны одним человеком, а приписки — другим.',
+    body: `ROSE APOTHECARY — general store & wellness
+
+Hand-poured soy candle, “Second Rain” ........................ $38
+_A single note of petrichor. Burn time 45 hours._
+(pencil: “Petrichor is the smell after rain. I looked it up. It is a nice smell. $38.”)
+
+Local honey, 250 g ........................................... $14
+_Single-apiary, unfiltered, from four kilometres away._
+(pencil: “Ron’s bees. Ron would like it known that they are Ron’s bees.”)
+
+Face oil, rosehip & sea buckthorn ............................ $52
+_Small batch. Made ten kilometres from this counter._
+(pencil: “Made by Ron’s wife. Same road.”)
+
+Hand cream, unscented ........................................ $22
+(pencil: “This one actually works and I am not being sarcastic. — the other one”)
+
+Wooden spoon ................................................. $9
+_Hand-carved. Maple._
+(pencil: “It is a spoon.”)
+
+—— sign by the till ——
+
+We are a general store. We stock what our neighbours make. If you want something we do not have, tell us and we will find out who makes it within an hour of here, and if nobody does, we will say so.
+
+We do not price-match the highway outlet. They are twelve minutes away and we are not, in any sense, the same shop.`,
+    translation: `ROSE APOTHECARY — универсальная лавка и товары для дома
+
+Свеча ручной заливки, соевый воск, «Второй дождь» ............ $38
+_Одна нота петрикора. Время горения 45 часов._
+(карандашом: «Петрикор — это запах после дождя. Я посмотрел. Запах хороший. $38».)
+
+Местный мёд, 250 г ........................................... $14
+_С одной пасеки, нефильтрованный, привезён за четыре километра._
+(карандашом: «Пчёлы Рона. Рон просит, чтобы знали: пчёлы Рона».)
+
+Масло для лица, шиповник и облепиха .......................... $52
+_Малая партия. Сделано в десяти километрах от этого прилавка._
+(карандашом: «Делает жена Рона. Та же дорога».)
+
+Крем для рук, без запаха ..................................... $22
+(карандашом: «Вот этот правда работает, и я не иронизирую. — второй»)
+
+Деревянная ложка ............................................. $9
+_Ручная резьба. Клён._
+(карандашом: «Это ложка».)
+
+—— табличка у кассы ——
+
+Мы универсальная лавка. Мы продаём то, что делают наши соседи. Если вам нужно то, чего у нас нет, скажите, и мы выясним, кто это делает в пределах часа езды отсюда, а если никто — так и скажем.
+
+Мы не подстраиваем цены под магазин у шоссе. До него двенадцать минут, и мы с ним ни в каком смысле не один и тот же магазин.`,
+    glossary: [
+      { term: 'apothecary', ru: 'аптека (устар.); здесь — стилизованное название лавки' },
+      { term: 'hand-poured', ru: 'ручной заливки' },
+      { term: 'petrichor', ru: 'петрикор — запах земли после дождя' },
+      { term: 'burn time', ru: 'время горения' },
+      { term: 'apiary', ru: 'пасека' },
+      { term: 'unfiltered', ru: 'нефильтрованный' },
+      { term: 'small batch', ru: 'малая партия' },
+      { term: 'unscented', ru: 'без запаха' },
+      { term: 'till', ru: 'касса (брит./канад.)' },
+      { term: 'to price-match', ru: 'подстраивать цену под конкурента' },
+    ],
+    questions: [
+      {
+        q: 'What is petrichor?',
+        options: ['A flower', 'The smell after rain', 'A type of wax', 'A place'],
+        correct: 1,
+      },
+      {
+        q: 'Who makes the face oil?',
+        options: ['A city supplier', 'Ron’s wife, on the same road', 'The shop owners', 'It is imported'],
+        correct: 1,
+      },
+      {
+        q: 'What is the joke in the pencil note on the spoon?',
+        options: [
+          'It is broken',
+          'The elaborate description is answered with “It is a spoon.”',
+          'It is too expensive',
+          'It is not for sale',
+        ],
+        correct: 1,
+        why: 'Две руки на одном ценнике — весь сериал в миниатюре: один пишет «нота петрикора», другой приписывает «это ложка», и оба правы.',
+      },
+      {
+        q: 'What does the shop refuse to do?',
+        options: [
+          'Take cards',
+          'Match the prices of the highway outlet',
+          'Order special items',
+          'Sell local goods',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Тед Лассо, 4: печенье ──────────────────────────────────────────────────
+  {
+    id: 'sc-ted-lasso-4',
+    workId: 'ted-lasso',
+    lang: 'en', title: 'Коробка печенья каждое утро', level: 'B1', minutes: 3,
+    topic: 'Еда', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Один из главных сюжетов сериала — американец каждое утро приносит начальнице розовую коробку с печеньем и никогда не объясняет зачем. Ниже наш текст: рецепт, записанный от руки, и то, что к нему прибавлялось. Кулинарный английский тут учебный: меры, глаголы, температуры.',
+    body: `BISCUITS WITH THE BOSS — recipe card, written out for whoever needs it next
+
+225 g butter, softened (real butter, and do not argue with me about it)
+110 g caster sugar
+280 g plain flour
+a pinch of salt
+½ tsp vanilla
+
+Cream the butter and sugar until pale — longer than you think, about four minutes. Sift in the flour and salt. Bring it together with your hands, do not knead it. Chill 30 minutes. Roll to 1 cm, cut into fingers, prick with a fork.
+160 °C, 18–20 minutes. Pale gold. If they are brown you have gone too far and they will still be eaten, but you will know.
+
+Notes added over time, in the same handwriting:
+
+• They are shortbread. In this country calling them “cookies” starts a conversation you will not win.
+• Make them the night before. Morning baking makes you rush and rushing is in the taste, I do not care what anybody says.
+• The box matters. Same box, every day. It stops being a gift and starts being a fact, and a fact is harder to give back.
+• Do not put a note in the box. Ever. The whole point is that she does not have to answer anything.
+• If she is not in her office, leave it and go. Do not wait to be seen. That is the entire recipe, honestly. The rest is butter.`,
+    translation: `ПЕЧЕНЬЕ ДЛЯ НАЧАЛЬНИЦЫ — карточка рецепта, записана для того, кому понадобится следующим
+
+225 г сливочного масла, размягчённого (настоящего масла, и не спорьте со мной)
+110 г мелкого сахара
+280 г муки
+щепотка соли
+½ ч. л. ванили
+
+Растереть масло с сахаром добела — дольше, чем кажется, минуты четыре. Просеять муку с солью. Собрать руками, не месить. Охладить 30 минут. Раскатать в 1 см, нарезать полосками, наколоть вилкой.
+160 °C, 18–20 минут. Бледно-золотистое. Если подрумянилось — вы перебрали; съедят всё равно, но вы будете знать.
+
+Пометки, добавлявшиеся со временем, тем же почерком:
+
+• Это шотбред. В этой стране назвать его «cookies» — значит начать спор, в котором вы не победите.
+• Печь накануне вечером. Утренняя выпечка заставляет спешить, а спешка чувствуется на вкус, и мне всё равно, кто что говорит.
+• Коробка имеет значение. Та же коробка, каждый день. Тогда это перестаёт быть подарком и становится фактом, а факт вернуть труднее.
+• Записку в коробку не класть. Никогда. Весь смысл в том, что ей ни на что не нужно отвечать.
+• Если её нет в кабинете — оставьте и уходите. Не ждите, чтобы вас увидели. Это, честно говоря, и есть весь рецепт. Остальное — масло.`,
+    glossary: [
+      { term: 'softened butter', ru: 'размягчённое масло' },
+      { term: 'caster sugar', ru: 'мелкий сахар (брит.)' },
+      { term: 'plain flour', ru: 'обычная мука (брит.); в США all-purpose' },
+      { term: 'a pinch of', ru: 'щепотка' },
+      { term: 'to cream', ru: 'растирать (масло с сахаром)' },
+      { term: 'to sift', ru: 'просеивать' },
+      { term: 'to knead', ru: 'месить' },
+      { term: 'to chill', ru: 'охлаждать' },
+      { term: 'to prick with a fork', ru: 'наколоть вилкой' },
+      { term: 'shortbread', ru: 'шотбред — песочное печенье' },
+    ],
+    questions: [
+      {
+        q: 'Why should you make them the night before?',
+        options: [
+          'They taste better cold',
+          'Morning baking makes you rush, and rushing is in the taste',
+          'The oven is busy',
+          'To save time',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why the same box every day?',
+        options: [
+          'It is cheaper',
+          'It stops being a gift and becomes a fact, which is harder to give back',
+          'It fits the desk',
+          'It keeps them fresh',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is there never a note inside?',
+        options: [
+          'He cannot write',
+          'So that she does not have to answer anything',
+          'It would get greasy',
+          'It is a rule at work',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is “the entire recipe”, according to the last note?',
+        options: [
+          'The butter',
+          'Leaving it and going, without waiting to be seen',
+          'The oven temperature',
+          'The chilling time',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Очень странные дела, 4: список к кампании ──────────────────────────────
+  {
+    id: 'sc-stranger-things-4',
+    workId: 'stranger-things',
+    lang: 'en', title: 'Список к субботней кампании', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал начинается за игровым столом и постоянно к нему возвращается. Ниже наш текст — записка ведущего игрокам. Здесь стоит смотреть на то, как английский строит правила и распоряжения: must, are to, no one is to.',
+    body: `CAMPAIGN — SATURDAY — MIKE’S BASEMENT — 10 A.M. SHARP
+
+This is session nine. We have been at this since June. Nobody is quitting in session nine.
+
+BRING:
+– your character sheet, updated. If it is not updated I will update it for you and you will not enjoy my choices
+– dice. Your own dice. Dustin, your own dice
+– one thing to eat that is not entirely sugar. This is a request from Mike’s mom and it is not negotiable
+– a torch. There is a reason and you will find out
+
+RULES FOR SATURDAY:
+1. Ten a.m. means ten a.m. Last time we started at eleven forty and finished nothing.
+2. No one is to look at the module. It is on the shelf, face down, and I will know.
+3. If your character dies, your character dies. We are not doing the thing we did in session six again.
+4. Arguments about rules go in the notebook and get settled after. During the session my ruling stands, even when it is wrong, especially when it is wrong.
+5. We finish at four. Whatever is happening at four, we stop, because Will has to be home before dark and that is not up for discussion.
+
+WHAT IS AT STAKE: everything, obviously. It has been everything since session one.`,
+    translation: `КАМПАНИЯ — СУББОТА — ПОДВАЛ У МАЙКА — РОВНО В 10:00
+
+Это девятая сессия. Мы играем с июня. На девятой сессии никто не соскакивает.
+
+ВЗЯТЬ:
+– лист персонажа, обновлённый. Если он не обновлён, я обновлю его сам, и мои решения вам не понравятся
+– кубики. Свои кубики. Дастин, свои кубики
+– что-нибудь съедобное, состоящее не только из сахара. Это просьба мамы Майка, и она не обсуждается
+– фонарик. Причина есть, узнаете
+
+ПРАВИЛА НА СУББОТУ:
+1. Десять утра означает десять утра. В прошлый раз начали в одиннадцать сорок и ничего не закончили.
+2. Никто не заглядывает в модуль. Он на полке, обложкой вниз, и я узнаю.
+3. Если персонаж гибнет — персонаж гибнет. То, что мы устроили на шестой сессии, больше не повторяем.
+4. Споры по правилам записываются в тетрадь и решаются после. Во время игры моё решение остаётся в силе, даже когда оно неверное, — особенно когда оно неверное.
+5. Заканчиваем в четыре. Что бы ни происходило в четыре, мы останавливаемся, потому что Уиллу надо быть дома до темноты, и это не обсуждается.
+
+ЧТО НА КОНУ: всё, разумеется. Всё было на кону с первой сессии.`,
+    glossary: [
+      { term: 'sharp (of time)', ru: 'ровно (о времени)' },
+      { term: 'session', ru: 'игровая встреча, сессия' },
+      { term: 'to quit', ru: 'бросить, выйти из игры' },
+      { term: 'character sheet', ru: 'лист персонажа' },
+      { term: 'dice', ru: 'кубики (мн. ч. от die)' },
+      { term: 'non-negotiable', ru: 'не подлежит обсуждению' },
+      { term: 'torch', ru: 'фонарик (брит.); в США flashlight' },
+      { term: 'module', ru: 'модуль — готовый сценарий игры' },
+      { term: 'ruling', ru: 'решение ведущего' },
+      { term: 'at stake', ru: 'на кону' },
+    ],
+    questions: [
+      {
+        q: 'What time does the session start?',
+        options: ['Eleven forty', 'Ten a.m. sharp', 'Midday', 'When everyone arrives'],
+        correct: 1,
+      },
+      {
+        q: 'What is the rule about the game master’s decisions?',
+        options: [
+          'They can be overruled',
+          'They stand during the session, even when wrong',
+          'They are voted on',
+          'They are written down first',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why do they stop at four?',
+        options: [
+          'The basement is needed',
+          'Will has to be home before dark',
+          'Dinner',
+          'The module ends there',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which word marks the strongest obligation here?',
+        options: [
+          '“should”',
+          '“no one is to look”',
+          '“may”',
+          '“could”',
+        ],
+        correct: 1,
+        why: 'Конструкция «be to» в правилах жёстче, чем must: она означает не «нужно», а «так решено». В школьных и служебных текстах вы встретите её постоянно.',
+      },
+    ],
+  },
+
+  // ── Игра престолов, 4: пир ─────────────────────────────────────────────────
+  {
+    id: 'sc-got-4',
+    workId: 'got',
+    lang: 'en', title: 'Роспись свадебного пира', level: 'B2', minutes: 4,
+    topic: 'Еда', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Мир сериала описан через хозяйство: кто кому что должен, сколько бочек, сколько людей за столом. Ниже наш текст — роспись пира, составленная стюардом. Английский тут нарочито старомодный, и в нём удобно смотреть на числа, титулы и обороты вежливости.',
+    body: `ORDER OF THE FEAST — set down by the steward, to be read by the cooks and by no one else
+
+Seventy-seven dishes, as is customary, and not seventy-eight, whatever the cook says about the eels.
+
+FIRST: broth of leeks and onions. Cold, in the small bowls, and do not let it stand.
+SECOND: bread, three kinds, and salt on every table. The salt is not decoration. Guests who have taken bread and salt under this roof are under this roof’s protection, and every man in that hall will know it whether or not he means to keep it.
+THIRD: pike in a lemon crust. Fourth: honeyed chicken. Fifth to twelfth: as the list.
+THE PIG will be carried in whole at the eleventh dish, not the ninth. Last year it came in at the ninth and half the hall had gone out to be sick.
+
+WINE: the Arbor gold on the high table, the sour red below it. Two barrels of the gold, no more. If a lord below the salt asks for the gold, he is to be told that it is finished, courteously, and he is to be told it by a boy and not by me.
+
+MUSICIANS: paid before, not after. They play better when the money is already theirs, and they leave faster.
+
+A NOTE FOR THE COOKS: whatever you hear from the hall, you will keep cooking, and you will not come out to look. This has been the rule at every great house since there have been great houses, and it is the rule because it has been needed.`,
+    translation: `РОСПИСЬ ПИРА — составлено стюардом, к прочтению поварами и более никем
+
+Семьдесят семь перемен, как заведено, и не семьдесят восемь, что бы ни говорил повар про угрей.
+
+ПЕРВОЕ: похлёбка из лука-порея и репчатого. Холодная, в малых мисках, и не давать ей стоять.
+ВТОРОЕ: хлеб трёх видов и соль на каждом столе. Соль здесь не украшение. Гость, вкусивший хлеб и соль под этой крышей, находится под защитой этой крыши, и всякий в зале это знает — намерен он это соблюдать или нет.
+ТРЕТЬЕ: щука в лимонной корке. Четвёртое: курица в меду. С пятого по двенадцатое — по списку.
+КАБАНА вносят целиком на одиннадцатой перемене, а не на девятой. В прошлом году внесли на девятой, и половина зала вышла блевать.
+
+ВИНО: арборское золотое — на верхний стол, кислое красное — ниже. Золотого две бочки, не больше. Если лорд, сидящий ниже соли, спросит золотого, ему следует учтиво сказать, что оно кончилось, и сказать это должен мальчик, а не я.
+
+МУЗЫКАНТЫ: платить до, а не после. Они играют лучше, когда деньги уже у них, и уходят быстрее.
+
+ЗАМЕТКА ПОВАРАМ: что бы вы ни услышали из зала, вы продолжаете готовить и не выходите смотреть. Так заведено во всяком большом доме с тех пор, как большие дома существуют, и заведено это потому, что понадобилось.`,
+    glossary: [
+      { term: 'steward', ru: 'стюард, управляющий хозяйством' },
+      { term: 'to set sth down', ru: 'записать, изложить' },
+      { term: 'as is customary', ru: 'как заведено' },
+      { term: 'broth', ru: 'похлёбка, бульон' },
+      { term: 'leek', ru: 'лук-порей' },
+      { term: 'pike', ru: 'щука' },
+      { term: 'below the salt', ru: 'ниже соли — за дальней частью стола, знак низкого положения' },
+      { term: 'courteously', ru: 'учтиво' },
+      { term: 'barrel', ru: 'бочка' },
+      { term: 'to be needed', ru: 'быть необходимым; здесь: понадобиться на опыте' },
+    ],
+    questions: [
+      {
+        q: 'How many dishes are there, and why exactly that number?',
+        options: [
+          'Seventy-eight, because of the eels',
+          'Seventy-seven, as is customary',
+          'Twelve',
+          'It is not fixed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does bread and salt mean here?',
+        options: [
+          'A seasoning',
+          'Guests who take them are under the protection of the house',
+          'A tax',
+          'A course of the meal',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why should a boy, not the steward, refuse the gold wine?',
+        options: [
+          'The steward is busy',
+          'So that the refusal cannot become a quarrel with someone worth quarrelling with',
+          'Boys are faster',
+          'It is a rule of the guild',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the final instruction to the cooks?',
+        options: [
+          'To watch the hall',
+          'To keep cooking whatever they hear, and not come out to look',
+          'To lock the kitchen',
+          'To serve faster',
+        ],
+        correct: 1,
+        why: 'Инструкция написана буднично и объясняет себя одной фразой: «заведено потому, что понадобилось». В этом мире хозяйственный документ всегда знает больше, чем говорит.',
+      },
+    ],
+  },
+
+  // ── Алиса в Пограничье (англ.), 4: опись рюкзака ───────────────────────────
+  {
+    id: 'sc-borderland-en-4',
+    workId: 'alice-borderland-en',
+    lang: 'en', title: 'Опись рюкзака', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале всё превращается в ресурс, и разговор о вещах быстро становится разговором о времени. Ниже наш текст: опись содержимого одного рюкзака и решение по каждому пункту. Здесь удобно посмотреть, как английский считает неисчисляемое: two litres of water, a packet of, a few.',
+    body: `PACK CONTENTS — checked 6 a.m., day nine
+
+Water, 2 litres, in two bottles. KEEP BOTH. One bottle is a rationing problem. Two bottles is a decision you have already made.
+Instant noodles, 4 packets. Two are the same flavour. Trade one, not two.
+Torch, working. Batteries: 40 per cent. Do not use it to read.
+Lighter, half full. This is the most valuable object in the bag and it does not look like it.
+Painkillers, 11 tablets. Count them again tomorrow. If the number is wrong, the problem is not the tablets.
+Phone, dead, no charger. Keep it. Not for the phone.
+One pair dry socks, sealed in a bag. Do not open until you are going to sleep in them.
+Notebook and pen. Half the pages used. Write the date every day even when nothing happens, especially when nothing happens.
+A photograph. No practical value. KEEP.
+String, about 3 metres.
+A key to a flat in a city that still exists somewhere, presumably.
+
+TO TRADE: 1 packet noodles, 2 metres string.
+TO NEVER TRADE: lighter, socks, photograph.
+NOTE: if anyone offers you something for the photograph, they have worked out what you would give up everything else for, and you should walk away from that person today.`,
+    translation: `СОДЕРЖИМОЕ РЮКЗАКА — проверено в 6 утра, девятый день
+
+Вода, 2 литра, в двух бутылках. ОСТАВИТЬ ОБЕ. Одна бутылка — задача о нормировании. Две бутылки — решение, которое ты уже принял.
+Лапша быстрого приготовления, 4 пачки. Две одинакового вкуса. Меняй одну, не две.
+Фонарик, рабочий. Батарейки: 40 %. Не читать с ним.
+Зажигалка, наполовину. Самый ценный предмет в рюкзаке, и по виду этого не скажешь.
+Обезболивающее, 11 таблеток. Пересчитать завтра. Если число не сойдётся, дело не в таблетках.
+Телефон, разряжен, зарядки нет. Оставить. Не ради телефона.
+Одна пара сухих носков, в запаянном пакете. Не вскрывать, пока не соберёшься в них спать.
+Тетрадь и ручка. Половина страниц исписана. Писать дату каждый день, даже когда ничего не происходит, — особенно когда ничего не происходит.
+Фотография. Практической ценности нет. ОСТАВИТЬ.
+Верёвка, около 3 метров.
+Ключ от квартиры в городе, который где-то, надо полагать, всё ещё существует.
+
+НА ОБМЕН: 1 пачка лапши, 2 метра верёвки.
+НИКОГДА НЕ МЕНЯТЬ: зажигалка, носки, фотография.
+ПОМЕТКА: если кто-то предлагает тебе что-то за фотографию — он вычислил, ради чего ты отдашь всё остальное, и от этого человека сегодня же надо уйти.`,
+    glossary: [
+      { term: 'pack contents', ru: 'содержимое рюкзака' },
+      { term: 'rationing', ru: 'нормирование, распределение по норме' },
+      { term: 'packet', ru: 'пачка' },
+      { term: 'flavour', ru: 'вкус (о продукте)' },
+      { term: 'torch', ru: 'фонарик (брит.)' },
+      { term: 'painkiller', ru: 'обезболивающее' },
+      { term: 'sealed', ru: 'запаянный, запечатанный' },
+      { term: 'to trade', ru: 'менять, обменивать' },
+      { term: 'to give sth up', ru: 'отдать, отказаться от чего-то' },
+      { term: 'to walk away from sb', ru: 'уйти от кого-то, прекратить общение' },
+    ],
+    questions: [
+      {
+        q: 'Why is the lighter called the most valuable object?',
+        options: [
+          'It is expensive',
+          'It is valuable although it does not look it',
+          'It was a gift',
+          'It is rare',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “if the number is wrong, the problem is not the tablets” mean?',
+        options: [
+          'He miscounted',
+          'Someone is taking them',
+          'The tablets have expired',
+          'He needs more',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why write the date even when nothing happens?',
+        options: [
+          'For the trade record',
+          'Especially then — it is how you keep hold of time',
+          'The rules require it',
+          'To use up the notebook',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should you do if someone offers a trade for the photograph?',
+        options: [
+          'Accept a good price',
+          'Walk away from that person today',
+          'Hide the photograph',
+          'Offer something else',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Офис, 4: заявка на отпуск ──────────────────────────────────────────────
+  {
+    id: 'sc-the-office-4',
+    workId: 'the-office-us',
+    lang: 'en', title: 'Заявка на отпуск', level: 'B1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Юмор сериала живёт в служебных бумагах: форма заполнена правильно, а человек в ней виден целиком. Ниже наш текст — бланк заявки на отпуск и цепочка согласований. Полезно тем, что такие бланки одинаковы во всех компаниях мира.',
+    body: `DUNDER MIFFLIN — SCRANTON BRANCH
+PAID TIME OFF REQUEST (FORM HR-3)
+
+Employee: J. Halpert          Department: Sales
+Dates requested: 14–18 August (5 working days)
+PTO remaining before this request: 9 days
+Reason (optional): —
+
+Coverage arranged with: P. Beesly (accounts), A. Bernard (my clients Mon–Wed), S. Hudson (Thu–Fri)
+Will you be reachable? No. That is rather the idea.
+
+—— APPROVALS ——
+
+Direct supervisor: APPROVED. Have fun. Bring back something for the office. Not a magnet. We have eleven magnets. — M. Scott
+
+HR review: Approved. Note to employee: “Reason (optional)” is genuinely optional; you do not need to leave a dash. Several people have started leaving dashes and I do not know how this began. — T. Flenderson
+
+Regional note, added below in a different hand:
+Approved, with the observation that this branch has now scheduled four separate people to be absent in the same week in August, which is a scheduling matter and not a personnel matter, and which someone should have noticed in June. Please see the attached blank calendar. Please use the attached blank calendar. — Corporate
+
+Final line, handwritten:
+“Attached calendar has been put on the wall. Someone has drawn on it. It has been up for one hour.”`,
+    translation: `DUNDER MIFFLIN — ФИЛИАЛ В СКРАНТОНЕ
+ЗАЯВЛЕНИЕ НА ОПЛАЧИВАЕМЫЙ ОТПУСК (ФОРМА HR-3)
+
+Сотрудник: Дж. Хэлперт          Отдел: продажи
+Запрашиваемые даты: 14–18 августа (5 рабочих дней)
+Остаток дней до этой заявки: 9
+Причина (необязательно): —
+
+Замена согласована с: П. Бисли (учёт), Э. Бернард (мои клиенты пн–ср), С. Хадсон (чт–пт)
+Будете ли на связи? Нет. В этом, собственно, и смысл.
+
+—— СОГЛАСОВАНИЯ ——
+
+Непосредственный руководитель: СОГЛАСОВАНО. Отдыхай. Привези что-нибудь в офис. Только не магнит. У нас одиннадцать магнитов. — М. Скотт
+
+Проверка кадровой службы: согласовано. Примечание сотруднику: «Причина (необязательно)» действительно необязательна, прочерк ставить не нужно. Несколько человек начали ставить прочерки, и я не понимаю, откуда это пошло. — Т. Флендерсон
+
+Замечание из регионального офиса, дописано ниже другой рукой:
+Согласовано с тем замечанием, что в этом филиале на одну и ту же неделю августа теперь запланировано отсутствие четырёх разных сотрудников; это вопрос планирования, а не кадров, и заметить это следовало в июне. См. приложенный пустой календарь. Просим пользоваться приложенным пустым календарём. — Корпоративный офис
+
+Последняя строка, от руки:
+«Приложенный календарь повесили на стену. На нём уже кто-то нарисовал. Висит один час».`,
+    glossary: [
+      { term: 'paid time off (PTO)', ru: 'оплачиваемые дни отсутствия' },
+      { term: 'working days', ru: 'рабочие дни' },
+      { term: 'coverage', ru: 'замена, кто подхватит работу' },
+      { term: 'reachable', ru: 'доступный для связи' },
+      { term: 'direct supervisor', ru: 'непосредственный руководитель' },
+      { term: 'HR (human resources)', ru: 'кадровая служба' },
+      { term: 'to approve', ru: 'согласовывать, утверждать' },
+      { term: 'scheduling', ru: 'планирование, составление графика' },
+      { term: 'personnel matter', ru: 'кадровый вопрос' },
+      { term: 'attached', ru: 'приложенный' },
+    ],
+    questions: [
+      {
+        q: 'How many PTO days will remain after this request?',
+        options: ['Nine', 'Five', 'Four', 'It is not stated'],
+        correct: 2,
+      },
+      {
+        q: 'What does the manager ask him not to bring back?',
+        options: ['Food', 'A magnet', 'A photograph', 'Anything'],
+        correct: 1,
+      },
+      {
+        q: 'What is HR’s note actually about?',
+        options: [
+          'The dates',
+          'That people have started writing dashes in an optional field',
+          'The coverage',
+          'The reason for leave',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Corporate say the real problem is?',
+        options: [
+          'The employee',
+          'Scheduling — four people absent in the same week',
+          'The form',
+          'The branch manager',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Шерлок, 4: протокол осмотра ────────────────────────────────────────────
+  {
+    id: 'sc-sherlock-bbc-4',
+    workId: 'sherlock-bbc',
+    lang: 'en', title: 'Протокол осмотра места', level: 'B2', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал устроен как спор двух способов описывать одно и то же: полицейский протокол и то, что видит консультант. Ниже наш текст — обе версии подряд. Английский протокола предельно нейтральный, и в этом весь смысл сравнения.',
+    body: `METROPOLITAN POLICE — SCENE EXAMINATION RECORD
+Address: Flat 4, 21 Endell Street. Attending: DI Lestrade, DS Donovan, SOCO.
+
+Front door: no forced entry. Chain not engaged.
+Hallway: one pair women’s shoes, one umbrella, dry.
+Living room: window closed, curtains open. Television off. One glass on the table, containing water, half full. No prints other than the deceased.
+Kitchen: two mugs on the drainer, both washed. Kettle warm to the touch on arrival.
+Deceased: female, 34, found seated. No sign of struggle. Handbag present, contents apparently undisturbed. Phone missing.
+Preliminary view: no third party involvement indicated at this stage.
+
+—— CONSULTANT’S ANNOTATION, attached at the request of DI Lestrade ——
+
+Umbrella dry. It rained from eight until eleven. She came home before eight or she did not come home on foot.
+Two mugs, both washed. One glass, unwashed, on the table. People wash what they use together and leave what they use alone. Somebody was here and left no glass, only mugs, which means they came, were offered tea, and stayed long enough to finish it.
+Kettle warm on arrival. That is not a detail, that is a clock.
+Handbag undisturbed but phone missing. Nobody takes a phone and leaves a purse for money. They took the phone for what was on it.
+Chain not engaged. She knew them well enough not to use it, or well enough to have stopped bothering, which is worse and much more common.
+
+Conclusion: not what it looks like. Do not release the flat. Do not tell anyone I said any of this until Thursday.`,
+    translation: `ПОЛИЦИЯ ЛОНДОНА — ПРОТОКОЛ ОСМОТРА МЕСТА
+Адрес: кв. 4, Энделл-стрит, 21. Присутствовали: инспектор Лестрейд, сержант Донован, эксперт-криминалист.
+
+Входная дверь: следов взлома нет. Цепочка не накинута.
+Прихожая: одна пара женской обуви, один зонт, сухой.
+Гостиная: окно закрыто, шторы раздвинуты. Телевизор выключен. На столе один стакан с водой, наполовину. Отпечатков, кроме принадлежащих погибшей, нет.
+Кухня: две кружки на сушилке, обе вымыты. Чайник на момент прибытия тёплый на ощупь.
+Погибшая: женщина, 34 года, обнаружена сидящей. Признаков борьбы нет. Сумка на месте, содержимое, по-видимому, не тронуто. Телефон отсутствует.
+Предварительное заключение: на данном этапе участие третьих лиц не усматривается.
+
+—— ЗАМЕЧАНИЯ КОНСУЛЬТАНТА, приобщены по просьбе инспектора Лестрейда ——
+
+Зонт сухой. Дождь шёл с восьми до одиннадцати. Значит, она вернулась домой до восьми — или вернулась не пешком.
+Две кружки, обе вымыты. Один стакан, невымытый, на столе. Люди моют то, чем пользовались вместе, и оставляют то, чем пользовались в одиночку. Здесь кто-то был и не оставил стакана, только кружки, — значит, пришёл, получил чай и просидел достаточно, чтобы его допить.
+Чайник тёплый на момент прибытия. Это не деталь, это часы.
+Сумка не тронута, а телефона нет. Никто не берёт телефон и не берёт кошелёк ради денег. Телефон взяли ради того, что в нём было.
+Цепочка не накинута. Она знала пришедшего достаточно, чтобы не накидывать, — или достаточно, чтобы перестать об этом думать, а это хуже и гораздо чаще.
+
+Вывод: это не то, чем выглядит. Квартиру не освобождать. Никому не говорить, что я это сказал, до четверга.`,
+    glossary: [
+      { term: 'scene examination', ru: 'осмотр места происшествия' },
+      { term: 'DI / DS', ru: 'detective inspector / detective sergeant — звания' },
+      { term: 'SOCO', ru: 'scene of crime officer — криминалист' },
+      { term: 'forced entry', ru: 'взлом' },
+      { term: 'chain engaged', ru: 'цепочка накинута' },
+      { term: 'the deceased', ru: 'погибший, покойный' },
+      { term: 'drainer', ru: 'сушилка для посуды' },
+      { term: 'sign of struggle', ru: 'следы борьбы' },
+      { term: 'undisturbed', ru: 'нетронутый' },
+      { term: 'third party involvement', ru: 'участие третьих лиц' },
+      { term: 'to release (a scene)', ru: 'снять оцепление, освободить помещение' },
+    ],
+    questions: [
+      {
+        q: 'What does the dry umbrella prove?',
+        options: [
+          'It was not raining',
+          'She came home before eight, or not on foot',
+          'It belongs to someone else',
+          'She never went out',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What do two washed mugs and one unwashed glass suggest?',
+        options: [
+          'She had guests earlier in the week',
+          'Somebody was there, was given tea, and stayed to finish it',
+          'The kitchen was cleaned',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the missing phone significant?',
+        options: [
+          'It was expensive',
+          'Because the purse was left — so it was taken for what was on it',
+          'It proves a burglary',
+          'It was broken',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the difference between the two documents?',
+        options: [
+          'One is longer',
+          'The first records facts; the second reads what the facts imply',
+          'They disagree about the address',
+          'The second corrects errors',
+        ],
+        correct: 1,
+        why: 'Протокол ничего не пропустил. Он просто не задавал вопросов — а весь сериал именно об этой разнице между «записать» и «прочитать».',
+      },
+    ],
+  },
+
+  // ── Бункер, 4: обменный рынок ──────────────────────────────────────────────
+  {
+    id: 'sc-silo-4',
+    workId: 'silo',
+    lang: 'en', title: 'Расценки обменного рынка', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Мир сериала — башня на сто сорок четыре этажа, где всё зависит от того, как далеко это нести. Ниже наш текст: доска обменного рынка. Экономика здесь измеряется не деньгами, а лестницей, и по расценкам видно устройство общества.',
+    body: `BAZAAR — LEVEL 72 — POSTED RATES, THIS WEEK
+
+Chits are the unit. One chit is one hour of standard labour.
+
+Carrying, per level, per 10 kg .............................. 1 chit down / 3 chits up
+_Yes, three. Ask anyone who has done it._
+Message carried by hand, 20+ levels ........................ 4 chits
+Message carried by hand, urgent (no rest stops) ............ 9 chits
+
+Seeds, tomato, 10 ......................................... 6 chits
+Seeds, anything not grown above 30 ........................ ask, quietly
+Thread, cotton, 50 m ...................................... 8 chits
+Bootlaces, pair ........................................... 2 chits
+Paper, blank, per sheet ................................... 5 chits
+_Paper is expensive because paper is not made here. Nothing is made that is not made here._
+
+Battery, small, tested ................................... 30 chits
+Battery, small, untested ................................. 9 chits
+_The difference is not the battery. The difference is the testing._
+
+Repair, boots ............................................. 12 chits or a meal for two
+Childcare, one shift ...................................... 6 chits or the same back
+
+NOTICE FROM THE MARKET COMMITTEE:
+Prices for anything carried from below Level 100 have risen again. This is not profiteering. It is eleven hundred steps.
+
+We do not trade in relics. If you are offered one, you were not offered it by a trader. Report it, and do not touch it first.`,
+    translation: `БАЗАР — УРОВЕНЬ 72 — РАСЦЕНКИ НА ЭТУ НЕДЕЛЮ
+
+Единица — чит. Один чит — час обычного труда.
+
+Переноска, за уровень, за 10 кг ............................ 1 чит вниз / 3 чита вверх
+_Да, три. Спросите любого, кто это делал._
+Сообщение с посыльным, 20+ уровней ......................... 4 чита
+Сообщение с посыльным, срочное (без остановок) ............. 9 читов
+
+Семена, томат, 10 шт. ..................................... 6 читов
+Семена, всё, что не растят выше 30-го ..................... спросить, тихо
+Нить, хлопок, 50 м ........................................ 8 читов
+Шнурки, пара .............................................. 2 чита
+Бумага, чистая, за лист ................................... 5 читов
+_Бумага дорога потому, что бумагу здесь не делают. Здесь нет ничего, что здесь не сделано._
+
+Батарея, малая, проверенная ............................... 30 читов
+Батарея, малая, непроверенная ............................. 9 читов
+_Разница не в батарее. Разница в проверке._
+
+Починка сапог ............................................. 12 читов или ужин на двоих
+Присмотр за ребёнком, смена ............................... 6 читов или столько же обратно
+
+ОБЪЯВЛЕНИЕ РЫНОЧНОГО КОМИТЕТА:
+Цены на всё, что несут снизу, с уровней ниже сотого, снова выросли. Это не спекуляция. Это тысяча сто ступеней.
+
+Реликвиями мы не торгуем. Если вам такое предложили — предложил вам не торговец. Сообщите и сначала не трогайте.`,
+    glossary: [
+      { term: 'rates', ru: 'расценки' },
+      { term: 'unit', ru: 'единица (расчёта)' },
+      { term: 'standard labour', ru: 'обычный труд' },
+      { term: 'per level', ru: 'за уровень, за этаж' },
+      { term: 'rest stop', ru: 'остановка на отдых' },
+      { term: 'thread', ru: 'нить' },
+      { term: 'bootlace', ru: 'шнурок' },
+      { term: 'tested / untested', ru: 'проверенный / непроверенный' },
+      { term: 'shift', ru: 'смена' },
+      { term: 'profiteering', ru: 'спекуляция, наживание на дефиците' },
+      { term: 'relic', ru: 'реликвия — здесь: предмет из прежнего мира' },
+    ],
+    questions: [
+      {
+        q: 'Why does carrying up cost three times as much as carrying down?',
+        options: [
+          'A tax',
+          'Because it is three times the work — ask anyone who has done it',
+          'Insurance',
+          'It is a mistake on the board',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is paper expensive?',
+        options: [
+          'It is fragile',
+          'Because it is not made there — and nothing exists that is not made there',
+          'It is forbidden',
+          'Demand is high',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the difference between a tested and an untested battery?',
+        options: [
+          'The size',
+          'Not the battery — the testing',
+          'The price only',
+          'The seller',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should you do if offered a relic?',
+        options: [
+          'Buy it cheaply',
+          'Report it, and not touch it first',
+          'Sell it on',
+          'Ignore it',
+        ],
+        correct: 1,
+        why: 'Последняя строка — единственная в объявлении, где речь не о торговле. По ней и понятно, что за рынком кто-то присматривает.',
+      },
+    ],
+  },
 ]
