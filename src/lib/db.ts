@@ -221,13 +221,16 @@ export async function upsertLessonProgress(
   subject: string,
   patch: Partial<{ status: LessonStatus; score: number; comment: string }>,
 ): Promise<void> {
-  await supabase.from('lesson_progress').upsert({
+  // Единственная ЗАПИСЬ в этом файле — и она была единственной, чья ошибка
+  // никуда не уходила: результат теста не сохранился, а экран об этом молчал.
+  const { error } = await supabase.from('lesson_progress').upsert({
     student_id: studentId,
     lesson_ref: lessonRef,
     subject,
     ...patch,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'student_id,lesson_ref' })
+  if (error) reportDbError('upsertLessonProgress', error)
 }
 
 // ─── Course structure from Supabase ──────────────────────────────────────────

@@ -59,12 +59,37 @@ export async function listTeacherCourses(): Promise<GroupCourseOption[]> {
   }))
 }
 
+/**
+ * Дописать id в массив доступа курса (student_ids / group_ids) АТОМАРНО.
+ *
+ * Читать массив, дописывать в память и писать целиком — значит терять чужое
+ * добавление, случившееся между чтением и записью: два ученика, добавленные с
+ * телефона и с ноутбука почти одновременно, оставляли в курсе одного. Дописывает
+ * теперь сама база (миграция 0059, `course_add_student` / `course_add_group`).
+ *
+ * Пока миграция не применена, RPC нет — тогда работаем по-старому: сторож,
+ * который ломает добавление ученика из-за своего отсутствия, хуже гонки.
+ */
+async function appendCourseAccess(
+  column: 'student_ids' | 'group_ids', courseId: string, id: string,
+): Promise<void> {
+  const fn = column === 'student_ids' ? 'course_add_student' : 'course_add_group'
+  const arg = column === 'student_ids' ? { p_course: courseId, p_student: id } : { p_course: courseId, p_group: id }
+  const { error } = await supabase.rpc(fn, arg)
+  if (!error) return
+  // 42883 / PGRST202 — функции в базе ещё нет.
+  const missing = error.code === '42883' || error.code === 'PGRST202'
+  if (!missing) { console.error(`[appendCourseAccess] ${fn}`, error); return }
+  const { data } = await supabase.from('courses').select(column).eq('id', courseId).single()
+  const current: string[] = ((data as Record<string, unknown> | null)?.[column] as string[] | null) ?? []
+  if (current.includes(id)) return
+  const { error: updErr } = await supabase.from('courses').update({ [column]: [...current, id] }).eq('id', courseId)
+  if (updErr) console.error('[appendCourseAccess] fallback update', updErr)
+}
+
 /** Attach a group to a course so its students receive that course (courses.group_ids). */
 export async function bindGroupToCourse(groupId: string, courseId: string): Promise<void> {
-  const { data } = await supabase.from('courses').select('group_ids').eq('id', courseId).single()
-  const current: string[] = (data?.group_ids as string[] | null) ?? []
-  if (current.includes(groupId)) return
-  await supabase.from('courses').update({ group_ids: [...current, groupId] }).eq('id', courseId)
+  await appendCourseAccess('group_ids', courseId, groupId)
 }
 
 export function useGroups() {
@@ -418,12 +443,7 @@ export async function configureNewStudent(
     // Append the student to the course's student_ids (idempotent). fetchCourseStructure
     // reads `student_ids.cs.{id}`, so this alone makes the course appear on the
     // student's dashboard; the teacher opens individual lessons afterwards.
-    const { data: course } = await supabase
-      .from('courses').select('student_ids').eq('id', courseId).single()
-    const current = (course?.student_ids as string[] | null) ?? []
-    if (!current.includes(studentId)) {
-      await supabase.from('courses').update({ student_ids: [...current, studentId] }).eq('id', courseId)
-    }
+    await appendCourseAccess('student_ids', courseId, studentId)
     if (groupId) {
       await supabase.rpc('seed_student_progress', { p_student_id: studentId, p_group_id: groupId })
     }

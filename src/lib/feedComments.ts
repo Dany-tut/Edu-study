@@ -143,7 +143,10 @@ export function useFeedComments(itemId: string, lang: string) {
         row.author_name = session.name || 'Ученик'
       } else if (me?.id) {
         row.author_user = me.id
-        row.author_name = me.email ?? 'Учитель'
+        // Имя из профиля, а НЕ почта: подпись видна всему классу, и раздавать
+        // ученикам рабочий адрес учителя мы не собирались.
+        const meta = (me.user_metadata ?? {}) as { name?: string; first_name?: string }
+        row.author_name = meta.name || meta.first_name || 'Учитель'
       } else {
         // Ни сессии ученика, ни авторизации — писать нечем и некому.
         return false

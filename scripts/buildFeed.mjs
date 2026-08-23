@@ -34,6 +34,8 @@
 //   node scripts/buildFeed.mjs                  — только показать, что нашлось
 //   node scripts/buildFeed.mjs --limit 8        — сколько брать с источника
 //   node scripts/buildFeed.mjs --outlet nasa    — один источник
+//   node scripts/buildFeed.mjs --outlet samsung-kr
+//                                              — заготовки под свои тексты
 //   node scripts/buildFeed.mjs --list           — что настроено
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -56,8 +58,14 @@ const has = name => args.includes(`--${name}`)
 const LIMIT = Number(flag('limit', 6))
 const ONLY = flag('outlet', null)
 const WRITE = has('write')
-/** Сколько материалов держим в автоленте на язык. Старое вытесняется новым. */
-const KEEP = Number(flag('keep', 24))
+/**
+ * Сколько материалов держим в автоленте на язык.
+ *
+ * Сорок — это примерно две недели листания и около 50 КБ в чанке языка. Меньше
+ * — лента кончается за один вечер; больше — чанк начинает весить как сцены, а
+ * читать позавчерашние новости всё равно никто не станет.
+ */
+const KEEP = Number(flag('keep', 40))
 
 // ─── Источники ───────────────────────────────────────────────────────────────
 //
@@ -74,6 +82,58 @@ const SOURCES = {
     topic: 'Технологии и медиа',
     url: 'https://www.nasa.gov/news-release/feed/',
   },
+  // The Conversation — академическая журналистика под CC BY-ND: они САМИ просят
+  // перепечатывать («Republish our articles for free»). Для ленты это находка:
+  // объёмный живой поток текстов обо всём, от сейсмологии до истории, и всё
+  // законно целиком.
+  'the-conversation': {
+    lang: 'en', name: 'The Conversation', kind: 'atom', lane: 'free', level: 'B2',
+    topic: 'Учёба',
+    url: 'https://theconversation.com/us/articles.atom',
+  },
+  esa: {
+    lang: 'en', name: 'ESA', kind: 'rss', lane: 'free', level: 'B2',
+    topic: 'Технологии и медиа',
+    url: 'https://www.esa.int/rssfeed/Our_Activities/Space_Science',
+  },
+  noaa: {
+    lang: 'en', name: 'NOAA', kind: 'rss', lane: 'free', level: 'B1',
+    topic: 'Погода и природа',
+    url: 'https://www.noaa.gov/rss.xml',
+  },
+
+  // Каналы. Встраивание — штатная функция площадки, поэтому источников тут
+  // может быть сколько угодно: это единственная дорожка, которая масштабируется
+  // без нашего письма.
+  'cnn-yt': {
+    lang: 'en', name: 'CNN', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Технологии и медиа', channel: 'UCupvZG-5ko_eiXAupbDfxWw',
+  },
+  'bbc-yt': {
+    lang: 'en', name: 'BBC News', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Технологии и медиа', channel: 'UC16niRr50-MSBwiO3YDb3RA',
+  },
+  natgeo: {
+    lang: 'en', name: 'National Geographic', kind: 'youtube', lane: 'embed', level: 'B1',
+    topic: 'Погода и природа', channel: 'UCpVm7bg6pXKo1Pr6k5kxG9A',
+  },
+  'ted-ed': {
+    lang: 'en', name: 'TED-Ed', kind: 'youtube', lane: 'embed', level: 'B1',
+    topic: 'Учёба', channel: 'UCsooa4yRKGN_zEE8iknghZA',
+  },
+  kurzgesagt: {
+    lang: 'en', name: 'Kurzgesagt', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Учёба', channel: 'UCsXVk37bltHxD1rDPwtNM8Q',
+  },
+  veritasium: {
+    lang: 'en', name: 'Veritasium', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Учёба', channel: 'UCHnyfMqiRRG1u-2MsSQLbXA',
+  },
+  vox: {
+    lang: 'en', name: 'Vox', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Технологии и медиа', channel: 'UCLXo7UDZvByw2ixzpQCufnA',
+  },
+
   'agencia-brasil': {
     lang: 'pt-BR', name: 'Agência Brasil', kind: 'rss', lane: 'free', level: 'B1',
     topic: 'Технологии и медиа',
@@ -85,16 +145,76 @@ const SOURCES = {
     topic: 'Технологии и медиа',
     channel: 'UCkinYTS9IHqOEwR1Sze2JTw',
   },
+  // ЖИВЫЕ ЛЮДИ, А НЕ ДИКТОРЫ. Выпуск новостей даёт правильную, но неживую речь:
+  // диктор не запинается, не сокращает и не шутит. Ниже — каналы, где корейцы
+  // говорят так, как говорят: стрим, разговорный ролик, варьете. Именно этой
+  // половины языка нет ни в учебнике, ни в новостях.
+  chimchakman: {
+    lang: 'ko', name: '침착맨', kind: 'youtube', lane: 'embed', level: 'TOPIK 5급',
+    topic: 'Знакомство', channel: 'UCUj6rrhMTR9pipbAWBAMvUQ',
+  },
+  'korean-englishman': {
+    lang: 'ko', name: '영국남자', kind: 'youtube', lane: 'embed', level: 'TOPIK 3급',
+    topic: 'Еда', channel: 'UCg-p3lQIqmhh7gHpyaOmOiQ',
+  },
+  syuka: {
+    lang: 'ko', name: '슈카월드', kind: 'youtube', lane: 'embed', level: 'TOPIK 5급',
+    topic: 'Покупки и деньги', channel: 'UCsJ6RuBiTVWRX156FVbeaGg',
+  },
+  'mbc-ent': {
+    lang: 'ko', name: 'MBC 예능', kind: 'youtube', lane: 'embed', level: 'TOPIK 4급',
+    topic: 'Технологии и медиа', channel: 'UCiBr0bK06imaMbLc8sAEz0A',
+  },
+  'kbs-world': {
+    lang: 'ko', name: 'KBS WORLD TV', kind: 'youtube', lane: 'embed', level: 'TOPIK 3급',
+    topic: 'Путешествия', channel: 'UC5BMQOsAB8hKUyHu9KI6yig',
+  },
+
   'ann-news': {
     lang: 'ja', name: 'ANNニュース', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
     topic: 'Технологии и медиа',
     channel: 'UCGCZAYq5Xxojl_tSXcVJhiQ',
   },
+  // Японский: те же роли, что у корейского набора. Двуязычный канал для входа,
+  // новости для дикции, влог и варьете для того, как говорят на самом деле.
+  'kevins-room': {
+    lang: 'ja', name: "Kevin's English Room", kind: 'youtube', lane: 'embed', level: 'JLPT N3',
+    topic: 'Знакомство', channel: 'UCFbp2XdRpKfk7mYt_uT8dxw',
+  },
+  'tbs-news': {
+    lang: 'ja', name: 'TBS NEWS DIG', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Технологии и медиа', channel: 'UC6AG81pAkf6Lbi_1VC5NmPA',
+  },
+  hikakin: {
+    lang: 'ja', name: 'HikakinTV', kind: 'youtube', lane: 'embed', level: 'JLPT N3',
+    topic: 'Дом и город', channel: 'UCZf__ehlCEBPop-_sldpBUQ',
+  },
+  'tokai-onair': {
+    lang: 'ja', name: '東海オンエア', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Путешествия', channel: 'UCutJqz56653xV2wwSvut_hQ',
+  },
+  quizknock: {
+    lang: 'ja', name: 'QuizKnock', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Учёба', channel: 'UCQ_MqAw18jFTlBB-f8BP7dw',
+  },
+
   ted: {
     lang: 'en', name: 'TEDx Talks', kind: 'youtube', lane: 'embed', level: 'B2',
     topic: 'Технологии и медиа',
     channel: 'UCAuUUnT6oDeKwE6v1NGQxug',
   },
+  // ЗАГОТОВКИ, А НЕ МАТЕРИАЛЫ. У ньюсрума Samsung лицензии на перепечатку нет,
+  // поэтому автоматически из него взять нечего: их текст показывать нельзя, а
+  // свой машина не напишет. Зато скрипт может НАКРЫТЬ СТОЛ — принести
+  // заголовок, краткое содержание и ссылку, чтобы человеку осталось только
+  // написать текст под уровень. Это и есть `drafts`: в автоленту источник не
+  // попадает никогда, но по `--outlet samsung-kr` кладёт заготовки в staging.
+  'samsung-kr': {
+    lang: 'ko', name: 'Samsung Newsroom', kind: 'rss', lane: 'link', level: 'TOPIK 4급',
+    topic: 'Работа', drafts: true,
+    url: 'https://news.samsung.com/kr/feed',
+  },
+
   // Викиновости закрыты 04.05.2026 и переведены в read-only: свежего не будет.
   // Адаптер оставлен, но в автопрогон эти источники не входят (archive: true) —
   // им ДОБИРАЮТ материал руками, когда нужно.
@@ -117,19 +237,98 @@ const STOP = [
   'war', 'killed', 'death', 'dead', 'attack', 'strike', 'missile', 'troops', 'shooting',
   'murder', 'assault', 'terror', 'invasion', 'casualt', 'wounded', 'bomb', 'execution',
   'morto', 'morte', 'guerra', 'ataque', 'assassin', 'tiroteio', 'vítima',
+  // ПОЛИТИКА. Не потому, что тема запретная, а потому, что это лента у
+  // школьника, и разбирать на ней предвыборную перепалку чужой страны — не то,
+  // ради чего он учит язык. Без этих слов у CNN и Vox в ленту приехали
+  // «Why won’t Republicans say Biden won» и «Is being a Black conservative its
+  // own form of DEI» — темы, на которых взрослые ссорятся, а не язык учат.
+  'republican', 'democrat', 'trump', 'biden', 'election', 'senate', 'congress',
+  'abortion', 'immigration', 'deport', 'lawsuit', 'sues', 'indicted', 'impeach',
+  'protest', 'racism', 'racist', 'shutdown', 'tariff',
+  'dei', 'conservative', 'liberal', 'woke',
+  // Катастрофы и происшествия по-английски: до этого в ленту приехали «9/11
+  // Reunited», «crash driver who cost him his leg» и мальчик, брошенный отцом
+  // на Фудзи. Формально ни одного стоп-слова из первой строки там нет.
+  'crash', 'injured', 'injury', 'stranded', 'hijack', 'pentagon', '9/11',
+  'lawsuit', 'trial', 'verdict', 'arrested', 'police',
   '전쟁', '사망', '사망자', '숨졌', '공격', '테러', '살해', '폭탄', '시신', '체포', '실종', '마약', '흉기',
   // Суд, следствие и политика: формально не «происшествие», но и не то, что
   // нужно ученику в ленте. Проверено на выдаче SBS — без этих слов туда
   // приезжали приговоры, обыски и предвыборная перепалка.
   '성범죄', '무죄', '유죄', '재판', '판결', '항소심', '검찰', '경찰', '소송', '피고', '구속', '수사',
   '대통령', '의원', '선거', '자살', '사고', '부상',
+  // Общественная перепалка: «세제개편안 … 반발» приехало в ленту как обычная
+  // новость. Формально не происшествие, но обсуждать налоговую реформу на
+  // корейском школьнику незачем.
+  '반발', '논란', '시위', '규탄', '세제', '개편안', '갈등',
   '戦争', '死亡', '死者', '攻撃', 'テロ', '殺害', '殺人', '爆弾', '遺体', '逮捕', '失踪', '事件',
   '提訴', '裁判', '判決', '容疑', '起訴', '捜査', '自殺', '事故', 'けが', '負傷', '被害',
 ]
 
-// Латиница ищется по границе слова, иероглифы — подстрокой. Без этого «war»
-// находится в «Award», «Warming» и «toward», и отсев съедает половину NASA.
-const STOP_RE = STOP.map(w => (/^[\x20-\x7e]+$/.test(w) ? new RegExp(`\\b${w}`, 'i') : null))
+// Латиница ищется ПО ЦЕЛОМУ СЛОВУ, иероглифы — подстрокой.
+//
+// Обе половины этого правила выстраданы. Без границы слова «war» находится в
+// «Award», и отсев съедает половину NASA. С границей только слева «war» ловит
+// «warming», а «dead» — «deadline», и из ленты пропадают статьи про климат и
+// про сроки. Поэтому формы перечислены явно: лучше длинный список, чем
+// регулярка, которая думает, будто знает английскую морфологию.
+const FORMS = {
+  war: ['war', 'wars', 'warfare'],
+  killed: ['killed', 'killing', 'killings', 'kills'],
+  death: ['death', 'deaths'],
+  dead: ['dead', 'deadly'],
+  attack: ['attack', 'attacks', 'attacked'],
+  strike: ['strike', 'strikes', 'airstrike', 'airstrikes'],
+  shooting: ['shooting', 'shootings', 'shooter'],
+  murder: ['murder', 'murders', 'murdered'],
+  assault: ['assault', 'assaults'],
+  wounded: ['wounded', 'wounds'],
+  bomb: ['bomb', 'bombs', 'bombing'],
+  casualt: ['casualty', 'casualties'],
+  invasion: ['invasion', 'invade', 'invaded'],
+  troops: ['troops'],
+  missile: ['missile', 'missiles'],
+  terror: ['terror', 'terrorist', 'terrorism'],
+  execution: ['execution', 'executed'],
+  morto: ['morto', 'mortos', 'morta'],
+  morte: ['morte', 'mortes'],
+  guerra: ['guerra', 'guerras'],
+  ataque: ['ataque', 'ataques'],
+  assassin: ['assassinato', 'assassinado'],
+  tiroteio: ['tiroteio'],
+  'vítima': ['vítima', 'vítimas'],
+  republican: ['republican', 'republicans', 'gop'],
+  democrat: ['democrat', 'democrats', 'democratic'],
+  election: ['election', 'elections', 'electoral'],
+  immigration: ['immigration', 'immigrant', 'immigrants'],
+  deport: ['deport', 'deported', 'deportation'],
+  lawsuit: ['lawsuit', 'lawsuits'],
+  sues: ['sues', 'sued', 'suing'],
+  protest: ['protest', 'protests', 'protesters'],
+  racism: ['racism'],
+  racist: ['racist', 'racists'],
+  tariff: ['tariff', 'tariffs'],
+  senate: ['senate', 'senator', 'senators'],
+  dei: ['dei'],
+  conservative: ['conservative', 'conservatives'],
+  liberal: ['liberal', 'liberals'],
+  crash: ['crash', 'crashed', 'crashes'],
+  injured: ['injured'],
+  injury: ['injury', 'injuries'],
+  stranded: ['stranded'],
+  hijack: ['hijack', 'hijacked', 'hijacking'],
+  trial: ['trial'],
+  verdict: ['verdict'],
+  arrested: ['arrested', 'arrest', 'arrests'],
+  police: ['police'],
+  congress: ['congress', 'congressional'],
+}
+
+const STOP_RE = STOP.map(w => {
+  if (!/^[\x20-\x7e\u00c0-\u024f]+$/.test(w)) return null
+  const forms = FORMS[w] ?? [w]
+  return new RegExp(`\\b(${forms.join('|')})\\b`, 'i')
+})
 
 const stopped = text => {
   const low = text.toLowerCase()
@@ -337,6 +536,42 @@ async function fromRss(id, src) {
   return out
 }
 
+/**
+ * Atom. Отдельно от RSS не для красоты: у атома запись — <entry>, ссылка живёт
+ * в атрибуте <link href>, а текст — в <content type="html">. Разбирать это
+ * теми же регулярками, что RSS, значит получить пустые ссылки и не заметить.
+ */
+async function fromAtom(id, src) {
+  const xml = await get(src.url)
+  const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? []
+  const out = []
+
+  for (const e of entries) {
+    if (out.length >= LIMIT) break
+    const title = strip(tag(e, 'title'))
+    const link = (e.match(/<link[^>]*href="([^"]+)"/) ?? [])[1] ?? ''
+    const published = (e.match(/<published>(.*?)<\/published>/) ?? [])[1] ?? ''
+    const content = tag(e, 'content')
+    const author = strip(tag(e, 'name'))
+
+    const paras = paragraphs(unescape(content))
+      // У The Conversation первый блок — подпись под фотографией с указанием
+      // фотобанка. Это не текст статьи, и в ленте он читается как начало.
+      .filter(p => !/^\s*(Photo|Image|Credit|Shutterstock|Getty)/i.test(p))
+    if (!title || !link || paras.length === 0) continue
+
+    const hit = stopped(`${title} ${paras.join(' ')}`)
+    if (hit) { console.log(`  ✕ «${title.slice(0, 48)}…» — стоп-слово «${hit}»`); continue }
+
+    out.push({
+      outletId: id, lang: src.lang, lane: src.lane, level: src.level, topic: src.topic,
+      title, url: link, date: isoDate(published), byline: author || undefined,
+      text: paras.slice(0, 3).join('\n\n'),
+    })
+  }
+  return out
+}
+
 async function fromYoutube(id, src) {
   const xml = await get(`https://www.youtube.com/feeds/videos.xml?channel_id=${src.channel}`)
   const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? []
@@ -495,7 +730,7 @@ for (const [k, v] of Object.entries(gloss)) {
   }
 }
 
-const ids = ONLY ? [ONLY] : Object.keys(SOURCES).filter(id => !SOURCES[id].archive)
+const ids = ONLY ? [ONLY] : Object.keys(SOURCES).filter(id => !SOURCES[id].archive && !SOURCES[id].drafts)
 const collected = {}
 
 for (const id of ids) {
@@ -509,10 +744,27 @@ for (const id of ids) {
   try {
     const raw = src.kind === 'wikinews' ? await fromWikinews(id, src)
       : src.kind === 'youtube' ? await fromYoutube(id, src)
+      : src.kind === 'atom' ? await fromAtom(id, src)
       : await fromRss(id, src)
 
     const langKey = base(src.lang)
     for (const it of raw) {
+      if (src.drafts) {
+        // Заготовке нужен не словарь, а место на столе: краткое содержание
+        // целиком, чтобы по нему писать, и пустые поля под наш текст.
+        mkdirSync(stageDir, { recursive: true })
+        const draft = {
+          draft: true,
+          outletId: id, lang: it.lang, lane: 'link', textOrigin: 'ours',
+          title: it.title, url: it.url, date: it.date,
+          level: src.level, topic: src.topic,
+          факты: it.text,
+          body: '', translation: '', glossary: [],
+        }
+        writeFileSync(join(stageDir, `draft-${idFor(id, it.url)}.json`), JSON.stringify(draft, null, 2) + '\n', 'utf8')
+        console.log(`  ✎ ${it.date}  заготовка  ${it.title.slice(0, 56)}`)
+        continue
+      }
       const cjk = /^(ja|ko|zh)/.test(it.lang)
       const size = cjk ? it.text.replace(/\s/g, '').length : it.text.split(/\s+/).filter(Boolean).length
       const item = {
@@ -562,13 +814,40 @@ for (const [langKey, cfg] of Object.entries(AUTO_FILES)) {
   const kept = []
   for (const m of old.matchAll(/^ {2}\{\n([\s\S]*?)^ {2}\},$/gm)) {
     const id = (m[1].match(/id: '([^']+)'/) ?? [])[1]
-    if (id && !keptIds.has(id)) kept.push({ raw: m[0], date: (m[1].match(/date: '([^']+)'/) ?? [])[1] ?? '' })
+    if (id && !keptIds.has(id)) {
+      kept.push({
+        raw: m[0],
+        date: (m[1].match(/date: '([^']+)'/) ?? [])[1] ?? '',
+        outlet: (m[1].match(/outletId: '([^']+)'/) ?? [])[1] ?? '',
+      })
+    }
   }
 
-  const merged = [
-    ...fresh.map(x => ({ item: x, date: x.date })),
-    ...kept.map(x => ({ raw: x.raw, date: x.date })),
-  ].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, KEEP)
+  // ПОТОЛОК НА ИСТОЧНИК. Варьете выкладывает шесть нарезок одной серии подряд,
+  // и без ограничения половина корейской ленты — это «전지적 참견 시점» шесть
+  // раз. Лента должна быть разной, а не полной: четыре материала от одного
+  // канала — это уже много.
+  const perOutlet = new Map()
+  const capped = []
+  const pool = [
+    ...fresh.map(x => ({ item: x, date: x.date, outlet: x.outletId })),
+    ...kept.map(x => ({ raw: x.raw, date: x.date, outlet: x.outlet })),
+  ].sort((a, b) => (a.date < b.date ? 1 : -1))
+
+  // Потолок считается от того, сколько источников у языка вообще есть. У
+  // английского их двенадцать — четырёх материалов с каждого хватает на полную
+  // ленту. У японского источника два, и жёсткая четвёрка оставила бы восемь
+  // материалов вместо сорока: там ограничивать нечего.
+  const outlets = new Set(pool.map(x => x.outlet)).size || 1
+  const CAP = Math.max(4, Math.ceil(KEEP / outlets))
+
+  for (const x of pool) {
+    const n = perOutlet.get(x.outlet) ?? 0
+    if (n >= CAP) continue
+    perOutlet.set(x.outlet, n + 1)
+    capped.push(x)
+  }
+  const merged = capped.slice(0, KEEP)
 
   // Пишем свежие как объекты, старые — как есть: перегенерировать уже
   // записанное значило бы каждый раз заново собирать им словарь и получать

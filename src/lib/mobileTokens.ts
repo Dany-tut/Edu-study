@@ -78,6 +78,15 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
 }
 
 /** Glass circle used for filter/sort affordances (§1.2) — round, blurred, bordered. */
+// ── Верхний зазор под чёлкой ────────────────────────────────────────────────
+// Плавающая шапка не должна вставать вплотную к safe-area: на iPhone под ней
+// сидит собственное размытие статус-бара, и контент, прижатый к самой границе,
+// читается как «залез под чёлку». Один зазор на все мобильные экраны —
+// MobileScreen и каркас тренажёра берут его отсюда.
+export const MOBILE_TOP_GAP = 18
+/** Полный отступ сверху: safe-area + зазор (в браузере без выреза — просто зазор). */
+export const MOBILE_TOP_INSET = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+
 export const glassCircle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',

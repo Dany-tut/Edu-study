@@ -1229,6 +1229,16 @@ export default function HomeworkFlow({
     }
   })
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
+  /**
+   * Отправка, которая не дошла до базы.
+   *
+   * Раньше `upsert` шёл без проверки ошибки, а модалка «Домашка сдана»
+   * показывалась сразу и безусловно: при отвалившейся сети или истёкшей сессии
+   * ученик видел «сдано», учитель не видел ничего, а ответы пропадали. Теперь
+   * неудача остаётся на экране до тех пор, пока запись не пройдёт: текст плюс
+   * «Повторить», который отправляет ровно то же самое.
+   */
+  const [submitFailed, setSubmitFailed] = useState<{ text: string; retry: () => void } | null>(null)
   // Сдача недоделанной домашки спрашивает подтверждение прямо в кнопке:
   // пропущенные пойдут в ошибки, и отменить это ученик уже не сможет.
   const [confirmSubmitAsIs, setConfirmSubmitAsIs] = useState(false)
@@ -1542,7 +1552,7 @@ export default function HomeworkFlow({
       ? 'completed'
       : 'submitted'
     const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
-    await supabase.from('lesson_progress').upsert({
+    const { error } = await supabase.from('lesson_progress').upsert({
       student_id: ownerStudentIdFor(subject),
       lesson_ref: ref,
       subject,
@@ -1551,9 +1561,27 @@ export default function HomeworkFlow({
       comment,
       attachments: attachments ?? {},
     }, { onConflict: 'student_id,lesson_ref' })
+    if (error) {
+      // Сдача — единственная запись, ради которой ученик делал домашку. Молча
+      // проглотить её ошибку нельзя: экран покажет «сдано», а работы не будет
+      // ни у кого. Событие уходит и в аналитику — иначе в проде такие потери
+      // видны только по жалобе.
+      console.error('[homework submit]', error)
+      trackEvent('homework_submit_failed', {
+        lesson_ref: ref, kind: level,
+        code: error.code ?? '', msg: String(error.message ?? '').slice(0, 120),
+      })
+      setSubmitFailed({
+        text: tStatic('Ответы не отправлены — проверьте связь и повторите.'),
+        retry: () => { void submitToSupabase(level, score, comment, attachments) },
+      })
+      return false
+    }
+    setSubmitFailed(null)
     trackEvent('homework_submit', { lesson_ref: ref, kind: level })
     if (level === 'basic') void captureBasicToDeck()
     useStudentData.getState().load()
+    return true
   }
 
   /**
@@ -1644,7 +1672,7 @@ export default function HomeworkFlow({
       .map(t => (studentSolutions(t).slice(-1)[0]?.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
       .filter(Boolean).join('\n\n')
     // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
-    await supabase.from('lesson_progress').upsert({
+    const { error } = await supabase.from('lesson_progress').upsert({
       student_id: ownerStudentIdFor(subject),
       lesson_ref: ref,
       subject,
@@ -1652,6 +1680,22 @@ export default function HomeworkFlow({
       comment: summary,
       attachments: { v: 2, tasks },
     }, { onConflict: 'student_id,lesson_ref' })
+    if (error) {
+      // Круг переписки не дошёл до базы: вкладку НЕ помечаем сданной, иначе
+      // ученик закроет урок, а решения этого раунда не существует.
+      console.error('[hard submit]', error)
+      trackEvent('homework_submit_failed', {
+        lesson_ref: ref, kind: 'hard',
+        code: error.code ?? '', msg: String(error.message ?? '').slice(0, 120),
+      })
+      setSubmitFailed({
+        text: tStatic('Решение не отправлено — проверьте связь и повторите.'),
+        retry: () => { void submitTabSolution(key, payload) },
+      })
+      setHardBusy(false)
+      return
+    }
+    setSubmitFailed(null)
     setState(current => ({ ...current, hardSubmitted: true }))
     setHardCompleted(lessonId)
     await reloadHardRow()
@@ -2048,6 +2092,32 @@ export default function HomeworkFlow({
 
   return (
     <>
+    {/* Неотправленная сдача. Поверх всего и с кнопкой: тупика «ошибка есть,
+        деться некуда» быть не должно. */}
+    {submitFailed && (
+      <div style={{
+        position: 'fixed', left: 12, right: 12, zIndex: 6000,
+        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+        padding: '12px 14px', borderRadius: 16,
+        background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
+        border: '1px solid var(--color-red-fill)',
+        boxShadow: '0 12px 34px rgba(0,0,0,0.18)',
+        fontSize: 13, lineHeight: 1.4,
+      }}>
+        <span style={{ flex: 1, minWidth: 180 }}>{submitFailed.text}</span>
+        <button
+          onClick={() => { const r = submitFailed.retry; setSubmitFailed(null); r() }}
+          style={{
+            padding: '8px 16px', borderRadius: 12, border: 'none',
+            background: 'var(--grad-purple, #786AD7)', color: '#fff',
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+        >
+          {t('Отправить ещё раз')}
+        </button>
+      </div>
+    )}
     <AnimatePresence>
       {showResultModal && (
         <ResultModal

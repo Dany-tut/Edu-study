@@ -4913,7 +4913,15 @@ export default function TeacherCourseEditorPage() {
       },
     }))
     if (lessonRows.length > 0) {
-      await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
+      const { error: lessonsErr } = await supabase
+        .from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
+      if (lessonsErr) {
+        // Курс сохранён, а уроки — нет: на экране «Сохранено», в базе пустой
+        // курс. Возвращаем неудачу, чтобы вызывающий показал ошибку и не гасил
+        // черновик из sessionStorage: он единственная копия этой работы.
+        console.error('[syncAccessToSupabase] lessons upsert failed', lessonsErr)
+        return false
+      }
       // Adopt the persisted short_id as each lesson's editor id, so a freshly
       // created lesson (uuid id) doesn't get a NEW suffix allocated on the next
       // autosave — which would insert a duplicate lesson. Idempotent once ids

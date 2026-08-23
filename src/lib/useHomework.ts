@@ -514,12 +514,14 @@ export function useHardSubmissions() {
             || (reviewAttachments as { board: string | null }).board
             || (reviewAttachments as { annotation?: Annotation | null }).annotation)
     )
-    await supabase.from('lesson_progress').update({
+    const { error } = await supabase.from('lesson_progress').update({
       status: verdict,
       review_comment: comment || null,
       review_attachments: hasAtt ? reviewAttachments : null,
     }).eq('id', id)
+    if (error) { console.error('[reviewHard]', error); return false }
     await load()
+    return true
   }
 
   // Per-task ревью с раундами: пишем весь обновлённый review_attachments
@@ -530,13 +532,15 @@ export function useHardSubmissions() {
     status: 'submitted' | 'returned' | 'completed',
     score: number,
   ) {
-    await supabase.from('lesson_progress').update({
+    const { error } = await supabase.from('lesson_progress').update({
       status,
       score,
       review_comment: null,
       review_attachments: review,
     }).eq('id', id)
+    if (error) { console.error('[reviewHardMulti]', error); return false }
     await load()
+    return true
   }
 
   return { submissions, loading, reviewHard, reviewHardMulti, reload: load }
@@ -598,10 +602,15 @@ export async function reviewHomework(
   attachments?: { photos: string[]; board: string | null },
 ) {
   const hasAtt = !!attachments && (!!attachments.photos.length || !!attachments.board)
-  await supabase.from('lesson_progress').update({
+  // Возвращаем результат: раньше вызывающий после неудачной записи стирал
+  // черновик проверки и уезжал к следующему ученику — комментарий учителя
+  // пропадал вместе с вердиктом.
+  const { error } = await supabase.from('lesson_progress').update({
     status: verdict === 'accepted' ? 'completed' : 'returned',
     score,
     review_comment: comment || null,
     review_attachments: hasAtt ? { photos: attachments!.photos, board: attachments!.board } : null,
   }).eq('id', progressRowId)
+  if (error) { console.error('[reviewHomework]', error); return false }
+  return true
 }

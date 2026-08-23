@@ -8104,7 +8104,10 @@ export default function TeacherConstructorPage() {
             allStudents={diagAllStudents}
             onAssign={async (a) => {
               const created = await createTestAssignment(a)
+              // Не сохранилось — надо сказать. Раньше кнопка «Назначить»
+              // просто ничего не делала: ни теста у ученика, ни слова учителю.
               if (created) setAssignments(prev => [created, ...prev])
+              else window.alert(t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'))
             }}
             onSave={(id, label, accent, iconKey) => {
               const newTest: CustomTest = { id, label, accent, iconKey }
@@ -8130,7 +8133,10 @@ export default function TeacherConstructorPage() {
             assignments={assignments}
             onAssign={async (a) => {
               const created = await createTestAssignment(a)
+              // Не сохранилось — надо сказать. Раньше кнопка «Назначить»
+              // просто ничего не делала: ни теста у ученика, ни слова учителю.
               if (created) setAssignments(prev => [created, ...prev])
+              else window.alert(t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'))
             }}
             onDeleteAssignment={async id => {
               await deleteTestAssignment(id)

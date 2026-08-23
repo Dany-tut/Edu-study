@@ -80,6 +80,17 @@ export default class ErrorBoundary extends Component<Props, State> {
             {t('Обновить')}
           </button>
           <button
+            onClick={() => {
+              // Перезагрузка на сломанном адресе возвращает тот же крах.
+              // «На главную» — единственный выход из такой петли.
+              window.location.hash = '#/'
+              window.location.reload()
+            }}
+            style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border, rgba(128,128,128,0.3))', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            {t('На главную')}
+          </button>
+          <button
             onClick={() => this.setState({ reporting: true })}
             style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border, rgba(128,128,128,0.3))', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >

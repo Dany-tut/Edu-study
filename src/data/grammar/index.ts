@@ -116,12 +116,14 @@ export interface GrammarRef {
  */
 export const GRAMMAR_COUNTS: Record<string, number> = {
   ko: 85,
+  de: 20,
 }
 
 type Loader = () => Promise<GrammarRef>
 
 const LOADERS: Record<string, Loader> = {
   ko: () => import('./grammarKo').then(m => m.KOREAN_GRAMMAR),
+  de: () => import('../grammarDe').then(m => m.GERMAN_GRAMMAR),
 }
 
 /** Базовый код языка: pt-BR → pt. */

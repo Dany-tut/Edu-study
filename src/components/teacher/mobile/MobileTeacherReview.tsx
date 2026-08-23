@@ -157,7 +157,8 @@ export default function MobileTeacherReview() {
   // firing a Supabase write against a fake id.
   const onReviewed = async (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => {
     if (isDemoId(id)) return
-    await reviewHard(id, verdict, comment, { ...att, annotation: null })
+    const ok = await reviewHard(id, verdict, comment, { ...att, annotation: null })
+    if (!ok) window.alert(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'))
   }
 
   const topZone = (

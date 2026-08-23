@@ -1,4 +1,5 @@
 import { type ReactNode, type CSSProperties } from 'react'
+import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -41,7 +42,9 @@ export default function MobileScreen({
   void topRaise
   const SAFE_TOP = 'env(safe-area-inset-top, 0px)'
   const SAFE_BOTTOM = 'env(safe-area-inset-bottom, 0px)'
-  const TOP_INSET = `calc(${SAFE_TOP} + 8px)`
+  // Зазор, а не вплотную к safe-area: у статус-бара iPhone своё размытие, и
+  // шапка, прижатая к границе, читается как заехавшая под чёлку.
+  const TOP_INSET = `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`
 
   return (
     <div
@@ -83,7 +86,7 @@ export default function MobileScreen({
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          paddingTop: topZone != null ? `calc(${SAFE_TOP} + ${TOP_ZONE}px)` : `calc(${SAFE_TOP} + 16px)`,
+          paddingTop: topZone != null ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
           paddingLeft: 16,
           paddingRight: 16,
           // Bottom: home-indicator safe-area + dock/nav clearance.

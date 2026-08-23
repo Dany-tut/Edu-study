@@ -486,9 +486,15 @@ export default function TeacherHomeworkReviewPage() {
     const score = hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
     // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
     // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
-    await reviewHomework(submissionId, verdict, score, draft.comment, {
+    const ok = await reviewHomework(submissionId, verdict, score, draft.comment, {
       photos: draft.photos, board: draft.board,
     })
+    if (!ok) {
+      // Черновик проверки НЕ трогаем и к следующему ученику не уходим:
+      // написанное — единственная копия этой проверки.
+      window.alert(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'))
+      return
+    }
     clearDraft(draftKey)
     setDrafts(d => {
       const { [student.id]: _gone, ...rest } = d

@@ -155,7 +155,9 @@ function Composer({ accent, placeholder, onSend, compact }: {
           padding: '9px 12px', borderRadius: 14,
           border: '1px solid var(--color-border-strong)',
           background: 'var(--color-bg-input)', color: 'var(--color-text)',
-          fontSize: 13.5, lineHeight: 1.45, fontFamily: 'inherit',
+          // 16px — не про размер, а про iOS: поле с меньшим шрифтом Safari
+          // встречает зумом всей страницы при фокусе.
+          fontSize: 16, lineHeight: 1.4, fontFamily: 'inherit',
         }}
       />
       <button

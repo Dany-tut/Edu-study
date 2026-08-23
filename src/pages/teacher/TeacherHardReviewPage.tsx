@@ -81,7 +81,13 @@ export default function TeacherHardReviewPage() {
     const status = deriveHardRowStatus(sub!.taskBlocks, tasks)
     const score = deriveHardScore(tasks)
     setBusy(true)
-    await reviewHardMulti(sub!.id, review, status, score)
+    const ok = await reviewHardMulti(sub!.id, review, status, score)
+    if (!ok) {
+      // Черновик комментария остаётся на месте: он единственная копия.
+      window.alert(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'))
+      setBusy(false)
+      return
+    }
     clearDrafts(`hardReview:${sub!.id}:${key}`)
     setBusy(false)
   }

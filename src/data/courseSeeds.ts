@@ -145,6 +145,15 @@ export const COURSE_SEEDS: CourseSeed[] = [
     summary: SEED_CARDS.ptsv,
     build: lazy('ptsv', () => import('./survivalPt'), m => m.buildPortugueseSurvivalCourse),
   },
+  {
+    // Немецкий пока один курс — бытовой. Экзаменационного (Goethe, telc) нет
+    // намеренно: предмет заведён ради «завтра выйти из аэропорта и дожить до
+    // Anmeldung», а не ради сертификата.
+    key: 'desv',
+    subject: 'Немецкий',
+    summary: SEED_CARDS.desv,
+    build: lazy('desv', () => import('./survivalDe'), m => m.buildGermanSurvivalCourse),
+  },
 ]
 
 /**

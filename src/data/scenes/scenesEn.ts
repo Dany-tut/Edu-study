@@ -425,11 +425,11 @@ Well, in a certain chancellery there was a certain man who, as I cannot deny, wa
     textOrigin: 'verbatim', origin: 'open-corpus',
     credit: 'F. Scott Fitzgerald, The Great Gatsby · Project Gutenberg',
     setup: 'Первые строки романа. Рассказчик Ник Каррауэй объясняет, почему он умеет слушать чужие исповеди и почему всю книгу будет воздерживаться от оценок. Через две страницы он снимет домик по соседству с Гэтсби.',
-    body: `In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.
+    body: `In my younger and more vulnerable years my father gave me some advice that I’ve been turning over in my mind ever since.
 
-"Whenever you feel like criticizing anyone," he told me, "just remember that all the people in this world haven't had the advantages that you've had."
+“Whenever you feel like criticizing anyone,” he told me, “just remember that all the people in this world haven’t had the advantages that you’ve had.”
 
-He didn't say any more, but we've always been unusually communicative in a reserved way, and I understood that he meant a great deal more than that. In consequence, I'm inclined to reserve all judgements, a habit that has opened up many curious natures to me and also made me the victim of not a few veteran bores. The abnormal mind is quick to detect and attach itself to this quality when it appears in a normal person, and so it came about that in college I was unjustly accused of being a politician, because I was privy to the secret griefs of wild, unknown men.`,
+He didn’t say any more, but we’ve always been unusually communicative in a reserved way, and I understood that he meant a great deal more than that. In consequence, I’m inclined to reserve all judgements, a habit that has opened up many curious natures to me and also made me the victim of not a few veteran bores. The abnormal mind is quick to detect and attach itself to this quality when it appears in a normal person, and so it came about that in college I was unjustly accused of being a politician, because I was privy to the secret griefs of wild, unknown men`,
     translation: `В более молодые и более уязвимые годы отец дал мне совет, который я с тех пор не перестаю обдумывать.
 
 «Когда тебе захочется кого-нибудь осудить, — сказал он, — просто вспомни, что не у всех на свете были те преимущества, которые были у тебя».
@@ -503,12 +503,10 @@ He didn't say any more, but we've always been unusually communicative in a reser
     after: 'Через страницу лорд Генри скажет художнику, что портрет нельзя выставлять. А ещё через несколько — впервые заговорит с самим Дорианом, и на этом кончится его прежняя жизнь.',
     body: `The studio was filled with the rich odour of roses, and when the light summer wind stirred amidst the trees of the garden, there came through the open door the heavy scent of the lilac, or the more delicate perfume of the pink-flowering thorn.
 
-From the corner of the divan of Persian saddle-bags on which he was lying, smoking, as was his custom, innumerable cigarettes, Lord Henry Wotton could just catch the gleam of the honey-sweet and honey-coloured blossoms of a laburnum, whose tremulous branches seemed hardly able to bear the burden of a beauty so flamelike as theirs; and now and then the fantastic shadows of birds in flight flitted across the long tussore-silk curtains that were stretched in front of the huge window, producing a kind of momentary Japanese effect.
-
-The sullen murmur of the bees shouldering their way through the long unmown grass, or circling with monotonous insistence round the dusty gilt horns of the straggling woodbine, seemed to make the stillness more oppressive. The dim roar of London was like the bourdon note of a distant organ.`,
+From the corner of the divan of Persian saddle-bags on which he was lying, smoking, as was his custom, innumerable cigarettes, Lord Henry Wotton could just catch the gleam of the honey-sweet and honey-coloured blossoms of a laburnum, whose tremulous branches seemed hardly able to bear the burden of a beauty so flamelike as theirs; and now and then the fantastic shadows of birds in flight flitted across the long tussore-silk curtains that were stretched in front of the huge window, producing a kind of momentary Japanese effect, and making him think of those pallid, jade-faced painters of Tokyo who, through the medium of an art that is necessarily immobile, seek to convey the sense of swiftness and motion. The sullen murmur of the bees shouldering their way through the long unmown grass, or circling with monotonous insistence round the dusty gilt horns of the straggling woodbine, seemed to make the stillness more oppressive. The dim roar of London was like the bourdon note of a distant organ`,
     translation: `Мастерская была полна густым запахом роз, и когда лёгкий летний ветер шевелил деревья в саду, в открытую дверь вливался тяжёлый аромат сирени или более тонкий запах розовых цветов боярышника.
 
-С угла дивана, покрытого персидскими вьючными коврами, на котором он лежал, куря, по своему обыкновению, бесчисленные папиросы, лорд Генри Уоттон едва улавливал отблеск медово-сладких и медового цвета соцветий ракитника, чьи дрожащие ветви, казалось, едва выдерживали бремя такой пламенной красоты; а время от времени причудливые тени пролетающих птиц скользили по длинным шёлковым занавесям, натянутым перед огромным окном, создавая мгновенное японское впечатление.
+С угла дивана, покрытого персидскими вьючными коврами, на котором он лежал, куря, по своему обыкновению, бесчисленные папиросы, лорд Генри Уоттон едва улавливал отблеск медово-сладких и медового цвета соцветий ракитника, чьи дрожащие ветви, казалось, едва выдерживали бремя такой пламенной красоты; а время от времени причудливые тени пролетающих птиц скользили по длинным шёлковым занавесям, натянутым перед огромным окном, создавая мгновенное японское впечатление и заставляя его вспоминать о тех бледных, нефритоволицых живописцах Токио, которые средствами искусства, по необходимости неподвижного, стремятся передать ощущение стремительности и движения.
 
 Угрюмое гудение пчёл, продирающихся сквозь некошеную траву или с однообразным упорством кружащих над пыльными золотистыми рожками разросшейся жимолости, словно делало тишину ещё более гнетущей. Глухой рокот Лондона был как басовая нота далёкого органа.`,
     glossary: [
@@ -579,9 +577,9 @@ The sullen murmur of the bees shouldering their way through the long unmown gras
     credit: 'O. Henry, The Gift of the Magi · Project Gutenberg',
     setup: 'Канун Рождества в Нью-Йорке начала века. Делла копила весь год и пересчитывает то, что удалось отложить. У неё и её мужа Джима есть ровно по одной ценной вещи на двоих — но об этом рассказ сообщит чуть позже.',
     after: 'Делла продаст свои волосы, чтобы купить Джиму цепочку для его часов. Джим в это время продаст часы, чтобы купить ей гребни для волос. Это и есть весь рассказ.',
-    body: `One dollar and eighty-seven cents. That was all. And sixty cents of it was in pennies. Pennies saved one and two at a time by bulldozing the grocer and the vegetable man and the butcher until one's cheeks burned with the silent imputation of parsimony that such close dealing implied. Three times Della counted it. One dollar and eighty-seven cents. And the next day would be Christmas.
+    body: `One dollar and eighty-seven cents. That was all. And sixty cents of it was in pennies. Pennies saved one and two at a time by bulldozing the grocer and the vegetable man and the butcher until one’s cheeks burned with the silent imputation of parsimony that such close dealing implied. Three times Della counted it. One dollar and eighty-seven cents. And the next day would be Christmas.
 
-There was clearly nothing to do but flop down on the shabby little couch and howl. So Della did it. Which instigates the moral reflection that life is made up of sobs, sniffles, and smiles, with sniffles predominating.`,
+There was clearly nothing to do but flop down on the shabby little couch and howl. So Della did it. Which instigates the moral reflection that life is made up of sobs, sniffles, and smiles, with sniffles predominating`,
     translation: `Один доллар восемьдесят семь центов. Это было всё. И шестьдесят центов из них — монетками по одному центу. Монетки, скопленные по одной-две за раз, выторгованные у бакалейщика, зеленщика и мясника так, что щёки горели от молчаливого упрёка в скупости, которым отдаёт подобная торговля. Трижды Делла пересчитала их. Один доллар восемьдесят семь центов. А завтра Рождество.
 
 Ясно было, что делать нечего — только повалиться на потёртый диванчик и зареветь. Так Делла и сделала. Что наводит на нравственное размышление: жизнь состоит из всхлипов, вздохов и улыбок, причём вздохи преобладают.`,
@@ -635,7 +633,7 @@ There was clearly nothing to do but flop down on the shabby little couch and how
     textOrigin: 'verbatim', origin: 'open-corpus',
     credit: 'A. Conan Doyle, A Scandal in Bohemia · Project Gutenberg',
     setup: 'Первый рассказ первого сборника о Холмсе. Уотсон уже женился и съехал с Бейкер-стрит, и начинает историю со странного признания: единственная женщина, о которой Холмс говорит с уважением, — та, что его обыграла. Кто она, мы узнаем только через десять страниц.',
-    body: `To Sherlock Holmes she is always the woman. I have seldom heard him mention her under any other name. In his eyes she eclipses and predominates the whole of her sex. It was not that he felt any emotion akin to love for Irene Adler. All emotions, and that one particularly, were abhorrent to his cold, precise but admirably balanced mind. He was, I take it, the most perfect reasoning and observing machine that the world has seen, but as a lover he would have placed himself in a false position. He never spoke of the softer passions, save with a gibe and a sneer. They were admirable things for the observer—excellent for drawing the veil from men's motives and actions. But for the trained reasoner to admit such intrusions into his own delicate and finely adjusted temperament was to introduce a distracting factor which might throw a doubt upon all his mental results.`,
+    body: `To Sherlock Holmes she is always _the_ woman. I have seldom heard him mention her under any other name. In his eyes she eclipses and predominates the whole of her sex. It was not that he felt any emotion akin to love for Irene Adler. All emotions, and that one particularly, were abhorrent to his cold, precise but admirably balanced mind. He was, I take it, the most perfect reasoning and observing machine that the world has seen, but as a lover he would have placed himself in a false position. He never spoke of the softer passions, save with a gibe and a sneer. They were admirable things for the observer—excellent for drawing the veil from men’s motives and actions. But for the trained reasoner to admit such intrusions into his own delicate and finely adjusted temperament was to introduce a distracting factor which might throw a doubt upon all his mental results`,
     translation: `Для Шерлока Холмса она всегда «та самая женщина». Я редко слышал, чтобы он называл её как-нибудь иначе. В его глазах она затмевает и превосходит весь свой пол. Дело не в том, что он испытывал к Ирэн Адлер что-то похожее на любовь. Всякие чувства, а это в особенности, были противны его холодному, точному и великолепно уравновешенному уму. Он был, я полагаю, самой совершенной мыслящей и наблюдающей машиной, какую видел свет, но в роли влюблённого он поставил бы себя в ложное положение. О нежных чувствах он говорил не иначе как с насмешкой и издёвкой. Для наблюдателя это превосходная вещь — они отлично приподнимают завесу над мотивами и поступками людей. Но для опытного мыслителя допустить такое вторжение в свой тонко настроенный характер значило внести помеху, способную бросить тень сомнения на все его выводы.`,
     glossary: [
       { term: 'seldom', ru: 'редко' },
@@ -699,11 +697,11 @@ There was clearly nothing to do but flop down on the shabby little couch and how
     credit: 'A. Dumas, The Count of Monte Cristo · пер. Chapman & Hall, 1846 · Project Gutenberg',
     setup: 'Марсель, февраль 1815 года. В порт входит трёхмачтовый корабль «Фараон». На борту — девятнадцатилетний Эдмон Дантес, которому через несколько дней предстоит стать капитаном и жениться. Ни того ни другого не случится.',
     after: 'Корабль идёт медленно и странно, и толпа на берегу это чувствует: в пути умер капитан. Судном привёл Дантес — и именно за это его через три дня арестуют по доносу.',
-    body: `On the 24th of February, 1815, the look-out at Notre-Dame de la Garde signalled the three-master, the Pharaon from Smyrna, Trieste, and Naples.
+    body: `On the 24th of February, 1815, the look-out at Notre-Dame de la Garde signalled the three-master, the _Pharaon_ from Smyrna, Trieste, and Naples.
 
-As usual, a pilot put off immediately, and rounding the Château d'If, got on board the vessel between Cape Morgiou and Rion island.
+As usual, a pilot put off immediately, and rounding the Château d’If, got on board the vessel between Cape Morgiou and Rion island.
 
-Immediately, and according to custom, the ramparts of Fort Saint-Jean were covered with spectators; it is always an event at Marseilles for a ship to come into port, especially when this ship, like the Pharaon, has been built, rigged, and laden at the old Phocée docks, and belongs to an owner of the city.`,
+Immediately, and according to custom, the ramparts of Fort Saint-Jean were covered with spectators; it is always an event at Marseilles for a ship to come into port, especially when this ship, like the _Pharaon_, has been built, rigged, and laden at the old Phocée docks, and belongs to an owner of the city`,
     translation: `Двадцать четвёртого февраля 1815 года дозорный на башне Нотр-Дам-де-ла-Гард дал знать о приближении трёхмачтового корабля «Фараон», идущего из Смирны, Триеста и Неаполя.
 
 Как обычно, лоцман тотчас отчалил и, обогнув замок Иф, поднялся на борт судна между мысом Моржион и островом Рион.
@@ -2916,7 +2914,7 @@ Mr. Bennet made no answer.
 
 “Do not you want to know who has taken it?” cried his wife, impatiently.
 
-“You want to tell me, and I have no objection to hearing it.”
+“_You_ want to tell me, and I have no objection to hearing it.”
 
 This was invitation enough.
 
@@ -2936,7 +2934,7 @@ This was invitation enough.
 
 “Is that his design in settling here?”
 
-“Design? Nonsense, how can you talk so! But it is very likely that he may fall in love with one of them, and therefore you must visit him as soon as he comes.”`,
+“Design? Nonsense, how can you talk so! But it is very likely that he _may_ fall in love with one of them, and therefore you must visit him as soon as he comes`,
     translation: `Общепризнанная истина гласит, что одинокий мужчина, располагающий состоянием, обязан нуждаться в жене.
 
 Как бы мало ни было известно о чувствах и намерениях такого человека, когда он впервые появляется в округе, истина эта столь прочно сидит в умах соседних семейств, что его считают законной собственностью той или иной из их дочерей.
@@ -3037,11 +3035,11 @@ This was invitation enough.
     credit: 'Jane Austen, Pride and Prejudice · Project Gutenberg',
     setup: 'Первый бал. Бингли танцует и всем доволен; его друг Дарси не танцует ни с кем и уже успел прослыть самым неприятным человеком в округе. Бингли уговаривает его пригласить хоть кого-нибудь и показывает на Элизабет — которая сидит достаточно близко, чтобы всё слышать. Это те самые пять секунд, из которых вырастает весь роман.',
     after: 'Элизабет не обиделась, а пересказала эту фразу друзьям как анекдот — и именно поэтому Дарси, который будет объясняться ей в любви через двадцать глав, получит отказ. В книге его слова цитируют ему обратно почти дословно.',
-    body: `“Oh, she is the most beautiful creature I ever beheld! But there is one of her sisters sitting down just behind you, who is very pretty, and I dare say very agreeable. Do let me ask my partner to introduce you.”
+    body: `Oh, she is the most beautiful creature I ever beheld! But there is one of her sisters sitting down just behind you, who is very pretty, and I dare say very agreeable. Do let me ask my partner to introduce you.”
 
-“Which do you mean?” and turning round, he looked for a moment at Elizabeth, till, catching her eye, he withdrew his own, and coldly said, “She is tolerable: but not handsome enough to tempt me; and I am in no humour at present to give consequence to young ladies who are slighted by other men. You had better return to your partner and enjoy her smiles, for you are wasting your time with me.”
+“Which do you mean?” and turning round, he looked for a moment at Elizabeth, till, catching her eye, he withdrew his own, and coldly said, “She is tolerable: but not handsome enough to tempt _me_; and I am in no humour at present to give consequence to young ladies who are slighted by other men. You had better return to your partner and enjoy her smiles, for you are wasting your time with me.”
 
-Mr. Bingley followed his advice. Mr. Darcy walked off; and Elizabeth remained with no very cordial feelings towards him. She told the story, however, with great spirit among her friends; for she had a lively, playful disposition, which delighted in anything ridiculous.`,
+Mr. Bingley followed his advice. Mr. Darcy walked off; and Elizabeth remained with no very cordial feelings towards him. She told the story, however, with great spirit among her friends; for she had a lively, playful disposition, which delighted in anything ridiculous`,
     translation: `«О, она прелестнейшее создание, какое я только видел! Но вон одна из её сестёр сидит прямо за вами, и она очень хороша собой и, смею сказать, очень мила. Позвольте, я попрошу мою даму вас представить».
 
 «Которую вы имеете в виду?» — и, обернувшись, он с минуту смотрел на Элизабет, пока не встретился с ней взглядом; тогда он отвёл глаза и холодно сказал: «Она недурна, но не настолько хороша, чтобы соблазнить меня; а я сейчас не расположен придавать значение молодым особам, которыми пренебрегли другие. Вам лучше вернуться к вашей даме и наслаждаться её улыбками, потому что со мной вы тратите время впустую».
@@ -3117,9 +3115,9 @@ Mr. Bingley followed his advice. Mr. Darcy walked off; and Elizabeth remained wi
 
 So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.
 
-There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, “Oh dear! Oh dear! I shall be late!” (when she thought it over afterwards, it occurred to her that she ought to have wondered at this, but at the time it all seemed quite natural); but when the Rabbit actually took a watch out of its waistcoat-pocket, and looked at it, and then hurried on, Alice started to her feet, for it flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it, and burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.
+There was nothing so _very_ remarkable in that; nor did Alice think it so _very_ much out of the way to hear the Rabbit say to itself, “Oh dear! Oh dear! I shall be late!” (when she thought it over afterwards, it occurred to her that she ought to have wondered at this, but at the time it all seemed quite natural); but when the Rabbit actually _took a watch out of its waistcoat-pocket_, and looked at it, and then hurried on, Alice started to her feet, for it flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it, and burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.
 
-In another moment down went Alice after it, never once considering how in the world she was to get out again.`,
+In another moment down went Alice after it, never once considering how in the world she was to get out again`,
     translation: `Алисе уже совсем надоело сидеть с сестрой на берегу и ничего не делать: раз или два она заглянула в книжку, которую читала сестра, но там не было ни картинок, ни разговоров. «И какой прок в книжке, — подумала Алиса, — если в ней нет ни картинок, ни разговоров?»
 
 И вот она размышляла про себя (насколько это ей удавалось, потому что от жары её клонило в сон и голова была тяжёлая), стоит ли удовольствие сплести венок из маргариток того, чтобы вставать и их собирать, — как вдруг совсем рядом пробежал Белый Кролик с розовыми глазами.
@@ -3188,7 +3186,7 @@ In another moment down went Alice after it, never once considering how in the wo
     after: 'Загадка «чем ворон похож на письменный стол?» так и останется без ответа — Шляпник честно признается, что не имеет ни малейшего представления. Кэрролла спрашивали об этом до конца жизни, и разгадку он придумал только через много лет, задним числом.',
     body: `There was a table set out under a tree in front of the house, and the March Hare and the Hatter were having tea at it: a Dormouse was sitting between them, fast asleep, and the other two were using it as a cushion, resting their elbows on it, and talking over its head. “Very uncomfortable for the Dormouse,” thought Alice; “only, as it’s asleep, I suppose it doesn’t mind.”
 
-The table was a large one, but the three were all crowded together at one corner of it: “No room! No room!” they cried out when they saw Alice coming. “There’s plenty of room!” said Alice indignantly, and she sat down in a large arm-chair at one end of the table.
+The table was a large one, but the three were all crowded together at one corner of it: “No room! No room!” they cried out when they saw Alice coming. “There’s _plenty_ of room!” said Alice indignantly, and she sat down in a large arm-chair at one end of the table.
 
 “Have some wine,” the March Hare said in an encouraging tone.
 
@@ -3200,13 +3198,13 @@ Alice looked all round the table, but there was nothing on it but tea. “I don�
 
 “It wasn’t very civil of you to sit down without being invited,” said the March Hare.
 
-“I didn’t know it was your table,” said Alice; “it’s laid for a great many more than three.”
+“I didn’t know it was _your_ table,” said Alice; “it’s laid for a great many more than three.”
 
 “Your hair wants cutting,” said the Hatter. He had been looking at Alice for some time with great curiosity, and this was his first speech.
 
 “You should learn not to make personal remarks,” Alice said with some severity; “it’s very rude.”
 
-The Hatter opened his eyes very wide on hearing this; but all he said was, “Why is a raven like a writing-desk?”`,
+The Hatter opened his eyes very wide on hearing this; but all he _said_ was, “Why is a raven like a writing-desk`,
     translation: `Перед домом под деревом был накрыт стол, и Мартовский Заяц со Шляпником пили за ним чай; между ними крепко спала Соня, а те двое устроили из неё подушку, положили ей на голову локти и разговаривали поверх неё. «Соне очень неудобно, — подумала Алиса, — но раз она спит, ей, наверное, всё равно».
 
 Стол был большой, но все трое сгрудились в одном его углу. «Мест нет! Мест нет!» — закричали они, увидев Алису. «Мест сколько угодно!» — возмущённо сказала Алиса и села в большое кресло на краю стола.
@@ -5866,27 +5864,11 @@ From these foolish embraces, which were not of very frequent occurrence, I must 
     setup: 'Два коротких стихотворения из раздела «Аир». Первое — о прохожем, которого больше никогда не увидишь; второе — о двоих, которым не нужен никакой закон, кроме них самих. Верлибр без рифмы и почти без инверсий: читается как проза, набранная столбиком, — с такой поэзии и разумно начинать на чужом языке.',
     body: `To a Stranger
 
-Passing stranger! you do not know how longingly I look upon you,
-You must be he I was seeking, or she I was seeking, (it comes to me as of a dream,)
-I have somewhere surely lived a life of joy with you,
-All is recall’d as we flit by each other, fluid, affectionate, chaste, matured,
-You grew up with me, were a boy with me or a girl with me,
-I am not to speak to you, I am to think of you when I sit alone or wake at night alone,
-I am to wait, I do not doubt I am to meet you again,
-I am to see to it that I do not lose you.
-
+ Passing stranger! you do not know how longingly I look upon you, You must be he I was seeking, or she I was seeking, (it comes to me as of a dream,) I have somewhere surely lived a life of joy with you, All is recall’d as we flit by each other, fluid, affectionate, chaste, matured, You grew up with me, were a boy with me or a girl with me, I ate with you and slept with you, your body has become not yours only nor left my body mine only, You give me the pleasure of your eyes, face, flesh, as we pass, you take of my beard, breast, hands, in return, I am not to speak to you, I am to think of you when I sit alone or wake at night alone,
 
 We Two Boys Together Clinging
 
-We two boys together clinging,
-One the other never leaving,
-Up and down the roads going, North and South excursions making,
-Power enjoying, elbows stretching, fingers clutching,
-Arm’d and fearless, eating, drinking, sleeping, loving.
-No law less than ourselves owning, sailing, soldiering, thieving, threatening,
-Misers, menials, priests alarming, air breathing, water drinking, on the turf or the sea-beach dancing,
-Cities wrenching, ease scorning, statutes mocking, feebleness chasing,
-Fulfilling our foray.`,
+ We two boys together clinging, One the other never leaving, Up and down the roads going, North and South excursions making, Power enjoying, elbows stretching, fingers clutching, Arm’d and fearless, eating, drinking, sleeping, loving. No law less than ourselves owning, sailing, soldiering, thieving, threatening, Misers, menials, priests alarming, air breathing, water drinking, on the turf or the sea-beach dancing, Cities wrenching, ease scorning, statutes mocking, feebleness chasing, Fulfilling our foray.`,
     translation: `Незнакомцу
 
 Прохожий незнакомец! ты не знаешь, с какой тоской я смотрю на тебя,
@@ -15300,6 +15282,2818 @@ He pointed down to the grey walls of the Gothic building partly visible through 
         ],
         correct: 1,
         why: 'Ле Фаню держит имя Миркаллы до последнего. Читатель уже сложил анаграмму — Carmilla, Millarca, Mircalla, — а рассказчица ещё нет.',
+      },
+    ],
+  },
+
+  // ── 1984, 2: словарная статья ──────────────────────────────────────────────
+  {
+    id: 'sc-1984-2',
+    workId: 'orwell-1984',
+    lang: 'en', title: 'Словарная статья', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Главная идея романа не в слежке, а в словаре: если убрать слово, станет нечем подумать мысль. Ниже наш текст в жанре словарной статьи — из воображаемого служебного словаря. Обратите внимание на пометы: они устроены как в настоящих словарях, и именно поэтому текст читается спокойно.',
+    body: `GOODTHINK (n., v., adj.)
+
+1. (n.) Orthodoxy. The condition of holding, without effort, only such opinions as are correct.
+2. (v.) To hold such opinions. _He goodthinks_ — he is incapable of error.
+3. (adj.) Also GOODTHINKFUL. Characterised by orthodoxy.
+
+Derived forms: goodthinker (n.), goodthinkwise (adv.), goodthinked (past). The form _goodthought_ is obsolete and must not be used.
+
+Antonym: CRIMETHINK. Note that CRIMETHINK is not the opposite of GOODTHINK in the older sense of “disagreement”. Disagreement is a process and requires time. CRIMETHINK is a condition and requires none.
+
+Usage note. Speakers should not say “I disagree.” The word DISAGREE has been withdrawn from the Ninth Edition. Where the older language required “I disagree with the report”, current usage requires “the report is doubleplusungood”. The two are not equivalent, and the difference is the purpose of the reform.
+
+Words withdrawn in this edition: FREE (retained only in the sense “this field is free from weeds”), HONOUR, JUSTICE, MORALITY, SCIENCE, RELIGION. Speakers requiring these concepts should use CRIMETHINK, which covers them all.`,
+    translation: `БЛАГОМЫСЛИЕ (сущ., глаг., прил.)
+
+1. (сущ.) Правоверность. Состояние, при котором человек без усилия держится только правильных мнений.
+2. (глаг.) Держаться таких мнений. _Он благомыслит_ — он не способен ошибаться.
+3. (прил.) Также БЛАГОМЫСЛЕННЫЙ. Отмеченный правоверностью.
+
+Производные: благомыслитель (сущ.), благомысленно (нареч.), благомыслил (прош.). Форма _благомышленный_ устарела и к употреблению не допускается.
+
+Антоним: МЫСЛЕПРЕСТУП. Заметьте, что МЫСЛЕПРЕСТУП не является противоположностью БЛАГОМЫСЛИЯ в прежнем значении «несогласие». Несогласие есть процесс и требует времени. МЫСЛЕПРЕСТУП есть состояние и времени не требует.
+
+Замечание об употреблении. Говорящим не следует произносить «я не согласен». Слово НЕ СОГЛАСЕН изъято из девятого издания. Там, где прежний язык требовал «я не согласен с докладом», нынешнее употребление требует «доклад дважды плюс нехорош». Эти два выражения не равнозначны, и в этой разнице и состоит цель реформы.
+
+Слова, изъятые в настоящем издании: СВОБОДНЫЙ (сохраняется только в значении «поле свободно от сорняков»), ЧЕСТЬ, СПРАВЕДЛИВОСТЬ, НРАВСТВЕННОСТЬ, НАУКА, РЕЛИГИЯ. Говорящим, которым понадобились эти понятия, следует пользоваться словом МЫСЛЕПРЕСТУП, покрывающим их все.`,
+    glossary: [
+      { term: 'orthodoxy', ru: 'правоверность, следование официальной линии' },
+      { term: 'to hold an opinion', ru: 'придерживаться мнения' },
+      { term: 'incapable of error', ru: 'не способный ошибаться' },
+      { term: 'derived form', ru: 'производная форма' },
+      { term: 'obsolete', ru: 'устаревший' },
+      { term: 'antonym', ru: 'антоним' },
+      { term: 'to withdraw (a word)', ru: 'изъять (слово из словаря)' },
+      { term: 'usage note', ru: 'замечание об употреблении' },
+      { term: 'equivalent', ru: 'равнозначный' },
+    ],
+    questions: [
+      {
+        q: 'What is the stated difference between disagreement and CRIMETHINK?',
+        options: [
+          'One is legal, the other is not',
+          'Disagreement is a process and takes time; CRIMETHINK is a condition and takes none',
+          'They are the same',
+          'CRIMETHINK is milder',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should a speaker say instead of “I disagree with the report”?',
+        options: [
+          '“I have doubts”',
+          '“The report is doubleplusungood”',
+          '“I request clarification”',
+          'Nothing at all',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'In what sense is FREE retained?',
+        options: [
+          'Free of charge',
+          'Only in “this field is free from weeds”',
+          'Free to leave',
+          'It is not retained',
+        ],
+        correct: 1,
+        why: 'Слово оставлено, но только в том значении, в котором им нельзя воспользоваться. Это точнее, чем запрет: запрещённое слово помнят.',
+      },
+      {
+        q: 'What replaces HONOUR, JUSTICE, MORALITY, SCIENCE and RELIGION?',
+        options: [
+          'New words for each',
+          'One word — CRIMETHINK — covering them all',
+          'Nothing',
+          'Numbers',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── 1984, 3: сводка по производству ────────────────────────────────────────
+  {
+    id: 'sc-1984-3',
+    workId: 'orwell-1984',
+    lang: 'en', title: 'Сто сорок пять миллионов пар', level: 'B1', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Второй язык романа — голос из телекрана: короткие фразы, много цифр, много превосходных степеней. Числа тут работают не как сведения, а как интонация. Ниже наш текст в этом жанре, а после него — три реплики тех, кто его слушает.',
+    body: `ATTENTION. ATTENTION. A special announcement.
+
+Comrades, we have great news. The output figures for the last quarter have now been checked and confirmed by the Ministry of Plenty.
+
+Boot production: one hundred and forty-five million pairs. This is an increase of sixty-two per cent on the previous quarter and the highest figure ever recorded.
+
+The chocolate ration, which stood at thirty grammes, has been raised to twenty grammes. Spontaneous demonstrations of gratitude have been reported from every sector.
+
+Life expectancy, literacy, and the average height of children have all risen. All figures are the highest ever recorded. Long live the Party.
+
+（The canteen）
+
+“One hundred and forty-five million.”
+“Aye.”
+“And nobody has boots.”
+“Careful.”
+“I only said it as a fact.”
+“That is exactly what I mean. Facts are what they check.”
+“Then say something else.”
+“All right. The chocolate has gone up.”
+“It has gone down.”
+“It has gone up. From thirty to twenty. You heard it yourself.”
+“…Aye. I heard it.”`,
+    translation: `ВНИМАНИЕ. ВНИМАНИЕ. Специальное сообщение.
+
+Товарищи, у нас прекрасные новости. Показатели выпуска за последний квартал проверены и подтверждены министерством изобилия.
+
+Производство ботинок: сто сорок пять миллионов пар. Это на шестьдесят два процента больше, чем в предыдущем квартале, и наивысший показатель за всё время наблюдений.
+
+Норма выдачи шоколада, составлявшая тридцать граммов, повышена до двадцати. Со всех участков поступают сообщения о стихийных изъявлениях благодарности.
+
+Продолжительность жизни, грамотность и средний рост детей выросли. Все показатели — наивысшие за всё время наблюдений. Да здравствует партия.
+
+(Столовая)
+
+— Сто сорок пять миллионов.
+— Ага.
+— А ботинок ни у кого нет.
+— Осторожнее.
+— Я же просто сказал факт.
+— Вот именно это я и имею в виду. Факты — это то, что они проверяют.
+— Тогда скажи что-нибудь другое.
+— Хорошо. Шоколад повысили.
+— Понизили.
+— Повысили. С тридцати до двадцати. Ты сам слышал.
+— …Ага. Слышал.`,
+    glossary: [
+      { term: 'output figures', ru: 'показатели выпуска' },
+      { term: 'quarter', ru: 'квартал' },
+      { term: 'Ministry of Plenty', ru: 'министерство изобилия' },
+      { term: 'an increase of … per cent', ru: 'рост на … процентов' },
+      { term: 'ration', ru: 'норма выдачи, паёк' },
+      { term: 'to raise / to lower', ru: 'повысить / понизить' },
+      { term: 'spontaneous', ru: 'стихийный, самопроизвольный' },
+      { term: 'life expectancy', ru: 'продолжительность жизни' },
+      { term: 'the highest ever recorded', ru: 'наивысший за всё время наблюдений' },
+    ],
+    questions: [
+      {
+        q: 'What happened to the chocolate ration?',
+        options: [
+          'It was raised from twenty to thirty',
+          'It was “raised” from thirty to twenty',
+          'It was abolished',
+          'It stayed the same',
+        ],
+        correct: 1,
+        why: 'Объявление называет уменьшение повышением и не считает нужным это скрывать. Проверить может каждый — и в этом смысл: важно не поверить, а согласиться.',
+      },
+      {
+        q: 'Why does the second speaker say “Careful”?',
+        options: [
+          'The floor is wet',
+          'Because stating a plain fact is dangerous',
+          'The soup is hot',
+          'He did not hear',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “Facts are what they check” mean here?',
+        options: [
+          'Facts are verified for accuracy',
+          'It is factual statements that get you noticed',
+          'Nobody checks anything',
+          'Facts are unimportant',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the conversation end?',
+        options: [
+          'With an argument',
+          'With the first speaker agreeing that he heard it',
+          'With a joke',
+          'They are arrested',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── 1984, 4: дневник ───────────────────────────────────────────────────────
+  {
+    id: 'sc-1984-4',
+    workId: 'orwell-1984',
+    lang: 'en', title: 'Тетрадь в углу', level: 'B2', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Третий язык романа — частный: то, что человек пишет, когда думает, что его не видят. Ниже наш текст в этом регистре. Заметьте, как он начинается с даты и почти сразу упирается в то, что даты он не знает.',
+    body: `April 4th, 1984. I think.
+
+I do not know the date. I know the year because they say it, and they say it often, so it is probably not the year. I am writing this in the corner of the room where the screen does not reach. There is about a metre of it. A metre is not much but it is the only property I have.
+
+I bought this notebook in a junk shop off the main road. The paper is cream-coloured and soft and at least forty years old. Buying it was not illegal, because nothing is illegal, because there are no laws. Writing in it is not illegal either. It would only be about twenty-five years in a labour camp.
+
+I do not know who I am writing to. The future, perhaps. But if the future is like this it will not understand me, and if it is not like this it will not need me.
+
+So: to nobody. Which is a relief. To nobody, then.
+
+I saw a woman in the queue this morning drop a coin and not pick it up. She looked at it and walked on. I have thought about that all day and I cannot decide what it means. Perhaps nothing. Perhaps she was tired. That is the thing I am least able to imagine now — a person doing something because she was tired, and not because of anything else.`,
+    translation: `4 апреля 1984 года. Кажется.
+
+Я не знаю числа. Год я знаю, потому что его называют, и называют часто, а значит, это, скорее всего, не тот год. Я пишу это в углу комнаты, куда не достаёт экран. Там примерно метр. Метр — немного, но это единственная собственность, какая у меня есть.
+
+Эту тетрадь я купил в лавке старьёвщика в переулке. Бумага кремовая, мягкая и лет сорока, не меньше. Купить её не было противозаконно, потому что противозаконного нет ничего, потому что нет законов. Писать в ней тоже не противозаконно. Это будет всего лет двадцать пять лагерей.
+
+Я не знаю, кому я пишу. Будущему, наверное. Но если будущее будет таким же, оно меня не поймёт, а если не таким — я ему не понадоблюсь.
+
+Стало быть, никому. И это, пожалуй, облегчение. Значит, никому.
+
+Сегодня утром я видел в очереди женщину, которая уронила монету и не подняла. Она посмотрела на неё и пошла дальше. Я думал об этом весь день и не могу решить, что это значит. Может быть, ничего. Может быть, она устала. Вот чего я теперь совсем не умею вообразить — что человек делает что-то потому, что устал, а не почему-нибудь ещё.`,
+    glossary: [
+      { term: 'to reach', ru: 'доставать, дотягиваться' },
+      { term: 'property', ru: 'собственность' },
+      { term: 'junk shop', ru: 'лавка старьёвщика' },
+      { term: 'cream-coloured', ru: 'кремовый' },
+      { term: 'illegal', ru: 'противозаконный' },
+      { term: 'labour camp', ru: 'исправительно-трудовой лагерь' },
+      { term: 'a relief', ru: 'облегчение' },
+      { term: 'queue', ru: 'очередь' },
+      { term: 'to be least able to do sth', ru: 'меньше всего быть в состоянии сделать что-то' },
+    ],
+    questions: [
+      {
+        q: 'Why does the writer doubt the year?',
+        options: [
+          'He has lost count',
+          'Because it is repeated often, and repetition is a reason for doubt',
+          'He is ill',
+          'The notebook is old',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is writing in the notebook not illegal?',
+        options: [
+          'It is permitted',
+          'Because there are no laws — only punishments',
+          'Nobody reads it',
+          'The paper is old',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Who does he decide he is writing to?',
+        options: ['The future', 'His family', 'Nobody', 'The Party'],
+        correct: 2,
+      },
+      {
+        q: 'Why can’t he interpret the woman and the coin?',
+        options: [
+          'He did not see clearly',
+          'He can no longer imagine an act done for an ordinary private reason',
+          'She was a stranger',
+          'The coin was worthless',
+        ],
+        correct: 1,
+        why: 'Самое страшное наблюдение здесь — не про слежку, а про то, что человек разучился допускать простое объяснение чужого поступка.',
+      },
+    ],
+  },
+
+  // ── Комната Джованни, 2: письмо домой ──────────────────────────────────────
+  {
+    id: 'sc-giovanni-2',
+    workId: 'baldwin-giovanni',
+    lang: 'en', title: 'Письмо, в котором всё правда', level: 'C1', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Регистр этого романа — человек, который очень хорошо умеет говорить и ни разу не говорит главного. Ниже наш текст в этом ключе: письмо отцу из Парижа. В нём нет ни одной неправды — и почти нет ничего.',
+    body: `Dear Dad,
+
+Thank you for the money. It arrived on Tuesday, which was better than I expected, and I have been sensible with it, which is more than you expected.
+
+Paris is cold in a way that American cold is not. It is a damp cold and it gets into the building and stays there, and everyone here treats this as a fact of life rather than a problem, the way people at home treat mosquitoes. My room has a window that does not close properly. The concierge has promised to see about it, twice, in the same tone both times.
+
+I am eating. You will want to know that, so: I am eating. There is a place on the corner where a plate of something costs less than a coffee costs at home, and the man behind the counter has decided that I am too thin and has taken it personally.
+
+You ask when I am coming back. I do not have an answer that would satisfy either of us, so I will give you the true one, which is that I do not know. I am not staying away from anything. I am not staying for anything either. That is the part I cannot explain in a letter, and possibly not anywhere.
+
+Give my love to Ellen. Tell her I got her card and that I will write to her separately, which I will, eventually, in the way that I do things.
+
+Your son,
+David`,
+    translation: `Дорогой папа,
+
+спасибо за деньги. Они пришли во вторник — раньше, чем я ждал, — и я распорядился ими разумно, что больше, чем ждал ты.
+
+В Париже холодно не так, как холодно в Америке. Это сырой холод, он забирается в дом и остаётся в нём, и здесь к этому относятся как к свойству жизни, а не как к неполадке — примерно как у нас относятся к комарам. У меня в комнате окно, которое неплотно закрывается. Консьержка дважды обещала этим заняться, оба раза одним и тем же тоном.
+
+Я ем. Ты захочешь это знать, поэтому: я ем. На углу есть заведение, где тарелка чего-нибудь стоит дешевле, чем дома чашка кофе, и человек за стойкой решил, что я слишком худой, и принял это близко к сердцу.
+
+Ты спрашиваешь, когда я вернусь. У меня нет ответа, который устроил бы кого-нибудь из нас, поэтому дам правдивый: я не знаю. Я ни от чего не держусь в стороне. И ни ради чего не остаюсь. Вот эту часть я не умею объяснить в письме, а возможно, и нигде.
+
+Передай привет Эллен. Скажи ей, что открытку я получил и напишу ей отдельно, — и напишу, со временем, тем способом, каким я вообще делаю дела.
+
+Твой сын,
+Дэвид`,
+    glossary: [
+      { term: 'sensible', ru: 'разумный, благоразумный' },
+      { term: 'damp', ru: 'сырой' },
+      { term: 'a fact of life', ru: 'свойство жизни, данность' },
+      { term: 'concierge', ru: 'консьерж(ка)' },
+      { term: 'to see about sth', ru: 'заняться чем-то, посмотреть, что можно сделать' },
+      { term: 'to take sth personally', ru: 'принять близко к сердцу' },
+      { term: 'to satisfy', ru: 'устроить, удовлетворить' },
+      { term: 'to stay away from sth', ru: 'держаться в стороне от чего-то' },
+      { term: 'separately', ru: 'отдельно' },
+    ],
+    questions: [
+      {
+        q: 'What does the writer say about the cold in Paris?',
+        options: [
+          'It is worse than in America',
+          'It is a damp cold that people treat as a fact of life',
+          'It does not bother him',
+          'It is warmer than at home',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does he mention that he is eating?',
+        options: [
+          'He is proud of the food',
+          'Because he knows his father will want to know',
+          'He is asking for more money',
+          'He is ill',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What answer does he give about coming home?',
+        options: [
+          'Next month',
+          'The true one — that he does not know',
+          'Never',
+          'He avoids the question',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the letter’s technique?',
+        options: [
+          'It lies to protect the father',
+          'Every sentence is true, and the important thing is still not said',
+          'It is deliberately rude',
+          'It is written in code',
+        ],
+        correct: 1,
+        why: 'Ни одного ложного утверждения — и ни одного важного. Так у Болдуина говорит человек, который уже понял про себя всё и ещё не готов это назвать.',
+      },
+    ],
+  },
+
+  // ── Комната Джованни, 3: бар в четыре утра ─────────────────────────────────
+  {
+    id: 'sc-giovanni-3',
+    workId: 'baldwin-giovanni',
+    lang: 'en', title: 'Бар в четыре утра', level: 'C1', minutes: 4,
+    topic: 'Еда', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Второй регистр романа — разговор людей, которые все друг другу немного должны и все об этом помнят. Ниже наш текст: бар перед закрытием, четыре реплики о деньгах и одна не о деньгах. Обратите внимание, как никто ни разу не произносит слова «долг».',
+    body: `“You are here late.”
+“So are you.”
+“I work here. That is different.”
+“It is the same hours.”
+“It is not the same hours. You may leave.”
+
+He put a glass in front of me without being asked and did not put it on the bill, and I understood that this was not generosity but bookkeeping of another kind.
+
+“Jacques was asking after you.”
+“Jacques asks after everyone.”
+“Jacques asks after people who owe him. It is a short list and you are on it.”
+“It is thirty francs.”
+“It is thirty francs today. Jacques is patient in a way that is not patience.”
+
+I drank. Outside the window a man was washing the pavement with a hose, at four in the morning, as though the street had done something.
+
+“You should go home,” he said.
+“I have a room.”
+“I did not say a room.”
+“It is the same thing.”
+“No,” he said, wiping the counter in long slow strokes, the way a man does when he intends to keep talking. “A room is where you are. Home is where they notice that you are not.”`,
+    translation: `— Вы поздно.
+— Вы тоже.
+— Я здесь работаю. Это другое.
+— Часы те же самые.
+— Часы не те же самые. Вам можно уйти.
+
+Он поставил передо мной стакан, о котором я не просил, и не внёс его в счёт, и я понял, что это не щедрость, а бухгалтерия другого рода.
+
+— Жак о вас спрашивал.
+— Жак спрашивает обо всех.
+— Жак спрашивает о тех, кто ему должен. Список короткий, и вы в нём.
+— Там тридцать франков.
+— Сегодня тридцать. Жак терпелив тем терпением, которое терпением не является.
+
+Я выпил. За окном человек мыл тротуар из шланга — в четыре утра, как будто улица что-то натворила.
+
+— Вам надо домой, — сказал он.
+— У меня есть комната.
+— Я не сказал «комната».
+— Это одно и то же.
+— Нет, — сказал он, протирая стойку долгими медленными движениями, как делает человек, который собирается говорить дальше. — Комната — это где ты есть. Дом — это где замечают, что тебя нет.`,
+    glossary: [
+      { term: 'bill', ru: 'счёт' },
+      { term: 'generosity', ru: 'щедрость' },
+      { term: 'bookkeeping', ru: 'бухгалтерия, ведение счетов' },
+      { term: 'to ask after sb', ru: 'справляться о ком-то' },
+      { term: 'to owe sb', ru: 'быть должным кому-то' },
+      { term: 'franc', ru: 'франк — французская валюта до евро' },
+      { term: 'pavement', ru: 'тротуар (брит.); в США sidewalk' },
+      { term: 'hose', ru: 'шланг' },
+      { term: 'counter', ru: 'стойка' },
+      { term: 'in long slow strokes', ru: 'долгими медленными движениями' },
+    ],
+    questions: [
+      {
+        q: 'Why does the barman give a drink that is not on the bill?',
+        options: [
+          'Out of generosity',
+          'As bookkeeping of another kind',
+          'By mistake',
+          'Because the bar is closing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Who is Jacques, judging by the dialogue?',
+        options: [
+          'The owner of the bar',
+          'Someone the narrator owes money to',
+          'A policeman',
+          'A friend from home',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “Jacques is patient in a way that is not patience” imply?',
+        options: [
+          'He never asks for money',
+          'He waits, but the waiting is a form of pressure',
+          'He has forgotten',
+          'He is generous',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What distinction does the barman draw at the end?',
+        options: [
+          'Between France and America',
+          'Between a room, where you are, and home, where they notice you are not',
+          'Between night and morning',
+          'Between money and friendship',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Комната Джованни, 4: последнее утро ────────────────────────────────────
+  {
+    id: 'sc-giovanni-4',
+    workId: 'baldwin-giovanni',
+    lang: 'en', title: 'Комнату надо сдать к полудню', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Третий регистр — опись. Болдуин часто останавливает действие и перечисляет предметы, и вещи оказываются точнее любого объяснения. Ниже наш текст: человек собирает комнату и по ходу дела решает то, чего не решил за полгода.',
+    body: `The room has to be given back by noon. I have been up since five, which is not the same as having slept.
+
+There is not much. A suitcase I arrived with. A coat I bought here and will not wear anywhere else. Two books, one of them not mine. A bottle of something in the corner with about an inch left, which I will leave, because the alternative is to carry it, and because leaving something is the only way I know of saying that I was here.
+
+The wallpaper is coming away above the window. It was coming away when I came. I used to look at it and think: someone should fix that. Then I lived here long enough to think: I should fix that. Then long enough to stop thinking about it at all, which I now understand is what living somewhere means.
+
+I keep finding things that belong to the other person and putting them in one place on the table, and the pile is not large, and that is the part I did not expect. You can be in someone’s life for months and it comes to a comb, a lighter, one glove.
+
+The concierge will come up at noon and look around and say that the room is in good condition, because it is, because I have made it exactly as it was, and that is the worst sentence in this account and I am going to leave it where it is.`,
+    translation: `Комнату надо сдать к полудню. Я на ногах с пяти, что не то же самое, что выспаться.
+
+Вещей немного. Чемодан, с которым я приехал. Пальто, купленное здесь и которое я больше нигде не надену. Две книги, одна из них не моя. Бутылка чего-то в углу, где осталось на палец, — её я оставлю, потому что иначе её надо нести и потому что оставить что-то — единственный известный мне способ сказать, что я тут был.
+
+Над окном отходят обои. Они отходили и когда я въехал. Сначала я смотрел на них и думал: кто-нибудь должен это починить. Потом прожил тут достаточно, чтобы думать: это должен починить я. Потом достаточно, чтобы вовсе перестать об этом думать, — и вот это, как я теперь понимаю, и значит где-то жить.
+
+Я всё время нахожу вещи, принадлежащие другому человеку, и складываю их в одно место на столе, и стопка выходит небольшая, и вот этого я не ожидал. Можно быть в чьей-то жизни месяцами, а сводится всё к расчёске, зажигалке и одной перчатке.
+
+В полдень поднимется консьержка, оглядится и скажет, что комната в хорошем состоянии, — потому что так и есть, потому что я привёл её ровно в тот вид, в каком она была; и это худшая фраза в этой записи, и я оставлю её как есть.`,
+    glossary: [
+      { term: 'to give back', ru: 'вернуть, сдать' },
+      { term: 'to be up', ru: 'быть на ногах, не спать' },
+      { term: 'suitcase', ru: 'чемодан' },
+      { term: 'an inch left', ru: 'осталось на палец (о жидкости)' },
+      { term: 'alternative', ru: 'иной вариант' },
+      { term: 'wallpaper', ru: 'обои' },
+      { term: 'to come away', ru: 'отходить, отклеиваться' },
+      { term: 'comb / lighter / glove', ru: 'расчёска / зажигалка / перчатка' },
+      { term: 'in good condition', ru: 'в хорошем состоянии' },
+      { term: 'account', ru: 'здесь: запись, рассказ о случившемся' },
+    ],
+    questions: [
+      {
+        q: 'What does he decide to leave behind, and why?',
+        options: [
+          'The coat, because it is heavy',
+          'The bottle, because leaving something is his way of saying he was there',
+          'The books, because they are not his',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What three stages does he describe about the wallpaper?',
+        options: [
+          'Noticing, fixing, forgetting',
+          '“Someone should fix that” → “I should fix that” → not thinking about it at all',
+          'Buying, hanging, removing',
+          'He never noticed it',
+        ],
+        correct: 1,
+        why: 'Три стадии — определение слова «жить где-то», данное через обои. У Болдуина мысль почти всегда приходит через предмет.',
+      },
+      {
+        q: 'What surprises him about the other person’s things?',
+        options: [
+          'How many there are',
+          'How few — a comb, a lighter, one glove',
+          'That they are expensive',
+          'That they are gone',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is “the room is in good condition” the worst sentence?',
+        options: [
+          'It is untrue',
+          'Because it means he has left no trace at all',
+          'Because he will lose his deposit',
+          'Because the concierge is lying',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Морис, 2: письмо от друга ──────────────────────────────────────────────
+  {
+    id: 'sc-maurice-2',
+    workId: 'forster-maurice',
+    lang: 'en', title: 'Письмо, которое всё решает', level: 'C1', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Эдвардианская Англия говорит намёками, и роман Форстера целиком про это: важное сообщают вежливыми оборотами, а прямое слово считается бестактностью. Ниже наш текст — письмо от давнего друга. Всё, что в нём сказано по делу, помещается в две строки; остальное — способ не сказать этого прямо.',
+    body: `My dear —,
+
+Forgive the delay in answering. The summer has been fuller than I intended, and I have got into the habit of putting off letters I actually wish to write, which is a stupid habit and I recognise it as such.
+
+I am to be married in the spring. My mother is delighted, and my father has said the word “sensible” four times in one evening, which from him is an ode. She is a very good sort and I like her exceedingly, and I want you to understand that there is nothing in this that is a betrayal of anything, because there was never anything to betray, and because we agreed at Cambridge that we had both been talking about Greece.
+
+I hope you will come. It would be noticed if you did not, and I should mind, which is the more important of the two reasons though the other is the one I am permitted to write down.
+
+I am not going to say anything else. You will know what I have not said, because you always did, and because if I set it down here I could not unset it, and one of us has to be practical.
+
+Write to me about your work. Write to me about the weather. Write to me.
+
+Ever yours,
+C.`,
+    translation: `Дорогой —,
+
+прости, что отвечаю с опозданием. Лето вышло полнее, чем я рассчитывал, и я завёл привычку откладывать как раз те письма, которые действительно хочу написать; привычка глупая, и я сам это понимаю.
+
+Весной я женюсь. Матушка в восторге, а отец за один вечер четырежды произнёс слово «благоразумно», что в его устах равно оде. Она очень славная, и я к ней чрезвычайно расположен, и мне хочется, чтобы ты понял: в этом нет никакого предательства по отношению к чему бы то ни было, потому что предавать было нечего и потому что в Кембридже мы условились, что оба говорили о Греции.
+
+Надеюсь, ты приедешь. Твоё отсутствие заметили бы, и мне было бы неприятно, — и вторая причина важнее первой, хотя записать мне дозволено именно первую.
+
+Больше я ничего говорить не стану. Ты поймёшь то, чего я не сказал, потому что всегда понимал и потому что, если я это здесь напишу, обратно уже не сотру, а кому-то из нас надо быть практичным.
+
+Напиши мне о своей работе. Напиши мне о погоде. Напиши мне.
+
+Неизменно твой,
+К.`,
+    glossary: [
+      { term: 'to put off', ru: 'откладывать' },
+      { term: 'to recognise sth as such', ru: 'признавать что-то именно таковым' },
+      { term: 'I am to be married', ru: 'мне предстоит жениться (конструкция долженствования)' },
+      { term: 'sensible', ru: 'благоразумный' },
+      { term: 'an ode', ru: 'ода; здесь иронически — высшая похвала' },
+      { term: 'a good sort', ru: 'славный человек (разг., сдержанная похвала)' },
+      { term: 'betrayal', ru: 'предательство' },
+      { term: 'to mind', ru: 'быть против, переживать' },
+      { term: 'to set sth down', ru: 'записать, изложить на бумаге' },
+      { term: 'Ever yours', ru: 'неизменно ваш — концовка письма' },
+    ],
+    questions: [
+      {
+        q: 'What is the letter’s actual news?',
+        options: [
+          'The writer is ill',
+          'The writer is to be married in the spring',
+          'The writer is leaving England',
+          'The writer has lost his position',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “we had both been talking about Greece” do?',
+        options: [
+          'Recalls a holiday',
+          'Renames what happened between them as a literary discussion',
+          'Refers to a book he lent',
+          'Announces a journey',
+        ],
+        correct: 1,
+        why: 'У Форстера «Греция» — принятый в те годы способ назвать то, чего называть было нельзя. Здесь фраза используется, чтобы задним числом обнулить прошлое.',
+      },
+      {
+        q: 'Which of the two reasons for wanting him to come is written down?',
+        options: [
+          'The important one',
+          'The less important one — that his absence would be noticed',
+          'Both',
+          'Neither',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the writer refuse to say more?',
+        options: [
+          'He has no time',
+          'Because written words cannot be unwritten',
+          'He has forgotten',
+          'He is angry',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Морис, 3: у врача ──────────────────────────────────────────────────────
+  {
+    id: 'sc-maurice-3',
+    workId: 'forster-maurice',
+    lang: 'en', title: 'Приём у доктора', level: 'C1', minutes: 4,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман написан в 1913 году, и в нём есть сцена, невозможная сегодня: человек идёт к врачу с тем, что тогда считалось болезнью. Ниже наш текст в этом регистре. Английский здесь — сплошные эвфемизмы, и учить надо именно их: так до сих пор говорят, когда не хотят называть вещи.',
+    body: `“Sit down. Now then. What seems to be the trouble?”
+“I am not sure I can put it in a way that will be useful.”
+“Try. I have heard a great deal.”
+“I am — an unspeakable of the Oscar Wilde sort.”
+
+The doctor did not look up from his blotter for some seconds, and when he did his face had arranged itself.
+
+“Rubbish.”
+“I beg your pardon?”
+“Rubbish. You have been reading. Young men read a book and diagnose themselves out of it. I have seen it with dyspepsia and I have seen it with this.”
+“I have not been reading. I have been twenty-four years alive.”
+“Have you a fiancée?”
+“No.”
+“Then get one. I am perfectly serious. The condition, where it exists at all, has been known to disperse under the ordinary influences.”
+“And where it does not disperse?”
+“I do not admit that it does not.”
+“You have just said ‘where it exists at all’. That is admitting something.”
+
+He stood up, which in that room meant that the consultation was over.
+
+“I shall give you a tonic,” he said, “and I shall not be writing anything in your notes, and you will thank me for that in ten years. Good afternoon.”
+“Doctor—”
+“Good afternoon.”`,
+    translation: `— Садитесь. Итак. Что вас беспокоит?
+— Не уверен, что сумею изложить это так, чтобы вышел толк.
+— Попробуйте. Я слышал многое.
+— Я — из тех, о ком не говорят, из породы Оскара Уайльда.
+
+Доктор несколько секунд не поднимал глаз от бювара, а когда поднял, лицо у него было уже приведено в порядок.
+
+— Вздор.
+— Простите?
+— Вздор. Вы начитались. Молодые люди прочтут книжку и ставят себе по ней диагноз. Я видел это с несварением и видел это с этим.
+— Я не начитался. Я двадцать четыре года живу.
+— У вас есть невеста?
+— Нет.
+— Так заведите. Я совершенно серьёзен. Известно, что это состояние — там, где оно вообще имеется, — рассеивается под обычными влияниями.
+— А там, где не рассеивается?
+— Я не допускаю, что не рассеивается.
+— Вы только что сказали «там, где оно вообще имеется». Это уже допущение.
+
+Он встал, а в том кабинете это означало, что приём окончен.
+
+— Я пропишу вам укрепляющее, — сказал он, — и ничего не запишу в вашей карте, и лет через десять вы меня за это поблагодарите. Всего доброго.
+— Доктор…
+— Всего доброго.`,
+    glossary: [
+      { term: 'What seems to be the trouble?', ru: 'формула врача: «что вас беспокоит?»' },
+      { term: 'unspeakable', ru: 'тот, о ком не говорят; эвфемизм эпохи' },
+      { term: 'blotter', ru: 'бювар, настольная папка с промокашкой' },
+      { term: 'rubbish', ru: 'вздор, чепуха' },
+      { term: 'to diagnose oneself', ru: 'поставить себе диагноз' },
+      { term: 'dyspepsia', ru: 'несварение' },
+      { term: 'fiancée', ru: 'невеста' },
+      { term: 'to disperse', ru: 'рассеиваться, проходить' },
+      { term: 'the ordinary influences', ru: 'обычные влияния — эвфемизм для брака и семьи' },
+      { term: 'tonic', ru: 'укрепляющее средство' },
+    ],
+    questions: [
+      {
+        q: 'How does the patient describe himself?',
+        options: [
+          'Directly, using a medical term',
+          'By a euphemism — “an unspeakable of the Oscar Wilde sort”',
+          'He refuses to say',
+          'As physically ill',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the doctor’s first response?',
+        options: ['Sympathy', 'A prescription', '“Rubbish”', 'A referral'],
+        correct: 2,
+      },
+      {
+        q: 'What does the patient catch the doctor out on?',
+        options: [
+          'A wrong date',
+          'The phrase “where it exists at all”, which concedes that it may exist',
+          'His fee',
+          'His handwriting',
+        ],
+        correct: 1,
+        why: 'Весь спор ведётся уклончивыми оборотами, и пациент выигрывает его тем, что вслушивается в чужую формулировку. Это и есть навык, которому такой текст учит.',
+      },
+      {
+        q: 'Why will the patient thank him for writing nothing in the notes?',
+        options: [
+          'To save paper',
+          'Because a written record could ruin him',
+          'Because he will forget',
+          'Because notes cost extra',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Морис, 4: разговор через сословие ──────────────────────────────────────
+  {
+    id: 'sc-maurice-4',
+    workId: 'forster-maurice',
+    lang: 'en', title: 'Разговор через сословие', level: 'B2', minutes: 4,
+    topic: 'Работа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Третий пласт романа — классовый: в Англии того времени по одному предложению слышно, кто перед тобой. Ниже наш текст: разговор гостя усадьбы с егерем. Заметьте, кто говорит полными формами, кто сокращениями и кто кого называет «сэр».',
+    body: `“You’re up early, sir.”
+“I couldn’t sleep. Is that the boat?”
+“That’s the boat. She leaks. I’d not take her out past the reeds if I were you, sir.”
+“Then I shan’t. Do you sleep?”
+“Sir?”
+“I asked whether you sleep. It is a perfectly ordinary question.”
+“It’s not a question I’ve been asked.”
+
+He went on coiling the rope, and I understood that he was deciding something, and that I had better be quiet while he did it.
+
+“I sleep in the boathouse three nights a week,” he said at last. “On account of the birds. It’s not a hardship. It’s quiet, and there’s nobody to say I’ve done it wrong.”
+“Is there usually somebody?”
+“There’s usually somebody, sir.”
+“You said ‘sir’ that time on purpose.”
+“I did, sir.”
+
+He looked up then, for the first time, and it was not the look a servant gives.
+
+“I’m to go out to the Argentine in September,” he said. “My brother’s got a place there. Six weeks on a boat and then it’s another country and nobody in it has ever seen me.”
+“Is that what you want?”
+“It’s what there is. That’s a different question, and you’d know that, sir, if you’d ever had to answer it.”`,
+    translation: `— Рано вы поднялись, сэр.
+— Не спалось. Это лодка?
+— Это лодка. Течёт. Я бы на вашем месте за камыши на ней не ходил, сэр.
+— Тогда не пойду. А вы спите?
+— Сэр?
+— Я спросил, спите ли вы. Вопрос совершенно обыкновенный.
+— Такого вопроса мне не задавали.
+
+Он продолжал сматывать верёвку, и я понял, что он что-то решает и что лучше мне помолчать, пока он решает.
+
+— Три ночи в неделю я сплю в лодочном сарае, — сказал он наконец. — Из-за птицы. Это не тягота. Там тихо, и некому сказать, что я сделал не так.
+— А обычно есть кому?
+— Обычно есть кому, сэр.
+— Вот сейчас вы сказали «сэр» нарочно.
+— Нарочно, сэр.
+
+Тут он впервые поднял глаза, и это был не тот взгляд, каким смотрит слуга.
+
+— В сентябре я уезжаю в Аргентину, — сказал он. — У брата там место. Шесть недель на пароходе, и дальше другая страна, и никто в ней меня в глаза не видел.
+— Вы этого хотите?
+— Это то, что есть. Хотеть — вопрос другой, и вы бы это знали, сэр, если бы вам когда-нибудь пришлось на него отвечать.`,
+    glossary: [
+      { term: 'to leak', ru: 'течь, протекать' },
+      { term: 'reeds', ru: 'камыши' },
+      { term: 'I shan’t', ru: 'не буду (shall not — книжная, «господская» форма)' },
+      { term: 'to coil a rope', ru: 'сматывать верёвку' },
+      { term: 'boathouse', ru: 'лодочный сарай' },
+      { term: 'on account of', ru: 'из-за, по причине' },
+      { term: 'hardship', ru: 'тягота, лишение' },
+      { term: 'on purpose', ru: 'нарочно' },
+      { term: 'the Argentine', ru: 'Аргентина (устаревшая форма с артиклем)' },
+      { term: 'a place', ru: 'здесь: место работы' },
+    ],
+    questions: [
+      {
+        q: 'What question has the gamekeeper never been asked before?',
+        options: [
+          'Where he lives',
+          'Whether he sleeps',
+          'How old he is',
+          'What he earns',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does he sleep in the boathouse three nights a week?',
+        options: [
+          'He has no home',
+          'On account of the birds — and because nobody is there to correct him',
+          'He is being punished',
+          'It is warmer',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is happening when he says “sir” the second time?',
+        options: [
+          'He is being polite',
+          'He is using the word deliberately, and both men know it',
+          'He is afraid',
+          'He is confused',
+        ],
+        correct: 1,
+        why: 'Одно и то же слово сначала автоматическое, потом выбранное. У Форстера сословная дистанция всегда слышна именно в таких мелочах.',
+      },
+      {
+        q: 'What is his answer about going to Argentina?',
+        options: [
+          'That he wants it very much',
+          'That it is “what there is”, and wanting is a different question',
+          'That he refuses to go',
+          'That he has not decided',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Назови меня своим именем, 2: слово за завтраком ────────────────────────
+  {
+    id: 'sc-cmbyn-2',
+    workId: 'aciman-cmbyn',
+    lang: 'en', title: 'Откуда взялось слово', level: 'C1', minutes: 4,
+    topic: 'Еда', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фирменная интонация этого романа — разговор, который весь про этимологию и весь не про этимологию. Ниже наш текст: завтрак, разбор одного слова и один вопрос, который задан не о слове. Заметьте, где меняется тема и как никто этого не отмечает.',
+    body: `“Where does it come from, do you think? _Apricot._”
+“Latin, presumably. Everything is Latin before breakfast.”
+“It is not Latin. Or it is, but only after a long detour. It goes Latin, then Greek, then Arabic, then Spanish, then back. It has been in more countries than either of us.”
+“And it means?”
+“Early-ripe. The early-ripening one. The Romans named it for being in a hurry.”
+
+My father, who had been listening the way he listens, which is to say completely and without appearing to, put down his coffee.
+
+“The interesting part is the _a_,” he said. “In Arabic it acquired the article — _al-barquq_ — and when the word travelled on, the article travelled with it. Nobody unpacked it. So the fruit is carrying a small piece of grammar from a language it passed through, and has been carrying it for a thousand years, and no one has ever asked it to put it down.”
+
+“That is not the interesting part,” I said.
+“No?”
+“The interesting part is that it is called early-ripe and it is the last thing in the garden to be ready.”
+
+He looked at me for slightly too long.
+
+“Well,” he said. “Names are like that. They are given at the beginning, when the least is known.”
+
+Nobody said anything for a moment. Somebody passed the bread.`,
+    translation: `— Как думаешь, откуда оно взялось? _Абрикос._
+— Из латыни, надо полагать. До завтрака всё из латыни.
+— Не из латыни. То есть из латыни, но после долгого крюка. Сначала латынь, потом греческий, потом арабский, потом испанский, потом обратно. Оно побывало в большем числе стран, чем мы с тобой.
+— И означает?
+— Раннеспелый. Тот, что созревает рано. Римляне назвали его за то, что он торопится.
+
+Мой отец, который слушал так, как он слушает, — то есть целиком и не показывая этого, — поставил чашку.
+
+— Интереснее всего тут «а», — сказал он. — В арабском слово обросло артиклем — _аль-баркук_, — а когда пошло дальше, артикль пошёл вместе с ним. Никто его не отделил. И вот плод несёт на себе маленький кусочек грамматики из языка, через который он всего лишь проходил, несёт уже тысячу лет, и никто ни разу не попросил его это положить.
+
+— Интереснее всего тут не это, — сказал я.
+— Нет?
+— Интереснее всего, что он называется раннеспелым и созревает в саду последним.
+
+Отец посмотрел на меня чуть дольше, чем следовало.
+
+— Что ж, — сказал он. — С именами так и бывает. Их дают в начале, когда известно меньше всего.
+
+С минуту никто ничего не говорил. Кто-то передал хлеб.`,
+    glossary: [
+      { term: 'presumably', ru: 'надо полагать, вероятно' },
+      { term: 'detour', ru: 'крюк, обходной путь' },
+      { term: 'early-ripe', ru: 'раннеспелый' },
+      { term: 'to acquire', ru: 'приобрести, обрасти чем-то' },
+      { term: 'the article', ru: 'артикль' },
+      { term: 'to unpack', ru: 'здесь: разобрать, отделить' },
+      { term: 'to put sth down', ru: 'положить, перестать нести' },
+      { term: 'slightly too long', ru: 'чуть дольше, чем следовало' },
+      { term: 'to pass the bread', ru: 'передать хлеб (за столом)' },
+    ],
+    questions: [
+      {
+        q: 'What route does the word take, according to the speaker?',
+        options: [
+          'Latin only',
+          'Latin → Greek → Arabic → Spanish → back',
+          'Arabic only',
+          'It is not explained',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the father find interesting?',
+        options: [
+          'The taste',
+          'That the Arabic article travelled with the word and was never removed',
+          'The Latin ending',
+          'The Spanish spelling',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the narrator say is really interesting?',
+        options: [
+          'The grammar',
+          'That the fruit is called early-ripe and ripens last',
+          'That nobody knows the word',
+          'That it grows in the garden',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the father look at him “slightly too long”?',
+        options: [
+          'He is annoyed',
+          'He has understood that they are no longer discussing fruit',
+          'He did not hear',
+          'He is proud of the etymology',
+        ],
+        correct: 1,
+        why: 'Ачиман почти никогда не называет чувство. Оно возникает из длины взгляда и из того, что кто-то передаёт хлеб.',
+      },
+    ],
+  },
+
+  // ── Назови меня своим именем, 3: открытка ──────────────────────────────────
+  {
+    id: 'sc-cmbyn-3',
+    workId: 'aciman-cmbyn',
+    lang: 'en', title: 'Открытка, которую не отправили', level: 'B2', minutes: 3,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман устроен как воспоминание, и в нём постоянно возвращаются к тому, что не было сказано и не было послано. Ниже наш текст: четыре черновика одной открытки, написанные подряд, и приписка через много лет.',
+    body: `Draft one.
+“Weather good. Town smaller than I expected. Hope you are well.”
+
+Draft two.
+“Weather good. I keep walking past the place where we — the square, I mean, the one with the fountain. Hope you are well.”
+
+Draft three.
+“I have started this three times. That is the message. That is the whole message. Please read it as one.”
+
+Draft four.
+“Weather good. Hope you are well.”
+
+That is the one I sent, and it arrived, and it was answered, and the answer was warm and said nothing, and we both did that for eleven years, competently, like people who have been trained.
+
+I found the other three last spring, in a book I had not opened since. They were not folded. He had never seen them, so there had been no reason to fold them. I had simply put them somewhere and gone on with the afternoon.
+
+What surprises me is not that I kept them. It is that I did not know I had.`,
+    translation: `Черновик первый.
+«Погода хорошая. Городок меньше, чем я ожидал. Надеюсь, у тебя всё хорошо».
+
+Черновик второй.
+«Погода хорошая. Я всё время прохожу мимо того места, где мы — я про площадь, ту, с фонтаном. Надеюсь, у тебя всё хорошо».
+
+Черновик третий.
+«Я начинаю это в третий раз. Вот и всё сообщение. Всё сообщение целиком. Пожалуйста, прочти его как одно».
+
+Черновик четвёртый.
+«Погода хорошая. Надеюсь, у тебя всё хорошо».
+
+Вот этот я и отправил, и он дошёл, и на него ответили, и ответ был тёплый и не сказал ничего, и мы оба проделывали это одиннадцать лет, умело, как люди, которых этому обучили.
+
+Остальные три я нашёл прошлой весной, в книге, которую с тех пор не открывал. Они не были сложены. Он их никогда не видел, значит, складывать было незачем. Я просто куда-то их положил и пошёл дальше по своим дневным делам.
+
+Удивляет меня не то, что я их сохранил. Удивляет, что я не знал, что сохранил.`,
+    glossary: [
+      { term: 'draft', ru: 'черновик' },
+      { term: 'to keep doing sth', ru: 'всё время делать что-то' },
+      { term: 'to walk past', ru: 'проходить мимо' },
+      { term: 'fountain', ru: 'фонтан' },
+      { term: 'competently', ru: 'умело, со знанием дела' },
+      { term: 'to be trained', ru: 'быть обученным, натренированным' },
+      { term: 'to fold', ru: 'складывать, сгибать' },
+      { term: 'to go on with sth', ru: 'продолжать заниматься чем-то' },
+    ],
+    questions: [
+      {
+        q: 'Which draft was actually sent?',
+        options: ['The first', 'The third', 'The fourth', 'None of them'],
+        correct: 2,
+      },
+      {
+        q: 'What is the third draft’s message?',
+        options: [
+          'An apology',
+          'That he has started three times — and that this is itself the message',
+          'A request to meet',
+          'A description of the town',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why were the unsent drafts not folded?',
+        options: [
+          'The paper was thick',
+          'Because they were never put in an envelope — nobody was to receive them',
+          'He folded them later',
+          'It is not explained',
+        ],
+        correct: 1,
+        why: 'Одна деталь — несложенная бумага — сообщает всё: письма не дошли не потому, что потерялись, а потому, что их не отправляли.',
+      },
+      {
+        q: 'What surprises the narrator most?',
+        options: [
+          'That he kept them',
+          'That he did not know he had kept them',
+          'That they were in a book',
+          'That the answer was warm',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Назови меня своим именем, 4: звонок через двадцать лет ─────────────────
+  {
+    id: 'sc-cmbyn-4',
+    workId: 'aciman-cmbyn',
+    lang: 'en', title: 'Звонок через двадцать лет', level: 'C1', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Последняя часть романа — про то, как разговаривают люди, у которых общее прошлое и никакого общего настоящего. Ниже наш текст в этом регистре: телефонный разговор, в котором почти всё уходит на согласование дат.',
+    body: `“It’s me.”
+“I know. I still have the number.”
+“You still have the number.”
+“I have the same phone. It is not sentiment, it is inertia.”
+“That is what sentiment is, mostly.”
+
+A pause of the kind that costs money on an international line.
+
+“I’m in the city on the fourteenth,” he said. “Through to the seventeenth. There’s a thing on the fifteenth I can’t move, and the sixteenth I’m free until about four.”
+“The sixteenth is bad.”
+“Then the seventeenth, early. I fly at two.”
+“The seventeenth early is fine.”
+“Good. That’s good.”
+
+Neither of us said anything about the fact that we had just spent forty seconds on a calendar and none at all on twenty years.
+
+“How is—” he began, and named someone, correctly, which meant he had kept track, which meant something.
+“Well. She’s well. And yours?”
+“The same. Older. Everyone is older, it turns out. Nobody warned me it happened at the same speed to everybody.”
+
+I laughed, which I had not expected to do.
+
+“Seventeenth,” he said. “I’ll come to you. Don’t book anywhere. Let’s just be somewhere with chairs.”`,
+    translation: `— Это я.
+— Я знаю. У меня всё ещё есть номер.
+— У тебя всё ещё есть номер.
+— У меня тот же телефон. Это не сентиментальность, это инерция.
+— В основном сентиментальность и есть инерция.
+
+Пауза того рода, который на международной линии стоит денег.
+
+— Я в городе четырнадцатого, — сказал он. — И до семнадцатого. Пятнадцатого есть дело, которое не сдвинуть, а шестнадцатого я свободен часов до четырёх.
+— Шестнадцатое плохо.
+— Тогда семнадцатого, с утра. Улетаю в два.
+— Семнадцатого с утра годится.
+— Хорошо. Это хорошо.
+
+Ни один из нас не сказал ни слова о том, что мы только что потратили сорок секунд на календарь и нисколько — на двадцать лет.
+
+— Как… — начал он и назвал человека, правильно, а значит, следил, а значит, это что-то значило.
+— Хорошо. У неё всё хорошо. А у вас?
+— Так же. Старше. Все, оказывается, старше. Меня никто не предупредил, что это происходит со всеми с одинаковой скоростью.
+
+Я засмеялся, чего от себя не ждал.
+
+— Семнадцатого, — сказал он. — Я приеду к тебе. Никуда не заказывай столик. Давай просто окажемся где-нибудь, где есть стулья.`,
+    glossary: [
+      { term: 'inertia', ru: 'инерция' },
+      { term: 'sentiment', ru: 'сентиментальность, чувство' },
+      { term: 'through to', ru: 'вплоть до (о датах)' },
+      { term: 'I can’t move it', ru: 'это не сдвинуть, не перенести' },
+      { term: 'to keep track', ru: 'следить, быть в курсе' },
+      { term: 'it turns out', ru: 'оказывается' },
+      { term: 'to book', ru: 'заказать, забронировать' },
+      { term: 'at the same speed', ru: 'с одинаковой скоростью' },
+    ],
+    questions: [
+      {
+        q: 'Why does he still have the same number?',
+        options: [
+          'Sentiment',
+          'Inertia — the same phone',
+          'He changed it recently',
+          'It is a work number',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which day do they finally agree on?',
+        options: ['The fourteenth', 'The fifteenth', 'The sixteenth', 'The seventeenth, early'],
+        correct: 3,
+      },
+      {
+        q: 'What does the narrator notice about the conversation?',
+        options: [
+          'That it was too short',
+          'That forty seconds went on the calendar and none on twenty years',
+          'That the line was bad',
+          'That they argued',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “Let’s just be somewhere with chairs” suggest?',
+        options: [
+          'He is tired',
+          'That the place must not matter — only that they sit down together',
+          'That restaurants are expensive',
+          'That he dislikes booking',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Лишь, 2: урок на чужом языке ───────────────────────────────────────────
+  {
+    id: 'sc-less-2',
+    workId: 'greer-less',
+    lang: 'en', title: 'Урок на чужом языке', level: 'B2', minutes: 4,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман — комедия о человеке, который объехал полмира, чтобы не пойти на одну свадьбу. Его фирменная беда: он уверен, что говорит по-немецки. Ниже наш текст в этом жанре — занятие, которое ведут на языке, которого ведущий не знает. Комизм тут грамматический, и он объяснён прямо в тексте.',
+    body: `He had told them he spoke German. He had told himself first, which is how these things begin.
+
+“Good morning,” he said. “I am happy to be here in your beautiful city of Berlin, and today we will speak about my novel, which I have written over five years and which has made me very poor.”
+
+Twenty faces looked back at him with the particular kindness of people watching a man walk into a glass door.
+
+What he had said, he learned afterwards, was that the novel had made him _very naked_. The German for poor and the German for naked are not close. They are not even neighbours. But he had reached for one and arrived at the other, the way you reach for a light switch in a strange house and find the wall.
+
+“Any questions?” he said.
+
+A young woman raised her hand. “Why naked?”
+
+“Because writing is the removal of everything that protects you,” he said, because he was a novelist, and because the sentence had been sitting in him for years waiting for exactly this accident, and because it was, when he heard himself say it, the truest thing he had said all week.
+
+They applauded. He had never been applauded in his own language.`,
+    translation: `Он сказал им, что говорит по-немецки. Сначала он сказал это себе — так эти истории и начинаются.
+
+— Доброе утро, — сказал он. — Я счастлив быть здесь, в вашем прекрасном городе Берлине, и сегодня мы поговорим о моём романе, который я писал пять лет и который сделал меня очень бедным.
+
+Двадцать лиц смотрели на него с той особой добротой, с какой смотрят на человека, идущего прямо в стеклянную дверь.
+
+Как он выяснил потом, сказал он, что роман сделал его _очень голым_. Немецкое «бедный» и немецкое «голый» не похожи. Они даже не соседи. Но он потянулся за одним и попал в другое — так тянешься к выключателю в чужом доме и попадаешь в стену.
+
+— Вопросы есть? — сказал он.
+
+Молодая женщина подняла руку:
+
+— Почему голым?
+
+— Потому что писать — значит снимать с себя всё, что тебя защищает, — сказал он; сказал потому, что был романистом, и потому, что эта фраза сидела в нём годами и ждала ровно такой оплошности, и потому, что, услышав себя, он понял: за всю неделю он не сказал ничего вернее.
+
+Ему аплодировали. На родном языке ему не аплодировали ни разу.`,
+    glossary: [
+      { term: 'to walk into a glass door', ru: 'идти прямо в стеклянную дверь' },
+      { term: 'afterwards', ru: 'потом, впоследствии' },
+      { term: 'naked', ru: 'голый' },
+      { term: 'to reach for sth', ru: 'потянуться за чем-то' },
+      { term: 'light switch', ru: 'выключатель' },
+      { term: 'removal', ru: 'снятие, удаление' },
+      { term: 'to protect', ru: 'защищать' },
+      { term: 'accident', ru: 'здесь: оплошность, случайность' },
+      { term: 'to applaud', ru: 'аплодировать' },
+    ],
+    questions: [
+      {
+        q: 'What did he mean to say?',
+        options: [
+          'That the novel made him famous',
+          'That the novel made him very poor',
+          'That the novel took five days',
+          'That he loves Berlin',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did he actually say?',
+        options: [
+          'That the novel made him very naked',
+          'That the novel made him very tired',
+          'Nothing at all',
+          'That he is German',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What image explains the mistake?',
+        options: [
+          'A map with no names',
+          'Reaching for a light switch in a strange house and finding the wall',
+          'A broken clock',
+          'A wrong train',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the audience applaud?',
+        options: [
+          'Out of politeness',
+          'Because his accidental word produced the truest sentence he had said all week',
+          'Because the class is over',
+          'Because he apologised',
+        ],
+        correct: 1,
+        why: 'Гриер строит комедию так, что ошибка оказывается точнее замысла. Смеются здесь не над героем, а вместе с ним.',
+      },
+    ],
+  },
+
+  // ── Лишь, 3: пересадка ─────────────────────────────────────────────────────
+  {
+    id: 'sc-less-3',
+    workId: 'greer-less',
+    lang: 'en', title: 'Пересадка', level: 'B2', minutes: 4,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина романа происходит в аэропортах, и это удобно: язык стойки регистрации везде одинаковый, и выучить его можно раз и навсегда. Ниже наш текст — сорванная стыковка. Комизм здесь в том, что каждая реплика сотрудницы формально безупречна.',
+    body: `“I’m sorry, sir, that flight has closed.”
+“It says on the board that it boards at nine forty.”
+“It boarded at nine forty. It closed at nine fifty-five. It is ten past ten.”
+“I was in the queue at nine fifty.”
+“You were in a queue at nine fifty. It was this queue.”
+
+She typed for a while. When people type at airports it is impossible to tell whether they are helping you or writing about you.
+
+“I can get you as far as Lisbon tonight,” she said, “and Lisbon to your destination tomorrow at six fifty in the morning.”
+“Six fifty.”
+“Six fifty.”
+“Is there anything that arrives before the ceremony? It is at four.”
+“Which ceremony, sir?”
+“A prize. It doesn’t matter. I am not going to win it.”
+
+She looked up for the first time.
+
+“Then you have plenty of time,” she said, and printed something, and slid it across, and it took me the whole walk to the gate to work out that she had upgraded me.`,
+    translation: `— Простите, сэр, посадка на этот рейс закрыта.
+— На табло написано, что посадка в девять сорок.
+— Посадка началась в девять сорок. Закрылась в девять пятьдесят пять. Сейчас десять минут одиннадцатого.
+— Я стоял в очереди в девять пятьдесят.
+— Вы стояли в очереди в девять пятьдесят. Это была вот эта очередь.
+
+Она какое-то время печатала. Когда в аэропорту печатают, невозможно понять, помогают вам или пишут про вас.
+
+— Сегодня вечером могу довезти вас до Лиссабона, — сказала она, — а из Лиссабона до места завтра в шесть пятьдесят утра.
+— Шесть пятьдесят.
+— Шесть пятьдесят.
+— А есть что-нибудь, что прилетает до церемонии? Она в четыре.
+— Какой церемонии, сэр?
+— Премия. Неважно. Я её не получу.
+
+Она впервые подняла глаза.
+
+— Тогда у вас куча времени, — сказала она, что-то распечатала и придвинула ко мне, и мне понадобилась вся дорога до выхода на посадку, чтобы сообразить, что она повысила мне класс.`,
+    glossary: [
+      { term: 'the flight has closed', ru: 'посадка на рейс закрыта' },
+      { term: 'board (n.)', ru: 'табло' },
+      { term: 'to board', ru: 'производить посадку' },
+      { term: 'queue', ru: 'очередь (брит.); в США line' },
+      { term: 'as far as', ru: 'до (о пределе маршрута)' },
+      { term: 'destination', ru: 'пункт назначения' },
+      { term: 'ceremony', ru: 'церемония' },
+      { term: 'to slide sth across', ru: 'придвинуть, толкнуть по стойке' },
+      { term: 'to upgrade sb', ru: 'повысить класс обслуживания' },
+    ],
+    questions: [
+      {
+        q: 'Why could he not board?',
+        options: [
+          'The flight was cancelled',
+          'The flight closed at nine fifty-five and he arrived after ten',
+          'He had no ticket',
+          'His passport had expired',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the joke in “You were in a queue at nine fifty”?',
+        options: [
+          'She misheard him',
+          'She agrees with the fact and denies its relevance',
+          'She is being rude',
+          'There was no queue',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does he say about the prize?',
+        options: [
+          'That he will certainly win',
+          'That it does not matter — he is not going to win it',
+          'That it is very important',
+          'That he does not know what it is for',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the clerk do at the end?',
+        options: [
+          'Refuses to help',
+          'Upgrades him without saying so',
+          'Charges him a fee',
+          'Sends him to another desk',
+        ],
+        correct: 1,
+        why: 'Она не объявляет о своём поступке — герой понимает это по дороге. У Гриера доброта в романе почти всегда выглядит как канцелярская процедура.',
+      },
+    ],
+  },
+
+  // ── Лишь, 4: день рождения в чужом городе ──────────────────────────────────
+  {
+    id: 'sc-less-4',
+    workId: 'greer-less',
+    lang: 'en', title: 'День рождения в чужом городе', level: 'B2', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Герой романа бежит от круглой даты примерно так же, как от свадьбы, — и дата, разумеется, догоняет его в поездке. Ниже наш текст в этом регистре: комическая грусть, которая ни разу не называет себя грустью.',
+    body: `He turned fifty in a city where he knew four words, and two of them were the same word said politely.
+
+He had planned for this. He had planned to be somewhere with no reason to mention it, among people with no way of finding out, and he had succeeded so completely that by seven in the evening he was sitting alone in a restaurant with a menu he could not read, being extremely successful.
+
+He ordered by pointing. What arrived was a fish with its head still attached, looking at him with what he chose to interpret as respect.
+
+“Alone?” said the waiter, in English, cheerfully, as though it were an achievement.
+“Alone,” he agreed.
+“Is good. Table for one, best table. Nobody argue.”
+
+He had not thought of it that way, and it improved things slightly.
+
+At nine his phone rang, and it was his sister, who had worked out the time difference wrongly and was therefore, for the first time in her life, early. She sang. She sang the whole song, badly, in a restaurant-quiet room, while the waiter watched with open approval and the fish looked on.
+
+“You’re fifty,” she said afterwards.
+“I am aware.”
+“It’s not so bad.”
+“You are forty-six.”
+“Yes,” she said. “But I have seen photographs of the future and you look fine.”`,
+    translation: `Пятьдесят ему исполнилось в городе, где он знал четыре слова, и два из них были одним и тем же словом, сказанным вежливо.
+
+Он это спланировал. Он планировал оказаться там, где не будет повода об этом упомянуть, среди людей, у которых нет способа это выяснить, — и преуспел настолько полно, что к семи вечера сидел один в ресторане с меню, которого не мог прочесть, и был чрезвычайно успешен.
+
+Он заказал, ткнув пальцем. Принесли рыбу с головой, и она смотрела на него с тем, что он предпочёл истолковать как уважение.
+
+— Один? — сказал официант по-английски, бодро, как будто это было достижение.
+— Один, — согласился он.
+— Это хорошо. Столик на одного — лучший столик. Никто не спорит.
+
+Он об этом так не думал, и от этого стало чуть легче.
+
+В девять зазвонил телефон: сестра, которая неверно посчитала разницу во времени и потому впервые в жизни позвонила рано. Она спела. Спела песню целиком, плохо, в ресторанной тишине, а официант смотрел с откровенным одобрением, и рыба смотрела тоже.
+
+— Тебе пятьдесят, — сказала она после.
+— Я в курсе.
+— Это не так уж страшно.
+— Тебе сорок шесть.
+— Да, — сказала она. — Но я видела фотографии будущего, и ты там отлично выглядишь.`,
+    glossary: [
+      { term: 'to turn fifty', ru: 'исполниться пятьдесят' },
+      { term: 'to plan for sth', ru: 'предусмотреть, подготовиться к чему-то' },
+      { term: 'to succeed', ru: 'преуспеть, добиться своего' },
+      { term: 'to order by pointing', ru: 'заказывать, показывая пальцем' },
+      { term: 'attached', ru: 'прикреплённый; here: голова не отрезана' },
+      { term: 'to interpret sth as', ru: 'истолковать что-то как' },
+      { term: 'achievement', ru: 'достижение' },
+      { term: 'time difference', ru: 'разница во времени' },
+      { term: 'open approval', ru: 'откровенное одобрение' },
+    ],
+    questions: [
+      {
+        q: 'How many words did he know in that city?',
+        options: ['None', 'Four, two of which were the same word', 'Ten', 'Enough to order'],
+        correct: 1,
+      },
+      {
+        q: 'How did he order dinner?',
+        options: ['In English', 'By pointing', 'The waiter chose', 'He did not eat'],
+        correct: 1,
+      },
+      {
+        q: 'What does the waiter say about a table for one?',
+        options: [
+          'That it is sad',
+          'That it is the best table, because nobody argues',
+          'That it costs more',
+          'That it is not allowed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why was his sister early for once?',
+        options: [
+          'She set an alarm',
+          'She worked out the time difference wrongly',
+          'She was awake anyway',
+          'She was in the same city',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Молодой Мунго, 2: кухня ────────────────────────────────────────────────
+  {
+    id: 'sc-young-mungo-2',
+    workId: 'stuart-young-mungo',
+    lang: 'en', title: 'Кухня в четверг', level: 'C1', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман написан на глазговском говоре, и он не декоративный: в нём слышно, кто откуда и кто с кем. Ниже наш текст в том же регистре. Здесь стоит смотреть на написание — ye вместо you, cannae вместо can’t, wee вместо little: так эту речь записывают, и так её надо уметь читать.',
+    body: `“Is there anything in?”
+“There’s bread.”
+“Is there anything on the bread?”
+“There’s bread, Mungo. That’s the answer to both.”
+
+She was at the table with her coat still on, which meant she had come in and sat down and not got up again, which meant it was one of those weeks.
+
+“Ah’ll go doon the shop,” he said.
+“Wi’ what?”
+“Ah’ve got two pound.”
+“Where did ye get two pound?”
+“Ah just have it.”
+“Naebody just has it.”
+
+He did not tell her. He had carried an old woman’s messages up three flights on Tuesday and she had pressed the coins into his hand and closed his fingers over them, the way you do when you do not want to be argued with.
+
+“Get milk,” she said at last. “And get the wee loaf, no the big one, the big one goes green.”
+“Aye.”
+“And Mungo—”
+“Aye?”
+“Don’t be telling yer brother about the two pound.”
+
+That was the whole of it. She did not ask where he had been, and he did not ask why the coat was still on, and between those two questions there was a kind of treaty that had been holding for years.`,
+    translation: `— Есть чего-нибудь?
+— Хлеб есть.
+— А на хлеб есть чего-нибудь?
+— Хлеб есть, Манго. Это ответ на оба вопроса.
+
+Она сидела за столом в пальто — значит, вошла, села и больше не вставала, значит, неделя была из тех самых.
+
+— Схожу в магазин, — сказал он.
+— На что?
+— У меня два фунта.
+— Откуда у тебя два фунта?
+— Просто есть.
+— Ни у кого просто не бывает.
+
+Он ей не сказал. Во вторник он таскал одной старухе покупки на третий этаж, и она вложила ему монеты в руку и сжала его пальцы поверх них — так делают, когда не хотят, чтобы с ними спорили.
+
+— Возьми молока, — сказала она наконец. — И маленькую буханку, не большую, большая зеленеет.
+— Ага.
+— И, Манго…
+— Ага?
+— Про два фунта брату не говори.
+
+Вот и всё. Она не спросила, где он был, а он не спросил, почему пальто не снято, и между этими двумя вопросами держался договор, работавший уже который год.`,
+    glossary: [
+      { term: 'Is there anything in?', ru: 'есть ли что-нибудь в доме (из еды)' },
+      { term: 'doon = down', ru: 'глазговское написание' },
+      { term: 'wi’ = with', ru: 'глазговское написание' },
+      { term: 'naebody = nobody', ru: 'глазговское написание' },
+      { term: 'wee', ru: 'маленький — шотландское, употребляется постоянно' },
+      { term: 'aye', ru: 'да (шотл.)' },
+      { term: 'messages', ru: 'в Шотландии: покупки, продукты' },
+      { term: 'flight (of stairs)', ru: 'лестничный пролёт' },
+      { term: 'loaf', ru: 'буханка' },
+      { term: 'treaty', ru: 'договор, соглашение' },
+    ],
+    questions: [
+      {
+        q: 'What does “There’s bread. That’s the answer to both” mean?',
+        options: [
+          'There is bread and butter',
+          'There is bread and nothing to put on it',
+          'The bread is finished',
+          'She will buy more',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How did Mungo get the two pounds?',
+        options: [
+          'He stole them',
+          'He carried an old woman’s shopping up three flights',
+          'His brother gave them',
+          'He found them',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is it significant that her coat is still on?',
+        options: [
+          'The flat is cold',
+          'It means she came in, sat down and never got up — a bad week',
+          'She is about to leave',
+          'It is new',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the “treaty” between them?',
+        options: [
+          'A written agreement',
+          'That neither asks the question the other cannot answer',
+          'A deal about money',
+          'A promise to the brother',
+        ],
+        correct: 1,
+        why: 'Стюарт почти никогда не объясняет отношения прямо. Здесь всё сказано через два невысказанных вопроса.',
+      },
+    ],
+  },
+
+  // ── Молодой Мунго, 3: у воды ───────────────────────────────────────────────
+  {
+    id: 'sc-young-mungo-3',
+    workId: 'stuart-young-mungo',
+    lang: 'en', title: 'У воды', level: 'C1', minutes: 4,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Второй регистр романа — вежливость, под которой ходит угроза. Слова все правильные, интонация ровная, и от этого страшно. Ниже наш текст: подросток на озере с двумя взрослыми, которых он видит второй раз в жизни. Смотрите, как часто они называют его по имени.',
+    body: `“You’ll like it up here, son. Nobody bothers ye.”
+“It’s awful quiet.”
+“That’s what Ah said. Nobody bothers ye.”
+
+The loch was the colour of a coat. There were midges over the water in a column, turning, like the water was thinking about something.
+
+“Have ye fished before, Mungo?”
+“No.”
+“Ye’ll pick it up. Everybody picks it up. It’s no complicated, it’s just patient.”
+“How long do we stay?”
+“Two nights. Ye were telt two nights.”
+“Ah know. Ah just wondered.”
+“Ye just wondered.” He said it back slowly, the way a man repeats a word to see how much it weighs. “Ye’re a wonderer, are ye.”
+
+The other one laughed at that, though nothing had been funny, and went on knotting the line.
+
+“Sit doon, Mungo,” the first one said. “Ye’re standing there like the bus is coming.”
+
+There was no bus. That was the thing about the place, and he had known it since the road ran out: there was no bus, and no phone box, and the last house had been forty minutes back, and he had watched it go past the window and had not been able to think of a single reason to say stop.`,
+    translation: `— Тебе тут понравится, сынок. Никто не пристаёт.
+— Тихо очень.
+— Я то же самое и сказал. Никто не пристаёт.
+
+Озеро было цвета пальто. Над водой стояла столбом мошкара и кружила, будто вода о чём-то думала.
+
+— Ты раньше рыбачил, Манго?
+— Нет.
+— Научишься. Все научаются. Это не сложно, это просто терпеливо.
+— Мы надолго тут?
+— Две ночи. Тебе сказали — две ночи.
+— Я знаю. Я просто поинтересовался.
+— Просто поинтересовался. — Он повторил это медленно, как повторяют слово, чтобы прикинуть, сколько оно весит. — Стало быть, ты у нас интересующийся.
+
+Второй на это засмеялся, хотя смешного ничего не было, и продолжил вязать леску.
+
+— Садись, Манго, — сказал первый. — Стоишь так, будто автобуса ждёшь.
+
+Автобуса не было. В этом и была вся штука с этим местом, и он понял её ещё там, где кончилась дорога: автобуса нет, и телефонной будки нет, и последний дом остался в сорока минутах позади, и он видел, как тот проплыл за окном, и не смог придумать ни единой причины сказать «остановите».`,
+    glossary: [
+      { term: 'to bother sb', ru: 'приставать, донимать' },
+      { term: 'awful (adv.)', ru: 'разг. очень, ужасно' },
+      { term: 'loch', ru: 'озеро (шотл.)' },
+      { term: 'midge', ru: 'мошка; шотландский бич' },
+      { term: 'to pick sth up', ru: 'научиться чему-то само собой' },
+      { term: 'telt = told', ru: 'глазговская форма' },
+      { term: 'to knot the line', ru: 'вязать леску' },
+      { term: 'sit doon = sit down', ru: 'глазговское написание' },
+      { term: 'the road ran out', ru: 'дорога кончилась' },
+      { term: 'phone box', ru: 'телефонная будка' },
+    ],
+    questions: [
+      {
+        q: 'What is repeated twice in the first exchange?',
+        options: [
+          '“It’s quiet”',
+          '“Nobody bothers ye”',
+          '“Ye’ll like it”',
+          '“Two nights”',
+        ],
+        correct: 1,
+        why: 'Фраза сначала звучит как обещание покоя, а после повтора — как сообщение о том, что помощи ждать неоткуда.',
+      },
+      {
+        q: 'What happens when Mungo says he “just wondered”?',
+        options: [
+          'He is answered',
+          'His words are repeated back slowly and turned into a label',
+          'He is ignored',
+          'He is praised',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the second man laugh?',
+        options: [
+          'Something was funny',
+          'Nothing was funny — the laugh is part of the pressure',
+          'He was told a joke earlier',
+          'He is nervous',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Mungo realise about the place?',
+        options: [
+          'It is beautiful',
+          'There is no bus, no phone box, and the last house is forty minutes back',
+          'He has been here before',
+          'They will leave early',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Молодой Мунго, 4: школьный коридор ─────────────────────────────────────
+  {
+    id: 'sc-young-mungo-4',
+    workId: 'stuart-young-mungo',
+    lang: 'en', title: 'Коридор', level: 'B2', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Третий регистр — школьный, и он у Стюарта устроен как техника безопасности: где идти, куда смотреть, с кем не встречаться глазами. Ниже наш текст об этом. Английский здесь простой, а сведения в нём — про то, как устроен день человека, которого лучше не замечать.',
+    body: `There were rules and nobody had written them down, which is how you knew they were serious.
+
+Rule one: the corridor by the science rooms is fine until half eleven and is not fine after. Rule two: the boys’ toilets on the ground floor are never fine. Rule three: if you are carrying something, carry it in both arms in front of you, because a bag on one shoulder can be pulled and a bag in your arms cannot, not quickly.
+
+Rule four, which was the important one: do not walk fast. Walking fast is a message. Walking fast says that you have understood the situation, and once they know you have understood it, the game becomes better for them.
+
+So he walked at the speed of a boy with nothing on his mind, past the science rooms at twenty past eleven, looking at the noticeboard as though the noticeboard had something on it.
+
+Miss Kerr came out of the staff room and said, “Mungo, you’re not in a rush,” and he said, “No, miss,” and she said, “Good lad,” and went on, and he stood there for a second with the extraordinary feeling of having been seen and not found.`,
+    translation: `Правила были, и никто их не записывал, — по этому и понимаешь, что они серьёзные.
+
+Правило первое: коридор у кабинетов естествознания годится до половины двенадцатого и не годится после. Правило второе: туалет для мальчиков на первом этаже не годится никогда. Правило третье: если что-то несёшь, неси обеими руками перед собой, потому что сумку на одном плече можно дёрнуть, а сумку в руках — нет, во всяком случае не быстро.
+
+Правило четвёртое, оно же главное: не ходи быстро. Быстрый шаг — это сообщение. Быстрый шаг говорит, что ты понял, как обстоят дела, а как только им станет известно, что ты понял, игра для них сделается интереснее.
+
+И он шёл со скоростью мальчика, у которого нет ничего на уме, мимо кабинетов естествознания в двадцать минут двенадцатого, глядя на доску объявлений так, будто на доске что-то было.
+
+Мисс Керр вышла из учительской и сказала: «Манго, ты не торопишься», и он сказал: «Нет, мисс», и она сказала: «Молодец», и пошла дальше, а он постоял секунду с необыкновенным чувством, что его увидели и не нашли.`,
+    glossary: [
+      { term: 'to write sth down', ru: 'записать' },
+      { term: 'corridor', ru: 'коридор' },
+      { term: 'ground floor', ru: 'первый этаж (брит.); в США first floor' },
+      { term: 'to be pulled', ru: 'быть сдёрнутым' },
+      { term: 'to be in a rush', ru: 'торопиться' },
+      { term: 'noticeboard', ru: 'доска объявлений' },
+      { term: 'staff room', ru: 'учительская' },
+      { term: 'good lad', ru: 'молодец, парень (брит., одобрительно)' },
+      { term: 'extraordinary', ru: 'необыкновенный' },
+    ],
+    questions: [
+      {
+        q: 'Why does the narrator say the rules are serious?',
+        options: [
+          'They are in the school handbook',
+          'Because nobody has written them down',
+          'A teacher explained them',
+          'They are posted on the noticeboard',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why carry a bag in both arms?',
+        options: [
+          'It is more comfortable',
+          'A bag on one shoulder can be pulled',
+          'It looks tidier',
+          'The strap is broken',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must he not walk fast?',
+        options: [
+          'It is against the rules',
+          'Walking fast shows he has understood the situation',
+          'He would be late',
+          'The floor is slippery',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is “seen and not found”?',
+        options: [
+          'A teacher noticed him kindly without noticing his trouble',
+          'He was caught',
+          'Nobody saw him',
+          'He was praised for his work',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Маленький принц, 3: магазин готовых вещей ──────────────────────────────
+  {
+    id: 'sc-prince-en-3',
+    workId: 'prince-en',
+    lang: 'en', title: 'The shop that sells finished things', level: 'A2', minutes: 3,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему книги', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Регистр этой книги — очень простые слова и очень прямые вопросы. Ниже наш текст в том же ключе: разговор в магазине. Грамматика тут уровня A2, а разговор — не совсем про покупку.',
+    body: `In the shop everything was already made.
+
+“What is this one?” I asked.
+“A kite,” said the man. “It is finished. You take it home and you fly it.”
+“And this box?”
+“A kite too. But in the box there are sticks and paper and string, and you make it.”
+“Which one is better?”
+“The finished one is better. It flies today.”
+“And the box?”
+“The box flies on Saturday. Maybe.”
+
+I looked at the two boxes for a long time.
+
+“I will take the box,” I said.
+“Why? You said you want to fly a kite.”
+“I want to fly _my_ kite,” I said. “The other one is your kite. You only sell it to me.”
+
+The man laughed, but not in a bad way, and he put the box in a bag.
+
+“On Saturday,” he said, “come and tell me if it flew.”
+
+It did not fly on Saturday. It flew on Sunday, badly, for about four minutes. I have never wanted anything as much as I wanted those four minutes.`,
+    translation: `В магазине всё было уже готовое.
+
+— А это что? — спросил я.
+— Воздушный змей, — сказал продавец. — Он готовый. Несёшь домой и запускаешь.
+— А эта коробка?
+— Тоже змей. Только в коробке палочки, бумага и верёвка, и ты его делаешь.
+— А какой лучше?
+— Готовый лучше. Он полетит сегодня.
+— А коробка?
+— Коробка полетит в субботу. Может быть.
+
+Я долго смотрел на две коробки.
+
+— Я возьму коробку, — сказал я.
+— Почему? Ты же сказал, что хочешь запустить змея.
+— Я хочу запустить _своего_ змея, — сказал я. — Тот, другой, — ваш змей. Вы мне его только продаёте.
+
+Продавец засмеялся, но не обидно, и положил коробку в пакет.
+
+— В субботу, — сказал он, — приходи и расскажи, полетел ли.
+
+В субботу он не полетел. Он полетел в воскресенье, плохо, минуты четыре. Я никогда ничего не хотел так сильно, как хотел этих четырёх минут.`,
+    glossary: [
+      { term: 'kite', ru: 'воздушный змей' },
+      { term: 'finished', ru: 'готовый, законченный' },
+      { term: 'stick', ru: 'палочка' },
+      { term: 'string', ru: 'верёвка, бечёвка' },
+      { term: 'to fly a kite', ru: 'запускать змея' },
+      { term: 'maybe', ru: 'может быть' },
+      { term: 'not in a bad way', ru: 'не обидно, по-доброму' },
+      { term: 'badly', ru: 'плохо' },
+      { term: 'as much as', ru: 'так же сильно, как' },
+    ],
+    questions: [
+      {
+        q: 'What are the two things in the shop?',
+        options: [
+          'Two finished kites',
+          'A finished kite and a box you build a kite from',
+          'A kite and a bag',
+          'Paper and string only',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which one does the boy choose?',
+        options: ['The finished one', 'The box', 'Neither', 'Both'],
+        correct: 1,
+      },
+      {
+        q: 'What is his reason?',
+        options: [
+          'The box is cheaper',
+          'The finished kite would be the man’s kite, not his',
+          'He likes boxes',
+          'The finished one was broken',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'When did the kite finally fly?',
+        options: ['Saturday', 'Sunday, badly, for four minutes', 'It never flew', 'The same day'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Маленький принц, 4: «потом» ────────────────────────────────────────────
+  {
+    id: 'sc-prince-en-4',
+    workId: 'prince-en',
+    lang: 'en', title: 'The word “later”', level: 'A2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему книги', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ещё один наш текст в том же простом регистре — про слово, которым взрослые пользуются чаще всего. Здесь удобно посмотреть, как в английском устроены ответы про время: later, in a minute, soon, one day. Ни один из них не называет времени.',
+    body: `Grown-ups have one word they use more than all the other words. The word is _later_.
+
+“Can we go to the sea?”
+“Later.”
+“Can you look at my drawing?”
+“In a minute.”
+“Is a minute the same as later?”
+“…Yes.”
+
+I made a list, because I wanted to be fair. Here is the list.
+
+_Later_ means: not now, and I am not saying when.
+_In a minute_ means: later, but I want you to stop asking.
+_Soon_ means: later, but I feel bad about it.
+_One day_ means: never, said kindly.
+_We’ll see_ means: no.
+
+I showed the list to my grandmother. She read it twice. Then she put on her coat.
+
+“Where are we going?” I said.
+“To the sea,” she said. “It is Tuesday and it will be cold and there will be nobody there and it is a very stupid idea.”
+
+We went. It was cold and there was nobody there. She was right about all of it.
+
+On the way home she said, “Do not show that list to your mother.” Then she said, “Keep it, though.”`,
+    translation: `У взрослых есть одно слово, которым они пользуются чаще всех остальных. Это слово — _потом_.
+
+— Можно поехать на море?
+— Потом.
+— Посмотришь мой рисунок?
+— Через минутку.
+— «Минутка» — это то же, что «потом»?
+— …Да.
+
+Я составил список, потому что хотел быть справедливым. Вот список.
+
+_Потом_ значит: не сейчас, и я не говорю когда.
+_Через минутку_ значит: потом, но я хочу, чтобы ты перестал спрашивать.
+_Скоро_ значит: потом, но мне из-за этого неловко.
+_Когда-нибудь_ значит: никогда, сказанное по-доброму.
+_Посмотрим_ значит: нет.
+
+Я показал список бабушке. Она прочла его дважды. Потом надела пальто.
+
+— Куда мы? — сказал я.
+— На море, — сказала она. — Сегодня вторник, будет холодно, там никого не будет, и это очень глупая затея.
+
+Мы поехали. Было холодно, и там никого не было. Она оказалась права во всём.
+
+По дороге домой она сказала: «Маме этот список не показывай». А потом сказала: «Но сохрани».`,
+    glossary: [
+      { term: 'grown-ups', ru: 'взрослые' },
+      { term: 'later', ru: 'потом, позже' },
+      { term: 'in a minute', ru: 'через минутку' },
+      { term: 'soon', ru: 'скоро' },
+      { term: 'one day', ru: 'когда-нибудь' },
+      { term: 'we’ll see', ru: 'посмотрим' },
+      { term: 'to be fair', ru: 'быть справедливым' },
+      { term: 'to put on a coat', ru: 'надеть пальто' },
+      { term: 'stupid idea', ru: 'глупая затея' },
+    ],
+    questions: [
+      {
+        q: 'Which word do grown-ups use most, according to the child?',
+        options: ['No', 'Later', 'Please', 'Tomorrow'],
+        correct: 1,
+      },
+      {
+        q: 'What does “one day” mean on the list?',
+        options: ['Tomorrow', 'Never, said kindly', 'In a week', 'Today'],
+        correct: 1,
+      },
+      {
+        q: 'What does the grandmother do after reading the list?',
+        options: [
+          'She laughs',
+          'She puts on her coat and takes him to the sea',
+          'She corrects it',
+          'She says “later”',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What two things does she say on the way home?',
+        options: [
+          'That the sea was warm and that they will return',
+          'Not to show the list to his mother — and to keep it',
+          'That she was wrong',
+          'Nothing',
+        ],
+        correct: 1,
+        why: 'Две реплики подряд противоречат друг другу только на вид: не показывай — и сохрани. Взрослый здесь впервые не отделывается словом «потом».',
+      },
+    ],
+  },
+
+  // ── С любовью, Саймон, 2: групповой чат ────────────────────────────────────
+  {
+    id: 'sc-love-simon-2',
+    workId: 'love-simon-film',
+    lang: 'en', title: 'Групповой чат в 22:40', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина фильма — переписка, и подростковый письменный английский устроен не так, как устный: пропадают подлежащие, точка в конце фразы читается как раздражение, а заглавные буквы означают крик. Ниже наш текст в этом жанре.',
+    body: `[group chat: WAFFLE HOUSE 4EVER]
+
+nick: so are we doing this or not
+abby: doing WHAT
+nick: the thing. the play thing. leah said we said we would
+leah: i said no such thing
+leah: i said if simon was doing it i would think about it
+simon: cool cool cool no pressure
+abby: SIMON
+simon: what
+abby: you literally signed us up. i saw the sheet
+simon: i signed ME up
+simon: your names may have been near my name
+leah: near.
+simon: geographically near
+nick: bro
+abby: ok but rehearsal is thursday and i have practice thursday
+nick: swap with the sophomore
+abby: i cannot “swap with the sophomore”, that is not a thing that exists
+leah: it is if you ask nicely
+abby: i asked nicely in september and she cried
+nick: ok so thursday is out
+simon: friday?
+leah: friday i’m free
+nick: friday i’m free
+abby: friday i’m free
+simon: was that so hard
+leah: yes
+abby: yes
+nick: yes`,
+    translation: `[групповой чат: WAFFLE HOUSE 4EVER]
+
+ник: так мы это делаем или нет
+эбби: делаем ЧТО
+ник: ну то самое. с пьесой. лия сказала что мы вроде согласились
+лия: ничего такого я не говорила
+лия: я сказала что если саймон пойдёт то я подумаю
+саймон: класс класс класс никакого давления
+эбби: САЙМОН
+саймон: что
+эбби: ты буквально нас записал. я видела список
+саймон: я записал СЕБЯ
+саймон: ваши имена, возможно, оказались рядом с моим
+лия: рядом.
+саймон: географически рядом
+ник: бро
+эбби: ладно но репетиция в четверг а у меня в четверг тренировка
+ник: поменяйся с младшей
+эбби: я не могу «поменяться с младшей», такого явления не существует
+лия: существует, если попросить по-хорошему
+эбби: я просила по-хорошему в сентябре, и она расплакалась
+ник: ну значит четверг отпадает
+саймон: пятница?
+лия: в пятницу я свободна
+ник: в пятницу я свободен
+эбби: в пятницу я свободна
+саймон: и что, так трудно было
+лия: да
+эбби: да
+ник: да`,
+    glossary: [
+      { term: 'are we doing this or not', ru: 'мы это делаем или нет' },
+      { term: 'no pressure', ru: 'без давления (обычно с иронией)' },
+      { term: 'literally', ru: 'буквально; в речи подростков — усилитель' },
+      { term: 'to sign sb up', ru: 'записать кого-то (в список)' },
+      { term: 'sheet', ru: 'здесь: лист записи, список' },
+      { term: 'sophomore', ru: 'ученик второго года (США)' },
+      { term: 'to swap with sb', ru: 'поменяться с кем-то' },
+      { term: 'that is not a thing', ru: 'такого не бывает (разг.)' },
+      { term: 'to be out', ru: 'отпадать, не подходить' },
+      { term: 'was that so hard', ru: '«и что, так трудно было?»' },
+    ],
+    questions: [
+      {
+        q: 'What did Simon actually sign up for?',
+        options: [
+          'All four of them',
+          'Only himself — the other names were “geographically near”',
+          'Nothing',
+          'The swim practice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does Leah write “near.” as a separate message?',
+        options: [
+          'She made a typo',
+          'The full stop turns the word into a challenge',
+          'She is asking a question',
+          'She is agreeing',
+        ],
+        correct: 1,
+        why: 'В подростковой переписке точка в конце короткого сообщения читается как холод или раздражение. Без точки та же фраза звучала бы нейтрально.',
+      },
+      {
+        q: 'Why can’t Abby swap with the sophomore?',
+        options: [
+          'She tried in September and the girl cried',
+          'The rules forbid it',
+          'She does not know her',
+          'The coach said no',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What day do they finally agree on?',
+        options: ['Thursday', 'Friday', 'Saturday', 'They do not agree'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── С любовью, Саймон, 3: анонимно на школьном форуме ──────────────────────
+  {
+    id: 'sc-love-simon-3',
+    workId: 'love-simon-film',
+    lang: 'en', title: 'Анонимный пост', level: 'B1', minutes: 3,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Завязка фильма — анонимный пост на школьном сайте, на который герой решает ответить. Ниже наш текст в том же жанре: пост и два ответа под ним. Здесь удобно посмотреть, как по-английски пишут о себе, когда не хотят себя назвать.',
+    body: `CREEKSECRETS — anonymous posts by students of Creekwood High
+
+Posted by: Blue
+
+Sometimes I feel like I’m on a Ferris wheel. Up and down all day, and everyone in the queue below thinks it looks fun.
+
+Nobody at this school knows one true thing about me. Not one. I have a locker, a timetable, a lunch table, and a face I put on in the car park at 7:40 every morning, and none of those things are me. I am not sad about it exactly. It is more like carrying something heavy for so long that you forget you are carrying it, and then one day someone offers to hold your bag and you nearly cry in front of the vending machine.
+
+I’m not asking for advice. I would just like to know that someone else is also on the Ferris wheel.
+
+— Blue
+
+REPLIES (2)
+
+Anonymous: same. every day. see you at the top
+
+Anonymous: this is fake. nobody talks like this
+
+Anonymous: ^ people talk like this when they are not being watched`,
+    translation: `CREEKSECRETS — анонимные записи учеников школы Криквуд
+
+Автор: Blue
+
+Иногда мне кажется, что я на колесе обозрения. Вверх-вниз весь день, а всем в очереди внизу это кажется весёлым.
+
+Никто в этой школе не знает обо мне ни одной настоящей вещи. Ни одной. У меня есть шкафчик, расписание, свой стол в столовой и лицо, которое я надеваю на парковке в 7:40 каждое утро, — и всё это не я. Я не то чтобы из-за этого грущу. Это скорее как нести что-то тяжёлое так долго, что забываешь, что несёшь, а потом однажды кто-то предлагает подержать твою сумку, и ты чуть не плачешь перед автоматом с едой.
+
+Я не прошу совета. Мне просто хотелось бы знать, что кто-то ещё тоже на колесе обозрения.
+
+— Blue
+
+ОТВЕТЫ (2)
+
+Аноним: то же самое. каждый день. увидимся на верхней точке
+
+Аноним: это фейк. так никто не разговаривает
+
+Аноним: ^ так разговаривают, когда за ними не следят`,
+    glossary: [
+      { term: 'Ferris wheel', ru: 'колесо обозрения' },
+      { term: 'queue', ru: 'очередь' },
+      { term: 'locker', ru: 'шкафчик в школе' },
+      { term: 'timetable', ru: 'расписание' },
+      { term: 'car park', ru: 'парковка (брит.); в США parking lot' },
+      { term: 'to put on a face', ru: 'надевать лицо, притворяться' },
+      { term: 'not… exactly', ru: 'не то чтобы…' },
+      { term: 'vending machine', ru: 'торговый автомат' },
+      { term: 'fake', ru: 'подделка, ненастоящее' },
+    ],
+    questions: [
+      {
+        q: 'What is the Ferris wheel a metaphor for?',
+        options: [
+          'A school trip',
+          'Going up and down all day while everyone below thinks it looks fun',
+          'A broken machine',
+          'A friendship',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the writer say about his face at 7:40?',
+        options: [
+          'He washes it',
+          'He puts it on in the car park — it is not really him',
+          'It is always the same',
+          'Nobody looks at it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is he asking for?',
+        options: [
+          'Advice',
+          'Only to know that someone else feels the same',
+          'Help from a teacher',
+          'A reply from a friend',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the third reply answer the accusation of being fake?',
+        options: [
+          'By agreeing',
+          'By saying people do talk like this when they are not being watched',
+          'By deleting the post',
+          'By naming the writer',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── С любовью, Саймон, 4: в машине с отцом ─────────────────────────────────
+  {
+    id: 'sc-love-simon-4',
+    workId: 'love-simon-film',
+    lang: 'en', title: 'В машине с отцом', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Лучшие разговоры в этом фильме происходят в машине — потому что там не надо смотреть друг на друга. Ниже наш текст в этом регистре: отец пытается извиниться и заходит с трёх сторон, прежде чем сказать прямо.',
+    body: `“You want the radio on?”
+“Not really.”
+“Okay.”
+
+Two streets.
+
+“That thing I said at dinner. About your friend. The joke.”
+“I know the one.”
+“It wasn’t— I want to say I didn’t mean it, but that’s a stupid thing to say, because I said it.”
+“You did say it.”
+“I said it because it’s the kind of thing I’ve been saying since I was fifteen and nobody ever stopped me, and that’s not an excuse, that’s just where it came from.”
+
+Another two streets. He indicated for a turn a long way before the turn.
+
+“How long have you been—” He stopped. “I’m going to ask that wrong however I ask it.”
+“Then ask it wrong.”
+“How long have you been carrying this on your own?”
+
+I looked out of the window because that is what the window is for.
+
+“A while,” I said.
+“Right,” he said. “Right.”
+
+He did not say anything else for the rest of the drive, and when we pulled in he turned the engine off and sat there with his hands still on the wheel.
+
+“I’d have been fine,” he said. “I want that on the record. I’d have been fine from the start. I’m just sorry you had no way of knowing that.”`,
+    translation: `— Включить радио?
+— Да не надо.
+— Ладно.
+
+Две улицы.
+
+— То, что я сказал за ужином. Про твоего друга. Шутка.
+— Я понял, какая.
+— Это не… Я хочу сказать, что не имел этого в виду, но говорить так глупо, потому что я это сказал.
+— Сказал.
+— Я сказал это потому, что говорю такое с пятнадцати лет и меня никто ни разу не остановил, и это не оправдание, это просто откуда оно взялось.
+
+Ещё две улицы. Он включил поворотник задолго до поворота.
+
+— Сколько ты уже… — Он остановился. — Я как ни спрошу, спрошу неправильно.
+— Тогда спроси неправильно.
+— Сколько ты уже несёшь это один?
+
+Я стал смотреть в окно, потому что окно для этого и есть.
+
+— Порядочно, — сказал я.
+— Ясно, — сказал он. — Ясно.
+
+Больше он всю дорогу ничего не говорил, а когда мы въехали во двор, заглушил двигатель и остался сидеть, не снимая рук с руля.
+
+— Я бы нормально это принял, — сказал он. — Хочу, чтобы это было зафиксировано. Я бы нормально принял это с самого начала. Мне просто жаль, что у тебя не было способа об этом узнать.`,
+    glossary: [
+      { term: 'not really', ru: 'да не особо, не очень' },
+      { term: 'to mean sth', ru: 'иметь в виду' },
+      { term: 'excuse', ru: 'оправдание' },
+      { term: 'to indicate', ru: 'включить поворотник (брит.)' },
+      { term: 'to carry sth on one’s own', ru: 'нести что-то в одиночку' },
+      { term: 'a while', ru: 'порядочно, довольно долго' },
+      { term: 'to pull in', ru: 'заехать, припарковаться' },
+      { term: 'the wheel', ru: 'руль' },
+      { term: 'on the record', ru: 'официально, для протокола' },
+    ],
+    questions: [
+      {
+        q: 'What is the father apologising for?',
+        options: [
+          'Being late',
+          'A joke he made at dinner',
+          'The radio',
+          'A phone call',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does he say “that’s not an excuse, that’s just where it came from”?',
+        options: [
+          'He is defending himself',
+          'He explains the origin without asking to be forgiven for it',
+          'He blames his own father',
+          'He is joking',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does he handle asking the difficult question?',
+        options: [
+          'He avoids it',
+          'He says he will ask it wrong however he asks it, and asks anyway',
+          'He asks the mother instead',
+          'He writes it down',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is his last regret?',
+        options: [
+          'That he made the joke',
+          'That his son had no way of knowing he would have been fine',
+          'That he did not ask sooner',
+          'That the drive was short',
+        ],
+        correct: 1,
+        why: 'Он извиняется не за реакцию, которой не было, а за то, что не подал сигнала заранее. Это точное описание того, чем отличается принятие от разрешения.',
+      },
+    ],
+  },
+
+  // ── Остановка сердца (сериал), 2: запись в секцию ──────────────────────────
+  {
+    id: 'sc-heartstopper-series-2',
+    workId: 'heartstopper-series',
+    lang: 'en', title: 'Запись в секцию регби', level: 'B1', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал британский, и школьный быт в нём британский: не clubs, а societies, не gym, а sports hall, не semester, а term. Ниже наш текст — объявление о наборе и три записи в списке. Здесь удобно выучить разницу между британской и американской школьной лексикой.',
+    body: `TRUHAM GRAMMAR SCHOOL — RUGBY, SPRING TERM
+
+Training: Tuesdays and Thursdays, 4:00–5:30 p.m., sports hall and back field.
+First match: 4 March, away, at Higgs.
+
+Open to Years 10 and 11. No experience required. If you have never played, come on Tuesday and say so; nobody will make a thing of it.
+
+You will need: boots (not trainers), a gum shield, and a signed permission slip if you are under sixteen. Kit can be borrowed for the first three sessions.
+
+Please do not sign up if you cannot make Tuesdays. Half a person is worse than no person, and we tried it last year.
+
+Sign below. Name, year, and one thing you are good at that is not rugby — I read them, and it helps me put people together.
+
+—— Mr Farouk, PE
+
+1. Nick Nelson, Y11 — remembering people’s names
+2. Charlie Spring, Y10 — running away from things very fast
+3. Tao Xu, Y10 — I am not good at anything outdoors and I am here for moral support only, please do not put me on the field`,
+    translation: `ГИМНАЗИЯ ТРУХЭМ — РЕГБИ, ВЕСЕННИЙ ТРИМЕСТР
+
+Тренировки: вторник и четверг, 16:00–17:30, спортзал и заднее поле.
+Первый матч: 4 марта, на выезде, у Хиггса.
+
+Для 10-х и 11-х классов. Опыт не требуется. Если никогда не играли — приходите во вторник и так и скажите; никто из этого истории делать не станет.
+
+Понадобится: бутсы (не кроссовки), капа и подписанное разрешение от родителей, если вам нет шестнадцати. Форму первые три занятия можно взять на время.
+
+Пожалуйста, не записывайтесь, если не можете по вторникам. Полчеловека хуже, чем ни одного человека, — мы это в прошлом году проверили.
+
+Записывайтесь ниже. Имя, класс и одна вещь, в которой вы хороши и которая не регби, — я их читаю, и это помогает мне составлять пары.
+
+—— Мистер Фарук, физкультура
+
+1. Ник Нельсон, 11 — запоминаю имена
+2. Чарли Спринг, 10 — очень быстро убегаю от всякого
+3. Тао Сю, 10 — я ни в чём на улице не хорош и пришёл исключительно для моральной поддержки, пожалуйста, не выпускайте меня на поле`,
+    glossary: [
+      { term: 'term', ru: 'триместр (брит. школа); в США semester' },
+      { term: 'sports hall', ru: 'спортзал (брит.); в США gym' },
+      { term: 'away (match)', ru: 'на выезде' },
+      { term: 'Year 10 / Year 11', ru: 'британские классы; примерно 9–10-й наш' },
+      { term: 'to make a thing of it', ru: 'делать из этого историю' },
+      { term: 'boots / trainers', ru: 'бутсы / кроссовки' },
+      { term: 'gum shield', ru: 'капа' },
+      { term: 'permission slip', ru: 'разрешение от родителей' },
+      { term: 'kit', ru: 'спортивная форма (брит.)' },
+      { term: 'PE', ru: 'physical education — физкультура' },
+    ],
+    questions: [
+      {
+        q: 'When is training?',
+        options: [
+          'Mondays and Wednesdays',
+          'Tuesdays and Thursdays, 4:00–5:30',
+          'Every day',
+          'Only on match days',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What must you bring if you are under sixteen?',
+        options: ['Money', 'A signed permission slip', 'Your own kit', 'A doctor’s note'],
+        correct: 1,
+      },
+      {
+        q: 'Why does the teacher ask for “one thing you are good at that is not rugby”?',
+        options: [
+          'To fill the form',
+          'He reads them and uses them to put people together',
+          'It is a joke',
+          'For the school newsletter',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which British word here means “sneakers”?',
+        options: ['boots', 'trainers', 'kit', 'gum shield'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Остановка сердца (сериал), 3: список в поездку ─────────────────────────
+  {
+    id: 'sc-heartstopper-series-3',
+    workId: 'heartstopper-series',
+    lang: 'en', title: 'Что взять в поездку', level: 'A2', minutes: 3,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Школьная поездка — сквозной сюжет сериала, и вокруг неё всегда бумаги: списки, правила, время сбора. Ниже наш текст на уровне A2: письмо школы родителям и приписка, сделанная от руки. Лексика здесь та, что нужна в любой поездке.',
+    body: `TRUHAM & HIGGS — YEAR 10 TRIP TO PARIS
+
+Dear parents,
+
+Departure: Monday 8 April, 6:00 a.m. from the school car park. Please arrive at 5:45. The coach will not wait.
+
+Return: Friday 12 April, about 9:00 p.m. We will text when we leave Calais.
+
+Your child should bring:
+• a passport (check the date!)
+• one small suitcase and one small bag
+• a coat — Paris in April is not warm
+• a refillable water bottle
+• medicines, in the original box, with a note
+• about €40 for food on two days
+
+Your child should NOT bring:
+• anything valuable
+• more than one device
+• energy drinks (we have learned)
+
+Phones: allowed, but off during museums. Rooms: three or four students, same year, students choose but staff may change it.
+
+Any questions: office@truham.sch.uk
+
+—— written on the bottom in pen ——
+
+Mum — Mr Ajayi says I can bring the sketchbook, it does not count as a device. Also Tao’s mum is doing the lift at 5:30 so you don’t have to get up. Also I need the €40 by Sunday, sorry, I know, I only found this in my bag today.`,
+    translation: `ТРУХЭМ И ХИГГС — ПОЕЗДКА 10-Х КЛАССОВ В ПАРИЖ
+
+Уважаемые родители,
+
+Отъезд: понедельник, 8 апреля, 6:00 утра, от школьной парковки. Просим прибыть к 5:45. Автобус ждать не будет.
+
+Возвращение: пятница, 12 апреля, около 21:00. Мы напишем, когда выедем из Кале.
+
+Вашему ребёнку нужно взять:
+• паспорт (проверьте срок!)
+• один небольшой чемодан и одну небольшую сумку
+• куртку — в Париже в апреле не тепло
+• многоразовую бутылку для воды
+• лекарства, в родной упаковке, с запиской
+• около 40 евро на еду на два дня
+
+Вашему ребёнку НЕ нужно брать:
+• ничего ценного
+• больше одного устройства
+• энергетики (мы уже научены)
+
+Телефоны: можно, но выключены в музеях. Комнаты: по три-четыре ученика одного года, ученики выбирают сами, но персонал может поменять.
+
+Вопросы: office@truham.sch.uk
+
+—— внизу приписано ручкой ——
+
+Мам — мистер Аджайи говорит, что скетчбук взять можно, он не считается устройством. И ещё мама Тао везёт нас в 5:30, так что тебе не надо вставать. И ещё 40 евро нужны к воскресенью, прости, я знаю, я нашёл это в рюкзаке только сегодня.`,
+    glossary: [
+      { term: 'departure / return', ru: 'отъезд / возвращение' },
+      { term: 'coach', ru: 'междугородний автобус (брит.)' },
+      { term: 'suitcase', ru: 'чемодан' },
+      { term: 'refillable', ru: 'многоразовый, наполняемый' },
+      { term: 'in the original box', ru: 'в родной упаковке' },
+      { term: 'valuable', ru: 'ценный' },
+      { term: 'device', ru: 'устройство, гаджет' },
+      { term: 'we have learned', ru: '«мы уже научены» — сухая шутка' },
+      { term: 'staff', ru: 'персонал, сотрудники' },
+      { term: 'to do the lift', ru: 'подвезти (брит., разг.)' },
+    ],
+    questions: [
+      {
+        q: 'What time should students arrive?',
+        options: ['6:00', '5:45', '5:30', '9:00'],
+        correct: 1,
+      },
+      {
+        q: 'What must medicines come with?',
+        options: [
+          'A prescription',
+          'The original box and a note',
+          'Nothing special',
+          'A doctor',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the letter say “energy drinks (we have learned)”?',
+        options: [
+          'They are expensive',
+          'Something happened on a previous trip',
+          'They are not sold in France',
+          'They are forbidden by law',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What three things does the handwritten note tell the mother?',
+        options: [
+          'The sketchbook is allowed, a lift is arranged, and money is needed by Sunday',
+          'The trip is cancelled',
+          'He does not want to go',
+          'He needs a new suitcase',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Остановка сердца (сериал), 4: на кухне ─────────────────────────────────
+  {
+    id: 'sc-heartstopper-series-4',
+    workId: 'heartstopper-series',
+    lang: 'en', title: 'На кухне, между делом', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фирменная черта сериала — важные разговоры происходят, пока кто-то моет посуду. Никто не садится, никто не объявляет тему, всё говорится между делом. Ниже наш текст в этом регистре.',
+    body: `“Pass me that tea towel.”
+“This one?”
+“The dry one. That one’s been on the floor.”
+
+She washed. He dried. Outside it was getting dark at half past four, the way it does in February.
+
+“Nick.”
+“Mm.”
+“You’ve been very cheerful.”
+“Is that a complaint?”
+“It’s an observation. I’m allowed one a week.”
+
+He dried a mug very thoroughly.
+
+“There’s someone,” he said, to the mug.
+“Right,” she said, to the sink.
+“It’s— I don’t really want to do the whole thing tonight.”
+“You don’t have to do the whole thing tonight. Or ever, actually. That’s not a thing you owe me.”
+“Okay.”
+“I would like a name eventually, because I am nosy, and because if someone is making you cheerful I want to know who to be nice to.”
+
+He laughed and nearly dropped the mug.
+
+“Charlie,” he said.
+“Charlie,” she said, as if she were checking the spelling. “Is he coming for tea at some point?”
+“Probably.”
+“Then he can bring his own tea towel, because we are down to two.”`,
+    translation: `— Подай вон то полотенце.
+— Это?
+— Сухое. То валялось на полу.
+
+Она мыла. Он вытирал. За окном темнело в половине пятого, как это бывает в феврале.
+
+— Ник.
+— Мм.
+— Ты какой-то очень весёлый.
+— Это претензия?
+— Это наблюдение. Мне полагается одно в неделю.
+
+Он очень тщательно вытер кружку.
+
+— Есть человек, — сказал он кружке.
+— Ясно, — сказала она раковине.
+— Это… я не очень хочу сегодня вот прямо всё.
+— Тебе и не надо сегодня вот прямо всё. И вообще никогда, если честно. Ты мне этого не должен.
+— Хорошо.
+— Мне бы хотелось со временем узнать имя, потому что я любопытная и потому что, если кто-то делает тебя весёлым, я хочу знать, к кому быть особенно доброй.
+
+Он засмеялся и чуть не выронил кружку.
+
+— Чарли, — сказал он.
+— Чарли, — сказала она так, будто уточняла написание. — Он придёт когда-нибудь на чай?
+— Наверное.
+— Тогда пусть приносит своё полотенце, потому что у нас их осталось два.`,
+    glossary: [
+      { term: 'tea towel', ru: 'кухонное полотенце (брит.)' },
+      { term: 'to wash up / to dry', ru: 'мыть посуду / вытирать' },
+      { term: 'cheerful', ru: 'весёлый, в хорошем настроении' },
+      { term: 'complaint', ru: 'жалоба, претензия' },
+      { term: 'observation', ru: 'наблюдение, замечание' },
+      { term: 'thoroughly', ru: 'тщательно' },
+      { term: 'to owe sb sth', ru: 'быть должным кому-то что-то' },
+      { term: 'nosy', ru: 'любопытный, суёт нос' },
+      { term: 'to come for tea', ru: 'прийти на ужин (брит., в семье)' },
+      { term: 'we are down to two', ru: 'у нас осталось всего два' },
+    ],
+    questions: [
+      {
+        q: 'What are they doing during the conversation?',
+        options: ['Cooking', 'Washing and drying up', 'Watching television', 'Eating'],
+        correct: 1,
+      },
+      {
+        q: 'Who does Nick speak to when he says “There’s someone”?',
+        options: ['His mother', 'The mug', 'Nobody', 'Charlie'],
+        correct: 1,
+        why: 'Реплики адресованы предметам, а не собеседнику. Так в сериале и снято: смотреть друг на друга в такие моменты никто не может.',
+      },
+      {
+        q: 'What does his mother say he owes her?',
+        options: [
+          'An explanation tonight',
+          'Nothing — not tonight, not ever',
+          'A name immediately',
+          'An apology',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does she want a name eventually?',
+        options: [
+          'To check with the school',
+          'Because she is nosy and wants to know who to be nice to',
+          'To tell his father',
+          'For the address book',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Центр моей вселенной, 3: письмо сестре ─────────────────────────────────
+  {
+    id: 'sc-center-3',
+    workId: 'steinhofel-center',
+    lang: 'en', title: 'Письмо сестре, которая не отвечает', level: 'B2', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман держится на том, что семья говорит обо всём, кроме одного, и это одно — сестра, которая ушла. Ниже наш текст — четвёртое письмо ей за год. Заметьте, что оно почти целиком состоит из бытовых новостей и только в конце становится письмом.',
+    body: `Dear Dianne,
+
+Number four. I am keeping count, not to make you feel anything, but because I like numbers and they are the only reliable thing in this house.
+
+The pear tree came down in the storm in October. Mum stood at the window and watched it happen and then made toast, which is her entire emotional range in one morning. The insurance man came and said it was “an act of God”, and Mum said, “Then let God pay for it,” which is the funniest thing she has said in two years and she did not notice she had said it.
+
+I finished school. I did not do brilliantly. I did well enough that nobody has to have a conversation with me about it, which was the plan.
+
+Kat sends her love. She does not know I write these. She thinks I have accepted the situation, and I have, in the sense that I have stopped expecting the door to open.
+
+Here is the part I always put last. You do not have to come back. You do not have to answer. I am not writing to get you to do anything. I am writing because the alternative is to behave as though you were never here, and everyone in this house has agreed to do that, and I did not agree, and somebody has to hold the other position.
+
+Number five is in May.
+
+Phil`,
+    translation: `Дорогая Дианна,
+
+номер четыре. Я веду счёт — не для того, чтобы ты что-то почувствовала, а потому что люблю числа: это единственное надёжное, что есть в этом доме.
+
+Грушу свалило штормом в октябре. Мама стояла у окна, смотрела, как это происходит, а потом сделала тосты, — вот и весь её эмоциональный диапазон за одно утро. Пришёл человек из страховой и сказал, что это «форс-мажор, деяние Бога», а мама сказала: «Тогда пусть Бог за это и платит», — самое смешное, что она произнесла за два года, и она сама этого не заметила.
+
+Школу я закончил. Блестяще не вышло. Вышло достаточно хорошо, чтобы никому не пришлось со мной об этом разговаривать, — так и было задумано.
+
+Кэт передаёт привет. Она не знает, что я это пишу. Она думает, что я принял ситуацию, — и я принял, в том смысле, что перестал ждать, когда откроется дверь.
+
+Вот часть, которую я всегда ставлю последней. Ты не обязана возвращаться. Ты не обязана отвечать. Я пишу не для того, чтобы ты что-то сделала. Я пишу потому, что иначе пришлось бы вести себя так, будто тебя тут никогда не было, — а на это в доме согласились все, и я не согласился, и кто-то должен держать другую позицию.
+
+Номер пять — в мае.
+
+Фил`,
+    glossary: [
+      { term: 'to keep count', ru: 'вести счёт' },
+      { term: 'reliable', ru: 'надёжный' },
+      { term: 'to come down', ru: 'здесь: упасть (о дереве)' },
+      { term: 'emotional range', ru: 'эмоциональный диапазон' },
+      { term: 'an act of God', ru: 'форс-мажор — страховой термин' },
+      { term: 'to do brilliantly', ru: 'блестяще справиться' },
+      { term: 'well enough that…', ru: 'достаточно хорошо, чтобы…' },
+      { term: 'to send one’s love', ru: 'передавать привет' },
+      { term: 'the alternative', ru: 'иной вариант, альтернатива' },
+      { term: 'to hold a position', ru: 'держать позицию' },
+    ],
+    questions: [
+      {
+        q: 'Why does the writer number the letters?',
+        options: [
+          'To make his sister feel guilty',
+          'Because he likes numbers and they are the only reliable thing at home',
+          'The post office requires it',
+          'To count the years',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the mother do while the pear tree falls?',
+        options: ['Cries', 'Calls someone', 'Watches, then makes toast', 'Goes outside'],
+        correct: 2,
+      },
+      {
+        q: 'In what sense has he “accepted the situation”?',
+        options: [
+          'He no longer thinks about her',
+          'He has stopped expecting the door to open',
+          'He agrees with his mother',
+          'He has forgiven her',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does he go on writing?',
+        options: [
+          'To make her return',
+          'Because somebody has to hold the position that she existed',
+          'Because his aunt asked him to',
+          'To practise writing',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Центр моей вселенной, 4: библиотечная карточка ─────────────────────────
+  {
+    id: 'sc-center-4',
+    workId: 'steinhofel-center',
+    lang: 'en', title: 'Что читал этот человек', level: 'B2', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В романе много списков: герой описывает мир через перечни, потому что связного рассказа у него не выходит. Ниже наш текст в этом жанре — старая библиотечная карточка выдач и приписки на полях. По одному списку книг здесь читается целая биография.',
+    body: `TOWN LIBRARY — BORROWER CARD 0441 (retained, do not discard)
+
+Name: D. Miller. Card opened: age 11. Card closed: —
+
+Atlas of the World (large) — borrowed 14 times, ages 11–13
+Ships and Shipping, vols. 1–3 — 9 times, age 12
+Teach Yourself Spanish — twice, age 14
+Teach Yourself Spanish — again, age 16
+Teach Yourself Spanish — again, age 17
+Working Abroad: A Practical Guide — age 17
+Working Abroad: A Practical Guide — age 17 (renewed four times, maximum allowed)
+The Sea, the Sea — age 18, returned after two days
+Nothing — ages 18 to 19
+_(card not used)_
+
+Note by librarian, in pencil, undated: “Ask if she wants to take the atlas. It has her handwriting in the back and I am not supposed to notice things like that, but I am also not supposed to throw them away.”
+
+Note in different pencil: “She did not come. Keep the card.”`,
+    translation: `ГОРОДСКАЯ БИБЛИОТЕКА — ЧИТАТЕЛЬСКАЯ КАРТОЧКА 0441 (сохранить, не уничтожать)
+
+Имя: Д. Миллер. Карточка заведена: в 11 лет. Карточка закрыта: —
+
+Атлас мира (большой) — брала 14 раз, с 11 до 13 лет
+«Корабли и судоходство», тт. 1–3 — 9 раз, в 12 лет
+«Испанский самоучитель» — дважды, в 14 лет
+«Испанский самоучитель» — снова, в 16 лет
+«Испанский самоучитель» — снова, в 17 лет
+«Работа за границей: практическое руководство» — в 17 лет
+«Работа за границей: практическое руководство» — в 17 лет (продлевала четыре раза, максимум допустимого)
+«Море, море» — в 18 лет, вернула через два дня
+Ничего — с 18 до 19 лет
+_(карточкой не пользовались)_
+
+Пометка библиотекаря карандашом, без даты: «Спросить, не хочет ли она забрать атлас. На последней странице её почерк, и мне не полагается такое замечать, но выбрасывать такое мне тоже не полагается».
+
+Пометка другим карандашом: «Она не пришла. Карточку сохранить».`,
+    glossary: [
+      { term: 'borrower card', ru: 'читательская карточка' },
+      { term: 'to retain', ru: 'сохранять, оставлять' },
+      { term: 'to discard', ru: 'выбрасывать, уничтожать' },
+      { term: 'vol. (volume)', ru: 'том' },
+      { term: 'Teach Yourself…', ru: 'серия самоучителей' },
+      { term: 'to renew', ru: 'продлить (книгу)' },
+      { term: 'maximum allowed', ru: 'максимум допустимого' },
+      { term: 'undated', ru: 'без даты' },
+      { term: 'handwriting', ru: 'почерк' },
+      { term: 'I am not supposed to', ru: 'мне не полагается' },
+    ],
+    questions: [
+      {
+        q: 'What book was borrowed again at 14, 16 and 17?',
+        options: ['The atlas', 'Teach Yourself Spanish', 'The Sea, the Sea', 'Ships and Shipping'],
+        correct: 1,
+      },
+      {
+        q: 'What does “renewed four times, maximum allowed” tell us?',
+        options: [
+          'She lost the book',
+          'She kept the practical guide as long as the library permitted',
+          'She never read it',
+          'The book was popular',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happened between 18 and 19?',
+        options: [
+          'She borrowed more books',
+          'Nothing — the card was not used',
+          'The card was closed',
+          'She moved the card to another library',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the librarian keep the card?',
+        options: [
+          'It is the rule',
+          'Because of the handwriting in the atlas, which she is not supposed to notice',
+          'To charge a fine',
+          'It is not explained',
+        ],
+        correct: 1,
+        why: 'Целая жизнь — атлас, корабли, испанский, работа за границей — и обрыв. Штайнхёфель во всём романе строит эмоцию из перечня, а не из описания.',
       },
     ],
   },

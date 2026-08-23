@@ -24,6 +24,7 @@ const LOADERS: Record<string, Loader> = {
   ja: () => import('./survivalJa').then(m => m.JAPANESE_SURVIVAL),
   pt: () => import('./survivalPt').then(m => m.PORTUGUESE_SURVIVAL),
   en: () => import('./survivalEn').then(m => m.ENGLISH_SURVIVAL),
+  de: () => import('./survivalDe').then(m => m.GERMAN_SURVIVAL),
 }
 
 /** Базовый код языка: pt-BR → pt, en-US → en. */

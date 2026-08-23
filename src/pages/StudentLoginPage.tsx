@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
+import { authErrorRu } from '../lib/authErrors'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -41,7 +42,7 @@ export default function StudentLoginPage() {
     const passwordNorm = password.trim()
 
     // 1) Preferred path — Supabase Auth (students carry auth_user_id).
-    const { data: authData } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
       email: emailNorm,
       password: passwordNorm,
     })
@@ -81,7 +82,10 @@ export default function StudentLoginPage() {
     })
     setLoading(false)
     if (rpcError || !data || data.length === 0) {
-      setError(t('Неверный email или пароль'))
+      // «Неверный пароль» на любую беду — враньё: чаще всего это пропавшая сеть
+      // или упёршийся лимит попыток, и человек чинит не то. Причину знает
+      // authErrorRu; когда она и правда в паре логин/пароль — текст тот же.
+      setError(t(authErrorRu(rpcError ?? authErr, 'Неверный email или пароль')))
       return
     }
     const s = data[0] as { id: string; name: string; group_id: string }

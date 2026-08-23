@@ -28,7 +28,9 @@ const inputStyle: React.CSSProperties = {
 
 const card: React.CSSProperties = {
   background: 'var(--color-bg-input)', borderRadius: 24, padding: 32,
-  width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+  // maxWidth, а не width: ссылку-приглашение открывают с телефона, и жёсткие
+  // 400px прижимали карточку вплотную к краям экрана, срезая её углы.
+  width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
 }
 
 export default function JoinPage() {
@@ -119,6 +121,7 @@ export default function JoinPage() {
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 16, boxSizing: 'border-box',
     }}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -135,6 +138,21 @@ export default function JoinPage() {
             <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>{t('Ссылка недействительна')}</div>
             <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Попросите учителя отправить новую ссылку.')}</div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => { window.location.hash = '#/'; window.location.reload() }}
+                style={{ padding: '10px 22px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                {t('На главную')}
+              </button>
+              <button
+                onClick={() => { window.location.hash = '#/login'; window.location.reload() }}
+                style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                {t('Войти')}
+              </button>
+            </div>
+
           </div>
         )}
 
