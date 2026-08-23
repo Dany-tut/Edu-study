@@ -15,42 +15,6 @@ import type { FeedItem } from './index'
 
 export const PT_AUTO: FeedItem[] = [
   {
-    id: 'auto-agencia-brasil-8221c93f',
-    outletId: 'agencia-brasil',
-    lang: 'pt-BR',
-    title: 'Mega-Sena sorteia prêmio acumulado de R$ 58 milhões neste domingo',
-    date: '2026-08-22',
-    lane: 'free',
-    textOrigin: 'verbatim',
-    age: '12+',
-    url: 'https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/mega-sena-sorteia-premio-acumulado-de-r-58-milhoes-neste-domingo',
-    byline: 'Agência Brasil',
-    origin: 'open-corpus',
-    level: 'B1',
-    minutes: 1,
-    topic: 'Технологии и медиа',
-    skill: 'Чтение',
-    body: `A Mega-Sena sorteia neste domingo (23) prêmio estimado em R$ 58 milhões. As seis dezenas do concurso 3.048 serão sorteadas a partir das 11h (horário de Brasília) no Espaço da Sorte, em São Paulo.
-
-As apostas podem ser feitas até às 22h (horário de Brasília) de sábado (22) em casas lotéricas credenciadas pela Caixa em todo o país ou pela internet . A aposta simples, com seis dezenas, custa R$ 6.
-
-No último concurso, foram sorteados os números  04 - 18 - 22 - 26 - 31 - 58  e nenhum apostador acertou as seis dezenas .`,
-    glossary: [
-      { term: 'domingo', ru: 'воскресенье' },
-      { term: 'seis', ru: 'шесть' },
-      { term: 'partir', ru: 'уходить; a partir de — начиная с' },
-      { term: 'horário', ru: 'расписание, часы работы' },
-      { term: 'sábado', ru: 'суббота' },
-      { term: 'pela', ru: 'через, по' },
-      { term: 'todo', ru: 'весь' },
-      { term: 'país', ru: 'страна' },
-      { term: 'custa', ru: 'стоит' },
-      { term: 'último', ru: 'последний' },
-      { term: 'foram', ru: 'были' },
-    ],
-    questions: [],
-  },
-  {
     id: 'auto-agencia-brasil-a185db5f',
     outletId: 'agencia-brasil',
     lang: 'pt-BR',
@@ -339,6 +303,75 @@ A grande decisão do campeonato - realizado pela primeira vez na história na Am
       { term: 'pelo', ru: 'по, через' },
       { term: 'grande', ru: 'большой' },
       { term: 'pela', ru: 'через, по' },
+    ],
+    questions: [],
+  },
+  {
+    id: 'auto-agencia-brasil-d91b1721',
+    outletId: 'agencia-brasil',
+    lang: 'pt-BR',
+    title: 'Veja como foi o sábado (22) dos candidatos a presidente',
+    date: '2026-08-22',
+    lane: 'free',
+    textOrigin: 'verbatim',
+    age: '12+',
+    url: 'https://agenciabrasil.ebc.com.br/eleicoes-2020/noticia/2026-08/veja-como-foi-o-sabado-22-dos-candidatos-presidente',
+    byline: 'Agência Brasil*',
+    origin: 'open-corpus',
+    level: 'B1',
+    minutes: 1,
+    topic: 'Технологии и медиа',
+    skill: 'Чтение',
+    body: `A agenda dos candidatos à Presidência da República neste sábado (22) teve como destaque os compromissos de campanha de Luiz Inácio Lula da Silva e Flávio Bolsonaro no Rio de Janeiro. Os dois candidatos participaram de atos na capital fluminense, realizados simultaneamente, e apresentaram propostas principalmente nas áreas de segurança pública, educação e desenvolvimento econômico.
+
+Os demais presidenciáveis tiveram compromissos em diferentes estados, com agendas que incluíram caminhadas, panfletagens, entrevistas e encontros com eleitores.
+
+Postulante ao quarto mandato, o presidente Luiz Inácio Lula da Silva cumpriu agenda de campanha no Rio de Janeiro. Ele realizou o primeiro comício de sua campanha na capital fluminense, no Estádio Proletário Moça Bonita, em Bangu, na Zona Oeste.`,
+    glossary: [
+      { term: 'como', ru: 'как' },
+      { term: 'sábado', ru: 'суббота' },
+      { term: 'principalmente', ru: 'главным образом' },
+      { term: 'áreas', ru: 'зоны, районы' },
+      { term: 'demais', ru: 'слишком' },
+      { term: 'diferentes', ru: 'разные, различные' },
+      { term: 'primeiro', ru: 'сначала; первый' },
+      { term: 'oeste', ru: 'запад' },
+    ],
+    questions: [],
+  },
+  {
+    id: 'auto-agencia-brasil-8221c93f',
+    outletId: 'agencia-brasil',
+    lang: 'pt-BR',
+    title: 'Mega-Sena sorteia prêmio acumulado de R$ 58 milhões neste domingo',
+    date: '2026-08-22',
+    lane: 'free',
+    textOrigin: 'verbatim',
+    age: '12+',
+    url: 'https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/mega-sena-sorteia-premio-acumulado-de-r-58-milhoes-neste-domingo',
+    byline: 'Agência Brasil',
+    origin: 'open-corpus',
+    level: 'B1',
+    minutes: 1,
+    topic: 'Технологии и медиа',
+    skill: 'Чтение',
+    body: `A Mega-Sena sorteia neste domingo (23) prêmio estimado em R$ 58 milhões. As seis dezenas do concurso 3.048 serão sorteadas a partir das 11h (horário de Brasília) no Espaço da Sorte, em São Paulo.
+
+As apostas podem ser feitas até às 22h (horário de Brasília) de sábado (22) em casas lotéricas credenciadas pela Caixa em todo o país ou pela internet . A aposta simples, com seis dezenas, custa R$ 6.
+
+No último concurso, foram sorteados os números  04 - 18 - 22 - 26 - 31 - 58  e nenhum apostador acertou as seis dezenas .`,
+    glossary: [
+      { term: 'domingo', ru: 'воскресенье' },
+      { term: 'seis', ru: 'шесть' },
+      { term: 'partir', ru: 'уходить; a partir de — начиная с' },
+      { term: 'horário', ru: 'расписание, часы работы' },
+      { term: 'sábado', ru: 'суббота' },
+      { term: 'pela', ru: 'через, по' },
+      { term: 'todo', ru: 'весь' },
+      { term: 'país', ru: 'страна' },
+      { term: 'custa', ru: 'стоит' },
+      { term: 'último', ru: 'последний' },
+      { term: 'foram', ru: 'были' },
     ],
     questions: [],
   },
