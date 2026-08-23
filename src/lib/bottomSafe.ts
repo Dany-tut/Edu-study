@@ -18,8 +18,10 @@ import { useEffect, useState } from 'react'
 
 /** Домашняя полоса iPhone — 34pt. Выше дока быть незачем никому. */
 const CAP = 34
-/** Пол: даже когда система честно отдаёт 0, док не липнет к самому краю. */
-const FLOOR = 18
+// Пол: даже когда система честно отдаёт 0, док не липнет к краю. Заодно узкая
+// вилка 26…34 гасит скачок — док на глазах садился на полтора сантиметра, пока
+// замер сходился к спокойному числу; теперь ход всего 8px.
+const FLOOR = 26
 const KEY = 'mobile-bottom-safe'
 
 const orientation = () => (window.innerHeight >= window.innerWidth ? 'portrait' : 'landscape')
