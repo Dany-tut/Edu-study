@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
   Play, Pause, RotateCcw, RotateCw, Volume2, Volume1, VolumeX,
@@ -181,6 +182,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   const [fullscreen, setFullscreen] = useState(false)
   const [barVisible, setBarVisible] = useState(true)
   const [rateOpen, setRateOpen] = useState(false)
+  /** Координаты меню скорости: оно живёт в портале, см. placeRateMenu. */
+  const [ratePos, setRatePos] = useState<{ left: number; top: number } | null>(null)
   const [scrubbing, setScrubbing] = useState(false)
   const [hoverAt, setHoverAt] = useState<number | null>(null)
   const [posterFallback, setPosterFallback] = useState(false)
@@ -200,6 +203,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   const [skipFlash, setSkipFlash] = useState<{ side: 'left' | 'right'; n: number } | null>(null)
 
   const boxRef = useRef<HTMLDivElement>(null)
+  const rateBtnRef = useRef<HTMLButtonElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const ytHostRef = useRef<HTMLDivElement>(null)
@@ -509,6 +513,45 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
     return () => window.clearInterval(id)
   }, [started, custom, source.kind, paused, scrubbing, duration])
 
+  // ── Меню скорости ─────────────────────────────────────────────────────────
+  // Корпус плеера режет всё лишнее (overflow: hidden), а на телефоне он ниже
+  // самого меню — раскрытый список обрезался сверху. Поэтому меню рисуется в
+  // портале с position: fixed, а координаты считаем от кнопки: над ней, если
+  // сверху есть место, иначе под ней; по горизонтали — не вылезая за экран.
+  const RATE_MENU_W = 112
+  const placeRateMenu = useCallback(() => {
+    const btn = rateBtnRef.current
+    if (!btn) return
+    const r = btn.getBoundingClientRect()
+    const h = RATES.length * 31 + 12
+    const gap = 8
+    const top = r.top - gap - h >= 8 ? r.top - gap - h : Math.min(r.bottom + gap, window.innerHeight - h - 8)
+    const left = Math.max(8, Math.min(r.right - RATE_MENU_W, window.innerWidth - RATE_MENU_W - 8))
+    setRatePos({ left, top: Math.max(8, top) })
+  }, [])
+
+  useEffect(() => {
+    if (!rateOpen) return
+    placeRateMenu()
+    const onScroll = () => placeRateMenu()
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onScroll)
+    // Закрытие — по нажатию мимо меню. На тач-экране pointerleave срабатывает
+    // раньше click по пункту, поэтому закрывать по уходу указателя нельзя.
+    const onDown = (e: PointerEvent) => {
+      const el = e.target as Node | null
+      if (rateBtnRef.current?.contains(el as Node)) return
+      if (el && (el as HTMLElement).closest?.('[data-rate-menu]')) return
+      setRateOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown, true)
+    return () => {
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onScroll)
+      document.removeEventListener('pointerdown', onDown, true)
+    }
+  }, [rateOpen, fullscreen, placeRateMenu])
+
   // ── Автоскрытие панели ────────────────────────────────────────────────────
   const wake = useCallback(() => {
     setBarVisible(true)
@@ -781,6 +824,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
           : { aspectRatio: '16 / 9', maxHeight: PLAYER_MAX_H }),
         borderRadius: fullscreen ? 0 : 24,
         overflow: 'hidden',
+        // Удержание на кадре — наш жест ускорения. Без этого Safari успевает
+        // начать выделение текста и показать «Copy · Look Up · Translate».
+        userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none',
         background: 'linear-gradient(135deg, #2A2A2C, #111113)',
         boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
       }}
@@ -913,7 +959,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
 
           {/* Плашка ускорения — по центру кадра, но выше круга плей/паузы: на
               его месте она закрывала саму кнопку. Стрелок ровно столько, какая
-              ступень, а замок наливается снизу вверх, туда же, куда ведут палец. */}
+              ступень, а замок наливается снизу вверх, туда же, куда ведут палец.
+              На телефоне подсказку про замок прячем: с ней плашка шире кадра и
+              её обрезает край. */}
           {(gesture === 'ff' || gesture === 'rw') && (
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
@@ -924,6 +972,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                 display: 'flex', alignItems: 'center', gap: 9, padding: '7px 14px',
                 borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
+                maxWidth: 'calc(100% - 24px)',
               }}
             >
               <div className="flex items-center" style={{ flexDirection: gesture === 'ff' ? 'row' : 'row-reverse' }}>
@@ -971,7 +1020,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                 </motion.span>
               </motion.span>
 
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+              <span className="hidden sm:inline" style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
                 {boostLocked ? t('тап — снять') : t('вверх — зафиксировать')}
               </span>
             </motion.div>
@@ -1112,20 +1161,22 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
               {canRate && (
                 <div style={{ position: 'relative' }}>
                   <button
-                    onClick={() => setRateOpen(o => !o)}
+                    ref={rateBtnRef}
+                    onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o) }}
                     style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 5 } : { width: 'auto', padding: '0 8px', gap: 5 })}
                     aria-label={t('Скорость')}
                   >
                     <Gauge size={17} />
                     <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
                   </button>
-                  {rateOpen && (
+                  {rateOpen && ratePos && createPortal(
                     <div
-                      onPointerLeave={() => setRateOpen(false)}
+                      data-rate-menu
                       style={{
-                        position: 'absolute', bottom: 40, right: 0, padding: 6, borderRadius: 14,
+                        position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
+                        width: RATE_MENU_W, padding: 6, borderRadius: 14,
                         background: 'rgba(20,20,22,0.94)', border: '1px solid rgba(255,255,255,0.14)',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.4)', minWidth: 104,
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
                       }}
                     >
                       {RATES.map(r => (
@@ -1133,7 +1184,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                           key={r}
                           // Выбор из меню — это уже другая скорость: защёлкнутое
                           // ускорение снимаем, иначе оно осталось бы поверх.
-                          onClick={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
+                          // Работаем по pointerup: на телефоне click по пункту
+                          // в портале доезжает не всегда.
+                          onPointerUp={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
                           className="flex items-center w-full cursor-pointer"
                           style={{
                             gap: 8, padding: '7px 9px', borderRadius: 9, border: 'none',
@@ -1145,7 +1198,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                           {r === 1 ? t('Обычная') : `${r}×`}
                         </button>
                       ))}
-                    </div>
+                    </div>,
+                    (fullscreen ? boxRef.current : null) ?? document.body,
                   )}
                 </div>
               )}

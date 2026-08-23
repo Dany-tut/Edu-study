@@ -3,9 +3,17 @@ import { motion, AnimatePresence, useMotionValue, useDragControls } from 'framer
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 
 // Bottom sheet (MOBILE ONLY). Slides up from the bottom, glass surface, drag
-// handle, optional title. Backdrop tap closes. Drag the handle (or sheet body)
-// down to dismiss — the gesture is captured by the sheet so the page behind
-// never rubber-band-scrolls. Content scrolls with contained overscroll.
+// handle, optional title. Backdrop tap closes. Content scrolls with contained
+// overscroll.
+//
+// ТЯНЕТСЯ ВСЁ ТЕЛО ШТОРКИ, А НЕ ТОЛЬКО ПОЛОСКА-ГРАБЕР.
+// Полоска шириной 40px — мишень на четыре процента экрана: чтобы закрыть
+// шторку, приходилось целиться в неё пальцем, хотя жест «смахнуть вниз» просят
+// сделать по всей карточке. Теперь тянуть можно откуда угодно, а чтобы это не
+// отняло у содержимого его собственный скролл, действует правило: если палец
+// лёг на прокручиваемый список НЕ в самом его верху — это скролл, и перетаскивание
+// не начинается; если список в верхней точке (или не прокручивается вовсе), ждём
+// первого движения и начинаем тянуть только на движении ВНИЗ.
 export default function MobileSheet({
   open,
   onClose,
@@ -25,8 +33,41 @@ export default function MobileSheet({
   const dragControls = useDragControls()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Only the handle/header initiates the drag, so inner scrolling still works.
+  // Грабер и заголовок — всегда ручка: там скроллить нечего.
   const startDrag = (e: ReactPointerEvent) => dragControls.start(e)
+
+  // Тело шторки — ручка «с оговоркой»: решение принимается по тому, где лежит
+  // палец и куда он поехал (см. шапку файла).
+  const startBodyDrag = (e: ReactPointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    const sc = scrollRef.current
+    const insideScroll = !!sc && sc.contains(e.target as Node)
+    const scrollable = !!sc && sc.scrollHeight > sc.clientHeight + 1
+    // Список пролистан — палец занят скроллом, шторка не двигается.
+    if (insideScroll && scrollable && sc!.scrollTop > 0) return
+    if (!insideScroll || !scrollable) { dragControls.start(e); return }
+    // Список в самом верху: тянуть вниз можно, листать вверх — тоже. Ждём,
+    // в какую сторону поедет палец, и только потом отдаём жест шторке.
+    const startY = e.clientY
+    const startX = e.clientX
+    const onMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== e.pointerId) return
+      const dy = ev.clientY - startY
+      const dx = ev.clientX - startX
+      if (Math.abs(dy) < 6 && Math.abs(dx) < 6) return
+      cleanup()
+      // Вниз и не вбок — это закрытие шторки; вверх оставляем списку.
+      if (dy > 0 && Math.abs(dy) > Math.abs(dx)) dragControls.start(ev)
+    }
+    const cleanup = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', cleanup)
+      window.removeEventListener('pointercancel', cleanup)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', cleanup)
+    window.addEventListener('pointercancel', cleanup)
+  }
 
   // Lock the page behind the sheet: swallow any touch-move that isn't scrolling
   // the sheet's own (overflowing) content. overscroll-behavior alone doesn't help
@@ -70,6 +111,7 @@ export default function MobileSheet({
               maxHeight: '85dvh',
               display: 'flex', flexDirection: 'column',
             }}
+            onPointerDown={startBodyDrag}
             drag="y"
             dragControls={dragControls}
             dragListener={false}

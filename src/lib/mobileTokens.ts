@@ -83,9 +83,17 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
 // сидит собственное размытие статус-бара, и контент, прижатый к самой границе,
 // читается как «залез под чёлку». Один зазор на все мобильные экраны —
 // MobileScreen и каркас тренажёра берут его отсюда.
-export const MOBILE_TOP_GAP = 18
+export const MOBILE_TOP_GAP = 28
 /** Полный отступ сверху: safe-area + зазор (в браузере без выреза — просто зазор). */
 export const MOBILE_TOP_INSET = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+
+// ── Нижний зазор над домашней полосой ───────────────────────────────────────
+// Safari отдаёт safe-area-inset-bottom не только под домашнюю полосу: пока
+// страница короче экрана и не листается, в него попадает и место под нижней
+// панелью браузера. Плавающая навигация, привязанная к «сырому» env(), в такие
+// моменты задиралась на треть экрана вверх. Отсюда потолок: ниже реальной
+// домашней полосы (34pt) отступ не нужен никому.
+export const MOBILE_BOTTOM_SAFE = 'min(env(safe-area-inset-bottom, 8px), 34px)'
 
 export const glassCircle: CSSProperties = {
   display: 'inline-flex',

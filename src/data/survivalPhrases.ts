@@ -40,7 +40,7 @@
 
 import {
   buildLanguageCourse, courseSummary,
-  one, fill, pairsOf, write, say, readAloud, dictation, dictationBank,
+  one, fill, wb, pairsOf, write, say, readAloud, dictation, dictationBank,
 } from './languageCourse'
 import type {
   LangModule, LangUnit, LanguageCourseSpec, SeedTask, VocabItem, CourseSummary,
@@ -1093,6 +1093,77 @@ function distractors(list: Phrase[], from: number, count: number, answer: string
 }
 
 /**
+ * Фраза с выколотым словом — «допишите пропущенное».
+ *
+ * ЗАЧЕМ ЭТОТ ТИП. Все прежние задания разговорника проверяли фразу ЦЕЛИКОМ:
+ * узнать её среди четырёх, вписать по переводу, напечатать на слух. Ученик,
+ * прошедший тему, умел воспроизвести десять готовых блоков и не знал, из чего
+ * они собраны, — а разговорник ровно этим и опасен: он даёт заклинания.
+ * Пропуск заставляет посмотреть внутрь: что здесь 좀, что 주세요, что
+ * подставляется, а что не меняется никогда.
+ *
+ * ЧТО ВЫКАЛЫВАЕТСЯ. Не первое слово и не последнее: первое — это опора, по
+ * которой фраза узнаётся, последнее у вежливых языков почти всегда одно и то
+ * же окончание, и задание выродилось бы в «допишите 주세요» сорок восемь раз.
+ * Берётся середина, а из середины — слово подлиннее: односложная частица
+ * восстанавливается угадыванием, а не знанием.
+ *
+ * Возвращает ноль или одно задание: фраза из двух слов дырки не переживает.
+ */
+function gapTask(x: Phrase, langName: string): SeedTask[] {
+  const parts = x.term.trim().split(/\s+/)
+  if (parts.length < 3) return []
+
+  // Середина по индексам, самое длинное слово в ней — то, в котором есть смысл.
+  const middle = parts.slice(1, -1)
+  let at = 1
+  middle.forEach((word, i) => {
+    if (word.length > parts[at].length) at = i + 1
+  })
+
+  const answer = parts[at]
+  const shown = parts.map((word, i) => (i === at ? '_'.repeat(Math.max(3, word.length)) : word)).join(' ')
+  return [fill(
+    `Допишите пропущенное слово (${langName}): «${shown}» — ${x.ru}`,
+    answer,
+  )]
+}
+
+/**
+ * Собрать фразу из плиток по её переводу — без звука.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ ДИКТАНТА. Сборка из плиток в разговорнике была ровно одна
+ * и всегда со звуком (dictationBank): ученик слышал фразу и выкладывал её. Это
+ * проверка слуха, а не порядка слов — услышанную последовательность можно
+ * выложить, не понимая, почему она такая. Здесь стимул русский, и собрать
+ * фразу можно, только зная, куда в этом языке встаёт вежливое окончание,
+ * куда — количество, а куда — то, о чём речь.
+ *
+ * ПОЧЕМУ ОБМАНКИ ИЗ СОСЕДНЕЙ ФРАЗЫ. Лишние плитки, взятые из другой темы,
+ * отсеиваются по смыслу и ничего не проверяют. Плитка из соседней фразы той же
+ * ситуации — настоящая развилка: она подходит по теме и не подходит по месту.
+ *
+ * Только для языков с пробелами: нарезка идёт по ним (см. SurvivalBook.spaced).
+ */
+function bankTask(list: Phrase[], n: number, spaced: boolean): SeedTask[] {
+  if (!spaced) return []
+  const start = n * 3
+  const target = slice(list, start, 6).find(x => x.term.trim().split(/\s+/).length >= 3)
+  if (!target) return []
+
+  const sentence = target.term.trim().replace(/[?!.]+$/, '')
+  const own = new Set(sentence.split(/\s+/))
+  // Одна-две лишние плитки из соседних фраз темы, которых нет в самой фразе.
+  const extra: string[] = []
+  for (const other of slice(list, start + 1, 8)) {
+    for (const word of other.term.trim().replace(/[?!.]+$/, '').split(/\s+/)) {
+      if (!own.has(word) && !extra.includes(word) && extra.length < 2) extra.push(word)
+    }
+  }
+  return [wb(sentence, `Соберите фразу из плиток: «${target.ru}»`, extra)]
+}
+
+/**
  * Задания юнита из его же фраз.
  *
  * Позиции срезов сдвинуты на номер темы, поэтому в каждой теме отрабатываются
@@ -1140,6 +1211,13 @@ function unitTasks(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): Se
   for (const target of spread(asks, n * 2, 3)) {
     tasks.push(fill(`Напишите на ${book.langName}: «${target.ru}»`, target.term))
   }
+
+  // Заглянуть внутрь фразы: пропуск и сборка из плиток. До них разговорник
+  // работал только с фразой как с целым блоком — см. gapTask и bankTask.
+  for (const target of spread(asks, n * 2 + 1, 2)) {
+    tasks.push(...gapTask(target, book.langName))
+  }
+  tasks.push(...bankTask(list, n, book.spaced))
 
   // Аудио. Синтез годится как стимул для диктанта, но эталоном произношения не
   // является — см. шапку languageCourse.ts.

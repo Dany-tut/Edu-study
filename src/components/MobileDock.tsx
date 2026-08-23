@@ -4,7 +4,7 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
-import { TAP_SCALE } from '../lib/mobileTokens'
+import { TAP_SCALE, MOBILE_BOTTOM_SAFE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,7 +83,9 @@ export default function MobileDock({ children }: { children: ReactNode }) {
       transition={COLLAPSE}
       style={{
         position: 'fixed', left: 0, right: 0,
-        bottom: 'env(safe-area-inset-bottom, 0px)',
+        // Тот же потолок, что у навигации: сырой env() на короткой странице
+        // включает нижнюю панель Safari и задирает док вверх.
+        bottom: MOBILE_BOTTOM_SAFE,
         // Below the bottom nav (z-50) so the collapsing pill tucks UNDER it.
         zIndex: 40, display: 'flex', justifyContent: 'center',
         // Outer layer never intercepts taps — empty areas pass through to the

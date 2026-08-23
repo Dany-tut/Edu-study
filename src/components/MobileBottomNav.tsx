@@ -8,6 +8,7 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
+import { MOBILE_BOTTOM_SAFE } from '../lib/mobileTokens'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -75,7 +76,11 @@ export default function MobileBottomNav() {
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)', pointerEvents: kbOpen ? 'none' : 'auto' }}
+      // Отступ снизу с потолком (MOBILE_BOTTOM_SAFE), а не сырой env(): на
+      // короткой странице, которая не листается, Safari кладёт в
+      // safe-area-inset-bottom ещё и свою нижнюю панель, и док уезжал вверх
+      // сильно выше домашней полосы.
+      style={{ paddingBottom: MOBILE_BOTTOM_SAFE, pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div
         className="mb-4 flex items-center justify-around px-2"

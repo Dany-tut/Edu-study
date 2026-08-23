@@ -330,9 +330,176 @@ export const KOHG_VIDEO: Record<string, string> = {
 }
 
 /** Все карты разговорников по ключу книги — так их проще подмешать в сборке. */
+// ─── Немецкий ────────────────────────────────────────────────────────────────
+//
+// ИСТОЧНИКИ. Разборы правил по-русски: «Немецкий с нуля!» (нумерованный курс,
+// уроки идут ровно в том порядке, что и наши юниты), «Deutsch Online»,
+// «Deutsch mit Yehor» и Александр Беккер. Часть роликов Беккера закрыта для
+// подписчиков (oembed отдаёт 401) — такие сюда не попали, хотя по теме
+// подходили: закрытое видео в уроке это сломанный урок.
+//
+// ПОЧЕМУ ОБЪЯСНЕНИЯ ПО-РУССКИ, А НЕ ПО-НЕМЕЦКИ. Видео урока разбирает правило;
+// человеку на A1 разбор правила по-немецки бесполезен. Живая немецкая речь идёт
+// в домашке — там DW «Nicos Weg» (см. homeworkVideos.ts).
+
+/** Немецкий A1 → B1: разборы правил по-русски, по одному на юнит. */
+export const DEAB_VIDEO: Record<string, string> = {
+  'deab-01': yt('SleT3zEjtU8'), // Немецкий с нуля!: алфавит, правила чтения и произношения
+  'deab-02': yt('97ev_s2PDTg'), // урок 5: спряжение sein — знакомство и «я такой-то»
+  'deab-03': yt('1-W5W8R3WV0'), // урок 6: существительное, определённый и неопределённый артикль
+  'deab-04': yt('IU1jX_ov79s'), // Deutsch Online: Präsens, спряжение в настоящем времени
+  'deab-05': yt('OmWHlGKa-E8'), // урок 5: счёт от 1 до 1 000 000
+  'deab-06': yt('A0xEOLw625s'), // урок 13: винительный падеж, склонение существительных
+  'deab-07': yt('i1HZEg4bK4g'), // урок 21: модальные глаголы können, wollen
+  'deab-08': yt('juiLvNDdy-0'), // урок 25: приставки отделяемые и неотделяемые
+  'deab-09': yt('vizMv0UaMFM'), // урок 19: дательный падеж — кому?
+  'deab-10': yt('EfnSm8YvAjM'), // урок 20: Dativ или Akkusativ — предлоги места и направления
+  'deab-11': yt('5zfB0qjR6E8'), // Немецкий Блокнот: 30 фраз «для официанта»
+  'deab-12': yt('V0-gqcb-AX4'), // урок 22: склонение личных местоимений
+  'deab-13': yt('RCMyKxDHRgE'), // урок 33: Perfekt
+  'deab-14': yt('kUx2hZ-z84A'), // урок 32: прошедшее время глагола sein — претеритум в речи
+  'deab-15': yt('BkcFOC3Ejko'), // урок 54: окончания прилагательных
+  'deab-16': yt('f1fHAIuPSak'), // урок 45: степени сравнения
+  'deab-17': yt('pOHgQOntkhY'), // урок 61: союзы weil, wenn, als, ob
+  'deab-18': yt('I-urcgTu5oA'), // урок 24: повелительное наклонение — «идите прямо, поверните»
+  'deab-19': yt('YK3hpHY_ciE'), // урок 51: возвратные глаголы — sich fühlen и вся тема здоровья
+  'deab-20': yt('TZp668jZ_0o'), // урок 60: союз dass и порядок слов в придаточном
+  'deab-21': yt('ETAe-BP2YSc'), // урок 69: Konjunktiv II с würde — вежливость
+  'deab-22': yt('3WfRY5f34mI'), // Deutsch mit Yehor: пассив за 10 минут — язык ведомственных писем
+  'deab-23': yt('6C7Vl78ZbPk'), // Александр Беккер, урок 36.1: Genitiv — язык договоров
+  'deab-24': yt('kllZuu-4zQs'), // Александр Беккер, урок 23: werden и будущее время
+}
+
+/**
+ * Немецкий разговорник: DW «Nicos Weg» по ситуациям.
+ *
+ * Здесь, в отличие от системного курса, видео урока — не разбор правила, а
+ * сама ситуация: эпизод на полторы минуты, в котором ровно эта сцена и
+ * разыгрывается. Для разговорника это правильнее любого объяснения.
+ */
+export const DESV_VIDEO: Record<string, string> = {
+  'desv-01': yt('dC6ZGLzdaTs'), // Folge 1: Hallo!
+  'desv-02': yt('upvuC9FR-xU'), // Folge 2: Kein Problem!
+  'desv-03': yt('J7j31w8UT2c'), // A2 Folge 4: Sprichst du Deutsch?
+  'desv-04': yt('FoYSUfsLcjA'), // Folge 5: Ich heiße Emma
+  'desv-05': yt('P1ontBJYzhI'), // Folge 23: Ich habe kein …
+  'desv-06': yt('p1dci7nBJRo'), // Folge 9: Zahlen von 1 bis 100
+  'desv-07': yt('SEV3kmyQCII'), // Folge 33: Wie spät ist es?
+  'desv-08': yt('3K991pj4Uic'), // Folge 18: Wo liegt das?
+  'desv-09': yt('ymE5ZON70C0'), // Folge 39: Wo ist der Aufzug?
+  'desv-10': yt('4us1ZoH9K04'), // Folge 43: Mit Bus und Bahn
+  'desv-11': yt('qqxSuoX0gzw'), // A2 Folge 20: Der Ticketautomat
+  'desv-12': yt('rTgkeG4IJJw'), // A2 Folge 17: Unterwegs
+  'desv-13': yt('0ijgOLUE3NQ'), // A2 Folge 18: Im Hotel
+  'desv-14': yt('J71RxF7qU2o'), // Folge 14: Was trinkst du?
+  'desv-15': yt('G9QmyF9kswg'), // A2 Folge 34: Die Karte, bitte!
+  'desv-16': yt('3tq7bRB9iu0'), // Folge 45: Lebensmittel
+  'desv-17': yt('DiMQTg7D7Ao'), // Folge 68: Ist das gesund?
+  'desv-18': yt('ySrfaSqtdfw'), // Folge 49: Mengen und Preise
+  'desv-19': yt('SRAk_KZlrwY'), // Folge 51: Sonst noch etwas?
+  'desv-20': yt('n_l-rfcG5Uo'), // A2 Folge 8: Am Bankautomaten
+  'desv-21': yt('pCRS-oxE61k'), // Folge 59: Das passt gut!
+  'desv-22': yt('ilp0CwKxdbY'), // Folge 71: Gute Besserung!
+  'desv-23': yt('aGW9URYStCA'), // A2 Folge 32: Reklamation
+  'desv-24': yt('0b66BzvKgMY'), // Folge 69: Geht es dir gut?
+  'desv-25': yt('PrrbATyrg08'), // A2 Folge 23: Das hört sich gut an!
+  'desv-26': yt('dOdHXwy0cME'), // Folge 50: Was darf es sein?
+  'desv-27': yt('xuVnMMMztx0'), // A2 Folge 30: Das Internet
+  'desv-28': yt('CRga4lKBmKI'), // A2 Folge 31: Mit freundlichen Grüßen
+  'desv-29': yt('geYuMJBnDSs'), // A2 Folge 6: Mein Bankkonto
+  'desv-30': yt('iU7swr8-hk0'), // A2 Folge 19: Bahnreisen
+  'desv-31': yt('chmqnserFqM'), // Folge 55: Der Ausflug
+  'desv-32': yt('bbZxpdieqIA'), // Folge 25: So wohne ich
+  'desv-33': yt('tNY9TNnQC6E'), // A2 Folge 7: Rechnungen
+  'desv-34': yt('IhLqeX8QjSg'), // Folge 12: Auf dem Amt
+  'desv-35': yt('ppIFbtiL1kQ'), // Folge 74: Leben in Deutschland
+  'desv-36': yt('otY2T26FOP0'), // Folge 65: Von Kopf bis Fuß
+  'desv-37': yt('cTJ1KFzmhbc'), // Folge 70: Beim Arzt
+  'desv-38': yt('VWomWeeqsAk'), // Folge 72: Nehmen Sie …
+  'desv-39': yt('dsPDJb2956A'), // Folge 44: Im Büro
+  'desv-40': yt('6CQ32OWDyq4'), // Folge 61: Meine Familie
+  'desv-50': yt('rTgkeG4IJJw'), // граница и дорога — тот же эпизод «Unterwegs»
+  'desv-51': yt('8e_ukBPtxww'), // A2 Folge 22: Freizeitstress — досуг и планы на вечер
+  'desv-52': yt('cTJ1KFzmhbc'), // стоматолог — тот же приём у врача
+  'desv-53': yt('dsPDJb2956A'), // копицентр и бумаги — «Im Büro»
+}
+
+// ─── Русский и литература: родной язык ───────────────────────────────────────
+//
+// ЗДЕСЬ ВИДЕО РАБОТАЕТ ИНАЧЕ. У иностранного языка ролик даёт то, чего нет в
+// тексте, — звучание. Носителю звучание давать не надо: ему нужен РАЗБОР
+// приёма и образец чужой работы. Поэтому здесь стоят разборы редакторов
+// (Максим Ильяхов), филологов («О русском по-русски», «Великий Могучий»),
+// преподавателей техники речи и литературные лекции (Arzamas, «Армен и Фёдор»).
+//
+// ПОВТОРЫ НАМЕРЕННЫ по той же причине, что и у языков: один хороший разбор
+// честно закрывает два соседних юнита, а «своё видео на каждый» — это подбор
+// ради разнообразия.
+
+/** «Живая речь: словарь и точность». */
+export const RUZH_VIDEO: Record<string, string> = {
+  'ruzh-01': yt('EAYQ5inGzBM'), // Диана Новак: расширяем словарный запас — упражнение
+  'ruzh-02': yt('HF0GEbmnnXE'), // О русском по-русски: надеть, одеть(ся), переодеть(ся)
+  'ruzh-03': yt('p_g6Fyqhiag'), // Катерина Мотызлевская: как пополнить словарный запас
+  'ruzh-04': yt('vhx8liYPfp0'), // «Я говорю!»: как расширять словарный запас
+  'ruzh-05': yt('EAYQ5inGzBM'), // то же упражнение — теперь на глаголах
+  'ruzh-06': yt('9ltkMnZyyPs'), // Максим Ильяхов: как победить канцелярит — суть вперёд
+  'ruzh-07': yt('6qISMFsOun4'), // Ильяхов: как писать ясно и понятно
+  'ruzh-08': yt('6qISMFsOun4'), // ритм и длина фразы — вторая половина того же разбора
+  'ruzh-09': yt('9ltkMnZyyPs'), // порядок слов и «суть вперёд» — тот же принцип
+  'ruzh-10': yt('u9U3YCsoErE'), // Ильяхов: о чём писать в теме делового письма — регистр
+  'ruzh-11': yt('H9kfafrB2ZM'), // Ваша Кондрацкая: как писать диалоги — деталь вместо оценки
+  'ruzh-12': yt('DZMFg2xxOkA'), // разбор иронии и её отличия от сарказма
+  'ruzh-13': yt('JATksEFqg_A'), // О русском по-русски: обращение и запятые при нём
+  'ruzh-14': yt('vhx8liYPfp0'), // заимствования и словарный запас — тот же разбор
+  'ruzh-15': yt('u9U3YCsoErE'), // деловое письмо: тема, суть, действие
+  'ruzh-16': yt('-yM-koPWi0A'), // Великий Могучий: торты, красивее, договор — ударения
+  'ruzh-17': yt('p_g6Fyqhiag'), // пять техник пополнения словаря
+  'ruzh-18': yt('gKQz06F3gR4'), // «Оратор»: структура выступления «три аргумента»
+  'ruzh-19': yt('gKQz06F3gR4'), // та же структура в споре: тезис и доводы
+  'ruzh-20': yt('9ltkMnZyyPs'), // итоговая правка — снова про «суть вперёд»
+}
+
+/** «Голос и речь: дикция и риторика». */
+export const RUVO_VIDEO: Record<string, string> = {
+  'ruvo-01': yt('1p4MmIJ2MNY'), // Свобода Речи: техника речи — дикция, голос, дыхание
+  'ruvo-02': yt('E4H4uY8IIho'), // Катерина Мотызлевская: 4 приёма для внятной речи
+  'ruvo-03': yt('l6S7Kq2UYDM'), // Татьяна Мерзлякова: ставим речь за 10 минут
+  'ruvo-04': yt('3yv5gYfWGnQ'), // Кирилл Плешаков-Качалин: как перестать тараторить
+  'ruvo-05': yt('hNjXVKk2qtY'), // Седа Каспарова: правила чёткой дикции и красивой речи
+  'ruvo-06': yt('l6S7Kq2UYDM'), // чтение вслух — та же разминка перед текстом
+  'ruvo-07': yt('P05EXLZhT2o'), // Седа Каспарова: как говорить уверенно — про заполнители
+  'ruvo-08': yt('gKQz06F3gR4'), // структура «три аргумента» — каркас импровизации
+  'ruvo-09': yt('gKQz06F3gR4'), // она же для выступления целиком
+  'ruvo-10': yt('oXJMkKew39A'), // Свобода Речи: как отвечать эмоционально и уверенно
+  'ruvo-11': yt('3yv5gYfWGnQ'), // темп и голос в записи — тот же разбор про скорость
+  'ruvo-12': yt('P05EXLZhT2o'), // спокойный голос в споре
+}
+
+/** «Литература как мастерская речи». */
+export const RULIT_VIDEO: Record<string, string> = {
+  'rulit-01': yt('QAMjxzG_kmU'), // Дмитрий Быков: как написать рассказ, урок 1
+  'rulit-02': yt('TqNFy731dBs'), // Arzamas: Чехов. Деталь в рассказах
+  'rulit-03': yt('EhcYDTPsV0A'), // Армен и Фёдор: язык Гоголя — перечисление и сказ
+  'rulit-04': yt('lsWQc6k5-BE'), // Армен и Фёдор: как Чехов изменил литературу — повтор и финал
+  'rulit-05': yt('H9kfafrB2ZM'), // Ваша Кондрацкая: диалог и атрибуция — речь героя
+  'rulit-06': yt('XVDY5lnz9AQ'), // Arzamas: Бунин, «Господин из Сан-Франциско» — ритм и период
+  'rulit-07': yt('EhcYDTPsV0A'), // пейзаж и отбор подробностей — тот же разбор языка Гоголя
+  'rulit-08': yt('H9kfafrB2ZM'), // диалог: пустая реплика и подтекст
+  'rulit-09': yt('ZwYhHfmIefY'), // Юрий Окунев: как написать первый рассказ — начало
+  'rulit-10': yt('QAMjxzG_kmU'), // финал: вторая половина урока Быкова
+  'rulit-11': yt('Dg0quw9tEzg'), // Ольга Славникова: точка зрения в прозе
+  'rulit-12': yt('ZwYhHfmIefY'), // время в рассказе — сцена, пересказ, пропуск
+  'rulit-13': yt('DZMFg2xxOkA'), // ирония, сарказм и как их различают
+  'rulit-14': yt('wZzh5XsWNkY'), // лекция о «Шинели» — материал для стилизации
+  'rulit-15': yt('6qISMFsOun4'), // Ильяхов: правка и сокращение
+  'rulit-16': yt('QAMjxzG_kmU'), // итоговый рассказ — снова урок Быкова
+}
+
 export const SURVIVAL_VIDEO: Record<string, Record<string, string>> = {
   ensv: ENSV_VIDEO,
   kosv: KOSV_VIDEO,
   jasv: JASV_VIDEO,
   ptsv: PTSV_VIDEO,
+  desv: DESV_VIDEO,
 }

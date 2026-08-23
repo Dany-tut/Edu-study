@@ -19,13 +19,23 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, ImageOff, Layers, Rows3 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3 } from 'lucide-react'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { speechMs, speechText } from '../lib/speech'
 import AudioPlayer from './AudioPlayer'
+
+/**
+ * «Карточка — это один знак»: буква хангыля, кана, иероглиф. У таких карточек
+ * смотреть, кроме самого знака, не на что, поэтому он печатается крупно.
+ * Латиница сюда не попадает: «a» в английском уроке — это слово, а не знак.
+ */
+const GLYPH_RE = /^[\u1100-\u11FF\u3040-\u30FF\u3130-\u318F\u3400-\u9FFF\uAC00-\uD7AF]{1,2}$/
+function isGlyph(face: string) {
+  return GLYPH_RE.test(face.trim())
+}
 
 export default function VocabIntro({ words, accent, soft, defaultOpen, started = false }: {
   /** flashcard-задания домашки — по ним и строится словарь урока. */
@@ -169,54 +179,72 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                   const face = w.front || w.prompt
                   const tts = speechText(face)
                   const speaking = speakingId === w.id
+                  /** Одиночный знак без картинки — печатаем его крупно: в юните
+                      хангыля вся карточка и есть эта буква. */
+                  const glyph = !w.image && isGlyph(face)
+                  const audio = (
+                    <AudioPlayer
+                      ttsText={tts}
+                      lang={w.lang}
+                      compact
+                      variant="ghost"
+                      accent={accent}
+                      soft={soft}
+                      onPlayingChange={p => setSpeakingId(cur => (p ? w.id : cur === w.id ? null : cur))}
+                    />
+                  )
                   return (
                   <div
                     key={w.id}
                     style={{
                       position: 'relative', overflow: 'hidden',
                       display: 'flex', flexDirection: 'column', gap: 4,
+                      // Карточка-знак читается как одна вывеска: без картинки
+                      // прижимать букву к левому краю не за чем — центрируем.
+                      alignItems: glyph ? 'center' : 'stretch',
+                      textAlign: glyph ? 'center' : 'left',
                       padding: '12px 14px', borderRadius: 16,
                       border: `1px solid ${speaking ? accent : 'var(--color-border-soft)'}`,
                       background: 'var(--color-bg-input)',
                       transition: 'border-color .18s ease',
                     }}
                   >
-                    {/* Плитка предмета есть у каждой карточки, даже когда
-                        картинки нет: рисунок отрисован примерно у каждого
-                        пятнадцатого слова (см. vocabImages), и без заглушки
-                        такая карточка поднимала текст вверх — ряд разъезжался.
-                        Заглушка нейтральная и серая: ещё один цветной квадрат
-                        в сетке из десяти карточек только шумел бы. */}
-                    <span style={{
-                      width: 52, height: 52, borderRadius: 13, marginBottom: 6, flexShrink: 0,
-                      display: 'grid', placeItems: 'center', overflow: 'hidden',
-                      background: w.image ? '#fff' : 'var(--color-bg-2)',
-                      border: '1px solid var(--color-border-soft)',
-                    }}>
-                      {w.image
-                        ? <img src={w.image} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <ImageOff size={17} style={{ color: 'var(--color-muted)', opacity: 0.55 }} />}
-                    </span>
-                    <div className="flex items-center" style={{ gap: 8 }}>
-                      <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.25, ...proseWrap }}>
+                    {/* Плитка предмета — только там, где рисунок ЕСТЬ.
+                        Раньше пустая рамка с перечёркнутой картинкой стояла у
+                        каждой карточки ради ровного ряда, но в алфавитных
+                        юнитах рисунка нет ни у одной буквы: ряд из десяти
+                        заглушек «фото нет» — это шум там, где смотреть надо на
+                        саму букву. Без картинки плитки нет, а знак печатается
+                        крупно (см. glyph ниже). */}
+                    {w.image && (
+                      <span style={{
+                        width: 52, height: 52, borderRadius: 13, marginBottom: 6, flexShrink: 0,
+                        display: 'grid', placeItems: 'center', overflow: 'hidden',
+                        background: '#fff', border: '1px solid var(--color-border-soft)',
+                      }}>
+                        <img src={w.image} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </span>
+                    )}
+                    <div className="flex items-center" style={{ gap: 8, justifyContent: glyph ? 'center' : undefined }}>
+                      <span style={{
+                        fontSize: glyph ? 40 : 18, fontWeight: 700, color: 'var(--color-text)',
+                        lineHeight: glyph ? 1.1 : 1.25, ...proseWrap,
+                      }}>
                         {face}
                       </span>
-                      <span style={{ marginLeft: 'auto', flexShrink: 0 }}>
-                        <AudioPlayer
-                          ttsText={tts}
-                          lang={w.lang}
-                          compact
-                          variant="ghost"
-                          accent={accent}
-                          soft={soft}
-                          onPlayingChange={p => setSpeakingId(cur => (p ? w.id : cur === w.id ? null : cur))}
-                        />
-                      </span>
+                      {/* У карточки-знака кнопка не встаёт рядом с буквой: пара
+                          «буква + круг» смотрится сдвинутой с центра, а сама
+                          буква из-за неё перестаёт быть центром карточки.
+                          Поэтому там звук уезжает вниз, под значение. */}
+                      {!glyph && (
+                        <span style={{ marginLeft: 'auto', flexShrink: 0 }}>{audio}</span>
+                      )}
                     </div>
                     {readingVisible && w.reading && (
                       <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>{w.reading}</span>
                     )}
                     <span style={{ fontSize: 14, color: 'var(--color-text-2)', ...proseWrap }}>{bindShortWords(w.back ?? '')}</span>
+                    {glyph && <span style={{ marginTop: 6 }}>{audio}</span>}
 
                     {/* Индикатор озвучки: линия по низу карточки заполняется, пока
                         слово произносится. Анимация чисто CSS — rAF в превью не

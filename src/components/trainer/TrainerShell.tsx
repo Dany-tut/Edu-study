@@ -383,17 +383,22 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
               }}
             >
               {m.Icon && <m.Icon size={18} />}
-              <span style={{ fontSize: 13.5, fontWeight: on ? 750 : 600, lineHeight: 1.25, ...clamp2 }}>
-                {t(m.label)}
-              </span>
-              {m.count !== undefined && (
-                <span style={{
-                  fontSize: 11.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                  color: on ? accent : 'var(--color-text-3)',
-                }}>
-                  {m.count}
+              {/* Число — В СТРОКЕ с названием, а не под ним: отдельной строкой
+                  плитка вырастала на треть ради двух знаков, а «сколько там
+                  всего» читается вместе с названием режима, не после него. */}
+              <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, width: '100%', minWidth: 0 }}>
+                <span style={{ fontSize: 13.5, fontWeight: on ? 750 : 600, lineHeight: 1.25, minWidth: 0, ...clamp2 }}>
+                  {t(m.label)}
                 </span>
-              )}
+                {m.count !== undefined && (
+                  <span style={{
+                    fontSize: 11.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                    color: on ? accent : 'var(--color-text-3)', flexShrink: 0, marginLeft: 'auto',
+                  }}>
+                    {m.count}
+                  </span>
+                )}
+              </span>
             </button>
           )
         })}
