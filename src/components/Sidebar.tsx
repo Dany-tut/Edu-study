@@ -771,9 +771,12 @@ export default function Sidebar() {
                   minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   // На активном пункте фон уже фиолетовый — там метка белая с
-                  // фиолетовой цифрой, иначе она сливалась бы с кнопкой.
+                  // фиолетовой цифрой, иначе она сливалась бы с кнопкой. Цифра
+                  // литералом, а не var(--color-purple-text): подложка метки
+                  // жёстко белая в обеих темах, а переменная в тёмной светлеет
+                  // до #DAD3FB — и цифра пропадала на белом кружке.
                   background: isActive ? '#fff' : 'var(--grad-purple)',
-                  color: isActive ? 'var(--color-purple-text)' : '#fff',
+                  color: isActive ? '#3D33A0' : '#fff',
                   fontSize: 10, fontWeight: 800, lineHeight: 1,
                   fontVariantNumeric: 'tabular-nums',
                   boxShadow: isActive ? 'none' : '0 2px 6px rgba(106,90,230,0.45)',

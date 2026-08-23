@@ -672,6 +672,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
    * хранилище по угаданному ключу.
    */
   const [storyRead, setStoryRead] = usePersistentState<Record<string, number>>(`trainer.${lang}.storyRead`, {})
+  /**
+   * Где палец сейчас, а не докуда дочитано.
+   *
+   * Отдельно от storyRead намеренно: тот хранит МАКСИМУМ (полоска на витрине не
+   * должна ехать назад от того, что человек вернулся перечитать), и пока
+   * позиция читалки бралась оттуда же, кнопка «Назад» ничего не делала —
+   * максимум от шага назад не менялся.
+   */
+  const [storyAt, setStoryAt] = usePersistentState<Record<string, number>>(`trainer.${lang}.storyAt`, {})
 
   // Восстановленная половина может оказаться несуществующей: разговорник для
   // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
@@ -2140,14 +2149,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     content = (
       <StoryChapterPage
         chapter={openChapter}
-        at={storyRead[openChapter.id] ?? 0}
-        // Пишем максимум: закладка не должна ехать назад от того, что человек
-        // вернулся на карточку перечитать. Полоска на витрине показывает
-        // «сколько прочитано», а не «где сейчас палец».
-        onAt={n => setStoryRead(prev => ({
-          ...prev,
-          [openChapter.id]: Math.max(prev[openChapter.id] ?? 0, n + 1),
-        }))}
+        // Закладка: своя позиция, а если главу открыли впервые за сессию —
+        // первая непрочитанная карточка (читалка сама зажмёт в границы главы).
+        at={storyAt[openChapter.id] ?? storyRead[openChapter.id] ?? 0}
+        onAt={n => {
+          setStoryAt(prev => ({ ...prev, [openChapter.id]: n }))
+          // Прочитанное — максимум: полоска на витрине показывает «сколько
+          // прочитано», а не «где сейчас палец».
+          setStoryRead(prev => ({
+            ...prev,
+            [openChapter.id]: Math.max(prev[openChapter.id] ?? 0, n + 1),
+          }))
+        }}
         accent={palette.accent}
         soft={palette.soft}
         onDone={() => setOpenChapterId(null)}

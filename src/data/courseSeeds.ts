@@ -160,6 +160,27 @@ export const COURSE_SEEDS: CourseSeed[] = [
     summary: SEED_CARDS.desv,
     build: lazy('desv', () => import('./survivalDe'), m => m.buildGermanSurvivalCourse),
   },
+  {
+    // Русский и литература — курсы РОДНОГО языка: карточка в них перевёрнута
+    // (толкование на лице, слово в ответе), а экзаменационных форматов нет
+    // намеренно. Подробности — в docs/RUSSIAN_GERMAN_PLAN.md.
+    key: 'ruzh',
+    subject: 'Русский',
+    summary: SEED_CARDS.ruzh,
+    build: lazy('ruzh', () => import('./russianSpeech'), m => m.buildRussianSpeechCourse),
+  },
+  {
+    key: 'ruvo',
+    subject: 'Русский',
+    summary: SEED_CARDS.ruvo,
+    build: lazy('ruvo', () => import('./russianVoice'), m => m.buildRussianVoiceCourse),
+  },
+  {
+    key: 'rulit',
+    subject: 'Литература',
+    summary: SEED_CARDS.rulit,
+    build: lazy('rulit', () => import('./russianLiterature'), m => m.buildRussianLiteratureCourse),
+  },
 ]
 
 /**
