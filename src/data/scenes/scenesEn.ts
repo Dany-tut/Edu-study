@@ -33,7 +33,7 @@ export const EN_SCENES: Scene[] = [
     setup: 'Рассказчик — молодой человек без имени, восемь лет живущий в Петербурге и не завёдший там ни одного знакомого. Наступило лето, город разъехался по дачам, и он остался один. Отсюда начинается вся повесть: человек, который знает город лучше, чем людей.',
     after: 'В эту же ночь, возвращаясь домой по набережной, он увидит у перил плачущую девушку — и заговорит с ней. Это будет первый живой разговор за все восемь лет.',
     body: `It was a wonderful night, such a night as is only possible when we are young, dear reader. The sky was so starry, so bright that, looking at it, one could not help asking oneself whether ill-humoured and capricious people could live under such a sky. That is a youthful question too, dear reader, very youthful, but may the Lord put it more frequently into your heart!... Speaking of capricious and ill-humoured people, I cannot help recalling my moral condition all that day. From early morning I had been oppressed by a strange despondency. It suddenly seemed to me that I was lonely, that every one was forsaking me and going away from me. Of course, any one is entitled to ask who "every one" was. For though I had been living almost eight years in Petersburg I had hardly an acquaintance. But what did I want with acquaintances? I was acquainted with all Petersburg as it was; that was why I felt as though they were all deserting me when all Petersburg packed up and went to its summer villa. I felt afraid of being left alone, and for three whole days I wandered about the town in profound dejection, not knowing what to do with myself. Whether I walked in the Nevsky, went to the Gardens or sauntered on the embankment, there was not one face of those I had been accustomed to meet at the same time and place all the year. They, of course, do not know me, but I know them. I know them intimately, I have almost made a study of their faces, and am delighted when they are gay, and downcast when they are under a cloud.`,
-    translation: `Это была чудесная ночь, такая ночь, какая возможна только тогда, когда мы молоды, дорогой читатель. Небо было такое звёздное, такое ясное, что, глядя на него, невольно спрашиваешь себя: неужели под таким небом могут жить сердитые и капризные люди? Это тоже юношеский вопрос, дорогой читатель, очень юношеский, но пусть Господь почаще вкладывает его вам в сердце!.. Кстати о капризных и сердитых людях: я не могу не вспомнить своё душевное состояние в тот день. С самого утра меня давила странная тоска. Мне вдруг показалось, что я одинок, что все меня оставляют и уходят от меня. Конечно, всякий вправе спросить, кто были эти «все». Ведь, прожив в Петербурге почти восемь лет, я едва ли завёл хоть одно знакомство. Но зачем мне были знакомства? Я и без того был знаком со всем Петербургом; вот почему мне и казалось, что все меня покидают, когда весь Петербург собрался и уехал на дачу. Мне стало страшно остаться одному, и целых три дня я бродил по городу в глубоком унынии, не зная, куда себя деть. Шёл ли я по Невскому, отправлялся ли в Сад или брёл по набережной — не было ни одного из тех лиц, которые я привык встречать круглый год в одно и то же время и в одном и том же месте. Они, разумеется, меня не знают, но я знаю их. Я знаю их близко, я почти изучил их лица, и мне радостно, когда они веселы, и грустно, когда на них тень.`,
+    translation: `Была чудная ночь, такая ночь, которая разве только и может быть тогда, когда мы молоды, любезный читатель. Небо было такое звездное, такое светлое небо, что, взглянув на него, невольно нужно было спросить себя: неужели же могут жить под таким небом разные сердитые и капризные люди? Это тоже молодой вопрос, любезный читатель, очень молодой, но пошли его вам господь чаще на душу!.. Говоря о капризных и разных сердитых господах, я не мог не припомнить и своего благонравного поведения во весь этот день. С самого утра меня стала мучить какая-то удивительная тоска. Мне вдруг показалось, что меня, одинокого, все покидают и что все от меня отступаются. Оно, конечно, всякий вправе спросить: кто ж эти все? потому что вот уже восемь лет, как я живу в Петербурге, и почти ни одного знакомства не умел завести. Но к чему мне знакомства? Мне и без того знаком весь Петербург; вот почему мне и показалось, что меня все покидают, когда весь Петербург поднялся и вдруг уехал на дачу. Мне страшно стало оставаться одному, и целых три дня я бродил по городу в глубокой тоске, решительно не понимая, что со мной делается. Пойду ли на Невский, пойду ли в сад, брожу ли по набережной — ни одного лица из тех, кого привык встречать в том же месте, в известный час, целый год. Они, конечно, не знают меня, да я-то их знаю. Я коротко их знаю; я почти изучил их физиономии — и любуюсь на них, когда они веселы, и хандрю, когда они затуманятся.`,
     glossary: [
       { term: 'ill-humoured', ru: 'сердитый' },
       { term: 'capricious', ru: 'взбалмошный' },
@@ -91,7 +91,7 @@ export const EN_SCENES: Scene[] = [
     credit: 'Dostoevsky, White Nights · пер. Constance Garnett · Project Gutenberg',
     setup: 'Продолжение той же страницы. Рассказчик уже объяснил, что знаком со всем городом, но ни с кем не знаком лично. Теперь он объясняет это буквально — и становится понятно, что перед нами не грустный человек, а человек с очень своеобразным устройством головы.',
     body: `I know the houses too. As I walk along they seem to run forward in the streets to look out at me from every window, and almost to say: "Good-morning! How do you do? I am quite well, thank God, and I am to have a new storey in May," or, "How are you? I am being redecorated to-morrow;" or, "I was almost burnt down and had such a fright," and so on. I have my favourites among them, some are dear friends; one of them intends to be treated by the architect this summer. I shall go every day on purpose to see that the operation is not a failure. God forbid!`,
-    translation: `Дома я тоже знаю. Когда я иду, они словно выбегают вперёд по улице, выглядывают на меня из каждого окна и чуть ли не говорят: «Доброе утро! Как поживаете? Я, слава богу, здоров, а в мае мне надстроят этаж» — или: «Как вы? Меня завтра ремонтируют» — или: «Я чуть не сгорел и очень испугался», и так далее. Есть у меня среди них любимцы, некоторые — близкие друзья; один из них собирается этим летом лечиться у архитектора. Я буду ходить каждый день нарочно, чтобы посмотреть, что операция прошла удачно. Не приведи господь!`,
+    translation: `Мне тоже и дома знакомы. Когда я иду, каждый как будто забегает вперед меня на улицу, глядит на меня во все окна и чуть не говорит: «Здравствуйте; как ваше здоровье? и я, слава богу, здоров, а ко мне в мае месяце прибавят этаж». Или: «Как ваше здоровье? а меня завтра в починку». Или: «Я чуть не сгорел и притом испугался» и т. д. Из них у меня есть любимцы, есть короткие приятели; один из них намерен лечиться это лето у архитектора. Нарочно буду заходить каждый день, чтоб не залепили как-нибудь, сохрани его господи!..`,
     glossary: [
       { term: 'storey', ru: 'этаж; в США story' },
       { term: 'to redecorate', ru: 'делать ремонт' },
@@ -145,16 +145,14 @@ export const EN_SCENES: Scene[] = [
     credit: 'Dostoevsky, The Idiot · пер. Eva Martin · Project Gutenberg',
     setup: 'Первая страница романа. Ноябрьский поезд идёт в Петербург, в третьем классе друг напротив друга оказываются двое: князь Мышкин, возвращающийся из швейцарской лечебницы, и Рогожин. Достоевский сводит их случайно — и на этой случайности держится весь роман.',
     after: 'Через несколько минут они заговорят, и Рогожин расскажет попутчику о женщине по имени Настасья Филипповна. С этого разговора начнётся всё остальное.',
-    body: `Towards the end of November, during a thaw, at nine o'clock one morning, a train on the Warsaw and Petersburg railway was approaching the latter city at full speed. The morning was so damp and misty that it was only with great difficulty that the day succeeded in breaking; and it was impossible to distinguish anything more than a few yards away from the carriage windows.
+    body: `Towards the end of November, during a thaw, at nine o’clock one morning, a train on the Warsaw and Petersburg railway was approaching the latter city at full speed. The morning was so damp and misty that it was only with great difficulty that the day succeeded in breaking; and it was impossible to distinguish anything more than a few yards away from the carriage windows.
 
 Some of the passengers by this particular train were returning from abroad; but the third-class carriages were the best filled, chiefly with insignificant persons of various occupations and degrees, picked up at the different stations nearer town. All of them seemed weary, and most of them had sleepy eyes and a shivering expression, while their complexions generally appeared to have taken on the colour of the fog outside.
 
 When day dawned, two passengers in one of the third-class carriages found themselves opposite each other. Both were young fellows, both were rather poorly dressed, both had remarkable faces, and both were evidently anxious to start a conversation. If they had but known why, at this particular moment, they were both remarkable persons, they would undoubtedly have wondered at the strange chance which had set them down opposite to one another in a third-class carriage of the Warsaw Railway Company.`,
-    translation: `В конце ноября, в оттепель, часов в девять утра поезд Петербургско-Варшавской дороги на всех парах подходил к Петербургу. Было так сыро и туманно, что рассвело с большим трудом; в десяти шагах от окон вагона трудно было разглядеть хоть что-нибудь.
+    translation: `В конце ноября, в оттепель, часов в девять утра, поезд Петербургско-Варшавской железной дороги на всех парах подходил к Петербургу. Было так сыро и туманно, что насилу рассвело; в десяти шагах, вправо и влево от дороги, трудно было разглядеть хоть что-нибудь из окон вагона. Из пассажиров были и возвращавшиеся из-за границы; но более были наполнены отделения для третьего класса, и всё людом мелким и деловым, не из очень далека. Все, как водится, устали, у всех отяжелели за ночь глаза, все назяблись, все лица были бледножелтые, под цвет тумана.
 
-Некоторые из пассажиров возвращались из-за границы; но более всего были наполнены вагоны третьего класса, и всё людом мелким, деловым, не из очень далёка, подобравшимся на ближайших станциях. Все были утомлены, у всех отяжелели за ночь глаза, все назяблись, все лица были бледно-жёлтые, под цвет тумана.
-
-Когда рассвело, в одном из вагонов третьего класса оказались друг против друга два пассажира. Оба были молодые люди, оба довольно бедно одетые, оба с примечательными лицами, и оба явно хотели заговорить. Если бы они только знали, чем именно в эту минуту оба они примечательны, они наверняка подивились бы странному случаю, посадившему их друг против друга в вагоне третьего класса Варшавской железной дороги.`,
+В одном из вагонов третьего класса, с рассвета, очутились друг против друга, у самого окна, два пассажира, — оба люди молодые, оба почти налегке, оба не щегольски одетые, оба с довольно замечательными физиономиями, и оба пожелавшие, наконец, войти друг с другом в разговор. Если б они оба знали один про другого, чем они особенно в эту минуту замечательны, то, конечно, подивились бы, что случай так странно посадил их друг против друга в третьеклассном вагоне петербургско-варшавского поезда.`,
     glossary: [
       { term: 'thaw', ru: 'оттепель' },
       { term: 'damp', ru: 'сырой, влажный' },
@@ -217,20 +215,20 @@ When day dawned, two passengers in one of the third-class carriages found themse
     credit: 'Chekhov, The Lady with the Dog · пер. Constance Garnett · Project Gutenberg',
     setup: 'Ялта, курортный сезон. Гуров отдыхает уже две недели, скучает и присматривается к приезжим. Чехов за полстраницы успевает показать и женщину, и всё, что нужно знать о самом Гурове, — почти ничего при этом не объясняя напрямую.',
     after: 'Через несколько дней Гуров познакомится с ней в саду. Он уверен, что это обычный курортный роман, который кончится вместе с отпуском. Роман не кончится.',
-    body: `It was said that a new person had appeared on the sea-front: a lady with a little dog. Dmitri Dmitritch Gurov, who had by then been a fortnight at Yalta, and so was fairly at home there, had begun to take an interest in new arrivals. Sitting in Verney's pavilion, he saw, walking on the sea-front, a fair-haired young lady of medium height, wearing a béret; a white Pomeranian dog was running behind her.
+    body: `IT was said that a new person had appeared on the sea-front: a lady with a little dog. Dmitri Dmitritch Gurov, who had by then been a fortnight at Yalta, and so was fairly at home there, had begun to take an interest in new arrivals. Sitting in Verney's pavilion, he saw, walking on the sea-front, a fair-haired young lady of medium height, wearing a _béret_; a white Pomeranian dog was running behind her.
 
-And afterwards he met her in the public gardens and in the square several times a day. She was walking alone, always wearing the same béret, and always with the same white dog; no one knew who she was, and every one called her simply "the lady with the dog."
+And afterwards he met her in the public gardens and in the square several times a day. She was walking alone, always wearing the same _béret_, and always with the same white dog; no one knew who she was, and every one called her simply "the lady with the dog."
 
 "If she is here alone without a husband or friends, it wouldn't be amiss to make her acquaintance," Gurov reflected.
 
 He was under forty, but he had a daughter already twelve years old, and two sons at school. He had been married young, when he was a student in his second year, and by now his wife seemed half as old again as he. She was a tall, erect woman with dark eyebrows, staid and dignified, and, as she said of herself, intellectual.`,
-    translation: `Говорили, что на набережной появилось новое лицо: дама с собачкой. Дмитрий Дмитрич Гуров, проживший в Ялте уже две недели и потому вполне освоившийся, начал интересоваться новыми лицами. Сидя в павильоне у Верне, он увидел, как по набережной идёт молодая светловолосая дама среднего роста, в берете; за нею бежал белый шпиц.
+    translation: `Говорили, что на набережной появилось новое лицо: дама с собачкой. Дмитрий Дмитрич Гуров, проживший в Ялте уже две недели и привыкший тут, тоже стал интересоваться новыми лицами. Сидя в павильоне у Верне, он видел, как по набережной прошла молодая дама, невысокого роста блондинка, в берете; за нею бежал белый шпиц.
 
-А потом он встречал её в городском саду и на сквере по нескольку раз в день. Она гуляла одна, всё в том же берете и всё с тем же белым шпицем; никто не знал, кто она, и все звали её просто «дама с собачкой».
+И потом он встречал ее в городском саду и на сквере по нескольку раз в день. Она гуляла одна, всё в том же берете, с белым шпицем; никто не знал, кто она, и называли ее просто так: дама с собачкой.
 
-«Если она здесь без мужа и без знакомых, — рассуждал Гуров, — то было бы не лишним познакомиться».
+«Если она здесь без мужа и без знакомых, — соображал Гуров, — то было бы не лишнее познакомиться с ней».
 
-Ему не было ещё сорока, но у него уже была дочь двенадцати лет и двое сыновей-гимназистов. Его женили рано, когда он был студентом второго курса, и теперь жена казалась в полтора раза старше его. Это была высокая прямая женщина с тёмными бровями, степенная, важная и, как она сама себя называла, мыслящая.`,
+Ему не было еще сорока, но у него была уже дочь двенадцати лет и два сына-гимназиста. Его женили рано, когда он был еще студентом второго курса, и теперь жена казалась в полтора раза старше его. Это была женщина высокая, с темными бровями, прямая, важная, солидная и, как она сама себя называла, мыслящая.`,
     glossary: [
       { term: 'sea-front', ru: 'набережная' },
       { term: 'a fortnight', ru: 'две недели' },
@@ -294,8 +292,8 @@ He was under forty, but he had a daughter already twelve years old, and two sons
     credit: 'Dostoevsky, The Brothers Karamazov · пер. Constance Garnett · Project Gutenberg',
     setup: 'Первые строки романа. Рассказчик — не автор, а безымянный житель городка — начинает не с убийства и не с сыновей, а с характеристики отца. И сразу проговаривается, что тот погибнет: детектив, в котором жертву называют на первой странице.',
     after: 'Дальше выяснится, что у каждого из трёх сыновей был свой повод желать отцу смерти, и что четвёртый сын, о котором в этой главе ещё не сказано, живёт в том же доме прислугой.',
-    body: `Alexey Fyodorovitch Karamazov was the third son of Fyodor Pavlovitch Karamazov, a land owner well known in our district in his own day, and still remembered among us owing to his gloomy and tragic death, which happened thirteen years ago, and which I shall describe in its proper place. For the present I will only say that this "landowner"—for so we used to call him, although he hardly spent a day of his life on his own estate—was a strange type, yet one pretty frequently to be met with, a type abject and vicious and at the same time senseless. But he was one of those senseless persons who are very well capable of looking after their worldly affairs, and, apparently, after nothing else. Fyodor Pavlovitch, for instance, began with next to nothing; his estate was of the smallest; he ran to dine at other men's tables, and fastened on them as a toady, yet at his death it appeared that he had a hundred thousand roubles in hard cash. At the same time, he was all his life one of the most senseless, fantastical fellows in the whole district. I repeat, it was not stupidity—the majority of these fantastical fellows are shrewd and intelligent enough—but just senselessness, and a peculiar national form of it.`,
-    translation: `Алексей Фёдорович Карамазов был третьим сыном помещика нашего уезда Фёдора Павловича Карамазова, столь известного в своё время и до сих пор у нас памятного по мрачной и трагической смерти, случившейся ровно тринадцать лет назад и о которой я расскажу в своём месте. Пока же скажу лишь, что этот «помещик» — так мы его называли, хотя он почти ни дня в жизни не прожил в своём имении — был странным типом, каких, однако, встречается довольно часто: типом дрянным и порочным и в то же время бестолковым. Но он принадлежал к тем бестолковым людям, которые отлично умеют обделывать свои денежные делишки — и, кажется, только их. Фёдор Павлович, например, начинал почти ни с чем; имение у него было самое маленькое; он бегал обедать по чужим столам и напрашивался в приживальщики, — а после смерти его оказалось, что у него сто тысяч рублей чистыми деньгами. И при этом он всю жизнь оставался одним из самых бестолковых сумасбродов во всём уезде. Повторяю: это была не глупость — большинство таких сумасбродов довольно хитры и неглупы, — а именно бестолковость, и притом особого, нашего склада.`,
+    body: `Alexey Fyodorovitch Karamazov was the third son of Fyodor Pavlovitch Karamazov, a land owner well known in our district in his own day, and still remembered among us owing to his gloomy and tragic death, which happened thirteen years ago, and which I shall describe in its proper place. For the present I will only say that this “landowner”—for so we used to call him, although he hardly spent a day of his life on his own estate—was a strange type, yet one pretty frequently to be met with, a type abject and vicious and at the same time senseless. But he was one of those senseless persons who are very well capable of looking after their worldly affairs, and, apparently, after nothing else. Fyodor Pavlovitch, for instance, began with next to nothing; his estate was of the smallest; he ran to dine at other men’s tables, and fastened on them as a toady, yet at his death it appeared that he had a hundred thousand roubles in hard cash. At the same time, he was all his life one of the most senseless, fantastical fellows in the whole district. I repeat, it was not stupidity—the majority of these fantastical fellows are shrewd and intelligent enough—but just senselessness, and a peculiar national form of it.`,
+    translation: `Алексей Федорович Карамазов был третьим сыном помещика нашего уезда Федора Павловича Карамазова, столь известного в свое время (да и теперь еще у нас припоминаемого) по трагической и темной кончине своей, приключившейся ровно тринадцать лет назад и о которой сообщу в своем месте. Теперь же скажу об этом «помещике» (как его у нас называли, хотя он всю жизнь совсем почти не жил в своем поместье) лишь то, что это был странный тип, довольно часто, однако, встречающийся, именно тип человека не только дрянного и развратного, но вместе с тем и бестолкового, — но из таких, однако, бестолковых, которые умеют отлично обделывать свои имущественные делишки, и только, кажется, одни эти. Федор Павлович, например, начал почти что ни с чем, помещик он был самый маленький, бегал обедать по чужим столам, норовил в приживальщики, а между тем в момент кончины его у него оказалось до ста тысяч рублей чистыми деньгами. И в то же время он все-таки всю жизнь свою продолжал быть одним из бестолковейших сумасбродов по всему нашему уезду. Повторю еще: тут не глупость; большинство этих сумасбродов довольно умно и хитро, — а именно бестолковость, да еще какая-то особенная, национальная.`,
     glossary: [
       { term: 'estate', ru: 'имение' },
       { term: 'abject', ru: 'ничтожный' },
@@ -366,20 +364,12 @@ He was under forty, but he had a daughter already twelve years old, and two sons
 
 But it is perhaps better that I do not mention which department it was. There are in the whole of Russia no persons more sensitive than Government officials. Each of them believes if he is annoyed in any way, that the whole official class is insulted in his person.
 
-Recently an Isprawnik (country magistrate)—I do not know of which town—is said to have drawn up a report with the object of showing that, ignoring Government orders, people were speaking of Isprawniks in terms of contempt. In order to prove his assertions, he forwarded with his report a bulky work of fiction, in which on about every tenth page an Isprawnik appeared generally in a drunken condition.
+Recently an Isprawnik (country magistrate)--I do not know of which town--is said to have drawn up a report with the object of showing that, ignoring Government orders, people were speaking of Isprawniks in terms of contempt. In order to prove his assertions, he forwarded with his report a bulky work of fiction, in which on about every tenth page an Isprawnik appeared generally in a drunken condition.
 
 In order therefore to avoid any unpleasantness, I will not definitely indicate the department in which the scene of my story is laid, and will rather say "in a certain chancellery."
 
-Well, in a certain chancellery there was a certain man who, as I cannot deny, was not of an attractive appearance. He was short, had a face marked with smallpox, was rather bald in front, and his forehead and cheeks were deeply lined with furrows—to say nothing of other physical imperfections.`,
-    translation: `В некотором российском министерском департаменте…
-
-Но, пожалуй, лучше я не буду называть, в каком именно департаменте. Нет во всей России людей обидчивее чиновников. Каждый из них убеждён, что если задели чем-нибудь его, то в его лице оскорблено всё чиновничье сословие.
-
-Недавно один исправник (уездный судья) — не знаю уж какого города — будто бы составил доклад с целью показать, что вопреки распоряжениям правительства об исправниках отзываются с презрением. В доказательство он приложил к докладу увесистое сочинение, где примерно на каждой десятой странице появляется исправник, и обыкновенно в пьяном виде.
-
-Итак, чтобы избежать неприятностей, я не стану точно указывать департамент, в котором происходит моя история, а скажу лучше — «в некоторой канцелярии».
-
-Так вот, в некоторой канцелярии служил некоторый человек, наружности, надо признаться, непривлекательной. Он был низенького роста, лицо в оспинах, спереди изрядно лысоват, а лоб и щёки изрезаны глубокими морщинами — не говоря уже о прочих телесных несовершенствах.`,
+Well, in a certain chancellery there was a certain man who, as I cannot deny, was not of an attractive appearance. He was short, had a face marked with smallpox, was rather bald in front, and his forehead and cheeks were deeply lined with furrows--to say nothing of other physical imperfections.`,
+    translation: `В департаменте… но лучше не называть в каком департаменте. Ничего нет сердитее всякого рода департаментов, полков, канцелярий и, словом, всякого рода должностных сословий. Теперь уже всякой частный человек считает в лице своем оскорбленным всё общество. Говорят, весьма недавно поступила просьба от одного капитана-исправника, не помню какого-то города, в которой он излагает ясно, что гибнут государственные постановления и что священное имя его произносится решительно всуе. А в доказательство приложил к просьбе преогромнейший том какого-то романтического сочинения, где, чрез каждые десять страниц, является капитан-исправник, местами даже совершенно в пьяном виде. Итак, во избежание всяких неприятностей, лучше департамент, о котором идет дело, мы назовем одним департаментом. Итак, в одном департаменте служил один чиновник, чиновник нельзя сказать чтобы очень замечательный, низенького роста, несколько рябоват, несколько рыжеват, несколько даже на-вид подслеповат, с небольшой лысиной на лбу, с морщинами по обеим сторонам щек и цветом лица что̀ называется геморроидальным`,
     glossary: [
       { term: 'department', ru: 'здесь: ведомство' },
       { term: 'sensitive', ru: 'здесь: обидчивый' },
@@ -11545,6 +11535,836 @@ The police adopted all possible measures in order to get this ghost dead or aliv
           'They found the cloak',
         ],
         correct: 1,
+      },
+    ],
+  },
+
+  // ── Чехов «Дама с собачкой», арбуз ─────────────────────────────────────────
+  {
+    id: 'sc-chekhov-lady-dog-2',
+    workId: 'chekhov-lady-dog',
+    lang: 'en', title: 'На столе был арбуз', level: 'B1', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Глава II, номер в гостинице', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Anton Chekhov, “The Lady with the Dog”, tr. Constance Garnett (1917) · Project Gutenberg',
+    setup: 'Ялта, курортный роман, каких у Гурова было много. Всё случилось, и Анна Сергеевна сидит в номере, не поднимая головы. Дальше идёт самое известное место рассказа — и знаменито оно одной бытовой деталью, которую Чехов ставит ровно там, где другой писатель поставил бы описание чувств.',
+    after: 'Гуров будет слушать её вполуха и думать о том, что все женщины говорят одно и то же. Через несколько недель он уедет в Москву и решит, что забыл.',
+    body: `There was a water-melon on the table. Gurov cut himself a slice and began eating it without haste. There followed at least half an hour of silence.
+
+Anna Sergeyevna was touching; there was about her the purity of a good, simple woman who had seen little of life. The solitary candle burning on the table threw a faint light on her face, yet it was clear that she was very unhappy.
+
+"How could I despise you?" asked Gurov. "You don't know what you are saying."
+
+"God forgive me," she said, and her eyes filled with tears. "It's awful."
+
+"You seem to feel you need to be forgiven."
+
+"Forgiven? No. I am a bad, low woman; I despise myself and don't attempt to justify myself. It's not my husband but myself I have deceived. And not only just now; I have been deceiving myself for a long time. My husband may be a good, honest man, but he is a flunkey! I don't know what he does there, what his work is, but I know he is a flunkey! I was twenty when I was married to him.`,
+    translation: `На столе в номере был арбуз. Гуров отрезал себе ломоть и стал есть не спеша. Прошло, по крайней мере, полчаса в молчании.
+
+Анна Сергеевна была трогательна, от нее веяло чистотой порядочной, наивной, мало жившей женщины; одинокая свеча, горевшая на столе, едва освещала ее лицо, но было видно, что у нее нехорошо на душе.
+
+— Отчего бы я мог перестать уважать тебя? — спросил Гуров. — Ты сама не знаешь, что говоришь.
+
+— Пусть бог меня простит! — сказала она, и глаза у нее наполнились слезами. — Это ужасно.
+
+— Ты точно оправдываешься.
+
+— Чем мне оправдаться? Я дурная, низкая женщина, я себя презираю и об оправдании не думаю. Я не мужа обманула, а самоё себя. И не сейчас только, а уже давно обманываю. Мой муж, быть может, честный, хороший человек, но ведь он лакей! Я не знаю, что он делает там, как служит, а знаю только, что он лакей. Мне, когда я вышла за него, было двадцать лет`,
+    glossary: [
+      { term: 'water-melon', ru: 'арбуз' },
+      { term: 'without haste', ru: 'не спеша' },
+      { term: 'to despise', ru: 'презирать, не уважать' },
+      { term: 'solitary candle', ru: 'одинокая свеча' },
+      { term: 'to justify oneself', ru: 'оправдываться' },
+      { term: 'to deceive', ru: 'обманывать' },
+      { term: 'flunkey', ru: 'лакей — здесь как оскорбление, а не должность' },
+      { term: 'touching', ru: 'трогательный' },
+      { term: 'purity', ru: 'чистота' },
+    ],
+    questions: [
+      {
+        q: 'What does Gurov do while Anna Sergeyevna is distressed?',
+        options: [
+          'He comforts her at once',
+          'He cuts himself a slice of water-melon and eats it without haste',
+          'He leaves the room',
+          'He starts crying too',
+        ],
+        correct: 1,
+        why: 'Здесь весь Чехов: вместо описания равнодушия — арбуз и полчаса молчания. Читатель делает вывод сам.',
+      },
+      {
+        q: 'How long did the silence last?',
+        options: ['A minute', 'At least half an hour', 'All night', 'It is not said'],
+        correct: 1,
+      },
+      {
+        q: 'Whom does Anna Sergeyevna say she has deceived?',
+        options: ['Her husband', 'Herself', 'Gurov', 'Her family'],
+        correct: 1,
+        why: '«Я не мужа обманула, а самоё себя» — она обвиняет себя не в измене, а в том, что годами жила чужой жизнью.',
+      },
+      {
+        q: 'What does she call her husband?',
+        options: ['A good man and nothing more', 'A flunkey', 'A stranger', 'A tyrant'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Чехов «Дама с собачкой», осетрина ──────────────────────────────────────
+  {
+    id: 'sc-chekhov-lady-dog-3',
+    workId: 'chekhov-lady-dog',
+    lang: 'en', title: 'А осетрина-то с душком', level: 'B2', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Глава III, Москва', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Anton Chekhov, “The Lady with the Dog”, tr. Constance Garnett (1917) · Project Gutenberg',
+    setup: 'Гуров вернулся в Москву, к службе, к карточному клубу и к жизни, которая ещё недавно его устраивала. Ялту он считает законченной историей. Однажды ночью он не выдерживает и заговаривает о ней с человеком, с которым только что играл в карты.',
+    after: 'После этой ночи он поедет в город С. — искать Анну Сергеевну, — не зная, что скажет и зачем едет.',
+    body: `One evening, coming out of the doctors' club with an official with whom he had been playing cards, he could not resist saying:
+
+"If only you knew what a fascinating woman I made the acquaintance of in Yalta!"
+
+The official got into his sledge and was driving away, but turned suddenly and shouted:
+
+"Dmitri Dmitritch!"
+
+"What?"
+
+"You were right this evening: the sturgeon was a bit too strong!"
+
+These words, so ordinary, for some reason moved Gurov to indignation, and struck him as degrading and unclean. What savage manners, what people! What senseless nights, what uninteresting, uneventful days! The rage for card-playing, the gluttony, the drunkenness, the continual talk always about the same thing. Useless pursuits and conversations always about the same things absorb the better part of one's time, the better part of one's strength, and in the end there is left a life grovelling and curtailed, worthless and trivial, and there is no escaping or getting away from it--just as though one were in a madhouse or a prison.`,
+    translation: `Однажды ночью, выходя из докторского клуба со своим партнером, чиновником, он не удержался и сказал:
+
+— Если б вы знали, с какой очаровательной женщиной я познакомился в Ялте!
+
+Чиновник сел в сани и поехал, но вдруг обернулся и окликнул:
+
+— Дмитрий Дмитрич!
+
+— Что?
+
+— А давеча вы были правы: осетрина-то с душком!
+
+Эти слова, такие обычные, почему-то вдруг возмутили Гурова, показались ему унизительными, нечистыми. Какие дикие нравы, какие лица! Что за бестолковые ночи, какие неинтересные, незаметные дни! Неистовая игра в карты, обжорство, пьянство, постоянные разговоры всё об одном. Ненужные дела и разговоры всё об одном отхватывают на свою долю лучшую часть времени, лучшие силы, и в конце концов остается какая-то куцая, бескрылая жизнь, какая-то чепуха, и уйти и бежать нельзя, точно сидишь в сумасшедшем доме или в арестантских ротах!`,
+    glossary: [
+      { term: 'sledge', ru: 'сани' },
+      { term: 'sturgeon', ru: 'осетрина' },
+      { term: 'a bit too strong', ru: 'здесь: с душком, подпорченная' },
+      { term: 'indignation', ru: 'возмущение' },
+      { term: 'degrading', ru: 'унизительный' },
+      { term: 'savage manners', ru: 'дикие нравы' },
+      { term: 'gluttony', ru: 'обжорство' },
+      { term: 'to absorb', ru: 'поглощать, отнимать' },
+      { term: 'grovelling', ru: 'жалкий, пресмыкающийся' },
+      { term: 'trivial', ru: 'ничтожный, пустой' },
+    ],
+    questions: [
+      {
+        q: 'What did Gurov say to the official?',
+        options: [
+          'That he wanted to leave Moscow',
+          'That he had met a fascinating woman in Yalta',
+          'That he had lost at cards',
+          'Nothing at all',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What was the official’s reply?',
+        options: [
+          'He asked about the woman',
+          'He said the sturgeon was a bit too strong',
+          'He laughed',
+          'He said nothing',
+        ],
+        correct: 1,
+        why: 'Гуров впервые в жизни сказал вслух что-то настоящее — и получил в ответ реплику про рыбу. Ответ не грубый, он просто из другого разговора.',
+      },
+      {
+        q: 'Why did these ordinary words move Gurov to indignation?',
+        options: [
+          'They were rude',
+          'They showed him the emptiness of the life around him',
+          'They were about food',
+          'They were untrue',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is Gurov’s conclusion about his surroundings?',
+        options: [
+          'Life in Moscow is comfortable',
+          'Useless pursuits absorb the better part of one’s life',
+          'He should play cards less',
+          'He should travel more',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Чехов «Дама с собачкой», финал ─────────────────────────────────────────
+  {
+    id: 'sc-chekhov-lady-dog-4',
+    workId: 'chekhov-lady-dog',
+    lang: 'en', title: 'Самое трудное только начинается', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Финал рассказа', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Anton Chekhov, “The Lady with the Dog”, tr. Constance Garnett (1917) · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это последняя страница. Прошли месяцы. Анна Сергеевна приезжает в Москву тайком, они встречаются в гостинице, и оба уже понимают, что это не курортная история и никогда ею не была.',
+    after: 'На этом рассказ обрывается — без решения и без развязки. Чехов заканчивает там, где обычный роман только начинал бы, и именно это сделало «Даму с собачкой» образцом современного рассказа.',
+    body: `In moments of depression in the past he had comforted himself with any arguments that came into his mind, but now he no longer cared for arguments; he felt profound compassion, he wanted to be sincere and tender....
+
+"Don't cry, my darling," he said. "You've had your cry; that's enough.... Let us talk now, let us think of some plan."
+
+Then they spent a long while taking counsel together, talked of how to avoid the necessity for secrecy, for deception, for living in different towns and not seeing each other for long at a time. How could they be free from this intolerable bondage?
+
+"How? How?" he asked, clutching his head. "How?"
+
+And it seemed as though in a little while the solution would be found, and then a new and splendid life would begin; and it was clear to both of them that they had still a long, long road before them, and that the most complicated and difficult part of it was only just beginning.`,
+    translation: `Прежде, в грустные минуты, он успокаивал себя всякими рассуждениями, какие только приходили ему в голову, теперь же ему было не до рассуждений, он чувствовал глубокое сострадание, хотелось быть искренним, нежным…
+
+— Перестань, моя хорошая, — говорил он. — Поплакала — и будет… Теперь давай поговорим, что-нибудь придумаем.
+
+Потом они долго советовались, говорили о том, как избавить себя от необходимости прятаться, обманывать, жить в разных городах, не видеться подолгу. Как освободиться от этих невыносимых пут?
+
+— Как? Как? — спрашивал он, хватая себя за голову. — Как?
+
+И казалось, что еще немного — и решение будет найдено, и тогда начнется новая, прекрасная жизнь; и обоим было ясно, что до конца еще далеко-далеко и что самое сложное и трудное только еще начинается.`,
+    glossary: [
+      { term: 'compassion', ru: 'сострадание' },
+      { term: 'sincere', ru: 'искренний' },
+      { term: 'to take counsel together', ru: 'советоваться, обсуждать вместе' },
+      { term: 'secrecy', ru: 'необходимость таиться' },
+      { term: 'deception', ru: 'обман' },
+      { term: 'intolerable bondage', ru: 'невыносимые путы' },
+      { term: 'to clutch one’s head', ru: 'схватиться за голову' },
+      { term: 'solution', ru: 'решение, выход' },
+      { term: 'complicated', ru: 'сложный' },
+    ],
+    questions: [
+      {
+        q: 'What used to comfort Gurov in the past?',
+        options: [
+          'Music',
+          'Any arguments that came into his mind',
+          'His work',
+          'His family',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What do they talk about at the end?',
+        options: [
+          'How to say goodbye',
+          'How to be free from secrecy and living in different towns',
+          'Money',
+          'Their children',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Do they find a solution?',
+        options: [
+          'Yes, they decide to move together',
+          'No — it only seems that a solution would soon be found',
+          'Yes, they decide to part',
+          'The story does not mention it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the last thing the story says about their road?',
+        options: [
+          'It was nearly over',
+          'It was long, and the hardest part was only just beginning',
+          'It led to happiness',
+          'It led back to Yalta',
+        ],
+        correct: 1,
+        why: 'Рассказ кончается на слове «начинается». Развязки нет — и это сознательный выбор: у Чехова истории не завершаются, они продолжаются за пределами текста.',
+      },
+    ],
+  },
+
+  // ── Достоевский «Белые ночи», встреча ──────────────────────────────────────
+  {
+    id: 'sc-dost-white-nights-3',
+    workId: 'dost-white-nights',
+    lang: 'en', title: 'У решётки канала стояла женщина', level: 'B2', minutes: 4,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 3, where: 'Ночь первая', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “White Nights”, tr. Constance Garnett (1918) · Project Gutenberg',
+    setup: 'Мечтатель возвращается домой по набережной канала в одиннадцатом часу — в час, когда там не встретишь живой души. Он идёт и напевает, потому что счастлив, а поделиться счастьем ему не с кем. И тут происходит то, чего в его жизни не происходило никогда.',
+    after: 'Он пойдёт за ней, её начнёт преследовать пьяный господин, и мечтатель разгонит его тростью. Так они и познакомятся — и весь остальной рассказ уместится в четыре ночи.',
+    body: `I came back to the town very late, and it had struck ten as I was going towards my lodgings. My way lay along the canal embankment, where at that hour you never meet a soul. It is true that I live in a very remote part of the town. I walked along singing, for when I am happy I am always humming to myself like every happy man who has no friend or acquaintance with whom to share his joy. Suddenly I had a most unexpected adventure.
+
+Leaning on the canal railing stood a woman with her elbows on the rail, she was apparently looking with great attention at the muddy water of the canal. She was wearing a very charming yellow hat and a jaunty little black mantle. "She's a girl, and I am sure she is dark," I thought. She did not seem to hear my footsteps, and did not even stir when I passed by with bated breath and loudly throbbing heart.
+
+"Strange," I thought; "she must be deeply absorbed in something," and all at once I stopped as though petrified. I heard a muffled sob. Yes! I was not mistaken, the girl was crying, and a minute later I heard sob after sob. Good Heavens! My heart sank. And timid as I was with women, yet this was such a moment!... I turned, took a step towards her, and should certainly have pronounced the word "Madam!" if I had not known that that exclamation has been uttered a thousand times in every Russian society novel. It was only that reflection stopped me. But while I was seeking for a word, the girl came to herself, looked round, started, cast down her eyes and slipped by me along the embankment.`,
+    translation: `Я пришел назад в город очень поздно, и уже пробило десять часов, когда я стал подходить к квартире. Дорога моя шла по набережной канала, на которой в этот час не встретишь живой души. Правда, я живу в отдаленнейшей части города. Я шел и пел, потому что, когда я счастлив, я непременно мурлыкаю что-нибудь про себя, как и всякий счастливый человек, у которого нет ни друзей, ни добрых знакомых и которому в радостную минуту не с кем разделить свою радость. Вдруг со мной случилось самое неожиданное приключение.
+
+В сторонке, прислонившись к перилам канала, стояла женщина; облокотившись на решетку, она, по-видимому, очень внимательно смотрела на мутную воду канала. Она была одета в премиленькой желтой шляпке и в кокетливой черной мантильке. «Это девушка, и непременно брюнетка», — подумал я. Она, кажется, не слыхала шагов моих, даже не шевельнулась, когда я прошел мимо, затаив дыхание и с сильно забившимся сердцем. «Странно! — подумал я, — верно, она о чем-нибудь очень задумалась», и вдруг я остановился как вкопанный. Мне послышалось глухое рыдание. Да! я не обманулся: девушка плакала, и через минуту еще и еще всхлипывание. Боже мой! У меня сердце сжалось. И как я ни робок с женщинами, но ведь это была такая минута!.. Я воротился, шагнул к ней и непременно бы произнес: «Сударыня!» — если б только не знал, что это восклицание уже тысячу раз произносилось во всех русских великосветских романах. Это одно и остановило меня. Но покамест я приискивал слово, девушка очнулась, оглянулась, спохватилась, потупилась и скользнула мимо меня по набережной.`,
+    glossary: [
+      { term: 'embankment', ru: 'набережная' },
+      { term: 'lodgings', ru: 'квартира, съёмное жильё' },
+      { term: 'remote part of the town', ru: 'отдалённая часть города' },
+      { term: 'to hum to oneself', ru: 'напевать, мурлыкать про себя' },
+      { term: 'railing', ru: 'решётка, перила' },
+      { term: 'jaunty', ru: 'кокетливый, щегольской' },
+      { term: 'with bated breath', ru: 'затаив дыхание' },
+      { term: 'petrified', ru: 'окаменевший; как вкопанный' },
+      { term: 'muffled sob', ru: 'глухое рыдание' },
+      { term: 'to slip by', ru: 'проскользнуть мимо' },
+    ],
+    questions: [
+      {
+        q: 'Why was the narrator humming?',
+        options: [
+          'He was drunk',
+          'He was happy and had no one to share his joy with',
+          'He was afraid',
+          'It was a habit from childhood',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What was the woman doing at the railing?',
+        options: [
+          'Waiting for someone',
+          'Looking at the muddy water — and crying',
+          'Reading a letter',
+          'Singing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why did the narrator not say “Madam!”?',
+        options: [
+          'He was too shy to speak at all',
+          'He knew the word had been used a thousand times in Russian society novels',
+          'She had already left',
+          'He forgot the word',
+        ],
+        correct: 1,
+        why: 'Герой не может заговорить с живой женщиной, потому что мешает прочитанное. Ирония Достоевского над «мечтателем» начинается прямо здесь.',
+      },
+      {
+        q: 'How did the meeting end?',
+        options: [
+          'They talked',
+          'She recovered herself and slipped past him along the embankment',
+          'She called for help',
+          'He walked her home',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Достоевский «Белые ночи», финал ────────────────────────────────────────
+  {
+    id: 'sc-dost-white-nights-4',
+    workId: 'dost-white-nights',
+    lang: 'en', title: 'Целая минута блаженства', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Утро (финал)', size: 'flash', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “White Nights”, tr. Constance Garnett (1918) · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это последняя страница. Настенька ждала своего жениха год, мечтатель за четыре ночи успел в неё влюбиться, и на четвёртую она почти согласилась остаться с ним — а потом жених вернулся. Утром приходит её письмо. Мечтатель сидит в своей комнате и представляет себя через пятнадцать лет.',
+    after: 'Этой фразой повесть и кончается. Вопрос в последней строке — не риторический: Достоевский оставляет читателю решать, чем была эта минута — наградой или приговором.',
+    body: `But to imagine that I should bear you a grudge, Nastenka! That I should cast a dark cloud over your serene, untroubled happiness; that by my bitter reproaches I should cause distress to your heart, should poison it with secret remorse and should force it to throb with anguish at the moment of bliss; that I should crush a single one of those tender blossoms which you have twined in your dark tresses when you go with him to the altar.... Oh never, never! May your sky be clear, may your sweet smile be bright and untroubled, and may you be blessed for that moment of blissful happiness which you gave to another, lonely and grateful heart!
+
+My God, a whole moment of happiness! Is that too little for the whole of a man's life?`,
+    translation: `Но чтоб я помнил обиду мою, Настенька! Чтоб я нагнал темное облако на твое ясное, безмятежное счастие, чтоб я, горько упрекнув, нагнал тоску на твое сердце, уязвил его тайным угрызением и заставил его тоскливо биться в минуту блаженства, чтоб я измял хоть один из этих нежных цветков, которые ты вплела в свои черные кудри, когда пошла вместе с ним к алтарю… О, никогда, никогда! Да будет ясно твое небо, да будет светла и безмятежна милая улыбка твоя, да будешь ты благословенна за минуту блаженства и счастия, которое ты дала другому, одинокому, благодарному сердцу!
+
+Боже мой! Целая минута блаженства! Да разве этого мало хоть бы и на всю жизнь человеческую?..`,
+    glossary: [
+      { term: 'to bear sb a grudge', ru: 'держать на кого-то обиду' },
+      { term: 'serene', ru: 'безмятежный' },
+      { term: 'untroubled', ru: 'ничем не омрачённый' },
+      { term: 'bitter reproach', ru: 'горький упрёк' },
+      { term: 'remorse', ru: 'угрызение совести' },
+      { term: 'to throb', ru: 'биться, колотиться (о сердце)' },
+      { term: 'anguish', ru: 'тоска, мука' },
+      { term: 'bliss', ru: 'блаженство' },
+      { term: 'tresses', ru: 'кудри, локоны' },
+      { term: 'altar', ru: 'алтарь; go to the altar — венчаться' },
+    ],
+    questions: [
+      {
+        q: 'What does the narrator refuse to do?',
+        options: [
+          'To forget Nastenka',
+          'To bear her a grudge and cloud her happiness',
+          'To leave his room',
+          'To write to her',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does he imagine himself in fifteen years?',
+        options: [
+          'Married and happy',
+          'Older, in the same room, just as lonely, with the same Matrona',
+          'In another city',
+          'Rich',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does he wish for Nastenka?',
+        options: [
+          'That she should remember him',
+          'A clear sky and a bright, untroubled smile',
+          'That she should regret her choice',
+          'That she should write to him',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the last question of the story?',
+        options: [
+          'Where is Nastenka now?',
+          'Is a whole moment of happiness too little for a whole life?',
+          'Why did she leave?',
+          'What will he do tomorrow?',
+        ],
+        correct: 1,
+        why: 'Вопрос без ответа — и в этом всё. Формально герой утешен, но «целая минута» на «всю жизнь человеческую» звучит и как благодарность, и как приговор.',
+      },
+    ],
+  },
+
+  // ── Достоевский «Идиот», пять минут ────────────────────────────────────────
+  {
+    id: 'sc-dost-idiot-2',
+    workId: 'dost-idiot',
+    lang: 'en', title: 'Пять минут казались ему сроком огромным', level: 'B2', minutes: 5,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 2, where: 'Часть 1, глава 5', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “The Idiot”, tr. Eva Martin (1915) · Project Gutenberg',
+    setup: 'Князь Мышкин у Епанчиных. Его просят рассказать что-нибудь — и он рассказывает про знакомого, которого возвели на эшафот и в последнюю минуту помиловали. Достоевский описывает здесь то, что пережил сам: в 1849 году его вывели на расстрел и объявили помилование, когда солдаты уже целились.',
+    after: 'Мышкин доскажет: помилование пришло, человек остался жив — и не сумел прожить каждую минуту так, как обещал себе на эшафоте.',
+    body: `A priest went about among them with a cross: and there was about five minutes of time left for him to live.
+
+“He said that those five minutes seemed to him to be a most interminable period, an enormous wealth of time; he seemed to be living, in these minutes, so many lives that there was no need as yet to think of that last moment, so that he made several arrangements, dividing up the time into portions—one for saying farewell to his companions, two minutes for that; then a couple more for thinking over his own life and career and all about himself; and another minute for a last look around. He remembered having divided his time like this quite well. While saying good-bye to his friends he recollected asking one of them some very usual everyday question, and being much interested in the answer. Then having bade farewell, he embarked upon those two minutes which he had allotted to looking into himself; he knew beforehand what he was going to think about.`,
+    translation: `Священник обошел всех с крестом. Выходило, что остается жить минут пять, не больше. Он говорил, что эти пять минут казались ему бесконечным сроком, огромным богатством; ему казалось, что в эти пять минут он проживет столько жизней. Что еще сейчас нечего и думать о последнем мгновении, так что он еще распоряжения разные сделал: рассчитал время, чтобы проститься с товарищами, на это положил минуты две, потом две минуты еще положил, чтобы подумать в последний раз про себя, а потом, чтобы в последний раз кругом поглядеть. Он очень хорошо помнил, что сделал именно эти три распоряжения и именно так рассчитал. Он умирал двадцати семи лет, здоровый и сильный; прощаясь с товарищами, он помнил, что одному из них задал довольно посторонний вопрос и даже очень заинтересовался ответом. Потом, когда он простился с товарищами, настали те две минуты, которые он отсчитал, чтобы думать про себя; он знал заранее, о чем он будет думать`,
+    glossary: [
+      { term: 'post (n.)', ru: 'столб' },
+      { term: 'criminal', ru: 'здесь: осуждённый, приговорённый' },
+      { term: 'tunic', ru: 'балахон, рубаха' },
+      { term: 'to take one’s stand', ru: 'занять позицию, выстроиться' },
+      { term: 'interminable', ru: 'бесконечный' },
+      { term: 'an enormous wealth of time', ru: 'огромное богатство времени' },
+      { term: 'arrangement', ru: 'распоряжение, план' },
+      { term: 'to allot', ru: 'отвести, выделить (время)' },
+      { term: 'to bid farewell', ru: 'прощаться' },
+      { term: 'beforehand', ru: 'заранее' },
+    ],
+    questions: [
+      {
+        q: 'How much time was left for the narrator’s friend to live?',
+        options: ['An hour', 'About five minutes', 'A day', 'It is not said'],
+        correct: 1,
+      },
+      {
+        q: 'How did those five minutes feel to him?',
+        options: [
+          'They passed in an instant',
+          'They seemed an interminable period, an enormous wealth of time',
+          'He remembered nothing',
+          'He fell asleep',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How did he divide the time?',
+        options: [
+          'He prayed the whole time',
+          'Two minutes to say farewell, two to think of himself, one for a last look around',
+          'He asked for paper',
+          'He did not divide it',
+        ],
+        correct: 1,
+        why: 'Человек за пять минут до смерти составляет расписание. Достоевский пишет это как арифметику — и именно поэтому сцена работает.',
+      },
+      {
+        q: 'What did he do while saying good-bye to his friends?',
+        options: [
+          'He wept',
+          'He asked one of them a very ordinary everyday question',
+          'He said nothing',
+          'He gave away his things',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Достоевский «Идиот», пощёчина ──────────────────────────────────────────
+  {
+    id: 'sc-dost-idiot-3',
+    workId: 'dost-idiot',
+    lang: 'en', title: 'Как вы будете стыдиться', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Часть 1, глава 10', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “The Idiot”, tr. Eva Martin (1915) · Project Gutenberg',
+    setup: 'В квартире Иволгиных скандал: Ганя замахивается на сестру Варю, князь перехватывает его руку. Ганя в бешенстве — при матери, при сестре, при Рогожине и при чужом человеке, который поселился у них жильцом.',
+    after: 'Ганя потом придёт к князю просить прощения — и получит его сразу, без единого условия. Именно с этой сцены в романе становится ясно, что «идиот» означает у Достоевского не то, что означает обычно.',
+    body: `“Are you going to cross my path for ever, damn you!” cried Gania; and, loosening his hold on Varia, he slapped the prince’s face with all his force.
+
+Exclamations of horror arose on all sides. The prince grew pale as death; he gazed into Gania’s eyes with a strange, wild, reproachful look; his lips trembled and vainly endeavoured to form some words; then his mouth twisted into an incongruous smile.
+
+“Very well—never mind about me; but I shall not allow you to strike her!” he said, at last, quietly. Then, suddenly, he could bear it no longer, and covering his face with his hands, turned to the wall, and murmured in broken accents:
+
+“Oh! how ashamed you will be of this afterwards!”
+
+Gania certainly did look dreadfully abashed. Colia rushed up to comfort the prince, and after him crowded Varia, Rogojin and all, even the general.
+
+“It’s nothing, it’s nothing!” said the prince, and again he wore the smile which was so inconsistent with the circumstances.
+
+“Yes, he will be ashamed!” cried Rogojin. “You will be properly ashamed of yourself for having injured such a—such a sheep” (he could not find a better word`,
+    translation: `— Да вечно, что ли, ты мне дорогу переступать будешь! — заревел Ганя, бросив руку Вари, и освободившеюся рукой, в последней степени бешенства, со всего размаха дал князю пощечину.
+
+— Ах! — всплеснул руками Коля: — ах, боже мой! Раздались восклицания со всех сторон. Князь побледнел. Странным и укоряющим взглядом поглядел он Гане прямо в глаза; губы его дрожали и силились что-то проговорить; какая-то странная и совершенно неподходящая улыбка кривила их.
+
+— Ну, это пусть мне… а ее… всё-таки не дам!.. — тихо проговорил он наконец, но вдруг не выдержал, бросил Ганю, закрыл руками лицо, отошел в угол, стал лицом к стене и прерывающимся голосом проговорил:
+
+— О, как вы будете стыдиться своего поступка!
+
+Ганя, действительно, стоял как уничтоженный. Коля бросился обнимать и целовать князя`,
+    glossary: [
+      { term: 'to cross sb’s path', ru: 'переступать кому-то дорогу' },
+      { term: 'to loosen one’s hold', ru: 'разжать хватку, отпустить' },
+      { term: 'with all one’s force', ru: 'со всего размаха' },
+      { term: 'exclamation', ru: 'восклицание, возглас' },
+      { term: 'pale as death', ru: 'бледный как смерть' },
+      { term: 'reproachful', ru: 'укоряющий' },
+      { term: 'incongruous', ru: 'неуместный, не вяжущийся с обстановкой' },
+      { term: 'in broken accents', ru: 'прерывающимся голосом' },
+      { term: 'abashed', ru: 'смущённый, пристыженный' },
+    ],
+    questions: [
+      {
+        q: 'Why did Gania strike the prince?',
+        options: [
+          'The prince insulted him',
+          'The prince stopped him from hitting Varia',
+          'The prince laughed at him',
+          'The prince took his money',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did the prince say first after the blow?',
+        options: [
+          'He demanded an apology',
+          'That he would not allow Gania to strike Varia',
+          'Nothing at all',
+          'He called for help',
+        ],
+        correct: 1,
+        why: 'Он не говорит о себе ни слова. Первая его фраза после удара — о сестре обидчика.',
+      },
+      {
+        q: 'What did he murmur, turning to the wall?',
+        options: [
+          '“I shall never forgive you”',
+          '“Oh! how ashamed you will be of this afterwards!”',
+          '“Leave this house”',
+          '“I am going away”',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What word does Rogojin use for the prince?',
+        options: ['A saint', 'A sheep', 'A fool', 'A gentleman'],
+        correct: 1,
+        why: '“such a—such a sheep” — Рогожин ищет слово и не находит; у Достоевского это признак того, что явление новое и названия ему нет.',
+      },
+    ],
+  },
+
+  // ── Достоевский «Идиот», сто тысяч в камин ─────────────────────────────────
+  {
+    id: 'sc-dost-idiot-4',
+    workId: 'dost-idiot',
+    lang: 'en', title: 'Сто тысяч в огонь', level: 'B2', minutes: 5,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 4, where: 'Часть 1, глава 16', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “The Idiot”, tr. Eva Martin (1915) · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это конец первой части. Вечер у Настасьи Филипповны. Рогожин привёз сто тысяч, чтобы её купить; Ганя три месяца ждал денег за женитьбу на ней; князь только что предложил ей руку. Она берёт пачку и объявляет условие.',
+    after: 'Ганя не полезет в огонь и упадёт в обморок. Настасья Филипповна вытащит деньги сама, отдаст их ему — и уедет с Рогожиным.',
+    body: `Nastasia Philipovna seized the packet of bank-notes.
+
+“Gania, I have an idea. I wish to recompense you—why should you lose all? Rogojin, would he crawl for three roubles as far as the Vassiliostrof?”
+
+“Oh, wouldn’t he just!”
+
+“Well, look here, Gania. I wish to look into your heart once more, for the last time. You’ve worried me for the last three months—now it’s my turn. Do you see this packet? It contains a hundred thousand roubles. Now, I’m going to throw it into the fire, here—before all these witnesses. As soon as the fire catches hold of it, you put your hands into the fire and pick it out—without gloves, you know. You must have bare hands, and you must turn your sleeves up. Pull it out, I say, and it’s all yours. You may burn your fingers a little, of course; but then it’s a hundred thousand roubles, remember—it won’t take you long to lay hold of it and snatch it out. I shall so much admire you if you put your hands into the fire for my money. All here present may be witnesses that the whole packet of money is yours if you get it out. If you don’t get it out, it shall burn. I will let no one else come; away—get away, all of you—it’s my money! Rogojin has bought me with it. Is it my money, Rogojin?”`,
+    translation: `Настасья Филипповна схватила в руки пачку.
+
+— Ганька, ко мне мысль пришла: я тебя вознаградить хочу, потому за что же тебе всё-то терять? Рогожин, доползет он на Васильевский за три целковых?
+
+— Доползет!
+
+— Ну, так слушай же, Ганя, я хочу на твою душу в последний раз посмотреть; ты меня сам целые три месяца мучил; теперь мой черед. Видишь ты эту пачку, в ней сто тысяч! Вот я ее сейчас брошу в камин, в огонь, вот при всех, все свидетели! Как только огонь обхватит ее всю, — полезай в камин, но только без перчаток, с голыми руками, и рукава отверни, и тащи пачку из огня! Вытащишь — твоя, все сто тысяч твои! Капельку только пальчики обожжешь, — да ведь сто тысяч, подумай! Долго ли выхватить! А я на душу твою полюбуюсь, как ты за моими деньгами в огонь полезешь. Все свидетели, что пачка будет твоя! А не полезешь, так и сгорит; никого не пущу. Прочь! Все прочь! Мои деньги! Я их за ночь у Рогожина взяла. Мои ли деньги, Рогожин?`,
+    glossary: [
+      { term: 'packet of bank-notes', ru: 'пачка ассигнаций' },
+      { term: 'to recompense', ru: 'вознаградить' },
+      { term: 'to crawl', ru: 'ползти' },
+      { term: 'to look into sb’s heart', ru: 'заглянуть кому-то в душу' },
+      { term: 'to catch hold of', ru: 'схватиться, обхватить (об огне)' },
+      { term: 'bare hands', ru: 'голые руки' },
+      { term: 'to turn up one’s sleeves', ru: 'засучить рукава' },
+      { term: 'witness', ru: 'свидетель' },
+      { term: 'to snatch out', ru: 'выхватить' },
+    ],
+    questions: [
+      {
+        q: 'What is inside the packet?',
+        options: ['Letters', 'A hundred thousand roubles', 'Jewels', 'A will'],
+        correct: 1,
+      },
+      {
+        q: 'What must Gania do to keep the money?',
+        options: [
+          'Marry her',
+          'Pull the packet out of the fire with bare hands',
+          'Beat Rogojin',
+          'Leave the house',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is she doing this, in her own words?',
+        options: [
+          'She hates money',
+          'She wants to look into Gania’s heart once more',
+          'She is drunk',
+          'She wants to help him',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Whose money is it?',
+        options: [
+          'Gania’s',
+          'Hers — she took it from Rogojin that night',
+          'The prince’s',
+          'The general’s',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Достоевский «Братья Карамазовы», скандал в келье ───────────────────────
+  {
+    id: 'sc-dost-karamazov-2',
+    workId: 'dost-karamazov',
+    lang: 'en', title: 'Зачем живёт такой человек', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Часть 1, книга 2, глава 6', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “The Brothers Karamazov”, tr. Constance Garnett (1912) · Project Gutenberg',
+    setup: 'Семья собралась в монастыре у старца Зосимы — формально чтобы уладить денежный спор отца с сыном Дмитрием. Фёдор Павлович вместо этого устраивает представление и говорит вслух о женщине, из-за которой отец и сын враждуют.',
+    after: 'Дмитрий уйдёт, отец останется скандалить дальше, а старец Зосима перед всеми поклонится Дмитрию в ноги — жест, значение которого объяснится только в конце романа.',
+    body: `“Shameful!” broke from Father Iosif.
+
+“Shameful and disgraceful!” Kalganov, flushing crimson, cried in a boyish voice, trembling with emotion. He had been silent till that moment.
+
+“Why is such a man alive?” Dmitri, beside himself with rage, growled in a hollow voice, hunching up his shoulders till he looked almost deformed. “Tell me, can he be allowed to go on defiling the earth?” He looked round at every one and pointed at the old man. He spoke evenly and deliberately.`,
+    translation: `— Стыдно! — вырвалось вдруг у отца Иосифа.
+
+— Стыдно и позорно! — своим отроческим голосом, дрожащим от волнения, и весь покраснев, крикнул вдруг Калганов, всё время молчавший.
+
+— Зачем живет такой человек! — глухо прорычал Дмитрий Федорович, почти уже в исступлении от гнева, как-то чрезвычайно приподняв плечи и почти от того сгорбившись, — нет, скажите мне, можно ли еще позволить ему бесчестить собою землю, — оглядел он всех, указывая на старика рукой. Он говорил медленно и мерно.`,
+    glossary: [
+      { term: 'shameful', ru: 'стыдно, позорно' },
+      { term: 'to break from sb', ru: 'вырваться у кого-то (о слове)' },
+      { term: 'to flush crimson', ru: 'залиться краской' },
+      { term: 'beside oneself with rage', ru: 'вне себя от гнева' },
+      { term: 'to growl', ru: 'прорычать' },
+      { term: 'in a hollow voice', ru: 'глухим голосом' },
+      { term: 'to hunch up one’s shoulders', ru: 'приподнять плечи, сгорбиться' },
+      { term: 'to defile', ru: 'бесчестить, осквернять' },
+      { term: 'evenly and deliberately', ru: 'медленно и мерно' },
+    ],
+    questions: [
+      {
+        q: 'Who says “Shameful!” first?',
+        options: ['Alyosha', 'Father Iosif', 'Dmitri', 'Kalganov'],
+        correct: 1,
+      },
+      {
+        q: 'What does Dmitri ask about his father?',
+        options: [
+          'Whether he will pay',
+          'Whether such a man can be allowed to go on defiling the earth',
+          'Whether he is ill',
+          'Whether he will leave',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does Dmitri speak these words?',
+        options: [
+          'Shouting',
+          'Evenly and deliberately, though beside himself with rage',
+          'Laughing',
+          'Whispering to Alyosha',
+        ],
+        correct: 1,
+        why: 'Гнев и ровный голос вместе — так Достоевский помечает слова, которые сказаны не сгоряча. Эту фразу вспомнят на суде.',
+      },
+      {
+        q: 'What does Fyodor Pavlovitch call his son in reply?',
+        options: ['A thief', 'A parricide', 'A monk', 'A liar'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Достоевский «Братья Карамазовы», билет ─────────────────────────────────
+  {
+    id: 'sc-dost-karamazov-3',
+    workId: 'dost-karamazov',
+    lang: 'en', title: 'Возвращаю билет', level: 'C1', minutes: 5,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Часть 2, книга 5, глава 4 («Бунт»)', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “The Brothers Karamazov”, tr. Constance Garnett (1912) · Project Gutenberg',
+    setup: 'Иван весь вечер рассказывал Алёше подлинные газетные случаи о замученных детях — и подводит к вопросу. Если будущая мировая гармония куплена страданием хотя бы одного ребёнка, согласен ли он на такую гармонию. Ниже — его ответ.',
+    after: 'Алёша скажет только одно слово: «Это бунт». И тогда Иван начнёт рассказывать поэму про Великого инквизитора.',
+    body: `I don’t want harmony. From love for humanity I don’t want it. I would rather be left with the unavenged suffering. I would rather remain with my unavenged suffering and unsatisfied indignation, _even if I were wrong_. Besides, too high a price is asked for harmony; it’s beyond our means to pay so much to enter on it. And so I hasten to give back my entrance ticket, and if I am an honest man I am bound to give it back as soon as possible. And that I am doing. It’s not God that I don’t accept, Alyosha, only I most respectfully return Him the ticket.”
+
+“That’s rebellion,” murmured Alyosha, looking down.`,
+    translation: `Не хочу гармонии, из-за любви к человечеству не хочу. Я хочу оставаться лучше со страданиями неотомщенными. Лучше уж я останусь при неотомщенном страдании моем и неутоленном негодовании моем, хотя бы я был и неправ. Да и слишком дорого оценили гармонию, не по карману нашему вовсе столько платить за вход. А потому свой билет на вход спешу возвратить обратно. И если только я честный человек, то обязан возвратить его как можно заранее. Это и делаю. Не бога я не принимаю, Алеша, я только билет ему почтительнейше возвращаю.
+
+— Это бунт, — тихо и потупившись проговорил Алеша.`,
+    glossary: [
+      { term: 'harmony', ru: 'гармония — здесь: конечный смысл мироустройства' },
+      { term: 'unavenged', ru: 'неотомщённый' },
+      { term: 'indignation', ru: 'негодование' },
+      { term: 'beyond our means', ru: 'не по карману' },
+      { term: 'entrance ticket', ru: 'билет на вход' },
+      { term: 'to give back', ru: 'вернуть, возвратить' },
+      { term: 'to accept', ru: 'принимать' },
+      { term: 'rebellion', ru: 'бунт' },
+      { term: 'to murmur', ru: 'проговорить тихо' },
+    ],
+    questions: [
+      {
+        q: 'What does Ivan refuse?',
+        options: [
+          'God',
+          'Harmony bought at the price of a child’s suffering',
+          'His inheritance',
+          'To speak to Alyosha',
+        ],
+        correct: 1,
+        why: '«Не бога я не принимаю… я только билет ему почтительнейше возвращаю» — Иван подчёркивает разницу сам, и вся глава держится на ней.',
+      },
+      {
+        q: 'What metaphor does he use for his refusal?',
+        options: [
+          'Returning his entrance ticket',
+          'Leaving the house',
+          'Breaking a promise',
+          'Burning a letter',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why does he say he must give it back as soon as possible?',
+        options: [
+          'Because he is in a hurry',
+          'Because he considers himself an honest man',
+          'Because Alyosha asked him to',
+          'Because the price will rise',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is Alyosha’s reply?',
+        options: [
+          'A long argument',
+          'Two words: “That’s rebellion”',
+          'He says nothing',
+          'He agrees',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Достоевский «Братья Карамазовы», Великий инквизитор ────────────────────
+  {
+    id: 'sc-dost-karamazov-4',
+    workId: 'dost-karamazov',
+    lang: 'en', title: 'Поэма без предисловия не выходит', level: 'C1', minutes: 5,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 4, where: 'Часть 2, книга 5, глава 5', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Fyodor Dostoevsky, “The Brothers Karamazov”, tr. Constance Garnett (1912) · Project Gutenberg',
+    setup: 'Иван сочинил поэму и никогда её не записывал — он рассказывает её вслух, единственному слушателю. Ниже начало: литературное предисловие, в котором Иван объясняет, почему в шестнадцатом веке небесные силы выводили прямо на сцену. Дальше пойдёт сама легенда.',
+    after: 'В поэме Христос возвращается в Севилью во времена инквизиции, и Великий инквизитор велит взять его под стражу. Это самая цитируемая глава русской литературы — и целиком она построена как монолог одного человека, которому никто не возражает.',
+    body: `“Even this must have a preface—that is, a literary preface,” laughed Ivan, “and I am a poor hand at making one. You see, my action takes place in the sixteenth century, and at that time, as you probably learnt at school, it was customary in poetry to bring down heavenly powers on earth. Not to speak of Dante, in France, clerks, as well as the monks in the monasteries, used to give regular performances in which the Madonna, the saints, the angels, Christ, and God himself were brought on the stage. In those days it was done in all simplicity.`,
+    translation: `Ведь вот и тут без предисловия невозможно, то есть без литературного предисловия, тьфу! — засмеялся Иван, — а какой уж я сочинитель! Видишь, действие у меня происходит в шестнадцатом столетии, а тогда, — тебе, впрочем, это должно быть известно еще из классов, — тогда как раз было в обычае сводить в поэтических произведениях на землю горние силы. Я уж про Данта не говорю. Во Франции судейские клерки, а тоже и по монастырям монахи давали целые представления, в которых выводили на сцену Мадонну, ангелов, святых, Христа и самого бога. Тогда всё это было очень простодушно.`,
+    glossary: [
+      { term: 'preface', ru: 'предисловие' },
+      { term: 'a poor hand at sth', ru: 'плохой мастер в чём-то' },
+      { term: 'to take place', ru: 'происходить (о действии)' },
+      { term: 'customary', ru: 'принятый, обычный' },
+      { term: 'to bring down sth on earth', ru: 'сводить что-то на землю' },
+      { term: 'clerk', ru: 'здесь: клирик, церковный служитель' },
+      { term: 'monastery', ru: 'монастырь' },
+      { term: 'to bring sb on the stage', ru: 'выводить на сцену' },
+      { term: 'in all simplicity', ru: 'простодушно, без затей' },
+    ],
+    questions: [
+      {
+        q: 'Who is the only listener of Ivan’s poem?',
+        options: ['Dmitri', 'Alyosha', 'Smerdyakov', 'Nobody'],
+        correct: 1,
+      },
+      {
+        q: 'In what century does the poem take place?',
+        options: ['The fourteenth', 'The sixteenth', 'The nineteenth', 'It is not said'],
+        correct: 1,
+      },
+      {
+        q: 'What was customary in the poetry of that time?',
+        options: [
+          'To write only about kings',
+          'To bring heavenly powers down on earth',
+          'To write in Latin only',
+          'To avoid religion',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Ivan say about his skill as an author?',
+        options: [
+          'He is a great writer',
+          'He is a poor hand at making a preface',
+          'He has published before',
+          'He wrote the poem down',
+        ],
+        correct: 1,
+        why: 'Иван настойчиво принижает свою поэму («ridiculous thing», «poor hand») — и рассказывает её наизусть целый час. Это тоже часть характера.',
       },
     ],
   },

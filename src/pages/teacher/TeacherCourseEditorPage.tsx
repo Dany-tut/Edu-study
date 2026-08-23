@@ -576,7 +576,7 @@ function AssignPicker({
                         fontSize: 11, fontWeight: 700,
                         border: '1px solid transparent',
                         borderColor: active ? 'transparent' : 'var(--color-border-soft)',
-                        background: active ? 'var(--btn-green-bg)' : 'var(--color-bg-3)',
+                        background: active ? '#1C7A45' : 'var(--color-bg-3)',
                         color: active ? '#fff' : 'var(--color-text-2)',
                         transition: 'all 0.14s',
                       }}>

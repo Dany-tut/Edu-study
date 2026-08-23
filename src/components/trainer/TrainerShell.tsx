@@ -474,7 +474,14 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
           >
             {(mute || (o.icon && !idleIcon))
               ? <span style={{ display: 'flex', alignItems: 'center' }}>{o.icon}</span>
-              : <span style={{ lineHeight: 1.2, textAlign: 'center', ...clamp2 }}>{t(o.label)}</span>}
+              : (
+                // Одна строка, а не clamp2: активная подпись занимает
+                // освободившееся место, но при нехватке ширины должна
+                // обрезаться многоточием, а не ломаться пополам («Шэдо/уинг»).
+                <span style={{ lineHeight: 1.2, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                  {t(o.label)}
+                </span>
+              )}
             {o.badge !== undefined && o.badge > 0 && (
               <span style={{
                 padding: '1px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,

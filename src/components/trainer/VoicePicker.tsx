@@ -132,7 +132,10 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
       setOpen(false)
     }
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const scroll = () => setOpen(false)
+    const scroll = (e: Event) => {
+      if (menu.current?.contains(e.target as Node)) return
+      setOpen(false)
+    }
     window.addEventListener('mousedown', down)
     window.addEventListener('keydown', key)
     window.addEventListener('scroll', scroll, true)

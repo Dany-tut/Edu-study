@@ -991,7 +991,7 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
             display: 'grid', gridTemplateColumns: '22px minmax(0, 1fr)', columnGap: 6,
             // Межстрочный интервал больше обычного: под строкой стоит ещё строка
             // транскрипции, и на 1.85 они слипаются.
-            fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.85, color: 'var(--color-text)',
+            fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.6, color: 'var(--color-text)',
           }}
         >
           {first === null ? <span /> : (

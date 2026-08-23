@@ -195,7 +195,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // добавленными полями: она идёт через ту же читалку, тот же словарь по клику
   // и ту же запись результата. Отдельный режим означал бы вторую копию фильтров
   // и вторую читалку, которая разойдётся с первой на первой же правке.
-  const [readingView, setReadingView] = usePersistentState<ReadingView>(`trainer.${lang}.readingView`, 'texts')
+  const [readingView, setReadingView] = usePersistentState<ReadingView>(`trainer.${lang}.readingView`, 'feed')
   const [openWorkId, setOpenWorkId] = usePersistentState<string | null>(`trainer.${lang}.work`, null)
   const [openSceneId, setOpenSceneId] = usePersistentState<string | null>(`trainer.${lang}.scene`, null)
   const [hideSpoilers, setHideSpoilers] = usePersistentState<boolean>(`trainer.${lang}.spoilers`, true)
@@ -233,11 +233,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // чанком, а количество известно синхронно из реестра — иначе бейдж «Чтение»
   // в меню режимов показывал бы ленту нулём, пока её не откроют.
   //
-  // Открытое хранится идентификатором И СПОСОБОМ: одна и та же заметка
-  // открывается читалкой или на слух, и после F5 человек должен вернуться туда
-  // же, откуда ушёл, а не «в тот же текст, но глазами».
-  const [openFeedId, setOpenFeedId] = usePersistentState<string | null>(`trainer.${lang}.feed`, null)
-  const [feedHow, setFeedHow] = usePersistentState<'read' | 'listen'>(`trainer.${lang}.feedHow`, 'read')
+  // Открытого материала у ленты НЕТ и быть не может: пост читается,
+  // проигрывается и обсуждается на месте. Поэтому здесь нет ни openFeedId, ни
+  // «чем открыли» — состояния, которое пришлось бы восстанавливать после F5.
 
   const feedLib = hasFeed(lang)
   const [feedData, setFeedData] = useState<{ lang: string; list: FeedItem[] } | null>(null)
@@ -250,10 +248,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     loadFeed(lang).then(list => { if (alive) setFeedData({ lang, list }) })
     return () => { alive = false }
   }, [feedLib, mode, readingView, feed, lang])
-
-  const openFeedItem: FeedItem | null = openFeedId
-    ? feed?.find(x => x.id === openFeedId) ?? null
-    : null
 
   const scenesOf = useMemo(() => {
     const byWork = new Map<string, Scene[]>()
@@ -380,7 +374,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   /** Переключение половин «Чтения». Открытое произведение при этом закрывается. */
   function switchReadingView(v: ReadingView) {
     setReadingView(v)
-    setOpenWorkId(null); setOpenSceneId(null); setOpenFeedId(null)
+    setOpenWorkId(null); setOpenSceneId(null)
     setQuery(''); setStatus(''); setSceneShelf('')
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
   }
@@ -1178,24 +1172,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={15} />}>
           <RailSegment
             options={[
-              // Подписи короткие: в рейле на сегмент приходится половина его
-              // ширины, и «Учебные тексты» обрезались в «Учебные тек…».
-              //
-              // Числа стоят здесь ещё и по половинам: у режима сумма (сколько
-              // всего можно читать), а тут видно, из чего она сложена. У сцен
-              // число берётся из синхронного реестра, поэтому бейдж стоит и на
-              // половине «Тексты», где чанк ещё не загружали.
-              { value: 'texts', label: 'Тексты', badge: allTexts.length },
-              { value: 'scenes', label: 'Сцены', badge: scenesTotal },
-              // Лента появляется только там, где для языка собран хоть один
-              // материал: пустая вкладка хуже отсутствующей.
-              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedTotal }] : []),
+              // Лента — первой и по умолчанию включена (см. readingView),
+              // как «Шэдоуинг» в «Говорении»: свежее чтение важнее архива
+              // текстов/сцен. Появляется только там, где для языка собран
+              // хоть один материал: пустая вкладка хуже отсутствующей.
+              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedTotal, icon: <Rows3 size={15} /> }] : []),
+              { value: 'texts', label: 'Тексты', badge: allTexts.length, icon: <AlignLeft size={15} /> },
+              { value: 'scenes', label: 'Сцены', badge: scenesTotal, icon: <Quote size={15} /> },
             ]}
             value={readingView}
             onChange={v => v && switchReadingView(v as ReadingView)}
             accent={palette.accent}
             soft={palette.soft}
             clearable={false}
+            idleIcon
           />
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {readingView === 'scenes'
@@ -1918,10 +1908,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <FeedList
         items={feed}
         lang={lang}
-        done={id => !!resultFrom('reading', id, results)}
         accent={palette.accent}
-        soft={palette.soft}
-        onOpen={(id, how) => { setFeedHow(how); setOpenFeedId(id) }}
+        subjectId={subjectId}
       />
     )
   } else if (isLang) {
@@ -2319,55 +2307,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       />
     )
   }
-  // Материал ленты. Он же ReadingText, поэтому идёт через ту же читалку — но с
-  // шапкой источника: без названия, лицензии и ссылки текст показывать нельзя,
-  // а у CC BY-SA это ещё и условие лицензии, а не вежливость.
-  //
-  // «Слушать» — тот же самый материал, отданный слушалке: у заметки уже есть
-  // текст, словарь и вопросы, и второй комплект данных для аудирования не
-  // нужен. Расшифровку слушалка показывает после ответов — иначе задание
-  // превращается в чтение.
-  if (openFeedItem) {
-    const back = () => { setOpenFeedId(null); setResultsKey(k => k + 1) }
-    return feedHow === 'listen' ? (
-      <Listener
-        item={{
-          id: openFeedItem.id,
-          lang: openFeedItem.lang,
-          title: openFeedItem.title,
-          level: openFeedItem.level,
-          topic: openFeedItem.topic,
-          skill: 'Аудирование',
-          minutes: openFeedItem.minutes,
-          // Одно из двух: либо текст на озвучку, либо чужой плеер. Оба сразу
-          // означали бы, что синтез читает пустую строку поверх ролика.
-          script: openFeedItem.embed ? undefined : openFeedItem.body,
-          videoUrl: openFeedItem.embed?.kind === 'youtube'
-            ? `https://www.youtube.com/watch?v=${openFeedItem.embed.id}`
-            : undefined,
-          credit: openFeedItem.credit,
-          translation: openFeedItem.translation,
-          glossary: openFeedItem.glossary,
-          questions: openFeedItem.questions,
-        }}
-        accent={palette.accent}
-        palette={palette}
-        lang={lang}
-        onBack={back}
-      />
-    ) : (
-      <Reader
-        text={openFeedItem}
-        feed={openFeedItem}
-        accent={palette.accent}
-        palette={palette}
-        lang={lang}
-        owner={owner}
-        subjectId={subjectId}
-        onBack={back}
-      />
-    )
-  }
   if (openText) {
     return (
       <Reader
@@ -2541,6 +2480,12 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [checked, setChecked] = useState(false)
   const [gloss, setGloss] = useState<string | null>(null)
+
+  // Открыли текст — читалка обязана начаться с начала, а не с той точки
+  // прокрутки, на которой стоял список сцен: рейл и рассказ едут в одном
+  // скролле страницы, и без явного сброса открытие следующей сцены выглядело
+  // так, будто скроллится сам рассказ.
+  useEffect(() => { window.scrollTo(0, 0) }, [text.id])
 
   const correctCount = text.questions.filter((q, i) => answers[i] === q.correct).length
   const allAnswered = text.questions.every((_, i) => answers[i] !== undefined)
