@@ -8228,7 +8228,17 @@ export default function TeacherConstructorPage() {
             style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
           >
             <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                // В режиме редактирования строка прилипает под топбаром: крестик,
+                // «Дублировать» и «Удалить» остаются под рукой при прокрутке.
+                ...(editMode ? {
+                  position: 'sticky', top: -100, zIndex: 20,
+                  margin: '-8px -32px -8px', padding: '108px 32px 8px',
+                  background: 'rgba(var(--glass-rgb), 0.78)',
+                  backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
+                } : { position: 'relative' }),
+              } as React.CSSProperties}>
                 {/* Edit-mode toggle — square button */}
                 <motion.button
                   whileTap={{ scale: 0.93 }}
