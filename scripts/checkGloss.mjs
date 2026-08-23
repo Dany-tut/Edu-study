@@ -39,6 +39,8 @@ await build({
       export { KO_SCENES } from './src/data/scenes/scenesKo'
       export { JA_SCENES } from './src/data/scenes/scenesJa'
       export { PT_SCENES } from './src/data/scenes/scenesPt'
+      export { DE_SCENES } from './src/data/scenes/scenesDe'
+      export { RU_SCENES } from './src/data/scenes/scenesRu'
       export { EN_FEED } from './src/data/feed/feedEn'
       export { KO_FEED } from './src/data/feed/feedKo'
       export { JA_FEED } from './src/data/feed/feedJa'
@@ -51,6 +53,7 @@ await build({
 })
 const {
   WORD_GLOSS, buildLexicon, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
+  DE_SCENES, RU_SCENES,
   EN_FEED, KO_FEED, JA_FEED, PT_FEED,
 } = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
@@ -69,7 +72,7 @@ const push = (d, kind) => {
   const qs = (d.questions ?? []).map(q => q.q).filter(Boolean)
   if (qs.length) docs.push({ id: `${d.id} · вопросы`, lang: d.lang, body: qs.join('\n'), extra: d.glossary ?? [], kind })
 }
-for (const s of [...EN_SCENES, ...KO_SCENES, ...JA_SCENES, ...PT_SCENES]) push(s, 'сцена')
+for (const s of [...EN_SCENES, ...KO_SCENES, ...JA_SCENES, ...PT_SCENES, ...DE_SCENES, ...RU_SCENES]) push(s, 'сцена')
 for (const t of READING_LIBRARY) push(t, 'текст')
 // Лента обновляется сама и приезжает чанком на язык — то есть слово в ней
 // появляется без правки словаря. Заголовок кликается наравне с телом, поэтому
