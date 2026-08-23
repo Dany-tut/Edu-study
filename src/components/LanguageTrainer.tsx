@@ -16,6 +16,7 @@ import PhraseDecks, {
   type PhraseView, type RunMode,
 } from './PhraseDecks'
 import TrainerShell, {
+  useTrainerNarrow, type TrainerNav,
   RailHero, RailCard, RailModes, RailSegment, RailList, RailToggle, RailStat,
   Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, FilterMenu, ToolCount,
   Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty, PILL_GLASS,
@@ -285,7 +286,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     takeBootTrainerLink()
     bootDone.current = true
     setMode('reading')
-    if (link.kind === 'text') {
+    if (link.kind === 'feed') {
+      // У ленты нет «открытого материала»: её открывают целиком, сверху.
+      setReadingView('feed')
+      setOpenTextId(null)
+      setOpenWorkId(null)
+      setOpenSceneId(null)
+    } else if (link.kind === 'text') {
       setReadingView('texts')
       setOpenTextId(link.textId)
       setOpenWorkId(null)
@@ -1121,6 +1128,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     guide: guideOn ? (story ? story.chapters.length : 0) + books.length : undefined,
   }
 
+  // Телефон: режимы и половины уехали в нижнюю навигацию (см. nav ниже), и в
+  // шторке фильтров их рисовать больше нельзя — один и тот же переключатель
+  // двумя экземплярами на одном экране.
+  const narrow = useTrainerNarrow()
+
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
     : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
@@ -1136,8 +1148,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   const rail = (
     <>
-      <SubjectHero state={subjectState} subtitle={heroSubtitle} palette={palette} />
+      {!narrow && <SubjectHero state={subjectState} subtitle={heroSubtitle} palette={palette} />}
 
+      {!narrow && (
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
@@ -1149,6 +1162,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           soft={palette.soft}
         />
       </RailCard>
+      )}
 
       {/* Разделы справочника. Раздел — главное деление, а не уровень: человек
           помнит, что искал «что-то про частицы», а не что это было 1급. */}
@@ -1191,7 +1205,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {/* Две половины «Чтения». Показываем переключатель только там, где сцены
           для языка вообще написаны: пустая вкладка хуже отсутствующей. */}
-      {mode === 'reading' && (sceneLib || feedLib) && (
+      {mode === 'reading' && (sceneLib || feedLib) && !narrow && (
         <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={15} />}>
           <RailSegment
             options={[
@@ -1285,6 +1299,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             action={shelf || packShelf || fLevel.length > 0
               ? { label: t('Сбросить'), onClick: () => { setShelf(''); setPackShelf(''); setFLevel([]) } }
               : undefined}>
+            {!narrow && (
             <RailSegment
               options={[
                 ...(hasBook ? [{ value: 'sets', label: 'Наборы' }] : []),
@@ -1305,6 +1320,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               soft={palette.soft}
               clearable={false}
             />
+            )}
             {vocabView === 'sets' && setLevelOpts.length > 1 && (
               <MultiSelectField label={t('Уровень')} options={setLevelOpts} values={fLevel} onChange={setFLevel}
                 accent={palette.accent} accentBg={palette.soft} lockScroll />
@@ -1419,6 +1435,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {mode === 'blocks' && !openStem && !openRoot && !openNum && (
         <RailCard title="Что собираем" accent={palette.accent} icon={<Blocks size={15} />}>
+          {!narrow && (
           <RailSegment
             options={[
               ...(stemsOn ? [{ value: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
@@ -1431,6 +1448,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             soft={palette.soft}
             clearable={false}
           />
+          )}
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {blocksView === 'stems'
               ? t('Глагол не спрягается по лицам: основа стоит, меняется хвост.')
@@ -1508,6 +1526,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {mode === 'guide' && (
         <>
           <RailCard title="Раздел" accent={palette.accent} icon={<Compass size={15} />}>
+            {!narrow && (
             <RailSegment
               options={[
                 ...(storyOn ? [{ value: 'story', label: 'Как устроен' }] : []),
@@ -1519,6 +1538,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               soft={palette.soft}
               clearable={false}
             />
+            )}
             {/* Главы списком в рейле: из читалки видно, что идёт дальше, и
                 можно перескочить, не возвращаясь на витрину. */}
             {guideView === 'story' && story && story.chapters.length > 0 && (
@@ -1603,6 +1623,63 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       )}
     </>
   )
+
+  // ── Навигация телефона ─────────────────────────────────────────────────────
+  //
+  // Плитки режимов и половины текущего режима. На десктопе это карточки рейла,
+  // на телефоне — нижняя шторка и чипсы дока: рейл туда не помещается, а класть
+  // навигацию в одну кучу с фильтрами значит прятать переезд между экранами за
+  // кнопкой, на которой написано «фильтры».
+  const navViews: TrainerNav['views'] =
+    mode === 'reading' && (sceneLib || feedLib)
+      ? [
+          ...(feedLib ? [{ id: 'feed', label: 'Лента', badge: feedTotal }] : []),
+          { id: 'texts', label: 'Тексты', badge: allTexts.length },
+          ...(sceneLib ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
+        ]
+    : mode === 'vocab'
+      ? [
+          ...(hasBook ? [{ id: 'sets', label: 'Наборы' }] : []),
+          ...(packsOn ? [{ id: 'packs', label: 'Слова' }] : []),
+          { id: 'due', label: 'Повторение', badge: due },
+          ...(nestsOn ? [{ id: 'nests', label: 'Созвучия' }] : []),
+        ]
+    : mode === 'blocks'
+      ? [
+          ...(stemsOn ? [{ id: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
+          ...(rootsOn ? [{ id: 'roots', label: 'Корни', badge: HANJA_ROOTS.length }] : []),
+          ...(numbersOn ? [{ id: 'numbers', label: 'Числа', badge: KO_NUMBER_SETS.length }] : []),
+        ]
+    : mode === 'guide'
+      ? [
+          ...(storyOn ? [{ id: 'story', label: 'Как устроен' }] : []),
+          ...(booksOn ? [{ id: 'books', label: 'Учебники', badge: books.length }] : []),
+        ]
+    : undefined
+
+  const navView =
+    mode === 'reading' ? readingView
+    : mode === 'vocab' ? vocabView
+    : mode === 'blocks' ? blocksView
+    : mode === 'guide' ? guideView
+    : undefined
+
+  const nav: TrainerNav = {
+    modes: MODES
+      .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guideOn))
+      .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon })),
+    mode,
+    onMode: m => switchMode(m as Mode),
+    views: navViews,
+    view: navView,
+    onView: v => {
+      if (mode === 'reading') switchReadingView(v as ReadingView)
+      else if (mode === 'vocab') setVocabView(v as VocabView)
+      else if (mode === 'blocks') switchBlocksView(v as BlocksView)
+      else if (mode === 'guide') setGuideView(v as GuideView)
+    },
+    accent: palette.accent,
+  }
 
   // ── Строка управления ──────────────────────────────────────────────────────
 
@@ -2362,7 +2439,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     <TrainerShell
       rail={rail}
       toolbar={toolbar}
-      narrowLead={<SubjectPill state={subjectState} palette={palette} />}
+      nav={nav}
+      narrowLead={<SubjectPill state={subjectState} palette={palette} compact />}
     >
       {content}
     </TrainerShell>

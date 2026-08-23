@@ -16,6 +16,7 @@ import type { LanguageStory } from './languageStory'
 const STORIES: Record<string, () => Promise<LanguageStory>> = {
   ko: () => import('./languageStoryKo').then(m => m.KOREAN_STORY),
   de: () => import('./languageStoryDe').then(m => m.GERMAN_STORY),
+  ru: () => import('./languageStoryRu').then(m => m.RUSSIAN_STORY),
   ja: () => import('./languageStoryJa').then(m => m.JAPANESE_STORY),
   en: () => import('./languageStoryEn').then(m => m.ENGLISH_STORY),
   pt: () => import('./languageStoryPt').then(m => m.PORTUGUESE_STORY),

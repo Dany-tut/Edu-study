@@ -42,7 +42,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Check, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, Search, Check, SlidersHorizontal, Layers } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
 import { useFloatingPill } from '../../lib/useFloatingPill'
@@ -50,7 +50,7 @@ import { useScrollLock } from '../../lib/useScrollLock'
 import ScrollFade from '../ScrollFade'
 import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
-import MobileDock, { DockCircle, DockSlot } from '../MobileDock'
+import MobileDock, { DockCircle, DockSegment, DockSlot } from '../MobileDock'
 import { MOBILE_TOP_GAP } from '../../lib/mobileTokens'
 
 const RAIL_W = 300
@@ -107,6 +107,15 @@ const RAIL_MAX_FALLBACK = `calc(100vh - ${100 + RAIL_TOP + RAIL_BOTTOM}px)`
  */
 const BREAK = 1024
 
+/**
+ * Узкий экран — тот же порог, что у рейла.
+ *
+ * Наружу отдан ради вызывающего: на телефоне часть карточек рейла переезжает в
+ * нижнюю навигацию (см. `nav`), и рисовать их вторым экземпляром в шторке
+ * фильтров значит показывать один и тот же переключатель дважды.
+ */
+export function useTrainerNarrow(): boolean { return useNarrow() }
+
 function useNarrow(): boolean {
   const [narrow, setNarrow] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < BREAK,
@@ -121,11 +130,32 @@ function useNarrow(): boolean {
 
 // ─── Каркас ──────────────────────────────────────────────────────────────────
 
-export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
+/**
+ * Навигация тренажёра для телефона: режимы и половины текущего режима.
+ *
+ * Отдельно от рейла, потому что это РАЗНЫЕ вещи, которые раньше лежали одной
+ * кучей: «Чтение → Аудирование» — переезд на другой экран, «Уровень B1» —
+ * сужение выборки. В общей шторке до режима нужно было листать, а до фильтров
+ * — листать ещё дальше.
+ */
+export type TrainerNav = {
+  modes: { id: string; label: string; count?: number; Icon?: React.ComponentType<{ size?: number }> }[]
+  mode: string
+  onMode: (id: string) => void
+  /** Половины текущего режима — «Лента/Тексты/Сцены», «Наборы/Слова/Повторение». */
+  views?: { id: string; label: string; badge?: number }[]
+  view?: string
+  onView?: (id: string) => void
+  accent?: string
+}
+
+export default function TrainerShell({ rail, toolbar, narrowLead, nav, children }: {
   /** Карточки рейла — обычно SubjectHero + RailCard'ы. */
   rail: React.ReactNode
   /** Строка управления над содержимым. */
   toolbar?: React.ReactNode
+  /** Режимы и половины — для нижней навигации телефона. */
+  nav?: TrainerNav
   /**
    * Что встаёт в нижнем доке рядом с кнопкой шторки — переключатель предмета.
    *
@@ -140,12 +170,13 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
   const t = useT()
   const narrow = useNarrow()
   const [sheet, setSheet] = useState(false)
+  const [navSheet, setNavSheet] = useState(false)
   const railRef = useRef<HTMLElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
 
   // Ушли с телефона на десктоп — шторка обязана закрыться сама, иначе она
   // останется висеть поверх уже нарисованного рейла.
-  useEffect(() => { if (!narrow) setSheet(false) }, [narrow])
+  useEffect(() => { if (!narrow) { setSheet(false); setNavSheet(false) } }, [narrow])
 
   // Высота рейла считается по факту, а не по формуле: карточка прилипла и
   // больше не двигается, значит её верх в окне — величина постоянная, и остаток
@@ -194,9 +225,19 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
           занимали весь первый экран, и до самих результатов нужно было
           пролистать фильтры, которыми в тот момент никто не пользуется. */}
       {narrow ? (
-        <MobileSheet open={sheet} onClose={() => setSheet(false)} title={t('Фильтры')}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{rail}</div>
-        </MobileSheet>
+        <>
+          <MobileSheet open={sheet} onClose={() => setSheet(false)} title={t('Фильтры')}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{rail}</div>
+          </MobileSheet>
+          {/* Шторка-навигация: только «куда пойти». Закрывается сама, потому
+              что выбор режима — это переезд, и смотреть после него нужно на
+              новый экран, а не на список, из которого пришли. */}
+          {nav && (
+            <MobileSheet open={navSheet} onClose={() => setNavSheet(false)} title={t('Режим')}>
+              <NavSheetBody nav={nav} onDone={() => setNavSheet(false)} />
+            </MobileSheet>
+          )}
+        </>
       ) : null}
 
       {/* sticky отдельной обёрткой, а не на самой карточке: у карточки есть
@@ -269,12 +310,116 @@ export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
       {narrow && (
         <MobileDock>
           {narrowLead && <DockSlot>{narrowLead}</DockSlot>}
+          {/* Половины режима — прямо в доке, без шторки: «Лента ↔ Сцены» и
+              «Наборы ↔ Повторение» переключают чаще всего остального вместе
+              взятого, и три тапа со скроллом на это движение — самый дорогой
+              путь во всём тренажёре. */}
+          {nav?.views && nav.views.length > 1 && nav.onView && (
+            <DockSegment
+              options={nav.views.map(v => ({ id: v.id, label: t(v.label) }))}
+              value={nav.view ?? nav.views[0].id}
+              onChange={id => nav.onView!(String(id))}
+              accent={nav.accent}
+            />
+          )}
+          {nav && (
+            <DockCircle
+              icon={<ModeIcon nav={nav} />}
+              ariaLabel={t('Режим')}
+              onClick={() => setNavSheet(true)}
+            />
+          )}
           <DockCircle
             icon={<SlidersHorizontal size={20} />}
-            ariaLabel={t('Режим и фильтры')}
+            ariaLabel={t('Фильтры')}
             onClick={() => setSheet(true)}
           />
         </MobileDock>
+      )}
+    </div>
+  )
+}
+
+/** Иконка круга навигации — значок ТЕКУЩЕГО режима, а не общий значок меню. */
+function ModeIcon({ nav }: { nav: TrainerNav }) {
+  const Icon = nav.modes.find(m => m.id === nav.mode)?.Icon
+  return Icon ? <Icon size={20} /> : <Layers size={20} />
+}
+
+/**
+ * Содержимое шторки-навигации: плитки режимов и половины выбранного.
+ *
+ * Плитками в два столбца, а не списком в один: семь режимов списком — это
+ * экран прокрутки, плитками — один взгляд. Число на плитке отвечает на
+ * вопрос «а есть ли там вообще что-нибудь» до перехода.
+ */
+function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) {
+  const t = useT()
+  const accent = nav.accent ?? 'var(--color-accent)'
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {nav.modes.map(m => {
+          const on = m.id === nav.mode
+          return (
+            <button
+              key={m.id}
+              onClick={() => { if (!on) nav.onMode(m.id); onDone() }}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
+                padding: '12px 12px', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
+                textAlign: 'left',
+                border: on ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
+                background: on ? `${accent}1f` : 'var(--color-bg-2)',
+                color: on ? accent : 'var(--color-text)',
+              }}
+            >
+              {m.Icon && <m.Icon size={18} />}
+              <span style={{ fontSize: 13.5, fontWeight: on ? 750 : 600, lineHeight: 1.25, ...clamp2 }}>
+                {t(m.label)}
+              </span>
+              {m.count !== undefined && (
+                <span style={{
+                  fontSize: 11.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                  color: on ? accent : 'var(--color-text-3)',
+                }}>
+                  {m.count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Половины текущего режима — тут же, под плитками: тот же док их и так
+          показывает, но из шторки видно, куда попадёшь, ещё до перехода. */}
+      {nav.views && nav.views.length > 1 && nav.onView && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {nav.views.map(v => {
+            const on = v.id === nav.view
+            return (
+              <button
+                key={v.id}
+                onClick={() => { if (!on) nav.onView!(v.id); onDone() }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 12.5, fontWeight: on ? 750 : 600,
+                  border: on ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
+                  background: on ? `${accent}1f` : 'transparent',
+                  color: on ? accent : 'var(--color-text-2)',
+                }}
+              >
+                {t(v.label)}
+                {v.badge !== undefined && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: on ? accent : 'var(--color-text-3)' }}>
+                    {v.badge}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       )}
     </div>
   )

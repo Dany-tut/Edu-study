@@ -6,6 +6,7 @@ import { bindShortWords, proseWrap } from '../../lib/typography'
 import { byDay, dayLabel, outletById, outletHandle, type FeedItem, type Outlet } from '../../data/feed'
 import { FeedComments } from './FeedComments'
 import { useFeedLikes } from '../../lib/feedLikes'
+import { markRead, useSeen } from '../../lib/feedRead'
 import GlossedText from '../GlossedText'
 import AudioPlayer from '../AudioPlayer'
 
@@ -40,6 +41,11 @@ import AudioPlayer from '../AudioPlayer'
 // У роликов её нет (автор виден в плеере YouTube), у общественного достояния и
 // у наших собственных текстов — тоже нет.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ПРОСМОТРЕННОЕ СЧИТАЕТСЯ САМО. Кнопки «отметить прочитанным» здесь нет и быть
+// не должно: она превращает ленту в список дел. Пост, побывший на экране,
+// уходит в просмотренные молча (lib/feedRead) — ровно этим и живёт счётчик
+// «новое» на главной и в навбаре.
 
 export function FeedList({ items, lang, accent, subjectId }: {
   items: FeedItem[]
@@ -92,6 +98,11 @@ function Post({ item, lang, accent, subjectId }: {
   const [thread, setThread] = useState(false)
   const [replies, setReplies] = useState(0)
   const { count: likes, liked, toggle: like, canLike } = useFeedLikes(item.id)
+  const seenRef = useSeen(lang, item.id)
+
+  // Явное действие с материалом — просмотр без всякого таймера: включил ролик,
+  // развернул текст, открыл перевод или обсуждение.
+  const touched = () => markRead(lang, item.id)
 
   const video = item.embed?.kind === 'youtube' ? item.embed.id : null
   const outlet = outletById(item.outletId)
@@ -108,7 +119,7 @@ function Post({ item, lang, accent, subjectId }: {
   const shown = long && !expanded ? item.body.slice(0, 380).trimEnd() + '…' : item.body
 
   return (
-    <article style={{
+    <article ref={seenRef} style={{
       background: 'var(--color-surface)',
       border: '1px solid var(--color-border)',
       borderRadius: 18,
@@ -170,7 +181,7 @@ function Post({ item, lang, accent, subjectId }: {
             />
           ) : (
             <button
-              onClick={() => setPlaying(true)}
+              onClick={() => { setPlaying(true); touched() }}
               aria-label={t('Смотреть')}
               style={{
                 position: 'absolute', inset: 0, padding: 0, border: 'none',
@@ -221,7 +232,7 @@ function Post({ item, lang, accent, subjectId }: {
 
           {long && !expanded && (
             <button
-              onClick={() => setExpanded(true)}
+              onClick={() => { setExpanded(true); touched() }}
               style={{
                 alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0,
                 cursor: 'pointer', fontSize: 13, fontWeight: 650, color: accent,
@@ -266,7 +277,7 @@ function Post({ item, lang, accent, subjectId }: {
             on={translated}
             accent={accent}
             title={t('Перевод')}
-            onClick={() => setTranslated(v => !v)}
+            onClick={() => { setTranslated(v => !v); touched() }}
           >
             <Languages size={17} />
           </IconBtn>
@@ -285,7 +296,7 @@ function Post({ item, lang, accent, subjectId }: {
             on={thread}
             accent={accent}
             title={t('Комментарии')}
-            onClick={() => setThread(v => !v)}
+            onClick={() => { setThread(v => !v); touched() }}
             count={replies}
           >
             <MessageCircle size={17} />

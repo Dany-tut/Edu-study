@@ -64,6 +64,19 @@ const SCRIPT: Record<string, RegExp> = {
   ko: /[가-힣ㄱ-ㅎㅏ-ㅣ]/,
   ja: /[぀-ヿ㐀-䶿一-鿿々ー]/,
 }
+/**
+ * Языки, где кликается ТОЛЬКО то, для чего есть толкование.
+ *
+ * Родной язык (русский, литература) отличается от изучаемого тем, что слово в
+ * подсказке не нуждается: «дверь» толковать носителю нечего. Кликабельным
+ * должно быть исключительно то, что действительно требует пояснения, —
+ * устаревшее и специальное («экзекутор», «ваше-ство»), и оно приезжает из
+ * glossary самого текста. Без этого исключения каждое русское слово в отрывке
+ * Гоголя открывало бы «этого слова нет в словаре», то есть тупик на ровном
+ * месте.
+ */
+const GLOSS_ONLY = new Set(['ru'])
+
 const DIGIT = /\p{N}/u
 const LETTER = /\p{L}/u
 
@@ -273,7 +286,8 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
         // внутри соседнего слова.
         const g = LETTER.test(run) ? derived(run) : undefined
         const own = SCRIPT[lang]
-        const clickable = LETTER.test(run) && (!!g || !own || own.test(run))
+        const clickable = LETTER.test(run)
+          && (GLOSS_ONLY.has(lang) ? !!g : (!!g || !own || own.test(run)))
         out.push({ text: run, gloss: g, word: clickable })
         i = j
         continue

@@ -16,6 +16,7 @@ const EN: Record<string, string> = {
   'Ученик': 'Student',
   'Уровень': 'Level',
   'Все предметы': 'All subjects',
+  'Все ученики': 'All students',
   'Статистика': 'Statistics',
   'Средний балл': 'Average score',
   'Мои курсы': 'My courses',
@@ -2009,6 +2010,15 @@ const EN: Record<string, string> = {
   "Проверка и перевод": "Checking and translation",
   "Кнопка загорится, когда ответишь на все вопросы. После неё откроется полный перевод текста — до этого он закрыт, иначе читать оригинал незачем.":
     "The button lights up once every question is answered. Then the full translation opens — it stays closed until then, otherwise there's no point reading the original.",
+  // — Лента: виджет главной и счётчик нового —
+  'Лента': 'Feed',
+  'всё просмотрено': 'all caught up',
+  'Свежие ролики и заметки на языке курса — каждый день. Появится, когда выбран языковой курс.':
+    'Fresh clips and notes in the language of your course, every day. Appears once a language course is selected.',
+  'материал': 'item',
+  'материала': 'items',
+  'материалов': 'items',
+
   // — Выбор голоса —
   "Голос": "Voice",
   "Автовыбор": "Auto",

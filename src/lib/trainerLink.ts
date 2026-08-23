@@ -32,8 +32,15 @@ export type TrainerLink =
   | { kind: 'work'; workId: string; sceneId?: string }
   /** Учебный текст из readingLibrary. */
   | { kind: 'text'; textId: string }
+  /**
+   * Лента языка. Материал не адресуется: лента — это то, что листают сверху,
+   * и «ссылка на пост» противоречила бы её устройству (см. data/feed). Язык
+   * записан прямо в адрес: в отличие от рассказа и текста, у ленты нет реестра,
+   * по которому язык можно было бы вычислить синхронно.
+   */
+  | { kind: 'feed'; lang: string }
 
-const RE = /^#\/trainer\/(work|text)\/([^?#]+)/
+const RE = /^#\/trainer\/(work|text|feed)\/([^?#]+)/
 
 /** Базовый код языка: pt-BR → pt. */
 const base = (lang: string) => lang.split('-')[0].toLowerCase()
@@ -44,10 +51,12 @@ export function parseTrainerLink(hash: string): TrainerLink | null {
   const parts = m[2].split('/').filter(Boolean).map(decodeURIComponent)
   if (parts.length === 0) return null
   if (m[1] === 'text') return { kind: 'text', textId: parts[0] }
+  if (m[1] === 'feed') return { kind: 'feed', lang: parts[0] }
   return { kind: 'work', workId: parts[0], sceneId: parts[1] }
 }
 
 export function trainerHash(link: TrainerLink): string {
+  if (link.kind === 'feed') return `#/trainer/feed/${encodeURIComponent(link.lang)}`
   if (link.kind === 'text') return `#/trainer/text/${encodeURIComponent(link.textId)}`
   const tail = link.sceneId ? `/${encodeURIComponent(link.sceneId)}` : ''
   return `#/trainer/work/${encodeURIComponent(link.workId)}${tail}`
@@ -71,6 +80,7 @@ export function writeTrainerHash(link: TrainerLink | null) {
 
 /** Язык материала по ссылке. undefined — материала уже нет в библиотеке. */
 export function linkLang(link: TrainerLink): string | undefined {
+  if (link.kind === 'feed') return link.lang
   if (link.kind === 'text') return READING_LIBRARY.find(x => x.id === link.textId)?.lang
   return workById(link.workId)?.lang
 }
@@ -92,14 +102,31 @@ export function linkSubjectId(link: TrainerLink): string | undefined {
 const BOOT = parseTrainerLink(window.location.hash)
 let bootTaken = false
 
+/**
+ * Ссылка, поставленная в очередь ИЗ САМОГО КАБИНЕТА.
+ *
+ * Адрес читается один раз при загрузке модуля, и этого хватало, пока по
+ * ссылкам приходили снаружи. Но виджет главной («Лента · 3 новых») — это
+ * переход ВНУТРИ вкладки: hash сменился бы, а BOOT остался бы прежним, и
+ * тренажёр открылся бы на том, что было в нём в прошлый раз. Поэтому у
+ * перехода есть второй канал, и оба забираются одним и тем же takeBoot…
+ */
+let PENDING: TrainerLink | null = null
+
+/** Открыть материал из кабинета. Забирает тренажёр при следующем монтировании. */
+export function queueTrainerLink(link: TrainerLink): void {
+  PENDING = link
+}
+
 /** Ссылка загрузки — для того, кто решает, какой предмет открыть. */
-export const bootTrainerLink = (): TrainerLink | null => BOOT
+export const bootTrainerLink = (): TrainerLink | null => PENDING ?? BOOT
 
 /**
  * Она же, но одноразово: применивший её экран забирает ссылку себе, чтобы
  * повторное монтирование не утаскивало ученика обратно в присланный рассказ.
  */
 export function takeBootTrainerLink(): TrainerLink | null {
+  if (PENDING) { const p = PENDING; PENDING = null; return p }
   if (bootTaken) return null
   bootTaken = true
   return BOOT

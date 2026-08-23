@@ -24742,4 +24742,867 @@ WE ARE HERE ON SATURDAYS BECAUSE PEOPLE WORK. That is the whole reason. Come on 
       },
     ],
   },
+
+  // ── Элита, 3: чат класса ───────────────────────────────────────────────────
+  {
+    id: 'sc-elite-en-3',
+    workId: 'elite-en',
+    lang: 'en', title: 'Чат класса после допроса', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал построен на том, что все всё пишут, а потом всё это читают следователи. Ниже наш текст: групповой чат класса и то, что произошло с ним дальше. Полезно посмотреть, как в переписке пытаются говорить осторожно — и почему это не работает.',
+    body: `[LAS ENCINAS — 2º BACH — group chat]
+
+— has anyone actually been called in yet
+— me. this morning. 40 mins
+— what did they ask
+— where I was, who I was with, and then the same two questions again in a different order
+— that’s the trick. they do it twice to see if it changes
+— so don’t say anything
+— you can’t say NOTHING, saying nothing is also an answer
+— ok everyone stop typing for a second
+— why
+— because everything in here is on someone’s phone and a phone is a document
+— …
+— I’m not saying anyone did anything. I’m saying this chat is now evidence of something even if nobody did anything
+— that’s the most guilty-sounding message anyone has ever sent
+— which is exactly my point, and it will be read by someone who does not know how we talk
+
+[3 messages were deleted]
+
+— deleting is worse
+— why is deleting worse
+— because they can see there were messages and that there are not any now, and a gap is louder than a message
+
+—— what happened next ——
+
+The chat was handed over voluntarily by one member on the third day, complete, including the deletions, which were recovered anyway.
+
+Nobody in it had committed a crime. Four of them had lied about small things: a cigarette, a grade, a party they said they had left at midnight and had left at two. The lies were all found. None of them mattered. All of them were read aloud.`,
+    translation: `[LAS ENCINAS — 2-й БАК — групповой чат]
+
+— кого-нибудь уже вызывали
+— меня. сегодня утром. 40 минут
+— что спрашивали
+— где я был, с кем я был, а потом те же два вопроса ещё раз в другом порядке
+— вот в этом и фокус. они спрашивают дважды, чтобы посмотреть, изменится ли
+— значит, ничего не говорить
+— нельзя НИЧЕГО не говорить, молчание — тоже ответ
+— так, все на секунду перестали печатать
+— почему
+— потому что всё, что здесь есть, лежит у кого-то в телефоне, а телефон — это документ
+— …
+— я не говорю, что кто-то что-то сделал. я говорю, что этот чат теперь доказательство чего-то, даже если никто ничего не делал
+— это самое виноватое сообщение в истории сообщений
+— именно об этом я и говорю, и читать его будет человек, который не знает, как мы разговариваем
+
+[3 сообщения удалены]
+
+— удалять хуже
+— почему удалять хуже
+— потому что видно, что сообщения были и что их теперь нет, а пробел громче сообщения
+
+—— что было дальше ——
+
+На третий день один из участников передал чат добровольно, целиком, включая удалённое, которое всё равно восстановили.
+
+Никто из них не совершил преступления. Четверо солгали о мелочах: сигарета, оценка, вечеринка, с которой они, по их словам, ушли в полночь, а ушли в два. Всё враньё нашли. Ни одно из него не имело значения. Всё его зачитали вслух.`,
+    glossary: [
+      { term: 'to be called in', ru: 'быть вызванным (на допрос)' },
+      { term: 'the trick', ru: 'приём, уловка' },
+      { term: 'evidence', ru: 'доказательство' },
+      { term: 'to hand sth over', ru: 'передать, выдать' },
+      { term: 'voluntarily', ru: 'добровольно' },
+      { term: 'to recover (data)', ru: 'восстановить (данные)' },
+      { term: 'gap', ru: 'пробел, разрыв' },
+      { term: 'to matter', ru: 'иметь значение' },
+      { term: 'to read sth aloud', ru: 'зачитать вслух' },
+    ],
+    questions: [
+      {
+        q: 'Why do the investigators ask the same questions twice?',
+        options: [
+          'They forget',
+          'To see whether the answers change',
+          'For the record',
+          'Two officers ask separately',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is deleting worse than leaving the messages?',
+        options: [
+          'It is illegal',
+          'A visible gap is louder than a message',
+          'It takes time',
+          'The others notice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Had anyone in the chat committed a crime?',
+        options: ['Yes, one', 'Yes, four', 'No', 'It is not said'],
+        correct: 2,
+      },
+      {
+        q: 'What is the point of the final paragraph?',
+        options: [
+          'The lies solved the case',
+          'Small, irrelevant lies were all found and all read aloud',
+          'The chat was deleted',
+          'Nobody was questioned',
+        ],
+        correct: 1,
+        why: 'Мелкая ложь ни на что не влияет юридически и разрушает всё социально. Сериал именно на этом и держится, а не на самом преступлении.',
+      },
+    ],
+  },
+
+  // ── Элита, 4: список на вечеринку ──────────────────────────────────────────
+  {
+    id: 'sc-elite-en-4',
+    workId: 'elite-en',
+    lang: 'en', title: 'Список на вечеринку', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал про школу, где деньги решают, кто с кем стоит рядом, и вечеринка — главный инструмент сортировки. Ниже наш текст: список гостей с пометками и переписка о том, кого вписать. Английский простой, а социология в нём подробная.',
+    body: `SATURDAY — HOUSE — LIST
+
+On the door: Marcos. He knows the list. If you are not on it he will be extremely polite about it, which is worse.
+
+CONFIRMED (32)
+[names]
+
+PLUS ONES ALLOWED FOR: Lu, Guzmán, Carla, Polo. Nobody else. This is not personal, it is thirty-two people and one lift.
+
+NOT ON THE LIST, and the reasons, since you all asked:
+– Samuel: it is not that he cannot come. It is that he will not come, and then it will be a thing for two weeks that he was invited and did not come, and I would rather have the two weeks back.
+– Nadia: same, but she will say why, out loud, in front of people, and she will be right.
+– the twins: last time, the pool.
+– Christian: he is on the list. Somebody keeps taking him off the list. Stop taking Christian off the list.
+
+DRESS: whatever. Genuinely whatever. Every year somebody asks and every year the answer is whatever, and every year four people arrive in black tie because they do not believe me.
+
+RULES
+1. Nothing goes online until Sunday. Not one story. I am serious about this one and you all know why.
+2. The east wing is closed. The door is locked and the key is not in the house.
+3. If someone arrives who is not on the list and Marcos lets them in, that is Marcos’s decision and I will back it, because Marcos has been right about people for three years and I have not.`,
+    translation: `СУББОТА — ДОМ — СПИСОК
+
+На двери: Маркос. Список он знает. Если вас в нём нет, он будет исключительно вежлив, а это хуже.
+
+ПОДТВЕРДИЛИ (32)
+[имена]
+
+ПЛЮС ОДИН РАЗРЕШЁН: Лу, Гусману, Карле, Поло. Больше никому. Это не личное, это тридцать два человека и один лифт.
+
+НЕ В СПИСКЕ, и причины, раз уж все спросили:
+– Самуэль: дело не в том, что он не может прийти. Дело в том, что он не придёт, и потом две недели будет темой, что его позвали, а он не пришёл, — а я предпочту эти две недели себе оставить.
+– Надия: то же самое, но она скажет почему, вслух, при людях, и будет права.
+– близнецы: в прошлый раз, бассейн.
+– Кристиан: он в списке. Кто-то постоянно вычёркивает Кристиана из списка. Перестаньте вычёркивать Кристиана из списка.
+
+ДРЕСС-КОД: любой. Правда любой. Каждый год кто-нибудь спрашивает, каждый год ответ «любой», и каждый год четверо приезжают в смокингах, потому что мне не верят.
+
+ПРАВИЛА
+1. Ничего в сеть до воскресенья. Ни одной сторис. Тут я серьёзно, и все знают почему.
+2. Восточное крыло закрыто. Дверь заперта, и ключа в доме нет.
+3. Если придёт кто-то не из списка и Маркос его пустит — это решение Маркоса, и я его поддержу, потому что Маркос три года разбирается в людях правильно, а я нет.`,
+    glossary: [
+      { term: 'plus one', ru: 'право привести одного гостя' },
+      { term: 'it is not personal', ru: 'это ничего личного' },
+      { term: 'to be a thing', ru: 'стать темой, обсуждаться' },
+      { term: 'to take sb off the list', ru: 'вычеркнуть из списка' },
+      { term: 'black tie', ru: 'смокинг, строгий вечерний дресс-код' },
+      { term: 'story (social media)', ru: 'сторис' },
+      { term: 'wing', ru: 'крыло здания' },
+      { term: 'to back sb', ru: 'поддержать, встать на чью-то сторону' },
+    ],
+    questions: [
+      {
+        q: 'Why is Samuel not invited?',
+        options: [
+          'He is not liked',
+          'Because he would not come, and the not-coming would be discussed for two weeks',
+          'He is away',
+          'He was not asked',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is said about Christian?',
+        options: [
+          'He is not invited',
+          'He is on the list and somebody keeps removing him',
+          'He declined',
+          'He is on the door',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the dress code?',
+        options: [
+          'Black tie',
+          'Whatever — although four people will arrive in black tie anyway',
+          'Formal',
+          'It is not stated',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does rule 3 concede?',
+        options: [
+          'That the list is final',
+          'That the doorman judges people better than the host does',
+          'That anyone may come',
+          'That there are no rules',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Гордость, 3: письмо из деревни ─────────────────────────────────────────
+  {
+    id: 'sc-pride-2014-3',
+    workId: 'pride-2014',
+    lang: 'en', title: 'Письмо из Онллуина', level: 'B2', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фильм о том, как лондонская группа собирала деньги для бастующих валлийских шахтёров, а те не сразу поняли, кто им помогает. Ниже наш текст — письмо из деревни в Лондон, написанное секретарём комитета поддержки. Английский здесь простой, старомодно вежливый и очень точный в деньгах.',
+    body: `Dulais Valley Miners’ Support Group
+Onllwyn Welfare Hall, West Glamorgan
+14 November
+
+Dear Friends,
+
+Your cheque for £512.16 arrived on Tuesday and was banked the same day. I am to thank you formally on behalf of the committee, which I do, and then I would like to say something that is not formal.
+
+We have had money from a great many places since June. Most of it comes with a letter that explains, at some length, why the sender is giving it. Yours came with a note that said “from the London group, for the food fund, sorry it is not more”. That is the only letter we have kept on the wall.
+
+The money will go as follows, since you asked and nobody else does: £310 to the food parcels (we are doing 260 a week now, up from 180 in September), £120 to the electricity fund for six families who are on cards, and the remainder to the Christmas fund for the children, which the committee has voted to spend on one thing each rather than several small ones, because the small ones do not last until January.
+
+There is a matter I should raise plainly. Some in the village have asked who your group is, and there has been talk, and I will not pretend otherwise. The committee discussed it on the 8th and took the view that a person who sends £512 in a bad November is not a stranger, and that we would be poor company if we asked a friend to explain himself at the door.
+
+You would be very welcome here. Bring nothing. There is a hall and there is a piano and Hefina will feed you whether you are hungry or not.
+
+Yours sincerely,
+Cliff Barry, Secretary`,
+    translation: `Группа поддержки шахтёров долины Дулэ
+Общественный зал, Онллуин, Западный Гламорган
+14 ноября
+
+Дорогие друзья,
+
+ваш чек на 512 фунтов 16 пенсов пришёл во вторник и в тот же день был внесён в банк. Мне поручено официально поблагодарить вас от имени комитета, что я и делаю, а затем я хотел бы сказать нечто неофициальное.
+
+С июня деньги приходили к нам из очень многих мест. Почти всегда с письмом, где пространно объясняется, почему отправитель даёт. Ваши пришли с запиской: «от лондонской группы, в продовольственный фонд, простите, что не больше». Это единственное письмо, которое мы повесили на стену.
+
+Деньги пойдут так — раз уж вы спросили, а больше никто не спрашивает: 310 фунтов на продуктовые наборы (сейчас мы делаем 260 в неделю против 180 в сентябре), 120 фунтов в фонд электричества для шести семей, сидящих на карточных счётчиках, остаток — в рождественский фонд для детей; комитет проголосовал потратить его на одну вещь каждому, а не на несколько мелких, потому что мелкие не доживают до января.
+
+Есть вопрос, который мне следует поднять прямо. Кое-кто в деревне спрашивал, что у вас за группа, разговоры были, и я не стану делать вид, что нет. Комитет обсудил это 8-го и пришёл к мнению, что человек, присылающий 512 фунтов в скверном ноябре, — не посторонний и что мы были бы дурной компанией, если бы требовали от друга объясняться на пороге.
+
+Мы будем очень рады вам здесь. Ничего не везите. Есть зал, есть пианино, и Хефина накормит вас независимо от того, голодны вы или нет.
+
+Искренне ваш,
+Клифф Барри, секретарь`,
+    glossary: [
+      { term: 'support group', ru: 'группа поддержки' },
+      { term: 'welfare hall', ru: 'общественный зал (в шахтёрских посёлках)' },
+      { term: 'cheque', ru: 'чек (брит.); в США check' },
+      { term: 'to bank sth', ru: 'внести в банк' },
+      { term: 'on behalf of', ru: 'от имени' },
+      { term: 'food parcel', ru: 'продуктовый набор' },
+      { term: 'on cards', ru: 'на предоплатных счётчиках электричества' },
+      { term: 'the remainder', ru: 'остаток' },
+      { term: 'to take the view that', ru: 'прийти к мнению, что' },
+      { term: 'to explain oneself', ru: 'объясняться, оправдываться' },
+    ],
+    questions: [
+      {
+        q: 'Why was the London group’s note kept on the wall?',
+        options: [
+          'It was the largest donation',
+          'Because it explained nothing and simply gave',
+          'It was signed by someone famous',
+          'It contained instructions',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How many food parcels are being made now?',
+        options: ['180 a week', '260 a week', '512 a week', 'It is not stated'],
+        correct: 1,
+      },
+      {
+        q: 'Why one gift each rather than several small ones?',
+        options: [
+          'It is cheaper',
+          'Small ones do not last until January',
+          'The shop requires it',
+          'The children asked',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the committee answer the gossip in the village?',
+        options: [
+          'By denying it',
+          'By deciding that they would be poor company if they asked a friend to explain himself',
+          'By returning the money',
+          'By asking the London group directly',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Гордость, 4: афиша концерта ────────────────────────────────────────────
+  {
+    id: 'sc-pride-2014-4',
+    workId: 'pride-2014',
+    lang: 'en', title: 'Афиша благотворительного концерта', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Восьмидесятые в Британии — это самодельные афиши, ксерокс и клубы, где всё делается на энтузиазме. Ниже наш текст в этом жанре. Афиша — очень удобный формат для чтения: даты, цены, время и короткие рубленые строки.',
+    body: `PITS AND PERVERTS
+A BENEFIT FOR THE MINERS
+
+THE ELECTRIC BALLROOM, CAMDEN
+Saturday 10 December · Doors 8 p.m. · Late licence to 2 a.m.
+
+TICKETS £5 in advance · £6 on the door · £2 unwaged
+Advance tickets from Gay’s the Word bookshop, and from the market stall on Saturdays.
+
+ALL PROCEEDS TO THE DULAIS VALLEY MINERS’ SUPPORT GROUP
+Not to a general fund. To one valley, whose committee will tell us to the penny what it went on, because they always do.
+
+WHY THE NAME
+Because a newspaper used those two words about us last month and meant them as an insult, and we have decided to charge five pounds for them.
+
+ON THE NIGHT
+Live sets from three bands. Speeches kept to eight minutes total, which is a promise and which we intend to keep by holding a stopwatch visibly.
+Buckets at the doors. Coins are as welcome as notes and are frankly more likely.
+
+FROM THE VALLEY
+Members of the support group will be travelling up by coach and will be there. They have been asked what they would like laid on and have replied “nothing, we are coming to say thank you”, which nobody here has quite recovered from.
+
+NO TROUBLE PLEASE. There will be press. Everything that happens in this room on Saturday will be described by somebody who was not in it.`,
+    translation: `PITS AND PERVERTS
+БЛАГОТВОРИТЕЛЬНЫЙ ВЕЧЕР В ПОЛЬЗУ ШАХТЁРОВ
+
+THE ELECTRIC BALLROOM, КАМДЕН
+Суббота, 10 декабря · Двери в 20:00 · Продлённая лицензия до 2:00
+
+БИЛЕТЫ 5 фунтов заранее · 6 фунтов в дверях · 2 фунта безработным
+Билеты заранее — в книжном Gay’s the Word и на рыночном лотке по субботам.
+
+ВСЯ ВЫРУЧКА — ГРУППЕ ПОДДЕРЖКИ ШАХТЁРОВ ДОЛИНЫ ДУЛЭ
+Не в общий фонд. В одну долину, комитет которой отчитается нам до пенса, на что это ушло, — они всегда отчитываются.
+
+ОТКУДА НАЗВАНИЕ
+Оттого, что в прошлом месяце газета употребила эти два слова про нас как оскорбление, а мы решили брать за них по пять фунтов.
+
+В ЭТОТ ВЕЧЕР
+Живые выступления трёх групп. Речи — не более восьми минут в сумме; это обещание, и держать его мы намерены с секундомером на виду.
+Вёдра у дверей. Монеты принимаются наравне с купюрами и, честно говоря, вероятнее.
+
+ИЗ ДОЛИНЫ
+Члены группы поддержки приедут автобусом и будут здесь. Их спросили, что для них устроить, и они ответили: «ничего, мы едем сказать спасибо», — от чего здесь до сих пор никто толком не отошёл.
+
+ПОЖАЛУЙСТА, БЕЗ ЭКСЦЕССОВ. Будет пресса. Всё, что произойдёт в этом зале в субботу, опишет тот, кого в нём не было.`,
+    glossary: [
+      { term: 'benefit', ru: 'благотворительный вечер' },
+      { term: 'doors', ru: 'время открытия дверей' },
+      { term: 'late licence', ru: 'разрешение работать позже обычного' },
+      { term: 'in advance / on the door', ru: 'заранее / в дверях' },
+      { term: 'unwaged', ru: 'безработный (брит., 1980-е)' },
+      { term: 'proceeds', ru: 'выручка, сборы' },
+      { term: 'to the penny', ru: 'до пенса, до копейки' },
+      { term: 'live set', ru: 'живое выступление' },
+      { term: 'bucket collection', ru: 'сбор в вёдра' },
+      { term: 'to lay sth on', ru: 'устроить, организовать (угощение, приём)' },
+    ],
+    questions: [
+      {
+        q: 'How much is a ticket for someone with no wages?',
+        options: ['£5', '£6', '£2', 'Free'],
+        correct: 2,
+      },
+      {
+        q: 'Where do the proceeds go?',
+        options: [
+          'A general fund',
+          'One valley, whose committee accounts for it to the penny',
+          'The venue',
+          'Three charities',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Where does the name come from?',
+        options: [
+          'A song',
+          'Two words a newspaper used as an insult',
+          'The venue',
+          'The support group',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did the visitors from the valley ask to have laid on?',
+        options: [
+          'A meal',
+          'Nothing — they are coming to say thank you',
+          'Transport',
+          'Tickets',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Оранжевый — хит сезона, 3: правила свиданий ────────────────────────────
+  {
+    id: 'sc-oitnb-3',
+    workId: 'oitnb',
+    lang: 'en', title: 'Правила свиданий и посылок', level: 'B1', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал во многом про то, что связь с внешним миром выдаётся дозами и по правилам. Ниже наш текст — памятка для посетителей. Английский официальный и очень конкретный, а между строк видно, что каждое правило появилось после какого-то случая.',
+    body: `LITCHFIELD — INFORMATION FOR VISITORS
+Please read before your first visit. Every rule below exists because of something that happened.
+
+VISITING HOURS
+Sat & Sun, 8:30–15:00. Thu 17:00–19:30. Last entry one hour before close. Arrive early: processing takes 40–60 minutes and is not counted as visit time.
+
+BEFORE YOU COME
+Every visitor must be on the approved list. Approval takes 4–6 weeks. Bring photo ID. Without ID you will not be admitted, whatever the officer told you on the telephone.
+
+WHAT YOU MAY BRING IN
+A clear plastic bag or a clear coin purse. Up to $20 in coins and small notes for the vending machines. Nothing else. Not a book. Not a photograph. Not food. Not medicine, including your own.
+
+DRESS
+No blue or khaki. No sleeveless tops, no open-toed shoes, no underwired bras (they set off the detector and you will be turned away). This list is longer for women visitors than for men and we are aware of that.
+
+DURING THE VISIT
+One brief embrace at the beginning and one at the end. Hold hands on the table. Children may sit on a lap. Visits are recorded. Visits are not private and nobody will pretend they are.
+
+MAIL AND PARCELS
+Letters: unlimited, opened and read. Photographs: up to five per envelope, no instant film. Books: only direct from an approved seller, never from you, even new, even sealed.
+Money: through the approved service only.
+
+ONE THING THAT IS NOT A RULE
+Come anyway. The single thing every officer here will tell you off the record is that the people who get visits do better, and that the second visit is much easier than the first, and that almost nobody manages the first one without crying in the car park. That is not a failure. That is the car park doing its job.`,
+    translation: `ЛИТЧФИЛД — ИНФОРМАЦИЯ ДЛЯ ПОСЕТИТЕЛЕЙ
+Прочтите перед первым посещением. Каждое правило ниже появилось после какого-то случая.
+
+ЧАСЫ ПОСЕЩЕНИЙ
+Сб и вс, 8:30–15:00. Чт 17:00–19:30. Последний вход за час до закрытия. Приезжайте заранее: оформление занимает 40–60 минут и во время свидания не засчитывается.
+
+ДО ПРИЕЗДА
+Каждый посетитель должен быть в утверждённом списке. Утверждение занимает 4–6 недель. Возьмите документ с фотографией. Без документа вас не пропустят, что бы вам ни сказали по телефону.
+
+ЧТО МОЖНО ПРОНЕСТИ
+Прозрачный пакет или прозрачный кошелёк для монет. До 20 долларов монетами и мелкими купюрами для торговых автоматов. Больше ничего. Ни книги. Ни фотографии. Ни еды. Ни лекарств, включая ваши собственные.
+
+ОДЕЖДА
+Никакого синего и хаки. Без топов без рукавов, без открытой обуви, без бюстгальтеров на косточках (они срабатывают на рамке, и вас развернут). Для женщин этот список длиннее, чем для мужчин, и нам это известно.
+
+ВО ВРЕМЯ СВИДАНИЯ
+Одно короткое объятие в начале и одно в конце. Руки — на столе. Ребёнок может сидеть на коленях. Свидания записываются. Свидания не являются частными, и никто не будет делать вид, что являются.
+
+ПОЧТА И ПОСЫЛКИ
+Письма: без ограничений, вскрываются и прочитываются. Фотографии: до пяти в конверте, моментальные снимки нельзя. Книги: только напрямую от утверждённого продавца, никогда от вас — даже новые, даже запечатанные.
+Деньги: только через утверждённый сервис.
+
+ОДНО, ЧТО НЕ ЯВЛЯЕТСЯ ПРАВИЛОМ
+Приезжайте всё равно. Единственное, что любой здешний сотрудник скажет вам неофициально: тем, к кому приезжают, живётся лучше; второе свидание намного легче первого; и почти никто не проходит первое, не расплакавшись на парковке. Это не провал. Это парковка делает свою работу.`,
+    glossary: [
+      { term: 'processing', ru: 'оформление, досмотр' },
+      { term: 'approved list', ru: 'утверждённый список' },
+      { term: 'photo ID', ru: 'документ с фотографией' },
+      { term: 'to admit sb', ru: 'пропустить, впустить' },
+      { term: 'vending machine', ru: 'торговый автомат' },
+      { term: 'sleeveless', ru: 'без рукавов' },
+      { term: 'open-toed', ru: 'с открытым носком (об обуви)' },
+      { term: 'to set off a detector', ru: 'вызвать срабатывание рамки' },
+      { term: 'to turn sb away', ru: 'развернуть, не пустить' },
+      { term: 'off the record', ru: 'неофициально, не для протокола' },
+    ],
+    questions: [
+      {
+        q: 'Is processing time counted as visit time?',
+        options: ['Yes', 'No', 'Half of it', 'Only on Thursdays'],
+        correct: 1,
+      },
+      {
+        q: 'Why may books not be brought by a visitor?',
+        options: [
+          'They are not allowed at all',
+          'They must come directly from an approved seller',
+          'They cost too much',
+          'They are checked later',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the leaflet admit about the dress rules?',
+        options: [
+          'They are new',
+          'That the list is longer for women visitors',
+          'That they are rarely enforced',
+          'That they will change',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the “one thing that is not a rule”?',
+        options: [
+          'Bring coins',
+          'Come anyway — people who get visits do better',
+          'Arrive early',
+          'Dress correctly',
+        ],
+        correct: 1,
+        why: 'Последний абзац написан другим голосом, чем весь документ, — и только он объясняет, зачем всё остальное вообще нужно соблюдать.',
+      },
+    ],
+  },
+
+  // ── Оранжевый — хит сезона, 4: слушание об УДО ─────────────────────────────
+  {
+    id: 'sc-oitnb-4',
+    workId: 'oitnb',
+    lang: 'en', title: 'Слушание об условно-досрочном', level: 'B2', minutes: 4,
+    topic: 'Работа', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал подробно показывает бюрократию, от которой зависит человеческая жизнь. Ниже наш текст — протокол слушания комиссии по условно-досрочному освобождению. Здесь стоит следить за тем, как формулируются критерии: почти каждый из них человек не может выполнить, находясь внутри.',
+    body: `PAROLE BOARD — HEARING RECORD
+
+Applicant: WARREN, S. · Sentence: 60 months · Served: 41 · Prior hearings: 1 (denied)
+
+CRITERIA CONSIDERED
+1. Institutional conduct. Two write-ups in 41 months, both in year one, none since. Satisfactory.
+2. Programme participation. GED completed. Kitchen certification completed. Waiting list for the electrical course: 14 months, still waiting. Noted.
+3. Employment on release. Applicant must present a verified offer of employment.
+Applicant states she cannot obtain an offer without an address, cannot obtain an address without an income, and cannot obtain an income without release. The board notes the difficulty. The board does not have the authority to waive the requirement.
+4. Housing on release. See 3.
+5. Community support. One letter, from a sister.
+6. Insight into offence. The board asks applicants to explain, in their own words, why the offence occurred.
+
+APPLICANT’S STATEMENT (recorded verbatim at her request)
+“You want me to say I did it because I am the kind of person who does it. If I say that, you keep me because I am that kind of person. If I say I did it because of what was happening to me at the time, you write ‘lacks insight, blames circumstances’. I have read the file of the woman ahead of me. I know both boxes. I am telling you plainly that I did it, that I would not do it now, and that I do not know a form of words that gets me out of this room, and I would like that recorded, because it is the only true thing I have said in either hearing.”
+
+DECISION: Deferred 12 months. Reason: employment and housing not established.
+_(Board member Ochoa dissenting, remarks appended.)_`,
+    translation: `КОМИССИЯ ПО УСЛОВНО-ДОСРОЧНОМУ — ПРОТОКОЛ СЛУШАНИЯ
+
+Заявитель: УОРРЕН С. · Срок: 60 месяцев · Отбыто: 41 · Прежние слушания: 1 (отказ)
+
+РАССМОТРЕННЫЕ КРИТЕРИИ
+1. Поведение в учреждении. Два взыскания за 41 месяц, оба в первый год, с тех пор ни одного. Удовлетворительно.
+2. Участие в программах. Аттестат получен. Аттестация по кухне пройдена. Очередь на курс электрика: 14 месяцев, всё ещё ждёт. Принято к сведению.
+3. Трудоустройство после освобождения. Заявитель обязан представить подтверждённое предложение о работе.
+Заявитель поясняет, что не может получить предложение без адреса, не может получить адрес без дохода и не может получить доход без освобождения. Комиссия отмечает затруднение. Комиссия не уполномочена отменять требование.
+4. Жильё после освобождения. См. п. 3.
+5. Поддержка со стороны близких. Одно письмо, от сестры.
+6. Осознание содеянного. Комиссия просит заявителей объяснить своими словами, почему было совершено преступление.
+
+ЗАЯВЛЕНИЕ ЗАЯВИТЕЛЯ (записано дословно по её просьбе)
+«Вы хотите, чтобы я сказала, что сделала это, потому что я такой человек. Скажу так — вы меня оставите, потому что я такой человек. Скажу, что сделала из-за того, что со мной тогда происходило, — вы напишете „не осознаёт, перекладывает на обстоятельства“. Я читала дело женщины, которая шла передо мной. Я знаю обе клетки. Говорю прямо: я это сделала, сейчас бы не сделала, и я не знаю формулировки, которая выведет меня из этой комнаты, — и прошу это занести, потому что это единственное правдивое, что я сказала на обоих слушаниях».
+
+РЕШЕНИЕ: отложено на 12 месяцев. Основание: трудоустройство и жильё не подтверждены.
+_(Член комиссии Очоа при особом мнении, замечания прилагаются.)_`,
+    glossary: [
+      { term: 'parole', ru: 'условно-досрочное освобождение' },
+      { term: 'to serve (a sentence)', ru: 'отбывать срок' },
+      { term: 'write-up', ru: 'взыскание, рапорт о нарушении' },
+      { term: 'GED', ru: 'аттестат об общем образовании (США)' },
+      { term: 'waiting list', ru: 'очередь, лист ожидания' },
+      { term: 'verified offer', ru: 'подтверждённое предложение' },
+      { term: 'to waive a requirement', ru: 'отменить требование' },
+      { term: 'insight', ru: 'осознание, понимание собственного поступка' },
+      { term: 'verbatim', ru: 'дословно' },
+      { term: 'deferred', ru: 'отложено' },
+      { term: 'dissenting', ru: 'при особом мнении' },
+    ],
+    questions: [
+      {
+        q: 'What is the circular problem in criterion 3?',
+        options: [
+          'No offer without an address, no address without income, no income without release',
+          'The course has a waiting list',
+          'The letter is missing',
+          'The sentence is too long',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What does the board say about that difficulty?',
+        options: [
+          'It waives the requirement',
+          'It notes the difficulty but has no authority to waive it',
+          'It denies there is one',
+          'It refers it to a court',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the applicant say she cannot win on criterion 6?',
+        options: [
+          'She does not understand it',
+          'Both possible answers are recorded against her',
+          'She refuses to answer',
+          'The question is optional',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What was the outcome?',
+        options: [
+          'Released',
+          'Deferred twelve months over employment and housing',
+          'Denied permanently',
+          'Referred to another board',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Присцилла, 3: райдер ───────────────────────────────────────────────────
+  {
+    id: 'sc-priscilla-3',
+    workId: 'priscilla',
+    lang: 'en', title: 'Райдер и опись костюмов', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фильм — про автобус, который везёт трёх артистов через австралийскую пустыню, и половина комизма в том, что блеск требует очень будничной логистики. Ниже наш текст: технический райдер и опись костюмов. Австралийский английский, много разговорных сокращений.',
+    body: `THE SHOW — TECHNICAL RIDER & WARDROBE LIST
+For venues between Sydney and Alice Springs. Please read; most of this has gone wrong somewhere already.
+
+STAGE
+Minimum 4 m × 3 m, flat. “Flat” means flat. In Coober Pedy it meant “mostly”.
+Power: two 10-amp outlets, separate circuits. If the lights and the sound share a circuit we will find out during the second number and so will you.
+Mirror in the changing area. If there is no changing area, tell us before we arrive and not after. We have changed in a toilet, a kitchen and once in a shearing shed, and we will do it again, but we would like the warning.
+
+SOUND
+Two vocal mics, one spare. Backing tapes are ours. Somebody must be at the deck who is not also serving at the bar. This has been an issue.
+
+WARDROBE — travelling inventory
+6 × full gowns, garment bags, hung, not folded
+1 × thong (silver, oversized, structural)
+14 × wigs, boxed, numbered. Wig 9 is not to be worn by anyone but Bernadette and everybody knows why
+2 × steamers. Both. Yes both. One always dies.
+Shoes: 11 pairs, sizes on the soles in marker
+Sewing kit, glue, tape, spare feathers, and the small tin, which is not to be opened by anyone who did not pack it
+
+TRAVEL NOTE
+Everything above lives on a bus with no air conditioning. Gowns come off the bus at every stop, whatever the hour, or they will not survive the week. This is not vanity. This is the only capital we have.`,
+    translation: `ШОУ — ТЕХНИЧЕСКИЙ РАЙДЕР И ОПИСЬ КОСТЮМОВ
+Для площадок между Сиднеем и Алис-Спрингс. Прочтите: почти всё из этого уже где-нибудь пошло не так.
+
+СЦЕНА
+Минимум 4 × 3 м, ровная. «Ровная» означает ровная. В Кубер-Педи это означало «в основном».
+Питание: две розетки на 10 ампер, разные линии. Если свет и звук окажутся на одной линии, мы это выясним на втором номере, и вы тоже.
+Зеркало в гримёрке. Если гримёрки нет — скажите до приезда, а не после. Мы переодевались в туалете, на кухне и однажды в стригальном сарае, и переоденемся снова, но хотелось бы предупреждение.
+
+ЗВУК
+Два вокальных микрофона, один запасной. Фонограммы наши. За пультом должен стоять человек, который в это же время не разливает в баре. Это уже было проблемой.
+
+КОСТЮМЫ — дорожная опись
+6 × полных платьев, в чехлах, на плечиках, не сложенными
+1 × стринги (серебряные, огромные, несущая конструкция)
+14 × париков, в коробках, пронумерованы. Парик № 9 не надевает никто, кроме Бернадетт, и все знают почему
+2 × отпариватель. Оба. Да, оба. Один всегда умирает.
+Обувь: 11 пар, размеры на подошвах маркером
+Швейный набор, клей, скотч, запасные перья и маленькая жестянка, которую не открывает тот, кто её не укладывал
+
+ЗАМЕЧАНИЕ ПРО ДОРОГУ
+Всё вышеперечисленное живёт в автобусе без кондиционера. Платья снимаются с автобуса на каждой остановке, в любой час, иначе они не переживут неделю. Это не тщеславие. Это единственный капитал, который у нас есть.`,
+    glossary: [
+      { term: 'rider', ru: 'райдер — требования артиста к площадке' },
+      { term: 'venue', ru: 'площадка, место выступления' },
+      { term: 'outlet', ru: 'розетка (амер./австрал.)' },
+      { term: 'circuit', ru: 'электрическая линия' },
+      { term: 'changing area', ru: 'гримёрка, место для переодевания' },
+      { term: 'shearing shed', ru: 'стригальный сарай (австрал.)' },
+      { term: 'backing tape', ru: 'фонограмма' },
+      { term: 'deck', ru: 'пульт, дека' },
+      { term: 'gown', ru: 'вечернее платье' },
+      { term: 'garment bag', ru: 'чехол для одежды' },
+      { term: 'steamer', ru: 'отпариватель' },
+      { term: 'vanity', ru: 'тщеславие' },
+    ],
+    questions: [
+      {
+        q: 'Why must lights and sound be on separate circuits?',
+        options: [
+          'Safety regulations',
+          'Otherwise it will fail during the second number',
+          'To save power',
+          'The venue requires it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the rule about the changing area?',
+        options: [
+          'It must exist',
+          'If there is none, they want to be told before arrival, not after',
+          'They will not perform',
+          'It must have two mirrors',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why two steamers?',
+        options: [
+          'Two performers',
+          'One always dies',
+          'One is a spare for sale',
+          'They are different sizes',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must the gowns come off the bus at every stop?',
+        options: [
+          'Vanity',
+          'Because the bus has no air conditioning and the gowns are their only capital',
+          'Customs rules',
+          'To air the bus',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Присцилла, 4: счёт из мастерской ───────────────────────────────────────
+  {
+    id: 'sc-priscilla-4',
+    workId: 'priscilla',
+    lang: 'en', title: 'Счёт из мастерской в Брокен-Хилле', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Автобус в фильме ломается, и чинят его в городке, где сначала смотрят косо, а потом помогают. Ниже наш текст — счёт из авторемонтной мастерской с приписками. Австралийский разговорный английский тут в приписках, а в самом счёте — обычная техническая лексика.',
+    body: `OUTBACK AUTO — BROKEN HILL
+Invoice 3312 · Vehicle: 1976 Hino bus, silver (repainted)
+
+Radiator, remove, flush, re-core .......................... $340
+Water pump, replace ....................................... $185
+Hoses ×3, replace ......................................... $46
+Fan belt .................................................. $18
+Labour, 9 hours @ $32 ..................................... $288
+Tow-in from 41 km east ..................................... $120
+Parts freight from Adelaide, overnight .................... $95
+Storage, 2 nights .......................................... —
+
+TOTAL .................................................... $1,092
+
+Handwritten:
+
+“Bus is right now. Don’t run her over 80 with a load on till you get the new thermostat in — I’ve fitted a second-hand one, it’s good, but it’s second-hand. Thermostat’s ordered, it’ll be in Alice Wednesday, ask for Sandra at Central Auto, she knows it’s coming and she knows who it’s for.
+
+Storage: no charge. You slept in it, that’s not storage.
+
+Also: the paint. My daughter wants to know what colour it is exactly, because she has looked at it for two days and cannot decide, and she is fifteen and she does not ask me questions any more, so if one of you could write it on the back of this docket I would owe you.
+
+Safe trip. Watch for roos after four.
+— Bob”
+
+_(on the back, in a different hand: “Lavender. Two coats. Tell her the trick is the undercoat — you put down grey first or it goes pink in the sun.”)_`,
+    translation: `OUTBACK AUTO — БРОКЕН-ХИЛЛ
+Счёт 3312 · Автомобиль: автобус Hino 1976 г., серебристый (перекрашен)
+
+Радиатор: снять, промыть, перебрать ....................... 340 $
+Помпа, замена ............................................. 185 $
+Патрубки ×3, замена ....................................... 46 $
+Ремень вентилятора ........................................ 18 $
+Работа, 9 часов по 32 $ ................................... 288 $
+Эвакуация с 41 км к востоку ............................... 120 $
+Доставка запчастей из Аделаиды, ночная .................... 95 $
+Хранение, 2 ночи .......................................... —
+
+ИТОГО ..................................................... 1092 $
+
+От руки:
+
+«Автобус теперь в порядке. Не гоняй за 80 с грузом, пока не поставишь новый термостат, — я поставил бэушный, нормальный, но бэушный. Термостат заказан, будет в Алисе в среду, спросишь Сандру в Central Auto, она знает, что он придёт, и знает, для кого.
+
+Хранение: без оплаты. Вы в нём спали, это не хранение.
+
+И ещё: краска. Моя дочь хочет знать, какой это в точности цвет, — она смотрела на него два дня и не может определить, ей пятнадцать, и она мне вопросов больше не задаёт, так что если кто-нибудь из вас напишет это на обороте квитанции, я буду должен.
+
+Доброй дороги. После четырёх смотри в оба на кенгуру.
+— Боб»
+
+_(на обороте, другим почерком: «Лаванда. В два слоя. Скажи ей, что весь фокус в грунте — сначала кладёшь серый, иначе на солнце уходит в розовый».)_`,
+    glossary: [
+      { term: 'invoice', ru: 'счёт' },
+      { term: 'radiator', ru: 'радиатор' },
+      { term: 'to flush', ru: 'промыть' },
+      { term: 'water pump', ru: 'помпа' },
+      { term: 'hose', ru: 'патрубок, шланг' },
+      { term: 'fan belt', ru: 'ремень вентилятора' },
+      { term: 'tow-in', ru: 'эвакуация, буксировка' },
+      { term: 'freight', ru: 'доставка груза' },
+      { term: 'second-hand', ru: 'бывший в употреблении' },
+      { term: 'docket', ru: 'квитанция (австрал.)' },
+      { term: 'roo', ru: 'кенгуру (австрал. разг.)' },
+      { term: 'undercoat', ru: 'грунт, нижний слой краски' },
+    ],
+    questions: [
+      {
+        q: 'Why is there no charge for storage?',
+        options: [
+          'It was only one night',
+          '“You slept in it, that’s not storage”',
+          'It was included',
+          'They paid in advance',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What must they do about the thermostat?',
+        options: [
+          'Nothing',
+          'Collect the new one in Alice on Wednesday and not exceed 80 until then',
+          'Return the bus',
+          'Order it themselves',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the mechanic ask about the paint colour?',
+        options: [
+          'To match a repair',
+          'Because his fifteen-year-old daughter wants to know and no longer asks him anything',
+          'For the invoice',
+          'For his own bus',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the advice written on the back?',
+        options: [
+          'The brand of paint',
+          'Lavender, two coats, and a grey undercoat so it does not go pink in the sun',
+          'Where to buy it',
+          'How much it costs',
+        ],
+        correct: 1,
+        why: 'Счёт кончается разговором про грунтовку между людьми, которые в начале истории не сказали бы друг другу и слова. Весь фильм устроен так же.',
+      },
+    ],
+  },
 ]

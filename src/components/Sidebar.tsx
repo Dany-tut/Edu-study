@@ -21,6 +21,7 @@ import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
 import NotificationPopup from './NotificationPopup'
 import { useT, useLang, type Lang } from '../lib/i18n'
+import { useFeedGlance } from '../lib/feedRead'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -188,6 +189,10 @@ export default function Sidebar() {
   const [notifOpen, setNotifOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
   const { lang, setLang } = useLang()
+  // Счётчик новых материалов ленты. С отсрочкой: бар рисуется на каждом экране
+  // кабинета, и тянуть чанк ленты наперегонки с данными главной ради цифры
+  // незачем — она подождёт полторы секунды.
+  const feedUnread = useFeedGlance(1500).unread.length
   const session = getStudentSession()
   const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
@@ -695,12 +700,17 @@ export default function Sidebar() {
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center' }}>
         {navItems.map(item => {
           const isActive = activeItem === item.id
+          // Лента — единственное, что появляется само; про остальное в
+          // тренажёре человек и так знает. Поэтому счётчик один и висит он на
+          // «Тренажёре», а не рядом с каждым пунктом.
+          const badge = item.id === 'trainer' ? feedUnread : 0
           return (
             <motion.button
               key={item.id}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleNavClick(item.id)}
               style={{
+                position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -754,6 +764,23 @@ export default function Sidebar() {
               >
                 {t(item.label)}
               </motion.span>
+
+              {badge > 0 && (
+                <span style={{
+                  position: 'absolute', top: 4, right: isCompact ? 2 : 6,
+                  minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  // На активном пункте фон уже фиолетовый — там метка белая с
+                  // фиолетовой цифрой, иначе она сливалась бы с кнопкой.
+                  background: isActive ? '#fff' : 'var(--grad-purple)',
+                  color: isActive ? 'var(--color-purple-text)' : '#fff',
+                  fontSize: 10, fontWeight: 800, lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                  boxShadow: isActive ? 'none' : '0 2px 6px rgba(106,90,230,0.45)',
+                }}>
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              )}
             </motion.button>
           )
         })}

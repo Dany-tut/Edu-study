@@ -283,6 +283,10 @@ const STOP = [
   // новость. Формально не происшествие, но обсуждать налоговую реформу на
   // корейском школьнику незачем.
   '반발', '논란', '시위', '규탄', '세제', '개편안', '갈등',
+  // Стихия и её последствия. С государственных заметок в ленту поехали
+  // «호우 피해», «이재민», «중앙재난안전대책본부» — это ровно то же самое, что
+  // сводка происшествий, только написанная канцелярски.
+  '이재민', '침수', '산불', '호우', '폭우', '태풍', '지진', '재난',
   '戦争', '死亡', '死者', '攻撃', 'テロ', '殺害', '殺人', '爆弾', '遺体', '逮捕', '失踪', '事件',
   '提訴', '裁判', '判決', '容疑', '起訴', '捜査', '自殺', '事故', 'けが', '負傷', '被害',
 ]
@@ -616,11 +620,21 @@ async function fromAtom(id, src) {
  * на самой странице: «단, 텍스트를 제외한 사진·이미지…». Подписи под снимками
  * приходят внутри текста заметки, поэтому их вырезаем отдельно.
  */
+const koglSeen = new Set()
+
 async function fromKogl(id, src) {
   const list = await get(src.url)
 
+  // ТОЛЬКО САМ РАЗДЕЛ. На странице раздела, кроме его списка, есть блоки
+  // «читают сейчас» и подборки — они одинаковые во всех разделах, и без
+  // отсечения «культура» и «общество» приезжают наполовину одинаковыми.
+  // Список лежит между `list_type` и постраничной навигацией.
+  const from = list.indexOf('class="list_type"')
+  const to = list.indexOf('paging', from)
+  const section = from < 0 ? list : list.slice(from, to > 0 ? to : undefined)
+
   const newsIds = []
-  for (const m of list.matchAll(/policyNewsView\.do\?newsId=(\d+)/g)) {
+  for (const m of section.matchAll(/policyNewsView\.do\?newsId=(\d+)/g)) {
     if (!newsIds.includes(m[1])) newsIds.push(m[1])
   }
 
@@ -631,6 +645,11 @@ async function fromKogl(id, src) {
   const out = []
   for (const newsId of newsIds) {
     if (out.length >= LIMIT) break
+
+    // Заметку дня закрепляют сразу в нескольких разделах: без общей памяти
+    // один и тот же текст приедет в ленту дважды под разными подписями.
+    if (koglSeen.has(newsId)) continue
+    koglSeen.add(newsId)
 
     const url = `https://www.korea.kr/news/policyNewsView.do?newsId=${newsId}`
     const page = await get(url)
@@ -916,6 +935,7 @@ for (const [langKey, cfg] of Object.entries(AUTO_FILES)) {
         raw: m[0],
         date: (m[1].match(/date: '([^']+)'/) ?? [])[1] ?? '',
         outlet: (m[1].match(/outletId: '([^']+)'/) ?? [])[1] ?? '',
+        url: (m[1].match(/url: '([^']+)'/) ?? [])[1] ?? '',
       })
     }
   }
@@ -927,8 +947,8 @@ for (const [langKey, cfg] of Object.entries(AUTO_FILES)) {
   const perOutlet = new Map()
   const capped = []
   const pool = [
-    ...fresh.map(x => ({ item: x, date: x.date, outlet: x.outletId })),
-    ...kept.map(x => ({ raw: x.raw, date: x.date, outlet: x.outlet })),
+    ...fresh.map(x => ({ item: x, date: x.date, outlet: x.outletId, url: x.url })),
+    ...kept.map(x => ({ raw: x.raw, date: x.date, outlet: x.outlet, url: x.url })),
   ].sort((a, b) => (a.date < b.date ? 1 : -1))
 
   // Потолок считается от того, сколько источников у языка вообще есть. У
@@ -938,7 +958,14 @@ for (const [langKey, cfg] of Object.entries(AUTO_FILES)) {
   const outlets = new Set(pool.map(x => x.outlet)).size || 1
   const CAP = Math.max(4, Math.ceil(KEEP / outlets))
 
+  // ОДИН МАТЕРИАЛ — ОДНА КАРТОЧКА. id считается от источника и ссылки, поэтому
+  // заметку, закреплённую сразу в двух разделах одного сайта, он развести не
+  // может: id разные, материал один. Ученику это видно как одно и то же,
+  // напечатанное дважды подряд, поэтому дубли снимаем по ССЫЛКЕ.
+  const seenUrls = new Set()
   for (const x of pool) {
+    if (x.url && seenUrls.has(x.url)) continue
+    if (x.url) seenUrls.add(x.url)
     const n = perOutlet.get(x.outlet) ?? 0
     if (n >= CAP) continue
     perOutlet.set(x.outlet, n + 1)

@@ -25,7 +25,7 @@
 // помечается просмотренным разом, и остаётся честное «что появилось сегодня».
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { hasFeed, loadFeed, type FeedItem } from '../data/feed'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -161,13 +161,17 @@ const EMPTY: FeedItem[] = []
  * `delayMs` — отсрочка перед загрузкой чанка. Бейджу в навбаре торопиться
  * некуда: он рисуется на каждом экране кабинета, и тянуть ради него чужой чанк
  * наперегонки с данными главной незачем.
+ *
+ * `subjectOverride` — предмет экрана, если он свой (см. useWidgetRelevance).
  */
-export function useFeedGlance(delayMs = 0): FeedGlance {
+export function useFeedGlance(delayMs = 0, subjectOverride?: string | null): FeedGlance {
   const subjects = useStudentData(s => s.subjects)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
 
   const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
-  const def = getSubject(active?.subject)
+  // Свой предмет у экрана — как у useWidgetRelevance: на мобильной главной
+  // курс выбирается своим переключателем внизу, и лента должна быть про него.
+  const def = getSubject(subjectOverride) ?? getSubject(active?.subject)
   const lang = def?.langCode
   const on = !!lang && hasFeed(lang)
 
@@ -199,4 +203,45 @@ export function useFeedGlance(delayMs = 0): FeedGlance {
     items,
     unread: on && lang ? unreadOf(lang, items) : EMPTY,
   }
+}
+
+// ─── «Побыл на экране» ───────────────────────────────────────────────────────
+
+/**
+ * Сколько пост должен продержаться на виду, чтобы считаться просмотренным.
+ * Секунда с небольшим: пролистнуть мимо за это время можно, прочитать заголовок
+ * — нельзя, и промахи в обе стороны здесь дешёвые.
+ */
+const SEEN_MS = 1300
+
+/**
+ * Ref на карточку поста: как только она побыла на экране, материал уходит в
+ * просмотренные. Готовый (уже просмотренный) пост наблюдателя не заводит.
+ */
+export function useSeen(lang: string, id: string) {
+  const ref = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || isRead(lang, id)) return
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const io = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        // Пост длиннее экрана не даст ratio 0.6 никогда — для него считаем не
+        // долю поста, а долю экрана, которую он занял.
+        const enough = e.isIntersecting && (
+          e.intersectionRatio >= 0.6 ||
+          e.intersectionRect.height >= (window.innerHeight || 0) * 0.5
+        )
+        if (enough && !timer) {
+          timer = setTimeout(() => { markRead(lang, id); io.disconnect() }, SEEN_MS)
+        } else if (!enough && timer) {
+          clearTimeout(timer)
+          timer = null
+        }
+      }
+    }, { threshold: [0, 0.25, 0.6, 1] })
+    io.observe(el)
+    return () => { if (timer) clearTimeout(timer); io.disconnect() }
+  }, [lang, id])
+  return ref
 }

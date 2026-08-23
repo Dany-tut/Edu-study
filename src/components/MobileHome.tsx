@@ -16,6 +16,10 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
+import { useFeedGlance } from '../lib/feedRead'
+import { queueTrainerLink } from '../lib/trainerLink'
+import { pickTrainerSubject } from '../lib/trainerSubject'
+import { dayLabel, outletById } from '../data/feed'
 import { tactile } from '../lib/feedback'
 import { PAIR } from '../lib/mobileTokens'
 import { resolveSubjectPalette } from '../lib/subjects'
@@ -206,6 +210,9 @@ export default function MobileHome() {
             <QuickTile icon={<BookOpen size={18} />} title={t('Курс')} sub={t('Уроки и путь')} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
           </div>
 
+          {/* Лента: единственное, что назавтра другое */}
+          <FeedStrip subject={scopedSubject?.subject} onOpen={() => setActivePage('trainer')} />
+
           {/* Стикеры за принятые задания */}
           <MobileStickersRow />
 
@@ -367,6 +374,103 @@ function PendingHWCard({ subjects, onOpenHW }: { subjects: Subject[]; onOpenHW: 
       </div>
       <ChevronRight size={16} style={{ color: '#B07A00', flexShrink: 0 }} />
     </motion.button>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Лента на мобильной главной
+//
+// Ряд постов, а не карточка-список: на телефоне лента и листается пальцем, так
+// что горизонтальный ряд — это она сама в миниатюре, а не оглавление к ней.
+// Непрочитанное идёт первым и подсвечено; когда нового нет, ряд не исчезает —
+// показывает свежее из уже виденного, иначе раздел мигал бы через день.
+//
+// Тап по любой карточке открывает ленту целиком: адресуемых постов у ленты нет
+// и не будет (см. data/feed), её открывают сверху.
+// ─────────────────────────────────────────────────────────────────────────────
+function FeedStrip({ subject, onOpen }: { subject?: string; onOpen: () => void }) {
+  const t = useT()
+  const { lang, subjectId, items, unread } = useFeedGlance(0, subject)
+  if (!lang || items.length === 0) return null
+
+  const shown = [...unread, ...items.filter(x => !unread.includes(x))].slice(0, 8)
+
+  const open = () => {
+    tactile()
+    queueTrainerLink({ kind: 'feed', lang })
+    if (subjectId) pickTrainerSubject(subjectId)
+    onOpen()
+  }
+
+  return (
+    <div>
+      <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+          {t('Лента')}
+        </p>
+        {unread.length > 0 && (
+          <span style={{
+            padding: '1px 7px', borderRadius: 999, background: 'var(--grad-purple)',
+            color: '#fff', fontSize: 10, fontWeight: 800, lineHeight: '16px',
+          }}>
+            {unread.length}
+          </span>
+        )}
+        <button
+          onClick={open}
+          style={{
+            marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 2,
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, color: 'var(--color-accent)',
+          }}
+        >
+          {t('Открыть')} <ChevronRight size={13} />
+        </button>
+      </div>
+      <div style={{ marginLeft: -16, marginRight: -16 }}>
+        <MobileHScroll padX={16} gap={10}>
+          {shown.map(item => {
+            const outlet = outletById(item.outletId)
+            const fresh = unread.includes(item)
+            return (
+              <button
+                key={item.id}
+                onClick={open}
+                style={{
+                  width: 168, flexShrink: 0, padding: 12, borderRadius: 18, textAlign: 'left',
+                  background: fresh ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  display: 'flex', flexDirection: 'column', gap: 7,
+                }}
+              >
+                <span className="flex items-center" style={{ gap: 6, minWidth: 0 }}>
+                  {/* Тот же знак источника, что в шапке поста: по нему видно,
+                      чей материал, без второй строки с подписью. */}
+                  <span aria-hidden style={{
+                    flexShrink: 0, width: 20, height: 20, borderRadius: 999,
+                    background: outlet?.tint ?? 'var(--color-accent)', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: (outlet?.mark.length ?? 1) > 2 ? 7.5 : 9, fontWeight: 800, lineHeight: 1,
+                  }}>
+                    {outlet?.mark ?? '·'}
+                  </span>
+                  <span className="truncate" style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)' }}>
+                    {dayLabel(item.date)}
+                  </span>
+                </span>
+                <span style={{
+                  fontSize: 12, lineHeight: 1.45, fontWeight: fresh ? 700 : 600,
+                  color: fresh ? 'var(--color-text)' : 'var(--color-text-2)',
+                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>
+                  {item.title}
+                </span>
+              </button>
+            )
+          })}
+        </MobileHScroll>
+      </div>
+    </div>
   )
 }
 

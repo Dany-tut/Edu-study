@@ -1,4 +1,4 @@
-import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, Award, Sunrise, type LucideIcon } from 'lucide-react'
+import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, Award, Sunrise, Rows3, type LucideIcon } from 'lucide-react'
 
 // Single source of truth for the carousel widgets. The numeric `id` is the
 // widget's stable identity used by the carousel (renderWidget) and by the
@@ -47,6 +47,9 @@ export const WIDGET_META: WidgetMeta[] = [
   { id: 5, label: 'Вопрос дня',    Icon: Sparkles,     color: 'var(--color-teal-pill-text)', soft: 'var(--color-teal-pill-bg)', content: 'quiz' },
   { id: 8, label: 'Стикеры',       Icon: Award,        color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
   { id: 9, label: 'Доза дня',      Icon: Sunrise,      color: 'var(--color-peach-text)',  soft: 'var(--color-peach-soft)', languagesOnly: true },
+  // Лента идёт сразу за «Дозой дня»: оба виджета про «зайти на пять минут», и
+  // оба — единственное на главной, что назавтра другое.
+  { id: 10, label: 'Лента',        Icon: Rows3,        color: 'var(--color-blue-pill-text)', soft: 'var(--color-blue-pill-bg)', languagesOnly: true },
 ]
 
 // Default sequence: quiz first, then the rest.

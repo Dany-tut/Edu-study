@@ -230,11 +230,20 @@ export function SubjectHero({ state, subtitle, palette }: {
  * Список раскрывается прямо под ней (шторка снизу здесь была бы третьим типом
  * поверхности на одном экране: под ней уже живут док-кружки и их bottom-sheet).
  */
-export function SubjectPill({ state, palette, onOpenList }: {
+export function SubjectPill({ state, palette, onOpenList, compact }: {
   state: TrainerSubjectState
   palette: Palette
   /** Показать список своим способом — шторкой хозяина экрана. */
   onOpenList?: () => void
+  /**
+   * Только значок предмета, без названия, — круг размером с соседние кнопки.
+   *
+   * Для нижнего дока телефона: рядом с таблеткой предмета там стоят половины
+   * режима, и подпись «Корейский» съедала ровно ту ширину, в которой они
+   * помещались. Значок языка узнаётся и без слова — а название всё равно
+   * написано первой строкой в списке, который эта кнопка открывает.
+   */
+  compact?: boolean
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -275,8 +284,12 @@ export function SubjectPill({ state, palette, onOpenList }: {
       <button
         type="button"
         onClick={toggle}
+        aria-label={compact ? (current ? t(current.def.name) : t('Тренажёр')) : undefined}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: 7, height: 36, padding: '0 14px',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          gap: compact ? 0 : 7,
+          height: compact ? 46 : 36, width: compact ? 46 : undefined,
+          padding: compact ? 0 : '0 14px',
           borderRadius: 999, cursor: many ? 'pointer' : 'default', fontFamily: 'inherit',
           fontSize: 13, fontWeight: 700, color: 'var(--color-text)',
           background: 'rgba(var(--glass-rgb), 0.6)',
@@ -285,9 +298,13 @@ export function SubjectPill({ state, palette, onOpenList }: {
           boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
         }}
       >
-        <span style={{ fontSize: 15, lineHeight: 1 }}>{current?.def.icon ?? '📚'}</span>
-        <span style={{ whiteSpace: 'nowrap' }}>{current ? t(current.def.name) : t('Тренажёр')}</span>
-        {many && <ChevronDown size={14} style={{ color: palette.accent, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />}
+        <span style={{ fontSize: compact ? 19 : 15, lineHeight: 1 }}>{current?.def.icon ?? '📚'}</span>
+        {!compact && (
+          <>
+            <span style={{ whiteSpace: 'nowrap' }}>{current ? t(current.def.name) : t('Тренажёр')}</span>
+            {many && <ChevronDown size={14} style={{ color: palette.accent, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />}
+          </>
+        )}
       </button>
 
       {open && (

@@ -11,6 +11,7 @@ import QuestionOfDayWidget from './QuestionOfDayWidget'
 import TrainerProgressWidget from './TrainerProgressWidget'
 import StickersWidget from './StickersWidget'
 import DailyDoseWidget from './DailyDoseWidget'
+import FeedWidget from './FeedWidget'
 import { useDashboard } from '../store/dashboardStore'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
@@ -95,6 +96,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
     if (p === 7) return <TrainerProgressWidget columns={perPage} />
     if (p === 8) return <StickersWidget columns={perPage} />
     if (p === 9) return <DailyDoseWidget columns={perPage} />
+    if (p === 10) return <FeedWidget columns={perPage} />
     if (p === 1) return <ScienceFactsWidget active={isActive} columns={perPage} />
     if (p === 2) return <ReactionsWidget active={isActive} columns={perPage} />
     if (p === 3) return <PomodoroWidget columns={perPage} />

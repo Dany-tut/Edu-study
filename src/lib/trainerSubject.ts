@@ -60,6 +60,18 @@ function write(key: string, value: string) {
   try { localStorage.setItem(key, value) } catch { /* приватный режим */ }
 }
 
+/**
+ * Выбрать предмет тренажёра ИЗВНЕ — с главной, до того как тренажёр смонтирован.
+ *
+ * Пишем прямо в ту же память, из которой useTrainerSubject читает свой
+ * стартовый выбор: виджет главной открывает ленту конкретного языка, и предмет
+ * должен быть выбран к первому кадру тренажёра, а не после него. Трек главной
+ * при этом не трогается — переход в тренажёр не меняет открытый курс.
+ */
+export function pickTrainerSubject(id: string): void {
+  write(KEY, id)
+}
+
 export interface TrainerSubjectOption {
   def: SubjectDef
   /** Каким тренажёром открывается предмет. */

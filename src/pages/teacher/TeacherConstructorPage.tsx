@@ -38,7 +38,7 @@ import {
   type CustomTestMeta,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
-import { useAllStudents, useGroups, fetchSharedCourseIds } from '../../lib/useGroups'
+import { useAllStudents, useGroups, fetchSharedCourseIds, groupStudentsByPerson } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
@@ -1517,11 +1517,18 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
  */
 const FACET_SEP = '\u0000sep'
 
-function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, iconGap = 6, onChange }: {
+function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, iconGap = 6, labels, searchable, onChange }: {
   value: string
   options: string[]
   allLabel: string
   icon: ReactNode
+  /**
+   * Подписи для опций, если значение — не то, что видит глаз (у фильтра по
+   * ученику значение это ключ человека, а в кнопке должно стоять имя).
+   */
+  labels?: Record<string, string>
+  /** Строка поиска над списком: у учеников опций десятки, глазами не найти. */
+  searchable?: boolean
   minWidth?: number
   /**
    * Отступ иконка→текст. Дефолт годится для эмодзи и иконок с полями, но у
@@ -1532,22 +1539,31 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
   onChange: (v: string) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   if (options.filter(o => o !== FACET_SEP).length < 2) return null
+  const label = (v: string) => labels?.[v] ?? v
   const accent = 'var(--color-green-text)'
   const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
   // Группы разделены — значит и «все» отделяем от них, иначе первая группа
   // слипается с общей строкой.
   const grouped = options.includes(FACET_SEP)
-  const rows = ['', ...(grouped ? [FACET_SEP] : []), ...options]
+  const q = query.trim().toLowerCase()
+  // Под поиском разделители групп теряют смысл — они делят полный список.
+  const shown = q ? options.filter(o => o !== FACET_SEP && label(o).toLowerCase().includes(q)) : options
+  const rows = q ? shown : ['', ...(grouped ? [FACET_SEP] : []), ...shown]
   return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
+    // Закрытие ловим на обёртке, а не на кнопке: со строкой поиска фокус уходит
+    // с кнопки внутрь меню, и «потерял фокус — закрылись» захлопывало список
+    // сразу после открытия.
+    <div style={{ position: 'relative' }}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
+      <button onClick={() => { setOpen(o => !o); setQuery('') }}
         style={{ display: 'flex', alignItems: 'center', gap: iconGap, padding: '7px 12px', borderRadius: 999,
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
           border: `1px solid ${value ? 'var(--color-border-strong)' : open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: value ? 700 : 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <span style={{ display: 'flex', color: 'var(--color-text-3)' }}>{icon}</span>
-        <span style={{ minWidth, textAlign: 'left' }}>{value || allLabel}</span>
+        <span style={{ minWidth, textAlign: 'left' }}>{value ? label(value) : allLabel}</span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -1558,11 +1574,19 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
             style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170,
               background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
               border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
+            {searchable && (
+              <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                onMouseDown={e => e.stopPropagation()}
+                placeholder={allLabel}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', marginBottom: 4,
+                  borderRadius: 9, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)',
+                  fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none' }} />
+            )}
             <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
               {rows.map((val, i) => val === FACET_SEP ? (
                 <div key={`sep${i}`} style={{ height: 1, margin: '5px 8px', background: 'var(--color-border)' }} />
               ) : (
-                <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+                <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false); setQuery('') }}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                     width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
                     background: value === val ? accentSoft : 'transparent',
@@ -1570,7 +1594,7 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
                     cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
                   onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
                   onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                  {val || allLabel}
+                  {val ? label(val) : allLabel}
                   {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </button>
               ))}
@@ -7511,6 +7535,10 @@ export default function TeacherConstructorPage() {
   const [courseStatus, setCourseStatus] = usePersistentState<'' | CourseStatus>('ctor.courseStatus', '')
   const [courseSubject, setCourseSubject] = usePersistentState('ctor.courseSubject', '')
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
+  // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
+  // 1:1-ученик живёт отдельной записью на каждый предмет, и по одной из них
+  // нашлась бы только часть его курсов.
+  const [courseStudent, setCourseStudent] = usePersistentState('ctor.courseStudent', '')
   // Готовые курсы стоят в общем списке обычными плитками — отдельной секции нет.
   // Отличие только внутреннее: курса ещё нет в БД, он соберётся из сида при
   // открытии и станет настоящим после «Сохранить». Поэтому их нет в режиме
@@ -7560,11 +7588,43 @@ export default function TeacherConstructorPage() {
   useEffect(() => {
     if (courseLevel && levelOpts.length && !levelOpts.includes(courseLevel)) setCourseLevel('')
   }, [levelOpts, courseLevel, setCourseLevel])
+  // Кто стоит на курсе: доступ (группы + поимённо) и уже начатые уроки. Для
+  // отбора это одно и то же «курс этого ученика» — карточка показывает обе
+  // строки, и разводить их в фильтре было бы лишней тонкостью.
+  const personKeyById = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const p of groupStudentsByPerson(diagAllStudents)) for (const c of p.cards) map[c.id] = p.key
+    return map
+  }, [diagAllStudents])
+  const personsByCourse = useMemo(() => {
+    const map: Record<string, Set<string>> = {}
+    for (const [id, people] of [...Object.entries(accessByCourse), ...Object.entries(enrollmentByCourse)])
+      for (const p of people) { const k = personKeyById[p.id]; if (k) (map[id] ??= new Set()).add(k) }
+    return map
+  }, [accessByCourse, enrollmentByCourse, personKeyById])
+  const personNameByKey = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const p of groupStudentsByPerson(diagAllStudents)) map[p.key] = p.name
+    return map
+  }, [diagAllStudents])
+  // В списке только те, у кого хоть один курс: перебирать весь класс, чтобы
+  // раз за разом получить пустую витрину, незачем.
+  const studentOpts = useMemo(() => {
+    const keys = new Set<string>()
+    for (const c of allCourses) for (const k of personsByCourse[c.id] ?? []) keys.add(k)
+    return [...keys].sort((a, b) => (personNameByKey[a] ?? '').localeCompare(personNameByKey[b] ?? '', 'ru'))
+  }, [allCourses, personsByCourse, personNameByKey])
+  // Ученика отчислили (или он ушёл к другому учителю) — фильтр по нему оставил
+  // бы пустой экран с невидимой причиной. Пустой список = данные ещё грузятся.
+  useEffect(() => {
+    if (courseStudent && studentOpts.length && !studentOpts.includes(courseStudent)) setCourseStudent('')
+  }, [studentOpts, courseStudent, setCourseStudent])
   const filteredCourses = useMemo(() => {
     let cs = allCourses
     if (courseStatus) cs = cs.filter(c => c.status === courseStatus)
     if (courseSubject) cs = cs.filter(c => c.subject.trim() === courseSubject)
     if (courseLevel) cs = cs.filter(c => matchesLevel(c, courseLevel))
+    if (courseStudent) cs = cs.filter(c => personsByCourse[c.id]?.has(courseStudent))
     const sorted = [...cs]
     if (courseSort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
     // По времени, а не по позиции в массиве: сохранение курса переставляет его
@@ -7572,7 +7632,7 @@ export default function TeacherConstructorPage() {
     // (publishedAt) поднимает курс наверх, обычная правка не двигает вообще.
     const dir = courseSort === 'newest' ? -1 : 1
     return sorted.sort((a, b) => dir * courseSortAt(a).localeCompare(courseSortAt(b)))
-  }, [allCourses, courseSort, courseStatus, courseSubject, courseLevel])
+  }, [allCourses, courseSort, courseStatus, courseSubject, courseLevel, courseStudent, personsByCourse])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -8385,6 +8445,12 @@ export default function TeacherConstructorPage() {
                     value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
                     icon={<TrendingUp size={12} />}
                     onChange={setCourseLevel}
+                  />
+                  <CourseFacetDropdown
+                    value={courseStudent} options={studentOpts} allLabel={t('Все ученики')} minWidth={92}
+                    labels={personNameByKey} searchable
+                    icon={<Users size={12} />}
+                    onChange={setCourseStudent}
                   />
                   <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>

@@ -7,6 +7,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
+import { useFeedGlance } from '../lib/feedRead'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -41,6 +42,10 @@ export default function MobileBottomNav() {
   // Badge: count lessons with status that implies pending homework (current / returned)
   const hwBadge = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
     .filter(l => l.status === 'current' || l.status === 'returned').length
+
+  // Новое в ленте — на «Тренажёре». Это единственный раздел кабинета, который
+  // наполняется сам, и единственная причина зайти туда без своего плана.
+  const feedBadge = useFeedGlance(1500).unread.length
 
   // Sync highlight when the page is changed from elsewhere.
   useEffect(() => { setActive(activePage) }, [activePage])
@@ -116,6 +121,16 @@ export default function MobileBottomNav() {
                 strokeWidth={isActive ? 2.5 : 1.8}
                 style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
               />
+              {item.id === 'trainer' && feedBadge > 0 && (
+                <span style={{
+                  position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',
+                  minWidth: 16, height: 16, padding: '0 5px',
+                  borderRadius: 999, background: 'var(--grad-purple)',
+                  color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(106,90,230,0.45)',
+                }}>{feedBadge > 99 ? '99+' : feedBadge}</span>
+              )}
               {item.id === 'homeworkList' && hwBadge > 0 && (
                 // Сплошная заливка — только --grad-purple: в тёмной теме
                 // --color-accent светло-лавандовый, белые цифры на нём терялись.
