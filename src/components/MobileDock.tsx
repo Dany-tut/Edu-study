@@ -127,7 +127,7 @@ export function DockSegment<T extends string | number>({
   // Edge fades reflect scroll position: melt only the side that has hidden
   // chips. If the row fits (no horizontal scroll) there's no fade at all, and
   // once scrolled fully to an edge that side's fade drops too.
-  const [edges, setEdges] = useState({ left: false, right: false, over: false })
+  const [edges, setEdges] = useState({ left: false, right: false })
   const sync = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
@@ -136,9 +136,7 @@ export function DockSegment<T extends string | number>({
     const scrollable = overflow > 4
     const left = scrollable && el.scrollLeft > 4
     const right = scrollable && el.scrollLeft < overflow - 4
-    setEdges(prev => (prev.left === left && prev.right === right && prev.over === scrollable
-      ? prev
-      : { left, right, over: scrollable }))
+    setEdges(prev => (prev.left === left && prev.right === right ? prev : { left, right }))
   }, [])
   // Re-measure on mount, when the option set changes, and on any size change
   // (rotation, font load) — preview has no rAF, so ResizeObserver drives it.
