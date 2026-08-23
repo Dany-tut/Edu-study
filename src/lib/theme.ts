@@ -35,7 +35,7 @@ export const PURPLE = {
 } as const
 
 // Course track status palette — kept here so all status chrome (CourseNode,
-// LessonStatusCard, lesson page badges) reads from one place.
+// lesson page badges) reads from one place.
 export const TRACK_STATUS = {
   completed: { bg: 'var(--color-green-soft)',  border: '#6EE7A0', icon: '#2A7D4F' },
   returned:  { bg: 'var(--color-yellow-soft)', border: '#F8EF8C', icon: '#7A6A00' },

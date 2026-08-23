@@ -30,7 +30,7 @@ import type { Lesson } from '../data/mockData'
 //   · Hero "Продолжить" — the one primary action
 //   · "Сегодня" — compact schedule list
 //   · Quick actions — trainer / courses
-// Desktop widgets (StatsWidget/CourseTrack/LessonStatusCard/WidgetCarousel) are
+// Desktop widgets (StatsWidget/CourseTrack/WidgetCarousel) are
 // no longer crammed in here.
 
 function fmtUntil(mins: number) {
