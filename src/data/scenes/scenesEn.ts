@@ -1042,6 +1042,201 @@ Comrade, remember: our task is not to change the record. Our task is to correct 
     ],
   },
 
+  {
+    id: 'sc-lasso-2',
+    workId: 'ted-lasso',
+    lang: 'en', title: 'Записка на двери раздевалки', level: 'A2', minutes: 2,
+    topic: 'Работа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Тренер из сериала объясняется с командой не речами, а короткими записками на двери. Ниже наша такая записка. Английский тут простой нарочно: правила, написанные для людей, которые читают их на бегу, — это повелительное наклонение и ни одного лишнего слова.',
+    after: 'Обратите внимание на пункт про травму: «A player who hides an injury is not brave — he is just out for longer». Так по-английски и звучит рабочее правило: сначала неверное объяснение, потом верное.',
+    body: `LOCKER ROOM — PLEASE READ
+
+1. Training starts at nine. That means boots on at nine, not coffee at nine.
+
+2. If you are hurt, say so. A player who hides an injury is not brave — he is just out for longer.
+
+3. Phones go in the box. You get them back after. I have never lost one yet.
+
+4. Nobody eats lunch alone. That one is not a suggestion.
+
+5. Lost something? Ask the kit man before you blame your teammate.
+
+6. Yesterday’s match is over. We are not playing it again today.
+
+See you on the pitch.`,
+    translation: `РАЗДЕВАЛКА — ПРОЧТИТЕ
+
+1. Тренировка начинается в девять. Это значит: в девять — в бутсах, а не в девять — с кофе.
+
+2. Если больно — скажите. Игрок, который скрывает травму, не храбрый: он просто дольше не сыграет.
+
+3. Телефоны — в ящик. Потом заберёте. Я пока ни одного не потерял.
+
+4. Никто не обедает в одиночку. Вот это — не пожелание.
+
+5. Что-то пропало? Спросите у завхоза, прежде чем винить партнёра по команде.
+
+6. Вчерашний матч закончился. Сегодня мы его заново не играем.
+
+Увидимся на поле.`,
+    glossary: [
+      { term: 'locker room', ru: 'раздевалка' },
+      { term: 'boots on', ru: 'в бутсах, обутым (готовым к тренировке)' },
+      { term: 'injury', ru: 'травма' },
+      { term: 'to be out', ru: 'здесь: не играть, быть вне состава' },
+      { term: 'suggestion', ru: 'предложение, пожелание' },
+      { term: 'kit man', ru: 'завхоз команды, отвечающий за форму и снаряжение' },
+      { term: 'teammate', ru: 'партнёр по команде' },
+      { term: 'to blame', ru: 'винить' },
+    ],
+    questions: [
+      {
+        q: 'What does "boots on at nine" mean?',
+        options: [
+          'You arrive at nine',
+          'You are already changed and ready at nine',
+          'You buy new boots',
+          'Training ends at nine',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the coach say about hiding an injury?',
+        options: [
+          'It shows courage',
+          'It only keeps the player out of the game for longer',
+          'It is against the rules of the league',
+          'Nobody will notice',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which rule is explicitly not a suggestion?',
+        options: [
+          'The rule about phones',
+          'The rule about eating lunch together',
+          'The rule about boots',
+          'The rule about the kit man',
+        ],
+        correct: 1,
+        why: '«That one is not a suggestion» — стандартный английский способ сказать «это приказ», не произнося слова «приказ».',
+      },
+    ],
+  },
+  {
+    id: 'sc-lasso-3',
+    workId: 'ted-lasso',
+    lang: 'en', title: 'Пресс-конференция после поражения', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина экранного времени тренера в таком сериале — не поле, а зал с микрофонами. Ниже наша пресс-конференция после проигранного матча. Жанр полезен далеко за пределами спорта: это разговор, где один задаёт неудобные вопросы, а второй обязан отвечать вежливо и ничего не сказать.',
+    after: 'Все три приёма отсюда работают на любом совещании: назвать вопрос справедливым и не ответить на него («That’s a fair question»), взять вину на себя целиком, чтобы закрыть тему («That one’s on me»), и перевести разговор на следующий шаг («We move on to Saturday»).',
+    body: `“Three-nil. What happened out there?”
+
+“We were second to every ball in the first half. That’s not tactics, that’s appetite.”
+
+“Are you saying your players didn’t want it?”
+
+“I’m saying I didn’t get them ready. That one’s on me.”
+
+“Will there be changes for Saturday?”
+
+“There’ll be changes every week. That’s the season.”
+
+“Some of the supporters were chanting your name. Not kindly.”
+
+“That’s a fair question, and they paid for the ticket. If I’d watched what they watched, I’d have said worse.”
+
+“Do you feel your job is safe?”
+
+“That’s not a question for me, and you know it isn’t.”
+
+“One more. What do you say to the lad who gave away the second goal?”
+
+“Nothing in front of you. I’ll say it to him. Then we move on to Saturday. Thanks, everyone.”`,
+    translation: `— Три — ноль. Что там произошло?
+
+— В первом тайме мы вторыми успевали к каждому мячу. Это не тактика, это желание.
+
+— Вы хотите сказать, что игроки не хотели?
+
+— Я хочу сказать, что не подготовил их. Это на мне.
+
+— В субботу будут изменения в составе?
+
+— Изменения будут каждую неделю. Это сезон.
+
+— Часть болельщиков скандировала вашу фамилию. Недобро.
+
+— Вопрос справедливый, и они заплатили за билет. Если бы я смотрел то, что смотрели они, я бы сказал похуже.
+
+— Вы чувствуете, что ваше место в безопасности?
+
+— Это вопрос не ко мне, и вы это знаете.
+
+— Ещё один. Что вы скажете парню, из-за которого пропустили второй?
+
+— При вас — ничего. Скажу это ему. А дальше мы думаем про субботу. Спасибо всем.`,
+    glossary: [
+      { term: 'three-nil', ru: 'три — ноль (брит. счёт; в США three to nothing)' },
+      { term: 'to be second to the ball', ru: 'проигрывать борьбу за мяч, успевать вторым' },
+      { term: 'appetite', ru: 'здесь: желание бороться, голод до игры' },
+      { term: 'that one’s on me', ru: 'это моя вина' },
+      { term: 'supporter', ru: 'болельщик' },
+      { term: 'to chant', ru: 'скандировать' },
+      { term: 'a fair question', ru: 'справедливый вопрос' },
+      { term: 'to give away a goal', ru: 'привезти гол, подарить гол сопернику' },
+      { term: 'lad', ru: 'парень (брит., разг.)' },
+      { term: 'to move on to', ru: 'перейти к (следующему)' },
+    ],
+    questions: [
+      {
+        q: 'How does the coach explain the first half?',
+        options: [
+          'Bad tactics',
+          'The players lacked appetite, and he blames himself for that',
+          'The referee',
+          'Injuries',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "that one’s on me" mean?',
+        options: [
+          'I will pay',
+          'It is my fault',
+          'It is my turn',
+          'I did not see it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does he answer the question about his job?',
+        options: [
+          'He says he is safe',
+          'He refuses it — the decision is not his to comment on',
+          'He resigns',
+          'He blames the supporters',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why will he not talk about the player who gave away the goal?',
+        options: [
+          'He does not remember who it was',
+          'He will say it to the player himself, not in front of the press',
+          'The player has left the club',
+          'He was not watching',
+        ],
+        correct: 1,
+        why: '«Nothing in front of you» — важная формула: критика человеку в лицо, а не при посторонних.',
+      },
+    ],
+  },
+
   // ── Очень странные дела: карточка, наш текст ───────────────────────────────
   //
   // bucket: 'inspired'. Ни одной реплики сериала и ни одного его персонажа:
@@ -3926,6 +4121,330 @@ We thank you for a strong quarter and look forward to a stronger one.`,
     ],
   },
 
+  // ── Бункер: карточка, наш текст ────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Ни одного персонажа сериала и ни одной его реплики:
+  // бункер, комитет и машинное отделение здесь наши. От «Бункера» взяты только
+  // регистр и обстановка — казённое объявление в замкнутом мире и рабочая речь
+  // тех, кто держит этот мир на ходу.
+  {
+    id: 'sc-silo-1',
+    workId: 'silo',
+    lang: 'en', title: 'Объявление на лестнице', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Весь мир сериала — одна бетонная шахта, и единственная дорога в ней — винтовая лестница на сто сорок четыре этажа. Ниже наше объявление, какие в таком мире висят на каждом пролёте. Язык здесь самый прикладной из всех: правила движения, время тишины, что делать с чужими вещами — то есть английский объявлений, который встречается в любом общежитии, аэропорту и подъезде.',
+    after: 'Обратите внимание на одну строчку: «Это не новое правило. Мы повторяем его потому, что его не выполняют». Так устроены все хорошие объявления — они говорят не только о правиле, но и о том, как обстоят дела.',
+    body: `NOTICE — MAIN STAIRWELL, LEVELS 20 TO 34
+
+Effective this week, the following applies to all traffic on the main stairwell.
+
+Going down, keep to the outside rail. Going up, keep to the inside rail. Porters carrying loads have right of way in both directions: step aside and let them pass.
+
+Between ten at night and five in the morning the stairwell is under quiet hours. Voices carry more than forty levels here. If you must travel at night, travel slowly and keep your lamp low.
+
+Children under twelve are not to use the stairwell without an adult. This is not a new rule. It is being repeated because it is being ignored.
+
+Landings are for passing, not for standing. Anything left on a landing for more than one day will be taken to Supply and may be claimed there within a week.
+
+Thank you for keeping the stairs moving.
+
+— The Levels Committee`,
+    translation: `ОБЪЯВЛЕНИЕ — ГЛАВНАЯ ЛЕСТНИЦА, ЭТАЖИ С 20 ПО 34
+
+С этой недели на всё движение по главной лестнице распространяется следующее.
+
+Вниз — держитесь внешних перил. Вверх — держитесь внутренних перил. Носильщики с грузом имеют преимущество в обе стороны: отступите в сторону и пропустите их.
+
+С десяти вечера до пяти утра на лестнице действует режим тишины. Голоса здесь слышны больше чем на сорок этажей. Если вам необходимо идти ночью, идите медленно и держите фонарь притушенным.
+
+Детям младше двенадцати лет находиться на лестнице без взрослого не разрешается. Это не новое правило. Мы повторяем его потому, что его не выполняют.
+
+Площадки существуют для прохода, а не для стояния. Всё, что пролежит на площадке больше суток, будет отнесено на Склад, и забрать это оттуда можно в течение недели.
+
+Спасибо, что не задерживаете движение.
+
+— Комитет этажей`,
+    glossary: [
+      { term: 'stairwell', ru: 'лестничная шахта, лестница' },
+      { term: 'effective this week', ru: 'начиная с этой недели (об объявленном правиле)' },
+      { term: 'to apply to', ru: 'распространяться на' },
+      { term: 'rail', ru: 'перила' },
+      { term: 'porter', ru: 'носильщик' },
+      { term: 'right of way', ru: 'преимущество, право прохода' },
+      { term: 'to step aside', ru: 'отступить в сторону, посторониться' },
+      { term: 'quiet hours', ru: 'часы тишины' },
+      { term: 'voices carry', ru: 'голоса разносятся, хорошо слышны' },
+      { term: 'landing', ru: 'лестничная площадка' },
+      { term: 'to claim', ru: 'забрать, востребовать (своё)' },
+    ],
+    questions: [
+      {
+        q: 'Which rail do you keep to when you are going up?',
+        options: ['The outside rail', 'The inside rail', 'Either rail', 'The middle of the stairs'],
+        correct: 1,
+      },
+      {
+        q: 'Who has right of way on the stairs?',
+        options: [
+          'Anyone going down',
+          'Porters carrying loads',
+          'Children',
+          'Members of the committee',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the rule about children repeated?',
+        options: [
+          'It has just been introduced',
+          'Because people are ignoring it',
+          'Because the committee has changed',
+          'Because the stairs are new',
+        ],
+        correct: 1,
+        why: '«This is not a new rule. It is being repeated because it is being ignored» — объявление прямо признаёт, что правило не работает.',
+      },
+      {
+        q: 'What happens to a bag left on a landing for two days?',
+        options: [
+          'It stays where it is',
+          'It is thrown away at once',
+          'It is taken to Supply and can be claimed within a week',
+          'It is given to the porters',
+        ],
+        correct: 2,
+      },
+    ],
+  },
+  {
+    id: 'sc-silo-2',
+    workId: 'silo',
+    lang: 'en', title: 'Почему картинка мутнеет', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Единственное окно наружу в таком мире — экран, на который передают картинку с датчиков снаружи. Ниже наш бюллетень администрации, отвечающий на жалобы жителей, что картинка стала тусклой. Читать стоит с одним вопросом: на что здесь ответили и на что — нет. Регистр канцелярский, и обороты из него встретятся в любом официальном письме: by way of explanation, in due course, it is regrettable.',
+    after: 'Ответ выглядит исчерпывающим, а самого главного в нём нет: кто и как чистит линзы снаружи. Документ подробно объясняет причину и полностью обходит исполнителя — приём, по которому официальные тексты и стоит читать.',
+    body: `OFFICE OF THE ADMINISTRATION — BULLETIN 114
+
+Concerning the view
+
+Residents have written to us about the quality of the image on the upper screen. The complaints are fair and we do not dismiss them. The following is offered by way of explanation.
+
+The image comes from sensors mounted on the outside of the structure. The air out there carries fine dust, and the dust settles on the lenses. Over a season the picture grows dim. Over several seasons it grows dim enough to be noticed by everyone at once, which is why the letters arrive together.
+
+The lenses cannot be cleaned from the inside. There is no mechanism for it and there never was. Cleaning is therefore carried out at intervals determined by this office, and is not a matter residents are asked to arrange.
+
+We are aware that the interval has been long. It is regrettable. It will be addressed in due course.
+
+In the meantime, residents are reminded that the screen shows the world as it is. The image is not brightened, corrected or improved by this office. What you see is what the sensors return.`,
+    translation: `КАНЦЕЛЯРИЯ АДМИНИСТРАЦИИ — БЮЛЛЕТЕНЬ 114
+
+О виде наружу
+
+Жители писали нам о качестве изображения на верхнем экране. Жалобы справедливы, и мы их не отклоняем. Ниже — пояснение.
+
+Изображение поступает с датчиков, установленных снаружи сооружения. Тамошний воздух несёт мелкую пыль, и пыль оседает на линзах. За один сезон картинка тускнеет. За несколько сезонов она тускнеет настолько, что это замечают все разом, — поэтому и письма приходят разом.
+
+Изнутри линзы очистить невозможно. Механизма для этого нет и никогда не было. Поэтому очистка производится с промежутками, которые определяет эта канцелярия, и жителей не просят её как-либо устраивать.
+
+Нам известно, что промежуток затянулся. Это достойно сожаления. Вопрос будет решён в надлежащее время.
+
+Пока же напоминаем жителям, что экран показывает мир таким, каков он есть. Изображение не осветляется, не корректируется и не улучшается этой канцелярией. Вы видите то, что передают датчики.`,
+    glossary: [
+      { term: 'bulletin', ru: 'бюллетень, официальное сообщение' },
+      { term: 'resident', ru: 'житель' },
+      { term: 'to dismiss a complaint', ru: 'отклонить жалобу' },
+      { term: 'by way of explanation', ru: 'в порядке пояснения' },
+      { term: 'to be mounted on', ru: 'быть установленным на' },
+      { term: 'to settle', ru: 'оседать' },
+      { term: 'dim', ru: 'тусклый' },
+      { term: 'at intervals', ru: 'с промежутками, время от времени' },
+      { term: 'to be addressed', ru: 'быть решённым (о вопросе)' },
+      { term: 'in due course', ru: 'в надлежащее время; вежливое «когда-нибудь»' },
+      { term: 'it is regrettable', ru: 'это достойно сожаления' },
+      { term: 'in the meantime', ru: 'тем временем, пока же' },
+    ],
+    questions: [
+      {
+        q: 'What does the bulletin say makes the picture dim?',
+        options: [
+          'The screen is old',
+          'Dust settles on the lenses outside',
+          'The sensors are switched off at night',
+          'The image is darkened on purpose',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is never stated in the bulletin?',
+        options: [
+          'Where the image comes from',
+          'Who actually cleans the lenses, and how',
+          'Why the complaints arrived together',
+          'Whether the lenses can be cleaned from inside',
+        ],
+        correct: 1,
+        why: 'Причина объяснена подробно, исполнитель — не назван ни разу. Пропуск здесь и есть содержание документа.',
+      },
+      {
+        q: 'What does "it will be addressed in due course" promise?',
+        options: [
+          'A date',
+          'Nothing definite — the matter will be dealt with at some unnamed time',
+          'That the work has already started',
+          'That residents must arrange it themselves',
+        ],
+        correct: 1,
+        why: 'In due course — из того же ряда, что at this time и as soon as possible: обещание без срока.',
+      },
+      {
+        q: 'What does the last paragraph insist on?',
+        options: [
+          'That the image is not edited by the office',
+          'That the screen will be replaced',
+          'That residents should stop writing',
+          'That the sensors are new',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'sc-silo-3',
+    workId: 'silo',
+    lang: 'en', title: 'Пересменка в машинном отделении', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Второй язык сериала — не канцелярия, а машинное отделение внизу, где несколько человек держат свет для всех остальных. Ниже наш диалог на пересменке. Это рабочий английский в чистом виде: короткие реплики, глаголы дела и одна фраза, которую стоит унести с собой на любую работу, — «I want it on paper that we asked».',
+    after: 'Ключ ко всему разговору — глагол to log. «Я записал в журнал» и «я сообщил наверх» — не одно и то же, и оба это знают. Спор идёт не про подшипник, а про то, кто будет отвечать.',
+    body: `“You’re late.”
+
+“Eleven minutes, and I ran the whole way down. What have we got?”
+
+“Number three is running hot again. Ninety-four and climbing.”
+
+“Since when?”
+
+“Since about four. I logged it.”
+
+“Did you tell anyone above?”
+
+“I logged it. That is telling someone above.”
+
+“Right. And did anyone read it?”
+
+“…”
+
+“Fine. Bearing or coolant?”
+
+“Bearing. There’s a note in it — listen. Every rotation, same place.”
+
+“That’s a shim gone. We can replace it cold, but that means shutting the machine down.”
+
+“We don’t shut it down. Not on my shift, not on anyone’s. Twelve thousand people up that stair and half of them are asleep with the lights on.”
+
+“Then we run it hot and it fails in a month instead of failing tonight.”
+
+“That’s the job.”
+
+“That’s not a job, that’s a delay.”
+
+“Then write it in the log. Word for word, exactly what you just said. If it goes, I want it on paper that we asked.”`,
+    translation: `— Ты опоздал.
+
+— На одиннадцать минут, и я всю дорогу бежал вниз. Что у нас?
+
+— Третий опять греется. Девяносто четыре и растёт.
+
+— С какого времени?
+
+— Часов с четырёх. Я записал в журнал.
+
+— Наверх ты кому-нибудь сказал?
+
+— Я записал в журнал. Это и есть «сказал наверх».
+
+— Ну да. А прочитал это кто-нибудь?
+
+— …
+
+— Ладно. Подшипник или охлаждение?
+
+— Подшипник. Там призвук, послушай. Каждый оборот, в одном и том же месте.
+
+— Прокладку выбило. Заменить можно на холодную, но это значит остановить машину.
+
+— Мы её не останавливаем. Ни в мою смену, ни в чью-либо. Двенадцать тысяч человек вверх по этой лестнице, и половина спит при включённом свете.
+
+— Тогда гоняем горячей, и она встанет через месяц, а не сегодня ночью.
+
+— Такая работа.
+
+— Это не работа, это отсрочка.
+
+— Тогда запиши в журнал. Слово в слово, ровно то, что ты сейчас сказал. Если она встанет, я хочу, чтобы на бумаге было: мы просили.`,
+    glossary: [
+      { term: 'to run hot', ru: 'перегреваться, работать на повышенной температуре' },
+      { term: 'to log something', ru: 'записать в журнал' },
+      { term: 'bearing', ru: 'подшипник' },
+      { term: 'coolant', ru: 'охлаждающая жидкость' },
+      { term: 'shim', ru: 'регулировочная прокладка' },
+      { term: 'to shut down', ru: 'остановить, выключить (машину)' },
+      { term: 'shift', ru: 'смена' },
+      { term: 'rotation', ru: 'оборот' },
+      { term: 'to fail', ru: 'здесь: выйти из строя' },
+      { term: 'word for word', ru: 'слово в слово' },
+      { term: 'on paper', ru: 'на бумаге, письменно' },
+    ],
+    questions: [
+      {
+        q: 'What is wrong with machine number three?',
+        options: [
+          'It has stopped',
+          'It is running hot, and a bearing makes a noise every rotation',
+          'It is leaking coolant',
+          'It has no shim at all',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why do they refuse to shut the machine down?',
+        options: [
+          'It would take too long',
+          'Thousands of people depend on the power right now',
+          'They are not allowed to touch it',
+          'They have no spare shim',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the argument about "I logged it" really about?',
+        options: [
+          'Whether the log book is full',
+          'Whether writing something down counts as reporting it',
+          'Who wrote the entry',
+          'When the shift started',
+        ],
+        correct: 1,
+        why: 'To log it — записать; to tell someone above — доложить. Первое проще и защищает пишущего, второе требует ответа.',
+      },
+      {
+        q: 'Why does one of them want the words written in the log?',
+        options: [
+          'So that the repair is scheduled',
+          'So that there is written proof they asked, if the machine fails',
+          'Because he cannot remember them',
+          'Because the log is read aloud every morning',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
   // ── Утреннее шоу: карточка, наш текст ──────────────────────────────────────
   {
     id: 'sc-tms-1',
@@ -6608,6 +7127,181 @@ Colin`,
           'The post is slow',
         ],
         correct: 1,
+      },
+    ],
+  },
+
+  {
+    id: 'sc-schitts-creek-2',
+    workId: 'schitts-creek',
+    lang: 'en', title: 'Отзыв о мотеле, две звезды', level: 'B1', minutes: 2,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Весь сериал происходит вокруг одного мотеля в городке, куда никто не собирался приезжать. Ниже наш отзыв о таком мотеле. Жанр стоит разобрать отдельно: английский отзыв почти никогда не ругает прямо — он хвалит так, что всё понятно.',
+    after: 'Лучшая строчка здесь — про завтрак: «The word “continental” is doing a great deal of work on that sign». Оборот X is doing a lot of work — свежий и очень живой способ сказать, что одно слово прикрывает целую пустоту.',
+    body: `★★☆☆☆ “Charming, in its way”
+
+Stayed two nights. The rooms are clean, which I want to say first, because it is the nicest thing I have to say.
+
+The bed is fine if you are shorter than me. The television gets four channels and three of them are the same channel. There is a painting of a horse above the desk, and the horse is looking directly at the bed, which is a decision somebody made.
+
+Breakfast is coffee. Just coffee. The word “continental” is doing a great deal of work on that sign.
+
+The owners could not have been kinder, and I mean that. They asked me twice how I had slept, and both times I said “great”, and both times they knew.
+
+Would I come back? I would not rule it out. Would I recommend it? I would want to know who was asking.`,
+    translation: `★★☆☆☆ «По-своему очаровательно»
+
+Провёл две ночи. Номера чистые — говорю это первым делом, потому что это самое хорошее, что я могу сказать.
+
+Кровать нормальная, если вы ниже меня ростом. Телевизор ловит четыре канала, и три из них — один и тот же канал. Над столом висит картина с лошадью, и лошадь смотрит прямо на кровать: кто-то ведь принял такое решение.
+
+Завтрак — это кофе. Просто кофе. Слово «континентальный» на той вывеске работает за десятерых.
+
+Хозяева не могли бы быть добрее, и это без иронии. Они дважды спросили, как мне спалось, я дважды ответил «отлично», и оба раза они всё поняли.
+
+Вернусь ли я? Не исключаю. Порекомендую ли? Хотел бы сначала узнать, кто спрашивает.`,
+    glossary: [
+      { term: 'charming, in its way', ru: 'по-своему очаровательно (почти всегда с оговоркой)' },
+      { term: 'to get four channels', ru: 'ловить четыре канала' },
+      { term: 'continental breakfast', ru: 'лёгкий завтрак: кофе и выпечка' },
+      { term: 'to be doing a lot of work', ru: 'об одном слове: прикрывать собой слишком многое' },
+      { term: 'could not have been kinder', ru: 'добрее и быть не могли' },
+      { term: 'I mean that', ru: 'и это без иронии, я серьёзно' },
+      { term: 'to rule out', ru: 'исключать' },
+      { term: 'Would I recommend it?', ru: 'порекомендую ли я это?' },
+    ],
+    questions: [
+      {
+        q: 'Why does the reviewer mention the clean rooms first?',
+        options: [
+          'It is the only good thing he can say',
+          'It is what he cares about most',
+          'The owners asked him to',
+          'The rooms were the cheapest part',
+        ],
+        correct: 0,
+        why: '«Because it is the nicest thing I have to say» — похвала, которая сразу объявляет себя единственной.',
+      },
+      {
+        q: 'What is served for breakfast?',
+        options: ['Eggs and toast', 'Coffee only', 'Nothing at all', 'Fruit and pastries'],
+        correct: 1,
+      },
+      {
+        q: 'What does he think the owners understood?',
+        options: [
+          'That he slept badly, despite his answer',
+          'That he would not pay',
+          'That he liked the horse painting',
+          'That he was a reviewer',
+        ],
+        correct: 0,
+        why: '«Both times I said “great”, and both times they knew» — вежливый ответ и его настоящая цена в одной строке.',
+      },
+      {
+        q: 'What does "I would not rule it out" mean here?',
+        options: [
+          'Definitely yes',
+          'Not a no — but nothing more than that',
+          'Definitely no',
+          'He has already booked',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-schitts-creek-3',
+    workId: 'schitts-creek',
+    lang: 'en', title: 'Протокол собрания городского комитета', level: 'B2', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Городок в сериале управляется собраниями, на которых обсуждают вывеску и фестиваль так, будто решается судьба страны. Ниже наш протокол такого собрания. Форма настоящая и очень полезная: minutes — это то, как по-английски записывают любое совещание, от школьного родительского до совета директоров.',
+    after: 'Протокол — жанр, в котором вежливость становится оружием: «The offer was noted. The offer was not accepted». Две строки, ни одного грубого слова, и всё сказано.',
+    body: `MINUTES OF THE TOWN COMMITTEE — TUESDAY
+
+Present: five members. Apologies received from one member, who is not unwell but did not wish to attend.
+
+1. The new welcome sign
+The sign was discussed at length. Several members expressed appreciation for the effort involved. It was agreed that the effort had been enormous. No one commented on the result.
+It was proposed that the sign be moved slightly. The proposal was seconded. When asked in which direction, the proposer said “away”.
+
+2. Summer festival
+The festival will go ahead. The theme has not been chosen. Last year’s theme was chosen in August, which the committee agreed had been “late, but memorable”.
+One member offered to bring her famous cheese. The offer was noted. The offer was not accepted.
+
+3. Any other business
+A member wished it recorded that she had, in fact, said this would happen. It is so recorded.
+
+Meeting closed at seven. Refreshments were provided and largely avoided.`,
+    translation: `ПРОТОКОЛ СОБРАНИЯ ГОРОДСКОГО КОМИТЕТА — ВТОРНИК
+
+Присутствовали: пять членов комитета. Получено извинение от одного члена комитета, который не болен, но не пожелал прийти.
+
+1. Новая приветственная вывеска
+Вывеску обсуждали долго. Несколько членов комитета выразили признательность за проделанный труд. Было единодушно признано, что труд был огромен. Результат никто не прокомментировал.
+Поступило предложение немного передвинуть вывеску. Предложение было поддержано. На вопрос, в какую сторону, автор предложения ответил: «подальше».
+
+2. Летний фестиваль
+Фестиваль состоится. Тема не выбрана. Прошлогоднюю тему выбрали в августе, что комитет признал «поздним, но памятным».
+Одна из членов комитета предложила принести свой знаменитый сыр. Предложение было принято к сведению. Предложение не было принято.
+
+3. Разное
+Одна из членов комитета пожелала занести в протокол, что она, между прочим, это предсказывала. Занесено.
+
+Собрание закрыто в семь. Угощение было предоставлено и по большей части осталось нетронутым.`,
+    glossary: [
+      { term: 'minutes', ru: 'протокол собрания (всегда во мн. числе)' },
+      { term: 'apologies received', ru: 'сообщил, что не сможет прийти (формула протокола)' },
+      { term: 'at length', ru: 'долго и подробно' },
+      { term: 'to express appreciation', ru: 'выразить признательность' },
+      { term: 'it was proposed that', ru: 'поступило предложение' },
+      { term: 'to second a proposal', ru: 'поддержать предложение (второй голос, без него не голосуют)' },
+      { term: 'to be noted', ru: 'принять к сведению; в протоколе — вежливый отказ' },
+      { term: 'any other business', ru: '«разное» — последний пункт любой повестки' },
+      { term: 'it is so recorded', ru: 'занесено в протокол' },
+      { term: 'refreshments', ru: 'лёгкое угощение, напитки' },
+    ],
+    questions: [
+      {
+        q: 'Why is one member absent?',
+        options: [
+          'She is ill',
+          'She simply did not want to come',
+          'She was not invited',
+          'She is out of town',
+        ],
+        correct: 1,
+        why: '«Not unwell but did not wish to attend» — протокол фиксирует и это, оставаясь совершенно вежливым.',
+      },
+      {
+        q: 'What did the committee praise about the sign?',
+        options: [
+          'The result',
+          'Only the effort that went into it',
+          'The colour',
+          'The price',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'In which direction did the proposer want the sign moved?',
+        options: ['North', 'Closer to the road', '“Away” — anywhere else', 'Indoors'],
+        correct: 2,
+      },
+      {
+        q: 'What happened to the offer of cheese?',
+        options: [
+          'It was accepted with thanks',
+          'It was written down and refused',
+          'It was voted on',
+          'It was not mentioned',
+        ],
+        correct: 1,
+        why: 'Noted и accepted в протоколе — разные вещи: первое значит «услышали и записали», и только.',
       },
     ],
   },
@@ -12814,6 +13508,1798 @@ There was a cry heard, and a crash. The cry was so horrible in its agony that th
           'The narrator was not present',
         ],
         correct: 1,
+      },
+    ],
+  },
+
+  // ── О. Генри «Дары волхвов», продажа волос ─────────────────────────────────
+  {
+    id: 'sc-magi-2',
+    workId: 'ohenry-magi',
+    lang: 'en', title: 'Двадцать долларов', level: 'B2', minutes: 4,
+    topic: 'Покупки и деньги', skill: 'Чтение',
+    order: 2, where: 'Середина рассказа', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'O. Henry, “The Gift of the Magi” · Project Gutenberg',
+    setup: 'У Деллы к Рождеству один доллар восемьдесят семь центов, из них шестьдесят — медяками. В доме две вещи, которыми супруги гордятся: золотые часы Джима, доставшиеся от отца и деда, и волосы Деллы. Делла надевает старую жакетку и выходит на улицу.',
+    after: 'Она купит платиновую цепочку для часов и вернётся домой с восемью­десятью семью центами — и с двумя часами на то, чтобы завить остриженное.',
+    body: `One flight up Della ran, and collected herself, panting. Madame, large, too white, chilly, hardly looked the “Sofronie.”
+
+“Will you buy my hair?” asked Della.
+
+“I buy hair,” said Madame. “Take yer hat off and let’s have a sight at the looks of it.”
+
+Down rippled the brown cascade. “Twenty dollars,” said Madame, lifting the mass with a practised hand.
+
+“Give it to me quick,” said Della.
+
+Oh, and the next two hours tripped by on rosy wings. Forget the hashed metaphor. She was ransacking the stores for Jim’s present.
+
+She found it at last. It surely had been made for Jim and no one else. There was no other like it in any of the stores, and she had turned all of them inside out. It was a platinum fob chain simple and chaste in design, properly proclaiming its value by substance alone and not by meretricious ornamentation—as all good things should do. It was even worthy of The Watch. As soon as she saw it she knew that it must be Jim’s. It was like him. Quietness and value—the description applied to both. Twenty-one dollars they took from her for it, and she hurried home with the 87 cents.`,
+    translation: `Делла взбежала на один пролёт и остановилась, переводя дух. Мадам — крупная, слишком белая, холодная — на «Софрони» никак не тянула.
+
+— Вы купите мои волосы? — спросила Делла.
+
+— Волосы покупаю, — сказала мадам. — Снимите-ка шляпу, поглядим, что там за товар.
+
+Вниз хлынул каштановый водопад.
+
+— Двадцать долларов, — сказала мадам, привычной рукой взвесив всю массу.
+
+— Давайте скорее, — сказала Делла.
+
+О, следующие два часа пролетели на розовых крыльях. Забудьте эту сбивчивую метафору. Делла обшаривала магазины в поисках подарка для Джима.
+
+И наконец нашла. Эта вещь была сделана для Джима и ни для кого другого. Ничего похожего не нашлось ни в одном магазине, а она перевернула их все. Платиновая цепочка для карманных часов, простая и строгая по рисунку, заявлявшая о своей ценности самим материалом, а не мишурными украшениями, — как и полагается всякой хорошей вещи. Она была достойна даже Тех Самых Часов. Едва увидев её, Делла поняла: она должна принадлежать Джиму. Она была как он. Сдержанность и ценность — это описание годилось для обоих. Двадцать один доллар с неё взяли за цепочку, и она поспешила домой с восемьюдесятью семью центами.`,
+    glossary: [
+      { term: 'one flight up', ru: 'на один лестничный пролёт вверх' },
+      { term: 'to collect oneself', ru: 'прийти в себя, отдышаться' },
+      { term: 'to pant', ru: 'тяжело дышать' },
+      { term: 'a practised hand', ru: 'привычная, набитая рука' },
+      { term: 'to ransack', ru: 'обшаривать, перерывать' },
+      { term: 'fob chain', ru: 'цепочка для карманных часов' },
+      { term: 'chaste (design)', ru: 'строгий, без излишеств' },
+      { term: 'meretricious', ru: 'мишурный, показной' },
+      { term: 'on the sly', ru: 'украдкой' },
+    ],
+    questions: [
+      {
+        q: 'How much did Della get for her hair?',
+        options: ['Eighty-seven cents', 'Twenty dollars', 'Twenty-one dollars', 'A dollar'],
+        correct: 1,
+      },
+      {
+        q: 'What did she buy?',
+        options: ['A hat', 'A platinum fob chain', 'A watch', 'Combs'],
+        correct: 1,
+      },
+      {
+        q: 'Why did she choose that particular chain?',
+        options: [
+          'It was the cheapest',
+          'Quietness and value — the description applied both to the chain and to Jim',
+          'It was gold',
+          'The shopkeeper recommended it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How much money was left?',
+        options: ['Nothing', '87 cents', 'Twenty dollars', 'One dollar'],
+        correct: 1,
+        why: 'О. Генри держит точный счёт от первой строки до последней: 1.87 → 20.00 → 21.00 → 0.87. Арифметика здесь и есть сюжет.',
+      },
+    ],
+  },
+
+  // ── О. Генри «Дары волхвов», Джим в дверях ─────────────────────────────────
+  {
+    id: 'sc-magi-3',
+    workId: 'ohenry-magi',
+    lang: 'en', title: 'Ты остригла волосы?', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Джим возвращается домой', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'O. Henry, “The Gift of the Magi” · Project Gutenberg',
+    setup: 'Делла завила остриженное щипцами, поставила на плиту сковороду и села у двери с цепочкой в руке. В семь часов на лестнице раздаются шаги. Дальше идёт сцена, ради которой рассказ и написан, — и вся она держится на одном непонятном выражении лица.',
+    after: 'Джим объяснит своё оцепенение только после того, как Делла развернёт его подарок. Оказывается, он тоже приготовил кое-что.',
+    body: `The door opened and Jim stepped in and closed it. He looked thin and very serious. Poor fellow, he was only twenty-two—and to be burdened with a family! He needed a new overcoat and he was without gloves.
+
+Jim stopped inside the door, as immovable as a setter at the scent of quail. His eyes were fixed upon Della, and there was an expression in them that she could not read, and it terrified her. It was not anger, nor surprise, nor disapproval, nor horror, nor any of the sentiments that she had been prepared for. He simply stared at her fixedly with that peculiar expression on his face.
+
+Della wriggled off the table and went for him.
+
+“Jim, darling,” she cried, “don’t look at me that way. I had my hair cut off and sold because I couldn’t have lived through Christmas without giving you a present. It’ll grow out again—you won’t mind, will you? I just had to do it. My hair grows awfully fast. Say ‘Merry Christmas!’ Jim, and let’s be happy. You don’t know what a nice—what a beautiful, nice gift I’ve got for you.”
+
+“You’ve cut off your hair?” asked Jim, laboriously, as if he had not arrived at that patent fact yet even after the hardest mental labor.
+
+“Cut it off and sold it,” said Della. “Don’t you like me just as well, anyhow? I’m me without my hair, ain’t I?”
+
+Jim looked about the room curiously.
+
+“You say your hair is gone?” he said, with an air almost of idiocy.`,
+    translation: `Дверь отворилась, Джим вошёл и закрыл её за собой. Он был худ и очень серьёзен. Бедняга, ему было всего двадцать два — и уже семья на плечах! Ему нужно было новое пальто, и он ходил без перчаток.
+
+Джим остановился у двери, неподвижный, как сеттер, учуявший перепела. Глаза его были прикованы к Делле, и в них было выражение, которого она не смогла прочесть, и это её ужаснуло. Это не был ни гнев, ни удивление, ни осуждение, ни ужас — ни одно из чувств, к которым она себя готовила. Он просто смотрел на неё в упор с этим странным выражением на лице.
+
+Делла соскользнула со стола и бросилась к нему.
+
+— Джим, милый, — крикнула она, — не смотри на меня так. Я остригла волосы и продала, потому что не пережила бы Рождества, если бы мне нечего было тебе подарить. Они отрастут — ты ведь не будешь сердиться? Я просто не могла иначе. У меня волосы растут ужасно быстро. Скажи «С Рождеством!», Джим, и давай радоваться. Ты не знаешь, какой у меня для тебя чудесный — какой красивый, чудесный подарок.
+
+— Ты остригла волосы? — спросил Джим с трудом, будто даже после тяжелейшей умственной работы ещё не добрался до этого очевидного факта.
+
+— Остригла и продала, — сказала Делла. — Разве я тебе не так же нравлюсь? Я ведь и без волос — это я, правда?
+
+Джим с любопытством оглядел комнату.
+
+— Так, говоришь, волос больше нет? — произнёс он с видом почти слабоумным.`,
+    glossary: [
+      { term: 'to be burdened with', ru: 'быть обременённым чем-то' },
+      { term: 'immovable', ru: 'неподвижный' },
+      { term: 'setter', ru: 'сеттер (охотничья собака)' },
+      { term: 'at the scent of quail', ru: 'учуяв перепела' },
+      { term: 'disapproval', ru: 'осуждение, неодобрение' },
+      { term: 'to stare fixedly', ru: 'смотреть в упор, не отрываясь' },
+      { term: 'to wriggle off', ru: 'соскользнуть, сползти' },
+      { term: 'laboriously', ru: 'с трудом, натужно' },
+      { term: 'patent fact', ru: 'очевидный факт' },
+      { term: 'with an air of idiocy', ru: 'с почти слабоумным видом' },
+    ],
+    questions: [
+      {
+        q: 'How old is Jim?',
+        options: ['Twenty', 'Twenty-two', 'Thirty', 'It is not said'],
+        correct: 1,
+      },
+      {
+        q: 'What frightened Della about Jim’s look?',
+        options: [
+          'It was angry',
+          'It was none of the emotions she had prepared for',
+          'He would not look at her',
+          'He was crying',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Jim keep repeating?',
+        options: [
+          'That he loves her',
+          'The question of whether her hair is really gone',
+          'That she must grow it back',
+          'That he has no present',
+        ],
+        correct: 1,
+        why: 'О. Генри держит паузу: читатель ещё не знает, почему Джим не может отойти от одного и того же вопроса. Разгадка — в следующей сцене.',
+      },
+      {
+        q: 'What does Della say about herself without her hair?',
+        options: [
+          '“I am ugly now”',
+          '“I’m me without my hair, ain’t I?”',
+          '“It was a mistake”',
+          '“Don’t look at me”',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── О. Генри «Дары волхвов», финал ─────────────────────────────────────────
+  {
+    id: 'sc-magi-4',
+    workId: 'ohenry-magi',
+    lang: 'en', title: 'Они и есть волхвы', level: 'B2', minutes: 6,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Финал рассказа', size: 'long', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'O. Henry, “The Gift of the Magi” · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это финал. Джим наконец бросил на стол свой свёрток и разрешил Делле его развернуть. Внутри оказалось то, о чём она мечтала в витрине на Бродвее и на что никогда не надеялась.',
+    after: 'Так рассказ и кончается — авторским рассуждением о волхвах, где О. Генри сначала называет своих героев глупыми детьми, а потом трижды подряд — самыми мудрыми.',
+    body: `For there lay The Combs—the set of combs, side and back, that Della had worshipped long in a Broadway window. Beautiful combs, pure tortoise shell, with jewelled rims—just the shade to wear in the beautiful vanished hair. They were expensive combs, she knew, and her heart had simply craved and yearned over them without the least hope of possession. And now, they were hers, but the tresses that should have adorned the coveted adornments were gone.
+
+But she hugged them to her bosom, and at length she was able to look up with dim eyes and a smile and say: “My hair grows so fast, Jim!”
+
+And then Della leaped up like a little singed cat and cried, “Oh, oh!”
+
+Jim had not yet seen his beautiful present. She held it out to him eagerly upon her open palm. The dull precious metal seemed to flash with a reflection of her bright and ardent spirit.
+
+“Isn’t it a dandy, Jim? I hunted all over town to find it. You’ll have to look at the time a hundred times a day now. Give me your watch. I want to see how it looks on it.”
+
+Instead of obeying, Jim tumbled down on the couch and put his hands under the back of his head and smiled.
+
+“Dell,” said he, “let’s put our Christmas presents away and keep ’em a while. They’re too nice to use just at present. I sold the watch to get the money to buy your combs. And now suppose you put the chops on.”
+
+The magi, as you know, were wise men—wonderfully wise men—who brought gifts to the Babe in the manger. They invented the art of giving Christmas presents. Being wise, their gifts were no doubt wise ones, possibly bearing the privilege of exchange in case of duplication. And here I have lamely related to you the uneventful chronicle of two foolish children in a flat who most unwisely sacrificed for each other the greatest treasures of their house. But in a last word to the wise of these days let it be said that of all who give gifts these two were the wisest. Of all who give and receive gifts, such as they are wisest. Everywhere they are wisest. They are the magi.`,
+    translation: `Ибо там лежали Те Самые Гребни — набор гребней, боковые и задний, которым Делла давно поклонялась в витрине на Бродвее. Прекрасные гребни, чистая черепаха, с самоцветами по краю — как раз того оттенка, чтобы носить в прекрасных исчезнувших волосах. Гребни были дорогие, она это знала, и сердце её просто изнывало и томилось по ним без малейшей надежды на обладание. И вот теперь они принадлежали ей — а кос, которые должны были украсить эти вожделенные украшения, не было.
+
+Но она прижала их к груди и наконец сумела поднять затуманенные глаза, улыбнуться и сказать:
+
+— У меня волосы растут очень быстро, Джим!
+
+А потом Делла подскочила, как ошпаренная кошечка, и вскрикнула:
+
+— Ой! Ой!
+
+Джим ведь ещё не видел своего прекрасного подарка. Она нетерпеливо протянула ему цепочку на раскрытой ладони. Тусклый драгоценный металл словно вспыхнул отблеском её светлого и пылкого духа.
+
+— Правда, шикарно, Джим? Я весь город обегала, пока нашла. Теперь тебе придётся смотреть на время по сто раз в день. Дай сюда часы. Хочу посмотреть, как она на них смотрится.
+
+Вместо этого Джим повалился на диван, заложил руки за голову и улыбнулся.
+
+— Делл, — сказал он, — давай уберём наши рождественские подарки и подержим их пока. Они слишком хороши, чтобы пользоваться ими прямо сейчас. Я продал часы, чтобы купить тебе гребни. А теперь ставь-ка отбивные на огонь.
+
+Волхвы, как вы знаете, были мудрецы — удивительно мудрые люди, — которые принесли дары Младенцу в яслях. Они и придумали искусство рождественских подарков. Будучи мудрыми, они и дары приносили, надо думать, мудрые — возможно, с правом обмена в случае совпадения. А я тут неуклюже рассказал вам ничем не примечательную хронику двух глупых детей из квартирки, которые самым немудрым образом пожертвовали друг для друга величайшими сокровищами своего дома. Но да будет сказано в последнем слове нынешним мудрецам: из всех, кто приносит дары, эти двое были мудрее всех. Из всех, кто дарит и принимает дары, такие, как они, мудрее всех. Везде и всюду они мудрее всех. Они и есть волхвы.`,
+    glossary: [
+      { term: 'tortoise shell', ru: 'черепаховый панцирь (материал гребней)' },
+      { term: 'jewelled rim', ru: 'край, украшенный камнями' },
+      { term: 'to crave and yearn', ru: 'жаждать и томиться' },
+      { term: 'tresses', ru: 'косы, локоны' },
+      { term: 'coveted', ru: 'желанный, вожделенный' },
+      { term: 'singed', ru: 'опалённый, ошпаренный' },
+      { term: 'ardent', ru: 'пылкий' },
+      { term: 'dandy (adj.)', ru: 'разг. отличный, шикарный' },
+      { term: 'manger', ru: 'ясли (кормушка для скота)' },
+      { term: 'lamely', ru: 'неуклюже, коряво' },
+    ],
+    questions: [
+      {
+        q: 'What was Jim’s present?',
+        options: ['A watch chain', 'The set of combs', 'A hat', 'Money'],
+        correct: 1,
+      },
+      {
+        q: 'What had Jim done to pay for it?',
+        options: [
+          'Borrowed money',
+          'Sold his watch',
+          'Worked extra hours',
+          'Sold his overcoat',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Della say when she sees the combs?',
+        options: [
+          '“Take them back”',
+          '“My hair grows so fast, Jim!”',
+          'Nothing',
+          '“I sold my hair”',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the narrator finally judge the two?',
+        options: [
+          'As foolish children only',
+          'As foolish children who are, of all givers, the wisest',
+          'As unlucky',
+          'He does not judge them',
+        ],
+        correct: 1,
+        why: 'О. Генри сначала называет их «глупыми детьми», а потом четыре раза подряд повторяет «wisest». Приём тот же, что у Хён Джингона в «Счастливом дне»: заголовок и вывод спорят друг с другом нарочно.',
+      },
+    ],
+  },
+
+  // ── Дойл «Скандал в Богемии», видеть и наблюдать ───────────────────────────
+  {
+    id: 'sc-doyle-scandal-2',
+    workId: 'doyle-scandal',
+    lang: 'en', title: 'Вы смотрите, но не наблюдаете', level: 'B2', minutes: 4,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 2, where: 'Глава 1, Бейкер-стрит', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Arthur Conan Doyle, “A Scandal in Bohemia” · Project Gutenberg',
+    setup: 'Уотсон зашёл к Холмсу впервые после женитьбы. Холмс с порога сообщил ему, что тот снова практикует и что прислуга у него неаккуратная, — и объяснил, из чего это следует. Уотсон замечает, что глаза у него не хуже.',
+    after: 'Тут же придёт письмо на плотной бумаге без подписи — и через час в комнате окажется человек в маске.',
+    body: `I could not help laughing at the ease with which he explained his process of deduction. “When I hear you give your reasons,” I remarked, “the thing always appears to me to be so ridiculously simple that I could easily do it myself, though at each successive instance of your reasoning I am baffled until you explain your process. And yet I believe that my eyes are as good as yours.”
+
+“Quite so,” he answered, lighting a cigarette, and throwing himself down into an armchair. “You see, but you do not observe. The distinction is clear. For example, you have frequently seen the steps which lead up from the hall to this room.”
+
+“Frequently.”
+
+“How often?”
+
+“Well, some hundreds of times.”
+
+“Then how many are there?”
+
+“How many? I don’t know.”
+
+“Quite so! You have not observed. And yet you have seen. That is just my point. Now, I know that there are seventeen steps, because I have both seen and observed.`,
+    translation: `Я не мог удержаться от смеха, глядя, с какой лёгкостью он объяснил ход своих рассуждений.
+
+— Когда вы излагаете свои доводы, — заметил я, — дело всякий раз кажется мне до смешного простым, так что я и сам легко мог бы до этого додуматься, — хотя на каждом новом примере ваших рассуждений я снова становлюсь в тупик, пока вы не объясните. А ведь глаза у меня, я полагаю, не хуже ваших.
+
+— Совершенно верно, — ответил он, закуривая папиросу и бросаясь в кресло. — Вы смотрите, но не наблюдаете. Разница очевидна. Например, вы много раз видели ступени, ведущие из прихожей в эту комнату.
+
+— Много раз.
+
+— Сколько раз?
+
+— Ну, сотни.
+
+— Тогда сколько там ступеней?
+
+— Сколько? Не знаю.
+
+— Вот именно! Вы не наблюдали. А ведь видели. В том-то и суть. Я же знаю, что там семнадцать ступеней, потому что я и видел, и наблюдал.`,
+    glossary: [
+      { term: 'to help doing sth', ru: 'удержаться от чего-то' },
+      { term: 'deduction', ru: 'дедукция, вывод' },
+      { term: 'ridiculously simple', ru: 'до смешного просто' },
+      { term: 'successive', ru: 'следующий по порядку, очередной' },
+      { term: 'to be baffled', ru: 'быть сбитым с толку, стать в тупик' },
+      { term: 'to observe', ru: 'наблюдать — в отличие от to see «видеть»' },
+      { term: 'distinction', ru: 'различие' },
+      { term: 'frequently', ru: 'часто, многократно' },
+      { term: 'that is just my point', ru: 'в том-то и суть' },
+    ],
+    questions: [
+      {
+        q: 'What is the difference Holmes insists on?',
+        options: [
+          'Between hearing and listening',
+          'Between seeing and observing',
+          'Between knowing and guessing',
+          'Between reading and thinking',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How many steps lead up to the room?',
+        options: ['Twelve', 'Seventeen', 'Twenty', 'Watson counts them later'],
+        correct: 1,
+      },
+      {
+        q: 'Why does Watson feel foolish?',
+        options: [
+          'He has climbed the steps hundreds of times and never counted them',
+          'He forgot his own address',
+          'He lost a patient',
+          'He cannot read the letter',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What does Watson claim about his own eyes?',
+        options: [
+          'They are weaker than Holmes’s',
+          'They are as good as Holmes’s',
+          'He needs glasses',
+          'He says nothing about them',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Дойл «Скандал в Богемии», человек в маске ──────────────────────────────
+  {
+    id: 'sc-doyle-scandal-3',
+    workId: 'doyle-scandal',
+    lang: 'en', title: 'Чёрная маска', level: 'B2', minutes: 4,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 3, where: 'Глава 1, посетитель', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Arthur Conan Doyle, “A Scandal in Bohemia” · Project Gutenberg',
+    setup: 'Письмо обещало посетителя в без четверти восемь и просило не удивляться маске. Холмс успел вывести из бумаги, что писавший — немец, и предположить, что дело касается очень высокого лица. Ровно в назначенный час на лестнице раздаются шаги двух человек.',
+    after: 'Гость назовётся графом фон Краммом, Холмс вежливо ответит, что разговаривает с королём Богемии, — и маску придётся снять.',
+    body: `A man entered who could hardly have been less than six feet six inches in height, with the chest and limbs of a Hercules. His dress was rich with a richness which would, in England, be looked upon as akin to bad taste. Heavy bands of astrakhan were slashed across the sleeves and fronts of his double-breasted coat, while the deep blue cloak which was thrown over his shoulders was lined with flame-coloured silk and secured at the neck with a brooch which consisted of a single flaming beryl. Boots which extended halfway up his calves, and which were trimmed at the tops with rich brown fur, completed the impression of barbaric opulence which was suggested by his whole appearance. He carried a broad-brimmed hat in his hand, while he wore across the upper part of his face, extending down past the cheekbones, a black vizard mask, which he had apparently adjusted that very moment, for his hand was still raised to it as he entered. From the lower part of the face he appeared to be a man of strong character, with a thick, hanging lip, and a long, straight chin suggestive of resolution pushed to the length of obstinacy.
+
+“You had my note?” he asked with a deep harsh voice and a strongly marked German accent. “I told you that I would call.” He looked from one to the other of us, as if uncertain which to address.
+
+“Pray take a seat,” said Holmes. “This is my friend and colleague, Dr. Watson, who is occasionally good enough to help me in my cases. Whom have I the honour to address?”`,
+    translation: `Вошёл человек ростом едва ли меньше шести футов шести дюймов, с грудью и руками Геркулеса. Одет он был богато — той роскошью, которую в Англии сочли бы дурным вкусом. Тяжёлые полосы каракуля шли по рукавам и по бортам его двубортного пальто, а тёмно-синий плащ, наброшенный на плечи, был подбит огненно-красным шёлком и застёгнут у горла брошью из одного пылающего берилла. Сапоги, доходившие до середины икр и отороченные поверху густым бурым мехом, довершали впечатление варварской роскоши, которое производил весь его облик. В руке он держал широкополую шляпу, а верхнюю часть лица, до самых скул, закрывала чёрная полумаска, которую он, по-видимому, надел только что: рука его всё ещё была поднята к ней, когда он вошёл. Судя по нижней части лица, это был человек сильного характера — с толстой отвисшей губой и длинным прямым подбородком, говорившим о решимости, доведённой до упрямства.
+
+— Вы получили мою записку? — спросил он глубоким, грубым голосом с сильным немецким выговором. — Я предупреждал, что зайду. — Он переводил взгляд с одного из нас на другого, словно не зная, к кому обратиться.
+
+— Прошу садиться, — сказал Холмс. — Это мой друг и коллега, доктор Уотсон, который порой любезно помогает мне в моих делах. С кем имею честь говорить?`,
+    glossary: [
+      { term: 'six feet six inches', ru: 'шесть футов шесть дюймов — около 198 см' },
+      { term: 'astrakhan', ru: 'каракуль' },
+      { term: 'double-breasted coat', ru: 'двубортное пальто' },
+      { term: 'flame-coloured', ru: 'огненного цвета' },
+      { term: 'beryl', ru: 'берилл (драгоценный камень)' },
+      { term: 'calf (pl. calves)', ru: 'икра ноги' },
+      { term: 'barbaric opulence', ru: 'варварская роскошь' },
+      { term: 'broad-brimmed hat', ru: 'широкополая шляпа' },
+      { term: 'vizard mask', ru: 'полумаска, закрывающая верх лица' },
+      { term: 'obstinacy', ru: 'упрямство' },
+    ],
+    questions: [
+      {
+        q: 'How tall was the visitor?',
+        options: ['About five feet', 'Hardly less than six feet six inches', 'Seven feet', 'It is not said'],
+        correct: 1,
+      },
+      {
+        q: 'How would his dress be seen in England?',
+        options: ['As elegant', 'As akin to bad taste', 'As modest', 'As foreign but correct'],
+        correct: 1,
+      },
+      {
+        q: 'When had he put the mask on?',
+        options: [
+          'Before leaving home',
+          'Apparently at that very moment — his hand was still raised to it',
+          'He did not wear one',
+          'Holmes gave it to him',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the lower part of his face suggest?',
+        options: [
+          'Weakness',
+          'Strong character and resolution pushed to obstinacy',
+          'Illness',
+          'Old age',
+        ],
+        correct: 1,
+        why: 'Маска закрывает верх лица — и Дойл заставляет читателя делать вывод из того, что осталось видно. Приём тот же, что и с семнадцатью ступенями.',
+      },
+    ],
+  },
+
+  // ── Дойл «Скандал в Богемии», финал ────────────────────────────────────────
+  {
+    id: 'sc-doyle-scandal-4',
+    workId: 'doyle-scandal',
+    lang: 'en', title: 'Эта фотография', level: 'B2', minutes: 4,
+    topic: 'Работа', skill: 'Чтение',
+    order: 4, where: 'Финал рассказа', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Arthur Conan Doyle, “A Scandal in Bohemia” · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это финал. Ирэн Адлер разгадала маскарад Холмса, уехала из Англии с мужем и оставила письмо. Компрометирующую фотографию она забрала с собой, но обещала не пускать её в ход. Король доволен.',
+    after: 'Этими строками заканчивается рассказ — и с них начинается всё, что известно о единственном человеке, обыгравшем Холмса.',
+    body: `“I am immensely indebted to you. Pray tell me in what way I can reward you. This ring—” He slipped an emerald snake ring from his finger and held it out upon the palm of his hand.
+
+“Your Majesty has something which I should value even more highly,” said Holmes.
+
+“You have but to name it.”
+
+“This photograph!”
+
+The King stared at him in amazement.
+
+“Irene’s photograph!” he cried. “Certainly, if you wish it.”
+
+“I thank your Majesty. Then there is no more to be done in the matter. I have the honour to wish you a very good morning.” He bowed, and, turning away without observing the hand which the King had stretched out to him, he set off in my company for his chambers.
+
+And that was how a great scandal threatened to affect the kingdom of Bohemia, and how the best plans of Mr. Sherlock Holmes were beaten by a woman’s wit. He used to make merry over the cleverness of women, but I have not heard him do it of late. And when he speaks of Irene Adler, or when he refers to her photograph, it is always under the honourable title of _the_ woman.`,
+    translation: `— Я вам бесконечно обязан. Скажите же, чем я могу вас вознаградить. Вот это кольцо… — Он снял с пальца изумрудное кольцо в виде змейки и протянул его на раскрытой ладони.
+
+— У вашего величества есть нечто, что я ценил бы куда выше, — сказал Холмс.
+
+— Вам стоит лишь назвать.
+
+— Эта фотография!
+
+Король уставился на него в изумлении.
+
+— Фотография Ирэн! — воскликнул он. — Разумеется, если вы того желаете.
+
+— Благодарю ваше величество. Тогда в этом деле больше нечего делать. Имею честь пожелать вам всего доброго. — Он поклонился и, отвернувшись, не заметив протянутой королём руки, отправился со мною к себе.
+
+Вот так над королевством Богемия нависла угроза великого скандала и вот так лучшие планы мистера Шерлока Холмса были разбиты женским умом. Он любил подшучивать над женской сообразительностью, но в последнее время я не слышал от него таких шуток. И когда он говорит об Ирэн Адлер или упоминает её фотографию, он всегда называет её почётным титулом: та самая женщина.`,
+    glossary: [
+      { term: 'indebted to sb', ru: 'обязанный кому-то' },
+      { term: 'to reward', ru: 'вознаградить' },
+      { term: 'emerald', ru: 'изумруд, изумрудный' },
+      { term: 'to value even more highly', ru: 'ценить ещё выше' },
+      { term: 'in amazement', ru: 'в изумлении' },
+      { term: 'to bow', ru: 'поклониться' },
+      { term: 'to make merry over sth', ru: 'подшучивать над чем-то' },
+      { term: 'wit', ru: 'ум, сообразительность' },
+      { term: 'of late', ru: 'в последнее время' },
+    ],
+    questions: [
+      {
+        q: 'What does the King offer Holmes?',
+        options: ['Money', 'An emerald snake ring', 'A title', 'A house'],
+        correct: 1,
+      },
+      {
+        q: 'What does Holmes ask for instead?',
+        options: ['The ring', 'Irene Adler’s photograph', 'Nothing', 'A letter'],
+        correct: 1,
+      },
+      {
+        q: 'What happens to the King’s outstretched hand?',
+        options: [
+          'Holmes shakes it',
+          'Holmes turns away without observing it',
+          'Watson shakes it',
+          'The King withdraws it',
+        ],
+        correct: 1,
+        why: 'Одна деталь — непожатая рука — говорит о том, что Холмс думает о короле, больше, чем любая реплика. И глагол тут снова «observe».',
+      },
+      {
+        q: 'How does Holmes refer to Irene Adler afterwards?',
+        options: [
+          'By her name',
+          'As “the woman”',
+          'As “the client”',
+          'He never mentions her',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Дюма «Граф Монте-Кристо», арест ────────────────────────────────────────
+  {
+    id: 'sc-monte-cristo-2',
+    workId: 'dumas-monte-cristo',
+    lang: 'en', title: 'Именем закона', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Глава 5, обручение', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Alexandre Dumas, The Count of Monte Cristo · Project Gutenberg',
+    setup: 'Эдмону Дантесу девятнадцать, он только что назначен капитаном «Фараона» и празднует обручение с Мерседес. За тем же столом сидят двое: Данглар, которому он перешёл дорогу по службе, и Фернан, влюблённый в Мерседес. Донос они написали накануне.',
+    after: 'Дантеса уведут прямо со свадебного стола. Он будет уверен, что это недоразумение и всё выяснится к вечеру, — и проведёт в замке Иф четырнадцать лет.',
+    body: `At this moment Danglars, who had been incessantly observing every change in Fernand’s look and manner, saw him stagger and fall back, with an almost convulsive spasm, against a seat placed near one of the open windows. At the same instant his ear caught a sort of indistinct sound on the stairs, followed by the measured tread of soldiery, with the clanking of swords and military accoutrements; then came a hum and buzz as of many voices, so as to deaden even the noisy mirth of the bridal party, among whom a vague feeling of curiosity and apprehension quelled every disposition to talk, and almost instantaneously the most deathlike stillness prevailed.
+
+The sounds drew nearer. Three blows were struck upon the panel of the door. The company looked at each other in consternation.
+
+“I demand admittance,” said a loud voice outside the room, “in the name of the law!” As no attempt was made to prevent it, the door was opened, and a magistrate, wearing his official scarf, presented himself, followed by four soldiers and a corporal. Uneasiness now yielded to the most extreme dread on the part of those present.`,
+    translation: `В эту минуту Данглар, неотрывно следивший за каждой переменой в лице и повадке Фернана, увидел, как тот пошатнулся и, судорожно вздрогнув, отступил к сиденью у одного из открытых окон. В тот же миг его ухо уловило на лестнице какой-то неясный шум, а следом — мерную поступь солдат, лязг сабель и снаряжения; потом донёсся гул и гомон многих голосов, заглушивший даже шумное веселье свадебного застолья, среди которого смутное чувство любопытства и тревоги погасило всякую охоту говорить, — и почти мгновенно воцарилась мертвенная тишина.
+
+Звуки приближались. В дверную филёнку трижды ударили. Собравшиеся в смятении переглянулись.
+
+— Требую впустить, — произнёс громкий голос за дверью, — именем закона!
+
+Так как никто и не пытался помешать, дверь отворили, и вошёл чиновник в служебном шарфе, а за ним четверо солдат и капрал. Беспокойство сменилось у присутствующих крайним ужасом.`,
+    glossary: [
+      { term: 'incessantly', ru: 'непрерывно, неотрывно' },
+      { term: 'to stagger', ru: 'пошатнуться' },
+      { term: 'convulsive spasm', ru: 'судорога' },
+      { term: 'measured tread', ru: 'мерная поступь' },
+      { term: 'to clank', ru: 'лязгать' },
+      { term: 'accoutrements', ru: 'снаряжение, амуниция' },
+      { term: 'mirth', ru: 'веселье' },
+      { term: 'to quell', ru: 'подавить, погасить' },
+      { term: 'consternation', ru: 'смятение, оторопь' },
+      { term: 'magistrate', ru: 'чиновник судебного ведомства' },
+      { term: 'dread', ru: 'ужас, страх' },
+    ],
+    questions: [
+      {
+        q: 'Who was watching Fernand’s face?',
+        options: ['Dantès', 'Danglars', 'Mercédès', 'M. Morrel'],
+        correct: 1,
+      },
+      {
+        q: 'What did Danglars hear on the stairs?',
+        options: [
+          'Music',
+          'The measured tread of soldiery and the clanking of swords',
+          'A carriage',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What words were spoken outside the door?',
+        options: [
+          '“Open, in the name of the King!”',
+          '“I demand admittance, in the name of the law!”',
+          '“Is Edmond Dantès here?”',
+          '“Fire!”',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does Dumas mark the moment before the knock?',
+        options: [
+          'With a long description of the room',
+          'With the most deathlike stillness after the noise',
+          'With a storm',
+          'With a song',
+        ],
+        correct: 1,
+        why: 'Дюма строит сцену на звуке: сначала крики «ура», потом лязг, потом полная тишина, потом три удара в дверь. Ни одного слова о чувствах не сказано.',
+      },
+    ],
+  },
+
+  // ── Дюма «Граф Монте-Кристо», безумный аббат ───────────────────────────────
+  {
+    id: 'sc-monte-cristo-3',
+    workId: 'dumas-monte-cristo',
+    lang: 'en', title: 'Номер двадцать семь', level: 'B2', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Замок Иф, обход инспектора', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Alexandre Dumas, The Count of Monte Cristo · Project Gutenberg',
+    setup: 'В замок Иф приехал инспектор тюрем. Он спустился в подземелье к Дантесу, выслушал его и пообещал посмотреть бумаги. Комендант ведёт инспектора дальше — в камеру, о которой говорит с усмешкой.',
+    after: 'Через несколько лет Дантес прокопает ход и попадёт в эту камеру. Аббат Фариа станет ему учителем, отцом и — уже перед смертью — источником состояния.',
+    body: `“Ah, this one is not like the other, and his madness is less affecting than this one’s display of reason.”
+
+“What is his folly?”
+
+“He fancies he possesses an immense treasure. The first year he offered government a million of francs for his release; the second, two; the third, three; and so on progressively. He is now in his fifth year of captivity; he will ask to speak to you in private, and offer you five millions.”
+
+“How curious!—what is his name?”
+
+“The Abbé Faria.”
+
+“No. 27,” said the inspector.
+
+“It is here; unlock the door, Antoine.”
+
+The turnkey obeyed, and the inspector gazed curiously into the chamber of the _mad abbé_, as the prisoner was usually called.
+
+In the centre of the cell, in a circle traced with a fragment of plaster detached from the wall, sat a man whose tattered garments scarcely covered him. He was drawing in this circle geom`,
+    translation: `— А этот не то что тот: его безумие трогает меньше, чем у того — здравомыслие.
+
+— В чём же его помешательство?
+
+— Он воображает, будто владеет несметным сокровищем. В первый год он предлагал правительству миллион франков за освобождение; на второй — два; на третий — три; и так далее по возрастающей. Сейчас идёт пятый год его заключения; он попросит поговорить с вами наедине и предложит пять миллионов.
+
+— Любопытно! А как его зовут?
+
+— Аббат Фариа.
+
+— Номер двадцать семь, — сказал инспектор.
+
+— Это здесь; отопри дверь, Антуан.
+
+Тюремщик повиновался, и инспектор с любопытством заглянул в камеру безумного аббата — так обыкновенно называли этого узника.
+
+Посреди камеры, в круге, начерченном обломком отвалившейся от стены штукатурки, сидел человек, которого едва прикрывали лохмотья. В этом круге он чертил геом`,
+    glossary: [
+      { term: 'affecting', ru: 'трогательный, вызывающий сочувствие' },
+      { term: 'folly', ru: 'безумие, помешательство' },
+      { term: 'to fancy', ru: 'воображать, вбить себе в голову' },
+      { term: 'immense treasure', ru: 'несметное сокровище' },
+      { term: 'progressively', ru: 'по нарастающей' },
+      { term: 'captivity', ru: 'заключение, плен' },
+      { term: 'turnkey', ru: 'тюремщик' },
+      { term: 'tattered garments', ru: 'лохмотья' },
+      { term: 'plaster', ru: 'штукатурка' },
+    ],
+    questions: [
+      {
+        q: 'What is the abbé’s supposed madness?',
+        options: [
+          'He thinks he is a king',
+          'He believes he possesses an immense treasure',
+          'He does not speak',
+          'He thinks he is free',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does his offer to the government change each year?',
+        options: [
+          'It stays the same',
+          'It grows by a million every year',
+          'It falls',
+          'He stopped offering',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the abbé’s cell number?',
+        options: ['17', '27', '34', '5'],
+        correct: 1,
+      },
+      {
+        q: 'What was he doing inside the chalk circle?',
+        options: ['Praying', 'Drawing geometrical figures', 'Sleeping', 'Digging'],
+        correct: 1,
+        why: 'Комендант считает круг с чертежами доказательством помешательства. Для читателя это первый знак, что «безумный аббат» — единственный, кто в этой тюрьме продолжает работать головой.',
+      },
+    ],
+  },
+
+  // ── Дюма «Граф Монте-Кристо», мешок ────────────────────────────────────────
+  {
+    id: 'sc-monte-cristo-4',
+    workId: 'dumas-monte-cristo',
+    lang: 'en', title: 'Почести мешка', level: 'B2', minutes: 4,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 4, where: 'Замок Иф, смерть аббата', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Alexandre Dumas, The Count of Monte Cristo · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это поворот, после которого начинается вторая половина книги. Аббат Фариа умер от третьего удара, успев рассказать Дантесу, где лежит клад. Дантес пробрался в его камеру подземным ходом и слышит из-под кровати, как тюремщики обсуждают похороны.',
+    after: 'Дантес поймёт, что мешок — единственный способ выйти из замка Иф, и займёт в нём место мертвеца.',
+    body: `Edmond heard the creaking of the bed as they moved the corpse, heard the voice of the governor, who asked them to throw water on the dead man’s face; and seeing that, in spite of this application, the prisoner did not recover, they sent for the doctor. The governor then went out, and words of pity fell on Dantès’ listening ears, mingled with brutal laughter.
+
+“Well, well,” said one, “the madman has gone to look after his treasure. Good journey to him!”
+
+“With all his millions, he will not have enough to pay for his shroud!” said another.
+
+“Oh,” added a third voice, “the shrouds of the Château d’If are not dear!”
+
+0257m
+
+“Perhaps,” said one of the previous speakers, “as he was a churchman, they may go to some expense in his behalf.”
+
+“They may give him the honors of the sack.”
+
+Edmond did not lose a word, but comprehended very little of what was said. The voices soon ceased, and it seemed to him as if everyone had left the cell. Still he dared not to enter, as they might have left some turnkey to watch the dead. He remained, therefore, mute and motionless, hardly venturing to breathe. At the end of an hour, he heard a faint noise, which increased. It was the governor who returned, followed by the doctor and other attendants. There was a moment’s silence,—it was evident that the doctor was examining the dead body. The inquiries soon commenced.
+
+The doctor analyzed the symptoms of the malady to which the prisoner had succumbed, and declared that he was dead. Questions and answers followed in a nonchalant manner that made Dantès indignant, for he felt th`,
+    translation: `Эдмон слышал, как скрипнула кровать, когда переносили тело, слышал голос коменданта, который велел плеснуть покойнику воды в лицо; а когда и это не помогло привести узника в чувство, послали за доктором. Комендант вышел, и до слуха Дантеса донеслись сочувственные слова вперемешку с грубым хохотом.
+
+— Ну вот, — сказал один, — отправился помешанный за своим сокровищем. Счастливого пути!
+
+— Со всеми своими миллионами он и на саван себе не наскребёт! — сказал другой.
+
+— О, — прибавил третий голос, — саваны в замке Иф недороги!
+
+— Может быть, — сказал один из говоривших раньше, — раз он был духовного звания, на него и потратятся.
+
+— Ну, окажут ему почести мешка.
+
+Эдмон не упустил ни слова, но понял из сказанного очень мало. Голоса вскоре смолкли, и ему показалось, что все вышли из камеры. Всё же войти он не решался: могли оставить тюремщика стеречь покойника. И потому он оставался нем и неподвижен, едва осмеливаясь дышать. Через час он услышал слабый шум, который нарастал. Это возвращался комендант, а за ним доктор и другие служители. На минуту настала тишина — было очевидно, что доктор осматривает тело. Затем начались расспросы.
+
+Доктор разобрал признаки недуга, от которого скончался узник, и объявил его мёртвым. Вопросы и ответы шли с таким небрежением, что Дантес возмутился: он чувствовал`,
+    glossary: [
+      { term: 'creaking', ru: 'скрип' },
+      { term: 'corpse', ru: 'труп, тело' },
+      { term: 'to recover', ru: 'здесь: прийти в себя' },
+      { term: 'shroud', ru: 'саван' },
+      { term: 'churchman', ru: 'духовное лицо' },
+      { term: 'to go to some expense', ru: 'потратиться' },
+      { term: 'the honors of the sack', ru: '«почести мешка» — погребение в мешке, без гроба' },
+      { term: 'mute and motionless', ru: 'нем и неподвижен' },
+      { term: 'nonchalant', ru: 'небрежный, безразличный' },
+      { term: 'to succumb to', ru: 'скончаться от чего-то' },
+    ],
+    questions: [
+      {
+        q: 'Where is Edmond during this scene?',
+        options: [
+          'In his own cell',
+          'Hidden in the abbé’s cell, listening',
+          'In the corridor',
+          'On the roof',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What do the turnkeys joke about?',
+        options: [
+          'The doctor',
+          'That with all his millions the abbé cannot pay for a shroud',
+          'The governor',
+          'The weather',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What are “the honors of the sack”?',
+        options: [
+          'A funeral with a priest',
+          'Burial sewn into a sack instead of a coffin',
+          'A military salute',
+          'A grave with a stone',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does Dumas make Edmond overhear this rather than see it?',
+        options: [
+          'To save space',
+          'Because the plan is born out of an overheard word — “sack”',
+          'Because Edmond is blind',
+          'It is a mistake',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Уитмен, «Когда я услышал к концу дня» ──────────────────────────────────
+  {
+    id: 'sc-whitman-2',
+    workId: 'whitman-calamus',
+    lang: 'en', title: 'Когда я услышал к концу дня', level: 'C1', minutes: 3,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 2, where: 'Calamus', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Walt Whitman, Leaves of Grass (Calamus) · Project Gutenberg',
+    setup: 'Одно стихотворение целиком. Оно устроено как длинное перечисление с повторяющимся «When…»: сначала перечисляется всё, что должно было бы сделать человека счастливым и не сделало, и только потом — то, что сделало. Обратите внимание, где стоит слово «happy».',
+    after: 'Уитмен пишет без рифмы и почти без размера — на одном дыхании и на повторе союзов. Это называется свободным стихом, и в английской поэзии он начинается именно с «Листьев травы».',
+    body: `When I Heard at the Close of the Day
+
+ When I heard at the close of the day how my name had been receiv’d with plaudits in the capitol, still it was not a happy night for me that follow’d, And else when I carous’d, or when my plans were accomplish’d, still I was not happy, But the day when I rose at dawn from the bed of perfect health, refresh’d, singing, inhaling the ripe breath of autumn, When I saw the full moon in the west grow pale and disappear in the morning light, When I wander’d alone over the beach, and undressing bathed, laughing with the cool waters, and saw the sun rise, And when I thought how my dear friend my lover was on his way coming, O then I was happy, O then each breath tasted sweeter, and all that day my food nourish’d me more, and the beautiful day pass’d well, And the next came with equal joy, and with the next at evening came my friend, And that night while all was still I heard the waters roll slowly continually up the shores, I heard the hissing rustle of the liquid and sands as directed to me whispering to congratulate me, For the one I love most lay sleep`,
+    translation: `Когда я услышал к концу дня
+
+Когда я услышал к концу дня, как моё имя встречали рукоплесканиями в Капитолии, — всё равно ночь, что настала за этим, не была для меня счастливой,
+И когда я пировал, и когда сбывались мои замыслы, — всё равно я не был счастлив,
+Но в тот день, когда я поднялся на рассвете с постели, совершенно здоровый, отдохнувший, поющий, вдыхая спелое дыхание осени,
+Когда я увидел, как полная луна на западе бледнеет и исчезает в утреннем свете,
+Когда я бродил один по берегу и, раздевшись, купался, смеясь холодной воде, и видел восход солнца,
+И когда я подумал, что мой милый друг, мой любимый, уже в пути ко мне,
+О, тогда я был счастлив,
+О, тогда каждый вдох был слаще, и весь тот день еда шла мне впрок, и прекрасный день прошёл хорошо,
+И следующий пришёл с такой же радостью, а со следующим под вечер пришёл мой друг,
+И той ночью, когда всё стихло, я слышал, как воды медленно и непрерывно накатывают на берег,
+Я слышал шипящий шорох влаги и песка — они шептали мне, поздравляя меня,
+Ибо тот, кого я люблю больше всех, лежал спящий`,
+    glossary: [
+      { term: 'at the close of the day', ru: 'к концу дня' },
+      { term: 'plaudits', ru: 'рукоплескания, овации' },
+      { term: 'the capitol', ru: 'Капитолий — здание конгресса' },
+      { term: 'to carouse', ru: 'пировать, кутить' },
+      { term: 'refresh’d = refreshed', ru: 'отдохнувший; апостроф вместо -ed — примета стиха XIX века' },
+      { term: 'to inhale', ru: 'вдыхать' },
+      { term: 'to nourish', ru: 'питать, идти впрок' },
+      { term: 'hissing rustle', ru: 'шипящий шорох' },
+      { term: 'free verse', ru: 'свободный стих — без рифмы и постоянного размера' },
+    ],
+    questions: [
+      {
+        q: 'Did the applause in the capitol make the speaker happy?',
+        options: ['Yes', 'No — the night that followed was not happy', 'He does not say', 'He was not there'],
+        correct: 1,
+      },
+      {
+        q: 'What finally made him happy?',
+        options: [
+          'His plans being accomplished',
+          'The thought that his friend was on his way to him',
+          'The moonlight',
+          'Swimming',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What repeated word organises the poem?',
+        options: ['“And”', '“When”', '“Never”', '“If”'],
+        correct: 1,
+        why: 'Всё стихотворение — одна разросшаяся конструкция «когда… когда… о, тогда». Смысл держится не на рифме, а на том, как долго откладывается главное слово.',
+      },
+      {
+        q: 'What does the apostrophe in “receiv’d” or “refresh’d” mark?',
+        options: [
+          'A missing word',
+          'The dropped “e” of the ending -ed, so the syllable is not pronounced',
+          'A quotation',
+          'A printing error',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Уитмен, «Я слышу, меня обвиняли» ───────────────────────────────────────
+  {
+    id: 'sc-whitman-3',
+    workId: 'whitman-calamus',
+    lang: 'en', title: 'Я слышу, меня обвиняли', level: 'C1', minutes: 2,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Calamus', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Walt Whitman, Leaves of Grass (Calamus) · Project Gutenberg',
+    setup: 'Восемь строк, в которых Уитмен отвечает на упрёк, что он разрушает установления. Ответ построен как отказ от спора: он не за и не против — он просто учреждает своё. Слово «institution» здесь работает дважды и в разных смыслах.',
+    after: 'Маннахатта — индейское имя Манхэттена; Уитмен нарочно берёт его вместо «Нью-Йорка». Кили — это корабли; «выше всякого киля» значит «над всеми судами на воде».',
+    body: `I Hear It Was Charged Against Me
+
+ I hear it was charged against me that I sought to destroy institutions, But really I am neither for nor against institutions, (What indeed have I in common with them? or what with the destruction of them?) Only I will establish in the Mannahatta and in every city of these States inland and seaboard, And in the fields and woods, and above every keel little or large that dents the water, Without edifices or rules or trustees or any argument, The institution of the dear love of comrades.`,
+    translation: `Я слышу, меня обвиняли
+
+Я слышу, меня обвиняли, будто я стремился разрушить установления,
+Но на самом деле я ни за них, ни против них,
+(В самом деле, что у меня общего с ними? или что — с их разрушением?)
+Я лишь учрежу в Маннахатте и в каждом городе этих Штатов, внутри страны и на побережье,
+И в полях, и в лесах, и выше всякого киля, большого и малого, что вспарывает воду,
+Без зданий, без правил, без попечителей и без единого довода,
+Установление сердечной любви товарищей.`,
+    glossary: [
+      { term: 'to charge sth against sb', ru: 'вменять кому-то в вину' },
+      { term: 'institution', ru: 'установление, институт — и учреждение, и обычай' },
+      { term: 'Mannahatta', ru: 'Маннахатта — индейское имя Манхэттена' },
+      { term: 'inland and seaboard', ru: 'внутри страны и на побережье' },
+      { term: 'keel', ru: 'киль; здесь — судно' },
+      { term: 'to dent the water', ru: 'вспарывать, продавливать воду' },
+      { term: 'edifice', ru: 'здание, сооружение' },
+      { term: 'trustee', ru: 'попечитель, доверенное лицо' },
+      { term: 'comrade', ru: 'товарищ' },
+    ],
+    questions: [
+      {
+        q: 'What was the speaker accused of?',
+        options: [
+          'Seeking to destroy institutions',
+          'Writing badly',
+          'Leaving the country',
+          'Praising the government',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What is his answer?',
+        options: [
+          'He denies it angrily',
+          'He is neither for nor against institutions',
+          'He admits it',
+          'He blames others',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What will he establish instead?',
+        options: [
+          'A new city',
+          'The institution of the dear love of comrades',
+          'A school',
+          'A party',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What will this institution have?',
+        options: [
+          'Buildings and rules',
+          'Neither edifices, nor rules, nor trustees, nor any argument',
+          'A president',
+          'Members and fees',
+        ],
+        correct: 1,
+        why: 'Уитмен переворачивает само слово: «institution» без здания, устава и попечителей — это уже не учреждение, а связь между людьми. На этой подмене стихотворение и стоит.',
+      },
+    ],
+  },
+
+  // ── Уитмен, «Среди толпы» ──────────────────────────────────────────────────
+  {
+    id: 'sc-whitman-4',
+    workId: 'whitman-calamus',
+    lang: 'en', title: 'Среди толпы', level: 'C1', minutes: 2,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 4, where: 'Calamus, два стихотворения', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Walt Whitman, Leaves of Grass (Calamus) · Project Gutenberg',
+    setup: 'Два коротких стихотворения подряд — про узнавание без слов. В первом кто-то в толпе выделяет говорящего по тайным знакам; во втором говорящий сам молча приходит туда, где находится другой. Оба построены на том, чего не произносят вслух.',
+    after: 'Слово «indirections» — «непрямые пути» — у Уитмена ключевое: узнают друг друга не по сказанному, а по тому, как человек оказывается рядом.',
+    body: `Among the Multitude
+
+ Among the men and women the multitude, I perceive one picking me out by secret and divine signs, Acknowledging none else, not parent, wife, husband, brother, child, any nearer than I am, Some are baffled, but that one is not--that one knows me.
+
+ Ah lover and perfect equal, I meant that you should discover me so by faint indirections, And I when I meet you mean to discover you by the like in you.
+
+O You Whom I Often and Silently Come
+
+ O you whom I often and silently come where you are that I may be with you, As I walk by your side or sit near, or remain in the same room with you, Little you know the subtle electric fire that for your sake is playing within me.`,
+    translation: `Среди толпы
+
+Среди мужчин и женщин, среди толпы, я замечаю, что кто-то один выделяет меня по тайным и божественным знакам,
+Не признавая никого другого — ни родителя, ни жену, ни мужа, ни брата, ни дитя — более близким, чем я,
+Иные сбиты с толку, но этот — нет: этот меня знает.
+
+Ах, любящий и совершенно равный мне, я и хотел, чтобы ты открыл меня вот так, по слабым непрямым знакам,
+И я, встречая тебя, намерен открыть тебя по таким же в тебе.
+
+О ты, к кому я часто и молча прихожу
+
+О ты, к кому я часто и молча прихожу туда, где ты, чтобы побыть с тобою,
+Когда я иду рядом, или сижу подле, или остаюсь с тобой в одной комнате,
+Мало ты знаешь о том тонком электрическом огне, который ради тебя играет во мне.`,
+    glossary: [
+      { term: 'multitude', ru: 'толпа, множество людей' },
+      { term: 'to pick sb out', ru: 'выделить кого-то из многих' },
+      { term: 'to acknowledge', ru: 'признавать' },
+      { term: 'baffled', ru: 'сбитый с толку' },
+      { term: 'perfect equal', ru: 'совершенно равный' },
+      { term: 'indirection', ru: 'непрямой путь, обиняк' },
+      { term: 'for your sake', ru: 'ради тебя' },
+      { term: 'subtle', ru: 'тонкий, едва уловимый' },
+    ],
+    questions: [
+      {
+        q: 'How does the one in the crowd recognise the speaker?',
+        options: [
+          'By his name',
+          'By secret and divine signs',
+          'By his clothes',
+          'Someone points him out',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Who is said to be no nearer than the speaker?',
+        options: [
+          'Only strangers',
+          'Parent, wife, husband, brother, child',
+          'Nobody is mentioned',
+          'Friends',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'In the second poem, what does the speaker do?',
+        options: [
+          'Writes letters',
+          'Comes silently and stays near, saying nothing',
+          'Speaks first',
+          'Goes away',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does “Little you know…” mean here?',
+        options: [
+          'You know a little',
+          'You have no idea',
+          'You must learn',
+          'You knew once',
+        ],
+        correct: 1,
+        why: 'Инверсия с отрицательным словом в начале («Little you know…») — книжная конструкция: подлежащее и сказуемое меняются местами, а смысл усиливается до «ты и не догадываешься».',
+      },
+    ],
+  },
+
+  // ── Остин «Гордость и предубеждение», первое предложение ───────────────────
+  {
+    id: 'sc-pride-3',
+    workId: 'austen-pride',
+    lang: 'en', title: 'Тщетно я боролся', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Том II, глава 11, Хансфорд', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jane Austen, Pride and Prejudice · Project Gutenberg',
+    setup: 'Элизабет гостит у подруги в Хансфорде и осталась дома одна с головной болью. Является мистер Дарси, которого она считает виновником несчастий сестры и человеком невыносимой гордости. Он несколько минут молча ходит по комнате.',
+    after: 'Элизабет откажет — и откажет так, что Дарси уйдёт, не сказав ни слова. Наутро он передаст ей письмо, после которого ей придётся пересмотреть всё, в чём она была уверена.',
+    body: `“In vain have I struggled. It will not do. My feelings will not be repressed. You must allow me to tell you how ardently I admire and love you.”
+
+Elizabeth’s astonishment was beyond expression. She stared, coloured, doubted, and was silent. This he considered sufficient encouragement, and the avowal of all that he felt and had long felt for her immediately followed. He spoke well; but there were feelings besides those of the heart to be detailed, and he was not more eloquent on the subject of tenderness than of pride. His sense of her inferiority, of its being a degradation, of the family obstacles which judgment had always opposed to inclination, were dwelt on with a warmth which seemed due`,
+    translation: `— Тщетно я боролся. Ничего не выходит. Чувства мои не подавить. Позвольте мне сказать вам, как пылко я вами восхищаюсь и как вас люблю.
+
+Изумление Элизабет было невыразимо. Она смотрела, краснела, сомневалась и молчала. Он счёл это достаточным поощрением, и тотчас последовало признание во всём, что он чувствовал и давно чувствовал к ней. Говорил он хорошо; но, кроме сердечных чувств, надлежало изложить и другие, и в предмете нежности он был не более красноречив, чем в предмете гордости. Сознание её низкого положения, того, что этот брак — унижение, тех семейных препятствий, которые рассудок всегда противопоставлял склонности, — обо всём этом говорилось с горячностью, какая, казалось, приличествует`,
+    glossary: [
+      { term: 'in vain', ru: 'тщетно, напрасно' },
+      { term: 'it will not do', ru: 'так не пойдёт, ничего не выходит' },
+      { term: 'to repress', ru: 'подавлять' },
+      { term: 'ardently', ru: 'пылко' },
+      { term: 'beyond expression', ru: 'невыразимо' },
+      { term: 'to colour', ru: 'покраснеть, залиться краской' },
+      { term: 'avowal', ru: 'признание' },
+      { term: 'eloquent', ru: 'красноречивый' },
+      { term: 'inferiority', ru: 'более низкое положение' },
+      { term: 'degradation', ru: 'унижение' },
+      { term: 'to dwell on sth', ru: 'подробно останавливаться на чём-то' },
+    ],
+    questions: [
+      {
+        q: 'What are Darcy’s first words?',
+        options: [
+          'A greeting',
+          '“In vain have I struggled. It will not do.”',
+          'A question about her health',
+          'An apology',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does Elizabeth react at first?',
+        options: [
+          'She laughs',
+          'She stares, colours, doubts and is silent',
+          'She leaves the room',
+          'She answers at once',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does Darcy take her silence for?',
+        options: ['Refusal', 'Sufficient encouragement', 'Illness', 'Anger'],
+        correct: 1,
+      },
+      {
+        q: 'What else does he explain besides his love?',
+        options: [
+          'His fortune',
+          'Her inferiority and the family obstacles to the match',
+          'His travels',
+          'Nothing else',
+        ],
+        correct: 1,
+        why: 'Остин делает предложение о любви и перечень возражений против неё одной речью. Отказ Элизабет становится неизбежным ещё до того, как она откроет рот.',
+      },
+    ],
+  },
+
+  // ── Остин «Гордость и предубеждение», второе предложение ───────────────────
+  {
+    id: 'sc-pride-4',
+    workId: 'austen-pride',
+    lang: 'en', title: 'Одно ваше слово', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 4, where: 'Том III, глава 16, прогулка', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jane Austen, Pride and Prejudice · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это развязка. Прошли месяцы. Дарси тайно вытащил семью Беннет из позора, устроив брак Лидии, и не хотел, чтобы об этом узнали. Элизабет узнала — и на прогулке поблагодарила его от лица всей семьи.',
+    after: 'Элизабет ответит согласием — и Остин впервые за весь роман не приводит её слов прямой речью, а пересказывает их. Прямую речь она бережёт для отказов.',
+    body: `“You are too generous to trifle with me. If your feelings are still what they were last April, tell me so at once. _My_ affections and wishes are unchanged; but one word from you will silence me on this subject for ever.”
+
+Elizabeth, feeling all the more than common awkwardness and anxiety of his situation, now forced herself to speak; and immediately, though not very fluently, gave him to understand that her sentiments had undergone so material a change since the period to which he alluded, as to make her receive with gratitude and pleasure his present assurances. The happiness which this reply produced was such as he had probably never felt before; and he expressed himself on the occasion as sensibly and as warmly as a man violently in love can be supposed to do.`,
+    translation: `— Вы слишком великодушны, чтобы играть мною. Если чувства ваши остались теми же, что в прошлом апреле, скажите мне об этом сразу. Мои привязанность и желания не изменились; но одно ваше слово заставит меня умолкнуть об этом навсегда.
+
+Элизабет, чувствуя всю необычайную неловкость и тревогу его положения, заставила себя заговорить; и тотчас, хотя и не слишком гладко, дала ему понять, что чувства её со времени, о котором он упомянул, переменились настолько существенно, что нынешние его уверения она принимает с благодарностью и радостью. Счастье, которое произвёл этот ответ, было, вероятно, таким, какого он не испытывал никогда прежде; и высказался он по этому случаю так разумно и так горячо, как только может человек, влюблённый без памяти.`,
+    glossary: [
+      { term: 'to trifle with sb', ru: 'играть кем-то, дурачить' },
+      { term: 'affections', ru: 'привязанность, чувства' },
+      { term: 'unchanged', ru: 'неизменившийся' },
+      { term: 'to silence sb', ru: 'заставить умолкнуть' },
+      { term: 'awkwardness', ru: 'неловкость' },
+      { term: 'fluently', ru: 'гладко, бегло' },
+      { term: 'to undergo a change', ru: 'претерпеть перемену' },
+      { term: 'to allude to sth', ru: 'упоминать, намекать на что-то' },
+      { term: 'violently in love', ru: 'влюблённый без памяти' },
+    ],
+    questions: [
+      {
+        q: 'What does Darcy ask Elizabeth to do?',
+        options: [
+          'To forgive him',
+          'To tell him at once if her feelings are still what they were last April',
+          'To marry him immediately',
+          'To speak to her father',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What would one word from her do?',
+        options: [
+          'Make him hopeful',
+          'Silence him on the subject for ever',
+          'Anger him',
+          'Nothing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How is Elizabeth’s answer given in the text?',
+        options: [
+          'In direct speech',
+          'In reported speech — Austen does not quote her',
+          'In a letter',
+          'She says nothing',
+        ],
+        correct: 1,
+        why: 'Прямая речь у Остин здесь исчезает ровно в момент согласия. Отказ в предыдущей сцене приведён дословно — согласие пересказано.',
+      },
+      {
+        q: 'What does “not very fluently” tell us?',
+        options: [
+          'She spoke a foreign language',
+          'She was too moved to speak smoothly',
+          'She was lying',
+          'She whispered',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Кэрролл «Алиса», Гусеница ──────────────────────────────────────────────
+  {
+    id: 'sc-alice-3',
+    workId: 'carroll-alice',
+    lang: 'en', title: 'Ты кто такая?', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 3, where: 'Глава 5, «Синяя Гусеница даёт совет»', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Lewis Carroll, Alice’s Adventures in Wonderland · Project Gutenberg',
+    setup: 'Алиса за это утро уже несколько раз меняла рост и перестала понимать, кто она. На грибе сидит Синяя Гусеница с кальяном. Она задаёт вопрос, который в обычном разговоре считается простым.',
+    after: 'Гусеница заставит Алису прочесть стихи, они выйдут неправильно, и разговор кончится ничем. Зато Алиса получит совет про гриб, с которого можно есть с двух сторон.',
+    body: `The Caterpillar and Alice looked at each other for some time in silence: at last the Caterpillar took the hookah out of its mouth, and addressed her in a languid, sleepy voice.
+
+“Who are _you?_” said the Caterpillar.
+
+This was not an encouraging opening for a conversation. Alice replied, rather shyly, “I—I hardly know, sir, just at present—at least I know who I _was_ when I got up this morning, but I think I must have been changed several times since then.”
+
+“What do you mean by that?” said the Caterpillar sternly. “Explain yourself!”
+
+“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m not myself, you see.”
+
+“I don’t see,” said the Caterpillar.
+
+“I’m afraid I can’t put it more clearly,”`,
+    translation: `Гусеница и Алиса какое-то время молча смотрели друг на друга; наконец Гусеница вынула кальян изо рта и обратилась к ней томным, сонным голосом.
+
+— Ты кто такая? — спросила Гусеница.
+
+Начало для беседы было не слишком ободряющее. Алиса ответила довольно застенчиво:
+
+— Я… я, право, и сама сейчас не знаю, сударыня. По крайней мере я знаю, кем я была, когда встала утром, но с тех пор, кажется, я уже несколько раз менялась.
+
+— Что ты хочешь этим сказать? — строго спросила Гусеница. — Изволь объясниться!
+
+— Боюсь, что объяснить себя я не могу, сударыня, — сказала Алиса, — потому что я, видите ли, не я.
+
+— Не вижу, — сказала Гусеница.
+
+— Боюсь, яснее я сказать не сумею, —`,
+    glossary: [
+      { term: 'hookah', ru: 'кальян' },
+      { term: 'languid', ru: 'томный, вялый' },
+      { term: 'encouraging', ru: 'ободряющий' },
+      { term: 'shyly', ru: 'застенчиво' },
+      { term: 'hardly', ru: 'едва ли, почти не' },
+      { term: 'sternly', ru: 'строго' },
+      { term: 'to explain oneself', ru: 'объясниться' },
+      { term: 'I’m afraid', ru: 'боюсь, что… — вежливое смягчение' },
+      { term: 'to put sth clearly', ru: 'выразиться ясно' },
+    ],
+    questions: [
+      {
+        q: 'What was the Caterpillar holding?',
+        options: ['A book', 'A hookah', 'A mushroom', 'A fan'],
+        correct: 1,
+      },
+      {
+        q: 'What is the Caterpillar’s first question?',
+        options: ['“What do you want?”', '“Who are you?”', '“Where are you going?”', '“How old are you?”'],
+        correct: 1,
+      },
+      {
+        q: 'Why can’t Alice answer?',
+        options: [
+          'She is shy',
+          'She has changed several times since the morning',
+          'She has forgotten her name',
+          'She does not want to',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What kind of joke is “I can’t explain myself… because I’m not myself”?',
+        options: [
+          'A pun on two senses of “myself”',
+          'A rhyme',
+          'A spelling mistake',
+          'A riddle with an answer',
+        ],
+        correct: 0,
+        why: 'Кэрролл строит почти весь диалог на том, что выражение можно понять буквально. «Объяснить себя» и «быть собой» здесь сталкиваются в одной фразе.',
+      },
+    ],
+  },
+
+  // ── Кэрролл «Алиса», Королева ──────────────────────────────────────────────
+  {
+    id: 'sc-alice-4',
+    workId: 'carroll-alice',
+    lang: 'en', title: 'Голову с плеч!', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Глава 8, «Королевский крокет»', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Lewis Carroll, Alice’s Adventures in Wonderland · Project Gutenberg',
+    setup: 'В саду трое садовников — плоские игральные карты — красят белые розы в красный, потому что посадили не тот куст. Является процессия во главе с Червонной Королевой. Королева спрашивает Алису, кто эти трое.',
+    after: 'Садовников спасёт Алиса, спрятав их в цветочный горшок. А Королева будет кричать «Голову с плеч!» примерно раз в минуту до самого конца книги — и ни один приговор не приведут в исполнение.',
+    body: `“How should _I_ know?” said Alice, surprised at her own courage. “It’s no business of _mine_.”
+
+The Queen turned crimson with fury, and, after glaring at her for a moment like a wild beast, screamed “Off with her head! Off—”
+
+“Nonsense!” said Alice, very loudly and decidedly, and the Queen was silent.
+
+The King laid his hand upon her arm, and timidly said “Consider, my dear: she is only a child!”
+
+The Queen turned angrily away from him, and said to the Knave “Turn them over!”
+
+The Knave did so, very carefully, with one foot.
+
+“Get up!” said the Queen, in a shrill, loud voice, and the three gardeners instantly jumped up, and began bowing to the King, the Queen, the royal children, and everybody else.
+
+“Leave off that!” screamed the Queen. “You make me giddy.”`,
+    translation: `— А мне-то откуда знать? — сказала Алиса, сама удивляясь своей смелости. — Это не моё дело.
+
+Королева побагровела от ярости и, поглядев на неё с минуту, как дикий зверь, завизжала:
+
+— Голову с плеч! Голову…
+
+— Чепуха! — сказала Алиса очень громко и решительно, и Королева умолкла.
+
+Король положил руку ей на локоть и робко сказал:
+
+— Подумай, душа моя, ведь она всего лишь ребёнок!
+
+Королева сердито отвернулась от него и сказала Валету:
+
+— Переверни их!
+
+Валет очень осторожно перевернул их — ногой.
+
+— Встать! — крикнула Королева пронзительным громким голосом, и трое садовников мгновенно вскочили и принялись кланяться Королю, Королеве, королевским детям и вообще всем подряд.
+
+— Прекратите! — завизжала Королева. — У меня от вас голова кружится.`,
+    glossary: [
+      { term: 'It’s no business of mine', ru: 'это не моё дело' },
+      { term: 'to turn crimson', ru: 'побагроветь' },
+      { term: 'fury', ru: 'ярость' },
+      { term: 'to glare at sb', ru: 'сверлить взглядом' },
+      { term: 'Off with her head!', ru: 'Голову с плеч!' },
+      { term: 'timidly', ru: 'робко' },
+      { term: 'Knave', ru: 'Валет (карта)' },
+      { term: 'shrill', ru: 'пронзительный' },
+      { term: 'to leave off', ru: 'перестать, прекратить' },
+      { term: 'giddy', ru: 'о голове: кружится' },
+    ],
+    questions: [
+      {
+        q: 'What surprises Alice about her own reply?',
+        options: ['Its rudeness', 'Her own courage', 'Its length', 'That it was in French'],
+        correct: 1,
+      },
+      {
+        q: 'What stops the Queen the first time?',
+        options: [
+          'The King',
+          'Alice saying “Nonsense!” very loudly and decidedly',
+          'The gardeners',
+          'Nothing stops her',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the King say in the gardeners’ defence?',
+        options: [
+          'That they are innocent',
+          'That Alice is only a child',
+          'That the roses are fine',
+          'Nothing',
+        ],
+        correct: 1,
+        why: 'Король защищает не садовников, а Алису — и делает это шёпотом. В Стране чудес взрослые боятся сильнее детей.',
+      },
+      {
+        q: 'How does the Knave turn the gardeners over?',
+        options: ['With his hands', 'Very carefully, with one foot', 'With a stick', 'He refuses'],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Стокер «Дракула», три женщины ──────────────────────────────────────────
+  {
+    id: 'sc-dracula-3',
+    workId: 'stoker-dracula',
+    lang: 'en', title: 'Этот человек принадлежит мне', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Глава 3, дневник Джонатана Харкера', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Bram Stoker, Dracula · Project Gutenberg',
+    setup: 'Харкер нарушил единственный запрет графа и уснул не в своей комнате. Его разбудили три женщины, которых в замке не должно было быть. Одна из них наклонилась к его горлу — и тут дверь распахнулась.',
+    after: 'Граф отдаст женщинам мешок, в котором что-то шевелится, и Харкер поймёт, что он в замке не гость, а запас.',
+    body: `With a fierce sweep of his arm, he hurled the woman from him, and then motioned to the others, as though he were beating them back; it was the same imperious gesture that I had seen used to the wolves. In a voice which, though low and almost in a whisper seemed to cut through the air and then ring round the room he said:--
+
+“How dare you touch him, any of you? How dare you cast eyes on him when I had forbidden it? Back, I tell you all! This man belongs to me! Beware how you meddle with him, or you’ll have to deal with me.” The fair girl, with a laugh of ribald coquetry, turned to answer him:--
+
+“You yourself never loved; you never love!” On this the other women joined, and such a mirthless, hard, soulless laughter rang through the room that it almost made me faint to hear; it seemed like the pleasure of fiends.`,
+    translation: `Яростным взмахом руки он отшвырнул женщину от себя и сделал знак остальным, будто отгонял их назад; это был тот же властный жест, каким он отгонял волков. Голосом, который, хоть и был тих и почти шёпотом, словно рассекал воздух и звенел по всей комнате, он сказал:
+
+— Как вы посмели его тронуть? Как вы посмели поднять на него глаза, когда я это запретил? Назад, говорю вам всем! Этот человек принадлежит мне! Берегитесь связываться с ним, не то будете иметь дело со мной.
+
+Светловолосая, с усмешкой похабного кокетства, обернулась и ответила:
+
+— Ты сам никогда не любил; ты и не любишь!
+
+Тут к ней присоединились остальные, и по комнате раскатился такой безрадостный, жёсткий, бездушный смех, что мне едва не сделалось дурно от одного его звука; он был похож на удовольствие бесов.`,
+    glossary: [
+      { term: 'fierce sweep', ru: 'яростный взмах' },
+      { term: 'to hurl', ru: 'швырнуть, отбросить' },
+      { term: 'imperious', ru: 'властный, не терпящий возражений' },
+      { term: 'to forbid (forbade, forbidden)', ru: 'запрещать' },
+      { term: 'to meddle with sb', ru: 'связываться, лезть к кому-то' },
+      { term: 'ribald', ru: 'непристойный, похабный' },
+      { term: 'coquetry', ru: 'кокетство' },
+      { term: 'mirthless', ru: 'безрадостный, без веселья' },
+      { term: 'fiend', ru: 'бес, злой дух' },
+    ],
+    questions: [
+      {
+        q: 'What gesture had Harker seen before?',
+        options: [
+          'The same imperious gesture used to the wolves',
+          'A salute',
+          'A blessing',
+          'None',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What does the Count say about Harker?',
+        options: [
+          '“He is my guest”',
+          '“This man belongs to me”',
+          '“Let him go”',
+          '“He is nothing to me”',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the fair girl’s accusation?',
+        options: [
+          'That he is a coward',
+          'That he himself has never loved',
+          'That he is old',
+          'That he lies',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How is the Count’s voice described?',
+        options: [
+          'Loud and roaring',
+          'Low and almost a whisper, yet cutting through the air',
+          'Trembling',
+          'Cheerful',
+        ],
+        correct: 1,
+        why: 'Стокер нарочно снимает крик: самая страшная реплика романа произнесена шёпотом. Приказ действует не громкостью.',
+      },
+    ],
+  },
+
+  // ── Стокер «Дракула», по стене ─────────────────────────────────────────────
+  {
+    id: 'sc-dracula-4',
+    workId: 'stoker-dracula',
+    lang: 'en', title: 'Лицом вниз по стене', level: 'B2', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Глава 3, дневник Джонатана Харкера', size: 'flash', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Bram Stoker, Dracula · Project Gutenberg',
+    setup: 'Харкер уже понял, что он пленник, но ещё считает графа человеком. Ночью он смотрит в окно на пропасть под замком и видит, как из окна ниже кто-то показывается.',
+    after: 'После этой записи Харкер перестаёт писать «граф» и начинает писать «эта тварь». Дневник он ведёт стенографией, чтобы никто в замке не смог его прочесть.',
+    body: `But my very feelings changed to repulsion and terror when I saw the whole man slowly emerge from the window and begin to crawl down the castle wall over that dreadful abyss, _face down_ with his cloak spreading out around him like great wings. At first I could not believe my eyes. I thought it was some trick of the moonlight, some weird effect of shadow; but I kept looking, and it could be no delusion. I saw the fingers and toes grasp the corners of the stones, worn clear of the mortar by the stress of years, and by thus using every projection and inequality move downwards with considerable speed, just as a lizard moves along a wall.`,
+    translation: `Но чувства мои сменились отвращением и ужасом, когда я увидел, как весь человек целиком медленно выбирается из окна и начинает ползти вниз по стене замка над этой жуткой пропастью — лицом вниз, и плащ его расстилается вокруг, как большие крылья. Сперва я не поверил своим глазам. Я подумал, что это игра лунного света, обманчивый отблеск тени; но я продолжал смотреть, и это не могло быть обманом. Я видел, как пальцы рук и ног цепляются за края камней, с которых годы стёрли известь, и, пользуясь каждым выступом и неровностью, он движется вниз с изрядной быстротой — совершенно так, как ящерица движется по стене.`,
+    glossary: [
+      { term: 'repulsion', ru: 'отвращение' },
+      { term: 'to emerge', ru: 'появляться, выбираться наружу' },
+      { term: 'to crawl', ru: 'ползти' },
+      { term: 'abyss', ru: 'пропасть, бездна' },
+      { term: 'face down', ru: 'лицом вниз' },
+      { term: 'to spread out', ru: 'расстилаться, распластываться' },
+      { term: 'trick of the moonlight', ru: 'игра лунного света' },
+      { term: 'mortar', ru: 'известковый раствор, кладочная смесь' },
+      { term: 'projection', ru: 'выступ' },
+      { term: 'inequality', ru: 'неровность' },
+    ],
+    questions: [
+      {
+        q: 'What did Harker see?',
+        options: [
+          'A bat',
+          'The Count crawling down the castle wall face down',
+          'A servant with a lamp',
+          'Wolves',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did he first think it was?',
+        options: [
+          'A dream',
+          'Some trick of the moonlight or effect of shadow',
+          'A bird',
+          'A rope',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How did the figure hold on?',
+        options: [
+          'With a rope',
+          'By fingers and toes gripping the corners of the stones',
+          'By a ladder',
+          'It floated',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What comparison ends the passage?',
+        options: ['A spider', 'A lizard', 'A cat', 'A bat'],
+        correct: 1,
+        why: 'Стокер весь ужас держит на одном сравнении из зоологии. Не «чудовище», а «ящерица» — то есть нечто, для чего это движение естественно.',
+      },
+    ],
+  },
+
+  // ── Лондон «Зов предков», бой со Шпицем ────────────────────────────────────
+  {
+    id: 'sc-call-wild-3',
+    workId: 'london-call-wild',
+    lang: 'en', title: 'Он умел драться головой', level: 'B2', minutes: 4,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 3, where: 'Глава 3, ночь у костра', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jack London, The Call of the Wild · Project Gutenberg',
+    setup: 'Бак и вожак упряжки Шпиц враждовали с первого дня. Ночью после погони за зайцем всё решается окончательно. Вокруг кольцом в шестьдесят собак стоит вся упряжка и ждёт, чтобы добить того, кто упадёт.',
+    after: 'Круг сомкнётся, и наутро Бак займёт место вожака — не потому, что победил в драке, а потому, что впервые применил то, чего у Шпица нет.',
+    body: `Spitz was untouched, while Buck was streaming with blood and panting hard. The fight was growing desperate. And all the while the silent and wolfish circle waited to finish off whichever dog went down. As Buck grew winded, Spitz took to rushing, and he kept him staggering for footing. Once Buck went over, and the whole circle of sixty dogs started up; but he recovered himself, almost in mid air, and the circle sank down again and waited.
+
+But Buck possessed a quality that made for greatness—imagination. He fought by instinct, but he could fight by head as well. He rushed, as though attempting the old shoulder trick, but at the last instant swept low to the snow and in. His teeth closed on Spitz’s left fore leg. There was a crunch of breaking bone, and the white dog faced him on three legs. Thrice he tried to knock him over, then repeated the trick and broke the right fore leg.`,
+    translation: `Шпиц оставался невредим, а Бак истекал кровью и тяжело дышал. Драка становилась отчаянной. И всё это время молчаливое волчье кольцо ждало, чтобы прикончить того, кто упадёт. Когда Бак начал задыхаться, Шпиц перешёл в наскоки и не давал ему устоять на ногах. Один раз Бак повалился, и все шестьдесят собак разом вскочили; но он выправился почти в воздухе, и кольцо снова осело и стало ждать.
+
+Но у Бака было качество, из которого рождается величие, — воображение. Он дрался чутьём, но умел драться и головой. Он бросился вперёд, как будто снова заходя плечом, но в последний миг припал к самому снегу и ушёл вниз. Зубы его сомкнулись на левой передней ноге Шпица. Хрустнула ломающаяся кость, и белый пёс встретил его на трёх лапах. Трижды Бак пытался сбить его с ног, потом повторил приём и сломал правую переднюю.`,
+    glossary: [
+      { term: 'untouched', ru: 'невредимый' },
+      { term: 'to stream with blood', ru: 'истекать кровью' },
+      { term: 'to pant', ru: 'тяжело дышать' },
+      { term: 'to finish off', ru: 'добить, прикончить' },
+      { term: 'to grow winded', ru: 'начать задыхаться' },
+      { term: 'to stagger for footing', ru: 'терять опору, не устоять на ногах' },
+      { term: 'to make for greatness', ru: 'способствовать величию' },
+      { term: 'by instinct', ru: 'чутьём, инстинктивно' },
+      { term: 'fore leg', ru: 'передняя нога' },
+      { term: 'crunch', ru: 'хруст' },
+    ],
+    questions: [
+      {
+        q: 'Who was winning at the start of the passage?',
+        options: ['Buck', 'Spitz', 'Neither', 'The pack'],
+        correct: 1,
+      },
+      {
+        q: 'What was the circle of sixty dogs waiting for?',
+        options: [
+          'The men to come',
+          'To finish off whichever dog went down',
+          'Food',
+          'Morning',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What quality does London say made for greatness?',
+        options: ['Strength', 'Speed', 'Imagination', 'Weight'],
+        correct: 2,
+      },
+      {
+        q: 'How did Buck win?',
+        options: [
+          'By the old shoulder trick',
+          'By faking the shoulder trick and breaking both fore legs instead',
+          'By calling the pack',
+          'By outlasting Spitz',
+        ],
+        correct: 1,
+        why: 'Лондон подчёркивает, что решает не сила: Бак сначала показывает знакомый приём, а делает другой. «He fought by instinct, but he could fight by head as well».',
+      },
+    ],
+  },
+
+  // ── Лондон «Зов предков», финал ────────────────────────────────────────────
+  {
+    id: 'sc-call-wild-4',
+    workId: 'london-call-wild',
+    lang: 'en', title: 'Пёс-призрак', level: 'B2', minutes: 4,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 4, where: 'Глава 7, финал повести', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jack London, The Call of the Wild · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это финал. Джон Торнтон, единственный человек, которого Бак любил, убит. Больше ничто не держит его среди людей. Последние страницы написаны не от лица Бака, а как местное предание индейцев ихетов.',
+    after: 'Так повесть и кончается: Бак не «одичал» и не «вернулся домой» — он стал тем, о ком рассказывают у костра. Лондон переводит героя из сюжета в фольклор, и это его главный приём.',
+    body: `But more remarkable than this, the Yeehats tell of a Ghost Dog that runs at the head of the pack. They are afraid of this Ghost Dog, for it has cunning greater than they, stealing from their camps in fierce winters, robbing their traps, slaying their dogs, and defying their bravest hunters.
+
+Nay, the tale grows worse. Hunters there are who fail to return to the camp, and hunters there have been whom their tribesmen found with throats slashed cruelly open and with wolf prints about them in the snow greater than the prints of any wolf. Each fall, when the Yeehats follow the movement of the moose, there is a certain valley which they never enter. And women there are who become sad when the word goes over the fire of how the Evil Spirit came to select that valley for an abiding-place.
+
+In the summers there is one visitor, however, to that valley, of which the Yeehats do not know. It is a great, gloriously coated wolf, like, and yet unlike, all other wolves. He crosses alone from the smiling timber land and comes down into an open space among the trees. Here a yellow stream flows from rotted moose-hide sacks and sinks into the ground, with long grasses growing through it and vegetable mould overrunning it and hiding its yellow from the sun; and here he muses for a time, howling once, long and mournfully, ere he departs.`,
+    translation: `Но ещё удивительнее вот что: ихеты рассказывают о Псе-призраке, который бежит во главе стаи. Они боятся этого Пса-призрака, потому что хитростью он превосходит их: в лютые зимы он крадёт из их стойбищ, обирает их ловушки, режет их собак и не боится самых храбрых охотников.
+
+Более того, предание становится страшнее. Есть охотники, которые не возвращаются в стойбище, а бывали и такие, кого соплеменники находили с жестоко перерезанным горлом и с волчьими следами на снегу вокруг — крупнее следов любого волка. Каждую осень, когда ихеты идут за лосем, есть одна долина, в которую они не заходят. И есть женщины, которые мрачнеют, когда у костра заходит речь о том, как Злой Дух выбрал себе эту долину для жилья.
+
+Впрочем, летом в эту долину приходит один гость, о котором ихеты не знают. Это огромный, великолепно одетый мехом волк, похожий и непохожий на всех прочих волков. Он один переходит с приветливой опушки и спускается на открытое место между деревьями. Здесь из гнилых лосиных мешков течёт жёлтый ручеёк и уходит в землю, и сквозь него проросли длинные травы, и растительный перегной затянул его и прячет его желтизну от солнца; и здесь он какое-то время размышляет, один раз протяжно и скорбно воет и уходит.`,
+    glossary: [
+      { term: 'Yeehats', ru: 'ихеты — вымышленное индейское племя' },
+      { term: 'cunning', ru: 'хитрость' },
+      { term: 'to rob traps', ru: 'обирать ловушки' },
+      { term: 'to defy', ru: 'бросать вызов, не бояться' },
+      { term: 'tribesmen', ru: 'соплеменники' },
+      { term: 'abiding-place', ru: 'место обитания, жильё' },
+      { term: 'gloriously coated', ru: 'с великолепной шерстью' },
+      { term: 'timber land', ru: 'лесной край, опушка' },
+      { term: 'mould', ru: 'перегной, рыхлая земля' },
+      { term: 'to muse', ru: 'размышлять, задумываться' },
+      { term: 'ere', ru: 'устар. прежде чем' },
+    ],
+    questions: [
+      {
+        q: 'Who tells the story in this passage?',
+        options: ['Buck', 'John Thornton', 'The Yeehats', 'The narrator alone'],
+        correct: 2,
+      },
+      {
+        q: 'Why do the Yeehats avoid one valley each autumn?',
+        options: [
+          'It floods',
+          'They believe the Evil Spirit has made it his abiding-place',
+          'There is no game',
+          'It is too far',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the yellow stream flowing from the rotted sacks?',
+        options: [
+          'Water',
+          'The gold from the sacks at the place where Thornton was killed',
+          'Oil',
+          'It is not explained',
+        ],
+        correct: 1,
+        why: 'Лондон не поясняет: жёлтое из гнилых мешков — то самое золото, ради которого Торнтон здесь и оказался. Оно уходит в землю и зарастает травой.',
+      },
+      {
+        q: 'What does the wolf do at that place?',
+        options: [
+          'He digs',
+          'He muses, howls once long and mournfully, and departs',
+          'He hunts',
+          'He sleeps',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Ле Фаню «Кармилла», объяснение ─────────────────────────────────────────
+  {
+    id: 'sc-carmilla-3',
+    workId: 'lefanu-carmilla',
+    lang: 'en', title: 'Я живу в твоей тёплой жизни', level: 'C1', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Глава 4, «Её повадки»', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Joseph Sheridan Le Fanu, Carmilla · Project Gutenberg',
+    setup: 'Кармилла гостит в замке уже несколько недель и не отвечает ни на один вопрос о себе — ни откуда она, ни как её фамилия. Лаура пытается расспрашивать всё настойчивее. Вместо ответа Кармилла говорит вот это.',
+    after: 'Лаура запишет, что не понимала тогда ни слова из сказанного. Читатель к этому месту понимает уже почти всё — и в этом весь эффект повести, написанной за двадцать шесть лет до «Дракулы».',
+    body: `She used to place her pretty arms about my neck, draw me to her, and laying her cheek to mine, murmur with her lips near my ear, “Dearest, your little heart is wounded; think me not cruel because I obey the irresistible law of my strength and weakness; if your dear heart is wounded, my wild heart bleeds with yours. In the rapture of my enormous humiliation I live in your warm life, and you shall die—die, sweetly die—into mine. I cannot help it; as I draw near to you, you, in your turn, will draw near to others, and learn the rapture of that cruelty, which yet is love; so, for a while, seek to know no more of me and mine, but trust me with all your loving spirit.”
+
+And when she had spoken such a rhapsody, she would press me more closely in her trembling embrace, and her lips in soft kisses gently glow upon my cheek.`,
+    translation: `Она обвивала мою шею своими прелестными руками, притягивала меня к себе и, прижавшись щекой к моей щеке, шептала мне у самого уха: «Милая, твоё сердечко ранено; не считай меня жестокой за то, что я покоряюсь неодолимому закону моей силы и моей слабости; если ранено твоё милое сердце, моё дикое сердце кровоточит вместе с ним. В упоении моего безмерного унижения я живу в твоей тёплой жизни, а ты умрёшь — сладко умрёшь — в мою. Я не могу иначе; и как я приближаюсь к тебе, так и ты, в свой черёд, будешь приближаться к другим и узнаешь упоение той жестокости, которая всё-таки есть любовь; а потому до поры не старайся узнать больше обо мне и о моих, но доверься мне всей своей любящей душой».
+
+И, произнеся такую рапсодию, она сжимала меня в своих дрожащих объятиях ещё крепче, и губы её тихо теплились на моей щеке мягкими поцелуями.`,
+    glossary: [
+      { term: 'to murmur', ru: 'шептать, бормотать' },
+      { term: 'irresistible', ru: 'неодолимый' },
+      { term: 'rapture', ru: 'упоение, восторг' },
+      { term: 'humiliation', ru: 'унижение' },
+      { term: 'in your turn', ru: 'в свой черёд' },
+      { term: 'cruelty', ru: 'жестокость' },
+      { term: 'rhapsody', ru: 'рапсодия; здесь: бессвязная восторженная речь' },
+      { term: 'trembling embrace', ru: 'дрожащие объятия' },
+      { term: 'to glow', ru: 'теплиться, гореть' },
+    ],
+    questions: [
+      {
+        q: 'What does Carmilla say she obeys?',
+        options: [
+          'Her family',
+          'The irresistible law of her strength and weakness',
+          'A promise',
+          'Laura’s father',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does she predict for Laura?',
+        options: [
+          'That she will forget her',
+          'That she will die sweetly into Carmilla’s life',
+          'That she will marry',
+          'That she will leave the castle',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does she ask Laura to do for the time being?',
+        options: [
+          'To leave',
+          'To seek to know no more of her and hers, and simply trust her',
+          'To tell her father',
+          'To write to her',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is this speech unsettling to the reader but not to Laura?',
+        options: [
+          'It is in a foreign language',
+          'Laura hears a declaration of love; the reader hears a description of what Carmilla is',
+          'Laura is asleep',
+          'It is a dream',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Ле Фаню «Кармилла», Карнштейн ──────────────────────────────────────────
+  {
+    id: 'sc-carmilla-4',
+    workId: 'lefanu-carmilla',
+    lang: 'en', title: 'Не так мертва, как вам кажется', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 4, where: 'Глава 12, развалины Карнштейна', size: 'short', spoiler: 3,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Joseph Sheridan Le Fanu, Carmilla · Project Gutenberg',
+    setup: 'ВНИМАНИЕ: это развязка. Генерал, у которого точно так же умерла воспитанница, рассказал Лауре и её отцу свою историю. Теперь все трое едут к развалинам замка Карнштейн. У генерала при себе топор.',
+    after: 'В часовне найдут могилу Миркаллы, графини Карнштейн, умершей полтора века назад. Имя Кармилла — и имя Милларка, под которым она жила у генерала, — окажутся анаграммами этого имени.',
+    body: `“And this was once the palatial residence of the Karnsteins!” said the old General at length, as from a great window he looked out across the village, and saw the wide, undulating expanse of forest. “It was a bad family, and here its bloodstained annals were written,” he continued. “It is hard that they should, after death, continue to plague the human race with their atrocious lusts. That is the chapel of the Karnsteins, down there.”
+
+He pointed down to the grey walls of the Gothic building partly visible through the foliage, a little way down the steep. “And I hear the axe of a woodman,” he added, “busy among the trees that surround it; he possibly may give us the information of which I am in search, and point out the grave of Mircalla, Countess of Karnstein. These rustics preserve the local traditions of great families, whose stories die out among the rich and titled so soon as the families themselves become extinct.”
+
+“We have a portrait, at home, of Mircalla, the Countess Karnstein; should you like to see it?” asked my father.
+
+“Time enough, dear friend,” replied the General. “I believe that I have seen the original; and one motive which has led me to you earlier than I at first intended, was to explore the chapel which we are now approaching.”
+
+“What! see the Countess Mircalla,” exclaimed my father; “why, she has been dead more than a century!”
+
+“Not so dead as you fancy, I am told,” answered the`,
+    translation: `— Так вот где была дворцовая резиденция Карнштейнов! — произнёс наконец старый генерал, глядя из большого окна на деревню и на широкий волнистый простор леса. — Дурная была семья, и здесь писались её кровавые летописи, — продолжал он. — Обидно, что и после смерти они продолжают донимать род людской своими мерзкими вожделениями. Вон там, внизу, часовня Карнштейнов.
+
+Он показал вниз, на серые стены готического здания, частью видного сквозь листву чуть ниже по склону.
+
+— И я слышу топор дровосека, — прибавил он, — он работает среди деревьев вокруг неё; возможно, он и даст мне те сведения, которых я ищу, и укажет могилу Миркаллы, графини Карнштейн. Эти крестьяне хранят местные предания о великих родах, истории которых у богатых и титулованных умирают, едва угасает сам род.
+
+— У нас дома есть портрет Миркаллы, графини Карнштейн; хотите взглянуть? — спросил мой отец.
+
+— Успеется, дорогой друг, — ответил генерал. — Полагаю, что оригинал я уже видел; и одна из причин, приведших меня к вам раньше, чем я сперва намеревался, — желание осмотреть ту самую часовню, к которой мы теперь приближаемся.
+
+— Как! Увидеть графиню Миркаллу? — воскликнул мой отец. — Да ведь она умерла больше века назад!
+
+— Не так мертва, как вам кажется, — как мне говорили, — ответил`,
+    glossary: [
+      { term: 'palatial residence', ru: 'дворцовая резиденция' },
+      { term: 'battlements', ru: 'зубчатые стены' },
+      { term: 'undulating expanse', ru: 'волнистый простор' },
+      { term: 'bloodstained annals', ru: 'кровавые летописи' },
+      { term: 'to plague', ru: 'донимать, изводить' },
+      { term: 'atrocious lusts', ru: 'мерзкие вожделения' },
+      { term: 'foliage', ru: 'листва' },
+      { term: 'woodman', ru: 'дровосек' },
+      { term: 'rustic', ru: 'крестьянин, деревенский житель' },
+      { term: 'extinct', ru: 'угасший, пресёкшийся (о роде)' },
+      { term: 'to fancy', ru: 'полагать, воображать' },
+    ],
+    questions: [
+      {
+        q: 'Whose castle are they visiting?',
+        options: ['The General’s', 'The Karnsteins’', 'Laura’s father’s', 'A monastery'],
+        correct: 1,
+      },
+      {
+        q: 'Whose grave is the General looking for?',
+        options: [
+          'His ward’s',
+          'Mircalla, Countess Karnstein',
+          'His own family’s',
+          'Nobody’s',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the General expect the woodman to help?',
+        options: [
+          'He is a guide',
+          'Rustics preserve local traditions of great families after the families die out',
+          'He owns the land',
+          'He is a priest',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the General reply to “she has been dead more than a century”?',
+        options: [
+          '“Then we are too late”',
+          '“Not so dead as you fancy, I am told”',
+          '“That is a legend”',
+          'He says nothing',
+        ],
+        correct: 1,
+        why: 'Ле Фаню держит имя Миркаллы до последнего. Читатель уже сложил анаграмму — Carmilla, Millarca, Mircalla, — а рассказчица ещё нет.',
       },
     ],
   },

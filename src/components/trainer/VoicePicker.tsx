@@ -5,6 +5,7 @@ import { Check, ChevronDown, Mic } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import type { VoiceRole } from '../../lib/speech'
 import { hasVoiceFor, preferredVoice, setPreferredVoice, speak, voiceOptions } from '../../lib/speech'
+import { useOverlayScroll, ScrollOverlays } from '../teacher/OverlayScroll'
 
 // Выбор голоса — рядом с любой кнопкой «Послушать».
 //
@@ -112,6 +113,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
   const [all, setAll] = useState(false)
   const btn = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
+  const { ref: scrollRef, thumb, onScroll, maskStyle } = useOverlayScroll()
 
   useEffect(() => {
     if (typeof speechSynthesis === 'undefined') return
@@ -253,7 +255,6 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           {open && pos && (
             <motion.div
               ref={menu}
-              className="no-scrollbar"
               // Выезжает со стороны кнопки: список, раскрытый вверх, и
               // появляться должен снизу вверх.
               initial={{ opacity: 0, y: pos.top !== undefined ? -6 : 6, scale: 0.96 }}
@@ -263,11 +264,20 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
               style={{
                 position: 'fixed', left: pos.left, width: pos.width, zIndex: 9999,
                 ...(pos.top !== undefined ? { top: pos.top } : { bottom: pos.bottom }),
-                maxHeight: pos.maxH, overflowY: 'auto', padding: 6, borderRadius: 14,
-                background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
-                boxShadow: '0 16px 40px rgba(0,0,0,0.18)',
+                borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.18)', overflow: 'hidden',
               }}
             >
+              <ScrollOverlays thumb={thumb} />
+              <div
+                ref={scrollRef}
+                onScroll={onScroll}
+                className="no-scrollbar"
+                style={{
+                  maxHeight: pos.maxH, overflowY: 'auto', overscrollBehavior: 'contain',
+                  padding: 6, position: 'relative', ...maskStyle,
+                }}
+              >
               {rows.map(r => {
                 const on = r.id === picked
                 return (
@@ -316,6 +326,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                   {t('Показать все голоса системы')} · {total}
                 </button>
               )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>,

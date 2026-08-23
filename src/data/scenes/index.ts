@@ -1434,6 +1434,23 @@ export const WORKS: Work[] = [
     },
   },
   {
+    id: 'silo',
+    title: 'Бункер', origTitle: 'Silo', author: 'по романам Хью Хауи · Грэм Йост', year: 2023,
+    medium: 'series', platform: 'Apple TV+', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
+    tags: ['сериал', 'фантастика', 'антиутопия'],
+    blurb: 'Десять тысяч человек живут в бетонной шахте на сто сорок четыре этажа вниз, потому что наверху воздух убивает. Всем этим управляет свод правил, и главный запрет там — не выходить, а спрашивать. Язык сериала стоит того, чтобы его разобрать: это официальные объявления и служебные распоряжения, где каждое слово подобрано так, чтобы страшное звучало как порядок.',
+    inOriginal: {
+      from: 'B2',
+      subs: 'Apple TV+, английские субтитры.',
+      hard: 'Технический английский машинного отделения и канцелярские формулировки устава — два очень разных слоя в одной серии.',
+      how: 'Говорят негромко и с паузами, реплики короткие. Если корпоративный английский уже даётся, сериал идёт легче, чем кажется по жанру.',
+    },
+    quote: {
+      text: 'We do not know why we are here.',
+      attribution: 'Silo, Apple TV+ (2023)',
+    },
+  },
+  {
     id: 'morning-show',
     title: 'Утреннее шоу', origTitle: 'The Morning Show', author: 'Джей Карсон', year: 2019,
     medium: 'series', platform: 'Apple TV+', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
@@ -1741,7 +1758,7 @@ const LOADERS: Record<string, Loader> = {
  * берётся уже из самого списка (см. LanguageTrainer).
  */
 export const SCENE_COUNTS: Record<string, number> = {
-  en: 133,
+  en: 158,
   ja: 32,
   ko: 80,
   pt: 4,
