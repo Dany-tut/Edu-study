@@ -704,6 +704,166 @@ function pictureTasks(unit: LangUnit, idBase: string, lang: string) {
 }
 
 /**
+ * Возврат к пройденному — блок повторения в начале домашки.
+ *
+ * ЗАЧЕМ. Курс был лестницей без перил: юнит вводил десять слов, проверял их в
+ * тот же вечер и больше не возвращался к ним никогда. Замер по корейским
+ * курсам показал, во что это выливается: в «Разговорнике» слово всплывало в
+ * заданиях другого юнита в 13% случаев, в курсе TOPIK II — в 15%. То есть
+ * сорок восемь уроков подряд — это сорок восемь непересекающихся островов, и
+ * забывание между ними ничем не прервано.
+ *
+ * Интервальные повторения у нас есть (lib/srs.ts + колода), но они живут
+ * СНАРУЖИ курса: ученик должен сам открыть виджет. Тот, кто честно делает
+ * домашку и не открывает, не повторяет ничего. Здесь повторение возвращается
+ * в саму домашку — туда, куда ученик и так пришёл.
+ *
+ * ПОЧЕМУ ИМЕННО ЭТИ ИНТЕРВАЛЫ. Юниты 1, 2, 4, 7 и 12 шагов назад — это
+ * расширяющаяся лестница: вчерашнее, позавчерашнее, недельной давности.
+ * Ровный шаг («три прошлых юнита») даёт частое повторение свежего и полный
+ * провал старого, а именно старое и забывается.
+ *
+ * ПОЧЕМУ ТРИ РАЗНЫХ ЗАДАНИЯ, А НЕ ТРИ КАРТОЧКИ. Повторение одним типом — это
+ * повторение одного навыка. Здесь три ступени сразу: узнать пару среди
+ * пяти (самое лёгкое), вспомнить слово по смыслу (тяжелее) и заново решить
+ * упражнение прошлого юнита (перенос в работу).
+ *
+ * Блок стоит ПЕРВЫМ — до дрилла нового юнита. Разминка на знакомом материале
+ * дешевле в начале, чем хвостом после часа работы, до которого не доходят.
+ */
+const REVIEW_OFFSETS = [1, 2, 4, 7, 12]
+
+/** Типы, которые можно перенести в другой юнит, не потеряв смысла. */
+const CARRYABLE_TYPES = new Set<TaskTypeId>([
+  'single', 'multi', 'fill', 'wordBank', 'sequence', 'matching', 'tableFill',
+  'listenType', 'listenBank',
+])
+
+function reviewTasks(
+  unit: LangUnit,
+  byN: Map<number, LangUnit>,
+  idBase: string,
+  lang: string,
+  native = false,
+) {
+  const prev = REVIEW_OFFSETS
+    .map(o => byN.get(unit.n - o))
+    .filter((u): u is LangUnit => !!u)
+  if (prev.length === 0) return []
+
+  const label = (w: VocabItem) => (w.reading ? `${w.term} (${w.reading})` : w.term)
+  const wordOf = (u: LangUnit, shift: number): VocabItem | null => {
+    const words = u.vocab.filter(w => w.term?.trim() && w.ru?.trim())
+    return words.length ? words[(unit.n + shift) % words.length] : null
+  }
+  const out: SeedTask[] = []
+
+  // ── 1. Узнавание: по слову из каждого прошлого юнита ──
+  //
+  // Слова с одинаковым переводом в один блок не ставятся: пара становится
+  // неугадываемой не потому, что ученик не знает языка, а потому что верных
+  // ответов два (та же причина, что и в vocabRecognition).
+  const seenRu = new Set<string>()
+  const pool = prev
+    .map((u, i) => wordOf(u, i))
+    .filter((w): w is VocabItem => !!w)
+    .filter(w => {
+      const ru = w.ru.trim().toLowerCase()
+      if (seenRu.has(ru)) return false
+      seenRu.add(ru)
+      return true
+    })
+  if (pool.length >= 3) {
+    out.push(pairsOf(
+      native
+        ? 'Повторение: соедините слово и толкование — из прошлых уроков.'
+        : 'Повторение: соедините слово и перевод — из прошлых уроков.',
+      pool.map(w => (native ? [w.ru, w.term] : [label(w), w.ru]) as [string, string]),
+    ))
+  }
+
+  // ── 2. Припоминание: вписать слово без вариантов ──
+  //
+  // Берётся из юнита позапрошлого, а не вчерашнего: вчерашнее ученик помнит
+  // ещё «эхом», и такая проверка ничего не показывает.
+  const recallFrom = prev[1] ?? prev[0]
+  const recall = wordOf(recallFrom, 3)
+  if (recall) {
+    out.push(fill(
+      native
+        ? `Повторение: какое слово это описывает — «${recall.ru}»?`
+        : `Повторение: как будет «${recall.ru}»?`,
+      native ? recall.term : recall.term,
+      recall.alt,
+    ))
+  }
+
+  // ── 3. Перенос: задание прошлого юнита целиком ──
+  //
+  // Задание с отрывком не переносится: отрывок в блоке повторения — это
+  // страница текста перед разминкой, а группа вопросов к нему всё равно
+  // осталась бы в своём юните.
+  const carryFrom = prev[2] ?? prev[1] ?? prev[0]
+  const carryable = carryFrom.tasks.filter(t => CARRYABLE_TYPES.has(t.type) && !t.passage)
+  if (carryable.length > 0) {
+    const src = carryable[unit.n % carryable.length]
+    out.push({
+      ...src,
+      question: src.question ? `Повторение. ${src.question}` : 'Повторение.',
+    })
+  }
+
+  return out.map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+}
+
+/**
+ * Карточки слов — вперемешку с работой, а не хвостом в конце.
+ *
+ * ЗАЧЕМ. Словарь юнита превращался в карточки один к одному и ложился в конец
+ * сплошным блоком: десять слов — десять подряд идущих «впиши перевод». В
+ * корейских курсах это 39–41% всех заданий домашки, и последняя её треть
+ * состояла из них одних. Ученик доходил до этого места и делал десять
+ * одинаковых экранов подряд — ровно то, ради чего люди бросают Duolingo.
+ *
+ * Само количество карточек при этом уменьшать нельзя: из них строится
+ * «Слова урока» (VocabIntro) и из них же наполняется колода интервальных
+ * повторений (lib/reviewCapture.ts). Выкинутое из домашки слово исчезло бы
+ * из обоих мест. Поэтому меняется не число, а РАСПОЛОЖЕНИЕ: карточки
+ * распределяются по всей домашке, и подряд их идёт одна-две, а не десять.
+ *
+ * ГРУППА ВОПРОСОВ К ОТРЫВКУ НЕДЕЛИМА. Решатель показывает текст один раз на
+ * всю группу подряд идущих заданий с одинаковым passage; карточка, вставшая
+ * в середину, разорвала бы группу и заставила показать отрывок дважды.
+ * Поэтому такие серии склеиваются в один неделимый блок.
+ */
+function interleaveCards<T extends { passage?: string }>(work: T[], cards: T[]): T[] {
+  if (cards.length === 0) return work
+  if (work.length === 0) return cards
+
+  // Неделимые блоки: подряд идущие задания с одним и тем же отрывком.
+  const blocks: T[][] = []
+  for (const task of work) {
+    const last = blocks[blocks.length - 1]
+    const samePassage = !!task.passage && last?.[0]?.passage === task.passage
+    if (samePassage) last.push(task)
+    else blocks.push([task])
+  }
+
+  const out: T[] = []
+  let ci = 0
+  blocks.forEach((block, bi) => {
+    out.push(...block)
+    // Сколько карточек должно быть выдано к этому месту, чтобы к концу
+    // работы кончились и они. Round, а не floor: при равном числе карточек и
+    // блоков получается ровное чередование «работа — карточка».
+    const want = Math.round((cards.length * (bi + 1)) / blocks.length)
+    while (ci < want && ci < cards.length) out.push(cards[ci++])
+  })
+  while (ci < cards.length) out.push(cards[ci++])
+  return out
+}
+
+/**
  * Запасной конспект для юнитов, где текст ещё не написан руками.
  *
  * Собирается из уже заданных полей, чтобы урок не был пустым. Это заглушка:
@@ -839,18 +999,25 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       // Живая речь — до отработки: см. homeworkVideos в LanguageCourseSpec.
       ...(spec.homeworkVideos?.[unit.shortId] ?? [])
         .map((task, i) => editorTask(task, `${unit.shortId}-hv${i + 1}`, spec.lang)),
-      // Дрилл идёт первым: конструкция сначала ставится в руку подстановкой, и
-      // только потом проверяется вразбивку остальными заданиями. В обратном
-      // порядке первые упражнения проверяли бы то, что ещё не отработано.
-      ...patternTask(unit, `${unit.shortId}-p`, spec.lang),
-      ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`, spec.lang)),
-      // Задание по картинке идёт перед карточками: сначала узнать предмет,
-      // потом отрабатывать слово.
-      ...pictureTasks(unit, `${unit.shortId}-pic`, spec.lang),
-      // Узнавание идёт перед карточками: к вводу перевода ученик приходит,
-      // увидев слово третий раз, а не первый (см. vocabRecognition).
-      ...vocabRecognition(unit, `${unit.shortId}-r`, spec.lang, spec.native),
-      ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang, spec.native)),
+      // Возврат к пройденному — до нового материала (см. reviewTasks).
+      ...reviewTasks(unit, byN, `${unit.shortId}-rv`, spec.lang, spec.native),
+      // Работа юнита и карточки его слов идут вперемешку: подряд идущих
+      // карточек больше двух не бывает (см. interleaveCards).
+      ...interleaveCards(
+        [
+          // Дрилл идёт первым: конструкция сначала ставится в руку
+          // подстановкой, и только потом проверяется вразбивку остальными
+          // заданиями. В обратном порядке первые упражнения проверяли бы то,
+          // что ещё не отработано.
+          ...patternTask(unit, `${unit.shortId}-p`, spec.lang),
+          ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`, spec.lang)),
+          ...pictureTasks(unit, `${unit.shortId}-pic`, spec.lang),
+          // Узнавание идёт до карточек по тому же слову: к вводу перевода
+          // ученик приходит, увидев слово третий раз (см. vocabRecognition).
+          ...vocabRecognition(unit, `${unit.shortId}-r`, spec.lang, spec.native),
+        ],
+        unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang, spec.native)),
+      ),
     ],
   }))
 

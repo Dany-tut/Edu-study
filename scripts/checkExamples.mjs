@@ -107,6 +107,60 @@ for (const [lang, book] of Object.entries(BOOKS)) {
  * Однобуквенные термы (чамо, гласные) пропускаем: буква стоит внутри слога, а
  * не отдельной строкой, и посимвольная сверка тут ничего не значит.
  */
+/**
+ * Немецкий: слово в предложении почти никогда не стоит так, как в словаре.
+ *
+ * ДВЕ ПРИЧИНЫ. Первая — отделяемая приставка: «aufstehen» в предложении это
+ * «ich stehe … auf», и поиск подстроки не находит ничего. Вторая — умлаут и
+ * чередование в основе: «fahren → er fährt», «Buch → Bücher», «Mutter →
+ * Mütter». Поэтому здесь сначала пробуется само слово, потом основа без
+ * приставки, а сравнение идёт по строке с «разутыми» умлаутами.
+ */
+const DE_PREFIXES = [
+  'zurück', 'weiter', 'zusammen', 'auseinander', 'vorbei', 'entlang', 'herunter', 'hinunter',
+  'auf', 'aus', 'ein', 'ab', 'an', 'mit', 'nach', 'vor', 'zu', 'um', 'über', 'unter', 'bei',
+  'durch', 'fest', 'frei', 'her', 'hin', 'los', 'statt', 'teil', 'wieder', 'weg',
+]
+const deFlat = s => s.toLowerCase()
+  .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+
+/**
+ * Неправильные основы, которые не выводятся отрезанием: у сильных и модальных
+ * глаголов меняется корневая гласная (dürfen → darf, haben → hat, wissen →
+ * weiß), и никакая длина префикса этого не поймает. Список короткий, потому что
+ * частотных таких глаголов немного.
+ */
+const DE_IRREGULAR = {
+  'durfen': ['darf'], 'konnen': ['kann'], 'mussen': ['muss'], 'mogen': ['mag', 'moch'],
+  'dürfen': ['darf'], 'können': ['kann'], 'müssen': ['muss'], 'mögen': ['mag', 'moch'],
+  'wissen': ['weiss', 'wuss'], 'haben': ['hat', 'has', 'hab'], 'sein': ['ist', 'bin', 'sind', 'war'],
+  'werden': ['wird', 'wurd'], 'vorhaben': ['hast', 'habe', 'hat'], 'nehmen': ['nimm', 'nahm'],
+  'geben': ['gib', 'gab'], 'sehen': ['sieh', 'sah'], 'lesen': ['lies', 'las'], 'sprechen': ['spr'],
+  'helfen': ['half', 'hilf'], 'treffen': ['triff', 'traf'], 'essen': ['iss', 'ass'],
+}
+
+function deContains(sentence, first, key) {
+  // Возвратные: значимое слово второе, «sich» стоит в предложении как mich/dich/uns.
+  if (first === 'sich') {
+    const second = key.split(' ')[1]
+    if (second) first = second
+  }
+  const text = deFlat(sentence)
+  const word = deFlat(first)
+  if (text.includes(word)) return true
+  for (const stem of DE_IRREGULAR[deFlat(first)] ?? DE_IRREGULAR[first] ?? []) if (text.includes(deFlat(stem))) return true
+  // Отделяемая приставка: ищем и приставку, и остаток глагола отдельно.
+  for (const p of DE_PREFIXES) {
+    if (!word.startsWith(p) || word.length <= p.length + 2) continue
+    const rest = word.slice(p.length)
+    const stem = rest.length > 5 ? rest.slice(0, rest.length - 2) : rest.replace(/en$/, '')
+    if (stem.length >= 3 && text.includes(stem) && text.includes(p)) return true
+  }
+  // Чередование в основе: сверяем начало слова, а не всё слово целиком.
+  const stem = word.length > 5 ? word.slice(0, word.length - 2) : word.replace(/(en|e)$/, '')
+  return stem.length >= 3 && text.includes(stem)
+}
+
 function contains(sentence, term, key, lang) {
   if ([...term].length <= 2) return true
   if (/[~～/(]/.test(term)) return true          // грамматические модели и пары «A / B»
@@ -116,6 +170,7 @@ function contains(sentence, term, key, lang) {
     return stem.length >= 1 && sentence.includes(stem)
   }
   const first = key.split(' ')[0]
+  if (lang === 'de') return deContains(sentence, first, key)
   const stem = first.length > 5 ? first.slice(0, first.length - 2) : first
   return sentence.toLowerCase().includes(stem)
 }
