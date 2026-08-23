@@ -29,6 +29,8 @@ import {
   dictation, dictationBank, drill, reading,
 } from './languageCourse'
 import type { LangUnit, LanguageCourseSpec } from './languageCourse'
+import { DEAB_VIDEO } from './languageVideosExtra'
+import { DEAB_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Юниты 1–8: звук, род, настоящее время, Akkusativ ────────────────────────
@@ -1479,7 +1481,11 @@ export const GERMAN_A1B1_SPEC: LanguageCourseSpec = {
   scopeNote:
     'Системный курс для жизни, а не для сертификата: от чтения вслух и артикля до придаточных, перфекта, пассива и писем в ведомство. Экзаменационной подготовки к Goethe и telc в нём нет — формат экзамена отрабатывается отдельно. Разговорник «Немецкий: язык выживания» хорошо идёт параллельно: там ситуации, здесь правила.',
   modules: MODULES,
-  units: [...UNITS_A1, ...UNITS_A2, ...UNITS_B1],
+  // Видео урока проставляется здесь, а не в самих юнитах: подборка живёт
+  // своей жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
+  // контентом значило бы править контент из-за чужого канала.
+  units: [...UNITS_A1, ...UNITS_A2, ...UNITS_B1].map(u => ({ ...u, videoUrl: DEAB_VIDEO[u.shortId] ?? u.videoUrl })),
+  homeworkVideos: DEAB_HOMEWORK_VIDEO,
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */

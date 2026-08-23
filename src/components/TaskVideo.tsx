@@ -63,13 +63,25 @@ export default function TaskVideo({
       updatedAt: '',
     }
   })
+  // Живой счётчик ТОЛЬКО для полосы под плеером. Отдельно от `watch` он нужен
+  // потому, что `watch` уезжает в initialWatch, а новый объект там плеер читает
+  // как «прогресс приехал из базы» и сбрасывает свой — первые секунды просмотра
+  // стирались бы. Сюда же плеер шлёт onWatchTick раз в секунду, и полоса едет
+  // вместе с роликом, не дожидаясь onPersist (раз в десять секунд).
+  const [live, setLive] = useState(() => {
+    const a = parseVideoAnswer(value)
+    return { seen: watchedSeconds(a.ranges), duration: a.duration }
+  })
+
   // Ответ пишем не чаще, чем плеер зовёт onPersist, но и не реже: последнее
   // состояние обязано уехать в черновик, иначе закрытая на середине серия
   // назавтра начнётся с нуля.
   const lastSent = useRef('')
+  /** Ответ уже говорит «просмотрено» — досылать его каждую секунду незачем. */
+  const sentDone = useRef(false)
 
-  const persist = (next: VideoWatch) => {
-    setWatch(next)
+  /** Отдать просмотр в ответ. Состояние плеера при этом НЕ трогаем. */
+  const emit = (next: VideoWatch) => {
     if (disabled) return
     const encoded = formatVideoAnswer({
       watched: watchedSeconds(next.ranges),
@@ -80,6 +92,25 @@ export default function TaskVideo({
     if (encoded === lastSent.current) return
     lastSent.current = encoded
     onChange(encoded)
+  }
+
+  const persist = (next: VideoWatch) => {
+    setWatch(next)
+    setLive({ seen: watchedSeconds(next.ranges), duration: next.duration })
+    emit(next)
+  }
+
+  /** Секундный тик плеера: двигаем полосу, состояние плеера не трогаем. */
+  const onWatchTick = (w: VideoWatch) => {
+    const seenNow = watchedSeconds(w.ranges)
+    setLive({ seen: seenNow, duration: w.duration })
+    // Как только полоса показала «Просмотрено», ответ обязан уехать сразу:
+    // «Проверить» жмут ровно в эту секунду, а onPersist придёт только через
+    // десять — задание считалось бы невыполненным.
+    const needNow = videoRequiredSeconds(watchSeconds, w.duration)
+    if (sentDone.current || needNow <= 0 || seenNow + 0.5 < needNow) return
+    sentDone.current = true
+    emit(w)
   }
 
   // Объект прогресса для плеера считается ОДИН раз на изменение самого
@@ -106,8 +137,8 @@ export default function TaskVideo({
     )
   }
 
-  const seen = watchedSeconds(watch.ranges)
-  const need = videoRequiredSeconds(watchSeconds, watch.duration)
+  const seen = live.seen
+  const need = videoRequiredSeconds(watchSeconds, live.duration || watch.duration)
   const done = need > 0 && seen + 0.5 >= need
   const ratio = need > 0 ? Math.min(1, seen / need) : 0
 
@@ -125,6 +156,9 @@ export default function TaskVideo({
           // Длительность и позиция и так приезжают в onPersist — раз в десять
           // секунд, на паузе и при уходе с экрана.
           onPersist={persist}
+          // Живьём — только для полосы ниже: в `watch` это не кладём, иначе
+          // сменится initialWatch и плеер сбросит свой прогресс.
+          onWatchTick={onWatchTick}
         />
       </div>
 

@@ -1123,8 +1123,11 @@ function gapTask(x: Phrase, langName: string): SeedTask[] {
 
   const answer = parts[at]
   const shown = parts.map((word, i) => (i === at ? '_'.repeat(Math.max(3, word.length)) : word)).join(' ')
+  // langName стоит в предложном падеже («корейском») — он и подставляется в
+  // «Напишите на …» рядом. Здесь предлог тоже нужен, иначе выходит
+  // «Допишите слово (корейском)».
   return [fill(
-    `Допишите пропущенное слово (${langName}): «${shown}» — ${x.ru}`,
+    `Допишите пропущенное слово на ${langName}: «${shown}» — ${x.ru}`,
     answer,
   )]
 }

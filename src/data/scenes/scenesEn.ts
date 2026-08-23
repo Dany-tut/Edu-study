@@ -1760,6 +1760,188 @@ Come armed, come sober and come early. The field holds two thousand and the town
     ],
   },
 
+  // ── Тетрадь смерти (англ.): карточка, наш текст ────────────────────────────
+  //
+  // bucket: 'inspired'. Ни одного правила из манги и ни одного её персонажа:
+  // свод и совещание написаны нами. От «Тетради смерти» взяты два регистра —
+  // язык свода правил и язык следствия, которое строит версию вслух.
+  {
+    id: 'sc-dn-en-1',
+    workId: 'death-note-en',
+    lang: 'en', title: 'Выдержка из правил', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему аниме', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В аниме правила показывают текстом на экране — сухим слогом инструкции, будто речь о бытовом приборе. Ниже наш свод в том же жанре. Обороты отсюда работают в любом договоре и пользовательском соглашении: «shall», «in the event that», «provided that», «this does not apply».',
+    after: 'Смотрите на пятый пункт: «незнание правил не отменяет их действия». В юридическом английском это ignorance of the rules is not a defence — формула, из-за которой договоры и читают до подписи, а не после.',
+    body: `RULES OF USE (EXTRACT)
+
+1. Where a name is entered in this notebook, the effect shall follow regardless of the intention of the person entering it.
+
+2. The name must be exact. In the event that two or more living persons share that name in full, no effect shall follow.
+
+3. An entry is valid only where it is made in the writer's own hand. An entry made by another person on request is void.
+
+4. A request to cancel an entry may be submitted. Such a request is not necessarily granted.
+
+5. These rules apply whether or not the user was aware of them. Ignorance of the rules is not a defence.
+
+6. The notebook may be passed to another person. The person passing it forgets the act of passing it. The record of names already entered remains. No provision has been made under which this does not apply.`,
+    translation: `ПРАВИЛА ПОЛЬЗОВАНИЯ (ВЫДЕРЖКА)
+
+1. В случае внесения имени в настоящую тетрадь действие наступает независимо от намерения внёсшего.
+
+2. Имя должно быть указано точно. Если двое или более живущих носят это имя полностью, действие не наступает.
+
+3. Запись действительна только тогда, когда сделана собственной рукой пишущего. Запись, сделанная другим лицом по просьбе, недействительна.
+
+4. Заявление об отмене записи может быть подано. Такое заявление не обязательно удовлетворяется.
+
+5. Настоящие правила применяются независимо от того, знал о них пользователь или нет. Незнание правил не является оправданием.
+
+6. Тетрадь может быть передана другому лицу. Передающий забывает сам факт передачи. Запись уже внесённых имён сохраняется. Положений, при которых это не действовало бы, не предусмотрено.`,
+    glossary: [
+      { term: 'extract', ru: 'выдержка, извлечение' },
+      { term: 'shall', ru: 'в документах: обозначает обязательность, а не будущее время' },
+      { term: 'regardless of', ru: 'независимо от' },
+      { term: 'in the event that', ru: 'в случае, если' },
+      { term: 'void', ru: 'недействительный' },
+      { term: 'to submit a request', ru: 'подать заявление' },
+      { term: 'not necessarily', ru: 'не обязательно' },
+      { term: 'to be granted', ru: 'быть удовлетворённым (о просьбе)' },
+      { term: 'ignorance', ru: 'незнание, неосведомлённость' },
+      { term: 'defence', ru: 'оправдание, довод в свою защиту' },
+      { term: 'provision', ru: 'положение (документа)' },
+    ],
+    questions: [
+      {
+        q: 'What happens to an entry made by another person on request?',
+        options: ['It is valid', 'It is void', 'It works once', 'The rules do not say'],
+        correct: 1,
+      },
+      {
+        q: 'If a request to cancel is submitted, is the entry always cancelled?',
+        options: [
+          'Yes, always',
+          'No — such a request is not necessarily granted',
+          'Only within three days',
+          'Cancelling is impossible',
+        ],
+        correct: 1,
+        why: '«Not necessarily granted» — оборот, которым в документах оставляют себе право отказать, не говоря «нет».',
+      },
+      {
+        q: 'What does rule 5 say about a user who did not know the rules?',
+        options: [
+          'The rules do not apply to them',
+          'The rules apply anyway',
+          'They are forgiven once',
+          'They must be informed first',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "shall" mean in this text?',
+        options: [
+          'A polite future tense',
+          'An obligation — what must happen',
+          'A suggestion',
+          'A question form',
+        ],
+        correct: 1,
+        why: 'В юридическом английском shall — не «будет», а «обязан». Именно поэтому договоры им и написаны.',
+      },
+    ],
+  },
+  {
+    id: 'sc-dn-en-2',
+    workId: 'death-note-en',
+    lang: 'en', title: 'Совещание: три версии', level: 'B2', minutes: 4,
+    topic: 'Работа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему аниме', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вторая половина сериала — совещания, где версию проверяют вслух. Ниже наше такое совещание. Польза прямая и далеко за пределами детектива: так по-английски ведут рабочий разбор — «let us assume», «that would mean», «it contradicts», «we cannot rule it out».',
+    after: 'Последняя реплика — рабочая формула, которую стоит унести с собой: «a theory we cannot disprove is not the same as a theory we have proved». Между «не опровергнуто» и «доказано» лежит вся разница, и на совещаниях её путают постоянно.',
+    body: `“As of now there are three possibilities.
+
+One. He takes his information from public news reports. If that is the case, we cannot narrow down where he is. He could be anywhere in the country.
+
+Two. He is reading internal files. Let us assume that for a moment: then the circle is small. Twelve people have access.
+
+Three is both at once.”
+
+“Start with the third. Why?”
+
+“Because one and two each leave something unexplained. He uses details that never appeared in the press. At the same time, he moves faster than internal files alone would allow.”
+
+“So there are facts that contradict both assumptions.”
+
+“Yes. The only account that contradicts nothing so far is the third.”
+
+“Understood. But keep this in mind. A theory we cannot disprove is not the same as a theory we have proved.”`,
+    translation: `— На сегодня возможностей три.
+
+Первая. Он берёт сведения из открытых новостных сообщений. Если так, сузить его местоположение мы не можем: он может быть где угодно в стране.
+
+Вторая. Он читает внутренние документы. Допустим на минуту, что это так: тогда круг узок. Доступ есть у двенадцати человек.
+
+Третья — и то, и другое сразу.
+
+— Начните с третьей. Почему?
+
+— Потому что первая и вторая оставляют по необъяснённому остатку. Он использует подробности, которых в прессе не было. И при этом действует быстрее, чем позволяли бы одни внутренние документы.
+
+— То есть есть факты, противоречащие обеим посылкам.
+
+— Да. Единственное объяснение, которое пока ничему не противоречит, — третье.
+
+— Понял. Но держите в голове вот что: версия, которую мы не можем опровергнуть, — это не то же самое, что версия, которую мы доказали.`,
+    glossary: [
+      { term: 'as of now', ru: 'на данный момент' },
+      { term: 'to narrow down', ru: 'сузить (круг, поиск)' },
+      { term: 'let us assume', ru: 'допустим, предположим' },
+      { term: 'to have access', ru: 'иметь доступ' },
+      { term: 'unexplained', ru: 'необъяснённый' },
+      { term: 'at the same time', ru: 'при этом, в то же время' },
+      { term: 'to contradict', ru: 'противоречить' },
+      { term: 'assumption', ru: 'посылка, допущение' },
+      { term: 'account', ru: 'объяснение, версия; отчёт' },
+      { term: 'to disprove', ru: 'опровергнуть' },
+    ],
+    questions: [
+      {
+        q: 'Under the first possibility, can they narrow down his location?',
+        options: ['Yes', 'No', 'Only to one city', 'Only with the files'],
+        correct: 1,
+      },
+      {
+        q: 'How many people have access to the internal files?',
+        options: ['Three', 'Twelve', 'Twenty', 'It is not stated'],
+        correct: 1,
+      },
+      {
+        q: 'Why do they start with the third possibility?',
+        options: [
+          'It is the simplest',
+          'Because one and two each leave something unexplained',
+          'Because someone ordered it',
+          'Because there is proof',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the warning in the last line?',
+        options: [
+          'Anything that cannot be disproved is true',
+          'Failing to disprove something is not the same as proving it',
+          'Theories are useless',
+          'Evidence is not needed',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
   // ── Алиса в Пограничье: карточка, наш текст ────────────────────────────────
   //
   // bucket: 'inspired'. Сериал японский, но у него есть официальная английская

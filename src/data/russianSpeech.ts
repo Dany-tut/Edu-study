@@ -25,6 +25,8 @@ import {
   one, fill, pairsOf, order, write, say, readAloud, wb, drill,
 } from './languageCourse'
 import type { LangUnit, LanguageCourseSpec } from './languageCourse'
+import { RUZH_VIDEO } from './languageVideosExtra'
+import { RUZH_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Часть I: слово ──────────────────────────────────────────────────────────
@@ -1249,7 +1251,11 @@ export const RUSSIAN_SPEECH_SPEC: LanguageCourseSpec = {
   scopeNote:
     'Курс про речь, а не про орфографию: точное слово, чистая фраза, письмо, которое понимают с первого раза. Заданий формата ЕГЭ здесь нет — предмет заведён ради речи, а не ради балла. Карточка перевёрнута: на лице толкование, ответом служит само слово, потому что переводить в родном языке нечего.',
   modules: MODULES,
-  units: [...PART_WORD, ...PART_PHRASE, ...PART_TEXT, ...PART_SPEECH],
+  // Видео урока проставляется здесь, а не в самих юнитах: подборка живёт
+  // своей жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
+  // контентом значило бы править контент из-за чужого канала.
+  units: [...PART_WORD, ...PART_PHRASE, ...PART_TEXT, ...PART_SPEECH].map(u => ({ ...u, videoUrl: RUZH_VIDEO[u.shortId] ?? u.videoUrl })),
+  homeworkVideos: RUZH_HOMEWORK_VIDEO,
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */

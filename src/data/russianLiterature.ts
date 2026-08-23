@@ -25,6 +25,8 @@ import {
   one, fill, pairsOf, order, write, say, readAloud, drill,
 } from './languageCourse'
 import type { LangUnit, LanguageCourseSpec } from './languageCourse'
+import { RULIT_VIDEO } from './languageVideosExtra'
+import { RULIT_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Часть I: как смотреть ───────────────────────────────────────────────────
@@ -1080,7 +1082,11 @@ export const RUSSIAN_LITERATURE_SPEC: LanguageCourseSpec = {
   scopeNote:
     'Курс о том, как сделаны тексты, а не о том, что хотел сказать автор. Каждый юнит: короткий подлинный отрывок → разбор приёма → своё упражнение по образцу. Сочинений формата ЕГЭ и истории литературы здесь нет. Цитируются только вещи в общественном достоянии — Гоголь, Чехов, Бунин; современные авторы упоминаются, но не цитируются.',
   modules: MODULES,
-  units: [...PART_LOOK, ...PART_VOICE, ...PART_BUILD, ...PART_OWN],
+  // Видео урока проставляется здесь, а не в самих юнитах: подборка живёт
+  // своей жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
+  // контентом значило бы править контент из-за чужого канала.
+  units: [...PART_LOOK, ...PART_VOICE, ...PART_BUILD, ...PART_OWN].map(u => ({ ...u, videoUrl: RULIT_VIDEO[u.shortId] ?? u.videoUrl })),
+  homeworkVideos: RULIT_HOMEWORK_VIDEO,
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */

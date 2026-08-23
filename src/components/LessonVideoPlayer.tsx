@@ -118,6 +118,16 @@ interface Props {
    * перерисовывается вся страница урока.
    */
   onTime?(seconds: number, duration: number): void
+  /**
+   * Живой прогресс просмотра — для полосы «сколько отсмотрено», которая должна
+   * ехать вместе с роликом, а не ждать очередного onPersist (раз в десять
+   * секунд). Зовётся раз в секунду, тем же тактом, что и onTime.
+   *
+   * ВАЖНО: то, что приехало сюда, НЕЛЬЗЯ возвращать обратно в initialWatch —
+   * плеер понимает новый объект как «прогресс приехал из базы» и сбрасывает
+   * свой. Этим колбэком только рисуют; сохраняет по-прежнему onPersist.
+   */
+  onWatchTick?(w: VideoWatch): void
 }
 
 // ── Загрузчик YouTube IFrame API (один на страницу) ─────────────────────────
@@ -156,7 +166,7 @@ function loadYouTubeApi(): Promise<NonNullable<Window['YT']>> {
 }
 
 const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
-  { source, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime }, ref,
+  { source, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
 ) {
   const t = useT()
 
@@ -228,6 +238,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   onPersistRef.current = onPersist
   const onTimeRef = useRef(onTime)
   onTimeRef.current = onTime
+  const onWatchTickRef = useRef(onWatchTick)
+  onWatchTickRef.current = onWatchTick
   /** Подпись последнего сохранённого состояния — чтобы не писать одно и то же. */
   const savedSig = useRef('')
   /** Что мы сами только что отдали наверх: оно вернётся пропом, и принимать его
@@ -487,6 +499,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
         if (Math.floor(time) !== Math.floor(lastReported.current)) {
           lastReported.current = time
           onTimeRef.current?.(time, known)
+          // Отрезки уже посчитаны предыдущим тиком и лежат в watchRef —
+          // отдаём их как есть, отставание в четверть секунды не видно.
+          onWatchTickRef.current?.(watchRef.current)
         }
       }
 

@@ -51,6 +51,8 @@ const MODULES = {
   kohg: 'koreanHangul', kotp: 'koreanTopik', kot2: 'koreanTopik2', kosv: 'survivalKo',
   jajl: 'japaneseJlpt', jan3: 'japaneseJlptN3', jasv: 'survivalJa',
   ptbr: 'portugueseCelpe', ptb2: 'portugueseIntermediate', ptsv: 'survivalPt',
+  deab: 'germanA1B1', desv: 'survivalDe',
+  ruzh: 'russianSpeech', ruvo: 'russianVoice', rulit: 'russianLiterature',
 }
 
 const dir = mkdtempSync(join(tmpdir(), 'seedcheck-'))

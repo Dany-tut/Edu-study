@@ -22,6 +22,8 @@ import {
   one, fill, pairsOf, order, write, say, readAloud, drill,
 } from './languageCourse'
 import type { LangUnit, LanguageCourseSpec } from './languageCourse'
+import { RUVO_VIDEO } from './languageVideosExtra'
+import { RUVO_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Часть I: аппарат ────────────────────────────────────────────────────────
@@ -785,7 +787,11 @@ export const RUSSIAN_VOICE_SPEC: LanguageCourseSpec = {
   scopeNote:
     'Курс о том, как звучит сказанное: дыхание, артикуляция, темп, пауза, интонация, структура выступления и спор. Почти каждое задание — запись голоса, иначе проверить нечего. Постановки голоса «как у диктора» и актёрских упражнений здесь нет: задача — разборчивость и структура, а не сцена.',
   modules: MODULES,
-  units: [...PART_BODY, ...PART_TONE, ...PART_PUBLIC],
+  // Видео урока проставляется здесь, а не в самих юнитах: подборка живёт
+  // своей жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
+  // контентом значило бы править контент из-за чужого канала.
+  units: [...PART_BODY, ...PART_TONE, ...PART_PUBLIC].map(u => ({ ...u, videoUrl: RUVO_VIDEO[u.shortId] ?? u.videoUrl })),
+  homeworkVideos: RUVO_HOMEWORK_VIDEO,
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */

@@ -756,6 +756,27 @@ function reviewTasks(
     const words = u.vocab.filter(w => w.term?.trim() && w.ru?.trim())
     return words.length ? words[(unit.n + shift) % words.length] : null
   }
+  /**
+   * Слово, чей перевод в своём юните единственный.
+   *
+   * ЗАЧЕМ. Задание «как будет …» даёт русский смысл и ждёт ровно одну форму.
+   * В юните отрицания рядом стоят 아니요 и 없어요, и оба честно переводятся
+   * «нет»: вопрос «как будет „нет“?» не имеет единственного верного ответа, и
+   * ученик получает ошибку за корректное слово. Та же защита, что у
+   * разговорника (см. askable в survivalPhrases.ts), — только там она нужна
+   * внутри темы, а здесь внутри юнита-источника.
+   */
+  const unambiguousOf = (u: LangUnit, shift: number): VocabItem | null => {
+    const words = u.vocab.filter(w => w.term?.trim() && w.ru?.trim())
+    const times = new Map<string, number>()
+    for (const w of words) {
+      const ru = w.ru.trim().toLowerCase()
+      times.set(ru, (times.get(ru) ?? 0) + 1)
+    }
+    const pool = words.filter(w => times.get(w.ru.trim().toLowerCase()) === 1)
+    const from = pool.length ? pool : words
+    return from.length ? from[(unit.n + shift) % from.length] : null
+  }
   const out: SeedTask[] = []
 
   // ── 1. Узнавание: по слову из каждого прошлого юнита ──
@@ -787,7 +808,7 @@ function reviewTasks(
   // Берётся из юнита позапрошлого, а не вчерашнего: вчерашнее ученик помнит
   // ещё «эхом», и такая проверка ничего не показывает.
   const recallFrom = prev[1] ?? prev[0]
-  const recall = wordOf(recallFrom, 3)
+  const recall = unambiguousOf(recallFrom, 3)
   if (recall) {
     out.push(fill(
       native
