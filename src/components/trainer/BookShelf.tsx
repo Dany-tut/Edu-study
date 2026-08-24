@@ -148,8 +148,11 @@ export function BookShelf({ books, lang, accent, soft }: {
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {book.parts.map((p, i) => (
                 <li key={i} style={{
-                  fontSize: 11.5, color: 'var(--color-text-3)',
-                  padding: '3px 9px', borderRadius: 999, background: 'var(--color-bg-3)',
+                  fontSize: 11.5, lineHeight: 1.4, color: 'var(--color-text-3)',
+                  // Радиус — половина высоты ОДНОЙ строки (11.5×1.4 + 3+3 ≈ 22),
+                  // а не 999: на узком экране подпись переносится, и полное
+                  // скругление превращает её в кривой овал.
+                  padding: '3px 9px', borderRadius: 11, background: 'var(--color-bg-3)',
                 }}>
                   {t(p)}
                 </li>

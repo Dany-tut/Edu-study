@@ -970,14 +970,19 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             </motion.div>
           )}
 
-          {/* Пилюля скраба: время под пальцем и сдвиг от точки, где взялись. */}
+          {/* Пилюля скраба: время под пальцем и сдвиг от точки, где взялись.
+              Центрируем обёрткой: свой transform на motion.div затирается
+              анимацией scale, и плашка уезжает от центра вправо-вниз. */}
           {gesture === 'scrub' && (
+            <div style={{
+              position: 'absolute', inset: 0, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
+            }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.16 }}
               style={{
-                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
                 display: 'flex', alignItems: 'baseline', gap: 10, padding: '10px 18px',
                 borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
@@ -990,20 +995,26 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 {current >= scrubFrom ? '+' : '−'}{formatClock(Math.abs(current - scrubFrom))}
               </span>
             </motion.div>
+            </div>
           )}
 
-          {/* Плашка ускорения — по центру кадра, но выше круга плей/паузы: на
-              его месте она закрывала саму кнопку. Стрелок ровно столько, какая
-              ступень, а замок наливается снизу вверх, туда же, куда ведут палец.
+          {/* Плашка ускорения — сверху по центру кадра: середина занята кругом
+              плей/паузы и самим кадром. Центрируем обёрткой, а не transform:
+              анимация scale у motion.div перезаписывает transform целиком и
+              сбивает translate(-50%). Стрелок ровно столько, какая ступень, а
+              замок наливается снизу вверх, туда же, куда ведут палец.
               На телефоне подсказку про замок прячем: с ней плашка шире кадра и
               её обрезает край. */}
           {(gesture === 'ff' || gesture === 'rw') && (
+            <div style={{
+              position: 'absolute', left: 0, right: 0, top: 14, display: 'flex',
+              justifyContent: 'center', pointerEvents: 'none',
+            }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.94, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.16 }}
               style={{
-                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, calc(-50% - 64px))',
                 display: 'flex', alignItems: 'center', gap: 9, padding: '7px 14px',
                 borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
@@ -1059,6 +1070,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 {boostLocked ? t('тап — снять') : t('вверх — зафиксировать')}
               </span>
             </motion.div>
+            </div>
           )}
 
           <motion.div
@@ -1296,15 +1308,17 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
             {resumeAt > 0 && (
               <div className="flex items-center" style={{ gap: 8 }}>
-                <span
+                <button
+                  onClick={() => { setStartAt(resumeAt); setStarted(true) }}
+                  className="cursor-pointer"
                   style={{
                     fontSize: 12.5, fontWeight: 700, color: '#fff',
                     background: 'rgba(0,0,0,0.55)', padding: '6px 12px', borderRadius: 999,
-                    backdropFilter: 'blur(8px)',
+                    border: 'none', backdropFilter: 'blur(8px)',
                   }}
                 >
                   {t('Продолжить с')} {formatClock(resumeAt)}
-                </span>
+                </button>
                 <button
                   onClick={() => { setStartAt(0); setStarted(true) }}
                   className="cursor-pointer"

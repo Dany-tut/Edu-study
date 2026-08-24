@@ -1,13 +1,15 @@
 // Student spaced-repetition review flow. Pulls due cards for the owner, shows prompt →
-// reveal answer → self-grade; each grade reschedules via SM-2. Reusable: embed it on the
-// student home, inside a homework step, or a lesson "Повторение" block.
+// reveal answer → self-grade; each grade reschedules via FSRS behind a flag, SM-2 otherwise
+// (see lib/reviewScheduler). Reusable: embed it on the student home, inside a homework step,
+// or a lesson "Повторение" block.
 
 import { useEffect, useState } from 'react'
 import Skeleton from './Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, RotateCcw } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
-import { GRADE_BUTTONS, intervalLabel, review } from '../lib/srs'
+import { GRADE_BUTTONS, intervalLabel } from '../lib/srs'
+import { scheduleReview } from '../lib/reviewScheduler'
 import { useT } from '../lib/i18n'
 import { bindShortWords, balancedWrap } from '../lib/typography'
 
@@ -100,7 +102,7 @@ export default function ReviewSession({ owner, onDone }: {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {GRADE_BUTTONS.map(g => {
-              const next = review(card, g.grade, Date.now())
+              const next = scheduleReview(card, g.grade, Date.now())
               return (
                 <button key={g.grade} onClick={() => grade(g)}
                   style={{ padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${TONE[g.tone]}`, background: `${TONE[g.tone]}1a`, color: TONE[g.tone], fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 2 }}>

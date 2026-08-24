@@ -98,7 +98,7 @@ export default function StudentLoginPage() {
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20,
+      padding: `calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)`,
     }}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}

@@ -103,9 +103,11 @@ export default function MobileBottomNav() {
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid var(--color-border-glass)',
-          // Frosted glass: outer drop shadow + a hairline top highlight so the
-          // top edge catches light like a real pane of glass.
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
+          // Обводка та же, что у верхней таблетки (DynamicIsland): свою тень с
+          // жёстким белым inset здесь держать нельзя — в тёмной теме
+          // rgba(255,255,255,0.5) по верхнему краю рисует яркий контур, из-за
+          // которого нижний бар выглядел обведённым, а шапка — нет.
+          boxShadow: 'var(--shadow-bar)',
         }}
       >
         {items.map(item => {

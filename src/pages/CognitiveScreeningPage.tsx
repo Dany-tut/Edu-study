@@ -54,7 +54,10 @@ const INTRO: Record<DomainKey, { desc: string; tip: string }> = {
 
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
+    // Отступы с safe-area: батарея открывается отдельной страницей на
+    // телефоне, и задания выше экрана (память, сопоставление) заезжали под
+    // чёлку и домашнюю полосу.
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: `calc(env(safe-area-inset-top, 0px) + 32px) 16px calc(env(safe-area-inset-bottom, 0px) + 32px)` }}>
       <div style={{ width: '100%', maxWidth: 500 }}>{children}</div>
     </div>
   )

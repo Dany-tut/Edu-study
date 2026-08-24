@@ -8,7 +8,7 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus,
+  ListVideo, Play, ListPlus, RotateCcw,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
@@ -679,6 +679,28 @@ function CenterCourseAccess({
   // Человек, у которого нет карточки по предмету курса и несколько карточек на
   // выбор: клик по имени не может решить за учителя — просим ткнуть в чипс.
   const [pickHintKey, setPickHintKey] = useState<string | null>(null)
+  // Сброс прогресса по курсу. Снять ученика из «Кому дать доступ» и вернуть —
+  // НЕ обнуление: назначение живёт в courses.student_ids, а прогресс в
+  // lesson_progress, и строки там остаются. Чистим их адресно по курсу.
+  const [resetting, setResetting] = useState<string | null>(null)
+  const [resetDone, setResetDone] = useState<string | null>(null)
+  async function resetCourseProgress(studentId: string, name: string) {
+    if (!course.dbCourseId) { window.alert(t('Курс ещё не сохранён в базе — прогресса нет.')); return }
+    if (!window.confirm(`${t('Обнулить весь прогресс по курсу у')} «${name}»? ${t('Ответы, баллы и открытые уроки будут удалены безвозвратно.')}`)) return
+    setResetting(studentId)
+    setResetDone(null)
+    const { error } = await supabase
+      .from('lesson_progress')
+      .delete()
+      .eq('student_id', studentId)
+      .eq('subject', course.dbCourseId)
+    setResetting(null)
+    if (error) window.alert(`${t('Не удалось сбросить прогресс:')} ${error.message}`)
+    else {
+      setResetDone(studentId)
+      setTimeout(() => setResetDone(null), 2500)
+    }
+  }
 
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
@@ -861,6 +883,22 @@ function CenterCourseAccess({
                       )}
                     </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
+                    <button
+                      onClick={() => resetCourseProgress(s.id, s.name)}
+                      disabled={resetting === s.id}
+                      title={t('Сбросить прогресс по курсу — начать курс заново')}
+                      style={{
+                        width: 30, height: 30, flexShrink: 0, borderRadius: 999,
+                        border: '1px solid var(--color-border-medium)',
+                        background: resetDone === s.id ? 'var(--color-green-soft)' : 'var(--color-bg-4)',
+                        color: resetDone === s.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
+                        cursor: resetting === s.id ? 'default' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        opacity: resetting === s.id ? 0.5 : 1, transition: 'all 0.15s',
+                      }}
+                    >
+                      {resetDone === s.id ? <Check size={14} /> : <RotateCcw size={14} />}
+                    </button>
                   </div>
                 ))}
               </div>

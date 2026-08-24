@@ -215,16 +215,19 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           aria-label={t('Голос озвучки')}
           title={`${t('Голос')}: ${current?.label ?? t('автовыбор')}`}
           style={{
-            display: 'flex', alignItems: 'center', gap: 3, padding: '6px 8px', borderRadius: 999,
-            cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-            border: `1px solid ${open ? accent : 'var(--color-border-soft)'}`,
-            background: open ? soft : 'transparent',
-            color: open ? accent : 'var(--color-text-3)',
+            display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 10px',
+            borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+            // Геометрия — как у кнопки «Медленно» в ряду: та же высота, та же
+            // толщина рамки, та же заливка. Кнопка на 1px рамке и 25px высоты
+            // рядом с 1.5px и 32px читалась не как соседняя, а как чужая.
+            border: `1.5px solid ${open ? accent : 'var(--color-border-soft)'}`,
+            background: open ? soft : 'var(--color-bg-2)',
+            color: open ? accent : 'var(--color-text-2)',
             transition: 'border-color 0.15s, color 0.15s',
           }}
         >
-          <Mic size={13} />
-          <ChevronDown size={11} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
+          <Mic size={15} strokeWidth={1.8} />
+          <ChevronDown size={13} strokeWidth={1.8} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
         </button>
       ) : (
         <button

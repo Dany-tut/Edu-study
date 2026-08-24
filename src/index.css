@@ -621,6 +621,24 @@ a {
   border-radius: 999px;
   animation: vocabSpeakFill linear forwards;
 }
+/* Карточка словаря урока — целиком кнопка озвучки. Плеера-кружка у неё нет:
+   он вставал в трёх разных местах (у слова справа, у карточки с рисунком на
+   уровне картинки, у буквы внизу), и ряд карточек читался лестницей из
+   кружков. Цель теперь одна и размером с карточку, а в углу — тихий значок
+   звука: он оживает под курсором, чтобы связь «тык — звук» была видна до
+   первого тыка. */
+.vocab-card {
+  transition: border-color .18s ease, background .18s ease, transform .12s ease;
+}
+.vocab-card:hover { background: var(--color-bg-3); }
+.vocab-card:active { transform: scale(0.985); }
+.vocab-card__snd {
+  opacity: 0.62;
+  transition: opacity .18s ease, transform .18s ease, background .18s ease, color .18s ease;
+}
+.vocab-card:hover .vocab-card__snd { opacity: 1; transform: scale(1.08); }
+.vocab-card:focus-visible .vocab-card__snd { opacity: 1; }
+
 /* Слово смолкло раньше расчётного времени: линию доводим до конца, иначе
    бегунок замирает на середине и выглядит недобежавшим. */
 .vocab-speak-fill--done {
@@ -888,4 +906,16 @@ input::-webkit-textfield-decoration-container {
   .mobile-input-16 {
     font-size: 16px !important;
   }
+}
+
+/* ─── Стопка карточек: морф долей при перевороте ───────────────────────────
+   Лицом вверх слово стоит по центру карточки, на обороте — поднимается, отдавая
+   место переводу, заметке и примеру. Двигаются не сами блоки, а их доли
+   (flex-grow), поэтому текст не дублируется и не «прыгает» между двумя
+   раскладками. Морф стартует на середине поворота, когда карточка стоит ребром
+   к зрителю: первые кадры движения не видны вовсе, и слово выезжает наверх уже
+   на развороте. */
+.deck-share { transition: flex-grow 340ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .deck-share { transition: none; }
 }

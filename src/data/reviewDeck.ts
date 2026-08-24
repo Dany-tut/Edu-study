@@ -8,7 +8,8 @@
 // daily cap) and surface inside homework/lesson flows as a "Повторение" block.
 
 import { supabase } from '../lib/supabase'
-import { review, INITIAL_SRS, type ReviewGrade } from '../lib/srs'
+import type { ReviewGrade } from '../lib/srs'
+import { scheduleReview, newSchedulableCard, type SchedulableCard } from '../lib/reviewScheduler'
 import { getStudentSession } from '../lib/studentSession'
 import { vocabImage } from './vocabImages'
 
@@ -53,6 +54,11 @@ export interface ReviewCard {
   lapses: number
   dueAt: string      // ISO
   createdAt: string  // ISO
+  /** FSRS-состояние (lib/fsrs.ts). Отсутствует у карточек, ещё не прошедших
+   *  через FSRS — старые SM-2-строки мигрируют на лету при первом ревью
+   *  (lib/reviewScheduler.ts:scheduleReview). */
+  stability?: number | null
+  difficulty?: number | null
 
   // ── Поля показа. В БД их нет и не будет ────────────────────────────────────
   //
@@ -106,6 +112,8 @@ function rowToCard(r: Record<string, unknown>): ReviewCard {
     lapses: r.lapses as number,
     dueAt: r.due_at as string,
     createdAt: r.created_at as string,
+    stability: (r.stability as number | null) ?? undefined,
+    difficulty: (r.difficulty as number | null) ?? undefined,
     image: vocabImage(r.answer as string),
   }
 }
@@ -131,6 +139,9 @@ export async function captureMistake(input: {
     .eq('prompt', input.prompt)
     .maybeSingle()
   if (existing) return  // already queued
+  // captureMistake зовут ровно на ошибке — стартовая трудность выше (см.
+  // reviewScheduler.ts:startingLevel), но due_at всё равно «сейчас».
+  const start = newSchedulableCard({ source: input.source, fromMistake: true })
   await supabase.from('review_cards').insert({
     student_id: input.studentId ?? null,
     anon_name: input.anonName ?? null,
@@ -139,11 +150,13 @@ export async function captureMistake(input: {
     prompt: input.prompt,
     answer: input.answer,
     options: input.options ?? null,
-    ease: INITIAL_SRS.ease,
-    interval_days: INITIAL_SRS.intervalDays,
-    reps: INITIAL_SRS.reps,
-    lapses: INITIAL_SRS.lapses,
-    due_at: new Date().toISOString(),
+    ease: start.ease,
+    interval_days: start.intervalDays,
+    reps: start.reps,
+    lapses: start.lapses,
+    due_at: start.dueAt,
+    stability: start.stability,
+    difficulty: start.difficulty,
   })
 }
 
@@ -181,6 +194,9 @@ export async function addCards(
     .filter(p => !known.has(p))
     .map(p => {
       const i = byPrompt.get(p)!
+      // addCards — спокойное добавление (слово урока, разговорник), не ошибка:
+      // fromMistake=false, стартовая трудность ниже, чем у captureMistake.
+      const start = newSchedulableCard({ source: i.source, fromMistake: false })
       return {
         student_id: owner.studentId ?? null,
         anon_name: owner.anonName ?? null,
@@ -189,11 +205,13 @@ export async function addCards(
         prompt: i.prompt,
         answer: i.answer,
         options: i.options ?? null,
-        ease: INITIAL_SRS.ease,
-        interval_days: INITIAL_SRS.intervalDays,
-        reps: INITIAL_SRS.reps,
-        lapses: INITIAL_SRS.lapses,
-        due_at: new Date().toISOString(),
+        ease: start.ease,
+        interval_days: start.intervalDays,
+        reps: start.reps,
+        lapses: start.lapses,
+        due_at: start.dueAt,
+        stability: start.stability,
+        difficulty: start.difficulty,
       }
     })
   if (rows.length === 0) return 0
@@ -336,25 +354,32 @@ export async function gradePrompt(
 
   const { data: existing } = await supabase
     .from('review_cards')
-    .select('id, ease, interval_days, reps, lapses')
+    .select('id, ease, interval_days, reps, lapses, due_at, stability, difficulty')
     .eq(col, val)
     .eq('prompt', input.prompt)
     .maybeSingle()
 
-  const before = existing
+  // Без строки в базе фраза ещё не заводилась — синтетический старт, тот же,
+  // что у captureMistake/addCards: grade 1 («не знаю») здесь и есть сигнал
+  // «ошибка», остальные оценки — спокойное первое знакомство.
+  const before: SchedulableCard = existing
     ? {
       ease: existing.ease as number,
       intervalDays: existing.interval_days as number,
       reps: existing.reps as number,
       lapses: existing.lapses as number,
+      dueAt: existing.due_at as string,
+      stability: existing.stability as number | null,
+      difficulty: existing.difficulty as number | null,
     }
-    : INITIAL_SRS
-  const next = review(before, grade, Date.now())
+    : newSchedulableCard({ source: input.source, fromMistake: grade === 1 })
+  const next = scheduleReview(before, grade, Date.now())
 
   if (existing) {
     const { error } = await supabase.from('review_cards').update({
       ease: next.ease, interval_days: next.intervalDays,
       reps: next.reps, lapses: next.lapses, due_at: next.dueAt,
+      stability: next.stability, difficulty: next.difficulty,
     }).eq('id', existing.id as string)
     if (error) { console.error('gradePrompt update:', error); return null }
     return { id: existing.id as string, ...next }
@@ -372,16 +397,19 @@ export async function gradePrompt(
     reps: next.reps,
     lapses: next.lapses,
     due_at: next.dueAt,
+    stability: next.stability,
+    difficulty: next.difficulty,
   }).select('id').single()
   if (error) { console.error('gradePrompt insert:', error); return null }
   return { id: data.id as string, ...next }
 }
 
-/** Grade a card and persist the new SM-2 schedule. */
+/** Grade a card and persist the new schedule (FSRS behind the flag, SM-2 otherwise — see lib/reviewScheduler). */
 export async function gradeCard(card: ReviewCard, grade: ReviewGrade): Promise<ReviewCard> {
-  const next = review(card, grade, Date.now())
+  const next = scheduleReview(card, grade, Date.now())
   await supabase.from('review_cards').update({
     ease: next.ease, interval_days: next.intervalDays, reps: next.reps, lapses: next.lapses, due_at: next.dueAt,
+    stability: next.stability, difficulty: next.difficulty,
   }).eq('id', card.id)
   return { ...card, ...next }
 }

@@ -22,6 +22,7 @@ import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type Pers
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
+import { OverlayScrollArea } from '../../components/teacher/OverlayScroll'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
 import { useTeacher } from '../../store/teacherStore'
 import { useT } from '../../lib/i18n'
@@ -1500,10 +1501,27 @@ function TracksSection({
         {t('Направления')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* Текущая карточка — read-only chip */}
-        <div style={{ ...chip(group.icon, group.subject, group.level, group.color), alignSelf: 'flex-start' }}>
-          <span>{group.icon}</span>
-          <span>{t(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
+        {/* Текущая карточка. Крестик есть и у неё — иначе направление, на котором
+            стоишь, снять было нельзя вовсе (приходилось открывать соседнее).
+            Последнее направление не удаляем: это уже «Удалить ученика». */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div style={{ ...chip(group.icon, group.subject, group.level, group.color), flex: 1 }}>
+            <span>{group.icon}</span>
+            <span>{t(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
+          </div>
+          {siblings.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!window.confirm(`${t('Убрать направление')} «${t(group.subject)}»?`)) return
+                void onRemoveCard(group.id)
+              }}
+              title={t('Удалить карточку')}
+              style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         {/* Другие карточки этого ученика — клик открывает, крестик удаляет */}
@@ -1665,8 +1683,9 @@ function StudentPanel({
         </div>
       </div>
 
-      {/* Scrollable body */}
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Scrollable body. Фейды краёв + плавающий бегунок — как у остальных
+          панелей: уходящий под шапку/футер контент не обрезается ножом. */}
+      <OverlayScrollArea style={{ flex: 1 }} padding="16px 20px 0" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Credentials */}
         {(student.email || student.tempPassword) && (
@@ -1818,7 +1837,7 @@ function StudentPanel({
           />
         </section>
 
-      </div>
+      </OverlayScrollArea>
 
       {/* Sticky footer: assign extra homework + delete */}
       <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2478,7 +2497,17 @@ export default function TeacherGroupsPage() {
               onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
               siblingCards={siblingCards}
               onAddCard={addCardForActive}
-              onRemoveCard={async (groupId) => { await deleteGroup(groupId) }}
+              onRemoveCard={async (groupId) => {
+                // Снятие направления, на котором стоим: карточки не станет, так
+                // что уводим панель на соседнее (или закрываем, если его нет).
+                const wasActive = groupId === activeStudentGroup.id
+                const next = siblingCards[0]?.id
+                await deleteGroup(groupId)
+                if (wasActive) {
+                  if (next) openSiblingCard(next)
+                  else { setActiveStudentId(null); setSelectedGroupId(null) }
+                }
+              }}
               onOpenCard={openSiblingCard}
               onAddToGroup={regularGroups.length > 0 ? () => setAddToGroupForStudent(true) : undefined}
               onResetPassword={async () => {

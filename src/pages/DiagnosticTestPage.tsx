@@ -97,7 +97,10 @@ function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string;
     <div style={{
       minHeight: '100vh', background: 'var(--color-bg)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: '40px 20px',
+      // Отступы сверху и снизу с safe-area: экран открывается на телефоне
+      // отдельной страницей, без обёртки кабинета, и содержимое выше экрана
+      // упиралось бы в чёлку и домашнюю полосу.
+      justifyContent: 'center', padding: `calc(env(safe-area-inset-top, 0px) + 40px) 20px calc(env(safe-area-inset-bottom, 0px) + 40px)`,
     }}>
       <DiagConfetti bannerRef={bannerRef} />
       <motion.div
@@ -312,7 +315,7 @@ export default function DiagnosticTestPage() {
       <div style={{
         minHeight: '100vh', background: 'var(--color-bg)',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', padding: '40px 20px',
+        justifyContent: 'center', padding: `calc(env(safe-area-inset-top, 0px) + 40px) 20px calc(env(safe-area-inset-bottom, 0px) + 40px)`,
       }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -394,7 +397,9 @@ export default function DiagnosticTestPage() {
     <div style={{
       minHeight: '100vh', background: 'var(--color-bg)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      padding: '32px 20px',
+      // Вопрос начинается от верха страницы: без safe-area кнопка «Выйти» и
+      // счётчик вопросов вставали ровно под вырез.
+      padding: `calc(env(safe-area-inset-top, 0px) + 32px) 20px calc(env(safe-area-inset-bottom, 0px) + 32px)`,
     }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
 

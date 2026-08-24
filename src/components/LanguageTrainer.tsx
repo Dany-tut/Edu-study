@@ -6,6 +6,7 @@ import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
 import AudioPlayer from './AudioPlayer'
+import TrackPlayer from './trainer/TrackPlayer'
 import VoicePicker, { useVoiceChoice } from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
@@ -3179,6 +3180,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
   onBack: () => void
 }) {
   const t = useT()
+  const narrow = useTrainerNarrow()
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [checked, setChecked] = useState(false)
 
@@ -3197,17 +3199,26 @@ function Listener({ item, accent, palette, lang, onBack }: {
     <>
       <RailHero plain title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
-      <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
-        {/* Материал ленты из плеера площадки: озвучивать нечего — смотрим
-            ролик там, где он лежит. Плеер тот же, что в домашке и уроке. */}
-        {item.videoUrl
-          ? <TaskVideo url={item.videoUrl} title={item.title} credit={item.credit} onChange={() => {}} />
-          : <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />}
-        <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
-        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-          {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
-        </div>
-      </RailCard>
+      {/* На телефоне рейл целиком уезжает в шторку «Фильтры», и кнопка
+          «Играть» уходила туда вместе с ним: запись включалась через фильтры.
+          Там её место занял закреплённый внизу TrackPlayer, а второй плеер в
+          шторке — это два разных бегунка на одну запись. Видео остаётся в
+          рейле всегда: у него свой плеер площадки, и промотка у него своя. */}
+      {(!narrow || item.videoUrl) && (
+        <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
+          {/* Материал ленты из плеера площадки: озвучивать нечего — смотрим
+              ролик там, где он лежит. Плеер тот же, что в домашке и уроке. */}
+          {item.videoUrl
+            ? <TaskVideo url={item.videoUrl} title={item.title} credit={item.credit} onChange={() => {}} />
+            : <>
+                <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
+                <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
+              </>}
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+            {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
+          </div>
+        </RailCard>
+      )}
 
       <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={15} />}>
         <RailStat
@@ -3299,6 +3310,19 @@ function Listener({ item, accent, palette, lang, onBack }: {
             </div>
           )}
         </div>
+      )}
+
+      {/* Плеер закреплён поверх экрана — под ним обязан быть просвет, иначе
+          кнопка «Проверить» и расшифровка кончаются ровно под ним. */}
+      {narrow && !item.videoUrl && item.script && <div style={{ height: 74 }} />}
+      {narrow && !item.videoUrl && item.script && (
+        <TrackPlayer
+          ttsText={item.script}
+          lang={lang}
+          accent={palette.accent}
+          soft={palette.soft}
+          title={item.title}
+        />
       )}
     </TrainerShell>
   )

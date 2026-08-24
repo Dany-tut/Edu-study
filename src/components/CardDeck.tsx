@@ -1,6 +1,7 @@
 // Карточный режим тренажёра — стопка карточек, которую разбирают свайпом.
 //
-// ЗАЧЕМ ОТДЕЛЬНО ОТ ReviewSession. Планировщик тот же (SM-2 из lib/srs) и
+// ЗАЧЕМ ОТДЕЛЬНО ОТ ReviewSession. Планировщик тот же (lib/reviewScheduler,
+// FSRS за флагом поверх SM-2 из lib/srs) и
 // колода та же (review_cards), но механика ввода другая: там кнопки под
 // карточкой, здесь жест. Разница не косметическая — карточка на свайпе стоит
 // одно движение вместо «прочитал → нашёл кнопку → прицелился», и на телефоне
@@ -23,7 +24,8 @@ import { RotateCcw, Volume2, Undo2, Layers, HelpCircle, Check, X } from 'lucide-
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
-import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
+import { intervalLabel, type ReviewGrade } from '../lib/srs'
+import { scheduleReview } from '../lib/reviewScheduler'
 import { withExamples } from '../lib/cardExamples'
 import { haptic } from '../lib/feedback'
 import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
@@ -638,7 +640,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
                 key={g.grade}
                 tone={g.tone}
                 label={g.label}
-                hint={intervalLabel(review(seat.card, g.grade, Date.now()).intervalDays)}
+                hint={intervalLabel(scheduleReview(seat.card, g.grade, Date.now()).intervalDays)}
                 onClick={() => answer(g.grade)}
               />
             ))}
@@ -908,15 +910,22 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
         </>
       ) : (
         <>
-          {/* Карточка поделена на две доли ФИКСИРОВАННОГО размера, и фраза
-              прижата к их границе снизу. Так она стоит примерно по центру
-              карточки независимо от того, что на обороте: раньше место под
-              оборот резервировалось по её содержимому, и карточка с чтением,
-              заметкой и примером задирала слово к самому верху.
-              Доли неравные (56/44): верхней нужно вместить рисунок с фразой,
-              а однострочная фраза при таком делении садится ровно в центр. */}
-          <div style={{
-            flex: '56 1 0', minHeight: 0, width: '100%',
+          {/* Карточка поделена на две доли, и фраза прижата к их границе снизу.
+              Размер долей задаётся числом, а не содержимым: раньше место под
+              оборот резервировалось по тому, что на обороте, и карточка с
+              чтением, заметкой и примером задирала слово к самому верху.
+              Лицом вверх доли 56/44 — при таком делении однострочная фраза
+              садится ровно в центр карточки; на обороте верхняя сжимается до 34,
+              и слово плавно уезжает выше, освобождая место переводу, заметке и
+              примеру. Плавность — на flex-grow (класс deck-share), не на
+              высотах: два блока с разной раскладкой дублировали бы текст. */}
+          <div className="deck-share" style={{
+            // Доля верхней половины меняется с переворотом: лицом вверх слово
+            // стоит по центру карточки (56/44 — фраза прижата к границе долей
+            // снизу, и при таком делении однострочное слово садится ровно в
+            // середину), на обороте доля сжимается и слово уезжает выше, отдавая
+            // место переводу, заметке и примеру.
+            flex: `${face ? 34 : 56} 1 0`, minHeight: 0, width: '100%',
             display: 'flex', flexDirection: 'column', overflowY: 'auto',
           }}>
             {/* marginTop: auto вместо justifyContent: flex-end — прижатое
@@ -953,23 +962,21 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
             </div>
           </div>
           {/* Нижняя доля — оборот. Она своя ВСЕГДА, и на лицевой стороне тоже,
-              просто прозрачная: переворот не меняет ни одной высоты, поэтому
-              фраза стоит на том же пикселе, а под ней проявляются черта и
-              перевод. Раньше блока на лицевой не было вовсе, колонка на
-              перевороте становилась выше и слово подскакивало; плавно это
-              выглядело только у карточек с картинкой, где высоту меняла её
-              анимация ширины и скачок размазывался по этим 180 мс.
+              просто прозрачная и узкая: так у долей есть с чего и на что
+              переезжать, и слово идёт наверх непрерывным движением, а не
+              появляется на новом месте. Раньше блока на лицевой не было вовсе,
+              колонка на перевороте становилась выше и слово подскакивало.
 
               Прокручивается оборот целиком, а не по кускам: перевод, заметка и
               пример вместе бывают выше своей доли. Отдельные maxHeight внутри
               для этого не годятся — они режут каждый блок по своей мерке. */}
-          <div style={{
+          <div className="deck-share" style={{
             position: 'relative', width: '100%',
             marginTop: 12, paddingTop: 12,
             // Черта нарисована на обеих сторонах, но на лицевой прозрачная:
             // убрать её вовсе значит отдать пиксель высоты и сдвинуть слово.
             borderTop: `1px solid ${face ? 'var(--color-border-soft)' : 'transparent'}`,
-            flex: '44 1 0', minHeight: 0, overflowY: face ? 'auto' : 'hidden',
+            flex: `${face ? 66 : 44} 1 0`, minHeight: 0, overflowY: face ? 'auto' : 'hidden',
           }}>
             <div
               aria-hidden={!face}

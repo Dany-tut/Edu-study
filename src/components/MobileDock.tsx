@@ -69,7 +69,9 @@ const glassBase: CSSProperties = {
   backdropFilter: 'blur(28px) saturate(200%)',
   WebkitBackdropFilter: 'blur(28px) saturate(200%)',
   border: '1px solid var(--color-border-glass)',
-  boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+  // Без своего белого inset: --shadow-pill уже несёт подсветку края под тему
+  // (в тёмной — 0.10 вместо 0.5), иначе чипсы фильтров стоят в резком контуре.
+  boxShadow: 'var(--shadow-pill)',
 }
 
 export default function MobileDock({ children }: { children: ReactNode }) {

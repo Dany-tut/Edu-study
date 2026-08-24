@@ -61,7 +61,10 @@ export default function LandingPage() {
       {/* ── Top bar ── */}
       <header ref={headerRef} style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', alignItems: 'center',
-        gap: 16, padding: '14px clamp(16px, 5vw, 56px)',
+        // Верхний отступ с safe-area: в установленном PWA шапка стояла
+        // вплотную к вырезу. Спейсер ниже мерит её высоту по факту и
+        // подстраивается сам.
+        gap: 16, padding: `calc(env(safe-area-inset-top, 0px) + 14px) clamp(16px, 5vw, 56px) 14px`,
         background: 'color-mix(in srgb, var(--color-bg) 78%, transparent)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         borderBottom: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)',

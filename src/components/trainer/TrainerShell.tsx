@@ -216,7 +216,25 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
     <div style={{
       // Низ на телефоне длиннее: под содержимым стоят навигация и плавающий
       // док управления, и без запаса последняя карточка уезжает под них.
-      width: '100%', padding: narrow ? '8px 16px 150px' : '8px 0 80px',
+      //
+      // ЧИСЛО СЧИТАНО ОТ ДОКА, А НЕ НА ГЛАЗ. MobileDock прижат к
+      // useBottomSafe() (до 34 px) и в развёрнутом виде поднят над ним ещё на
+      // 86 px (marginBottom), а сама таблетка внутри — 46 px (DockCircle).
+      // Итого верхний край дока в худшем случае стоит в 34+86+46 = 166 px от
+      // низа экрана. Было 150 — на 16 px меньше: кнопка «Дальше» на короткой
+      // карточке (см. StoryReader) вставала как раз в эту разницу и пряталась
+      // под доком. Берём 166 плюс запас, а не впритык.
+      //
+      // ВЕРХ НА ТЕЛЕФОНЕ ЗАВИСИТ ОТ СТРОКИ УПРАВЛЕНИЯ. Зазор под чёлку даёт
+      // прилипшая полоса (PAD_TOP), но у страниц-разборов её нет вовсе (основа
+      // глагола, корень, набор счёта, гнездо созвучий): содержимое начиналось с
+      // 8 px и первая строка вставала под размытие статус-бара. Когда полосы
+      // нет — тот же отступ берёт на себя сам скелет.
+      width: '100%',
+      paddingTop: narrow && !toolbar ? PAD_TOP : 8,
+      paddingLeft: narrow ? 16 : 0,
+      paddingRight: narrow ? 16 : 0,
+      paddingBottom: narrow ? 190 : 80,
       display: 'flex', flexDirection: narrow ? 'column' : 'row',
       gap: narrow ? 16 : 22, alignItems: 'flex-start',
     }}>
@@ -299,6 +317,14 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
             marginTop: -8, marginBottom: -10,
             paddingTop: PAD_TOP, paddingBottom: 10,
             display: 'flex', flexDirection: 'column', gap: 12,
+            // Свой composite-слой на телефоне: без него WebKit на каждый кадр
+            // сворачивания/разворачивания адресной строки Safari пересчитывает
+            // положение sticky-полосы заново, и она заметно «прыгает» вверх-вниз
+            // вместо того чтобы стоять на месте. transform на самом sticky-
+            // элементе на его прилипание не влияет (ломает только transform на
+            // ПРЕДКЕ) — только просит браузер держать полосу в отдельном слое.
+            transform: 'translateZ(0)',
+            willChange: 'transform',
           }}
         >
 

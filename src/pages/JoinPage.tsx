@@ -121,7 +121,7 @@ export default function JoinPage() {
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 16, boxSizing: 'border-box',
+      padding: `calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px)`, boxSizing: 'border-box',
     }}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}

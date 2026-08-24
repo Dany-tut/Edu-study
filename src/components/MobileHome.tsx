@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp } from 'lucide-react'
 import NotificationPopup from './NotificationPopup'
@@ -216,9 +216,6 @@ export default function MobileHome() {
             <QuickTile icon={<BookOpen size={18} />} title={t('Курс')} sub={t('Уроки и путь')} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
           </div>
 
-          {/* Лента: единственное, что назавтра другое */}
-          <FeedStrip subject={scopedSubject?.subject} onOpen={() => setActivePage('trainer')} />
-
           {/* Стикеры за принятые задания */}
           <MobileStickersRow />
 
@@ -254,6 +251,14 @@ export default function MobileHome() {
               </div>
             </div>
           )}
+
+          {/* Лента — хвост экрана. Верх главной — «что делать сейчас», и он
+              кончается; дальше начинается то, что можно листать сколько
+              захочется. Отступ здесь заметно больше остальных: это стык двух
+              разных половин экрана, а не соседние блоки одного списка. */}
+          <div style={{ marginTop: 14 }}>
+            <FeedFlow subject={scopedSubject?.subject} onOpen={() => setActivePage('trainer')} />
+          </div>
         </div>
         )}
       </MobileScreen>
@@ -331,20 +336,21 @@ function HomeSkeleton() {
       {/* Быстрые действия — те же две плитки */}
       <div className="flex" style={{ gap: 8 }}>
         {[0, 1].map(i => (
-          <div key={i} className="flex items-center" style={{ flex: 1, minWidth: 0, gap: 9, padding: '10px 12px', borderRadius: 14, background: 'var(--color-bg-3)' }}>
-            <Skeleton circle w={18} />
-            <span className="flex flex-col min-w-0" style={{ gap: 3, flex: 1 }}>
-              <Skeleton w="58%" h={13} radius={6} />
+          <div key={i} className="flex flex-col" style={{ flex: 1, minWidth: 0, gap: 8, padding: '12px 13px', borderRadius: 18, background: 'var(--color-bg-3)' }}>
+            <Skeleton w={32} h={32} radius={11} />
+            <span className="flex flex-col min-w-0" style={{ gap: 3 }}>
+              <Skeleton w="58%" h={14} radius={6} />
               <Skeleton w="80%" h={10} radius={6} />
             </span>
           </div>
         ))}
       </div>
 
-      {/* Лента: горизонтальная полоса карточек */}
-      <div className="flex" style={{ gap: 10, overflow: 'hidden' }}>
-        {[0, 1].map(i => (
-          <Skeleton key={i} w={232} h={96} radius={16} style={{ flexShrink: 0 }} />
+      {/* Лента: вертикальные карточки той же высоты, что настоящие */}
+      <div className="flex flex-col" style={{ gap: 8, marginTop: 14 }}>
+        <Skeleton w={78} h={12} radius={6} />
+        {[0, 1, 2].map(i => (
+          <Skeleton key={i} w="100%" h={104} radius={18} />
         ))}
       </div>
     </div>
@@ -409,12 +415,22 @@ function QuickTile({ icon, title, sub, bg, fg, onClick }: { icon: React.ReactNod
     <motion.button
       whileTap={{ scale: 0.96 }}
       onClick={() => { tactile(); onClick() }}
-      className="flex items-center text-left cursor-pointer"
-      style={{ flex: 1, minWidth: 0, gap: 9, padding: '10px 12px', borderRadius: 14, background: bg, border: 'none' }}
+      className="flex flex-col text-left cursor-pointer"
+      style={{ flex: 1, minWidth: 0, gap: 8, padding: '12px 13px', borderRadius: 18, background: bg, border: 'none' }}
     >
-      <span className="flex items-center" style={{ color: fg, flexShrink: 0 }}>{icon}</span>
-      <span className="flex flex-col min-w-0" style={{ gap: 1 }}>
-        <span className="truncate" style={{ fontSize: 13, fontWeight: 800, color: fg }}>{title}</span>
+      <span className="flex items-center justify-between" style={{ width: '100%' }}>
+        {/* Иконка в своей чипсе — как в верхней таблетке: у плитки появляется
+            центр тяжести, и ряд читается как две кнопки, а не две подписи. */}
+        <span className="flex items-center justify-center" style={{
+          width: 32, height: 32, borderRadius: 11, flexShrink: 0,
+          // Заливка чипсы — сам цвет плитки, разведённый до 14%: белым нельзя,
+          // в светлой теме белое на пастели не видно вовсе.
+          background: `color-mix(in srgb, ${fg} 14%, transparent)`, color: fg,
+        }}>{icon}</span>
+        <ChevronRight size={16} style={{ color: fg, opacity: 0.55, flexShrink: 0 }} />
+      </span>
+      <span className="flex flex-col min-w-0" style={{ gap: 1, width: '100%' }}>
+        <span className="truncate" style={{ fontSize: 14, fontWeight: 800, color: fg }}>{title}</span>
         <span className="truncate" style={{ fontSize: 10.5, fontWeight: 500, color: fg, opacity: 0.8 }}>{sub}</span>
       </span>
     </motion.button>
@@ -463,20 +479,70 @@ function PendingHWCard({ subjects, onOpenHW }: { subjects: Subject[]; onOpenHW: 
 // ─────────────────────────────────────────────────────────────────────────────
 // Лента на мобильной главной
 //
-// Ряд постов, а не карточка-список: на телефоне лента и листается пальцем, так
-// что горизонтальный ряд — это она сама в миниатюре, а не оглавление к ней.
-// Непрочитанное идёт первым и подсвечено; когда нового нет, ряд не исчезает —
-// показывает свежее из уже виденного, иначе раздел мигал бы через день.
+// ВЕРТИКАЛЬНАЯ И БЕСКОНЕЧНАЯ, А НЕ РЯД ИЗ ВОСЬМИ КАРТОЧЕК. Верхняя половина
+// главной отвечает на «что делать сейчас» и кончается; лента — это то, что
+// листают, пока не надоест, и горизонтальный ряд с жёстким концом ей врал:
+// после восьмого поста экран обрывался, хотя материалов десятки.
 //
+// ПОДГРУЖАЕТСЯ ПОРЦИЯМИ. Сначала шесть постов, дальше по шесть, как только
+// нижняя граница показалась на экране (IntersectionObserver — rAF в превью не
+// работает, см. память). Непрочитанное идёт первым и подсвечено; когда нового
+// нет, лента не исчезает — показывает уже виденное, иначе раздел мигал бы
+// через день.
+//
+// ПРОСМОТРЕННЫМ ЗДЕСЬ НИЧТО НЕ СТАНОВИТСЯ: это витрина, а не сама лента.
+// Иначе счётчик «новое» гас бы от одной прокрутки главной, ничего не прочитав.
 // Тап по любой карточке открывает ленту целиком: адресуемых постов у ленты нет
 // и не будет (см. data/feed), её открывают сверху.
 // ─────────────────────────────────────────────────────────────────────────────
-function FeedStrip({ subject, onOpen }: { subject?: string; onOpen: () => void }) {
+
+/** Сколько постов показываем сразу и сколько добавляем за одну подгрузку. */
+const FEED_CHUNK = 6
+
+function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void }) {
   const t = useT()
   const { lang, subjectId, items, unread } = useFeedGlance(0, subject)
-  if (!lang || items.length === 0) return null
+  const [shown, setShown] = useState(FEED_CHUNK)
+  const moreRef = useRef<HTMLDivElement>(null)
 
-  const shown = [...unread, ...items.filter(x => !unread.includes(x))].slice(0, 8)
+  // Сменился курс (а с ним язык ленты) — начинаем сначала, иначе новый список
+  // сразу открывается на «двадцать четвёртом посте» прошлого.
+  useEffect(() => { setShown(FEED_CHUNK) }, [lang])
+
+  const order = useMemo(
+    () => [...unread, ...items.filter(x => !unread.includes(x))],
+    [items, unread],
+  )
+
+  // Подгрузка по положению границы, а НЕ по IntersectionObserver: экран
+  // прокручивается внутри своего контейнера (MobileScreen), и наблюдатель с
+  // root по умолчанию в превью не стреляет вовсе. Слушаем scroll в фазе
+  // перехвата — так событие приходит от любого прокручиваемого предка, не
+  // требуя знать, какой именно это узел.
+  useEffect(() => {
+    const check = () => {
+      const el = moreRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      if (r.top < window.innerHeight + 400) setShown(n => n + FEED_CHUNK)
+    }
+    check()
+    window.addEventListener('scroll', check, { capture: true, passive: true })
+    window.addEventListener('resize', check)
+    // Наблюдатель — вторым номером, на случай прокрутки без события scroll
+    // (инерция в WKWebView доезжает молча).
+    const io = typeof IntersectionObserver !== 'undefined'
+      ? new IntersectionObserver(e => { if (e.some(x => x.isIntersecting)) check() }, { rootMargin: '400px 0px' })
+      : null
+    if (io && moreRef.current) io.observe(moreRef.current)
+    return () => {
+      window.removeEventListener('scroll', check, { capture: true } as EventListenerOptions)
+      window.removeEventListener('resize', check)
+      io?.disconnect()
+    }
+  }, [shown, order.length])
+
+  if (!lang || order.length === 0) return null
 
   const open = () => {
     tactile()
@@ -485,9 +551,12 @@ function FeedStrip({ subject, onOpen }: { subject?: string; onOpen: () => void }
     onOpen()
   }
 
+  const list = order.slice(0, shown)
+  const hasMore = shown < order.length
+
   return (
     <div>
-      <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
+      <div className="flex items-center" style={{ gap: 6, marginBottom: 10 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
           {t('Лента')}
         </p>
@@ -510,49 +579,83 @@ function FeedStrip({ subject, onOpen }: { subject?: string; onOpen: () => void }
           {t('Открыть')} <ChevronRight size={13} />
         </button>
       </div>
-      <div style={{ marginLeft: -16, marginRight: -16 }}>
-        <MobileHScroll padX={16} gap={10}>
-          {shown.map(item => {
-            const outlet = outletById(item.outletId)
-            const fresh = unread.includes(item)
-            return (
-              <button
-                key={item.id}
-                onClick={open}
-                style={{
-                  width: 168, flexShrink: 0, padding: 12, borderRadius: 18, textAlign: 'left',
-                  background: fresh ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                  display: 'flex', flexDirection: 'column', gap: 7,
-                }}
-              >
-                <span className="flex items-center" style={{ gap: 6, minWidth: 0 }}>
-                  {/* Тот же знак источника, что в шапке поста: по нему видно,
-                      чей материал, без второй строки с подписью. */}
-                  <span aria-hidden style={{
-                    flexShrink: 0, width: 20, height: 20, borderRadius: 999,
-                    background: outlet?.tint ?? 'var(--color-accent)', color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: (outlet?.mark.length ?? 1) > 2 ? 7.5 : 9, fontWeight: 800, lineHeight: 1,
-                  }}>
-                    {outlet?.mark ?? '·'}
-                  </span>
-                  <span className="truncate" style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)' }}>
-                    {dayLabel(item.date)}
-                  </span>
-                </span>
-                <span style={{
-                  fontSize: 12, lineHeight: 1.45, fontWeight: fresh ? 700 : 600,
-                  color: fresh ? 'var(--color-text)' : 'var(--color-text-2)',
-                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+
+      <div className="flex flex-col" style={{ gap: 8 }}>
+        {list.map(item => {
+          const outlet = outletById(item.outletId)
+          const fresh = unread.includes(item)
+          // Первая фраза поста — вместо второй строки служебных подписей: по ней
+          // видно, о чём он, ещё до открытия. У ролика тела нет, там пусто.
+          const lead = item.embed ? '' : item.body.replace(/\s+/g, ' ').trim().slice(0, 160)
+          return (
+            <motion.button
+              key={item.id}
+              whileTap={{ scale: 0.985 }}
+              onClick={open}
+              className="text-left cursor-pointer"
+              style={{
+                width: '100%', padding: 13, borderRadius: 18,
+                background: fresh ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                border: 'none', fontFamily: 'inherit',
+                display: 'flex', flexDirection: 'column', gap: 7,
+              }}
+            >
+              <span className="flex items-center" style={{ gap: 7, minWidth: 0, width: '100%' }}>
+                {/* Тот же знак источника, что в шапке поста в самой ленте. */}
+                <span aria-hidden style={{
+                  flexShrink: 0, width: 22, height: 22, borderRadius: 999,
+                  background: outlet?.tint ?? 'var(--color-accent)', color: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: (outlet?.mark.length ?? 1) > 2 ? 8 : 9.5, fontWeight: 800, lineHeight: 1,
                 }}>
-                  {item.title}
+                  {outlet?.mark ?? '·'}
                 </span>
-              </button>
-            )
-          })}
-        </MobileHScroll>
+                <span className="truncate" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-2)' }}>
+                  {outlet?.name ?? ''}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--color-text-4)', flexShrink: 0 }}>·</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
+                  {dayLabel(item.date)}
+                </span>
+                {item.embed && (
+                  <Play size={12} style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--color-text-3)' }} />
+                )}
+              </span>
+              <span style={{
+                fontSize: 14, lineHeight: 1.35, fontWeight: fresh ? 800 : 700,
+                color: 'var(--color-text)',
+                display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+              }}>
+                {item.title}
+              </span>
+              {lead && (
+                <span style={{
+                  fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>
+                  {lead}
+                </span>
+              )}
+            </motion.button>
+          )
+        })}
       </div>
+
+      {/* Граница подгрузки: показалась — приезжает следующая порция. */}
+      {hasMore && <div ref={moreRef} style={{ height: 1 }} aria-hidden />}
+
+      {!hasMore && (
+        <button
+          onClick={open}
+          style={{
+            marginTop: 10, width: '100%', padding: '11px 0', borderRadius: 14,
+            background: 'var(--color-bg-3)', border: 'none', cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'var(--color-accent)',
+          }}
+        >
+          {t('Открыть ленту целиком')}
+        </button>
+      )}
     </div>
   )
 }

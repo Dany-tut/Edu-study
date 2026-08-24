@@ -482,6 +482,15 @@ export interface SpeakOptions {
   /** Точное имя голоса (учитель мог выбрать его в редакторе задания). */
   voiceName?: string
   /**
+   * С какой реплики начать (номер в speechLines).
+   *
+   * Промотка. У синтеза нет таймлайна: узнать «сейчас 0:41» и прыгнуть на
+   * 0:52 нечем, единственная точка, к которой можно вернуться, — начало
+   * реплики. Поэтому бегунок плеера липнет к границам реплик, а сюда приходит
+   * та, с которой отпустили палец.
+   */
+  from?: number
+  /**
    * Голос ЗАЗВУЧАЛ — не «мы попросили», а движок реально начал говорить.
    *
    * Между speak() и первым звуком проходит от десятков миллисекунд до секунды:
@@ -577,7 +586,10 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   const rate = opts.rate ?? 1
   const gap = opts.gap ?? 0
 
-  let i = 0
+  // Промотка: читаем не с начала, а с выбранной реплики. Номер зажат в
+  // границы списка — снаружи он приходит из бегунка, а список мог смениться.
+  const start = Math.min(Math.max(0, Math.floor(opts.from ?? 0)), lines.length - 1)
+  let i = start
   const next = () => {
     if (mine !== run) return
     if (i >= lines.length) { finish(true); return }
@@ -599,7 +611,7 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
       if (began || mine !== run) return
       began = true
       if (startTimer) { clearTimeout(startTimer); startTimer = null }
-      if (idx === 0) opts.onStart?.()
+      if (idx === start) opts.onStart?.()
       opts.onLine?.(idx, lines.length)
     }
     u.onstart = begin

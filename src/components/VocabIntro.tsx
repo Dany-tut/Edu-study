@@ -17,15 +17,14 @@
 // урока» не заводится, иначе одно и то же слово пришлось бы держать в двух местах.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3, Volume2 } from 'lucide-react'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
-import { speechMs, speechText } from '../lib/speech'
-import AudioPlayer from './AudioPlayer'
+import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
 
 /**
  * «Карточка — это один знак»: буква хангыля, кана, иероглиф. У таких карточек
@@ -69,8 +68,66 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
 }) {
   const t = useT()
   const [open, setOpen] = useState(defaultOpen)
-  /** Карточка, которая звучит прямо сейчас (одновременно звучит только одна). */
-  const [speakingId, setSpeakingId] = useState<string | null>(null)
+  /**
+   * Карточка, которая звучит прямо сейчас (одновременно звучит только одна).
+   * `live` — голос уже зазвучал: между тапом и первым звуком движок берёт своё
+   * время (сетевой голос — до секунды), и бегунок, пущенный по тапу, к началу
+   * слова уже на середине. `done` — слово смолкло, и линию надо доводить до
+   * края: длительность синтеза известна лишь прикидкой.
+   */
+  const [speaking, setSpeaking] = useState<
+    { id: string; run: number; ms: number; live?: boolean; done?: boolean } | null
+  >(null)
+  const runRef = useRef(0)
+  const hideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Слово не должно догонять ученика на следующем экране.
+  useEffect(() => () => {
+    if (runRef.current > 0) stopSpeech()
+    if (hideRef.current) clearTimeout(hideRef.current)
+  }, [])
+
+  /**
+   * Озвучка карточки. Кнопки-плеера у карточки больше нет — говорит сама
+   * карточка, поэтому запуск живёт здесь, а не в AudioPlayer.
+   *
+   * ПОЧЕМУ ВСЯ КАРТОЧКА, А НЕ КРУЖОК. Плеер вставал в трёх разных местах:
+   * у слова — справа от записи, у карточки с рисунком — на уровне картинки,
+   * у буквы — внизу под значением (рядом с буквой он сбивал её с центра).
+   * В ряду из десяти карточек кружки стояли лестницей, и ученик каждый раз
+   * искал глазами, куда на этой карточке ткнуть. Теперь цель одна и размером
+   * с карточку, а в углу — тихий значок звука: он говорит, что тут звучит, но
+   * не претендует быть единственной целью.
+   */
+  function say(w: HomeworkQuizQuestion) {
+    const text = speechText(w.front || w.prompt)
+    if (!text.trim()) return
+    // Повторный тап по говорящей карточке — это «замолчи», как пауза у плеера.
+    if (speaking?.id === w.id && !speaking.done) {
+      stopSpeech()
+      runRef.current++
+      if (hideRef.current) clearTimeout(hideRef.current)
+      setSpeaking(null)
+      return
+    }
+    // Номер запуска: onEnd прошлой озвучки приходит уже после старта новой и
+    // без сверки погасил бы индикатор слова, которое только что зазвучало.
+    const run = ++runRef.current
+    const finish = () => {
+      setSpeaking(cur => (cur?.run === run ? { ...cur, done: true } : cur))
+      if (hideRef.current) clearTimeout(hideRef.current)
+      hideRef.current = setTimeout(() => {
+        setSpeaking(cur => (cur?.run === run ? null : cur))
+      }, 260)
+    }
+    if (hideRef.current) clearTimeout(hideRef.current)
+    setSpeaking({ id: w.id, run, ms: speechMs(text) })
+    speak(text, {
+      lang: w.lang,
+      onStart: () => setSpeaking(cur => (cur?.run === run ? { ...cur, live: true } : cur)),
+      onEnd: finish,
+    })
+  }
   const { visible: readingVisible, toggle: toggleReading } = useReadingVisible()
   /**
    * Знакомство по одному слову.
@@ -194,24 +251,19 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                 {(walking && current ? [current] : words).map(w => {
                   const face = w.front || w.prompt
                   const tts = speechText(face)
-                  const speaking = speakingId === w.id
+                  const sp = speaking?.id === w.id ? speaking : null
                   /** Одиночный знак без картинки — печатаем его крупно: в юните
                       хангыля вся карточка и есть эта буква. */
                   const glyph = !w.image && isGlyph(face)
-                  const audio = (
-                    <AudioPlayer
-                      ttsText={tts}
-                      lang={w.lang}
-                      compact
-                      variant="ghost"
-                      accent={accent}
-                      soft={soft}
-                      onPlayingChange={p => setSpeakingId(cur => (p ? w.id : cur === w.id ? null : cur))}
-                    />
-                  )
+                  const mute = !tts.trim()
                   return (
-                  <div
+                  <button
                     key={w.id}
+                    type="button"
+                    onClick={() => say(w)}
+                    disabled={mute}
+                    className={mute ? undefined : 'vocab-card'}
+                    aria-label={`${face} — ${t('послушать')}`}
                     style={{
                       position: 'relative', overflow: 'hidden',
                       display: 'flex', flexDirection: 'column', gap: 4,
@@ -219,12 +271,40 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       // прижимать букву к левому краю не за чем — центрируем.
                       alignItems: glyph ? 'center' : 'stretch',
                       textAlign: glyph ? 'center' : 'left',
+                      // Место под значок звука в углу — на ВСЕХ карточках, иначе
+                      // длинное слово подъезжает под него только там, где оно
+                      // длинное, и ряд снова разъезжается. У карточки-знака
+                      // отступ зеркалится влево: буква стоит по центру, и
+                      // место, вырезанное только справа, сдвигало бы её.
                       padding: '12px 14px', borderRadius: 16,
-                      border: `1px solid ${speaking ? accent : 'var(--color-border-soft)'}`,
+                      paddingRight: 46, paddingLeft: glyph ? 46 : 14,
+                      border: `1px solid ${sp ? accent : 'var(--color-border-soft)'}`,
                       background: 'var(--color-bg-input)',
-                      transition: 'border-color .18s ease',
+                      font: 'inherit', color: 'inherit',
+                      cursor: mute ? 'default' : 'pointer',
                     }}
                   >
+                    {/* Значок звука. Один и тот же угол у слова, у карточки с
+                        рисунком и у буквы: раньше плеер стоял в трёх разных
+                        местах, и ряд карточек читался как лестница из кружков.
+                        Он не кнопка — кнопка тут вся карточка, — поэтому
+                        aria-hidden и никаких обработчиков. */}
+                    <span
+                      aria-hidden
+                      className="vocab-card__snd"
+                      style={{
+                        position: 'absolute', top: 10, right: 10,
+                        width: 26, height: 26, borderRadius: '50%',
+                        display: 'grid', placeItems: 'center',
+                        background: sp ? accent : soft,
+                        color: sp ? '#fff' : accent,
+                        // Звучащая карточка держит значок в полную силу и без курсора.
+                        opacity: mute ? 0 : sp ? 1 : undefined,
+                      }}
+                    >
+                      <Volume2 size={13} />
+                    </span>
+
                     {/* Плитка предмета — только там, где рисунок ЕСТЬ.
                         Раньше пустая рамка с перечёркнутой картинкой стояла у
                         каждой карточки ради ровного ряда, но в алфавитных
@@ -241,45 +321,45 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                         <img src={w.image} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
                       </span>
                     )}
-                    <div className="flex items-center" style={{ gap: 8, justifyContent: glyph ? 'center' : undefined }}>
-                      <span style={{
-                        fontSize: glyph ? 40 : 18, fontWeight: 700, color: 'var(--color-text)',
-                        lineHeight: glyph ? 1.1 : 1.25, ...proseWrap,
-                      }}>
-                        {face}
-                      </span>
-                      {/* У карточки-знака кнопка не встаёт рядом с буквой: пара
-                          «буква + круг» смотрится сдвинутой с центра, а сама
-                          буква из-за неё перестаёт быть центром карточки.
-                          Поэтому там звук уезжает вниз, под значение. */}
-                      {!glyph && (
-                        <span style={{ marginLeft: 'auto', flexShrink: 0 }}>{audio}</span>
-                      )}
-                    </div>
+                    <span style={{
+                      display: 'block',
+                      fontSize: glyph ? 40 : 18, fontWeight: 700, color: 'var(--color-text)',
+                      lineHeight: glyph ? 1.1 : 1.25, ...proseWrap,
+                    }}>
+                      {face}
+                    </span>
                     {readingVisible && w.reading && (
                       <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>{w.reading}</span>
                     )}
-                    <span style={{ fontSize: 14, color: 'var(--color-text-2)', ...proseWrap }}>{bindShortWords(w.back ?? '')}</span>
-                    {glyph && <span style={{ marginTop: 6 }}>{audio}</span>}
+                    <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--color-text-2)', ...proseWrap }}>
+                      {bindShortWords(w.back ?? '')}
+                    </span>
 
                     {/* Индикатор озвучки: линия по низу карточки заполняется, пока
                         слово произносится. Анимация чисто CSS — rAF в превью не
-                        срабатывает, а этот индикатор должен работать везде. */}
-                    {speaking && (
+                        срабатывает, а этот индикатор должен работать везде.
+                        До первого звука видна пустая пульсирующая дорожка: тап
+                        принят, движок ещё запрягает. */}
+                    {sp && (
                       <span
                         aria-hidden
+                        className={sp.live || sp.done ? undefined : 'vocab-speak-wait'}
                         style={{
                           position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
                           background: soft, overflow: 'hidden',
+                          opacity: sp.done ? 0 : 1, transition: 'opacity 240ms linear',
                         }}
                       >
-                        <span
-                          className="vocab-speak-fill"
-                          style={{ background: accent, animationDuration: `${speechMs(tts)}ms` }}
-                        />
+                        {sp.live && (
+                          <span
+                            key={sp.run}
+                            className={`vocab-speak-fill${sp.done ? ' vocab-speak-fill--done' : ''}`}
+                            style={{ background: accent, animationDuration: `${sp.ms}ms` }}
+                          />
+                        )}
                       </span>
                     )}
-                  </div>
+                  </button>
                   )
                 })}
               </div>
