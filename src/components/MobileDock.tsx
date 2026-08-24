@@ -198,7 +198,12 @@ export function DockSegment<T extends string | number>({
       initial={false}
       animate={collapseAnim(collapsed)}
       transition={collapseTransition(collapsed)}
-      style={{ borderRadius: 999, maxWidth: 'min(78vw, 340px)', overflow: 'hidden', position: 'relative', transformOrigin: 'bottom center', ...glassBase }}
+      // minWidth:0 + сжатие вместо жёсткого min(78vw, 340px): фиксированный
+      // потолок не знал о соседях по ряду (флаг + два круга в тренажёре), и
+      // центрированный ряд выпирал за оба края экрана. Теперь ряд ужимает
+      // таблетку до остатка ширины, а спрятанные чипсы добирает её внутренний
+      // скролл с фейдами.
+      style={{ borderRadius: 999, maxWidth: 340, minWidth: 0, overflow: 'hidden', position: 'relative', transformOrigin: 'bottom center', ...glassBase }}
     >
       <div
         ref={scrollRef}

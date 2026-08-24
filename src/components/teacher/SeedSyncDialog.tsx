@@ -130,15 +130,6 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
     const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
     return prev.top === top && prev.bottom === bottom ? prev : { top, bottom }
   })
-  // Не scrollIntoView: у вложенного контейнера он молча не срабатывает (проверено
-  // на стенде — scrollTop оставался нулём). Считаем смещение сами.
-  const jumpTo = (id: string) => {
-    const body = bodyRef.current
-    const el = body?.querySelector(`[data-group="${id}"]`)
-    if (!body || !el) return
-    body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top - 8
-  }
-
   const group = ({ id, title, note, Icon, list, tone }: (typeof groups)[number]) => (
     <section key={id} data-group={id} style={{ marginBottom: 20, scrollMarginTop: 4 }}>
       <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
@@ -190,20 +181,18 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
 
         {/* Полоса групп. Отметить «все добавления» или снять «все перезаписи» —
             самое частое действие в этом окне, и ради него не должно приходиться
-            листать список на сотню строк до нужного заголовка. Клик по названию
-            прокручивает тело к самой группе. */}
+            листать список на сотню строк до нужного заголовка. */}
         {groups.length > 0 && (
           <div className="flex flex-wrap items-center flex-shrink-0"
             style={{ gap: 8, padding: '10px 22px', borderBottom: '1px solid var(--color-border-soft)' }}>
             {groups.map(g => {
               const n = g.list.filter(c => picked.has(c.key)).length
               // Мишень — вся таблетка, а не квадратик 16×16: попасть в чекбокс
-              // мышью труднее, чем в слово рядом с ним. Клик отмечает всю
-              // группу и заодно прокручивает тело к ней.
+              // мышью труднее, чем в слово рядом с ним. Клик отмечает всю группу.
               const all = n === g.list.length
                 return (
                   <button key={g.id} type="button"
-                    onClick={() => { toggleAll(g.list, !all); jumpTo(g.id) }}
+                    onClick={() => toggleAll(g.list, !all)}
                     className="cursor-pointer flex items-center"
                     style={{
                       gap: 7, padding: '5px 11px 5px 9px', borderRadius: 999,

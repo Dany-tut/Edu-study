@@ -152,3 +152,57 @@ export function lockRelease() {
   }
   haptic([4, 2])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Канон вердикта урока (docs/MEMORY_STANDARD.md, Р10)
+//
+// Два звука на всю учебную часть, и больше никаких. Ошибка полезна только с
+// немедленной и однозначной обратной связью (Metcalfe 2017), а «однозначная» —
+// это в том числе узнаваемая: один и тот же звук на верный ответ во всех
+// заданиях и во всех курсах. Разнобой заставляет каждый раз заново решать, что
+// именно сейчас сказали.
+//
+// Громкость ниже, чем у lockSnap: вердикт звучит десятки раз за урок, и на
+// громкости интерфейсных щелчков он через пять минут раздражает.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Верно: две ноты вверх (до–соль), короткие и мягкие. */
+export function okChime() {
+  const ac = audioCtx()
+  if (ac) {
+    const t = ac.currentTime
+    const note = (freq: number, at: number, dur: number, vol: number) => {
+      const osc = ac.createOscillator()
+      const g = ac.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      g.gain.setValueAtTime(0, t + at)
+      g.gain.linearRampToValueAtTime(vol, t + at + 0.008)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur)
+      osc.connect(g).connect(ac.destination)
+      osc.start(t + at); osc.stop(t + at + dur + 0.01)
+    }
+    note(587.33, 0, 0.11, 0.045)     // D5
+    note(880.00, 0.075, 0.20, 0.040) // A5
+  }
+  haptic([8, 24, 8])
+}
+
+/** Мимо: одна короткая низкая нота. Не «злая» — просто глухая. */
+export function missBlip() {
+  const ac = audioCtx()
+  if (ac) {
+    const t = ac.currentTime
+    const osc = ac.createOscillator()
+    const g = ac.createGain()
+    osc.type = 'triangle'
+    osc.frequency.setValueAtTime(233.08, t)              // Bb3
+    osc.frequency.exponentialRampToValueAtTime(174.61, t + 0.12) // F3
+    g.gain.setValueAtTime(0, t)
+    g.gain.linearRampToValueAtTime(0.05, t + 0.008)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16)
+    osc.connect(g).connect(ac.destination)
+    osc.start(t); osc.stop(t + 0.17)
+  }
+  haptic(26)
+}

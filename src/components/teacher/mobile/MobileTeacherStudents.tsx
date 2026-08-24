@@ -6,6 +6,7 @@ import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { useGroups, useStudents, useAllStudents } from '../../../lib/useGroups'
+import { useSwipeBack } from '../../../lib/useSwipeBack'
 import { useHomework } from '../../../lib/useHomework'
 import { contactLabel } from '../../../lib/contactLink'
 import { useT } from '../../../lib/i18n'
@@ -157,6 +158,8 @@ export function StudentSheet({ student, group, open, loading, onClose }: { stude
 
 function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
   const t = useT()
+  // Свайп от левого края = «Все группы».
+  useSwipeBack(onBack)
   const { students: realStudents } = useStudents(group.id)
   // DEV-only: for a demo group (no real roster in the DB) fall back to demo students.
   const students = import.meta.env.DEV && realStudents.length === 0

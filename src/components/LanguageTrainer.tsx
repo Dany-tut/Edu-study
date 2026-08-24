@@ -10,6 +10,7 @@ import TrackPlayer from './trainer/TrackPlayer'
 import VoicePicker, { useVoiceChoice } from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
+import { useSwipeBack } from '../lib/useSwipeBack'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import CardDeck, { DECK_CTA } from './CardDeck'
 import PhraseDecks, {
@@ -2479,6 +2480,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   }
 
+  // Свайп от левого края повторяет кнопку «назад» текущей строки управления
+  // («К полкам» / «К справочнику» / «К главам» / «К списку»). Открытые
+  // материалы (читалка/аудирование) регистрируют свой «назад» сами, поэтому
+  // здесь жест выключен, пока показан материал, — иначе после F5 с открытой
+  // сценой свайп закрывал бы полку ПОД ней.
+  const materialOpen = Boolean(openScene || openText || openAudio)
+  const toolbarBack =
+    scenesOn && openWork ? () => setOpenWorkId(null)
+    : mode === 'grammar' && openForm ? () => setOpenFormId(null)
+    : mode === 'guide' && openChapter ? () => setOpenChapterId(null)
+    : mode === 'speaking' && speakOpen ? () => setSpeakOpen(null)
+    : null
+  useSwipeBack(toolbarBack, !materialOpen)
+
   // ── Открытый материал ──────────────────────────────────────────────────────
   //
   // Ранние возвраты стоят ПОСЛЕ ВСЕХ хуков компонента, а не там, где читаются
@@ -2685,6 +2700,8 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
   onBack: () => void
 }) {
   const t = useT()
+  // Свайп от левого края = «К списку»: читалка — вложенный экран тренажёра.
+  useSwipeBack(onBack)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [checked, setChecked] = useState(false)
   const [gloss, setGloss] = useState<string | null>(null)
@@ -3267,6 +3284,8 @@ function Listener({ item, accent, palette, lang, onBack }: {
 }) {
   const t = useT()
   const narrow = useTrainerNarrow()
+  // Свайп от левого края = «К списку»: аудирование — вложенный экран тренажёра.
+  useSwipeBack(onBack)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [checked, setChecked] = useState(false)
 

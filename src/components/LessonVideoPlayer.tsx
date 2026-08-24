@@ -921,7 +921,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           />
 
           {/* Большая кнопка на паузе и в конце ролика. На паузе она занимает
-              только середину — иначе накрыла бы собой весь слой жестов. */}
+              только середину — иначе накрыла бы собой весь слой жестов.
+              Центр берём не от кадра, а от его свободной части: на паузе
+              нижняя панель показана всегда, и кнопка в геометрическом центре
+              визуально тонет в контролы — поэтому она приподнята на половину
+              высоты панели. */}
           {(paused || ended) && !gesture && (
             <button
               onClick={() => (ended ? (doSeek(0), doPlay()) : doPlay())}
@@ -931,7 +935,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 : 'absolute flex items-center justify-center cursor-pointer'}
               style={ended
                 ? { border: 'none', background: 'rgba(0,0,0,0.55)' }
-                : { border: 'none', background: 'transparent', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', padding: 0 }}
+                : { border: 'none', background: 'transparent', left: '50%', top: 'calc(50% - 28px)', transform: 'translate(-50%, -50%)', padding: 0 }}
             >
               <motion.span
                 whileHover={{ scale: 1.08 }}
@@ -1003,8 +1007,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               анимация scale у motion.div перезаписывает transform целиком и
               сбивает translate(-50%). Стрелок ровно столько, какая ступень, а
               замок наливается снизу вверх, туда же, куда ведут палец.
-              На телефоне подсказку про замок прячем: с ней плашка шире кадра и
-              её обрезает край. */}
+              На телефоне подсказку про замок прячем (с ней плашка шире кадра),
+              а саму плашку ужимаем: меньше отступы, стрелки и замок — иначе
+              она спорит по весу с самим кадром. */}
           {(gesture === 'ff' || gesture === 'rw') && (
             <div style={{
               position: 'absolute', left: 0, right: 0, top: 14, display: 'flex',
@@ -1015,7 +1020,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.16 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 9, padding: '7px 14px',
+                display: 'flex', alignItems: 'center', gap: touch ? 6 : 9, padding: touch ? '4px 10px' : '7px 14px',
                 borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
                 maxWidth: 'calc(100% - 24px)',
@@ -1027,21 +1032,21 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     key={i}
                     animate={{ opacity: [0.22, 1, 0.22] }}
                     transition={{ duration: 0.9, delay: i * 0.12, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ display: 'flex', marginLeft: i ? -6 : 0 }}
+                    style={{ display: 'flex', marginLeft: i ? (touch ? -5 : -6) : 0 }}
                   >
-                    {gesture === 'ff' ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
+                    {gesture === 'ff' ? <ChevronRight size={touch ? 14 : 17} /> : <ChevronLeft size={touch ? 14 : 17} />}
                   </motion.span>
                 ))}
               </div>
 
-              <span style={{ fontSize: 14.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{boost}×</span>
+              <span style={{ fontSize: touch ? 13 : 14.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{boost}×</span>
 
               {/* Замок: капсула наливается снизу вверх по ходу жеста. */}
               <motion.span
                 animate={boostLocked ? { scale: [1, 1.16, 1] } : { scale: 1 }}
                 transition={{ duration: 0.34 }}
                 style={{
-                  position: 'relative', width: 34, height: 21, borderRadius: 999, overflow: 'hidden',
+                  position: 'relative', width: touch ? 28 : 34, height: touch ? 17 : 21, borderRadius: 999, overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(255,255,255,0.13)',
                   border: `1px solid ${boostLocked ? 'rgba(167,139,250,0.9)' : 'rgba(255,255,255,0.14)'}`,
@@ -1061,8 +1066,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   style={{ display: 'flex', position: 'relative' }}
                 >
                   {boostLocked
-                    ? <Lock size={12} />
-                    : <LockOpen size={12} style={{ opacity: 0.4 + lockFill * 0.6 }} />}
+                    ? <Lock size={touch ? 10 : 12} />
+                    : <LockOpen size={touch ? 10 : 12} style={{ opacity: 0.4 + lockFill * 0.6 }} />}
                 </motion.span>
               </motion.span>
 

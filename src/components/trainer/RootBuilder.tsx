@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, Check, X, RotateCcw, Blocks } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'
 import { stopSpeech } from '../../lib/speech'
 import { addCards } from '../../data/reviewDeck'
@@ -196,6 +197,8 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
   onBack: () => void
 }) {
   const t = useT()
+  // Свайп от левого края = кнопка «назад» дрилла (вложенный экран тренажёра).
+  useSwipeBack(onBack)
   const pool = useMemo(() => allBricks(), [])
   const canRun = useMemo(() => buildable(root).length >= 2, [root])
 

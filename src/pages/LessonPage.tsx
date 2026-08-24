@@ -24,6 +24,7 @@ import TheoryChecklist from '../components/TheoryChecklist'
 import { parseChecklist } from '../lib/theoryChecklist'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import { useSwipeBack } from '../lib/useSwipeBack'
 
 /** «1 файл / 2 файла / 5 файлов». */
 function plural(n: number, one: string, few: string, many: string) {
@@ -678,6 +679,8 @@ export default function LessonPage() {
   const courses = useStudentData(s => s.subjects)
   const currentLessonId = useDashboard(s => s.currentLessonId)
   const closeLesson = useDashboard(s => s.closeLesson)
+  // Свайп от левого края = кнопка «Назад» (жест живёт только на тач-экранах).
+  useSwipeBack(closeLesson, !isDesktop)
   const openHomework = useDashboard(s => s.openHomework)
   const highlightReactionId = useDashboard(s => s.highlightReactionId)
   const clearHighlightReaction = useDashboard(s => s.clearHighlightReaction)

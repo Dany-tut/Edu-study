@@ -45,6 +45,7 @@ import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '.
 import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
 import { useT } from '../lib/i18n'
+import { useSwipeBack } from '../lib/useSwipeBack'
 import CardDeck, { DECK_CTA, type DeckSource } from './CardDeck'
 import GlossedText from './GlossedText'
 import { SoundBadge, SoundTrack, useSpeakOne } from './SoundBadge'
@@ -631,6 +632,8 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
 /** Возврат к витрине — живёт в строке управления. */
 export function BackToSets({ onBack }: { onBack: () => void }) {
   const t = useT()
+  // Кнопка «К наборам» = экранный «назад»: свайп от края делает то же самое.
+  useSwipeBack(onBack)
   return (
     <button
       onClick={onBack}

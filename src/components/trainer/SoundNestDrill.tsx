@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Volume2, ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'
 import { subjectFill } from '../../lib/subjects'
 import { speak, speechText, stopSpeech } from '../../lib/speech'
@@ -164,6 +165,8 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
   onBack: () => void
 }) {
   const t = useT()
+  // Свайп от левого края = кнопка «назад» дрилла (вложенный экран тренажёра).
+  useSwipeBack(onBack)
   // Гнездо может не различаться на слух по устройству языка: омонимы совпадают
   // целиком, ㅐ и ㅔ в корейском слились. Прогон «какое прозвучало» там был бы
   // вопросом без верного ответа — остаётся разбор и колода.

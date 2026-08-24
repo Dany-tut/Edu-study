@@ -22,9 +22,12 @@ import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KE
 import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
+import { okChime, missBlip } from '../lib/feedback'
+import StarBurst from './StarBurst'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor, subjectSlugFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { useSwipeBack } from '../lib/useSwipeBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
@@ -1231,6 +1234,8 @@ export default function HomeworkFlow({
   const readingVisible = useReadingVisible(s => s.visible)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
+  // Свайп от левого края = кнопка «Назад» в шапке домашки.
+  useSwipeBack(() => { clearHomeworkWidgetFeedback(); onBack() }, isMobile)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
   const setActivePage = useDashboard(s => s.setActivePage)
   const questionSectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -1317,6 +1322,16 @@ export default function HomeworkFlow({
   // Full-screen image viewer. A base64 data URL can't be opened in a new tab —
   // browsers block top-level navigation to data: URLs — so we show it inline.
   const [lightbox, setLightbox] = useState<string | null>(null)
+  /**
+   * Разлёт звёздочек на верный ответ (docs/MEMORY_STANDARD.md, Р10).
+   *
+   * Это СОБЫТИЕ, а не состояние задания: зелёная рамка держится, пока открыт
+   * разбор, а звёздочки летят один раз, в момент попадания. Поэтому ключ живёт
+   * отдельно от ответов — иначе после F5 или возврата к разобранному заданию
+   * они вспыхивали бы заново на каждом рендере.
+   */
+  const [burst, setBurst] = useState<{ id: string; n: number } | null>(null)
+  const fireBurst = (id: string) => setBurst(b => ({ id, n: (b?.n ?? 0) + 1 }))
   const setLessonAssessment = useDashboard(s => s.setLessonAssessment)
   const setHardCompleted = useDashboard(s => s.setHardCompleted)
   // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
@@ -1748,8 +1763,11 @@ export default function HomeworkFlow({
     const nextAnswered = basicQuestions.filter(item => questionAnswered(item, nextAnswers[item.id])).length
     const nextCorrect = basicQuestions.filter(item => questionCorrect(item, nextAnswers[item.id])).length
 
-    playPop()
-    vibrate(correct ? [10, 30, 10] : 22)
+    // Множественный выбор вердикта ещё не имеет (он придёт по «Проверить»),
+    // поэтому звучит нейтрально: канонический звук здесь сообщал бы ответ.
+    if (multi) { playPop(); vibrate(22) }
+    else if (correct) { okChime(); fireBurst(questionId) }
+    else missBlip()
     setState(current => ({
       ...current,
       basicAnswers: nextAnswers,
@@ -1767,8 +1785,13 @@ export default function HomeworkFlow({
         : question.explanation,
     })
 
-    // Fire flying chip animation from the question card to the widget pill.
-    const el = questionSectionRefs.current[questionId]
+    // Кружок с галочкой/крестиком летит в виджет-пилюлю сводки. Если пилюли на
+    // экране нет (телефон, режим одного задания), лететь ему некуда: он вспыхивал
+    // на месте и гас за полсекунды — прочитать нельзя, а вердикт он перекрывал.
+    // Вместо него на телефоне работают цвет, звук и звёздочки (Р10).
+    const el = document.getElementById('widget-pill-target')
+      ? questionSectionRefs.current[questionId]
+      : null
     if (el) {
       const rect = el.getBoundingClientRect()
       setAnswerFlight({
@@ -1801,8 +1824,8 @@ export default function HomeworkFlow({
     const question = basicQuestions.find(item => item.id === questionId)
     if (!question || state.basicSubmitted || state.basicChecked[questionId]) return
     const correct = questionCorrect(question, state.basicAnswers[questionId])
-    playPop()
-    vibrate(correct ? [10, 30, 10] : 22)
+    if (correct) { okChime(); fireBurst(questionId) }
+    else missBlip()
     setState(current => ({
       ...current,
       basicChecked: { ...current.basicChecked, [questionId]: true },
@@ -2877,12 +2900,14 @@ export default function HomeworkFlow({
                             maxWidth: 220,
                             lineHeight: 1.4,
                             flexShrink: 0,
+                            position: 'relative',
                           }}
                         >
                           <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: 1 }} />
                           <span style={balancedWrap}>
                             {isCorrect ? t('Верно') : t('Неверно')}
                           </span>
+                          {isCorrect && burst?.id === question.id && <StarBurst key={burst.n} radius={38} />}
                         </div>
                       )}
                       {showReview && (
@@ -2940,10 +2965,14 @@ export default function HomeworkFlow({
                               fontWeight: 600,
                               transition: 'all 0.18s ease',
                               opacity: answered && !correctSelected && !wrongSelected && !active ? 0.84 : 1,
+                              position: 'relative',
                               ...proseWrap,
                             }}
                           >
                             {bindShortWords(option.text)}
+                            {active && correctSelected && burst?.id === question.id && (
+                              <StarBurst key={burst.n} />
+                            )}
                           </button>
                         )
                       })}
@@ -3026,6 +3055,10 @@ export default function HomeworkFlow({
                       value={parseMatchingCsv(selectedAnswer, question.pairs!.length)}
                       disabled={locked}
                       showVerdict={showVerdict}
+                      // Пока задание решается — вердикт по каждой паре сразу
+                      // (Р10). После сдачи/разбора включается обычный показ
+                      // эталона, иначе распавшаяся пара осталась бы без ответа.
+                      instant={!showVerdict && !locked}
                       onChange={next => setFreeAnswer(question.id, matchingCsv(next))}
                     />
 

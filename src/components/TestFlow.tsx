@@ -18,6 +18,7 @@ import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { useSwipeBack } from '../lib/useSwipeBack'
 import QuestionTable from './QuestionTable'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import { useT } from '../lib/i18n'
@@ -38,6 +39,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
   const t = useT()
   const tasks = lesson.testTasks ?? []
   const isDesktop = useIsDesktop()
+  // Свайп от левого края = кнопка «Назад» в шапке теста.
+  useSwipeBack(onBack, !isDesktop)
   const reload = useStudentData(s => s.load)
   // Ответы переживают перезагрузку: тест из пятнадцати заданий заполняют не в
   // один присест, и F5 (или автоперезагрузка после деплоя) не должен стирать

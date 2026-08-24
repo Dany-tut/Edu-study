@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, Check, X, RotateCcw, BookOpenCheck } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'
 import { subjectFill } from '../../lib/subjects'
 import { speak, speechText, stopSpeech } from '../../lib/speech'
@@ -174,6 +175,8 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
   onBack: () => void
 }) {
   const t = useT()
+  // Свайп от левого края = кнопка «назад» дрилла (вложенный экран тренажёра).
+  useSwipeBack(onBack)
   const [run, setRun] = useState<Question[] | null>(null)
   const [idx, setIdx] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)

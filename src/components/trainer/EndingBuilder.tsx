@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, Check, X, RotateCcw, Blocks } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'
 import { stopSpeech } from '../../lib/speech'
 import { addCards } from '../../data/reviewDeck'
@@ -186,6 +187,8 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
   onBack: () => void
 }) {
   const t = useT()
+  // Свайп от левого края = кнопка «назад» дрилла (вложенный экран тренажёра).
+  useSwipeBack(onBack)
   const endings = useMemo(() => KO_ENDINGS.filter(e => verb.forms[e.id]), [verb])
 
   const [run, setRun] = useState<Question[] | null>(null)

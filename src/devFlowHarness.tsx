@@ -39,6 +39,16 @@ const questions: HomeworkQuizQuestion[] = [
     referenceAnswer: 'тофу',
     explanation: '두부 — тофу, соевый творог.',
   }),
+  q({
+    id: 'mt', type: 'matching', prompt: 'Соедините слово и перевод.',
+    pairs: [
+      { left: '김치', right: 'кимчи' },
+      { left: '두부', right: 'тофу' },
+      { left: '물', right: 'вода' },
+      { left: '밥', right: 'рис' },
+    ],
+    explanation: 'Слова урока.',
+  }),
   q({ id: 'tr', type: 'trace', prompt: 'Обведите букву ㄱ — ведите от точки, черта за чертой', chamo: 'ㄱ' }),
   q({ id: 'bs', type: 'buildSyllable', prompt: 'Соберите слог 김 из букв', syllable: '김' }),
   q({

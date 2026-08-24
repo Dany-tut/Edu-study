@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import StarBurst from './StarBurst'
+import { okChime, missBlip } from '../lib/feedback'
 
 /**
  * «Сопоставление» (matching) — соединить левое с правым.
@@ -89,6 +91,8 @@ export default function MatchingSolver({
   onChange,
   disabled = false,
   showVerdict = false,
+  instant = false,
+  onMiss,
 }: {
   pairs: MatchPair[]
   /** Ответ: индекс правой части на каждую левую, -1 = пусто. */
@@ -97,8 +101,28 @@ export default function MatchingSolver({
   disabled?: boolean
   /** Домашка сдана — подсветить строки и показать эталон там, где не сошлось. */
   showVerdict?: boolean
+  /**
+   * Мгновенный вердикт по каждой паре (домашка; docs/MEMORY_STANDARD.md, Р10).
+   *
+   * Верная пара сразу зеленеет, звенит и запирается; неверная краснеет на 420 мс
+   * и распадается — переспросить можно тут же. В ответ уходят ТОЛЬКО верные
+   * пары: неверная связка не сохраняется, поэтому «ответ» такого задания либо
+   * пуст, либо правилен, и списывать нечего.
+   *
+   * Тест этот режим не включает: там вердикт до сдачи — это подсказка.
+   */
+  instant?: boolean
+  /** Промах — на будущий счётчик ошибок урока (очередь, Р8). */
+  onMiss?: (leftIdx: number) => void
 }) {
   const [selected, setSelected] = useState<{ side: 'left' | 'right'; idx: number } | null>(null)
+  // Неверная связка: живёт только на экране и только 420 мс (Р10).
+  const [miss, setMiss] = useState<{ row: number; right: number } | null>(null)
+  // Ключ разлёта звёздочек: меняется на каждой верной паре, чтобы анимация
+  // перезапускалась даже на той же строке.
+  const [burst, setBurst] = useState<{ row: number; n: number } | null>(null)
+  const missTimer = useRef<number | null>(null)
+  useEffect(() => () => { if (missTimer.current) window.clearTimeout(missTimer.current) }, [])
 
   const fromProps = value.length === pairs.length ? value : emptyMatching(pairs.length)
 
@@ -118,6 +142,9 @@ export default function MatchingSolver({
     onChange(next)
   }
 
+  /** В мгновенном режиме сошедшаяся пара заперта: перетапывать нечего. */
+  const lockedRow = (row: number) => instant && assign[row] === row
+
   // Порядок банка: перемешан детерминированно, чтобы правая часть не стояла
   // напротив своей левой и при этом не прыгала между рендерами.
   const bankOrder = useMemo(
@@ -131,49 +158,68 @@ export default function MatchingSolver({
   // В обработчиках расклад берётся из ref, а не из замыкания рендера: между двумя
   // быстрыми тапами рендера может не случиться, и второй тап обязан видеть первый.
   const link = (base: number[], row: number, rightIdx: number) => {
+    setSelected(null)
+
+    if (instant) {
+      if (rightIdx === row) {
+        const next = [...base]
+        next[row] = rightIdx
+        emit(next)
+        okChime()
+        setBurst(b => ({ row, n: (b?.n ?? 0) + 1 }))
+        return
+      }
+      // Промах: ответ не трогаем — краснеют обе плитки, потом связь распадается.
+      missBlip()
+      onMiss?.(row)
+      setMiss({ row, right: rightIdx })
+      if (missTimer.current) window.clearTimeout(missTimer.current)
+      missTimer.current = window.setTimeout(() => setMiss(null), 420)
+      return
+    }
+
     const next = [...base]
     // Правая плитка занята другой строкой — забираем её (перепривязка без «дырок»).
     const prev = next.findIndex(v => v === rightIdx)
     if (prev >= 0) next[prev] = -1
     next[row] = rightIdx
     emit(next)
-    setSelected(null)
   }
   const tapLeft = (row: number) => {
-    if (disabled) return
+    if (disabled || lockedRow(row) || miss) return
     const base = own.current ?? assign
     if (base[row] >= 0) { const next = [...base]; next[row] = -1; emit(next); setSelected(null); return }
     if (selected?.side === 'right') { link(base, row, selected.idx); return }
     setSelected(selected?.side === 'left' && selected.idx === row ? null : { side: 'left', idx: row })
   }
   const tapRight = (rightIdx: number) => {
-    if (disabled) return
+    if (disabled || miss) return
     const base = own.current ?? assign
     const row = base.findIndex(v => v === rightIdx)
-    if (row >= 0) { const next = [...base]; next[row] = -1; emit(next); setSelected(null); return }
+    if (row >= 0) {
+      if (lockedRow(row)) return
+      const next = [...base]; next[row] = -1; emit(next); setSelected(null); return
+    }
     if (selected?.side === 'left') { link(base, selected.idx, rightIdx); return }
     setSelected(selected?.side === 'right' && selected.idx === rightIdx ? null : { side: 'right', idx: rightIdx })
   }
 
   const tileBase: React.CSSProperties = {
+    position: 'relative',
     display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 46,
     padding: '10px 13px', borderRadius: 12, fontFamily: 'inherit', fontSize: 15,
     lineHeight: 1.35, textAlign: 'left', color: 'var(--color-text)',
     cursor: disabled ? 'default' : 'pointer', transition: 'background .12s, border-color .12s',
   }
 
-  /** Плитка: обычная / выбранная / связанная (с номером пары) / с вердиктом. */
+  /** Плитка: обычная / выбранная / связанная / с вердиктом (зелёная, красная). */
   const skin = (state: { active: boolean; num: number; ok: boolean | null }): React.CSSProperties => {
     if (state.ok !== null) return {
       border: `1.5px solid ${state.ok ? '#6EE7A0' : '#F48B91'}`,
       background: state.ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
       fontWeight: 600,
     }
-    if (state.num > 0) return {
-      border: '1.5px solid var(--color-accent)',
-      background: 'var(--color-purple-soft)', fontWeight: 600,
-    }
-    if (state.active) return {
+    if (state.num > 0 || state.active) return {
       border: '1.5px solid var(--color-accent)',
       background: 'var(--color-purple-soft)', fontWeight: 600,
     }
@@ -183,7 +229,14 @@ export default function MatchingSolver({
     }
   }
 
-  /** Номер пары — единственная нить, которая связывает две колонки визуально. */
+  /**
+   * Номер пары — нить между колонками, пока вердикта нет.
+   *
+   * В мгновенном режиме номеров НЕТ: там связка живёт доли секунды и сразу
+   * получает цвет, а цифра на её месте сообщала бы только «эти две плитки я
+   * соединил» — то есть ровно то, что ученик и так только что сделал. Именно
+   * этим номера и были плохи: они занимали место вердикта, не будучи им.
+   */
   const Badge = ({ num, ok }: { num: number; ok: boolean | null }) => (
     <span style={{
       flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
@@ -193,14 +246,27 @@ export default function MatchingSolver({
     }}>{num}</span>
   )
 
+  /** Вердикт плитки: зелёная — сошлось, красная — только что промахнулись. */
+  const verdictOf = (row: number): boolean | null => {
+    if (row < 0) return null
+    if (instant) {
+      if (miss && miss.row === row) return false
+      return assign[row] === row ? true : null
+    }
+    return showVerdict && assign[row] >= 0 ? assign[row] === row : null
+  }
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
       {/* Левая колонка — слова в авторском порядке */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
         {pairs.map((pair, i) => {
           const picked = assign[i]
-          const ok = showVerdict ? picked === i : null
-          const num = picked >= 0 ? i + 1 : 0
+          const ok = instant ? verdictOf(i) : (showVerdict ? picked === i : null)
+          const num = !instant && picked >= 0 ? i + 1 : 0
+          // Эталон дописывается только после сдачи: в мгновенном режиме
+          // неверная пара распадается и остаётся вопросом, а не ответом.
+          const showAnswer = showVerdict && !instant && ok === false
           return (
             <button
               key={i}
@@ -210,12 +276,13 @@ export default function MatchingSolver({
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 {pair.left}
-                {showVerdict && !ok && (
+                {showAnswer && (
                   <span style={{ display: 'block', marginTop: 3, fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>
                     {pair.right}
                   </span>
                 )}
               </span>
+              {burst?.row === i && <StarBurst key={burst.n} />}
             </button>
           )
         })}
@@ -225,8 +292,10 @@ export default function MatchingSolver({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
         {bankOrder.map(idx => {
           const row = owner[idx]
-          const ok = showVerdict && row >= 0 ? row === idx : null
-          const num = row >= 0 ? row + 1 : 0
+          const ok = instant
+            ? (miss && miss.right === idx ? false : verdictOf(row))
+            : (showVerdict && row >= 0 ? row === idx : null)
+          const num = !instant && row >= 0 ? row + 1 : 0
           return (
             <button
               key={idx}
@@ -235,6 +304,7 @@ export default function MatchingSolver({
             >
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>{pairs[idx].right}</span>
+              {burst?.row === idx && instant && <StarBurst key={`r${burst.n}`} />}
             </button>
           )
         })}
