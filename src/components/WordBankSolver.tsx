@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useOwnAnswer } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'
 
 // «Собрать предложение из плиток» (wordBank / listenBank). Ученик тапает слова из
@@ -45,6 +46,11 @@ export default function WordBankSolver({
 }) {
   const t = useT()
 
+  // Ответ читается на месте тапа, а не из пропса прошлого рендера: два быстрых
+  // тапа успевают попасть в один рендер, и второй затирал бы первый —
+  // предложение собиралось бы из одного слова (см. lib/useOwnAnswer.ts).
+  const [answerNow, emit] = useOwnAnswer(value, onChange, w => w.join('\u0000'))
+
   // Все плитки со стабильными ключами (учёт повторов слов), перемешаны детерминированно.
   const allTiles = useMemo<Tile[]>(() => {
     const raw = [...tokens, ...distractors].map((word, i) => ({ word, key: `${word}#${i}` }))
@@ -55,16 +61,18 @@ export default function WordBankSolver({
   // погашенными (по одному экземпляру на каждое вхождение слова в ответ).
   const bank = useMemo(() => {
     const need = new Map<string, number>()
-    for (const w of value) need.set(w, (need.get(w) ?? 0) + 1)
+    for (const w of answerNow) need.set(w, (need.get(w) ?? 0) + 1)
     return allTiles.map(tile => {
       const n = need.get(tile.word) ?? 0
       if (n > 0) { need.set(tile.word, n - 1); return { ...tile, spent: true } }
       return { ...tile, spent: false }
     })
-  }, [allTiles, value])
+  }, [allTiles, answerNow])
 
-  const pick = (word: string) => { if (!disabled) onChange([...value, word]) }
-  const removeAt = (i: number) => { if (!disabled) onChange(value.filter((_, idx) => idx !== i)) }
+  // База — из prev, а не из снимка рендера: два быстрых тапа успевают попасть в
+  // один рендер, и второй затирал бы первый (см. lib/useOwnAnswer.ts).
+  const pick = (word: string) => { if (!disabled) emit(prev => [...prev, word]) }
+  const removeAt = (i: number) => { if (!disabled) emit(prev => prev.filter((_, idx) => idx !== i)) }
 
   const tileStyle = (accent: boolean): React.CSSProperties => ({
     padding: '8px 13px', borderRadius: 10, cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
@@ -94,9 +102,9 @@ export default function WordBankSolver({
           ))}
         </div>
         <div style={layer}>
-          {value.length === 0
+          {answerNow.length === 0
             ? <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Нажимай на слова, чтобы собрать предложение')}</span>
-            : value.map((word, i) => (
+            : answerNow.map((word, i) => (
                 <button key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true)}>{word}</button>
               ))}
         </div>

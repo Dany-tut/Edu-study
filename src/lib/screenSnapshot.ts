@@ -56,14 +56,20 @@ function wire() {
 }
 
 /**
- * Обезвредить клон: убрать id (иначе в документе два #root) и подменить то,
- * что в копии всё равно не нарисуется, а ожить может (iframe с YouTube в
- * клоне загрузился бы заново и заиграл вторым голосом).
+ * Обезвредить клон: убрать id (иначе в документе два #root), выбросить скрытые
+ * ветки и подменить то, что в копии всё равно не нарисуется, а ожить может
+ * (iframe с YouTube в клоне загрузился бы заново и заиграл вторым голосом).
+ *
+ * Размеры заглушек берём с ОРИГИНАЛА: у отсоединённого клона нет вёрстки, и
+ * getBoundingClientRect на нём вернул бы 0×0 — плеер схлопнулся бы в точку.
  */
-function sterilize(clone: HTMLElement) {
-  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'))
-  clone.querySelectorAll('iframe, video, canvas').forEach(el => {
-    const box = el.getBoundingClientRect()
+const DEAD_Q = 'iframe, video, canvas'
+
+function sterilize(src: HTMLElement, clone: HTMLElement) {
+  const from = src.querySelectorAll(DEAD_Q)
+  const to = clone.querySelectorAll(DEAD_Q)
+  for (let i = 0; i < from.length && i < to.length; i++) {
+    const box = from[i].getBoundingClientRect()
     const stub = document.createElement('div')
     stub.style.cssText = [
       `width:${Math.round(box.width)}px`,
@@ -71,8 +77,14 @@ function sterilize(clone: HTMLElement) {
       'border-radius:inherit',
       'background:var(--color-bg-3, rgba(128,128,128,0.12))',
     ].join(';')
-    el.replaceWith(stub)
-  })
+    to[i].replaceWith(stub)
+  }
+  // Скрытые ветки — половина веса снимка: на телефоне в дереве лежит ещё и
+  // целиком настольная раскладка под display:none (см. память про две
+  // раскладки в DOM). Она не видна, но клонируется и ест память.
+  clone.querySelectorAll('[style*="display:none"], [style*="display: none"], [hidden]')
+    .forEach(el => el.remove())
+  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'))
 }
 
 /** Перенести введённое: cloneNode копирует разметку, а не свойство value. */
@@ -130,7 +142,7 @@ export function captureScreen(): Snapshot | null {
     copyFieldValues(el, clone)
     // Корень помечаем ДО стерилизации: она снимает все id.
     const root = el.id === 'root'
-    sterilize(clone)
+    sterilize(el, clone)
     return { el: clone, root }
   })
 
@@ -146,23 +158,24 @@ export function captureScreen(): Snapshot | null {
  * клона считается от него, а не от окна, — и нижний док едет вместе со
  * страницей, вместо того чтобы прилипнуть к низу документа.
  *
- * `reuse` — снимок ещё понадобится (лежит в кэше «предыдущих»), поэтому в слой
- * кладём его копию, а не сам узел.
+ * Узлы ПЕРЕНОСЯТСЯ, а не копируются: копия целого экрана стоит десятки
+ * миллисекунд, и платить их в момент, когда палец уже пошёл, нельзя. Снимок от
+ * переноса не портится — он держит ссылки на те же узлы, и после снятия слоя
+ * их можно разложить снова.
  */
-export function paintSnapshot(layer: HTMLElement, snap: Snapshot | null, reuse: boolean) {
+export function paintSnapshot(layer: HTMLElement, snap: Snapshot | null) {
   if (!snap) return
   for (const { el, root } of snap.layers) {
-    const node = reuse ? (el.cloneNode(true) as HTMLElement) : el
     // Корень прокручен вместе с окном — сдвигаем его вверх, чтобы в кадре
     // осталось ровно то, что человек видел. Слои-порталы не трогаем: они и так
     // позиционированы от окна.
-    if (root && snap.scrollY > 0) node.style.marginTop = `${-snap.scrollY}px`
-    layer.appendChild(node)
+    if (root && snap.scrollY > 0) el.style.marginTop = `${-snap.scrollY}px`
+    layer.appendChild(el)
   }
   // scrollTop выставляется только после вставки в документ — до этого у узла
-  // нет вёрстки и присваивание молча теряется.
+  // нет вёрстки и присваивание молча теряется. Атрибут НЕ снимаем: снимок
+  // могут разложить ещё раз, и прокрутку придётся вернуть заново.
   layer.querySelectorAll<HTMLElement>(`[${SCROLL_ATTR}]`).forEach(el => {
     el.scrollTop = Number(el.getAttribute(SCROLL_ATTR)) || 0
-    el.removeAttribute(SCROLL_ATTR)
   })
 }

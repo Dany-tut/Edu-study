@@ -1196,24 +1196,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {/* Разделы справочника. Раздел — главное деление, а не уровень: человек
           помнит, что искал «что-то про частицы», а не что это было 1급. */}
       {mode === 'grammar' && gram && !openForm && (
-        <>
-          <RailCard title="Раздел" accent={palette.accent} icon={<BookMarked size={15} />}>
-            <RailList
-              items={[
-                { id: '', label: t('Все разделы'), hint: String(gram.forms.length) },
-                ...gram.chapters.map(c => ({
-                  id: c,
-                  label: t(c),
-                  hint: String(gram.forms.filter(f => f.chapter === c).length),
-                })),
-              ]}
-              value={gChapter}
-              onChange={setGChapter}
-              accent={palette.accent}
-              soft={palette.soft}
-            />
-          </RailCard>
-        </>
+        <RailCard title="Раздел" accent={palette.accent} icon={<BookMarked size={15} />}>
+          <RailList
+            items={[
+              { id: '', label: t('Все разделы'), hint: String(gram.forms.length) },
+              ...gram.chapters.map(c => ({
+                id: c,
+                label: t(c),
+                hint: String(gram.forms.filter(f => f.chapter === c).length),
+              })),
+            ]}
+            value={gChapter}
+            onChange={setGChapter}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        </RailCard>
       )}
 
       {/* Две половины «Чтения». Показываем переключатель только там, где сцены

@@ -38,6 +38,10 @@ import {
 } from '../lib/videoProgress'
 
 const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2]
+/** Верхние ступени показываем только там, где движок правда так играет: свой
+ *  <video> тянет до 4×, а YouTube выше 2× молча остаётся на 2× — предлагать
+ *  ему 3× значит врать про скорость. */
+const FAST_RATES = [3, 4]
 /** Через столько без движения мыши панель управления уезжает. */
 const IDLE_MS = 2600
 /** Опрос времени. rAF в превью не работает (см. AudioPlayer) — только таймер. */
@@ -202,6 +206,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   /** До какой ступени ускорение играет движком (со звуком), а не скольжением. */
   const engineMaxRate = source.kind === 'file' ? FILE_MAX_RATE : ENGINE_MAX_RATE
   const canCaptions = source.kind === 'youtube'   // и только если дорожки нашлись, см. ccAvailable
+  /** Меню скорости не предлагает того, чего движок не сыграет: чужому плееру —
+   *  до 2×, своему <video> — вся лестница до 4×. */
+  const rates = engineMaxRate > 2 ? [...RATES, ...FAST_RATES] : RATES
 
   const [watch, setWatch] = useState<VideoWatch>(initialWatch)
   const [started, setStarted] = useState(false)
@@ -565,12 +572,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     const btn = rateBtnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
-    const h = RATES.length * 31 + 12
+    const h = rates.length * 31 + 12
     const gap = 8
     const top = r.top - gap - h >= 8 ? r.top - gap - h : Math.min(r.bottom + gap, window.innerHeight - h - 8)
     const left = Math.max(8, Math.min(r.right - RATE_MENU_W, window.innerWidth - RATE_MENU_W - 8))
     setRatePos({ left, top: Math.max(8, top) })
-  }, [])
+  }, [rates.length])
 
   useEffect(() => {
     if (!rateOpen) return
@@ -840,6 +847,13 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // должна стоять реальная скорость, а не та, что выбрана в меню.
   const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
+  /** Стрелка в плашке ускорения и её прозрачное поле по бокам. Ink глифа идёт
+   *  с 8-й по 16-ю единицу из 24 (обводка учтена), то есть треть ширины с
+   *  каждого края — воздух, которого не видно. Его и вычитаем: иначе слева
+   *  плашка отступает на треть стрелки больше, чем справа у замка. */
+  const chevSize = touch ? 14 : 17
+  const chevBleed = chevSize / 3
+
   const pct = duration ? Math.min(100, (current / duration) * 100) : 0
   const ratio = watchRatio({ ...watch, duration: duration || watch.duration })
   const resumeAt = hasResumePoint(watch) ? watch.position : 0
@@ -1042,10 +1056,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 maxWidth: 'calc(100% - 24px)',
               }}
             >
-              {/* У шеврона в глифе свои прозрачные поля (~1/5 размера с боков):
-                  без компенсации левый отступ плашки и зазор до «2×» выглядят
-                  шире, чем правый край у замка. */}
-              <div className="flex items-center" style={{ flexDirection: gesture === 'ff' ? 'row' : 'row-reverse', margin: touch ? '0 -3px' : '0 -4px' }}>
+              {/* Прозрачные поля глифа съедены (см. chevBleed) — теперь ink
+                  стрелок стоит ровно по отступу плашки, а зазор до «2×» равен
+                  зазору «2×» → замок. */}
+              <div className="flex items-center" style={{ flexDirection: gesture === 'ff' ? 'row' : 'row-reverse', margin: `0 ${-chevBleed}px` }}>
                 {Array.from({ length: boost }, (_, i) => (
                   <motion.span
                     key={i}
@@ -1053,7 +1067,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     transition={{ duration: 0.9, delay: i * 0.12, repeat: Infinity, ease: 'easeInOut' }}
                     style={{ display: 'flex', marginLeft: i ? (touch ? -5 : -6) : 0 }}
                   >
-                    {gesture === 'ff' ? <ChevronRight size={touch ? 14 : 17} /> : <ChevronLeft size={touch ? 14 : 17} />}
+                    {gesture === 'ff' ? <ChevronRight size={chevSize} /> : <ChevronLeft size={chevSize} />}
                   </motion.span>
                 ))}
               </div>
@@ -1250,7 +1264,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
                       }}
                     >
-                      {RATES.map(r => (
+                      {rates.map(r => (
                         <button
                           key={r}
                           // Выбор из меню — это уже другая скорость: защёлкнутое

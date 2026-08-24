@@ -14,6 +14,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { playPop, vibrate } from '../lib/sound'
+import { useOwnString } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'
 
 export default function BlockOrderSolver({ items, value, disabled, showVerdict, onChange }: {
@@ -51,16 +52,19 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
   const full = picked.length >= items.length
 
   const pick = (idx: number) => {
-    const now = parse(answerNow)
-    if (disabled || now.length >= items.length || now.includes(idx)) return
+    if (disabled) return
     playPop()
     vibrate(8)
-    emit([...now, idx].join(','))
+    // База — из prev: два тапа в одном рендере иначе затирают друг друга.
+    emit(prev => {
+      const now = parse(prev)
+      return now.length >= items.length || now.includes(idx) ? prev : [...now, idx].join(',')
+    })
   }
   const removeAt = (pos: number) => {
     if (disabled) return
     vibrate(6)
-    emit(parse(answerNow).filter((_, i) => i !== pos).join(','))
+    emit(prev => parse(prev).filter((_, i) => i !== pos).join(','))
   }
 
   // Короткие блоки — куски ОДНОГО предложения, и собираются они в строку, как

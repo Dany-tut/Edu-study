@@ -26,6 +26,7 @@ import {
   CHAMO, chamoOf, confusableWith, joinSyllable, splitSyllable,
 } from '../data/hangul'
 import { playPop, vibrate } from '../lib/sound'
+import { useOwnString } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'
 import AudioPlayer from './AudioPlayer'
 
@@ -57,7 +58,10 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
   const t = useT()
   const need = useMemo(() => chamoOf(syllable), [syllable])
   const tiles = useMemo(() => tilesFor(syllable), [syllable])
-  const picked = useMemo(() => (value ? value.split(',').filter(Boolean) : []), [value])
+  // Ответ из хука: две буквы, нажатые в одном рендере, иначе затирают друг
+  // друга — из «ㄱ ㅣ ㅁ» доезжает одна буква (см. lib/useOwnAnswer.ts).
+  const [answerNow, emit] = useOwnString(value, onChange)
+  const picked = useMemo(() => answerNow.split(',').filter(Boolean), [answerNow])
 
   // Живой предпросмотр: что получилось бы из выбранных букв прямо сейчас.
   const preview = useMemo(() => {
@@ -71,16 +75,20 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
   const correct = full && picked.every((c, i) => c === need[i])
 
   const pick = (c: string) => {
-    if (disabled || full) return
+    if (disabled) return
     playPop()
     vibrate(8)
-    onChange([...picked, c].join(','))
+    // База — из prev: три буквы подряд успевают попасть в один рендер.
+    emit(prev => {
+      const now = prev.split(',').filter(Boolean)
+      return now.length >= need.length ? prev : [...now, c].join(',')
+    })
   }
 
   const back = () => {
-    if (disabled || picked.length === 0) return
+    if (disabled) return
     vibrate(6)
-    onChange(picked.slice(0, -1).join(','))
+    emit(prev => prev.split(',').filter(Boolean).slice(0, -1).join(','))
   }
 
   const parts = splitSyllable(syllable)

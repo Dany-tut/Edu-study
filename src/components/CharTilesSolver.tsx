@@ -71,16 +71,17 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
   })
 
   const pick = (ch: string) => {
-    const now = Array.from(answerNow)
-    if (disabled || now.length >= need.length) return
+    if (disabled) return
     playPop()
     vibrate(8)
-    emit([...now, ch].join(''))
+    // База — из prev, а не из снимка рендера: пять тапов подряд успевают попасть
+    // в один рендер, и каждый обязан видеть предыдущий (lib/useOwnAnswer.ts).
+    emit(prev => (Array.from(prev).length >= need.length ? prev : prev + ch))
   }
   const removeAt = (i: number) => {
     if (disabled) return
     vibrate(6)
-    emit(Array.from(answerNow).filter((_, idx) => idx !== i).join(''))
+    emit(prev => Array.from(prev).filter((_, idx) => idx !== i).join(''))
   }
   const big = need.some(isSyllable)
 

@@ -58,18 +58,22 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
   const full = picked.length >= needKeys.length
   const correct = typed === target
 
+  const parse = (s: string) => s.split(',').filter(Boolean)
+
   const press = (k: string) => {
-    const now = answerNow.split(',').filter(Boolean)
-    if (disabled || now.length >= needKeys.length) return
+    if (disabled) return
     playPop()
     vibrate(8)
-    emit([...now, k].join(','))
+    // База — из prev: клавиши жмут очередями, и рендера между ними может не быть.
+    emit(prev => {
+      const now = parse(prev)
+      return now.length >= needKeys.length ? prev : [...now, k].join(',')
+    })
   }
   const back = () => {
-    const now = answerNow.split(',').filter(Boolean)
-    if (disabled || now.length === 0) return
+    if (disabled) return
     vibrate(6)
-    emit(now.slice(0, -1).join(','))
+    emit(prev => parse(prev).slice(0, -1).join(','))
   }
 
   return (

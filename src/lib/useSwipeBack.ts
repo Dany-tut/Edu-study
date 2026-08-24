@@ -11,13 +11,19 @@ import { captureScreen, paintSnapshot, STAGE_ATTR, type Snapshot } from './scree
 // страница доезжает и «назад» срабатывает; не дотянул — возвращается на место,
 // и ничего не произошло.
 //
-// Как это устроено. Оба слоя — СНИМКИ (lib/screenSnapshot.ts), а не живой React:
-//   • уходящий — снят в момент захвата жеста;
-//   • открывающийся — снят раньше, на том тапе, которым сюда и вошли.
-// Живое дерево на время жеста прячется (visibility), а сам переход выполняется
-// в самом конце, уже под накрытым экраном. Отсюда два важных свойства: жест
-// можно отменить (навигация ещё не случилась) и никакой transform не ломает
-// `position:fixed` у живого дока — он на снимке.
+// Что чем едет:
+//   • уходящая страница — ЖИВОЕ дерево, а не копия. Копировать её на каждом
+//     жесте нельзя: клон экрана стоит десятки миллисекунд, и жест начинался бы
+//     с рывка. Вместо этого корень примораживается к окну (position:fixed на
+//     весь экран + собственная прокрутка), и только после этого получает
+//     transform. Заморозка обязательна: под transform’ом `position:fixed`
+//     внутри считается от корня, и без неё доки уехали бы к низу документа.
+//   • предыдущий экран — СНИМОК (lib/screenSnapshot.ts), снятый заранее, в
+//     простое: в дереве его уже нет, при переходе он размонтировался.
+//
+// Переход выполняется в самом конце, под уже уехавшей страницей. Отсюда два
+// важных свойства: жест можно отменить (навигация ещё не случилась) и подмены
+// снимка на живой экран не видно.
 //
 // Каждый экран с кнопкой «Назад» регистрирует свой обработчик; жест дёргает
 // ВЕРХНИЙ в стеке, так что вложенные экраны (домашка внутри урока, дрилл внутри
@@ -39,18 +45,52 @@ const FLING = 0.5
 const PARALLAX = 0.24
 /** Затемнение предыдущего экрана, пока он «в глубине». */
 const DIM = 0.2
-/** Сколько живёт снимок-кандидат, снятый на тапе (мс). */
-const PENDING_TTL = 4000
 /** Домашняя кривая приложения — та же, что у доков и шапок. */
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)'
 
+const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'LINK', 'TEMPLATE', 'NOSCRIPT'])
+
 // ─── Память переходов ────────────────────────────────────────────────────────
-// pending — снимок экрана, сделанный на последнем тапе: кандидат в «предыдущий».
-// history — что лежит под каждым уровнем вложенности. Растёт, когда открывается
-// новый экран, и убывает, когда жест сработал.
-let pending: Snapshot | null = null
+//
+// `current` — снимок текущего экрана, обновляемый в простое. Когда открывается
+// следующий экран, этот снимок и есть «то, что под ним»: он снят, пока
+// предыдущий экран ещё был на месте.
+//
+// Съёмка НИКОГДА не висит на тапе или на старте жеста: клон дерева стоит
+// десятки миллисекунд, и человек почувствовал бы это как заедание интерфейса.
+let current: Snapshot | null = null
 const history: Snapshot[] = []
 const HISTORY_MAX = 5
+
+let captureTimer: ReturnType<typeof setTimeout> | null = null
+let stageUp = false
+// Взведён на время возврата: экран, который сейчас смонтируется, — это шаг
+// НАЗАД, и класть под него ещё один уровень нельзя (иначе под уроком окажется
+// домашка, из которой в него только что вернулись).
+let returning = false
+
+/** Жест мобильный: на настольной раскладке снимки не копим вовсе. */
+function mobileish(): boolean {
+  if (typeof window === 'undefined') return false
+  if (navigator.maxTouchPoints > 0 || 'ontouchstart' in window) return true
+  return window.innerWidth <= 1024
+}
+
+/** Снять текущий экран, когда основной поток освободится. */
+function scheduleCapture(delay = 400) {
+  if (typeof window === 'undefined' || !mobileish()) return
+  if (captureTimer) clearTimeout(captureTimer)
+  captureTimer = setTimeout(() => {
+    captureTimer = null
+    // Пока сцена наверху, экран заморожен и сдвинут — снимать его нельзя.
+    const run = () => { if (!stageUp) current = captureScreen() }
+    const idle = (window as unknown as {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number
+    }).requestIdleCallback
+    if (typeof idle === 'function') idle(run, { timeout: 1500 })
+    else run()
+  }, delay)
+}
 
 function underSnapshot(): Snapshot | null {
   return history.length > 0 ? history[history.length - 1] : null
@@ -63,75 +103,83 @@ type Stage = {
   set(x: number): void
   /** Доиграть до конца (fired) или вернуть на место, с учётом скорости. */
   settle(fired: boolean, speed: number): Promise<void>
-  /** Снять сцену и вернуть живое дерево. */
-  destroy(): void
-  /** Прокрутка окна у открывающегося экрана — восстановить после перехода. */
-  underScrollY: number
+  /** Разморозить страницу и снять слой. */
+  destroy(fired: boolean): void
 }
 
-function buildStage(under: Snapshot | null, card: Snapshot): Stage {
+function buildStage(under: Snapshot | null): Stage {
   const W = Math.max(1, window.innerWidth)
+  const scrollY = Math.round(window.scrollY)
 
+  // ── Нижний слой: предыдущий экран ──
   const wrap = document.createElement('div')
   wrap.setAttribute(STAGE_ATTR, '')
   wrap.setAttribute('aria-hidden', 'true')
   wrap.style.cssText = [
-    'position:fixed', 'inset:0', 'z-index:2147483000',
+    'position:fixed', 'inset:0', 'z-index:0',
     'overflow:hidden', 'pointer-events:none',
     'background:var(--color-bg)',
   ].join(';')
 
-  // Нижний слой — предыдущий экран. Свой transform обязателен: он делает слой
-  // точкой отсчёта для `position:fixed` внутри снимка, иначе нижний док уехал
-  // бы к низу документа вместо низа экрана.
+  // Свой transform обязателен и здесь: он делает слой точкой отсчёта для
+  // `position:fixed` внутри снимка, иначе нижний док на снимке уехал бы к низу
+  // документа вместо низа экрана.
   const underEl = document.createElement('div')
   underEl.style.cssText = [
     'position:absolute', 'inset:0', 'overflow:hidden',
     'will-change:transform', `transform:translate3d(${-PARALLAX * W}px,0,0)`,
   ].join(';')
-  paintSnapshot(underEl, under, true)
+  paintSnapshot(underEl, under)
 
   const dim = document.createElement('div')
   dim.style.cssText = [
-    'position:absolute', 'inset:0', 'background:#000',
-    `opacity:${DIM}`, 'pointer-events:none',
+    'position:absolute', 'inset:0', 'background:#000', `opacity:${DIM}`,
   ].join(';')
 
-  // Верхний слой — уходящая страница, с тенью по левому краю.
-  const cardEl = document.createElement('div')
-  cardEl.style.cssText = [
-    'position:absolute', 'inset:0', 'overflow:hidden',
-    'background:var(--color-bg)',
-    'will-change:transform', 'transform:translate3d(0,0,0)',
-    'box-shadow:-12px 0 34px rgba(0,0,0,0.32)',
-  ].join(';')
-  paintSnapshot(cardEl, card, false)
+  wrap.append(underEl, dim)
+  document.body.insertBefore(wrap, document.body.firstChild)
 
-  wrap.append(underEl, dim, cardEl)
-  document.body.appendChild(wrap)
-
-  // Живое дерево прячем целиком — вместе с порталами (модалки, подсказки живут
-  // рядом с #root). visibility, а не display: не трогаем вёрстку и не рвём
-  // прокрутку, пока сцена наверху.
-  const hidden: { el: HTMLElement; prev: string }[] = []
+  // ── Верхний слой: живая страница ──
+  // Едут все слои приложения разом — корень и порталы (модалки, подсказки
+  // живут рядом с #root), иначе открытая шторка осталась бы висеть на месте.
+  const movers: { el: HTMLElement; css: string }[] = []
   for (const el of Array.from(document.body.children)) {
     if (!(el instanceof HTMLElement) || el === wrap) continue
-    hidden.push({ el, prev: el.style.visibility })
-    el.style.visibility = 'hidden'
+    if (SKIP_TAGS.has(el.tagName)) continue
+    movers.push({ el, css: el.style.cssText })
   }
+
+  const root = document.getElementById('root')
+  if (root) {
+    // Заморозка: коробка корня становится ровно экраном, а прокрутка окна
+    // переезжает внутрь него. Без этого transform ниже сломал бы отсчёт у
+    // `position:fixed` — доки прыгнули бы к низу документа.
+    root.style.position = 'fixed'
+    root.style.top = '0'
+    root.style.left = '0'
+    root.style.right = '0'
+    root.style.bottom = '0'
+    root.style.overflow = 'hidden'
+    root.scrollTop = scrollY
+    root.style.boxShadow = '-12px 0 34px rgba(0,0,0,0.32)'
+  }
+  movers.forEach(({ el }) => {
+    el.style.zIndex = el.style.zIndex || '1'
+    el.style.willChange = 'transform'
+  })
 
   let x = 0
 
   const apply = (next: number) => {
     x = next
     const p = Math.min(1, Math.max(0, next / W))
-    cardEl.style.transform = `translate3d(${next}px,0,0)`
+    const shift = `translate3d(${next}px,0,0)`
+    movers.forEach(({ el }) => { el.style.transform = shift })
     underEl.style.transform = `translate3d(${-PARALLAX * W * (1 - p)}px,0,0)`
     dim.style.opacity = String(DIM * (1 - p))
   }
 
   return {
-    underScrollY: under?.scrollY ?? 0,
     set: apply,
     async settle(fired, speed) {
       const to = fired ? W : 0
@@ -139,17 +187,18 @@ function buildStage(under: Snapshot | null, card: Snapshot): Stage {
       // Длительность от остатка пути и скорости пальца: доводка не должна
       // «догонять» быстрый смах медленнее, чем он шёл.
       const dur = Math.min(380, Math.max(140, dist / Math.max(0.7, speed * 1.15)))
-      if (typeof cardEl.animate !== 'function') { apply(to); return }
+      const canAnimate = typeof underEl.animate === 'function'
+      if (!canAnimate) { apply(to); return }
 
       const from = x
       const pFrom = Math.min(1, Math.max(0, from / W))
       const pTo = Math.min(1, Math.max(0, to / W))
       const opts: KeyframeAnimationOptions = { duration: dur, easing: EASE, fill: 'forwards' }
       const anims = [
-        cardEl.animate(
+        ...movers.map(({ el }) => el.animate(
           [{ transform: `translate3d(${from}px,0,0)` }, { transform: `translate3d(${to}px,0,0)` }],
           opts,
-        ),
+        )),
         underEl.animate(
           [
             { transform: `translate3d(${-PARALLAX * W * (1 - pFrom)}px,0,0)` },
@@ -159,9 +208,9 @@ function buildStage(under: Snapshot | null, card: Snapshot): Stage {
         ),
         dim.animate([{ opacity: DIM * (1 - pFrom) }, { opacity: DIM * (1 - pTo) }], opts),
       ]
-      // Гонка со сторожем: если вкладку свернули посреди жеста, анимация
-      // встаёт и `finished` не наступает никогда — а сцена в это время
-      // накрывает всё приложение. Ждём не дольше самой доводки с запасом.
+      // Гонка со сторожем: если вкладку свернули посреди жеста, анимация встаёт
+      // и `finished` не наступает никогда — а страница в это время висит
+      // отодвинутой. Ждём не дольше самой доводки с запасом.
       await Promise.race([
         Promise.all(anims.map(a => a.finished.catch(() => undefined))),
         new Promise(r => setTimeout(r, dur + 250)),
@@ -169,9 +218,15 @@ function buildStage(under: Snapshot | null, card: Snapshot): Stage {
       apply(to)
       anims.forEach(a => a.cancel())
     },
-    destroy() {
+    destroy(fired) {
       wrap.remove()
-      hidden.forEach(({ el, prev }) => { el.style.visibility = prev })
+      // cssText целиком: разом снимает и transform, и заморозку корня, и
+      // z-index — ровно то, что было до жеста.
+      movers.forEach(({ el, css }) => { el.style.cssText = css })
+      // Прокрутку возвращаем уже разморозенному документу: ушли — на ту, что
+      // была у открывшегося экрана, отменили — на свою.
+      const back = fired ? (under?.scrollY ?? 0) : scrollY
+      window.scrollTo(0, back)
     },
   }
 }
@@ -181,7 +236,7 @@ function buildStage(under: Snapshot | null, card: Snapshot): Stage {
 let installed = false
 
 function install() {
-  if (installed) return
+  if (installed || typeof document === 'undefined') return
   installed = true
 
   let tracking = false
@@ -196,8 +251,6 @@ function install() {
   let stage: Stage | null = null
   let friction: Friction | null = null
   let trigger = MIN_TRIGGER
-  // Пройденный путь тапа: по нему отличаем нажатие от прокрутки.
-  let tapDrift = 0
 
   const reset = () => {
     tracking = false
@@ -205,32 +258,28 @@ function install() {
     stage = null
     friction = null
     past = false
+    stageUp = false
   }
 
   document.addEventListener('touchstart', e => {
-    if (stage) return // жест уже доигрывает — новый не начинаем
+    if (stageUp) return // жест уже доигрывает — новый не начинаем
     reset()
-    if (e.touches.length !== 1) return
+    if (e.touches.length !== 1 || stack.length === 0) return
     const t = e.touches[0]
+    if (t.clientX > EDGE) return
+    tracking = true
     startX = t.clientX
     startY = t.clientY
     lastX = t.clientX
     lastT = e.timeStamp
     dx = 0
     speed = 0
-    tapDrift = 0
     trigger = Math.max(MIN_TRIGGER, window.innerWidth * TRIGGER_RATIO)
-    if (stack.length === 0) return
-    if (t.clientX > EDGE) return
-    tracking = true
   }, { passive: true })
 
   document.addEventListener('touchmove', e => {
-    if (e.touches.length !== 1) return
+    if (!tracking || e.touches.length !== 1) return
     const t = e.touches[0]
-    tapDrift = Math.max(tapDrift, Math.abs(t.clientX - startX), Math.abs(t.clientY - startY))
-    if (!tracking) return
-
     dx = t.clientX - startX
     const dy = t.clientY - startY
 
@@ -239,10 +288,8 @@ function install() {
       if (Math.abs(dy) > 16 && Math.abs(dy) > Math.abs(dx)) { tracking = false; return }
       if (!(dx > 10 && Math.abs(dx) > Math.abs(dy) * 1.4)) return
       captured = true
-      // Сцену строим в момент захвата, а не на touchstart: снимок стоит
-      // несколько миллисекунд, и платить за него на каждом касании края незачем.
-      const card = captureScreen()
-      if (card) stage = buildStage(underSnapshot(), card)
+      stageUp = true
+      stage = buildStage(underSnapshot())
       friction = frictionStart()
     }
 
@@ -257,8 +304,8 @@ function install() {
     lastT = e.timeStamp
 
     // Левее нуля страница не уходит, но и не упирается намертво — вязкий ход.
-    const x = dx >= 0 ? dx : dx * 0.25
-    stage?.set(Math.max(0, x))
+    const x = Math.max(0, dx >= 0 ? dx : dx * 0.25)
+    stage?.set(x)
     friction?.move(Math.abs(inst), x / trigger)
 
     // Засечка на пороге — в обе стороны: человек должен чувствовать, где
@@ -268,53 +315,59 @@ function install() {
   }, { passive: false })
 
   const finish = async (cancelled: boolean) => {
-    // Тап (палец почти не двигался) — снимаем кандидата в «предыдущий экран».
-    // Момент точный: click, а с ним и переход, случится уже после touchend.
-    if (!captured && !cancelled && tapDrift < 12 && startX > EDGE) {
-      pending = captureScreen()
-    }
-    if (!tracking || !captured) { reset(); return }
+    if (!tracking || !captured) { if (!stageUp) reset(); return }
     tracking = false
 
     const x = Math.max(0, dx)
     const fired = !cancelled && stack.length > 0 && (x >= trigger || (speed > FLING && x > 24))
+    const localStage = stage
 
     friction?.stop(fired)
-    const localStage = stage
-    const localSpeed = Math.abs(speed)
     if (fired) haptic(12)
 
-    await localStage?.settle(fired, localSpeed)
+    await localStage?.settle(fired, Math.abs(speed))
 
     if (fired) {
-      // Переход выполняем под накрытым экраном: на нём сейчас снимок того же
-      // самого предыдущего экрана, поэтому подмены не видно.
-      if (history.length > 0) history.pop()
-      pending = null
-      const entry = stack[stack.length - 1]
-      entry?.fire()
-      if (localStage && localStage.underScrollY > 0) {
-        window.scrollTo(0, localStage.underScrollY)
-      }
+      // Переход выполняем под уехавшей страницей: на экране сейчас снимок того
+      // же самого предыдущего экрана, поэтому подмены не видно.
+      // Снятый с полки снимок и становится «текущим»: это ровно тот экран,
+      // который сейчас откроется, — и второй свайп подряд покажет верное.
+      const revealed = history.pop() ?? null
+      if (revealed) current = revealed
+      returning = true
+      stack[stack.length - 1]?.fire()
+      // Эффекты монтирования React успевают до макрозадачи таймера.
+      setTimeout(() => { returning = false }, 0)
     }
 
-    // Даём React дорисовать живой экран под сценой и только потом снимаем её.
+    // Даём React дорисовать живой экран и только потом снимаем слой.
     // Через setTimeout, а не rAF: в превью rAF не тикает (см. память проекта),
-    // и сцена осталась бы висеть поверх приложения.
+    // и страница осталась бы отодвинутой.
     const drop = () => {
-      if (fired && localStage && localStage.underScrollY > 0) {
-        window.scrollTo(0, localStage.underScrollY)
-      }
-      localStage?.destroy()
+      localStage?.destroy(fired)
+      reset()
+      scheduleCapture(500)
     }
     if (fired) setTimeout(drop, 80)
     else drop()
-
-    reset()
   }
 
   document.addEventListener('touchend', () => { void finish(false) }, { passive: true })
   document.addEventListener('touchcancel', () => { void finish(true) }, { passive: true })
+}
+
+// Слушатели и первый снимок ставим сразу при загрузке модуля, а не при первом
+// экране с кнопкой «назад»: снимок нужен как раз ДО того, как с главной уйдут
+// в урок. Пара заходов — экран на старте ещё показывает скелетоны.
+if (typeof window !== 'undefined') {
+  install()
+  ;[900, 2600].forEach(ms => setTimeout(() => scheduleCapture(0), ms))
+  // Прокрутили — снимок устарел: под пальцем показался бы список, отмотанный
+  // к началу. capture:true — scroll не всплывает.
+  window.addEventListener('scroll', () => scheduleCapture(600), { capture: true, passive: true })
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleCapture(400)
+  })
 }
 
 /**
@@ -330,12 +383,14 @@ export function useSwipeBack(onBack: (() => void) | null | undefined, enabled = 
     if (!active) return
     install()
 
-    // Экран открылся — значит, снимок с того тапа и есть «то, что под ним».
-    if (pending && Date.now() - pending.at < PENDING_TTL) {
-      history.push(pending)
+    // Экран открылся — значит, снимок предыдущего и есть «то, что под ним».
+    // Один и тот же снимок дважды не кладём: две раскладки в DOM (настольная и
+    // мобильная) регистрируют по обработчику на один экран.
+    if (!returning && current && history[history.length - 1] !== current) {
+      history.push(current)
       if (history.length > HISTORY_MAX) history.shift()
-      pending = null
     }
+    scheduleCapture(500)
 
     const entry: Entry = { fire: () => fn.current?.() }
     stack.push(entry)
@@ -343,6 +398,7 @@ export function useSwipeBack(onBack: (() => void) | null | undefined, enabled = 
     return () => {
       const i = stack.indexOf(entry)
       if (i >= 0) stack.splice(i, 1)
+      scheduleCapture(500)
       // Вернулись на корневой экран (кнопкой, а не жестом) — глубину забываем.
       // Проверка отложенная: при смене экрана стек на миг пустеет между
       // размонтированием старого и монтированием нового.

@@ -153,8 +153,7 @@ export function glueHangingPunct(text: string): string {
  * строки, знаки препинания не отрываются от своих слов.
  *
  * Один вызов на все места, где ученик читает связный текст (конспект, шторка
- * правила, чек-лист): правила типографики не должны отличаться от экрана
- * к экрану.
+ * правила): правила типографики не должны отличаться от экрана к экрану.
  */
 export function tidyProse(text: string): string {
   return glueHangingPunct(bindShortWords(text))
