@@ -857,6 +857,31 @@ function reviewTasks(
  * в середину, разорвала бы группу и заставила показать отрывок дважды.
  * Поэтому такие серии склеиваются в один неделимый блок.
  */
+/**
+ * Слова юнита, которые пойдут в домашку КАРТОЧКАМИ. Мягкий кап: больше
+ * HW_CARD_CAP карточек на юнит не выдаём.
+ *
+ * ЗАЧЕМ. Карточка на каждое слово (~10 на юнит) давала карточкам 34–38% всей
+ * домашки — треть работы одним и тем же жестом. Кап возвращает разнообразие,
+ * при этом НИ ОДНО слово не выпадает из обучения: все слова юнита остаются в
+ * его словаре и теории, проходят через vocabRecognition (сопоставление и выбор
+ * строятся по ПОЛНОМУ unit.vocab) и целиком уходят в колоду интервальных
+ * повторений через allVocab — тот путь с hwTasks не связан.
+ *
+ * ВЫБОР ДЕТЕРМИНИРОВАН по unit.n: одна и та же сборка сида в любой день даёт
+ * те же карточки с теми же id (индекс слова сохраняется, id `-v${i+1}` не
+ * плавают). Окно едет по кругу от n — чтобы под кап у всех юнитов не попадал
+ * один и тот же хвост списка.
+ */
+const HW_CARD_CAP = 8
+function hwVocabPick(unit: LangUnit): Array<{ word: VocabItem; i: number }> {
+  const all = unit.vocab.map((word, i) => ({ word, i }))
+  if (all.length <= HW_CARD_CAP) return all
+  const start = unit.n % all.length
+  return Array.from({ length: HW_CARD_CAP }, (_, k) => all[(start + k) % all.length])
+    .sort((a, b) => a.i - b.i)
+}
+
 function interleaveCards<T extends { passage?: string }>(work: T[], cards: T[]): T[] {
   if (cards.length === 0) return work
   if (work.length === 0) return cards
@@ -1037,7 +1062,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           // ученик приходит, увидев слово третий раз (см. vocabRecognition).
           ...vocabRecognition(unit, `${unit.shortId}-r`, spec.lang, spec.native),
         ],
-        unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang, spec.native)),
+        hwVocabPick(unit).map(({ word, i }) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang, spec.native)),
       ),
     ],
   }))

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Play, Volume2, Repeat, Trash2, AlertCircle, ChevronRight } from 'lucide-react'
 import { speak, stopSpeech, preferredVoice, type SpeechHandle } from '../../lib/speech'
+import { isAsrAvailable, listen, asrNormalize, type AsrSession } from '../../lib/asr'
 import { useT } from '../../lib/i18n'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,6 +24,13 @@ import { useT } from '../../lib/i18n'
 // близость к эталону, и «правильно распознано» — не то же самое, что «звучит
 // как носитель». Оценивает ухо ученика, а инструмент даёт ему две записи
 // подряд и кнопку «ещё раз».
+//
+// ASR — ПОДСКАЗКА, НЕ ОЦЕНКА. Там, где браузер умеет распознавать речь
+// (см. lib/asr.ts), во время записи параллельно слушает SpeechRecognition, и
+// под записью появляется строка «что услышал браузер» со сверкой против
+// эталона: совпало — или какие слова разошлись. Это ровно та честная граница
+// из абзаца выше: текст, а не балл. В Safari/Firefox ASR нет — и там экран
+// выглядит и работает В ТОЧНОСТИ как раньше, без единого нового элемента.
 //
 // ЭТАЛОН — СИНТЕЗ. Живого диктора у нас нет, поэтому образец говорит тот же
 // голос, что читает карточки (см. lib/speech.ts). Он не даёт живой интонации,
@@ -51,6 +59,9 @@ export default function Shadowing({ lines, lang, accent, soft }: {
   const [error, setError] = useState('')
   /** Записи по номеру строки. Живут до ухода с экрана — см. шапку файла. */
   const [recs, setRecs] = useState<Record<number, Rec>>({})
+  /** Что услышал браузер на каждой строке (только там, где ASR доступен). */
+  const [heard, setHeard] = useState<Record<number, string>>({})
+  const asrRef = useRef<AsrSession | null>(null)
 
   const voiceRef = useRef<SpeechHandle | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -71,6 +82,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
   useEffect(() => () => {
     stopSpeech()
     audioRef.current?.pause()
+    asrRef.current?.cancel()
     streamRef.current?.getTracks().forEach(tr => tr.stop())
     if (timerRef.current) clearInterval(timerRef.current)
     for (const r of Object.values(recsRef.current)) URL.revokeObjectURL(r.url)
@@ -148,6 +160,13 @@ export default function Shadowing({ lines, lang, accent, soft }: {
   async function startRec() {
     setError('')
     stopAll()
+    // Старое «услышано» этой строки к новой попытке отношения не имеет.
+    setHeard(prev => {
+      if (!(at in prev)) return prev
+      const next = { ...prev }
+      delete next[at]
+      return next
+    })
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
       setError(t('Запись не поддерживается в этом браузере')); return
     }
@@ -175,6 +194,19 @@ export default function Shadowing({ lines, lang, accent, soft }: {
       recorderRef.current = rec
       startedRef.current = Date.now()
       rec.start()
+      // Параллельно с записью — распознавание (только где браузер умеет,
+      // см. lib/asr.ts). Ошибки и пустой результат просто не рисуют строку
+      // «услышано»: без ASR экран не меняется вообще.
+      if (isAsrAvailable()) {
+        asrRef.current?.cancel()
+        const lineAt = at
+        const session = listen(lang)
+        asrRef.current = session
+        session?.done.then(text => {
+          if (asrRef.current === session) asrRef.current = null
+          if (text) setHeard(prev => ({ ...prev, [lineAt]: text }))
+        })
+      }
       setPhase('recording')
       setElapsed(0)
       timerRef.current = setInterval(() => {
@@ -194,6 +226,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
 
   function stopRec() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    asrRef.current?.stop()
     const rec = recorderRef.current
     if (rec && rec.state !== 'inactive') rec.stop()
   }
@@ -278,12 +311,20 @@ export default function Shadowing({ lines, lang, accent, soft }: {
 
         {mine && (
           <button
-            onClick={() => setRecs(prev => {
-              const next = { ...prev }
-              URL.revokeObjectURL(prev[at].url)
-              delete next[at]
-              return next
-            })}
+            onClick={() => {
+              setRecs(prev => {
+                const next = { ...prev }
+                URL.revokeObjectURL(prev[at].url)
+                delete next[at]
+                return next
+              })
+              setHeard(prev => {
+                if (!(at in prev)) return prev
+                const next = { ...prev }
+                delete next[at]
+                return next
+              })
+            }}
             title={t('Удалить запись')}
             style={{ ...btn('var(--color-muted)', false), padding: '0 12px' }}
           >
@@ -306,6 +347,44 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           <AlertCircle size={14} /> {error}
         </span>
       )}
+
+      {/* Что услышал браузер (только где ASR есть — см. шапку файла). Сверка
+          мягкая: регистр и пунктуация не в счёт. Это подсказка, а не балл:
+          несовпавшие слова просто подсвечены, эталон остаётся судьёй. */}
+      {mine && heard[at] && (() => {
+        const want = asrNormalize(line.text).split(' ').filter(Boolean)
+        const got = asrNormalize(heard[at]).split(' ').filter(Boolean)
+        const wantSet = new Set(want)
+        const gotSet = new Set(got)
+        const matched = want.length === got.length && want.every((w, i) => w === got[i])
+        const missing = want.filter(w => !gotSet.has(w))
+        return (
+          <div style={{
+            padding: '12px 16px', borderRadius: 14, fontSize: 13, lineHeight: 1.55,
+            background: 'var(--color-bg-2)',
+            border: `1px solid ${matched ? 'var(--color-green-text)' : 'var(--color-border-medium)'}`,
+          }}>
+            <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 4 }}>
+              {matched ? t('Услышано — совпало с эталоном') : t('Услышано')}
+            </div>
+            <div style={{ color: 'var(--color-text)' }}>
+              {got.map((w, i) => (
+                <span key={i} style={{
+                  color: wantSet.has(w) ? 'var(--color-text)' : 'var(--color-red-text)',
+                  fontWeight: wantSet.has(w) ? 500 : 700,
+                }}>
+                  {w}{i < got.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </div>
+            {!matched && missing.length > 0 && (
+              <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
+                {t('Не прозвучало')}: {missing.join(', ')}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Весь список — чтобы видеть путь целиком и вернуться к строке, которая
           не далась. Точка слева = запись уже есть. */}

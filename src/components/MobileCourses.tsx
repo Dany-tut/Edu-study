@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import Skeleton from './Skeleton'
 import { motion } from 'framer-motion'
+import { XP_PER_LEVEL } from '../lib/xp'
 import {
   Star, Lock, ChevronRight, Zap,
   CheckCircle2, Play, RotateCcw, Clock, Video, LayoutList,
@@ -30,7 +31,6 @@ import type { Lesson, LessonStatus } from '../data/mockData'
 // status thumbnail, title, status chip and reward; a level/XP hero on top.
 
 const ALL = 'all' as const
-const XP_PER_LEVEL = 200
 
 type StatusVisual = { icon: typeof CheckCircle2; tintBg: string; tint: string; label: string }
 const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {

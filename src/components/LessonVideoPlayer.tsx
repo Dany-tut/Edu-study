@@ -184,7 +184,7 @@ function loadYouTubeApi(): Promise<NonNullable<Window['YT']>> {
   return ytApi
 }
 
-const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
+const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
   { source, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
 ) {
   const t = useT()
@@ -1342,6 +1342,26 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
       )}
     </div>
   )
+})
+
+// Аудио-файл (mp3/m4a/…, см. lib/videoSource.ts) — не видео: весь корпус
+// плеера (16:9-коробка, жесты по кадру, полный экран) для него бессмыслен.
+// Отдаём нативный <audio controls> — с ним работают и клавиатура, и фон на
+// мобильных. Ветвление вынесено в обёртку, а не внутрь плеера: у того сотня
+// хуков, и условный ранний return сломал бы их порядок.
+const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayerOuter(props, ref) {
+  if (props.source.kind === 'audio') {
+    return (
+      <audio
+        controls
+        preload="metadata"
+        src={props.source.url}
+        title={props.title}
+        style={{ width: '100%', maxWidth: 720, display: 'block', borderRadius: 999 }}
+      />
+    )
+  }
+  return <LessonVideoPlayerInner {...props} ref={ref} />
 })
 
 export default LessonVideoPlayer

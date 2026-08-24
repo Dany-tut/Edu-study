@@ -30,6 +30,8 @@ const DIAG_SUBJECTS: { id: string; label: string }[] = [
   { id: 'logic', label: 'Мышление' },
   { id: 'ap-chem-ru', label: 'AP Химия RU' },
   { id: 'ap-chem-en', label: 'AP Chemistry EN' },
+  { id: 'eng-placement', label: 'Английский — уровень' },
+  { id: 'kor-placement', label: 'Корейский — уровень' },
 ]
 const diagLink = (subject: string, assignmentId?: string) =>
   `${BASE_URL}#/diagnostic?subject=${subject}${assignmentId ? `&assignment=${assignmentId}` : ''}`

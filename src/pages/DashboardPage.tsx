@@ -403,6 +403,7 @@ function LessonLoading() {
 const SUBJECT_LABEL: Record<string, string> = {
   biology: 'Биология', chemistry: 'Химия', logic: 'Мышление',
   'ap-chem-ru': 'AP Химия RU', 'ap-chem-en': 'AP Chemistry EN',
+  'eng-placement': 'Английский — уровень', 'kor-placement': 'Корейский — уровень',
 }
 
 function AssignedTestsBlock() {

@@ -2,8 +2,9 @@
 // Teachers can view and edit these in Constructor → Тестирование.
 
 import { supabase } from '../lib/supabase'
+import { ENGLISH_PLACEMENT_QUESTIONS, KOREAN_PLACEMENT_QUESTIONS } from './placementTests'
 
-export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en'
+export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en' | 'eng-placement' | 'kor-placement'
 
 export interface DiagQuestion {
   id: string
@@ -771,11 +772,13 @@ export const DEFAULT_QUESTIONS: Record<DiagSubject, DiagQuestion[]> = {
   logic: LOGIC_DIAG_QUESTIONS,
   'ap-chem-ru': AP_CHEM_RU_QUESTIONS,
   'ap-chem-en': AP_CHEM_EN_QUESTIONS,
+  'eng-placement': ENGLISH_PLACEMENT_QUESTIONS,
+  'kor-placement': KOREAN_PLACEMENT_QUESTIONS,
 }
 
 // In-memory cache pre-seeded with compiled defaults so sync reads always work.
 const questionsCache = new Map<DiagSubject, DiagQuestion[]>(
-  (['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
+  (['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
 )
 
 // Sync read from cache (instant, no flicker). Call fetchDiagQuestions in useEffect to hydrate.

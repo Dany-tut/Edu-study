@@ -5,6 +5,7 @@
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
 import { isVideoWatchRef } from './videoProgress'
+import { streakDays } from './trainerDay'
 import { parseLessonFiles } from './lessonFiles'
 import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
@@ -569,7 +570,11 @@ export function computeStats(progress: ProgressMap): StudentStats {
     completedTasks: completed.length,
     totalTasks,
     avgScore,
-    streak: 0,
+    // Серия дней — из дневника тренажёра (localStorage, см. trainerDay.ts):
+    // это единственный источник, который реально знает даты активности.
+    // В lesson_progress дат нет, так что считаем «дни подряд занимался»
+    // по всем предметам сразу.
+    streak: streakDays(),
     totalPoints,
     stars,
   }
@@ -605,7 +610,9 @@ export function computeSubjectStats(subject: Subject, progress: ProgressMap): St
     completedTasks: completed.length,
     totalTasks,
     avgScore,
-    streak: 0,
+    // Серия — общая, не по курсу: «занимался N дней подряд» — свойство человека,
+    // а ключи дневника тренажёра не обязаны совпадать с id курса.
+    streak: streakDays(),
     totalPoints,
     stars,
   }

@@ -9,9 +9,13 @@ export type VideoSource =
   | { kind: 'rutube'; id: string }
   | { kind: 'youtube'; id: string }
   | { kind: 'file'; url: string }   // raw media → native <video>
+  | { kind: 'audio'; url: string }  // raw audio → native <audio controls>
   | { kind: 'iframe'; url: string } // own page (teachstream /watch, …) → iframe
 
 const FILE_RE = /\.(webm|mp4|m4v|mov|ogg|ogv|m3u8)(\?.*)?$/i
+// Чисто аудио-расширения. `.ogg` намеренно остаётся видео (так было всегда,
+// и в него кладут оба потока); однозначно-аудио контейнер Ogg — это `.oga`.
+const AUDIO_RE = /\.(mp3|m4a|aac|wav|opus|oga|flac)(\?.*)?$/i
 
 export function parseVideoSource(raw?: string | null): VideoSource | undefined {
   const url = raw?.trim()
@@ -27,6 +31,9 @@ export function parseVideoSource(raw?: string | null): VideoSource | undefined {
     /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i,
   )
   if (yt) return { kind: 'youtube', id: yt[1] }
+
+  // Direct audio file → native <audio controls>.
+  if (AUDIO_RE.test(url)) return { kind: 'audio', url }
 
   // Direct media file → native <video controls>.
   if (FILE_RE.test(url)) return { kind: 'file', url }

@@ -47,6 +47,7 @@ import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
 import { IELTS_THEORY } from './englishIeltsTheory'
 import { IELTS_LISTENING } from './englishIeltsListening'
 import { IELTS_EXTRA } from './englishIeltsExtra'
+import { IELTS_READING } from './englishIeltsReading'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { IELTS_FIGURES_EXTRA } from './englishIeltsFigures'
@@ -875,7 +876,7 @@ export const IELTS_UNITS: LangUnit[] = [
           ],
         },
       ),
-      write('Compare the two answers you have just written. For each, check three things and note what you would change: is there exactly one overview sentence, did you select figures rather than list them all, and did you avoid explaining causes?'),
+      write('Compare the two answers you have just written. For each, check three things and note what you would change: is there exactly one overview sentence, did you select figures rather than list them all, and did you avoid explaining causes?\n\nЧек-лист band 7 для Task 1:\n• TA: 150+ слов, ровно одно обзорное предложение с «overall», данные отобраны и сгруппированы, а не перечислены подряд;\n• CC: сравнение внутри абзаца (whereas / while), а не два независимых пересказа;\n• LR: 4+ разных глагола динамики (rose, declined, levelled off, fluctuated) и приближение (just under, roughly) — без повторов;\n• GRA: хотя бы 2 сложных предложения без ошибок;\n• запрет: ни одной причины и ни одного мнения;\n• перефраз заголовка графика в первом предложении, без копирования.'),
     ],
   },
   {
@@ -1064,7 +1065,7 @@ export const IELTS_UNITS: LangUnit[] = [
         ['What problems does this cause and how can they be solved?', 'problem–solution'],
         ['Why is this happening and is it a positive development?', 'two-part question'],
       ]),
-      write('Take four Task 2 prompts of different types. For each, write only the plan (5 minutes each): question type, position, two body-paragraph topic sentences, one example per paragraph, and a one-line conclusion. Do not write the essays yet.'),
+      write('Take four Task 2 prompts of different types. For each, write only the plan (5 minutes each): question type, position, two body-paragraph topic sentences, one example per paragraph, and a one-line conclusion. Do not write the essays yet.\n\nЧек-лист band 7 (Task Response — проверьте каждый план):\n• тип вопроса назван ДО плана и план ему соответствует;\n• покрыты обе части вопроса, если их две;\n• позиция сформулирована одним предложением и не меняется от абзаца к абзацу;\n• на каждый body-абзац — один аргумент и один КОНКРЕТНЫЙ пример (страна, случай, цифра), а не «many people think»;\n• введение перефразирует формулировку задания, не копируя её.'),
     ],
   },
   {
@@ -1135,7 +1136,7 @@ export const IELTS_UNITS: LangUnit[] = [
       ]),
       // Разметка задаётся метками, а не подчёркиванием: подчеркнуть в поле
       // ответа нечем, а проверять надо именно то, что ученик разметил сам.
-      write('Write two full Task 2 essays of about 280 words in 40 minutes each, using the plans from the previous unit. Then, in every body paragraph, tag the topic sentence [TS], the example [EX], and one referencing device [REF]. If a paragraph has no clear topic sentence, rewrite it.'),
+      write('Write two full Task 2 essays of about 280 words in 40 minutes each, using the plans from the previous unit. Then, in every body paragraph, tag the topic sentence [TS], the example [EX], and one referencing device [REF]. If a paragraph has no clear topic sentence, rewrite it.\n\nЧек-лист band 7 по четырём критериям:\n• TA: ответ ровно на поставленный вопрос, позиция ясна с введения, ≥2 развитых аргумента с примером;\n• CC: один абзац — одна мысль; референция (this, such, the former) вместо повтора существительных; связки не механические;\n• LR: перефраз формулировки во введении без копирования; 5+ связок не из списка and / but / also;\n• GRA: ≥3 сложных предложения (relative / conditional / participle clause) без ошибок; нет comma splice.'),
     ],
   },
   {
@@ -1196,7 +1197,7 @@ export const IELTS_UNITS: LangUnit[] = [
         'Is the word count above the minimum?',
         'Are there repeated words that could be paraphrased?',
       ]),
-      write('Take the two essays from the previous unit. Rewrite each body paragraph so that every argument reaches a consequence («which in turn…», «this means that…») and is supported by one concrete example. Then write your own self-check list of the five mistakes you personally repeat.'),
+      write('Take the two essays from the previous unit. Rewrite each body paragraph so that every argument reaches a consequence («which in turn…», «this means that…») and is supported by one concrete example. Then write your own self-check list of the five mistakes you personally repeat.\n\nЧек-лист band 7 для переписанной версии:\n• каждый аргумент доведён до следствия (which in turn / this means that), а не оборван на «it is convenient»;\n• ≥2 развитых аргумента, у каждого конкретный пример с деталью (страна, случай, цифра);\n• 250+ слов; недобор — прямая потеря Task Response;\n• 5+ связок не из списка and / but / also, включая уступку (admittedly, that said);\n• ≥3 сложных предложения без ошибок;\n• ни одной заученной вставки вида «It is a controversial issue nowadays».'),
       say('Read one of your rewritten body paragraphs aloud and then explain, in English and without notes, why it would score higher than your first version.', 90),
     ],
   },
@@ -1504,7 +1505,7 @@ export const IELTS_UNITS: LangUnit[] = [
         'Week 3: full timed Listening and Reading sections every other day',
         'Week 4: one full mock, then light review and test-day logistics only',
       ]),
-      write('Do a full IELTS Academic mock in one sitting: Listening (4 parts), Reading (60 minutes), Writing (Task 1 in 20 minutes, Task 2 in 40 minutes). Then write a report: raw score per section, the cause of every wrong answer, your self-assessment against each of the four Writing criteria, and a week-by-week plan for the next month with one measurable target per week.'),
+      write('Do a full IELTS Academic mock in one sitting: Listening (4 parts), Reading (60 minutes), Writing (Task 1 in 20 minutes, Task 2 in 40 minutes). Then write a report: raw score per section, the cause of every wrong answer, your self-assessment against each of the four Writing criteria, and a week-by-week plan for the next month with one measurable target per week.\n\nСамооценку Writing делайте по чек-листу band 7 — по пункту на критерий:\n• TA: обе части вопроса закрыты, ≥2 развитых аргумента с примером, 250+/150+ слов;\n• CC: один абзац — одна мысль, референция вместо повтора;\n• LR: перефраз формулировки без копирования, 5+ связок не из списка and / but / also, ни одной заученной вставки;\n• GRA: ≥3 сложных предложения без ошибок.\nКаждый пункт отмечайте «есть / нет» с цитатой из собственного текста — оценка «по ощущению» здесь запрещена.'),
       say('Record a full Speaking mock: Part 1 (four topics), Part 2 with one minute of preparation and a card of your choice, Part 3 with three abstract questions on the same theme. Do not stop or restart — this is the recording your teacher will grade against the band descriptors.', 180),
     ],
   },
@@ -1590,7 +1591,10 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
     // теряют: орфографию, число и лимит слов.
     // Говорение — ещё четверть балла, и его в юнитах почти не было. Добор
     // привязан к теме юнита, а не свален в три Speaking-урока в конце.
-    tasks: [...u.tasks, ...(IELTS_LISTENING[u.shortId] ?? []), ...(IELTS_EXTRA[u.shortId] ?? [])],
+    // Чтение — настоящие отрывки 250–400 слов по формату юнита (см. аудит:
+    // Reading-модуль был без единого связного текста). Идут сразу после
+    // работы юнита: стратегия отрабатывается на тексте в тот же вечер.
+    tasks: [...u.tasks, ...(IELTS_READING[u.shortId] ?? []), ...(IELTS_LISTENING[u.shortId] ?? []), ...(IELTS_EXTRA[u.shortId] ?? [])],
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...IELTS_FIGURES, ...IELTS_FIGURES_EXTRA },

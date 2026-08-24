@@ -7,6 +7,7 @@ import {
   type DiagSubject, type DiagQuestion, type DiagResults,
   type CustomTestMeta,
 } from '../data/diagnosticData'
+import { getPlacementVerdict, type PlacementVerdict } from '../data/placementTests'
 import CognitiveScreeningPage from './CognitiveScreeningPage'
 import PartyPopperLottie from '../components/PartyPopperLottie'
 import { captureMistake } from '../data/reviewDeck'
@@ -89,7 +90,7 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 }
 
 // ── Done screen ───────────────────────────────────────────────────────────────
-function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: () => void }) {
+function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null }) {
   const t = useT()
   const bannerRef = useRef<HTMLDivElement>(null)
   return (
@@ -124,9 +125,38 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
         <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 12 }}>
           {t('Молодец! Ты справился 🎉')}
         </div>
-        <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: 28, maxWidth: 300 }}>
+        <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: verdict ? 20 : 28, maxWidth: 300 }}>
           {t('Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)')}
         </div>
+
+        {/* Placement-вердикт: уровень + рекомендация курса */}
+        {verdict && (
+          <div style={{
+            width: '100%', boxSizing: 'border-box', textAlign: 'left',
+            padding: '16px 18px', borderRadius: 18,
+            background: `${accentColor}10`, border: `1px solid ${accentColor}33`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ padding: '3px 12px', borderRadius: 999, background: accentColor, color: '#fff', fontSize: 13, fontWeight: 800 }}>{verdict.level}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: 'var(--color-text-3)' }}>{t('ТВОЙ УРОВЕНЬ')}</span>
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55, marginBottom: 10 }}>{verdict.note}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+              {t('Рекомендуем курс:')} <span style={{ color: accentColor }}>{verdict.courseTitle}</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+              {verdict.ladder.map(step => (
+                <span key={step.level} style={{
+                  padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                  background: step.passed ? 'rgba(34,197,94,0.12)' : 'var(--color-bg-5)',
+                  color: step.passed ? '#22c55e' : 'var(--color-text-3)',
+                }}>
+                  {step.level} · {step.correct}/{step.total}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
       </motion.div>
     </div>
@@ -139,9 +169,11 @@ const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: strin
   chemistry:    { accent: '#8B5CF6', soft: 'rgba(139,92,246,0.12)',   label: t('Химия'),           sublabel: t('Диагностика знаний') },
   'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: t('AP Химия'),        sublabel: t('Диагностика · RU')   },
   'ap-chem-en': { accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)',   label: 'AP Chemistry',    sublabel: 'Diagnostic · EN'    },
+  'eng-placement': { accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)', label: t('Английский'),   sublabel: t('Определение уровня') },
+  'kor-placement': { accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)',  label: t('Корейский'),    sublabel: t('Определение уровня') },
 }
 
-const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en'])
+const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement'])
 
 function metaFromRow(row: CustomTestMeta): { label: string; accent: string; soft: string } {
   return { label: row.label, accent: row.accent, soft: row.accent + '22' }
@@ -350,7 +382,7 @@ export default function DiagnosticTestPage() {
 
   // ── Results view ──
   if (done) {
-    return <DiagDoneScreen accentColor={theme.accent} onBack={goBack} />
+    return <DiagDoneScreen accentColor={theme.accent} onBack={goBack} verdict={getPlacementVerdict(fetchSubject, results)} />
   }
 
   // ── Test view ──

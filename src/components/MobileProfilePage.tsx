@@ -21,11 +21,11 @@ import { tactile } from '../lib/feedback'
 import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
 import type { LucideIcon } from 'lucide-react'
 import type { Subject } from '../data/mockData'
+import { XP_PER_LEVEL } from '../lib/xp'
 
 // MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
 // (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
 
-const XP_PER_LEVEL = 200
 
 // Soft colour pairs cycled across the subject chips under the name.
 const CHIP_PALETTE = [PAIR.focus, PAIR.accent2, PAIR.info, PAIR.warning, PAIR.rose, PAIR.success]

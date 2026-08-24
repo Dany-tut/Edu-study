@@ -37,13 +37,25 @@ export const IELTS_LISTENING: Record<string, SeedTask[]> = {
   'ielt-05': [
     dictation('Внимание к числу и написанию.', 'The accommodation costs forty-five pounds per night.'),
     dictationBank('Собери услышанное.', 'Please write no more than two words.', ['then', 'word']),
+    // Классическая ловушка Part 1: -teen против -ty. На слух их разводит
+    // ударение (thirTEEN — THIRty), и проверяется это только диктантом.
+    dictation('Диктант-ловушка: тринадцать или тридцать? Запиши обе фразы дословно, с числами словами.',
+      'The deposit is thirty pounds and the weekly rent is one hundred and thirteen pounds. Payment is due on the third of October.'),
   ],
   'ielt-06': [
     dictation('В записи есть исправление. Запиши ИТОГОВОЕ время.', 'The tour starts at ten thirty — sorry, at eleven o’clock.', ['The tour starts at eleven o’clock.']),
+    // Имя по буквам и дата — то, что в Part 1 диктуют, а кандидат пишет на
+    // слух «как слышится» и теряет балл на орфографии.
+    dictation('Диктант с именем по буквам и датой. Запиши обе фразы дословно.',
+      'My surname is Whitmore, spelled W-H-I-T-M-O-R-E. I was born on the twenty-first of January, nineteen ninety-eight.'),
   ],
   'ielt-07': [
     dictation('Фрагмент лекции. Запиши дословно.', 'Industrialisation changed the structure of the workforce.'),
     dictationBank('Собери услышанное.', 'The second factor is financial support from local councils.', ['first', 'national']),
+    // Числа и годы в потоке монолога: в части 4 они идут без пауз, и рука
+    // должна записывать их, не отставая от речи.
+    dictation('Фрагмент лекции с числами и годами. Запиши обе фразы дословно, числа цифрами.',
+      'The survey covered 1400 households between 1990 and 2015. Roughly 40 per cent of them had moved at least twice.'),
   ],
   'ielt-08': [
     dictation('Запиши формулировку задания.', 'You should spend about twenty minutes on this task.'),

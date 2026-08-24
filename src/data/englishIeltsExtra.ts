@@ -12,7 +12,7 @@
 // человек вслух проговаривает, почему это Not Given, а не False.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { write, say, type SeedTask } from './languageCourse'
+import { write, say, drill, minPair, readAloud, type SeedTask, type UnitPattern } from './languageCourse'
 
 /** Устные задания там, где их не было. */
 const SPEAKING: Record<string, SeedTask[]> = {
@@ -32,14 +32,152 @@ const SPEAKING: Record<string, SeedTask[]> = {
 /** Письменные задания там, где их не было. */
 const WRITING: Record<string, SeedTask[]> = {
   'ielt-20p': [write('Выпишите двадцать слов, где вы подменяете звук: пять на θ/ð, пять на w/v, пять на пару /iː/–/ɪ/, пять с ударением не на том слоге. Рядом с каждым — слово, на которое оно становится похоже. Потом прочитайте список вслух с записью и отметьте, где подмена слышна.')],
-  'ielt-13': [write('Опишите процесс из шести стадий в 150+ словах: пассив, последовательность стадий, ни одного «I think». Отдельно проверьте, что во вступлении вы перефразировали задание, а не переписали.')],
+  'ielt-13': [write('Опишите процесс из шести стадий в 150+ словах: пассив, последовательность стадий, ни одного «I think». Отдельно проверьте, что во вступлении вы перефразировали задание, а не переписали.\n\nЧек-лист band 7 для описания процесса:\n• TA: 150+ слов, обзор «сколько стадий, с чего начинается и чем кончается»;\n• CC: стадии в порядке, с маркерами последовательности (subsequently, once … has been) — не только then;\n• LR: точные глаголы процесса (is filtered, is moulded), а не «is made» шесть раз;\n• GRA: пассив в каждой стадии без ошибок; ни причин, ни мнений.')],
   'ielt-17': [write('Напишите развёрнутые ответы на восемь вопросов Part 1. Каждый — по схеме «ответ + причина + деталь», от двух до трёх предложений. Односложных быть не должно.')],
   'ielt-19': [write('Напишите ответы на четыре абстрактных вопроса Part 3: позиция, довод, пример, оговорка «на другой стороне». По четыре-пять предложений на каждый.')],
 }
 
+// ─── Дриллы-подстановки там, где есть грамматическая линия, но нет pattern ───
+//
+// Аудит: дрилл стоял только в 7 юнитах из 21. Поле `pattern` у юнита одно,
+// поэтому добор идёт заданиями типа 'pattern' прямо в tasks — сборщик
+// (editorTask) пропускает их так же, как patternTask поле юнита.
+
+/** UnitPattern → задание домашки типа 'pattern'. */
+const drillTask = (p: UnitPattern): SeedTask => ({
+  type: 'pattern',
+  question: p.question ?? 'Отработайте конструкцию: подставьте слово и запишите предложение целиком.',
+  pattern: p.template,
+  patternGloss: p.gloss,
+  patternItems: p.items,
+})
+
+const DRILLS: Record<string, SeedTask[]> = {
+  // Второй дрилл перефраза: юнит учит трём способам, а отрабатывался один
+  // (синоним). Здесь — смена структуры, самый дорогой для Lexical Resource.
+  'ielt-02': [drillTask(drill(
+    'смена структуры',
+    'перефразирование без синонимов',
+    [
+      ['cities grow quickly', 'the rapid growth of cities', 'быстрый рост городов'],
+      ['people object to the plan', 'objections to the plan', 'возражения против плана'],
+      ['because prices rose', 'due to the rise in prices', 'из-за роста цен'],
+      ['researchers agree', 'there is agreement among researchers', 'исследователи сходятся во мнении'],
+      ['it is expensive to maintain', 'the cost of maintenance is high', 'обслуживание обходится дорого'],
+    ],
+    'Второй способ перефраза — смена СТРУКТУРЫ, а не слова: глагол в существительное, придаточное в оборот.',
+  ))],
+  // Вопрос Listening почти никогда не повторяет слова записи — дрилл ставит
+  // в руку сами замены, которые юнит учит предсказывать.
+  'ielt-06': [drillTask(drill(
+    'слово вопроса → что прозвучит',
+    'перефраз на слух',
+    [
+      ['free of charge', 'at no cost', 'бесплатно'],
+      ['book in advance', 'reserve beforehand', 'забронировать заранее'],
+      ['once a week', 'on a weekly basis', 'раз в неделю'],
+      ['cheap', 'inexpensive', 'недорогой'],
+      ['begin', 'commence', 'начаться'],
+    ],
+    'В записи прозвучит не слово из вопроса, а его замена. Подставьте то, что вы будете ЖДАТЬ на слух.',
+  ))],
+  // Перефраз формулировки эссе — первый ход любого введения Task 2.
+  'ielt-14': [drillTask(drill(
+    'формулировка задания → введение',
+    'перефраз вопроса эссе',
+    [
+      ['education should be free', 'tuition should come at no cost', 'обучение не должно стоить денег'],
+      ['children watch too much TV', 'children spend excessive time on television', 'дети проводят у телевизора слишком много времени'],
+      ['cars should be banned', 'private vehicles should be prohibited', 'частный транспорт следует запретить'],
+      ['people work too much', 'working hours are excessive', 'рабочие часы чрезмерны'],
+      ['crime is rising', 'offences are becoming more frequent', 'правонарушения учащаются'],
+    ],
+    'Введение начинается с перефраза формулировки. Подставьте академическую замену — скопированные слова задания баллов не дают.',
+  ))],
+  // Цепочка следствия — то, что отличает абзац на 7.0 от абзаца на 6.0.
+  'ielt-16': [drillTask(drill(
+    'довод → следствие',
+    'which in turn / this means that',
+    [
+      ['remote work removes commuting', 'this means that employees gain free time', 'значит, у работников появляется свободное время'],
+      ['fewer cars enter the city', 'which in turn reduces air pollution', 'что, в свою очередь, снижает загрязнение воздуха'],
+      ['fines were increased', 'consequently, littering declined', 'следовательно, мусорить стали меньше'],
+      ['the museum became free', 'this led to a rise in visitor numbers', 'это привело к росту посещаемости'],
+      ['schools teach coding early', 'as a result, pupils treat technology as a tool', 'в результате ученики видят в технологиях инструмент'],
+    ],
+    'Доведите каждый довод до следствия. Абзац, оборванный на первом шаге, — это и есть 6.0.',
+  ))],
+  // Формулы расширения ответа Part 1 — в руку, до записи голоса.
+  'ielt-17': [drillTask(drill(
+    'формула расширения ответа',
+    'ответ + причина + деталь',
+    [
+      ['я бы сказал', 'I would say', 'я бы сказал'],
+      ['это зависит от', 'it depends on', 'это зависит от'],
+      ['в основном потому что', 'mainly because', 'в основном потому что'],
+      ['честно говоря', 'to be honest', 'честно говоря'],
+      ['раньше я', 'I used to', 'раньше я'],
+    ],
+    'Пять формул, которые превращают односложный ответ в 20 секунд речи. Подставьте — они должны выскакивать без паузы.',
+  ))],
+  // Каркас рассказа для Part 2: прошедшее время и оценка в конце.
+  'ielt-18': [drillTask(drill(
+    'каркас рассказа',
+    'монолог по карточке',
+    [
+      ['это случилось, когда', 'it happened when', 'это случилось, когда'],
+      ['в то время', 'at the time', 'в то время'],
+      ['что меня поразило, так это', 'what struck me was', 'что меня поразило'],
+      ['оглядываясь назад', 'looking back', 'оглядываясь назад'],
+      ['в итоге', 'in the end', 'в итоге'],
+    ],
+    'Каркас двухминутного монолога: подводка, фон, поворот, оценка. Подставьте фразы — на экзамене их некогда вспоминать.',
+  ))],
+  // Косвенный вопрос — прямой порядок слов. Русскоязычные тащат инверсию
+  // («It is hard to say will it change») ровно в Part 3, где думают вслух.
+  'ielt-19': [drillTask(drill(
+    'прямой вопрос → косвенный',
+    'без инверсии',
+    [
+      ['Why is it popular?', 'why it is popular', 'почему это популярно'],
+      ['Will it change?', 'whether it will change', 'изменится ли это'],
+      ['How do people react?', 'how people react', 'как люди реагируют'],
+      ['Is it worth it?', 'whether it is worth it', 'стоит ли оно того'],
+      ['What does it mean?', 'what it means', 'что это значит'],
+    ],
+    'Постройте косвенный вопрос для подводок Part 3 («It is hard to say…», «The question is…»): порядок слов ПРЯМОЙ, инверсия уходит.',
+  ))],
+}
+
+// ─── Произношение в Speaking-юнитах: пары, реально бьющие русскоязычных ────
+//
+// Минимальные пары жили только в юните 20 — а запись голоса идёт с юнита 17.
+// По две пары на юнит плюс чтение вслух с фокусом на словесное ударение:
+// перенесённое ударение сбивает распознавание сильнее любого звука.
+const PRON: Record<string, SeedTask[]> = {
+  'ielt-17': [
+    minPair('Какое слово прозвучало? Короткий /ɪ/ против долгого /iː/ — live здесь «жить».', 'live', 'leave', 'B'),
+    minPair('Какое слово прозвучало? Русский оглушает звонкий конец: bad превращается в bat.', 'bat', 'bad', 'B'),
+    readAloud('Прочитайте вслух, удерживая ударение — оно ездит вместе с суффиксом: PHOtograph, phoTOgraphy, photoGRAPHic. Потом фразой: I enjoy photography.',
+      'photograph, photography, photographic. I enjoy photography.', 45),
+  ],
+  'ielt-18': [
+    minPair('Какое слово прозвучало? В walk нет /r/ и не читается L: /wɔːk/ против /wɜːk/.', 'walk', 'work', 'A'),
+    minPair('Какое слово прозвучало? Язык между зубами в thought — иначе выходит taught.', 'thought', 'taught', 'A'),
+    readAloud('Прочитайте, следя за ударением в семье слов: deVELop, deVELopment, developMENtal. Потом фразой: The development of the project took a year.',
+      'develop, development, developmental. The development of the project took a year.', 45),
+  ],
+  'ielt-19': [
+    minPair('Какое слово прозвучало? Долгота решает: /ʃɪp/ против /ʃiːp/.', 'ship', 'sheep', 'A'),
+    minPair('Какое слово прозвучало? /ɔː/ против /əʊ/ — law не звучит как low.', 'law', 'low', 'B'),
+    readAloud('Слова Part 3, где русскоязычные сдвигают ударение. Прочитайте медленно: eCOnomy, ecoNOmic, poLItical, techNOlogy, comPEtitive. Потом фразой: Economic growth is a political question.',
+      'economy, economic, political, technology, competitive. Economic growth is a political question.', 60),
+  ],
+}
+
 /** Все доборы одной картой — так их проще подмешать в сборке. */
 export const IELTS_EXTRA: Record<string, SeedTask[]> = {}
-for (const src of [SPEAKING, WRITING]) {
+for (const src of [SPEAKING, WRITING, DRILLS, PRON]) {
   for (const [k, v] of Object.entries(src)) {
     IELTS_EXTRA[k] = [...(IELTS_EXTRA[k] ?? []), ...v]
   }
