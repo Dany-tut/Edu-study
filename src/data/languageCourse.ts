@@ -225,6 +225,14 @@ export interface LanguageCourseSpec {
    * работает как обычно.
    */
   native?: boolean
+  /**
+   * Курс «с нуля» с незнакомым письмом (хангыль, кана).
+   *
+   * Порция нового у такого курса меньше: буква и слово из неё — два разных
+   * новых элемента, и четыре слова здесь стоят ученику дороже, чем четыре
+   * слова латиницей (Р1, PORTION_SCRATCH).
+   */
+  scratch?: boolean
   /** Иллюстрации конспекта по shortId юнита — см. CourseFigures. */
   figures?: CourseFigures
   /**
@@ -289,6 +297,29 @@ export const blocks = (question: string, items: string[]): SeedTask =>
  */
 export const sylBank = (question: string, answer: string, distractors: string[] = []): SeedTask =>
   ({ type: 'charBank', question, answer, distractors })
+
+/** Набор слова по буквам на экранной клавиатуре: слоги складываются на глазах. */
+export const typeWord = (question: string, answer: string): SeedTask =>
+  ({ type: 'jamoType', question, answer })
+
+/**
+ * Озвученный диалог с пропуском: реплики читаются разными голосами, недостающее
+ * вставляет ученик. Пропуск в реплике отмечается «____»; без обманок ученик
+ * вписывает ответ сам, с ними — выбирает плитку.
+ */
+export const gapDialog = (
+  question: string,
+  lines: Array<[speaker: string, text: string]>,
+  answer: string,
+  opts: { distractors?: string[]; alt?: string[] } = {},
+): SeedTask => ({
+  type: 'dialogGap',
+  question,
+  dialog: lines.map(([speaker, text]) => ({ speaker, text })),
+  answer,
+  distractors: opts.distractors,
+  altAnswers: opts.alt,
+})
 
 /** Пары слово—перевод (или форма—значение). */
 export const pairsOf = (question: string, items: [string, string][]): SeedTask =>
@@ -608,20 +639,36 @@ function vocabCard(word: VocabItem, id: string, lang: string, native = false) {
  * это слово» и «как сказать это». Узнавание легче припоминания, и к карточке
  * ученик приходит, увидев слово третий раз, а не первый.
  *
- * ПОЧЕМУ СОПОСТАВЛЕНИЕ, А НЕ ПЯТЬ ОТДЕЛЬНЫХ ВОПРОСОВ. Оно закрывает пять слов
- * одним заданием: разнообразие растёт, а домашка не удлиняется. При десяти
- * словах это два задания вместо пяти.
+ * ПОЧЕМУ СОПОСТАВЛЕНИЕ, А НЕ ЧЕТЫРЕ ОТДЕЛЬНЫХ ВОПРОСА. Оно закрывает всю порцию
+ * одним заданием: разнообразие растёт, а домашка не удлиняется.
  *
  * ОБМАНКИ БЕРУТСЯ ИЗ ЭТОГО ЖЕ ЮНИТА — выбирать между словом урока и словом из
- * другой темы не тренирует ничего: там разводит контекст, а не значение.
+ * другой темы не тренирует ничего: там разводит контекст, а не значение. Что
+ * именно считать «этим же юнитом», решает параметр `seen`: у порции это все
+ * слова юнита, которые ученик к этому занятию уже видел.
  */
 // Возвращаемый тип НЕ аннотируем SeedTask[]: наружу уходит уже готовое задание
 // редактора (editorTask проставляет id, label и язык), а SeedTask — это сид без
 // id, и с ним весь список hwTasks переставал собираться.
-function vocabRecognition(unit: LangUnit, idBase: string, lang: string, native = false) {
-  const words = unit.vocab.filter(w => w.term?.trim() && w.ru?.trim())
-  // Меньше четырёх слов — обманок не набрать, узнавание вырождается в подсказку.
-  if (words.length < 4) return []
+function vocabRecognition(
+  unit: LangUnit,
+  idBase: string,
+  lang: string,
+  native = false,
+  /**
+   * Откуда брать обманки. По умолчанию — свой же словарь; у порции (Р1) сюда
+   * приходят ВСЕ слова юнита, введённые к этому занятию, включая слова прошлых
+   * порций. Иначе выбор из трёх слов одной порции решается вычёркиванием, а не
+   * узнаванием, — и обманка при этом остаётся знакомой (Р9).
+   */
+  seen: VocabItem[] = unit.vocab,
+) {
+  const clean = (list: VocabItem[]) => list.filter(w => w.term?.trim() && w.ru?.trim())
+  const words = clean(unit.vocab)
+  const pool = clean(seen).filter((w, i, all) => all.findIndex(x => x.term === w.term) === i)
+  // Меньше трёх слов в порции — сопоставлять нечего; меньше четырёх в запасе —
+  // обманок не набрать, и узнавание вырождается в подсказку.
+  if (words.length < 3 || pool.length < 4) return []
 
   const label = (w: VocabItem) => (w.reading ? `${w.term} (${w.reading})` : w.term)
   const out: SeedTask[] = []
@@ -643,12 +690,12 @@ function vocabRecognition(unit: LangUnit, idBase: string, lang: string, native =
     usedRu.add(ru)
     return true
   })
-  for (let i = 0; i + 2 < pairPool.length && out.length < 2; i += 5) {
-    const block = pairPool.slice(i, i + 5)
-    if (block.length < 3) break
+  // Пар не больше четырёх (Р4): пять и больше — это уже не одно задание, а
+  // таблица, которую решают перебором.
+  if (pairPool.length >= 3) {
     out.push(pairsOf(
       native ? 'Соедините слово и толкование.' : 'Соедините слово и перевод.',
-      block.map(w => [label(w), w.ru] as [string, string]),
+      pairPool.slice(0, 4).map(w => [label(w), w.ru] as [string, string]),
     ))
   }
 
@@ -663,8 +710,8 @@ function vocabRecognition(unit: LangUnit, idBase: string, lang: string, native =
   const wrongFor = (idx: number, of: (w: VocabItem) => string): string[] => {
     const right = of(words[idx])
     const picked: string[] = []
-    for (let k = 1; k < words.length && picked.length < 3; k++) {
-      const cand = of(words[(idx + k * 2) % words.length])
+    for (let k = 1; k < pool.length && picked.length < 3; k++) {
+      const cand = of(pool[(idx + k * 2) % pool.length])
       if (cand !== right && !picked.includes(cand)) picked.push(cand)
     }
     return picked
@@ -919,28 +966,116 @@ function reviewTasks(
  * Поэтому такие серии склеиваются в один неделимый блок.
  */
 /**
- * Слова юнита, которые пойдут в домашку КАРТОЧКАМИ. Мягкий кап: больше
- * HW_CARD_CAP карточек на юнит не выдаём.
+ * Порции юнита: урок вводит не больше четырёх новых слов (Р1).
  *
- * ЗАЧЕМ. Карточка на каждое слово (~10 на юнит) давала карточкам 34–38% всей
- * домашки — треть работы одним и тем же жестом. Кап возвращает разнообразие,
- * при этом НИ ОДНО слово не выпадает из обучения: все слова юнита остаются в
- * его словаре и теории, проходят через vocabRecognition (сопоставление и выбор
- * строятся по ПОЛНОМУ unit.vocab) и целиком уходят в колоду интервальных
- * повторений через allVocab — тот путь с hwTasks не связан.
+ * ЗАЧЕМ. Юнит давал десять слов за один вечер, и это не порция, а три урока,
+ * слепленных в один. Рабочая память держит три-пять несвязанных единиц
+ * (Cowan 2001), а незнакомое слово незнакомого письма — это ещё и не одна
+ * единица: пока слоги не читаются, 안녕히 계세요 распадается на шесть значков и
+ * съедает ёмкость целиком. Десять слов подряд не учатся — они просматриваются.
  *
- * ВЫБОР ДЕТЕРМИНИРОВАН по unit.n: одна и та же сборка сида в любой день даёт
- * те же карточки с теми же id (индекс слова сохраняется, id `-v${i+1}` не
- * плавают). Окно едет по кругу от n — чтобы под кап у всех юнитов не попадал
- * один и тот же хвост списка.
+ * ЧТО ЗДЕСЬ. Словарь юнита режется на порции по ≤ PORTION слов, и КАЖДАЯ
+ * ПОРЦИЯ СТАНОВИТСЯ ОТДЕЛЬНЫМ УРОКОМ курса (см. buildLanguageCourse). Юнит из
+ * десяти слов — это три урока на одной теме, а не один урок с десятью
+ * карточками. Ни одно слово при этом не выброшено, курс не стал короче: то же
+ * содержание разложено по числу занятий, которое оно на самом деле занимает.
+ *
+ * ПОРЦИИ РОВНЫЕ, А НЕ «ПО ЧЕТЫРЕ И ХВОСТ». Десять при капе 4 — это 4+3+3, а не
+ * 4+4+2: урок из двух слов выглядит как оборванный, и ученик читает это как
+ * сбой, а не как замысел.
  */
-const HW_CARD_CAP = 8
-function hwVocabPick(unit: LangUnit): Array<{ word: VocabItem; i: number }> {
-  const all = unit.vocab.map((word, i) => ({ word, i }))
-  if (all.length <= HW_CARD_CAP) return all
-  const start = unit.n % all.length
-  return Array.from({ length: HW_CARD_CAP }, (_, k) => all[(start + k) % all.length])
-    .sort((a, b) => a.i - b.i)
+const PORTION = 4
+/** Курс с незнакомым письмом: буква и слово из неё — уже два новых элемента. */
+const PORTION_SCRATCH = 3
+
+const portionSize = (spec: LanguageCourseSpec): number =>
+  spec.scratch ? PORTION_SCRATCH : PORTION
+
+export function vocabPortions(vocab: VocabItem[], size: number): VocabItem[][] {
+  if (vocab.length <= size) return [vocab]
+  const count = Math.ceil(vocab.length / size)
+  const out: VocabItem[][] = []
+  let at = 0
+  for (let k = 0; k < count; k++) {
+    const end = Math.round((vocab.length * (k + 1)) / count)
+    out.push(vocab.slice(at, end))
+    at = end
+  }
+  return out
+}
+
+/**
+ * Задания юнита — по порциям, группа вопросов к отрывку неделима.
+ *
+ * Работа юнита (грамматика, отрывки, аудирование) относится ко всему юниту, а
+ * не к четвёрке его слов, поэтому она раскладывается по урокам порций поровну.
+ * Блок с одним и тем же отрывком не разрезается между уроками: текст и вопросы
+ * к нему в разных днях — это уже не задание с отрывком.
+ */
+function spreadTasks(tasks: SeedTask[], count: number): SeedTask[][] {
+  const blocks: SeedTask[][] = []
+  for (const task of tasks) {
+    const last = blocks[blocks.length - 1]
+    const samePassage = !!task.passage && last?.[0]?.passage === task.passage
+    if (samePassage) last.push(task)
+    else blocks.push([task])
+  }
+  const out: SeedTask[][] = Array.from({ length: count }, () => [])
+  blocks.forEach((block, bi) => {
+    const k = Math.min(count - 1, Math.floor((bi * count) / blocks.length))
+    out[k].push(...block)
+  })
+  return out
+}
+
+/**
+ * Разминка урока-продолжения: слова предыдущей порции.
+ *
+ * У первой порции в начале домашки стоит возврат к прошлым юнитам
+ * (reviewTasks); у второй и третьей возвращать надо в первую очередь то, что
+ * было введено вчера в этом же юните, — иначе порция уходит из вида ровно
+ * тогда, когда забывание идёт круче всего.
+ */
+function portionReview(prev: VocabItem[], idBase: string, lang: string, native = false) {
+  const words = prev.filter(w => w.term?.trim() && w.ru?.trim())
+  if (words.length < 2) return []
+  const label = (w: VocabItem) => (w.reading ? `${w.term} (${w.reading})` : w.term)
+  const out: SeedTask[] = []
+  if (words.length >= 3) {
+    out.push(pairsOf(
+      native
+        ? 'Повторение прошлого занятия: соедините слово и толкование.'
+        : 'Повторение прошлого занятия: соедините слово и перевод.',
+      words.slice(0, 4).map(w => (native ? [w.ru, w.term] : [label(w), w.ru]) as [string, string]),
+    ))
+  }
+  // Припоминание — на слове, которого не было в сопоставлении выше: иначе это
+  // проверка последних десяти секунд, а не памяти.
+  const recall = words[words.length - 1]
+  out.push(fill(
+    native ? `Повторение: какое слово это описывает — «${recall.ru}»?` : `Повторение: как будет «${recall.ru}»?`,
+    recall.term,
+    recall.alt,
+  ))
+  return out.map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+}
+
+/**
+ * Конспект урока-продолжения.
+ *
+ * Полный конспект юнита стоит в первой порции; повторять его в каждой — значит
+ * трижды показать одно и то же и обесценить его. Здесь только адрес («это
+ * продолжение такого-то юнита»), правило одной строкой и слова самой порции.
+ */
+function portionTheory(unit: LangUnit, vocab: VocabItem[], k: number, total: number): string {
+  const words = vocab
+    .map(w => `• ${w.reading ? `${w.term} (${w.reading})` : w.term} — ${w.ru}${w.example ? `\n   ${w.example}` : ''}`)
+    .join('\n')
+  return [
+    `Продолжение юнита ${unit.n} «${unit.title}» — занятие ${k} из ${total}.`,
+    `Правило юнита: ${unit.grammar}`,
+    `Слова занятия (${unit.vocabTheme}):\n${words}`,
+  ].join('\n\n')
 }
 
 function interleaveCards<T extends { passage?: string }>(work: T[], cards: T[]): T[] {
@@ -1082,57 +1217,110 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
 
   const byN = new Map(spec.units.map(u => [u.n, u]))
 
-  const lessons: CELesson[] = spec.units.map(unit => ({
-    id: unit.shortId,
-    title: `${unit.n}. ${unit.title}`,
-    number: unit.n,
-    kind: 'lesson',
-    // Дата занятия у сида не проставлена (её ставит учитель под свою группу),
-    // а длительность известна заранее — из неё считаются часы курса в списке
-    // и длина события в расписании, когда дата появится.
-    scheduledDuration: spec.lessonMinutes ?? DEFAULT_LESSON_MINUTES,
-    description: [
-      `Цель: ${unit.goal}`,
-      `Грамматика: ${unit.grammar}`,
-      `Почему здесь: ${unit.grammarWhy}`,
-      `Лексика: ${unit.vocabTheme}`,
-      `Артефакт: ${unit.artifact}`,
-    ].join('\n'),
-    ...theoryOf(unit, spec.figures?.[unit.shortId]),
-    videoUrl: unit.videoUrl,
-    hwTitle: `Юнит ${unit.n}. ${unit.title}`,
-    hwTarget: unit.artifact,
-    hwTasks: [
-      // Живая речь — до отработки: см. homeworkVideos в LanguageCourseSpec.
-      ...(spec.homeworkVideos?.[unit.shortId] ?? [])
-        .map((task, i) => editorTask(task, `${unit.shortId}-hv${i + 1}`, spec.lang)),
-      // Возврат к пройденному — до нового материала (см. reviewTasks).
-      ...reviewTasks(unit, byN, `${unit.shortId}-rv`, spec.lang, spec.native),
-      // Работа юнита и карточки его слов идут вперемешку: подряд идущих
-      // карточек больше двух не бывает (см. interleaveCards).
-      ...interleaveCards(
-        [
-          // Дрилл идёт первым: конструкция сначала ставится в руку
-          // подстановкой, и только потом проверяется вразбивку остальными
-          // заданиями. В обратном порядке первые упражнения проверяли бы то,
-          // что ещё не отработано.
-          ...patternTask(unit, `${unit.shortId}-p`, spec.lang),
-          ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`, spec.lang)),
-          ...pictureTasks(unit, `${unit.shortId}-pic`, spec.lang),
-          // Узнавание идёт до карточек по тому же слову: к вводу перевода
-          // ученик приходит, увидев слово третий раз (см. vocabRecognition).
-          ...vocabRecognition(unit, `${unit.shortId}-r`, spec.lang, spec.native),
+  /**
+   * Уроки курса: ПОРЦИЯ, А НЕ ЮНИТ (Р1).
+   *
+   * Юнит — это тема с её грамматикой и словарём; урок — это один вечер работы.
+   * Пока они совпадали, вечер получал десять новых слов, из которых наутро
+   * оставалось два. Теперь словарь юнита режется на порции по ≤ 4 слова
+   * (vocabPortions), и каждая порция — отдельный урок: та же тема, тот же
+   * конспект, но новое даётся ровно столько, сколько человек уносит.
+   *
+   * ЧТО ОСТАЁТСЯ У ПЕРВОЙ ПОРЦИИ. Конспект со схемами, видео юнита, дрилл
+   * конструкции и возврат к прошлым юнитам: это вход в тему, и он бывает один
+   * раз. Продолжения получают короткий конспект (portionTheory), разминку по
+   * словам предыдущего занятия (portionReview) и свою часть работы юнита.
+   *
+   * ID ПЕРВОЙ ПОРЦИИ РАВЕН ID ЮНИТА. Курсы, уже разложенные по расписанию и
+   * пройденные учениками, не теряют первый урок каждой темы: он остаётся тем
+   * же уроком с тем же адресом, а продолжения приходят новыми (`-p2`, `-p3`).
+   */
+  const size = portionSize(spec)
+  const lessons: CELesson[] = []
+  const lessonIdsOfUnit = new Map<number, string[]>()
+
+  spec.units.forEach(unit => {
+    const parts = vocabPortions(unit.vocab, size)
+    const taskParts = spreadTasks(unit.tasks, parts.length)
+    const split = parts.length > 1
+    const ids: string[] = []
+
+    parts.forEach((vocab, k) => {
+      const first = k === 0
+      const id = first ? unit.shortId : `${unit.shortId}-p${k + 1}`
+      ids.push(id)
+      // Юнит с урезанным словарём: генераторы заданий (узнавание, картинки,
+      // карточки) работают ровно по словам порции и ничего не знают о делении.
+      const part: LangUnit = { ...unit, vocab }
+      // Всё, что ученик к этому занятию уже видел в юните: запас обманок (Р9).
+      const seen = parts.slice(0, k + 1).flat()
+
+      lessons.push({
+        id,
+        title: split ? `${unit.n}.${k + 1} ${unit.title}` : `${unit.n}. ${unit.title}`,
+        number: lessons.length + 1,
+        kind: 'lesson',
+        // Дата занятия у сида не проставлена (её ставит учитель под свою группу),
+        // а длительность известна заранее — из неё считаются часы курса в списке
+        // и длина события в расписании, когда дата появится. Порции делят время
+        // юнита между собой: занятий стало больше, часов курса — столько же.
+        scheduledDuration: Math.round((spec.lessonMinutes ?? DEFAULT_LESSON_MINUTES) / parts.length),
+        description: [
+          `Цель: ${unit.goal}`,
+          `Грамматика: ${unit.grammar}`,
+          `Почему здесь: ${unit.grammarWhy}`,
+          `Лексика: ${unit.vocabTheme}`,
+          split ? `Порция: занятие ${k + 1} из ${parts.length} по этой теме` : '',
+          `Артефакт: ${unit.artifact}`,
+        ].filter(Boolean).join('\n'),
+        ...(first
+          ? theoryOf(unit, spec.figures?.[unit.shortId])
+          : { theory: portionTheory(unit, vocab, k + 1, parts.length), theoryImages: [] }),
+        videoUrl: first ? unit.videoUrl : undefined,
+        hwTitle: split
+          ? `Юнит ${unit.n}. ${unit.title} · занятие ${k + 1}`
+          : `Юнит ${unit.n}. ${unit.title}`,
+        hwTarget: unit.artifact,
+        hwTasks: [
+          // Живая речь — до отработки: см. homeworkVideos в LanguageCourseSpec.
+          ...(first ? (spec.homeworkVideos?.[unit.shortId] ?? []) : [])
+            .map((task, i) => editorTask(task, `${id}-hv${i + 1}`, spec.lang)),
+          // Возврат к пройденному — до нового материала. У первой порции это
+          // прошлые юниты (reviewTasks), у продолжений — вчерашняя порция.
+          ...(first
+            ? reviewTasks(unit, byN, `${id}-rv`, spec.lang, spec.native)
+            : portionReview(parts[k - 1], `${id}-rv`, spec.lang, spec.native)),
+          // Работа юнита и карточки его слов идут вперемешку: подряд идущих
+          // карточек больше двух не бывает (см. interleaveCards).
+          ...interleaveCards(
+            [
+              // Дрилл идёт первым: конструкция сначала ставится в руку
+              // подстановкой, и только потом проверяется вразбивку остальными
+              // заданиями. В обратном порядке первые упражнения проверяли бы то,
+              // что ещё не отработано.
+              ...(first ? patternTask(unit, `${id}-p`, spec.lang) : []),
+              ...taskParts[k].map((task, i) => editorTask(task, `${id}-t${i + 1}`, spec.lang)),
+              ...pictureTasks(part, `${id}-pic`, spec.lang),
+              // Узнавание идёт до карточек по тому же слову: к вводу перевода
+              // ученик приходит, увидев слово третий раз (см. vocabRecognition).
+              ...vocabRecognition(part, `${id}-r`, spec.lang, spec.native, seen),
+            ],
+            vocab.map((word, i) => vocabCard(word, `${id}-v${i + 1}`, spec.lang, spec.native)),
+          ),
         ],
-        hwVocabPick(unit).map(({ word, i }) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang, spec.native)),
-      ),
-    ],
-  }))
+      })
+    })
+
+    lessonIdsOfUnit.set(unit.n, ids)
+  })
 
   const modules: CEModule[] = spec.modules.map((m, i) => ({
     id: `${spec.key}-m${i + 1}`,
     label: m.title,
     expanded: i === 0,
-    lessonIds: m.units.map(n => byN.get(n)?.shortId).filter((id): id is string => !!id),
+    // Модуль собирает ВСЕ занятия своих юнитов: у разрезанного юнита их
+    // несколько, и продолжения обязаны стоять в том же модуле, что и вход.
+    lessonIds: m.units.flatMap(n => lessonIdsOfUnit.get(n) ?? []),
   }))
 
   const s = courseSummary(spec)
@@ -1149,7 +1337,8 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     modules,
     lessons,
     description: [
-      `${s.units} юнитов, ${s.vocabCount} слов, ${s.taskCount} заданий. ` +
+      `${s.units} юнитов (${lessons.length} занятий), ${s.vocabCount} слов, ` +
+        `${s.taskCount} заданий. ` +
         `Ориентир — ${s.guidedHours} учебных часов.`,
       s.scopeNote,
     ].filter(Boolean).join(' '),

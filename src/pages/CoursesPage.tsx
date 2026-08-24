@@ -2,10 +2,9 @@ import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
-import { glassCircle } from '../lib/mobileTokens'
+import { glassCircle, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
-import { useBottomSafe } from '../lib/bottomSafe'
 import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
@@ -84,7 +83,6 @@ export default function CoursesPage() {
   const kbInset = useKeyboardInset()
   // Тот же разрешённый отступ, что у навигации и дока тренажёра: сырой env()
   // какое-то время врёт вверх, и док «ДЗ» висел выше, чем на других экранах.
-  const bottomSafe = useBottomSafe()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
@@ -522,7 +520,7 @@ export default function CoursesPage() {
           the sibling circles sliding under it (trainer-identical). Desktop uses
           the top search field instead. ── */}
       {!isDesktop && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: bottomSafe, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             ref={dockRef}
             initial={false}

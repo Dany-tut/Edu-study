@@ -40,11 +40,11 @@ import { Volume2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { speak, stopSpeech, speechUnits, speechMs } from '../../lib/speech'
 import { getMediaUrl } from '../../lib/mediaStorage'
-import { useBottomSafe } from '../../lib/bottomSafe'
 import { useNavCollapse } from '../../lib/useNavCollapse'
 import { tactile } from '../../lib/feedback'
 import MobileSheet from '../MobileSheet'
 import VoicePicker from './VoicePicker'
+import { MOBILE_DOCK_EDGE } from '../../lib/mobileTokens'
 
 /** Радиус магнита в пикселях: ближе этого к границе реплики — прилипаем. */
 const SNAP_PX = 14
@@ -105,7 +105,6 @@ export default function TrackPlayer({
   inline?: boolean
 }) {
   const t = useT()
-  const bottomSafe = useBottomSafe()
   const collapsed = useNavCollapse()
   const usesTts = !audioUrl && !!ttsText
 
@@ -327,7 +326,7 @@ export default function TrackPlayer({
         animate={inline ? undefined : { marginBottom: collapsed ? 74 : 138 }}
         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
         style={inline ? { minWidth: 0, pointerEvents: 'auto' } : {
-          position: 'fixed', left: 0, right: 0, bottom: bottomSafe,
+          position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE,
           zIndex: 41, padding: '0 16px', pointerEvents: 'none',
         }}
       >

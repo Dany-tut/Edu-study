@@ -61,10 +61,15 @@ const FINE_DY = 60
 const BOOST_STEP_PX = 55
 const LOCK_DY = 45
 const MAX_BOOST = 5
-/** Выше этого движки скорость не принимают: YouTube молча игнорирует 3×. */
+/** Выше этого чужие движки скорость не принимают: YouTube молча игнорирует 3×
+ *  и продолжает играть на 2× — плашка врала бы про ступень. */
 const ENGINE_MAX_RATE = 2
-/** Такт скольжения по ролику. Назад движки не играют, а вперёд выше 2× не
- *  умеют — оба случая берём шагами перемотки. */
+/** А свой <video> (прямые ссылки — Диск, наш бакет) тянет и быстрее: держим
+ *  до 4×, дальше Chrome сам глушит звук и смысл «слышного» ускорения пропадает.
+ *  Safari глушит уже выше 2× — там 3–4× останется быстрой немой картинкой. */
+const FILE_MAX_RATE = 4
+/** Такт скольжения по ролику. Назад движки не играют, а вперёд выше потолка
+ *  своей ступени не умеют — оба случая берём шагами перемотки. */
 const SKIM_TICK_MS = 120
 /** Пауза перед одиночным тапом: ждём, не станет ли он двойным. */
 const TAP_MS = 220
@@ -194,6 +199,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // работали. Такой источник показываем как раньше, голым iframe.
   const custom = source.kind !== 'iframe'
   const canRate = source.kind !== 'rutube'   // у RuTube скорость не выставляется извне
+  /** До какой ступени ускорение играет движком (со звуком), а не скольжением. */
+  const engineMaxRate = source.kind === 'file' ? FILE_MAX_RATE : ENGINE_MAX_RATE
   const canCaptions = source.kind === 'youtube'   // и только если дорожки нашлись, см. ccAvailable
 
   const [watch, setWatch] = useState<VideoWatch>(initialWatch)
@@ -678,20 +685,25 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     }, SKIM_TICK_MS)
   }, [doPause, doSeek, stopSkim])
 
-  /** 2× вперёд ещё слышно — его играет сам движок. Всё, что быстрее, и любая
-   *  отмотка назад идут скольжением: со звуком там всё равно делать нечего. */
+  /** Пока ступень в пределах потолка движка — её играет сам плеер, и голос
+   *  слышно. Всё, что выше, и любая отмотка назад идут скольжением: звука там
+   *  всё равно нет. Потолок разный: у YouTube 2×, у своего <video> — 4×. */
   const applyBoost = useCallback((dir: 1 | -1, mult: number) => {
     boostRef.current = mult
     setBoost(mult)
-    if (dir === 1 && canRate && mult <= ENGINE_MAX_RATE) {
+    if (dir === 1 && canRate && mult <= engineMaxRate) {
       stopSkim()
       if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(mult)
-      else if (videoRef.current) videoRef.current.playbackRate = mult
+      else if (videoRef.current) {
+        // Без этого на быстрой скорости голос уезжает в писк.
+        videoRef.current.preservesPitch = true
+        videoRef.current.playbackRate = mult
+      }
       doPlay()
     } else {
       startSkim(dir, mult)
     }
-  }, [canRate, source.kind, doPlay, startSkim, stopSkim])
+  }, [canRate, engineMaxRate, source.kind, doPlay, startSkim, stopSkim])
 
   const endBoost = useCallback(() => {
     stopSkim()
@@ -822,7 +834,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
-  const liveRate = gesture === 'ff' && canRate && boost <= ENGINE_MAX_RATE ? boost : rate
+  const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
   const pct = duration ? Math.min(100, (current / duration) * 100) : 0
   const ratio = watchRatio({ ...watch, duration: duration || watch.duration })
@@ -1026,7 +1038,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 maxWidth: 'calc(100% - 24px)',
               }}
             >
-              <div className="flex items-center" style={{ flexDirection: gesture === 'ff' ? 'row' : 'row-reverse' }}>
+              {/* У шеврона в глифе свои прозрачные поля (~1/5 размера с боков):
+                  без компенсации левый отступ плашки и зазор до «2×» выглядят
+                  шире, чем правый край у замка. */}
+              <div className="flex items-center" style={{ flexDirection: gesture === 'ff' ? 'row' : 'row-reverse', margin: touch ? '0 -3px' : '0 -4px' }}>
                 {Array.from({ length: boost }, (_, i) => (
                   <motion.span
                     key={i}

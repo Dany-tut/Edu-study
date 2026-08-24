@@ -17,7 +17,6 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Delete } from 'lucide-react'
 import { charUnits, scrambleUnits } from '../data/taskTypes'
 import { isSyllable, syllableDistractors } from '../data/hangul'
 import { playPop, vibrate } from '../lib/sound'
@@ -78,12 +77,6 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
     vibrate(6)
     onChange(picked.filter((_, idx) => idx !== i).join(''))
   }
-  const back = () => {
-    if (disabled || picked.length === 0) return
-    vibrate(6)
-    onChange(picked.slice(0, -1).join(''))
-  }
-
   const big = need.some(isSyllable)
 
   return (
@@ -151,19 +144,10 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
         ))}
       </div>
 
-      {picked.length > 0 && !disabled && (
-        <button
-          onClick={back}
-          className="flex items-center self-center cursor-pointer"
-          style={{
-            gap: 7, padding: '9px 15px', borderRadius: 999,
-            border: '1px solid var(--color-border)', background: 'transparent',
-            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
-          }}
-        >
-          <Delete size={14} />
-          {t('Убрать последнюю')}
-        </button>
+      {picked.length > 0 && !disabled && !showVerdict && (
+        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+          {t('Тап по плитке в строке возвращает её в банк')}
+        </span>
       )}
 
       {showVerdict && !correct && (

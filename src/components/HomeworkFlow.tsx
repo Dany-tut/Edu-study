@@ -49,6 +49,8 @@ import VoiceRecorder from './VoiceRecorder'
 import { charUnits, sentenceTokens } from '../data/taskTypes'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
+import JamoTypeSolver from './JamoTypeSolver'
+import DialogGapSolver from './DialogGapSolver'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
 import VocabIntro from './VocabIntro'
@@ -56,7 +58,7 @@ import HomeworkFlowBar from './HomeworkFlowBar'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import { isLanguageSubject } from '../lib/subjects'
-import { chamoOf } from '../data/hangul'
+import { chamoOf, composeKeys, keysOf } from '../data/hangul'
 import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
@@ -807,6 +809,11 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
     const items = q.sequenceItems ?? []
     return items.length >= 2 && (ans ?? '').split(',').filter(Boolean).length >= items.length
   }
+  // Набор по буквам: отвечено, когда нажатий столько, сколько нужно слову.
+  if (qType(q) === 'jamoType') {
+    const need = charUnits(q.referenceAnswer ?? '').flatMap(keysOf).length
+    return need >= 2 && (ans ?? '').split(',').filter(Boolean).length >= need
+  }
   return !!(ans && ans.trim())
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
@@ -828,6 +835,8 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   // авторский порядок блоков (blockOrder).
   if (langTp === 'unscramble' || langTp === 'charBank') return charUnits(q.referenceAnswer ?? '').length >= 2
   if (langTp === 'blockOrder') return (q.sequenceItems?.length ?? 0) >= 2
+  if (langTp === 'jamoType') return charUnits(q.referenceAnswer ?? '').flatMap(keysOf).length >= 2
+  if (langTp === 'dialogGap') return !!q.referenceAnswer?.trim() && (q.dialog?.length ?? 0) >= 2
   // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -874,6 +883,17 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       if (items.length < 2 || order.length !== items.length || order.some(n => Number.isNaN(n))) return false
       // Формат ответа общий с sequence: авторские индексы в порядке тапов.
       return order.every((v, i) => v === i)
+    }
+    // Набор по буквам: сверяется собранный текст, а не путь нажатий —
+    // составную гласную можно набрать двумя способами, оба верные.
+    if (langTp === 'jamoType') {
+      const want = charUnits(q.referenceAnswer ?? '')
+      return want.length >= 1 && composeKeys(ans.split(',').filter(Boolean)) === want.join('')
+    }
+    // Пропуск в диалоге — диктант с контекстом: эталон плюс альтернативы.
+    if (langTp === 'dialogGap') {
+      if (!questionAutoGradable(q)) return false
+      return matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
     }
     if (langTp === 'flashcard') {
       if (!q.back?.trim()) return false
@@ -3102,6 +3122,32 @@ export default function HomeworkFlow({
                       value={selectedAnswer}
                       disabled={locked}
                       showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Набор по буквам: экранная клавиатура, слоги складываются
+                       на глазах — ㅇ+ㅏ+ㄴ → 안. */
+                    ) : qType(question) === 'jamoType'
+                        && charUnits(question.referenceAnswer ?? '').flatMap(keysOf).length >= 2 ? (
+                    <JamoTypeSolver
+                      answer={question.referenceAnswer!}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Пропуск в диалоге: реплики озвучены разными голосами,
+                       недостающее вставляет ученик. */
+                    ) : qType(question) === 'dialogGap'
+                        && (question.dialog?.length ?? 0) >= 2 && question.referenceAnswer ? (
+                    <DialogGapSolver
+                      dialog={question.dialog!}
+                      answer={question.referenceAnswer}
+                      distractors={question.distractors}
+                      lang={question.lang}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      correct={isCorrect}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
                     /* Подстановочный дрилл — шаблон сверху, строки замен ниже. */

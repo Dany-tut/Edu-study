@@ -1412,6 +1412,19 @@ const WIDGET_SORT_OPTS: [WidgetSortMode, string][] = [
   ['newest', t('Новые')], ['oldest', t('Старые')], ['az', t('А → Я')], ['items', t('По элементам')],
 ]
 
+/**
+ * Стекло таблеток шапки конструктора.
+ *
+ * Под прилипшей шапкой нет подложки (сплошная заливка поперёк списка читается
+ * как прямоугольник чужого цвета), поэтому карточки едут прямо под кнопками —
+ * и без размытия сквозь них просвечивали названия курсов. Размытие + плотный
+ * фон дают каждой таблетке собственное стекло, как у плавающего топбара.
+ */
+const PILL_GLASS: React.CSSProperties = {
+  backdropFilter: 'blur(16px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+}
+
 function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChange: (v: WidgetSortMode) => void }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -1422,7 +1435,8 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
+          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
@@ -1471,7 +1485,8 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
+          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
@@ -1560,7 +1575,7 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
       <button onClick={() => { setOpen(o => !o); setQuery('') }}
         style={{ display: 'flex', alignItems: 'center', gap: iconGap, padding: '7px 12px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
           border: `1px solid ${value ? 'var(--color-border-strong)' : open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: value ? 700 : 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <span style={{ display: 'flex', color: 'var(--color-text-3)' }}>{icon}</span>
@@ -1612,7 +1627,7 @@ function CourseStatusFilter({ value, onChange }: { value: '' | CourseStatus; onC
   const t = useT()
   const opts: ['' | CourseStatus, string][] = [['', t('Все')], ['draft', t('Черновик')], ['published', t('Опубликован')]]
   return (
-    <div style={{ display: 'flex', padding: 2, borderRadius: 999, background: 'var(--color-bg-3)', gap: 2 }}>
+    <div style={{ display: 'flex', padding: 2, borderRadius: 999, background: 'var(--color-bg-3)', ...PILL_GLASS, gap: 2 }}>
       {opts.map(([val, lbl]) => {
         const active = value === val
         return (
@@ -1807,7 +1822,8 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '10px 20px', borderRadius: 16,
         border: 'none', cursor: 'pointer',
-        background: isActive ? bg : 'rgba(var(--glass-rgb), 0.72)',
+        background: isActive ? bg : 'rgba(var(--glass-rgb), 0.86)',
+        ...PILL_GLASS,
         color: isActive ? color : 'var(--color-muted)', fontSize: 14, fontWeight: 600,
         boxShadow: isActive ? `0 0 0 1.5px ${color}44, 0 4px 14px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.04)',
         transition: 'all 0.15s',
@@ -8295,6 +8311,7 @@ export default function TeacherConstructorPage() {
                     width: 44, padding: '10px 0', borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: editMode ? 'var(--color-red-soft)' : 'rgba(var(--glass-rgb), 0.88)',
+                    ...PILL_GLASS,
                     color: editMode ? 'var(--color-red-text)' : 'var(--color-muted)',
                     boxShadow: editMode ? '0 0 0 1.5px #c0303a44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
                     transition: 'all 0.15s',
@@ -8315,7 +8332,8 @@ export default function TeacherConstructorPage() {
                     style={{
                       marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 7,
                       padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
-                      background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
+                      background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
+                      color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
                     }}
                   >
@@ -8361,7 +8379,8 @@ export default function TeacherConstructorPage() {
                           style={{
                             display: 'flex', alignItems: 'center', gap: 7,
                             padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
-                            background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
+                            background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
+                            color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                           } as React.CSSProperties}
                         >

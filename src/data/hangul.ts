@@ -477,6 +477,83 @@ export function keysOf(ch: string): string[] {
   return chamoOf(ch).flatMap(c => COMPOUND[c] ?? [c])
 }
 
+// ─── Клавиатурный автомат ────────────────────────────────────────────────────
+
+/** Пары «две буквы → составная»: обратный COMPOUND плюс трёхклавишные гласные
+ *  (ㅘ+ㅣ → ㅙ): ученик мог набрать ㅙ и как ㅗ+ㅐ, и как ㅗ+ㅏ+ㅣ. */
+const COMBINE: Record<string, string> = (() => {
+  const m: Record<string, string> = {}
+  for (const [whole, [a, b]] of Object.entries(COMPOUND)) m[a + b] = whole
+  m['ㅘㅣ'] = 'ㅙ'
+  m['ㅝㅣ'] = 'ㅞ'
+  return m
+})()
+
+/**
+ * Сборка текста из потока нажатий-букв — то, что делает корейская клавиатура.
+ *
+ * Нужна типу задания jamoType: ученик тапает буквы, а слоги складываются на
+ * глазах (ㅇ+ㅏ+ㄴ → 안, следующая ㄴ начинает 녀…). Правила ровно клавиатурные:
+ * две одинаковые согласные сливаются в напряжённую, патчхим при следующей
+ * гласной уезжает в новый слог (안 + ㅛ → 아뇨), составной патчхим при этом
+ * делится (닭 + ㅏ → 달가). Обратна keysOf: composeKeys(keysOf-поток слова)
+ * возвращает само слово.
+ */
+export function composeKeys(keys: string[]): string {
+  let out = ''
+  let ini = ''
+  let vow = ''
+  let fin = ''
+  const flush = () => {
+    if (ini && vow) out += joinSyllable(ini, vow, fin) ?? ini + vow + fin
+    else out += ini + vow + fin
+    ini = vow = fin = ''
+  }
+  for (const k of keys) {
+    if (!VOWELS.includes(k)) {
+      // Согласная.
+      if (!ini && !vow) { ini = k; continue }
+      if (ini && !vow) {
+        const two = COMBINE[ini + k]
+        if (two && INITIALS.includes(two)) { ini = two; continue }
+        flush(); ini = k; continue
+      }
+      if (!fin) {
+        if (FINALS.includes(k)) { fin = k; continue }
+        flush(); ini = k; continue
+      }
+      const two = COMBINE[fin + k]
+      if (two && FINALS.includes(two)) { fin = two; continue }
+      flush(); ini = k; continue
+    }
+    // Гласная.
+    if (fin) {
+      // Патчхим уезжает начальной следующего слога; составной — делится.
+      const parts = COMPOUND[fin]
+      let carry = fin
+      if (parts && FINALS.includes(parts[0]) && INITIALS.includes(parts[1])) {
+        fin = parts[0]
+        carry = parts[1]
+      } else {
+        fin = ''
+      }
+      flush()
+      if (INITIALS.includes(carry)) ini = carry
+      else out += carry
+      vow = k
+      continue
+    }
+    if (vow) {
+      const two = COMBINE[vow + k]
+      if (two && VOWELS.includes(two)) { vow = two; continue }
+      flush(); vow = k; continue
+    }
+    vow = k
+  }
+  flush()
+  return out
+}
+
 /** Слоги слова: 김치 → [김, 치]. Не-хангыль отбрасывается. */
 export const syllablesOf = (word: string): string[] => [...word].filter(isSyllable)
 

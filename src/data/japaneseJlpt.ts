@@ -1582,6 +1582,8 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
   title: 'Японский с нуля — до JLPT N5',
   subject: 'Японский',
   level: 'С нуля → JLPT N5 → N4',
+  // Письмо незнакомо: порция нового у такого курса — три элемента (Р1).
+  scratch: true,
   lang: 'ja',
   guidedHours: '250–300',
   scopeNote: 'Охват — с нуля: кана, ~60 кандзи, грамматика N5 с выходом на N4. Полный N4 и далее — следующий курс.',

@@ -14,6 +14,7 @@ import { initAnalytics, trackPath } from './lib/analytics'
 import ConsentOverlay, { hasStudentConsent } from './components/ConsentOverlay'
 import StickerRevealGate from './components/StickerRevealGate'
 import InstallPrompt from './components/InstallPrompt'
+import ConfirmHost from './components/ConfirmHost'
 import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
@@ -28,6 +29,17 @@ function useHashRoute() {
 }
 
 export default function App() {
+  // Хост подтверждений — один на всё приложение, выше любого роута: спросить
+  // могут и из кабинета, и из лендинга, и во время редиректа.
+  return (
+    <>
+      <AppRoutes />
+      <ConfirmHost />
+    </>
+  )
+}
+
+function AppRoutes() {
   const hash = useHashRoute()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [recovery, setRecovery] = useState(false)

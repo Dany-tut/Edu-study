@@ -1842,19 +1842,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         )}
       </Toolbar>
     )
-  } else if (mode === 'blocks' && !openStem && !openRoot && !openNum && !openPron) {
+  } else if (
+    mode === 'blocks' && blocksView !== 'stems' && !openStem && !openRoot && !openNum && !openPron
+  ) {
+    // На «Основах» строки поиска нет: основ восемь, они на одном экране, и
+    // поиск по ним — таблетка ради таблетки. Число основ и так стоит на чипсе
+    // дока и в подводке витрины.
     toolbar = (
       <Toolbar>
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(
-            blocksView === 'stems' ? 'Найти форму или смысл…'
-            : blocksView === 'roots' ? 'Найти слово или корень…'
+            blocksView === 'roots' ? 'Найти слово или корень…'
             : blocksView === 'sounds' ? 'Найти правило или слово…'
             : 'Найти число или ситуацию…')} />
         <ToolCount>
-          {blocksView === 'stems'
-            ? `${visibleStems.length} ${t('основ')}`
-            : blocksView === 'roots'
+          {blocksView === 'roots'
             ? `${visibleRoots.length} ${t('корней')}`
             : blocksView === 'sounds'
             ? `${visiblePron.length} ${t('правил')}`

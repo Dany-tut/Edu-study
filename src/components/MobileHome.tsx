@@ -20,7 +20,8 @@ import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useFeedGlance } from '../lib/feedRead'
 import { queueTrainerLink } from '../lib/trainerLink'
 import { pickTrainerSubject } from '../lib/trainerSubject'
-import { dayLabel, outletById } from '../data/feed'
+import { dayLabel } from '../data/feed'
+import { FeedPost } from './trainer/FeedPost'
 import { tactile } from '../lib/feedback'
 import { PAIR } from '../lib/mobileTokens'
 import { writeDraft } from '../lib/useDraft'
@@ -500,40 +501,36 @@ function StoriesRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Лента на мобильной главной — журнальная колонка
+// Лента на мобильной главной — НАСТОЯЩАЯ лента
 //
-// БЕЗ ЗАГОЛОВКА «ЛЕНТА» И БЕЗ КАРТОЧЕК. Верх главной кончился — дальше просто
-// идут посты через тонкие разделители, как колонка в журнале: шапка источника,
-// серифный заголовок, первая фраза. Непрочитанное помечено чипсой «новое»,
-// а не заливкой: заливка делала пост похожим на кнопку, а это текст.
+// Верх главной кончился — дальше идёт сама лента, а не её анонс: те же посты,
+// что в тренажёре (FeedPost), в оформлении flat — во всю ширину через волосяные
+// разделители, как X/Threads на телефоне. Всё происходит на месте: ролик играет
+// в посте, перевод раскрывается под текстом, сердце и тред — тапом. Тап по телу
+// поста никуда не ведёт.
+//
+// БЕЗ ЧИПСЫ «НОВОЕ» И БЕЗ ПЕРЕСОРТИРОВКИ НЕПРОЧИТАННОГО НАВЕРХ: лента идёт
+// свежим вниз, как везде, свежесть видна по времени в шапке поста, а счётчик
+// нового остаётся бейджем в навбаре. Пост, побывший на экране, гасит его сам
+// (useSeen внутри FeedPost) — здесь читают по-настоящему, а не подглядывают.
 //
 // ВЕРТИКАЛЬНАЯ И БЕСКОНЕЧНАЯ. Порции по 6; следующая приезжает, когда граница
 // показалась на экране. Прокрутка живёт во внутреннем контейнере MobileScreen,
 // поэтому слушаем scroll в фазе перехвата (IntersectionObserver — запасным).
-//
-// ПРОСМОТРЕННЫМ ЗДЕСЬ НИЧТО НЕ СТАНОВИТСЯ: это витрина, а не сама лента.
-// Тап по посту открывает ленту целиком: адресуемых постов у неё нет (data/feed).
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Сколько постов показываем сразу и сколько добавляем за одну подгрузку. */
 const FEED_CHUNK = 6
 
-/** Серифная гарнитура заголовков поста — журнальный акцент, только здесь. */
-const SERIF = 'ui-serif, Georgia, "Times New Roman", serif'
-
 function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void }) {
   const t = useT()
-  const { lang, subjectId, items, unread } = useFeedGlance(0, subject)
+  const { dark } = useTheme()
+  const { lang, subjectId, items } = useFeedGlance(0, subject)
   const [shown, setShown] = useState(FEED_CHUNK)
   const moreRef = useRef<HTMLDivElement>(null)
 
   // Сменился курс (а с ним язык ленты) — начинаем сначала.
   useEffect(() => { setShown(FEED_CHUNK) }, [lang])
-
-  const order = useMemo(
-    () => [...unread, ...items.filter(x => !unread.includes(x))],
-    [items, unread],
-  )
 
   useEffect(() => {
     const check = () => {
@@ -554,9 +551,12 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
       window.removeEventListener('resize', check)
       io?.disconnect()
     }
-  }, [shown, order.length])
+  }, [shown, items.length])
 
-  if (!lang || order.length === 0) return null
+  if (!lang || items.length === 0) return null
+
+  // Акцент ленты — цвет её предмета: им красятся глоссы, перевод и сердце.
+  const accent = resolveSubjectPalette(subjectId, dark).accent
 
   const open = () => {
     tactile()
@@ -565,75 +565,22 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
     onOpen()
   }
 
-  const list = order.slice(0, shown)
-  const hasMore = shown < order.length
+  const list = items.slice(0, shown)
+  const hasMore = shown < items.length
 
   return (
     <div>
-      {list.map(item => {
-        const outlet = outletById(item.outletId)
-        const fresh = unread.includes(item)
-        const lead = item.embed ? '' : item.body.replace(/\s+/g, ' ').trim().slice(0, 160)
-        return (
-          <button
-            key={item.id}
-            onClick={open}
-            className="text-left cursor-pointer"
-            style={{
-              width: '100%', padding: '13px 0', background: 'none',
-              border: 'none', borderTop: '1px solid var(--color-border-soft)',
-              fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 6,
-            }}
-          >
-            <span className="flex items-center" style={{ gap: 7, minWidth: 0, width: '100%' }}>
-              {/* Тот же знак источника, что в шапке поста в самой ленте. */}
-              <span aria-hidden style={{
-                flexShrink: 0, width: 22, height: 22, borderRadius: 999,
-                background: outlet?.tint ?? 'var(--color-accent)', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: (outlet?.mark.length ?? 1) > 2 ? 8 : 9.5, fontWeight: 800, lineHeight: 1,
-              }}>
-                {outlet?.mark ?? '·'}
-              </span>
-              <span className="truncate" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-2)' }}>
-                {outlet?.name ?? ''}
-              </span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
-                · {dayLabel(item.date)}
-              </span>
-              {fresh && (
-                <span style={{
-                  marginLeft: 'auto', flexShrink: 0, padding: '1px 7px', borderRadius: 999,
-                  border: '1px solid var(--color-purple-text)', color: 'var(--color-purple-text)',
-                  fontSize: 9.5, fontWeight: 700, lineHeight: '15px',
-                }}>
-                  {t('новое')}
-                </span>
-              )}
-            </span>
-            <span style={{
-              fontSize: 15.5, lineHeight: 1.35, fontWeight: 700, fontFamily: SERIF,
-              color: 'var(--color-text)',
-              display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-            }}>
-              {item.title}
-            </span>
-            {item.embed ? (
-              <span className="flex items-center" style={{ gap: 5, fontSize: 11.5, color: 'var(--color-text-3)' }}>
-                <Play size={12} style={{ flexShrink: 0 }} />
-                {t('ролик · смотреть в ленте')}
-              </span>
-            ) : lead ? (
-              <span style={{
-                fontSize: 12, lineHeight: 1.5, color: 'var(--color-text-3)',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-              }}>
-                {lead}
-              </span>
-            ) : null}
-          </button>
-        )
-      })}
+      {list.map(item => (
+        <FeedPost
+          key={item.id}
+          item={item}
+          lang={lang}
+          accent={accent}
+          subjectId={subjectId}
+          variant="flat"
+          when={dayLabel(item.date)}
+        />
+      ))}
 
       {/* Граница подгрузки: показалась — приезжает следующая порция. */}
       {hasMore && <div ref={moreRef} style={{ height: 1 }} aria-hidden />}

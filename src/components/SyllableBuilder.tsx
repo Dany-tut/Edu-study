@@ -22,7 +22,6 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Delete } from 'lucide-react'
 import {
   CHAMO, chamoOf, confusableWith, joinSyllable, splitSyllable,
 } from '../data/hangul'
@@ -98,7 +97,9 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
       </div>
 
       {/* Место сборки. Высота фиксирована: без неё карточка прыгает на каждой
-          добавленной букве, а вместе с ней уезжает и кнопка внизу экрана. */}
+          добавленной букве, а вместе с ней уезжает и низ экрана. Тап по
+          собранному слогу снимает последнюю букву — отдельной кнопки нет,
+          удаление везде делается кликом по самому собранному. */}
       <div
         className="flex items-center justify-center"
         style={{
@@ -111,15 +112,22 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
       >
         {preview
           ? (
-            <motion.span
+            <motion.button
               key={preview}
               initial={{ scale: 0.86, opacity: 0.4 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.18 }}
-              style={{ fontSize: 64, lineHeight: 1, fontWeight: 700, color: 'var(--color-text)' }}
+              onClick={back}
+              disabled={disabled}
+              title={t('Убрать последнюю букву')}
+              style={{
+                fontSize: 64, lineHeight: 1, fontWeight: 700, color: 'var(--color-text)',
+                border: 'none', background: 'transparent', fontFamily: 'inherit', padding: 0,
+                cursor: disabled ? 'default' : 'pointer',
+              }}
             >
               {preview}
-            </motion.span>
+            </motion.button>
           )
           : (
             <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
@@ -161,19 +169,10 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
         })}
       </div>
 
-      {picked.length > 0 && !disabled && (
-        <button
-          onClick={back}
-          className="flex items-center self-center cursor-pointer"
-          style={{
-            gap: 7, padding: '9px 15px', borderRadius: 999,
-            border: '1px solid var(--color-border)', background: 'transparent',
-            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
-          }}
-        >
-          <Delete size={14} />
-          {t('Убрать букву')}
-        </button>
+      {picked.length > 0 && !disabled && !showVerdict && (
+        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+          {t('Тап по слогу убирает последнюю букву')}
+        </span>
       )}
 
       {showVerdict && !correct && (

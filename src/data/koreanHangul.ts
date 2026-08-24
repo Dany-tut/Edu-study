@@ -32,7 +32,7 @@ import {
   type HangulLesson,
 } from './hangul'
 import {
-  buildLanguageCourse, buildSyl, courseSummary, minPair, one, readAloud, scrambled, sylBank, traceChamo,
+  buildLanguageCourse, buildSyl, courseSummary, minPair, one, readAloud, scrambled, sylBank, traceChamo, typeWord,
   type CourseFigures, type LangUnit, type LanguageCourseSpec, type SeedTask, type VocabItem,
 } from './languageCourse'
 import { charGrid, formTable } from './lessonFigures'
@@ -132,8 +132,14 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
 
   // Слова урока: собрать из слогов и прочитать вслух. Первое — про письмо,
   // второе — про речь; на одном и том же слове это две разные линии.
-  for (const w of lesson.words.slice(0, 3)) {
+  lesson.words.slice(0, 3).forEach((w, wi) => {
     const sylls = syllablesOf(w.ko)
+    // Первое слово урока набирается по буквам на экранной клавиатуре: после
+    // сборки слога это следующая ступень — слоги складываются из нажатий,
+    // как при настоящем наборе.
+    if (wi === 0 && sylls.length >= 1) {
+      tasks.push(typeWord(`Наберите по буквам слово «${w.ru}» — ${w.ko}`, w.ko))
+    }
     if (sylls.length >= 2) {
       // Ряд слогов с обманками (charBank): нужные слоги плюс похожие —
       // подменённая буква, слог без патчхима. Найти 바 среди 바/파/버 — это
@@ -147,7 +153,7 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
       tasks.push(scrambled(`Слово «${w.ru}» написано с перепутанными слогами — соберите правильно`, w.ko))
     }
     tasks.push(readAloud(`Прочитайте вслух: ${w.ko} — ${w.ru}`, w.ko, 20))
-  }
+  })
 
   return tasks
 }
@@ -326,6 +332,8 @@ export const KOREAN_HANGUL_COURSE: LanguageCourseSpec = {
   title: 'Корейский с нуля: хангыль',
   subject: 'Корейский',
   level: 'с нуля → TOPIK I (1급)',
+  // Письмо незнакомо: порция нового у такого курса — три элемента (Р1).
+  scratch: true,
   lang: 'ko',
   guidedHours: '18–24 часа',
   lessonMinutes: 60,

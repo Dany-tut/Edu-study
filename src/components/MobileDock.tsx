@@ -4,8 +4,7 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
-import { TAP_SCALE } from '../lib/mobileTokens'
-import { useBottomSafe } from '../lib/bottomSafe'
+import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -87,7 +86,6 @@ export default function MobileDock({ children, fill }: {
 }) {
   const collapsed = useSmoothCollapse()
   const kbOpen = useKeyboardInset() > 0
-  const bottomSafe = useBottomSafe()
   return (
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the
@@ -97,9 +95,9 @@ export default function MobileDock({ children, fill }: {
       transition={COLLAPSE}
       style={{
         position: 'fixed', left: 0, right: 0,
-        // То же разрешённое число, что у навигации (lib/bottomSafe.ts): сырой
+        // То же разрешённое число, что у навигации (lib/MOBILE_DOCK_EDGE.ts): сырой
         // env() до первой прокрутки включает нижнюю панель и задирает док вверх.
-        bottom: bottomSafe,
+        bottom: MOBILE_DOCK_EDGE,
         // Below the bottom nav (z-50) so the collapsing pill tucks UNDER it.
         zIndex: 40, display: 'flex', justifyContent: 'center',
         // Outer layer never intercepts taps — empty areas pass through to the
@@ -226,7 +224,9 @@ export function DockSegment<T extends string | number>({
               whileTap={{ scale: TAP_SCALE }}
               onClick={() => { if (!active) { tactile(); onChange(opt.id) } }}
               style={{
-                flexShrink: 0, height: 34, padding: '0 15px', borderRadius: 999,
+                // 40 + паддинг оболочки 3+3 = 46 — вровень с кругами DockCircle:
+                // таблетка на 40px стояла в ряду заметно ниже соседей.
+                flexShrink: 0, height: 40, padding: '0 15px', borderRadius: 999,
                 border: 'none', cursor: active ? 'default' : 'pointer',
                 fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
                 background: active ? (accent ?? 'var(--grad-purple)') : 'transparent',
@@ -300,7 +300,10 @@ export function DockSlot({ children }: { children: ReactNode }) {
       initial={false}
       animate={{ opacity: collapsed ? 0 : 1, scale: collapsed ? 0.9 : 1, y: collapsed ? 46 : 0 }}
       transition={collapseTransition(collapsed)}
-      style={{ display: 'flex', minWidth: 0, transformOrigin: 'bottom center' }}
+      // flexShrink:0 — как у кругов DockCircle: без него тесный ряд ужимал
+      // ОБЁРТКУ, а кнопка фиксированной ширины внутри вылезала из неё и
+      // съедала зазор до соседней таблетки.
+      style={{ display: 'flex', flexShrink: 0, transformOrigin: 'bottom center' }}
     >
       {children}
     </motion.div>

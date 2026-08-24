@@ -8,6 +8,9 @@ import { charUnits, gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer }
 import WordBankSolver from './WordBankSolver'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
+import JamoTypeSolver from './JamoTypeSolver'
+import DialogGapSolver from './DialogGapSolver'
+import { keysOf } from '../data/hangul'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import MatchingSolver, { matchingFromMap, matchingToMap } from './MatchingSolver'
@@ -225,7 +228,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   || (tp === 'trace' && !task.chamo)
                   || (tp === 'buildSyllable' && !task.syllable)
                   || ((tp === 'unscramble' || tp === 'charBank') && charUnits(task.answer ?? '').length < 2)
-                  || (tp === 'blockOrder' && seqItems.length === 0)) && (
+                  || (tp === 'blockOrder' && seqItems.length === 0)
+                  || (tp === 'jamoType' && charUnits(task.answer ?? '').flatMap(keysOf).length < 2)
+                  || (tp === 'dialogGap' && (!task.answer?.trim() || (task.dialog?.length ?? 0) < 2))) && (
                   <div style={{ paddingLeft: 36 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
@@ -291,6 +296,31 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       mode={tp === 'unscramble' ? 'unscramble' : 'bank'}
                       answer={task.answer!}
                       distractors={task.distractors}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* jamoType — экранная клавиатура: слоги складываются из нажатий */}
+                {tp === 'jamoType' && charUnits(task.answer ?? '').flatMap(keysOf).length >= 2 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <JamoTypeSolver
+                      answer={task.answer!}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* dialogGap — озвученный диалог с пропуском */}
+                {tp === 'dialogGap' && (task.dialog?.length ?? 0) >= 2 && !!task.answer?.trim() && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <DialogGapSolver
+                      dialog={task.dialog!}
+                      answer={task.answer!}
+                      distractors={task.distractors}
+                      lang={task.lang}
                       value={(answers[task.id] as string) ?? undefined}
                       onChange={v => setAnswer(task.id, v)}
                     />

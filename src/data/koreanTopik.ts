@@ -2194,6 +2194,8 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   title: 'Корейский с нуля — до TOPIK I',
   subject: 'Корейский',
   level: 'С нуля → TOPIK I (1급–2급)',
+  // Письмо незнакомо: порция нового у такого курса — три элемента (Р1).
+  scratch: true,
   lang: 'ko',
   // ЧАСЫ — ЭТО ОБЪЁМ КУРСА, А НЕ ПУТЬ ДО УРОВНЯ.
   //

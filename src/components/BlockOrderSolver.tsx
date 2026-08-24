@@ -13,7 +13,6 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Delete } from 'lucide-react'
 import { playPop, vibrate } from '../lib/sound'
 import { useT } from '../lib/i18n'
 
@@ -61,11 +60,11 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
     vibrate(6)
     onChange(picked.filter((_, i) => i !== pos).join(','))
   }
-  const back = () => {
-    if (disabled || picked.length === 0) return
-    vibrate(6)
-    onChange(picked.slice(0, -1).join(','))
-  }
+
+  // Короткие блоки — куски ОДНОГО предложения, и собираются они в строку, как
+  // само предложение. Длинные (реплики диалога, шаги) идут колонкой: втиснутая
+  // в строку реплика ломается на два-три ряда и порядок перестаёт читаться.
+  const inline = items.every(s => Array.from(s).length <= 14)
 
   const blockSt = (state: 'answer' | 'bank' | 'spent', verdict?: 'good' | 'bad'): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
@@ -87,12 +86,15 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
 
   return (
     <div className="flex flex-col" style={{ gap: 14 }}>
-      {/* Строка ответа: номерованные места. Тап по блоку возвращает его в банк. */}
+      {/* Строка ответа. Тап по блоку возвращает его в банк. Куски предложения
+          встают в строку (номера не нужны — порядок читается слева направо),
+          длинные реплики — колонкой с номерами мест. */}
       <div
-        className="flex flex-col"
+        className={inline ? 'flex flex-wrap items-center' : 'flex flex-col'}
         style={{
           gap: 8, minHeight: 58, borderRadius: 18, padding: '12px 14px',
           background: 'var(--color-bg-3)',
+          justifyContent: inline ? 'center' : undefined,
           border: showVerdict
             ? `2px solid ${picked.every((v, i) => v === i) && full ? 'rgba(110,231,160,0.6)' : 'rgba(244,139,145,0.55)'}`
             : '2px dashed var(--color-border-strong)',
@@ -116,12 +118,14 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
                 disabled={disabled}
                 style={blockSt('answer', verdict)}
               >
-                <span style={{
-                  width: 22, height: 22, borderRadius: 7, flexShrink: 0,
-                  background: 'rgba(var(--glass-rgb), 0.85)', color: 'var(--color-accent)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700,
-                }}>{pos + 1}</span>
+                {!inline && (
+                  <span style={{
+                    width: 22, height: 22, borderRadius: 7, flexShrink: 0,
+                    background: 'rgba(var(--glass-rgb), 0.85)', color: 'var(--color-accent)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700,
+                  }}>{pos + 1}</span>
+                )}
                 <span style={{ flex: 1 }}>{items[idx]}</span>
               </motion.button>
             )
@@ -146,19 +150,10 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
         })}
       </div>
 
-      {picked.length > 0 && !disabled && (
-        <button
-          onClick={back}
-          className="flex items-center self-center cursor-pointer"
-          style={{
-            gap: 7, padding: '9px 15px', borderRadius: 999,
-            border: '1px solid var(--color-border)', background: 'transparent',
-            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
-          }}
-        >
-          <Delete size={14} />
-          {t('Убрать последний')}
-        </button>
+      {picked.length > 0 && !disabled && !showVerdict && (
+        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+          {t('Тап по блоку в ответе возвращает его в банк')}
+        </span>
       )}
     </div>
   )

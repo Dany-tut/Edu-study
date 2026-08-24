@@ -25,7 +25,7 @@ import {
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
 import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
-import { chamoOf } from './hangul'
+import { chamoOf, composeKeys, isSyllable, keysOf } from './hangul'
 import { videoAnswerDone } from '../lib/videoAnswer'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────

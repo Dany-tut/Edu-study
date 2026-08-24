@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
+import { normalizeTaskType, type DialogLine, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
@@ -60,6 +60,8 @@ export interface HomeworkQuizQuestion {
   chamo?: string
   /** buildSyllable — эталонный слог; из чего он состоит, считается по нему. */
   syllable?: string
+  /** dialogGap — реплики диалога; в одной стоит маркер пропуска «____». */
+  dialog?: DialogLine[]
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
   sentence?: string
   /** wordBank / listenBank — лишние плитки-обманки. */
@@ -321,6 +323,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     table: tp === 'tableFill' ? t.table : undefined,
 
     // Языковые поля переносятся как есть — решатели сами берут нужное по типу.
+    dialog: t.dialog,
     sentence: t.sentence,
     distractors: t.distractors,
     audioUrl: t.audioUrl,

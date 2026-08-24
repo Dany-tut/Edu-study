@@ -8,7 +8,7 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
-import { useBottomSafe } from '../lib/bottomSafe'
+import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -39,8 +39,7 @@ export default function MobileBottomNav() {
   // nav straight down out of view so it never crowds the field; it springs
   // back up when the keyboard dismisses.
   const kbOpen = useKeyboardInset() > 0
-  // Отступ снизу — разрешённое число, а не живой env(): см. lib/bottomSafe.ts.
-  const bottomSafe = useBottomSafe()
+  // Отступ снизу — разрешённое число, а не живой env(): см. lib/MOBILE_DOCK_EDGE.ts.
 
   // Badge: count lessons with status that implies pending homework (current / returned)
   const hwBadge = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
@@ -81,7 +80,7 @@ export default function MobileBottomNav() {
       // Отступ снизу — из useBottomSafe(), а не сырой env(): и Safari, и
       // WKWebView какое-то время кладут в safe-area-inset-bottom свою нижнюю
       // панель, и док висел выше домашней полосы, пока экран не прокрутят.
-      style={{ paddingBottom: bottomSafe, pointerEvents: kbOpen ? 'none' : 'auto' }}
+      style={{ paddingBottom: MOBILE_DOCK_EDGE, pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div
         className="mb-2 flex items-center justify-around px-2"
@@ -89,14 +88,14 @@ export default function MobileBottomNav() {
         // Collapse morphs three axes together: height (62→50), symmetric
         // vertical padding, and the horizontal margin so the dock also shrinks
         // in length and packs the icons closer. Расправленные бока равны
-        // видимому зазору снизу (bottomSafe + mb-2), чтобы рамка воздуха
+        // видимому зазору снизу (MOBILE_DOCK_EDGE + mb-2), чтобы рамка воздуха
         // вокруг дока была одинаковой со всех трёх сторон.
         animate={{
           height: collapsed ? 50 : 62,
           paddingTop: collapsed ? 7 : 9,
           paddingBottom: collapsed ? 7 : 9,
-          marginLeft: collapsed ? 52 : bottomSafe + 8,
-          marginRight: collapsed ? 52 : bottomSafe + 8,
+          marginLeft: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
+          marginRight: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
         }}
         transition={COLLAPSE}
         style={{

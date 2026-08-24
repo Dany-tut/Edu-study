@@ -48,7 +48,7 @@ import {
 } from '../../lib/lessonFiles'
 import { emptyWatch } from '../../lib/videoProgress'
 import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonContent'
-import { ALL_CHAMO, CHAMO, chamoOf, type ChamoKind } from '../../data/hangul'
+import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -2868,6 +2868,90 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   </div>
                 </div>
               )}
+
+              {/* jamoType — набор слова по буквам на экранной клавиатуре. */}
+              {task.type === 'jamoType' && (() => {
+                const units = charUnits(task.answer ?? '')
+                const keys = units.flatMap(keysOf)
+                const ok = units.length >= 1 && units.every(isSyllable) && keys.length >= 2
+                return (
+                  <div>
+                    <Label>{t('Слово, которое набирают')}</Label>
+                    <AutoTextarea
+                      value={task.answer ?? ''}
+                      onChange={v => onUpdate({ ...task, answer: v })}
+                      placeholder={t('Например 안녕')}
+                      style={taskTextSt}
+                    />
+                    <div style={{ fontSize: 11, color: ok ? 'var(--color-text-3)' : 'var(--color-red-text)', marginTop: 6 }}>
+                      {ok
+                        ? `${t('Нажатия')}: ${keys.join(' ')} — ${t('слоги соберутся у ученика на глазах.')}`
+                        : task.answer
+                          ? t('Нужно слово хангылем: набор по буквам собирает слоги, латинице и кириллице собираться не из чего.')
+                          : t('Пока слово не задано, задание покажется ученику обычным полем ответа.')}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* dialogGap — реплики диалога, в одной пропуск «____». */}
+              {task.type === 'dialogGap' && (() => {
+                const lines = task.dialog ?? []
+                const hasGap = lines.some(l => l.text.includes('____'))
+                const setLines = (next: typeof lines) => onUpdate({ ...task, dialog: next })
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <Label>{t('Реплики диалога — пропуск отметьте «____»')}</Label>
+                    {lines.map((line, li) => (
+                      <div key={li} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <input
+                          value={line.speaker}
+                          onChange={e => setLines(lines.map((x, k) => k === li ? { ...x, speaker: e.target.value } : x))}
+                          placeholder="A"
+                          style={{ ...inputSt, width: 64, textAlign: 'center', flexShrink: 0 }}
+                        />
+                        <AutoTextarea
+                          value={line.text}
+                          onChange={v => setLines(lines.map((x, k) => k === li ? { ...x, text: v } : x))}
+                          placeholder={`${t('Реплика')} ${li + 1}`}
+                          style={{ ...taskTextSt, flex: 1 }}
+                        />
+                        {lines.length > 2 && (
+                          <button
+                            onClick={() => setLines(lines.filter((_, k) => k !== li))}
+                            style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, marginTop: 5 }}
+                          >
+                            <X size={11} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setLines([...lines, { speaker: lines.length % 2 ? 'A' : 'B', text: '' }])}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    >
+                      <Plus size={12} /> {t('Добавить реплику')}
+                    </button>
+                    <AutoTextarea
+                      value={task.answer ?? ''}
+                      onChange={v => onUpdate({ ...task, answer: v })}
+                      placeholder={t('Что стоит на месте пропуска — эталон ответа')}
+                      style={taskTextSt}
+                    />
+                    <AutoTextarea
+                      value={(task.distractors ?? []).join(', ')}
+                      onChange={v => onUpdate({ ...task, distractors: v.split(',').map(s => s.trim()).filter(Boolean) })}
+                      placeholder={t('Варианты-обманки через запятую (пусто — ученик впишет сам)')}
+                      style={taskTextSt}
+                    />
+                    <div style={{ fontSize: 11, color: hasGap ? 'var(--color-text-3)' : 'var(--color-red-text)' }}>
+                      {hasGap
+                        ? t('Реплики озвучатся разными голосами: у каждого спикера свой. Пропуск голос не читает.')
+                        : t('Ни в одной реплике нет «____» — отметьте пропуск, иначе вставлять нечего.')}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* flashcard — словарная карточка: лицо (слово) и оборот (перевод).
                   Без этого блока карточки выглядели в редакторе пустыми: у них
