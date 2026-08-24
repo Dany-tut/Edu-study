@@ -4,12 +4,13 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 
 // Фото не влезло в потолок base64 даже после дожима — сообщаем и не вставляем.
 const onPhotoTooLarge = (e: unknown) => {
-  if (e instanceof ImageTooLargeError) window.alert(e.message)
+  if (e instanceof ImageTooLargeError) void alertDialog({ title: e.message, tone: 'danger' })
   else throw e
 }
 import { getContrastColor } from '../../lib/utils'
 import { useT } from '../../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
+import { alertDialog } from '../ConfirmHost'
 
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
 // Extracted from the trainer creator so the course constructor uses the exact

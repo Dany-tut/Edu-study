@@ -80,6 +80,7 @@ import {
   type ScreeningConfig, type DomainKey, type MatrixRuleKey, type SeriesType, type AnalogyItem, type MatchTask,
 } from '../../data/screeningConfig'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
+import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 
 type NewBankTask = Omit<BankTask, 'id'>
 const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
@@ -2476,7 +2477,7 @@ function CreatorView({
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    optimizePhoto(file).then(src => { if (src) setTkImage(src) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
+    optimizePhoto(file).then(src => { if (src) setTkImage(src) }).catch(e => { if (e instanceof ImageTooLargeError) void alertDialog({ title: e.message, tone: 'danger' }) })
   }
 
   function resetTaskForm() {
@@ -3394,7 +3395,7 @@ function CreatorView({
                     imageItems.forEach(item => {
                       const file = item.getAsFile()
                       if (!file) return
-                      optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
+                      optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) }).catch(e => { if (e instanceof ImageTooLargeError) void alertDialog({ title: e.message, tone: 'danger' }) })
                     })
                   }}
                   placeholder={t("Почему этот ответ верный…")}
@@ -3419,7 +3420,7 @@ function CreatorView({
                     <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => {
                       const files = Array.from(e.target.files || [])
                       files.forEach(file => {
-                        optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
+                        optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) }).catch(e => { if (e instanceof ImageTooLargeError) void alertDialog({ title: e.message, tone: 'danger' }) })
                       })
                       e.target.value = ''
                     }} />
@@ -3650,7 +3651,7 @@ function CreatorView({
                             e.preventDefault()
                             const file = imgItem.getAsFile()
                             if (!file) return
-                            optimizePhoto(file).then(src => { if (src) setTkImage(src); setCondImgPickerOpen(false) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
+                            optimizePhoto(file).then(src => { if (src) setTkImage(src); setCondImgPickerOpen(false) }).catch(e => { if (e instanceof ImageTooLargeError) void alertDialog({ title: e.message, tone: 'danger' }) })
                           }}
                           style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
                         >
@@ -8159,7 +8160,13 @@ export default function TeacherConstructorPage() {
     setCourses(prev => [copy, ...prev])
   }
   async function deleteCourse(c: Course) {
-    if (!window.confirm(t('Удалить курс «') + (c.title) + t('»? Это действие необратимо.'))) return
+    const ok = await confirmDialog({
+      title: t('Удалить курс «') + (c.title) + '»?',
+      message: t('Уроки и задания курса удалятся вместе с ним. Это действие необратимо.'),
+      confirmLabel: t('Удалить'),
+      tone: 'danger',
+    })
+    if (!ok) return
     setCourses(prev => prev.filter(x => x.id !== c.id))
     if (selectedId === c.id) setSelectedId(null)
     const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
@@ -8175,7 +8182,12 @@ export default function TeacherConstructorPage() {
     setWidgets(prev => [copy, ...prev])
   }
   async function deleteWidget(w: Widget) {
-    if (!window.confirm(t('Удалить виджет «') + (w.title) + '»?')) return
+    const ok = await confirmDialog({
+      title: t('Удалить виджет «') + (w.title) + '»?',
+      confirmLabel: t('Удалить'),
+      tone: 'danger',
+    })
+    if (!ok) return
     setWidgets(prev => prev.filter(x => x.id !== w.id))
     if (selectedId === w.id) setSelectedId(null)
     if (isUUID(w.id)) await supabase.from('widgets').delete().eq('id', w.id)
@@ -8217,7 +8229,7 @@ export default function TeacherConstructorPage() {
               // Не сохранилось — надо сказать. Раньше кнопка «Назначить»
               // просто ничего не делала: ни теста у ученика, ни слова учителю.
               if (created) setAssignments(prev => [created, ...prev])
-              else window.alert(t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'))
+              else void alertDialog({ title: t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
             }}
             onSave={(id, label, accent, iconKey) => {
               const newTest: CustomTest = { id, label, accent, iconKey }
@@ -8246,7 +8258,7 @@ export default function TeacherConstructorPage() {
               // Не сохранилось — надо сказать. Раньше кнопка «Назначить»
               // просто ничего не делала: ни теста у ученика, ни слова учителю.
               if (created) setAssignments(prev => [created, ...prev])
-              else window.alert(t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'))
+              else void alertDialog({ title: t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
             }}
             onDeleteAssignment={async id => {
               await deleteTestAssignment(id)

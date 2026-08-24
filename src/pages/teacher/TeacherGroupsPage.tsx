@@ -27,6 +27,7 @@ import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLi
 import { useTeacher } from '../../store/teacherStore'
 import { useT } from '../../lib/i18n'
 import {
+import { confirmDialog } from '../../components/ConfirmHost'
   fetchStudentActiveCourses, type StudentCourseInfo,
   fetchStudentTrainerSections, type TrainerSection,
   fetchStudentWrongTasks, type WrongTask,
@@ -1512,9 +1513,14 @@ function TracksSection({
           {siblings.length > 0 && (
             <button
               type="button"
-              onClick={() => {
-                if (!window.confirm(`${t('Убрать направление')} «${t(group.subject)}»?`)) return
-                void onRemoveCard(group.id)
+              onClick={async () => {
+                const ok = await confirmDialog({
+                  title: `${t('Убрать направление')} «${t(group.subject)}»?`,
+                  message: t('Карточка этого предмета удалится вместе с её посещаемостью и домашкой. Аккаунт ученика и остальные направления останутся.'),
+                  confirmLabel: t('Убрать'),
+                  tone: 'danger',
+                })
+                if (ok) await onRemoveCard(group.id)
               }}
               title={t('Удалить карточку')}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -1876,7 +1882,13 @@ function StudentPanel({
         <button
           disabled={deleting}
           onClick={async () => {
-            if (!window.confirm(`${t('Удалить')} «${student.name}» ${t('из системы? Это действие нельзя отменить.')}`)) return
+            const ok = await confirmDialog({
+              title: `${t('Удалить')} «${student.name}»?`,
+              message: t('Ученик и его данные по этой карточке исчезнут. Это действие нельзя отменить.'),
+              confirmLabel: t('Удалить'),
+              tone: 'danger',
+            })
+            if (!ok) return
             setDeleting(true)
             await onDelete()
           }}

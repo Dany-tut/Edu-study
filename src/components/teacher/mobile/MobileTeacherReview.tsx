@@ -11,6 +11,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../../lib/imageOptim'
 import WhiteboardCanvas from '../WhiteboardCanvas'
 import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
 import { useT } from '../../../lib/i18n'
+import { alertDialog } from '../../ConfirmHost'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -158,7 +159,7 @@ export default function MobileTeacherReview() {
   const onReviewed = async (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => {
     if (isDemoId(id)) return
     const ok = await reviewHard(id, verdict, comment, { ...att, annotation: null })
-    if (!ok) window.alert(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'))
+    if (!ok) void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
   }
 
   const topZone = (

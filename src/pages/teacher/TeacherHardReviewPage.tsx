@@ -11,6 +11,7 @@ import { openHardSubHomework } from '../../lib/teacherNav'
 import { clearDrafts } from '../../lib/useDraft'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 import { useT } from '../../lib/i18n'
+import { alertDialog } from '../../components/ConfirmHost'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -84,7 +85,7 @@ export default function TeacherHardReviewPage() {
     const ok = await reviewHardMulti(sub!.id, review, status, score)
     if (!ok) {
       // Черновик комментария остаётся на месте: он единственная копия.
-      window.alert(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'))
+      void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
       setBusy(false)
       return
     }

@@ -15,6 +15,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
+import { alertDialog } from '../../components/ConfirmHost'
 
 // Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
 type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
@@ -492,7 +493,7 @@ export default function TeacherHomeworkReviewPage() {
     if (!ok) {
       // Черновик проверки НЕ трогаем и к следующему ученику не уходим:
       // написанное — единственная копия этой проверки.
-      window.alert(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'))
+      void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
       return
     }
     clearDraft(draftKey)

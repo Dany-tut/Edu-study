@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import { Pencil, Eraser, Undo2, Trash2, Highlighter } from 'lucide-react'
 import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
+import { alertDialog } from '../ConfirmHost'
 
 // Живой оверлей-разметка: прозрачный холст ПОВЕРХ настоящего ответа ученика.
 // Учитель рисует прямо по «Дано»/«Решению» — красным/зелёным, что верно, а что нет.
@@ -148,7 +149,7 @@ export default function AnnotationLayer({
     } catch (e) {
       // Разметка не влезла в потолок base64 даже после дожима — сообщаем и не
       // сохраняем этот штрих (прошлое значение остаётся).
-      if (e instanceof ImageTooLargeError) { window.alert(e.message); return }
+      if (e instanceof ImageTooLargeError) { void alertDialog({ title: e.message, tone: 'danger' }); return }
       throw e
     }
     lastImage.current = data

@@ -6,6 +6,7 @@ import { useTheme } from '../../store/themeStore'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
+import { alertDialog } from '../ConfirmHost'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -233,7 +234,7 @@ export default function RichConditionEditor({
       sel.addRange(range)
       emit()
     }).catch(e => {
-      if (e instanceof ImageTooLargeError) window.alert(e.message)
+      if (e instanceof ImageTooLargeError) void alertDialog({ title: e.message, tone: 'danger' })
       else throw e
     })
   }

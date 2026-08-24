@@ -49,6 +49,7 @@ import {
 import { emptyWatch } from '../../lib/videoProgress'
 import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonContent'
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
+import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -687,12 +688,18 @@ function CenterCourseAccess({
   const [resetting, setResetting] = useState<string | null>(null)
   const [resetDone, setResetDone] = useState<string | null>(null)
   async function resetCourseProgress(rowKey: string, studentIds: string[], name: string) {
-    if (!course.dbCourseId) { window.alert(t('Курс ещё не сохранён в базе — прогресса нет.')); return }
-    if (studentIds.length === 0) { window.alert(t('В группе нет учеников.')); return }
+    if (!course.dbCourseId) { void alertDialog(t('Курс ещё не сохранён в базе — прогресса нет.')); return }
+    if (studentIds.length === 0) { void alertDialog(t('В группе нет учеников.')); return }
     const who = studentIds.length > 1
       ? `${t('всех участников группы')} «${name}» (${studentIds.length})`
       : `«${name}»`
-    if (!window.confirm(`${t('Обнулить весь прогресс по курсу у')} ${who}? ${t('Ответы, баллы и открытые уроки будут удалены безвозвратно.')}`)) return
+    const ok = await confirmDialog({
+      title: `${t('Обнулить весь прогресс по курсу у')} ${who}?`,
+      message: t('Ответы, баллы и открытые уроки будут удалены безвозвратно.'),
+      confirmLabel: t('Обнулить'),
+      tone: 'danger',
+    })
+    if (!ok) return
     setResetting(rowKey)
     setResetDone(null)
     const { error } = await supabase
@@ -701,7 +708,7 @@ function CenterCourseAccess({
       .in('student_id', studentIds)
       .eq('subject', course.dbCourseId)
     setResetting(null)
-    if (error) window.alert(`${t('Не удалось сбросить прогресс:')} ${error.message}`)
+    if (error) void alertDialog({ title: t('Не удалось сбросить прогресс'), message: error.message, tone: 'danger' })
     else {
       setResetDone(rowKey)
       setTimeout(() => setResetDone(null), 2500)
@@ -1602,7 +1609,7 @@ function TheoryEditor({
         setSegments(cutTheoryAtFigures(next.theory).segments)
         onUpdate({ ...lesson, theory: next.theory, theoryImages: next.images })
       })
-      .catch(err => { if (err instanceof ImageTooLargeError) window.alert(err.message); else throw err })
+      .catch(err => { if (err instanceof ImageTooLargeError) void alertDialog({ title: err.message, tone: 'danger' }); else throw err })
   }
 
   function remove(key: string) {
@@ -2407,7 +2414,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   const file = e.target.files?.[0]; if (!file) return
                   optimizePhoto(file)
                     .then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? DEFAULT_IMAGE_SIZE }))
-                    .catch(err => { if (err instanceof ImageTooLargeError) window.alert(err.message); else throw err })
+                    .catch(err => { if (err instanceof ImageTooLargeError) void alertDialog({ title: err.message, tone: 'danger' }); else throw err })
                   e.target.value = ''
                 }}
               />
