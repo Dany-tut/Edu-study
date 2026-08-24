@@ -53,7 +53,7 @@ const NOTES: SurvivalBook['notes'] = {
     note: 'Прямое não смягчают: вместо «нет» скажут acho que não или melhor não. Слово tá (от está) заменяет собой согласие в любом виде — tá bom, tá certo, tá ok. Кивок и «uhum» здесь тоже полноценный ответ. Отказ от предложенного вежливо звучит как não, obrigado — благодарность обязательна.',
   },
   numbers: {
-    formula: 'um, dois, três … ; Quanto custa? — «сколько стоит?»',
+    formula: 'um, dois, três…; Quanto custa? — «сколько стоит?»',
     note: 'Цены называют через «реалов»: dez reais, vinte e cinco reais. Дробные — com: dez e cinquenta (10,50). Запятая в Бразилии играет роль десятичной точки, а точка разделяет тысячи: 1.500,00 — это полторы тысячи. Числительные dois/duas меняются по роду: dois cafés, но duas cervejas.',
   },
   time: {

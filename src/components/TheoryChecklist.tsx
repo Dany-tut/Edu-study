@@ -8,7 +8,8 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import Checkbox from './Checkbox'
-import { bindShortWords } from '../lib/typography'
+import { tidyProse } from '../lib/typography'
+import GlossedText from './GlossedText'
 import type { TheoryChecklist as Parsed } from '../lib/theoryChecklist'
 
 const keyOf = (scope: string) => `theory-checklist:${scope}`
@@ -21,12 +22,16 @@ function readMarks(scope: string): string[] {
   } catch { return [] }
 }
 
-export default function TheoryChecklist({ scope, list, scale = 1, accent }: {
+export default function TheoryChecklist({ scope, list, scale = 1, accent, lang, glossSubject }: {
   /** Ключ хранения — обычно id урока: отметки живут отдельно у каждого юнита. */
   scope: string
   list: Parsed
   scale?: number
   accent?: string
+  /** Язык материала: пункт чек-листа разбирается по словам, как и конспект. */
+  lang?: string
+  /** Предмет для кнопки «В словарь». */
+  glossSubject?: string
 }) {
   // Отметки хранятся текстом пункта, а не его номером: список правится (в сиде
   // и учителем), и по номерам галочки молча переехали бы на соседние строки.
@@ -56,7 +61,7 @@ export default function TheoryChecklist({ scope, list, scale = 1, accent }: {
       {(list.title || list.items.length > 0) && (
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
           <span style={{ fontSize: 14 * scale, fontWeight: 650, color: 'var(--color-text)' }}>
-            {bindShortWords(list.title || 'Чек-лист')}
+            {tidyProse(list.title || 'Чек-лист')}
           </span>
           {/* Счётчик подписан цветом текста, а не рамки: содержимое, нарисованное
               цветом рамки, в тёмной теме исчезает. */}
@@ -80,7 +85,20 @@ export default function TheoryChecklist({ scope, list, scale = 1, accent }: {
               fontWeight: 450,
             }}
           >
-            {bindShortWords(item)}
+            {lang
+              ? (
+                <GlossedText
+                  text={tidyProse(item)}
+                  lang={lang}
+                  // Подсветка слова строится конкатенацией (`${accent}22`),
+                  // поэтому цвет здесь ТОЛЬКО литеральный: с var(--…) вышло бы
+                  // «var(--color-accent)22» — то есть ничего.
+                  accent={accent || '#786AD7'}
+                  subject={glossSubject}
+                  style={{ display: 'inline' }}
+                />
+              )
+              : tidyProse(item)}
           </Checkbox>
         ))}
       </div>

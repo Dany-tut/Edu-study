@@ -22,7 +22,10 @@ import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
 import TheoryChecklist from '../components/TheoryChecklist'
 import { parseChecklist } from '../lib/theoryChecklist'
-import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
+import { tidyProse, proseWrap, balancedWrap } from '../lib/typography'
+import GlossedText from '../components/GlossedText'
+import { resolveSubjectPalette } from '../lib/subjects'
+import { useTheme } from '../store/themeStore'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 import { useSwipeBack } from '../lib/useSwipeBack'
 
@@ -48,19 +51,19 @@ function formatClock(totalSeconds: number) {
 function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null, reactions: CourseReaction[] = []) {
   // No reaction tag — render plain text, no wrapper. Other paragraphs in the
   // conspect never need the inline-flex pill, so they stay unchanged.
-  if (!reactionId) return bindShortWords(text)
+  if (!reactionId) return tidyProse(text)
 
   const reaction = reactions.find(item => item.id === reactionId)
-  if (!reaction) return bindShortWords(text)
+  if (!reaction) return tidyProse(text)
 
   const highlightText = reaction.equation
   // Склейку коротких слов делаем ПОСЛЕ поиска уравнения: неразрывный пробел
   // внутри текста сбил бы indexOf по исходной строке.
   const matchIndex = text.indexOf(highlightText)
-  if (matchIndex === -1) return bindShortWords(text)
+  if (matchIndex === -1) return tidyProse(text)
 
-  const before = bindShortWords(text.slice(0, matchIndex))
-  const after = bindShortWords(text.slice(matchIndex + highlightText.length))
+  const before = tidyProse(text.slice(0, matchIndex))
+  const after = tidyProse(text.slice(matchIndex + highlightText.length))
   const isActive = reactionId === activeReactionId
 
   // The wrapper span is ALWAYS rendered (with the same inline-flex + padding)
@@ -157,7 +160,7 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
         </button>
         {caption && (
           <figcaption style={{ fontSize: 13 * scale, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', ...balancedWrap }}>
-            {bindShortWords(caption)}
+            {tidyProse(caption)}
           </figcaption>
         )}
       </figure>
@@ -696,6 +699,9 @@ export default function LessonPage() {
   const topBarBox = useDashboard(s => s.topBarBox)
 
   const { big, scale, toggle: toggleBig } = useBigText()
+  // Палитра предмета для разбора слов в конспекте — литеральным цветом, а не
+  // переменной темы: подсветка слова строится конкатенацией (`${accent}22`).
+  const { dark } = useTheme()
 
   const [activeChapter, setActiveChapter] = useState(0)
   // Позиция и длина ролика приходят из плеера раз в секунду: по ним живут часы
@@ -827,6 +833,24 @@ export default function LessonPage() {
   // что в trainerSubject.ts. Не опознали предмет — плашки просто нет.
   const courseSubject = courses.find(c => c.id === lesson.subject)?.subject
   const subjectDef = getSubject(courseSubject) ?? getSubject(lesson.subject)
+
+  // ── Разбор слов прямо в конспекте ────────────────────────────────────────
+  //
+  // В языковом уроке правило объясняется по-русски, но сами формы — 이에요,
+  // 받침, ~(으)면 — стоят в тексте как есть. До сих пор ученик мог их только
+  // разглядывать: перевод и чтение лежали в заданиях, то есть ПОСЛЕ конспекта.
+  // Читать правило, не зная, как звучит то, о чём оно, и переходить к заданиям
+  // с этим — ровно то место, где курс теряют.
+  //
+  // Поэтому конспект показывается тем же разбором, что и тексты чтения: тап по
+  // корейскому слову — перевод, транскрипция, озвучка и «В словарь». Русские
+  // слова кликабельными не становятся — их отсекает сам разбор (см. SCRIPT
+  // в lib/lexicon.ts), так что абзац не превращается в сплошную ссылку.
+  //
+  // Родные предметы (русский, литература) сюда не попадают: разбирать по словам
+  // родной язык незачем.
+  const glossLang = subjectDef?.isLanguage && !subjectDef.native ? subjectDef.langCode : undefined
+  const glossAccent = resolveSubjectPalette(subjectDef?.id, dark).accent
   const videoBadge = subjectDef ? `${subjectDef.icon} ${t(subjectDef.name)}` : undefined
 
   const watchedPct = Math.round(watchRatio({ ...watch, duration: videoDuration || watch.duration }) * 100)
@@ -1191,6 +1215,9 @@ export default function LessonPage() {
               scope={`${lesson.id}:${p.id}`}
               list={parseChecklist(p.text)!}
               scale={scale}
+              accent={glossAccent}
+              lang={glossLang}
+              glossSubject={subjectDef?.id}
             />
           ) : (
             <div
@@ -1201,17 +1228,32 @@ export default function LessonPage() {
                   reflows the text and visibly jerks the line. The equation gets
                   its own background highlight via renderHighlightedParagraph,
                   which is the actual emphasis cue. */}
-              <p
-                style={{
-                  fontSize: 15 * scale,
-                  lineHeight: 1.6,
-                  color: 'var(--color-text)',
-                  fontWeight: 450,
-                  ...proseWrap,
-                }}
-              >
-                {renderHighlightedParagraph(p.text, p.reactionId, pendingHighlight, courseReactions)}
-              </p>
+              {glossLang && !p.reactionId ? (
+                <GlossedText
+                  text={tidyProse(p.text)}
+                  lang={glossLang}
+                  accent={glossAccent}
+                  subject={subjectDef?.id}
+                  style={{
+                    fontSize: 15 * scale,
+                    lineHeight: 1.6,
+                    color: 'var(--color-text)',
+                    fontWeight: 450,
+                  }}
+                />
+              ) : (
+                <p
+                  style={{
+                    fontSize: 15 * scale,
+                    lineHeight: 1.6,
+                    color: 'var(--color-text)',
+                    fontWeight: 450,
+                    ...proseWrap,
+                  }}
+                >
+                  {renderHighlightedParagraph(p.text, p.reactionId, pendingHighlight, courseReactions)}
+                </p>
+              )}
             </div>
           ))}
         </section>

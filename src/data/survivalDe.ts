@@ -154,7 +154,7 @@ const NOTES: SurvivalBook['notes'] = {
     note: 'Для счёта нужны паспорт, Anmeldung (справка о прописке) и иногда Steuer-ID. Girokonto — обычный расчётный счёт, Überweisung — перевод по IBAN, Dauerauftrag — автоплатёж, Lastschrift — списание по разрешению (так платят за телефон и электричество). Наличные вносят на свой счёт бесплатно, на чужой — за комиссию.',
   },
   train: {
-    formula: 'Eine Fahrkarte nach … , bitte — «билет до …»',
+    formula: 'Eine Fahrkarte nach…, bitte — «билет до …»',
     note: 'Дальние поезда — ICE и IC, региональные — RE и RB. Билет дешевле заранее (Sparpreis) и дороже в день поездки. Место не всегда включено: Sitzplatzreservierung покупают отдельно. Опоздания реальны, и при задержке больше часа часть денег возвращают (Fahrgastrechte). Слово Gleis — путь, и объявления о смене пути звучат только по-немецки.',
   },
   sights: {

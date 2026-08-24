@@ -249,7 +249,8 @@ export default function MobileCourses() {
 // полоса статистики, чипсы модулей и карточки уроков. Раньше здесь стояли три
 // строки Skeleton.Text по центру: экран получался короче настоящего и не
 // прокручивался, а на нелистающейся странице вебвью держит свою нижнюю панель
-// в safe-area-inset-bottom, и док встаёт выше домашней полосы (lib/bottomSafe.ts).
+// в safe-area-inset-bottom; отступ дока от этого больше не зависит — он
+// прибит константой MOBILE_DOCK_EDGE (lib/mobileTokens.ts).
 function CoursesSkeleton() {
   return (
     <div className="flex flex-col" style={{ gap: 14 }} aria-hidden>

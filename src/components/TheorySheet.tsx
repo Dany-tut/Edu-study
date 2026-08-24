@@ -23,11 +23,12 @@ import { BookOpen, X } from 'lucide-react'
 import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
-import { bindShortWords, proseWrap } from '../lib/typography'
+import { tidyProse, proseWrap } from '../lib/typography'
+import GlossedText from './GlossedText'
 import TheoryChecklist from './TheoryChecklist'
 import { parseChecklist } from '../lib/theoryChecklist'
 
-export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft }: {
+export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
   open: boolean
   onClose: () => void
   /** Ключ отметок чек-листа — тот же, что на странице урока: галочка,
@@ -37,6 +38,13 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
   paragraphs: LessonParagraph[]
   accent: string
   soft: string
+  /**
+   * Язык материала: правило разбирается по словам ровно так же, как конспект на
+   * странице урока (см. LessonPage). Без языка — обычный текст.
+   */
+  lang?: string
+  /** Предмет для кнопки «В словарь» в разборе слова. */
+  glossSubject?: string
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
@@ -150,7 +158,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   />
                   {p.text && (
                     <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45, ...proseWrap }}>
-                      {bindShortWords(p.text)}
+                      {tidyProse(p.text)}
                     </figcaption>
                   )}
                 </figure>
@@ -160,10 +168,21 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   scope={`${lessonId ?? lessonTitle}:${p.id}`}
                   list={parseChecklist(p.text)!}
                   accent={accent}
+                  lang={lang}
+                  glossSubject={glossSubject}
+                />
+              ) : lang ? (
+                <GlossedText
+                  key={p.id}
+                  text={tidyProse(p.text)}
+                  lang={lang}
+                  accent={accent}
+                  subject={glossSubject}
+                  style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450 }}
                 />
               ) : (
                 <p key={p.id} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, whiteSpace: 'pre-wrap', ...proseWrap }}>
-                  {bindShortWords(p.text)}
+                  {tidyProse(p.text)}
                 </p>
               ))}
             </div>

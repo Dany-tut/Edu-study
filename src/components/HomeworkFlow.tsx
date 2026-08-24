@@ -57,7 +57,7 @@ import VocabIntro from './VocabIntro'
 import HomeworkFlowBar from './HomeworkFlowBar'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
-import { isLanguageSubject } from '../lib/subjects'
+import { getSubject, isLanguageSubject } from '../lib/subjects'
 import { chamoOf, composeKeys, keysOf } from '../data/hangul'
 import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
@@ -1922,6 +1922,10 @@ export default function HomeworkFlow({
   // повторения ниже.
   const flowSubject = subjectSlugFor(subject) ?? subject
   const flowMode = isLanguageSubject(flowSubject) && basicQuestions.length > 0 && !state.basicSubmitted
+  // Язык материала для разбора слов в шторке правила. Родные предметы (русский,
+  // литература) не разбираются: там переводить нечего.
+  const theoryDef = getSubject(flowSubject)
+  const theoryLang = theoryDef?.isLanguage && !theoryDef.native ? theoryDef.langCode : undefined
   /** Есть ли нулевой шаг — знакомство со словами урока. */
   const flowIntro = vocabWords.length > 0
   const flowFirst = flowIntro ? 1 : 0
@@ -2298,6 +2302,10 @@ export default function HomeworkFlow({
       paragraphs={theoryParagraphs}
       accent={palette.accent}
       soft={palette.soft}
+      // Правило разбирается по словам — тем же разбором, что и конспект урока:
+      // форма, о которой правило, должна читаться и переводиться на месте.
+      lang={theoryLang}
+      glossSubject={flowSubject}
     />
     <div className="flex flex-col" style={{ gap: 18 }}>
       {/* Rest-state Back / title / level row — in the scroll flow; fades out as
@@ -2924,11 +2932,16 @@ export default function HomeworkFlow({
                       </div>
                     )}
 
-                    <div className="flex flex-wrap items-start justify-between" style={{ gap: 12 }}>
+                    <div
+                      className="flex flex-wrap items-start justify-between"
+                      style={{ gap: 12, minHeight: VERDICT_PILL_H }}
+                    >
                       {/* Колонка вопроса тянется и сжимается, плашка справа —
                           нет: без этого длинная формулировка выталкивала плашку
                           на свою строку, а короткая оставляла посреди карточки
-                          дыру. */}
+                          дыру. Высота строки зарезервирована всегда: иначе
+                          «Верно» появлялось из ниоткуда и сдвигало вниз всю
+                          карточку — ученик читал вердикт уже на новом месте. */}
                       <div style={{ flex: '1 1 260px', minWidth: 0 }}>
                         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 6 }}>
                           {t('Вопрос')} {index + 1}

@@ -38,7 +38,6 @@ import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
-import { useBottomSafe } from '../lib/bottomSafe'
 import MobileScreen from '../components/MobileScreen'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
@@ -47,7 +46,7 @@ import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
 import MobileBell from '../components/MobileBell'
-import { glassCircle, MOBILE_TOP_GAP } from '../lib/mobileTokens'
+import { glassCircle, MOBILE_TOP_GAP, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
@@ -1425,9 +1424,8 @@ export default function TaskBankPage() {
   // Keyboard overlap so the search dock can lift above the on-screen keyboard
   // instead of hiding behind it.
   const kbInset = useKeyboardInset()
-  // Разрешённый нижний отступ (lib/bottomSafe.ts) — как у навигации: сырой
+  // Тот же нижний отступ, что у навигации (lib/mobileTokens.ts): сырой
   // env() врёт вверх, и док стоял выше, чем на соседних экранах.
-  const bottomSafe = useBottomSafe()
   const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
@@ -1886,7 +1884,7 @@ export default function TaskBankPage() {
             Outer fixed layer sits at the safe-area edge; the inner motion layer
             animates its marginBottom (numeric, so it tweens cleanly) to ride up
             over the nav when expanded and settle lower when the nav collapses. */}
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: bottomSafe, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             ref={dockRef}
             initial={false}

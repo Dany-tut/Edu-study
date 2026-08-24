@@ -9,6 +9,7 @@
     "build": "vite build",
     "check:gloss": "node scripts/checkGloss.mjs",
     "check:questions": "node scripts/checkQuestionRu.mjs",
+    "check:prose": "node scripts/checkProse.mjs",
     "check:examples": "node scripts/checkExamples.mjs",
     "build:examples": "node scripts/buildExamples.mjs",
     "check:scenes": "node scripts/checkScenes.mjs",
