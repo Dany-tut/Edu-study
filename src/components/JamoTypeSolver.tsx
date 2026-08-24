@@ -19,6 +19,7 @@ import { motion } from 'framer-motion'
 import { CHAMO, composeKeys, confusableWith, keysOf } from '../data/hangul'
 import { charUnits } from '../data/taskTypes'
 import { playPop, vibrate } from '../lib/sound'
+import { useOwnString } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'
 
 export default function JamoTypeSolver({ answer, value, disabled, showVerdict, onChange }: {
@@ -49,21 +50,26 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
     return [...base, ...extra.slice(0, 4)].sort((a, b) => a.localeCompare(b, 'ko'))
   }, [needKeys])
 
-  const picked = useMemo(() => (value ? value.split(',').filter(Boolean) : []), [value])
+  // Клавиши жмут быстро и подряд — ответ обязан читаться на месте нажатия, а не
+  // из пропса прошлого рендера (иначе из шести нажатий доедет одно).
+  const [answerNow, emit] = useOwnString(value, onChange)
+  const picked = useMemo(() => answerNow.split(',').filter(Boolean), [answerNow])
   const typed = useMemo(() => composeKeys(picked), [picked])
   const full = picked.length >= needKeys.length
   const correct = typed === target
 
   const press = (k: string) => {
-    if (disabled || full) return
+    const now = answerNow.split(',').filter(Boolean)
+    if (disabled || now.length >= needKeys.length) return
     playPop()
     vibrate(8)
-    onChange([...picked, k].join(','))
+    emit([...now, k].join(','))
   }
   const back = () => {
-    if (disabled || picked.length === 0) return
+    const now = answerNow.split(',').filter(Boolean)
+    if (disabled || now.length === 0) return
     vibrate(6)
-    onChange(picked.slice(0, -1).join(','))
+    emit(now.slice(0, -1).join(','))
   }
 
   return (

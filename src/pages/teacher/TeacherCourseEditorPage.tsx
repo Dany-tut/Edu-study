@@ -702,14 +702,31 @@ function CenterCourseAccess({
     if (!ok) return
     setResetting(rowKey)
     setResetDone(null)
-    const { error } = await supabase
+    // Сколько строк было ДО — единственный способ понять, что удаление
+    // состоялось. RLS без политики DELETE режет строки молча: postgrest
+    // возвращает error: null и пустой список, а прогресс остаётся на месте
+    // (так этот сброс и «работал» с зелёной галочкой). Поэтому считаем сами и
+    // сверяем с тем, что реально удалилось.
+    const { count: before } = await supabase
+      .from('lesson_progress')
+      .select('id', { count: 'exact', head: true })
+      .in('student_id', studentIds)
+      .eq('subject', course.dbCourseId)
+    const { data: removed, error } = await supabase
       .from('lesson_progress')
       .delete()
       .in('student_id', studentIds)
       .eq('subject', course.dbCourseId)
+      .select('id')
     setResetting(null)
     if (error) void alertDialog({ title: t('Не удалось сбросить прогресс'), message: error.message, tone: 'danger' })
-    else {
+    else if ((before ?? 0) > 0 && (removed?.length ?? 0) === 0) {
+      void alertDialog({
+        title: t('Прогресс не сброшен'),
+        message: t('База отклонила удаление — у вас нет прав на эти строки. Обновите базу (миграция 0063) и попробуйте снова.'),
+        tone: 'danger',
+      })
+    } else {
       setResetDone(rowKey)
       setTimeout(() => setResetDone(null), 2500)
     }

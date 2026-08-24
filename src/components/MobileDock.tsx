@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useRef, useState, useLayoutEffect, useCallback, useEffect } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
-import { useKeyboardInset } from '../lib/useKeyboardInset'
+import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
@@ -85,7 +85,7 @@ export default function MobileDock({ children, fill }: {
   fill?: boolean
 }) {
   const collapsed = useSmoothCollapse()
-  const kbOpen = useKeyboardInset() > 0
+  const kbOpen = useKeyboardOpen()
   return (
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the
@@ -95,7 +95,7 @@ export default function MobileDock({ children, fill }: {
       transition={COLLAPSE}
       style={{
         position: 'fixed', left: 0, right: 0,
-        // То же разрешённое число, что у навигации (lib/MOBILE_DOCK_EDGE.ts): сырой
+        // Тот же прибитый отступ, что у навигации (lib/mobileTokens.ts): сырой
         // env() до первой прокрутки включает нижнюю панель и задирает док вверх.
         bottom: MOBILE_DOCK_EDGE,
         // Below the bottom nav (z-50) so the collapsing pill tucks UNDER it.

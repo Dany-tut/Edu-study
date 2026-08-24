@@ -5,7 +5,7 @@ import { playTransitionDrop } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useNavCollapse } from '../lib/useNavCollapse'
-import { useKeyboardInset } from '../lib/useKeyboardInset'
+import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
@@ -38,8 +38,8 @@ export default function MobileBottomNav() {
   // When the on-screen keyboard opens (search, any focused input) slide the
   // nav straight down out of view so it never crowds the field; it springs
   // back up when the keyboard dismisses.
-  const kbOpen = useKeyboardInset() > 0
-  // Отступ снизу — разрешённое число, а не живой env(): см. lib/MOBILE_DOCK_EDGE.ts.
+  const kbOpen = useKeyboardOpen()
+  // Отступ снизу — константа, а не живой env(): см. lib/mobileTokens.ts.
 
   // Badge: count lessons with status that implies pending homework (current / returned)
   const hwBadge = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
@@ -77,9 +77,9 @@ export default function MobileBottomNav() {
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
-      // Отступ снизу — из useBottomSafe(), а не сырой env(): и Safari, и
-      // WKWebView какое-то время кладут в safe-area-inset-bottom свою нижнюю
-      // панель, и док висел выше домашней полосы, пока экран не прокрутят.
+      // Отступ снизу — константа MOBILE_DOCK_EDGE, а не сырой env(): и Safari,
+      // и WKWebView какое-то время кладут в safe-area-inset-bottom свою нижнюю
+      // панель, и док садился на глазах у ученика уже после загрузки.
       style={{ paddingBottom: MOBILE_DOCK_EDGE, pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div

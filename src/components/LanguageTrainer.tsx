@@ -791,7 +791,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Открытая форма переживает F5 — как открытый текст и открытая тема.
   const [openFormId, setOpenFormId] = usePersistentState<string | null>(`trainer.${lang}.form`, null)
   const [gChapter, setGChapter] = useState('')
-  const [gLevel, setGLevel] = useState('')
+  /** Ступени справочника — многовыбор, как «Уровень» у сцен. */
+  const [gLevels, setGLevels] = useState<string[]>([])
 
   useEffect(() => {
     if (!grammarOn) { setGram(null); return }
@@ -1098,7 +1099,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     kindFilter, fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     sceneShelf, scenePlatforms.join(','), sceneTags.join(','), sceneLevels.join(','),
-    shelf, packShelf, rootGroup, gChapter, gLevel,
+    shelf, packShelf, rootGroup, gChapter, gLevels.join(','),
   ].join('|'))
 
   const gramGroups = useMemo(() => {
@@ -1106,7 +1107,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     const q = query.trim().toLowerCase()
     const hit = gram.forms.filter(f => {
       if (gChapter && f.chapter !== gChapter) return false
-      if (gLevel && f.level !== gLevel) return false
+      if (!anyOf(gLevels, f.level)) return false
       if (!q) return true
       const hay = `${f.form} ${f.title} ${f.short} ${f.attach} ${f.rule} ${f.examples.map(e => `${e.text} ${e.ru}`).join(' ')}`
       return hay.toLowerCase().includes(q)
@@ -1116,7 +1117,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return gram.chapters
       .map(chapter => ({ chapter, forms: hit.filter(f => f.chapter === chapter) }))
       .filter(g => g.forms.length > 0)
-  }, [gram, gChapter, gLevel, query])
+  }, [gram, gChapter, gLevels, query])
 
   const gramFound = useMemo(() => gramGroups.reduce((n, g) => n + g.forms.length, 0), [gramGroups])
 
@@ -1212,22 +1213,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               soft={palette.soft}
             />
           </RailCard>
-
-          {gramLevels.length > 1 && (
-            <RailCard title="Уровень" accent={palette.accent} icon={<Languages size={15} />}>
-              <RailSegment
-                options={gramLevels.map(l => ({
-                  value: l,
-                  label: l,
-                  badge: gram.forms.filter(f => f.level === l).length,
-                }))}
-                value={gLevel}
-                onChange={setGLevel}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            </RailCard>
-          )}
         </>
       )}
 
@@ -1837,6 +1822,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         ) : (
           <>
             <SearchPill value={query} onChange={setQuery} placeholder={t('Форма, название или пример…')} />
+            {/* Ступень стоит в строке фильтров, а не в рейле: то же место, что у
+                «Уровня» на сценах, и один экземпляр переключателя на экран. */}
+            {gramLevels.length > 1 && (
+              <FilterMenu
+                label="Уровень"
+                options={gramLevels.map(l => ({
+                  value: l,
+                  label: l,
+                  count: gram ? gram.forms.filter(f => f.level === l).length : 0,
+                }))}
+                value={gLevels}
+                onChange={setGLevels}
+                accent={palette.accent}
+                soft={palette.soft}
+              />
+            )}
             <ToolCount>{gramFound} {t('форм')}</ToolCount>
           </>
         )}

@@ -4,6 +4,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 import type { LessonFiles } from '../lib/lessonFiles'
+import { isChecklistParagraph } from '../lib/theoryChecklist'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
@@ -260,7 +261,10 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       videoSource,
       timecodes,
       files: lessonFiles(lesson),
-      paragraphs: ap.paragraphs,
+      // Старый чек-лист «что должно остаться в руке» выброшен: блок убран,
+      // но в уже сохранённых курсах он лежит абзацем — и без фильтра ученик
+      // увидел бы сырую разметку «- [ ] …» (см. lib/theoryChecklist).
+      paragraphs: ap.paragraphs.filter(p => !isChecklistParagraph(p.text)),
       homework: authoredHw ?? buildApHomework(lesson, dateStr, ap),
     }
   }

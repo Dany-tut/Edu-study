@@ -25,14 +25,11 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap } from '../lib/typography'
 import GlossedText from './GlossedText'
-import TheoryChecklist from './TheoryChecklist'
-import { parseChecklist } from '../lib/theoryChecklist'
 
 export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
   open: boolean
   onClose: () => void
-  /** Ключ отметок чек-листа — тот же, что на странице урока: галочка,
-   *  поставленная в шторке, должна стоять и в конспекте. */
+  /** Урок, чей конспект показан: тот же id, что на странице урока. */
   lessonId?: string
   lessonTitle: string
   paragraphs: LessonParagraph[]
@@ -162,15 +159,6 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                     </figcaption>
                   )}
                 </figure>
-              ) : parseChecklist(p.text) ? (
-                <TheoryChecklist
-                  key={p.id}
-                  scope={`${lessonId ?? lessonTitle}:${p.id}`}
-                  list={parseChecklist(p.text)!}
-                  accent={accent}
-                  lang={lang}
-                  glossSubject={glossSubject}
-                />
               ) : lang ? (
                 <GlossedText
                   key={p.id}

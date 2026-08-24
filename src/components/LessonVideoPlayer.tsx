@@ -793,7 +793,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         setCurrent(scrubRef.current)
       } else {
         const along = g === 'ff' ? dx : -dx
-        const mult = Math.min(MAX_BOOST, 2 + Math.max(0, Math.floor(along / BOOST_STEP_PX)))
+        // Вперёд лестница упирается в потолок движка: у YouTube это 2×, и выше
+        // ступени просто нет — немая перемотка вместо голоса там не нужна.
+        // Назад звука нет в любом случае, так что отмотка идёт до конца лестницы.
+        const top = g === 'ff' && canRate ? engineMaxRate : MAX_BOOST
+        const mult = Math.min(top, 2 + Math.max(0, Math.floor(along / BOOST_STEP_PX)))
         if (mult !== boostRef.current) applyBoost(g === 'ff' ? 1 : -1, mult)
         const fill = Math.max(0, Math.min(1, -dy / LOCK_DY))
         setLockFill(fill)
@@ -820,7 +824,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
-  }, [zoneAt, wake, applyBoost, endBoost, doSeek, onFrameTap])
+  }, [zoneAt, wake, applyBoost, endBoost, doSeek, onFrameTap, canRate, engineMaxRate])
 
   useEffect(() => () => {
     if (holdTimer.current) window.clearTimeout(holdTimer.current)

@@ -20,10 +20,9 @@ import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
-import TheoryChecklist from '../components/TheoryChecklist'
-import { parseChecklist } from '../lib/theoryChecklist'
 import { tidyProse, proseWrap, balancedWrap } from '../lib/typography'
 import GlossedText from '../components/GlossedText'
+import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { resolveSubjectPalette } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
@@ -703,6 +702,14 @@ export default function LessonPage() {
   // переменной темы: подсветка слова строится конкатенацией (`${accent}22`).
   const { dark } = useTheme()
 
+  // Диктор этого урока: на автовыборе голос закреплён за занятием, а не за
+  // языком, — соседние уроки звучат разными людьми (см. lib/speech.ts).
+  useEffect(() => {
+    const scene = currentLessonId ? `lesson:${currentLessonId}` : ''
+    setVoiceScene(scene)
+    return () => clearVoiceScene(scene)
+  }, [currentLessonId])
+
   const [activeChapter, setActiveChapter] = useState(0)
   // Позиция и длина ролика приходят из плеера раз в секунду: по ним живут часы
   // в шапке таймкодов и полоска проигранного внутри активной главы.
@@ -1209,16 +1216,6 @@ export default function LessonPage() {
           </div>
           {detail.paragraphs.map(p => p.image ? (
             <TheoryFigure key={p.id} src={p.image} caption={p.text} scale={scale} />
-          ) : parseChecklist(p.text) ? (
-            <TheoryChecklist
-              key={p.id}
-              scope={`${lesson.id}:${p.id}`}
-              list={parseChecklist(p.text)!}
-              scale={scale}
-              accent={glossAccent}
-              lang={glossLang}
-              glossSubject={subjectDef?.id}
-            />
           ) : (
             <div
               key={p.id}

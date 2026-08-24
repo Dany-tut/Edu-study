@@ -38,7 +38,7 @@ const out = join(dir, 'bundle.mjs')
 writeFileSync(entry, [
   `export { COURSE_SEEDS } from '${SRC}/data/courseSeeds'`,
   `export { theoryToParagraphs } from '${SRC}/lib/theoryImages'`,
-  `export { parseChecklist } from '${SRC}/lib/theoryChecklist'`,
+  `export { isChecklistParagraph } from '${SRC}/lib/theoryChecklist'`,
 ].join('\n'))
 
 await build({
@@ -60,6 +60,11 @@ const HEAD = '«„(\\['
  *
  * Проверяем именно абзац целиком: половина правил (парность кавычек, конец
  * предложения) на отдельной строке смысла не имеет.
+ *
+ * Правила намеренно узкие. Двоеточие в конце абзаца-лидина к схеме, «5–10 %»,
+ * многоточие-пропуск «What I need is …», нумерация «1) 2)», чтение в скобках
+ * «오 (o)» — всё это законно, и правило, ругающееся на каждый второй абзац,
+ * читать перестают.
  */
 const RULES = [
   {
@@ -155,20 +160,18 @@ for (const seed of m.COURSE_SEEDS) {
       if (p.image) continue
       const text = p.text ?? ''
       if (!text.trim()) continue
-      // Чек-лист — разметка, а не проза: его пункты кончаются без точки по
-      // замыслу, и парность знаков в них считается по пункту, а не по блоку.
-      const list = m.parseChecklist(text)
-      const chunks = list ? [list.title, ...list.items] : [text]
-      for (const chunk of chunks) {
-        for (const rule of RULES) {
-          if (list && rule.id === 'оборванный абзац') continue
-          const hit = rule.test(chunk)
-          if (!hit) continue
-          issues.push(`${lesson.title || lesson.id}: ${rule.id} — ${hit}`)
-          if (process.env.PROSE_DEBUG === rule.id) console.log('DBG', JSON.stringify(chunk.slice(0, 400)))
-          perRule.set(rule.id, (perRule.get(rule.id) ?? 0) + 1)
-          bad++
-        }
+      // Старый чек-лист («- [ ] …») — легаси-разметка из курсов, сохранённых в
+      // базу до его удаления: ученику она не показывается вовсе (см.
+      // lib/theoryChecklist), значит и типографику там проверять не о чем.
+      if (m.isChecklistParagraph(text)) continue
+      for (const rule of RULES) {
+        const hit = rule.test(text)
+        if (!hit) continue
+        issues.push(`${lesson.title || lesson.id}: ${rule.id} — ${hit}`)
+        // Разобрать конкретное срабатывание: PROSE_DEBUG='висячий знак' node …
+        if (process.env.PROSE_DEBUG === rule.id) console.log('DBG', JSON.stringify(text.slice(0, 400)))
+        perRule.set(rule.id, (perRule.get(rule.id) ?? 0) + 1)
+        bad++
       }
     }
   }

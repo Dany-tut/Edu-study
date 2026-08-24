@@ -34,6 +34,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic } from '../lib/i18n'
+import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import QuestionTable from './QuestionTable'
@@ -70,6 +71,7 @@ import {
 } from '../lib/basicAnswers'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import { useKeyboardOpen } from '../lib/useKeyboardInset'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -820,6 +822,17 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   }
   return !!(ans && ans.trim())
 }
+/**
+ * Задание проверяет себя само по ходу решения — «Проверить» ему не нужно.
+ *
+ * Одиночный выбор фиксируется самим нажатием. Сопоставление в мгновенном режиме
+ * красит каждую пару в момент связи (Р10): к тому, как последняя пара позеленела,
+ * весь ответ уже проверен, и кнопка «Проверить» просила бы подтвердить увиденное.
+ */
+function questionSelfChecks(q: HomeworkQuizQuestion) {
+  if (questionIsChoice(q)) return !questionIsMulti(q)
+  return qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2
+}
 function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (questionIsMulti(q)) return q.options.length > 0 && (q.correctOptionIds?.length ?? 0) > 0
   if (questionIsChoice(q)) return q.options.length > 0 && !!q.correctOptionId
@@ -1341,6 +1354,14 @@ export default function HomeworkFlow({
       .maybeSingle()
     setHardRow((data as LegacyHardRow) ?? null)
   }, [lessonId, subject])
+  // Диктор этой домашки. Пока голос не закреплён в пикере, каждое занятие
+  // читается своим человеком — понимать одного диктора и понимать язык это
+  // разные умения (см. setVoiceScene в lib/speech.ts).
+  useEffect(() => {
+    const scene = `hw:${lessonId}`
+    setVoiceScene(scene)
+    return () => clearVoiceScene(scene)
+  }, [lessonId])
   useEffect(() => {
     reloadHardRow()
     const session = getStudentSession()
@@ -1875,6 +1896,28 @@ export default function HomeworkFlow({
   }
 
   /**
+   * Самоочевидное задание закрывается само, без «Проверить».
+   *
+   * У обводки нечего сверять: холст пускает палец только по самой черте, и
+   * «буква написана» — это уже верный ответ. Лишний шаг «Проверить» после неё
+   * спрашивал ученика о том, что он и так видит на экране, и отодвигал вердикт
+   * на одно нажатие. Поэтому ответ и отметка о проверке ставятся одним
+   * движением: сразу зелёное «Верно», звёздочки и «Далее».
+   *
+   * Звук успеха играет сам холст (см. ChamoTrace) — в тесте, где этой отметки
+   * нет, буква тоже должна звучать законченной.
+   */
+  const completeSelfEvident = (questionId: string, value: string) => {
+    if (state.basicSubmitted || state.basicChecked[questionId]) return
+    fireBurst(questionId)
+    setState(current => ({
+      ...current,
+      basicAnswers: { ...current.basicAnswers, [questionId]: value },
+      basicChecked: { ...current.basicChecked, [questionId]: true },
+    }))
+  }
+
+  /**
    * Досрочная проверка одного задания.
    *
    * Разбор открывается там же, где ученик только что печатал ответ, — вместе с
@@ -1957,6 +2000,38 @@ export default function HomeworkFlow({
   /** Задания кончились — дальше сдача, и хвост страницы снова виден целиком. */
   const flowFinished = flowStep >= flowTotal
   const flowPosition = flowStep - flowFirst
+
+  // ─── Клавиатура на экране одного задания ─────────────────────────────────
+  //
+  // Пока клавиатура открыта, экран стоит. iOS, показывая поле ввода, сдвигает
+  // видимую область вверх — и стоит тронуть страницу пальцем, как из-под
+  // клавиатуры выезжает нижняя навигация, а задание уползает за верхний край.
+  // Листать в этом режиме всё равно нечего: задание на экране одно, кнопка
+  // «Проверить» и так поднята над клавиатурой.
+  //
+  // Прокрутку глушим у контейнера страницы (overflow), запомнив положение:
+  // без этого браузер при снятии блокировки ставит список в начало.
+  const keyboardOpen = useKeyboardOpen()
+  useEffect(() => {
+    if (!isMobile || !keyboardOpen || !flowMode || flowFinished) return
+    const el = document.querySelector('.dashboard-main') as HTMLElement | null
+    if (!el) return
+    const top = el.scrollTop
+    const prev = el.style.overflowY
+    el.style.overflowY = 'hidden'
+    return () => { el.style.overflowY = prev; el.scrollTop = top }
+  }, [isMobile, keyboardOpen, flowMode, flowFinished])
+
+  // Клавиатура ушла — просим Safari вернуть видимую область на место. Сам он
+  // оставляет её сдвинутой вверх до следующего касания, и док с кнопкой стоят
+  // над пустой полосой там, где только что была клавиатура.
+  const hadKeyboard = useRef(false)
+  useEffect(() => {
+    if (keyboardOpen) { hadKeyboard.current = true; return }
+    if (!hadKeyboard.current) return
+    hadKeyboard.current = false
+    window.scrollTo(0, 0)
+  }, [keyboardOpen])
   const flowQuestionIndex = questionAt(queue, flowPosition)
   const flowQuestion = flowMode && !flowOnIntro && !flowFinished && flowQuestionIndex >= 0
     ? basicQuestions[flowQuestionIndex]
@@ -1991,10 +2066,11 @@ export default function HomeworkFlow({
   const flowAnswered = !!flowQuestion && questionAnswered(flowQuestion, flowGiven)
   const flowAuto = !!flowQuestion && questionAutoGradable(flowQuestion)
   const flowHinted = !!flowQuestion && !!state.basicHints[flowQuestion.id]
-  // Одиночный выбор проверяется самим нажатием — как и в списке.
+  // Задания, проверяющие себя сами (одиночный выбор, сопоставление), считаются
+  // проверенными в момент ответа — кнопка сразу говорит «Далее».
   const flowChecked = !!flowQuestion && (
     !!state.basicChecked[flowQuestion.id]
-    || (questionIsChoice(flowQuestion) && !questionIsMulti(flowQuestion) && flowAnswered)
+    || (questionSelfChecks(flowQuestion) && flowAnswered)
   )
   const flowCorrect = !!flowQuestion && !flowHinted && questionCorrect(flowQuestion, flowGiven)
   /** Проверять нечего — ответ уже открыт или машина его не сверяет. */
@@ -2105,7 +2181,9 @@ export default function HomeworkFlow({
     if (tp === 'wordBank' || tp === 'listenBank') return question.sentence?.trim() ?? ''
     if (tp === 'minimalPair') return (question.correctPair === 'B' ? question.pairB : question.pairA) ?? ''
     if (tp === 'fill' || tp === 'extended') return question.referenceAnswer?.trim() ?? ''
-    return ''
+    // Сборка тапами (слоги, буквы, перепутанное слово) хранит эталон там же, где
+    // и вписанный ответ, — значит и подсказке есть что показать.
+    return question.referenceAnswer?.trim() ?? ''
   }
 
   /** Прокрутка к заданию — из итогов и из чипсов с номерами ошибок. */
@@ -2823,12 +2901,13 @@ export default function HomeworkFlow({
                 const isChoice = questionIsChoice(question)
                 const answered = questionAnswered(question, selectedAnswer)
                 const autoGradable = questionAutoGradable(question)
-                // Одиночный выбор проверяется самим нажатием (ответ фиксируется
-                // сразу), всё остальное — кнопкой «Проверить» или сдачей домашки.
-                const singleChoice = isChoice && !questionIsMulti(question)
+                // Одиночный выбор и сопоставление проверяются по ходу решения
+                // (ответ фиксируется сразу), всё остальное — кнопкой «Проверить»
+                // или сдачей домашки.
+                const selfChecks = questionSelfChecks(question)
                 const hinted = !!state.basicHints[question.id]
                 const checked = !!state.basicChecked[question.id]
-                  || (singleChoice && answered)
+                  || (selfChecks && answered)
                   || state.basicSubmitted
                 // Пока задание не проверено — поле остаётся редактируемым.
                 const locked = checked
@@ -2848,7 +2927,15 @@ export default function HomeworkFlow({
                 const canCheck = autoGradable && answered && !checked
                   && (!hinted || isDrill) && !state.basicSubmitted
                 const hintText = hintFor(question)
-                const canHint = !!hintText && autoGradable && !hinted && !checked && !state.basicSubmitted
+                // ПОДСКАЗКА ПОЯВЛЯЕТСЯ ТОЛЬКО ПОСЛЕ ОШИБКИ. Кнопка «Подсказка»
+                // висела у каждого задания с самого начала — то есть предлагала
+                // сдаться раньше, чем ученик успевал попробовать, и заодно
+                // занимала строку под ответом (а появляясь и исчезая, ещё и
+                // двигала всё остальное). Правило до ответа читается кнопкой
+                // «Правило» в шапке — там конспект урока целиком; решение же
+                // открывается здесь и только тогда, когда ответ не сошёлся.
+                const canHint = !!hintText && autoGradable && !hinted && !state.basicSubmitted
+                  && checked && !isCorrect
 
                 // Разметка частей. `partAt` — порядковый номер части, если этот
                 // вопрос её открывает; `partEnd` — индекс последнего вопроса
@@ -2941,7 +3028,7 @@ export default function HomeworkFlow({
 
                     <div
                       className="flex flex-wrap items-start justify-between"
-                      style={{ gap: 12, minHeight: VERDICT_PILL_H }}
+                      style={{ gap: 12, minHeight: isMobile ? undefined : VERDICT_PILL_H }}
                     >
                       {/* Колонка вопроса тянется и сжимается, плашка справа —
                           нет: без этого длинная формулировка выталкивала плашку
@@ -3000,8 +3087,12 @@ export default function HomeworkFlow({
                       {/* «Верно/Неверно» стоит на самой карточке — там, где
                           ученик смотрит на ответ. Нижняя полоса вердикт не
                           дублирует: в режиме одного экрана она оставляет себе
-                          только разбор («Правильный ответ: …»). */}
-                      {showVerdict && (
+                          только разбор («Правильный ответ: …»).
+                          На телефоне плашки нет совсем: она появлялась из
+                          ниоткуда и сдвигала ответ вниз, а сам вердикт и так
+                          виден — рамка карточки и рамка поля ответа зеленеют
+                          или краснеют. Салют перевешен на поле ответа. */}
+                      {showVerdict && !isMobile && (
                         <div
                           className="flex items-start"
                           style={{
@@ -3045,6 +3136,7 @@ export default function HomeworkFlow({
                       )}
                     </div>
 
+                    <div style={{ position: 'relative' }}>
                     {isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
                       {question.options.map(option => {
@@ -3104,7 +3196,9 @@ export default function HomeworkFlow({
                       chamo={question.chamo}
                       value={selectedAnswer}
                       disabled={locked}
-                      onChange={v => setFreeAnswer(question.id, v)}
+                      onChange={v => (v === 'done'
+                        ? completeSelfEvident(question.id, v)
+                        : setFreeAnswer(question.id, v))}
                     />
                     ) : qType(question) === 'buildSyllable' && question.syllable ? (
                     <SyllableBuilder
@@ -3453,6 +3547,13 @@ export default function HomeworkFlow({
                       />
                     </div>
                     )}
+                    {/* Телефон: салют разлетается от самого поля ответа — там,
+                        куда смотрит ученик. У выбора он уже на нажатой плитке,
+                        на большом экране — на плашке «Верно». */}
+                    {isMobile && isCorrect && !isChoice && burst?.id === question.id && (
+                      <StarBurst key={burst.n} radius={64} />
+                    )}
+                    </div>
 
                     {/* Подсказка — ответ здесь же, не в словаре наверху. */}
                     {hinted && !!hintText && (
@@ -3463,7 +3564,9 @@ export default function HomeworkFlow({
                         <Eye size={15} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
                         <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
                           {t('Ответ')}: <b style={{ color: 'var(--color-text)' }}>{hintText}</b>
-                          <span style={{ color: 'var(--color-muted)' }}> · {t('балл за это задание не начисляется, слово уйдёт на повторение')}</span>
+                          {!checked && (
+                            <span style={{ color: 'var(--color-muted)' }}> · {t('балл за это задание не начисляется, слово уйдёт на повторение')}</span>
+                          )}
                         </span>
                       </div>
                     )}
@@ -3691,6 +3794,10 @@ export default function HomeworkFlow({
                   navCollapsed={navCollapsed}
                   onPrimary={flowPrimary}
                   onSkip={flowQuestion && !flowAnswered ? () => goToFlowStep(flowStep + 1) : undefined}
+                  // Место «Пропустить» остаётся занятым и после первого тапа:
+                  // иначе кнопка исчезала, «Проверить» растягивалась во всю
+                  // ширину и главная кнопка экрана переезжала под пальцем.
+                  skipSlot={!!flowQuestion}
                 />
               )}
 
@@ -3983,6 +4090,17 @@ function ProgressStrip({
   )
 }
 
+/** Геометрия штриха нижней полосы: меньше — уже не палец и не читается. */
+const TICK_GAP = 2
+const TICK_MIN = 5
+const TICK_ACTIVE = 20
+type TickState = 'correct' | 'wrong' | 'plain'
+const TICK_COLOR: Record<TickState, string> = {
+  correct: '#6EE7A0',
+  wrong: '#F48B91',
+  plain: 'var(--color-border-strong)',
+}
+
 function BottomProgressBar({
   total,
   answers,
@@ -4020,6 +4138,79 @@ function BottomProgressBar({
   // Первое задание без ответа — цель клика по счётчику «18 / 19».
   const firstUnanswered = questions.find(q => !questionAnswered(q, answers[q.id]))
 
+  // Полоса не резиновая. 48 заданий на телефоне — это 48 штрихов по два
+  // пикселя: каша, в которую не попасть пальцем и по которой ничего не
+  // прочитать. Меряем ширину дорожки и рисуем ровно столько штрихов, сколько
+  // помещается: если заданий больше, один штрих берёт на себя пачку подряд
+  // идущих и красится долями их цветов — сколько внутри верного и неверного,
+  // столько зелёного и красного в самом штрихе. Помещается всё (обычно ПК) —
+  // рисуем один к одному, как раньше.
+  const trackRef = useRef<HTMLDivElement | null>(null)
+  const [trackWidth, setTrackWidth] = useState(0)
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const measure = () => setTrackWidth(el.clientWidth)
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const capacity = trackWidth > 0
+    ? Math.max(1, 1 + Math.floor((trackWidth - TICK_ACTIVE) / (TICK_MIN + TICK_GAP)))
+    : total
+  const groups = useMemo<number[][]>(() => {
+    if (total <= capacity) return Array.from({ length: total }, (_, index) => [index])
+    return Array.from({ length: capacity }, (_, slot) => {
+      const from = Math.floor((slot * total) / capacity)
+      const to = Math.floor(((slot + 1) * total) / capacity)
+      return Array.from({ length: to - from }, (_, k) => from + k)
+    }).filter(group => group.length > 0)
+  }, [total, capacity])
+
+  // Цвет одного задания. Полоса красится только по проверенному: раньше она
+  // подсвечивала печатный ответ красным сразу после ввода — вердикт без
+  // разбора, ученик видел, что ошибся, и не мог узнать, в чём.
+  const stateOf = (index: number): TickState => {
+    const question = questions[index]
+    if (!question) return 'plain'
+    const answer = answers[question.id]
+    const gradable = questionAutoGradable(question)
+    const revealed = submitted
+      || !!checked[question.id]
+      || (questionIsChoice(question) && !questionIsMulti(question) && questionAnswered(question, answer))
+    if (!revealed || !gradable) return 'plain'
+    const hinted = !!hints[question.id]
+    if (!hinted && questionCorrect(question, answer)) return 'correct'
+    if (questionAnswered(question, answer) && (hinted || !questionCorrect(question, answer))) return 'wrong'
+    return 'plain'
+  }
+
+  /** Заливка штриха: один цвет на однородной пачке, доли — на смешанной. */
+  const tickBackground = (group: number[]) => {
+    const states = group.map(stateOf)
+    const correct = states.filter(state => state === 'correct').length
+    const wrong = states.filter(state => state === 'wrong').length
+    const plain = states.length - correct - wrong
+    if (correct === states.length) return TICK_COLOR.correct
+    if (wrong === states.length) return TICK_COLOR.wrong
+    if (plain === states.length) return TICK_COLOR.plain
+    const stops: string[] = []
+    let filled = 0
+    const push = (color: string, count: number) => {
+      if (!count) return
+      const from = (filled / states.length) * 100
+      filled += count
+      stops.push(`${color} ${from}% ${(filled / states.length) * 100}%`)
+    }
+    push(TICK_COLOR.correct, correct)
+    push(TICK_COLOR.wrong, wrong)
+    push(TICK_COLOR.plain, plain)
+    return `linear-gradient(90deg, ${stops.join(', ')})`
+  }
+
   return (
     <div
       className="flex items-center"
@@ -4044,44 +4235,41 @@ function BottomProgressBar({
           boxShadow: 'var(--shadow-sm)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0, height: 20 }}>
-          {Array.from({ length: total }).map((_, index) => {
-            const question = questions[index]
-            const answer = question ? answers[question.id] : undefined
-            const gradable = !!question && questionAutoGradable(question)
-            // Полоса красится только по проверенному. Раньше она подсвечивала
-            // печатный ответ красным сразу после ввода — вердикт без разбора:
-            // ученик видел, что ошибся, и не мог узнать, в чём.
-            const revealed = !!question && (
-              submitted
-              || !!checked[question.id]
-              || (questionIsChoice(question) && !questionIsMulti(question) && questionAnswered(question, answer))
-            )
-            const hinted = !!question && !!hints[question.id]
-            const isCorrect = revealed && gradable && !hinted && questionCorrect(question, answer)
-            const isWrong = revealed && gradable && questionAnswered(question, answer)
-              && (hinted || !questionCorrect(question, answer))
-            const isActive = index === active
-
-            // Полоса — карта домашки, а не индикатор: по клику она везёт к
-            // заданию. Кликабельная зона на всю высоту строки, чтобы попадать
-            // пальцем в 4-пиксельный штрих не приходилось.
-            const jump = question ? () => onJump(question.id) : undefined
-            const label = `${t('Задание')} ${index + 1}`
+        <div ref={trackRef} style={{ display: 'flex', alignItems: 'center', gap: TICK_GAP, flex: 1, minWidth: 0, height: 20 }}>
+          {groups.map((group, slot) => {
+            const first = group[0]
+            const last = group[group.length - 1]
+            const state = tickBackground(group)
+            const isActive = active >= first && active <= last
+            // Штрих — карта домашки, а не индикатор: по клику он везёт к
+            // заданию (к первому без ответа в пачке — туда и надо). Кликабельная
+            // зона на всю высоту строки, чтобы попадать пальцем не в 4 пикселя.
+            const targetIndex = group.find(index => {
+              const question = questions[index]
+              return !!question && !questionAnswered(question, answers[question.id])
+            }) ?? first
+            const target = questions[targetIndex]
+            const jump = target ? () => onJump(target.id) : undefined
+            const label = group.length === 1
+              ? `${t('Задание')} ${first + 1}`
+              : `${t('Задания')} ${first + 1}–${last + 1}`
 
             if (isActive) {
+              const activeState = stateOf(active)
+              const isCorrect = activeState === 'correct'
+              const isWrong = activeState === 'wrong'
               return (
                 <button
-                  key={index}
+                  key={slot}
                   onClick={jump}
                   title={label}
                   aria-label={label}
                   className={jump ? 'cursor-pointer' : undefined}
                   style={{
-                    width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                    width: TICK_ACTIVE, height: TICK_ACTIVE, borderRadius: '50%', flexShrink: 0,
                     padding: 0, border: 'none', fontFamily: 'inherit',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : PURPLE.gradient,
+                    background: isCorrect ? TICK_COLOR.correct : isWrong ? TICK_COLOR.wrong : PURPLE.gradient,
                     color: isCorrect ? '#0B4020' : isWrong ? '#6B0007' : '#fff',
                     fontSize: 9, fontWeight: 800,
                     boxShadow: isCorrect
@@ -4091,31 +4279,30 @@ function BottomProgressBar({
                         : '0 2px 10px rgba(99,84,207,0.35)',
                   }}
                 >
-                  {index + 1}
+                  {active + 1}
                 </button>
               )
             }
 
-            const bg = isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : 'var(--color-border-strong)'
-            const isHovered = hovered === index
+            const isHovered = hovered === slot
             return (
               <button
-                key={index}
+                key={slot}
                 onClick={jump}
-                onMouseEnter={() => setHovered(index)}
-                onMouseLeave={() => setHovered(current => (current === index ? null : current))}
+                onMouseEnter={() => setHovered(slot)}
+                onMouseLeave={() => setHovered(current => (current === slot ? null : current))}
                 title={label}
                 aria-label={label}
                 className={jump ? 'cursor-pointer' : undefined}
                 style={{
-                  flex: 1, minWidth: 2, height: 20, padding: 0,
+                  flex: 1, minWidth: TICK_MIN, height: 20, padding: 0,
                   border: 'none', background: 'transparent',
                   display: 'flex', alignItems: 'center',
                 }}
               >
                 <span style={{
-                  width: '100%', height: isHovered ? 10 : index < active ? 6 : 4,
-                  borderRadius: 3, background: bg,
+                  width: '100%', height: isHovered ? 10 : last < active ? 6 : 4,
+                  borderRadius: 3, background: state,
                   transition: 'height 0.2s ease',
                 }} />
               </button>

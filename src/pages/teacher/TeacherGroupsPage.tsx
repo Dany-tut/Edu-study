@@ -26,8 +26,8 @@ import { OverlayScrollArea } from '../../components/teacher/OverlayScroll'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
 import { useTeacher } from '../../store/teacherStore'
 import { useT } from '../../lib/i18n'
-import {
 import { confirmDialog } from '../../components/ConfirmHost'
+import {
   fetchStudentActiveCourses, type StudentCourseInfo,
   fetchStudentTrainerSections, type TrainerSection,
   fetchStudentWrongTasks, type WrongTask,

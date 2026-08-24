@@ -24,6 +24,13 @@ import { useOverlayScroll, ScrollOverlays } from '../teacher/OverlayScroll'
 // нельзя: «мужской в текстах, женский в карточках» — это не настройка, а
 // рассогласование.
 //
+// ЧТО ЗНАЧИТ «РАЗНЫЕ ГОЛОСА» — первая строка списка и состояние по умолчанию.
+// Диктор тогда закреплён не за языком, а за занятием: урок и его домашка
+// читаются каждый своим человеком, но внутри одного экрана голос не меняется
+// (см. setVoiceScene в lib/speech.ts). Так ухо учится понимать язык, а не
+// одного диктора. Выбранная строка списка это перебивает: попросили Аву —
+// читает Ава, везде.
+//
 // ПОЧЕМУ ВЫПАДАЮЩИЙ СПИСОК, А НЕ РАСКРЫВАЮЩАЯСЯ ПОЛКА. Раскрытый прямо в потоке
 // список отталкивал вниз всё, что под ним: в рейле читалки под голосом стоит
 // словарь текста, и на открытии он уезжал за нижний край экрана. Дропдаун висит
@@ -197,7 +204,12 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
   }
 
   const rows = [
-    { id: '', label: t('Автовыбор'), note: t('как сейчас') },
+    // Автовыбор — это не «как получится», а осмысленный режим: диктор
+    // закреплён за занятием, и соседние уроки читают разные люди (см.
+    // setVoiceScene в lib/speech.ts). Понимать одного диктора и понимать язык
+    // — разные умения, поэтому по умолчанию голоса мешаются, а закрепление
+    // конкретного диктора остаётся за учеником.
+    { id: '', label: t('Разные голоса'), note: t('свой диктор в каждом уроке') },
     ...voices.map(v => ({
       id: v.voice.name,
       label: v.label,
@@ -213,7 +225,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           onClick={toggle}
           aria-expanded={open}
           aria-label={t('Голос озвучки')}
-          title={`${t('Голос')}: ${current?.label ?? t('автовыбор')}`}
+          title={`${t('Голос')}: ${current?.label ?? t('разные')}`}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 10px',
             borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
@@ -244,7 +256,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
         >
           <Mic size={14} style={{ flexShrink: 0 }} />
           <span style={{ flex: 1, minWidth: 0, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {t('Голос')}: {current?.label ?? t('автовыбор')}
+            {t('Голос')}: {current?.label ?? t('разные')}
           </span>
           <ChevronDown
             size={14}

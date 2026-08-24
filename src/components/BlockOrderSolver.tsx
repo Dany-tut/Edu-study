@@ -42,23 +42,25 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
     return order
   }, [items])
 
-  const picked = useMemo(
-    () => (value ? value.split(',').map(Number).filter(n => Number.isFinite(n) && n >= 0 && n < items.length) : []),
-    [value, items.length],
-  )
+  // Ответ из хука: два тапа по блокам в одном рендере иначе затирают друг друга.
+  const [answerNow, emit] = useOwnString(value, onChange)
+  const parse = (s: string) =>
+    s.split(',').map(Number).filter(n => Number.isFinite(n) && n >= 0 && n < items.length)
+  const picked = useMemo(() => parse(answerNow), [answerNow, items.length])
   const pickedSet = new Set(picked)
   const full = picked.length >= items.length
 
   const pick = (idx: number) => {
-    if (disabled || full || pickedSet.has(idx)) return
+    const now = parse(answerNow)
+    if (disabled || now.length >= items.length || now.includes(idx)) return
     playPop()
     vibrate(8)
-    onChange([...picked, idx].join(','))
+    emit([...now, idx].join(','))
   }
   const removeAt = (pos: number) => {
     if (disabled) return
     vibrate(6)
-    onChange(picked.filter((_, i) => i !== pos).join(','))
+    emit(parse(answerNow).filter((_, i) => i !== pos).join(','))
   }
 
   // Короткие блоки — куски ОДНОГО предложения, и собираются они в строку, как

@@ -52,7 +52,6 @@ import {
 } from './lessonFigures'
 import { KOREAN_THEORY, KOREAN_VIDEO } from './koreanTopikTheory'
 import { KOREAN_EXTRA } from './koreanTopikExtra'
-import { KOREAN_CHECKLIST } from './koreanChecklists'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_FIGURES_EXTRA } from './koreanTopikFigures'
@@ -2214,8 +2213,6 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   units: KOREAN_UNITS.map(u => ({
     ...u,
     theory: KOREAN_THEORY[u.shortId] ?? u.theory,
-    // Чек-лист форм юнита — отдельным файлом по той же причине, что и конспекты.
-    checklist: KOREAN_CHECKLIST[u.shortId] ?? u.checklist,
     videoUrl: KOREAN_VIDEO[u.shortId] ?? KOREAN_VIDEO_EXTRA[u.shortId] ?? u.videoUrl,
     // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
     tasks: [...u.tasks, ...(KOREAN_EXTRA[u.shortId] ?? [])],

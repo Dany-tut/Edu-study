@@ -154,6 +154,121 @@ export function lockRelease() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Трение — звук свайпа назад (lib/useSwipeBack.ts).
+//
+// Не «щелчок в конце», а непрерывный шорох, пока страница едет: полосовой шум,
+// громкость которого идёт за СКОРОСТЬЮ пальца, а тембр — за пройденным путём.
+// Отсюда ощущение сопротивления: ведёшь медленно — шуршит еле слышно, дёрнул —
+// звук нарастает вместе с движением. Остановил палец — тишина, хотя страница
+// всё ещё отодвинута.
+//
+// Шум делаем буфером на секунду и зацикливаем: непрерывный источник дешевле,
+// чем городить осцилляторы на каждый кадр жеста.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let noiseBuf: AudioBuffer | null = null
+
+function noiseBuffer(ac: AudioContext): AudioBuffer {
+  if (noiseBuf && noiseBuf.sampleRate === ac.sampleRate) return noiseBuf
+  const buf = ac.createBuffer(1, Math.floor(ac.sampleRate), ac.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
+  noiseBuf = buf
+  return buf
+}
+
+export type Friction = {
+  /** speed — px/мс пальца, progress — 0…1 пути до срабатывания. */
+  move(speed: number, progress: number): void
+  /** Порог пройден (или сдан назад) — сухой щелчок засечки. */
+  detent(): void
+  /** Конец жеста: fired — страница ушла, иначе вернулась. */
+  stop(fired: boolean): void
+}
+
+/** Пустышка на случай, когда звука в системе нет: вызывать можно всё то же. */
+const SILENT: Friction = { move() {}, detent() {}, stop() {} }
+
+/** Запустить шорох трения. Возвращает ручку — ею жест им и правит. */
+export function frictionStart(): Friction {
+  const ac = audioCtx()
+  if (!ac) return SILENT
+
+  const t0 = ac.currentTime
+  const src = ac.createBufferSource()
+  src.buffer = noiseBuffer(ac)
+  src.loop = true
+
+  // Полоса вместо белого шума: широкий шум звучит как помеха в эфире, узкая
+  // полоса в середине — как трение двух поверхностей.
+  const band = ac.createBiquadFilter()
+  band.type = 'bandpass'
+  band.frequency.setValueAtTime(560, t0)
+  band.Q.value = 0.9
+
+  // Срез верхов — чтобы шорох не «шипел» на телефонном динамике.
+  const tame = ac.createBiquadFilter()
+  tame.type = 'lowpass'
+  tame.frequency.setValueAtTime(2600, t0)
+
+  const gain = ac.createGain()
+  gain.gain.setValueAtTime(0, t0)
+
+  src.connect(band).connect(tame).connect(gain).connect(ac.destination)
+  src.start(t0)
+
+  let dead = false
+
+  return {
+    move(speed, progress) {
+      if (dead) return
+      const t = ac.currentTime
+      // Потолок низкий: звук должен читаться как фактура движения, а не как
+      // отдельный эффект. 0.4 px/мс — это уже быстрый смах.
+      const level = Math.min(0.05, Math.max(0, speed) * 0.11)
+      // setTargetAtTime сглаживает рывки: кадры тача приходят неровно, и без
+      // сглаживания шорох трещал бы ступеньками.
+      gain.gain.setTargetAtTime(level, t, 0.045)
+      band.frequency.setTargetAtTime(560 + Math.min(1, progress) * 900, t, 0.06)
+    },
+    detent() {
+      if (dead) return
+      // Засечка: короткий сухой призвук поверх шороха + отдача в палец.
+      const t = ac.currentTime
+      const osc = ac.createOscillator()
+      const g = ac.createGain()
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(340, t)
+      g.gain.setValueAtTime(0, t)
+      g.gain.linearRampToValueAtTime(0.03, t + 0.005)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07)
+      osc.connect(g).connect(ac.destination)
+      osc.start(t); osc.stop(t + 0.08)
+      haptic([6, 2, 3])
+    },
+    stop(fired) {
+      if (dead) return
+      dead = true
+      const t = ac.currentTime
+      const tail = fired ? 0.26 : 0.12
+      // Ушла — короткий «шшух» вдогонку (полоса уезжает вверх и гаснет).
+      // Вернулась — просто обрываем шорох.
+      if (fired) {
+        gain.gain.cancelScheduledValues(t)
+        gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.02), t)
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + tail)
+        band.frequency.cancelScheduledValues(t)
+        band.frequency.setTargetAtTime(1900, t, 0.09)
+      } else {
+        gain.gain.cancelScheduledValues(t)
+        gain.gain.setTargetAtTime(0, t, 0.03)
+      }
+      src.stop(t + tail + 0.05)
+    },
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Канон вердикта урока (docs/MEMORY_STANDARD.md, Р10)
 //
 // Два звука на всю учебную часть, и больше никаких. Ошибка полезна только с

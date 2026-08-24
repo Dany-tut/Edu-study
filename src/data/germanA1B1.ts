@@ -48,14 +48,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Запись: вы читаете вслух десять незнакомых слов и список городов',
     theory:
       'Немецкий читается по правилам. Это главное, что нужно знать в первый день: если вы знаете, как читается сочетание букв, вы прочитаете любое слово, включая то, которого никогда не видели, — и прочитаете его правильно.\n\nСамые важные правила. Буква v читается как «ф» (vier, Vater, von), а w — как «в» (was, wir, Wasser); латиница подсказывает наоборот, и это ошибка номер один. Буква z — это «ц» (zehn, Zeit), s перед гласной — «з» (sagen, Sonne), а sch — «ш» (Schule). Сочетание ei читается «ай» (mein, klein), а ie — долгое «и» (vier, wie). Сочетания eu и äu — «ой» (heute, Häuser).\n\nch — единственный звук, которого в русском нет в двух видах. После i, e и согласных это мягкое «хь» (ich, Kirche, Milch); после a, o, u — глубокое «х» (auch, Buch, machen).\n\nУмлауты не украшение, а другие звуки. ö — это «э», сказанное губами для «о» (schön). ü — это «и», сказанное губами для «у» (über, fühlen). ä — почти русское «э» (Mädchen). Буква ß всегда читается как глухое «с» и стоит только после долгой гласной: Straße, но dass.\n\nИ последнее: ударение в немецких словах почти всегда на первом слоге (ARbeit, MORgen), а в глаголах с отделяемой приставкой — на приставке (AUFstehen). У заимствований бывает иначе: StuDENT, TeleFON.',
-    checklist: [
-      'v = ф, w = в',
-      'z = ц, s перед гласной = з',
-      'ei = ай, ie = долгое и, eu/äu = ой',
-      'ch мягкое после i/e, глубокое после a/o/u',
-      'ß только после долгой гласной',
-      'ударение на первом слоге',
-    ],
     vocab: [
       { term: 'der Name', ru: 'имя, фамилия' },
       { term: 'die Straße', ru: 'улица' },
@@ -109,12 +101,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Короткий рассказ о себе на 40 секунд, записанный голосом',
     theory:
       'Немецкий заставляет выбрать обращение в каждом предложении. Sie — со взрослым незнакомым: продавец, врач, сосед, чиновник, коллега. Du — с детьми, друзьями, роднёй, студентами между собой. Переход на du предлагает старший по возрасту или должности (Wollen wir uns duzen?), а не вы.\n\nВежливое Sie всегда пишется с большой буквы, и это единственное, что отличает его на письме от sie («она», «они»).\n\nГлагол sein неправильный и учится наизусть: ich bin, du bist, er/sie/es ist, wir sind, ihr seid, sie/Sie sind. Второй базовый глагол — heißen: ich heiße, du heißt, er heißt.\n\nВопрос без вопросительного слова строится перестановкой: глагол выходит на первое место. Sie kommen aus Russland → Kommen Sie aus Russland? С вопросительным словом глагол снова второй: Woher kommen Sie?\n\nПрофессия называется без артикля — единственный случай, где немецкий ведёт себя как русский: Ich bin Lehrer. Ich bin Designerin. Женский вариант профессии образуется суффиксом -in, и в Германии его употребляют обязательно.',
-    checklist: [
-      'sein: bin, bist, ist, sind, seid, sind',
-      'Sie с большой буквы, sie — со строчной',
-      'вопрос без вопросительного слова: глагол первый',
-      'профессия без артикля: Ich bin Ärztin',
-    ],
     vocab: [
       { term: 'Guten Tag', ru: 'здравствуйте' },
       { term: 'Guten Morgen', ru: 'доброе утро' },
@@ -168,12 +154,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Собственный список 30 слов, разложенный по трём столбцам рода',
     theory:
       'Род в немецком принадлежит слову, а не предмету: das Mädchen («девочка») среднего рода потому, что кончается на -chen. Роды русского и немецкого не совпадают — солнце здесь женского рода (die Sonne), а луна мужского (der Mond), — поэтому переносить привычку нельзя.\n\nНо примерно треть слов выдаёт свой род окончанием, и это надо использовать:\n\n— die: -ung, -heit, -keit, -schaft, -ion, -tät, -ei (die Wohnung, die Freiheit, die Station);\n— das: -chen, -lein, -ment, -um (das Brötchen, das Dokument, das Zentrum);\n— der: дни недели, месяцы, времена года, осадки, слова на -er от глаголов (der Montag, der Regen, der Lehrer).\n\nНеопределённый артикль ein/eine называет предмет впервые, определённый der/die/das — уже известный. Во множественном числе неопределённого артикля нет вовсе.\n\nОтрицание существительного — не nicht, а kein: Ich habe keine Zeit. Это чисто немецкая вещь, и русское «у меня нет времени» через nicht звучит сломанно.\n\nПрактический совет: учите слово только вместе с артиклем и по возможности пачками одного рода — двадцать слов на der подряд, потом двадцать на die. Род запоминается ритмом, а не правилом.',
-    checklist: [
-      '-ung, -heit, -keit, -ion → die',
-      '-chen, -lein, -ment, -um → das',
-      'дни, месяцы, погода → der',
-      'отрицание существительного — kein, не nicht',
-    ],
     vocab: [
       { term: 'der Tisch', ru: 'стол' },
       { term: 'der Stuhl', ru: 'стул' },
@@ -226,12 +206,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Восемь предложений о своём дне, где половина начинается не с подлежащего',
     theory:
       'Спряжение регулярно: machen → ich mache, du machst, er macht, wir machen, ihr macht, sie machen. У сильных глаголов во втором и третьем лице единственного числа меняется корневая гласная: fahren → du fährst, er fährt; sprechen → du sprichst, er spricht; lesen → du liest, er liest.\n\nГлавное правило порядка слов: спрягаемый глагол стоит на второй позиции — не вторым словом, а вторым членом предложения. Если впереди стоит обстоятельство, подлежащее уезжает за глагол: Morgen fahre ich nach Berlin. Heute habe ich viel zu tun.\n\nВопрос с вопросительным словом сохраняет вторую позицию (Wann kommst du?), вопрос без него выносит глагол вперёд (Kommst du?).\n\nНастоящее время в немецком отвечает и за будущее: Morgen fahre ich nach Berlin значит «завтра поеду». Отдельная форма с werden нужна для предсказаний и обещаний, и до неё дело дойдёт в юните 24.\n\nИ ещё одно: аналога английского Present Continuous в немецком нет. «Я сейчас работаю» — это Ich arbeite gerade, а не «Ich bin arbeiten».',
-    checklist: [
-      'окончания -e, -st, -t, -en, -t, -en',
-      'сильные: a → ä, e → i/ie во 2-м и 3-м лице',
-      'глагол всегда второй',
-      'настоящее время годится для будущего',
-    ],
     vocab: [
       { term: 'arbeiten', ru: 'работать' },
       { term: 'machen', ru: 'делать' },
@@ -283,12 +257,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Ваше недельное расписание по-немецки, с временем и днями',
     theory:
       'Числа до двенадцати учатся списком, дальше собираются: 13–19 — единица + zehn (dreizehn), десятки — на -zig (zwanzig, dreißig — обратите внимание на ß), а составные читаются в обратном порядке: 21 — einundzwanzig, 87 — siebenundachtzig.\n\nЦену называют так: neun Euro neunzig или просто neun neunzig. Запятая — десятичный разделитель, точка отделяет тысячи: 1.500,00.\n\nВремя. В расписаниях всегда 24 часа: 18:30 — achtzehn Uhr dreißig. В речи говорят halb sieben — и это 6:30, а не 7:30: счёт идёт до следующего часа. Viertel nach acht — 8:15, Viertel vor acht — 7:45.\n\nПредлоги времени: um для часа (um neun Uhr), am для дней и частей суток (am Montag, am Abend, но in der Nacht), im для месяцев и времён года (im Mai, im Sommer).\n\nИ культурная деталь, которая важнее грамматики: назначенное время в Германии соблюдают. Прийти к девяти значит быть на месте без пяти; опоздание на десять минут требует звонка, а в ведомстве отменяет запись.',
-    checklist: [
-      'einundzwanzig: сначала единицы',
-      'halb sieben = 6:30',
-      'um + час, am + день, im + месяц',
-      'запятая — десятичный разделитель',
-    ],
     vocab: [
       { term: 'die Uhr', ru: 'час; часы' },
       { term: 'halb', ru: 'половина' },
@@ -340,12 +308,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Список того, что нужно взять с собой в ведомство, — с артиклями в Akkusativ',
     theory:
       'Akkusativ — падеж прямого дополнения: Ich sehe den Mann. Хорошая новость в том, что меняется только мужской род: der → den, ein → einen, kein → keinen, mein → meinen. Женский, средний и множественное выглядят как в Nominativ.\n\nAkkusativ требуют самые частые глаголы: haben, brauchen, sehen, kaufen, nehmen, essen, trinken, suchen, finden.\n\nОборот es gibt («имеется, есть») тоже управляет Akkusativ: Es gibt einen Supermarkt in der Nähe. Он отвечает на вопрос «что вообще существует в этом месте», в отличие от haben — «у кого что есть».\n\nПять предлогов всегда с Akkusativ и учатся строчкой: durch, für, gegen, ohne, um.\n\nТипичная ошибка русскоязычного — поставить Akkusativ после sein: «Das ist einen Freund». После sein, werden и bleiben всегда Nominativ, потому что это не действие над предметом, а называние.',
-    checklist: [
-      'der → den, ein → einen',
-      'haben, brauchen, es gibt + Akkusativ',
-      'durch, für, gegen, ohne, um + Akkusativ',
-      'после sein — Nominativ',
-    ],
     vocab: [
       { term: 'haben', ru: 'иметь (ich habe, du hast, er hat)' },
       { term: 'der Ausweis', ru: 'удостоверение личности' },
@@ -397,12 +359,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Свод правил вашего дома или офиса: пять «можно» и пять «нельзя»',
     theory:
       'Модальный глагол спрягается и встаёт на вторую позицию, а смысловой уходит в конец в инфинитиве: Ich muss heute länger arbeiten. Между ними натянута рамка — это то же устройство, что и у перфекта, и у отделяемых приставок.\n\nВ единственном числе у модальных меняется гласная и нет окончания в первом и третьем лице: ich kann, er kann; ich muss, er muss; ich darf, er darf.\n\nЗначения. können — «мочь, уметь». müssen — «быть должным» по обстоятельствам. dürfen — «иметь разрешение». sollen — «следует» по чужому указанию. wollen — «намереваться» (звучит твёрдо). mögen — «нравиться», а его форма möchten — вежливое «хотел бы».\n\nСамое важное — отрицание. Sie müssen nicht warten значит «вам не обязательно ждать». Запрет — только Sie dürfen nicht warten. Перепутать эти две фразы значит сказать противоположное, и в объявлениях (Hier darf man nicht rauchen) вы встретите именно dürfen.\n\nВ заказе и просьбе почти всегда используется möchten: Ich möchte einen Kaffee звучит нормально, Ich will einen Kaffee — требовательно.',
-    checklist: [
-      'модальный второй, инфинитив в конце',
-      'ich kann / er kann — без окончания',
-      'nicht dürfen = нельзя, nicht müssen = не обязательно',
-      'möchten вместо wollen в просьбе',
-    ],
     vocab: [
       { term: 'können', ru: 'мочь, уметь' },
       { term: 'müssen', ru: 'быть должным' },
@@ -454,12 +410,6 @@ const UNITS_A1: LangUnit[] = [
     artifact: 'Аудиорассказ о своём дне на минуту, с пятью отделяемыми глаголами',
     theory:
       'В инфинитиве глагол целый (aufstehen), в предложении спрягаемая часть встаёт второй, а приставка уходит в самый конец: Ich stehe um sieben auf.\n\nПриставка отделяется, если на неё падает ударение: AUFstehen, ANrufen, EINkaufen, MITkommen, ABfahren, AUSfüllen. Не отделяются безударные ver-, be-, ent-, er-, zer-, ge-, emp-, miss-: verstehen, bekommen, erklären.\n\nВ придаточном предложении глагол собирается обратно: …, weil ich um sieben aufstehe. В перфекте ge- встаёт внутрь слова: aufgestanden, angerufen.\n\nВторая тема юнита — порядок обстоятельств. Немецкий ставит их так: когда — почему — как — где (te-ka-mo-lo). Ich fahre heute wegen der Prüfung mit dem Bus in die Stadt. Русская привычка ставить место раньше времени («Ich gehe ins Kino heute Abend») даёт фразу, которая звучит переставленной.',
-    checklist: [
-      'приставка уезжает в конец: Ich stehe … auf',
-      'ver-, be-, ent-, er- не отделяются',
-      'в придаточном глагол снова целый',
-      'порядок: время → причина → способ → место',
-    ],
     vocab: [
       { term: 'aufstehen', ru: 'вставать (отделяемая)' },
       { term: 'anrufen', ru: 'звонить по телефону (отделяемая)' },
@@ -517,12 +467,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Рассказ о своём городе и людях вокруг с десятью предлогами Dativ',
     theory:
       'Dativ — падеж адресата: Ich gebe dem Kind das Buch. Формы: dem (мужской и средний), der (женский), den + -n (множественное).\n\nДевять предлогов всегда требуют Dativ, и их заучивают строчкой: aus, bei, mit, nach, seit, von, zu, außer, gegenüber. Слияния обязательны в речи: zu dem → zum, zu der → zur, bei dem → beim, von dem → vom.\n\nОтдельная группа — глаголы с Dativ: helfen, danken, gefallen, gehören, passen, antworten, folgen. Их немного, и они частотные, поэтому проще выучить список, чем каждый раз думать.\n\nКонструкция «мне нравится» устроена наоборот, чем в русском ощущается: подлежащее — сам предмет, человек стоит в Dativ. Das Buch gefällt mir. Так же и с болью: Mir tut der Kopf weh — болит не «я», а голова.\n\nИ ловушка с seit: если действие продолжается, немецкий ставит НАСТОЯЩЕЕ время. Seit einem Jahr wohne ich hier, а не «habe gewohnt».',
-    checklist: [
-      'dem / der / dem / den + -n',
-      'aus, bei, mit, nach, seit, von, zu + Dativ',
-      'helfen, gefallen, gehören + Dativ',
-      'seit + настоящее время',
-    ],
     vocab: [
       { term: 'helfen', ru: 'помогать (+ Dativ)' },
       { term: 'gefallen', ru: 'нравиться (+ Dativ)' },
@@ -575,11 +519,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'План вашей квартиры с подписями: что где стоит',
     theory:
       'Правило одно: вопрос wohin? (куда, есть перемещение) — Akkusativ; вопрос wo? (где, положение) — Dativ.\n\nIch gehe in die Küche (куда) — Ich bin in der Küche (где). Ich hänge das Bild an die Wand — Das Bild hängt an der Wand.\n\nПодсказка, которая работает без размышлений: посмотрите на глагол. Глаголы движения с направлением — gehen, fahren, stellen, legen, setzen, hängen (вешать) — тянут Akkusativ. Глаголы положения — sein, bleiben, stehen, liegen, sitzen, hängen (висеть) — тянут Dativ.\n\nОбратите внимание на пары глаголов, которые в русском выражаются одним словом: stellen/stehen (ставить/стоять), legen/liegen (класть/лежать), setzen/sitzen (сажать/сидеть). Первый в паре — действие с Akkusativ, второй — состояние с Dativ.\n\nСлияния: in dem → im, an dem → am, in das → ins, an das → ans.',
-    checklist: [
-      'wohin? → Akkusativ, wo? → Dativ',
-      'stellen/stehen, legen/liegen, setzen/sitzen',
-      'im, am, ins, ans — обязательные слияния',
-    ],
     vocab: [
       { term: 'die Küche', ru: 'кухня' },
       { term: 'das Bad', ru: 'ванная' },
@@ -631,12 +570,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Диалог в кафе на две роли, записанный голосом',
     theory:
       'Заказ в немецком делается двумя формулами: Ich hätte gern … и Ich möchte … Обе вежливые, обе безопасные. Ich will звучит требовательно, а Geben Sie mir — как команда.\n\nОфициант подойдёт сам, но не будет появляться каждые пять минут: чтобы позвать, ловят взгляд или говорят Entschuldigung. Счёт просят фразой Zahlen, bitte или Die Rechnung, bitte — и всегда за столом, а не на кассе.\n\nВопрос Zusammen oder getrennt? («вместе или раздельно») задают почти всегда, и раздельный счёт — абсолютная норма.\n\nВода не бесплатна и по умолчанию газированная: негазированную просят как stilles Wasser. Чаевые называют вслух при оплате, округляя сумму вверх: Machen Sie dreißig.\n\nПолезные вопросы о составе: Ist da Fleisch drin? Was ist in der Soße? Ich bin allergisch gegen … — последнюю фразу формулируйте как медицинский факт, тогда её воспримут серьёзно.',
-    checklist: [
-      'Ich hätte gern / Ich möchte — вежливый заказ',
-      'Zahlen, bitte — счёт за столом',
-      'Zusammen oder getrennt — норма',
-      'stilles Wasser — вода без газа',
-    ],
     vocab: [
       { term: 'die Speisekarte', ru: 'меню' },
       { term: 'die Vorspeise', ru: 'закуска' },
@@ -688,12 +621,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Диалог возврата покупки: вы объясняете причину и просите обмен',
     theory:
       'Местоимения в Akkusativ: mich, dich, ihn, sie, es, uns, euch, sie/Sie. В Dativ: mir, dir, ihm, ihr, ihm, uns, euch, ihnen/Ihnen.\n\nПорядок дополнений: сначала Dativ, потом Akkusativ — Ich gebe dem Kind das Buch. Но если оба выражены местоимениями, порядок меняется на противоположный: Ich gebe es ihm. Правило простое: местоимение стремится вперёд, а среди двух местоимений вперёд идёт Akkusativ.\n\nВ магазине пригодятся: Kann ich das anprobieren? Haben Sie das eine Nummer größer? Das passt mir nicht (о размере) против Das gefällt mir nicht (о вкусе).\n\nВозврат в Германии — обычное дело: Umtausch в течение примерно двух недель с чеком (der Kassenbon). Поэтому чек не выбрасывают, а продавец спросит про него первым.\n\nИ мелочь, которая сбивает: на кассе всё происходит быстро, товары складывают в сумку уже после оплаты, а пакет платный.',
-    checklist: [
-      'mich/dich/ihn — Akkusativ, mir/dir/ihm — Dativ',
-      'Dativ раньше Akkusativ, но два местоимения — наоборот',
-      'passen — про размер, gefallen — про вкус',
-      'Umtausch с чеком',
-    ],
     vocab: [
       { term: 'anprobieren', ru: 'примерять' },
       { term: 'die Umkleidekabine', ru: 'примерочная' },
@@ -745,12 +672,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Рассказ о прошлых выходных: десять предложений в перфекте',
     theory:
       'Перфект строится так: вспомогательный глагол (haben или sein) на второй позиции, причастие II в самом конце. Ich habe gestern lange gearbeitet. Wir sind nach Berlin gefahren.\n\nПричастие II. Слабые глаголы: ge- + основа + -t (gemacht, gearbeitet, gekauft). Сильные: ge- + основа (часто с другой гласной) + -en (gegangen, gesprochen, gefahren). Глаголы на -ieren и с неотделяемой приставкой ge- не получают: studiert, telefoniert, bekommen, verstanden. У отделяемых ge- встаёт внутрь: aufgestanden, angerufen, eingekauft.\n\nВыбор вспомогательного. Sein берут глаголы движения (gehen, fahren, kommen, fliegen, laufen), смены состояния (aufstehen, einschlafen, werden) и три отдельных: sein, bleiben, passieren. Все остальные — haben.\n\nЧастая ошибка: «Ich habe nach Berlin gefahren». Движение требует sein.\n\nВопрос строится тем же способом: Hast du das Formular ausgefüllt? Was hast du am Wochenende gemacht? — это, кстати, главный вопрос немецкого понедельника.',
-    checklist: [
-      'haben/sein + Partizip II в конце',
-      'слабые -t, сильные -en',
-      '-ieren и неотделяемые — без ge-',
-      'движение и смена состояния — sein',
-    ],
     vocab: [
       { term: 'gestern', ru: 'вчера' },
       { term: 'vorgestern', ru: 'позавчера' },
@@ -802,12 +723,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Пять абзацев биографии: где родились, где учились, кем работали',
     theory:
       'Претеритум — простое прошедшее. Слабые глаголы: основа + -te (machte, arbeitete, wohnte). Сильные меняют корень и в первом и третьем лице не имеют окончания: ging, kam, sah, sprach, fuhr.\n\nВ разговорной речи Германии он почти вытеснен перфектом — но не у всех глаголов. Sein (war), haben (hatte), werden (wurde) и модальные (konnte, musste, wollte, durfte, sollte) в устной речи стоят именно в претеритуме: Ich war gestern krank, а не «bin gewesen».\n\nВ книгах, статьях и новостях претеритум основной. «Es war einmal…» — так начинается каждая сказка Гриммов.\n\nПрактический вывод: активно вам нужны war, hatte и модальные плюс десяток частотных сильных глаголов. Всё остальное — пассивно, для чтения.\n\nЕсть и региональная деталь: на юге Германии и в Австрии претеритум в речи почти не употребляют вовсе, там всё прошедшее — перфект.',
-    checklist: [
-      'war, hatte, wurde — всегда претеритум',
-      'модальные в прошедшем — претеритум',
-      'слабые -te, сильные с изменением корня',
-      'претеритум — язык книг и новостей',
-    ],
     vocab: [
       { term: 'geboren sein', ru: 'родиться (ich bin … geboren)' },
       { term: 'aufwachsen', ru: 'расти, вырасти' },
@@ -866,12 +781,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Объявление о сдаче своей комнаты — с прилагательными',
     theory:
       'После sein прилагательное не меняется вовсе: Das Haus ist neu. Меняется только то, что стоит между артиклем и существительным.\n\nПравило: если артикль уже показал род и падеж (der, die, das, dem, den), прилагательному хватает -e или -en. Если артикля нет или он ничего не показывает (ein в мужском и среднем роде), окончание артикля берёт на себя прилагательное: ein neuer Wagen, kaltes Wasser.\n\nПрактически это выглядит так: в Nominativ единственного числа — der neue Kollege, die neue Kollegin, das neue Buch, но ein neuer Kollege, ein neues Buch. В Dativ и во множественном числе почти всегда -en: mit dem neuen Kollegen, mit freundlichen Grüßen.\n\nНе пытайтесь выучить три таблицы наизусть — выучите две проверки: показал ли артикль род и какой это падеж. В Dativ смело ставьте -en и почти никогда не ошибётесь.\n\nИ помните про порядок: прилагательных может быть несколько, и все они получают одинаковое окончание — eine kleine, helle Wohnung.',
-    checklist: [
-      'после sein — без окончания',
-      'артикль показал → -e / -en',
-      'ein → окончание на прилагательном',
-      'в Dativ почти всегда -en',
-    ],
     vocab: [
       { term: 'hell / dunkel', ru: 'светлый / тёмный' },
       { term: 'ruhig / laut', ru: 'тихий / шумный' },
@@ -923,12 +832,6 @@ const UNITS_A2: LangUnit[] = [
     artifact: 'Сравнение двух квартир или двух городов на 100 слов',
     theory:
       'Сравнительная степень — окончание -er: schnell → schneller. Превосходная — am …-sten (am schnellsten) или der/die/das …-ste перед существительным (die schnellste Bahn).\n\nКороткие односложные прилагательные часто получают умлаут: alt → älter → am ältesten; groß → größer → am größten; jung → jünger.\n\nНеправильные: gut → besser → am besten, viel → mehr → am meisten, gern → lieber → am liebsten, hoch → höher, nah → näher.\n\nГлавное правило употребления: неравное сравнение вводится als (größer als), равное — so … wie (so groß wie). Wie вместо als в разговоре слышно постоянно, но это ошибка.\n\nПолезные конструкции: immer + сравнительная («всё …») — Es wird immer kälter; je … desto — Je früher, desto besser.\n\nИ обратите внимание на lieber: это стандартный способ сказать «я предпочитаю» — Ich trinke lieber Tee.',
-    checklist: [
-      '-er и am …-sten',
-      'als для неравного, so … wie для равного',
-      'gut → besser → am besten',
-      'lieber = предпочитаю',
-    ],
     vocab: [
       { term: 'billig / teuer', ru: 'дешёвый / дорогой' },
       { term: 'schnell / langsam', ru: 'быстрый / медленный' },
@@ -985,12 +888,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Письменное объяснение: почему вы не смогли прийти и что предлагаете',
     theory:
       'Подчинительные союзы отправляют спрягаемый глагол в конец придаточного: Ich komme später, weil ich noch arbeiten muss. Если в придаточном есть модальный, в конец уходит именно он, а инфинитив встаёт перед ним.\n\nСочинительные союзы (und, aber, oder, denn, sondern) порядок не меняют вовсе. Поэтому denn и weil переводятся одинаково, а ведут себя противоположно — это самая полезная пара для проверки себя.\n\nЕсли придаточное стоит первым, оно занимает всю первую позицию, и главное начинается сразу с глагола: Weil es regnet, bleiben wir zu Hause.\n\nЗначения: dass — «что» (Ich weiß, dass er kommt), wenn — «если» и «когда» о повторяющемся, als — «когда» об однократном в прошлом, obwohl — «хотя», damit — «чтобы», ob — «ли» в косвенном вопросе.\n\nОтдельно стоят deshalb, deswegen, trotzdem: это не союзы, а наречия, после них глагол идёт сразу — Es regnet, deshalb bleiben wir zu Hause.',
-    checklist: [
-      'weil, dass, wenn, obwohl → глагол в конец',
-      'denn, und, aber → порядок обычный',
-      'придаточное впереди → главное с глагола',
-      'als — однократное прошлое, wenn — повторяющееся',
-    ],
     vocab: [
       { term: 'weil', ru: 'потому что (глагол в конец)' },
       { term: 'denn', ru: 'потому что (порядок не меняется)' },
@@ -1043,12 +940,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Маршрут от дома до работы, описанный по-немецки в шесть шагов',
     theory:
       'Императив бывает трёх видов. Вежливый: инфинитив + Sie — Fahren Sie geradeaus. На «ты»: голая основа — Fahr geradeaus. Ко многим на «ты»: основа + -t — Fahrt geradeaus. Bitte здесь не украшение, а обязательная часть просьбы.\n\nПредлоги направления. Nach — с городами и странами без артикля (nach Berlin, nach Deutschland) и в устойчивом nach Hause. Zu — к человеку и к учреждению (zum Arzt, zur Post). In — внутрь помещения или страны с артиклем (ins Kino, in die Türkei).\n\nТранспортный минимум: U-Bahn — метро, S-Bahn — городская электричка, RE и RB — региональные поезда, ICE и IC — дальние. Турникетов нет, но билет обязателен, а безбилетный проезд (Schwarzfahren) стоит 60 евро.\n\nВ объявлениях слушайте два слова: Gleis (путь) и Verspätung (опоздание). Смена пути объявляется по-немецки и часто в самом конце фразы — рамка работает и здесь.',
-    checklist: [
-      'Fahren Sie / Fahr / Fahrt',
-      'nach + город, zu + человек и учреждение, in + помещение',
-      'Gleis, Verspätung, umsteigen',
-      'билет обязателен и без турникета',
-    ],
     vocab: [
       { term: 'die Fahrkarte', ru: 'билет' },
       { term: 'umsteigen', ru: 'пересаживаться' },
@@ -1102,12 +993,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Диалог записи к врачу и письмо работодателю о болезни',
     theory:
       'Боль выражается двумя способами: Mir tut der Kopf weh (мне болит голова) или Ich habe Kopfschmerzen (у меня головная боль). Оба нормальны, второй проще: Hals-, Bauch-, Rücken-, Zahnschmerzen.\n\nВозвратные глаголы: sich fühlen (чувствовать себя), sich verletzen (получить травму), sich ausruhen (отдыхать), sich erkälten (простудиться). Sich стоит в Akkusativ, но если в предложении есть прямое дополнение — в Dativ: Ich wasche mich, но Ich wasche mir die Hände.\n\nКак устроена система. Точка входа — Hausarzt, он направляет к специалисту (Überweisung). В приёмной отдают Versichertenkarte. Больничный называется Krankmeldung или AU, и первые дни врач сам отправляет его работодателю; работодателю вы звоните утром сами.\n\nВ аптеке описывайте симптом, а не просите название: Haben Sie etwas gegen Husten? Рецептурное лекарство без Rezept не дадут ни при каких уговорах.',
-    checklist: [
-      'Mir tut … weh / Ich habe …schmerzen',
-      'sich fühlen, sich ausruhen, sich erkälten',
-      'Hausarzt → Überweisung → Facharzt',
-      'Krankmeldung уходит работодателю',
-    ],
     vocab: [
       { term: 'die Schmerzen', ru: 'боли' },
       { term: 'sich fühlen', ru: 'чувствовать себя' },
@@ -1159,12 +1044,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Письмо с просьбой перенести встречу и предложением двух вариантов',
     theory:
       'Обращение: Sehr geehrte Frau … / Sehr geehrter Herr … — официально; Liebe … / Lieber … — к знакомому коллеге; Hallo … — внутри команды, где на du. Подпись: Mit freundlichen Grüßen (официально), Viele Grüße или Beste Grüße (по-рабочему).\n\nПолезные формулы: Ich melde mich (я дам знать), Können wir einen Termin ausmachen? (назначим встречу?), Passt Ihnen Dienstag? (вторник вам подходит?), Ich komme darauf zurück (я вернусь к этому вопросу), Vielen Dank im Voraus (заранее спасибо).\n\nКосвенный вопрос: прямой вопрос превращается в придаточное, и глагол уходит в конец. Wann kommt der Bericht? → Können Sie mir sagen, wann der Bericht kommt? Без вопросительного слова используется ob: Ich frage mich, ob das möglich ist.\n\nИ культурная часть, без которой формулы не работают: Feierabend — это не «вечер», а конец рабочего дня, после которого письма не читают и не ждут. Срок в письме — обещание, а не пожелание: обещали к пятнице — значит к пятнице.',
-    checklist: [
-      'Sehr geehrte/r … + Mit freundlichen Grüßen',
-      'косвенный вопрос: глагол в конец, ob без вопросительного слова',
-      'Termin ausmachen, sich melden',
-      'после Feierabend не пишут',
-    ],
     vocab: [
       { term: 'der Betreff', ru: 'тема письма' },
       { term: 'die Anlage', ru: 'вложение' },
@@ -1216,12 +1095,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Пять просьб к разным людям: соседу, начальнику, чиновнику, врачу, другу',
     theory:
       'Форма строится двумя способами. У большинства глаголов — würde + инфинитив: Ich würde das nicht machen. У частотных есть собственные формы: sein → wäre, haben → hätte, können → könnte, müssen → müsste, werden → würde.\n\nПервая работа этой формы — вежливость: Ich hätte gern einen Kaffee, Könnten Sie mir helfen?, Das wäre sehr nett. В магазине, в кабинете и в письме это норма, а не украшение.\n\nВторая — совет: An deiner Stelle würde ich warten («на твоём месте я бы подождал»). Du solltest mal zum Arzt gehen («тебе стоило бы сходить к врачу»).\n\nТретья — нереальное условие: Wenn ich Zeit hätte, würde ich kommen. Обратите внимание: в придаточном с wenn глагол всё равно уходит в конец, и там стоит форма Konjunktiv, а не würde.\n\nИ четвёртая, менее очевидная, — смягчение собственного мнения: Ich würde sagen, das ist zu teuer. Так спорят, не переходя на личности.',
-    checklist: [
-      'würde + инфинитив',
-      'wäre, hätte, könnte, müsste',
-      'Ich hätte gern / Könnten Sie …',
-      'Wenn … hätte, würde ich …',
-    ],
     vocab: [
       { term: 'die Bitte', ru: 'просьба' },
       { term: 'der Rat', ru: 'совет' },
@@ -1273,12 +1146,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Заполненный (учебный) бланк Anmeldung и письмо с вопросом о недостающей бумаге',
     theory:
       'Пассив: werden + Partizip II. Das Formular wird ausgefüllt. В прошедшем — wurde: Der Antrag wurde abgelehnt. Исполнитель называется редко, через von: Der Brief wurde von der Behörde geschickt.\n\nВ разговоре пассив часто заменяют на man: Man macht das so, Wo bekommt man das Formular?\n\nСловарь, без которого не обойтись: der Termin (запись на приём), die Anmeldung (регистрация по адресу), die Wohnungsgeberbestätigung (подтверждение от арендодателя), die Meldebescheinigung (справка о регистрации), der Nachweis (подтверждение), die Frist (срок), der Bescheid (решение ведомства).\n\nЛогика системы простая и жёсткая: без записи не попасть, без полного комплекта документов приём не состоится, а срок — это срок. Недостающая бумага означает не «донесёте потом», а новую запись через несколько недель.\n\nПолезная фраза для любого окна: Welche Unterlagen brauche ich? Задавайте её ДО визита, а не на приёме.',
-    checklist: [
-      'werden + Partizip II = пассив',
-      'wurde — пассив в прошедшем',
-      'man — разговорная замена',
-      'Termin, Anmeldung, Nachweis, Frist, Bescheid',
-    ],
     vocab: [
       { term: 'die Behörde', ru: 'ведомство' },
       { term: 'der Antrag', ru: 'заявление' },
@@ -1331,12 +1198,6 @@ const UNITS_B1: LangUnit[] = [
     artifact: 'Ваше письмо-отклик на объявление о квартире',
     theory:
       'Genitiv отвечает на вопрос wessen? (чей): die Farbe der Wand, der Vertrag des Mieters. В мужском и среднем роде существительное получает -(e)s. В разговоре его почти вытеснил оборот von + Dativ, но в договорах он живой.\n\nЕго требуют предлоги wegen, während, trotz, innerhalb: innerhalb einer Woche, wegen des Lärms.\n\nСложные существительные разбираются справа налево: последнее слово главное, оно задаёт род. Mietvertrag — это Vertrag (договор) о Miete (аренде), мужского рода. Nebenkostenabrechnung — Abrechnung (перерасчёт) по Nebenkosten (коммунальным).\n\nСловарь аренды, который решает всё: Kaltmiete (без коммунальных), Nebenkosten (коммунальные), Warmmiete (вместе), Kaution (залог, до трёх аренд), Übergabeprotokoll (акт приёма-передачи), Hausordnung (правила дома), Kündigungsfrist (срок расторжения, обычно три месяца).\n\nПрактическое: на просмотр приходят с полным комплектом бумаг, а дефекты фиксируют в акте с фотографиями — иначе их вычтут из залога при выезде.',
-    checklist: [
-      'Genitiv: des …-s, der …',
-      'wegen, während, trotz, innerhalb + Genitiv',
-      'сложное слово читается справа налево',
-      'Kaltmiete + Nebenkosten = Warmmiete',
-    ],
     vocab: [
       { term: 'der Mietvertrag', ru: 'договор аренды' },
       { term: 'die Kaltmiete', ru: 'аренда без коммунальных' },
@@ -1387,13 +1248,7 @@ const UNITS_B1: LangUnit[] = [
     vocabTheme: 'Планы, цели, намерения',
     artifact: 'Устный план на год: три цели, зачем они и что для них нужно',
     theory:
-      'Будущее. В обычном разговоре о планах хватает настоящего времени с обстоятельством: Nächstes Jahr ziehe ich um. Форма werden + инфинитив используется для предсказаний (Es wird regnen), обещаний (Ich werde dir helfen) и там, где нужна подчёркнутая определённость.\n\nИнфинитив с zu ставится после многих глаголов и выражений: Ich versuche zu verstehen, Ich habe vor umzuziehen (у отделяемых zu встаёт внутрь), Es ist wichtig, pünktlich zu sein.\n\nОборот цели um … zu употребляется, когда подлежащее в обеих частях одно: Ich lerne Deutsch, um hier zu arbeiten. Если подлежащие разные — только damit: Ich erkläre es dir, damit du es verstehst.\n\nЭто последний юнит курса, и здесь стоит проверить себя честно: возьмите чек-листы всех юнитов и отметьте только то, что вы можете сделать вслух без подготовки. Всё, что осталось неотмеченным, — это ваш план на следующий месяц, а не повод считать курс непройденным.',
-    checklist: [
-      'настоящее время годится для планов',
-      'werden + инфинитив — предсказание и обещание',
-      'um … zu при одном подлежащем, damit при разных',
-      'инфинитив с zu: versuchen, vorhaben, wichtig sein',
-    ],
+      'Будущее. В обычном разговоре о планах хватает настоящего времени с обстоятельством: Nächstes Jahr ziehe ich um. Форма werden + инфинитив используется для предсказаний (Es wird regnen), обещаний (Ich werde dir helfen) и там, где нужна подчёркнутая определённость.\n\nИнфинитив с zu ставится после многих глаголов и выражений: Ich versuche zu verstehen, Ich habe vor umzuziehen (у отделяемых zu встаёт внутрь), Es ist wichtig, pünktlich zu sein.\n\nОборот цели um … zu употребляется, когда подлежащее в обеих частях одно: Ich lerne Deutsch, um hier zu arbeiten. Если подлежащие разные — только damit: Ich erkläre es dir, damit du es verstehst.\n\nЭто последний юнит курса, и здесь стоит проверить себя честно: пройдитесь по правилам всех юнитов и оставьте только то, что вы можете сказать вслух без подготовки. Всё остальное — это ваш план на следующий месяц, а не повод считать курс непройденным.',
     vocab: [
       { term: 'vorhaben', ru: 'намереваться, планировать' },
       { term: 'planen', ru: 'планировать' },

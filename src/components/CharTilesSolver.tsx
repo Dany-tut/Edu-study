@@ -20,6 +20,7 @@ import { motion } from 'framer-motion'
 import { charUnits, scrambleUnits } from '../data/taskTypes'
 import { isSyllable, syllableDistractors } from '../data/hangul'
 import { playPop, vibrate } from '../lib/sound'
+import { useOwnString } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'
 
 type Tile = { ch: string; key: string }
@@ -53,7 +54,10 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
     return scrambleUnits([...need, ...extra]).map((ch, i) => ({ ch, key: `${ch}#${i}` }))
   }, [mode, need, distractors, answer])
 
-  const picked = useMemo(() => Array.from(value ?? ''), [value])
+  // Ответ читается из хука, а не из пропса: пять тапов подряд успевают попасть
+  // в один рендер, и каждый следующий обязан видеть предыдущий.
+  const [answerNow, emit] = useOwnString(value, onChange)
+  const picked = useMemo(() => Array.from(answerNow), [answerNow])
   const full = picked.length >= need.length
   const correct = full && picked.join('') === need.join('')
 
@@ -67,58 +71,74 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
   })
 
   const pick = (ch: string) => {
-    if (disabled || full) return
+    const now = Array.from(answerNow)
+    if (disabled || now.length >= need.length) return
     playPop()
     vibrate(8)
-    onChange([...picked, ch].join(''))
+    emit([...now, ch].join(''))
   }
   const removeAt = (i: number) => {
     if (disabled) return
     vibrate(6)
-    onChange(picked.filter((_, idx) => idx !== i).join(''))
+    emit(Array.from(answerNow).filter((_, idx) => idx !== i).join(''))
   }
   const big = need.some(isSyllable)
+
+  // Плитка собранной строки и слой строки — одни и те же метрики у призрака и у
+  // настоящих плиток: только так посчитанная высота совпадает с реальной.
+  const pickedTile: React.CSSProperties = {
+    minWidth: big ? 46 : 38, padding: big ? '8px 10px' : '7px 9px', borderRadius: 12,
+    border: '1px solid rgba(99,84,207,0.38)', background: 'var(--color-purple-soft)',
+    color: 'var(--color-text)', fontFamily: 'inherit',
+    fontSize: big ? 26 : 19, lineHeight: 1.15, fontWeight: 700,
+    textAlign: 'center',
+  }
+  const rowLayer: React.CSSProperties = { gridArea: '1 / 1', gap: 8 }
 
   return (
     <div className="flex flex-col" style={{ gap: 14 }}>
       {/* Строка сборки. Плитки в ней живые: тап возвращает слог в банк. */}
       <div
-        className="flex flex-wrap items-center justify-center"
         style={{
-          minHeight: 76, borderRadius: 20, padding: '12px 14px', gap: 8,
+          display: 'grid',
+          minHeight: 76, borderRadius: 20, padding: '12px 14px',
           background: 'var(--color-bg-3)',
           border: showVerdict
             ? `2px solid ${correct ? 'rgba(110,231,160,0.6)' : 'rgba(244,139,145,0.55)'}`
             : '2px dashed var(--color-border-strong)',
         }}
       >
-        {picked.length === 0
-          ? (
-            <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
-              {mode === 'unscramble'
-                ? t('Нажимай на плитки — собери слово правильно')
-                : t('Нажимай на нужные плитки по порядку')}
-            </span>
-          )
-          : picked.map((ch, i) => (
-            <motion.button
-              key={`p-${i}-${ch}`}
-              initial={{ scale: 0.8, opacity: 0.4 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => removeAt(i)}
-              disabled={disabled}
-              style={{
-                minWidth: big ? 46 : 38, padding: big ? '8px 10px' : '7px 9px', borderRadius: 12,
-                border: '1px solid rgba(99,84,207,0.38)', background: 'var(--color-purple-soft)',
-                color: 'var(--color-text)', fontFamily: 'inherit',
-                fontSize: big ? 26 : 19, lineHeight: 1.15, fontWeight: 700,
-                cursor: disabled ? 'default' : 'pointer',
-              }}
-            >
-              {ch}
-            </motion.button>
+        {/* Призрак собранного слова целиком: высота строки посчитана по нему, а
+            не по тому, сколько плиток набрано сейчас. Иначе каждый тап менял бы
+            высоту коробки и толкал вниз всё, что под ней. */}
+        <div aria-hidden className="flex flex-wrap items-center justify-center" style={{ ...rowLayer, visibility: 'hidden', pointerEvents: 'none' }}>
+          {need.map((ch, i) => (
+            <span key={`g-${i}`} style={{ ...pickedTile, display: 'inline-block' }}>{ch}</span>
           ))}
+        </div>
+        <div className="flex flex-wrap items-center justify-center" style={rowLayer}>
+          {picked.length === 0
+            ? (
+              <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
+                {mode === 'unscramble'
+                  ? t('Нажимай на плитки — собери слово правильно')
+                  : t('Нажимай на нужные плитки по порядку')}
+              </span>
+            )
+            : picked.map((ch, i) => (
+              <motion.button
+                key={`p-${i}-${ch}`}
+                initial={{ scale: 0.8, opacity: 0.4 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.15 }}
+                onClick={() => removeAt(i)}
+                disabled={disabled}
+                style={{ ...pickedTile, cursor: disabled ? 'default' : 'pointer' }}
+              >
+                {ch}
+              </motion.button>
+            ))}
+        </div>
       </div>
 
       {/* Банк плиток. У unscramble его порядок — «неправильное написание». */}
@@ -144,8 +164,13 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
         ))}
       </div>
 
-      {picked.length > 0 && !disabled && !showVerdict && (
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+      {/* Подпись стоит на месте всегда: появляясь с первым тапом, она сдвигала
+          собой всё, что ниже. Пока тапать нечего — она просто невидима. */}
+      {!disabled && !showVerdict && (
+        <span style={{
+          fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center',
+          visibility: picked.length > 0 ? 'visible' : 'hidden',
+        }}>
           {t('Тап по плитке в строке возвращает её в банк')}
         </span>
       )}

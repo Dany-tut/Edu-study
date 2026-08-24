@@ -20,7 +20,8 @@
     "db:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "build:feed": "node scripts/buildFeed.mjs",
-    "check:feed": "node scripts/checkFeed.mjs"
+    "check:feed": "node scripts/checkFeed.mjs",
+    "check:lesson": "esbuild scripts/checkLesson.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLesson.mjs --log-level=error && node node_modules/.cache/checkLesson.mjs"
   },
   "dependencies": {
     "@capacitor/cli": "^8.4.1",

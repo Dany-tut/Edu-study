@@ -46,6 +46,7 @@ import { motion } from 'framer-motion'
 import { RotateCcw } from 'lucide-react'
 import { CHAMO, strokePath, type Point, type Stroke } from '../data/hangul'
 import { playPop, vibrate } from '../lib/sound'
+import { okChime } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import AudioPlayer from './AudioPlayer'
 
@@ -62,6 +63,16 @@ const START_TOLERANCE = 24
  * точка ищется только в пределах окна, и заливка дальше не пойдёт.
  */
 const LOOKAHEAD = 14
+
+/**
+ * Наконечник стрелки-подсказки.
+ *
+ * Остриё смотрит вправо, вокруг нуля: наконечник ставят в нужную точку и
+ * поворачивают по ходу черты. Углы скруглены, а пятка вогнута — острый
+ * треугольник среди черт с круглыми торцами читался осколком и спорил с формой
+ * самой буквы.
+ */
+const ARROW_HEAD = 'M 3.4 -1.3 Q 5.4 0 3.4 1.3 L -2.4 4.4 Q -3.9 5 -3.3 3.5 Q -2.1 0 -3.3 -3.5 Q -3.9 -5 -2.4 -4.4 Z'
 
 /** Шаг сгущения черты. Мельче — дороже, крупнее — можно срезать угол. */
 const STEP = 2.5
@@ -165,10 +176,20 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     const tip = rest[rest.length - 1]
     const body = rest.slice(0, Math.max(2, rest.length - 2))
     const back = rest[Math.max(0, rest.length - 6)]
+    // Ближний наконечник — в паре сантиметров от кружка, по ходу черты.
+    // Дальний стоит там, где черта кончается, и у ㅇ это ровно та же точка, где
+    // она началась: у замкнутой буквы конец приходится под стартовый кружок, и
+    // вопрос «в какую сторону трогаться» оставался без ответа.
+    const leadIdx = Math.min(rest.length - 1, 7)
+    const lead = rest[leadIdx]
     return {
       d: `M ${body.map(([x, y]) => `${Math.round(x * 100) / 100} ${Math.round(y * 100) / 100}`).join(' L ')}`,
       tip,
       angle: (Math.atan2(tip[1] - back[1], tip[0] - back[0]) * 180) / Math.PI,
+      lead,
+      leadAngle: (Math.atan2(lead[1] - rest[0][1], lead[0] - rest[0][0]) * 180) / Math.PI,
+      // У короткого остатка ближний и дальний наконечники слиплись бы в один.
+      showLead: rest.length > 16,
     }
   }, [denseCurrent, takenIdx])
 
@@ -258,10 +279,16 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
       setProgress(0)
       const next = strokeIndex + 1
       setStrokeIndex(next)
-      playPop()
+      // Дописанная буква — это уже верный ответ, а не просто «закрылась ещё
+      // одна черта»: холст сам себе эталон, сверять после него нечего. Поэтому
+      // последняя черта звучит каноническим «верно», а промежуточные —
+      // нейтральным щелчком.
       if (next >= strokes.length) {
+        okChime()
         vibrate([10, 30, 10])
         onChange('done')
+      } else {
+        playPop()
       }
     }
 
@@ -382,6 +409,25 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           <circle cx={resumeAt[0]} cy={resumeAt[1]} r={6.5} fill="var(--color-blue-fill)" />
         )}
 
+        {/* Точка старта текущей черты — с неё и только с неё начинают вести.
+            nudge в ключе перезапускает пульс, когда нажали мимо: подсказка без
+            лишней строки текста. */}
+        {current && !done && !disabled && !drawing && (
+          <motion.circle
+            key={`${strokeIndex}-${nudge}`}
+            cx={current.pts[0][0]}
+            cy={current.pts[0][1]}
+            r={7}
+            fill="var(--color-blue-fill)"
+            initial={{ scale: 0.7, opacity: 0.7 }}
+            animate={{ scale: [0.85, 1.05, 0.85], opacity: 1 }}
+            transition={{ duration: 1.4, repeat: Infinity }}
+          />
+        )}
+
+        {/* Стрелки рисуются ПОСЛЕ стартового кружка: у ㅇ черта кончается там
+            же, где начинается, и наконечник «сюда вести» уходил под пульсирующий
+            кружок — стрелки на экране просто не было. */}
         {/* ОТКУДА ПРОДОЛЖАТЬ И КУДА ВЕСТИ. У ㄴ и ㅁ по одной точке не понять,
             вниз линия пойдёт или влево, — а ошибка в направлении это уже другая
             буква. Поэтому рядом с кружком стрелка, повёрнутая по ходу черты; и
@@ -410,36 +456,39 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
+                {/* Наконечники обведены цветом подложки: без обводки синий
+                    треугольник ложился прямо на серую черту той же ширины и
+                    переставал читаться как стрелка. */}
+                {guide.showLead && (
+                  <path
+                    d={ARROW_HEAD}
+                    fill="var(--color-blue-fill)"
+                    stroke="var(--color-bg-3)"
+                    strokeWidth={1.2}
+                    strokeLinejoin="round"
+                    transform={`translate(${guide.lead[0]} ${guide.lead[1]}) rotate(${guide.leadAngle})`}
+                  />
+                )}
                 <path
-                  d="M -3.4 -3.9 L 3.6 0 L -3.4 3.9 Z"
+                  d={ARROW_HEAD}
                   fill="var(--color-blue-fill)"
+                  stroke="var(--color-bg-3)"
+                  strokeWidth={1.2}
+                  strokeLinejoin="round"
                   transform={`translate(${guide.tip[0]} ${guide.tip[1]}) rotate(${guide.angle})`}
                 />
               </>
             ) : (
               <path
-                d="M -3 -4.2 L 3.6 0 L -3 4.2 Z"
+                d={ARROW_HEAD}
                 fill="var(--color-blue-fill)"
+                stroke="var(--color-bg-3)"
+                strokeWidth={1.2}
+                strokeLinejoin="round"
                 transform={`translate(${resumeAt[0]} ${resumeAt[1]}) rotate(${heading}) translate(14 0)`}
               />
             )}
           </motion.g>
-        )}
-
-        {/* Точка старта текущей черты — с неё и только с неё начинают вести.
-            nudge в ключе перезапускает пульс, когда нажали мимо: подсказка без
-            лишней строки текста. */}
-        {current && !done && !disabled && !drawing && (
-          <motion.circle
-            key={`${strokeIndex}-${nudge}`}
-            cx={current.pts[0][0]}
-            cy={current.pts[0][1]}
-            r={7}
-            fill="var(--color-blue-fill)"
-            initial={{ scale: 0.7, opacity: 0.7 }}
-            animate={{ scale: [0.85, 1.05, 0.85], opacity: 1 }}
-            transition={{ duration: 1.4, repeat: Infinity }}
-          />
         )}
       </svg>
 

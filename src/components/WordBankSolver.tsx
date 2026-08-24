@@ -6,6 +6,16 @@ import { useT } from '../lib/i18n'
 // его в банк. Ответ — массив слов в выбранном порядке (string[]), ровно что ждёт
 // gradeTask() для этих типов. Аудио не требуется, поэтому компонент общий и для
 // listenBank (там сверху добавится плеер отдельно).
+//
+// НИЧЕГО НЕ ПРЫГАЕТ. Раньше каждый тап перекраивал экран: выбранное слово
+// исчезало из банка (банк схлопывался на строку), строка ответа подрастала с
+// высоты подсказки до высоты плитки — и всё, что ниже (кнопки, подсказка),
+// уезжало под палец. Поэтому обе области посчитаны заранее:
+// • строка ответа держит высоту собранного предложения целиком — под ней лежит
+//   невидимый «призрак» из всех плиток, и высота коробки задана им, а не тем,
+//   сколько слов набрано сейчас;
+// • плитка из банка не исчезает, а гаснет на своём месте (как в CharTilesSolver):
+//   порядок и координаты остальных не меняются вообще.
 
 // Стабильная (без Math.random) перестановка: сортируем по хешу слова+индекса, так
 // порядок в банке не совпадает с эталоном, но не прыгает между рендерами.
@@ -41,17 +51,16 @@ export default function WordBankSolver({
     return [...raw].sort((a, b) => hash(a.key) - hash(b.key))
   }, [tokens, distractors])
 
-  // Банк = все плитки минус уже выбранные (по одному экземпляру на каждое вхождение слова).
-  const remaining = useMemo<Tile[]>(() => {
+  // Банк = все плитки, но потраченные помечены: они остаются на своих местах
+  // погашенными (по одному экземпляру на каждое вхождение слова в ответ).
+  const bank = useMemo(() => {
     const need = new Map<string, number>()
     for (const w of value) need.set(w, (need.get(w) ?? 0) + 1)
-    const out: Tile[] = []
-    for (const tile of allTiles) {
+    return allTiles.map(tile => {
       const n = need.get(tile.word) ?? 0
-      if (n > 0) need.set(tile.word, n - 1)
-      else out.push(tile)
-    }
-    return out
+      if (n > 0) { need.set(tile.word, n - 1); return { ...tile, spent: true } }
+      return { ...tile, spent: false }
+    })
   }, [allTiles, value])
 
   const pick = (word: string) => { if (!disabled) onChange([...value, word]) }
@@ -65,25 +74,49 @@ export default function WordBankSolver({
     color: accent ? 'var(--color-accent)' : 'var(--color-text)',
   })
 
+  // Обе стопки — реальная и «призрак» — лежат в одной клетке сетки: высота
+  // коробки берётся по самой высокой, а призрак с полным предложением всегда
+  // не ниже набранного. Значит высота задана один раз и не меняется.
+  const layer: React.CSSProperties = { gridArea: '1 / 1', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Строка ответа */}
       <div style={{
-        minHeight: 50, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center',
+        display: 'grid', minHeight: 50,
         padding: '10px 12px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)',
         background: 'var(--color-bg-input)',
       }}>
-        {value.length === 0
-          ? <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Нажимай на слова, чтобы собрать предложение')}</span>
-          : value.map((word, i) => (
-              <button key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true)}>{word}</button>
-            ))}
+        {/* Призрак: высота строки посчитана по всему предложению. */}
+        <div aria-hidden style={{ ...layer, visibility: 'hidden', pointerEvents: 'none' }}>
+          {tokens.map((word, i) => (
+            <span key={`ghost-${i}`} style={{ ...tileStyle(true), display: 'inline-block' }}>{word}</span>
+          ))}
+        </div>
+        <div style={layer}>
+          {value.length === 0
+            ? <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Нажимай на слова, чтобы собрать предложение')}</span>
+            : value.map((word, i) => (
+                <button key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true)}>{word}</button>
+              ))}
+        </div>
       </div>
 
-      {/* Банк слов */}
+      {/* Банк слов: потраченная плитка гаснет на месте, а не пропадает. */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {remaining.map(tile => (
-          <button key={tile.key} onClick={() => pick(tile.word)} style={tileStyle(false)}>{tile.word}</button>
+        {bank.map(tile => (
+          <button
+            key={tile.key}
+            onClick={() => pick(tile.word)}
+            disabled={disabled || tile.spent}
+            style={{
+              ...tileStyle(false),
+              opacity: tile.spent ? 0.32 : 1,
+              cursor: disabled || tile.spent ? 'default' : 'pointer',
+            }}
+          >
+            {tile.word}
+          </button>
         ))}
       </div>
     </div>

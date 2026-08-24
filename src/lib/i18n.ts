@@ -2083,6 +2083,9 @@ const EN: Record<string, string> = {
   // — Выбор голоса —
   "Голос": "Voice",
   "Автовыбор": "Auto",
+  "Разные голоса": "Mixed voices",
+  "свой диктор в каждом уроке": "a different speaker in every lesson",
+  "разные": "mixed",
   "автовыбор": "auto",
   "как сейчас": "as now",
   "женский": "female",

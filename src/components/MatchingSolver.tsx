@@ -232,10 +232,11 @@ export default function MatchingSolver({
   /**
    * Номер пары — нить между колонками, пока вердикта нет.
    *
-   * В мгновенном режиме номеров НЕТ: там связка живёт доли секунды и сразу
-   * получает цвет, а цифра на её месте сообщала бы только «эти две плитки я
-   * соединил» — то есть ровно то, что ученик и так только что сделал. Именно
-   * этим номера и были плохи: они занимали место вердикта, не будучи им.
+   * В мгновенном режиме и вообще везде, где пара уже покрашена, номеров НЕТ:
+   * цифра сообщала бы только «эти две плитки я соединил» — то есть ровно то,
+   * что ученик и так только что сделал, и делала бы это поверх вердикта.
+   * Номер остаётся там, где вердикта нет вовсе (тест): он единственный
+   * показывает, что с чем связано.
    */
   const Badge = ({ num, ok }: { num: number; ok: boolean | null }) => (
     <span style={{
@@ -263,7 +264,9 @@ export default function MatchingSolver({
         {pairs.map((pair, i) => {
           const picked = assign[i]
           const ok = instant ? verdictOf(i) : (showVerdict ? picked === i : null)
-          const num = !instant && picked >= 0 ? i + 1 : 0
+          // Цифра — нить между колонками, пока пары не покрашены. Есть вердикт —
+          // цвет и говорит, что с чем сошлось: номер поверх него лишний шум.
+          const num = !instant && picked >= 0 && ok === null ? i + 1 : 0
           // Эталон дописывается только после сдачи: в мгновенном режиме
           // неверная пара распадается и остаётся вопросом, а не ответом.
           const showAnswer = showVerdict && !instant && ok === false
@@ -295,7 +298,7 @@ export default function MatchingSolver({
           const ok = instant
             ? (miss && miss.right === idx ? false : verdictOf(row))
             : (showVerdict && row >= 0 ? row === idx : null)
-          const num = !instant && row >= 0 ? row + 1 : 0
+          const num = !instant && row >= 0 && ok === null ? row + 1 : 0
           return (
             <button
               key={idx}

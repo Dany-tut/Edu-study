@@ -34,8 +34,8 @@ import { getSubject } from '../lib/subjects'
 import { nestById } from './soundNests'
 import { pronRuleById } from './koreanPronRules'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
-import { checklistBlock } from '../lib/theoryChecklist'
 import { vocabImage } from './vocabImages'
+import { ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -116,23 +116,6 @@ export interface LangUnit {
    * отрабатывать нечего: письмо, чтение правил, экзаменационные стратегии.
    */
   pattern?: UnitPattern
-  /**
-   * Чек-лист юнита — формы, которые должны остаться в руке к его концу.
-   *
-   * ЗАЧЕМ ОТДЕЛЬНО ОТ `grammar`. Поле `grammar` описывает грамматику юнита одной
-   * фразой для конспекта и карточки урока — прочитать её можно, отметиться по
-   * ней нельзя. Чек-лист разбирает ту же грамматику на пункты, каждый из
-   * которых ученик либо ставит себе в актив, либо нет; вопрос «я это уже умею»
-   * иначе не задаётся вовсе и решается ощущением «вроде проходили».
-   *
-   * ПУНКТ — ФОРМА, А НЕ ТЕМА. «Отрицания (안 / ~지 않다)» проверяемо, «понимать
-   * отрицание» — нет. Поэтому в пункте стоит сама форма и короткая подпись, по
-   * которой её узнают.
-   *
-   * Не задан — чек-листа в конспекте просто нет: списка ради списка (юниты
-   * чтения, экзаменационные стратегии) быть не должно.
-   */
-  checklist?: string[]
   /** Словарь юнита. */
   vocab: VocabItem[]
   /** Задания домашней работы. */
@@ -233,6 +216,18 @@ export interface LanguageCourseSpec {
    * слова латиницей (Р1, PORTION_SCRATCH).
    */
   scratch?: boolean
+  /**
+   * Номер юнита, с которого письмо считается освоенным (Р6).
+   *
+   * До него задания курса «с нуля» показывают знак ВМЕСТЕ с транскрипцией
+   * (стадия B): ученик уже видит хангыль, но решить задание про значение можно,
+   * не читая его. С этого юнита — знак сам по себе (стадия C).
+   *
+   * Не задано у курса `scratch` — стадия B держится весь курс: показать
+   * транскрипцию лишний раз дешевле, чем спросить чтение раньше времени.
+   * У курсов не «с нуля» (TOPIK, JLPT) письмо считается известным всегда.
+   */
+  scriptReadyFrom?: number
   /** Иллюстрации конспекта по shortId юнита — см. CourseFigures. */
   figures?: CourseFigures
   /**
@@ -736,6 +731,36 @@ function vocabRecognition(
 }
 
 /**
+ * Сопоставление длиннее четырёх пар — на несколько заданий (Р4).
+ *
+ * ЗАЧЕМ. Авторские задания писались до стандарта, и сопоставлений на пять-шесть
+ * пар в курсах больше трёхсот. Шесть пар — это двенадцать связей, которые надо
+ * держать в голове одновременно: рабочая память столько не держит (Cowan 2001),
+ * и решается такое перебором, а не знанием.
+ *
+ * ПОЧЕМУ РЕЖЕМ, А НЕ ОБРЕЗАЕМ. Выкинуть лишние пары — значит выкинуть материал,
+ * который автор поставил осознанно. Здесь ничего не пропадает: шесть пар
+ * становятся двумя заданиями по три, семь — четыре и три. Куски ровные:
+ * задание из одной пары выглядит сбоем.
+ */
+export function splitMatching(tasks: SeedTask[]): SeedTask[] {
+  const MAX = 4
+  return tasks.flatMap(task => {
+    const pairs = task.pairs ?? []
+    if (task.type !== 'matching' || pairs.length <= MAX) return [task]
+    const chunks = Math.ceil(pairs.length / MAX)
+    const out: SeedTask[] = []
+    let at = 0
+    for (let k = 0; k < chunks; k++) {
+      const end = Math.round((pairs.length * (k + 1)) / chunks)
+      out.push({ ...task, pairs: pairs.slice(at, end) })
+      at = end
+    }
+    return out
+  })
+}
+
+/**
  * Дрилл юнита как задание домашки — ноль или одно.
  *
  * Возвращает массив, а не «задание либо undefined», чтобы в списке заданий он
@@ -942,7 +967,7 @@ function reviewTasks(
     })
   }
 
-  return out.map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+  return splitMatching(out).map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
 }
 
 /**
@@ -991,17 +1016,23 @@ const PORTION_SCRATCH = 3
 const portionSize = (spec: LanguageCourseSpec): number =>
   spec.scratch ? PORTION_SCRATCH : PORTION
 
+/**
+ * Стадия письма урока (Р6): знак с транскрипцией или знак сам по себе.
+ *
+ * Курс не «с нуля» — письмо известно по условию (TOPIK сдают уже читающие).
+ * Курс «с нуля» держит транскрипцию до юнита `scriptReadyFrom`, а без этого
+ * поля — весь курс: лишняя подсказка стоит меньше, чем вопрос про чтение,
+ * заданный раньше, чем чтению научили.
+ */
+const writingStage = (spec: LanguageCourseSpec, unit: LangUnit): WritingStage =>
+  spec.scratch && (spec.scriptReadyFrom == null || unit.n < spec.scriptReadyFrom) ? 'B' : 'C'
+
 export function vocabPortions(vocab: VocabItem[], size: number): VocabItem[][] {
-  if (vocab.length <= size) return [vocab]
-  const count = Math.ceil(vocab.length / size)
-  const out: VocabItem[][] = []
-  let at = 0
-  for (let k = 0; k < count; k++) {
-    const end = Math.round((vocab.length * (k + 1)) / count)
-    out.push(vocab.slice(at, end))
-    at = end
-  }
-  return out
+  // Резать подряд идущими кусками нельзя: автор ставит рядом однокоренные и
+  // одинаково переводимые слова (안녕히 가세요 / 안녕히 계세요), и такой кусок даёт
+  // занятие из двух неразличимых слов. Раскладку делает spreadConfusable (Р5):
+  // порции остаются ровными, но спутываемое разъезжается по разным занятиям.
+  return spreadConfusable(vocab, size)
 }
 
 /**
@@ -1125,9 +1156,6 @@ function composeTheory(unit: LangUnit): string {
   ].join('\n\n')
 }
 
-/** Заголовок чек-листа — один на все курсы: ученик узнаёт блок в лицо. */
-const CHECKLIST_TITLE = 'Чек-лист: что должно остаться в руке'
-
 /**
  * Конспект юнита для редактора: текст плюс иллюстрации.
  *
@@ -1137,12 +1165,7 @@ const CHECKLIST_TITLE = 'Чек-лист: что должно остаться �
  * (разбор маркеров — в lib/theoryImages.ts).
  */
 function theoryOf(unit: LangUnit, figures: UnitFigure[] = []): { theory: string; theoryImages: TheoryImage[] } {
-  const body = unit.theory?.trim() || composeTheory(unit)
-  // Чек-лист всегда последним абзацем: это не часть объяснения, а то, с чем
-  // ученик к объяснению возвращается. Стоя в середине, он разрывал бы правило.
-  const text = unit.checklist?.length
-    ? `${body}\n\n${checklistBlock(CHECKLIST_TITLE, unit.checklist)}`
-    : body
+  const text = unit.theory?.trim() || composeTheory(unit)
   if (!figures.length) return { theory: text, theoryImages: [] }
 
   const paras = text.split(/\n\s*\n/)
@@ -1290,8 +1313,15 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           ...(first
             ? reviewTasks(unit, byN, `${id}-rv`, spec.lang, spec.native)
             : portionReview(parts[k - 1], `${id}-rv`, spec.lang, spec.native)),
-          // Работа юнита и карточки его слов идут вперемешку: подряд идущих
-          // карточек больше двух не бывает (см. interleaveCards).
+          // ЗНАКОМСТВО ПЕРВЫМ (Р3). Раньше карточки слов размазывались по всей
+          // домашке (interleaveCards), и половина заданий про слово шла до
+          // того, как слово вообще показали. Порция — это три-четыре слова:
+          // карточки на них занимают полминуты и стоят там, где им место, — в
+          // начале, экраном без правильного ответа.
+          ...vocab.map((word, i) => vocabCard(word, `${id}-v${i + 1}`, spec.lang, spec.native)),
+          // Лестница (ступени 1–3) вперемешку с работой юнита: узнавание из
+          // двух, на слух, сборка написания — кругами по всем словам порции,
+          // чтобы между двумя касаниями одного слова стояли чужие (Р2).
           ...interleaveCards(
             [
               // Дрилл идёт первым: конструкция сначала ставится в руку
@@ -1299,14 +1329,18 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
               // заданиями. В обратном порядке первые упражнения проверяли бы то,
               // что ещё не отработано.
               ...(first ? patternTask(unit, `${id}-p`, spec.lang) : []),
-              ...taskParts[k].map((task, i) => editorTask(task, `${id}-t${i + 1}`, spec.lang)),
+              // Сопоставления длиннее четырёх пар режутся на несколько
+              // заданий (Р4) — материал сохраняется целиком.
+              ...splitMatching(taskParts[k]).map((task, i) => editorTask(task, `${id}-t${i + 1}`, spec.lang)),
               ...pictureTasks(part, `${id}-pic`, spec.lang),
-              // Узнавание идёт до карточек по тому же слову: к вводу перевода
-              // ученик приходит, увидев слово третий раз (см. vocabRecognition).
-              ...vocabRecognition(part, `${id}-r`, spec.lang, spec.native, seen),
             ],
-            vocab.map((word, i) => vocabCard(word, `${id}-v${i + 1}`, spec.lang, spec.native)),
+            ladderTasks(vocab, { native: spec.native, stage: writingStage(spec, unit) })
+              .map((task, i) => editorTask(task, `${id}-l${i + 1}`, spec.lang)),
           ),
+          // Экзамен порции — в конце (Р4): сопоставление пар и припоминание из
+          // четырёх. Раньше сопоставление стояло вторым заданием урока, сразу
+          // после показа словаря.
+          ...vocabRecognition(part, `${id}-r`, spec.lang, spec.native, seen),
         ],
       })
     })

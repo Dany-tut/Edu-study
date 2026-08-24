@@ -27,7 +27,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle2, X } from 'lucide-react'
 import { useT } from '../lib/i18n'
-import { useKeyboardInset } from '../lib/useKeyboardInset'
+import { useKeyboardState } from '../lib/useKeyboardInset'
 import { bindShortWords, proseWrap } from '../lib/typography'
 
 export type FlowVerdict = 'none' | 'correct' | 'wrong' | 'review'
@@ -43,6 +43,7 @@ export default function HomeworkFlowBar({
   navCollapsed,
   onPrimary,
   onSkip,
+  skipSlot = false,
 }: {
   /** Сколько шагов пройдено — на прогресс-линию. Знакомство идёт нулевым. */
   step: number
@@ -58,9 +59,11 @@ export default function HomeworkFlowBar({
   onPrimary: () => void
   /** Пропуск задания. Не показывается, когда пропускать уже нечего. */
   onSkip?: () => void
+  /** Держать место под «Пропустить», даже когда пропускать уже нечего. */
+  skipSlot?: boolean
 }) {
   const t = useT()
-  const keyboard = useKeyboardInset()
+  const keyboard = useKeyboardState()
 
   const tone = verdict === 'correct'
     ? { bg: 'var(--color-green-soft)', fg: 'var(--color-green-text)' }
@@ -71,7 +74,14 @@ export default function HomeworkFlowBar({
   // На телефоне полоса поднимается над нижней навигацией, на мониторе просто
   // прижата к низу. Клавиатура сдвигает всё вверх на свою высоту: под ней
   // кнопка «Проверить» недостижима, а именно её и нажимают чаще всего.
-  const lift = keyboard > 0 ? keyboard : isMobile ? (navCollapsed ? 76 : 88) : 0
+  // KEY_GAP — запас над клавиатурой. Верхняя её строка (подсказки набора и
+  // панель «▲▼ Готово») выезжает отдельно и на кадр-другой отстаёт от замера:
+  // без запаса она успевает лечь на кнопку, а промахнуться по «Проверить»
+  // из-за чужой панели — худшее, что может случиться на этом экране.
+  const KEY_GAP = 10
+  const lift = keyboard.open
+    ? keyboard.inset + KEY_GAP
+    : isMobile ? (navCollapsed ? 76 : 88) : 0
 
   return (
     <motion.div
@@ -83,7 +93,7 @@ export default function HomeworkFlowBar({
         left: 0,
         right: 0,
         zIndex: 100,
-        marginBottom: keyboard > 0 ? 0 : 'env(safe-area-inset-bottom, 0px)',
+        marginBottom: keyboard.open ? 0 : 'env(safe-area-inset-bottom, 0px)',
         // Ничего сплошного: над заданием висят сами элементы, а не панель.
         // Плашка во всю ширину отрезала бы низ экрана даже там, где под ней
         // пусто, — а пусто под ней почти всегда. Фон ловил бы и клики, поэтому
@@ -144,10 +154,18 @@ export default function HomeworkFlowBar({
 
         {/* items-stretch: «Пропустить» тянется по высоте главной кнопки. Своя
             вертикальная набивка делала её ниже, и пара кнопок стояла ступенькой. */}
+        {/* Ширина главной кнопки не меняется от того, ответили уже или нет:
+            «Пропустить» уходит, но его место остаётся (skipSlot). Иначе
+            «Проверить» на первом же тапе раздувалась во всю ширину и уезжала
+            в сторону — палец промахивался мимо той самой кнопки, ради которой
+            вся полоса и зафиксирована. */}
         <div className="flex items-stretch" style={{ gap: 12 }}>
-          {onSkip && (
+          {(onSkip || skipSlot) && (
             <button
               onClick={onSkip}
+              disabled={!onSkip}
+              aria-hidden={!onSkip}
+              tabIndex={onSkip ? undefined : -1}
               className="cursor-pointer flex items-center justify-center"
               style={{
                 // Граница — не декор: без панели кнопка ложится то на серый фон
@@ -160,7 +178,9 @@ export default function HomeworkFlowBar({
                 backdropFilter: 'blur(14px)',
                 boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
                 color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-                flexShrink: 0, pointerEvents: 'auto',
+                flexShrink: 0, pointerEvents: onSkip ? 'auto' : 'none',
+                visibility: onSkip ? 'visible' : 'hidden',
+                cursor: onSkip ? 'pointer' : 'default',
               }}
             >
               {t('Пропустить')}
