@@ -80,6 +80,10 @@ import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
  */
 const HW_ANSWER_MIN_H = growMinHeight(4, 14, 12, 1)
 
+/** Высота плашки вердикта («Верно»/«Неверно»): 9+9 паддинга и строка 13×1.4.
+    Строка заголовка вопроса держит её всегда, чтобы ответ не скакал. */
+const VERDICT_PILL_H = 36
+
 // ─── Emoji self-assessment ────────────────────────────────────────────────
 
 export const EMOJI_STEPS = [
@@ -1036,26 +1040,29 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange }: {
   const skipped = value === NO_VOICE
 
   if (skipped) {
+    // Отказ от записи — это состояние поля, а не предупреждение: жёлтая плашка
+    // во всю ширину кричала об ошибке там, где ошибки нет. Осталась одна тихая
+    // строка в тон остальным полям ответа и ссылка вернуться к записи.
     return (
-      <div className="flex items-center flex-wrap" style={{
-        gap: 10, padding: '12px 14px', borderRadius: 16,
-        background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
+      <div className="flex items-center" style={{
+        gap: 9, padding: '10px 12px', borderRadius: 14,
+        background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)',
       }}>
-        <MicOff size={16} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', lineHeight: 1.45 }}>
-          {t('Записи не будет — преподаватель увидит пометку и спросит это на уроке.')}
+        <MicOff size={15} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
+          {t('Без записи')}
         </span>
         {!disabled && (
           <button
             onClick={() => onChange('')}
             className="cursor-pointer"
             style={{
-              marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 999,
-              height: 30, padding: '0 14px', fontFamily: 'inherit', fontSize: 12.5,
-              fontWeight: 700, color: 'var(--color-muted)',
+              marginLeft: 'auto', border: 'none', background: 'transparent', padding: 0,
+              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+              color: 'var(--color-accent)',
             }}
           >
-            {t('Всё-таки записать')}
+            {t('Записать')}
           </button>
         )}
       </div>

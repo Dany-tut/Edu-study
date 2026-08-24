@@ -1,6 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { Plus, Camera, X } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
+import { alertDialog } from '../ConfirmHost'
 
 // Фото не влезло в потолок base64 даже после дожима — сообщаем и не вставляем.
 const onPhotoTooLarge = (e: unknown) => {
@@ -10,7 +11,6 @@ const onPhotoTooLarge = (e: unknown) => {
 import { getContrastColor } from '../../lib/utils'
 import { useT } from '../../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
-import { alertDialog } from '../ConfirmHost'
 
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
 // Extracted from the trainer creator so the course constructor uses the exact
