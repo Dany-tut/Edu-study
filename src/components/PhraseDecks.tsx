@@ -501,23 +501,25 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
             style={{
               position: 'relative', overflow: 'hidden',
               display: 'flex', alignItems: 'flex-start', gap: 12, borderRadius: 14,
-              // Место под значок звука в правом верхнем углу — как у карточки
-              // слова и у карточки стопки: один угол на весь продукт.
-              padding: '11px 14px', paddingRight: 46,
+              padding: '11px 14px',
               background: 'var(--color-bg-2)',
               border: `1px solid ${sp ? accent : on ? `${accent}55` : 'var(--color-border-soft)'}`,
               cursor: 'pointer',
               transition: 'border-color 0.2s ease',
             }}
           >
-            {/* Звук строки — в её правом верхнем углу. Здесь значок сам кнопка:
-                тап по строке уже занят — им её раскрывают. */}
+            {/* Звук ведёт строку слева: справа за ним пришлось бы тянуться
+                через весь перевод. Вид значка общий на весь продукт
+                (components/SoundBadge), место — своё. Значок сам кнопка: тап по
+                строке уже занят, им её раскрывают. */}
             <SoundBadge
               accent={accent}
               soft={`${accent}22`}
               on={!!sp && !sp.done}
               onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(`p${i}`, p.term, lang) }}
               label={t('Послушать')}
+              size={30}
+              style={{ position: 'static', flexShrink: 0, marginTop: 1 }}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Раскрытая фраза разбирается по клику на слово: 데워 주세요 —
@@ -562,20 +564,9 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                   оба динамика ищут в одном месте, слева, а не по краям. */}
               {on && p.ex && (
                 <div style={{
-                  position: 'relative', marginTop: 10, paddingLeft: 10, paddingRight: 34,
+                  position: 'relative', marginTop: 10, paddingLeft: 10,
                   borderLeft: `2px solid ${accent}55`,
                 }}>
-                  {/* Пример слушают отдельно от заглавной фразы — и значок у
-                      него в СВОЁМ правом верхнем углу, той же формы. */}
-                  <SoundBadge
-                    accent={accent}
-                    soft={`${accent}22`}
-                    on={speaking?.id === `x${i}` && !speaking.done}
-                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(`x${i}`, p.ex!.term, lang) }}
-                    label={t('Послушать пример')}
-                    size={24}
-                    inset={0}
-                  />
                   <div
                     onClick={e => e.stopPropagation()}
                     style={{
@@ -583,6 +574,17 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                       display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
                     }}
                   >
+                    {/* Пример слушают отдельно от заглавной фразы, и его значок
+                        стоит там же, где у неё, — перед текстом. */}
+                    <SoundBadge
+                      accent={accent}
+                      soft={`${accent}22`}
+                      on={speaking?.id === `x${i}` && !speaking.done}
+                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(`x${i}`, p.ex!.term, lang) }}
+                      label={t('Послушать пример')}
+                      size={26}
+                      style={{ position: 'static', flexShrink: 0 }}
+                    />
                     <GlossedText text={p.ex.term} lang={lang} accent={accent} />
                   </div>
                   {view.reading && p.ex.reading && (

@@ -142,6 +142,7 @@ function CoreTable({ lang, accent, reading }: { lang: string; accent: string; re
         }}>
           <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text-3)' }}>{n.digit}</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <SpeakBtn term={n.native} lang={lang} accent={accent} size={26} />
             <Block accent={accent} tone={SYSTEM_TONE.native} size="sm">{n.native}</Block>
             {/* Короткая форма стоит рядом со словарной, а не в сноске: в живой
                 речи «두 개» встречается чаще, чем само 둘. */}
@@ -151,14 +152,11 @@ function CoreTable({ lang, accent, reading }: { lang: string; accent: string; re
               </span>
             )}
             {reading && <span style={{ fontSize: 11.5, color: accent, opacity: 0.9 }}>{n.nativeReading}</span>}
-            {/* Звук ячейки — в её правом краю: слева он вёл строку и спорил с
-                самим числом, ради которого таблица и открыта. */}
-            <SpeakBtn term={n.native} lang={lang} accent={accent} size={26} style={{ marginLeft: 'auto' }} />
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <SpeakBtn term={n.sino} lang={lang} accent={accent} size={26} />
             <Block accent={accent} tone={SYSTEM_TONE.sino} size="sm">{n.sino}</Block>
             {reading && <span style={{ fontSize: 11.5, color: accent, opacity: 0.9 }}>{n.sinoReading}</span>}
-            <SpeakBtn term={n.sino} lang={lang} accent={accent} size={26} style={{ marginLeft: 'auto' }} />
           </span>
         </div>
       ))}
@@ -181,12 +179,10 @@ function NumberRowView({ row, lang, accent, tone, reading }: {
     : tone === 'bad' ? 'var(--color-red-border)'
     : 'var(--color-border-soft)'
   return (
-    // Значок звука в правом верхнем углу строки — тот же угол, что у строк
-    // остальных конструкторов, у карточки слова и у фразы разговорника.
+    // Кружок звука ведёт строку слева, как в остальных конструкторах. Вид
+    // общий на весь продукт (components/SoundBadge), место — своё.
     <div style={{
-      position: 'relative',
-      display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '12px 14px', paddingRight: 48,
+      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
       borderRadius: 16, border: `1px solid ${border}`, background: 'var(--color-bg-2)',
     }}>
       <SoundBadge
@@ -195,7 +191,7 @@ function NumberRowView({ row, lang, accent, tone, reading }: {
         onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(row.form, lang) }}
         label={t('Произнести')}
         size={30}
-        inset={12}
+        style={{ position: 'static', flexShrink: 0 }}
       />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

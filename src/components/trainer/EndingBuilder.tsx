@@ -128,13 +128,12 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
     : tone === 'bad' ? 'var(--color-red-border)'
     : 'var(--color-border-soft)'
   return (
-    // Строка разбора — звучащий объект: значок звука в её правом верхнем углу,
-    // как у карточки слова и у фразы разговорника. Раньше кружок вёл строку
-    // слева, и на соседнем экране звук снова оказывался в другом месте.
+    // Кружок звука ведёт строку слева — так разбор и читается: сначала
+    // послушал, потом разглядываешь состав. Форма кружка общая на весь продукт
+    // (components/SoundBadge): мягкая заливка, цветная иконка, приглушён до
+    // наведения. Место своё, вид общий.
     <div style={{
-      position: 'relative',
-      display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '12px 14px', paddingRight: 48,
+      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
       borderRadius: 16, border: `1px solid ${border}`, background: 'var(--color-bg-2)',
     }}>
       <SoundBadge
@@ -143,7 +142,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
         onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(form.form, lang) }}
         label={t('Произнести')}
         size={30}
-        inset={12}
+        style={{ position: 'static', flexShrink: 0 }}
       />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

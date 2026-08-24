@@ -161,11 +161,60 @@ function deContains(sentence, first, key) {
   return stem.length >= 3 && text.includes(stem)
 }
 
+
+/**
+ * Корейский: слово в предложении почти никогда не стоит так, как в словаре.
+ *
+ * Отрезать «다» мало — на стыке основы и окончания гласные сливаются, а
+ * согласная уходит в предыдущий слог, и от словарной формы не остаётся ни
+ * одной общей БУКВЫ: 마시다 → 마셔요, 바쁘다 → 바빠요, 어렵다 → 어려워요,
+ * 모르다 → 몰라요, 깨닫다 → 깨달았어요. Поиск подстроки по слогам тут
+ * бессилен: 몰 и 모 — разные символы.
+ *
+ * Поэтому сверяем не слоги, а ЖАМО: раскладываем и основу, и предложение на
+ * буквы, у основы отбрасываем последнюю (именно она и меняется при спряжении)
+ * и ищем остаток. «마시» → ㅁㅏㅅ, и это находится в 마셔요; «모르» → ㅁㅗㄹ,
+ * и это находится в 몰라요. Проверка при этом остаётся строгой: пример,
+ * приписанный вообще другому слову, общего начала не даст.
+ */
+const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'
+const JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'
+const JONG = ['', 'ㄱ', 'ㄲ', 'ㄱㅅ', 'ㄴ', 'ㄴㅈ', 'ㄴㅎ', 'ㄷ', 'ㄹ', 'ㄹㄱ', 'ㄹㅁ', 'ㄹㅂ', 'ㄹㅅ', 'ㄹㅌ', 'ㄹㅍ', 'ㄹㅎ', 'ㅁ', 'ㅂ', 'ㅂㅅ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+
+function jamo(text) {
+  let out = ''
+  for (const ch of text) {
+    const c = ch.codePointAt(0) - 0xac00
+    if (c < 0 || c > 11171) { out += ch; continue }
+    out += CHO[Math.floor(c / 588)] + JUNG[Math.floor((c % 588) / 28)] + JONG[c % 28]
+  }
+  return out
+}
+
+function koContains(sentence, term) {
+  if (sentence.includes(term)) return true
+  // Фраза разговорника: пример к ней — её живой вариант, а не она сама
+  // («냅킨 주세요» → «냅킨 좀 주세요»). Сверяем по первому слову, как у
+  // немецкого: целиком совпадать фраза не обязана, к другому предмету — не
+  // должна.
+  if (term.includes(' ')) return koContains(sentence, term.split(' ')[0])
+  // Словарная форма глагола и прилагательного: 다 к делу не относится.
+  const stem = term.replace(/(하다|되다|다)$/, '')
+  if (!stem || stem === term) return jamo(sentence).includes(jamo(term))
+  const s = jamo(stem)
+  // ㅎ-неправильные: у них уходит не только ㅎ, но и гласная перед ним —
+  // 그렇다 → 그래요, 어떻다 → 어때요. Отбрасываем обе.
+  const probe = s.endsWith('ㅎ') ? s.slice(0, -2) : s.slice(0, -1)
+  // Одна буква в остатке — это уже не сверка, а совпадение.
+  return probe.length >= 2 && jamo(sentence).includes(probe)
+}
+
 function contains(sentence, term, key, lang) {
   if ([...term].length <= 2) return true
   if (/[~～/(]/.test(term)) return true          // грамматические модели и пары «A / B»
+  if (lang === 'ko') return koContains(sentence, term)
   if (sentence.includes(term)) return true
-  if (lang === 'ko' || lang === 'ja') {
+  if (lang === 'ja') {
     const stem = term.replace(/(하다|되다|다|する|る|う|く|ぐ|す|つ|ぬ|ぶ|む|い|な)$/, '')
     return stem.length >= 1 && sentence.includes(stem)
   }

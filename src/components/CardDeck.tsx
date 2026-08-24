@@ -873,8 +873,10 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
         // как отдельный элемент под карточкой, а не как её край.
         overflow: 'hidden',
         padding: 22,
-        // Место под кнопку у нижнего края больше не резервируется: звук
-        // уехал в правый верхний угол, к общему для продукта значку.
+        // Кнопка озвучки висит абсолютом по нижнему краю, и место под неё
+        // резервируется НА ОБЕИХ сторонах: разные отступы у лица и оборота —
+        // это разная высота содержимого, то есть скачок при перевороте.
+        paddingBottom: lang ? 46 : 22,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', textAlign: 'center', cursor: 'grab', userSelect: 'none',
       }}
@@ -1095,11 +1097,13 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
         </div>
       )}
 
-      {/* Значок звука в правом верхнем углу — тот же, что у слова урока, у
-          фразы и у строки читалки (см. components/SoundBadge). Здесь он
-          КНОПКА, а не метка: тап по самой карточке уже занят переворотом.
-          Раньше он стоял отдельной таблеткой по центру нижнего края — своё
-          место на каждом экране и было тем самым разнобоем. */}
+      {/* Звук карточки — тот же значок, что у слова урока и у фразы (форма,
+          заливка, приглушённость до наведения — всё из components/SoundBadge),
+          но МЕСТО у него своё: по центру нижнего края.
+          Угол здесь занят делом: сверху висит «ещё раз», а сама карточка
+          крутится под пальцем во все стороны — кнопка в углу попадала бы под
+          большой палец при свайпе. Значок — кнопка, а не метка: тап по
+          карточке уже занят переворотом. */}
       {lang && (
         <SoundBadge
           accent={accent}
@@ -1107,8 +1111,8 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
           on={!!speaking && !speaking.done}
           onClick={say}
           label={t('Послушать')}
-          size={30}
-          inset={12}
+          size={32}
+          style={{ top: 'auto', right: 'auto', bottom: 14, left: '50%', transform: 'translateX(-50%)' }}
         />
       )}
 

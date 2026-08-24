@@ -43,7 +43,7 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, drill,
-  dictation, dictationBank, minPair, describeImage, reading, nestTasks,
+  dictation, dictationBank, minPair, describeImage, reading, nestTasks, pronRuleTasks,
 } from './languageCourse'
 import { art } from './artworks'
 import { roomSceneImage } from './seedImages'
@@ -144,6 +144,10 @@ export const KOREAN_UNITS: LangUnit[] = [
     // различает кто угодно, а на слух не различает почти никто.
     ...nestTasks('ko-mul', 2),
     ...nestTasks('ko-dal', 2),
+    // Семь конечных звуков из koreanPronRules: пара слов, где 받침 звучит не
+    // «своей» буквой (부엌 → [к], 앞 → [п]). Частые 받침 (책, 집, 물) урок уже
+    // разобрал руками выше — генератор берёт следующие, со смещением.
+    ...pronRuleTasks('terminal', 2, 3),
     ],
   },
   {
@@ -185,6 +189,12 @@ export const KOREAN_UNITS: LangUnit[] = [
       dictation('Напечатайте услышанную фразу так, как она пишется.', '맛있어요'),
       readAloud('Прочитайте вслух, применяя правила чтения: 감사합니다, 한국어, 한국말, 좋아요, 맛있어요, 괜찮아요.',
         '감사합니다 한국어 한국말 좋아요 맛있어요 괜찮아요', 45),
+    // Три правила урока — из koreanPronRules, выбором чтения. Смещение
+    // пропускает слова, которые урок уже разобрал руками (꽃이, 감사합니다,
+    // 좋아요), — генератор добавляет новые, а не переспрашивает решённое.
+    ...pronRuleTasks('liaison', 2, 1),
+    ...pronRuleTasks('nasal', 2, 2),
+    ...pronRuleTasks('h-drop', 2, 1),
     // 받침 на слух: 밥–밤, 방–빵, 공–콩. Правила чтения объясняют, что
     // конечная согласная не взрывается, — здесь это слышно.
     ...nestTasks('ko-bap', 2),

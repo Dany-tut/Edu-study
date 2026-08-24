@@ -32,6 +32,7 @@ import { TASK_TYPES } from './taskTypes'
 import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { nestById } from './soundNests'
+import { pronRuleById } from './koreanPronRules'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import { checklistBlock } from '../lib/theoryChecklist'
 import { vocabImage } from './vocabImages'
@@ -457,6 +458,46 @@ export const nestTasks = (nestId: string, limit = 3): SeedTask[] => {
   )
 
   return [...pairs, match]
+}
+
+/**
+ * Задания по правилу чтения — выбрать, как звучит написанное.
+ *
+ * ЗАЧЕМ ГЕНЕРАТОР, А НЕ РУКИ — тот же довод, что у nestTasks: правило с шестью
+ * примерами и обманками уже описано в koreanPronRules.ts для тренажёра, и
+ * писать те же вопросы руками в уроке значило бы завести второй экземпляр,
+ * который разойдётся с первым при первой же правке примера.
+ *
+ * `offset` нужен чаще, чем у гнёзд: уроки, куда правило встраивается, обычно
+ * уже разбирают его самые частые слова руками (꽃이 в kotp-04, 연락 в kot2-28).
+ * Генератор должен ДОБАВЛЯТЬ слова, а не повторять только что решённое, поэтому
+ * урок пропускает первые примеры и берёт следующие.
+ *
+ * ПОЧЕМУ БЕЗ СЛУЧАЙНОСТИ. Сид обязан собираться одинаково каждый раз, поэтому
+ * позиция верного ответа выводится из id правила и номера примера, а не из
+ * Math.random. Фиксированный ноль не годится: серия вопросов с ответом на
+ * первом месте проходится по позиции, не читая (см. nestTasks).
+ */
+export const pronRuleTasks = (ruleId: string, limit = 3, offset = 0): SeedTask[] => {
+  const rule = pronRuleById(ruleId)
+  if (!rule) return []
+  const seed = [...rule.id].reduce((n, c) => n + c.charCodeAt(0), 0)
+  // Чтение — в скобках произношения; у правила письма (두음법칙) варианты —
+  // сами написания, скобки там врали бы.
+  const wrap = (s: string) => (rule.kind === 'sound' ? `[${s}]` : s)
+  return rule.examples.slice(offset, offset + limit).map((ex, i) => {
+    const pos = (seed + offset + i) % (ex.distractors.length + 1)
+    const choices = [...ex.distractors]
+    choices.splice(pos, 0, ex.spoken)
+    // Перевод — через тире, а не в скобках: в самих переводах скобки уже есть
+    // («одежду (винительный)»), и вторая пара вокруг давала матрёшку.
+    const question = rule.kind === 'sound'
+      ? `Как звучит ${ex.written} — «${ex.ru}»?`
+      // У правила письма перевод не в кавычках: он сам содержит кавычки и
+      // пояснение про корень («женщина — а внутри слова корень цел: 소녀…»).
+      : `Корень ${ex.written} встаёт в начало слова — как пишется слово целиком? Значение: ${ex.ru}.`
+    return one(question, choices.map(wrap), pos)
+  })
 }
 
 /**

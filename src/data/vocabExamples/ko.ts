@@ -25,6 +25,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '~ 라고 하다': x('선생님이 숙제를 하라고 했어요.', 'seonsaengnimi sukjereul harago haesseoyo.', 'Учитель велел сделать домашнее задание.'),  // ~(으)라고 하다
   '~ 려고': x('친구를 만나려고 일찍 나왔어요.', 'chingureul mannaryeogo iljjik nawasseoyo.', 'Я вышел пораньше, чтобы встретиться с другом.'),  // ~(으)려고
   '~ 시': x('사장님이 지금 오세요.', 'sajangnimi jigeum oseyo.', 'Директор сейчас идёт.'),  // ~(으)시
+  '~거든요': x('오늘은 일찍 갈게요. 약속이 있거든요.', 'oneureun iljjik galgeyo. yaksogi itgeodeunyo.', 'Сегодня уйду пораньше — у меня, знаете, встреча.'),  // ~거든요
   '~것 같다': x('이 식당이 더 맛있는 것 같아요.', 'i sikdangi deo masinneun geot gatayo.', 'Кажется, в этом ресторане вкуснее.'),  // ~것 같다
   '~게': x('글씨를 크게 써 주세요.', 'geulssireul keuge sseo juseyo.', 'Напишите, пожалуйста, покрупнее.'),  // ~게
   '~게 되다': x('회사 때문에 서울에 살게 됐어요.', 'hoesa ttaemune seoure salge dwaesseoyo.', 'Из-за работы так получилось, что я живу в Сеуле.'),  // ~게 되다
@@ -101,6 +102,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '감소하다': x('작년부터 인구가 감소하고 있어요.', 'jangnyeonbuteo inguga gamsohago isseoyo.', 'С прошлого года население снижается.'),  // 감소하다
   '강아지': x('강아지가 문 앞에서 기다려요.', 'gangajiga mun apeseo gidaryeoyo.', 'Собака ждёт у двери.'),  // 강아지
   '거절하다': x('미안하지만 이번에는 거절할게요.', 'mianhajiman ibeoneneun geojeolhalgeyo.', 'Извини, но в этот раз я откажусь.'),  // 거절하다
+  '걱정하다': x('너무 걱정하지 마세요. 잘될 거예요.', 'neomu geokjeonghaji maseyo. jaldoel geoyeyo.', 'Не переживайте так. Всё получится.'),  // 걱정하다
   '걷다': x('저는 매일 삼십 분씩 걸어요.', 'jeoneun maeil samsipbunssik georeoyo.', 'Я каждый день хожу пешком по тридцать минут.'),  // 걷다
   '걸리다': x('집까지 30분쯤 걸려요.', 'jipkkaji samsipbunjjeum geollyeoyo.', 'До дома примерно тридцать минут.'),  // 걸리다
   '것': x('책을 읽는 것을 좋아해요.', 'chaegeul ingneun geoseul joahaeyo.', 'Я люблю читать книги.'),  // 것
@@ -123,6 +125,8 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '구경하다': x('시장에서 이것저것 구경했어요.', 'sijangeseo igeotjeogeot gugyeonghaesseoyo.', 'Я ходил по рынку и всё разглядывал.'),  // 구경하다
   '구체적': x('구체적인 예를 하나 들어 주세요.', 'guchejeogin yereul hana deureo juseyo.', 'Приведите один конкретный пример.'),  // 구체적
   '권하다': x('의사가 운동을 권했어요.', 'uisaga undongeul gwonhaesseoyo.', 'Врач посоветовал заниматься спортом.'),  // 권하다
+  '규칙': x('여기 규칙은 간단해요. 신발을 벗으세요.', 'yeogi gyuchigeun gandanhaeyo. sinbareul beoseuseyo.', 'Правила здесь простые: снимите обувь.'),  // 규칙
+  '그대로': x('그대로 두세요. 제가 정리할게요.', 'geudaero duseyo. jega jeongnihalgeyo.', 'Оставьте как есть. Я приберу.'),  // 그대로
   '그러나': x('값은 쌉니다. 그러나 시간이 오래 걸립니다.', 'gapseun ssamnida. geureona sigani orae geollimnida.', 'Цена низкая. Однако времени уходит много.'),  // 그러나
   '그런데': x('가고 싶어요. 그런데 시간이 없어요.', 'gago sipeoyo. geureonde sigani eopseoyo.', 'Хочу пойти. Но времени нет.'),  // 그런데
   '그럴듯하다': x('그 설명이 꽤 그럴듯했어요.', 'geu seolmyeongi kkwae geureoldeutaesseoyo.', 'Это объяснение звучало довольно правдоподобно.'),  // 그럴듯하다
@@ -152,6 +156,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '늦다': x('버스 때문에 학교에 늦었어요.', 'beoseu ttaemune hakgyoe neujeosseoyo.', 'Из-за автобуса я опоздал в школу.'),  // 늦다
   '늦잠': x('늦잠을 자서 지각했어요.', 'neutjameul jaseo jigakhaesseoyo.', 'Я проспал и опоздал.'),  // 늦잠
   '다르다': x('이 두 가방은 색깔이 달라요.', 'i du gabangeun saekkkari dallayo.', 'У этих двух сумок разный цвет.'),  // 다르다
+  '다행히': x('다행히 다친 사람은 없었어요.', 'dahaenghi dachin sarameun eopseosseoyo.', 'К счастью, пострадавших не было.'),  // 다행히
   '단어': x('모르는 단어를 공책에 적어요.', 'moreuneun daneoreul gongchaege jeogeoyo.', 'Незнакомые слова записываю в тетрадь.'),  // 단어
   '닫다 / 닫히다': x('제가 문을 닫았는데 바람에 또 닫혔어요.', 'jega muneul dadanneunde barame tto dachyeosseoyo.', 'Я закрыл дверь, и она от ветра снова захлопнулась.'),  // 닫다 / 닫히다
   '당황하다': x('질문을 못 알아들어서 당황했어요.', 'jilmuneul mot aradeureoseo danghwanghaesseoyo.', 'Я растерялся, потому что не понял вопрос.'),  // 당황하다
@@ -161,6 +166,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '도와주다': x('이 문제 좀 도와주세요.', 'i munje jom dowajuseyo.', 'Помогите мне, пожалуйста, с этой задачей.'),  // 도와주다
   '도움': x('도움이 필요하면 말씀하세요.', 'doumi piryohamyeon malsseumhaseyo.', 'Если нужна помощь, скажите.'),  // 도움
   '도중에': x('학교에 가는 도중에 친구를 만났어요.', 'hakgyoe ganeun dojunge chingureul mannasseoyo.', 'По дороге в школу я встретил друга.'),  // 도중에
+  '도착하다': x('기차가 세 시에 도착해요.', 'gichaga se sie dochakaeyo.', 'Поезд прибывает в три.'),  // 도착하다
   '되게': x('이 영화 되게 재미있어요.', 'i yeonghwa doege jaemiisseoyo.', 'Этот фильм очень интересный.'),  // 되게
   '되다': x('저는 커서 선생님이 되고 싶어요.', 'jeoneun keoseo seonsaengnimi doego sipeoyo.', 'Когда вырасту, хочу стать учителем.'),  // 되다
   '뒤를 이어': x('1위는 서울, 뒤를 이어 부산이었습니다.', 'irwineun seoul, dwireul ieo busanieotseumnida.', 'Первое место — Сеул, следом идёт Пусан.'),  // 뒤를 이어
@@ -239,6 +245,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '생각보다': x('생각보다 사람이 많았어요.', 'saenggakboda sarami manasseoyo.', 'Людей было больше, чем я думал.'),  // 생각보다
   '샤워하다': x('아침에 샤워해요.', 'achime syawohaeyo.', 'Утром я принимаю душ.'),  // 샤워하다
   '서두르다': x('서두르지 마세요.', 'seodureuji maseyo.', 'Не торопитесь.'),  // 서두르다
+  '선물': x('친구 생일에 선물을 샀어요.', 'chingu saengire seonmureul sasseoyo.', 'Купил подарок другу на день рождения.'),  // 선물
   '선배': x('선배가 자료를 도와줬어요.', 'seonbaega jaryoreul dowajwosseoyo.', 'Старший товарищ помог с материалами.'),  // 선배
   '설명하다': x('사용법을 다시 설명해 주세요.', 'sayongbeobeul dasi seolmyeonghae juseyo.', 'Объясните ещё раз, как этим пользоваться.'),  // 설명하다
   '소식': x('고향에서 좋은 소식이 왔어요.', 'gohyangeseo joeun sosigi wasseoyo.', 'С родины пришли хорошие новости.'),  // 소식
@@ -266,6 +273,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '쓰다': x('여기에 이름을 쓰세요.', 'yeogie ireumeul sseuseyo.', 'Напишите здесь своё имя.'),  // 쓰다
   '씻다': x('자기 전에 손을 씻어요.', 'jagi jeone soneul ssiseoyo.', 'Перед сном я мою руки.'),  // 씻다
   '아무래도': x('아무래도 비가 올 것 같아요.', 'amuraedo biga ol geot gatayo.', 'Похоже, дождь всё-таки пойдёт.'),  // 아무래도
+  '아무리': x('아무리 바빠도 아침은 먹어요.', 'amuri bappado achimeun meogeoyo.', 'Как бы ни был занят, завтракаю.'),  // 아무리
   '아프다': x('어제부터 목이 아파요.', 'eojebuteo mogi apayo.', 'Со вчерашнего дня болит горло.'),  // 아프다
   '앉다': x('여기에 앉으세요.', 'yeogie anjeuseyo.', 'Садитесь сюда.'),  // 앉다
   '앉아 있다': x('그는 창가에 앉아 있어요.', 'geuneun changgae anja isseoyo.', 'Он сидит у окна.'),  // 앉아 있다
@@ -274,6 +282,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '알리다': x('결과는 내일 알려 드릴게요.', 'gyeolgwaneun naeil allyeo deurilgeyo.', 'Результат сообщу вам завтра.'),  // 알리다
   '야구': x('주말에 야구를 보러 갔어요.', 'jumare yagureul boreo gasseoyo.', 'На выходных ходил смотреть бейсбол.'),  // 야구
   '약속': x('오늘 저녁에 약속이 있어요.', 'oneul jeonyeoge yaksogi isseoyo.', 'У меня сегодня вечером встреча.'),  // 약속
+  '얘기': x('잠깐 얘기 좀 할 수 있을까요?', 'jamkkan yaegi jom hal su isseulkkayo?', 'Можно с вами коротко поговорить?'),  // 얘기
   '어떻다': x('오늘 날씨가 어때요?', 'oneul nalssiga eottaeyo?', 'Какая сегодня погода?'),  // 어떻다
   '어렵다': x('이 문법은 정말 어려워요.', 'i munbeobeun jeongmal eoryeowoyo.', 'Эта грамматика правда трудная.'),  // 어렵다
   '어쩐지': x('어쩐지 오늘 좀 피곤하더라고요.', 'eojjeonji oneul jom pigonhadeoragoyo.', 'То-то я смотрю, сегодня что-то устал.'),  // 어쩐지
@@ -294,6 +303,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '오다': x('밖에 비가 와요.', 'bakke biga wayo.', 'На улице идёт дождь.'),  // 오다
   '오답': x('오답을 다시 정리해 보세요.', 'odabeul dasi jeongrihae boseyo.', 'Разберите неверные ответы ещё раз.'),  // 오답
   '오이': x('오이를 얇게 썰어 주세요.', 'oireul yalpge sseoreo juseyo.', 'Нарежьте огурец тонко.'),  // 오이
+  '오히려': x('약을 먹었는데 오히려 더 아파요.', 'yageul meogeonneunde ohiryeo deo apayo.', 'Выпил лекарство, а стало наоборот хуже.'),  // 오히려
   '왜냐하면': x('저는 걷습니다. 왜냐하면 건강에 좋으니까요.', 'jeoneun geotseumnida. waenyahamyeon geongange joeunikkayo.', 'Я хожу пешком, потому что это полезно.'),  // 왜냐하면
   '외래어': x('\'커피\'는 영어에서 온 외래어예요.', '\'keopi\'neun yeongeoeseo on oeraeeoyeyo.', '«Копи» — заимствование из английского.'),  // 외래어
   '요리하다': x('주말에는 제가 요리해요.', 'jumareneun jega yorihaeyo.', 'По выходным готовлю я.'),  // 요리하다
@@ -331,9 +341,11 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '적응하다': x('새 학교에 잘 적응했어요.', 'sae hakgyoe jal jeogeunghaesseoyo.', 'Я хорошо адаптировался к новой школе.'),  // 적응하다
   '전하다': x('제 인사를 부모님께 전해 주세요.', 'je insareul bumonimkke jeonhae juseyo.', 'Передайте от меня привет родителям.'),  // 전하다
   '전혀': x('그 이야기는 전혀 몰랐어요.', 'geu iyagineun jeonhyeo mollasseoyo.', 'Об этом я совсем не знал.'),  // 전혀
+  '전화': x('나중에 다시 전화할게요.', 'najunge dasi jeonhwahalgeyo.', 'Перезвоню позже.'),  // 전화
   '전화하다': x('이따가 다시 전화할게요.', 'ittaga dasi jeonhwahalgeyo.', 'Я перезвоню чуть позже.'),  // 전화하다
   '점수': x('이번 점수가 지난번보다 높아요.', 'ibeon jeomsuga jinanbeonboda nopayo.', 'В этот раз балл выше прошлого.'),  // 점수
   '제한되다': x('참가 인원이 서른 명으로 제한된다.', 'chamga inwoni seoreun myeongeuro jehandoenda.', 'Число участников ограничено тридцатью.'),  // 제한되다
+  '조건': x('조건이 하나 있어요. 주말에도 일해야 해요.', 'jogeoni hana isseoyo. jumaredo ilhaeya haeyo.', 'Есть одно условие: работать и по выходным.'),  // 조건
   '조사 결과': x('조사 결과 절반이 반대했습니다.', 'josa gyeolgwa jeolbani bandaehaetseumnida.', 'По результатам опроса половина была против.'),  // 조사 결과
   '조사하다': x('이유를 조사해 봤어요.', 'iyureul josahae bwasseoyo.', 'Я исследовал причину.'),  // 조사하다
   '조심하다': x('길이 미끄러우니까 조심하세요.', 'giri mikkeureounikka josimhaseyo.', 'Дорога скользкая, будьте осторожны.'),  // 조심하다
@@ -378,6 +390,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '탓에': x('늦은 탓에 자리가 없었어요.', 'neujeun tase jariga eopseosseoyo.', 'Из-за того что опоздал, мест не было.'),  // 탓에
   '특별하다': x('오늘은 특별한 날이에요.', 'oneureun teukbyeolhan narieyo.', 'Сегодня особенный день.'),  // 특별하다
   '팔다 / 팔리다': x('이 가게는 빵을 파는데 금방 팔려요.', 'i gageneun ppangeul paneunde geumbang pallyeoyo.', 'В этом магазине продают хлеб, и он быстро расходится.'),  // 팔다 / 팔리다
+  '편': x('저는 조용한 편이에요.', 'jeoneun joyonghan pyeonieyo.', 'Я, скорее, тихий человек.'),  // 편
   '평소에': x('평소에 아침 일곱 시에 일어나요.', 'pyeongsoe achim ilgop sie ireonayo.', 'Обычно я встаю в семь утра.'),  // 평소에
   '포기하다': x('중간에 포기하지 마세요.', 'junggane pogihaji maseyo.', 'Не сдавайтесь на полпути.'),  // 포기하다
   '피곤하다': x('오늘은 정말 피곤해요.', 'oneureun jeongmal pigonhaeyo.', 'Сегодня я правда устал.'),  // 피곤하다
@@ -391,6 +404,7 @@ export const KO_VOCAB_EXAMPLES: ExampleMap = {
   '학기': x('이번 학기는 9월에 시작해요.', 'ibeon hakgineun guworae sijakhaeyo.', 'Этот семестр начинается в сентябре.'),  // 학기
   '학생': x('저는 아직 학생이에요.', 'jeoneun ajik haksaengieyo.', 'Я пока студент.'),  // 학생
   '한국말': x('한국말을 조금 할 수 있어요.', 'hangungmareul jogeum hal su isseoyo.', 'Я немного говорю по-корейски.'),  // 한국말
+  '한번': x('한번 입어 보세요.', 'hanbeon ibeo boseyo.', 'Примерьте разок.'),  // 한번
   '한자': x('이 단어는 한자로 두 글자예요.', 'i daneoneun hanjaro du geuljayeyo.', 'Это слово — два иероглифа ханча.'),  // 한자
   '한자어': x('\'학교\'는 한자어예요.', '\'hakgyo\'neun hanjaeoyeyo.', '«Хаккё» — слово китайского происхождения.'),  // 한자어
   '항상': x('그는 항상 십 분 일찍 와요.', 'geuneun hangsang sip bun iljjik wayo.', 'Он всегда приходит на десять минут раньше.'),  // 항상

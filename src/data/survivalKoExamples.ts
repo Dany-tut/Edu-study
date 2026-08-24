@@ -656,7 +656,7 @@ export const KO_EXAMPLES: ThemeExamples = {
     '봉투 주세요': e('봉투 주세요. 큰 걸로요.', 'bongtu juseyo. keun geolloyo.', 'Дайте пакет. Большой.'),
     '봉투 안 주셔도 돼요': e('가방 있어요. 봉투 안 주셔도 돼요.', 'gabang isseoyo. bongtu an jusyeodo dwaeyo.', 'У меня есть сумка. Пакет не нужен.'),
     '유통기한이 언제예요?': e('이 우유 유통기한이 언제예요?', 'i uyu yutonggihani eonjeyeyo?', 'Какой срок годности у этого молока?'),
-    '이거 신선해요?': e('이 생선 신선해요?', 'i saengseon sinseonhaeyo?', 'Эта рыба свежая?'),
+    '이거 신선해요?': e('이거 신선해요? 오늘 들어온 거예요?', 'igeo sinseonhaeyo? oneul deureoon geoyeyo?', 'Это свежее? Сегодняшнее?'),
     '무게 달아 주세요': e('사과 무게 달아 주세요.', 'sagwa muge dara juseyo.', 'Взвесьте, пожалуйста, яблоки.'),
     '한 개에 얼마예요?': e('한 개에 얼마예요? 세 개 살게요.', 'han gaee eolmayeyo? se gae salgeyo.', 'Сколько за штуку? Возьму три.'),
     '시식해도 돼요?': e('이거 시식해도 돼요?', 'igeo sisikaedo dwaeyo?', 'Это можно попробовать?'),

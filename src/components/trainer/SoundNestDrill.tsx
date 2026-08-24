@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
+import { Volume2, ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { subjectFill } from '../../lib/subjects'
@@ -10,7 +10,6 @@ import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
 import { TierChip } from '../GlossedText'
 import type { MaterialResult } from '../../lib/trainerProgress'
 import { SoundBadge } from '../SoundBadge'
-import AudioPlayer from '../AudioPlayer'
 
 // Гнёзда созвучий: витрина и разбор одного гнезда.
 //
@@ -93,13 +92,12 @@ function WordRow({ word, lang, accent, tone }: {
     : tone === 'bad' ? 'var(--color-red-border)'
     : 'var(--color-border-soft)'
   return (
-    // Строка разбора — звучащий объект: значок звука в её правом верхнем углу,
-    // как у карточки слова и у фразы разговорника. Раньше кружок вёл строку
-    // слева, и на соседнем экране звук снова оказывался в другом месте.
+    // Кружок звука ведёт строку слева — так разбор и читается: сначала
+    // послушал, потом разглядываешь состав. Форма кружка общая на весь продукт
+    // (components/SoundBadge): мягкая заливка, цветная иконка, приглушён до
+    // наведения. Место своё, вид общий.
     <div style={{
-      position: 'relative',
-      display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '12px 14px', paddingRight: 48,
+      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
       borderRadius: 16, border: `1px solid ${border}`, background: 'var(--color-bg-2)',
     }}>
       <SoundBadge
@@ -108,7 +106,7 @@ function WordRow({ word, lang, accent, tone }: {
         onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(word.term, lang) }}
         label={t('Произнести')}
         size={30}
-        inset={12}
+        style={{ position: 'static', flexShrink: 0 }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
@@ -288,27 +286,39 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           <span style={{ fontSize: 12, color: 'var(--color-green-text)', fontWeight: 700 }}>{score}</span>
         </div>
 
-        {/* Звук — САМ ВОПРОС, а не метка объекта, поэтому здесь не значок в
-            углу, а тот же плеер, что в диктанте домашки: крупная залитая
-            кнопка над содержимым, прижатая влево, и «помедленнее» рядом.
-            Раньше тут был свой круг на 68 пунктов по центру — ещё одно место,
-            где звук выглядел иначе, чем везде. */}
+        {/* Звук — САМ ВОПРОС, а не метка объекта: слушать надо раньше, чем
+            отвечать, поэтому кнопка крупная и стоит по центру над вариантами.
+            Форма кружка общая на весь продукт (мягкая заливка, цветная
+            иконка), а размер и место — свои: это единственное, что на экране
+            вообще можно нажать до ответа. */}
         <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12,
-          padding: '20px 18px', borderRadius: 20,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          padding: '26px 18px', borderRadius: 20,
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 700 }}>
             {t('Какое слово прозвучало?')}
           </div>
-          <AudioPlayer
-            key={q.word.term}
-            ttsText={q.word.term}
-            lang={lang}
-            allowSlow
-            accent={accent}
-            soft={`${accent}22`}
-          />
+          <button
+            onClick={() => say(q.word.term, lang)}
+            style={{
+              width: 68, height: 68, borderRadius: '50%', border: 'none', cursor: 'pointer',
+              display: 'grid', placeItems: 'center', background: `${accent}22`, color: accent,
+            }}
+            title={t('Послушать ещё раз')}
+            aria-label={t('Послушать ещё раз')}
+          >
+            <Volume2 size={28} />
+          </button>
+          <button
+            onClick={() => say(q.word.term, lang, 0.55)}
+            style={{
+              border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 12, fontWeight: 700, color: 'var(--color-muted)',
+            }}
+          >
+            {t('Помедленнее')}
+          </button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
