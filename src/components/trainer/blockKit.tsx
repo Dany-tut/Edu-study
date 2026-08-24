@@ -76,12 +76,17 @@ export function Block({ children, tone, accent, size = 'md', dashed, state, onCl
     : <span title={title} style={style}>{children}</span>
 }
 
-/** Кнопка-динамик. Одна на все конструкторы. */
-export function SpeakBtn({ term, lang, accent, size = 30 }: {
+/**
+ * Кнопка-динамик конструкторов. Форма та же, что у значка звука во всём
+ * продукте (components/SoundBadge): круг мягкой заливки с цветной иконкой.
+ * Ставится в правом краю своего объекта — строки, ячейки, ответа.
+ */
+export function SpeakBtn({ term, lang, accent, size = 30, style }: {
   term: string
   lang: string
   accent: string
   size?: number
+  style?: React.CSSProperties
 }) {
   const t = useT()
   return (
@@ -93,6 +98,7 @@ export function SpeakBtn({ term, lang, accent, size = 30 }: {
         width: size, height: size, flexShrink: 0, borderRadius: '50%', border: 'none',
         cursor: 'pointer', display: 'grid', placeItems: 'center',
         background: `${accent}22`, color: accent,
+        ...style,
       }}
     >
       <Volume2 size={Math.round(size * 0.47)} />

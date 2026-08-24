@@ -269,6 +269,26 @@ export const wb = (sentence: string, question: string, distractors: string[] = [
 export const order = (question: string, items: string[]): SeedTask =>
   ({ type: 'sequence', question, sequenceItems: items })
 
+/**
+ * «Написано неправильно» — слово показано с перепутанными слогами (요하녕세안),
+ * ученик пересобирает его правильно из плиток. Неправильное написание считается
+ * из ответа детерминированно, руками его не задают.
+ */
+export const scrambled = (question: string, answer: string): SeedTask =>
+  ({ type: 'unscramble', question, answer })
+
+/** Собрать последовательность тапами из банка блоков (реплики диалога, шаги). */
+export const blocks = (question: string, items: string[]): SeedTask =>
+  ({ type: 'blockOrder', question, sequenceItems: items })
+
+/**
+ * Ряд слогов с обманками: собрать слово или фразу тапами, без клавиатуры.
+ * Обманки можно задать руками; пусто — подберутся похожие слоги сами
+ * (confusable-пары, см. data/hangul.ts).
+ */
+export const sylBank = (question: string, answer: string, distractors: string[] = []): SeedTask =>
+  ({ type: 'charBank', question, answer, distractors })
+
 /** Пары слово—перевод (или форма—значение). */
 export const pairsOf = (question: string, items: [string, string][]): SeedTask =>
   ({ type: 'matching', question, pairs: items.map(([left, right]) => ({ left, right })) })

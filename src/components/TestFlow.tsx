@@ -4,8 +4,10 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
-import { gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
+import { charUnits, gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
 import WordBankSolver from './WordBankSolver'
+import CharTilesSolver from './CharTilesSolver'
+import BlockOrderSolver from './BlockOrderSolver'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import MatchingSolver, { matchingFromMap, matchingToMap } from './MatchingSolver'
@@ -218,7 +220,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     осталось бы вовсе без поля ответа — решить его нельзя. */}
                 {(tp === 'fill' || tp === 'extended'
                   || (tp === 'trace' && !task.chamo)
-                  || (tp === 'buildSyllable' && !task.syllable)) && (
+                  || (tp === 'buildSyllable' && !task.syllable)
+                  || ((tp === 'unscramble' || tp === 'charBank') && charUnits(task.answer ?? '').length < 2)
+                  || (tp === 'blockOrder' && seqItems.length === 0)) && (
                   <div style={{ paddingLeft: 36 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
@@ -263,6 +267,30 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* blockOrder — собрать последовательность тапами из банка блоков */}
+                {tp === 'blockOrder' && seqItems.length > 0 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <BlockOrderSolver
+                      items={seqItems}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* unscramble / charBank — сборка слова тапами по плиткам-слогам */}
+                {(tp === 'unscramble' || tp === 'charBank') && charUnits(task.answer ?? '').length >= 2 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <CharTilesSolver
+                      mode={tp === 'unscramble' ? 'unscramble' : 'bank'}
+                      answer={task.answer!}
+                      distractors={task.distractors}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
                   </div>
                 )}
 

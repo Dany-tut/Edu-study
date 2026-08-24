@@ -39,7 +39,9 @@ import TaskVideo from './TaskVideo'
 import { videoAnswerDone, parseVideoAnswer, videoRequiredSeconds } from '../lib/videoAnswer'
 import { formatClock } from '../lib/videoProgress'
 import VoiceRecorder from './VoiceRecorder'
-import { sentenceTokens } from '../data/taskTypes'
+import { charUnits, sentenceTokens } from '../data/taskTypes'
+import CharTilesSolver from './CharTilesSolver'
+import BlockOrderSolver from './BlockOrderSolver'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
 import VocabIntro from './VocabIntro'
@@ -779,6 +781,16 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2) {
     return matchingIsComplete(parseMatchingCsv(ans, q.pairs!.length))
   }
+  // Сборка тапами — отвечено, когда собрано целиком: три плитки из пяти —
+  // это брошенная на середине сборка, а не ответ.
+  if (qType(q) === 'unscramble' || qType(q) === 'charBank') {
+    const need = charUnits(q.referenceAnswer ?? '')
+    return need.length >= 2 && Array.from(ans ?? '').length >= need.length
+  }
+  if (qType(q) === 'blockOrder') {
+    const items = q.sequenceItems ?? []
+    return items.length >= 2 && (ans ?? '').split(',').filter(Boolean).length >= items.length
+  }
   return !!(ans && ans.trim())
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
@@ -796,6 +808,10 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   // Обводка: проверяет сам холст — он и есть эталон, сверять нечего.
   if (langTp === 'trace') return !!q.chamo
   if (langTp === 'buildSyllable') return chamoOf(q.syllable ?? '').length >= 2
+  // Сборка тапами: эталон — само слово/фраза (unscramble, charBank) либо
+  // авторский порядок блоков (blockOrder).
+  if (langTp === 'unscramble' || langTp === 'charBank') return charUnits(q.referenceAnswer ?? '').length >= 2
+  if (langTp === 'blockOrder') return (q.sequenceItems?.length ?? 0) >= 2
   // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -829,6 +845,19 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       const want = chamoOf(q.syllable ?? '')
       const got = ans.split(',').filter(Boolean)
       return want.length >= 2 && got.length === want.length && got.every((c, i) => c === want[i])
+    }
+    // Сборка тапами: ответ — склейка выбранных плиток, сверка точная посимвольно
+    // (пробелы не в счёт: их не тапают). Обманки ложного «верно» дать не могут.
+    if (langTp === 'unscramble' || langTp === 'charBank') {
+      const want = charUnits(q.referenceAnswer ?? '')
+      return want.length >= 2 && ans.replace(/\s+/g, '') === want.join('')
+    }
+    if (langTp === 'blockOrder') {
+      const items = q.sequenceItems ?? []
+      const order = ans.split(',').map(Number)
+      if (items.length < 2 || order.length !== items.length || order.some(n => Number.isNaN(n))) return false
+      // Формат ответа общий с sequence: авторские индексы в порядке тапов.
+      return order.every((v, i) => v === i)
     }
     if (langTp === 'flashcard') {
       if (!q.back?.trim()) return false
@@ -2938,6 +2967,28 @@ export default function HomeworkFlow({
                     ) : qType(question) === 'sequence' && (question.sequenceItems?.length ?? 0) > 0 ? (
                     <SequenceSolver
                       items={question.sequenceItems!}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Сборка последовательности тапами: блоки берут из банка. */
+                    ) : qType(question) === 'blockOrder' && (question.sequenceItems?.length ?? 0) > 0 ? (
+                    <BlockOrderSolver
+                      items={question.sequenceItems!}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Пересобрать неправильно написанное слово / собрать слово
+                       из ряда слогов с обманками — сборка тапами по плиткам. */
+                    ) : (qType(question) === 'unscramble' || qType(question) === 'charBank')
+                        && charUnits(question.referenceAnswer ?? '').length >= 2 ? (
+                    <CharTilesSolver
+                      mode={qType(question) === 'unscramble' ? 'unscramble' : 'bank'}
+                      answer={question.referenceAnswer!}
+                      distractors={question.distractors}
                       value={selectedAnswer}
                       disabled={locked}
                       showVerdict={showVerdict}

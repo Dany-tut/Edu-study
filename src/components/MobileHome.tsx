@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp } from 'lucide-react'
+import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from 'lucide-react'
 import NotificationPopup from './NotificationPopup'
 import { useNotificationsStore } from '../store/notificationsStore'
 import MobileScreen from './MobileScreen'
@@ -23,7 +23,8 @@ import { pickTrainerSubject } from '../lib/trainerSubject'
 import { dayLabel, outletById } from '../data/feed'
 import { tactile } from '../lib/feedback'
 import { PAIR } from '../lib/mobileTokens'
-import { resolveSubjectPalette } from '../lib/subjects'
+import { writeDraft } from '../lib/useDraft'
+import { resolveSubjectPalette, getSubject } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { useT, t as tt } from '../lib/i18n'
 import type { LucideIcon } from 'lucide-react'
@@ -165,6 +166,17 @@ export default function MobileHome() {
       <MobileScreen topZone={topZone} topPad={72}>
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
+          {/* Кружки-сторис: все переходы экрана одним рядом. Цветное кольцо —
+              «там есть дело», серое — просто раздел. Ряд заменяет и плитки
+              «Тренажёр»/«Курс», и жёлтую карточку домашки. */}
+          <StoriesRow
+            subjects={scanSubjects}
+            onLesson={continueInfo ? () => openLesson(continueInfo.lesson.id) : undefined}
+            onHW={() => setActivePage('homeworkList')}
+            onTrainer={() => setActivePage('trainer')}
+            onCourses={() => openCourses()}
+          />
+
           {/* Hero — Продолжить */}
           {continueInfo ? (
             <HeroContinue lesson={continueInfo.lesson} subjectName={continueInfo.subject.name} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
@@ -206,15 +218,6 @@ export default function MobileHome() {
               </div>
             </div>
           )}
-
-          {/* Домашнее задание */}
-          <PendingHWCard subjects={scanSubjects} onOpenHW={() => setActivePage('homeworkList')} />
-
-          {/* Быстрые действия */}
-          <div className="flex" style={{ gap: 8 }}>
-            <QuickTile icon={<Dumbbell size={18} />} title={t('Тренажёр')} sub={t('Решай задания')} bg="var(--color-green-soft)" fg="var(--color-green-text)" onClick={() => setActivePage('trainer')} />
-            <QuickTile icon={<BookOpen size={18} />} title={t('Курс')} sub={t('Уроки и путь')} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
-          </div>
 
           {/* Стикеры за принятые задания */}
           <MobileStickersRow />
@@ -298,6 +301,16 @@ export default function MobileHome() {
 function HomeSkeleton() {
   return (
     <div className="flex flex-col" style={{ gap: 10 }} aria-hidden>
+      {/* Кружки-сторис: те же 52px, что у StoryCircle */}
+      <div className="flex items-start" style={{ gap: 4 }}>
+        {[0, 1, 2, 3, 4].map(i => (
+          <div key={i} className="flex flex-col items-center" style={{ gap: 4, flex: 1 }}>
+            <Skeleton circle w={52} />
+            <Skeleton w={30} h={10} radius={6} />
+          </div>
+        ))}
+      </div>
+
       {/* Hero: те же 20px радиуса и padding 14, что у HeroContinue */}
       <div style={{ borderRadius: 20, padding: 14, background: 'var(--color-bg-3)' }}>
         <Skeleton w={120} h={10} radius={999} />
@@ -333,24 +346,17 @@ function HomeSkeleton() {
         ))}
       </div>
 
-      {/* Быстрые действия — те же две плитки */}
-      <div className="flex" style={{ gap: 8 }}>
-        {[0, 1].map(i => (
-          <div key={i} className="flex flex-col" style={{ flex: 1, minWidth: 0, gap: 8, padding: '12px 13px', borderRadius: 18, background: 'var(--color-bg-3)' }}>
-            <Skeleton w={32} h={32} radius={11} />
-            <span className="flex flex-col min-w-0" style={{ gap: 3 }}>
-              <Skeleton w="58%" h={14} radius={6} />
-              <Skeleton w="80%" h={10} radius={6} />
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Лента: вертикальные карточки той же высоты, что настоящие */}
-      <div className="flex flex-col" style={{ gap: 8, marginTop: 14 }}>
-        <Skeleton w={78} h={12} radius={6} />
+      {/* Лента: журнальные строки через разделители, как у настоящих постов */}
+      <div style={{ marginTop: 14 }}>
         {[0, 1, 2].map(i => (
-          <Skeleton key={i} w="100%" h={104} radius={18} />
+          <div key={i} className="flex flex-col" style={{ gap: 7, padding: '13px 0', borderTop: '1px solid var(--color-border-soft)' }}>
+            <div className="flex items-center" style={{ gap: 7 }}>
+              <Skeleton circle w={22} />
+              <Skeleton w={110} h={11} radius={6} />
+            </div>
+            <Skeleton w="92%" h={16} radius={6} />
+            <Skeleton w="70%" h={11} radius={6} />
+          </div>
         ))}
       </div>
     </div>
@@ -410,94 +416,110 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
   )
 }
 
-function QuickTile({ icon, title, sub, bg, fg, onClick }: { icon: React.ReactNode; title: string; sub: string; bg: string; fg: string; onClick: () => void }) {
+import type { Subject } from '../data/mockData'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Кружки-сторис
+//
+// Один ряд — все переходы главной: урок, домашка, тренажёр, слова, курс.
+// Язык колец: цветное кольцо зовёт («есть незакрытый урок», «есть домашка»),
+// серое — обычный раздел без срочного. Кольцо рисуется рамкой самого кружка,
+// но серое НЕ из border-переменных: в тёмной теме они почти невидимы
+// (см. память invisible-in-dark), поэтому серый — это --color-text-4.
+// ─────────────────────────────────────────────────────────────────────────────
+function StoryCircle({ icon, label, ring, tint, badge, onClick }: {
+  icon: React.ReactNode
+  label: string
+  /** Цвет кольца; undefined = серое «просто раздел». */
+  ring?: string
+  /** Цвет иконки; по умолчанию цвет кольца или приглушённый текст. */
+  tint?: string
+  badge?: number
+  onClick: () => void
+}) {
   return (
     <motion.button
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.92 }}
       onClick={() => { tactile(); onClick() }}
-      className="flex flex-col text-left cursor-pointer"
-      style={{ flex: 1, minWidth: 0, gap: 8, padding: '12px 13px', borderRadius: 18, background: bg, border: 'none' }}
+      className="flex flex-col items-center cursor-pointer"
+      style={{ gap: 4, background: 'none', border: 'none', padding: 0, minWidth: 0, flex: 1 }}
     >
-      <span className="flex items-center justify-between" style={{ width: '100%' }}>
-        {/* Иконка в своей чипсе — как в верхней таблетке: у плитки появляется
-            центр тяжести, и ряд читается как две кнопки, а не две подписи. */}
-        <span className="flex items-center justify-center" style={{
-          width: 32, height: 32, borderRadius: 11, flexShrink: 0,
-          // Заливка чипсы — сам цвет плитки, разведённый до 14%: белым нельзя,
-          // в светлой теме белое на пастели не видно вовсе.
-          background: `color-mix(in srgb, ${fg} 14%, transparent)`, color: fg,
-        }}>{icon}</span>
-        <ChevronRight size={16} style={{ color: fg, opacity: 0.55, flexShrink: 0 }} />
+      <span style={{
+        position: 'relative', width: 52, height: 52, borderRadius: 999,
+        border: `2px solid ${ring ?? 'var(--color-text-4)'}`,
+        background: 'var(--color-bg-3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: tint ?? ring ?? 'var(--color-text-2)',
+      }}>
+        {icon}
+        {badge != null && badge > 0 && (
+          <span style={{
+            position: 'absolute', top: -4, right: -6,
+            minWidth: 17, height: 17, padding: '0 5px', borderRadius: 999,
+            background: 'var(--grad-purple)', color: '#fff',
+            fontSize: 9, fontWeight: 800, border: '1.5px solid var(--color-bg)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{badge > 99 ? '99+' : badge}</span>
+        )}
       </span>
-      <span className="flex flex-col min-w-0" style={{ gap: 1, width: '100%' }}>
-        <span className="truncate" style={{ fontSize: 14, fontWeight: 800, color: fg }}>{title}</span>
-        <span className="truncate" style={{ fontSize: 10.5, fontWeight: 500, color: fg, opacity: 0.8 }}>{sub}</span>
-      </span>
+      <span className="truncate" style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', maxWidth: '100%' }}>{label}</span>
     </motion.button>
   )
 }
 
-import type { Subject } from '../data/mockData'
-
-function PendingHWCard({ subjects, onOpenHW }: { subjects: Subject[]; onOpenHW: () => void }) {
+function StoriesRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
+  subjects: Subject[]
+  onLesson?: () => void
+  onHW: () => void
+  onTrainer: () => void
+  onCourses: () => void
+}) {
   const t = useT()
-  const pending = subjects.flatMap(s =>
-    s.modules.flatMap(m => m.lessons
-      .filter(l => l.status === 'current' || l.status === 'returned')
-      .map(l => ({ lesson: l, subjectName: s.name }))
-    )
-  )
-  if (pending.length === 0) return null
-  const first = pending[0]
+  const pending = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
+    .filter(l => l.status === 'current' || l.status === 'returned').length
+
+  // «Слова» ведут прямо в колоду повторения языкового тренажёра: кружок пишет
+  // черновики режима ДО перехода — usePersistentState прочтёт их на маунте.
+  const langDef = subjects.map(s => getSubject(s.subject)).find(d => d?.langCode && !d.native)
+  const openWords = langDef ? () => {
+    writeDraft(`trainer.${langDef.langCode}.mode`, 'vocab')
+    writeDraft(`trainer.${langDef.langCode}.vocabView`, 'due')
+    pickTrainerSubject(langDef.id)
+    onTrainer()
+  } : undefined
+
   return (
-    <motion.button
-      whileTap={{ scale: 0.985 }}
-      onClick={() => { tactile(); onOpenHW() }}
-      className="flex items-center text-left cursor-pointer"
-      style={{
-        gap: 10, padding: '9px 11px', borderRadius: 14, border: '1px solid rgba(248,200,50,0.3)', width: '100%',
-        background: 'var(--color-yellow-soft)',
-      }}
-    >
-      <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(248,162,59,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <ClipboardList size={17} style={{ color: '#B07A00' }} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#B07A00' }}>{t('Домашнее задание')}</div>
-        <div className="truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
-          {first.lesson.title} · {first.subjectName}
-        </div>
-        {pending.length > 1 && (
-          <div style={{ fontSize: 10.5, color: '#B07A00' }}>+{pending.length - 1} {t('ещё')}</div>
-        )}
-      </div>
-      <ChevronRight size={16} style={{ color: '#B07A00', flexShrink: 0 }} />
-    </motion.button>
+    <div className="flex items-start" style={{ gap: 4 }}>
+      <StoryCircle icon={<Play size={21} />} label={t('урок')} ring={onLesson ? 'var(--color-purple-text)' : undefined} onClick={onLesson ?? onCourses} />
+      <StoryCircle icon={<ClipboardList size={21} />} label={t('ДЗ')} ring={pending > 0 ? 'var(--color-yellow-text)' : undefined} badge={pending} onClick={onHW} />
+      <StoryCircle icon={<Dumbbell size={21} />} label={t('дрилл')} ring="var(--color-green-text)" onClick={onTrainer} />
+      {openWords && <StoryCircle icon={<Layers size={21} />} label={t('слова')} onClick={openWords} />}
+      <StoryCircle icon={<BookOpen size={21} />} label={t('курс')} onClick={onCourses} />
+    </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Лента на мобильной главной
+// Лента на мобильной главной — журнальная колонка
 //
-// ВЕРТИКАЛЬНАЯ И БЕСКОНЕЧНАЯ, А НЕ РЯД ИЗ ВОСЬМИ КАРТОЧЕК. Верхняя половина
-// главной отвечает на «что делать сейчас» и кончается; лента — это то, что
-// листают, пока не надоест, и горизонтальный ряд с жёстким концом ей врал:
-// после восьмого поста экран обрывался, хотя материалов десятки.
+// БЕЗ ЗАГОЛОВКА «ЛЕНТА» И БЕЗ КАРТОЧЕК. Верх главной кончился — дальше просто
+// идут посты через тонкие разделители, как колонка в журнале: шапка источника,
+// серифный заголовок, первая фраза. Непрочитанное помечено чипсой «новое»,
+// а не заливкой: заливка делала пост похожим на кнопку, а это текст.
 //
-// ПОДГРУЖАЕТСЯ ПОРЦИЯМИ. Сначала шесть постов, дальше по шесть, как только
-// нижняя граница показалась на экране (IntersectionObserver — rAF в превью не
-// работает, см. память). Непрочитанное идёт первым и подсвечено; когда нового
-// нет, лента не исчезает — показывает уже виденное, иначе раздел мигал бы
-// через день.
+// ВЕРТИКАЛЬНАЯ И БЕСКОНЕЧНАЯ. Порции по 6; следующая приезжает, когда граница
+// показалась на экране. Прокрутка живёт во внутреннем контейнере MobileScreen,
+// поэтому слушаем scroll в фазе перехвата (IntersectionObserver — запасным).
 //
 // ПРОСМОТРЕННЫМ ЗДЕСЬ НИЧТО НЕ СТАНОВИТСЯ: это витрина, а не сама лента.
-// Иначе счётчик «новое» гас бы от одной прокрутки главной, ничего не прочитав.
-// Тап по любой карточке открывает ленту целиком: адресуемых постов у ленты нет
-// и не будет (см. data/feed), её открывают сверху.
+// Тап по посту открывает ленту целиком: адресуемых постов у неё нет (data/feed).
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Сколько постов показываем сразу и сколько добавляем за одну подгрузку. */
 const FEED_CHUNK = 6
+
+/** Серифная гарнитура заголовков поста — журнальный акцент, только здесь. */
+const SERIF = 'ui-serif, Georgia, "Times New Roman", serif'
 
 function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void }) {
   const t = useT()
@@ -505,8 +527,7 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
   const [shown, setShown] = useState(FEED_CHUNK)
   const moreRef = useRef<HTMLDivElement>(null)
 
-  // Сменился курс (а с ним язык ленты) — начинаем сначала, иначе новый список
-  // сразу открывается на «двадцать четвёртом посте» прошлого.
+  // Сменился курс (а с ним язык ленты) — начинаем сначала.
   useEffect(() => { setShown(FEED_CHUNK) }, [lang])
 
   const order = useMemo(
@@ -514,11 +535,6 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
     [items, unread],
   )
 
-  // Подгрузка по положению границы, а НЕ по IntersectionObserver: экран
-  // прокручивается внутри своего контейнера (MobileScreen), и наблюдатель с
-  // root по умолчанию в превью не стреляет вовсе. Слушаем scroll в фазе
-  // перехвата — так событие приходит от любого прокручиваемого предка, не
-  // требуя знать, какой именно это узел.
   useEffect(() => {
     const check = () => {
       const el = moreRef.current
@@ -529,8 +545,6 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
     check()
     window.addEventListener('scroll', check, { capture: true, passive: true })
     window.addEventListener('resize', check)
-    // Наблюдатель — вторым номером, на случай прокрутки без события scroll
-    // (инерция в WKWebView доезжает молча).
     const io = typeof IntersectionObserver !== 'undefined'
       ? new IntersectionObserver(e => { if (e.some(x => x.isIntersecting)) check() }, { rootMargin: '400px 0px' })
       : null
@@ -556,90 +570,70 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
 
   return (
     <div>
-      <div className="flex items-center" style={{ gap: 6, marginBottom: 10 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-          {t('Лента')}
-        </p>
-        {unread.length > 0 && (
-          <span style={{
-            padding: '1px 7px', borderRadius: 999, background: 'var(--grad-purple)',
-            color: '#fff', fontSize: 10, fontWeight: 800, lineHeight: '16px',
-          }}>
-            {unread.length}
-          </span>
-        )}
-        <button
-          onClick={open}
-          style={{
-            marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 2,
-            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, color: 'var(--color-accent)',
-          }}
-        >
-          {t('Открыть')} <ChevronRight size={13} />
-        </button>
-      </div>
-
-      <div className="flex flex-col" style={{ gap: 8 }}>
-        {list.map(item => {
-          const outlet = outletById(item.outletId)
-          const fresh = unread.includes(item)
-          // Первая фраза поста — вместо второй строки служебных подписей: по ней
-          // видно, о чём он, ещё до открытия. У ролика тела нет, там пусто.
-          const lead = item.embed ? '' : item.body.replace(/\s+/g, ' ').trim().slice(0, 160)
-          return (
-            <motion.button
-              key={item.id}
-              whileTap={{ scale: 0.985 }}
-              onClick={open}
-              className="text-left cursor-pointer"
-              style={{
-                width: '100%', padding: 13, borderRadius: 18,
-                background: fresh ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                border: 'none', fontFamily: 'inherit',
-                display: 'flex', flexDirection: 'column', gap: 7,
-              }}
-            >
-              <span className="flex items-center" style={{ gap: 7, minWidth: 0, width: '100%' }}>
-                {/* Тот же знак источника, что в шапке поста в самой ленте. */}
-                <span aria-hidden style={{
-                  flexShrink: 0, width: 22, height: 22, borderRadius: 999,
-                  background: outlet?.tint ?? 'var(--color-accent)', color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: (outlet?.mark.length ?? 1) > 2 ? 8 : 9.5, fontWeight: 800, lineHeight: 1,
-                }}>
-                  {outlet?.mark ?? '·'}
-                </span>
-                <span className="truncate" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-2)' }}>
-                  {outlet?.name ?? ''}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--color-text-4)', flexShrink: 0 }}>·</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
-                  {dayLabel(item.date)}
-                </span>
-                {item.embed && (
-                  <Play size={12} style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--color-text-3)' }} />
-                )}
-              </span>
-              <span style={{
-                fontSize: 14, lineHeight: 1.35, fontWeight: fresh ? 800 : 700,
-                color: 'var(--color-text)',
-                display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+      {list.map(item => {
+        const outlet = outletById(item.outletId)
+        const fresh = unread.includes(item)
+        const lead = item.embed ? '' : item.body.replace(/\s+/g, ' ').trim().slice(0, 160)
+        return (
+          <button
+            key={item.id}
+            onClick={open}
+            className="text-left cursor-pointer"
+            style={{
+              width: '100%', padding: '13px 0', background: 'none',
+              border: 'none', borderTop: '1px solid var(--color-border-soft)',
+              fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 6,
+            }}
+          >
+            <span className="flex items-center" style={{ gap: 7, minWidth: 0, width: '100%' }}>
+              {/* Тот же знак источника, что в шапке поста в самой ленте. */}
+              <span aria-hidden style={{
+                flexShrink: 0, width: 22, height: 22, borderRadius: 999,
+                background: outlet?.tint ?? 'var(--color-accent)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: (outlet?.mark.length ?? 1) > 2 ? 8 : 9.5, fontWeight: 800, lineHeight: 1,
               }}>
-                {item.title}
+                {outlet?.mark ?? '·'}
               </span>
-              {lead && (
+              <span className="truncate" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-2)' }}>
+                {outlet?.name ?? ''}
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
+                · {dayLabel(item.date)}
+              </span>
+              {fresh && (
                 <span style={{
-                  fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)',
-                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                  marginLeft: 'auto', flexShrink: 0, padding: '1px 7px', borderRadius: 999,
+                  border: '1px solid var(--color-purple-text)', color: 'var(--color-purple-text)',
+                  fontSize: 9.5, fontWeight: 700, lineHeight: '15px',
                 }}>
-                  {lead}
+                  {t('новое')}
                 </span>
               )}
-            </motion.button>
-          )
-        })}
-      </div>
+            </span>
+            <span style={{
+              fontSize: 15.5, lineHeight: 1.35, fontWeight: 700, fontFamily: SERIF,
+              color: 'var(--color-text)',
+              display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            }}>
+              {item.title}
+            </span>
+            {item.embed ? (
+              <span className="flex items-center" style={{ gap: 5, fontSize: 11.5, color: 'var(--color-text-3)' }}>
+                <Play size={12} style={{ flexShrink: 0 }} />
+                {t('ролик · смотреть в ленте')}
+              </span>
+            ) : lead ? (
+              <span style={{
+                fontSize: 12, lineHeight: 1.5, color: 'var(--color-text-3)',
+                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+              }}>
+                {lead}
+              </span>
+            ) : null}
+          </button>
+        )
+      })}
 
       {/* Граница подгрузки: показалась — приезжает следующая порция. */}
       {hasMore && <div ref={moreRef} style={{ height: 1 }} aria-hidden />}
@@ -648,9 +642,10 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
         <button
           onClick={open}
           style={{
-            marginTop: 10, width: '100%', padding: '11px 0', borderRadius: 14,
-            background: 'var(--color-bg-3)', border: 'none', cursor: 'pointer',
+            width: '100%', padding: '13px 0 4px', background: 'none',
+            border: 'none', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer',
             fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'var(--color-accent)',
+            textAlign: 'center',
           }}
         >
           {t('Открыть ленту целиком')}

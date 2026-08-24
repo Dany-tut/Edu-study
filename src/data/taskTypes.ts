@@ -19,8 +19,8 @@
 
 import type { ElementType } from 'react'
 import {
-  AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Layers,
-  Mic, PenLine, Play, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
+  AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Layers, LayoutGrid,
+  ListOrdered, Mic, PenLine, Play, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
@@ -55,6 +55,10 @@ export type TaskTypeId =
   // — письменность (алфавитные уроки) —
   | 'trace'         // обвести букву по чертам, в правильном порядке
   | 'buildSyllable' // собрать слог из букв: ㄱ + ㅣ + ㅁ → 김
+  // — сборка тапами (без клавиатуры) —
+  | 'unscramble'    // написано неправильно (요하녕세안) — собери правильно
+  | 'blockOrder'    // собрать последовательность, тапая блоки из банка
+  | 'charBank'      // ряд слогов/букв с обманками — собери слово или фразу
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -321,6 +325,41 @@ function fillableCellKeys(t: TaskPayload): string[] {
 /** Слова эталонного предложения — плитки для сборки. */
 export function sentenceTokens(sentence: string): string[] {
   return sentence.trim().split(/\s+/).filter(Boolean)
+}
+
+/**
+ * Плитки посимвольной сборки (unscramble / charBank): текст без пробелов,
+ * по знакам. Для хангыля знак — это слог (안·녕·하·세·요), ровно та единица,
+ * которой оперируют «собери из слогов» в учебниках; для алфавитных языков —
+ * буква. Пробелы выкидываются: их не тапают, и сверка их тоже не считает.
+ */
+export function charUnits(text: string): string[] {
+  return Array.from((text ?? '').replace(/\s+/g, ''))
+}
+
+/** Ответ посимвольной сборки — выбранные плитки, склеенные подряд. Сверка
+ *  посимвольная и точная: обманки в банке ложного «верно» дать не могут. */
+function sameGlued(a: TaskAnswer, answer: string | undefined): boolean {
+  return typeof a === 'string' && a.replace(/\s+/g, '') === charUnits(answer ?? '').join('')
+}
+
+/**
+ * Детерминированная перестановка плиток — «неправильное написание» и порядок
+ * банка. Без Math.random: сид обязан собираться одинаково, а плитки не должны
+ * прыгать между перерисовками. Если перестановка случайно совпала с правильным
+ * порядком, сдвигаем на один — задание «переставь» с готовым ответом не задание.
+ */
+export function scrambleUnits(units: string[]): string[] {
+  const hash = (s: string) => {
+    let h = 0
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
+    return h
+  }
+  const out = units.map((u, i) => ({ u, k: hash(`${u}#${i}`) }))
+    .sort((a, b) => a.k - b.k)
+    .map(x => x.u)
+  if (out.join('') === units.join('') && out.length > 1) out.push(out.shift()!)
+  return out
 }
 
 // ─── Определение типа ────────────────────────────────────────────────────────
@@ -637,6 +676,52 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       return { auto: true, correct: got.length === want.length && got.every((c, i) => c === want[i]) }
     },
     needsTeacherReview: false, needsAudio: true, allowedAsHard: false, languageOnly: true,
+  }),
+
+  // ── сборка тапами ──
+  //
+  // Три родственных задания «собери из плиток без клавиатуры». Они не сводятся
+  // к wordBank: тот режет эталон по пробелам на слова, а здесь единица —
+  // слог/буква (unscramble, charBank) либо произвольный авторский блок
+  // (blockOrder), и у каждого своя дидактика: «увидь, что написано не так»,
+  // «выстрой порядок сам» и «найди нужное среди обманок».
+
+  unscramble: def({
+    id: 'unscramble', family: 'order',
+    label: 'Написано неправильно', hint: '요하녕세안 → собери правильно',
+    Icon: Shuffle,
+    makeDefault: () => ({ answer: '' }),
+    isGradable: t => charUnits(t.answer ?? '').length >= 2,
+    grade: (t, a) => {
+      if (!TASK_TYPES.unscramble.isGradable(t)) return NOT_AUTO
+      return { auto: true, correct: sameGlued(a, t.answer) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  blockOrder: def({
+    id: 'blockOrder', family: 'order',
+    label: 'Сборка из блоков', hint: 'Тапай блоки в правильном порядке',
+    Icon: ListOrdered,
+    makeDefault: () => ({ sequenceItems: ['', ''] }),
+    isGradable: t => (t.sequenceItems?.length ?? 0) >= 2,
+    // Ответ — та же перестановка авторских индексов, что у sequence: верно,
+    // когда блоки вытапаны в авторском порядке [0,1,2,…].
+    grade: (t, a) => TASK_TYPES.sequence.grade(t, a),
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  charBank: def({
+    id: 'charBank', family: 'order',
+    label: 'Ряд слогов', hint: 'Собери слово из ряда, часть слогов — обманки',
+    Icon: LayoutGrid,
+    makeDefault: () => ({ answer: '', distractors: [] }),
+    isGradable: t => charUnits(t.answer ?? '').length >= 2,
+    grade: (t, a) => {
+      if (!TASK_TYPES.charBank.isGradable(t)) return NOT_AUTO
+      return { auto: true, correct: sameGlued(a, t.answer) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
   }),
 
   flashcard: def({

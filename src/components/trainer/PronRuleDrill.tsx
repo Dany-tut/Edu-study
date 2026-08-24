@@ -1,42 +1,48 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
+import { ChevronLeft, Check, X, RotateCcw, BookOpenCheck } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { subjectFill } from '../../lib/subjects'
 import { speak, speechText, stopSpeech } from '../../lib/speech'
+import { transcribe } from '../../lib/translit'
 import { addCards } from '../../data/reviewDeck'
-import { nestAxisLabel, nestPrompt, type NestWord, type SoundNest } from '../../data/soundNests'
+import type { PronExample, PronRule } from '../../data/koreanPronRules'
 import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
-import { TierChip } from '../GlossedText'
 import type { MaterialResult } from '../../lib/trainerProgress'
 import { SoundBadge } from '../SoundBadge'
-import AudioPlayer from '../AudioPlayer'
 
-// Гнёзда созвучий: витрина и разбор одного гнезда.
+// Правила чтения: витрина и разбор одного правила.
 //
-// ЗАЧЕМ ОТДЕЛЬНЫЙ ЭКРАН, А НЕ ЕЩЁ ОДИН ТИП КАРТОЧКИ В СТОПКЕ
-// Стопка отвечает на вопрос «помню ли я это слово». Гнездо отвечает на другой:
-// «слышу ли я разницу». Разница слышится только в сравнении, поэтому все слова
-// гнезда должны стоять на экране ОДНОВРЕМЕННО — а карточка по устройству
-// показывает ровно одну сторону одного слова.
+// УСТРОЙСТВО ТО ЖЕ, ЧТО У ГНЁЗД СОЗВУЧИЙ (SoundNestDrill), НО ВОПРОС ОБРАТНЫЙ.
+// Гнездо спрашивает «что прозвучало?» — тренирует ухо. Правило спрашивает «как
+// прозвучит написанное?» — тренирует глаз: ученик видит 꽃이 и выбирает между
+// [꼬치], [꼬디] и [꼳이]. Звук здесь приходит ПОСЛЕ ответа, как подтверждение:
+// сыграй его до — и вопрос отвечался бы ухом, а не правилом.
 //
-// ЧТО УХОДИТ В СТОПКУ. Ошибки. Промахнулся на 불 против 뿔 — слово ложится в
-// колоду повторений обычной карточкой и вернётся по расписанию SM-2. То есть
-// гнездо не подменяет интервальные повторения, а поставляет им материал —
-// ровно тот, на котором ученик реально спотыкается.
-
-/** Сколько вопросов в прогоне на одно слово гнезда. */
-const PASSES = 2
+// ЧТО УХОДИТ В СТОПКУ. Промахи: слово, чьё чтение ученик собрал неверно,
+// ложится карточкой «Как звучит 꽃이?» в колоду повторений и вернётся по
+// расписанию — правило закрепляется на том самом слове, где споткнулся.
 
 function say(term: string, lang: string, rate = 0.85) {
   speak(speechText(term), { lang, rate })
 }
 
+/** Что озвучивать: у правил звучания — написанное (TTS сам применит правило),
+ *  у правила письма written содержит ханчу и стрелки — звучит готовое слово. */
+const voiceOf = (rule: PronRule, ex: PronExample) =>
+  rule.kind === 'sound' ? ex.written : ex.spoken
+
+/** Ответ в плитке и в карточке: чтение — в скобках произношения, письмо — как есть. */
+const spokenLabel = (rule: PronRule, s: string) =>
+  rule.kind === 'sound' ? `[${s}]` : s
+
+const questionOf = (rule: PronRule, t: (s: string) => string) =>
+  rule.kind === 'sound' ? t('Как звучит написанное?') : t('Корень встал в начало слова — как пишется целое?')
+
 // ─── Витрина ─────────────────────────────────────────────────────────────────
 
-export function NestGrid({ nests, results, accent, soft, onOpen }: {
-  nests: SoundNest[]
-  /** Прошлые прогоны по id гнезда — для полоски и счёта на плитке. */
+export function PronGrid({ rules, results, accent, soft, onOpen }: {
+  rules: PronRule[]
   results: (id: string) => MaterialResult | undefined
   accent: string
   soft: string
@@ -45,21 +51,26 @@ export function NestGrid({ nests, results, accent, soft, onOpen }: {
   const t = useT()
   return (
     <TileGrid min={248}>
-      {nests.map(nest => {
-        const res = results(nest.id)
+      {rules.map(rule => {
+        const res = results(rule.id)
         return (
-          <Tile key={nest.id} accent={accent} onClick={() => onOpen(nest.id)}>
+          <Tile key={rule.id} accent={accent} onClick={() => onOpen(rule.id)}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <TileChip tone="accent" accent={accent} soft={soft}>{t(nestAxisLabel(nest.axis))}</TileChip>
+              <TileChip tone="accent" accent={accent} soft={soft}>{rule.ko}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-                {nest.words.length} {t('слова')}
+                {rule.examples.length} {t('слов')}
               </span>
             </span>
-            <span style={{
-              flex: 1, fontSize: 17, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.35,
-              letterSpacing: '-0.01em',
-            }}>
-              {nest.title}
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+              <span style={{
+                fontSize: 16, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3,
+                letterSpacing: '-0.01em',
+              }}>
+                {t(rule.title)}
+              </span>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5, ...proseWrap }}>
+                {t(rule.tagline)}
+              </span>
             </span>
             <TileMeter value={res ? Math.round((res.score / Math.max(res.total, 1)) * 100) : 0} />
             <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -77,25 +88,22 @@ export function NestGrid({ nests, results, accent, soft, onOpen }: {
   )
 }
 
-// ─── Разбор одного гнезда ────────────────────────────────────────────────────
+// ─── Разбор одного правила ───────────────────────────────────────────────────
 
-/** Строка слова в разборе: слово, чтение, перевод и чем отличается. */
-function WordRow({ word, lang, accent, tone }: {
-  word: NestWord
+/** Строка примера: написано → звучит, транскрипция, перевод и что сработало. */
+function ExampleRow({ rule, ex, lang, accent, tone }: {
+  rule: PronRule
+  ex: PronExample
   lang: string
   accent: string
-  /** Подсветка после ответа: верное зелёным, промах красным. */
   tone?: 'good' | 'bad'
 }) {
-  const t = useT()
   const border =
     tone === 'good' ? 'var(--color-green-accent)'
     : tone === 'bad' ? 'var(--color-red-border)'
     : 'var(--color-border-soft)'
+  const cyr = transcribe(ex.spoken, lang)
   return (
-    // Строка разбора — звучащий объект: значок звука в её правом верхнем углу,
-    // как у карточки слова и у фразы разговорника. Раньше кружок вёл строку
-    // слева, и на соседнем экране звук снова оказывался в другом месте.
     <div style={{
       position: 'relative',
       display: 'flex', alignItems: 'flex-start', gap: 12,
@@ -105,26 +113,25 @@ function WordRow({ word, lang, accent, tone }: {
       <SoundBadge
         accent={accent}
         soft={`${accent}22`}
-        onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(word.term, lang) }}
-        label={t('Произнести')}
+        onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(voiceOf(rule, ex), lang) }}
+        label="Произнести"
         size={30}
         inset={12}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.25 }}>
-            {word.term}
+            {ex.written}
           </span>
-          <span style={{ fontSize: 12.5, color: accent, opacity: 0.9 }}>{word.reading}</span>
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)' }}>{word.ru}</span>
-          {/* Вес слова прямо в строке разбора: гнездо специально собирает и
-              ходовые слова, и редкие соседи по звучанию — 물 учить сегодня,
-              뿔 просто не путать с ним. */}
-          <TierChip term={word.term} lang={lang} accent={accent} style={{ marginTop: 0 }} />
+          <span style={{ fontSize: 15, fontWeight: 750, color: accent }}>
+            → {spokenLabel(rule, ex.spoken)}
+          </span>
+          {cyr && <span style={{ fontSize: 12.5, color: accent, opacity: 0.85 }}>{cyr}</span>}
+          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)' }}>{ex.ru}</span>
         </div>
-        {word.tip && (
+        {ex.note && (
           <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
-            {word.tip}
+            {ex.note}
           </div>
         )}
       </div>
@@ -132,14 +139,13 @@ function WordRow({ word, lang, accent, tone }: {
   )
 }
 
-/** Один вопрос прогона: какое слово прозвучало. */
+/** Один вопрос прогона: пример и перетасованные варианты чтения. */
 interface Question {
-  word: NestWord
-  /** Порядок вариантов — свой у каждого вопроса, иначе ответ запоминается по месту. */
-  options: NestWord[]
+  ex: PronExample
+  options: string[]
 }
 
-function buildRun(nest: SoundNest): Question[] {
+function buildRun(rule: PronRule): Question[] {
   const shuffle = <T,>(list: T[]): T[] => {
     const out = [...list]
     for (let i = out.length - 1; i > 0; i--) {
@@ -148,103 +154,85 @@ function buildRun(nest: SoundNest): Question[] {
     }
     return out
   }
-  // Каждое слово спрашивается PASSES раз: с одного попадания в четырёх
-  // вариантах можно угадать, с двух подряд — уже вряд ли.
-  const asked = shuffle(Array.from({ length: PASSES }, () => nest.words).flat())
-  return asked.map(word => ({ word, options: shuffle(nest.words) }))
+  // Каждый пример спрашивается один раз: у правила их пять-шесть, и второй круг
+  // подряд отвечался бы по памяти позиций, а не по правилу. Возврат — через
+  // колоду повторений и через «Ещё прогон» с новой тасовкой.
+  return shuffle(rule.examples).map(ex => ({
+    ex,
+    options: shuffle([ex.spoken, ...ex.distractors]),
+  }))
 }
 
-export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinished, onBack }: {
-  nest: SoundNest
+export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinished, onBack }: {
+  rule: PronRule
   lang: string
   accent: string
   soft: string
   owner: { studentId?: string; anonName?: string }
   subjectId: string
-  /** Прогон закончен: счёт и всего — экран снаружи пишет результат. */
   onFinished: (score: number, total: number) => void
   onBack: () => void
 }) {
   const t = useT()
-  // Гнездо может не различаться на слух по устройству языка: омонимы совпадают
-  // целиком, ㅐ и ㅔ в корейском слились. Прогон «какое прозвучало» там был бы
-  // вопросом без верного ответа — остаётся разбор и колода.
-  const audible = nest.axis !== 'homonym' && nest.audible !== false
-
   const [run, setRun] = useState<Question[] | null>(null)
   const [idx, setIdx] = useState(0)
-  const [picked, setPicked] = useState<NestWord | null>(null)
+  const [picked, setPicked] = useState<string | null>(null)
   const [score, setScore] = useState(0)
-  const missed = useRef<NestWord[]>([])
+  const missed = useRef<PronExample[]>([])
   const [added, setAdded] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
 
   const q = run?.[idx] ?? null
   const done = !!run && idx >= run.length
 
-  // Слово звучит само при появлении вопроса: тыкать «слушать» перед каждым
-  // ответом — лишний клик на ровном месте. Повторить можно кнопкой.
-  useEffect(() => {
-    if (!q || picked) return
-    const timer = window.setTimeout(() => say(q.word.term, lang), 220)
-    return () => clearTimeout(timer)
-  }, [q, picked, lang])
-
   useEffect(() => () => stopSpeech(), [])
 
-  const cards = useMemo(
-    () => nest.words.map(w => ({
-      subject: subjectId,
-      source: 'trainer' as const,
-      prompt: nestPrompt(nest, w),
-      answer: `${w.term} — ${w.ru}`,
-      options: nest.words.map(x => x.term),
-    })),
-    [nest, subjectId],
-  )
+  const cardOf = useCallback((ex: PronExample) => ({
+    subject: subjectId,
+    source: 'trainer' as const,
+    prompt: rule.kind === 'sound' ? `Как звучит ${ex.written}?` : `Как пишется в начале слова: ${ex.written}?`,
+    answer: `${spokenLabel(rule, ex.spoken)} — ${ex.ru}`,
+    options: [ex.spoken, ...ex.distractors].map(s => spokenLabel(rule, s)),
+  }), [rule, subjectId])
 
   const takeAll = useCallback(async () => {
     setSaving(true)
     try {
-      setAdded(await addCards(owner, cards))
+      setAdded(await addCards(owner, rule.examples.map(cardOf)))
     } catch (e) {
-      console.error('nest takeAll:', e)
+      console.error('pron takeAll:', e)
       setAdded(0)
     } finally {
       setSaving(false)
     }
-  }, [owner, cards])
+  }, [owner, rule, cardOf])
 
   /** Ошибки прогона уходят в колоду — по расписанию вернутся сами. */
-  const pushMissed = useCallback(async (words: NestWord[]) => {
-    if (words.length === 0) return
-    const byTerm = new Map(words.map(w => [w.term, w]))
+  const pushMissed = useCallback(async (list: PronExample[]) => {
+    if (list.length === 0) return
+    const byTerm = new Map(list.map(ex => [ex.written, ex]))
     try {
-      await addCards(owner, [...byTerm.values()].map(w => ({
-        subject: subjectId,
-        source: 'trainer' as const,
-        prompt: nestPrompt(nest, w),
-        answer: `${w.term} — ${w.ru}`,
-        options: nest.words.map(x => x.term),
-      })))
+      await addCards(owner, [...byTerm.values()].map(cardOf))
     } catch (e) {
-      console.error('nest pushMissed:', e)
+      console.error('pron pushMissed:', e)
     }
-  }, [owner, subjectId, nest])
+  }, [owner, cardOf])
 
   function start() {
     missed.current = []
     setScore(0)
     setIdx(0)
     setPicked(null)
-    setRun(buildRun(nest))
+    setRun(buildRun(rule))
   }
 
-  function pick(word: NestWord) {
+  function pick(option: string) {
     if (picked || !q) return
-    setPicked(word)
-    if (word.term === q.word.term) setScore(s => s + 1)
-    else missed.current.push(q.word)
+    setPicked(option)
+    if (option === q.ex.spoken) setScore(s => s + 1)
+    else missed.current.push(q.ex)
+    // Звук — после ответа, как подтверждение: до ответа он выдал бы решение.
+    window.setTimeout(() => say(voiceOf(rule, q.ex), lang), 250)
   }
 
   function next() {
@@ -261,13 +249,16 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
   const header = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <TileChip tone="accent" accent={accent} soft={soft}>{t(nestAxisLabel(nest.axis))}</TileChip>
+        <TileChip tone="accent" accent={accent} soft={soft}>{rule.ko}</TileChip>
         <span style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
-          {nest.title}
+          {t(rule.title)}
         </span>
       </div>
+      <div style={{ fontSize: 13.5, fontWeight: 700, color: accent, ...proseWrap }}>
+        {t(rule.tagline)}
+      </div>
       <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
-        {nest.why}
+        {t(rule.why)}
       </p>
     </div>
   )
@@ -275,7 +266,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
   // ── Прогон ────────────────────────────────────────────────────────────────
 
   if (run && !done && q) {
-    const right = picked?.term === q.word.term
+    const right = picked === q.ex.spoken
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {header}
@@ -288,37 +279,30 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           <span style={{ fontSize: 12, color: 'var(--color-green-text)', fontWeight: 700 }}>{score}</span>
         </div>
 
-        {/* Звук — САМ ВОПРОС, а не метка объекта, поэтому здесь не значок в
-            углу, а тот же плеер, что в диктанте домашки: крупная залитая
-            кнопка над содержимым, прижатая влево, и «помедленнее» рядом.
-            Раньше тут был свой круг на 68 пунктов по центру — ещё одно место,
-            где звук выглядел иначе, чем везде. */}
+        {/* Написанное слово — сам вопрос. Без звука: озвучка сыграет после
+            ответа, иначе правило можно не знать, а расслышать. */}
         <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12,
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10,
           padding: '20px 18px', borderRadius: 20,
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 700 }}>
-            {t('Какое слово прозвучало?')}
+            {questionOf(rule, t)}
           </div>
-          <AudioPlayer
-            key={q.word.term}
-            ttsText={q.word.term}
-            lang={lang}
-            allowSlow
-            accent={accent}
-            soft={`${accent}22`}
-          />
+          <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>
+            {q.ex.written}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>{q.ex.ru}</div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
           {q.options.map(o => {
-            const isAnswer = o.term === q.word.term
-            const chosen = picked?.term === o.term
+            const isAnswer = o === q.ex.spoken
+            const chosen = picked === o
             const show = !!picked && (isAnswer || chosen)
             return (
               <button
-                key={o.term}
+                key={o}
                 onClick={() => pick(o)}
                 disabled={!!picked}
                 style={{
@@ -334,7 +318,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
                   color: 'var(--color-text)',
                 }}
               >
-                {o.term}
+                {spokenLabel(rule, o)}
               </button>
             )
           })}
@@ -347,11 +331,11 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
               color: right ? 'var(--color-green-text)' : 'var(--color-red-text)',
             }}>
               {right ? <Check size={16} /> : <X size={16} />}
-              {right ? t('Верно') : `${t('Прозвучало')} ${q.word.term} — ${q.word.ru}`}
+              {right ? t('Верно') : `${q.ex.written} → ${spokenLabel(rule, q.ex.spoken)}`}
             </div>
-            {/* Подпись различия показывается ровно в момент ошибки: тогда она
+            {/* Разбор примера показывается ровно в момент ответа: тогда note
                 читается как ответ на «а почему», а не как справка. */}
-            <WordRow word={q.word} lang={lang} accent={accent} tone={right ? 'good' : 'bad'} />
+            <ExampleRow rule={rule} ex={q.ex} lang={lang} accent={accent} tone={right ? 'good' : 'bad'} />
             <button onClick={next} style={primaryBtn(accent)}>
               {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
             </button>
@@ -366,7 +350,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
   if (run && done) {
     const total = run.length
     const pct = Math.round((score / Math.max(total, 1)) * 100)
-    const weak = [...new Map(missed.current.map(w => [w.term, w])).values()]
+    const weak = [...new Map(missed.current.map(ex => [ex.written, ex])).values()]
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {header}
@@ -377,16 +361,16 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
-              ? t('Ряд различается целиком. Он вернётся на повторение позже — на слух это забывается быстрее, чем кажется.')
+              ? t('Правило прочитано без промахов. Оно ещё вернётся в текстах — там и проверится по-настоящему.')
               : t('Слова, на которых промахнулся, уже в колоде повторений — они вернутся сами.')}
           </div>
         </div>
         {weak.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-muted)' }}>
-              {t('Не расслышал')}
+              {t('Прочитал не так')}
             </div>
-            {weak.map(w => <WordRow key={w.term} word={w} lang={lang} accent={accent} tone="bad" />)}
+            {weak.map(ex => <ExampleRow key={ex.written} rule={rule} ex={ex} lang={lang} accent={accent} tone="bad" />)}
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -409,33 +393,30 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)',
       }}>
-        <ChevronLeft size={14} /> {t('К созвучиям')}
+        <ChevronLeft size={14} /> {t('К правилам')}
       </button>
 
       {header}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {nest.words.map(w => <WordRow key={w.term} word={w} lang={lang} accent={accent} />)}
+        {rule.examples.map(ex => <ExampleRow key={ex.written} rule={rule} ex={ex} lang={lang} accent={accent} />)}
       </div>
 
+      {rule.trap && (
+        <div style={{
+          padding: '12px 14px', borderRadius: 16,
+          border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
+          fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-muted)', ...proseWrap,
+        }}>
+          {t(rule.trap)}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        {audible ? (
-          <button onClick={start} style={primaryBtn(accent)}>
-            <Ear size={15} />
-            {t('Проверить на слух')}
-          </button>
-        ) : (
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 8, padding: '12px 14px', borderRadius: 16,
-            border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-            fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-muted)', ...proseWrap,
-          }}>
-            <Sparkle size={15} style={{ flexShrink: 0, marginTop: 1, color: accent }} />
-            {nest.axis === 'homonym'
-              ? t('Проверки на слух здесь нет и быть не может: слова звучат одинаково. Различает их только фраза, в которой они стоят.')
-              : t('Проверки на слух здесь нет: эти звуки в современной речи слились, и носители их тоже не различают. Учить надо написание слова целиком.')}
-          </div>
-        )}
+        <button onClick={start} style={primaryBtn(accent)}>
+          <BookOpenCheck size={15} />
+          {t('Проверить чтение')}
+        </button>
         <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
@@ -450,16 +431,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
 }
 
 // ─── Кнопки ──────────────────────────────────────────────────────────────────
-//
-// Две кнопки ряда («Проверить на слух» и «Взять слова в колоду») стоят рядом,
-// поэтому у них ОДНА геометрия: высота задаётся не паддингом, а `height`, а
-// рамка ghost-кнопки лежит внутри бокса (`box-sizing: border-box`). Иначе
-// сплошная кнопка выше соседней на высоту иконки и на две рамки.
-//
-// Заливка — цвет предмета, а не общий фиолетовый: экран целиком выкрашен
-// акцентом языка (чипы, динамики, обводки), и одна фиолетовая кнопка посреди
-// кораллового читалась как чужая. Под белый текст акцент затемняется в
-// `subjectFill` — сам по себе он слишком светлый.
+// Геометрия и раскраска — те же, что у гнёзд созвучий (см. SoundNestDrill).
 
 const BTN_H = 42
 

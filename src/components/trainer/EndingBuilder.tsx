@@ -10,6 +10,7 @@ import {
 import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
 import { Block, SpeakBtn, TONE, say, shuffle, primaryBtn, ghostBtn } from './blockKit'
 import type { MaterialResult } from '../../lib/trainerProgress'
+import { SoundBadge } from '../SoundBadge'
 
 // Конструктор форм: одна основа и восемь хвостов.
 //
@@ -118,6 +119,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
   /** Показывать ли романизацию — общий тумблер тренажёра. */
   reading: boolean
 }) {
+  const t = useT()
   const form = verb.forms[ending.id]
   const merged = isMerged(verb, ending.id)
   if (!form) return null
@@ -126,11 +128,23 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
     : tone === 'bad' ? 'var(--color-red-border)'
     : 'var(--color-border-soft)'
   return (
+    // Строка разбора — звучащий объект: значок звука в её правом верхнем углу,
+    // как у карточки слова и у фразы разговорника. Раньше кружок вёл строку
+    // слева, и на соседнем экране звук снова оказывался в другом месте.
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
+      position: 'relative',
+      display: 'flex', alignItems: 'flex-start', gap: 12,
+      padding: '12px 14px', paddingRight: 48,
       borderRadius: 16, border: `1px solid ${border}`, background: 'var(--color-bg-2)',
     }}>
-      <SpeakBtn term={form.form} lang={lang} accent={accent} />
+      <SoundBadge
+        accent={accent}
+        soft={`${accent}22`}
+        onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(form.form, lang) }}
+        label={t('Произнести')}
+        size={30}
+        inset={12}
+      />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {/* Слитая форма — одна плитка, а не две: границы кирпичей в ней нет,

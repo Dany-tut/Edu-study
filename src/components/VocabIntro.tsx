@@ -17,14 +17,15 @@
 // урока» не заводится, иначе одно и то же слово пришлось бы держать в двух местах.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3, Volume2 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3 } from 'lucide-react'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
-import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
+import { speechText } from '../lib/speech'
+import { SoundBadge, SoundTrack, useSpeakOne } from './SoundBadge'
 
 /**
  * «Карточка — это один знак»: буква хангыля, кана, иероглиф. У таких карточек
@@ -69,65 +70,17 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
   const t = useT()
   const [open, setOpen] = useState(defaultOpen)
   /**
-   * Карточка, которая звучит прямо сейчас (одновременно звучит только одна).
-   * `live` — голос уже зазвучал: между тапом и первым звуком движок берёт своё
-   * время (сетевой голос — до секунды), и бегунок, пущенный по тапу, к началу
-   * слова уже на середине. `done` — слово смолкло, и линию надо доводить до
-   * края: длительность синтеза известна лишь прикидкой.
-   */
-  const [speaking, setSpeaking] = useState<
-    { id: string; run: number; ms: number; live?: boolean; done?: boolean } | null
-  >(null)
-  const runRef = useRef(0)
-  const hideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Слово не должно догонять ученика на следующем экране.
-  useEffect(() => () => {
-    if (runRef.current > 0) stopSpeech()
-    if (hideRef.current) clearTimeout(hideRef.current)
-  }, [])
-
-  /**
-   * Озвучка карточки. Кнопки-плеера у карточки больше нет — говорит сама
-   * карточка, поэтому запуск живёт здесь, а не в AudioPlayer.
+   * Озвучка ряда карточек: говорит всегда одна, второй тап по говорящей —
+   * «замолчи». Правило и состояние общие на весь продукт (SoundBadge.tsx).
    *
-   * ПОЧЕМУ ВСЯ КАРТОЧКА, А НЕ КРУЖОК. Плеер вставал в трёх разных местах:
-   * у слова — справа от записи, у карточки с рисунком — на уровне картинки,
-   * у буквы — внизу под значением (рядом с буквой он сбивал её с центра).
-   * В ряду из десяти карточек кружки стояли лестницей, и ученик каждый раз
-   * искал глазами, куда на этой карточке ткнуть. Теперь цель одна и размером
-   * с карточку, а в углу — тихий значок звука: он говорит, что тут звучит, но
-   * не претендует быть единственной целью.
+   * ПОЧЕМУ КНОПКА — ВСЯ КАРТОЧКА. Плеер вставал в трёх разных местах: у слова
+   * — справа от записи, у карточки с рисунком — на уровне картинки, у буквы —
+   * внизу под значением (рядом с буквой он сбивал её с центра). В ряду из
+   * десяти карточек кружки стояли лестницей, и ученик каждый раз искал
+   * глазами, куда ткнуть. Теперь цель одна и размером с карточку, а в углу —
+   * тот же тихий значок звука, что и на остальных экранах.
    */
-  function say(w: HomeworkQuizQuestion) {
-    const text = speechText(w.front || w.prompt)
-    if (!text.trim()) return
-    // Повторный тап по говорящей карточке — это «замолчи», как пауза у плеера.
-    if (speaking?.id === w.id && !speaking.done) {
-      stopSpeech()
-      runRef.current++
-      if (hideRef.current) clearTimeout(hideRef.current)
-      setSpeaking(null)
-      return
-    }
-    // Номер запуска: onEnd прошлой озвучки приходит уже после старта новой и
-    // без сверки погасил бы индикатор слова, которое только что зазвучало.
-    const run = ++runRef.current
-    const finish = () => {
-      setSpeaking(cur => (cur?.run === run ? { ...cur, done: true } : cur))
-      if (hideRef.current) clearTimeout(hideRef.current)
-      hideRef.current = setTimeout(() => {
-        setSpeaking(cur => (cur?.run === run ? null : cur))
-      }, 260)
-    }
-    if (hideRef.current) clearTimeout(hideRef.current)
-    setSpeaking({ id: w.id, run, ms: speechMs(text) })
-    speak(text, {
-      lang: w.lang,
-      onStart: () => setSpeaking(cur => (cur?.run === run ? { ...cur, live: true } : cur)),
-      onEnd: finish,
-    })
-  }
+  const { speaking, say } = useSpeakOne()
   const { visible: readingVisible, toggle: toggleReading } = useReadingVisible()
   /**
    * Знакомство по одному слову.
@@ -260,9 +213,9 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                   <button
                     key={w.id}
                     type="button"
-                    onClick={() => say(w)}
+                    onClick={() => say(w.id, face, w.lang)}
                     disabled={mute}
-                    className={mute ? undefined : 'vocab-card'}
+                    className={mute ? undefined : 'sound-obj'}
                     aria-label={`${face} — ${t('послушать')}`}
                     style={{
                       position: 'relative', overflow: 'hidden',
@@ -284,26 +237,10 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       cursor: mute ? 'default' : 'pointer',
                     }}
                   >
-                    {/* Значок звука. Один и тот же угол у слова, у карточки с
-                        рисунком и у буквы: раньше плеер стоял в трёх разных
-                        местах, и ряд карточек читался как лестница из кружков.
-                        Он не кнопка — кнопка тут вся карточка, — поэтому
-                        aria-hidden и никаких обработчиков. */}
-                    <span
-                      aria-hidden
-                      className="vocab-card__snd"
-                      style={{
-                        position: 'absolute', top: 10, right: 10,
-                        width: 26, height: 26, borderRadius: '50%',
-                        display: 'grid', placeItems: 'center',
-                        background: sp ? accent : soft,
-                        color: sp ? '#fff' : accent,
-                        // Звучащая карточка держит значок в полную силу и без курсора.
-                        opacity: mute ? 0 : sp ? 1 : undefined,
-                      }}
-                    >
-                      <Volume2 size={13} />
-                    </span>
+                    {/* Значок звука — тот же угол, что у фразы, буквы и строки
+                        на других экранах. Он не кнопка: кнопка тут вся
+                        карточка. У беззвучной карточки значка нет вовсе. */}
+                    {!mute && <SoundBadge accent={accent} soft={soft} on={!!sp} />}
 
                     {/* Плитка предмета — только там, где рисунок ЕСТЬ.
                         Раньше пустая рамка с перечёркнутой картинкой стояла у
@@ -335,30 +272,8 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       {bindShortWords(w.back ?? '')}
                     </span>
 
-                    {/* Индикатор озвучки: линия по низу карточки заполняется, пока
-                        слово произносится. Анимация чисто CSS — rAF в превью не
-                        срабатывает, а этот индикатор должен работать везде.
-                        До первого звука видна пустая пульсирующая дорожка: тап
-                        принят, движок ещё запрягает. */}
-                    {sp && (
-                      <span
-                        aria-hidden
-                        className={sp.live || sp.done ? undefined : 'vocab-speak-wait'}
-                        style={{
-                          position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
-                          background: soft, overflow: 'hidden',
-                          opacity: sp.done ? 0 : 1, transition: 'opacity 240ms linear',
-                        }}
-                      >
-                        {sp.live && (
-                          <span
-                            key={sp.run}
-                            className={`vocab-speak-fill${sp.done ? ' vocab-speak-fill--done' : ''}`}
-                            style={{ background: accent, animationDuration: `${sp.ms}ms` }}
-                          />
-                        )}
-                      </span>
-                    )}
+                    {/* Бегунок озвучки по низу карточки — общий на весь продукт. */}
+                    {sp && <SoundTrack state={sp} accent={accent} soft={soft} />}
                   </button>
                   )
                 })}

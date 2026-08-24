@@ -1080,6 +1080,29 @@ const EN: Record<string, string> = {
   "Строка подстановки": "Substitution row",
   "Удалить строку": "Delete row",
 
+  // — Сборка тапами: написано неправильно / блоки / ряд слогов —
+  "Написано неправильно": "Unscramble",
+  "요하녕세안 → собери правильно": "요하녕세안 → rebuild it correctly",
+  "Сборка из блоков": "Build from blocks",
+  "Тапай блоки в правильном порядке": "Tap the blocks in the right order",
+  "Ряд слогов": "Syllable bank",
+  "Собери слово из ряда, часть слогов — обманки": "Build the word from the row — some tiles are decoys",
+  "Нажимай на плитки — собери слово правильно": "Tap the tiles to rebuild the word correctly",
+  "Нажимай на нужные плитки по порядку": "Tap the right tiles in order",
+  "Нажимай на блоки в правильном порядке": "Tap the blocks in the right order",
+  "Убрать последнюю": "Remove last",
+  "Убрать последний": "Remove last",
+  "Правильно": "Correct",
+  "Ученик соберёт эти блоки тапами из перемешанного банка — в этом порядке.": "The student taps these blocks out of a shuffled bank — in this order.",
+  "Правильное слово или фраза": "Correct word or phrase",
+  "Например 안녕하세요": "For example 안녕하세요",
+  "Ученик увидит": "The student will see",
+  "и пересоберёт правильно из плиток.": "and will rebuild it correctly from tiles.",
+  "Нужно хотя бы два знака — иначе переставлять нечего, и задание покажется обычным полем ответа.": "At least two characters are needed — otherwise there is nothing to rearrange, and the task falls back to a plain answer field.",
+  "Слово или фраза, которую собирают — разобьётся на слоги-плитки": "Word or phrase to build — it splits into syllable tiles",
+  "Слоги-обманки через запятую (пусто — похожие подберутся сами)": "Decoy syllables, comma-separated (leave empty to auto-pick look-alikes)",
+  "Ученик собирает слово тапами из ряда слогов; часть слогов — обманки, клавиатура не нужна.": "The student taps syllables from a row to build the word; some tiles are decoys, no keyboard needed.",
+
   // — Правило под рукой и части домашки —
   "Правило": "Grammar",
   "Правило урока": "Lesson rule",
@@ -2016,6 +2039,12 @@ const EN: Record<string, string> = {
     "The button lights up once every question is answered. Then the full translation opens — it stays closed until then, otherwise there's no point reading the original.",
   // — Лента: виджет главной и счётчик нового —
   'Лента': 'Feed',
+  // — Кружки-сторис мобильной главной —
+  'дрилл': 'drill',
+  'слова': 'words',
+  'новое': 'new',
+  'ролик · смотреть в ленте': 'video · watch in the feed',
+  'Открыть ленту целиком': 'Open the whole feed',
   'всё просмотрено': 'all caught up',
   'Свежие ролики и заметки на языке курса — каждый день. Появится, когда выбран языковой курс.':
     'Fresh clips and notes in the language of your course, every day. Appears once a language course is selected.',

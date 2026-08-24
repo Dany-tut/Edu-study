@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { RotateCcw, Volume2, Undo2, Layers, HelpCircle, Check, X } from 'lucide-react'
+import { RotateCcw, Undo2, Layers, HelpCircle, Check, X } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
@@ -29,6 +29,7 @@ import { scheduleReview } from '../lib/reviewScheduler'
 import { withExamples } from '../lib/cardExamples'
 import { haptic } from '../lib/feedback'
 import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
+import { SoundBadge, SoundTrack } from './SoundBadge'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import { awardDeckSticker, markSeen, stickerLabel, type EarnedSticker } from '../lib/stickers'
@@ -872,10 +873,8 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
         // как отдельный элемент под карточкой, а не как её край.
         overflow: 'hidden',
         padding: 22,
-        // Кнопка озвучки висит абсолютом по нижнему краю, и место под неё
-        // резервируется НА ОБЕИХ сторонах: разные отступы у лица и оборота —
-        // это разная высота содержимого, то есть скачок при перевороте.
-        paddingBottom: lang ? 46 : 22,
+        // Место под кнопку у нижнего края больше не резервируется: звук
+        // уехал в правый верхний угол, к общему для продукта значку.
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', textAlign: 'center', cursor: 'grab', userSelect: 'none',
       }}
@@ -1053,18 +1052,18 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                         </div>
                       )}
                     </div>
+                    {/* Пример — свой объект внутри карточки, и звук у него в
+                        своём правом верхнем углу: та же форма значка, что у
+                        карточки целиком, только меньше. */}
                     {lang && (
-                      <button
+                      <SoundBadge
+                        accent={accent}
+                        soft={`${accent}22`}
                         onClick={e => say(e, seat.card.ex!.term)}
-                        aria-label={t('Послушать пример')}
-                        style={{
-                          flexShrink: 0, marginTop: -2, padding: '5px 8px', borderRadius: 999, cursor: 'pointer',
-                          border: '1px solid var(--color-border-soft)', background: 'transparent', color: accent,
-                          display: 'flex', alignItems: 'center', fontFamily: 'inherit',
-                        }}
-                      >
-                        <Volume2 size={13} />
-                      </button>
+                        label={t('Послушать пример')}
+                        size={26}
+                        style={{ position: 'static', flexShrink: 0, marginTop: -2 }}
+                      />
                     )}
                   </div>
                 </div>
@@ -1096,45 +1095,25 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
         </div>
       )}
 
+      {/* Значок звука в правом верхнем углу — тот же, что у слова урока, у
+          фразы и у строки читалки (см. components/SoundBadge). Здесь он
+          КНОПКА, а не метка: тап по самой карточке уже занят переворотом.
+          Раньше он стоял отдельной таблеткой по центру нижнего края — своё
+          место на каждом экране и было тем самым разнобоем. */}
       {lang && (
-        <button
+        <SoundBadge
+          accent={accent}
+          soft={`${accent}22`}
+          on={!!speaking && !speaking.done}
           onClick={say}
-          aria-label={t('Послушать')}
-          style={{
-            position: 'absolute', bottom: 14, padding: '7px 11px', borderRadius: 999, cursor: 'pointer',
-            border: '1px solid var(--color-border-soft)', background: 'transparent', color: accent,
-            display: 'flex', alignItems: 'center', fontFamily: 'inherit',
-          }}
-        >
-          <Volume2 size={15} />
-        </button>
+          label={t('Послушать')}
+          size={30}
+          inset={12}
+        />
       )}
 
-      {/* Индикатор озвучки — тот же, что у слов урока: линия по нижнему краю
-          заполняется, пока слово произносится. Ключ по номеру запуска, иначе
-          повторный клик по уже звучащей карточке не перезапустил бы анимацию.
-          Анимация чисто CSS: rAF в превью не срабатывает.
-          Бегунок монтируется вместе с первым звуком — до него видна одна
-          дорожка, и она пульсирует: тап уже принят, движок ещё запрягает. */}
-      {speaking && (
-        <span
-          aria-hidden
-          className={speaking.live || speaking.done ? undefined : 'vocab-speak-wait'}
-          style={{
-            position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
-            background: `${accent}33`, overflow: 'hidden',
-            opacity: speaking.done ? 0 : 1, transition: 'opacity 240ms linear',
-          }}
-        >
-          {speaking.live && (
-            <span
-              key={speaking.run}
-              className={`vocab-speak-fill${speaking.done ? ' vocab-speak-fill--done' : ''}`}
-              style={{ background: accent, animationDuration: `${speaking.ms}ms` }}
-            />
-          )}
-        </span>
-      )}
+      {/* Бегунок озвучки по нижнему краю — общий на весь продукт. */}
+      {speaking && <SoundTrack state={speaking} accent={accent} soft={`${accent}33`} />}
     </motion.div>
     </div>
   )

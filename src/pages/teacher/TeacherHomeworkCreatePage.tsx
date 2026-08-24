@@ -456,8 +456,9 @@ function TaskCard({
                   </div>
                 )}
 
-                {/* Sequence items */}
-                {task.type === 'sequence' && (() => {
+                {/* Sequence / blockOrder items — у ученика sequence двигают
+                    стрелками, blockOrder собирают тапами из банка блоков. */}
+                {(task.type === 'sequence' || task.type === 'blockOrder') && (() => {
                   const items = task.sequenceItems ?? ['', '']
                   const setItems = (next: string[]) => onUpdate({ sequenceItems: next })
                   const reorderBtn = (disabled: boolean): React.CSSProperties => ({
@@ -484,7 +485,11 @@ function TaskCard({
                           <Plus size={12} /> {t('Добавить шаг')}
                         </button>
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ученик увидит элементы вперемешку и расставит их в этом порядке.')}</div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>
+                        {task.type === 'blockOrder'
+                          ? t('Ученик соберёт эти блоки тапами из перемешанного банка — в этом порядке.')
+                          : t('Ученик увидит элементы вперемешку и расставит их в этом порядке.')}
+                      </div>
                     </div>
                   )
                 })()}

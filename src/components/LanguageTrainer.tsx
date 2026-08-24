@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, type FeedItem } from '../data/feed'
 import { languageTaxonomy } from '../data/languageTaxonomy'
@@ -61,6 +61,8 @@ import { hasHanjaRoots, hanjaRootById, HANJA_GROUPS, HANJA_ROOTS } from '../data
 import { RootGrid, RootPage } from './trainer/RootBuilder'
 import { hasNumbers, numberSetById, systemLabel, KO_NUMBER_SETS, SYSTEM_RULES } from '../data/koreanNumbers'
 import { NumberGrid, NumberPage } from './trainer/NumberBuilder'
+import { hasPronRules, pronRuleById, KO_PRON_RULES } from '../data/koreanPronRules'
+import { PronGrid, PronPage } from './trainer/PronRuleDrill'
 import { TONE } from './trainer/blockKit'
 import {
   MyWordsSession, MyWordsTile, myWordsFrom, myWordsStats, MY_WORDS_ID, type MyWord,
@@ -132,8 +134,13 @@ type GuideView = 'story' | 'books'
  * `stems` — основа глагола и хвосты (одна основа, восемь смыслов), `roots` —
  * корень-кирпич и его слова (одно знание, семь слов). Материал разный, движение
  * одно: слово разложено на плитки, и одна плитка ставится вручную.
+ *
+ * `sounds` — правила чтения: почему написанное звучит иначе. Стоит в
+ * «Конструкторе», а не в «Карточках» рядом с созвучиями: гнездо тренирует ухо
+ * на готовых словах, а правило — тот же взгляд «из чего собрано», только про
+ * звук, и открывается оно так же — витриной материалов с прогоном.
  */
-type BlocksView = 'stems' | 'roots' | 'numbers'
+type BlocksView = 'stems' | 'roots' | 'numbers' | 'sounds'
 
 /**
  * Корзины длительности — общий фильтр чтения и аудирования.
@@ -376,7 +383,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   /** Переключение половин «Конструктора». Открытое при этом закрывается. */
   function switchBlocksView(v: BlocksView) {
     setBlocksView(v)
-    setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null)
+    setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null); setOpenPronId(null)
     setQuery('')
   }
 
@@ -550,7 +557,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const stemsOn = useMemo(() => hasEndings(lang), [lang])
   const rootsOn = useMemo(() => hasHanjaRoots(lang), [lang])
   const numbersOn = useMemo(() => hasNumbers(lang), [lang])
-  const blocksOn = stemsOn || rootsOn || numbersOn
+  const soundsOn = useMemo(() => hasPronRules(lang), [lang])
+  const blocksOn = stemsOn || rootsOn || numbersOn || soundsOn
   const [blocksView, setBlocksView] = usePersistentState<BlocksView>(
     `trainer.${lang}.blocksView`, 'stems',
   )
@@ -560,6 +568,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const openStem = useMemo(() => (openStemDict ? verbByDict(openStemDict) ?? null : null), [openStemDict])
   const openRoot = useMemo(() => (openRootKo ? hanjaRootById(openRootKo) ?? null : null), [openRootKo])
   const openNum = useMemo(() => (openNumId ? numberSetById(openNumId) ?? null : null), [openNumId])
+  const [openPronId, setOpenPronId] = usePersistentState<string | null>(`trainer.${lang}.pron`, null)
+  const openPron = useMemo(() => (openPronId ? pronRuleById(openPronId) ?? null : null), [openPronId])
   /** Полка корней: ханча раскладывается по смысловым группам. */
   const [rootGroup, setRootGroup] = usePersistentState<string>(`trainer.${lang}.rootGroup`, '')
   // Поиск идёт и по самим формам: ученик ищет «хочу» или «갔어요», а не «가다».
@@ -586,6 +596,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         .toLowerCase().includes(q)
     })
   }, [query, rootGroup])
+  const visiblePron = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return KO_PRON_RULES
+    return KO_PRON_RULES.filter(r =>
+      `${r.ko} ${r.title} ${r.tagline} ${r.examples.map(x => `${x.written} ${x.spoken} ${x.ru}`).join(' ')}`
+        .toLowerCase().includes(q))
+  }, [query])
 
   // ── Глубина по курсу ───────────────────────────────────────────────────────
   //
@@ -705,11 +722,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Та же защита для конструктора: восстановленная из sessionStorage половина
   // может оказаться ненаписанной для этого языка, а сам режим — отсутствующим.
   useEffect(() => {
-    const on = { stems: stemsOn, roots: rootsOn, numbers: numbersOn }
+    const on = { stems: stemsOn, roots: rootsOn, numbers: numbersOn, sounds: soundsOn }
     if (on[blocksView]) return
-    const fallback = (['stems', 'roots', 'numbers'] as BlocksView[]).find(v => on[v])
+    const fallback = (['stems', 'roots', 'numbers', 'sounds'] as BlocksView[]).find(v => on[v])
     if (fallback) setBlocksView(fallback)
-  }, [blocksView, stemsOn, rootsOn, numbersOn, setBlocksView])
+  }, [blocksView, stemsOn, rootsOn, numbersOn, soundsOn, setBlocksView])
   useEffect(() => {
     if (mode === 'blocks' && !blocksOn) setMode('reading')
   }, [mode, blocksOn, setMode])
@@ -1041,7 +1058,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openStem || openRoot || openChapter))
+  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openStem || openRoot || openPron || openChapter))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -1075,7 +1092,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   useScreenTop([
     lang, mode, readingView, vocabView, blocksView, guideView,
     openTextId, openAudioId, openWorkId, openSceneId, openTheme,
-    openNestId, openPackId, openStemDict, openRootKo, openNumId,
+    openNestId, openPackId, openStemDict, openRootKo, openNumId, openPronId,
     openChapterId, openFormId, speakOpen ? '1' : '',
     kindFilter, fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
@@ -1129,7 +1146,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Всё, что в режиме можно открыть: основы плюс корни. Обе таблицы лежат в
     // коде, поэтому цифра известна синхронно и не прыгает после загрузки.
     blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0)
-      + (numbersOn ? KO_NUMBER_SETS.length : 0),
+      + (numbersOn ? KO_NUMBER_SETS.length : 0) + (soundsOn ? KO_PRON_RULES.length : 0),
     // Из синхронного реестра — чтобы бейдж стоял до того, как чанк поехал.
     grammar: grammarOn ? (GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[lang.split('-')[0]]) : undefined,
     // Главы рассказа плюс книги на полке. Книги известны синхронно, главы — нет
@@ -1149,7 +1166,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : feedOn ? `${feedTotal} ${t(materialsWord(feedTotal))} ${t('из свободных источников')}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
-    : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')} · ${KO_NUMBER_SETS.length} ${t('наборов чисел')}`
+    : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')} · ${KO_NUMBER_SETS.length} ${t('наборов чисел')} · ${KO_PRON_RULES.length} ${t('правил чтения')}`
     : mode === 'grammar' && gram ? `${gram.forms.length} ${t('форм')} · ${gram.forms.reduce((n, f) => n + f.examples.length, 0)} ${t('примеров')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
@@ -1443,20 +1460,26 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </>
       )}
 
-      {mode === 'blocks' && !openStem && !openRoot && !openNum && (
+      {mode === 'blocks' && !openStem && !openRoot && !openNum && !openPron && (
         <RailCard title="Что собираем" accent={palette.accent} icon={<Blocks size={15} />}>
           {!narrow && (
+          // Четыре подписи со счётчиками в рейл не влезали и резались
+          // многоточием («О.. 8») — поэтому режим idleIcon: подпись целиком
+          // только у выбранной половины, остальные ждут значками. Счётчики и
+          // так стоят в тулбаре и на плитках.
           <RailSegment
             options={[
-              ...(stemsOn ? [{ value: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
-              ...(rootsOn ? [{ value: 'roots', label: 'Корни', badge: HANJA_ROOTS.length }] : []),
-              ...(numbersOn ? [{ value: 'numbers', label: 'Числа', badge: KO_NUMBER_SETS.length }] : []),
+              ...(stemsOn ? [{ value: 'stems', label: 'Основы', icon: <Layers size={15} /> }] : []),
+              ...(rootsOn ? [{ value: 'roots', label: 'Корни', icon: <Puzzle size={15} /> }] : []),
+              ...(numbersOn ? [{ value: 'numbers', label: 'Числа', icon: <Hash size={15} /> }] : []),
+              ...(soundsOn ? [{ value: 'sounds', label: 'Звуки', icon: <AudioLines size={15} /> }] : []),
             ]}
             value={blocksView}
             onChange={v => v && switchBlocksView(v as BlocksView)}
             accent={palette.accent}
             soft={palette.soft}
             clearable={false}
+            idleIcon
           />
           )}
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
@@ -1464,6 +1487,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               ? t('Глагол не спрягается по лицам: основа стоит, меняется хвост.')
               : blocksView === 'roots'
               ? t('Слово китайского происхождения собрано из односложных кирпичей.')
+              : blocksView === 'sounds'
+              ? t('Написанное и звучащее расходятся по правилам — их всего десять.')
               : t('Рядов счёта два, и выбирает между ними не число, а то, что считают.')}
           </div>
         </RailCard>
@@ -1502,6 +1527,28 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(rule.what)}</span>
             </div>
           ))}
+        </RailCard>
+      )}
+
+      {/* Опорная таблица правил чтения — тот же приём, что «Хвосты» и «Каким
+          рядом»: семь конечных звуков нужны и на витрине, и посреди прогона,
+          потому что через них проходит половина правил. */}
+      {mode === 'blocks' && blocksView === 'sounds' && (
+        <RailCard title="Семь конечных" accent={palette.accent} icon={<Layers size={15} />}>
+          {([
+            ['ㄱ ㅋ ㄲ', '[к]'], ['ㄴ', '[н]'], ['ㄷ ㅅ ㅆ ㅈ ㅊ ㅌ ㅎ', '[т]'],
+            ['ㄹ', '[ль]'], ['ㅁ', '[м]'], ['ㅂ ㅍ', '[п]'], ['ㅇ', '[нъ]'],
+          ] as const).map(([letters, sound]) => (
+            <div key={sound} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: palette.accent, whiteSpace: 'nowrap' }}>
+                {letters}
+              </span>
+              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{sound}</span>
+            </div>
+          ))}
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+            {t('Так звучит любой 받침 — если следом не идёт гласная.')}
+          </div>
         </RailCard>
       )}
 
@@ -1659,6 +1706,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           ...(stemsOn ? [{ id: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
           ...(rootsOn ? [{ id: 'roots', label: 'Корни', badge: HANJA_ROOTS.length }] : []),
           ...(numbersOn ? [{ id: 'numbers', label: 'Числа', badge: KO_NUMBER_SETS.length }] : []),
+          ...(soundsOn ? [{ id: 'sounds', label: 'Звуки', badge: KO_PRON_RULES.length }] : []),
         ]
     : mode === 'guide'
       ? [
@@ -1793,19 +1841,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         )}
       </Toolbar>
     )
-  } else if (mode === 'blocks' && !openStem && !openRoot && !openNum) {
+  } else if (mode === 'blocks' && !openStem && !openRoot && !openNum && !openPron) {
     toolbar = (
       <Toolbar>
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(
             blocksView === 'stems' ? 'Найти форму или смысл…'
             : blocksView === 'roots' ? 'Найти слово или корень…'
+            : blocksView === 'sounds' ? 'Найти правило или слово…'
             : 'Найти число или ситуацию…')} />
         <ToolCount>
           {blocksView === 'stems'
             ? `${visibleStems.length} ${t('основ')}`
             : blocksView === 'roots'
             ? `${visibleRoots.length} ${t('корней')}`
+            : blocksView === 'sounds'
+            ? `${visiblePron.length} ${t('правил')}`
             : `${visibleNums.length} ${t('наборов')}`}
         </ToolCount>
       </Toolbar>
@@ -2288,8 +2339,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       ? 'Одна основа и восемь хвостов. Хвост цепляется одинаково к любому глаголу, поэтому выучить нужно восемь хвостов, а не сорок форм.'
       : blocksView === 'roots'
       ? 'Больше половины корейских слов собрано из односложных кирпичей. Один кирпич открывает сразу гнездо слов, а промахи прогона уходят в колоду повторений.'
+      : blocksView === 'sounds'
+      ? 'Корейское слово часто звучит не так, как написано, — и расходятся они не как попало, а по десятку правил. Каждое правило здесь — разбор, частые слова и прогон; промахи уходят в колоду повторений.'
       : 'Рядов счёта два, и выбирают между ними не по числу, а по тому, что считают: людей и часы — исконным, деньги, минуты и даты — китайским. Наборы здесь и есть эти ситуации.'
-    const grid = blocksView === 'numbers' ? (
+    const grid = blocksView === 'sounds' ? (
+      visiblePron.length === 0 ? (
+        <ShellEmpty text="Под поиск ничего не подошло." />
+      ) : (
+        <PronGrid
+          rules={visiblePron}
+          results={id => resultFrom('pron', id, results)}
+          accent={palette.accent}
+          soft={palette.soft}
+          onOpen={id => { setOpenPronId(id); setQuery('') }}
+        />
+      )
+    ) : blocksView === 'numbers' ? (
       visibleNums.length === 0 ? (
         <ShellEmpty text="Под поиск ничего не подошло." />
       ) : (
@@ -2355,6 +2420,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           setKnownKey(k => k + 1)
         }}
         onBack={() => setOpenNumId(null)}
+      />
+    ) : openPron ? (
+      <PronPage
+        rule={openPron}
+        lang={lang}
+        accent={palette.accent}
+        soft={palette.soft}
+        owner={owner}
+        subjectId={subjectId}
+        onFinished={(score, total) => {
+          saveResult('pron', openPron.id, score, total)
+          setResultsKey(k => k + 1)
+          setKnownKey(k => k + 1)
+        }}
+        onBack={() => setOpenPronId(null)}
       />
     ) : openRoot ? (
       <RootPage

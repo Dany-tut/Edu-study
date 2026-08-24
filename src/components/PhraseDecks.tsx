@@ -38,16 +38,16 @@
 // запросу на весь экран (deckStates), а не по запросу на тему: тем 38.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Layers, Sparkles, Check, Volume2, RotateCcw, Trash2 } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { ChevronLeft, Layers, Sparkles, Check, RotateCcw, Trash2 } from 'lucide-react'
 import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
 import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
-import { speak, speechText, type SpeechHandle } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import CardDeck, { DECK_CTA, type DeckSource } from './CardDeck'
 import GlossedText from './GlossedText'
+import { SoundBadge, SoundTrack, useSpeakOne } from './SoundBadge'
 import { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
 import { Tile, TileGrid, TileMeter, TileChip, Empty } from './trainer/TrainerShell'
@@ -484,31 +484,41 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
   const t = useT()
   const [open, setOpen] = useState<number | null>(null)
 
-  // Речь глохнет при уходе со списка: без этого фраза продолжала говорить уже
-  // на следующем экране. По ручке, а не глобально — чтобы не затыкать чужую.
-  const voiceRef = useRef<SpeechHandle | null>(null)
-  useEffect(() => () => voiceRef.current?.stop(), [])
-
-  function say(text: string) {
-    voiceRef.current = speak(speechText(text), { lang })
-  }
+  // Озвучка строки — общая на весь продукт (components/SoundBadge): говорит
+  // одна фраза, второй тап по ней же — «замолчи», речь глохнет при уходе со
+  // списка. Раньше это была своя ручка speak() на файл.
+  const { speaking, say } = useSpeakOne()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {phrases.map((p, i) => {
         const on = open === i
+        const sp = speaking?.id === `p${i}` ? speaking : null
         return (
           <div
             key={`${p.term}-${i}`}
             onClick={() => setOpen(on ? null : i)}
             style={{
-              display: 'flex', alignItems: 'flex-start', gap: 12, padding: '11px 14px', borderRadius: 14,
+              position: 'relative', overflow: 'hidden',
+              display: 'flex', alignItems: 'flex-start', gap: 12, borderRadius: 14,
+              // Место под значок звука в правом верхнем углу — как у карточки
+              // слова и у карточки стопки: один угол на весь продукт.
+              padding: '11px 14px', paddingRight: 46,
               background: 'var(--color-bg-2)',
-              border: `1px solid ${on ? `${accent}55` : 'var(--color-border-soft)'}`,
+              border: `1px solid ${sp ? accent : on ? `${accent}55` : 'var(--color-border-soft)'}`,
               cursor: 'pointer',
               transition: 'border-color 0.2s ease',
             }}
           >
+            {/* Звук строки — в её правом верхнем углу. Здесь значок сам кнопка:
+                тап по строке уже занят — им её раскрывают. */}
+            <SoundBadge
+              accent={accent}
+              soft={`${accent}22`}
+              on={!!sp && !sp.done}
+              onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(`p${i}`, p.term, lang) }}
+              label={t('Послушать')}
+            />
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Раскрытая фраза разбирается по клику на слово: 데워 주세요 —
                   это «разогрейте» плюс вежливая просьба, и без разбора формула
@@ -529,18 +539,6 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                 {on
                   ? <GlossedText text={p.term} lang={lang} accent={accent} />
                   : p.term}
-                {/* Динамик стоит вплотную к фразе, как и у примера: у правого
-                    края карточки до него было тянуться через весь перевод. */}
-                <button
-                  onClick={e => { e.stopPropagation(); say(p.term) }}
-                  aria-label={t('Послушать')}
-                  style={{
-                    flexShrink: 0, display: 'flex', border: 'none', background: 'none',
-                    cursor: 'pointer', color: accent, padding: 0,
-                  }}
-                >
-                  <Volume2 size={on ? 17 : 14} />
-                </button>
               </div>
               {view.reading && p.reading && (
                 <div style={{
@@ -564,8 +562,20 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                   оба динамика ищут в одном месте, слева, а не по краям. */}
               {on && p.ex && (
                 <div style={{
-                  marginTop: 10, paddingLeft: 10, borderLeft: `2px solid ${accent}55`,
+                  position: 'relative', marginTop: 10, paddingLeft: 10, paddingRight: 34,
+                  borderLeft: `2px solid ${accent}55`,
                 }}>
+                  {/* Пример слушают отдельно от заглавной фразы — и значок у
+                      него в СВОЁМ правом верхнем углу, той же формы. */}
+                  <SoundBadge
+                    accent={accent}
+                    soft={`${accent}22`}
+                    on={speaking?.id === `x${i}` && !speaking.done}
+                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(`x${i}`, p.ex!.term, lang) }}
+                    label={t('Послушать пример')}
+                    size={24}
+                    inset={0}
+                  />
                   <div
                     onClick={e => e.stopPropagation()}
                     style={{
@@ -574,16 +584,6 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                     }}
                   >
                     <GlossedText text={p.ex.term} lang={lang} accent={accent} />
-                    <button
-                      onClick={e => { e.stopPropagation(); say(p.ex!.term) }}
-                      aria-label={t('Послушать пример')}
-                      style={{
-                        flexShrink: 0, display: 'flex', border: 'none', background: 'none',
-                        cursor: 'pointer', color: accent, padding: 0,
-                      }}
-                    >
-                      <Volume2 size={14} />
-                    </button>
                   </div>
                   {view.reading && p.ex.reading && (
                     <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{p.ex.reading}</div>
@@ -601,6 +601,9 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                 четырёхсот слов превратила бы словарь в панель управления, а
                 нужна она раз в сто строк. Раскрытая строка — это и есть «я
                 сейчас разбираюсь именно с этим словом». */}
+            {/* Бегунок озвучки по нижнему краю строки — общий на весь продукт. */}
+            {sp && <SoundTrack state={sp} accent={accent} soft={`${accent}33`} />}
+
             {onRemove && on && (
               <button
                 onClick={e => { e.stopPropagation(); onRemove(p) }}

@@ -621,23 +621,28 @@ a {
   border-radius: 999px;
   animation: vocabSpeakFill linear forwards;
 }
-/* Карточка словаря урока — целиком кнопка озвучки. Плеера-кружка у неё нет:
-   он вставал в трёх разных местах (у слова справа, у карточки с рисунком на
-   уровне картинки, у буквы внизу), и ряд карточек читался лестницей из
-   кружков. Цель теперь одна и размером с карточку, а в углу — тихий значок
-   звука: он оживает под курсором, чтобы связь «тык — звук» была видна до
-   первого тыка. */
-.vocab-card {
+/* ЗВУЧАЩИЙ ОБЪЕКТ — ОДНО ПРАВИЛО НА ВЕСЬ ПРОДУКТ (см. components/SoundBadge.tsx).
+   Карточка слова, фраза, буква, строка, плитка: кнопка — сам объект, а в его
+   правом верхнем углу стоит тихий значок звука. Раньше каждый экран заводил
+   кнопку заново и ставил её туда, где было место, — ученик на каждом экране
+   искал звук по-новому. */
+.sound-obj {
   transition: border-color .18s ease, background .18s ease, transform .12s ease;
 }
-.vocab-card:hover { background: var(--color-bg-3); }
-.vocab-card:active { transform: scale(0.985); }
-.vocab-card__snd {
+.sound-obj:hover { background: var(--color-bg-3); }
+.sound-obj:active { transform: scale(0.985); }
+/* Значок оживает под курсором: связь «тык — звук» должна быть видна до
+   первого тыка, но в покое значок не спорит с содержимым объекта. */
+.sound-badge {
   opacity: 0.62;
   transition: opacity .18s ease, transform .18s ease, background .18s ease, color .18s ease;
 }
-.vocab-card:hover .vocab-card__snd { opacity: 1; transform: scale(1.08); }
-.vocab-card:focus-visible .vocab-card__snd { opacity: 1; }
+.sound-obj:hover .sound-badge { opacity: 1; transform: scale(1.08); }
+.sound-obj:focus-visible .sound-badge { opacity: 1; }
+/* Значок-кнопка (тап по объекту занят другим действием) сам себе цель —
+   приглушать его нечем: наводят на него, а не на объект. */
+.sound-badge--btn { opacity: 0.75; }
+.sound-badge--btn:hover { opacity: 1; transform: scale(1.08); }
 
 /* Слово смолкло раньше расчётного времени: линию доводим до конца, иначе
    бегунок замирает на середине и выглядит недобежавшим. */

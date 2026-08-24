@@ -38,7 +38,7 @@ import { motion } from 'framer-motion'
 import { Play, Pause, Menu } from 'lucide-react'
 import { Volume2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { speak, stopSpeech, speechLines, speechMs } from '../../lib/speech'
+import { speak, stopSpeech, speechUnits, speechMs } from '../../lib/speech'
 import { getMediaUrl } from '../../lib/mediaStorage'
 import { useBottomSafe } from '../../lib/bottomSafe'
 import { useNavCollapse } from '../../lib/useNavCollapse'
@@ -112,13 +112,20 @@ export default function TrackPlayer({
   // Перетаскивание: позиция пальца отдельно от позиции звука — пока ведут,
   // бегунок слушается пальца, а не голоса.
   const [drag, setDrag] = useState<{ ms: number; line: number; snapped: boolean } | null>(null)
+  // Жест ведётся — отдельным ref'ом от состояния: порядок pointerup и
+  // lostpointercapture у браузеров разный, и если снимать жест по одному
+  // только состоянию, то там, где захват теряется ПЕРЕД отпусканием, промотка
+  // тихо не срабатывала бы.
+  const dragging = useRef(false)
   const trackRef = useRef<HTMLDivElement>(null)
 
   // ─── Разметка шкалы ────────────────────────────────────────────────────────
 
   // Реплики и их оценочные длительности. Пауза входит в вес сегмента: между
   // строками диалога она слышна, и без неё бегунок обгонял голос к концу.
-  const lines = useMemo(() => (usesTts ? speechLines(ttsText ?? '') : []), [usesTts, ttsText])
+  // Предложениями, а не строками: половина записей на слух — монолог в одну
+  // строку, и по репликам такая запись неделима (см. speechUnits).
+  const lines = useMemo(() => (usesTts ? speechUnits(ttsText ?? '', 'sentence') : []), [usesTts, ttsText])
   const gap = TTS_RATES.find(r => r.id === ttsRate)?.gap ?? 160
   const spans = useMemo(() => {
     const out: { at: number; len: number }[] = []
@@ -181,6 +188,7 @@ export default function TrackPlayer({
     speak(ttsText ?? '', {
       lang,
       from,
+      unit: 'sentence',
       rate: conf.rate,
       gap: conf.gap,
       onLine: idx => {
@@ -243,13 +251,14 @@ export default function TrackPlayer({
   function onDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!total) return
     e.currentTarget.setPointerCapture(e.pointerId)
+    dragging.current = true
     const next = resolve(e.clientX)
     setDrag(next)
     if (next.snapped) tactile()
   }
 
   function onMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!drag) return
+    if (!dragging.current || !drag) return
     const next = resolve(e.clientX)
     // Щелчок ровно в момент прилипания, а не на каждом кадре внутри границы.
     if (next.snapped && (!drag.snapped || drag.line !== next.line)) tactile()
@@ -257,7 +266,8 @@ export default function TrackPlayer({
   }
 
   function onUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (!drag) return
+    if (!dragging.current) return
+    dragging.current = false
     const next = resolve(e.clientX)
     setDrag(null)
     if (usesTts) {
@@ -281,9 +291,9 @@ export default function TrackPlayer({
     ? `${t('реплика')} ${drag.line + 1} ${t('из')} ${lines.length}`
     : mmss(drag.ms / 1000)) : null
 
-  const dragging = !!drag
-  const barH = dragging ? 7 : 3
-  const dotSize = dragging ? 18 : 9
+  const held = !!drag
+  const barH = held ? 7 : 3
+  const dotSize = held ? 18 : 9
 
   return (
     <>
@@ -345,7 +355,12 @@ export default function TrackPlayer({
               onPointerDown={onDown}
               onPointerMove={onMove}
               onPointerUp={onUp}
-              onPointerCancel={() => setDrag(null)}
+              // Палец «потерялся» — жест обрывают и система (звонок, шторка
+              // уведомлений), и браузер, отобрав захват. Без этих двух строк
+              // бегунок оставался в состоянии перетаскивания навсегда: полоса
+              // толстая, точка большая, а звук идёт своим чередом.
+              onPointerCancel={() => { dragging.current = false; setDrag(null) }}
+              onLostPointerCapture={() => setDrag(null)}
               role="slider"
               aria-label={t('Промотка записи')}
               aria-valuemin={0}
@@ -376,7 +391,7 @@ export default function TrackPlayer({
                 }} />
                 {/* Границы реплик проступают только под пальцем: в покое
                     десяток рисок на трёхпиксельной полосе — рябь, а не шкала. */}
-                {dragging && usesTts && spans.slice(1).map(s => (
+                {held && usesTts && spans.slice(1).map(s => (
                   <div key={s.at} style={{
                     position: 'absolute', top: 0, bottom: 0, left: `${(s.at / total) * 100}%`,
                     width: 1, background: 'rgba(var(--glass-rgb), 0.9)',
@@ -386,7 +401,7 @@ export default function TrackPlayer({
                   position: 'absolute', top: '50%', left: `${frac * 100}%`,
                   width: dotSize, height: dotSize, marginTop: -dotSize / 2, marginLeft: -dotSize / 2,
                   borderRadius: '50%', background: accent,
-                  border: dragging ? '2.5px solid rgba(var(--glass-rgb), 1)' : 'none',
+                  border: held ? '2.5px solid rgba(var(--glass-rgb), 1)' : 'none',
                   transition: 'width .14s ease, height .14s ease, margin .14s ease',
                 }} />
               </div>
@@ -398,7 +413,9 @@ export default function TrackPlayer({
               fontSize: 10.5, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
             }}>
               {usesTts ? (
-                <span>{`${t('реплика')} ${line + 1} ${t('из')} ${lines.length}`}</span>
+                // Пока ведут — подпись про ТУ реплику, куда ведут: иначе под
+                // бегунком, стоящим на третьей, написано «реплика 1».
+                <span>{`${t('реплика')} ${(drag?.line ?? line) + 1} ${t('из')} ${lines.length}`}</span>
               ) : (
                 <>
                   <span>{mmss(shown / 1000)}</span>

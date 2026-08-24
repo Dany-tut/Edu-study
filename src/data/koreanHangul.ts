@@ -32,7 +32,7 @@ import {
   type HangulLesson,
 } from './hangul'
 import {
-  buildLanguageCourse, buildSyl, courseSummary, minPair, one, readAloud, traceChamo, wb,
+  buildLanguageCourse, buildSyl, courseSummary, minPair, one, readAloud, scrambled, sylBank, traceChamo,
   type CourseFigures, type LangUnit, type LanguageCourseSpec, type SeedTask, type VocabItem,
 } from './languageCourse'
 import { charGrid, formTable } from './lessonFigures'
@@ -135,13 +135,16 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
   for (const w of lesson.words.slice(0, 3)) {
     const sylls = syllablesOf(w.ko)
     if (sylls.length >= 2) {
-      tasks.push(wb(
-        sylls.join(' '),
-        `Соберите слово «${w.ru}» из слогов`,
-        // Обманка — слог из тех же букв, но переставленных: так проверяется
-        // порядок, а не узнавание набора.
-        [...sylls].reverse().slice(0, 1).filter(s => !sylls.includes(s)),
-      ))
+      // Ряд слогов с обманками (charBank): нужные слоги плюс похожие —
+      // подменённая буква, слог без патчхима. Найти 바 среди 바/파/버 — это
+      // чтение, а не узнавание знакомого набора плиток.
+      tasks.push(sylBank(`Соберите слово «${w.ru}» из слогов — часть слогов лишняя`, w.ko))
+    }
+    // Слово из трёх и больше слогов заодно пересобирается из «неправильного»
+    // написания: увидеть, что 나무니어 — не 어머니, и починить порядок, — другой
+    // навык, чем собрать слово с нуля.
+    if (sylls.length >= 3) {
+      tasks.push(scrambled(`Слово «${w.ru}» написано с перепутанными слогами — соберите правильно`, w.ko))
     }
     tasks.push(readAloud(`Прочитайте вслух: ${w.ko} — ${w.ru}`, w.ko, 20))
   }

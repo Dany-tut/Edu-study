@@ -9,8 +9,9 @@ import {
 } from '../../data/koreanHanja'
 import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
 import { TierChip } from '../GlossedText'
-import { Block, SpeakBtn, TONE_ORDER, say, shuffle, primaryBtn, ghostBtn } from './blockKit'
+import { Block, TONE_ORDER, say, shuffle, primaryBtn, ghostBtn } from './blockKit'
 import type { MaterialResult } from '../../lib/trainerProgress'
+import { SoundBadge } from '../SoundBadge'
 
 // Корни слов: одно знание — семь слов.
 //
@@ -114,17 +115,30 @@ function WordRow({ word, root, lang, accent, tone, reading }: {
   tone?: 'good' | 'bad'
   reading: boolean
 }) {
+  const t = useT()
   const bricks = wordBricks(word)
   const border =
     tone === 'good' ? 'var(--color-green-accent)'
     : tone === 'bad' ? 'var(--color-red-border)'
     : 'var(--color-border-soft)'
   return (
+    // Строка разбора — звучащий объект: значок звука в её правом верхнем углу,
+    // как у карточки слова и у фразы разговорника. Раньше кружок вёл строку
+    // слева, и на соседнем экране звук снова оказывался в другом месте.
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
+      position: 'relative',
+      display: 'flex', alignItems: 'flex-start', gap: 12,
+      padding: '12px 14px', paddingRight: 48,
       borderRadius: 16, border: `1px solid ${border}`, background: 'var(--color-bg-2)',
     }}>
-      <SpeakBtn term={word.term} lang={lang} accent={accent} />
+      <SoundBadge
+        accent={accent}
+        soft={`${accent}22`}
+        onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(word.term, lang) }}
+        label={t('Произнести')}
+        size={30}
+        inset={12}
+      />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {/* Слово, у которого разбор не складывается в него самого (объяснение

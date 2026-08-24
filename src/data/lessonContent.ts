@@ -315,7 +315,9 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     referenceAnswer: t.answer?.trim() || undefined,
     altAnswers: t.altAnswers,
     pairs: tp === 'matching' ? t.pairs : undefined,
-    sequenceItems: tp === 'sequence' ? (t.sequenceItems ?? []).filter(s => s.trim()) : undefined,
+    // blockOrder собирается из тех же авторских блоков, что и sequence, — без
+    // переноса задание доезжало бы до ученика пустым полем текста.
+    sequenceItems: (tp === 'sequence' || tp === 'blockOrder') ? (t.sequenceItems ?? []).filter(s => s.trim()) : undefined,
     table: tp === 'tableFill' ? t.table : undefined,
 
     // Языковые поля переносятся как есть — решатели сами берут нужное по типу.

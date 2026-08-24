@@ -726,3 +726,30 @@ export function confusableWith(ch: string, count = 2): string[] {
   }
   return out
 }
+
+/**
+ * Слоги-обманки для сборки слова из ряда слогов (тип задания charBank).
+ *
+ * Берутся не случайные слоги, а ПОХОЖИЕ на слоги самого слова: в каждом слоге
+ * подменяется ровно одна буква на её confusable-соседа (안 → 언, 하 → 카). Выбор
+ * между 하 и 카 тренирует чтение, выбор между 하 и 뷁 — ничего. Детерминировано:
+ * сид и плитки обязаны получаться одинаковыми при каждой сборке.
+ */
+export function syllableDistractors(text: string, count = 3): string[] {
+  const seen = new Set(Array.from(text))
+  const out: string[] = []
+  const push = (s: string | null) => {
+    if (s && !seen.has(s) && !out.includes(s)) out.push(s)
+  }
+  for (const ch of Array.from(text)) {
+    if (out.length >= count) break
+    const parts = splitSyllable(ch)
+    if (!parts) continue
+    const { initial, vowel, final } = parts
+    push(joinSyllable(confusableWith(initial, 1)[0] ?? initial, vowel, final))
+    push(joinSyllable(initial, confusableWith(vowel, 1)[0] ?? vowel, final))
+    // Слог с патчхимом путают и со слогом без него: 안 ↔ 아.
+    if (final) push(joinSyllable(initial, vowel, ''))
+  }
+  return out.slice(0, count)
+}

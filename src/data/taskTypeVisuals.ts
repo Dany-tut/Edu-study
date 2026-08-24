@@ -60,6 +60,11 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   trace:         { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
   buildSyllable: { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
 
+  // Сборка тапами — задания порядка, как sequence/wordBank → yellow.
+  unscramble:    { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
+  blockOrder:    { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
+  charBank:      { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
+
   // Видео — к семье «на слух»: тот же синий, что у диктанта и похожих звуков.
   videoWatch:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
 }

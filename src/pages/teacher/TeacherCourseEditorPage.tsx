@@ -28,7 +28,7 @@ import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload, type PatternItem } from '../../data/taskTypes'
+import { taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload, type PatternItem } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { restoreSeedTheory } from '../../data/seedTheory'
@@ -2534,8 +2534,10 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 </div>
               )}
 
-              {/* Sequence — items stored in the correct order */}
-              {task.type === 'sequence' && (() => {
+              {/* Sequence / blockOrder — items stored in the correct order.
+                  Разница только у ученика: sequence двигают стрелками,
+                  blockOrder собирают тапами из перемешанного банка блоков. */}
+              {(task.type === 'sequence' || task.type === 'blockOrder') && (() => {
                 const items = task.sequenceItems ?? ['', '']
                 const setItems = (next: string[]) => onUpdate({ ...task, sequenceItems: next })
                 const reorderBtn = (disabled: boolean): React.CSSProperties => ({
@@ -2562,7 +2564,11 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         <Plus size={12} /> {t('Добавить шаг')}
                       </button>
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ученик увидит элементы вперемешку и расставит их в этом порядке.')}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>
+                      {task.type === 'blockOrder'
+                        ? t('Ученик соберёт эти блоки тапами из перемешанного банка — в этом порядке.')
+                        : t('Ученик увидит элементы вперемешку и расставит их в этом порядке.')}
+                    </div>
                   </div>
                 )
               })()}
@@ -2807,6 +2813,51 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   </div>
                 )
               })()}
+
+              {/* unscramble — «написано неправильно»: учитель задаёт только
+                  правильное слово, неправильное написание считается само (и
+                  показывается тут же — чтобы было видно, что увидит ученик). */}
+              {task.type === 'unscramble' && (() => {
+                const units = charUnits(task.answer ?? '')
+                const ok = units.length >= 2
+                return (
+                  <div>
+                    <Label>{t('Правильное слово или фраза')}</Label>
+                    <AutoTextarea
+                      value={task.answer ?? ''}
+                      onChange={v => onUpdate({ ...task, answer: v })}
+                      placeholder={t('Например 안녕하세요')}
+                      style={taskTextSt}
+                    />
+                    <div style={{ fontSize: 11, color: ok ? 'var(--color-text-3)' : 'var(--color-red-text)', marginTop: 6 }}>
+                      {ok
+                        ? `${t('Ученик увидит')} «${scrambleUnits(units).join('')}» ${t('и пересоберёт правильно из плиток.')}`
+                        : t('Нужно хотя бы два знака — иначе переставлять нечего, и задание покажется обычным полем ответа.')}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* charBank — ряд слогов с обманками: собрать слово тапами. */}
+              {task.type === 'charBank' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <AutoTextarea
+                    value={task.answer ?? ''}
+                    onChange={v => onUpdate({ ...task, answer: v })}
+                    placeholder={t('Слово или фраза, которую собирают — разобьётся на слоги-плитки')}
+                    style={taskTextSt}
+                  />
+                  <AutoTextarea
+                    value={(task.distractors ?? []).join(', ')}
+                    onChange={v => onUpdate({ ...task, distractors: v.split(',').map(s => s.trim()).filter(Boolean) })}
+                    placeholder={t('Слоги-обманки через запятую (пусто — похожие подберутся сами)')}
+                    style={taskTextSt}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                    {t('Ученик собирает слово тапами из ряда слогов; часть слогов — обманки, клавиатура не нужна.')}
+                  </div>
+                </div>
+              )}
 
               {/* flashcard — словарная карточка: лицо (слово) и оборот (перевод).
                   Без этого блока карточки выглядели в редакторе пустыми: у них

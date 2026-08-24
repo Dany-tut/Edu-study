@@ -469,6 +469,34 @@ export function speechLines(raw: string): string[] {
   return out
 }
 
+/** Предложения внутри реплики — та же нарезка, что и у splitLong, но без
+ *  порога длины: границей считается точка, а не переполнение куска. */
+function splitSentences(line: string): string[] {
+  const parts = line.match(/[^.!?…。！？]+[.!?…。！？]*\s*/g) ?? [line]
+  const out: string[] = []
+  for (const s of parts) {
+    const clean = s.trim()
+    if (clean) out.push(...splitLong(clean))
+  }
+  return out.length ? out : [line]
+}
+
+/**
+ * Единицы озвучки — то, чем меряется промотка.
+ *
+ * `line` — реплика (строка): так речь звучит естественно, и между репликами
+ * диалога слышна пауза. `sentence` нужен плееру: половина записей на слух
+ * написана монологом в одну строку, и по репликам такая запись неделима —
+ * бегунку не к чему липнуть, а «реплика 1 из 1» не отвечает ни на один вопрос
+ * ученика. По предложениям тот же монолог разбирается на четыре куска, к
+ * которым можно вернуться.
+ */
+export function speechUnits(raw: string, unit: 'line' | 'sentence' = 'line'): string[] {
+  const lines = speechLines(raw)
+  if (unit === 'line') return lines
+  return lines.flatMap(splitSentences)
+}
+
 // ─── Речь ────────────────────────────────────────────────────────────────────
 
 export interface SpeakOptions {
@@ -479,6 +507,9 @@ export interface SpeakOptions {
   rate?: number
   /** Пауза между репликами, мс. Диалог без пауз звучит сплошняком. */
   gap?: number
+  /** Чем резать текст: репликами (по умолчанию) или предложениями. Номер в
+   *  `from` считается в ТЕХ ЖЕ единицах — иначе промотка попадёт не туда. */
+  unit?: 'line' | 'sentence'
   /** Точное имя голоса (учитель мог выбрать его в редакторе задания). */
   voiceName?: string
   /**
@@ -570,7 +601,7 @@ export function stopSpeech() {
  */
 export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   if (typeof speechSynthesis === 'undefined') return NOOP
-  const lines = speechLines(raw)
+  const lines = speechUnits(raw, opts.unit ?? 'line')
   if (!lines.length) return NOOP
 
   stopSpeech()
