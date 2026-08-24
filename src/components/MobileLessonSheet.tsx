@@ -28,6 +28,14 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            // Свайп вниз закрывает — по всему щиту, как у общего MobileSheet:
+            // содержимое не скроллится, конфликта жестов нет.
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 1 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 110 || info.velocity.y > 600) onClose()
+            }}
             className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
             style={{ borderRadius: '32px 32px 0 0' }}
           >

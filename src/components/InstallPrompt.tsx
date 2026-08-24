@@ -68,6 +68,16 @@ export default function InstallPrompt() {
             initial={{ y: '110%' }}
             animate={{ y: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 36, mass: 0.9 }}
+            // Свайп вниз закрывает — по всему щиту, не только по граберу.
+            // Содержимое не скроллится, так что конфликт жестов невозможен;
+            // параметры те же, что у общего MobileSheet: вниз — за пальцем
+            // один к одному, отпустил раньше порога — пружина вернёт на место.
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 1 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 110 || info.velocity.y > 600) close()
+            }}
             style={{
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 9998,
               margin: '0 auto', maxWidth: 440,

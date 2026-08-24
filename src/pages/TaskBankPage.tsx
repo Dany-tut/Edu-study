@@ -38,6 +38,7 @@ import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
+import { useBottomSafe } from '../lib/bottomSafe'
 import MobileScreen from '../components/MobileScreen'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
@@ -1424,6 +1425,9 @@ export default function TaskBankPage() {
   // Keyboard overlap so the search dock can lift above the on-screen keyboard
   // instead of hiding behind it.
   const kbInset = useKeyboardInset()
+  // Разрешённый нижний отступ (lib/bottomSafe.ts) — как у навигации: сырой
+  // env() врёт вверх, и док стоял выше, чем на соседних экранах.
+  const bottomSafe = useBottomSafe()
   const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
@@ -1799,15 +1803,12 @@ export default function TaskBankPage() {
         onClick={() => { tactile(); onClick() }}
         aria-label={opts.label}
         initial={false}
-        animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }}
-        transition={DOCK_COLLAPSE}
         style={{
-          ...glassCircle, position: 'relative',
+          ...glassCircle, position: 'relative', width: 46, height: 46,
           // Frosted glass: more transparent fill so the backdrop-blur reads
           // through, plus a hairline top highlight (matches the bottom nav).
           background: 'rgba(var(--glass-rgb), 0.6)',
           backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-          boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
           color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
         }}
       >
@@ -1885,7 +1886,7 @@ export default function TaskBankPage() {
             Outer fixed layer sits at the safe-area edge; the inner motion layer
             animates its marginBottom (numeric, so it tweens cleanly) to ride up
             over the nav when expanded and settle lower when the nav collapses. */}
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: bottomSafe, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             ref={dockRef}
             initial={false}
@@ -1893,12 +1894,13 @@ export default function TaskBankPage() {
             // slid away, so its clearance margin is no longer needed).
             animate={{ marginBottom: kbInset > 0 ? kbInset + 12 : (navCollapsed ? 74 : 86) }}
             transition={DOCK_COLLAPSE}
-            style={{ position: 'relative', display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
+            // gap 10 и круги 46px — как в доке языкового тренажёра (MobileDock).
+            style={{ position: 'relative', display: 'flex', gap: 10, alignItems: 'center', pointerEvents: 'auto' }}
           >
             {/* Invisible spacer holding the search slot; the always-mounted pill
                 (below) renders the visuals so opacity is never animated on a
                 blurred element — the backdrop-blur never blinks off. */}
-            <motion.div initial={false} animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }} transition={DOCK_COLLAPSE} style={{ flexShrink: 0, pointerEvents: 'none' }} />
+            <div style={{ width: 46, height: 46, flexShrink: 0, pointerEvents: 'none' }} />
 
             {/* Filter / sort / fav — on expand they scale down, blur and drift
                 right while fading, staggered left→right. */}
@@ -1956,7 +1958,7 @@ export default function TaskBankPage() {
               // flips mid-open — the dock lifts on expand — the 11↔15 centring
               // offset tweens smoothly instead of snapping 4px and jiggling the
               // icon. When it doesn't change, animating it is a no-op → dead still.
-              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), paddingLeft: navCollapsed ? 11 : 15 }}
+              animate={{ width: searchExpanded ? dockW : 46, paddingLeft: 13 }}
               transition={FIELD_MORPH}
               onClick={() => { if (!searchExpanded) { setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
               aria-label={t('Поиск')}
@@ -1978,7 +1980,7 @@ export default function TaskBankPage() {
                 background: 'rgba(var(--glass-rgb), 0.6)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
                 border: '1px solid var(--color-border-glass)',
-                boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                boxShadow: 'var(--shadow-pill)',
                 cursor: searchExpanded ? 'text' : 'pointer', pointerEvents: 'auto',
                 color: search ? 'var(--color-accent)' : 'var(--color-text-2)',
               }}

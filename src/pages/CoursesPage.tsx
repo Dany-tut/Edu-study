@@ -5,6 +5,7 @@ import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
 import { glassCircle } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
+import { useBottomSafe } from '../lib/bottomSafe'
 import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
@@ -81,6 +82,9 @@ export default function CoursesPage() {
   // Scroll-driven shrink (shared with the bottom nav) + keyboard lift.
   const navCollapsed = useNavCollapse()
   const kbInset = useKeyboardInset()
+  // Тот же разрешённый отступ, что у навигации и дока тренажёра: сырой env()
+  // какое-то время врёт вверх, и док «ДЗ» висел выше, чем на других экранах.
+  const bottomSafe = useBottomSafe()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
@@ -518,7 +522,7 @@ export default function CoursesPage() {
           the sibling circles sliding under it (trainer-identical). Desktop uses
           the top search field instead. ── */}
       {!isDesktop && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: bottomSafe, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             ref={dockRef}
             initial={false}
@@ -526,12 +530,14 @@ export default function CoursesPage() {
             // ride over the bottom nav, settling lower when the nav collapses.
             animate={{ marginBottom: kbInset > 0 ? kbInset + 12 : (navCollapsed ? 74 : 86) }}
             transition={DOCK_COLLAPSE}
-            style={{ position: 'relative', display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
+            // gap 10 и круги 46px — как в доке тренажёра (MobileDock): раньше
+            // здесь были свои 12 и 50/42, и «ДЗ» выглядел крупнее соседей.
+            style={{ position: 'relative', display: 'flex', gap: 10, alignItems: 'center', pointerEvents: 'auto' }}
           >
             {/* Invisible spacer holding the search slot; the always-mounted pill
                 (below) renders the visuals so opacity is never animated on a
                 blurred element — the backdrop-blur never blinks off. */}
-            <motion.div initial={false} animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }} transition={DOCK_COLLAPSE} style={{ flexShrink: 0, pointerEvents: 'none' }} />
+            <div style={{ width: 46, height: 46, flexShrink: 0, pointerEvents: 'none' }} />
 
             {/* Filter / sort — on expand they scale down, blur and drift right
                 while fading, staggered left→right. */}
@@ -564,14 +570,12 @@ export default function CoursesPage() {
                   whileTap={{ scale: 0.9 }}
                   onClick={() => { tactile(); c.onClick() }}
                   aria-label={c.opts.label}
-                  initial={false}
-                  animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }}
-                  transition={DOCK_COLLAPSE}
                   style={{
-                    ...glassCircle, position: 'relative',
+                    ...glassCircle, position: 'relative', width: 46, height: 46,
                     background: 'rgba(var(--glass-rgb), 0.6)',
                     backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-                    boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                    // Без своего белого inset — glassCircle уже несёт --shadow-pill,
+                    // а inset в тёмной теме рисовал резкий контур (не как у соседей).
                     color: c.opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
                   }}
                 >
@@ -590,7 +594,7 @@ export default function CoursesPage() {
             <motion.div
               ref={searchPillRef}
               initial={false}
-              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), paddingLeft: navCollapsed ? 11 : 15 }}
+              animate={{ width: searchExpanded ? dockW : 46, paddingLeft: 13 }}
               transition={FIELD_MORPH}
               onClick={() => { if (!searchExpanded) { tactile(); setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
               aria-label={t('Поиск')}
@@ -603,7 +607,7 @@ export default function CoursesPage() {
                 background: 'rgba(var(--glass-rgb), 0.6)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
                 border: '1px solid var(--color-border-glass)',
-                boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                boxShadow: 'var(--shadow-pill)',
                 cursor: searchExpanded ? 'text' : 'pointer', pointerEvents: 'auto',
                 color: search ? 'var(--color-accent)' : 'var(--color-text-2)',
               }}

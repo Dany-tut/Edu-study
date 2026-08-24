@@ -135,7 +135,7 @@ const DE_IRREGULAR = {
   'dürfen': ['darf'], 'können': ['kann'], 'müssen': ['muss'], 'mögen': ['mag', 'moch'],
   'wissen': ['weiss', 'wuss'], 'haben': ['hat', 'has', 'hab'], 'sein': ['ist', 'bin', 'sind', 'war'],
   'werden': ['wird', 'wurd'], 'vorhaben': ['hast', 'habe', 'hat'], 'nehmen': ['nimm', 'nahm'],
-  'geben': ['gib', 'gab'], 'sehen': ['sieh', 'sah'], 'lesen': ['lies', 'las'], 'sprechen': ['spr'],
+  'senden': ['sand', 'send'], 'geben': ['gib', 'gab'], 'sehen': ['sieh', 'sah'], 'lesen': ['lies', 'las'], 'sprechen': ['spr'],
   'helfen': ['half', 'hilf'], 'treffen': ['triff', 'traf'], 'essen': ['iss', 'ass'],
 }
 
@@ -150,15 +150,29 @@ function deContains(sentence, first, key) {
   if (text.includes(word)) return true
   for (const stem of DE_IRREGULAR[deFlat(first)] ?? DE_IRREGULAR[first] ?? []) if (text.includes(deFlat(stem))) return true
   // Отделяемая приставка: ищем и приставку, и остаток глагола отдельно.
-  for (const p of DE_PREFIXES) {
+  for (const raw of DE_PREFIXES) {
+    // Приставку тоже «разуваем»: слово уже без умлаутов, и «zurück» иначе
+    // никогда не совпадёт с «zuruckkommen».
+    const p = deFlat(raw)
     if (!word.startsWith(p) || word.length <= p.length + 2) continue
     const rest = word.slice(p.length)
     const stem = rest.length > 5 ? rest.slice(0, rest.length - 2) : rest.replace(/en$/, '')
     if (stem.length >= 3 && text.includes(stem) && text.includes(p)) return true
+    // Остаток тоже бывает сильным глаголом: zusenden → zugesandt.
+    for (const form of DE_IRREGULAR[rest] ?? []) {
+      if (text.includes(deFlat(form)) && text.includes(p)) return true
+    }
+    if (stem.length >= 3 && text.includes(stem.slice(0, 5)) && text.includes(p)) return true
   }
-  // Чередование в основе: сверяем начало слова, а не всё слово целиком.
-  const stem = word.length > 5 ? word.slice(0, word.length - 2) : word.replace(/(en|e)$/, '')
-  return stem.length >= 3 && text.includes(stem)
+  // Чередование в основе: сверяем НАЧАЛО слова, а не всё слово целиком, и не
+  // длиннее шести букв — у сильных глаголов меняется уже четвёртая
+  // (entscheiden → entschieden).
+  const cut = w => (w.length > 5 ? w.slice(0, Math.min(w.length - 2, 6)) : w.replace(/(en|e)$/, ''))
+  const stem = cut(word)
+  if (stem.length >= 3 && text.includes(stem)) return true
+  // Сильные глаголы с ei в корне отдают его в причастии: streichen → gestrichen.
+  const iStem = cut(word.replace(/ei/g, 'i'))
+  return iStem.length >= 3 && iStem !== stem && text.includes(iStem)
 }
 
 
@@ -209,19 +223,174 @@ function koContains(sentence, term) {
   return probe.length >= 2 && jamo(sentence).includes(probe)
 }
 
+
+// ─── Латиница: слово в примере стоит в живой форме ───────────────────────────
+//
+// Общая беда английского и португальского: словарная запись — это инфинитив
+// или оборот («to leave», «take a risk», «chamar-se»), а в предложении стоит
+// спрягнутая форма («I left», «I took a risk», «Eu me chamo»). Сверка по
+// подстроке ловит тут не ошибку, а сам факт языка.
+//
+// ЧТО ДЕЛАЕМ. Сравниваем не строки, а ЗНАЧИМЫЕ СЛОВА: у оборота служебные
+// слова выкидываются, остальные приводятся к основе, и достаточно, чтобы
+// нашлось хоть одно. Пример, приписанный вообще другому слову, ни одного
+// общего значимого слова не даст — а «take a risk» и «I took a risk» дадут.
+
+/** Слова, по которым сверять нечего: они есть в любом предложении. */
+const STOP = new Set([
+  'a', 'an', 'the', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'from', 'by', 'as',
+  'it', 'its', 'is', 'are', 'was', 'were', 'be', 'been', 'am', 'do', 'does', 'did',
+  'and', 'or', 'but', 'that', 'this', 'these', 'those', 'there', 'here',
+  'i', 'you', 'he', 'she', 'we', 'they', 'my', 'your', 'his', 'her', 'our', 'their',
+  'up', 'out', 'off', 'over', 'into', 'about', 'no', 'not', 'so', 'if',
+  'o', 'os', 'as', 'um', 'uma', 'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na',
+  'que', 'se', 'e', 'ou', 'me', 'te', 'nos', 'para', 'por', 'com', 'ao', 'à', 'às',
+])
+
+/**
+ * Неправильные глаголы. Ни один стеммер их не выведет: связь между «go» и
+ * «went» лексическая, а не орфографическая. Список короткий — сюда попадают
+ * только те глаголы, что реально стоят в словарях курсов.
+ */
+const EN_IRREGULAR = {
+  be: ['is', 'are', 'was', 'were', 'been', 'am'], have: ['has', 'had'], do: ['does', 'did', 'done'],
+  go: ['went', 'gone'], take: ['took', 'taken'], make: ['made'], come: ['came'],
+  get: ['got', 'gotten'], give: ['gave', 'given'], meet: ['met'], leave: ['left'],
+  rise: ['rose', 'risen'], bite: ['bit', 'bitten'], strike: ['struck'], find: ['found'],
+  sell: ['sold'], buy: ['bought'], bring: ['brought'], think: ['thought'], say: ['said'],
+  see: ['saw', 'seen'], write: ['wrote', 'written'], run: ['ran'], pay: ['paid'],
+  hold: ['held'], keep: ['kept'], feel: ['felt'], tell: ['told'], lose: ['lost'],
+  win: ['won'], break: ['broke', 'broken'], speak: ['spoke', 'spoken'], drive: ['drove'],
+  choose: ['chose', 'chosen'], stand: ['stood'], understand: ['understood'],
+  become: ['became'], begin: ['began', 'begun'], build: ['built'], send: ['sent'],
+  spend: ['spent'], teach: ['taught'], catch: ['caught'], fall: ['fell'], eat: ['ate'],
+  read: ['read'], put: ['put'], set: ['set'], cut: ['cut'], let: ['let'], hear: ['heard'],
+}
+
+const PT_IRREGULAR = {
+  ser: ['foi', 'é', 'era', 'sou', 'são'], estar: ['está', 'estou', 'estava', 'esteve'],
+  ter: ['tem', 'tenho', 'tinha', 'teve'], ir: ['vai', 'vou', 'foi', 'ia'],
+  fazer: ['faz', 'faço', 'fez', 'fazia'], poder: ['pode', 'posso', 'pôde'],
+  querer: ['quer', 'quero', 'quis'], vir: ['vem', 'venho', 'veio'], ver: ['vê', 'vejo', 'viu'],
+  dar: ['dá', 'dou', 'deu'], dizer: ['diz', 'digo', 'disse'], saber: ['sabe', 'sei', 'soube'],
+  trazer: ['traz', 'trago', 'trouxe'], pôr: ['põe', 'ponho', 'pôs'],
+}
+
+/** Английская основа: снимаем регулярные окончания, включая удвоение согласной. */
+function enStem(word) {
+  let w = word.toLowerCase().replace(/[^a-z]/g, '')
+  if (w.endsWith('ies') && w.length > 4) return w.slice(0, -3) + 'y'
+  if (w.endsWith('ing') && w.length > 5) {
+    const cut = w.slice(0, -3)
+    return /(.)\1$/.test(cut) ? cut.slice(0, -1) : cut
+  }
+  if (w.endsWith('ed') && w.length > 4) {
+    const cut = w.slice(0, -2)
+    return /(.)\1$/.test(cut) ? cut.slice(0, -1) : cut
+  }
+  if (w.endsWith('es') && w.length > 4) return w.slice(0, -2)
+  if (w.endsWith('s') && !w.endsWith('ss') && w.length > 3) return w.slice(0, -1)
+  return w
+}
+
+/**
+ * Португальская основа: снимаем инфинитивное окончание и возвратное «-se», а
+ * чередование в корне гасим огласовкой. Гласная в основе меняется предсказуемо
+ * (sentir → sinto, dormir → durmo, vestir → veste), и если свести e/i и o/u к
+ * одному звуку, основа снова совпадает.
+ */
+function ptStem(word) {
+  const w = word.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z-]/g, '')
+    .replace(/-se$/, '')
+    .replace(/(ar|er|ir|or)$/, '')
+  return w.replace(/e/g, 'i').replace(/o/g, 'u')
+}
+
+/** Значимые слова оборота: служебные выкидываем, слишком короткие тоже. */
+function contentWords(key) {
+  const words = key.toLowerCase().split(/[\s,;:]+/).filter(Boolean)
+  const meaty = words.filter(w => !STOP.has(w.replace(/[^a-zà-ÿ-]/g, '')))
+  return (meaty.length ? meaty : words).map(w => w.replace(/[^a-zà-ÿ'’-]/g, '')).filter(Boolean)
+}
+
+function latinContains(sentence, key, lang) {
+  const stemOf = lang === 'pt' ? ptStem : enStem
+  const irregular = lang === 'pt' ? PT_IRREGULAR : EN_IRREGULAR
+  const plain = sentence.toLowerCase()
+  const sentStems = new Set(plain.split(/[^a-zà-ÿ'’]+/).filter(Boolean).map(stemOf))
+  const sentFlat = lang === 'pt' ? ptStem(plain.replace(/\s+/g, ' ')) : plain
+
+  for (const word of contentWords(key)) {
+    const bare = word.replace(/-se$/, '')
+    if (plain.includes(bare)) return true
+    const stem = stemOf(word)
+    if (stem.length >= 3 && sentStems.has(stem)) return true
+    // Основа как подстрока: «mudar» → «mudou», «apressar» → «apresse».
+    if (stem.length >= 3 && sentFlat.includes(stem)) return true
+    for (const form of irregular[bare] ?? []) {
+      if (plain.includes(form.toLowerCase())) return true
+    }
+  }
+  return false
+}
+
+// ─── Японский: пробелы и слоты ───────────────────────────────────────────────
+//
+// Тексты N5 набраны С ПРОБЕЛАМИ между смысловыми группами («みずを ください»),
+// а словарная запись пишется слитно — от этого сверка по подстроке падала на
+// ровном месте. Второе: у фразы разговорника есть слот («わたしは…です»), и в
+// примере на его месте стоит слово. Третье: глагол в примере спрягается
+// (「ならない」 → 「なりません」), и меняются последние моры, а не начало.
+function jaContains(sentence, term) {
+  const flat = s => s.replace(/[\s　]+/g, '')
+  const text = flat(sentence)
+  // Слот «…» и «〜» — это подстановка: куски должны идти по порядку, но не
+  // подряд.
+  const pieces = flat(term).split(/[…‥〜～~]+/).filter(Boolean)
+  let at = 0
+  let ordered = true
+  for (const piece of pieces) {
+    const i = text.indexOf(piece, at)
+    if (i === -1) { ordered = false; break }
+    at = i + piece.length
+  }
+  if (ordered) return true
+  // Спряжение меняет хвост: сверяем начало слова, а не слово целиком.
+  const head = pieces[0] ?? ''
+  const probe = head.slice(0, Math.max(2, [...head].length - 3))
+  if (probe.length >= 2 && text.includes(probe)) return true
+  // Фраза разговорника с уточнением внутри: «おはしを ください» →
+  // «おはしを ふたつ ください», «きのうからです» → «きのうのよるからです».
+  // Начало и конец фразы стоят на месте и в том же порядке, а между ними
+  // вставлено слово. Требуем оба края: пример к другой фразе их не даст —
+  // «うごくといたいです» против «うごかすといたいです» так и останется помеченным.
+  const whole = flat(term)
+  if ([...whole].length < 6) return false
+  const chars = [...whole]
+  const start = chars.slice(0, 3).join('')
+  const end = chars.slice(-4).join('')
+  const i = text.indexOf(start)
+  return i !== -1 && text.indexOf(end, i + start.length) !== -1
+}
+
 function contains(sentence, term, key, lang) {
   if ([...term].length <= 2) return true
-  if (/[~～/(]/.test(term)) return true          // грамматические модели и пары «A / B»
+  // Грамматические модели («~네요», «〜ことができます») и пары «A / B»: это не
+  // слово, и искать его в предложении нечего.
+  if (/[~～〜/(]/.test(term)) return true
   if (lang === 'ko') return koContains(sentence, term)
+  if (lang === 'ja') return jaContains(sentence, term)
   if (sentence.includes(term)) return true
-  if (lang === 'ja') {
-    const stem = term.replace(/(하다|되다|다|する|る|う|く|ぐ|す|つ|ぬ|ぶ|む|い|な)$/, '')
-    return stem.length >= 1 && sentence.includes(stem)
+  if (lang === 'de') {
+    // По первому слову сверять нельзя: exampleKey срезает «um» и «die» как
+    // артикли (они же артикли португальского и немецкого), а во фразе
+    // «um … Uhr» значимое слово как раз второе. Поэтому пробуем каждое.
+    const words = [key.split(' ')[0], ...contentWords(key)]
+    return words.some(w => w && deContains(sentence, w, key))
   }
-  const first = key.split(' ')[0]
-  if (lang === 'de') return deContains(sentence, first, key)
-  const stem = first.length > 5 ? first.slice(0, first.length - 2) : first
-  return sentence.toLowerCase().includes(stem)
+  return latinContains(sentence, key, lang)
 }
 
 let bad = 0

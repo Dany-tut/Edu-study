@@ -2596,9 +2596,15 @@ const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 2
  */
 function ShareLink({ link, accent }: { link: TrainerLink; accent: string }) {
   const t = useT()
+  // На телефоне кругляша нет: строка управления переносится, и иконка ссылки
+  // вставала одинокой кнопкой отдельной строкой — служебное действие занимало
+  // собственный ряд экрана. Адрес там и так доступен через «Поделиться» ОС.
+  const narrow = useTrainerNarrow()
   const [copied, setCopied] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  if (narrow) return null
 
   // Кругляш без подписи и по правому краю. Слово «Поделиться» слева стояло в
   // одном ряду с «К списку» и «С разбором», то есть среди того, чем читают, —
@@ -3320,8 +3326,22 @@ function Listener({ item, accent, palette, lang, onBack }: {
     </Toolbar>
   )
 
+  // Плеер живёт в ряду дока, слева от круга «Фильтры» (см. narrowPlayer у
+  // TrainerShell): когда док при листании прячется, круг схлопывается и плеер
+  // растягивается на весь ряд.
+  const player = narrow && !item.videoUrl && item.script ? (
+    <TrackPlayer
+      inline
+      ttsText={item.script}
+      lang={lang}
+      accent={palette.accent}
+      soft={palette.soft}
+      title={item.title}
+    />
+  ) : null
+
   return (
-    <TrainerShell rail={rail} toolbar={toolbar}>
+    <TrainerShell rail={rail} toolbar={toolbar} narrowPlayer={player}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {item.questions.map((q, qi) => (
           <QuestionCard
@@ -3392,18 +3412,9 @@ function Listener({ item, accent, palette, lang, onBack }: {
         </div>
       )}
 
-      {/* Плеер закреплён поверх экрана — под ним обязан быть просвет, иначе
-          кнопка «Проверить» и расшифровка кончаются ровно под ним. */}
-      {narrow && !item.videoUrl && item.script && <div style={{ height: 74 }} />}
-      {narrow && !item.videoUrl && item.script && (
-        <TrackPlayer
-          ttsText={item.script}
-          lang={lang}
-          accent={palette.accent}
-          soft={palette.soft}
-          title={item.title}
-        />
-      )}
+      {/* Строка плеера выше круга дока — небольшой просвет, чтобы кнопка
+          «Проверить» и расшифровка не кончались ровно под ней. */}
+      {player && <div style={{ height: 28 }} />}
     </TrainerShell>
   )
 }

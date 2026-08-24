@@ -84,7 +84,7 @@ export default function MobileBottomNav() {
       style={{ paddingBottom: bottomSafe, pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div
-        className="mb-4 flex items-center justify-around px-2"
+        className="mb-2 flex items-center justify-around px-2"
         initial={false}
         // Collapse morphs three axes together: height (62→50), symmetric
         // vertical padding, and the horizontal margin so the dock also shrinks

@@ -50,7 +50,7 @@ import { useScrollLock } from '../../lib/useScrollLock'
 import ScrollFade from '../ScrollFade'
 import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
-import MobileDock, { DockCircle, DockSegment, DockSlot } from '../MobileDock'
+import MobileDock, { DockCircle, DockSegment, DockSlot, useSmoothCollapse, COLLAPSE } from '../MobileDock'
 import { MOBILE_TOP_GAP } from '../../lib/mobileTokens'
 
 const RAIL_W = 300
@@ -149,7 +149,7 @@ export type TrainerNav = {
   accent?: string
 }
 
-export default function TrainerShell({ rail, toolbar, narrowLead, nav, children }: {
+export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, nav, children }: {
   /** Карточки рейла — обычно SubjectHero + RailCard'ы. */
   rail: React.ReactNode
   /** Строка управления над содержимым. */
@@ -165,10 +165,23 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
    * фильтры»: он туда не полезет, потому что менять фильтры не собирался.
    */
   narrowLead?: React.ReactNode
+  /**
+   * Плеер записи для телефона — встаёт В РЯД дока, слева от круга «Фильтры»
+   * (TrackPlayer с пропом inline). Раньше плеер висел отдельной строкой над
+   * доком, а одинокий круг стоял по центру под ним — два этажа управления.
+   * Когда док при листании прячется, круг схлопывается по ширине и плеер
+   * плавно растягивается на весь ряд: звук — то, ради чего экран открыт,
+   * и он с экрана не уходит.
+   */
+  narrowPlayer?: React.ReactNode
   children: React.ReactNode
 }) {
   const t = useT()
   const narrow = useNarrow()
+  // Свёрнут ли док — нужно самим (а не только детям дока), чтобы схлопнуть
+  // круг «Фильтры» по ширине и отдать его место плееру. Тот же сглаженный
+  // флаг, что внутри MobileDock, — иначе ширина и прозрачность разъедутся.
+  const dockCollapsed = useSmoothCollapse()
   const [sheet, setSheet] = useState(false)
   const [navSheet, setNavSheet] = useState(false)
   const railRef = useRef<HTMLElement>(null)
@@ -342,7 +355,14 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
           курсах: он едет над навигацией, прячется под неё при листании вниз и
           возвращается при листании вверх. */}
       {narrow && (
-        <MobileDock>
+        <MobileDock fill={!!narrowPlayer}>
+          {/* Плеер не гаснет вместе с кругами: pointerEvents:'auto' возвращает
+              ему тапы и под свёрнутым доком (у ряда в этот момент 'none'). */}
+          {narrowPlayer && (
+            <div style={{ flex: 1, minWidth: 0, pointerEvents: 'auto' }}>
+              {narrowPlayer}
+            </div>
+          )}
           {narrowLead && <DockSlot>{narrowLead}</DockSlot>}
           {/* Половины режима — прямо в доке, без шторки: «Лента ↔ Сцены» и
               «Наборы ↔ Повторение» переключают чаще всего остального вместе
@@ -363,11 +383,22 @@ export default function TrainerShell({ rail, toolbar, narrowLead, nav, children 
               onClick={() => { setSheet(false); setNavSheet(true) }}
             />
           )}
-          <DockCircle
-            icon={<SlidersHorizontal size={20} />}
-            ariaLabel={t('Фильтры')}
-            onClick={() => { setNavSheet(false); setSheet(true) }}
-          />
+          {/* Рядом с плеером круг при сворачивании дока схлопывается ещё и по
+              ширине (отрицательный margin съедает gap ряда) — плеер плавно
+              растягивается на освободившееся место, а не упирается в пустоту,
+              где только что стояла невидимая кнопка. */}
+          <motion.div
+            initial={false}
+            animate={narrowPlayer ? { width: dockCollapsed ? 0 : 46, marginLeft: dockCollapsed ? -10 : 0 } : undefined}
+            transition={COLLAPSE}
+            style={{ flexShrink: 0 }}
+          >
+            <DockCircle
+              icon={<SlidersHorizontal size={20} />}
+              ariaLabel={t('Фильтры')}
+              onClick={() => { setNavSheet(false); setSheet(true) }}
+            />
+          </motion.div>
         </MobileDock>
       )}
     </div>
@@ -844,7 +875,12 @@ export function SearchPill({ value, onChange, placeholder }: {
     <div
       onClick={() => { setOpen(true); ref.current?.focus() }}
       style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderRadius: 999,
+        // Высота не своя, а от строки: alignSelf: 'stretch' тянет таблетку до
+        // самого высокого соседа (группы статусов), иначе поиск стоял на пару
+        // пикселей ниже остальных. minHeight — на случай, когда перенос строки
+        // оставил его одного.
+        display: 'flex', alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box',
+        gap: 8, padding: '0 14px', minHeight: 36, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
         width: wide ? 260 : 112, transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',

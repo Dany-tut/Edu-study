@@ -116,7 +116,13 @@ export default function MobileSheet({
             dragControls={dragControls}
             dragListener={false}
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.6 }}
+            // Вниз шторка едет ЗА ПАЛЬЦЕМ, один к одному. С упругостью 0.6 она
+            // отставала от пальца почти вдвое: свайп за грабер сдвигал её на
+            // полсотни пикселей, порог закрытия не добирался, и жест выглядел
+            // сломанным — «потянул, а она вернулась». Упругость оставлена
+            // только как механизм возврата: отпустил раньше порога — пружина
+            // сама ставит шторку на место.
+            dragElastic={{ top: 0, bottom: 1 }}
             onDragEnd={(_, info) => {
               // Dismiss on a decisive downward flick or a long pull.
               if (info.offset.y > 110 || info.velocity.y > 600) onClose()

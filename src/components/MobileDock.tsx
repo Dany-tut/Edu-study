@@ -17,13 +17,15 @@ import { useWheelHScroll } from '../lib/useWheelHScroll'
 // Desktop never imports this.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
+export const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
 
 // Smoothed collapse state for the dock: swallows momentum/overscroll bounce
 // (raw collapsed flipping false→true→false within a few frames) so the pill
 // doesn't blink "appear → disappear → appear". Rapid flips are coalesced into
 // the final value; a settled change applies after a short guard.
-function useSmoothCollapse() {
+// Exported for members of the dock ROW that live outside this file (the
+// trainer's inline player) and must stretch/shrink in step with the circles.
+export function useSmoothCollapse() {
   const raw = useNavCollapse()
   const [val, setVal] = useState(raw)
   const timer = useRef(0)
@@ -74,7 +76,15 @@ const glassBase: CSSProperties = {
   boxShadow: 'var(--shadow-pill)',
 }
 
-export default function MobileDock({ children }: { children: ReactNode }) {
+export default function MobileDock({ children, fill }: {
+  children: ReactNode
+  /**
+   * Ряд занимает всю ширину экрана, а не обнимает содержимое по центру.
+   * Нужен, когда в доке живёт растягивающийся элемент (плеер тренажёра):
+   * flex:1 внутри центрированного ряда не растёт — ряду нужна своя ширина.
+   */
+  fill?: boolean
+}) {
   const collapsed = useSmoothCollapse()
   const kbOpen = useKeyboardInset() > 0
   const bottomSafe = useBottomSafe()
@@ -103,12 +113,14 @@ export default function MobileDock({ children }: { children: ReactNode }) {
         // the glass children themselves (DockSegment/DockCircle) — a `filter` on
         // THIS wrapper would suspend their backdrop-filter and pop the frost.
         initial={false}
-        animate={{ marginBottom: collapsed ? 74 : 86 }}
+        animate={{ marginBottom: collapsed ? 66 : 78 }}
         transition={COLLAPSE}
         style={{
           display: 'flex', gap: 10, alignItems: 'center',
           maxWidth: '100%',
+          width: fill ? '100%' : undefined,
           // Non-interactive while collapsed so it never blocks taps on the list.
+          // Ребёнок с pointerEvents:'auto' (плеер) при этом остаётся живым.
           pointerEvents: collapsed ? 'none' : 'auto',
         }}
       >

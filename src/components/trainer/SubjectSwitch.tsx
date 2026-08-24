@@ -294,8 +294,11 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           fontSize: 13, fontWeight: 700, color: 'var(--color-text)',
           background: 'rgba(var(--glass-rgb), 0.6)',
           backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-          border: '1px solid var(--color-border-medium)',
-          boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+          // Тот же скин, что у соседних кругов дока (MobileDock.glassBase):
+          // свой белый inset в тёмной теме рисовал резкий контур, а обводка
+          // border-medium была заметно ярче остальных таблеток ряда.
+          border: '1px solid var(--color-border-glass)',
+          boxShadow: 'var(--shadow-pill)',
         }}
       >
         <span style={{ fontSize: compact ? 19 : 15, lineHeight: 1 }}>{current?.def.icon ?? '📚'}</span>

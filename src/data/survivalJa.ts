@@ -1073,7 +1073,7 @@ const PHRASES: SurvivalBook['phrases'] = {
     p('きのうからです', 'со вчерашнего дня', 'kinō kara desu', undefined,
       e('きのうのよるからです。', 'kinō no yoru kara desu.', 'Со вчерашнего вечера.')),
     p('うごくといたいです', 'болит при движении', 'ugoku to itai desu', undefined,
-      e('うでをうごかすといたいです。', 'ude o ugokasu to itai desu.', 'Болит, когда двигаю рукой.')),
+      e('ひざが うごくと いたいです。', 'hiza ga ugoku to itai desu.', 'Болит, когда колено двигается.')),
     p('おすといたいです', 'болит, когда нажимаю', 'osu to itai desu', undefined,
       e('ここをおすといたいです。', 'koko o osu to itai desu.', 'Болит, когда нажимаю вот здесь.')),
     p('はきけがします', 'меня тошнит', 'hakike ga shimasu', undefined,

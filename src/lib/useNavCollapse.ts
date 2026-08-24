@@ -13,10 +13,18 @@ export function useNavCollapse(threshold = 6) {
   useEffect(() => {
     const onScroll = (e: Event) => {
       const t = e.target as HTMLElement | Document | Window
-      const y = t === document || t === window
+      const el = t === document || t === window
+        ? (document.scrollingElement as HTMLElement | null)
+        : (t as HTMLElement)
+      const raw = t === document || t === window
         ? window.scrollY
         : (t as HTMLElement).scrollTop
-      if (typeof y !== 'number') return
+      if (typeof raw !== 'number') return
+      // iOS-резинка отдаёт позиции ЗА пределами прокрутки: у нижнего края
+      // отскок читался как «скролл вверх», и бар разворачивался сам, пока палец
+      // ещё вёл вниз. Обрезаем позицию рамками контейнера — за краями dy = 0.
+      const max = el ? Math.max(0, el.scrollHeight - el.clientHeight) : Infinity
+      const y = Math.min(Math.max(raw, 0), max)
       const dy = y - lastY.current
       // Ignore micro-scrolls / momentum jitter so the bar doesn't flicker.
       if (Math.abs(dy) < threshold) { lastY.current = y; return }
