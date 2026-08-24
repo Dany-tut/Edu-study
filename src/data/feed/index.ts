@@ -577,9 +577,9 @@ const LOADERS: Record<string, Loader> = {
  */
 export const FEED_COUNTS: Record<string, number> = {
   en: 44,
-  ja: 42,
+  ja: 44,
   ko: 48,
-  pt: 13,
+  pt: 21,
 }
 
 /** Есть ли для языка лента. Синхронно — по этому решается, рисовать ли сегмент. */
