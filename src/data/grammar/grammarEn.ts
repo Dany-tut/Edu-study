@@ -1440,4 +1440,862 @@ Much — с неисчисляемыми, many — с исчисляемыми; 
       },
     ],
   },
+
+  // ─── Герундий, инфинитив, фразовые ─────────────────────────────────────────
+  {
+    id: 'en-gerund-vs-infinitive',
+    chapter: 'Герундий, инфинитив, фразовые',
+    level: 'B2',
+    form: 'enjoy doing / decide to do',
+    title: 'Герундий или инфинитив',
+    short: 'Что после глагола: -ing, to do — решает первый глагол',
+    attach: 'ко второму глаголу в связке',
+    rule: `Какая форма идёт после глагола — свойство самого глагола, и его надо запоминать вместе со словом. Герундий берут: enjoy, avoid, finish, keep, mind, suggest, consider, practise, miss, give up, can’t help, it’s worth: I enjoy pair programming. Avoid deploying on Fridays. Инфинитив берут: decide, want, hope, plan, promise, refuse, agree, manage, afford, offer, learn, fail: We decided to postpone.
+
+С дополнением-человеком инфинитив идёт у want, ask, tell, advise, allow, expect, remind: I want you to review this. Русское «хочу, чтобы ты» — одна фраза без «чтобы»: want + you + to do.
+
+После предлогов — только герундий, всегда: good at explaining, interested in joining, before leaving, without asking. Это самое надёжное правило всей темы.
+
+Некоторые глаголы (begin, start, continue, like, love, hate) берут обе формы почти без разницы смысла: It started to rain / raining. А у пяти глаголов форма МЕНЯЕТ смысл — им посвящена отдельная карточка (stop, remember, forget, regret, try).`,
+    table: {
+      head: ['Паттерн', 'Глаголы'],
+      rows: [
+        ['+ doing', 'enjoy, avoid, finish, keep, mind, suggest, consider, miss, can’t help'],
+        ['+ to do', 'decide, want, hope, plan, promise, refuse, manage, afford, fail'],
+        ['+ smb + to do', 'want, ask, tell, advise, allow, expect, remind, encourage'],
+        ['предлог + doing', 'good at, interested in, before, after, without, instead of'],
+        ['обе формы, смысл тот же', 'begin, start, continue, like, love, hate'],
+      ],
+    },
+    examples: [
+      { text: 'I enjoy solving hard problems.', ru: 'Мне нравится решать сложные задачи.', when: 'enjoy + герундий, без вариантов.' },
+      { text: 'Avoid using global variables.', ru: 'Избегайте глобальных переменных.', when: 'avoid + doing — язык гайдлайнов.' },
+      { text: 'We decided to rewrite the module.', ru: 'Мы решили переписать модуль.', when: 'decide + to do.' },
+      { text: 'She refused to sign the NDA.', ru: 'Она отказалась подписывать NDA.', when: 'refuse + to do.' },
+      { text: 'I want you to double-check the numbers.', ru: 'Я хочу, чтобы ты перепроверил цифры.', when: '«Хочу, чтобы ты» = want you to.' },
+      { text: 'They allowed us to work remotely.', ru: 'Нам разрешили работать удалённо.', when: 'allow + smb + to do.' },
+      { text: 'He’s good at breaking problems down.', ru: 'Он умеет раскладывать задачи на части.', when: 'После предлога — только -ing.' },
+      { text: 'Thanks for helping me move.', ru: 'Спасибо, что помог с переездом.', when: 'for + doing: благодарность.' },
+      { text: 'She left without saying goodbye.', ru: 'Она ушла не попрощавшись.', when: 'without + doing = деепричастие с «не».' },
+      { text: 'Keep testing until it breaks.', ru: 'Продолжай тестировать, пока не сломается.', when: 'keep + doing = «продолжать».' },
+      { text: 'We can’t afford to lose this client.', ru: 'Мы не можем позволить себе потерять этого клиента.', when: 'afford + to do — деловая речь.' },
+      { text: 'It’s worth reading the changelog.', ru: 'Ченджлог стоит почитать.', when: 'worth + doing — оценка.' },
+    ],
+    pitfall: 'Русское «чтобы» рождает мусорное that: I want that you come — ошибка, только I want you to come. Вторая ловушка — инфинитив после предлога: interested to join вместо interested in joining. После предлога инфинитива не бывает.',
+    contrast: [
+      { with: 'en-stop-remember-regret-try', note: 'Пять глаголов, у которых выбор формы меняет смысл, — отдельная карточка.' },
+    ],
+    quiz: [
+      {
+        q: 'He suggested ___ a break.',
+        options: ['to take', 'taking', 'take'],
+        answer: 1,
+        why: 'suggest — из глаголов с герундием: suggested taking.',
+      },
+      {
+        q: '«Я хочу, чтобы она осталась» —',
+        options: ['I want that she stays.', 'I want her to stay.', 'I want her staying.'],
+        answer: 1,
+        why: 'want строит «хочу, чтобы» через дополнение + инфинитив: want her to stay.',
+      },
+    ],
+  },
+  {
+    id: 'en-stop-remember-regret-try',
+    chapter: 'Герундий, инфинитив, фразовые',
+    level: 'B2',
+    form: 'stop doing / stop to do',
+    title: 'Глаголы, меняющие смысл: stop, remember, forget, regret, try',
+    short: 'Одна форма — два разных события',
+    attach: 'ко второму глаголу в связке',
+    rule: `У пяти глаголов выбор между -ing и to do меняет само событие. Общий ключ: герундий смотрит назад или на процесс, инфинитив — вперёд, на цель.
+
+Stop doing — прекратить делать: He stopped smoking (бросил). Stop to do — остановиться, ЧТОБЫ сделать: He stopped to smoke (прервался на перекур). Remember/forget doing — память о прошлом эпизоде: I remember locking the door (помню, как запирал). Remember/forget to do — не забыть сделать дело: Remember to lock the door (не забудь запереть).
+
+Regret doing — сожаление о сделанном: I regret telling him (зря сказал). Regret to say/inform — формула плохих новостей: We regret to inform you… (с сожалением сообщаем). Try doing — попробовать способ, эксперимент: Try restarting the router (вдруг поможет). Try to do — попытаться сделать трудное: I tried to open the door, but it was locked (старался — не вышло).
+
+Сюда же примыкают mean (means doing — «означает, влечёт»; meant to do — «намеревался») и go on (went on talking — продолжил то же; went on to say — перешёл к следующему).`,
+    table: {
+      head: ['Глагол', '+ doing', '+ to do'],
+      rows: [
+        ['stop', 'прекратить привычку/действие', 'остановиться ради цели'],
+        ['remember', 'помнить, как делал', 'не забыть сделать'],
+        ['forget', 'забыть, что делал', 'забыть сделать'],
+        ['regret', 'жалеть о сделанном', 'с сожалением сообщать'],
+        ['try', 'попробовать способ', 'постараться суметь'],
+      ],
+    },
+    examples: [
+      { text: 'I stopped drinking coffee after lunch.', ru: 'Я перестал пить кофе после обеда.', when: 'Прекращённая привычка.' },
+      { text: 'We stopped to check the map.', ru: 'Мы остановились свериться с картой.', when: 'Пауза ради цели.' },
+      { text: 'I remember meeting her at a conference.', ru: 'Помню, как познакомился с ней на конференции.', when: 'Эпизод в памяти — назад.' },
+      { text: 'Remember to renew the SSL certificate.', ru: 'Не забудь продлить SSL-сертификат.', when: 'Дело в списке — вперёд.' },
+      { text: 'I’ll never forget seeing the northern lights.', ru: 'Никогда не забуду, как увидел северное сияние.', when: 'Незабываемый прошлый опыт.' },
+      { text: 'Don’t forget to push your changes.', ru: 'Не забудь запушить изменения.', when: 'Несделанное дело.' },
+      { text: 'I regret not asking for a higher salary.', ru: 'Жалею, что не попросил зарплату повыше.', when: 'Сожаление о прошлом (not + doing).' },
+      { text: 'We regret to inform you that the position has been filled.', ru: 'С сожалением сообщаем, что вакансия закрыта.', when: 'Формула отказа в письме.' },
+      { text: 'Try clearing the cache — that usually fixes it.', ru: 'Попробуй почистить кэш — обычно помогает.', when: 'Эксперимент со способом.' },
+      { text: 'I tried to reach the support team, but no one answered.', ru: 'Я пытался связаться с поддержкой, но никто не ответил.', when: 'Усилие без результата.' },
+      { text: 'Being a lead means going to more meetings.', ru: 'Быть лидом — значит ходить на больше встреч.', when: 'mean + doing: «влечёт за собой».' },
+      { text: 'Sorry, I didn’t mean to interrupt.', ru: 'Извини, я не хотел перебивать.', when: 'mean + to do: намерение.' },
+    ],
+    pitfall: 'He stopped to smoke в значении «бросил курить» — классика: получилось «остановился покурить», ровно наоборот. Проверяйте ключом «назад/вперёд»: бросил (прошлая привычка) — doing; прервался ради (цель) — to do.',
+    contrast: [
+      { with: 'en-gerund-vs-infinitive', note: 'У остальных глаголов форма фиксирована; у этих пяти выбор формы — выбор смысла.' },
+    ],
+    quiz: [
+      {
+        q: '«Не забудь сохранить файл» —',
+        options: ['Remember saving the file.', 'Remember to save the file.', 'Remember save the file.'],
+        answer: 1,
+        why: 'Дело, которое предстоит, — remember + to do. remember saving — «помню, как сохранял».',
+      },
+      {
+        q: 'The medicine didn’t help, so I tried ___ yoga.',
+        options: ['to do', 'doing', 'do'],
+        answer: 1,
+        why: 'Проба способа («а вдруг поможет») — try + doing.',
+      },
+    ],
+  },
+  {
+    id: 'en-phrasal-verbs',
+    chapter: 'Герундий, инфинитив, фразовые',
+    level: 'B2',
+    form: 'turn it off / look after it',
+    title: 'Фразовые глаголы как грамматика',
+    short: 'Три типа: разделяемые, неразделяемые, трёхчастные',
+    attach: 'к глаголу с частицей',
+    rule: `Фразовые глаголы — не только словарная проблема, но и грамматическая: у каждого свой синтаксис, и его надо знать, как род существительного в немецком.
+
+Тип 1 — разделяемые (глагол + наречная частица + объект): turn off the light = turn the light off. Железное правило: местоимение встаёт ТОЛЬКО внутрь — turn it off; turn off it — ошибка. Сюда: pick up, put off, give up, fill in, find out, work out, bring up, point out, sort out.
+
+Тип 2 — неразделяемые (глагол + предлог): объект всегда после частицы, местоимение тоже: look after the kids → look after them. Сюда: look for, look into, get over, run into, deal with, go through, count on.
+
+Тип 3 — трёхчастные (глагол + наречие + предлог): всегда слитные: look forward to, get on with, come up with, put up with, run out of, catch up on, get away with. После финального предлога — существительное или герундий: I look forward to hearing from you.
+
+Тест на тип: попробуйте вставить it в середину. Работает (bring it up) — тип 1; нет — тип 2 или 3.`,
+    examples: [
+      { text: 'Could you fill in this form? — Sure, I’ll fill it in.', ru: 'Заполните эту форму? — Конечно, заполню.', when: 'Тип 1: местоимение только внутрь.' },
+      { text: 'We had to put the launch off.', ru: 'Нам пришлось отложить запуск.', when: 'put off разделён объектом — норма.' },
+      { text: 'She brought up a good point at the retro.', ru: 'На ретро она подняла хороший вопрос.', when: 'bring up — «поднять тему».' },
+      { text: 'I’m looking for a two-bedroom flat.', ru: 'Я ищу двухкомнатную квартиру.', when: 'Тип 2: look for не разделяется.' },
+      { text: 'The team is looking into the outage.', ru: 'Команда разбирается с падением.', when: 'look into = investigate — рабочий стандарт.' },
+      { text: 'I ran into an old classmate yesterday.', ru: 'Вчера я случайно встретил одноклассника.', when: 'run into + объект, всегда после.' },
+      { text: 'It took her months to get over the breakup.', ru: 'Она месяцами приходила в себя после расставания.', when: 'get over — «пережить».' },
+      { text: 'I look forward to hearing from you.', ru: 'Жду вашего ответа.', when: 'Тип 3 + герундий: формула делового письма.' },
+      { text: 'We came up with a cheaper solution.', ru: 'Мы придумали решение подешевле.', when: 'come up with — «выдать идею».' },
+      { text: 'I won’t put up with this any longer.', ru: 'Я больше не намерен это терпеть.', when: 'put up with — «мириться с».' },
+      { text: 'We’ve run out of coffee again.', ru: 'У нас опять закончился кофе.', when: 'run out of + то, что кончилось.' },
+      { text: 'How do you get on with your new manager?', ru: 'Как ты ладишь с новым руководителем?', when: 'get on with — отношения.' },
+    ],
+    pitfall: 'Turn off it, pick up them — ошибка, слышимая мгновенно: у разделяемых фразовых местоимение обязано стоять между глаголом и частицей (turn it off). И не переносите разделяемость на тип 2: look the kids after не бывает.',
+    quiz: [
+      {
+        q: 'The music is too loud — please turn ___ .',
+        options: ['off it', 'it off', 'off'],
+        answer: 1,
+        why: 'turn off — разделяемый: местоимение встаёт только внутрь.',
+      },
+      {
+        q: 'I look forward to ___ you in person.',
+        options: ['meet', 'meeting', 'be meeting'],
+        answer: 1,
+        why: 'to в look forward to — предлог, после него герундий.',
+      },
+    ],
+  },
+
+  // ─── Сложное предложение ───────────────────────────────────────────────────
+  {
+    id: 'en-relative-defining',
+    chapter: 'Сложное предложение',
+    level: 'B1',
+    form: 'the man who… / the file that…',
+    title: 'Определительные придаточные',
+    short: 'who/which/that — и когда местоимение можно выбросить',
+    attach: 'к существительному',
+    rule: `Defining clause сужает существительное до нужного: The developer who wrote this left the company — без придаточного непонятно, который из разработчиков. Люди — who или that, вещи — which или that; в этой роли that звучит нейтральнее всего. Whose — принадлежность для всех: the author whose book…
+
+Ключевая вольность английского: если относительное местоимение — ДОПОЛНЕНИЕ придаточного, его выбрасывают: The film (that) we watched was dull. The girl (that) I told you about. Живая речь выбрасывает его почти всегда, поэтому на слух придаточное начинается сразу с подлежащего: the film we watched. Если местоимение — подлежащее придаточного, выбросить нельзя: the man who called (не the man called).
+
+Запятых вокруг defining clause НЕТ — этим оно отличается от non-defining (следующая карточка).
+
+Предлог в разговорной норме уезжает в конец: the project I’m working on, the people I deal with. Это не ошибка и не небрежность — это нормальный английский порядок.`,
+    examples: [
+      { text: 'The engineer who reviewed my PR was very thorough.', ru: 'Инженер, который ревьюил мой PR, был очень дотошным.', when: 'who — подлежащее: выбросить нельзя.' },
+      { text: 'The ticket that blocked the release is closed.', ru: 'Тикет, который блокировал релиз, закрыт.', when: 'that с вещью-подлежащим.' },
+      { text: 'The book I’m reading is about typography.', ru: 'Книга, которую я читаю, — о типографике.', when: 'Дополнение: местоимение выброшено.' },
+      { text: 'Everything you said makes sense.', ru: 'Всё, что ты сказал, логично.', when: 'После everything/all — that, и он опущен.' },
+      { text: 'The company I used to work for was acquired.', ru: 'Компанию, где я раньше работал, купили.', when: 'Предлог в конце: work for.' },
+      { text: 'Is this the report you were talking about?', ru: 'Это тот отчёт, о котором ты говорил?', when: 'about в конце — разговорная норма.' },
+      { text: 'The designer whose portfolio you liked is available.', ru: 'Дизайнер, чьё портфолио тебе понравилось, свободен.', when: 'whose — принадлежность.' },
+      { text: 'People who ask questions learn faster.', ru: 'Люди, которые задают вопросы, учатся быстрее.', when: 'Обобщение с who-подлежащим.' },
+      { text: 'That’s the reason why I left.', ru: 'Вот причина, по которой я ушёл.', when: 'the reason why; why тоже можно опустить.' },
+      { text: 'The place where we met is now a coworking space.', ru: 'Место, где мы познакомились, теперь коворкинг.', when: 'where — место, заменяет in which.' },
+    ],
+    pitfall: 'Русский всегда произносит «который», поэтому опущенное местоимение ломает понимание на слух: во фразе the file you sent русское ухо ищет глагол к file. Тренируйте узнавание: существительное + сразу подлежащее = скрытое придаточное. И не дублируйте объект: the book that I read IT — местоимение-дубль внутри придаточного не ставится.',
+    contrast: [
+      { with: 'en-relative-nondefining', note: 'Defining сужает и пишется без запятых; non-defining комментирует и живёт в запятых.' },
+    ],
+    quiz: [
+      {
+        q: 'Где местоимение МОЖНО опустить: the colleague ___ helped me / the colleague ___ I helped?',
+        options: ['В первом', 'Во втором', 'В обоих'],
+        answer: 1,
+        why: 'Опускается только дополнение: the colleague I helped. В первом who — подлежащее.',
+      },
+      {
+        q: 'The project ___ we discussed needs a bigger budget.',
+        options: ['what', 'which', 'who'],
+        answer: 1,
+        why: 'Вещь — which/that (или ничего). what в относительных придаточных после существительного не используется.',
+      },
+    ],
+  },
+  {
+    id: 'en-relative-nondefining',
+    chapter: 'Сложное предложение',
+    level: 'B2',
+    form: ', which… / , most of whom…',
+    title: 'Non-defining: придаточное-комментарий',
+    short: 'Запятые, запрет that — и which, ссылающееся на всё предложение',
+    attach: 'к существительному или целому предложению',
+    unit: 'ielt-03',
+    rule: `Non-defining clause не сужает, а добавляет побочное замечание: My manager, who joined last year, is leaving already. Менеджер и так один — придаточное лишь комментирует. Правила жёстче, чем у defining: обязательные запятые с обеих сторон, местоимение опускать нельзя, и that ЗАПРЕЩЁН — только who/whom/which/whose.
+
+Разница слышна в смысле: My brother who lives in Riga is a doctor — братьев несколько, врач именно рижский. My brother, who lives in Riga, is a doctor — брат один, попутно узнаём, где живёт. Запятая здесь — семантика, а не пунктуация.
+
+Which умеет ссылаться на ЦЕЛОЕ предыдущее предложение: The tests passed on the first run, which surprised everyone. Русское «что» в этой роли — «что всех удивило».
+
+Формальный узор «квантор + of + whom/which» соединяет статистику с комментарием: We interviewed 40 users, most of whom preferred the old flow. The app has two themes, both of which support high contrast. Это стандарт академического письма и IELTS: длина предложения растёт без потери контроля.`,
+    examples: [
+      { text: 'Our office, which used to be a factory, has great light.', ru: 'Наш офис, бывший заводской цех, отлично освещён.', when: 'Комментарий о единственном объекте.' },
+      { text: 'Anna, who runs the design team, is on leave.', ru: 'Анна, которая руководит командой дизайна, в отпуске.', when: 'Имя собственное — придаточное всегда non-defining.' },
+      { text: 'The update broke the search, which nobody noticed for a week.', ru: 'Обновление сломало поиск, чего неделю никто не замечал.', when: 'which ссылается на всё предложение.' },
+      { text: 'He was late again, which is becoming a habit.', ru: 'Он снова опоздал, что уже входит в привычку.', when: 'Комментарий-оценка к событию.' },
+      { text: 'We surveyed 200 users, most of whom use the mobile app.', ru: 'Мы опросили 200 пользователей, большинство из которых сидит в мобильном приложении.', when: 'Квантор + of whom — статистика.' },
+      { text: 'The team shipped five features, none of which required a migration.', ru: 'Команда выпустила пять фич, ни одна из которых не потребовала миграции.', when: 'none of which — отчётная точность.' },
+      { text: 'The report, whose conclusions were leaked, caused a scandal.', ru: 'Отчёт, чьи выводы утекли, вызвал скандал.', when: 'whose работает и с неодушевлённым.' },
+      { text: 'The venue, which we booked in May, cancelled on us.', ru: 'Площадка, которую мы забронировали в мае, нас кинула.', when: 'Дополнение, но опустить нельзя — non-defining.' },
+      { text: 'She gave a keynote in Tokyo, where the company has an office.', ru: 'Она выступила с докладом в Токио, где у компании офис.', when: 'where в комментарии о месте.' },
+      { text: 'The budget was cut in half, which meant dropping two features.', ru: 'Бюджет урезали вдвое, что означало отказ от двух фич.', when: 'Следствие события — through which.' },
+    ],
+    pitfall: 'Русская пунктуация ставит запятую перед каждым «который», поэтому запятые расставляются на глазок. В английском запятая при придаточном — переключатель смысла: с ней объект единственный, без неё придаточное отбирает нужный из многих. И запомните запрет: после запятой that не бывает — только which/who.',
+    contrast: [
+      { with: 'en-relative-defining', note: 'Пара «с запятыми/без» — минимальная пара смыслов: комментарий против сужения.' },
+      { with: 'en-relative-reduced', note: 'Оба вида придаточных умеют сворачиваться в причастные обороты.' },
+    ],
+    quiz: [
+      {
+        q: 'My sister, ___ works in Oslo, is visiting next week.',
+        options: ['that', 'who', 'which'],
+        answer: 1,
+        why: 'Non-defining (запятые) исключает that; о человеке — who.',
+      },
+      {
+        q: 'The deploy failed twice, ___ delayed the demo.',
+        options: ['that', 'which', 'what'],
+        answer: 1,
+        why: 'Ссылка на целое событие после запятой — только which.',
+      },
+    ],
+  },
+  {
+    id: 'en-relative-reduced',
+    chapter: 'Сложное предложение',
+    level: 'C1',
+    form: 'the people invited / the team working on it',
+    title: 'Свёрнутые придаточные',
+    short: 'who is/which was исчезают — остаётся причастие',
+    attach: 'к существительному',
+    rule: `Придаточное с who/which + be сворачивается: местоимение и be выпадают, остаётся причастие. Активный смысл — -ing: the team (which is) working on the redesign → the team working on the redesign. Пассивный — -ed/третья форма: the changes (that were) proposed by the client → the changes proposed by the client.
+
+-ing-свёртка не привязана ко времени be: the people living here может значить и «живущие сейчас», и «жившие тогда» — время задаёт главное предложение. Свёртка работает и без be, с простыми временами: anyone who wants a ticket → anyone wanting a ticket.
+
+Инфинитивная свёртка идёт после порядковых, превосходных и last/only/next: the first woman to win the prize, the only person to object, the next train to leave. Здесь to win заменяет who won.
+
+Этот механизм — главный источник плотности письменного английского: газетная фраза A man arrested in connection with the fraud has been released содержит две свёртки. Не научившись их разворачивать обратно, читать прессу и академические тексты тяжело: -ed-форма выглядит как сказуемое, но им не является.`,
+    examples: [
+      { text: 'The features shipped last quarter doubled retention.', ru: 'Фичи, выпущенные в прошлом квартале, удвоили удержание.', when: 'Пассивная свёртка: (that were) shipped.' },
+      { text: 'Anyone wishing to attend should register by Friday.', ru: 'Все желающие участвовать должны зарегистрироваться до пятницы.', when: 'Активная: (who wishes) → wishing.' },
+      { text: 'The issues found during testing are all minor.', ru: 'Проблемы, найденные при тестировании, все мелкие.', when: 'found = which were found.' },
+      { text: 'Passengers travelling with children board first.', ru: 'Пассажиры с детьми проходят первыми.', when: 'Объявление: travelling = who are travelling.' },
+      { text: 'The approach described below has one drawback.', ru: 'У описанного ниже подхода один недостаток.', when: 'Документация: described = which is described.' },
+      { text: 'She was the first designer to be promoted to partner.', ru: 'Она стала первым дизайнером, которого повысили до партнёра.', when: 'Инфинитив после the first.' },
+      { text: 'He’s the only person to have read the whole spec.', ru: 'Он единственный, кто прочёл спеку целиком.', when: 'the only + перфектный инфинитив.' },
+      { text: 'The data collected so far supports the hypothesis.', ru: 'Собранные на данный момент данные подтверждают гипотезу.', when: 'Академическая свёртка: collected.' },
+      { text: 'Applications submitted after the deadline will not be considered.', ru: 'Заявки, поданные после дедлайна, рассматриваться не будут.', when: 'Формальное правило.' },
+      { text: 'A file containing the credentials was committed by mistake.', ru: 'Файл с учётными данными закоммитили по ошибке.', when: 'containing = which contains.' },
+    ],
+    pitfall: 'Русский глаз читает the data collected как «данные собрали» — принимает причастие за сказуемое и теряет структуру фразы. Проверка: нашли -ed-форму сразу после существительного — ищите настоящее сказуемое дальше (supports). Если оно есть, перед вами свёрнутое придаточное.',
+    contrast: [
+      { with: 'en-participle-clauses', note: 'Тот же принцип экономии, но причастный оборот заменяет целое обстоятельственное придаточное.' },
+    ],
+    quiz: [
+      {
+        q: 'Разверните: «The bug reported yesterday is critical.»',
+        options: ['The bug which reported yesterday…', 'The bug which was reported yesterday…', 'The bug which is reporting yesterday…'],
+        answer: 1,
+        why: 'Баг не сам сообщил — о нём сообщили: пассив, which was reported.',
+      },
+      {
+        q: 'She was the youngest athlete ___ the record.',
+        options: ['breaking', 'to break', 'broken'],
+        answer: 1,
+        why: 'После превосходной степени придаточное сворачивается в to-инфинитив: to break = who broke.',
+      },
+    ],
+  },
+  {
+    id: 'en-participle-clauses',
+    chapter: 'Сложное предложение',
+    level: 'C1',
+    form: 'Having finished… / Written in 1920…',
+    title: 'Причастные обороты',
+    short: 'Целое придаточное сжимается в причастие — если подлежащее общее',
+    attach: 'к началу или концу предложения',
+    unit: 'ielt-03',
+    rule: `Причастный оборот сжимает обстоятельственное придаточное, когда подлежащие совпадают. -ing — одновременность или причина: Feeling tired, I went to bed (= Because I felt…). Having + причастие — предшествование: Having finished the report, she went home (= After she had finished…). Пассивные: (Being) written in haste, the email was full of typos.
+
+Союзы времени сохраняются перед -ing: While waiting for the build, I reviewed two PRs. After discussing the options, we chose the second. When testing, use real data.
+
+Железное условие — общее подлежащее. Его нарушение рождает dangling modifier, знаменитую ошибку и в носительском письме: Walking into the room, the lights turned on — получилось, что в комнату вошли лампы. Правильно: Walking into the room, I turned on the lights — подлежащее главной части обязано быть тем, кто walking.
+
+Это регистр письменной речи: в разговоре скажут After I finished…, в эссе и отчёте Having finished… поднимает балл за Grammatical Range. Но одного оборота на абзац достаточно — текст из сплошных Having… звучит как пародия на академический стиль.`,
+    examples: [
+      { text: 'Having reviewed the data, we changed the strategy.', ru: 'Изучив данные, мы поменяли стратегию.', when: 'Предшествование: сначала изучили.' },
+      { text: 'Feeling underpaid, he started looking for a new job.', ru: 'Чувствуя, что ему недоплачивают, он начал искать работу.', when: 'Причина через -ing.' },
+      { text: 'While preparing the demo, we found two more bugs.', ru: 'Готовя демо, мы нашли ещё два бага.', when: 'Союз while сохранён перед причастием.' },
+      { text: 'Founded in 2015, the company now employs 300 people.', ru: 'Основанная в 2015-м, компания теперь насчитывает 300 сотрудников.', when: 'Пассивное причастие открывает фразу — стиль пресс-релиза.' },
+      { text: 'Not knowing the password, I couldn’t log in.', ru: 'Не зная пароля, я не мог войти.', when: 'Отрицание: not перед причастием.' },
+      { text: 'Having been warned twice, he was finally fired.', ru: 'После двух предупреждений его наконец уволили.', when: 'Пассивный перфект: having been + причастие.' },
+      { text: 'She left the meeting early, citing a family emergency.', ru: 'Она ушла со встречи раньше, сославшись на семейные обстоятельства.', when: 'Оборот в конце — комментарий к действию.' },
+      { text: 'When using the API, always check the rate limits.', ru: 'Используя API, всегда проверяйте лимиты.', when: 'Инструкция: when + -ing.' },
+      { text: 'Having worked in both startups and corporations, I prefer the former.', ru: 'Поработав и в стартапах, и в корпорациях, я предпочитаю первые.', when: 'Опыт как основание мнения — эссе, собеседование.' },
+      { text: 'After signing the contract, we received the first payment.', ru: 'Подписав контракт, мы получили первый платёж.', when: 'after + -ing = после того как.' },
+    ],
+    pitfall: 'Dangling modifier: Being a designer, the kerning annoys me — формально «кернинг работает дизайнером». Русский слух ошибки не слышит, потому что деепричастие по-русски цепляется к смыслу, а не к подлежащему. Проверка одна: подлежащее главной части = деятель причастия. Не совпадает — разворачивайте в полное придаточное.',
+    contrast: [
+      { with: 'en-relative-reduced', note: 'Там сворачивается определение к существительному, здесь — обстоятельство ко всему предложению.' },
+    ],
+    quiz: [
+      {
+        q: 'Где ошибка dangling modifier?',
+        options: ['Having read the brief, I had three questions.', 'Having read the brief, three questions came up.', 'After reading the brief, I wrote three questions.'],
+        answer: 1,
+        why: 'Во втором варианте бриф читали «три вопроса»: подлежащее главной части не совпадает с деятелем причастия.',
+      },
+      {
+        q: '___ the tests, she deployed to production.',
+        options: ['Having run', 'Being run', 'Ran'],
+        answer: 0,
+        why: 'Сначала прогнала тесты, потом задеплоила: предшествование = having + причастие.',
+      },
+    ],
+  },
+  {
+    id: 'en-linking-devices',
+    chapter: 'Сложное предложение',
+    level: 'B2',
+    form: 'however / although / despite / whereas',
+    title: 'Связки академического регистра',
+    short: 'Контраст, причина, следствие — и пунктуация, которая их различает',
+    attach: 'между предложениями или частями',
+    unit: 'ielt-15',
+    rule: `Связки различаются не смыслом, а синтаксисом, и путаница между классами — самая частая ошибка письменного английского. Три класса.
+
+Союзы (although, though, while, whereas, because) соединяют две части ОДНОГО предложения: Although the budget was tight, we delivered on time. Наречия (however, therefore, moreover, nevertheless, consequently) связывают ДВА отдельных предложения — перед ними точка или точка с запятой, после — запятая: The budget was tight. However, we delivered on time. Предлоги (despite, in spite of, because of, due to) берут существительное или герундий, но НЕ придаточное: Despite the tight budget… / Despite being late…
+
+Классическая ошибка — despite + придаточное: Despite the budget was tight — нельзя. Либо despite the tight budget, либо although the budget was tight, либо despite the fact that…
+
+Whereas и while противопоставляют параллельные факты: The desktop app is free, whereas the mobile version costs $5 — стандарт сравнения данных в IELTS Task 1. Запятая перед however внутри предложения (…, however, …) допустима только когда however вставное «впрочем»; связывать им два предложения через одну запятую (comma splice) — ошибка.`,
+    table: {
+      head: ['Класс', 'Слова', 'Синтаксис'],
+      rows: [
+        ['союзы', 'although, while, whereas, because', 'внутри одного предложения'],
+        ['наречия', 'however, therefore, moreover, nevertheless', 'между предложениями: «. However, …»'],
+        ['предлоги', 'despite, in spite of, due to, because of', '+ существительное / герундий'],
+      ],
+    },
+    examples: [
+      { text: 'Although the interface is simple, the setup is painful.', ru: 'Хотя интерфейс прост, настройка мучительна.', when: 'Союз: две части одного предложения.' },
+      { text: 'The interface is simple. However, the setup is painful.', ru: 'Интерфейс прост. Однако настройка мучительна.', when: 'Наречие: точка перед, запятая после.' },
+      { text: 'Despite the simple interface, the setup is painful.', ru: 'Несмотря на простой интерфейс, настройка мучительна.', when: 'Предлог + существительное.' },
+      { text: 'Despite being warned, they deployed on Friday.', ru: 'Несмотря на предупреждение, они задеплоили в пятницу.', when: 'despite + герундий.' },
+      { text: 'Sales rose in Europe, whereas the US market shrank.', ru: 'Продажи в Европе выросли, тогда как рынок США сжался.', when: 'whereas — параллельный контраст данных.' },
+      { text: 'The tests failed; therefore, the release was postponed.', ru: 'Тесты упали; поэтому релиз отложили.', when: 'therefore после точки с запятой.' },
+      { text: 'The flat is small. Moreover, it’s far from the metro.', ru: 'Квартира маленькая. Более того, далеко от метро.', when: 'moreover наращивает аргумент.' },
+      { text: 'Due to a server issue, some emails arrived twice.', ru: 'Из-за проблемы с сервером часть писем пришла дважды.', when: 'due to + существительное — тон уведомления.' },
+      { text: 'The plan was risky. Nevertheless, the board approved it.', ru: 'План был рискованным. Тем не менее совет его одобрил.', when: 'nevertheless — контраст с уступкой.' },
+      { text: 'While I see your point, I still disagree.', ru: 'Я понимаю вашу мысль, но всё же не согласен.', when: 'while смягчает несогласие — рабочий спор.' },
+      { text: 'In spite of the delay, the client stayed with us.', ru: 'Несмотря на задержку, клиент остался с нами.', when: 'in spite of = despite, обе — предлоги.' },
+    ],
+    pitfall: 'Despite of — гибрид despite и in spite of, не существует. И comma splice: The budget was cut, however we continued — however не союз и одной запятой два предложения не склеивает: нужна точка или точка с запятой.',
+    contrast: [
+      { with: 'en-hedging', note: 'Связки строят каркас аргумента, hedging калибрует силу утверждений внутри него.' },
+    ],
+    quiz: [
+      {
+        q: '___ the rain, the event went ahead.',
+        options: ['Although', 'Despite', 'However'],
+        answer: 1,
+        why: 'Дальше существительное без глагола — нужен предлог: Despite the rain.',
+      },
+      {
+        q: 'Какой вариант пунктуационно верен?',
+        options: ['The app is fast, however it drains the battery.', 'The app is fast. However, it drains the battery.', 'The app is fast however, it drains the battery.'],
+        answer: 1,
+        why: 'however — наречие: перед ним точка (или точка с запятой), после — запятая.',
+      },
+    ],
+  },
+
+  // ─── Эмфаза и вопросы ──────────────────────────────────────────────────────
+  {
+    id: 'en-inversion-emphasis',
+    chapter: 'Эмфаза и вопросы',
+    level: 'C1',
+    form: 'Not only… / Little did… / Under no circumstances…',
+    title: 'Эмфатическая инверсия',
+    short: 'Отрицательное наречие вперёд — и порядок слов вопроса',
+    attach: 'к началу предложения',
+    rule: `Вынос отрицательного или ограничительного наречия в начало требует после него порядка слов ВОПРОСА: вспомогательный глагол перед подлежащим. Never have I seen such a mess. I have never seen → Never have I seen. Без вспомогательного он добавляется: Little did he know → знать он не знал (did появился, как в вопросе).
+
+Дежурные запускающие обороты: never, rarely, seldom, little, at no point, under no circumstances, on no account, not only… but also, no sooner… than, hardly… when, not until, only then / only after / only when. У двухчастных инверсия живёт в ПЕРВОЙ части: Not only DID he miss the deadline, but he also blamed the team. У only after / not until — наоборот, в главной: Only after the audit did we see the problem.
+
+Зачем это нужно: эмфаза плюс регистр. В речи ту же работу делает интонация; на письме — инверсия. В IELTS Writing один точный Not only… but also поднимает Grammatical Range; в презентации Never before have we seen such demand звучит как заголовок.
+
+Дозировка как у всякой риторики: один приём на текст. Каждый второй абзац с Never have I… превращает эссе в мелодраму.`,
+    examples: [
+      { text: 'Never have I seen such attention to detail.', ru: 'Никогда я не видел такого внимания к деталям.', when: 'Комплимент с трибуны: never + инверсия.' },
+      { text: 'Not only did the team hit the deadline, but they also cut costs.', ru: 'Команда не только успела к сроку, но и сократила расходы.', when: 'Инверсия в первой части, but also во второй.' },
+      { text: 'Little did we know the client had already chosen another agency.', ru: 'Мы и не подозревали, что клиент уже выбрал другое агентство.', when: 'little did… know — рассказ с драматической иронией.' },
+      { text: 'Under no circumstances should you share your token.', ru: 'Ни при каких обстоятельствах не делитесь токеном.', when: 'Строгий запрет в документации.' },
+      { text: 'Rarely does a redesign go this smoothly.', ru: 'Редко редизайн проходит так гладко.', when: 'rarely + does: настоящее время добавляет do.' },
+      { text: 'No sooner had we launched than the server crashed.', ru: 'Едва мы запустились, как сервер упал.', when: 'no sooner… than: had + инверсия.' },
+      { text: 'Hardly had I sat down when the phone rang.', ru: 'Не успел я сесть, как зазвонил телефон.', when: 'hardly… when — та же рамка.' },
+      { text: 'Not until the invoice arrived did we notice the extra fee.', ru: 'Только когда пришёл счёт, мы заметили доплату.', when: 'not until: инверсия в главной части.' },
+      { text: 'Only then did the scale of the problem become clear.', ru: 'Лишь тогда стал ясен масштаб проблемы.', when: 'only then + инверсия.' },
+      { text: 'At no point was the data at risk.', ru: 'Данные не были под угрозой ни в один момент.', when: 'Официальное опровержение — пресс-релиз.' },
+    ],
+    pitfall: 'Полумеры: Never I have seen — наречие вынесли, а инверсию забыли. Правило механическое: отрицательное слово в начале = дальше порядок вопроса (Never have I seen). Нет выноса — нет инверсии: I have never seen тоже верно, просто без эмфазы.',
+    contrast: [
+      { with: 'en-conditional-inversion', note: 'Та же механика в условных даёт формальность (Had I known), здесь — эмфазу.' },
+      { with: 'en-cleft-sentences', note: 'Клефт выделяет участника события, инверсия — само утверждение.' },
+    ],
+    quiz: [
+      {
+        q: 'Seldom ___ a bug this deep in production.',
+        options: ['we find', 'do we find', 'we do find'],
+        answer: 1,
+        why: 'seldom в начале включает порядок вопроса: do we find.',
+      },
+      {
+        q: 'Not only ___ late, but he also forgot the slides.',
+        options: ['he was', 'was he', 'he has been'],
+        answer: 1,
+        why: 'После not only в начале — инверсия: was he late.',
+      },
+    ],
+  },
+  {
+    id: 'en-cleft-sentences',
+    chapter: 'Эмфаза и вопросы',
+    level: 'C1',
+    form: 'It was X that… / What I need is…',
+    title: 'Клефт: расщеплённое предложение',
+    short: 'It was the design that sold it — прожектор на одном участнике',
+    attach: 'к любому выделяемому элементу',
+    rule: `Клефт расщепляет простое предложение надвое, наводя прожектор на один элемент. It-клефт: It was the design that sold the product — продал именно дизайн (не цена, не маркетинг). Выделять можно почти любой элемент: It was in Berlin that we met (место), It was only last week that I found out (время), It was Anna who noticed the bug (деятель).
+
+Wh-клефт выделяет через what: What I need is a straight answer — а нужен мне прямой ответ. What annoys me is the constant rescheduling. Хвост фразы становится «пуантой», и на неё падает всё ударение. Варианты той же машины: The thing/The only thing/All (that): All I’m asking for is one more day — «я всего лишь прошу…».
+
+Действие выделяется рамкой What… do is: What we did was rewrite the whole parser. После is в этой рамке допустим голый инфинитив.
+
+Клефт — устная и письменная риторика сразу: в споре It’s not the money that bothers me, it’s the attitude раскладывает акценты без единого повышения голоса. В русском ту же работу делает порядок слов и «именно» — поэтому русскоязычные клефт понимают, но сами не строят, теряя главный английский инструмент расстановки акцентов.`,
+    examples: [
+      { text: 'It was the latency that killed the user experience.', ru: 'Именно задержка убила пользовательский опыт.', when: 'Диагноз с выделением причины.' },
+      { text: 'It was Anna who suggested the A/B test.', ru: 'Это Анна предложила A/B-тест.', when: 'Восстановление авторства идеи.' },
+      { text: 'It was only after the merger that things went wrong.', ru: 'Только после слияния всё пошло не так.', when: 'Выделение момента времени.' },
+      { text: 'It’s not the salary that worries me, it’s the growth.', ru: 'Меня беспокоит не зарплата, а рост.', when: 'Контрастная пара: not X… it’s Y.' },
+      { text: 'What I need is two quiet days without meetings.', ru: 'Что мне нужно — это два тихих дня без встреч.', when: 'Wh-клефт: пуанта в конце.' },
+      { text: 'What bothers me is the lack of feedback.', ru: 'Что меня напрягает — так это отсутствие обратной связи.', when: 'Эмоция + причина в одной рамке.' },
+      { text: 'What we did was simplify the onboarding to three steps.', ru: 'Что мы сделали — упростили онбординг до трёх шагов.', when: 'Выделение действия: What… did was…' },
+      { text: 'All I’m asking is that you read the brief first.', ru: 'Я лишь прошу сначала прочесть бриф.', when: 'All… is — «всего лишь»: смягчение просьбы.' },
+      { text: 'The thing I like most about this team is the honesty.', ru: 'Что мне больше всего нравится в этой команде — честность.', when: 'The thing… is — разговорный клефт.' },
+      { text: 'It wasn’t me who approved the change.', ru: 'Изменение утвердил не я.', when: 'Снятие обвинения выделением деятеля.' },
+    ],
+    pitfall: 'Русскоязычный передаёт «именно» словом exactly: Exactly the design sold it — не по-английски. «Именно X» = It was X that… Освоенный клефт заодно решает проблему интонации: не нужно голосом давить на слово — конструкция давит сама.',
+    contrast: [
+      { with: 'en-inversion-emphasis', note: 'Инверсия усиливает всё утверждение, клефт вырезает и подсвечивает один элемент.' },
+    ],
+    quiz: [
+      {
+        q: 'Выделите виновника: «The intern broke the build.»',
+        options: ['It was the intern who broke the build.', 'The intern was it that broke the build.', 'Who broke the build was the intern.'],
+        answer: 0,
+        why: 'It-клефт: It was + выделяемое + who/that + остаток.',
+      },
+      {
+        q: 'What I’m looking for ___ a role with more ownership.',
+        options: ['is', 'are', 'it is'],
+        answer: 0,
+        why: 'Wh-клефт согласуется в единственном: What I’m looking for is…',
+      },
+    ],
+  },
+  {
+    id: 'en-questions-word-order',
+    chapter: 'Эмфаза и вопросы',
+    level: 'B1',
+    form: 'Do you…? / What did she…? / Who called?',
+    title: 'Вопрос: порядок слов',
+    short: 'Вспомогательный глагол обязателен — кроме вопроса к подлежащему',
+    attach: 'к предложению',
+    rule: `Английский вопрос строится машиной QASV: Question word — Auxiliary — Subject — Verb. What did she say? Where do you work? Нет вспомогательного глагола — нет вопроса: интонация сама по себе вопрос не делает (в отличие от русского). Для Present/Past Simple вспомогательный do/does/did добавляется, и смысловой глагол возвращается в инфинитив: She said → What did she SAY? (не said).
+
+Единственное исключение — вопрос к ПОДЛЕЖАЩЕМУ: кто/что само делает действие. Порядок прямой, do не нужен: Who called you? What happened? Whose code broke the build? Сравните: Who did you call? (кому звонил ты — вопрос к дополнению) против Who called you? (кто звонил тебе — к подлежащему).
+
+Предлог в вопросе уезжает в конец: What are you looking FOR? Who did you talk TO? Where are you FROM? Строить по-русски «About what…» не нужно: формальное To whom живо только в очень официальном письме.
+
+Отрицательный вопрос (Didn’t you get my email?) выражает удивление или ожидание «да» — это не нейтральный вопрос, и отвечать на него надо по факту: не получил — No (см. карточку про хвостовые вопросы).`,
+    examples: [
+      { text: 'Where do you see yourself in five years?', ru: 'Кем вы видите себя через пять лет?', when: 'QASV в чистом виде — вопрос собеседования.' },
+      { text: 'What did the client say about the quote?', ru: 'Что клиент сказал о смете?', when: 'did + инфинитив say, не said.' },
+      { text: 'Does the plan include testing?', ru: 'План включает тестирование?', when: 'Общий вопрос: does + инфинитив.' },
+      { text: 'Who approved this design?', ru: 'Кто утвердил этот дизайн?', when: 'Вопрос к подлежащему: без did, прямой порядок.' },
+      { text: 'What happened to the staging server?', ru: 'Что случилось со стейджингом?', when: 'What — подлежащее: happened, не did happen.' },
+      { text: 'Who are you waiting for?', ru: 'Кого ты ждёшь?', when: 'Предлог в конце: waiting for.' },
+      { text: 'What does this metric depend on?', ru: 'От чего зависит эта метрика?', when: 'depend on: on в конце вопроса.' },
+      { text: 'How long have you been working here?', ru: 'Как давно ты здесь работаешь?', when: 'Вспомогательный have выходит вперёд.' },
+      { text: 'Didn’t you get my invite?', ru: 'Разве ты не получил моё приглашение?', when: 'Отрицательный вопрос = удивление.' },
+      { text: 'How much does the licence cost?', ru: 'Сколько стоит лицензия?', when: 'cost требует does: how much does it cost.' },
+    ],
+    pitfall: 'Две устойчивые кальки: вопрос интонацией без do (You like it?* в письме) и двойное прошедшее What did she said? После did смысловой глагол всегда в инфинитиве. Третья — What means this word? Означает слово, но вопрос не к подлежащему-what, а к object: What does this word mean?',
+    contrast: [
+      { with: 'en-indirect-questions', note: 'Внутри вежливой рамки (Could you tell me…) порядок слов возвращается к прямому.' },
+      { with: 'en-tag-questions', note: 'Хвостовые вопросы — отдельная механика с зеркальным отрицанием.' },
+    ],
+    quiz: [
+      {
+        q: 'Правильный вопрос к «Somebody deleted the file»:',
+        options: ['Who did delete the file?', 'Who deleted the file?', 'Who did the file delete?'],
+        answer: 1,
+        why: 'Вопрос к подлежащему обходится без do: Who deleted…?',
+      },
+      {
+        q: 'What ___ at the meeting yesterday?',
+        options: ['did she say', 'did she said', 'she said'],
+        answer: 0,
+        why: 'did выносится вперёд, а say возвращается в инфинитив.',
+      },
+    ],
+  },
+  {
+    id: 'en-indirect-questions',
+    chapter: 'Эмфаза и вопросы',
+    level: 'B2',
+    form: 'Could you tell me where… is?',
+    title: 'Косвенные вопросы',
+    short: 'Вежливая рамка — и прямой порядок слов внутри',
+    attach: 'к вопросу внутри рамки',
+    unit: 'endc-07',
+    rule: `Вопрос, завёрнутый в вежливую рамку — Could you tell me…, Do you know…, I was wondering…, I’d like to know… — внутри рамки теряет вопросный порядок слов: инверсия и do исчезают, подлежащее возвращается перед глаголом. Where is the station? → Could you tell me where the station IS? What time does it start? → Do you know what time it STARTS?
+
+Общий вопрос цепляется через if/whether: Is it available? → Could you check if it’s available? Whether чуть формальнее и обязателен перед or not вплотную: whether or not.
+
+Зачем это нужно: прямой вопрос незнакомцу или клиенту по-английски звучит резче, чем по-русски. Excuse me, where is the station? — грамматично, но в разговоре с клиентом, на ресепшене и в письме нормой будет рамка: I was wondering if you could send the updated quote. Do you know whether the meeting is still on?
+
+Знак в конце определяет РАМКА: Could you tell me where it is? — вопрос, знак вопроса. I wonder where it is. — утверждение, точка.`,
+    examples: [
+      { text: 'Could you tell me where the meeting room is?', ru: 'Не подскажете, где переговорка?', when: 'is ушёл в конец — инверсии нет.' },
+      { text: 'Do you know what time the demo starts?', ru: 'Не знаешь, во сколько начинается демо?', when: 'does исчез: starts с -s.' },
+      { text: 'I was wondering if you had a moment to talk.', ru: 'Я хотел спросить, найдётся ли у вас минутка.', when: 'Максимально мягкий заход — просьба о времени.' },
+      { text: 'Could you check whether the licence covers commercial use?', ru: 'Не проверите, покрывает ли лицензия коммерческое использование?', when: 'whether — формальный вариант if.' },
+      { text: 'Do you happen to know who owns this repository?', ru: 'Ты случайно не знаешь, чей это репозиторий?', when: 'happen to — «случайно не»: ещё слой мягкости.' },
+      { text: 'I’d like to know how the refund process works.', ru: 'Я хотел бы узнать, как устроен процесс возврата.', when: 'Письменный запрос в поддержку.' },
+      { text: 'Can you tell me why the build failed?', ru: 'Можешь сказать, почему упал билд?', when: 'why + прямой порядок: the build failed.' },
+      { text: 'I wonder if we should postpone the launch.', ru: 'Думаю, не отложить ли нам запуск.', when: 'I wonder — размышление вслух, точка в конце.' },
+      { text: 'Could you let me know when the invoice has been paid?', ru: 'Дайте знать, когда счёт будет оплачен.', when: 'let me know — стандарт деловой переписки.' },
+      { text: 'Do you know if there’s a vegetarian option?', ru: 'Не знаете, есть ли вегетарианский вариант?', when: 'if + there is: порядок прямой.' },
+    ],
+    pitfall: 'Инверсия протаскивается внутрь рамки: Could you tell me where is the station? — ошибка настолько частая, что по ней определяют уровень. Рамка уже сделала фразу вопросом — внутри порядок повествовательный: where the station is.',
+    contrast: [
+      { with: 'en-questions-word-order', note: 'Прямой вопрос живёт инверсией; внутри косвенного она запрещена.' },
+      { with: 'en-reported-speech', note: 'Пересказ вопроса (He asked where…) устроен так же — плюс сдвиг времени.' },
+    ],
+    quiz: [
+      {
+        q: 'Do you know when ___ ?',
+        options: ['does the train leave', 'the train leaves', 'leaves the train'],
+        answer: 1,
+        why: 'Внутри косвенного вопроса — прямой порядок: the train leaves.',
+      },
+      {
+        q: 'Вежливо спросить клиента о бюджете:',
+        options: ['What is your budget?', 'Could you give me an idea of what your budget is?', 'Tell me your budget.'],
+        answer: 1,
+        why: 'Рамка смягчает прямоту, а внутри неё budget is — без инверсии.',
+      },
+    ],
+  },
+  {
+    id: 'en-tag-questions',
+    chapter: 'Эмфаза и вопросы',
+    level: 'B2',
+    form: '…, isn’t it? / …, do you?',
+    title: 'Хвостовые вопросы',
+    short: 'Зеркальный хвост — и ответ по факту, а не по-русски',
+    attach: 'к концу утверждения',
+    rule: `Tag question — короткий хвост, превращающий утверждение в запрос подтверждения. Механика зеркальная: хвост повторяет вспомогательный глагол утверждения с ОБРАТНЫМ знаком. You’ve met before, haven’t you? She doesn’t like mockups, does she? Нет вспомогательного — берётся do: You work remotely, don’t you?
+
+Особые случаи: I’m → aren’t I? (am not в хвосте не сокращается); Let’s → shall we?; императив → will you? / would you? (Close the door, would you?); nothing/nobody в утверждении считаются отрицанием, и хвост положительный: Nobody called, did they? — с they для nobody/everyone.
+
+Интонация меняет функцию: хвост вниз — риторическое «мы же согласны» (Nice day, isn’t it?), хвост вверх — настоящий вопрос с сомнением.
+
+Ответ — по ФАКТУ, а не по форме вопроса. You didn’t get my email, did you? Русское «да, не получил» здесь смертельно: No, I didn’t = не получил; Yes, I did = получил. Yes с отрицанием (Yes, I didn’t) не существует. Это правило спасает и в отрицательных вопросах без хвоста: Didn’t you see it? — No (не видел).`,
+    examples: [
+      { text: 'The deadline is Friday, isn’t it?', ru: 'Дедлайн ведь в пятницу?', when: 'Проверка факта, ожидается «да».' },
+      { text: 'You haven’t deployed yet, have you?', ru: 'Ты ведь ещё не деплоил?', when: 'Отрицание в утверждении — хвост положительный.' },
+      { text: 'She speaks German, doesn’t she?', ru: 'Она ведь говорит по-немецки?', when: 'Present Simple: does в хвосте.' },
+      { text: 'You couldn’t give me a hand, could you?', ru: 'Ты не мог бы мне помочь?', when: 'Отрицательное утверждение + хвост = мягкая просьба.' },
+      { text: 'I’m on the list, aren’t I?', ru: 'Я ведь в списке?', when: 'am → aren’t I: единственный такой хвост.' },
+      { text: 'Let’s take a break, shall we?', ru: 'Давайте прервёмся, а?', when: 'let’s всегда с shall we.' },
+      { text: 'Pass me the charger, will you?', ru: 'Передай зарядку, ладно?', when: 'Императив + will you — бытовая просьба.' },
+      { text: 'Nobody warned you, did they?', ru: 'Тебя ведь никто не предупредил?', when: 'nobody = отрицание, хвост положительный, they.' },
+      { text: 'It hardly ever rains here, does it?', ru: 'Здесь ведь почти не бывает дождей?', when: 'hardly — скрытое отрицание: хвост без not.' },
+      { text: 'You’ll send the notes after the call, won’t you?', ru: 'Ты ведь пришлёшь заметки после созвона?', when: 'will → won’t: фиксация договорённости.' },
+    ],
+    pitfall: 'Ответ по русской логике: на You don’t mind, do you? русскоязычный отвечает Yes в смысле «да, не против» — по-английски это «нет, против!». Схема одна: факт положительный → Yes + положительный глагол; факт отрицательный → No + отрицательный. «Да, не сделал» не существует.',
+    contrast: [
+      { with: 'en-questions-word-order', note: 'Отрицательные вопросы (Didn’t you…?) требуют того же ответа по факту.' },
+    ],
+    quiz: [
+      {
+        q: 'She’s never been to the Berlin office, ___ ?',
+        options: ['hasn’t she', 'has she', 'isn’t she'],
+        answer: 1,
+        why: 'never делает утверждение отрицательным — хвост положительный: has she.',
+      },
+      {
+        q: 'You didn’t break the build, did you? — Сборка цела. Ответ:',
+        options: ['Yes, I didn’t.', 'No, I didn’t.', 'No, I did.'],
+        answer: 1,
+        why: 'Факт отрицательный (не ломал) → No, I didn’t. «Yes, I didn’t» не существует.',
+      },
+    ],
+  },
+
+  // ─── Предлоги и служебная механика ─────────────────────────────────────────
+  {
+    id: 'en-there-vs-it',
+    chapter: 'Предлоги и служебная механика',
+    level: 'B1',
+    form: 'there is / it is',
+    title: 'There is против it is',
+    short: 'Существование против описания — русское «есть» и «это»',
+    attach: 'к началу предложения',
+    rule: `There is/are вводит существование: сообщает, что нечто ЕСТЬ. There’s a problem with the login — существует проблема. It — местоимение для уже известного: It’s a serious problem — она (проблема) серьёзная. Порядок в тексте почти всегда такой: there вводит, it продолжает.
+
+There согласуется с последующим существительным: there is a bug — there are two bugs. Форма живёт во всех временах: there was, there will be, there has been, there must be, there seems to be.
+
+It берёт на себя и формальные роли, где по-русски подлежащего нет вовсе: погода и время (It’s raining, It’s 5 pm, It’s far), оценки с инфинитивом (It’s hard to say, It was nice to meet you), и рамку It looks like / It turns out.
+
+Главный конфликт с русским: «в команде есть дизайнер» начинается с обстоятельства, и рука тянется писать In the team is a designer. Английский требует there: There is a designer in the team. А русское безличное «трудно сказать» без подлежащего — по-английски всегда с it: It’s hard to say.`,
+    examples: [
+      { text: 'There’s a typo in the header.', ru: 'В заголовке опечатка.', when: 'Ввод существования: нечто обнаружено.' },
+      { text: 'There are three options on the table.', ru: 'На столе три варианта.', when: 'Множественное: there are.' },
+      { text: 'It’s the cheapest of the three.', ru: 'Это самый дешёвый из трёх.', when: 'it продолжает уже введённое.' },
+      { text: 'There was no time to test properly.', ru: 'Времени на нормальное тестирование не было.', when: 'Отсутствие: there was no.' },
+      { text: 'There must be a reason for the delay.', ru: 'У задержки должна быть причина.', when: 'Модальный + there be.' },
+      { text: 'It’s raining again.', ru: 'Опять дождь.', when: 'Погода — формальное it.' },
+      { text: 'It’s too early to celebrate.', ru: 'Праздновать рано.', when: 'Оценка + инфинитив: it’s … to do.' },
+      { text: 'It takes two hours to get there.', ru: 'Туда добираться два часа.', when: 'it takes — затраты времени.' },
+      { text: 'There seems to be a misunderstanding.', ru: 'Похоже, вышло недоразумение.', when: 'there seems to be — смягчённое существование.' },
+      { text: 'It turns out there was a second config file.', ru: 'Оказалось, был второй конфиг.', when: 'Обе машины в одной фразе: it turns out + there was.' },
+    ],
+    pitfall: 'Пропуск обоих: Is a problem, Was difficult to say — по-русски подлежащее не нужно, по-английски место подлежащего пустым не бывает. Существует нечто — there; безличная оценка, погода, время, расстояние — it.',
+    quiz: [
+      {
+        q: '___ a lot of noise in the office today.',
+        options: ['It is', 'There is', 'Is'],
+        answer: 1,
+        why: 'Сообщаем, что шум существует, — there is. noise неисчисляемый: is.',
+      },
+      {
+        q: '___ hard to estimate this task.',
+        options: ['There is', 'It is', 'Is'],
+        answer: 1,
+        why: 'Безличная оценка с инфинитивом — формальное it: It is hard to…',
+      },
+    ],
+  },
+  {
+    id: 'en-prepositions-time-place',
+    chapter: 'Предлоги и служебная механика',
+    level: 'B1',
+    form: 'in / on / at',
+    title: 'In, on, at: время и место',
+    short: 'Воронка от большого к точке — одна логика для календаря и карты',
+    attach: 'к обстоятельству',
+    rule: `Обе системы — воронка от большого к точному. Время: in — большие контейнеры (in July, in 2026, in the morning, in the 21st century), on — дни и даты (on Monday, on 12 May, on my birthday, on Friday morning), at — точки (at 9 am, at noon, at night, at the weekend в брит., at Christmas как период праздников).
+
+Место: in — внутри объёма (in the room, in Berlin, in the car, in the picture), on — на поверхности или линии (on the table, on the wall, on the fifth floor, on the bus/train — транспорт, где стоишь и ходишь), at — точка на карте маршрута, место-функция (at the bus stop, at the door, at work, at the airport, at Anna’s).
+
+Пары-обманки: in the car, но on the bus; in the corner (комнаты), но at/on the corner (улицы); at school (как ученик) — in school (амер. «учится вообще»); arrive IN города и страны, arrive AT здания и события.
+
+Нулевой предлог перед this/next/last/every: see you next week, this morning, last year — предлог не ставится вовсе. И home: go home без to.`,
+    table: {
+      head: ['', 'in', 'on', 'at'],
+      rows: [
+        ['время', 'месяцы, годы, части дня', 'дни, даты', 'часы, ночь, праздники-периоды'],
+        ['место', 'объёмы: города, комнаты', 'поверхности, этажи, транспорт-салон', 'точки, здания-функции'],
+        ['пример', 'in March, in the kitchen', 'on Tuesday, on the shelf', 'at 6, at the station'],
+      ],
+    },
+    examples: [
+      { text: 'The retro is on Friday at 4 pm.', ru: 'Ретро в пятницу в четыре.', when: 'День — on, час — at.' },
+      { text: 'She was born in 1995 in Kazan.', ru: 'Она родилась в 1995-м в Казани.', when: 'Год и город — оба in.' },
+      { text: 'I’ll be at the airport at noon.', ru: 'В полдень я буду в аэропорту.', when: 'Здание-функция и точка времени — at.' },
+      { text: 'The keys are on the shelf in the hallway.', ru: 'Ключи на полке в прихожей.', when: 'Поверхность on внутри объёма in.' },
+      { text: 'He’s on the train, he’ll call back.', ru: 'Он в поезде, перезвонит.', when: 'Транспорт-салон — on (но in the car).' },
+      { text: 'We met at the bus stop on the corner.', ru: 'Мы встретились на остановке на углу.', when: 'Точка маршрута at; угол улицы — on/at.' },
+      { text: 'The office is on the third floor.', ru: 'Офис на третьем этаже.', when: 'Этажи — on.' },
+      { text: 'I don’t work well at night.', ru: 'Ночью мне плохо работается.', when: 'at night — фиксированная формула.' },
+      { text: 'We arrived in Lisbon at midnight.', ru: 'Мы прибыли в Лиссабон в полночь.', when: 'arrive in + город, at + время.' },
+      { text: 'See you next Monday.', ru: 'До следующего понедельника.', when: 'next/last/this/every — без предлога.' },
+      { text: 'In the morning I check email; at the weekend I don’t.', ru: 'По утрам я проверяю почту; в выходные — нет.', when: 'in the morning, но at the weekend (брит.).' },
+    ],
+    pitfall: 'On the picture — калька с «на картине»: изображение живёт ВНУТРИ рамки, in the picture, in the photo. Вторая серия: on next week (next без предлога), in Monday (день — on), at Moscow (город — in). И arrive to не существует: arrive in/at.',
+    contrast: [
+      { with: 'en-dependent-prepositions', note: 'Здесь предлог выбирает пространство-время; там его диктует слово — depend ON, good AT.' },
+    ],
+    quiz: [
+      {
+        q: 'The demo is ___ Tuesday ___ 11 am.',
+        options: ['at / on', 'on / at', 'in / at'],
+        answer: 1,
+        why: 'День недели — on, час — at.',
+      },
+      {
+        q: '«Кто это на фото?» —',
+        options: ['Who is that on the photo?', 'Who is that in the photo?', 'Who is that at the photo?'],
+        answer: 1,
+        why: 'Изображённое находится внутри снимка: in the photo. on the photo — предмет, лежащий на фотокарточке.',
+      },
+    ],
+  },
+  {
+    id: 'en-dependent-prepositions',
+    chapter: 'Предлоги и служебная механика',
+    level: 'B2',
+    form: 'depend on / good at / married to',
+    title: 'Зависимые предлоги',
+    short: 'Предлог принадлежит слову: depend on, а не depend from',
+    attach: 'к глаголу, прилагательному или существительному',
+    rule: `После сотен слов предлог не выбирается по смыслу — он часть самого слова, и учить его надо вместе со словом, как ударение. Логики нет: русское «зависеть ОТ» — английское depend ON; «женат НА» — married TO; «хорош В» — good AT.
+
+Глаголы: depend on, listen to, wait for, look at, laugh at, agree with (человеком) / agree on (вопросе), apologise for, belong to, concentrate on, insist on, succeed in, apply for (вакансию) / apply to (в организацию), pay for, approve of, complain about, care about.
+
+Прилагательные: good/bad at, interested in, afraid of, proud of, responsible for, famous for, similar to, different from, dependent on, tired of, capable of, keen on, satisfied with. Существительные: a reason for, a solution to, an increase in, a demand for, an advantage of, access to, respect for.
+
+После любого зависимого предлога глагол идёт в герундии: responsible for hiring, insisted on paying, apologised for being late. И предлог не теряется в вопросах и придаточных: What does it depend on? The role I applied for.`,
+    table: {
+      head: ['Русская калька', 'Правильно'],
+      rows: [
+        ['depend from', 'depend ON'],
+        ['married on', 'married TO'],
+        ['good in', 'good AT'],
+        ['wait smb', 'wait FOR smb'],
+        ['listen smb', 'listen TO smb'],
+        ['answer on a question', 'answer a question (без предлога)'],
+        ['discuss about', 'discuss (без предлога)'],
+        ['influence on smth (глагол)', 'influence smth / an influence ON smth'],
+      ],
+    },
+    examples: [
+      { text: 'The timeline depends on the client’s feedback.', ru: 'Сроки зависят от отзыва клиента.', when: 'depend on — навсегда, не from.' },
+      { text: 'She’s really good at negotiating.', ru: 'Она отлично умеет вести переговоры.', when: 'good at + герундий.' },
+      { text: 'I applied for the senior role.', ru: 'Я подался на сеньорскую позицию.', when: 'apply for + вакансия.' },
+      { text: 'He’s married to a lawyer.', ru: 'Он женат на юристе.', when: 'married to — против русского «на».' },
+      { text: 'We’re still waiting for the invoice.', ru: 'Мы всё ещё ждём счёт.', when: 'wait for: без for получится «обслуживать».' },
+      { text: 'Who’s responsible for onboarding?', ru: 'Кто отвечает за онбординг?', when: 'responsible for.' },
+      { text: 'I’m not afraid of public speaking.', ru: 'Я не боюсь публичных выступлений.', when: 'afraid of + герундий.' },
+      { text: 'Let’s discuss the budget.', ru: 'Давайте обсудим бюджет.', when: 'discuss без about — обратная ловушка.' },
+      { text: 'He apologised for missing the call.', ru: 'Он извинился, что пропустил созвон.', when: 'apologise for + doing.' },
+      { text: 'There’s been an increase in sign-ups.', ru: 'Число регистраций выросло.', when: 'an increase in — существительное со своим предлогом.' },
+      { text: 'This approach is similar to what we tried in May.', ru: 'Этот подход похож на то, что мы пробовали в мае.', when: 'similar to.' },
+      { text: 'What does the price depend on?', ru: 'От чего зависит цена?', when: 'Предлог не пропадает в вопросе: depend on → on в конце.' },
+    ],
+    pitfall: 'Depend from, good in, married on — кальки, которые держатся годами, потому что «звучат логично». Логика тут не работает: зависимый предлог — словарный факт. Вторая ловушка обратная: influence, discuss, answer, enter берутся БЕЗ предлога, хотя русский его требует (influence smth, не influence on smth).',
+    contrast: [
+      { with: 'en-prepositions-time-place', note: 'in/on/at выбираются по смыслу пространства; зависимые — только по слову-хозяину.' },
+      { with: 'en-phrasal-verbs', note: 'Граница тонкая: look AT — зависимый предлог, look AFTER — фразовый глагол с новым смыслом.' },
+    ],
+    quiz: [
+      {
+        q: 'Success ___ hard work and luck.',
+        options: ['depends from', 'depends on', 'depends of'],
+        answer: 1,
+        why: 'depend on — словарный факт; from и of — кальки.',
+      },
+      {
+        q: '«Мы обсудили проблему» —',
+        options: ['We discussed about the problem.', 'We discussed the problem.', 'We discussed on the problem.'],
+        answer: 1,
+        why: 'discuss — переходный глагол без предлога: discuss smth.',
+      },
+    ],
+  },
+  {
+    id: 'en-ed-ing-adjectives',
+    chapter: 'Предлоги и служебная механика',
+    level: 'B1',
+    form: 'bored / boring',
+    title: 'Прилагательные на -ed и -ing',
+    short: 'boring — источник скуки, bored — её жертва',
+    attach: 'к прилагательному',
+    rule: `Пары interested/interesting, bored/boring, excited/exciting, tired/tiring, confused/confusing различаются направлением. -ing — свойство ИСТОЧНИКА, того, что вызывает чувство: a boring lecture, an exciting project, a confusing interface. -ed — состояние того, кто чувство испытывает: I’m bored, she’s excited, users are confused.
+
+Формула самопроверки: X is -ing, so I am -ed. The lecture was boring, so I was bored. Перепутать направление — сказать о себе противоположное: I’m boring означает «я — скучный человек, со мной скучно», а не «мне скучно».
+
+Полный список пар большой, и все работают одинаково: annoyed/annoying, surprised/surprising, disappointed/disappointing, embarrassed/embarrassing, frustrated/frustrating, amused/amusing, frightened/frightening, satisfied/satisfying, exhausted/exhausting, fascinated/fascinating.
+
+Обвязка предлогами: interested IN, excited ABOUT, bored WITH, disappointed WITH/BY, surprised AT/BY, satisfied WITH. Источник же просто описывается: The results were disappointing.`,
+    examples: [
+      { text: 'The onboarding process is confusing.', ru: 'Онбординг сбивает с толку.', when: 'Свойство источника: -ing.' },
+      { text: 'New users are confused by the settings screen.', ru: 'Новичков путает экран настроек.', when: 'Состояние людей: -ed.' },
+      { text: 'I’m really excited about the launch.', ru: 'Я в предвкушении запуска.', when: 'excited about — чувство + предлог.' },
+      { text: 'It was an exhausting week.', ru: 'Неделя была изматывающей.', when: 'Неделя — источник усталости.' },
+      { text: 'I’m exhausted after that week.', ru: 'После той недели я вымотан.', when: 'Я — испытавший.' },
+      { text: 'The plot twist was surprising.', ru: 'Поворот сюжета был неожиданным.', when: 'Свойство поворота.' },
+      { text: 'We were surprised at how fast it sold out.', ru: 'Нас удивило, как быстро всё раскупили.', when: 'surprised at + факт.' },
+      { text: 'His answer was disappointing.', ru: 'Его ответ разочаровывал.', when: 'Источник разочарования.' },
+      { text: 'The client was disappointed with the first draft.', ru: 'Клиент был разочарован первым черновиком.', when: 'disappointed with — состояние клиента.' },
+      { text: 'Debugging legacy code is frustrating.', ru: 'Отлаживать легаси — мучение.', when: 'Процесс как источник фрустрации.' },
+      { text: 'I’m interested in the frontend position.', ru: 'Меня интересует фронтенд-позиция.', when: 'interested in — письмо рекрутеру.' },
+    ],
+    pitfall: 'I am boring вместо I am bored — ошибка-визитка: вы объявили себя скучным человеком. Русские «мне скучно / он скучный» разводятся падежом, английские — суффиксом. Проверяйте направлением: чувствуешь сам — -ed, вызываешь у других — -ing.',
+    quiz: [
+      {
+        q: 'The instructions were so ___ that everyone got ___ .',
+        options: ['confusing / confused', 'confused / confusing', 'confusing / confusing'],
+        answer: 0,
+        why: 'Инструкции — источник (confusing), люди — испытавшие (confused).',
+      },
+      {
+        q: '«Мне скучно на этих встречах» —',
+        options: ['I’m boring at these meetings.', 'I’m bored at these meetings.', 'These meetings are bored.'],
+        answer: 1,
+        why: 'Скуку испытываю я: bored. boring сделало бы скучным меня самого.',
+      },
+    ],
+  },
 ]
+
+export const ENGLISH_GRAMMAR: GrammarRef = {
+  lang: 'en',
+  chapters: CHAPTERS,
+  forms: FORMS,
+}

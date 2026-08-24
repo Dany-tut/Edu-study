@@ -69,6 +69,14 @@ export const COURSE_SEEDS: CourseSeed[] = [
     build: lazy('endc', () => import('./englishDesignCareer'), m => m.buildEnglishDesignCareerCourse),
   },
   {
+    // Стоит между карьерным курсом и IELTS: он продолжает общий английский
+    // (B2→C1), тогда как IELTS — уже подготовка к формату экзамена.
+    key: 'enac',
+    subject: 'Английский',
+    summary: SEED_CARDS.enac,
+    build: lazy('enac', () => import('./englishAdvanced'), m => m.buildEnglishAdvancedCourse),
+  },
+  {
     key: 'ielt',
     subject: 'Английский',
     summary: SEED_CARDS.ielt,

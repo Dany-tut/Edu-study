@@ -342,4 +342,186 @@ The reason why / The thing that: The thing that worries me is the timeline.
 ОШИБКА РУССКОЯЗЫЧНОГО. Предлог подставляется по русскому образцу: depend from (от), interested with, married with, on the picture вместо in the picture, in the street против американского on the street.
 
 ПРОВЕРКА. Учите не слово, а пару целиком и записывайте её всегда с примером — так же, как учили бы одно слово.`,
+
+  'enac-17': `Фразовые глаголы — не список идиом, а грамматическая система. Их два с половиной типа, и от типа зависит, куда можно поставить дополнение.
+
+ОТДЕЛЯЕМЫЕ (переходные). turn down, put off, bring up, carry out, set up, work out, point out, take on, look up. Дополнение стоит и после, и внутри: They turned down the offer = They turned the offer down. Но МЕСТОИМЕНИЕ обязано стоять внутри: They turned it down. Фраза They turned down it невозможна — это один из самых надёжных маркеров неносителя.
+
+НЕОТДЕЛЯЕМЫЕ (переходные с предлогом). look after, come across, deal with, look into, get over, run into, take after. Разорвать нельзя ничем: look after them, а не look them after.
+
+НЕПЕРЕХОДНЫЕ. break down, turn up, give in, come round, set off, fall through. Дополнения нет вовсе: The deal fell through.
+
+ТРЁХЧАСТНЫЕ. put up with, look forward to, get on with, come up with, cut down on, run out of. Всегда неразрывны: I cannot put up with it.
+
+ПОЧЕМУ ЭТО НЕ ФАКУЛЬТАТИВ. Фразовый глагол почти всегда имеет «латинский» синоним: put off — postpone, carry out — conduct, find out — discover, look into — investigate, cut down on — reduce, bring up — raise, set up — establish. Пара — это не синонимы-близнецы, а РЕГИСТР: фразовый принадлежит разговору и нейтральному письму, латинский — официальному. Человек, говорящий I will postpone our meeting в переписке с коллегой, звучит неестественно; человек, пишущий we will put off the audit в отчёте регулятору, — тоже.
+
+МНОГОЗНАЧНОСТЬ. Один глагол обслуживает несколько смыслов: take off (самолёт взлетел / снять одежду / продажи резко выросли), pick up (поднять / забрать / подхватить язык / улучшиться). Значение вытаскивает контекст, поэтому учить их изолированным списком бесполезно — только фразами.
+
+УДАРЕНИЕ. В фразовом глаголе ударение падает на частицу: I will look it UP. В похожем сочетании с предлогом — на глагол: I LOOKED at it. Это различие слышно и помогает распознавать их на слух.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. 1) Порядок с местоимением: turn down it. 2) Избегание вообще: человек всю жизнь говорит cancel и никогда call off, отчего речь звучит как перевод. 3) Разрыв неразрывного: look after her пишут как look her after.
+
+ПРОВЕРКА. Записывая фразовый глагол, помечайте тип и всегда прогоняйте его с местоимением — так порядок закрепится сам.`,
+
+  'enac-18': `Некоторые глаголы берут после себя и герундий, и инфинитив — и это не свобода выбора, а два разных смысла. Различие здесь тоньше грамматики: герундий смотрит назад, на уже реальное действие, инфинитив — вперёд, на предстоящее.
+
+ПАРЫ, КОТОРЫЕ НАДО ЗНАТЬ ТОЧНО.
+stop doing — прекратить занятие: I stopped smoking. stop to do — остановиться, ЧТОБЫ сделать: I stopped to smoke.
+remember doing — помнить о том, что уже сделал: I remember locking the door. remember to do — не забыть сделать: Remember to lock the door.
+forget doing — забыть о прошлом (обычно с never): I will never forget seeing it. forget to do — забыть сделать: I forgot to call her.
+regret doing — жалеть о сделанном: I regret sending that email. regret to do — с сожалением сообщать (формально): We regret to inform you.
+try doing — попробовать способ: Try restarting the router. try to do — приложить усилие: I tried to open it, but it was stuck.
+go on doing — продолжать то же. go on to do — перейти к следующему: She went on to become head of design.
+mean doing — влечь за собой: This means rewriting everything. mean to do — намереваться: I did not mean to offend you.
+need doing — нуждается в действии (пассивно): The report needs checking. need to do — надо сделать самому.
+
+ГДЕ ВЫБОРА НЕТ. Только герундий: enjoy, avoid, mind, suggest, consider, deny, admit, risk, practise, imagine, finish, postpone, keep. Только инфинитив: decide, hope, promise, refuse, manage, afford, offer, agree, pretend, seem, tend, fail, expect.
+
+ПОЧТИ БЕЗ РАЗНИЦЫ: begin, start, continue, like, love, hate, prefer. Тонкость: like doing — нравится процесс, like to do — считаю правильным делать (I like to check my email once a day).
+
+ГЕРУНДИЙ ПОСЛЕ ПРЕДЛОГА — всегда: without asking, before leaving, interested in joining.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Русский инфинитив покрывает оба случая, и рука ставит to везде: I enjoy to read, I suggest to go, I avoid to speak. Обратная ошибка реже, но встречается: I decided going. И самая обидная — Try to restart the router там, где вы советовали способ, а не призывали приложить усилие.
+
+ПРОВЕРКА. Спросите: действие уже случилось или только предстоит? Прошлое и опыт тянут герундий, намерение и цель — инфинитив.`,
+
+  'enac-19': `Коллокация — привычное соседство слов. Именно она отделяет правильный английский от английского. Make a mistake верно, do a mistake — понятно, но неверно; heavy rain нормально, strong rain нет, хотя strong wind как раз да. Никакой логики здесь нет, есть узус.
+
+ЧТО ЧАЩЕ ВСЕГО ЛОМАЕТСЯ У РУССКОЯЗЫЧНЫХ — ТРИ ГЛАГОЛА.
+make: a decision, a mistake, progress, an effort, an appointment, a suggestion, sense, a profit, an impression, arrangements.
+do: research, business, homework, damage, harm, a favour, the washing-up, your best, an experiment.
+take: a decision (британский вариант), responsibility, action, a break, notes, part, place, into account, advantage of.
+Русское «делать» одно на make и do, поэтому do a decision и make a research — почти автоматические ошибки.
+
+СИЛЬНЫЕ ПАРЫ ПО ТИПАМ.
+Прилагательное + существительное: heavy traffic, deep concern, strong evidence, key factor, significant impact, valid point, tight deadline, steep decline.
+Глагол + существительное: meet a deadline, raise an issue, reach an agreement, draw a conclusion, pose a risk, address a problem, conduct a survey, launch an initiative, break a promise.
+Наречие + прилагательное: highly likely, deeply concerned, widely accepted, fully aware, strongly opposed, perfectly clear, utterly useless. Very сюда не подходит: very likely живёт, а very aware нет.
+
+АКАДЕМИЧЕСКИЕ СВЯЗКИ, БЕЗ КОТОРЫХ ЭССЕ ЗВУЧИТ СЛАБО: play a role, provide evidence, carry out research, gain insight, pose a threat, shed light on, take into account, come to a conclusion, put forward an argument.
+
+КАК ИХ РЕАЛЬНО НАБИРАТЬ. Не списком, а из текста: читая, выписывайте не отдельное слово, а его соседей — не «effort», а make a considerable effort. Проверять сомнительную пару можно поиском точной фразы в кавычках: у живой коллокации миллионы вхождений, у придуманной — десятки, и все от неносителей.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Кальки: strong rain, big mistake допустимо, но serious mistake точнее; take a decision и make a decision оба живут, а do a decision нет; say the truth вместо tell the truth; make a photo вместо take a photo.
+
+ПРОВЕРКА. Написав существительное, спросите: какой глагол и какое прилагательное с ним ходят? Если ответ вы придумали сами — проверьте.`,
+
+  'enac-20': `Регистр — это не вежливость, а расстояние. Одна и та же мысль на трёх дистанциях: Sorry, can't make it. / I am afraid I will not be able to attend. / Regrettably, I shall be unable to attend the meeting.
+
+ЧТО ДЕЛАЕТ ТЕКСТ ФОРМАЛЬНЫМ.
+Латинские глаголы вместо фразовых: request вместо ask for, obtain вместо get, establish вместо set up, investigate вместо look into, postpone вместо put off.
+Полные формы вместо сокращений: do not, cannot, it is.
+Пассив и безличность: It has been decided that… Errors were identified…
+Именной стиль: The implementation of the new policy вместо We started using the new policy.
+Отсутствие разговорных усилителей: significantly вместо really, considerable вместо a lot of.
+
+ЧТО ДЕЛАЕТ ТЕКСТ НЕФОРМАЛЬНЫМ: фразовые глаголы, сокращения, короткие вопросы, hedging разговорного типа (kind of, a bit), эмоциональная лексика, прямое обращение к читателю.
+
+СМЯГЧЕНИЕ — ГЛАВНЫЙ ИНСТРУМЕНТ. Английский почти никогда не заявляет прямо там, где можно возразить. Приёмы складываются друг на друга:
+прошедшая форма: I was wondering whether…, I was hoping we could…;
+модальные: this might be worth reconsidering, there may be an issue;
+вводные: it seems, it appears, arguably, to some extent, as far as I can tell;
+отрицание вместо прямой оценки: not particularly convincing, not the most efficient approach;
+вопрос вместо утверждения: Would it make sense to…? Could we possibly…?
+just, a little, slightly: There is just one thing I wanted to check.
+
+ГДЕ ЭТОГО ПЕРЕБОР. В отчёте и в аргументированном эссе избыток hedging читается как неуверенность: I think maybe it could possibly be a bit of a problem. Один-два слоя достаточно.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Русская деловая переписка прямее английской, и прямой перевод звучит грубо: I want you to fix it, Send me the file, You are wrong, You must do it. По-английски это Could you fix it when you get a chance, Could you send me the file, I see it differently, You may want to reconsider. Обратный перекос — Dear Sir or Madam и I am writing to inform you в чате коллеге: это уже не вежливость, а дистанция размером с ведомство.
+
+ПРОВЕРКА. Перед отправкой спросите: кто читает, какая между нами дистанция и есть ли в тексте хоть один смягчитель там, где я даю оценку?`,
+
+  'enac-21': `Модальные глаголы уверенности — способ сказать, насколько вы отвечаете за утверждение. По-русски это делают наречия («наверное», «должно быть», «вряд ли»), по-английски — глагол, и потому конструкция обязательна.
+
+ШКАЛА О НАСТОЯЩЕМ.
+must be — уверенный вывод: She must be exhausted.
+may / might / could be — допущение: He might be in a meeting.
+may well be — довольно вероятно.
+cannot be — уверенное отрицание вывода: That cannot be right.
+Заметьте: отрицание must be — это cannot be, а не must not be. Must not значит запрет, а не «наверное, нет».
+
+О ПРОЦЕССЕ СЕЙЧАС: must be working, might be waiting.
+
+О ПРОШЛОМ — ПЕРФЕКТНЫЙ ИНФИНИТИВ. Это ключевая форма юнита: модальный + have + третья форма.
+must have left — наверняка ушёл.
+might / may / could have missed it — мог не заметить.
+cannot / could not have known — не мог знать.
+should have told me — должен был сказать, но не сказал (упрёк).
+need not have worried — зря волновался, волновался напрасно.
+did not need to worry — не пришлось волноваться, и, скорее всего, не волновался. Эта пара различает «сделал зря» и «не делал вовсе», и в русском её нет вовсе.
+would have done — сделал бы, но не сделал.
+
+CAN И COULD В ЗНАЧЕНИИ ВОЗМОЖНОСТИ. can be значит «бывает» (Winters here can be brutal), could be — «может оказаться» в конкретном случае. Разница между общим свойством и разовой догадкой.
+
+ГДЕ ЭТО НУЖНО. Догадка на слух и в переписке звучит постоянно: They must have forgotten. She may have misunderstood the brief. Человек, не владеющий перфектным инфинитивом, вместо этого говорит Maybe they forgot — понятно, но за уровень B1 не выходит.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. 1) must not вместо cannot в выводе. 2) Пропуск have: must forget вместо must have forgotten. 3) Смешение should have (упрёк, не сделал) и must have (вывод, наверняка сделал). 4) Отказ от конструкции вообще в пользу maybe и I think.
+
+ПРОВЕРКА. Прежде чем сказать I think или maybe, спросите: насколько я уверен — и не просится ли сюда must, might или cannot с перфектным инфинитивом?`,
+
+  'enac-22': `Вторая половина модальности — обязательство. Русское «должен» покрывает как минимум пять английских смыслов, и разница между ними ощутима.
+
+СИЛА И ИСТОЧНИК.
+must — обязательство изнутри, от говорящего: I must finish this today. В правилах и инструкциях — предписание: Visitors must wear a badge.
+have to — обязательство извне, от обстоятельств и правил: I have to be there by nine (так велено). В разговорной речи have to вытесняет must почти везде, и это норма.
+have got to — то же, но разговорнее: I have got to go.
+be supposed to — так положено, но, возможно, не соблюдается: You are supposed to sign it first.
+be to — официальное распоряжение: You are to report to reception.
+should / ought to — рекомендация, а не приказ: You should get some sleep.
+had better — совет с намёком на плохие последствия: You had better call them now. Форма без to: had better call.
+
+ОТРИЦАНИЕ — САМОЕ ВАЖНОЕ. Здесь смыслы расходятся полностью.
+must not — запрет: You must not share this file.
+do not have to / do not need to — отсутствие необходимости: You do not have to come.
+Русское «не должен» соответствует и тому, и другому, и подмена превращает «можешь не приходить» в «тебе запрещено приходить».
+
+ПРОШЛОЕ. У must нет прошедшей формы обязательства — используется had to: I had to rewrite it. Отрицание: I did not have to (не пришлось).
+
+HEDGING КАК СМЯГЧЁННАЯ МОДАЛЬНОСТЬ. Тот же механизм обслуживает осторожность утверждений — важнейший навык письма C1: tend to, appear to, seem to, be likely to, may well, arguably, to some extent, largely, in most cases, there is some evidence that. Сравните: Social media damages attention spans и There is some evidence that social media may affect attention spans. Второе нельзя опровергнуть одним контрпримером — и именно за это его ценят в академическом письме.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. 1) mustn't вместо don't have to. 2) must в прошедшем: I must go there yesterday. 3) Категоричность: All people must understand that… — тон, который в эссе снижает оценку. 4) should с to: you should to call.
+
+ПРОВЕРКА. Спросите: обязательство идёт от меня или снаружи? И если это утверждение о мире — готов ли я защищать его без оговорки?`,
+
+  'enac-23': `Пассив на C1 нужен не ради формы, а ради выбора темы предложения: английский ставит в начало то, о чём речь, а не того, кто действует.
+
+КОГДА ПАССИВ УМЕСТЕН. Деятель неизвестен или неважен (The file was deleted); деятель очевиден (He was arrested); фокус на объекте (The bridge was built in 1890); нужна безличность отчёта (Errors were identified in the second batch). Пассив без причины — просто утяжеление, и в этом смысле совет «избегай пассива» относится именно к таким случаям.
+
+БЕЗЛИЧНЫЕ КОНСТРУКЦИИ СЛУХОВ. Два способа сказать «говорят, что»:
+It is said that the company is preparing an IPO.
+The company is said to be preparing an IPO.
+Второй способ — визитная карточка уровня. Работает с say, believe, think, know, report, expect, consider, allege. О прошлом ставится перфектный инфинитив: He is believed to have left the country. Форма прошедшего главного глагола даёт He was thought to be dangerous.
+
+HAVE SOMETHING DONE — каузатив, то есть действие, выполненное для вас другими: I had my laptop repaired. We are having the office repainted. Здесь важно не путать с перфектом: I had repaired the laptop — чинил сам; I had the laptop repaired — отдал в мастерскую. Разговорный вариант — get something done: I need to get my hair cut. Кроме услуг, конструкция описывает неприятность: She had her bag stolen.
+
+GET-ПАССИВ. Разговорная замена be: The window got broken. He got fired last week. Подчёркивает внезапность и часто негатив; в формальном письме не используется.
+
+ДВА ДОПОЛНЕНИЯ. Глаголы give, send, offer, tell, pay допускают два пассива: She was given a promotion (естественнее) и A promotion was given to her.
+
+ПАССИВ С ГЕРУНДИЕМ И ИНФИНИТИВОМ: I hate being interrupted. The report needs to be revised (или needs revising).
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Русские безличные конструкции строятся третьим лицом множественного числа — «говорят», «сделали», — и в английский переносятся как They say that… They repaired my laptop. Первое звучит бедно, второе теряет смысл каузатива. Отдельная ошибка — пассив от непереходных глаголов: was happened, was appeared.
+
+ПРОВЕРКА. Спросите: о чём это предложение? Если о предмете, а не о деятеле, — пассив. И если работу делали для вас, ищите форму have something done.`,
+
+  'enac-24': `Итоговый юнит собирает курс в одну работу: аргументированный текст и умение защитить его вслух. Здесь ничего нового не вводится — здесь становится видно, что осталось в руке.
+
+СТРУКТУРА АРГУМЕНТИРОВАННОГО ТЕКСТА. Введение переформулирует вопрос своими словами и заявляет позицию (thesis). Далее два-три абзаца, каждый по схеме: утверждение — обоснование — пример или данные — вывод к тезису. Затем абзац встречной позиции: сильнейший аргумент противника, взятый честно, и ответ на него. Заключение не пересказывает, а взвешивает: on balance, given these considerations.
+
+АБЗАЦ ДЕРЖИТСЯ НА ПЕРВОЙ ФРАЗЕ. Английский абзац начинается с утверждения, а не подводки. Если первую фразу каждого абзаца прочитать подряд, должна получиться связная аргументация — это и есть тест на структуру.
+
+ЯЗЫК АРГУМЕНТА — ВЕСЬ КУРС СРАЗУ.
+Осторожность: it is widely assumed, there is some evidence that, tends to, may well.
+Уступка: Admittedly, X has a point; however… While it is true that…, the evidence suggests…
+Безличность: It is often argued that… The policy is said to have reduced…
+Эмфаза: What matters here is not the cost but the timing. It was only after the change that complaints dropped.
+Точность: significantly higher, marginally slower, twice as likely.
+
+ЧЕГО ИЗБЕГАТЬ. Категоричности без опоры (Everybody knows, It is obvious that); риторических вопросов пачками; штампов вроде nowadays in our modern world; списков связок без содержания; личных историй как единственного доказательства.
+
+ЗАЩИТА ВСЛУХ. Три приёма, которые дают время и звучат уверенно: переформулировать вопрос (So the question is whether…), признать сложность (That is a fair point, and it depends on…), структурировать ответ (There are two things here. First… Second…).
+
+ЧТО СЧИТАТЬ РЕЗУЛЬТАТОМ КУРСА. Не знание правил, а три вещи: вы выбираете форму осознанно и можете объяснить свой выбор; вы слышите разницу регистров и попадаете в нужный; вы умеете смягчить и усилить утверждение, а не только высказать его. Вернитесь к записи из первого юнита и сравните — именно это сравнение и есть честная оценка уровня.
+
+ПОСЛЕДНЕЕ. C1 держится не курсами, а объёмом: два-три часа настоящего английского в неделю — подкаст, статья, переписка. Без этого выученное осыпается за полгода.`,
 }
