@@ -8271,10 +8271,11 @@ export default function TeacherConstructorPage() {
                   прилипшая позиция совпадает с исходной — при прокрутке шапка
                   не сдвигается ни на пиксель. Фильтры едут вместе с ней: без
                   этого строка вкладок висела бы над уезжающими дропдаунами.
-                  Подложка — не сплошная на всю обёртку, а слоем ПОД кнопками:
-                  верхние 108 px остаются прозрачными, чтобы под топбаром
-                  работало общее размытие (.edge-progressive-blur--top), как на
-                  остальных экранах кабинета. */}
+                  Подложки под полосой НЕТ — то же решение, что у строки
+                  управления тренажёра (см. комментарий в index.css): любая
+                  заливка на почти чёрном фоне читается как прямоугольник
+                  чужого цвета. Своё стекло есть у самих таблеток, а карточки
+                  просто уезжают под них. */}
               <div style={{
                 display: 'flex', flexDirection: 'column', gap: 20,
                 ...(editMode ? {
@@ -8284,12 +8285,6 @@ export default function TeacherConstructorPage() {
                   marginBottom: -12, paddingBottom: 12,
                 } : null),
               } as React.CSSProperties}>
-                {editMode && (
-                  <div aria-hidden style={{
-                    position: 'absolute', left: 0, right: 0, top: 100, bottom: -14, zIndex: -1, pointerEvents: 'none',
-                    background: 'linear-gradient(to bottom, var(--color-bg) calc(100% - 14px), transparent)',
-                  }} />
-                )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 {/* Edit-mode toggle — square button */}
                 <motion.button
