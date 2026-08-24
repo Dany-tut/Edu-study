@@ -89,7 +89,11 @@ export default function Checkbox({
         ? (
           <span style={{ position: 'relative', display: 'inline-block', width: size, flexShrink: 0 }}>
             {'\u200B'}
-            <span style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex' }}>
+            {/* +0.06em — оптическая поправка: em-квадрат шрифта несимметричен
+                (ascent ≈ 1em против descent ≈ 0.2em), поэтому геометрический
+                центр строки лежит ВЫШЕ середины самих букв, и ровно
+                отцентрованная галочка читается задранной. */}
+            <span style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(calc(-50% + 0.06em))', display: 'flex' }}>
               {box}
             </span>
           </span>

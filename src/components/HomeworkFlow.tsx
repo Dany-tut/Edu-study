@@ -22,6 +22,10 @@ import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KE
 import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
+import {
+  initialQueue, restoreQueue, questionAt, isRepeatAt, requeue, lessonQueueEnabled,
+  type QueueState,
+} from '../lib/lessonQueue'
 import { okChime, missBlip } from '../lib/feedback'
 import StarBurst from './StarBurst'
 import { useDashboard } from '../store/dashboardStore'
@@ -632,6 +636,15 @@ interface PersistedHomeworkState {
    * решала прокрутка, здесь прокручивать нечего).
    */
   flowStep?: number
+  /**
+   * Очередь урока: порядок прохождения с возвратами ошибок (Р8).
+   *
+   * Живёт в черновике рядом с шагом: после перезагрузки ученик обязан попасть
+   * не только на тот же номер, но и в тот же порядок — иначе возвращённое
+   * задание пропадает вместе с очередью. Поля нет у старых черновиков и нет,
+   * пока режим выключен флагом (lib/lessonQueue.ts).
+   */
+  flowQueue?: QueueState
 }
 
 /**
@@ -1749,6 +1762,27 @@ export default function HomeworkFlow({
   }
 
 
+  /**
+   * Промах: вернуть задание в очередь урока (Р8).
+   *
+   * Тихо ничего не делает, когда очередь выключена флагом или урок идёт
+   * списком, — там возвращать некуда, порядок задан вёрсткой страницы.
+   */
+  const requeueMiss = (questionId: string) => {
+    if (!queueOn || !flowMode) return
+    const index = basicQuestions.findIndex(q => q.id === questionId)
+    if (index < 0) return
+    setState(current => ({
+      ...current,
+      flowQueue: requeue(restoreQueue(current.flowQueue, basicQuestions.length), {
+        id: questionId,
+        index,
+        position: flowPosition,
+        baseCount: basicQuestions.length,
+      }),
+    }))
+  }
+
   const answerQuestion = (questionIndex: number, questionId: string, optionId: string) => {
     const question = basicQuestions.find(item => item.id === questionId)
     if (!question) return
@@ -1767,7 +1801,7 @@ export default function HomeworkFlow({
     // поэтому звучит нейтрально: канонический звук здесь сообщал бы ответ.
     if (multi) { playPop(); vibrate(22) }
     else if (correct) { okChime(); fireBurst(questionId) }
-    else missBlip()
+    else { missBlip(); requeueMiss(questionId) }
     setState(current => ({
       ...current,
       basicAnswers: nextAnswers,
@@ -1825,7 +1859,7 @@ export default function HomeworkFlow({
     if (!question || state.basicSubmitted || state.basicChecked[questionId]) return
     const correct = questionCorrect(question, state.basicAnswers[questionId])
     if (correct) { okChime(); fireBurst(questionId) }
-    else missBlip()
+    else { missBlip(); requeueMiss(questionId) }
     setState(current => ({
       ...current,
       basicChecked: { ...current.basicChecked, [questionId]: true },
@@ -1871,15 +1905,56 @@ export default function HomeworkFlow({
   /** Есть ли нулевой шаг — знакомство со словами урока. */
   const flowIntro = vocabWords.length > 0
   const flowFirst = flowIntro ? 1 : 0
-  const flowTotal = flowFirst + basicQuestions.length
+
+  /**
+   * Очередь урока (Р8) — под флагом, см. lib/lessonQueue.ts.
+   *
+   * Выключенная очередь — это ровно прежний порядок 0,1,2…: ни одной ветки «если
+   * флаг» ниже по коду нет, разница целиком в содержимом `order`.
+   */
+  const queueOn = useMemo(() => lessonQueueEnabled(), [])
+  const queue: QueueState = useMemo(
+    () => (queueOn
+      ? restoreQueue(state.flowQueue, basicQuestions.length)
+      : initialQueue(basicQuestions.length)),
+    [queueOn, state.flowQueue, basicQuestions.length],
+  )
+
+  const flowTotal = flowFirst + queue.order.length
   const flowStep = Math.min(Math.max(state.flowStep ?? 0, 0), flowTotal)
   const flowOnIntro = flowIntro && flowStep === 0
   /** Задания кончились — дальше сдача, и хвост страницы снова виден целиком. */
   const flowFinished = flowStep >= flowTotal
-  const flowQuestionIndex = flowStep - flowFirst
-  const flowQuestion = flowMode && !flowOnIntro && !flowFinished
+  const flowPosition = flowStep - flowFirst
+  const flowQuestionIndex = questionAt(queue, flowPosition)
+  const flowQuestion = flowMode && !flowOnIntro && !flowFinished && flowQuestionIndex >= 0
     ? basicQuestions[flowQuestionIndex]
     : undefined
+
+  /**
+   * Повторный показ начинается с чистого листа.
+   *
+   * Задание, вернувшееся после промаха, иначе открылось бы с прошлым (неверным)
+   * ответом и уже показанным разбором — то есть не как вопрос, а как страница
+   * с ответом. Стираем ровно ответ и отметку проверки; подсказка остаётся
+   * открытой (её уже видели, и балла за это задание всё равно нет).
+   */
+  useEffect(() => {
+    if (!queueOn || !flowMode || !flowQuestion) return
+    if (!isRepeatAt(queue, flowPosition)) return
+    const id = flowQuestion.id
+    if (state.basicAnswers[id] === undefined && !state.basicChecked[id]) return
+    setState(current => {
+      const answers = { ...current.basicAnswers }
+      const checked = { ...current.basicChecked }
+      delete answers[id]
+      delete checked[id]
+      return { ...current, basicAnswers: answers, basicChecked: checked }
+    })
+    // Сброс привязан к позиции в очереди, а не к ответу: иначе он сработал бы
+    // ещё раз сразу после нового ответа на том же экране.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queueOn, flowMode, flowPosition, flowQuestion?.id])
 
   const flowGiven = flowQuestion ? state.basicAnswers[flowQuestion.id] : undefined
   const flowAnswered = !!flowQuestion && questionAnswered(flowQuestion, flowGiven)
@@ -2907,7 +2982,13 @@ export default function HomeworkFlow({
                           <span style={balancedWrap}>
                             {isCorrect ? t('Верно') : t('Неверно')}
                           </span>
-                          {isCorrect && burst?.id === question.id && <StarBurst key={burst.n} radius={38} />}
+                          {/* У выбора звёздочки уже разлетелись на самой
+                              плитке ответа — там, куда смотрит палец. Плашке
+                              они достаются только там, где плитки нет:
+                              ввод, сборка, таблица. */}
+                          {isCorrect && !isChoice && burst?.id === question.id && (
+                            <StarBurst key={burst.n} radius={38} />
+                          )}
                         </div>
                       )}
                       {showReview && (

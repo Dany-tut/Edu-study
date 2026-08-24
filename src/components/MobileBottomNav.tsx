@@ -88,13 +88,15 @@ export default function MobileBottomNav() {
         initial={false}
         // Collapse morphs three axes together: height (62→50), symmetric
         // vertical padding, and the horizontal margin so the dock also shrinks
-        // in length (16→52 each side) and packs the icons closer.
+        // in length and packs the icons closer. Расправленные бока равны
+        // видимому зазору снизу (bottomSafe + mb-2), чтобы рамка воздуха
+        // вокруг дока была одинаковой со всех трёх сторон.
         animate={{
           height: collapsed ? 50 : 62,
           paddingTop: collapsed ? 7 : 9,
           paddingBottom: collapsed ? 7 : 9,
-          marginLeft: collapsed ? 52 : 16,
-          marginRight: collapsed ? 52 : 16,
+          marginLeft: collapsed ? 52 : bottomSafe + 8,
+          marginRight: collapsed ? 52 : bottomSafe + 8,
         }}
         transition={COLLAPSE}
         style={{

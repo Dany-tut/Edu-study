@@ -682,25 +682,49 @@ function CenterCourseAccess({
   // Сброс прогресса по курсу. Снять ученика из «Кому дать доступ» и вернуть —
   // НЕ обнуление: назначение живёт в courses.student_ids, а прогресс в
   // lesson_progress, и строки там остаются. Чистим их адресно по курсу.
+  // Ключ строки (id ученика или id группы), а не id ученика: у групповой строки
+  // чистим сразу всех её участников, и «крутилка» должна гореть на строке.
   const [resetting, setResetting] = useState<string | null>(null)
   const [resetDone, setResetDone] = useState<string | null>(null)
-  async function resetCourseProgress(studentId: string, name: string) {
+  async function resetCourseProgress(rowKey: string, studentIds: string[], name: string) {
     if (!course.dbCourseId) { window.alert(t('Курс ещё не сохранён в базе — прогресса нет.')); return }
-    if (!window.confirm(`${t('Обнулить весь прогресс по курсу у')} «${name}»? ${t('Ответы, баллы и открытые уроки будут удалены безвозвратно.')}`)) return
-    setResetting(studentId)
+    if (studentIds.length === 0) { window.alert(t('В группе нет учеников.')); return }
+    const who = studentIds.length > 1
+      ? `${t('всех участников группы')} «${name}» (${studentIds.length})`
+      : `«${name}»`
+    if (!window.confirm(`${t('Обнулить весь прогресс по курсу у')} ${who}? ${t('Ответы, баллы и открытые уроки будут удалены безвозвратно.')}`)) return
+    setResetting(rowKey)
     setResetDone(null)
     const { error } = await supabase
       .from('lesson_progress')
       .delete()
-      .eq('student_id', studentId)
+      .in('student_id', studentIds)
       .eq('subject', course.dbCourseId)
     setResetting(null)
     if (error) window.alert(`${t('Не удалось сбросить прогресс:')} ${error.message}`)
     else {
-      setResetDone(studentId)
+      setResetDone(rowKey)
       setTimeout(() => setResetDone(null), 2500)
     }
   }
+  const resetBtn = (rowKey: string, studentIds: string[], name: string) => (
+    <button
+      onClick={() => resetCourseProgress(rowKey, studentIds, name)}
+      disabled={resetting === rowKey}
+      title={t('Сбросить прогресс по курсу — начать курс заново')}
+      style={{
+        width: 30, height: 30, flexShrink: 0, borderRadius: 999,
+        border: '1px solid var(--color-border-medium)',
+        background: resetDone === rowKey ? 'var(--color-green-soft)' : 'var(--color-bg-4)',
+        color: resetDone === rowKey ? 'var(--color-green-text)' : 'var(--color-text-3)',
+        cursor: resetting === rowKey ? 'default' : 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        opacity: resetting === rowKey ? 0.5 : 1, transition: 'all 0.15s',
+      }}
+    >
+      {resetDone === rowKey ? <Check size={14} /> : <RotateCcw size={14} />}
+    </button>
+  )
 
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
@@ -864,6 +888,7 @@ function CenterCourseAccess({
                         onChange={v => setGroupMode(g.id, v)}
                         placeholder={gm === 'mixed' ? t('Разный') : undefined}
                       />
+                      {resetBtn(g.id, memberIdsOf(g.id), g.name)}
                     </div>
                   )
                 })}
@@ -883,22 +908,7 @@ function CenterCourseAccess({
                       )}
                     </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
-                    <button
-                      onClick={() => resetCourseProgress(s.id, s.name)}
-                      disabled={resetting === s.id}
-                      title={t('Сбросить прогресс по курсу — начать курс заново')}
-                      style={{
-                        width: 30, height: 30, flexShrink: 0, borderRadius: 999,
-                        border: '1px solid var(--color-border-medium)',
-                        background: resetDone === s.id ? 'var(--color-green-soft)' : 'var(--color-bg-4)',
-                        color: resetDone === s.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
-                        cursor: resetting === s.id ? 'default' : 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        opacity: resetting === s.id ? 0.5 : 1, transition: 'all 0.15s',
-                      }}
-                    >
-                      {resetDone === s.id ? <Check size={14} /> : <RotateCcw size={14} />}
-                    </button>
+                    {resetBtn(s.id, [s.id], s.name)}
                   </div>
                 ))}
               </div>

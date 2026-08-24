@@ -19,8 +19,8 @@
 
 import type { ElementType } from 'react'
 import {
-  AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Layers, LayoutGrid,
-  ListOrdered, Mic, PenLine, Play, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
+  AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Keyboard, Layers, LayoutGrid,
+  ListOrdered, MessagesSquare, Mic, PenLine, Play, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
@@ -59,6 +59,8 @@ export type TaskTypeId =
   | 'unscramble'    // написано неправильно (요하녕세안) — собери правильно
   | 'blockOrder'    // собрать последовательность, тапая блоки из банка
   | 'charBank'      // ряд слогов/букв с обманками — собери слово или фразу
+  | 'jamoType'      // экранная клавиатура: буквы на глазах складываются в слоги
+  | 'dialogGap'     // озвученный диалог с пропуском — вставь недостающую реплику
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -94,6 +96,20 @@ export interface PatternItem {
   /** Перевод получившегося предложения — открывается после проверки. */
   gloss?: string
 }
+
+/**
+ * Реплика диалога (dialogGap). Спикер — короткая подпись («А», «Продавец»):
+ * по ней реплики раскладываются по сторонам чата и получают РАЗНЫЕ голоса
+ * синтеза — смена голоса и делает диалог диалогом, а не монологом.
+ */
+export interface DialogLine {
+  speaker: string
+  /** Текст реплики; пропуск отмечается маркером «____». */
+  text: string
+}
+
+/** Маркер пропуска в реплике диалога. Голос его не читает (см. voiceText). */
+export const GAP_MARK = '____'
 
 export interface TaskTable {
   headers: string[]
@@ -252,6 +268,9 @@ export interface TaskPayload {
 
   /** buildSyllable — эталонный слог (김). Из чего он состоит, считается по нему. */
   syllable?: string
+
+  /** dialogGap — реплики диалога; в одной из них стоит маркер пропуска «____». */
+  dialog?: DialogLine[]
 
   /** Для языковых заданий: код изучаемого языка (ko, ja, pt-BR, en). */
   lang?: string
@@ -720,6 +739,54 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     grade: (t, a) => {
       if (!TASK_TYPES.charBank.isGradable(t)) return NOT_AUTO
       return { auto: true, correct: sameGlued(a, t.answer) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  /**
+   * Экранная клавиатура: слово набирается НАЖАТИЯМИ БУКВ, и слоги складываются
+   * на глазах (ㅇ+ㅏ+ㄴ → 안). Это следующая ступень после сборки слога и ряда
+   * слогов: там единица — готовая плитка, здесь ученик сам порождает слог из
+   * клавиш, как при настоящем наборе. Ответ — нажатия через запятую; проверка
+   * сравнивает СОБРАННЫЙ ТЕКСТ (composeKeys), а не последовательность нажатий:
+   * ㅙ можно набрать и как ㅗ+ㅐ, и как ㅗ+ㅏ+ㅣ — оба пути дают то же слово.
+   */
+  jamoType: def({
+    id: 'jamoType', family: 'input',
+    label: 'Набор по буквам', hint: 'Клавиши-буквы складываются в слоги: ㅇ+ㅏ+ㄴ → 안',
+    Icon: Keyboard,
+    makeDefault: () => ({ answer: '' }),
+    isGradable: t => {
+      const units = charUnits(t.answer ?? '')
+      return units.length >= 1 && units.every(isSyllable) && units.flatMap(keysOf).length >= 2
+    },
+    grade: (t, a) => {
+      if (!TASK_TYPES.jamoType.isGradable(t)) return NOT_AUTO
+      if (typeof a !== 'string') return { auto: true, correct: false }
+      const typed = composeKeys(a.split(',').filter(Boolean))
+      return { auto: true, correct: typed === charUnits(t.answer ?? '').join('') }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  /**
+   * Пропуск в диалоге. Реплики озвучиваются синтезом, у каждого спикера СВОЙ
+   * голос — на слух это диалог, а не монолог; одна реплика содержит пропуск
+   * («____»), и его закрывает ученик: плитками, если заданы обманки, или
+   * вводом. Проверка — по эталону с альтернативами, как у диктанта.
+   */
+  dialogGap: def({
+    id: 'dialogGap', family: 'audio',
+    label: 'Пропуск в диалоге', hint: 'Реплики озвучены разными голосами — вставь недостающее',
+    Icon: MessagesSquare,
+    makeDefault: () => ({
+      dialog: [{ speaker: 'A', text: '' }, { speaker: 'B', text: GAP_MARK }],
+      answer: '', distractors: [],
+    }),
+    isGradable: t => !!t.answer?.trim() && (t.dialog?.length ?? 0) >= 2,
+    grade: (t, a) => {
+      if (!TASK_TYPES.dialogGap.isGradable(t)) return NOT_AUTO
+      return { auto: true, correct: typeof a === 'string' && matchesText(a, t) }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
   }),
