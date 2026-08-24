@@ -123,6 +123,13 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
   ].filter(g => g.list.length > 0)
 
   const bodyRef = useRef<HTMLDivElement>(null)
+  // Фейд показываем только с той стороны, где реально что-то спрятано.
+  const [edges, setEdges] = useState({ top: false, bottom: false })
+  const updateEdges = (el: HTMLElement) => setEdges(prev => {
+    const top = el.scrollTop > 2
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
+    return prev.top === top && prev.bottom === bottom ? prev : { top, bottom }
+  })
   // Не scrollIntoView: у вложенного контейнера он молча не срабатывает (проверено
   // на стенде — scrollTop оставался нулём). Считаем смещение сами.
   const jumpTo = (id: string) => {
@@ -190,28 +197,39 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             style={{ gap: 8, padding: '10px 22px', borderBottom: '1px solid var(--color-border-soft)' }}>
             {groups.map(g => {
               const n = g.list.filter(c => picked.has(c.key)).length
-              return (
-                <span key={g.id} className="flex items-center"
-                  style={{
-                    gap: 7, padding: '5px 11px 5px 9px', borderRadius: 999,
-                    border: '1px solid var(--color-border-soft)',
-                    background: n ? 'var(--color-bg-input)' : 'transparent',
-                  }}
-                >
-                  <Checkbox size={16} checked={n === g.list.length} onChange={v => toggleAll(g.list, v)} />
-                  <button onClick={() => jumpTo(g.id)} className="cursor-pointer flex items-center"
-                    style={{ gap: 6, border: 'none', background: 'none', padding: 0, fontFamily: 'inherit' }}>
+              // Мишень — вся таблетка, а не квадратик 16×16: попасть в чекбокс
+              // мышью труднее, чем в слово рядом с ним. Клик отмечает всю
+              // группу и заодно прокручивает тело к ней.
+              const all = n === g.list.length
+                return (
+                  <button key={g.id} type="button"
+                    onClick={() => { toggleAll(g.list, !all); jumpTo(g.id) }}
+                    className="cursor-pointer flex items-center"
+                    style={{
+                      gap: 7, padding: '5px 11px 5px 9px', borderRadius: 999,
+                      border: '1px solid var(--color-border-soft)',
+                      background: n ? 'var(--color-bg-input)' : 'transparent',
+                      fontFamily: 'inherit', textAlign: 'left',
+                    }}
+                  >
+                    {/* Чекбокс здесь только рисует состояние: клик по нему —
+                        это клик по таблетке, второй обработчик отменил бы первый. */}
+                    <Checkbox size={16} checked={all} onChange={() => {}} />
                     <g.Icon size={13} style={{ color: g.tone, flexShrink: 0 }} />
                     <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{g.title}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{n}/{g.list.length}</span>
                   </button>
-                </span>
-              )
+                )
             })}
           </div>
         )}
 
-        <div ref={bodyRef} style={{ overflowY: 'auto', padding: '16px 22px' }}>
+        {/* Фейды на краях: список уходит под шапку с таблетками и под футер,
+            и без них строка обрывается ровной линией — непонятно, кончился
+            список или его просто обрезали. */}
+        <div style={{ position: 'relative', minHeight: 0, display: 'flex' }}>
+        <div ref={el => { bodyRef.current = el; if (el) updateEdges(el) }} onScroll={e => updateEdges(e.currentTarget)}
+          style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '16px 22px' }}>
           {diff.changes.length === 0 ? (
             <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.55, padding: '12px 0' }}>
               {t('Расхождений нет — курс совпадает с готовым.')}
@@ -219,6 +237,17 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           ) : (
             <>{groups.map(group)}</>
           )}
+        </div>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 26, pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.99), transparent)',
+            opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: 26, pointerEvents: 'none',
+            background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.99), transparent)',
+            opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
+          }} />
         </div>
 
         <footer className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '14px 22px', borderTop: '1px solid var(--color-border-soft)' }}>

@@ -38,6 +38,7 @@ import {
   type CustomTestMeta,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
+import { getPlacementVerdict } from '../../data/placementTests'
 import { useAllStudents, useGroups, fetchSharedCourseIds, groupStudentsByPerson } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -3675,14 +3676,18 @@ const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: s
   logic:        { label: t('Скрининг мышления'), accent: '#f59e0b', soft: 'var(--color-yellow-soft)' },
   'ap-chem-ru': { label: 'AP Chemistry (RU)', accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)'   },
   'ap-chem-en': { label: 'AP Chemistry (EN)', accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)'   },
+  'eng-placement': { label: t('Английский — уровень'), accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)' },
+  'kor-placement': { label: t('Корейский — уровень'),  accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)'  },
 }
-const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en']
+const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement']
 const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
   biology: Dna,
   chemistry: FlaskConical,
   logic: Target,
   'ap-chem-ru': FlaskConical,
   'ap-chem-en': Globe,
+  'eng-placement': LucideIcons.Languages,
+  'kor-placement': LucideIcons.Languages,
 }
 
 // Runtime meta for custom user-created tests
@@ -4547,6 +4552,35 @@ function DiagnosticStudentCard({
                   </div>
                 </div>
               )}
+
+              {/* Placement verdict (только для языковых placement-тестов) */}
+              {(() => {
+                const v = getPlacementVerdict(result.subject, result.results)
+                if (!v) return null
+                return (
+                  <div style={{ padding: '12px 14px', borderRadius: 12, background: `${accent}10`, border: `1px solid ${accent}33` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ padding: '2px 10px', borderRadius: 999, background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 800 }}>{v.level}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4 }}>{t('ВЕРДИКТ')}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 8 }}>{v.note}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 600 }}>
+                      {t('Рекомендуемый курс:')} <span style={{ color: accent }}>{v.courseTitle}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                      {v.ladder.map(step => (
+                        <span key={step.level} style={{
+                          padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                          background: step.passed ? 'rgba(34,197,94,0.12)' : 'var(--color-bg-5)',
+                          color: step.passed ? '#22c55e' : 'var(--color-text-3)',
+                        }}>
+                          {step.level} · {step.correct}/{step.total}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Per-question answers */}
               <div>
@@ -8228,17 +8262,35 @@ export default function TeacherConstructorPage() {
             style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
           >
             <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* ЛИПКАЯ ШАПКА В РЕЖИМЕ РЕДАКТИРОВАНИЯ.
+                  Крестик, «Дублировать» и «Удалить» нужны на любой строке
+                  списка — отматывать сотню карточек наверх ради кнопки нельзя.
+                  Приём тот же, что у строки управления тренажёра: padding
+                  гасится равным отрицательным margin, поэтому в потоке шапка
+                  стоит там же и высоты не прибавляет, а top подобран так, что
+                  прилипшая позиция совпадает с исходной — при прокрутке шапка
+                  не сдвигается ни на пиксель. Фильтры едут вместе с ней: без
+                  этого строка вкладок висела бы над уезжающими дропдаунами.
+                  Подложка — не сплошная на всю обёртку, а слоем ПОД кнопками:
+                  верхние 108 px остаются прозрачными, чтобы под топбаром
+                  работало общее размытие (.edge-progressive-blur--top), как на
+                  остальных экранах кабинета. */}
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-                // В режиме редактирования строка прилипает под топбаром: крестик,
-                // «Дублировать» и «Удалить» остаются под рукой при прокрутке.
+                display: 'flex', flexDirection: 'column', gap: 20,
                 ...(editMode ? {
-                  position: 'sticky', top: -100, zIndex: 20,
-                  margin: '-8px -32px -8px', padding: '108px 32px 8px',
-                  background: 'rgba(var(--glass-rgb), 0.78)',
-                  backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
-                } : { position: 'relative' }),
+                  position: 'sticky', top: -108, zIndex: 20,
+                  marginTop: -108, paddingTop: 108,
+                  marginLeft: -32, marginRight: -32, paddingLeft: 32, paddingRight: 32,
+                  marginBottom: -12, paddingBottom: 12,
+                } : null),
               } as React.CSSProperties}>
+                {editMode && (
+                  <div aria-hidden style={{
+                    position: 'absolute', left: 0, right: 0, top: 100, bottom: -14, zIndex: -1, pointerEvents: 'none',
+                    background: 'linear-gradient(to bottom, var(--color-bg) calc(100% - 14px), transparent)',
+                  }} />
+                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 {/* Edit-mode toggle — square button */}
                 <motion.button
                   whileTap={{ scale: 0.93 }}
@@ -8337,6 +8389,32 @@ export default function TeacherConstructorPage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
+              {activeTab === 'course' && !dbLoading && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
+                  <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
+                  <CourseFacetDropdown
+                    value={courseSubject} options={subjectOpts} allLabel={t('Все предметы')}
+                    icon={<span style={{ fontSize: 12 }}>{courseSubject ? subjectIcon(courseSubject) : '📚'}</span>}
+                    onChange={setCourseSubject}
+                  />
+                  <CourseFacetDropdown
+                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
+                    icon={<TrendingUp size={12} />}
+                    onChange={setCourseLevel}
+                  />
+                  <CourseFacetDropdown
+                    value={courseStudent} options={studentOpts} allLabel={t('Все ученики')} minWidth={92}
+                    labels={personNameByKey} searchable
+                    icon={<Users size={12} />}
+                    onChange={setCourseStudent}
+                  />
+                  <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
+                    {filteredCourses.length} {t('курсов')}
+                  </span>
+                </div>
+              )}
               </div>
               {activeTab === 'trainer' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
@@ -8441,31 +8519,6 @@ export default function TeacherConstructorPage() {
                     onChange={f => setWidgetFilters(prev => ({ ...prev, ...f }))}
                     total={filteredWidgets.length}
                   />
-                </div>
-              )}
-              {activeTab === 'course' && !dbLoading && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
-                  <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
-                  <CourseFacetDropdown
-                    value={courseSubject} options={subjectOpts} allLabel={t('Все предметы')}
-                    icon={<span style={{ fontSize: 12 }}>{courseSubject ? subjectIcon(courseSubject) : '📚'}</span>}
-                    onChange={setCourseSubject}
-                  />
-                  <CourseFacetDropdown
-                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
-                    icon={<TrendingUp size={12} />}
-                    onChange={setCourseLevel}
-                  />
-                  <CourseFacetDropdown
-                    value={courseStudent} options={studentOpts} allLabel={t('Все ученики')} minWidth={92}
-                    labels={personNameByKey} searchable
-                    icon={<Users size={12} />}
-                    onChange={setCourseStudent}
-                  />
-                  <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
-                    {filteredCourses.length} {t('курсов')}
-                  </span>
                 </div>
               )}
               <div
