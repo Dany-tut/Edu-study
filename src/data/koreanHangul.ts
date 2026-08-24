@@ -33,8 +33,9 @@ import {
 } from './hangul'
 import {
   buildLanguageCourse, buildSyl, courseSummary, minPair, one, readAloud, traceChamo, wb,
-  type LangUnit, type LanguageCourseSpec, type SeedTask, type VocabItem,
+  type CourseFigures, type LangUnit, type LanguageCourseSpec, type SeedTask, type VocabItem,
 } from './languageCourse'
+import { charGrid, formTable } from './lessonFigures'
 import { transcribe } from '../lib/translit'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_HANGUL_FIGURES } from './koreanHangulFigures'

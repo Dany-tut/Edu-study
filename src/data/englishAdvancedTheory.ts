@@ -260,4 +260,86 @@ The reason why / The thing that: The thing that worries me is the timeline.
 ОШИБКА РУССКОЯЗЫЧНОГО. «Однако» в русском ставится где угодно и не требует точки, поэтому however повсеместно склеивает предложения запятой. Вторая ошибка — despite of, гибрид despite и in spite of. Третья — from my point of view в каждом абзаце вместо арсенала arguably, it seems, admittedly.
 
 ПРОВЕРКА. К каждой связке задайте два вопроса: какое отношение я показываю — и что стоит справа, предложение или существительное?`,
+
+  'enac-13': `Артикль — не украшение перед существительным, а сообщение о том, знает ли собеседник, о чём речь. Русскоязычные учат его как список исключений и потому ошибаются всю жизнь; проще держать в голове одну развилку.
+
+РАЗВИЛКА. Существительное исчисляемое в единственном числе не может стоять голым — там обязательно артикль, притяжательное или указательное. Дальше вопрос один: собеседник понимает, о каком именно предмете речь?
+Да — the: Where is the report I sent you? Открой the door.
+Нет, это один из многих — a/an: I need a designer.
+Множественное или неисчисляемое, речь о явлении вообще — нулевой артикль: Designers hate vague briefs. Water freezes at zero.
+
+ЧТО ДЕЛАЕТ ПРЕДМЕТ ИЗВЕСТНЫМ. Он уже упоминался (I bought a lamp. The lamp is broken); он единственный в мире или в ситуации (the sun, the manager, the kitchen); его сузило определение (the changes we agreed on, the best option); он назван превосходной степенью или порядковым (the first attempt).
+
+НУЛЕВОЙ АРТИКЛЬ СИСТЕМНО. Он не «отсутствие правила», а самостоятельный выбор: абстракции и вещества вообще (Time is money, Love is complicated), языки и учебные предметы (She teaches history), еда и приёмы пищи (before lunch), транспорт как способ (by train), большинство стран и городов (France, Berlin), учреждения по назначению (go to school, be in hospital, go to church — про роль, а не здание). Сравните: He is in hospital (лежит больным) и He is at the hospital (пришёл туда).
+
+УСТОЙЧИВЫЕ ГРУППЫ С THE: the UK, the Netherlands, the Alps, the Thames, the Middle East, the police, the media, the same, the Internet, the twenties.
+
+ГЕНЕРАЛИЗАЦИЯ ТРЕМЯ СПОСОБАМИ: Dogs are loyal (обычный способ), A dog is loyal (представитель класса), The dog is a social animal (научный, вид как таковой). Первый нейтрален и в письме встречается чаще.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Артикли пропадают целыми абзацами: I am designer, I sent you report, in morning. Обратный перекос — the перед абстракциями: The life is hard, I like the music. Отдельная ловушка — работа и должность: I work as a project manager (с артиклем), но He was appointed head of design (без него, при назначении на единственную должность).
+
+ПРОВЕРКА. Перед каждым существительным задайте два вопроса: оно исчисляемое в единственном числе — и знает ли собеседник, о каком именно предмете я говорю?`,
+
+  'enac-14': `Исчисляемость — не свойство предмета, а свойство СЛОВА. По-русски «совет» считается («три совета»), по-английски advice — нет, и любое «трёх советов» превращается в three pieces of advice.
+
+СПИСОК, КОТОРЫЙ НАДО ВЫУЧИТЬ ЦЕЛИКОМ. Неисчисляемые в английском и исчисляемые в русском: advice, information, news, knowledge, research, evidence, progress, luggage, furniture, equipment, software, money, work, homework, feedback, traffic, weather, accommodation. Все они не имеют множественного числа и не берут a/an: an information и informations — ошибки, которые слышно сразу.
+
+КАК ИХ СЧИТАТЬ. Через порционное слово: a piece of advice, an item of furniture, a bit of information, two pieces of research, a job (вместо a work).
+
+СЛОВА-ХАМЕЛЕОНЫ. Многие существительные живут в обоих режимах, и смысл меняется: paper (бумага) — a paper (статья, газета); experience (опыт) — an experience (случай из жизни); time (время) — three times (раза); room (место) — a room (комната); business (бизнес) — a business (компания); coffee (кофе) — two coffees (две чашки, в кафе).
+
+КВАНТИФИКАТОРЫ ПО ТИПУ СЛОВА.
+Только с исчисляемыми: many, few, a few, several, a number of, fewer.
+Только с неисчисляемыми: much, little, a little, a great deal of, less, amount of.
+С обоими: some, any, a lot of, plenty of, most, all, enough.
+Разница few и a few принципиальна: few problems — почти нет проблем, тон отрицательный; a few problems — несколько, нейтрально. То же с little и a little.
+
+РЕГИСТР. Much и many в утверждении звучат книжно: I have got a lot of work естественнее, чем much work. В вопросах и отрицаниях они нейтральны: Do you have much time?
+
+СОГЛАСОВАНИЕ. News, mathematics, economics оканчиваются на -s, но глагол при них в единственном: The news is good. Police, people, staff — наоборот: The police are investigating.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Самая частая — advices, informations, researches и I have many works. Вторая — less вместо fewer со счётными (less people вместо fewer people; в разговоре это стало нормой, но в письме отмечается). Третья — a lot of и many в одинаковом регистре без учёта стиля.
+
+ПРОВЕРКА. Прежде чем поставить множественное число или a/an, спросите: это слово в английском вообще считается? Если нет — нужна порция.`,
+
+  'enac-15': `Степени сравнения на C1 проверяются не формой comparative, а тем, умеет ли человек показать РАЗМЕР разницы. Сравнение без модификатора — это половина мысли.
+
+БАЗА. Короткие слова берут -er / -est (faster, the fastest), длинные — more / the most (more reliable). Двусложные на -y дают happier. Неправильные: good – better – best, bad – worse – worst, far – further/farther, little – less – least.
+
+МОДИФИКАТОРЫ — ГЛАВНОЕ В ЮНИТЕ.
+Большая разница: far more expensive, much better, a lot cheaper, considerably slower, significantly higher, vastly more complex.
+Маленькая: slightly cheaper, a bit slower, marginally better, somewhat higher.
+Никакой: no better than, hardly any faster.
+Перед превосходной степенью: by far the best, easily the worst, the single most important factor.
+Заметьте: very с comparative не сочетается — нельзя very better; и much с прилагательным без сравнения тоже: much good — ошибка.
+
+РАВЕНСТВО И КРАТНОСТЬ. as fast as, not as expensive as, twice as long as, three times as much, half as big. Кратность ставится ПЕРЕД as: twice as long, а не as twice long.
+
+ПАРАЛЛЕЛЬНОЕ УСИЛЕНИЕ. The more you test, the fewer surprises you get. The sooner, the better. Конструкция требует the в обеих частях и порядка «сравнительная степень — подлежащее — сказуемое».
+
+НАРАСТАНИЕ. It is getting harder and harder. Prices are becoming more and more unpredictable.
+
+ЧТО СРАВНИВАЕМ С ЧЕМ. Английский требует симметрии: The salary here is higher than in my last job, а не higher than my last job (иначе зарплату сравниваем с работой). Другая опора — than that of / than those of: The design of this app is cleaner than that of its competitor.
+
+ОШИБКА РУССКОЯЗЫЧНОГО. 1) Двойное сравнение: more better, more easier. 2) Пропуск than: This one is more expensive, потому что по-русски «дороже» самодостаточно. 3) Then вместо than — на письме это заметно всем. 4) Дословный перевод «в два раза больше» как in two times more вместо twice as much / twice as many.
+
+ПРОВЕРКА. Сказали comparative — сразу спросите себя: насколько именно и по сравнению с чем? Если модификатора и than нет, сравнение неполное.`,
+
+  'enac-16': `Управляющие предлоги — та часть языка, где логики почти нет, а цена ошибки высокая: неверный предлог мгновенно выдаёт неносителя, даже если всё остальное безупречно. Их учат не правилами, а группами.
+
+ПРИЛАГАТЕЛЬНОЕ + ПРЕДЛОГ. afraid of, aware of, capable of, keen on, dependent on, responsible for, famous for, similar to, opposed to, interested in, involved in, good at, bad at, surprised at/by, worried about, concerned about, satisfied with, familiar with, different from (в британском также different to).
+
+ГЛАГОЛ + ПРЕДЛОГ. depend on, insist on, rely on, concentrate on, apologise for, apply for, account for, believe in, succeed in, result in, deal with, cope with, agree with someone / agree to something, object to, refer to, contribute to, lead to, consist of, approve of, accuse of, benefit from, suffer from, prevent from, blame someone for.
+
+СУЩЕСТВИТЕЛЬНОЕ + ПРЕДЛОГ. reason for, solution to, answer to, approach to, attitude to/towards, effect on, impact on, increase in, decrease in, demand for, need for, lack of, advantage of, difficulty in, interest in, relationship with.
+
+ПОСЛЕ ПРЕДЛОГА — ГЕРУНДИЙ. Это правило без исключений: after finishing, instead of waiting, in spite of knowing, we look forward to hearing from you. Последний оборот сбивает всех: to здесь предлог, а не частица инфинитива, поэтому идёт hearing, а не hear. Так же ведут себя be used to doing, get used to doing, object to doing, be committed to doing.
+
+ГЛАГОЛЫ, КОТОРЫМ ПРЕДЛОГ НЕ НУЖЕН. discuss something, enter a room, approach a problem, answer a question, marry someone, phone someone, lack something, affect something. Русский требует предлога («обсуждать О чём-то», «войти В комнату»), английский — нет: discuss about и enter into the room — типичные наведённые ошибки.
+
+ПАРЫ, МЕНЯЮЩИЕ СМЫСЛ. agree with (согласен с человеком) / agree to (согласиться на условие); consist of (состоять из) / consist in (заключаться в); result in (привести к) / result from (быть следствием); afraid of (боюсь чего-то) / afraid for (боюсь за кого-то).
+
+ОШИБКА РУССКОЯЗЫЧНОГО. Предлог подставляется по русскому образцу: depend from (от), interested with, married with, on the picture вместо in the picture, in the street против американского on the street.
+
+ПРОВЕРКА. Учите не слово, а пару целиком и записывайте её всегда с примером — так же, как учили бы одно слово.`,
 }
