@@ -28,7 +28,7 @@ import { intervalLabel, type ReviewGrade } from '../lib/srs'
 import { scheduleReview } from '../lib/reviewScheduler'
 import { withExamples } from '../lib/cardExamples'
 import { haptic } from '../lib/feedback'
-import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
+import { speak, speechMs, speechTarget, speechText, stopSpeech } from '../lib/speech'
 import { SoundBadge, SoundTrack } from './SoundBadge'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
@@ -827,8 +827,11 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
     e.stopPropagation()
     if (!lang) return
     // Романизация из «아이 (ai)» в озвучку не идёт: иначе слышно слово и следом
-    // его латинскую запись — как будто оно произнеслось дважды.
-    const text = speechText(raw ?? seat.card.prompt)
+    // его латинскую запись — как будто оно произнеслось дважды. А из лица
+    // карточки, где слово обёрнуто русским вопросом («Как звучит 있어요?»),
+    // в голос уходит только само слово: кнопка отвечает «как это звучит»,
+    // а не читает вслух формулировку задания (см. speechTarget).
+    const text = raw ? speechText(raw) : speechTarget(seat.card.prompt, lang)
     // Номер запуска нужен и здесь: onEnd прошлой озвучки приходит уже после
     // старта новой, и без сверки он погасил бы индикатор слова, которое только
     // что зазвучало.

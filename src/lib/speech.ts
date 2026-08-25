@@ -70,6 +70,40 @@ export function speechText(raw: string): string {
   return clean || voiceText(raw ?? '').trim()
 }
 
+/** Письменность изучаемого языка: по ней в смешанной строке видно, что читать. */
+const OWN_SCRIPT: Record<string, RegExp> = {
+  ko: /[\uAC00-\uD7A3\u1100-\u11FF\u3130-\u318F]/,
+  ja: /[\u3040-\u30FF\u4E00-\u9FFF]/,
+  zh: /[\u4E00-\u9FFF]/,
+}
+
+const CYRILLIC = /[\u0410-\u044F\u0401\u0451]/
+
+/**
+ * Из смешанной строки — только материал на изучаемом языке.
+ *
+ * Задание формулируется по-русски вокруг слова: «Как звучит 있어요?». На экране
+ * так и надо — вопрос должен быть понятен. Но кнопка озвучки на карточке
+ * означает «как это произносится», и корейский голос честно читает всю строку:
+ * ученик слышит «Как звучит» с корейским акцентом и только потом само слово.
+ *
+ * Поэтому для голоса оставляем слова СВОЕЙ письменности (хангыль, кана, иероглиф),
+ * а для языков на латинице — всё, кроме кириллицы: она здесь язык интерфейса, а
+ * не материала. Если своего не нашлось вовсе (лицо карточки — русский перевод),
+ * читаем строку целиком: молчащая кнопка хуже лишнего слова.
+ */
+export function speechTarget(raw: string, lang?: string): string {
+  const text = speechText(raw)
+  const base = (lang ?? '').split('-')[0]
+  // Русский курс: кириллица в нём и есть материал, чистить нечего.
+  if (!base || base === 'ru') return text
+  const own = OWN_SCRIPT[base]
+  const words = text.split(/\s+/).filter(Boolean)
+  const keep = words.filter(w => (own ? own.test(w) : !CYRILLIC.test(w)))
+  if (keep.length === 0 || keep.length === words.length) return text
+  return keep.join(' ')
+}
+
 /** Полная локаль для голоса: с голым «ko» браузер нередко берёт голос
  *  системного языка и произносит слово по буквам. */
 export function speechLocale(lang?: string): string | undefined {

@@ -29,7 +29,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Volume2 } from 'lucide-react'
-import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
+import { speak, speechMs, speechTarget, stopSpeech } from '../lib/speech'
 
 /**
  * Ход одной озвучки: этого достаточно, чтобы нарисовать бегунок.
@@ -90,7 +90,10 @@ export function useSpeakOne() {
    * — это «замолчи»: тот же жест выключает то, что сам включил.
    */
   const say = useCallback((id: string, raw: string, lang?: string, opts?: { voiceName?: string }) => {
-    const text = speechText(raw)
+    // Строка может быть заданием вокруг слова («Как звучит 있어요?»): голос
+    // изучаемого языка читает её целиком, и русская обёртка звучит вслух с
+    // корейским акцентом. В озвучку идёт только материал — см. speechTarget.
+    const text = speechTarget(raw, lang)
     if (!text.trim()) return
     const cur = stateRef.current
     if (cur?.id === id && !cur.done) { stop(); return }
