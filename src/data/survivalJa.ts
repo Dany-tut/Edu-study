@@ -32,6 +32,7 @@ import { p, e, withExamples, survivalSummary, buildSurvivalCourse } from './surv
 import { JA_EXAMPLES } from './survivalJaExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { JASV_DIALOGS } from './survivalDialogs'
 
 const NOTES: SurvivalBook['notes'] = {
   greet: {
@@ -1539,6 +1540,7 @@ export const JAPANESE_SURVIVAL: SurvivalBook = {
     '(いらっしゃいませ, かしこまりました) дано только на узнавание — так говорят ВАМ в магазине и кафе, ' +
     'отвечать этим не нужно.',
   notes: NOTES,
+  dialogs: JASV_DIALOGS,
   phrases: withExamples(PHRASES, JA_EXAMPLES),
 }
 

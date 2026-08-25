@@ -30,6 +30,7 @@ import { p, e, withExamples, survivalSummary, buildSurvivalCourse } from './surv
 import { PT_EXAMPLES } from './survivalPtExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { PTSV_DIALOGS } from './survivalDialogs'
 
 const NOTES: SurvivalBook['notes'] = {
   greet: {
@@ -1555,6 +1556,7 @@ export const PORTUGUESE_SURVIVAL: SurvivalBook = {
     'Европейский португальский вас поймёт, но повседневная речь в Бразилии устроена иначе, и учить ' +
     'сразу нужно ту, которую вы услышите.',
   notes: NOTES,
+  dialogs: PTSV_DIALOGS,
   phrases: withExamples(PHRASES, PT_EXAMPLES),
 }
 

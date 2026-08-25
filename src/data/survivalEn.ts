@@ -37,6 +37,7 @@ import { p, e, withExamples, survivalSummary, buildSurvivalCourse } from './surv
 import { EN_EXAMPLES } from './survivalEnExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { ENSV_DIALOGS } from './survivalDialogs'
 
 const NOTES: SurvivalBook['notes'] = {
   greet: {
@@ -2035,6 +2036,7 @@ export const ENGLISH_SURVIVAL: SurvivalBook = {
     'прямо во фразах: приезжему полезнее знать обе стороны пары (restroom и toilet, check и bill), ' +
     'чем выбрать одну и не понять другую.',
   notes: NOTES,
+  dialogs: ENSV_DIALOGS,
   phrases: withExamples(PHRASES, EN_EXAMPLES),
 }
 

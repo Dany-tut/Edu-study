@@ -220,6 +220,15 @@ export interface SurvivalBook {
    * фраз в теме и так десяток (см. английский, японский, португальский).
    */
   core?: Record<string, string[]>
+  /**
+   * Диалоги с пропуском — ключ темы → задания (тип dialogGap).
+   *
+   * Написаны руками (survivalDialogs.ts) и только для тех тем, которые САМИ
+   * ПО СЕБЕ обмен репликами: поздороваться, заказать, не понять, попросить
+   * помощь. Темы-списки (числа, время, части тела, документы) диалогом ничего
+   * не добавляют — там реплика собеседника была бы придумана ради формы.
+   */
+  dialogs?: Record<string, SeedTask[]>
 }
 
 /**
@@ -1390,6 +1399,15 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
       'переставить под себя.',
     modules,
     units,
+    // Диалоги приходят ключом ТЕМЫ, а спека ждёт ключ юнита: переклад здесь,
+    // чтобы в контенте не пришлось помнить номера тем.
+    dialogs: book.dialogs
+      ? Object.fromEntries(
+          themes
+            .filter(t => book.dialogs?.[t.id]?.length)
+            .map(t => [`${book.key}-${String(t.n).padStart(2, '0')}`, book.dialogs![t.id]]),
+        )
+      : undefined,
     // Схемы строятся из формул тем — одна точка на все четыре разговорника
     // (см. survivalFigures.ts).
     figures: survivalFigures(book, themes, t => `${book.key}-${String(t.n).padStart(2, '0')}`),

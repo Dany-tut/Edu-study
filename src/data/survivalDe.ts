@@ -35,6 +35,7 @@
 import { p, e, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { DESV_DIALOGS } from './survivalDialogs'
 
 const NOTES: SurvivalBook['notes'] = {
   greet: {
@@ -1397,6 +1398,7 @@ export const GERMAN_SURVIVAL: SurvivalBook = {
     'Kaution, Nebenkosten, Krankmeldung. Они здесь есть, и не переводом в одну строку, а объяснением, ' +
     'что за ними стоит.',
   notes: NOTES,
+  dialogs: DESV_DIALOGS,
   phrases: {
     ...PHRASES_BASIC,
     ...PHRASES_ROAD,

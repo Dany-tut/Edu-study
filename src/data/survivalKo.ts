@@ -29,6 +29,7 @@ import { p, e, withExamples, survivalSummary, buildSurvivalCourse } from './surv
 import { KO_EXAMPLES } from './survivalKoExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { KOSV_DIALOGS } from './survivalDialogs'
 
 const NOTES: SurvivalBook['notes'] = {
   greet: {
@@ -2924,6 +2925,7 @@ export const KOREAN_SURVIVAL: SurvivalBook = {
     'Панмаля — обращения на «ты» — в курсе нет: незнакомому человеку так говорить нельзя, и это ' +
     'не мелочь, а грубость.',
   notes: NOTES,
+  dialogs: KOSV_DIALOGS,
   phrases: withExamples(PHRASES, KO_EXAMPLES),
   core: CORE,
 }
