@@ -59,6 +59,19 @@ export interface VocabItem {
    * эталона не выводятся: «моушн-дизайнер» ↔ «анимационный дизайнер».
    */
   alt?: string[]
+  /**
+   * Сочетаемость: с чем это слово ходит. 약속 → 약속이 있다, 약속 시간, 약속하다.
+   *
+   * ЗАЧЕМ ЭТО ПОЛЕ, А НЕ ЕЩЁ ОДИН ТИП ЗАДАНИЯ. Слово, выученное в одиночку, в
+   * речь не встаёт: ученик знает, что 약속 — «договорённость», и не может
+   * сказать «у меня назначено». Не хватает не упражнения, а ДАННЫХ — того
+   * самого разворота учебника, где рядом со словом стоит горсть его
+   * словосочетаний. Отдельный решатель тут был бы четвёртым однотипным
+   * «выбери из плиток»; вместо него сочетания показываются на карточке слова и
+   * питают уже существующие задания — сопоставление и пропуски по банку
+   * (см. relatedTasks ниже).
+   */
+  related?: Array<{ phrase: string; ru: string }>
 }
 
 /** Задание в сиде — без id и label, они проставляются при сборке. */
@@ -292,6 +305,44 @@ export const blocks = (question: string, items: string[]): SeedTask =>
  */
 export const sylBank = (question: string, answer: string, distractors: string[] = []): SeedTask =>
   ({ type: 'charBank', question, answer, distractors })
+
+/**
+ * Пропуски по общему банку слов — «слова дня» на пачку предложений.
+ *
+ * Банк собирается из самих ответов, поэтому строки нельзя решать по одной:
+ * поставил слово не туда — отнял его у другой строки. Обманки добавляют, когда
+ * банк хочется сделать больше числа дыр (иначе последнее слово ставится само).
+ */
+export const dropIn = (
+  question: string,
+  rows: Array<[text: string, answer: string] | [text: string, answer: string, gloss: string]>,
+  distractors: string[] = [],
+): SeedTask => ({
+  type: 'wordDrop',
+  question,
+  gaps: rows.map(([text, answer, gloss]) => ({ text, answer, gloss })),
+  distractors,
+})
+
+/**
+ * Задания по сочетаемости слов юнита — из поля `related` словаря.
+ *
+ * Сопоставление берётся внутри ОДНОГО слова: все варианты начинаются с 약속, и
+ * различать приходится не слова, а именно сочетания (약속이 있다 против 약속하다).
+ * Обычное сопоставление вперемешку по всему юниту такого не требует — там
+ * ответ угадывается по первому слогу.
+ */
+export const relatedTasks = (vocab: VocabItem[]): SeedTask[] =>
+  vocab
+    .filter(v => (v.related?.length ?? 0) >= 2)
+    .map(v => pairsOf(
+      `Что значат сочетания со словом «${v.term}» (${v.ru})?`,
+      v.related!.map(r => [r.phrase, r.ru] as [string, string]),
+    ))
+
+/** Кроссворд: слово вспоминается по значению, без плиток и вариантов. */
+export const crossword = (question: string, items: Array<[answer: string, clue: string]>): SeedTask =>
+  ({ type: 'crossword', question, clues: items.map(([answer, clue]) => ({ answer, clue })) })
 
 /** Набор слова по буквам на экранной клавиатуре: слоги складываются на глазах. */
 export const typeWord = (question: string, answer: string): SeedTask =>
@@ -613,8 +664,8 @@ function vocabCard(word: VocabItem, id: string, lang: string, native = false) {
   // подсказкой ударения и уходит на оборот, к слову, а не к описанию.
   return editorTask(
     native
-      ? { type: 'flashcard', question: label, front: word.ru, back: word.term, reading: word.reading, image, altAnswers: word.alt }
-      : { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt },
+      ? { type: 'flashcard', question: label, front: word.ru, back: word.term, reading: word.reading, image, altAnswers: word.alt, related: word.related }
+      : { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt, related: word.related },
     id, lang,
   )
 }

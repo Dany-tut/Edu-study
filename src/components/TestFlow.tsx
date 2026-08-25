@@ -4,11 +4,13 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
-import { charUnits, gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
+import { charUnits, crosswordClues, gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
 import WordBankSolver from './WordBankSolver'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
 import JamoTypeSolver from './JamoTypeSolver'
+import WordDropSolver from './WordDropSolver'
+import CrosswordSolver from './CrosswordSolver'
 import DialogGapSolver from './DialogGapSolver'
 import { keysOf } from '../data/hangul'
 import ChamoTrace from './ChamoTrace'
@@ -230,7 +232,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   || ((tp === 'unscramble' || tp === 'charBank') && charUnits(task.answer ?? '').length < 2)
                   || (tp === 'blockOrder' && seqItems.length === 0)
                   || (tp === 'jamoType' && charUnits(task.answer ?? '').flatMap(keysOf).length < 2)
-                  || (tp === 'dialogGap' && (!task.answer?.trim() || (task.dialog?.length ?? 0) < 2))) && (
+                  || (tp === 'dialogGap' && (!task.answer?.trim() || (task.dialog?.length ?? 0) < 2))
+                  || (tp === 'wordDrop' && !(task.gaps ?? []).some(g => !!g.answer?.trim()))
+                  || (tp === 'crossword' && crosswordClues(task).length < 2)) && (
                   <div style={{ paddingLeft: 36 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
@@ -321,6 +325,29 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       answer={task.answer!}
                       distractors={task.distractors}
                       lang={task.lang}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* wordDrop — пропуски в пачке строк по общему банку слов */}
+                {tp === 'wordDrop' && (task.gaps ?? []).some(g => !!g.answer?.trim()) && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <WordDropSolver
+                      rows={(task.gaps ?? []).filter(g => !!g.answer?.trim())}
+                      distractors={task.distractors}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* crossword — вспомнить слово по значению */}
+                {tp === 'crossword' && crosswordClues(task).length >= 2 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <CrosswordSolver
+                      clues={crosswordClues(task)}
                       value={(answers[task.id] as string) ?? undefined}
                       onChange={v => setAnswer(task.id, v)}
                     />

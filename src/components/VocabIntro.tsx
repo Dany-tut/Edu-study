@@ -272,6 +272,26 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       {bindShortWords(w.back ?? '')}
                     </span>
 
+                    {/* Сочетаемость: с чем это слово ходит. Слово, выученное в
+                        одиночку, в речь не встаёт — знать «약속 = договорённость»
+                        и не уметь сказать «у меня назначено» это одно и то же
+                        состояние. Поэтому сочетания стоят на самой карточке, а
+                        не прячутся в отдельном задании. */}
+                    {(w.related?.length ?? 0) > 0 && (
+                      <span style={{
+                        display: 'flex', flexDirection: 'column', gap: 2, marginTop: 6,
+                        paddingTop: 6, borderTop: '1px solid var(--color-border-soft)',
+                        textAlign: 'left', width: '100%',
+                      }}>
+                        {w.related!.map((r, ri) => (
+                          <span key={ri} style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-3)' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--color-text-2)' }}>{r.phrase}</span>
+                            {' — '}{r.ru}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+
                     {/* Бегунок озвучки по низу карточки — общий на весь продукт. */}
                     {sp && <SoundTrack state={sp} accent={accent} soft={soft} />}
                   </button>

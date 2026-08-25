@@ -110,11 +110,27 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
         </header>
       )}
 
-      <h3 style={{
-        margin: 0, fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
-        color: 'var(--color-text)', ...proseWrap,
-      }}>
-        {bindShortWords(item.title)}
+      {/* ── Заголовок разбирается по словам, как и текст ────────────────────
+          У автоматической части ленты (data/feed/autoKo.ts) заголовок —
+          ЕДИНСТВЕННЫЙ текст: body там пуст, есть только ролик. Пока заголовок
+          рисовался обычным <h3>, эти посты были для языка мертвы — ни одного
+          слова не тронуть, при том что написаны они на изучаемом языке.
+          Целого перевода у них нет и взяться ему неоткуда (машинного перевода
+          в проекте нет — см. шапку autoKo.ts), а вот перевод ПО СЛОВУ есть
+          всегда: он собран в data/wordGloss.ts и работает тем же тапом, что в
+          абзаце заметки. Слово отсюда так же уезжает в колоду повторения. */}
+      <h3 style={{ margin: 0 }}>
+        <GlossedText
+          text={item.title}
+          lang={lang}
+          extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
+          accent={accent}
+          subject={subjectId}
+          style={{
+            fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
+            color: 'var(--color-text)', ...proseWrap,
+          }}
+        />
       </h3>
 
       {/* ── Ролик играет прямо в посте ──────────────────────────────────────
@@ -251,15 +267,18 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
         </IconBtn>
 
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
-          {item.body && (
-            <AudioPlayer
-              ttsText={item.body}
-              lang={lang}
-              variant="bare"
-              picker={false}
-              accent={accent}
-            />
-          )}
+          {/* ОЗВУЧКА ЕСТЬ У ЛЮБОГО ПОСТА — читаем заголовок, когда текста нет.
+              Автоматическая часть ленты (data/feed/autoKo.ts) — это ролики с
+              пустым body: у них озвучивать было нечего, и правый край строки
+              оставался голым. Но заголовок у них на изучаемом языке и ровно
+              такой же материал для слуха, что и абзац заметки. */}
+          <AudioPlayer
+            ttsText={item.body || item.title}
+            lang={lang}
+            variant="bare"
+            picker={false}
+            accent={accent}
+          />
           {item.translation && (
             <IconBtn on={translated} accent={accent} title={t('Перевод')} onClick={toggleTranslate}>
               <Languages size={17} />
@@ -315,12 +334,26 @@ function Avatar({ outlet, small }: { outlet: Outlet; small?: boolean }) {
   )
 }
 
-/** Иконка-действие в строке поста: с числом, если есть что показывать. */
+/**
+ * Иконка-действие в строке поста: с числом, если есть что показывать.
+ *
+ * МЕСТО ПОД ЧИСЛО ЗАНЯТО ВСЕГДА — ИНАЧЕ СТРОКА ПРЫГАЕТ.
+ * Раньше число рисовалось только при count > 0, и первый лайк (0 → 1) вносил
+ * в строку новый элемент вместе с промежутком: соседние иконки уезжали вправо
+ * прямо под пальцем, то есть пост дёргался ровно в ответ на тап. Теперь слот
+ * стоит у любой считающей кнопки и пустым — ширина одна и та же до и после.
+ * `tabular-nums` держит её и дальше: у моноширинных цифр 1 и 8 равны.
+ *
+ * `lineHeight` в размер иконки — вторая половина того же прыжка, вертикальная:
+ * строка текста без него выше значка, и появление числа растило всю строку
+ * действий, сдвигая вниз комментарии и следующий пост.
+ */
 function IconBtn({ children, on, accent, title, count, onClick }: {
   children: React.ReactNode
   on?: boolean
   accent: string
   title: string
+  /** Задан — кнопка считающая, и слот под число резервируется даже при нуле. */
   count?: number
   onClick: () => void
 }) {
@@ -334,10 +367,15 @@ function IconBtn({ children, on, accent, title, count, onClick }: {
         background: 'none', border: 'none', padding: 0, cursor: 'pointer',
         color: on ? accent : 'var(--color-muted)',
         fontSize: 12.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+        lineHeight: '17px',
       }}
     >
       {children}
-      {!!count && count > 0 && <span>{count}</span>}
+      {count !== undefined && (
+        <span style={{ minWidth: 7, textAlign: 'left' }}>
+          {count > 0 ? count : ''}
+        </span>
+      )}
     </button>
   )
 }

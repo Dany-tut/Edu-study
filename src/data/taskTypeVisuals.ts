@@ -66,6 +66,10 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   charBank:      { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
   // Набор по буквам — ученик порождает форму сам → peach, как fill/pattern.
   jamoType:      { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
+  // Пропуски по банку — ученик подставляет форму → peach, как fill/дрилл.
+  wordDrop:      { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
+  // Кроссворд — вспоминание слова по значению → teal, к словарной семье.
+  crossword:     { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
   // Диалог с пропуском ведётся голосом → blue, как диктант.
   dialogGap:     { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
 

@@ -52,6 +52,9 @@ import { charUnits, sentenceTokens } from '../data/taskTypes'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
 import JamoTypeSolver from './JamoTypeSolver'
+import WordDropSolver, { parseDrops } from './WordDropSolver'
+import CrosswordSolver, { parseCells } from './CrosswordSolver'
+import { buildCrossword } from '../lib/crossword'
 import DialogGapSolver from './DialogGapSolver'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
@@ -769,6 +772,19 @@ function toggleId(current: string | undefined, id: string) {
   const set = parseIds(current)
   return joinIds(set.includes(id) ? set.filter(x => x !== id) : [...set, id])
 }
+/** Строки с пропуском, у которых задан ответ, — только они и спрашиваются. */
+function dropRows(q: HomeworkQuizQuestion) {
+  return (q.gaps ?? []).filter(g => !!g.answer?.trim())
+}
+/** Верна ли одна строка пропусков. Нужно и проверке, и подсветке строк. */
+export function dropRowCorrect(row: { answer: string; alt?: string[] }, given: string | undefined) {
+  return matchesAnyAnswer(given, [row.answer, ...(row.alt ?? [])])
+}
+/** Заполненные подсказки кроссворда. */
+function crosswordRows(q: HomeworkQuizQuestion) {
+  return (q.clues ?? []).filter(c => !!c.answer?.trim() && !!c.clue?.trim())
+}
+
 /** Строки подстановочного дрилла, у которых есть эталон, — только они и спрашиваются. */
 function drillItems(q: HomeworkQuizQuestion) {
   return (q.patternItems ?? []).filter(i => !!i.answer?.trim())
@@ -816,6 +832,21 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
     const items = q.sequenceItems ?? []
     return items.length >= 2 && (ans ?? '').split(',').filter(Boolean).length >= items.length
   }
+  // Пропуски по банку: наполовину разложенный банк — не ответ.
+  if (qType(q) === 'wordDrop') {
+    const rows = dropRows(q)
+    if (rows.length === 0) return !!(ans && ans.trim())
+    const given = parseDrops(ans)
+    return rows.every((_, i) => !!given[String(i)]?.trim())
+  }
+  // Кроссворд: отвечено, когда заполнены все клетки сетки.
+  if (qType(q) === 'crossword') {
+    const clues = crosswordRows(q)
+    if (clues.length < 2) return !!(ans && ans.trim())
+    const cells = Object.keys(buildCrossword(clues).cells)
+    const given = parseCells(ans)
+    return cells.length > 0 && cells.every(k => !!given[k]?.trim())
+  }
   // Набор по буквам: отвечено, когда нажатий столько, сколько нужно слову.
   if (qType(q) === 'jamoType') {
     const need = charUnits(q.referenceAnswer ?? '').flatMap(keysOf).length
@@ -855,6 +886,8 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'blockOrder') return (q.sequenceItems?.length ?? 0) >= 2
   if (langTp === 'jamoType') return charUnits(q.referenceAnswer ?? '').flatMap(keysOf).length >= 2
   if (langTp === 'dialogGap') return !!q.referenceAnswer?.trim() && (q.dialog?.length ?? 0) >= 2
+  if (langTp === 'wordDrop') return dropRows(q).length > 0
+  if (langTp === 'crossword') return crosswordRows(q).length >= 2
   // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -907,6 +940,23 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     if (langTp === 'jamoType') {
       const want = charUnits(q.referenceAnswer ?? '')
       return want.length >= 1 && composeKeys(ans.split(',').filter(Boolean)) === want.join('')
+    }
+    // Пропуски по банку: задание засчитывается целиком — банк общий, и одна
+    // перепутанная строка означает, что вторая тоже стоит не на месте.
+    if (langTp === 'wordDrop') {
+      const rows = dropRows(q)
+      if (rows.length === 0) return false
+      const given = parseDrops(ans)
+      return rows.every((row, i) => dropRowCorrect(row, given[String(i)]))
+    }
+    // Кроссворд сверяется клетками, а не словами: пересечения проверяются сами.
+    if (langTp === 'crossword') {
+      const clues = crosswordRows(q)
+      if (clues.length < 2) return false
+      const grid = buildCrossword(clues)
+      const given = parseCells(ans)
+      const keys = Object.keys(grid.cells)
+      return keys.length > 0 && keys.every(k => (given[k] ?? '').trim() === grid.cells[k])
     }
     // Пропуск в диалоге — диктант с контекстом: эталон плюс альтернативы.
     if (langTp === 'dialogGap') {
@@ -3253,6 +3303,26 @@ export default function HomeworkFlow({
                         && charUnits(question.referenceAnswer ?? '').flatMap(keysOf).length >= 2 ? (
                     <JamoTypeSolver
                       answer={question.referenceAnswer!}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Пропуски по банку слов: одна пачка строк, один банк. */
+                    ) : qType(question) === 'wordDrop' && dropRows(question).length > 0 ? (
+                    <WordDropSolver
+                      rows={dropRows(question)}
+                      distractors={question.distractors}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      rowCorrect={(i, given) => dropRowCorrect(dropRows(question)[i], given)}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Кроссворд: слово вспоминается по значению. */
+                    ) : qType(question) === 'crossword' && crosswordRows(question).length >= 2 ? (
+                    <CrosswordSolver
+                      clues={crosswordRows(question)}
                       value={selectedAnswer}
                       disabled={locked}
                       showVerdict={showVerdict}

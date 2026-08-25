@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type DialogLine, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
+import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapRow, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
@@ -63,6 +63,10 @@ export interface HomeworkQuizQuestion {
   syllable?: string
   /** dialogGap — реплики диалога; в одной стоит маркер пропуска «____». */
   dialog?: DialogLine[]
+  /** wordDrop — строки с пропуском; банк слов общий на всю пачку. */
+  gaps?: GapRow[]
+  /** crossword — слова и подсказки; сетка считается по ним. */
+  clues?: CrosswordClue[]
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
   sentence?: string
   /** wordBank / listenBank — лишние плитки-обманки. */
@@ -120,6 +124,8 @@ export interface HomeworkQuizQuestion {
    * несъёмная подсказка рядом со словом ровно это и откладывает.
    */
   reading?: string
+  /** flashcard — сочетаемость слова: с чем оно ходит. */
+  related?: Array<{ phrase: string; ru: string }>
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
@@ -334,6 +340,8 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
 
     // Языковые поля переносятся как есть — решатели сами берут нужное по типу.
     dialog: t.dialog,
+    gaps: t.gaps,
+    clues: t.clues,
     sentence: t.sentence,
     distractors: t.distractors,
     audioUrl: t.audioUrl,
@@ -357,6 +365,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     front: t.front,
     back: t.back,
     reading: t.reading,
+    related: t.related,
     pattern: t.pattern,
     patternGloss: t.patternGloss,
     patternItems: t.patternItems,

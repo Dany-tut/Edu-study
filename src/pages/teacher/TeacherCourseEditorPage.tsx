@@ -49,6 +49,7 @@ import {
 import { emptyWatch } from '../../lib/videoProgress'
 import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonContent'
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
+import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -2978,6 +2979,126 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       {hasGap
                         ? t('Реплики озвучатся разными голосами: у каждого спикера свой. Пропуск голос не читает.')
                         : t('Ни в одной реплике нет «____» — отметьте пропуск, иначе вставлять нечего.')}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* wordDrop — строки с пропуском и общий банк слов. */}
+              {task.type === 'wordDrop' && (() => {
+                const rows = task.gaps ?? []
+                const setRows = (next: typeof rows) => onUpdate({ ...task, gaps: next })
+                const noMark = rows.filter(r => r.text && !r.text.includes('____'))
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <Label>{t('Строки с пропуском — место пропуска отметьте «____»')}</Label>
+                    {rows.map((row, ri) => {
+                      const patch = (next: Partial<typeof row>) =>
+                        setRows(rows.map((x, k) => k === ri ? { ...x, ...next } : x))
+                      return (
+                        <div key={ri} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                          <span style={{ width: 24, height: 24, marginTop: 5, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{ri + 1}</span>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            <AutoTextarea
+                              value={row.text}
+                              onChange={v => patch({ text: v })}
+                              placeholder={t('친구와 ____이 있는데 늦었어요.')}
+                              style={taskTextSt}
+                            />
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <AutoTextarea
+                                value={row.answer}
+                                onChange={v => patch({ answer: v })}
+                                placeholder={t('Слово в пропуск')}
+                                style={{ ...taskTextSt, flex: '0 0 34%' }}
+                              />
+                              <AutoTextarea
+                                value={row.gloss ?? ''}
+                                onChange={v => patch({ gloss: v })}
+                                placeholder={t('Перевод строки — условие задачи, а не подсказка ответа')}
+                                style={{ ...taskTextSt, flex: 1 }}
+                              />
+                            </div>
+                          </div>
+                          {rows.length > 1 && (
+                            <button
+                              onClick={() => setRows(rows.filter((_, k) => k !== ri))}
+                              style={{ width: 24, height: 24, marginTop: 5, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                            >
+                              <X size={11} />
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                    <button
+                      onClick={() => setRows([...rows, { text: '', answer: '' }])}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    >
+                      <Plus size={12} /> {t('Добавить строку с пропуском')}
+                    </button>
+                    <AutoTextarea
+                      value={(task.distractors ?? []).join(', ')}
+                      onChange={v => onUpdate({ ...task, distractors: v.split(',').map(x => x.trim()).filter(Boolean) })}
+                      placeholder={t('Лишние слова в банк через запятую (иначе последнее слово встанет само)')}
+                      style={taskTextSt}
+                    />
+                    <div style={{ fontSize: 11, color: noMark.length ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>
+                      {noMark.length
+                        ? t('В строке нет «____» — отметьте место пропуска, иначе вставлять некуда.')
+                        : t('Банк собирается из ответов и общий на все строки: слово, поставленное не туда, пропадёт у другой строки.')}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* crossword — слова и подсказки; сетка считается сама. */}
+              {task.type === 'crossword' && (() => {
+                const items = task.clues ?? []
+                const setItems = (next: typeof items) => onUpdate({ ...task, clues: next })
+                const ready = items.filter(c => c.answer.trim() && c.clue.trim())
+                const grid = ready.length >= 2 ? buildCrossword(ready) : null
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <Label>{t('Слова кроссворда и подсказки-значения')}</Label>
+                    {items.map((item, ci) => {
+                      const patch = (next: Partial<typeof item>) =>
+                        setItems(items.map((x, k) => k === ci ? { ...x, ...next } : x))
+                      return (
+                        <div key={ci} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                          <AutoTextarea
+                            value={item.answer}
+                            onChange={v => patch({ answer: v })}
+                            placeholder={t('Слово-ответ')}
+                            style={{ ...taskTextSt, flex: '0 0 32%' }}
+                          />
+                          <AutoTextarea
+                            value={item.clue}
+                            onChange={v => patch({ clue: v })}
+                            placeholder={t('Подсказка — значение слова')}
+                            style={{ ...taskTextSt, flex: 1 }}
+                          />
+                          {items.length > 2 && (
+                            <button
+                              onClick={() => setItems(items.filter((_, k) => k !== ci))}
+                              style={{ width: 24, height: 24, marginTop: 5, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                            >
+                              <X size={11} />
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                    <button
+                      onClick={() => setItems([...items, { answer: '', clue: '' }])}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    >
+                      <Plus size={12} /> {t('Добавить слово')}
+                    </button>
+                    <div style={{ fontSize: 11, color: grid ? 'var(--color-text-3)' : 'var(--color-red-text)' }}>
+                      {grid
+                        ? `${t('Сетка')}: ${grid.rows}×${grid.cols}, ${t('пересечений')} ${grid.words.filter(w => w.dir === 'down').length}. ${t('Слова без общих слогов встают отдельными строками — это нормально.')}`
+                        : t('Нужно хотя бы два слова с подсказками — иначе сетку не из чего строить.')}
                     </div>
                   </div>
                 )

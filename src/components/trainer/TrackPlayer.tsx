@@ -41,6 +41,7 @@ import { useT } from '../../lib/i18n'
 import { speak, stopSpeech, speechUnits, speechMs } from '../../lib/speech'
 import { getMediaUrl } from '../../lib/mediaStorage'
 import { useNavCollapse } from '../../lib/useNavCollapse'
+import { useSmoothCollapse } from '../MobileDock'
 import { tactile } from '../../lib/feedback'
 import MobileSheet from '../MobileSheet'
 import VoicePicker from './VoicePicker'
@@ -106,9 +107,19 @@ export default function TrackPlayer({
 }) {
   const t = useT()
   const collapsed = useNavCollapse()
+  // Тот же сглаженный флаг, что схлопывает круг «Фильтры» рядом (см.
+  // useSmoothCollapse в MobileDock): плеер обязан расти ровно тем же жестом,
+  // которым круг уступает ему место, иначе два движения в одном ряду разъедутся.
+  const dockCollapsed = useSmoothCollapse()
+  // РОСТ. В ряду дока плеер притворяется его частью: те же 46 в высоту, что у
+  // круга, и кнопка «играть» — такой же кружок. Остался один — распрямляется
+  // в настоящий проигрыватель: выше, полоса толще, проступает подпись с
+  // названием записи. Растёт ВВЕРХ: док прижат к низу, нижняя кромка стоит.
+  const grown = !!inline && dockCollapsed
   const usesTts = !audioUrl && !!ttsText
 
   const [menu, setMenu] = useState(false)
+  const [menuHeld, setMenuHeld] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [ms, setMs] = useState(0)
   const [ttsRate, setTtsRate] = useState<TtsRateId>('normal')
@@ -298,8 +309,8 @@ export default function TrackPlayer({
     : mmss(drag.ms / 1000)) : null
 
   const held = !!drag
-  const barH = held ? 7 : 3
-  const dotSize = held ? 18 : 9
+  const barH = held ? 7 : grown ? 4 : 3
+  const dotSize = held ? 18 : grown ? 10 : 9
 
   return (
     <>
@@ -330,11 +341,18 @@ export default function TrackPlayer({
           zIndex: 41, padding: '0 16px', pointerEvents: 'none',
         }}
       >
-        <div
+        {/* Высота — не «на глаз», а от соседа: 46 = DockCircle. Гоним её тем
+            же COLLAPSE, что схлопывает круг, чтобы рост плеера и уход круга
+            читались одним движением, а не двумя. */}
+        <motion.div
+          initial={false}
+          animate={inline ? { height: grown ? 58 : 46, borderRadius: grown ? 26 : 23 } : undefined}
+          transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
           style={{
             pointerEvents: 'auto',
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '10px 12px', borderRadius: 22,
+            display: 'flex', alignItems: 'center', gap: inline ? 8 : 12,
+            padding: inline ? (grown ? '0 8px 0 5px' : '0 4px 0 3px') : '10px 12px',
+            borderRadius: inline ? undefined : 22,
             background: 'rgba(var(--glass-rgb), 0.86)',
             backdropFilter: 'blur(28px) saturate(200%)',
             WebkitBackdropFilter: 'blur(28px) saturate(200%)',
@@ -342,9 +360,12 @@ export default function TrackPlayer({
             boxShadow: 'var(--shadow-pill)',
           }}
         >
-          <button
+          <motion.button
             onClick={toggle}
             aria-label={playing ? t('Пауза') : t('Играть')}
+            initial={false}
+            animate={inline ? { width: grown ? 46 : 40, height: grown ? 46 : 40 } : undefined}
+            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
             style={{
               width: 40, height: 40, borderRadius: '50%', flexShrink: 0, border: 'none',
               display: 'grid', placeItems: 'center', cursor: 'pointer',
@@ -353,7 +374,7 @@ export default function TrackPlayer({
             }}
           >
             {playing ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
-          </button>
+          </motion.button>
 
           {/* Мишень бегунка выше самой полосы: тянуть трёхпиксельную линию
               пальцем невозможно, поэтому жест ловит вся полоса-подложка. */}
@@ -415,37 +436,76 @@ export default function TrackPlayer({
               </div>
             </div>
             {/* Подпись — правда об источнике: у файла секунды, у синтеза номер
-                реплики. Оценку длительности синтеза секундами не подписываем. */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', marginTop: 3,
-              fontSize: 10.5, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
-            }}>
+                реплики. Оценку длительности синтеза секундами не подписываем.
+                В ряду дока второй строки нет вовсе — именно она и делала плеер
+                на 14 px выше соседнего круга; вместо неё справа стоит микро-
+                счётчик, а название записи появляется только там, где под него
+                есть ширина. */}
+            <motion.div
+              initial={false}
+              animate={inline ? { height: grown ? 14 : 0, opacity: grown ? 1 : 0, marginTop: grown ? 4 : 0 } : undefined}
+              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+              style={{
+                display: 'flex', justifyContent: 'space-between', gap: 8, overflow: 'hidden',
+                marginTop: inline ? undefined : 3,
+                fontSize: 10.5, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {usesTts ? (
                 // Пока ведут — подпись про ТУ реплику, куда ведут: иначе под
                 // бегунком, стоящим на третьей, написано «реплика 1».
-                <span>{`${t('реплика')} ${(drag?.line ?? line) + 1} ${t('из')} ${lines.length}`}</span>
+                <>
+                  {inline && title && (
+                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {title}
+                    </span>
+                  )}
+                  <span style={{ flexShrink: 0 }}>
+                    {`${t('реплика')} ${(drag?.line ?? line) + 1} ${t('из')} ${lines.length}`}
+                  </span>
+                </>
               ) : (
                 <>
                   <span>{mmss(shown / 1000)}</span>
                   <span>{mmss(dur)}</span>
                 </>
               )}
-            </div>
+            </motion.div>
           </div>
 
+          {/* Счётчик компактного состояния: позиция в записи не должна
+              пропадать вместе со второй строкой. */}
+          {inline && !grown && (
+            <span style={{
+              flexShrink: 0, fontSize: 10.5, color: 'var(--color-muted)',
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {usesTts ? `${(drag?.line ?? line) + 1}/${lines.length}` : mmss(shown / 1000)}
+            </span>
+          )}
+
+          {/* Голая иконка: коробка с рамкой и заливкой внутри стеклянной
+              капсулы давала обводку в обводке. Мишень остаётся 32×32, а нажатие
+              показывает прозрачность — любая подсветка на стекле снова
+              превращается в ту же коробку. */}
           <button
             onClick={() => setMenu(true)}
+            onPointerDown={() => setMenuHeld(true)}
+            onPointerUp={() => setMenuHeld(false)}
+            onPointerLeave={() => setMenuHeld(false)}
+            onPointerCancel={() => setMenuHeld(false)}
             aria-label={t('Настройки записи')}
             style={{
-              width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+              width: 32, height: 32, flexShrink: 0,
               display: 'grid', placeItems: 'center', cursor: 'pointer',
-              border: '1px solid var(--color-border-soft)',
-              background: 'var(--color-bg-2)', color: 'var(--color-text-2)',
+              border: 'none', background: 'transparent', color: 'var(--color-muted)',
+              WebkitTapHighlightColor: 'transparent',
+              opacity: menuHeld ? 0.55 : 1, transition: 'opacity .12s ease',
             }}
           >
             <Menu size={17} />
           </button>
-        </div>
+        </motion.div>
       </motion.div>
 
       <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Запись')}>

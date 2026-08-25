@@ -6,6 +6,8 @@ import CharTilesSolver from './components/CharTilesSolver'
 import BlockOrderSolver from './components/BlockOrderSolver'
 import JamoTypeSolver from './components/JamoTypeSolver'
 import DialogGapSolver from './components/DialogGapSolver'
+import WordDropSolver from './components/WordDropSolver'
+import CrosswordSolver from './components/CrosswordSolver'
 import SyllableBuilder from './components/SyllableBuilder'
 import './index.css'
 
@@ -17,6 +19,8 @@ function Demo() {
   const [e, setE] = useState<string | undefined>(undefined)
   const [f, setF] = useState<string | undefined>(undefined)
   const [g, setG] = useState<string | undefined>(undefined)
+  const [wd, setWd] = useState<string | undefined>(undefined)
+  const [cw, setCw] = useState<string | undefined>(undefined)
   const [verdict, setVerdict] = useState(false)
   const box: React.CSSProperties = {
     maxWidth: 560, margin: '0 auto 24px', padding: 18, borderRadius: 18,
@@ -84,12 +88,48 @@ function Demo() {
         <div style={sub}>Кнопки «Убрать букву» больше нет: клик по слогу снимает последнюю</div>
         <SyllableBuilder syllable="김" value={g} showVerdict={verdict} onChange={setG} />
       </div>
+      <div style={box}>
+        <h3 style={h}>7 · «Пропуски по банку слов» (wordDrop)</h3>
+        <div style={sub}>Один банк на все строки: слово, поставленное не туда, пропадёт у другой строки</div>
+        <WordDropSolver
+          rows={[
+            { text: '친구와 ____이 있는데 늦었어요.', answer: '약속', gloss: 'Была договорённость с другом, но я опоздал.' },
+            { text: '____를 탔어요.', answer: '택시', gloss: 'Я сел в такси.' },
+            { text: '그런데 ____가 갑자기 끼어들었어요.', answer: '오토바이', gloss: 'Но вдруг подрезал мотоцикл.' },
+            { text: '그래서 ____가 났어요.', answer: '사고', gloss: 'Так произошла авария.' },
+            { text: '____이 왔어요.', answer: '경찰', gloss: 'Приехала полиция.' },
+          ]}
+          distractors={['문자', '허리']}
+          value={wd}
+          showVerdict={verdict}
+          rowCorrect={(i, given) => given === ['약속', '택시', '오토바이', '사고', '경찰'][i]}
+          onChange={setWd}
+        />
+      </div>
+
+      <div style={box}>
+        <h3 style={h}>8 · «Кроссворд» (crossword)</h3>
+        <div style={sub}>Слово вспоминается по значению: ни плиток, ни вариантов</div>
+        <CrosswordSolver
+          clues={[
+            { answer: '약속', clue: 'договорённость, планы' },
+            { answer: '속도', clue: 'скорость' },
+            { answer: '도시', clue: 'город' },
+            { answer: '시간', clue: 'время' },
+            { answer: '간장', clue: 'соевый соус' },
+          ]}
+          value={cw}
+          showVerdict={verdict}
+          onChange={setCw}
+        />
+      </div>
+
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
         <button onClick={() => setVerdict(v => !v)} style={{ padding: '10px 18px', borderRadius: 12, cursor: 'pointer' }}>
           Вердикт: {verdict ? 'вкл' : 'выкл'}
         </button>
         <button
-          onClick={() => { setA(undefined); setB(undefined); setC(undefined); setD(undefined); setE(undefined); setF(undefined); setG(undefined); setVerdict(false) }}
+          onClick={() => { setA(undefined); setB(undefined); setC(undefined); setD(undefined); setE(undefined); setF(undefined); setG(undefined); setWd(undefined); setCw(undefined); setVerdict(false) }}
           style={{ padding: '10px 18px', borderRadius: 12, cursor: 'pointer' }}
         >
           Сбросить

@@ -20,13 +20,15 @@
 import type { ElementType } from 'react'
 import {
   AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Keyboard, Layers, LayoutGrid,
-  ListOrdered, MessagesSquare, Mic, PenLine, Play, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
+  Grid3x3, ListOrdered, MessagesSquare, Mic, PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck,
+  Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
 import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
 import { chamoOf, composeKeys, isSyllable, keysOf } from './hangul'
 import { videoAnswerDone } from '../lib/videoAnswer'
+import { buildCrossword } from '../lib/crossword'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -61,6 +63,8 @@ export type TaskTypeId =
   | 'charBank'      // ряд слогов/букв с обманками — собери слово или фразу
   | 'jamoType'      // экранная клавиатура: буквы на глазах складываются в слоги
   | 'dialogGap'     // озвученный диалог с пропуском — вставь недостающую реплику
+  | 'wordDrop'      // пропуски в предложениях, один банк слов на всю пачку
+  | 'crossword'     // кроссворд по слогам: слово вспоминается по значению
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -110,6 +114,41 @@ export interface DialogLine {
 
 /** Маркер пропуска в реплике диалога. Голос его не читает (см. voiceText). */
 export const GAP_MARK = '____'
+
+/**
+ * Строка с пропуском (wordDrop).
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ «ВПИСАТЬ ОТВЕТ». Смысл упражнения не в одной дыре, а в
+ * ПАЧКЕ: банк слов один на десяток строк, слово из него уходит навсегда, и
+ * ошибка в первой строке отнимает слово у седьмой. Так проверяется, что ученик
+ * различает слова МЕЖДУ СОБОЙ, а не помнит одно; десять отдельных «впиши
+ * ответ» этого не дают вовсе.
+ */
+export interface GapRow {
+  /** Предложение целиком, место пропуска отмечено «____». */
+  text: string
+  /** Слово, которое туда встаёт. */
+  answer: string
+  /** Перевод строки — подсказка рядом, как в рабочей тетради. */
+  gloss?: string
+  /** Другие принимаемые формы. */
+  alt?: string[]
+}
+
+/**
+ * Слово кроссворда и подсказка к нему (crossword).
+ *
+ * ЗАЧЕМ КРОССВОРД, КОГДА ЕСТЬ КАРТОЧКИ. Это единственное задание, где слово
+ * вспоминается ПО ЗНАЧЕНИЮ И БЕЗ ЕДИНОЙ ПОДСКАЗКИ ФОРМЫ: ни плиток, ни
+ * вариантов, ни первой буквы. Плюс пересечения — они заставляют проверять себя
+ * чужим словом: слог на перекрёстке обязан подойти обоим.
+ */
+export interface CrosswordClue {
+  /** Слово-ответ (по-корейски — раскладывается по слогам в клетки). */
+  answer: string
+  /** Подсказка: значение слова. */
+  clue: string
+}
 
 export interface TaskTable {
   headers: string[]
@@ -272,6 +311,18 @@ export interface TaskPayload {
   /** dialogGap — реплики диалога; в одной из них стоит маркер пропуска «____». */
   dialog?: DialogLine[]
 
+  /** wordDrop — строки с пропуском «____»; банк слов общий на все строки. */
+  gaps?: GapRow[]
+
+  /** crossword — слова и подсказки-значения; сетка считается по ним. */
+  clues?: CrosswordClue[]
+
+  /**
+   * flashcard — сочетаемость слова: с чем оно ходит (약속이 있다, 약속하다).
+   * Показывается на карточке знакомства; слово в одиночку в речь не встаёт.
+   */
+  related?: Array<{ phrase: string; ru: string }>
+
   /** Для языковых заданий: код изучаемого языка (ko, ja, pt-BR, en). */
   lang?: string
 
@@ -339,6 +390,11 @@ function fillableCellKeys(t: TaskPayload): string[] {
     const [r, c] = key.split(',').map(Number)
     return !!rows[r]?.[c]?.trim()
   })
+}
+
+/** Заполненные подсказки кроссворда — только по ним считается сетка. */
+export function crosswordClues(t: TaskPayload): CrosswordClue[] {
+  return (t.clues ?? []).filter(c => !!c.answer?.trim() && !!c.clue?.trim())
 }
 
 /** Слова эталонного предложения — плитки для сборки. */
@@ -790,6 +846,59 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     grade: (t, a) => {
       if (!TASK_TYPES.dialogGap.isGradable(t)) return NOT_AUTO
       return { auto: true, correct: typeof a === 'string' && matchesText(a, t) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  /**
+   * Пропуски в пачке предложений, банк слов ОДИН на все строки.
+   *
+   * Ответ — карта «номер строки → выбранное слово», как у дрилла и таблицы:
+   * хранилище домашки держит на задание одну строку.
+   */
+  wordDrop: def({
+    id: 'wordDrop', family: 'input',
+    label: 'Пропуски по банку слов', hint: 'Десять слов разложить по десяти строкам',
+    Icon: Puzzle,
+    makeDefault: () => ({ gaps: [{ text: `Здесь пропуск ${GAP_MARK}`, answer: '' }], distractors: [] }),
+    isGradable: t => (t.gaps ?? []).filter(g => !!g.answer?.trim()).length > 0,
+    grade: (t, a) => {
+      const rows = (t.gaps ?? []).filter(g => !!g.answer?.trim())
+      if (rows.length === 0) return NOT_AUTO
+      if (!a || typeof a !== 'object' || Array.isArray(a)) return { auto: true, correct: false }
+      const given = a as Record<string, string>
+      // Задание засчитывается целиком: банк общий, и одна перепутанная строка
+      // означает, что вторая тоже стоит не на своём месте.
+      return {
+        auto: true,
+        correct: rows.every((row, i) => matchesAnyAnswer(given[String(i)], [row.answer, ...(row.alt ?? [])])),
+      }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  /**
+   * Кроссворд по слогам. Ответ — карта «строка,столбец → знак»: сверяется
+   * КЛЕТКАМИ, а не словами, поэтому наполовину решённый кроссворд виден как
+   * наполовину решённый, а пересечения проверяются сами собой.
+   */
+  crossword: def({
+    id: 'crossword', family: 'input',
+    label: 'Кроссворд', hint: 'Вспомнить слово по значению — без плиток и вариантов',
+    Icon: Grid3x3,
+    makeDefault: () => ({ clues: [{ answer: '', clue: '' }, { answer: '', clue: '' }] }),
+    isGradable: t => crosswordClues(t).length >= 2,
+    grade: (t, a) => {
+      const clues = crosswordClues(t)
+      if (clues.length < 2) return NOT_AUTO
+      if (!a || typeof a !== 'object' || Array.isArray(a)) return { auto: true, correct: false }
+      const given = a as Record<string, string>
+      const grid = buildCrossword(clues)
+      const keys = Object.keys(grid.cells)
+      return {
+        auto: true,
+        correct: keys.length > 0 && keys.every(k => (given[k] ?? '').trim() === grid.cells[k]),
+      }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
   }),
