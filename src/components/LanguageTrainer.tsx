@@ -2967,15 +2967,23 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           по умолчанию (так текст читается как текст), разбор включается тогда,
           когда нужно понять, как это звучит и что значит.
           Подписи называют вид словами ученика: «Партитура» и «Проза» — термины
-          из чужих ремёсел, и по ним не угадать, что кнопка вообще делает. */}
+          из чужих ремёсел, и по ним не угадать, что кнопка вообще делает.
+          Одним словом, а не двумя: строка управления прилипшая, и на телефоне
+          «Просто текст» вместе с соседями переносил её на второй ряд — второй
+          ряд отъедает у самого текста двадцать пикселей на каждом экране. */}
       {hasScore && (
         <ToolButton btnRef={scoreRef} on={scoreView} onClick={() => setScore(v => !v)} accent={accent}>
-          {scoreView ? <Rows3 size={14} /> : <AlignLeft size={14} />} {scoreView ? t('С разбором') : t('Просто текст')}
+          {scoreView ? <Rows3 size={14} /> : <AlignLeft size={14} />} {scoreView ? t('Разбор') : t('Текст')}
         </ToolButton>
       )}
-      <ToolButton onClick={() => setTour(true)} accent={accent}>
-        <HelpCircle size={14} /> {t('Подсказки')}
-      </ToolButton>
+      {/* Подсказки про интерфейс — значком, и только на большом экране: на
+          телефоне они уехали вниз шторки настроек, к адресу экрана (проп help
+          у скелета). Рассказ нужен один раз, а место в строке занимал всегда. */}
+      {!narrow && (
+        <ToolButton icon label={t('Подсказки')} onClick={() => setTour(true)} accent={accent}>
+          <HelpCircle size={15} />
+        </ToolButton>
+      )}
       <ToolRight>
         {text.credit && <ToolCount>{text.credit}</ToolCount>}
         {/* Ссылка на оригинал у материала ленты обязательна: и как проверяемое
@@ -3014,7 +3022,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
   ) : null
 
   return (
-    <TrainerShell rail={rail} toolbar={toolbar} share={share} shareAccent={accent} narrowPlayer={player}>
+    <TrainerShell rail={rail} toolbar={toolbar} share={share} shareAccent={accent} help={() => setTour(true)} narrowPlayer={player}>
       {/* «Что вокруг» — до текста и всегда. Без этого абзаца отрывок из
           середины книги остаётся случайным куском: непонятно, кто эти люди и
           почему сцена вообще чего-то стоит. */}

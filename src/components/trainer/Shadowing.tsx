@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Play, Volume2, Repeat, Trash2, AlertCircle, ChevronRight } from 'lucide-react'
 import { speak, stopSpeech, preferredVoice, type SpeechHandle } from '../../lib/speech'
-import { isAsrAvailable, listen, asrNormalize, type AsrSession } from '../../lib/asr'
+import { isAsrAvailable, listen, type AsrSession } from '../../lib/asr'
+import SpeechHeard from '../SpeechHeard'
 import { useT } from '../../lib/i18n'
 import { micProblem } from '../../lib/micAccess'
 
@@ -354,41 +355,9 @@ export default function Shadowing({ lines, lang, accent, soft }: {
 
       {/* Что услышал браузер (только где ASR есть — см. шапку файла). Сверка
           мягкая: регистр и пунктуация не в счёт. Это подсказка, а не балл:
-          несовпавшие слова просто подсвечены, эталон остаётся судьёй. */}
-      {mine && heard[at] && (() => {
-        const want = asrNormalize(line.text).split(' ').filter(Boolean)
-        const got = asrNormalize(heard[at]).split(' ').filter(Boolean)
-        const wantSet = new Set(want)
-        const gotSet = new Set(got)
-        const matched = want.length === got.length && want.every((w, i) => w === got[i])
-        const missing = want.filter(w => !gotSet.has(w))
-        return (
-          <div style={{
-            padding: '12px 16px', borderRadius: 14, fontSize: 13, lineHeight: 1.55,
-            background: 'var(--color-bg-2)',
-            border: `1px solid ${matched ? 'var(--color-green-text)' : 'var(--color-border-medium)'}`,
-          }}>
-            <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 4 }}>
-              {matched ? t('Услышано — совпало с образцом') : t('Услышано')}
-            </div>
-            <div style={{ color: 'var(--color-text)' }}>
-              {got.map((w, i) => (
-                <span key={i} style={{
-                  color: wantSet.has(w) ? 'var(--color-text)' : 'var(--color-red-text)',
-                  fontWeight: wantSet.has(w) ? 500 : 700,
-                }}>
-                  {w}{i < got.length - 1 ? ' ' : ''}
-                </span>
-              ))}
-            </div>
-            {!matched && missing.length > 0 && (
-              <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
-                {t('Не прозвучало')}: {missing.join(', ')}
-              </div>
-            )}
-          </div>
-        )
-      })()}
+          несовпавшие слова просто подсвечены, эталон остаётся судьёй. Разметка
+          общая с устным заданием домашки — см. components/SpeechHeard.tsx. */}
+      {mine && heard[at] && <SpeechHeard heard={heard[at]} target={line.text} />}
 
       {/* Весь список — чтобы видеть путь целиком и вернуться к строке, которая
           не далась. Точка слева = запись уже есть. */}

@@ -87,6 +87,15 @@ export interface HomeworkQuizQuestion {
   /** speaking / imageDescribe — сколько думать и сколько говорить. */
   prepSeconds?: number
   responseSeconds?: number
+  /**
+   * speaking — эталон «прочитайте вслух»: что именно должно прозвучать.
+   *
+   * Поле жило в задании и в редакторе курса, но до ученика не доезжало: в
+   * маппинге его просто не было, и все «прочитай вслух» приходили без эталона —
+   * проверить их было нечем, каждое уходило преподавателю. По нему задание
+   * теперь сверяет себя само (см. lib/asr.ts, lib/voiceAnswer.ts).
+   */
+  targetText?: string
   /** imageDescribe / imageCompare — картинки и режим ответа. */
   images?: string[]
   /**
@@ -361,6 +370,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     correctPair: t.correctPair,
     prepSeconds: t.prepSeconds,
     responseSeconds: t.responseSeconds,
+    targetText: t.targetText,
     images: t.images,
     image: t.image,
     imageSize: t.imageSize,

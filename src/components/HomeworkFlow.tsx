@@ -48,9 +48,12 @@ import MatchingSolver, {
 import AudioPlayer from './AudioPlayer'
 import TaskVideo from './TaskVideo'
 import { videoAnswerDone, parseVideoAnswer, videoRequiredSeconds } from '../lib/videoAnswer'
+import { parseVoiceAnswer, formatVoiceAnswer } from '../lib/voiceAnswer'
+import { heardCovers, isAsrAvailable } from '../lib/asr'
 import { formatClock } from '../lib/videoProgress'
 import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
+import SpeechHeard from './SpeechHeard'
 import { charUnits, sentenceTokens } from '../data/taskTypes'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
@@ -824,6 +827,9 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   // Видео: сделано, когда просмотрено сколько просили. Непустая строка ответа
   // тут ничего не значит — плеер пишет её с первой же секунды.
   if (qType(q) === 'videoWatch') return videoAnswerDone(ans, q.videoWatchSeconds)
+  // Устное: отвечено, когда есть ЗАПИСЬ. Строка ответа непуста и между
+  // попытками — она несёт счётчик, — но попытка без записи это не ответ.
+  if (qType(q) === 'speaking' && ans !== NO_VOICE) return !!parseVoiceAnswer(ans).path
   // Сопоставление — то же правило: пара строк без пары не ответ.
   if (qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2) {
     return matchingIsComplete(parseMatchingCsv(ans, q.pairs!.length))
@@ -894,7 +900,11 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'dialogGap') return !!q.referenceAnswer?.trim() && (q.dialog?.length ?? 0) >= 2
   if (langTp === 'wordDrop') return dropRows(q).length > 0
   if (langTp === 'crossword') return crosswordRows(q).length >= 2
-  // speaking / imageDescribe / imageCompare — только учителем.
+  // Устное задание проверяет себя само ТОЛЬКО там, где автор задал эталон
+  // («прочитайте вслух»). Свободный устный ответ и описание картинки эталона
+  // не имеют — они по-прежнему целиком у преподавателя.
+  if (langTp === 'speaking') return !!q.targetText?.trim()
+  // imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
   if (tp === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
@@ -964,6 +974,13 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       return matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
     }
     if (langTp === 'videoWatch') return videoAnswerDone(ans, q.videoWatchSeconds)
+    // Устное: сверяется РАСШИФРОВКА записи с эталоном. Машина знает только,
+    // прозвучали ли нужные слова, — произношение она не оценивает вовсе
+    // (см. lib/asr.ts). Лишнее сверх эталона ошибкой не считается.
+    if (langTp === 'speaking') {
+      const want = q.targetText?.trim()
+      return !!want && heardCovers(parseVoiceAnswer(ans).heard, want)
+    }
     if (langTp === 'minimalPair') return ans === q.correctPair
     if (langTp === 'trace') return ans === 'done'
     if (langTp === 'buildSyllable') {

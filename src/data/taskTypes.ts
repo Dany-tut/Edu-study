@@ -25,6 +25,8 @@ import {
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
+import { heardCovers } from '../lib/asr'
+import { parseVoiceAnswer } from '../lib/voiceAnswer'
 import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
 import { chamoOf, composeKeys, isSyllable, keysOf } from './hangul'
 import { videoAnswerDone } from '../lib/videoAnswer'
@@ -423,6 +425,40 @@ export function sentenceTokens(sentence: string): string[] {
  * которой оперируют «собери из слогов» в учебниках; для алфавитных языков —
  * буква. Пробелы выкидываются: их не тапают, и сверка их тоже не считает.
  */
+/**
+ * Место верного ответа в списке вариантов (Р15 в docs/MEMORY_STANDARD.md).
+ *
+ * ЗАЧЕМ. Список вариантов удобнее всего собирать как `[верный, ...обманки]`, и
+ * «верный под нулём» пишется само. Один такой вызов незаметен; когда их
+ * пятнадцать тысяч, ученик набирает половину, просто нажимая верхний вариант, —
+ * и экзамен порции перестаёт что-либо измерять. Замер 25.08.2026 по
+ * девятнадцати сидам: верный ответ первым в 53% вопросов, первым или вторым —
+ * в 88%.
+ *
+ * Правило нельзя держать в голове автора, поэтому оно живёт в общем хелпере:
+ * как бы ни собрали список, место разложится.
+ *
+ * БЕЗ Math.random. Сид обязан собираться одинаково каждый раз: иначе варианты
+ * прыгают между сборками, сверка с сидом показывает вечное расхождение, а
+ * сохранённые ответы учеников (в них лежит НОМЕР варианта) начинают указывать
+ * не туда. Позиция берётся из хеша самого вопроса: у разных вопросов она
+ * разная, у одного и того же — всегда одна.
+ */
+export function placeCorrect(question: string, choices: string[], correct: number): {
+  choices: string[]
+  correct: number
+} {
+  const right = choices[correct]
+  if (right === undefined || choices.length < 2) return { choices, correct }
+  let h = 0
+  for (let i = 0; i < question.length; i++) h = (h * 31 + question.charCodeAt(i)) | 0
+  const n = choices.length
+  const at = ((h % n) + n) % n
+  const out = choices.filter((_, i) => i !== correct)
+  out.splice(at, 0, right)
+  return { choices: out, correct: at }
+}
+
 export function charUnits(text: string): string[] {
   return Array.from((text ?? '').replace(/\s+/g, ''))
 }
@@ -674,12 +710,34 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
 
   speaking: def({
     id: 'speaking', family: 'production',
-    label: 'Записать голос', hint: 'Ученик говорит, учитель слушает',
+    label: 'Записать голос', hint: 'Ученик говорит вслух — эталон сверяется сразу',
     Icon: Mic,
     makeDefault: () => ({ prepSeconds: 20, responseSeconds: 90 }),
-    // Машина может оценить произношение, но вердикт всегда за учителем.
-    isGradable: () => false,
-    grade: () => NOT_AUTO,
+    /**
+     * Проверяется ТОЛЬКО «прочитайте вслух» — задание, у которого автор задал
+     * эталон в targetText. Свободный устный ответ («расскажите о своём
+     * городе») эталона не имеет и остаётся целиком за преподавателем.
+     *
+     * ЧТО ИМЕННО ЗНАЕТ МАШИНА. Прозвучали ли нужные слова — и ничего сверх
+     * того. Распознавание речи возвращает ТЕКСТ, а не оценку произношения:
+     * «распознано верно» не значит «звучит как у носителя» (см. lib/asr.ts).
+     * Поэтому вердикт здесь не отменяет преподавателя — запись всё равно
+     * уходит ему (needsTeacherReview остаётся true). Он снимает другое:
+     * ожидание. Ученик слышит «сошлось» сразу, пока эталон ещё в ушах, а не
+     * через неделю на уроке.
+     *
+     * ПОЧЕМУ НЕ СТРОГО СЛОВО В СЛОВО. Распознавалка охотнее дописывает лишнее
+     * («ну», «эээ», повтор), чем теряет сказанное. Считаем эталон прозвучавшим,
+     * когда в услышанном есть все его слова; чужое сверх того ошибкой не
+     * считается (heardCovers).
+     */
+    isGradable: t => !!t.targetText?.trim(),
+    grade: (t, a) => {
+      const want = t.targetText?.trim()
+      if (!want) return NOT_AUTO
+      if (typeof a !== 'string') return { auto: true, correct: false }
+      return { auto: true, correct: heardCovers(parseVoiceAnswer(a).heard, want) }
+    },
     needsTeacherReview: true, needsAudio: false, allowedAsHard: true, languageOnly: true,
   }),
 

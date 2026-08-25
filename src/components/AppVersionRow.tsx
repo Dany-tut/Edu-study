@@ -3,6 +3,7 @@ import { useT } from '../lib/i18n'
 import { tactile } from '../lib/feedback'
 import { APP_VERSION, APP_COMMIT } from '../lib/appVersion'
 import { useAppUpdate, watchForUpdates } from '../lib/appUpdate'
+import ProgressFill from './ProgressFill'
 
 // Строка версии в профиле. Показывает, какая сборка крутится ИМЕННО НА ЭТОМ
 // устройстве, и сравнивает её с той, что лежит на сервере: если на телефоне
@@ -14,6 +15,10 @@ import { useAppUpdate, watchForUpdates } from '../lib/appUpdate'
 //
 // variant='row'     — ряд внутри карточки настроек (мобильный профиль)
 // variant='compact' — строчка-подвал в меню (десктоп)
+
+// Отступы пилюли: копии подписи под заливкой обязаны их повторить, иначе
+// кромка перекраски разъедется с кромкой заливки.
+const PILL_PAD = '0 15px'
 
 export default function AppVersionRow({ variant = 'row', style }: { variant?: 'row' | 'compact'; style?: React.CSSProperties }) {
   const t = useT()
@@ -85,28 +90,22 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
         <span
           style={{
             position: 'relative', overflow: 'hidden',
-            height: 34, display: 'inline-flex', alignItems: 'center', padding: '0 15px', borderRadius: 999,
+            height: 34, display: 'inline-flex', alignItems: 'center', padding: PILL_PAD, borderRadius: 999,
             fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
             background: filled && !updating ? 'var(--grad-purple)' : 'var(--color-bg-5)',
             color: filled && !updating ? '#fff' : 'var(--color-accent)',
           }}
         >
           {/* Заливка загрузки: пилюля наполняется слева направо, пока идут
-              шаги. Полоса под текстом, поэтому подпись читается всегда. */}
-          {updating && (
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0,
-                width: `${Math.min(100, progress * 100)}%`,
-                background: 'var(--grad-purple)',
-                transition: 'width 0.18s linear',
-              }}
-            />
-          )}
-          <span style={{ position: 'relative', color: updating && progress > 0.15 ? '#fff' : undefined, transition: 'color 0.2s' }}>
+              шаги, и сама же перекрашивает подпись — белым становится ровно то,
+              что фиолет уже накрыл. Целиком белая подпись тонула в незалитой
+              светлой половине пилюли. */}
+          <ProgressFill
+            pct={updating ? Math.min(100, Math.round(progress * 100)) : null}
+            boxStyle={{ display: 'inline-flex', alignItems: 'center', padding: PILL_PAD }}
+          >
             {label}
-          </span>
+          </ProgressFill>
         </span>
       )}
     </button>

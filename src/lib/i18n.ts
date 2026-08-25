@@ -14,6 +14,7 @@ export type Lang = 'ru' | 'en'
 const EN: Record<string, string> = {
   // — Профиль / Settings —
   // — Цвет курса —
+  'ПРОДОЛЖИТЬ': 'CONTINUE',
   'Цвет курса': 'Course colour',
   'Насколько красить': 'How much to tint',
   'Цвета предметов': 'Subject colours',
@@ -2125,8 +2126,9 @@ const EN: Record<string, string> = {
   "Ошибка при сохранении. Попробуйте ещё раз.": "Save failed. Please try again.",
   "Не удалось сохранить профиль. Попробуйте ещё раз.": "Couldn't save the profile. Please try again.",
   // — Читалка языкового тренажёра: онбординг и пословный перевод —
-  "С разбором": "With breakdown",
-  "Просто текст": "Plain text",
+  // Подписи переключателя вида — одним словом: строка управления читалки
+  // обязана оставаться в одну строку и на телефоне.
+  "Разбор": "Breakdown",
   "Текст с разбором": "Text with a breakdown",
   "Транскрипция": "Reading",
   "Перевод справа": "Translation on the right",

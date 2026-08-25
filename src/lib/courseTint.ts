@@ -145,6 +145,56 @@ export function tintVars(hex: string, level: TintLevel, dark: boolean): Record<s
   return vars
 }
 
+// Брендовые значения тех же переменных — то, что стоит в index.css, когда
+// оттенка нет. Нужны превью: оно показывает уровень, ОТЛИЧНЫЙ от применённого
+// сейчас, и переменные, которые на этом уровне не красятся, обязано вернуть к
+// брендовым, а не унаследовать текущие от документа.
+const BASE: Record<'light' | 'dark', Record<string, string>> = {
+  light: {
+    '--color-accent': '#7E6EE6',
+    '--color-purple': '#9C8CF0',
+    '--color-control-accent': '#6353C4',
+    '--grad-purple': 'linear-gradient(135deg, #9D8BFF, #6A5AE6)',
+    '--grad-purple-bar': 'linear-gradient(90deg, #6A5AE6, #A697FF)',
+    '--glow-accent': '0 12px 28px rgba(106,90,230,0.35)',
+    '--color-purple-soft': '#E7E4FB',
+    '--color-purple-text': '#3D33A0',
+    '--color-bg': NEUTRAL.light.bg,
+    '--color-bg-2': NEUTRAL.light.bg2,
+    '--color-bg-3': NEUTRAL.light.bg3,
+    '--color-bg-4': NEUTRAL.light.bg4,
+    '--color-bg-5': NEUTRAL.light.bg5,
+    '--color-bg-input': NEUTRAL.light.input,
+    '--glass-rgb': '255, 255, 255',
+  },
+  dark: {
+    '--color-accent': '#B3A6F7',
+    '--color-purple': '#B3A6F7',
+    '--color-control-accent': '#6B5FC0',
+    '--grad-purple': 'linear-gradient(135deg, #9D8BFF, #6A5AE6)',
+    '--grad-purple-bar': 'linear-gradient(90deg, #6A5AE6, #A697FF)',
+    '--glow-accent': '0 12px 28px rgba(0,0,0,0.45)',
+    '--color-purple-soft': 'rgba(124,108,224,0.22)',
+    '--color-purple-text': '#DAD3FB',
+    '--color-bg': NEUTRAL.dark.bg,
+    '--color-bg-2': NEUTRAL.dark.bg2,
+    '--color-bg-3': NEUTRAL.dark.bg3,
+    '--color-bg-4': NEUTRAL.dark.bg4,
+    '--color-bg-5': NEUTRAL.dark.bg5,
+    '--color-bg-input': NEUTRAL.dark.input,
+    '--glass-rgb': '22, 22, 24',
+  },
+}
+
+/**
+ * Полный набор переменных для превью в настройках: то, что даёт уровень, плюс
+ * брендовые значения на всё остальное. Вешается на обёртку макета — внутри неё
+ * экран живёт по своим цветам, независимо от того, как покрашено приложение.
+ */
+export function previewVars(hex: string, level: TintLevel, dark: boolean): Record<string, string> {
+  return { ...BASE[dark ? 'dark' : 'light'], ...tintVars(hex, level, dark) }
+}
+
 // Все переменные, которые уровень может занять. Снятие идёт по этому списку, а
 // не по последней применённой карте: иначе понижение уровня «среда» → «акцент»
 // оставляло бы подкрашенный фон навсегда.

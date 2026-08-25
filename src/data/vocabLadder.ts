@@ -30,6 +30,7 @@
 
 import type { SeedTask, VocabItem } from './languageCourse'
 import { chamoOf, syllableDistractors } from './hangul'
+import { placeCorrect } from './taskTypes'
 
 /**
  * Хангыль или кана: письмо, которое ученику курса «с нуля» ещё незнакомо.
@@ -139,7 +140,40 @@ export function answerSkeleton(answer: string): string | undefined {
  *   • минимальная пара: та же длина, различие ровно в одном знаке, слово
  *     короче тринадцати знаков (물 / 불).
  */
-export function confusable(a: VocabItem, b: VocabItem): boolean {
+/**
+ * Аффиксы-парадигмы юнита: общее начало или конец, которое есть у ТРЁХ и более
+ * слов набора.
+ *
+ * ЗАЧЕМ. Правило Р5 разводит спутываемое по разным занятиям — и на словах
+ * вроде 안녕히 가세요 / 안녕히 계세요 это верно: два слова, общий кусок, разное
+ * значение, каша. Но ровно тот же признак срабатывает на СЕРИИ: 목요일,
+ * 금요일, 토요일, 일요일 — дни недели, у которых 요일 общее ПО УСТРОЙСТВУ языка.
+ * Разводить их по четырём занятиям бессмысленно вдвойне: система не видна, а
+ * каждое занятие остаётся с одним новым словом (35 таких занятий на девяти
+ * курсах, до правила — 65).
+ *
+ * ГРАНИЦА ПРОСТАЯ: двое — это пара-ловушка, трое и больше — уже система,
+ * которую учат вместе и различают по ПЕРЕМЕННОЙ части. То же у 주세요-просьб,
+ * ~하다-глаголов, португальских -se и que-союзов.
+ */
+export function paradigmAffixes(words: VocabItem[]): Set<string> {
+  const times = new Map<string, number>()
+  for (const w of words) {
+    const chars = Array.from((w.term ?? '').trim())
+    if (chars.length < 3) continue
+    const seen = new Set<string>()
+    for (let n = 2; n < chars.length; n++) {
+      seen.add('^' + chars.slice(0, n).join(''))
+      seen.add('$' + chars.slice(chars.length - n).join(''))
+    }
+    for (const key of seen) times.set(key, (times.get(key) ?? 0) + 1)
+  }
+  const out = new Set<string>()
+  for (const [key, n] of times) if (n >= 3) out.add(key)
+  return out
+}
+
+export function confusable(a: VocabItem, b: VocabItem, paradigm?: Set<string>): boolean {
   const at = (a.term ?? '').trim()
   const bt = (b.term ?? '').trim()
   if (!at || !bt || at === bt) return false
@@ -153,21 +187,51 @@ export function confusable(a: VocabItem, b: VocabItem): boolean {
   if (ar && br && ar === br) return true
   if (ar && br && ar.length <= 24 && br.length <= 24 && (ar.includes(br) || br.includes(ar))) return true
 
+  // БУКВЫ АЛФАВИТА — ВСЕГДА СЕРИЯ. Любые две буквы «различаются одним знаком»
+  // по определению, и правило минимальной пары объявляло спутываемым весь
+  // алфавит: урок «Шесть гласных» разъезжался на шесть занятий по одной букве.
+  // Но буквы и учат КОНТРАСТОМ — ради этого в курсе есть отдельный тип задания
+  // «какой из двух прозвучал». Алфавит — это парадигма в чистом виде.
+  if (isChamo(at) && isChamo(bt)) return false
+
   const A = Array.from(at)
   const B = Array.from(bt)
 
-  // Общее начало / конец. Двух знаков мало самих по себе: в русской фразе
-  // «по-» общее у половины слов. Считаем спутываемым, когда общий кусок ещё и
-  // ЗАНИМАЕТ большую часть короткого слова — как 안녕히 가세요 / 안녕히 계세요,
-  // где совпадает больше половины.
-  const short = Math.min(A.length, B.length)
-  const heavy = (n: number) => n >= 2 && n / short >= 0.4
+  // ЧТО ОСТАЁТСЯ, ЕСЛИ УБРАТЬ ОБЩЕЕ.
+  //
+  // Раньше здесь стояла доля совпадения: общий кусок больше 40% короткого
+  // слова — значит спутываемые. Мера оказалась не про то. «Could you say that
+  // again?» и «Could you show me?» совпадают рамкой вежливости на две трети, а
+  // спутать их нельзя: различаются они целыми словами. И наоборот, 안녕히 가세요
+  // с 안녕히 계세요 — это одна буква разницы, и это настоящая ловушка.
+  //
+  // Поэтому смотрим не на общее, а на ОСТАТОК: срезаем общее начало и общий
+  // конец и сравниваем то, чем слова вообще отличаются. Ловушка — когда
+  // остаток крошечный: один-два знака, да ещё и почти совпадающих (у хангыля
+  // сравниваем по буквам, слог — это до трёх звуков).
+  const series = (mark: '^' | '$', text: string) => !!paradigm?.has(mark + text)
   let head = 0
   while (head < A.length && head < B.length && A[head] === B[head]) head++
-  if (heavy(head)) return true
   let tail = 0
   while (tail < A.length - head && tail < B.length - head && A[A.length - 1 - tail] === B[B.length - 1 - tail]) tail++
-  if (heavy(tail)) return true
+
+  const framed = (head >= 2 && !series('^', A.slice(0, head).join('')))
+    || (tail >= 2 && !series('$', A.slice(A.length - tail).join('')))
+  if (framed) {
+    const restA = A.slice(head, A.length - tail)
+    const restB = B.slice(head, B.length - tail)
+    // Одно слово целиком лежит внутри другого («아파요» внутри «배가 아파요»):
+    // ученик видит знакомый хвост и берёт не ту фразу.
+    if (restA.length === 0 || restB.length === 0) return true
+    // Остаток в один-два знака: 가 против 계, ㅘ против ㅚ.
+    if (restA.length <= 2 && restB.length <= 2) {
+      const ra = restA.some(ch => /[가-힯]/.test(ch)) ? restA.flatMap(chamoOf) : restA
+      const rb = restB.some(ch => /[가-힯]/.test(ch)) ? restB.flatMap(chamoOf) : restB
+      let diff = Math.abs(ra.length - rb.length)
+      for (let i = 0; i < Math.min(ra.length, rb.length); i++) if (ra[i] !== rb[i]) diff++
+      if (diff <= 1) return true
+    }
+  }
 
   // Минимальная пара: одинаковая длина, ровно одно расхождение. Только у
   // коротких форм: две фразы по сорок знаков, различающиеся одной буквой, —
@@ -214,9 +278,11 @@ export function confusable(a: VocabItem, b: VocabItem): boolean {
  * уроков).
  */
 export function spreadConfusable(vocab: VocabItem[], size: number): VocabItem[][] {
+  // Серии юнита (дни недели, ~하다-глаголы, -se) общим куском не конфликтуют.
+  const paradigm = paradigmAffixes(vocab)
   if (vocab.length <= size) {
     // Даже одна порция может содержать пару-конфликт — тогда её честно рвём.
-    const conflicted = vocab.some((w, i) => vocab.slice(0, i).some(x => confusable(w, x)))
+    const conflicted = vocab.some((w, i) => vocab.slice(0, i).some(x => confusable(w, x, paradigm)))
     if (!conflicted) return [vocab]
   }
   const count = Math.max(1, Math.ceil(vocab.length / size))
@@ -235,12 +301,12 @@ export function spreadConfusable(vocab: VocabItem[], size: number): VocabItem[][
    * возвращаются в авторский порядок — он часть содержания.
    */
   const order = vocab
-    .map((word, i) => ({ word, i, deg: vocab.filter(x => x !== word && confusable(word, x)).length }))
+    .map((word, i) => ({ word, i, deg: vocab.filter(x => x !== word && confusable(word, x, paradigm)).length }))
     .sort((a, b) => b.deg - a.deg || a.i - b.i)
 
   const index = new Map(vocab.map((w, i) => [w, i]))
   const fitsIn = (part: VocabItem[], word: VocabItem) =>
-    part.length < size && !part.some(x => confusable(word, x))
+    part.length < size && !part.some(x => confusable(word, x, paradigm))
 
   for (const { word } of order) {
     // Ровные порции: сначала самая пустая из подходящих, чтобы не получилось
@@ -292,9 +358,9 @@ export function spreadConfusable(vocab: VocabItem[], size: number): VocabItem[][
       const part = out[j]
       if (part.length < 2) continue
       for (const guest of part) {
-        if (confusable(guest, word)) continue
+        if (confusable(guest, word, paradigm)) continue
         const rest = part.filter(x => x !== guest)
-        if (rest.some(x => confusable(x, word))) continue
+        if (rest.some(x => confusable(x, word, paradigm))) continue
         part.splice(part.indexOf(guest), 1)
         lone.push(guest)
         moved = true
@@ -437,17 +503,23 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
 
   const round1: SeedTask[] = pool.map((w, i) => {
     const other = partner(i)
-    // Верный ответ то слева, то справа: иначе к третьему заданию порции
+    // Верный ответ то слева, то справа (Р15): иначе к третьему заданию порции
     // ученик отвечает по позиции, а не по значению.
-    const right = i % 2 === 0
-    const choices = right ? [w.ru, other.ru] : [other.ru, w.ru]
+    //
+    // ПОЧЕМУ НЕ «ЧЕРЕЗ ОДНОГО». Раньше сторона считалась как `i % 2 === 0` — по
+    // номеру слова В ПОРЦИИ. В порции из одного слова номер всегда нулевой, и
+    // верный ответ у неё всегда первый; порций из одного-двух слов в курсах
+    // большинство. Общий хелпер считает место от самого вопроса и такого
+    // вырождения не имеет.
+    const question = native
+      ? `Что точно значит «${label(w)}»?`
+      : `Что значит ${label(w)}?`
+    const spread = placeCorrect(question, [w.ru, other.ru], 0)
     return {
       type: 'single',
-      question: native
-        ? `Что точно значит «${label(w)}»?`
-        : `Что значит ${label(w)}?`,
-      choices,
-      correctChoices: [right ? 0 : 1],
+      question,
+      choices: spread.choices,
+      correctChoices: [spread.correct],
     }
   })
 

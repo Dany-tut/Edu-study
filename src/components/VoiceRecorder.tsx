@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { uploadMedia, MediaTooLargeError } from '../lib/mediaStorage'
+import { isAsrAvailable, listen, type AsrSession } from '../lib/asr'
 import { micProblem } from '../lib/micAccess'
 import AudioPlayer from './AudioPlayer'
 import { useT } from '../lib/i18n'
@@ -9,6 +10,16 @@ import { useT } from '../lib/i18n'
 // uploadMedia('voice') в бакет task-media (5A). Наружу отдаёт PATH записи; сам файл
 // проигрывается через AudioPlayer по signed URL. Таймер на setInterval (rAF в
 // превью не работает). Микрофонные дорожки и таймер чистятся при размонтировании.
+//
+// РАСПОЗНАВАНИЕ ПАРАЛЛЕЛЬНО ЗАПИСИ (listenLang). Там, где у задания есть эталон
+// («прочитайте вслух»), одной записи мало: ученику нужен ответ сразу, а не через
+// неделю. Тогда рядом с MediaRecorder слушает SpeechRecognition — оба берут
+// микрофон независимо (см. lib/asr.ts), — и наружу вместе с путём уходит текст,
+// который услышал браузер. Вызывающий сверяет его с эталоном сам.
+//
+// Распознавалки может не быть вовсе (Firefox, приложение на айфоне). Тогда
+// listenLang молча ничего не делает, второй аргумент onChange приходит пустым,
+// и запись ведёт себя ровно как раньше — уходит преподавателю без вердикта.
 
 type Phase = 'idle' | 'recording' | 'uploading' | 'error'
 
@@ -17,11 +28,21 @@ export default function VoiceRecorder({
   onChange,
   maxSeconds = 120,
   accent,
+  listenLang,
 }: {
   /** Путь уже записанного ответа (task-media), если есть. */
   value?: string | null
-  onChange: (path: string | null) => void
+  /**
+   * Готовая запись. `heard` приходит только при заданном listenLang и только
+   * там, где распознавалка есть и что-то расслышала.
+   */
+  onChange: (path: string | null, heard?: string) => void
   maxSeconds?: number
+  /**
+   * Код языка для распознавания (BCP-47: 'ko', 'en-US'). Не задан — микрофон
+   * работает как раньше, без распознавания.
+   */
+  listenLang?: string
   /**
    * Цвет предмета. В домашке запись живёт на общем акценте приложения, а в
    * языковом тренажёре — внутри карточки предмета со своей палитрой, и общий
@@ -41,11 +62,14 @@ export default function VoiceRecorder({
   const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const asrRef = useRef<AsrSession | null>(null)
 
   function cleanupStream() {
     streamRef.current?.getTracks().forEach(tr => tr.stop())
     streamRef.current = null
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    asrRef.current?.cancel()
+    asrRef.current = null
   }
   useEffect(() => cleanupStream, [])
 
@@ -67,6 +91,11 @@ export default function VoiceRecorder({
       rec.onstop = () => { void finish() }
       recRef.current = rec
       rec.start()
+
+      // Слушаем ту же речь второй парой ушей. Отдельная сессия, свой доступ к
+      // микрофону: MediaRecorder её не видит и не мешает ей.
+      if (listenLang && isAsrAvailable()) asrRef.current = listen(listenLang)
+
       setPhase('recording'); setElapsed(0)
       timerRef.current = setInterval(() => {
         setElapsed(s => {
@@ -89,14 +118,32 @@ export default function VoiceRecorder({
     if (rec && rec.state !== 'inactive') rec.stop()
   }
 
+  /**
+   * Дослушать распознавание и забрать текст. Ждём не дольше секунды с
+   * четвертью: браузер закрывает сессию сам, но если он этого почему-то не
+   * сделал, ответ ученика не должен висеть из-за подсказки к нему.
+   */
+  async function takeHeard(): Promise<string> {
+    const session = asrRef.current
+    asrRef.current = null
+    if (!session) return ''
+    session.stop()
+    return Promise.race([
+      session.done,
+      new Promise<string>(res => setTimeout(() => { session.cancel(); res('') }, 1250)),
+    ])
+  }
+
   async function finish() {
     setPhase('uploading')
     const type = recRef.current?.mimeType || 'audio/webm'
     const blob = new Blob(chunksRef.current, { type })
+    // Расшифровку забираем ДО чистки дорожек: cleanupStream гасит сессию.
+    const heard = await takeHeard()
     cleanupStream()
     try {
       const path = await uploadMedia(blob, 'voice')
-      onChange(path)
+      onChange(path, heard)
       setPhase('idle')
     } catch (e) {
       setPhase('error')

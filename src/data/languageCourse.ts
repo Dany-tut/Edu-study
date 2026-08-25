@@ -28,7 +28,7 @@
 // (seedImages.ts). Фотографий в сидах нет — их учитель добавляет сам.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { GAP_MARK, TASK_TYPES } from './taskTypes'
+import { GAP_MARK, TASK_TYPES, placeCorrect } from './taskTypes'
 import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { nestById } from './soundNests'
@@ -283,8 +283,11 @@ export interface LanguageCourseSpec {
 // курса разом, иначе его пришлось бы указывать в каждой строке контента.
 
 /** Один верный вариант. */
-export const one = (question: string, choices: string[], correct: number): SeedTask =>
-  ({ type: 'single', question, choices, correctChoices: [correct] })
+export const one = (question: string, choices: string[], correct: number): SeedTask => {
+  // Место верного ответа считается от вопроса, а не пишется нулём (Р15).
+  const spread = placeCorrect(question, choices, correct)
+  return { type: 'single', question, choices: spread.choices, correctChoices: [spread.correct] }
+}
 
 /** Несколько верных вариантов. */
 export const many = (question: string, choices: string[], correct: number[]): SeedTask =>
@@ -1456,9 +1459,9 @@ function examPool(unitSeen: VocabItem[], introduced: VocabItem[]): VocabItem[] {
  * 4+4+2: урок из двух слов выглядит как оборванный, и ученик читает это как
  * сбой, а не как замысел.
  */
-const PORTION = 4
+const PORTION = 3
 /** Курс с незнакомым письмом: буква и слово из неё — уже два новых элемента. */
-const PORTION_SCRATCH = 3
+const PORTION_SCRATCH = 2
 
 const portionSize = (spec: LanguageCourseSpec): number =>
   spec.scratch ? PORTION_SCRATCH : PORTION
@@ -1767,7 +1770,7 @@ function portionTheory(unit: LangUnit, vocab: VocabItem[], k: number, total: num
  * ПОЧЕМУ НЕ РЕЗАТЬ СЛОВА МЕЛЬЧЕ. Порция и так на потолке (Р1): дробить её
  * дальше — значит плодить занятия с одним словом, а не разгружать работу.
  */
-const LESSON_CAP = 30
+const LESSON_CAP = 22
 
 /**
  * Прикидка генерируемого веса занятия — сколько экранов выйдет ДО единой
@@ -1804,7 +1807,7 @@ function workPortions(parts: VocabItem[][], taskCount: number, firstExtra = 0): 
   const out = [...parts]
   // Потолок на число добавленных занятий: юнит из трёх слов и сотни заданий не
   // должен превращаться в двадцать вечеров подряд по одной теме.
-  while (out.length < parts.length + 4 && load(out) > out.length * LESSON_CAP) out.push([])
+  while (out.length < parts.length + 6 && load(out) > out.length * LESSON_CAP) out.push([])
   return out
 }
 

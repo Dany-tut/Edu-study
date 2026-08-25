@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowDownToLine } from 'lucide-react'
 import { useSmoothCollapse, glassBase } from './MobileDock'
+import ProgressFill from './ProgressFill'
 import { useAppUpdate } from '../lib/appUpdate'
 import { useT } from '../lib/i18n'
 import { tactile } from '../lib/feedback'
@@ -13,7 +14,13 @@ import { TAP_SCALE } from '../lib/mobileTokens'
 // обновы нет, переключатель курсов стоит на своём месте как ни в чём не бывало.
 //
 // Тап заливает таблетку слева направо: снос воркера и чистка кешей занимают
-// секунду-две, и без заливки экран в этот момент выглядит зависшим.
+// секунду-две, и без заливки экран в этот момент выглядит зависшим. Подпись при
+// этом не белеет целиком — её перекрашивает сама заливка (см. ProgressFill).
+
+const LABEL: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 7, minWidth: 0,
+  fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
+}
 
 export default function UpdateDockPill() {
   const t = useT()
@@ -25,6 +32,18 @@ export default function UpdateDockPill() {
 
   const updating = phase === 'updating'
   const pct = Math.min(100, Math.round(progress * 100))
+  // Отступы таблетки во время загрузки: их обязаны повторить копии подписи,
+  // иначе кромка перекраски разъедется с кромкой заливки.
+  const PAD = '0 18px'
+
+  const label = (
+    <>
+      <ArrowDownToLine size={15} strokeWidth={2.3} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {updating ? `${t('Обновляем…')} ${pct}%` : `${t('Есть обновление')}${remote ? ` · ${remote}` : ''}`}
+      </span>
+    </>
+  )
 
   return (
     <motion.button
@@ -49,39 +68,21 @@ export default function UpdateDockPill() {
         // Пока идёт загрузка кнопки нет, и подпись «Обновляем… 100%» вплотную
         // упиралась в кромку: без кнопки правый отступ обязан быть таким же,
         // как левый.
-        height: 46, padding: updating ? '0 18px' : '0 6px 0 16px', maxWidth: 340, minWidth: 0,
+        height: 46, padding: updating ? PAD : '0 6px 0 16px', maxWidth: 340, minWidth: 0,
         borderRadius: 999, cursor: updating ? 'default' : 'pointer',
         transformOrigin: 'bottom center',
         ...glassBase,
       }}
     >
-      {/* Заливка прогресса — под содержимым, поэтому подпись читается всегда.
-          Ширина едет обычным CSS-переходом, а не анимацией framer: полоса
-          должна ползти даже там, где кадры идут туго. */}
-      <span
-        aria-hidden
-        style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0,
-          width: updating ? `${pct}%` : 0,
-          background: 'var(--grad-purple)', opacity: 0.9,
-          transition: 'width 0.18s linear',
-        }}
-      />
-
-      <span
-        className="flex items-center"
-        style={{
-          position: 'relative', gap: 7, minWidth: 0,
-          fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
-          color: updating && pct > 12 ? '#fff' : 'var(--color-text-2)',
-          transition: 'color 0.2s',
-        }}
+      <ProgressFill
+        pct={updating ? pct : null}
+        labelStyle={LABEL}
+        boxStyle={{ display: 'flex', alignItems: 'center', padding: PAD }}
+        color="var(--color-text-2)"
+        fillStyle={{ opacity: 0.9 }}
       >
-        <ArrowDownToLine size={15} strokeWidth={2.3} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {updating ? `${t('Обновляем…')} ${pct}%` : `${t('Есть обновление')}${remote ? ` · ${remote}` : ''}`}
-        </span>
-      </span>
+        {label}
+      </ProgressFill>
 
       {/* Кнопка справа — та же сплошная фиолетовая, что и везде. Во время
           загрузки исчезает: жать больше некуда, работа уже идёт. */}

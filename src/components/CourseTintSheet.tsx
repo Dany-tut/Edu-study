@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import MobileSheet from './MobileSheet'
 import Radio from './Radio'
 import SubjectColorPicker, { type ColorSubject } from './SubjectColorPicker'
+import CourseTintPreview from './CourseTintPreview'
 import { TINT_LEVELS, resolveAccent, subjectKey } from '../lib/courseTint'
 import { useTint } from '../store/tintStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -26,7 +27,7 @@ import { useT } from '../lib/i18n'
 
 const EASE = [0.32, 0.72, 0, 1] as const
 
-export function CourseTintSettings() {
+export function CourseTintSettings({ surface = 'rgba(var(--glass-rgb), 0.98)' }: { surface?: string }) {
   const t = useT()
   const courses = useStudentData(s => s.subjects)
   const level = useTint(s => s.level)
@@ -34,6 +35,10 @@ export function CourseTintSettings() {
   const studentColors = useTint(s => s.studentColors)
   const teacherColors = useTint(s => s.teacherColors)
   const setStudentColor = useTint(s => s.setStudentColor)
+  const activeSubject = useTint(s => s.activeSubject)
+  // Раскрытая строка предмета: пока её примеряют, макет показывает ЕЁ цвет —
+  // иначе выбор цвета немецкого не виден ничем, если открыт корейский курс.
+  const [focusId, setFocusId] = useState<string | null>(null)
 
   // Предметы ученика — по его курсам, без повторов: два английских курса дают
   // одну строку «Английский», цвет у предмета один.
@@ -46,6 +51,10 @@ export function CourseTintSettings() {
     return [...seen.values()]
   }, [courses])
 
+  // Чей цвет в макете: раскрытый предмет → предмет открытого курса → первый.
+  const previewSubject = focusId ?? activeSubject ?? subjects[0]?.id
+  const previewHex = resolveAccent(previewSubject, { student: studentColors, teacher: teacherColors })
+
   const labelStyle: React.CSSProperties = {
     fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)',
     letterSpacing: '0.05em', textTransform: 'uppercase', padding: '0 2px 8px',
@@ -53,7 +62,17 @@ export function CourseTintSettings() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <div>
+      {/* Макет липнет к верху: цвета предметов лежат ниже уровня прокрутки, и
+          без этого выбор цвета менял бы экран за пределами видимости. */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 2,
+        background: surface,
+        paddingBottom: 10,
+      }}>
+        <CourseTintPreview hex={previewHex} level={level} />
+      </div>
+
+      <div style={{ marginTop: -8 }}>
         <div style={labelStyle}>{t('Насколько красить')}</div>
         <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {TINT_LEVELS.map((l, i) => (
@@ -86,6 +105,7 @@ export function CourseTintSettings() {
             baseColor={id => resolveAccent(id, { teacher: teacherColors })}
             onChange={(id, hex) => setStudentColor(id, hex)}
             resetLabel={t('Как у преподавателя')}
+            onOpenChange={setFocusId}
           />
           <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', padding: '10px 4px 0' }}>
             {t('Свой цвет виден только вам — у преподавателя останется его.')}
@@ -158,7 +178,7 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
                 <X size={17} />
               </motion.button>
             </div>
-            <CourseTintSettings />
+            <CourseTintSettings surface="var(--color-bg)" />
           </motion.div>
         </motion.div>
       )}

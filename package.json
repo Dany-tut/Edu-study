@@ -23,6 +23,7 @@
     "postinstall": "prisma generate",
     "build:feed": "node scripts/buildFeed.mjs",
     "check:feed": "node scripts/checkFeed.mjs",
+    "check:logic": "esbuild scripts/checkLogic.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLogic.mjs --log-level=error && node node_modules/.cache/checkLogic.mjs",
     "check:lesson": "esbuild scripts/checkLesson.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLesson.mjs --log-level=error && node node_modules/.cache/checkLesson.mjs"
   },
   "dependencies": {

@@ -28,6 +28,7 @@ export default function SubjectColorPicker({
   baseColor,
   onChange,
   resetLabel,
+  onOpenChange,
 }: {
   subjects: ColorSubject[]
   /** Правки ЭТОГО слоя: id предмета → hex. Пусто — предмет живёт цветом снизу. */
@@ -37,6 +38,8 @@ export default function SubjectColorPicker({
   onChange: (subjectId: string, hex: string | null) => void
   /** «Как в приложении» у учителя, «Как у преподавателя» у ученика. */
   resetLabel: string
+  /** Раскрытая строка — по ней превью в настройках понимает, чей цвет показывать. */
+  onOpenChange?: (subjectId: string | null) => void
 }) {
   const t = useT()
   const [openId, setOpenId] = useState<string | null>(null)
@@ -53,7 +56,7 @@ export default function SubjectColorPicker({
           <div key={s.id} style={{ borderTop: i ? '1px solid var(--color-border-soft)' : 'none' }}>
             <motion.button
               whileTap={{ scale: 0.99 }}
-              onClick={() => { tactile(); setOpenId(open ? null : s.id) }}
+              onClick={() => { tactile(); const next = open ? null : s.id; setOpenId(next); onOpenChange?.(next) }}
               className="flex items-center justify-between cursor-pointer"
               style={{ width: '100%', height: 56, padding: '0 15px', background: 'transparent', border: 'none' }}
               aria-expanded={open}

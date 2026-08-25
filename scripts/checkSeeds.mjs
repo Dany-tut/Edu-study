@@ -47,7 +47,7 @@ const NODE_MODULES = new URL('../node_modules', import.meta.url).pathname
  * Забытый здесь курс виден сразу — реестр сверяется с COURSE_SEEDS ниже.
  */
 const MODULES = {
-  endc: 'englishDesignCareer', ielt: 'englishIelts', ensv: 'survivalEn',
+  endc: 'englishDesignCareer', enac: 'englishAdvanced', ielt: 'englishIelts', ensv: 'survivalEn',
   kohg: 'koreanHangul', kotp: 'koreanTopik', kot2: 'koreanTopik2', kosv: 'survivalKo',
   jajl: 'japaneseJlpt', jan3: 'japaneseJlptN3', jasv: 'survivalJa',
   ptbr: 'portugueseCelpe', ptb2: 'portugueseIntermediate', ptsv: 'survivalPt',

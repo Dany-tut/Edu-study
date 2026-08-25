@@ -94,6 +94,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {mode !== 'newpassword' && (
             <input
+              className="auth-input"
               type="email"
               placeholder="Email"
               value={email}
@@ -118,6 +119,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
           {mode !== 'reset' && (
           <div style={{ position: 'relative' }}>
             <input
+              className="auth-input"
               type={showPassword ? 'text' : 'password'}
               placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
               value={password}

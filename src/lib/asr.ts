@@ -105,3 +105,67 @@ export function asrNormalize(s: string): string {
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
 }
+
+/**
+ * Сверка услышанного с эталоном. Одна на два места: подсказку в шэдоуинге и
+ * вердикт устного задания домашки.
+ *
+ * ЧТО СРАВНИВАЕТСЯ. Слова, приведённые asrNormalize: регистр и пунктуация не в
+ * счёт. Распознавалка не ставит запятых и пишет числа то цифрами, то словами —
+ * придираться к этому значит наказывать за чужую особенность.
+ *
+ * ЯЗЫКИ БЕЗ ПРОБЕЛОВ. В японском и китайском эталон — сплошная строка, и
+ * разбор по словам выродился бы в один токен: любое расхождение в одном знаке
+ * давало бы «не совпало ни в чём». Там, где пробелов нет ни с одной стороны,
+ * сверка идёт склеенными строками.
+ *
+ * СТРОГОСТЬ ВЫБИРАЕТ ВЫЗЫВАЮЩИЙ. `matched` — полное совпадение, слово в слово
+ * и в том же порядке. `missing` пуст — эталон прозвучал целиком, но говорящий
+ * мог добавить своего («ну», «эээ», повтор). Для вердикта домашки годится
+ * второе: распознавалка дописывает лишнее чаще, чем ученик ошибается.
+ */
+export interface HeardCompare {
+  /** Слова эталона. */
+  want: string[]
+  /** Слова, которые услышала распознавалка. */
+  got: string[]
+  /** Слово в слово и в том же порядке. */
+  matched: boolean
+  /** Слова эталона, которых не прозвучало. */
+  missing: string[]
+  /** Быстрый ответ на «это слово вообще ждали?» — для подсветки. */
+  wanted: Set<string>
+}
+
+export function compareHeard(heard: string, target: string): HeardCompare {
+  const want = asrNormalize(target).split(' ').filter(Boolean)
+  const got = asrNormalize(heard).split(' ').filter(Boolean)
+
+  // Письмо без пробелов: сравниваем склейку, чтобы «один токен против одного
+  // токена» не превращал любую мелочь в полное расхождение.
+  if (want.length <= 1 && got.length <= 1) {
+    const a = want.join('')
+    const b = got.join('')
+    const same = a.length > 0 && a === b
+    return {
+      want, got, matched: same,
+      missing: same || !a ? [] : want,
+      wanted: new Set(want),
+    }
+  }
+
+  const gotSet = new Set(got)
+  return {
+    want, got,
+    matched: want.length === got.length && want.every((w, i) => w === got[i]),
+    missing: want.filter(w => !gotSet.has(w)),
+    wanted: new Set(want),
+  }
+}
+
+/** Прозвучал ли эталон целиком. Лишнее сказанное ошибкой не считается. */
+export function heardCovers(heard: string, target: string): boolean {
+  if (!heard.trim() || !target.trim()) return false
+  const cmp = compareHeard(heard, target)
+  return cmp.want.length > 0 && cmp.missing.length === 0
+}

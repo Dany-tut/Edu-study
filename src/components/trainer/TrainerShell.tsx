@@ -45,7 +45,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Check, SlidersHorizontal, Layers, Link2, Share2 } from 'lucide-react'
+import { ChevronDown, Search, Check, SlidersHorizontal, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { copyToClipboard } from '../../lib/clipboard'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
@@ -171,14 +171,15 @@ export type TrainerNav = {
   accent?: string
 }
 
-export default function TrainerShell({ rail, toolbar, share, shareAccent, narrowLead, narrowPlayer, nav, children }: {
+export default function TrainerShell({ rail, toolbar, share, shareAccent, help, narrowLead, narrowPlayer, nav, children }: {
   /** Карточки рейла — обычно SubjectHero + RailCard'ы. */
   rail: React.ReactNode
   /** Строка управления над содержимым. */
   toolbar?: React.ReactNode
   /**
-   * Адрес этого экрана. Есть адрес — в правом краю строки управления стоит
-   * кнопка «поделиться» (см. ShareCircle). Своим местом в скелете, а не в
+   * Адрес этого экрана. Есть адрес — есть «поделиться»: на большом экране
+   * кружком в правом краю строки управления (ShareCircle), на телефоне —
+   * строкой внизу шторки настроек (ShareRow). Своим местом в скелете, а не в
    * каждой строке управления: экранов у тренажёра под два десятка, у части из
    * них строки нет вовсе, и кнопка, расставленная по местам вручную, честно
    * держалась бы ровно там, где про неё не забыли.
@@ -189,6 +190,15 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, narrow
    * не из nav: у читалки и аудирования своего nav нет вовсе, а палитра есть.
    */
   shareAccent?: string
+  /**
+   * Онбординг этого экрана — «Подсказки».
+   *
+   * ВНИЗУ ШТОРКИ НАСТРОЕК, А НЕ В СТРОКЕ УПРАВЛЕНИЯ. Рассказ про интерфейс
+   * нужен один раз, а место в строке он занимал всегда — и ровно он переносил
+   * её на второй ряд на телефоне. Рядом с адресом экрана ему и место: оба —
+   * про сам экран, а не про работу на нём.
+   */
+  help?: () => void
   /** Режимы и половины — для нижней навигации телефона. */
   nav?: TrainerNav
   /**
@@ -232,8 +242,13 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, narrow
    * (гнездо созвучий, основа глагола, корень, набор счёта) строки управления
    * нет, и без этого «поделиться» на них было бы нечем — ровно на тех экранах,
    * которые чаще всего и присылают.
+   *
+   * НА ТЕЛЕФОНЕ АДРЕС ЖИВЁТ НЕ ЗДЕСЬ, а внизу шторки настроек (см. footer
+   * ниже): в строке он съедал ширину, которой не хватало кнопкам работы, и
+   * «Подсказки» уезжали на второй ряд. Строка обязана быть в одну строку —
+   * она прилипшая, и второй ряд отъедает у текста ещё двадцать пикселей.
    */
-  const bar = toolbar || share
+  const bar = !!toolbar || (!!share && !narrow)
   const railRef = useRef<HTMLElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
 
@@ -316,6 +331,23 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, narrow
             open={sheet}
             onClose={() => setSheet(false)}
             title={t(nav?.modes.find(m => m.id === nav.mode)?.label ?? 'Фильтры')}
+            /* Адрес экрана и подсказки — прикреплённой строкой внизу шторки, а
+               не карточками в её теле: у читалки под настройками лежит словарь
+               текста на полсотни строк, и обе кнопки оказались бы за прокруткой
+               ровно тогда, когда их ищут. Прикреплённый низ виден всегда.
+               Подсказки закрывают шторку за собой: рассказ идёт по экрану, и
+               смотреть его из-под шторки нечем. */
+            footer={share || help ? (
+              <div style={{ display: 'flex', alignItems: 'stretch', gap: 10 }}>
+                {share && <ShareRow url={share} accent={shareAccent ?? nav?.accent} />}
+                {help && (
+                  <HelpButton
+                    wide={!share}
+                    onClick={() => { setSheet(false); help() }}
+                  />
+                )}
+              </div>
+            ) : undefined}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{rail}</div>
           </MobileSheet>
@@ -400,7 +432,7 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, narrow
             быть вовсе. */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>{toolbar}</div>
-          {share && <ShareCircle url={share} accent={shareAccent ?? nav?.accent} />}
+          {share && !narrow && <ShareCircle url={share} accent={shareAccent ?? nav?.accent} />}
         </div>
         </div>
         )}
@@ -487,12 +519,14 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, narrow
  * половина отправок и заканчивается. Где листа нет (десктоп, старый webview) —
  * копируем, и это честно написано в подсказке.
  *
- * КРУЖОК БЕЗ ПОДПИСИ И ПО ПРАВОМУ КРАЮ. Слово «Поделиться» в одном ряду с «К
- * списку» и «С разбором» весило бы столько же, сколько они, — а это действие
- * редкое и служебное: место ему с краю, размер — с иконку, подпись отдана
- * заголовку при наведении.
+ * ДВА МЕСТА, ОДНО ДЕЙСТВИЕ. На большом экране — кружок по правому краю строки
+ * управления (ShareCircle): слово «Поделиться» в одном ряду с «К списку» и
+ * «Разбор» весило бы столько же, сколько они, а действие это редкое и
+ * служебное. На телефоне ширины строки нет вовсе — там адрес живёт строкой
+ * внизу шторки настроек (ShareRow), и строка управления остаётся под работу.
+ * Общий код у обоих — здесь.
  */
-function ShareCircle({ url, accent }: { url: string; accent?: string }) {
+function useShareAction(url: string) {
   const t = useT()
   const narrow = useNarrow()
   const [done, setDone] = useState(false)
@@ -527,6 +561,73 @@ function ShareCircle({ url, accent }: { url: string; accent?: string }) {
   const label = done
     ? (sheet ? t('Готово') : t('Ссылка скопирована'))
     : (sheet ? t('Поделиться') : t('Скопировать ссылку'))
+
+  return { onClick, label, done, sheet }
+}
+
+/**
+ * Тот же адрес строкой — низ шторки настроек на телефоне.
+ *
+ * ПОЧЕМУ НЕ КРУЖОК. В строке управления «поделиться» — сосед кнопок работы, и
+ * подпись там весила бы столько же, сколько они. В шторке соседей нет: строка
+ * стоит одна на всю ширину, и значок без подписи в ней читался бы как загадка.
+ */
+function ShareRow({ url, accent }: { url: string; accent?: string }) {
+  const { onClick, label, done, sheet } = useShareAction(url)
+  const tint = accent ?? MENU_ACCENT
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        flex: 1, minWidth: 0, padding: '13px 16px', borderRadius: 16,
+        cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 650,
+        border: `1px solid ${done ? tint : 'var(--color-border-medium)'}`,
+        background: 'transparent',
+        color: done ? tint : 'var(--color-text-2)',
+      }}
+    >
+      {done ? <Check size={16} /> : sheet ? <Share2 size={16} /> : <Link2 size={16} />}
+      {label}
+    </button>
+  )
+}
+
+/**
+ * «?» — подсказки по экрану, рядом с адресом внизу шторки настроек.
+ *
+ * ЗНАЧКОМ, А НЕ СЛОВОМ. Рядом с «Поделиться» подпись «Подсказки» читалась бы
+ * как второе равноправное действие, хотя это разовый рассказ про интерфейс:
+ * знак вопроса — общее место, его узнают без подписи. Слово остаётся, когда
+ * кнопка стоит одна (адреса у экрана нет) — одинокий значок на всю ширину
+ * подвала выглядел бы загадкой.
+ */
+function HelpButton({ onClick, wide }: { onClick: () => void; wide?: boolean }) {
+  const t = useT()
+  const label = t('Подсказки')
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        // Вровень с «Поделиться»: высоту берём от соседа (stretch), а не числом.
+        ...(wide ? { flex: 1, padding: '13px 16px' } : { alignSelf: 'stretch', width: 46, flexShrink: 0 }),
+        borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 650,
+        border: '1px solid var(--color-border-medium)', background: 'transparent',
+        color: 'var(--color-text-2)',
+      }}
+    >
+      <HelpCircle size={wide ? 16 : 19} />
+      {wide && label}
+    </button>
+  )
+}
+
+function ShareCircle({ url, accent }: { url: string; accent?: string }) {
+  const { onClick, label, done, sheet } = useShareAction(url)
   const on = done ? (accent ?? MENU_ACCENT) : 'var(--color-text-2)'
 
   return (
@@ -1151,19 +1252,37 @@ export function StatusTabs({ options, value, onChange, accent }: {
 }
 
 /** Кнопка-таблетка строки: вид, избранное, назад. */
-export function ToolButton({ children, on, onClick, accent, btnRef }: {
+export function ToolButton({ children, on, onClick, accent, btnRef, icon, label }: {
   children: React.ReactNode; on?: boolean; onClick: () => void; accent?: string
   /** Кнопку бывает нужно показать в онбординге — отсюда доступ к её узлу. */
   btnRef?: React.RefObject<HTMLButtonElement | null>
+  /**
+   * Только значок, без подписи — кружок вровень с таблетками строки.
+   *
+   * Для действий, которые называть словом дороже, чем показывать: «Подсказки»
+   * рядом с «К списку» и «Разбор» читались как третий равноправный режим, хотя
+   * это служебная кнопка, и именно она переносила строку на второй ряд.
+   * Знак вопроса понятен и без подписи — подпись уходит в title и озвучку.
+   */
+  icon?: boolean
+  /** Название действия для значка без подписи: подсказка мыши и экранный диктор. */
+  label?: string
 }) {
   return (
     <button
       ref={btnRef}
       onClick={onClick}
+      title={label}
+      aria-label={label}
       style={{
         // Как «Избранное» в банке: 10×14, кегль 12 — тогда таблетка встаёт вровень
         // с поиском и группой статусов, а не оказывается на два пикселя ниже.
-        display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
+        // Значок без подписи — круг 40×40: ровно та высота, которую даёт
+        // таблетка с подписью (10 + строка 18 + 10 + рамка), то есть кнопка
+        // встаёт с соседями вровень, а не проваливается на четыре пикселя.
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        padding: icon ? 0 : '10px 14px', borderRadius: 999,
+        ...(icon ? { width: 40, height: 40, flexShrink: 0 } : null),
         cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
         border: `1px solid ${on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-border-medium)'}`,
         background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,

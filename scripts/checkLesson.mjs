@@ -16,19 +16,33 @@
 //   Р9  в СГЕНЕРИРОВАННЫХ заданиях по словарю (лестница, узнавание, картинки)
 //       не больше одной обманки, которой ученик ещё не видел;
 //   Р13 не больше двух заданий одного типа подряд — кроме карточек знакомства:
-//       порция и есть три-четыре карточки подряд, это замысел (Р3).
+//       порция и есть три-четыре карточки подряд, это замысел (Р3);
+//   Р15 верный ответ не стоит систематически первым в списке вариантов.
 //
 // ЧЕГО НЕ ПРОВЕРЯЕМ. Смысла заданий и качества формулировок — это не работа
 // сторожа. Он ловит структуру: то, что видно из данных и всегда неверно.
 //
 // Запуск: npm run check:lesson
 import { COURSE_SEEDS } from '../src/data/courseSeeds.ts'
-import { confusable } from '../src/data/vocabLadder.ts'
+import { confusable, paradigmAffixes } from '../src/data/vocabLadder.ts'
 
 const PORTION = 4
 const PORTION_SCRATCH = 3
 const MAX_PAIRS = 4
 const MAX_SAME_TYPE_RUN = 2
+
+/**
+ * Запас к ожидаемой доле первого места (Р15).
+ *
+ * Ожидаемое считается по самому курсу: у вопроса на N вариантов верный ответ
+ * попадает на первое место с вероятностью 1/N, и у курса из одних вопросов «из
+ * двух» ожидание честные 50%. Сравнивать с фиксированным числом нельзя — оно
+ * или пропускает перекос, или ругается на курс, где вопросы короткие.
+ *
+ * Десять пунктов — это уже не разброс, а привычка автора писать
+ * `[верный, ...обманки]` и `correct = 0`.
+ */
+const FIRST_PLACE_SLACK = 0.10
 
 /** Курсы «с нуля» — у них порция меньше (см. LanguageCourseSpec.scratch). */
 const SCRATCH_KEYS = new Set(['kohg', 'jajl'])
@@ -91,6 +105,16 @@ for (const seed of COURSE_SEEDS) {
   const cap = SCRATCH_KEYS.has(seed.key) ? PORTION_SCRATCH : PORTION
   const native = NATIVE_KEYS.has(seed.key)
   let lessons = 0
+
+  // Серии языка (английские «to …», корейские дни недели и ~하다-глаголы) ищутся
+  // по СЛОВАРЮ ВСЕГО КУРСА, а не по одному занятию: в занятии из трёх слов
+  // серия из пяти не видна, и её общий кусок читался бы как ловушка (Р5).
+  const paradigm = paradigmAffixes(
+    course.lessons.flatMap(l => (l.hwTasks ?? [])
+      .filter(t => t.type === 'flashcard')
+      .map(cardWord)
+      .filter(w => w.term && w.ru)),
+  )
   // Всё, что ученик видел в этом курсе РАНЬШЕ: обманка из прошлого занятия —
   // знакомое слово, и правило Р9 её не запрещает (запрещает незнакомое).
   //
@@ -99,12 +123,27 @@ for (const seed of COURSE_SEEDS) {
   // превращал проверку в десятки минут. Здесь достаточно точного совпадения:
   // варианты собираются генератором из тех же полей, что легли в множество.
   const seenBefore = new Set()
+  // Р15 — счётчики места верного ответа по всему курсу.
+  let choiceTotal = 0
+  let firstPlace = 0
+  /** Сумма 1/N по вопросам: сколько первых мест дал бы честный разброс. */
+  let expectedFirst = 0
 
   for (const lesson of course.lessons) {
     const tasks = lesson.hwTasks ?? []
     if (tasks.length === 0) continue
     lessons++
     const where = `${seed.key} · ${lesson.title}`
+
+    // Р15 — где стоит верный ответ. Только одиночный выбор: у множественного
+    // верных несколько, и «первое место» там ничего не значит.
+    for (const task of tasks) {
+      const choices = task.choices ?? []
+      if (task.type !== 'single' || choices.length < 2) continue
+      choiceTotal++
+      expectedFirst += 1 / choices.length
+      if ((task.correctChoices ?? [])[0] === 0) firstPlace++
+    }
 
     const cards = tasks.filter(t => t.type === 'flashcard')
     const words = cards.map(t => cardWord(t, native)).filter(w => w.term && w.ru)
@@ -114,10 +153,11 @@ for (const seed of COURSE_SEEDS) {
       fail(where, `новых слов ${cards.length}, потолок ${cap} (Р1)`)
     }
 
-    // Р5 — спутываемое в одном уроке.
+    // Р5 — спутываемое в одном уроке. Серия (дни недели, ~하다-глаголы) общим
+    // куском не считается: её и учат вместе, различая переменную часть.
     for (let i = 0; i < words.length; i++) {
       for (let j = i + 1; j < words.length; j++) {
-        if (confusable(words[i], words[j])) {
+        if (confusable(words[i], words[j], paradigm)) {
           fail(where, `спутываемые слова в одном уроке: «${words[i].term}» и «${words[j].term}» (Р5)`)
         }
       }
@@ -196,6 +236,19 @@ for (const seed of COURSE_SEEDS) {
       }
     }
   }
+  // Р15 — место верного ответа. Считаем по всему курсу, а не по уроку: в одном
+  // уроке вопросов с выбором три-четыре, и «два из трёх на первом месте» — это
+  // не перекос, а совпадение. Перекос виден только на всём курсе.
+  if (choiceTotal >= 20) {
+    const share = firstPlace / choiceTotal
+    const chance = expectedFirst / choiceTotal
+    if (share > chance + FIRST_PLACE_SLACK) {
+      fail(seed.key, `верный ответ на первом месте в ${Math.round(share * 100)}% вопросов с выбором `
+        + `(${firstPlace} из ${choiceTotal}); сам набор вопросов даёт ${Math.round(chance * 100)}% — `
+        + `позиция считается от слова, а не пишется нулём (Р15)`)
+    }
+  }
+
   console.log(`${seed.key}: уроков ${lessons}`)
 }
 
