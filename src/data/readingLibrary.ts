@@ -67,6 +67,8 @@ export interface ReadingText {
   credit?: string
 }
 
+import { KO_TEXTS } from './readingKo'
+
 // ─── Английский: рабочие ситуации под курс «Карьера дизайнера» ───────────────
 
 const EN: ReadingText[] = [
@@ -1636,7 +1638,8 @@ const RU: ReadingText[] = [
   },
 ]
 
-export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...JA, ...PT, ...DE, ...RU, ...MORE]
+// Корейский растёт отдельным файлом — темы для фильтра «Тема» (см. readingKo).
+export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...KO_TEXTS, ...JA, ...PT, ...DE, ...RU, ...MORE]
 
 /** Тексты нужного языка, по возрастанию уровня. */
 export function textsForLang(lang: string): ReadingText[] {

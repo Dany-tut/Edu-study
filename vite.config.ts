@@ -4,21 +4,25 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
-// Human-readable build id shown on the crash screen (e.g. "1.0.0·a1b2c3d") so a
-// user report can be pinned to an exact build. Falls back gracefully if git or
-// package.json isn't available at build time.
-const pkgVersion = (() => {
-  try { return JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version || '0.0.0' }
-  catch { return '0.0.0' }
+// Версия сборки. Номер (`1.0.<N>`, N — порядковый номер коммита) штампуется в
+// public/version.json ХУКОМ pre-commit и едет внутри самого коммита, поэтому
+// здесь он просто читается из файла: на Vercel клон мелкий и `rev-list --count`
+// соврал бы. Тот же файл лежит в dist корнем — приложение тянет /version.json и
+// сравнивает с этой вшитой цифрой, чтобы понять, доехала ли обнова.
+const buildInfo = (() => {
+  try { return JSON.parse(readFileSync(new URL('./public/version.json', import.meta.url), 'utf8')) }
+  catch { return { build: 0, version: '1.0.0' } }
 })()
 const gitHash = (() => {
   try { return execSync('git rev-parse --short HEAD').toString().trim() }
-  catch { return 'dev' }
+  catch { return (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || 'dev' }
 })()
 
 export default defineConfig({
   define: {
-    __APP_VERSION__: JSON.stringify(`${pkgVersion}·${gitHash}`),
+    __APP_VERSION__: JSON.stringify(`${buildInfo.version}·${gitHash}`),
+    __APP_BUILD__: JSON.stringify(Number(buildInfo.build) || 0),
+    __APP_COMMIT__: JSON.stringify(gitHash),
   },
   plugins: [
     react(),

@@ -57,6 +57,7 @@ import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_FIGURES_EXTRA } from './koreanTopikFigures'
 import { KOREAN_VIDEO_EXTRA } from './languageVideos'
 import { KOTP_HOMEWORK_VIDEO } from './homeworkVideos'
+import { KOTP_DIALOGS } from './languageDialogs'
 
 // Порядок юнитов выстроен по принципу, который вытащен из разбора TTMIK:
 // сначала всё, что цепляется к голой основе глагола (не требует выбора 아/어),
@@ -2195,6 +2196,18 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   level: 'С нуля → TOPIK I (1급–2급)',
   // Письмо незнакомо: порция нового у такого курса — три элемента (Р1).
   scratch: true,
+  /**
+   * Письмо закрыто вторым юнитом (Р6): первый — проверка хангыля, второй —
+   * правила чтения. Дальше знак идёт БЕЗ транскрипции.
+   *
+   * ЗАЧЕМ ЭТО ПОЛЕ ЗДЕСЬ. Без него курс «с нуля» держит стадию B до последнего
+   * урока: 한국어 всю дорогу подписано «хангуго». Для того, кто ещё не читает,
+   * это опора; для того, кто прошёл два юнита про чтение, — костыль, который
+   * читают ВМЕСТО хангыля (обратный эффект опытности, Kalyuga et al. 2003).
+   * Курс к TOPIK I обязан выпускать читающего человека, а читать не научится
+   * тот, кому каждый раз подписывают ответ.
+   */
+  scriptReadyFrom: 3,
   lang: 'ko',
   // ЧАСЫ — ЭТО ОБЪЁМ КУРСА, А НЕ ПУТЬ ДО УРОВНЯ.
   //
@@ -2221,6 +2234,7 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   figures: { ...KOREAN_FIGURES, ...KOREAN_FIGURES_EXTRA },
   // Живая речь в домашке — подкасты и шоу (см. homeworkVideos.ts).
   homeworkVideos: KOTP_HOMEWORK_VIDEO,
+  dialogs: KOTP_DIALOGS,
 }
 
 export const COURSE_SUMMARY = courseSummary(KOREAN_TOPIK)

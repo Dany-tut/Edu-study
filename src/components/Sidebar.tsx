@@ -16,6 +16,7 @@ import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import FeedbackModal from './FeedbackModal'
+import AppVersionRow from './AppVersionRow'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
@@ -533,6 +534,9 @@ export default function Sidebar() {
                       danger
                       onClick={() => { clearStudentSession(); void trackNow('logout', { role: 'student' }); void supabase.auth.signOut(); window.location.hash = '#/'; window.location.reload(); closePicker() }}
                     />
+                    {/* Подвал меню: номер сборки этого устройства + проверка обновления */}
+                    <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 8px 4px' }} />
+                    <AppVersionRow variant="compact" />
                   </div>
 
                   {/* Settings panel: slides out to the right of the main panel. */}

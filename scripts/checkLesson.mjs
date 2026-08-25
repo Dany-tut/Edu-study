@@ -33,13 +33,25 @@ const MAX_SAME_TYPE_RUN = 2
 /** Курсы «с нуля» — у них порция меньше (см. LanguageCourseSpec.scratch). */
 const SCRATCH_KEYS = new Set(['kohg', 'jajl'])
 
+/**
+ * Курсы РОДНОГО языка: карточка в них перевёрнута (см. LanguageCourseSpec.native).
+ *
+ * ЗАЧЕМ СТОРОЖУ ЭТО ЗНАТЬ. На лице карточки родного курса стоит ТОЛКОВАНИЕ, а
+ * слово — на обороте. Читая их как «слово / перевод», сторож сравнивал на
+ * спутываемость два толкования — и находил общее начало там, где его находит
+ * любая пара русских фраз одной темы («канцелярская замена…» / «канцелярское…»).
+ * Генератор (spreadConfusable) сравнивает настоящие слова и таких пар не видит:
+ * сторож обязан мерить ровно то же, что генератор.
+ */
+const NATIVE_KEYS = new Set(['ruzh', 'ruvo', 'rulit'])
+
 let problems = 0
 const fail = (where, msg) => { console.log(`  ✗ ${where}: ${msg}`); problems++ }
 
 /** Слово карточки: у обычного курса на лице term, у родного — толкование. */
-const cardWord = task => ({
-  term: (task.front ?? '').trim(),
-  ru: (task.back ?? '').trim(),
+const cardWord = (task, native = false) => ({
+  term: ((native ? task.back : task.front) ?? '').trim(),
+  ru: ((native ? task.front : task.back) ?? '').trim(),
   reading: task.reading,
 })
 
@@ -70,6 +82,7 @@ for (const seed of COURSE_SEEDS) {
     continue
   }
   const cap = SCRATCH_KEYS.has(seed.key) ? PORTION_SCRATCH : PORTION
+  const native = NATIVE_KEYS.has(seed.key)
   let lessons = 0
   // Всё, что ученик видел в этом курсе РАНЬШЕ: обманка из прошлого занятия —
   // знакомое слово, и правило Р9 её не запрещает (запрещает незнакомое).
@@ -82,7 +95,7 @@ for (const seed of COURSE_SEEDS) {
     const where = `${seed.key} · ${lesson.title}`
 
     const cards = tasks.filter(t => t.type === 'flashcard')
-    const words = cards.map(cardWord).filter(w => w.term && w.ru)
+    const words = cards.map(t => cardWord(t, native)).filter(w => w.term && w.ru)
 
     // Р1 — порция нового.
     if (cards.length > cap) {
@@ -102,7 +115,7 @@ for (const seed of COURSE_SEEDS) {
     const shownAt = new Map()
     tasks.forEach((task, i) => {
       if (task.type !== 'flashcard') return
-      const w = cardWord(task)
+      const w = cardWord(task, native)
       if (w.term && !shownAt.has(w.term)) shownAt.set(w.term, i)
     })
 
@@ -148,14 +161,17 @@ for (const seed of COURSE_SEEDS) {
 
     seenBefore += ' ' + tasks.map(taskText).join(' ')
 
-    // Р13 — однотипные подряд. Исключены две вещи, где серия — это замысел:
-    // карточки знакомства (порция и есть блок из трёх-четырёх карточек, Р3) и
+    // Р13 — однотипные подряд. Исключены три вещи, где серия — это замысел:
+    // карточки знакомства (порция и есть блок из трёх-четырёх карточек, Р3),
     // круг лестницы (одна ступень = одно задание на каждое слово порции, и
-    // тип у круга по определению один, Р2).
+    // тип у круга по определению один, Р2) и группа вопросов к ОДНОМУ отрывку
+    // (решатель показывает текст один раз на всю группу — это одно упражнение
+    // из нескольких вопросов, а не пять одинаковых экранов подряд).
     let run = 1
     for (let i = 1; i < tasks.length; i++) {
       const ladder = /-l\d+$/.test(tasks[i].id ?? '')
-      if (tasks[i].type === 'flashcard' || ladder) { run = 1; continue }
+      const samePassage = !!tasks[i].passage && tasks[i].passage === tasks[i - 1].passage
+      if (tasks[i].type === 'flashcard' || ladder || samePassage) { run = 1; continue }
       run = tasks[i].type === tasks[i - 1].type ? run + 1 : 1
       if (run > MAX_SAME_TYPE_RUN) {
         fail(where, `${run} заданий типа «${tasks[i].type}» подряд, потолок ${MAX_SAME_TYPE_RUN} (Р13)`)

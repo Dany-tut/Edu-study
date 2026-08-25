@@ -47,6 +47,12 @@ const EN: Record<string, string> = {
   'ср. ДЗ': 'avg HW',
   'Обратная связь': 'Feedback',
   'Установить приложение': 'Install app',
+  'Проверить обновление': 'Check for update',
+  'Проверяем…': 'Checking…',
+  'Обновляем…': 'Updating…',
+  'Последняя версия': 'Up to date',
+  'Доступна': 'Available',
+  'Не удалось проверить': 'Check failed',
   'Выйти из аккаунта': 'Log out',
   'Переключить тему': 'Toggle theme',
   'Все': 'All',
@@ -2101,6 +2107,15 @@ const EN: Record<string, string> = {
   "Послушать текст": "Listen to the text",
   "Кнопка читает текст вслух целиком. «Медленно» — тот же голос вдвое медленнее, для первого прохода.":
     "The button reads the whole text aloud. \"Slow\" is the same voice at half speed, for the first pass.",
+  "Плеер стоит внизу экрана: круг включает голос, бегунок ведёт по репликам, а темп и диктор — под кнопкой справа.":
+    "The player sits at the bottom of the screen: the circle starts the voice, the slider moves line by line, and speed and narrator live under the button on the right.",
+  // — Плеер разбора на телефоне (нижняя строка дока) —
+  "Чтение вслух": "Read aloud",
+  "Промотка чтения": "Reading position",
+  "Настройки чтения": "Reading settings",
+  "фрагмент": "fragment",
+  "Медленно": "Slow",
+  "Обычно": "Normal",
   "Ключевые слова": "Key words",
   "Слова, ради которых текст и написан. Нажми, чтобы раскрыть перевод, — их же можно забрать в колоду на вкладке «Карточки».":
     "The words this text was written for. Tap one to reveal its translation — the same words can be pulled into your deck on the Cards tab.",

@@ -40,6 +40,7 @@ import {
 } from './languageCourse'
 import { ENAC_THEORY } from './englishAdvancedTheory'
 import { ENAC_READING } from './englishAdvancedReading'
+import { ENAC_DIALOGS } from './languageDialogs'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -2002,6 +2003,7 @@ export const ENGLISH_ADVANCED_SPEC: LanguageCourseSpec = {
   scopeNote:
     'Общий английский уровня, а не подготовка к экзамену и не карьерный курс: точность формы, регистр, идиоматичность, аргументация и восприятие беглой речи. Вход — уверенный B2: человек уже строит верные предложения и хочет выбирать между ними осознанно. Закрывает то, чего нет ни в «Английском для дизайнера» (A2→B1), ни в курсе IELTS: косвенную речь и глаголы речи, инверсию, причастные обороты, продвинутую модальность, расщеплённые предложения, исчисляемость, управляющие предлоги и фразовые глаголы как систему. Экзаменационных форматов здесь нет — за ними в курс IELTS.',
   modules: ENAC_MODULES,
+  dialogs: ENAC_DIALOGS,
   // Конспекты и отрывки для чтения живут отдельными картами по shortId: здесь —
   // структура, словарь и упражнения, там — то, что ученик читает.
   units: ENGLISH_ADVANCED.map(u => ({

@@ -36,6 +36,7 @@ import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { ENDC_FIGURES_EXTRA } from './englishDesignCareerFigures'
 import { ENDC_VIDEO_EXTRA } from './languageVideos'
 import { ENDC_HOMEWORK_VIDEO } from './homeworkVideos'
+import { ENDC_DIALOGS } from './languageDialogs'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
 //
@@ -1356,6 +1357,7 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
   figures: { ...ENDC_FIGURES, ...ENDC_FIGURES_EXTRA },
   // Живая речь в домашке — см. homeworkVideos.ts.
   homeworkVideos: ENDC_HOMEWORK_VIDEO,
+  dialogs: ENDC_DIALOGS,
 }
 
 /** Все слова курса — основа словарной колоды и интервальных повторений. */

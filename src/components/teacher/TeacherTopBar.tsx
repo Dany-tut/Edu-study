@@ -18,6 +18,7 @@ import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import FeedbackModal from '../FeedbackModal'
+import AppVersionRow from '../AppVersionRow'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useTheme } from '../../store/themeStore'
@@ -567,6 +568,10 @@ export default function TeacherTopBar() {
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: dark ? '#FC8181' : '#C53030', lineHeight: 1.3 }}>{t('Выйти')}</div>
             </motion.button>
+
+            {/* Подвал меню: номер сборки этого устройства + проверка обновления */}
+            <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
+            <AppVersionRow variant="compact" />
           </motion.div>
           </div>
         )}

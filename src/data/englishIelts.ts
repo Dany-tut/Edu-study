@@ -53,6 +53,7 @@ import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { IELTS_FIGURES_EXTRA } from './englishIeltsFigures'
 import { IELTS_VIDEO_EXTRA } from './languageVideos'
 import { IELT_HOMEWORK_VIDEO } from './homeworkVideos'
+import { IELT_DIALOGS } from './languageDialogs'
 
 // ─── Материал для Writing Task 1 ─────────────────────────────────────────────
 //
@@ -1580,6 +1581,7 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
   guidedHours: '120–160',
   scopeNote: 'Курс для тех, у кого английский уже на B1: работа по критериям, а не общий английский. Все четыре секции.',
   modules: IELTS_MODULES,
+  dialogs: IELT_DIALOGS,
   // Конспекты живут отдельным файлом: здесь — структура и задания, там —
   // то, что ученик читает.
   units: IELTS_UNITS.map(u => ({

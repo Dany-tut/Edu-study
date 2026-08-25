@@ -14,6 +14,7 @@ import { useHomeData } from '../../../lib/useHomeData'
 import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/teacherProfileDemo'
 import { useT, useLang, type Lang } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
+import AppVersionRow from '../../AppVersionRow'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -184,7 +185,7 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); setFeedbackOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: isStandalone() ? 'none' : '1px solid var(--color-border-soft)' }}
+            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
               <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
@@ -197,7 +198,7 @@ export default function MobileTeacherProfile() {
             <button
               onClick={() => { tactile(); requestShowInstall() }}
               className="flex items-center justify-between cursor-pointer"
-              style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none' }}
+              style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
             >
               <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
                 <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
@@ -205,6 +206,9 @@ export default function MobileTeacherProfile() {
               <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
             </button>
           )}
+
+          {/* Версия сборки — она же кнопка «проверить/забрать обновление» */}
+          <AppVersionRow />
         </div>
 
         {/* Desktop tools footer — span 2, compact */}

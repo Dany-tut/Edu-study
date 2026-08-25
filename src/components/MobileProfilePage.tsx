@@ -19,6 +19,7 @@ import { useT, useLang, type Lang } from '../lib/i18n'
 import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
+import AppVersionRow from './AppVersionRow'
 import type { LucideIcon } from 'lucide-react'
 import type { Subject } from '../data/mockData'
 import { XP_PER_LEVEL } from '../lib/xp'
@@ -287,7 +288,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedbackOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none', borderBottom: canInstall ? '1px solid var(--color-border-soft)' : 'none' }}
+                style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
                   <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
@@ -300,7 +301,7 @@ export default function MobileProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); requestShowInstall() }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none' }}
+                  style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
                     <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
@@ -308,6 +309,9 @@ export default function MobileProfilePage() {
                   <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
                 </motion.button>
               )}
+
+              {/* Версия сборки — она же кнопка «проверить/забрать обновление» */}
+              <AppVersionRow />
             </div>
 
             <motion.button

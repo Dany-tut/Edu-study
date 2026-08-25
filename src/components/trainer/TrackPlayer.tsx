@@ -50,6 +50,9 @@ import { MOBILE_DOCK_EDGE } from '../../lib/mobileTokens'
 /** Радиус магнита в пикселях: ближе этого к границе реплики — прилипаем. */
 const SNAP_PX = 14
 
+/** Самая большая точка бегунка (под пальцем). Её половина — поля полосы. */
+const DOT_MAX = 18
+
 /** Шаг опроса позиции. rAF в превью не работает (см. память проекта), да и
  *  сотни кадров в секунду бегунку не нужны — десять хватает с запасом. */
 const TICK = 100
@@ -135,6 +138,10 @@ export default function TrackPlayer({
   // тихо не срабатывала бы.
   const dragging = useRef(false)
   const trackRef = useRef<HTMLDivElement>(null)
+  // Играло ли до того, как взялись за бегунок. Промотка — это про МЕСТО, а не
+  // про «включить»: ведут паузой — отпустили тоже паузой, ведут на ходу —
+  // звук продолжается с нового места.
+  const playedBeforeDrag = useRef(false)
 
   // ─── Разметка шкалы ────────────────────────────────────────────────────────
 
@@ -269,6 +276,7 @@ export default function TrackPlayer({
     if (!total) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragging.current = true
+    playedBeforeDrag.current = playing
     const next = resolve(e.clientX)
     setDrag(next)
     if (next.snapped) tactile()
@@ -287,10 +295,16 @@ export default function TrackPlayer({
     dragging.current = false
     const next = resolve(e.clientX)
     setDrag(null)
+    // Отпущенный бегунок только СТАВИТ позицию. Играть сам он не начинает:
+    // промотка на паузе — это «посмотреть, где я», и запускать звук в ответ
+    // на это значит отвечать не на тот жест. Играло до промотки — играет и
+    // после, с нового места.
+    const resume = playedBeforeDrag.current
     if (usesTts) {
       setMs(spans[next.line]?.at ?? 0)
       setLine(next.line)
-      say(next.line)
+      if (resume) say(next.line)
+      else { stopSpeech(); setPlaying(false); at.current = null }
       return
     }
     const el = audioRef.current
@@ -298,7 +312,7 @@ export default function TrackPlayer({
       el.currentTime = next.ms / 1000
       setMs(next.ms)
       el.playbackRate = fileRate
-      void el.play()
+      if (resume) void el.play()
     }
   }
 
@@ -310,7 +324,7 @@ export default function TrackPlayer({
 
   const held = !!drag
   const barH = held ? 7 : grown ? 4 : 3
-  const dotSize = held ? 18 : grown ? 10 : 9
+  const dotSize = held ? DOT_MAX : grown ? 10 : 9
 
   return (
     <>
@@ -380,7 +394,6 @@ export default function TrackPlayer({
               пальцем невозможно, поэтому жест ловит вся полоса-подложка. */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
-              ref={trackRef}
               onPointerDown={onDown}
               onPointerMove={onMove}
               onPointerUp={onUp}
@@ -398,22 +411,30 @@ export default function TrackPlayer({
               style={{
                 position: 'relative', height: 22, display: 'flex', alignItems: 'center',
                 touchAction: 'none', cursor: 'pointer',
+                // Поля под радиус точки. Без них точка в нуле наезжает круглым
+                // боком на кнопку «играть» (а в конце — на бургер): она стоит
+                // ЦЕНТРОМ на краю полосы, то есть половиной висит снаружи.
+                // Полоса теперь начинается там, где начинается точка.
+                padding: `0 ${DOT_MAX / 2}px`, boxSizing: 'border-box',
               }}
             >
-              {hint && (
-                <span style={{
-                  position: 'absolute', left: `${frac * 100}%`, bottom: 20, transform: 'translateX(-50%)',
-                  padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
-                  fontSize: 11, fontWeight: 700, background: accent, color: '#fff',
-                }}>
-                  {hint}
-                </span>
-              )}
-              <div style={{
-                position: 'relative', width: '100%', height: barH, borderRadius: 4,
-                background: 'var(--color-border-soft)',
-                transition: 'height .14s ease',
-              }}>
+              <div
+                ref={trackRef}
+                style={{
+                  position: 'relative', width: '100%', height: barH, borderRadius: 4,
+                  background: 'var(--color-border-soft)',
+                  transition: 'height .14s ease',
+                }}
+              >
+                {hint && (
+                  <span style={{
+                    position: 'absolute', left: `${frac * 100}%`, bottom: 16, transform: 'translateX(-50%)',
+                    padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
+                    fontSize: 11, fontWeight: 700, background: accent, color: '#fff',
+                  }}>
+                    {hint}
+                  </span>
+                )}
                 <div style={{
                   position: 'absolute', inset: 0, right: `${100 - frac * 100}%`,
                   background: accent, borderRadius: 4,

@@ -23,7 +23,7 @@ import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import {
-  initialQueue, restoreQueue, questionAt, isRepeatAt, requeue, lessonQueueEnabled,
+  initialQueue, restoreQueue, questionAt, isRepeatAt, requeue, lessonQueueEnabled, hardIds,
   type QueueState,
 } from '../lib/lessonQueue'
 import { okChime, missBlip } from '../lib/feedback'
@@ -1769,6 +1769,12 @@ export default function HomeworkFlow({
         })
         .map(q => q.id),
     )
+    // Задания, которые очередь возвращала до упора (Р8): к концу урока ученик
+    // мог их дожать, и в последнем ответе они верны — но верны с третьего раза,
+    // а это ровно то, что назавтра забывается первым. Такое задание идёт в
+    // колоду наравне с ошибкой, иначе «трудное» остаётся отмеченным только
+    // внутри урока и умирает вместе с ним.
+    if (queueOn) for (const id of hardIds(queue)) wrongIds.add(id)
     // В колоду пишем слаг предмета, а не short_id курса: тренажёр фильтрует
     // карточки по предмету, и курсовой id для него — чужое слово (подробности
     // в subjectSlugFor). Курс без предмета из реестра остаётся как есть — так
