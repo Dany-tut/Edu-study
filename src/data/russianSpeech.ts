@@ -29,6 +29,7 @@ import { RUZH_VIDEO } from './languageVideosExtra'
 import { RUZH_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { RUZH_DIALOGS } from './russianDialogs'
+import { RUZH_FIGURES } from './russianFigures'
 
 // ─── Часть I: слово ──────────────────────────────────────────────────────────
 
@@ -1144,6 +1145,7 @@ export const RUSSIAN_SPEECH_SPEC: LanguageCourseSpec = {
   level: 'Разговор → Стиль (речь, а не ЕГЭ)',
   lang: 'ru',
   native: true,
+  figures: RUZH_FIGURES,
   dialogs: RUZH_DIALOGS,
   guidedHours: '60–80',
   lessonMinutes: 60,

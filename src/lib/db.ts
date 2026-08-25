@@ -5,6 +5,7 @@
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
 import { isVideoWatchRef } from './videoProgress'
+import { isCourseResetRef } from './homeworkReset'
 import { streakDays } from './trainerDay'
 import { parseLessonFiles } from './lessonFiles'
 import { t } from './i18n'
@@ -556,7 +557,9 @@ export function computeStats(progress: ProgressMap): StudentStats {
   // lib/videoProgress.ts). Это не работа ученика: попав в знаменатель, такие
   // строки роняли бы «Успеваемость» тем сильнее, чем больше уроков он смотрит.
   const entries = Object.entries(progress)
-    .filter(([ref]) => !isVideoWatchRef(ref))
+    // Служебная отметка «курс обнулён» — тоже не работа ученика: в знаменателе
+    // она давала бы вечно недовыполненное задание на каждый сброшенный курс.
+    .filter(([ref]) => !isVideoWatchRef(ref) && !isCourseResetRef(ref))
     .map(([, p]) => p)
   const completed = entries.filter(p => p.status === 'completed')
   // Include submitted lessons in score stats — the student earned the score

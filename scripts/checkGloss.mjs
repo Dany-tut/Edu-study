@@ -18,7 +18,11 @@
 //   4. слова курсов — слово, которое урок только что дал, обязано тапаться
 //      ЦЕЛИКОМ. Иначе ученик тыкает в 오이 «огурец» и получает 오 «приходить»
 //      плюс 이 «частица»: разбор раскладывает незнакомое слово на то, что есть
-//      в словаре, и врёт увереннее, чем молчал бы.
+//      в словаре, и врёт увереннее, чем молчал бы;
+//   5. остальные поверхности тапа — разговорник, справочник грамматики и
+//      примеры на обороте карточек. Они разбираются тем же GlossedText, но
+//      писались без словаря, и долг там пока в тысячах слов: сторож его НЕ
+//      прощает, а фиксирует (RATCHET) — расти нельзя, уменьшать можно.
 //
 // Запуск: npm run check:gloss
 
@@ -47,6 +51,24 @@ await build({
       export { DE_SCENES } from './src/data/scenes/scenesDe'
       export { RU_SCENES } from './src/data/scenes/scenesRu'
       export { COURSE_SEEDS } from './src/data/courseSeeds'
+      export { KOREAN_SURVIVAL } from './src/data/survivalKo'
+      export { JAPANESE_SURVIVAL } from './src/data/survivalJa'
+      export { PORTUGUESE_SURVIVAL } from './src/data/survivalPt'
+      export { ENGLISH_SURVIVAL } from './src/data/survivalEn'
+      export { GERMAN_SURVIVAL } from './src/data/survivalDe'
+      export { KOREAN_GRAMMAR } from './src/data/grammar/grammarKo'
+      export { ENGLISH_GRAMMAR } from './src/data/grammar/grammarEn'
+      export { GERMAN_GRAMMAR } from './src/data/grammarDe'
+      export { KO_VOCAB_EXAMPLES } from './src/data/vocabExamples/ko'
+      export { JA_VOCAB_EXAMPLES } from './src/data/vocabExamples/ja'
+      export { EN_VOCAB_EXAMPLES } from './src/data/vocabExamples/en'
+      export { PT_VOCAB_EXAMPLES } from './src/data/vocabExamples/pt'
+      export { DE_VOCAB_EXAMPLES } from './src/data/vocabExamples/de'
+      export { KO_MINED_EXAMPLES } from './src/data/vocabExamples/koMined'
+      export { JA_MINED_EXAMPLES } from './src/data/vocabExamples/jaMined'
+      export { EN_MINED_EXAMPLES } from './src/data/vocabExamples/enMined'
+      export { PT_MINED_EXAMPLES } from './src/data/vocabExamples/ptMined'
+      export { DE_MINED_EXAMPLES } from './src/data/vocabExamples/deMined'
       export { EN_FEED } from './src/data/feed/feedEn'
       export { KO_FEED } from './src/data/feed/feedKo'
       export { JA_FEED } from './src/data/feed/feedJa'
@@ -61,6 +83,10 @@ const {
   WORD_GLOSS, buildLexicon, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
   DE_SCENES, RU_SCENES, COURSE_SEEDS,
   EN_FEED, KO_FEED, JA_FEED, PT_FEED,
+  KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL,
+  KOREAN_GRAMMAR, ENGLISH_GRAMMAR, GERMAN_GRAMMAR,
+  KO_VOCAB_EXAMPLES, JA_VOCAB_EXAMPLES, EN_VOCAB_EXAMPLES, PT_VOCAB_EXAMPLES, DE_VOCAB_EXAMPLES,
+  KO_MINED_EXAMPLES, JA_MINED_EXAMPLES, EN_MINED_EXAMPLES, PT_MINED_EXAMPLES, DE_MINED_EXAMPLES,
 } = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
 
@@ -207,6 +233,72 @@ if (split.length) {
   for (const s of split.slice(0, 40)) console.log(`   ${s.seed} ${s.lang}  ${s.term}  →  ${s.pieces}`)
   if (split.length > 40) console.log(`   … и ещё ${split.length - 40}`)
   console.log('   Пересоберите словарь слов курсов: npm run build:gloss\n')
+}
+
+// ─── 5. Остальные поверхности тапа ───────────────────────────────────────────
+//
+// Тексты библиотеки — не всё, во что тыкает ученик. Тем же разбором рисуются
+// разговорник (PhraseDecks), примеры в справочнике грамматики (GrammarShelf) и
+// пример на обороте карточки (CardDeck), а словаря к ним никто не писал: там
+// тысячи слов без перевода, и в корейском с японским это не «нет перевода», а
+// слово, распавшееся на чужие слоги.
+//
+// ПОЧЕМУ ПОРОГ, А НЕ НОЛЬ. Долг закрывается словами, которые пишутся руками, —
+// это работа на много заходов. Ноль здесь означал бы красный сторож до конца
+// этой работы, то есть отключённый сторож. Порог держит главное: НОВЫЙ текст
+// приезжает со словарём, потому что от него цифра растёт, — а уменьшать её
+// можно и нужно.
+
+const TAP_DEBT = { ko: 1031, ja: 2139, 'pt-BR': 2508, en: 836, de: 2761 }
+
+const tap = {}
+const tapHoles = {}
+const tapFeed = (lang, text) => {
+  if (!text || !TAP_DEBT[lang]) return
+  const st = (tap[lang] ??= { words: 0, holes: 0 })
+  for (const seg of lexOf(lang).segment(String(text))) {
+    if (!seg.word) continue
+    st.words++
+    if (seg.gloss) continue
+    st.holes++
+    const h = (tapHoles[lang] ??= new Map())
+    h.set(seg.text, (h.get(seg.text) ?? 0) + 1)
+  }
+}
+
+for (const book of [KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL]) {
+  for (const list of Object.values(book.phrases ?? {})) {
+    for (const p of list) { tapFeed(book.lang, p.term); if (p.ex) tapFeed(book.lang, p.ex.term) }
+  }
+}
+for (const ref of [KOREAN_GRAMMAR, ENGLISH_GRAMMAR, GERMAN_GRAMMAR]) {
+  for (const form of ref.forms ?? []) for (const ex of form.examples ?? []) tapFeed(ref.lang, ex.text)
+}
+const EXAMPLE_MAPS = {
+  ko: [KO_VOCAB_EXAMPLES, KO_MINED_EXAMPLES],
+  ja: [JA_VOCAB_EXAMPLES, JA_MINED_EXAMPLES],
+  en: [EN_VOCAB_EXAMPLES, EN_MINED_EXAMPLES],
+  'pt-BR': [PT_VOCAB_EXAMPLES, PT_MINED_EXAMPLES],
+  de: [DE_VOCAB_EXAMPLES, DE_MINED_EXAMPLES],
+}
+for (const [lang, maps] of Object.entries(EXAMPLE_MAPS)) {
+  for (const map of maps) for (const v of Object.values(map ?? {})) tapFeed(lang, v.term)
+}
+
+console.log('\nРазговорник, справочник и примеры карточек (долг зафиксирован):')
+for (const [lang, limit] of Object.entries(TAP_DEBT)) {
+  const st = tap[lang] ?? { words: 0, holes: 0 }
+  const pct = st.words ? ((1 - st.holes / st.words) * 100).toFixed(1) : '—'
+  const mark = st.holes > limit ? '❌' : st.holes < limit ? '↓' : ' '
+  console.log(`${mark} ${lang.padEnd(6)} слов ${String(st.words).padStart(6)}  без перевода ${String(st.holes).padStart(5)} (порог ${limit})  покрытие ${pct}%`)
+  if (st.holes > limit) {
+    bad++
+    const top = [...(tapHoles[lang] ?? new Map())].sort((a, b) => b[1] - a[1]).slice(0, 20)
+    console.log(`   стало хуже на ${st.holes - limit}. Чаще всего: ${top.map(([t, n]) => (n > 1 ? `${t}×${n}` : t)).join(' ')}`)
+    console.log('   Новый текст добавляют вместе со словарём: записи — в src/data/wordGloss.ts.')
+  } else if (st.holes < limit) {
+    console.log(`   стало лучше на ${limit - st.holes} — впишите ${st.holes} в TAP_DEBT (scripts/checkGloss.mjs).`)
+  }
 }
 
 // ─── Итог ────────────────────────────────────────────────────────────────────

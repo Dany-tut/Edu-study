@@ -26,7 +26,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import QuestionTable from './QuestionTable'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
-import HangulKeyboard, { needsHangul } from './HangulKeyboard'
+import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './ScriptKeyboard'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
@@ -242,12 +242,13 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       onChange={v => setAnswer(task.id, v)}
                       placeholder={tp === 'fill' ? t('Твой ответ…') : t('Развёрнутый ответ…')}
                       minHeight={TEST_ANSWER_MIN_H}
-                      inputMode={needsHangul(task.answer) ? 'none' : undefined}
+                      inputMode={scriptKeyboardCovers(task.answer) ? 'none' : undefined}
                       style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
-                    {/* Ответ по-корейски — раскладки у ученика нет (HangulKeyboard). */}
-                    {needsHangul(task.answer) && (
-                      <HangulKeyboard
+                    {/* Ответ письмом, которого нет на клавиатуре ученика (ScriptKeyboard). */}
+                    {needsScriptKeyboard(task.answer) && (
+                      <ScriptKeyboard
+                        answer={task.answer}
                         value={answers[task.id] as string | undefined}
                         onChange={v => setAnswer(task.id, v)}
                       />
@@ -416,11 +417,12 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       onChange={v => setAnswer(task.id, v)}
                       placeholder={t('Напечатай, что услышал…')}
                       minHeight={TEST_ANSWER_MIN_H}
-                      inputMode={needsHangul(task.answer) ? 'none' : undefined}
+                      inputMode={scriptKeyboardCovers(task.answer) ? 'none' : undefined}
                       style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
-                    {needsHangul(task.answer) && (
-                      <HangulKeyboard
+                    {needsScriptKeyboard(task.answer) && (
+                      <ScriptKeyboard
+                        answer={task.answer}
                         value={answers[task.id] as string | undefined}
                         onChange={v => setAnswer(task.id, v)}
                       />

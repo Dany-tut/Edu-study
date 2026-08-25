@@ -29,6 +29,7 @@ import { RULIT_VIDEO } from './languageVideosExtra'
 import { RULIT_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { RULIT_DIALOGS } from './russianDialogs'
+import { RULIT_FIGURES } from './russianFigures'
 
 // ─── Часть I: как смотреть ───────────────────────────────────────────────────
 
@@ -993,6 +994,7 @@ export const RUSSIAN_LITERATURE_SPEC: LanguageCourseSpec = {
   level: 'Точность → Мастерская (приёмы, а не сочинение)',
   lang: 'ru',
   native: true,
+  figures: RULIT_FIGURES,
   dialogs: RULIT_DIALOGS,
   guidedHours: '50–60',
   lessonMinutes: 60,

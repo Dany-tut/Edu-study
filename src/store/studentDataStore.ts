@@ -16,7 +16,7 @@ import {
 import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
 import { getSubject } from '../lib/subjects'
-import { reconcileLocalHomework } from '../lib/homeworkReset'
+import { reconcileLocalHomework, reconcileCourseReset, courseResetRef } from '../lib/homeworkReset'
 import { useDashboard } from './dashboardStore'
 import {
   type Subject,
@@ -122,17 +122,27 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // lib/homeworkReset.ts). Только когда база РЕАЛЬНО ответила: упавший запрос
     // даёт ту же пустую карту, и стирать по ней ответы нельзя.
     if (results[0].status === 'fulfilled') {
+      const wiped: string[] = []
+      // 1. Прямая отметка учителя «курс обнулён такого-то числа». Она говорит то,
+      // чего не выведешь из отсутствия строк, поэтому стирает и НЕДОДЕЛАННЫЕ
+      // черновики: курс начат заново целиком.
+      for (const subj of fullCatalog) {
+        const at = Date.parse(progress[courseResetRef(subj.id)]?.comment ?? '')
+        if (!Number.isFinite(at)) continue
+        wiped.push(...reconcileCourseReset(subj.modules.flatMap(m => m.lessons.map(l => l.id)), at))
+      }
+      // 2. Сброс без отметки (сделанный до этой правки или чужой рукой): локально
+      // «сдано», а в базе следов сдачи нет. Не всякая строка — сдача: у открытого
+      // учителем урока она есть со статусом 'current' и пустым баллом.
       const lessonIds = fullCatalog.flatMap(s => s.modules.flatMap(m => m.lessons.map(l => l.id)))
-      // Не всякая строка прогресса — сдача: у открытого учителем урока она есть
-      // со статусом 'current' и пустым баллом. Сверяем со следами именно сдачи.
       const submittedRefs = new Set(
         Object.entries(progress)
           .filter(([, p]) => p.status === 'submitted' || p.status === 'returned'
             || p.status === 'completed' || (p.score ?? 0) > 0)
           .map(([ref]) => ref),
       )
-      const wiped = reconcileLocalHomework(lessonIds, submittedRefs)
-      if (wiped.length > 0) useDashboard.getState().forgetLessons(wiped)
+      wiped.push(...reconcileLocalHomework(lessonIds, submittedRefs))
+      if (wiped.length > 0) useDashboard.getState().forgetLessons([...new Set(wiped)])
     }
 
     // Demo data so the UI can be reviewed without a teacher-authored course.

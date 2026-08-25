@@ -1158,8 +1158,9 @@ const EN: Record<string, string> = {
   "Убрать эту букву": "Remove this letter",
   "Тап по букве в блоке убирает её и следующие": "Tap a letter in the block to clear it and the ones after",
 
-  // — Клавиатура хангыля под полем ответа —
+  // — Экранные клавиатуры под полем ответа (хангыль, кана) —
   "Ответ по-корейски — слоги сложатся сами": "Answer in Korean — syllables assemble on their own",
+  "Ответ по-японски — нижний ряд меняет последний знак": "Answer in Japanese — the bottom row changes the last character",
   "пробел": "space",
   "Стереть": "Delete",
 

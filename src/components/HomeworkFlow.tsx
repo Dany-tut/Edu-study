@@ -39,7 +39,7 @@ import { useT, t as tStatic } from '../lib/i18n'
 import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
-import HangulKeyboard, { needsHangul } from './HangulKeyboard'
+import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './ScriptKeyboard'
 import QuestionTable from './QuestionTable'
 import WordBankSolver from './WordBankSolver'
 import MatchingSolver, {
@@ -636,6 +636,12 @@ interface PersistedHomeworkState {
    * и стирать в этот момент ответы как «сдачи в базе нет» нельзя.
    */
   submittedAt?: string
+  /**
+   * Когда черновик последний раз меняли, ISO. Пишется при сохранении, не в
+   * состояние. По нему сверка отличает работу, сделанную ДО обнуления курса
+   * (стереть), от начатой после (оставить).
+   */
+  touchedAt?: string
   selfAssessmentValue: number | null
   /**
    * Задания, проверенные по кнопке «Проверить» — до сдачи всей домашки.
@@ -1646,8 +1652,17 @@ export default function HomeworkFlow({
     setSubmitFailed(null)
   }, [homeworkResetTick, lessonId])
 
+  // Первый прогон пропускаем: на монтировании состояние ещё то же, что в
+  // localStorage, а вот `touchedAt` обновился бы — и черновик, сделанный ДО
+  // обнуления курса, притворился бы свежей работой просто потому, что урок
+  // открыли посмотреть.
+  const savedOnce = useRef(false)
   useEffect(() => {
-    window.localStorage.setItem(homeworkStorageKey(lessonId), JSON.stringify(state))
+    if (!savedOnce.current) { savedOnce.current = true; return }
+    window.localStorage.setItem(
+      homeworkStorageKey(lessonId),
+      JSON.stringify({ ...state, touchedAt: new Date().toISOString() }),
+    )
   }, [lessonId, state])
 
   // Cap the docked title so its right edge stays 10px clear of the centred top
@@ -3725,7 +3740,7 @@ export default function HomeworkFlow({
                         disabled={locked}
                         minHeight={HW_ANSWER_MIN_H}
                         placeholder={t('Запиши, что услышал…')}
-                        inputMode={needsHangul(question.referenceAnswer) ? 'none' : undefined}
+                        inputMode={scriptKeyboardCovers(question.referenceAnswer) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
@@ -3734,11 +3749,12 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
-                      {/* Клавиши хангыля показывает САМ ЭТАЛОН: раскладки у
-                          ученика нет, а буквы диктанту не подсказывают ничего —
-                          они одни и те же в каждом задании. */}
-                      {needsHangul(question.referenceAnswer) && !locked && (
-                        <HangulKeyboard
+                      {/* Раскладку выбирает САМ ЭТАЛОН: своей у ученика нет, а
+                          буквы диктанту не подсказывают ничего — они одни и те
+                          же в каждом задании. */}
+                      {needsScriptKeyboard(question.referenceAnswer) && !locked && (
+                        <ScriptKeyboard
+                          answer={question.referenceAnswer}
                           value={selectedAnswer}
                           onChange={v => setFreeAnswer(question.id, v)}
                         />
@@ -3822,7 +3838,7 @@ export default function HomeworkFlow({
                         disabled={locked}
                         minHeight={HW_ANSWER_MIN_H}
                         placeholder={t('Перевод…')}
-                        inputMode={needsHangul(question.back) ? 'none' : undefined}
+                        inputMode={scriptKeyboardCovers(question.back) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
@@ -3831,8 +3847,9 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
-                      {needsHangul(question.back) && !locked && (
-                        <HangulKeyboard
+                      {needsScriptKeyboard(question.back) && !locked && (
+                        <ScriptKeyboard
+                          answer={question.back}
                           value={selectedAnswer}
                           onChange={v => setFreeAnswer(question.id, v)}
                         />
@@ -3961,7 +3978,7 @@ export default function HomeworkFlow({
                             : qType(question) === 'whiteboard' ? t('Опиши решение (рисунок на доске приложишь учителю)…')
                             : t('Развёрнутый ответ…')
                         }
-                        inputMode={needsHangul(question.referenceAnswer) ? 'none' : undefined}
+                        inputMode={scriptKeyboardCovers(question.referenceAnswer) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit',
@@ -3971,10 +3988,11 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
-                      {/* Ответ ждут по-корейски — значит, ученику нужна корейская
-                          раскладка, а её у него нет (см. HangulKeyboard). */}
-                      {needsHangul(question.referenceAnswer) && !locked && (
-                        <HangulKeyboard
+                      {/* Ответ ждут письмом, которого нет на клавиатуре ученика
+                          (см. ScriptKeyboard). */}
+                      {needsScriptKeyboard(question.referenceAnswer) && !locked && (
+                        <ScriptKeyboard
+                          answer={question.referenceAnswer}
                           value={selectedAnswer}
                           onChange={v => setFreeAnswer(question.id, v)}
                         />

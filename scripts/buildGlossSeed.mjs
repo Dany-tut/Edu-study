@@ -23,6 +23,13 @@
 // раз при сборке контента, а в приложение попадает плоский список «слово —
 // перевод».
 //
+// ОТКУДА БЕРЁМ. Два источника, и оба — написанные руками пары «слово —
+// перевод»: карточки словаря юнитов всех курсов и однословные статьи
+// разговорников (survival*). Второй источник нужен потому, что в урок идёт
+// только ядро темы (~треть фраз), а тапают в тренажёре весь разговорник: без
+// него 젓가락 «палочки» и 세관 «таможня» рассыпались на слоги ровно там, где их
+// и читают.
+//
 // ЧТО НЕ БЕРЁМ:
 //   • фразы и предложения (в термине есть пробел) — иначе тап по любому слову
 //     фразы выделял бы всю строку разом, а разбор фразы на слова это и есть
@@ -48,13 +55,21 @@ await build({
     contents: `
       export { COURSE_SEEDS } from './src/data/courseSeeds'
       export { MANUAL_GLOSS } from './src/data/wordGloss'
+      export { KOREAN_SURVIVAL } from './src/data/survivalKo'
+      export { JAPANESE_SURVIVAL } from './src/data/survivalJa'
+      export { PORTUGUESE_SURVIVAL } from './src/data/survivalPt'
+      export { ENGLISH_SURVIVAL } from './src/data/survivalEn'
+      export { GERMAN_SURVIVAL } from './src/data/survivalDe'
     `,
     resolveDir: process.cwd(),
     loader: 'ts',
   },
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'error',
 })
-const { COURSE_SEEDS, MANUAL_GLOSS } = await import(pathToFileURL(out).href)
+const {
+  COURSE_SEEDS, MANUAL_GLOSS,
+  KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL,
+} = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
 
 const key = s => s.toLowerCase().replace(/[’‘`]/g, "'")
@@ -64,6 +79,21 @@ const collected = new Map()
 const manualKeys = new Map()
 for (const [lang, list] of Object.entries(MANUAL_GLOSS)) {
   manualKeys.set(lang, new Set(list.map(g => key(g.term.trim()))))
+}
+
+/** Положить пару «слово — перевод», если её ещё нет в ручном словаре. */
+function collect(lang, front, back) {
+  const ru = meaning(back)
+  if (!ru) return
+  const bucket = collected.get(lang) ?? new Map()
+  collected.set(lang, bucket)
+  for (const term of cardTerms(front, lang)) {
+    const k = key(term)
+    if (manualKeys.get(lang)?.has(k)) continue
+    const cur = bucket.get(k) ?? { term, ru: new Set() }
+    cur.ru.add(ru)
+    bucket.set(k, cur)
+  }
 }
 
 let courses = 0
@@ -81,20 +111,19 @@ for (const seed of COURSE_SEEDS) {
     const tasks = lesson.hwTasks ?? []
     const lang = tasks.map(t => t.lang).find(Boolean)
     if (!lang || !SCRIPT[lang]) continue
-    const bucket = collected.get(lang) ?? new Map()
-    collected.set(lang, bucket)
     for (const task of tasks) {
-      if (task.type !== 'flashcard') continue
-      const ru = meaning(task.back)
-      if (!ru) continue
-      for (const term of cardTerms(task.front, lang)) {
-        const k = key(term)
-        if (manualKeys.get(lang)?.has(k)) continue
-        const cur = bucket.get(k) ?? { term, ru: new Set() }
-        cur.ru.add(ru)
-        bucket.set(k, cur)
-      }
+      if (task.type === 'flashcard') collect(lang, task.front, task.back)
     }
+  }
+}
+
+// Разговорники целиком: однословная статья — это готовая словарная запись,
+// написанная автором темы («젓가락 — палочки»). Многословные фразы отсеет
+// cardTerms: тап по слову фразы должен разбирать фразу, а не выделять её всю.
+let phrases = 0
+for (const book of [KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL]) {
+  for (const list of Object.values(book.phrases ?? {})) {
+    for (const p of list) { collect(book.lang, p.term, p.ru); phrases++ }
   }
 }
 
@@ -139,6 +168,6 @@ export const SEED_GLOSS: Record<string, WordGloss[]> = {
 const file = 'src/data/wordGlossSeed.ts'
 writeFileSync(file, `${HEADER}${body}\n}\n`)
 
-console.log(`${file}: курсов ${courses}`)
+console.log(`${file}: курсов ${courses}, статей разговорников ${phrases}`)
 for (const lang of langs) console.log(`  ${lang.padEnd(6)} ${collected.get(lang).size}`)
 console.log('\nПроверка: npm run check:gloss')

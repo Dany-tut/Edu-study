@@ -10,13 +10,20 @@ import HomeworkFlow from './components/HomeworkFlow'
 import { authoredTaskToQuestion } from './data/lessonContent'
 import type { AuthoredHomeworkTask, LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
 import { buildKoreanHangulCourse } from './data/koreanHangul'
+import { buildJapaneseJlptCourse } from './data/japaneseJlpt'
 import './index.css'
 
-// ?kohg — урок настоящего курса хангыля вместо рукодельной домашки. Номер
+// ?kohg / ?jajl — урок настоящего курса вместо рукодельной домашки. Номер
 // задаётся значением (?kohg=4 — пятый урок): задания уроков разные — патчхим,
 // напряжённые, в-гласные, — и проверять их на одном первом уроке нельзя.
-const hangulLesson = buildKoreanHangulCourse('stand')
-  .lessons[Math.max(0, Number(new URLSearchParams(location.search).get('kohg') || 0))]
+// Второй курс здесь ради письменности: кану и хангыль поле ответа набирает
+// разными клавиатурами (см. ScriptKeyboard), и проверять надо обе.
+const params = new URLSearchParams(location.search)
+const courseLesson = (() => {
+  const n = (key: string) => Math.max(0, Number(params.get(key) || 0))
+  if (params.has('jajl')) return buildJapaneseJlptCourse('stand').lessons[n('jajl')]
+  return buildKoreanHangulCourse('stand').lessons[n('kohg')]
+})()
 
 const q = (x: Partial<HomeworkQuizQuestion> & { id: string; prompt: string }): HomeworkQuizQuestion => ({
   options: [], correctOptionId: '', explanation: '', ...x,
@@ -105,17 +112,17 @@ const homework: LessonHomework = {
 // ?kohg — вместо рукодельной домашки берётся первый урок курса хангыля целиком:
 // проверять лестницу «знакомство → узнавание → письмо» надо на настоящих данных,
 // а не на пяти строках, написанных под ожидаемый результат.
-const useHangul = location.search.includes('kohg')
+const useHangul = params.has('kohg') || params.has('jajl')
 const shown: LessonHomework = useHangul
   ? {
     ...homework,
-    title: hangulLesson.title,
+    title: courseLesson.title,
     levels: homework.levels.map(l =>
       l.id === 'basic'
         // Через тот же переводчик, каким задания курса доезжают до ученика:
         // формат редактора и формат вопроса — разные, и проверять надо тот,
         // который человек видит на самом деле.
-        ? { ...l, questions: ((hangulLesson.hwTasks ?? []) as AuthoredHomeworkTask[]).map(authoredTaskToQuestion) }
+        ? { ...l, questions: ((courseLesson.hwTasks ?? []) as AuthoredHomeworkTask[]).map(authoredTaskToQuestion) }
         : l),
   }
   : homework
@@ -123,7 +130,7 @@ const shown: LessonHomework = useHangul
 // ?step=N — открыть сразу нужное задание. Без этого до сборки слога в первом
 // уроке двадцать кликов, и проверять её так никто не станет. Пишем прямо в тот
 // же черновик, из которого HomeworkFlow восстанавливает шаг после перезагрузки.
-const step = Number(new URLSearchParams(location.search).get('step'))
+const step = Number(params.get('step'))
 if (Number.isFinite(step) && step >= 0) {
   const key = 'student-dashboard:homework:stand-ko-1'
   let draft: Record<string, unknown> = {}
@@ -135,8 +142,8 @@ createRoot(document.getElementById('root')!).render(
   <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
     <HomeworkFlow
       lessonId="stand-ko-1"
-      lessonTitle={useHangul ? hangulLesson.title : 'Еда'}
-      subject="Корейский"
+      lessonTitle={useHangul ? courseLesson.title : 'Еда'}
+      subject={params.has('jajl') ? 'Японский' : 'Корейский'}
       homework={shown}
       onBack={() => {}}
     />

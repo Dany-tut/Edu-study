@@ -18,10 +18,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { COURSE_SEEDS } from './courseSeeds'
+import { lessonBody } from '../lib/lessonKey'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
-/** Название урока без ведущего номера — номера съезжают при вставке юнита. */
-const norm = (title: string) => title.replace(/^\d+\.\s*/, '').trim()
+/** Название урока без номера — тот же ключ, что у сверки (см. lib/lessonKey). */
+const norm = (title: string) => lessonBody(title ?? '')
 
 /**
  * Добрать конспект из сида тем урокам курса, где он пуст.

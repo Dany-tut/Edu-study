@@ -28,6 +28,7 @@
 // (seedImages.ts). Фотографий в сидах нет — их учитель добавляет сам.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { numberedTitle } from '../lib/lessonKey'
 import { GAP_MARK, TASK_TYPES, placeCorrect } from './taskTypes'
 import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
@@ -2057,7 +2058,10 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
 
       lessons.push({
         id,
-        title: split ? `${unit.n}.${k + 1} ${unit.title}` : `${unit.n}. ${unit.title}`,
+        // Номер сквозной по курсу (его же ставит сверка с сидом), порция —
+        // словом в хвосте. Двойной номер «1.2 Тема» из этого места и давал в
+        // списке «7. 2 Тема»: сверка снимала только первое число (lib/lessonKey).
+        title: numberedTitle(`${unit.title}${split ? ` · часть ${k + 1}` : ''}`, lessons.length + 1),
         number: lessons.length + 1,
         kind: 'lesson',
         // Дата занятия у сида не проставлена (её ставит учитель под свою группу),
@@ -2070,7 +2074,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           `Грамматика: ${unit.grammar}`,
           `Почему здесь: ${unit.grammarWhy}`,
           `Лексика: ${unit.vocabTheme}`,
-          split ? `Порция: занятие ${k + 1} из ${parts.length} по этой теме` : '',
+          split ? `Часть ${k + 1} из ${parts.length} по этой теме` : '',
           `Артефакт: ${unit.artifact}`,
         ].filter(Boolean).join('\n'),
         ...(first
@@ -2078,7 +2082,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           : { theory: portionTheory(unit, vocab, k + 1, parts.length), theoryImages: [] }),
         videoUrl: first ? unit.videoUrl : undefined,
         hwTitle: split
-          ? `Юнит ${unit.n}. ${unit.title} · занятие ${k + 1}`
+          ? `Юнит ${unit.n}. ${unit.title} · часть ${k + 1}`
           : `Юнит ${unit.n}. ${unit.title}`,
         hwTarget: unit.artifact,
         hwTasks: [

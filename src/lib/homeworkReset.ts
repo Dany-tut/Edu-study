@@ -33,23 +33,54 @@ export function homeworkStorageKey(lessonId: string): string {
   return `student-dashboard:homework:${lessonId}`
 }
 
+/**
+ * Отметка «курс обнулён» — строка lesson_progress, которую пишет учитель.
+ *
+ * Момент сброса больше негде хранить: строк по курсу после удаления нет, а
+ * localStorage знает только тот браузер, где нажали кнопку — с другого
+ * устройства (и у второго учителя) подпись превращалась в «прогресса нет», а
+ * после сброса, которому нечего было удалять, показывала время ПРЕДЫДУЩЕГО.
+ * Ключ включает курс: пара (student_id, lesson_ref) уникальна, и общий
+ * 'course-reset' затирал бы отметку соседнего курса того же ученика.
+ *
+ * Время лежит в `comment` (ISO): ProgressMap не носит updated_at.
+ * Строка служебная — исключается из статистики ученика (lib/db.ts) и из счёта
+ * прогресса в редакторе курса.
+ */
+export const COURSE_RESET_PREFIX = 'course-reset:'
+export const courseResetRef = (courseId: string): string => `${COURSE_RESET_PREFIX}${courseId}`
+export const isCourseResetRef = (ref: string): boolean => ref.startsWith(COURSE_RESET_PREFIX)
+/** Курс из ключа отметки: 'course-reset:seed-kohg-1' → 'seed-kohg-1'. */
+export const courseOfResetRef = (ref: string): string => ref.slice(COURSE_RESET_PREFIX.length)
+
 /** Сколько сдача считается «свежей» и не сверяется с базой. */
 const GRACE_MS = 15 * 60 * 1000
 
 /** Только те поля черновика, которые нужны сверке. */
-type SubmittedShape = {
+type DraftShape = {
   basicSubmitted?: boolean
   hardSubmitted?: boolean
   /** ISO-время сдачи. У черновиков до этой правки поля нет — они заведомо старые. */
   submittedAt?: string
+  /** ISO-время последней правки: черновик тоже имеет возраст, а не только сдача. */
+  touchedAt?: string
+}
+
+function readDraft(lessonId: string): DraftShape | null {
+  let raw: string | null = null
+  try { raw = localStorage.getItem(homeworkStorageKey(lessonId)) } catch { return null }
+  if (!raw) return null
+  try { return JSON.parse(raw) as DraftShape } catch { return null }
+}
+
+/** Возраст черновика в мс, NaN — если он его не помнит (черновики до этой правки). */
+function draftAge(draft: DraftShape): number {
+  return Date.parse(draft.touchedAt ?? draft.submittedAt ?? '')
 }
 
 function localClaimsSubmitted(lessonId: string, now: number): boolean {
-  let raw: string | null = null
-  try { raw = localStorage.getItem(homeworkStorageKey(lessonId)) } catch { return false }
-  if (!raw) return false
-  let draft: SubmittedShape
-  try { draft = JSON.parse(raw) as SubmittedShape } catch { return false }
+  const draft = readDraft(lessonId)
+  if (!draft) return false
   if (!draft.basicSubmitted && !draft.hardSubmitted) return false
   const at = draft.submittedAt ? Date.parse(draft.submittedAt) : NaN
   if (Number.isFinite(at) && now - at < GRACE_MS) return false
@@ -83,6 +114,31 @@ export function reconcileLocalHomework(
     // Базовый уровень и хард — разные строки; жива любая → сдача на месте.
     if (submittedRefs.has(id) || submittedRefs.has(`${id}-hard`)) continue
     if (!localClaimsSubmitted(id, now)) continue
+    forgetLessonHomework(id)
+    wiped.push(id)
+  }
+  return wiped
+}
+
+/**
+ * Сброс по отметке учителя: стереть ВСЁ, что сделано до обнуления курса.
+ *
+ * Здесь, в отличие от сверки выше, стираются и недоделанные черновики: отметка
+ * — это прямое «курс начат заново», а не догадка по отсутствию строки. Работа
+ * ПОСЛЕ обнуления остаётся: ученик мог сесть за курс раньше, чем его браузер
+ * узнал новость.
+ *
+ * @param lessonIds уроки обнулённого курса
+ * @param resetAt момент обнуления, мс
+ * @returns id уроков, локальный результат которых стёрт
+ */
+export function reconcileCourseReset(lessonIds: Iterable<string>, resetAt: number): string[] {
+  const wiped: string[] = []
+  for (const id of lessonIds) {
+    const draft = readDraft(id)
+    if (!draft) continue
+    const age = draftAge(draft)
+    if (Number.isFinite(age) && age > resetAt) continue
     forgetLessonHomework(id)
     wiped.push(id)
   }

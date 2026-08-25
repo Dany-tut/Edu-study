@@ -30,6 +30,7 @@ import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/Grow
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload, type PatternItem } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
+import { courseResetRef, isCourseResetRef } from '../../lib/homeworkReset'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
@@ -700,22 +701,41 @@ function CenterCourseAccess({
   const [resetAt, setResetAt] = useState<Record<string, number>>(() => {
     try { return JSON.parse(localStorage.getItem(resetLogKey) ?? '{}') } catch { return {} }
   })
+  // Момент обнуления со стороны БАЗЫ — служебная строка `course-reset:<курс>`
+  // (см. lib/homeworkReset.ts). Она одна и та же на всех устройствах, поэтому
+  // подпись больше не зависит от того, в каком браузере нажали кнопку.
+  const [resetAtDb, setResetAtDb] = useState<Record<string, number>>({})
   async function loadProgressInfo() {
     if (!course.dbCourseId) return
     const { data } = await supabase
       .from('lesson_progress')
-      .select('student_id, updated_at')
+      .select('student_id, lesson_ref, comment, updated_at')
       .eq('subject', course.dbCourseId)
     const next: Record<string, { n: number; last: string }> = {}
-    for (const r of (data ?? []) as Array<{ student_id: string; updated_at: string | null }>) {
+    const marks: Record<string, number> = {}
+    for (const r of (data ?? []) as Array<{ student_id: string; lesson_ref: string; comment: string | null; updated_at: string | null }>) {
+      // Отметка об обнулении — не прогресс: попав в счёт, она сама себя
+      // прятала бы за подписью «прогресс: 1».
+      if (isCourseResetRef(r.lesson_ref)) {
+        const at = Date.parse(r.comment || r.updated_at || '')
+        if (Number.isFinite(at)) marks[r.student_id] = Math.max(marks[r.student_id] ?? 0, at)
+        continue
+      }
       const cur = next[r.student_id] ?? { n: 0, last: '' }
       cur.n += 1
       if ((r.updated_at ?? '') > cur.last) cur.last = r.updated_at ?? ''
       next[r.student_id] = cur
     }
     setProgressInfo(next)
+    setResetAtDb(marks)
   }
   useEffect(() => { void loadProgressInfo() }, [course.dbCourseId])
+  // Локальные отметки перечитываем при СМЕНЕ курса: useState-инициализатор
+  // отработал один раз, и на соседнем курсе редактор показывал время сброса
+  // того курса, с которым его открыли.
+  useEffect(() => {
+    try { setResetAt(JSON.parse(localStorage.getItem(resetLogKey) ?? '{}')) } catch { setResetAt({}) }
+  }, [resetLogKey])
   const fmtWhen = (v: string | number) =>
     new Date(v).toLocaleString(undefined, {
       day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
@@ -728,8 +748,10 @@ function CenterCourseAccess({
       const last = rows.map(r => r.last).filter(Boolean).sort().pop()
       return `${t('прогресс')}: ${n} · ${last ? fmtWhen(last) : '—'}`
     }
-    const at = resetAt[rowKey]
-    return at ? `${t('обнулено')} ${fmtWhen(at)}` : t('прогресса нет')
+    // Из двух отметок берём позднюю: в базе лежат сбросы с любого устройства,
+    // в браузере — старые, сделанные до появления серверной отметки.
+    const local = studentIds.reduce((m, id) => Math.max(m, resetAtDb[id] ?? 0), resetAt[rowKey] ?? 0)
+    return local > 0 ? `${t('обнулено')} ${fmtWhen(local)}` : t('прогресса нет')
   }
   async function resetCourseProgress(rowKey: string, studentIds: string[], name: string) {
     if (!course.dbCourseId) { void alertDialog(t('Курс ещё не сохранён в базе — прогресса нет.')); return }
@@ -773,11 +795,30 @@ function CenterCourseAccess({
     } else {
       setResetDone(rowKey)
       setTimeout(() => setResetDone(null), 2500)
-      if ((removed?.length ?? 0) > 0 || (before ?? 0) > 0) {
-        const log = { ...resetAt, [rowKey]: Date.now() }
-        setResetAt(log)
-        try { localStorage.setItem(resetLogKey, JSON.stringify(log)) } catch { /* приватный режим */ }
-      }
+      // Отметка ставится ВСЕГДА, а не только когда было что удалять. Раньше
+      // сброс по уже пустому курсу молча оставлял на экране время прошлого
+      // сброса — «обнулил только что, а написано 12:13».
+      const at = new Date().toISOString()
+      const { error: markError } = await supabase.from('lesson_progress').upsert(
+        studentIds.map(id => ({
+          student_id: id,
+          lesson_ref: courseResetRef(course.dbCourseId!),
+          subject: course.dbCourseId!,
+          status: 'locked',
+          score: 0,
+          // Время сброса: ProgressMap не носит updated_at, а ученику нужен
+          // именно момент — по нему он стирает свои ответы (lib/homeworkReset.ts).
+          comment: at,
+          updated_at: at,
+        })),
+        { onConflict: 'student_id,lesson_ref' },
+      )
+      // Отметка не дошла — сам сброс состоялся, поэтому не пугаем ученика
+      // модалкой: подпись просто останется на локальном времени.
+      if (markError) console.error('[course reset mark]', markError)
+      const log = { ...resetAt, [rowKey]: Date.parse(at) }
+      setResetAt(log)
+      try { localStorage.setItem(resetLogKey, JSON.stringify(log)) } catch { /* приватный режим */ }
       void loadProgressInfo()
     }
   }

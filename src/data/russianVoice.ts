@@ -26,6 +26,7 @@ import { RUVO_VIDEO } from './languageVideosExtra'
 import { RUVO_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { RUVO_DIALOGS } from './russianDialogs'
+import { RUVO_FIGURES } from './russianFigures'
 
 // ─── Часть I: аппарат ────────────────────────────────────────────────────────
 
@@ -719,6 +720,7 @@ export const RUSSIAN_VOICE_SPEC: LanguageCourseSpec = {
   level: 'Разговор → Публично (речь вслух)',
   lang: 'ru',
   native: true,
+  figures: RUVO_FIGURES,
   dialogs: RUVO_DIALOGS,
   guidedHours: '40–50',
   lessonMinutes: 60,

@@ -44,7 +44,12 @@ function verdictStyle(v: BasicAnswerVerdict): { bg: string; fg: string; Icon: ty
 function AnswerCard({ row }: { row: BasicAnswerRow }) {
   const t = useT()
   const { bg, fg, Icon } = verdictStyle(row.verdict)
-  const showReference = !!row.correct && (row.verdict === 'wrong' || row.verdict === 'hint' || row.verdict === 'empty')
+  // Эталон нужен и там, где показана расшифровка: преподаватель читает две
+  // строки рядом — что просили сказать и что услышала машина, — и по ним
+  // решает, ученик сказал не то или распознавалка не расслышала.
+  const showReference = !!row.correct
+    && (row.verdict === 'wrong' || row.verdict === 'hint' || row.verdict === 'empty'
+      || (row.verdict === 'review' && !!row.heard))
 
   return (
     <div style={{

@@ -25,11 +25,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { COURSE_SEEDS } from '../data/courseSeeds'
+import { lessonBody, plainTitle, withNumber } from './lessonKey'
 import { normalizeTaskType } from '../data/taskTypes'
 import type { CourseEdData, CELesson, CEModule } from '../pages/teacher/TeacherCourseEditorPage'
 
-/** Название урока без ведущего номера — номера съезжают при вставке юнита. */
-const norm = (title: string) => title.replace(/^\d+\.\s*/, '').trim()
+/**
+ * Название урока без номера: номера съезжают при вставке юнита, а у занятий
+ * порции их было два подряд («7. 2 Тема»). Обе формы приводит к одной
+ * lessonBody — она же и показывается (см. lib/lessonKey).
+ */
+const norm = (title: string) => lessonBody(title ?? '')
 
 /** Id нового модуля — тот же вид, что у редактора (см. uid там же). */
 function uid() { return Math.random().toString(36).slice(2, 8) }
@@ -595,11 +600,20 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
 
   // Номер урока и номер в его названии — сквозные по курсу, иначе после вставки
   // в середину курс читается как «11, 14, 12, 13».
-  lessons = lessons.map((l, i) => ({
-    ...l,
-    number: i + 1,
-    title: `${i + 1}. ${norm(l.title ?? '')}`,
-  }))
+  //
+  // Порцию, записанную старым способом («7. 2 Тема»), переписываем словами
+  // («7. Тема · часть 2») — но только урокам сида: у урока, заведённого
+  // учителем, цифра в начале названия может быть его частью («5 минут
+  // разговора»), и трогать её нельзя.
+  const freshBodies = new Set(fresh.lessons.map(l => lessonBody(l.title)))
+  lessons = lessons.map((l, i) => {
+    const body = lessonBody(l.title ?? '')
+    return {
+      ...l,
+      number: i + 1,
+      title: withNumber(freshBodies.has(body) ? body : plainTitle(l.title ?? ''), i + 1),
+    }
+  })
 
   return { ...course, lessons, modules }
 }

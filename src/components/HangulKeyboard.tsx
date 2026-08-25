@@ -144,9 +144,23 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
       }}
     >
-      <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
-        {t('Ответ по-корейски — слоги сложатся сами')}
-      </span>
+      {/* Пока поле выше не ушло за край экрана, набранное видно в нём. Как
+          только клавиатура заняла экран (телефон, длинная таблица), видно
+          только её — поэтому набранное эхом стоит в шапке панели. */}
+      {value?.trim()
+        ? (
+          <span style={{
+            fontSize: 17, fontWeight: 700, color: 'var(--color-text)',
+            textAlign: 'center', letterSpacing: 1, wordBreak: 'break-word',
+          }}>
+            {value}
+          </span>
+        )
+        : (
+          <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+            {t('Ответ по-корейски — слоги сложатся сами')}
+          </span>
+        )}
 
       {/* Согласные и гласные раздельно, теми же двумя блоками, какими алфавит
           показан в уроке: клавиша ищется там, где буква стояла в таблице.

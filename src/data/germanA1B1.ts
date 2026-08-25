@@ -33,6 +33,7 @@ import { DEAB_VIDEO } from './languageVideosExtra'
 import { DEAB_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { DEAB_DIALOGS } from './languageDialogs'
+import { unitFigures } from './unitFigures'
 
 // ─── Юниты 1–8: звук, род, настоящее время, Akkusativ ────────────────────────
 
@@ -1341,6 +1342,9 @@ export const GERMAN_A1B1_SPEC: LanguageCourseSpec = {
   // своей жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
   // контентом значило бы править контент из-за чужого канала.
   units: [...UNITS_A1, ...UNITS_A2, ...UNITS_B1].map(u => ({ ...u, videoUrl: DEAB_VIDEO[u.shortId] ?? u.videoUrl })),
+  // Схемы конспекта: грамматика здесь описана прозой, поэтому картинка
+  // строится из шаблона конструкции — «Ich … aus …» (см. unitFigures.ts).
+  figures: unitFigures([...UNITS_A1, ...UNITS_A2, ...UNITS_B1]),
   dialogs: DEAB_DIALOGS,
   homeworkVideos: DEAB_HOMEWORK_VIDEO,
 }

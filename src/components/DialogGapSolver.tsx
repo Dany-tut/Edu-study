@@ -17,7 +17,7 @@ import { speak, stopSpeech, voiceOptions, type SpeechHandle } from '../lib/speec
 import { playPop, vibrate } from '../lib/sound'
 import { useT } from '../lib/i18n'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
-import HangulKeyboard, { needsHangul } from './HangulKeyboard'
+import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './ScriptKeyboard'
 
 /** Детерминированная перестановка вариантов — та же, что у плиток сборки. */
 function shuffled(list: string[]): string[] {
@@ -216,7 +216,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
               disabled={disabled}
               minHeight={growMinHeight(1, 14, 11, 1.5)}
               placeholder={t('Впиши пропущенную реплику…')}
-              inputMode={needsHangul(answer) ? 'none' : undefined}
+              inputMode={scriptKeyboardCovers(answer) ? 'none' : undefined}
               style={{
                 width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 14,
                 fontFamily: 'inherit', fontSize: 14, color: 'var(--color-text)',
@@ -224,9 +224,9 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                 border: `1px solid ${showVerdict ? (correct ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
               }}
             />
-            {/* Реплику ждут по-корейски — раскладки у ученика нет. */}
-            {needsHangul(answer) && !disabled && (
-              <HangulKeyboard value={value} onChange={onChange} />
+            {/* Реплику ждут письмом, которого нет на клавиатуре ученика. */}
+            {needsScriptKeyboard(answer) && !disabled && (
+              <ScriptKeyboard answer={answer} value={value} onChange={onChange} />
             )}
           </div>
         )}
