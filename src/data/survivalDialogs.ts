@@ -585,6 +585,141 @@ export const JASV_DIALOGS: Record<string, SeedTask[]> = {
     ['たなか', 'にほんの たべもの、どうですか。'],
     ['ダーニャ', 'とても ____。とくに ラーメンが すきです。'],
   ], 'おいしいです', { distractors: ['たのしいです', 'むずかしいです', 'いいです'] })],
+
+  places: [gapDialog(ASK, [
+    ['ダーニャ', 'すみません、____は どこですか。'],
+    ['てんいん', '２かいに あります。'],
+  ], 'トイレ', { distractors: ['でぐち', 'レジ', 'いりぐち'] })],
+
+  metro: [gapDialog(ASK, [
+    ['ダーニャ', 'しんじゅくまで、どこで ____ですか。'],
+    ['えきいん', 'つぎの えきで のりかえてください。'],
+  ], 'のりかえ', { distractors: ['おりる', 'のる', 'まつ'] })],
+
+  airport: [gapDialog(ASK, [
+    ['スタッフ', 'おあずけの にもつは。'],
+    ['ダーニャ', 'ひとつ あります。あとは ____です。'],
+  ], 'てにもつ', { distractors: ['おおきいにもつ', 'かばんの', 'にもつじゃない'] })],
+
+  food: [gapDialog(ASK, [
+    ['ダーニャ', 'これは なにが ____か。'],
+    ['てんいん', 'ぶたにくが はいって います。'],
+  ], 'はいって います', { distractors: ['あります', 'たべます', 'します'] })],
+
+  money: [gapDialog(ASK, [
+    ['ダーニャ', 'カードは ____か。'],
+    ['てんいん', 'すみません、げんきんのみです。'],
+  ], 'つかえます', { distractors: ['あります', 'します', 'いります'] })],
+
+  conv: [gapDialog(ASK, [
+    ['てんいん', 'ふくろは ごりようですか。'],
+    ['ダーニャ', '____。かばんが あります。'],
+  ], 'けっこうです', { distractors: ['おねがいします', 'ください', 'そうです'] })],
+
+  sim: [gapDialog(ASK, [
+    ['てんいん', 'どの プランに しますか。'],
+    ['ダーニャ', '____が おおい プランで おねがいします。'],
+  ], 'データ', { distractors: ['でんわ', 'メール', 'おかね'] })],
+
+  post: [gapDialog(ASK, [
+    ['きょくいん', 'どちらで おくりますか。'],
+    ['ダーニャ', '____で おねがいします。いそいで います。'],
+  ], 'そくたつ', { distractors: ['ふつう', 'ふなびん', 'てがみ'] })],
+
+  bank: [gapDialog(ASK, [
+    ['ぎんこういん', 'ごようけんは。'],
+    ['ダーニャ', '____を つくりたいです。'],
+  ], 'こうざ', { distractors: ['カード', 'つうちょう', 'おかね'] })],
+
+  train: [gapDialog(ASK, [
+    ['えきいん', 'していせきに しますか。'],
+    ['ダーニャ', 'はい、____がわの せきで おねがいします。'],
+  ], 'まど', { distractors: ['つうろ', 'まえ', 'うしろ'] })],
+
+  sights: [gapDialog(ASK, [
+    ['ダーニャ', '____は いくらですか。'],
+    ['スタッフ', 'おとな ひとり さんびゃくえんです。'],
+  ], 'にゅうじょうりょう', { distractors: ['きっぷ', 'りょこう', 'しゃしん'] })],
+
+  home: [gapDialog(ASK, [
+    ['ふどうさん', 'この へやは いかがですか。'],
+    ['ダーニャ', 'いいですね。____は いくらですか。'],
+  ], 'やちん', { distractors: ['しききん', 'こうねつひ', 'れいきん'] })],
+
+  bills: [gapDialog(ASK, [
+    ['おおや', 'こんげつの せいきゅうしょです。'],
+    ['ダーニャ', '____は べつですか。'],
+  ], 'すいどうだい', { distractors: ['やちん', 'しききん', 'てすうりょう'] })],
+
+  docs: [gapDialog(ASK, [
+    ['かかりいん', 'ここに サインを おねがいします。'],
+    ['ダーニャ', 'はい。____の コピーも いりますか。'],
+  ], 'パスポート', { distractors: ['しゃしん', 'はんこ', 'じゅうしょ'] })],
+
+  visa: [gapDialog(ASK, [
+    ['かかりいん', 'たいざいの もくてきは。'],
+    ['ダーニャ', '____です。だいがくに かよって います。'],
+  ], 'りゅうがく', { distractors: ['かんこう', 'しごと', 'ほうもん'] })],
+
+  hospital: [gapDialog(ASK, [
+    ['うけつけ', 'よやくは おありですか。'],
+    ['ダーニャ', 'いいえ、____です。'],
+  ], 'はじめて', { distractors: ['よやく', 'あした', 'さっき'] })],
+
+  pharmacy: [gapDialog(ASK, [
+    ['やくざいし', 'しょほうせんは ありますか。'],
+    ['ダーニャ', 'ありません。____の くすりを ください。'],
+  ], 'ずつう', { distractors: ['かぜ', 'いたみ', 'アレルギー'] })],
+
+  work: [gapDialog(ASK, [
+    ['どうりょう', 'この しりょう、いつまでですか。'],
+    ['ダーニャ', '____までに おくります。'],
+  ], 'きんようび', { distractors: ['いま', 'きょねん', 'きのう'] })],
+
+  family: [gapDialog(ASK, [
+    ['たなか', 'ごきょうだいは。'],
+    ['ダーニャ', '____が ひとり います。'],
+  ], 'あね', { distractors: ['おねえさん', 'いもうとさん', 'あにさん'] })],
+
+  react: [gapDialog(ASK, [
+    ['たなか', 'ひこうきが けっこうに なったんです。'],
+    ['ダーニャ', '____! それで どうしましたか。'],
+  ], 'ええっ', { distractors: ['そうですね', 'わかりました', 'どうも'] })],
+
+  attitude: [gapDialog(ASK, [
+    ['たなか', 'あした いっしょに いきませんか。'],
+    ['ダーニャ', 'すみません、あしたは ____。'],
+  ], 'ちょっと', { distractors: ['いいです', 'だいじょうぶ', 'そうです'] })],
+
+  hedge: [gapDialog(ASK, [
+    ['たなか', 'あの えいが、どうでしたか。'],
+    ['ダーニャ', '____、すこし ながかったです。'],
+  ], 'しょうじきに いうと', { distractors: ['それから', 'ところで', 'だから'] })],
+
+  border: [gapDialog(ASK, [
+    ['しんさかん', 'たいざい きかんは。'],
+    ['ダーニャ', 'いっしゅうかん____です。'],
+  ], 'ぐらい', { distractors: ['まで', 'から', 'ごろ'] })],
+
+  cinema: [gapDialog(ASK, [
+    ['スタッフ', 'なんじの かいですか。'],
+    ['ダーニャ', '____の かいを にまい ください。'],
+  ], 'しちじ', { distractors: ['ななじ', 'しちかい', 'ななつ'] })],
+
+  dentist: [gapDialog(ASK, [
+    ['はいしゃ', 'どこが いたいですか。'],
+    ['ダーニャ', 'おくの ____が いたいです。'],
+  ], 'は', { distractors: ['はな', 'みみ', 'した'] })],
+
+  print: [gapDialog(ASK, [
+    ['スタッフ', 'なんぶ いんさつしますか。'],
+    ['ダーニャ', 'にじゅうぶ、____で おねがいします。'],
+  ], 'りょうめん', { distractors: ['かためん', 'カラー', 'おおきく'] })],
+
+  office: [gapDialog(ASK, [
+    ['どうりょう', 'メール ごらんに なりましたか。'],
+    ['ダーニャ', 'はい、____ おへんじします。'],
+  ], 'ほんじつちゅうに', { distractors: ['きのう', 'せんしゅう', 'きょねん'] })],
 }
 
 // ─── Португальский ───────────────────────────────────────────────────────────
@@ -680,6 +815,141 @@ export const PTSV_DIALOGS: Record<string, SeedTask[]> = {
     ['Bruno', 'E a comida daqui?'],
     ['Dânia', 'Muito ____! Principalmente o feijão.'],
   ], 'boa', { distractors: ['bom', 'bem', 'boas'] })],
+
+  places: [gapDialog(ASK, [
+    ['Dânia', 'Com licença, tem um ____ por aqui?'],
+    ['Senhor', 'Tem sim, no shopping ali na esquina.'],
+  ], 'caixa eletrônico', { distractors: ['dinheiro', 'banco de caixa', 'cartão'] })],
+
+  metro: [gapDialog(ASK, [
+    ['Dânia', 'Preciso ____ para chegar à Sé?'],
+    ['Funcionário', 'Precisa sim, na próxima estação.'],
+  ], 'trocar de linha', { distractors: ['descer', 'entrar', 'pagar'] })],
+
+  airport: [gapDialog(ASK, [
+    ['Atendente', 'Vai despachar bagagem?'],
+    ['Dânia', 'Só uma mala. O resto é ____.'],
+  ], 'bagagem de mão', { distractors: ['mala grande', 'bolsa despachada', 'mão bagagem'] })],
+
+  food: [gapDialog(ASK, [
+    ['Dânia', 'O que ____ neste prato?'],
+    ['Garçom', 'Leva carne de porco e feijão.'],
+  ], 'leva', { distractors: ['tem que', 'faz', 'é'] })],
+
+  money: [gapDialog(ASK, [
+    ['Dânia', 'Vocês aceitam ____?'],
+    ['Caixa', 'Só cartão, infelizmente.'],
+  ], 'dinheiro', { distractors: ['troco', 'moeda', 'nota'] })],
+
+  conv: [gapDialog(ASK, [
+    ['Caixa', 'Precisa de sacola?'],
+    ['Dânia', 'Não, ____. Já tenho uma.'],
+  ], 'obrigada', { distractors: ['por favor', 'com licença', 'de nada'] })],
+
+  sim: [gapDialog(ASK, [
+    ['Atendente', 'Plano ou pré-pago?'],
+    ['Dânia', 'Pré-pago, com bastante ____.'],
+  ], 'internet', { distractors: ['minutos', 'sinal', 'ligação'] })],
+
+  post: [gapDialog(ASK, [
+    ['Funcionário', 'Como quer enviar?'],
+    ['Dânia', 'Pelo ____, é urgente.'],
+  ], 'Sedex', { distractors: ['normal', 'correio comum', 'navio'] })],
+
+  bank: [gapDialog(ASK, [
+    ['Gerente', 'Em que posso ajudar?'],
+    ['Dânia', 'Queria ____ uma conta.'],
+  ], 'abrir', { distractors: ['fazer', 'começar', 'pegar'] })],
+
+  train: [gapDialog(ASK, [
+    ['Bilheteria', 'Ida ou ida e volta?'],
+    ['Dânia', '____, volto no domingo.'],
+  ], 'Ida e volta', { distractors: ['Só ida', 'Duas idas', 'Volta só'] })],
+
+  sights: [gapDialog(ASK, [
+    ['Dânia', 'Quanto é a ____?'],
+    ['Bilheteria', 'Vinte reais por pessoa.'],
+  ], 'entrada', { distractors: ['saída', 'entrar', 'passagem'] })],
+
+  home: [gapDialog(ASK, [
+    ['Corretor', 'O que achou do apartamento?'],
+    ['Dânia', 'Gostei. O ____ está incluso?'],
+  ], 'condomínio', { distractors: ['aluguel', 'depósito', 'imóvel'] })],
+
+  bills: [gapDialog(ASK, [
+    ['Proprietário', 'Chegou a conta de luz.'],
+    ['Dânia', 'Isso é além do ____?'],
+  ], 'aluguel', { distractors: ['condomínio', 'depósito', 'contrato'] })],
+
+  docs: [gapDialog(ASK, [
+    ['Funcionário', 'Assine aqui, por favor.'],
+    ['Dânia', 'Claro. Precisa de ____ de residência também?'],
+  ], 'comprovante', { distractors: ['papel', 'documento', 'prova'] })],
+
+  visa: [gapDialog(ASK, [
+    ['Agente', 'Qual o motivo da sua estadia?'],
+    ['Dânia', 'Estou com visto de ____.'],
+  ], 'estudante', { distractors: ['estudar', 'estudo', 'universidade'] })],
+
+  hospital: [gapDialog(ASK, [
+    ['Recepção', 'Tem consulta marcada?'],
+    ['Dânia', 'Não, posso ser ____ mesmo assim?'],
+  ], 'atendida', { distractors: ['atendido', 'atender', 'atendendo'] })],
+
+  pharmacy: [gapDialog(ASK, [
+    ['Farmacêutico', 'Tem receita?'],
+    ['Dânia', 'Não. Queria algo ____ dor de cabeça.'],
+  ], 'para', { distractors: ['de', 'com', 'por'] })],
+
+  work: [gapDialog(ASK, [
+    ['Colega', 'Quando você me manda o arquivo?'],
+    ['Dânia', 'Te ____ até sexta.'],
+  ], 'envio', { distractors: ['enviar', 'enviei', 'enviando'] })],
+
+  family: [gapDialog(ASK, [
+    ['Bruno', 'Você tem irmãos?'],
+    ['Dânia', 'Tenho uma irmã mais ____.'],
+  ], 'velha', { distractors: ['velho', 'grande', 'maior'] })],
+
+  react: [gapDialog(ASK, [
+    ['Bruno', 'Cancelaram o voo uma hora antes.'],
+    ['Dânia', '____! E aí, o que você fez?'],
+  ], 'Sério', { distractors: ['Tá bom', 'Claro', 'Pois é'] })],
+
+  attitude: [gapDialog(ASK, [
+    ['Bruno', 'Vamos junto amanhã?'],
+    ['Dânia', '____, mas já tenho compromisso.'],
+  ], 'Adoraria', { distractors: ['Quero', 'Gosto', 'Está bom'] })],
+
+  hedge: [gapDialog(ASK, [
+    ['Bruno', 'O que achou do filme?'],
+    ['Dânia', '____, achei meio lento.'],
+  ], 'Pra ser sincera', { distractors: ['Por exemplo', 'Aliás disso', 'Então'] })],
+
+  border: [gapDialog(ASK, [
+    ['Agente', 'Quanto tempo vai ficar?'],
+    ['Dânia', '____ duas semanas.'],
+  ], 'Por', { distractors: ['Desde', 'Em', 'Há'] })],
+
+  cinema: [gapDialog(ASK, [
+    ['Bilheteria', 'Qual sessão?'],
+    ['Dânia', 'A das ____, duas entradas.'],
+  ], 'sete', { distractors: ['sétima', 'sete horas de', 'sete vezes'] })],
+
+  dentist: [gapDialog(ASK, [
+    ['Dentista', 'Onde está doendo?'],
+    ['Dânia', 'Este ____ lá atrás.'],
+  ], 'dente', { distractors: ['dentes', 'gengiva', 'queixo'] })],
+
+  print: [gapDialog(ASK, [
+    ['Atendente', 'Quantas cópias?'],
+    ['Dânia', 'Vinte, ____ por favor.'],
+  ], 'frente e verso', { distractors: ['dois lados', 'duas folhas', 'em dobro'] })],
+
+  office: [gapDialog(ASK, [
+    ['Colega', 'Viu meu e-mail?'],
+    ['Dânia', 'Vi. ____ ainda hoje.'],
+  ], 'Respondo', { distractors: ['Respondi', 'Respondendo', 'Responder'] })],
 }
 
 // ─── Немецкий ────────────────────────────────────────────────────────────────
@@ -776,5 +1046,139 @@ export const DESV_DIALOGS: Record<string, SeedTask[]> = {
     ['Max', 'Und wie findest du das Wetter hier?'],
     ['Dania', 'Ehrlich gesagt zu kalt. Aber man ____ sich daran.'],
   ], 'gewöhnt', { distractors: ['gewohnt', 'gewöhnen', 'gewöhnte'] })],
-}
 
+  places: [gapDialog(ASK, [
+    ['Dania', 'Entschuldigung, gibt es hier einen ____?'],
+    ['Passant', 'Ja, im Einkaufszentrum gleich dort.'],
+  ], 'Geldautomat', { distractors: ['Geld', 'Bankgeld', 'Automat Geld'] })],
+
+  metro: [gapDialog(ASK, [
+    ['Dania', 'Muss ich zum Hauptbahnhof ____?'],
+    ['Mitarbeiter', 'Ja, an der nächsten Station.'],
+  ], 'umsteigen', { distractors: ['aussteigen', 'einsteigen', 'absteigen'] })],
+
+  airport: [gapDialog(ASK, [
+    ['Mitarbeiterin', 'Möchten Sie Gepäck aufgeben?'],
+    ['Dania', 'Einen Koffer. Der Rest ist ____.'],
+  ], 'Handgepäck', { distractors: ['Handtasche', 'Gepäck der Hand', 'Koffergepäck'] })],
+
+  food: [gapDialog(ASK, [
+    ['Dania', 'Was ist in dem Gericht ____?'],
+    ['Kellner', 'Schweinefleisch und Kartoffeln.'],
+  ], 'drin', { distractors: ['darauf', 'dabei', 'daran'] })],
+
+  money: [gapDialog(ASK, [
+    ['Dania', 'Kann ich ____ zahlen?'],
+    ['Kassiererin', 'Nur bar, leider.'],
+  ], 'mit Karte', { distractors: ['Karte', 'auf Karte', 'in Karte'] })],
+
+  conv: [gapDialog(ASK, [
+    ['Kassiererin', 'Brauchen Sie eine Tüte?'],
+    ['Dania', 'Nein, ____. Ich habe eine dabei.'],
+  ], 'danke', { distractors: ['bitte', 'gern', 'sicher'] })],
+
+  sim: [gapDialog(ASK, [
+    ['Mitarbeiter', 'Vertrag oder Prepaid?'],
+    ['Dania', 'Prepaid, mit viel ____.'],
+  ], 'Datenvolumen', { distractors: ['Minuten', 'Netz', 'Guthaben'] })],
+
+  post: [gapDialog(ASK, [
+    ['Mitarbeiterin', 'Wie soll es verschickt werden?'],
+    ['Dania', 'Als ____, bitte. Es ist dringend.'],
+  ], 'Express', { distractors: ['Standard', 'Brief', 'Päckchen'] })],
+
+  bank: [gapDialog(ASK, [
+    ['Berater', 'Was kann ich für Sie tun?'],
+    ['Dania', 'Ich möchte ein Konto ____.'],
+  ], 'eröffnen', { distractors: ['öffnen', 'aufmachen', 'anfangen'] })],
+
+  train: [gapDialog(ASK, [
+    ['Schalter', 'Einfach oder hin und zurück?'],
+    ['Dania', '____, ich komme Sonntag wieder.'],
+  ], 'Hin und zurück', { distractors: ['Einfach', 'Zwei Wege', 'Zurückfahrt'] })],
+
+  sights: [gapDialog(ASK, [
+    ['Dania', 'Was kostet der ____?'],
+    ['Kasse', 'Zwölf Euro für Erwachsene.'],
+  ], 'Eintritt', { distractors: ['Ausgang', 'Eingang', 'Zutritt'] })],
+
+  home: [gapDialog(ASK, [
+    ['Makler', 'Wie gefällt Ihnen die Wohnung?'],
+    ['Dania', 'Gut. Ist die ____ inklusive?'],
+  ], 'Nebenkosten', { distractors: ['Miete', 'Kaution', 'Wohnung'] })],
+
+  bills: [gapDialog(ASK, [
+    ['Vermieter', 'Die Stromrechnung ist gekommen.'],
+    ['Dania', 'Kommt das zur ____ dazu?'],
+  ], 'Kaltmiete', { distractors: ['Kaution', 'Wohnung', 'Rechnung'] })],
+
+  docs: [gapDialog(ASK, [
+    ['Beamter', 'Bitte hier unterschreiben.'],
+    ['Dania', 'Gern. Brauchen Sie auch eine ____?'],
+  ], 'Meldebescheinigung', { distractors: ['Rechnung', 'Quittung', 'Bescheinigung Geld'] })],
+
+  visa: [gapDialog(ASK, [
+    ['Beamtin', 'Was ist der Zweck Ihres Aufenthalts?'],
+    ['Dania', 'Ich habe ein ____ zum Studium.'],
+  ], 'Visum', { distractors: ['Pass', 'Ticket', 'Formular'] })],
+
+  hospital: [gapDialog(ASK, [
+    ['Empfang', 'Haben Sie einen Termin?'],
+    ['Dania', 'Nein, ____ ich trotzdem drankommen?'],
+  ], 'kann', { distractors: ['darf zu', 'muss', 'werde'] })],
+
+  pharmacy: [gapDialog(ASK, [
+    ['Apothekerin', 'Haben Sie ein Rezept?'],
+    ['Dania', 'Nein. Etwas ____ Kopfschmerzen, bitte.'],
+  ], 'gegen', { distractors: ['für', 'von', 'zu'] })],
+
+  work: [gapDialog(ASK, [
+    ['Kollege', 'Wann bekomme ich die Datei?'],
+    ['Dania', 'Ich ____ sie dir bis Freitag.'],
+  ], 'schicke', { distractors: ['schickt', 'geschickt', 'schicken'] })],
+
+  family: [gapDialog(ASK, [
+    ['Max', 'Hast du Geschwister?'],
+    ['Dania', 'Ja, eine ____ Schwester.'],
+  ], 'ältere', { distractors: ['alte', 'älter', 'am ältesten'] })],
+
+  react: [gapDialog(ASK, [
+    ['Max', 'Sie haben den Flug eine Stunde vorher gestrichen.'],
+    ['Dania', '____! Und was hast du gemacht?'],
+  ], 'Im Ernst', { distractors: ['Na klar', 'Genau', 'Macht nichts'] })],
+
+  attitude: [gapDialog(ASK, [
+    ['Max', 'Kommst du morgen mit?'],
+    ['Dania', '____, aber ich habe schon etwas vor.'],
+  ], 'Sehr gern', { distractors: ['Ich will', 'Es ist gut', 'Ich mag'] })],
+
+  hedge: [gapDialog(ASK, [
+    ['Max', 'Wie fandest du den Film?'],
+    ['Dania', '____ fand ich ihn etwas langatmig.'],
+  ], 'Ehrlich gesagt', { distractors: ['Zum Beispiel', 'Übrigens', 'Deshalb'] })],
+
+  border: [gapDialog(ASK, [
+    ['Beamter', 'Wie lange bleiben Sie?'],
+    ['Dania', '____ zwei Wochen.'],
+  ], 'Für', { distractors: ['Seit', 'Ab', 'In'] })],
+
+  cinema: [gapDialog(ASK, [
+    ['Kasse', 'Welche Vorstellung?'],
+    ['Dania', 'Die um ____, zwei Karten bitte.'],
+  ], 'sieben', { distractors: ['siebte', 'sieben Uhren', 'siebenmal'] })],
+
+  dentist: [gapDialog(ASK, [
+    ['Zahnarzt', 'Wo tut es weh?'],
+    ['Dania', 'Dieser ____ hinten.'],
+  ], 'Zahn', { distractors: ['Zähne', 'Kiefer', 'Mund'] })],
+
+  print: [gapDialog(ASK, [
+    ['Mitarbeiter', 'Wie viele Kopien?'],
+    ['Dania', 'Zwanzig, ____ bitte.'],
+  ], 'beidseitig', { distractors: ['zwei Seiten', 'doppelt Seite', 'zweimal'] })],
+
+  office: [gapDialog(ASK, [
+    ['Kollegin', 'Hast du meine Mail gesehen?'],
+    ['Dania', 'Ja, ich ____ mich heute noch.'],
+  ], 'melde', { distractors: ['meldet', 'gemeldet', 'melden'] })],
+}
