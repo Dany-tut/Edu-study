@@ -222,12 +222,32 @@ export function spreadConfusable(vocab: VocabItem[], size: number): VocabItem[][
   const count = Math.max(1, Math.ceil(vocab.length / size))
   const out: VocabItem[][] = Array.from({ length: count }, () => [])
 
-  for (const word of vocab) {
+  /**
+   * САМОЕ ПРИДИРЧИВОЕ СЛОВО — ПЕРВЫМ.
+   *
+   * Раньше слова раскладывались в авторском порядке, и «трудное» (спутываемое
+   * с половиной юнита) доходило до раздачи последним, когда свободных мест уже
+   * не осталось, — и заводило себе занятие из одного слова. Сначала места ищут
+   * те, кому их меньше всего: жадная раскладка по убыванию числа конфликтов
+   * (это обычная эвристика раскраски графа) оставляет одиночек втрое меньше.
+   *
+   * Порядок раздачи ≠ порядок в занятии: внутри порции слова в конце
+   * возвращаются в авторский порядок — он часть содержания.
+   */
+  const order = vocab
+    .map((word, i) => ({ word, i, deg: vocab.filter(x => x !== word && confusable(word, x)).length }))
+    .sort((a, b) => b.deg - a.deg || a.i - b.i)
+
+  const index = new Map(vocab.map((w, i) => [w, i]))
+  const fitsIn = (part: VocabItem[], word: VocabItem) =>
+    part.length < size && !part.some(x => confusable(word, x))
+
+  for (const { word } of order) {
     // Ровные порции: сначала самая пустая из подходящих, чтобы не получилось
     // «четыре и хвост из одного» (Р1).
     const fits = out
       .map((part, i) => ({ part, i }))
-      .filter(({ part }) => part.length < size && !part.some(x => confusable(word, x)))
+      .filter(({ part }) => fitsIn(part, word))
       .sort((a, b) => a.part.length - b.part.length || a.i - b.i)[0]
     if (fits) { fits.part.push(word); continue }
 
@@ -241,7 +261,54 @@ export function spreadConfusable(vocab: VocabItem[], size: number): VocabItem[][
     // дефект, ради которого порции и заводились.
     out.push([word])
   }
-  return out.filter(part => part.length > 0)
+
+  /**
+   * ЗАНЯТИЕ ИЗ ОДНОГО СЛОВА — НЕ ЗАНЯТИЕ.
+   *
+   * Одно новое слово даёт карточку, три круга лестницы по нему же и экзамен из
+   * пройденного: вечер уходит на одно слово, а лестница вырождается — обманку
+   * приходится целиком брать из старого, и «выбор из двух» превращается в
+   * «выбор между новым и давно знакомым», то есть в подсказку.
+   *
+   * Поэтому одиночек расселяем: сначала пробуем подсадить к порции, где нет
+   * спутываемых, потом — обменяться словом с чужой порцией (соседу переехать
+   * можно, если он никому там не мешает). Что не расселилось — остаётся: это
+   * значит, что слово спутывается со всем юнитом, и одиночество для него
+   * честнее каши.
+   */
+  for (let k = out.length - 1; k >= 0; k--) {
+    const lone = out[k]
+    if (lone.length !== 1) continue
+    const word = lone[0]
+
+    const host = out.find((part, i) => i !== k && fitsIn(part, word))
+    if (host) { host.push(word); out.splice(k, 1); continue }
+
+    // Обмен: у соседа забираем слово, которое не конфликтует ни с нашим, ни с
+    // остатком его же порции после переезда.
+    let moved = false
+    for (let j = 0; j < out.length && !moved; j++) {
+      if (j === k) continue
+      const part = out[j]
+      if (part.length < 2) continue
+      for (const guest of part) {
+        if (confusable(guest, word)) continue
+        const rest = part.filter(x => x !== guest)
+        if (rest.some(x => confusable(x, word))) continue
+        part.splice(part.indexOf(guest), 1)
+        lone.push(guest)
+        moved = true
+        break
+      }
+    }
+  }
+
+  return out
+    .filter(part => part.length > 0)
+    // Внутри занятия — авторский порядок: раздача его перемешала.
+    .map(part => [...part].sort((a, b) => (index.get(a) ?? 0) - (index.get(b) ?? 0)))
+    // И сами занятия идут в порядке первого слова, а не в порядке раздачи.
+    .sort((a, b) => (index.get(a[0]) ?? 0) - (index.get(b[0]) ?? 0))
 }
 
 /** Слоги-обманки для сборки: похожие на слоги самого слова, а не случайные. */

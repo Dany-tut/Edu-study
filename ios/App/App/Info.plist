@@ -24,6 +24,11 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- Устный ответ в домашке и шэдоуинг в тренажёре пишут голос через
+	     getUserMedia. Без этой строки iOS не показывает запрос вовсе:
+	     в приложении-обёртке микрофон не включался никак. -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Микрофон нужен, чтобы записать устный ответ в домашке и произношение в тренажёре.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
