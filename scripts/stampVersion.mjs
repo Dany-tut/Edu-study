@@ -29,7 +29,16 @@ try { count = Number(git('rev-list --count HEAD')) || 0 } catch { /* нет git 
 // `git commit --amend` номер сдвинет ещё на единицу (коммит уже в HEAD, а хук
 // снова прибавляет 1). Это не беда: номер остаётся уникальным и растущим —
 // именно это и нужно, чтобы сверять «доехало / не доехало».
-const build = count + (args.has('--next') ? 1 : 0)
+// Номер обязан только РАСТИ. Параллельные сессии считают «следующий» от одного
+// и того же HEAD и легко штампуют одно число дважды; после ребейза в истории
+// оказывались бы два коммита с одной версией — и устройство на первом из них
+// считало бы себя свежим. Поэтому берём максимум из счётчика и уже
+// заштампованного номера.
+const prevBuild = (() => {
+  try { return Number(JSON.parse(readFileSync(OUT, 'utf8')).build) || 0 } catch { return 0 }
+})()
+const bump = args.has('--next') ? 1 : 0
+const build = Math.max(count + bump, prevBuild + bump)
 const version = `1.0.${build}`
 const payload = { build, version, stamped: new Date().toISOString().replace(/\.\d+Z$/, 'Z') }
 

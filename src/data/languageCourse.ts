@@ -35,6 +35,7 @@ import { nestById } from './soundNests'
 import { pronRuleById } from './koreanPronRules'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import { vocabImage } from './vocabImages'
+import { collocationsFor } from './collocations'
 import { answerSkeleton, isHangul, ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -373,10 +374,11 @@ export const dropIn = (
  */
 export const relatedTasks = (vocab: VocabItem[]): SeedTask[] =>
   vocab
-    .filter(v => (v.related?.length ?? 0) >= 2)
-    .map(v => pairsOf(
+    .map(v => ({ v, rel: v.related ?? collocationsFor(v.term) }))
+    .filter(x => (x.rel?.length ?? 0) >= 2)
+    .map(({ v, rel }) => pairsOf(
       `Что значат сочетания со словом «${v.term}» (${v.ru})?`,
-      v.related!.map(r => [r.phrase, r.ru] as [string, string]),
+      rel!.map(r => [r.phrase, r.ru] as [string, string]),
     ))
 
 /** Кроссворд: слово вспоминается по значению, без плиток и вариантов. */
@@ -703,8 +705,11 @@ function vocabCard(word: VocabItem, id: string, lang: string, native = false) {
   // подсказкой ударения и уходит на оборот, к слову, а не к описанию.
   return editorTask(
     native
-      ? { type: 'flashcard', question: label, front: word.ru, back: word.term, reading: word.reading, image, altAnswers: word.alt, related: word.related }
-      : { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt, related: word.related },
+      // Сочетания: сперва записанные в самом юните, иначе — из общего словаря
+      // (collocations.ts). Одно и то же слово стоит в словарях нескольких
+      // курсов, и держать его сочетания в каждом значило бы их разводить.
+      ? { type: 'flashcard', question: label, front: word.ru, back: word.term, reading: word.reading, image, altAnswers: word.alt, related: word.related ?? collocationsFor(word.term) }
+      : { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt, related: word.related ?? collocationsFor(word.term) },
     id, lang,
   )
 }

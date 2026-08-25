@@ -45,7 +45,11 @@ export default function UpdateDockPill() {
       style={{
         position: 'relative', overflow: 'hidden',
         display: 'flex', alignItems: 'center', gap: 9,
-        height: 46, padding: '0 6px 0 16px', maxWidth: 340, minWidth: 0,
+        // Справа 6px — это место под кнопку, которая сама несёт свой отступ.
+        // Пока идёт загрузка кнопки нет, и подпись «Обновляем… 100%» вплотную
+        // упиралась в кромку: без кнопки правый отступ обязан быть таким же,
+        // как левый.
+        height: 46, padding: updating ? '0 18px' : '0 6px 0 16px', maxWidth: 340, minWidth: 0,
         borderRadius: 999, cursor: updating ? 'default' : 'pointer',
         transformOrigin: 'bottom center',
         ...glassBase,
