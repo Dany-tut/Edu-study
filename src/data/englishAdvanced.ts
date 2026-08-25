@@ -44,6 +44,7 @@ import { ENAC_DIALOGS } from './languageDialogs'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { unitFigures } from './unitFigures'
+import { ENAC_VIDEO } from './languageVideosEnac'
 
 export type EnglishAdvUnit = LangUnit
 export type EnglishAdvModule = LangModule
@@ -2013,6 +2014,10 @@ export const ENGLISH_ADVANCED_SPEC: LanguageCourseSpec = {
   // структура, словарь и упражнения, там — то, что ученик читает.
   units: ENGLISH_ADVANCED.map(u => ({
     ...u,
+    // Видео проставляется здесь, а не в самих юнитах: подборка живёт своей
+    // жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
+    // контентом значило бы править контент из-за чужого канала.
+    videoUrl: ENAC_VIDEO[u.shortId] ?? u.videoUrl,
     theory: ENAC_THEORY[u.shortId] ?? u.theory,
     // Чтение идёт ПОСЛЕ упражнений юнита: сначала форма ставится в руку, потом
     // встречается в связном тексте, где её никто не подчёркивал.
