@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Play, Pause, Square, Languages, Type, Volume2, PanelRight, PanelBottom,
-  Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye,
+  Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye, Menu,
 } from 'lucide-react'
 import GlossedText from '../GlossedText'
+import MobileSheet from '../MobileSheet'
+import VoicePicker from './VoicePicker'
+import { tactile } from '../../lib/feedback'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { buildLexicon, wordReading } from '../../lib/lexicon'
@@ -11,7 +15,7 @@ import { transcribe } from '../../lib/translit'
 import { pairTranslation } from '../../lib/pairing'
 import { speak, speechLines, type SpeechHandle } from '../../lib/speech'
 import { useIsDesktop } from '../../lib/useIsDesktop'
-import { TRAINER_STICK_FALLBACK } from './TrainerShell'
+import { TRAINER_STICK_FALLBACK, useTrainerPlayerSlot } from './TrainerShell'
 import type { Gloss } from '../../data/readingLibrary'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,6 +165,9 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
+  // Телефон — не «узкий десктоп»: там у плеера своё место (внизу, в ряду дока)
+  // и свой состав кнопок, см. ниже.
+  const narrow = !isDesktop
 
   const { units, loose } = useMemo(() => build(body, translation), [body, translation])
   // Реплики теми же кусками, какими их читает озвучка: по ним считается
@@ -407,6 +414,66 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   /** Идёт ли звук по кнопке шапки. */
   const sounding = stepping ? solo !== null : playing
 
+  // ─── Плеер телефона ────────────────────────────────────────────────────────
+  //
+  // На телефоне плеер уезжает ВНИЗ, в ряд дока, — ровно туда же, где он стоит в
+  // аудировании (см. trainer/TrackPlayer.tsx). Причина та же: прилипшая шапка
+  // держала над текстом два этажа управления (кнопка с бегунком и рейка
+  // тумблеров), и на 800 px высоты это четверть экрана впустую — при том что
+  // «играть» и «переслушать это место» нужны большому пальцу, а не глазу.
+  // Своими силами, а не через TrackPlayer: голос партитуры ведёт по строкам с
+  // подсветкой слова, помнит метку паузы и режим «по строке» — второй плеер на
+  // тот же текст означал бы два бегунка и две разные позиции в одной записи.
+  const slot = useTrainerPlayerSlot()
+  const dockPlayer = narrow && !!slot?.el
+  useEffect(() => {
+    if (!slot || !narrow) return
+    slot.claim(true)
+    return () => slot.claim(false)
+  }, [slot, narrow])
+
+  const [menu, setMenu] = useState(false)
+
+  // Промотка идёт ПО РЕПЛИКАМ: у синтеза нет таймлайна (та же оговорка, что в
+  // TrackPlayer), и единственная точка, куда можно встать, — начало реплики.
+  // В режиме «по строке» шкала считает фрагменты: на экране один из них, и
+  // вести бегунок по репликам целого текста было бы враньём.
+  const seekMax = Math.max(0, (stepping ? units.length : total) - 1)
+  const seekNow = stepping ? at : mark
+  const [seekTo, setSeekTo] = useState<number | null>(null)
+  // Та же величина в ref: щелчок на смене реплики нельзя ставить внутрь
+  // обновления состояния (оно вызывается лишний раз в строгом режиме), а
+  // сравнивать надо с тем, что уже под пальцем, а не с прошлым рендером.
+  const seekToRef = useRef<number | null>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const seeking = useRef(false)
+
+  function seekIndex(clientX: number): number {
+    const el = trackRef.current
+    if (!el || !seekMax) return 0
+    const r = el.getBoundingClientRect()
+    const f = r.width ? (clientX - r.left) / r.width : 0
+    return Math.max(0, Math.min(seekMax, Math.round(f * seekMax)))
+  }
+
+  /** Отпустили бегунок: встать на реплику — и продолжить оттуда, если звучало. */
+  function applySeek(to: number) {
+    if (stepping) { goStep(to); return }
+    if (playing) { play(slow ? 0.8 : 1, to); return }
+    // В тишине это метка, а не запуск: ученик отмотал, чтобы перечитать место,
+    // и включать ему голос без спроса — не то же самое, что промотать.
+    voice.current?.stop()
+    markLine(null)
+    setChar(null)
+    setPaused(to)
+  }
+
+  const seekPos = seekTo ?? seekNow
+  const frac = seekMax ? Math.min(1, Math.max(0, ((seekPos ?? -1) + 1) / (seekMax + 1))) : 0
+  const held = seekTo !== null
+  /** Есть ли что показывать в рейке тумблеров: без неё шапки нет вовсе. */
+  const showRail = !!translation || readings || units.length > 1
+
   /**
    * Перейти на фрагмент. Речь при этом глохнет: экран сменился, а голос,
    * дочитывающий предыдущий фрагмент, подсвечивал бы слова там, где их уже нет.
@@ -449,6 +516,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   } as const
 
   return (
+    <>
     <div ref={cardRef} style={{
       borderRadius: 18, background: 'var(--color-bg-2)',
       border: '1px solid var(--color-border-soft)',
@@ -469,6 +537,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
         кнопки листания фрагментов — они и так стоят внизу одноэкранной
         карточки режима «строка за строкой».
       */}
+      {(showRail || !dockPlayer) && (
       <div
         ref={barRef}
         style={{
@@ -480,7 +549,10 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           transition: 'box-shadow 180ms ease',
         }}
       >
-        {/* Плеер — шапкой над текстом: он ведёт по строкам, а не просто читает. */}
+        {/* Плеер — шапкой над текстом: он ведёт по строкам, а не просто читает.
+            На телефоне этой строки здесь нет вовсе: плеер стоит внизу, в ряду
+            дока (см. «Плеер телефона» выше). */}
+        {!dockPlayer && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,
           // Прилипшая шапка ужимается: две полные строки управления съедают
@@ -546,6 +618,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             {slow ? '0.75×' : '1.0×'}
           </button>
         </div>
+        )}
 
         {/*
           СТРОКА УПРАВЛЕНИЯ — ОДИН ПРЕДМЕТ, А НЕ ЧЕТЫРЕ.
@@ -558,15 +631,23 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           Рамок нет ни у кого: состояние показывает заливка, и включение больше
           не добавляет элементу лишний пиксель по краю.
         */}
-        {(translation || readings || units.length > 1) && (
+        {showRail && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
             padding: stuck ? '6px 16px' : '10px 16px',
             borderBottom: '1px solid var(--color-border-soft)',
             transition: 'padding 160ms ease',
           }}>
+            {/* НА ТЕЛЕФОНЕ РЕЙКА — ВО ВСЮ ШИРИНУ, А НЕ ПО СОДЕРЖИМОМУ.
+                Четыре сегмента с подписями не помещались в 358 px: рейка
+                вылезала за карточку, и «Транскрипция» обрезалась по букве «Т»
+                — кнопка, о которой нельзя догадаться, что она кнопка. Теперь
+                «как читаем» делит между собой всю свободную ширину, а «что
+                показываем» ужимается до значков: у них есть включённое
+                состояние заливкой, и подпись им нужна ровно один раз. */}
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 2,
+              display: narrow ? 'flex' : 'inline-flex', alignItems: 'center', gap: 2,
+              flex: narrow ? 1 : undefined, minWidth: 0,
               padding: 3, borderRadius: 999, background: 'var(--color-bg-input)',
             }}>
               {/* Поток или по одному фрагменту. Это не украшение для телефона:
@@ -578,12 +659,12 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               {units.length > 1 && (
                 <>
                   <Seg
-                    icon={Rows3} label={t('Потоком')} on={!stepping} solid
+                    icon={Rows3} label={t('Потоком')} on={!stepping} solid grow={narrow}
                     accent={accent} soft={soft}
                     onClick={() => { if (stepping) toggleStepping() }}
                   />
                   <Seg
-                    icon={GalleryVerticalEnd} label={t('По строке')} on={stepping} solid
+                    icon={GalleryVerticalEnd} label={t('По строке')} on={stepping} solid grow={narrow}
                     accent={accent} soft={soft}
                     onClick={() => { if (!stepping) toggleStepping() }}
                   />
@@ -592,14 +673,14 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               {units.length > 1 && (translation || readings) && <SegSep />}
               {translation && (
                 <Seg
-                  icon={Languages} label={t('Перевод')} on={showRu}
+                  icon={Languages} label={t('Перевод')} on={showRu} iconOnly={narrow}
                   accent={accent} soft={soft}
                   onClick={() => setShowRu(v => !v)}
                 />
               )}
               {readings && (
                 <Seg
-                  icon={Type} label={t('Транскрипция')} on={showTr}
+                  icon={Type} label={t('Транскрипция')} on={showTr} iconOnly={narrow}
                   accent={accent} soft={soft}
                   onClick={() => setShowTr(v => !v)}
                 />
@@ -629,7 +710,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             {/* Подсказку читают один раз, в начале. В прилипшей шапке она первой
                 переносится на вторую строку и растит её — а объясняет то, что к
                 середине текста уже известно. */}
-            {!stuck && (
+            {!stuck && !narrow && (
               <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
                 {stepping
                   ? t('Листай свайпом или кнопками внизу')
@@ -639,6 +720,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           </div>
         )}
       </div>
+      )}
 
       {stepping ? (
         <StepCard
@@ -713,6 +795,170 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
       </div>
       )}
     </div>
+
+    {/* ПЛЕЕР ТЕЛЕФОНА — В РЯДУ ДОКА, у большого пальца. Состав тот же, что у
+        плеера аудирования: круг «играть», бегунок по репликам, позиция и
+        бургер с настройками. Всё остальное (темп, голос) — в шторке: строка
+        плеера это три мишени, и таблетка темпа рядом с бегунком отнимала бы у
+        него ширину, то есть точность промотки. */}
+    {dockPlayer && slot?.el && createPortal(
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        height: 46, padding: '0 4px 0 3px', borderRadius: 23,
+        background: 'rgba(var(--glass-rgb), 0.86)',
+        backdropFilter: 'blur(28px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+        border: '1px solid var(--color-border-glass)',
+        boxShadow: 'var(--shadow-pill)',
+      }}>
+        <button
+          onClick={() => (stepping ? playUnit(units[at]) : toggle())}
+          aria-label={sounding
+            ? (stepping ? t('Стоп') : t('Пауза'))
+            : (!stepping && paused !== null ? t('Продолжить') : t('Слушать'))}
+          style={{
+            width: 40, height: 40, borderRadius: '50%', flexShrink: 0, border: 'none',
+            display: 'grid', placeItems: 'center', cursor: 'pointer',
+            background: accent, color: '#fff',
+            boxShadow: `0 4px 12px -3px color-mix(in srgb, ${accent} 55%, transparent)`,
+          }}
+        >
+          {sounding
+            ? (stepping ? <Square size={15} fill="currentColor" /> : <Pause size={17} fill="currentColor" />)
+            : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
+        </button>
+
+        {/* Мишень бегунка выше самой полосы: тянуть трёхпиксельную линию
+            пальцем невозможно, поэтому жест ловит вся полоса-подложка. */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            ref={trackRef}
+            onPointerDown={e => {
+              e.currentTarget.setPointerCapture(e.pointerId)
+              seeking.current = true
+              const i = seekIndex(e.clientX)
+              seekToRef.current = i
+              setSeekTo(i)
+            }}
+            onPointerMove={e => {
+              if (!seeking.current) return
+              const i = seekIndex(e.clientX)
+              if (i === seekToRef.current) return
+              // Щелчок на каждой новой реплике: шкала дискретная, и без отдачи
+              // не понять, встал бегунок на следующую строку или ещё нет.
+              seekToRef.current = i
+              tactile()
+              setSeekTo(i)
+            }}
+            onPointerUp={e => {
+              if (!seeking.current) return
+              seeking.current = false
+              const i = seekIndex(e.clientX)
+              seekToRef.current = null
+              setSeekTo(null)
+              applySeek(i)
+            }}
+            // Палец «потерялся» — жест обрывают и система (звонок, шторка
+            // уведомлений), и браузер, отобрав захват: без этих двух строк
+            // бегунок остаётся утолщённым навсегда.
+            onPointerCancel={() => { seeking.current = false; seekToRef.current = null; setSeekTo(null) }}
+            onLostPointerCapture={() => { seeking.current = false; seekToRef.current = null; setSeekTo(null) }}
+            role="slider"
+            aria-label={t('Промотка чтения')}
+            aria-valuemin={1}
+            aria-valuemax={seekMax + 1}
+            aria-valuenow={(seekPos ?? 0) + 1}
+            style={{
+              position: 'relative', height: 22, display: 'flex', alignItems: 'center',
+              touchAction: 'none', cursor: 'pointer',
+            }}
+          >
+            {held && (
+              <span style={{
+                position: 'absolute', left: `${frac * 100}%`, bottom: 20, transform: 'translateX(-50%)',
+                padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
+                fontSize: 11, fontWeight: 700, background: accent, color: '#fff',
+              }}>
+                {`${stepping ? t('фрагмент') : t('реплика')} ${(seekPos ?? 0) + 1} ${t('из')} ${seekMax + 1}`}
+              </span>
+            )}
+            <div style={{
+              position: 'relative', width: '100%', height: held ? 7 : 3, borderRadius: 4,
+              background: 'var(--color-border-soft)', transition: 'height .14s ease',
+            }}>
+              <div style={{
+                position: 'absolute', inset: 0, right: `${100 - frac * 100}%`,
+                background: accent, borderRadius: 4,
+              }} />
+              <div style={{
+                position: 'absolute', top: '50%', left: `${frac * 100}%`,
+                width: held ? 18 : 9, height: held ? 18 : 9,
+                marginTop: held ? -9 : -4.5, marginLeft: held ? -9 : -4.5,
+                borderRadius: '50%', background: accent,
+                border: held ? '2.5px solid rgba(var(--glass-rgb), 1)' : 'none',
+                transition: 'width .14s ease, height .14s ease, margin .14s ease',
+              }} />
+            </div>
+          </div>
+        </div>
+
+        <span style={{
+          flexShrink: 0, fontSize: 10.5, color: 'var(--color-muted)',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          {`${(seekPos ?? 0) + 1}/${seekMax + 1}`}
+        </span>
+
+        <button
+          onClick={() => setMenu(true)}
+          aria-label={t('Настройки чтения')}
+          style={{
+            width: 32, height: 32, flexShrink: 0,
+            display: 'grid', placeItems: 'center', cursor: 'pointer',
+            border: 'none', background: 'transparent', color: 'var(--color-muted)',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          <Menu size={17} />
+        </button>
+      </div>,
+      slot.el,
+    )}
+
+    {dockPlayer && (
+      <MobileSheet open={menu} onClose={() => setMenu(false)} title={t('Чтение вслух')}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {[false, true].map(v => (
+                <button
+                  key={String(v)}
+                  onClick={() => setRate(v)}
+                  style={{
+                    flex: 1, padding: '8px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                    fontSize: 12.5, fontWeight: slow === v ? 700 : 600,
+                    border: slow === v ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
+                    background: slow === v ? soft : 'var(--color-bg-2)',
+                    color: slow === v ? accent : 'var(--color-text-2)',
+                  }}
+                >
+                  {v ? `${t('Медленно')} · 0.75×` : `${t('Обычно')} · 1.0×`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Голос — здесь же: мысль «не тот диктор» приходит в момент
+              прослушивания, а из строки плеера кнопку убрали ради бегунка. */}
+          <div>
+            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
+            <VoicePicker lang={lang} accent={accent} soft={soft} />
+          </div>
+        </div>
+      </MobileSheet>
+    )}
+    </>
   )
 }
 
@@ -895,12 +1141,14 @@ function NavButton({ onClick, disabled, accent, soft, primary, children }: {
  *   иначе — самостоятельный тумблер (мягкая заливка: включён сам по себе).
  * Насыщенность шрифта постоянна: на 500↔700 сегмент менял бы ширину под пальцем.
  */
-function Seg({ icon: Icon, label, on, solid, iconOnly, accent, soft, onClick }: {
+function Seg({ icon: Icon, label, on, solid, iconOnly, grow, accent, soft, onClick }: {
   icon: typeof PanelRight
   label: string
   on: boolean
   solid?: boolean
   iconOnly?: boolean
+  /** Делит с соседями всю ширину рейки — так собрана рейка телефона. */
+  grow?: boolean
   accent: string
   soft: string
   onClick: () => void
@@ -914,8 +1162,10 @@ function Seg({ icon: Icon, label, on, solid, iconOnly, accent, soft, onClick }: 
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         height: SEG_H, padding: iconOnly ? '0 10px' : '0 12px',
+        ...(grow ? { flex: 1, minWidth: 0 } : null),
         borderRadius: 999, border: 'none', cursor: 'pointer',
         fontFamily: 'inherit', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+        overflow: 'hidden', textOverflow: 'ellipsis',
         background: on ? (solid ? accent : soft) : 'transparent',
         color: on ? (solid ? '#fff' : accent) : 'var(--color-text-3)',
         transition: 'background 160ms ease, color 160ms ease',
@@ -923,7 +1173,7 @@ function Seg({ icon: Icon, label, on, solid, iconOnly, accent, soft, onClick }: 
       onMouseEnter={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-2)' }}
       onMouseLeave={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-3)' }}
     >
-      <Icon size={13} /> {iconOnly ? null : label}
+      <Icon size={13} style={{ flexShrink: 0 }} /> {iconOnly ? null : label}
     </button>
   )
 }

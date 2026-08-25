@@ -35,7 +35,7 @@ import { nestById } from './soundNests'
 import { pronRuleById } from './koreanPronRules'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import { vocabImage } from './vocabImages'
-import { ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
+import { answerSkeleton, ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -273,6 +273,27 @@ export const many = (question: string, choices: string[], correct: number[]): Se
 /** Вписать слово или форму — точечная отработка. */
 export const fill = (question: string, answer: string, altAnswers?: string[]): SeedTask =>
   ({ type: 'fill', question, answer, altAnswers })
+
+/**
+ * Припоминание с опорой — ступень 5 (Р7).
+ *
+ * То же поле ввода, что у `fill`, но с двумя опорами: скелет ответа (сколько
+ * знаков, с чего начинается) и звук. Без них пустое поле после четырёх касаний
+ * работает как ступень 6 — свободная продукция, — и ступень 5 в курсе
+ * пропущена: ученик прыгает с выбора из четырёх сразу на «напиши сам».
+ *
+ * Опоры даются ТОЛЬКО здесь, в блоке повторения. В экзамене порции
+ * (vocabRecognition) их нет намеренно: там проверка, а не отработка.
+ */
+export const recall = (question: string, answer: string, altAnswers?: string[]): SeedTask => ({
+  type: 'fill',
+  question,
+  answer,
+  altAnswers,
+  answerSkeleton: answerSkeleton(answer),
+  ttsText: answer,
+  allowSlow: true,
+})
 
 /**
  * Собрать предложение из плиток. Плитки нарезаются по пробелам, поэтому для
@@ -992,14 +1013,14 @@ function reviewTasks(
   // Берётся из юнита позапрошлого, а не вчерашнего: вчерашнее ученик помнит
   // ещё «эхом», и такая проверка ничего не показывает.
   const recallFrom = prev[1] ?? prev[0]
-  const recall = unambiguousOf(recallFrom, 3)
-  if (recall) {
-    out.push(fill(
+  const target = unambiguousOf(recallFrom, 3)
+  if (target) {
+    out.push(recall(
       native
-        ? `Повторение: какое слово это описывает — «${recall.ru}»?`
-        : `Повторение: как будет «${recall.ru}»?`,
-      native ? recall.term : recall.term,
-      recall.alt,
+        ? `Повторение: какое слово это описывает — «${target.ru}»?`
+        : `Повторение: как будет «${target.ru}»?`,
+      target.term,
+      target.alt,
     ))
   }
 
@@ -1133,11 +1154,11 @@ function portionReview(prev: VocabItem[], idBase: string, lang: string, native =
   }
   // Припоминание — на слове, которого не было в сопоставлении выше: иначе это
   // проверка последних десяти секунд, а не памяти.
-  const recall = words[words.length - 1]
-  out.push(fill(
-    native ? `Повторение: какое слово это описывает — «${recall.ru}»?` : `Повторение: как будет «${recall.ru}»?`,
-    recall.term,
-    recall.alt,
+  const target = words[words.length - 1]
+  out.push(recall(
+    native ? `Повторение: какое слово это описывает — «${target.ru}»?` : `Повторение: как будет «${target.ru}»?`,
+    target.term,
+    target.alt,
   ))
   return out.map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
 }

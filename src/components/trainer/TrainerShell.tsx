@@ -39,7 +39,10 @@
 // родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  type CSSProperties, type ReactNode,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search, Check, SlidersHorizontal, Layers } from 'lucide-react'
@@ -116,6 +119,24 @@ const BREAK = 1024
  */
 export function useTrainerNarrow(): boolean { return useNarrow() }
 
+/**
+ * МЕСТО ПЛЕЕРА В РЯДУ ДОКА — ДЛЯ ТЕХ, КТО РИСУЕТ ЕГО ИЗНУТРИ СОДЕРЖИМОГО.
+ *
+ * Проп `narrowPlayer` годится, пока плеером владеет сам экран (аудирование:
+ * запись там — свойство задания). У читалки иначе: голос ведёт по строкам,
+ * подсвечивая слово, и живёт он внутри партитуры (trainer/ScoreReader.tsx) —
+ * вместе со своей меткой паузы, темпом и режимом «по строке». Поднимать это
+ * состояние в LanguageTrainer значило бы протащить полразбора наружу ради
+ * одной кнопки.
+ *
+ * Поэтому док отдаёт вниз узел, а потомок рисует в него порталом. `claim`
+ * говорит доку, что место занято: от этого зависит, растягивать ли ряд на всю
+ * ширину и схлопывать ли круг «Фильтры» при листании.
+ */
+type TrainerPlayerSlot = { el: HTMLElement | null; claim: (on: boolean) => void }
+const PlayerSlotCtx = createContext<TrainerPlayerSlot | null>(null)
+export function useTrainerPlayerSlot(): TrainerPlayerSlot | null { return useContext(PlayerSlotCtx) }
+
 function useNarrow(): boolean {
   const [narrow, setNarrow] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < BREAK,
@@ -182,6 +203,14 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
   // круг «Фильтры» по ширине и отдать его место плееру. Тот же сглаженный
   // флаг, что внутри MobileDock, — иначе ширина и прозрачность разъедутся.
   const dockCollapsed = useSmoothCollapse()
+  // Место плеера в ряду дока для потомка (см. useTrainerPlayerSlot). Узел
+  // рисуется всегда — потомку нужно, куда портировать, ещё до того, как он
+  // сообщит, что место занято; `claimed` только раздвигает ряд под него.
+  const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null)
+  const [claimed, setClaimed] = useState(false)
+  const claim = useCallback((on: boolean) => setClaimed(on), [])
+  const slot = useMemo(() => ({ el: slotEl, claim }), [slotEl, claim])
+  const hasPlayer = !!narrowPlayer || claimed
   const [sheet, setSheet] = useState(false)
   const [navSheet, setNavSheet] = useState(false)
   const railRef = useRef<HTMLElement>(null)
@@ -345,7 +374,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
         <div style={{ position: 'relative' }}>{toolbar}</div>
         </div>
         )}
-        {children}
+        <PlayerSlotCtx.Provider value={slot}>{children}</PlayerSlotCtx.Provider>
       </main>
 
       {/* УПРАВЛЕНИЕ НА ТЕЛЕФОНЕ ЖИВЁТ ВНИЗУ, У БОЛЬШОГО ПАЛЬЦА.
@@ -356,7 +385,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
           курсах: он едет над навигацией, прячется под неё при листании вниз и
           возвращается при листании вверх. */}
       {narrow && (
-        <MobileDock fill={!!narrowPlayer}>
+        <MobileDock fill={hasPlayer}>
           {/* Плеер не гаснет вместе с кругами: pointerEvents:'auto' возвращает
               ему тапы и под свёрнутым доком (у ряда в этот момент 'none'). */}
           {narrowPlayer && (
@@ -364,6 +393,16 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
               {narrowPlayer}
             </div>
           )}
+          {/* Место для плеера, нарисованного изнутри содержимого (партитура
+              читалки). Пока никто его не занял — узел есть, но ширины не
+              просит: без него потомку некуда портировать. */}
+          <div
+            ref={setSlotEl}
+            style={{
+              display: claimed ? 'block' : 'none',
+              flex: claimed ? 1 : undefined, minWidth: 0, pointerEvents: 'auto',
+            }}
+          />
           {narrowLead && <DockSlot>{narrowLead}</DockSlot>}
           {/* Половины режима — прямо в доке, без шторки: «Лента ↔ Сцены» и
               «Наборы ↔ Повторение» переключают чаще всего остального вместе
@@ -390,7 +429,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
               где только что стояла невидимая кнопка. */}
           <motion.div
             initial={false}
-            animate={narrowPlayer ? { width: dockCollapsed ? 0 : 46, marginLeft: dockCollapsed ? -10 : 0 } : undefined}
+            animate={hasPlayer ? { width: dockCollapsed ? 0 : 46, marginLeft: dockCollapsed ? -10 : 0 } : undefined}
             transition={COLLAPSE}
             style={{ flexShrink: 0 }}
           >

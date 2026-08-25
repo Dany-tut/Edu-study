@@ -50,6 +50,35 @@ export const stageLabel = (w: VocabItem, stage: WritingStage): string =>
   stage === 'B' && w.reading ? `${w.term} (${w.reading})` : w.term
 
 /**
+ * Скелет ответа — опора ступени 5 (Р7).
+ *
+ * Первый знак открыт, остальные закрыты точками: «안 · · ·». Ученик видит длину
+ * и начало и достаёт остальное из памяти — это припоминание, а не узнавание
+ * (ступень 4) и не свободная продукция (ступень 6).
+ *
+ * ПРОБЕЛЫ СОХРАНЯЮТСЯ: у фразы из двух слов их число — половина подсказки
+ * («안녕히 계세요» — это не одно длинное слово, а два коротких).
+ *
+ * ТОЧКИ, А НЕ ПРОЧЕРКИ. Прочерк «____» синтез речи читает вслух как
+ * «андерскор андерскор» (см. voiceText в lib/speech.ts).
+ *
+ * Пусто у слова из одного знака: там скелет и есть сам ответ.
+ */
+export function answerSkeleton(answer: string): string | undefined {
+  const words = answer.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return undefined
+  if (words.reduce((n, w) => n + Array.from(w).length, 0) < 2) return undefined
+  let first = true
+  return words
+    .map(word => Array.from(word).map(ch => {
+      if (!first) return '·'
+      first = false
+      return ch
+    }).join(' '))
+    .join('   ')
+}
+
+/**
  * Спутываемые слова (Р5).
  *
  * Слова, поданные одним смысловым или звуковым кластером, учатся МЕДЛЕННЕЕ

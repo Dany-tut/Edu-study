@@ -43,6 +43,8 @@ export interface HomeworkQuizQuestion {
   correctOptionIds?: string[]
   /** Эталон for text/fill — when set, the answer is auto-checked against it. */
   referenceAnswer?: string
+  /** fill — скелет ответа, опора ступени 5 (см. TaskPayload.answerSkeleton). */
+  answerSkeleton?: string
   /** Pairs for a 'match' task (shown read-only as reference). */
   pairs?: Array<{ left: string; right: string }>
   /** Items in the correct order for a 'sequence' task (shown shuffled). */
@@ -332,6 +334,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     type: tp,
     referenceAnswer: t.answer?.trim() || undefined,
     altAnswers: t.altAnswers,
+    answerSkeleton: t.answerSkeleton,
     pairs: tp === 'matching' ? t.pairs : undefined,
     // blockOrder собирается из тех же авторских блоков, что и sequence, — без
     // переноса задание доезжало бы до ученика пустым полем текста.
