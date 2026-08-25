@@ -232,8 +232,10 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
       //
       // ЧИСЛО СЧИТАНО ОТ ДОКА, А НЕ НА ГЛАЗ. MobileDock прижат к
       // MOBILE_DOCK_EDGE (20 px) и в развёрнутом виде поднят над ним ещё на
-      // 78 px (marginBottom), а сама таблетка внутри — 46 px (DockCircle).
-      // Итого верхний край дока стоит в 20+78+46 = 144 px от низа экрана.
+      // 86 px (marginBottom — те же 86/74, что у доков банка заданий и курсов:
+      // зазор до нижней навигации обязан быть одинаковым на всех экранах),
+      // а сама таблетка внутри — 46 px (DockCircle).
+      // Итого верхний край дока стоит в 20+86+46 = 152 px от низа экрана.
       // Запас оставлен прежний: кнопка «Дальше» на короткой карточке (см.
       // StoryReader) не должна вставать впритык к доку.
       //
@@ -246,7 +248,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
       paddingTop: narrow && !toolbar ? PAD_TOP : 8,
       paddingLeft: narrow ? 16 : 0,
       paddingRight: narrow ? 16 : 0,
-      paddingBottom: narrow ? 190 : 80,
+      paddingBottom: narrow ? 198 : 80,
       display: 'flex', flexDirection: narrow ? 'column' : 'row',
       gap: narrow ? 16 : 22, alignItems: 'flex-start',
     }}>

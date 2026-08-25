@@ -323,7 +323,7 @@ export default function TrackPlayer({
           его ряду слева от круга «Фильтры» и растягивается силами флекса. */}
       <motion.div
         initial={false}
-        animate={inline ? undefined : { marginBottom: collapsed ? 74 : 138 }}
+        animate={inline ? undefined : { marginBottom: collapsed ? 74 : 146 }}
         transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
         style={inline ? { minWidth: 0, pointerEvents: 'auto' } : {
           position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE,

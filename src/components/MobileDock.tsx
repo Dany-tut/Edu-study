@@ -107,11 +107,12 @@ export default function MobileDock({ children, fill }: {
     >
       <motion.div
         // Inner layer only positions the dock: 86px clearance above the expanded
-        // nav, 74px when it collapses to 50. The disappear/appear blur lives on
+        // nav, 74px when it collapses to 50 — the same 86/74 as the task-bank
+        // and courses docks, so the gap to the bottom nav matches everywhere. The disappear/appear blur lives on
         // the glass children themselves (DockSegment/DockCircle) — a `filter` on
         // THIS wrapper would suspend their backdrop-filter and pop the frost.
         initial={false}
-        animate={{ marginBottom: collapsed ? 66 : 78 }}
+        animate={{ marginBottom: collapsed ? 74 : 86 }}
         transition={COLLAPSE}
         style={{
           display: 'flex', gap: 10, alignItems: 'center',
