@@ -372,7 +372,11 @@ function IconBtn({ children, on, accent, title, count, onClick }: {
     >
       {children}
       {count !== undefined && (
-        <span style={{ minWidth: 7, textAlign: 'left' }}>
+        // Ширина слота — 1ch, а не «на глаз»: при tabular-nums выше ch равен
+        // ширине цифры ровно, и пустой слот совпадает с однозначным числом до
+        // пикселя. Круглые 7px оставляли хвост в 1.4px — незаметный глазом, но
+        // это ровно тот же скачок, только помельче.
+        <span style={{ minWidth: '1ch', textAlign: 'left' }}>
           {count > 0 ? count : ''}
         </span>
       )}
