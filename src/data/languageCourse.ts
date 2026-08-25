@@ -37,6 +37,7 @@ import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryI
 import { vocabImage } from './vocabImages'
 import { collocationsFor } from './collocations'
 import { answerSkeleton, isHangul, ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
+import { isSyllable } from './hangul'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -1194,11 +1195,7 @@ function reviewTasks(
     //
     // Другим письменностям это не нужно: кана и латиница набираются с обычной
     // клавиатуры, а иероглифы экранной раскладкой не набрать в принципе.
-    out.push(
-      isHangul(target.term)
-        ? typeWord(ask, target.term)
-        : recall(ask, target.term, target.alt),
-    )
+    out.push(...keyboardFreeRecall(ask, target))
   }
 
   // ── 3. Припоминание без опоры: кроссворд по прошлым юнитам (ступень 6) ──
@@ -1244,6 +1241,40 @@ function reviewTasks(
   }
 
   return splitMatching(out).map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+}
+
+/**
+ * Припоминание, которое можно ВВЕСТИ, — с корейской раскладкой или без неё.
+ *
+ * ЗАЧЕМ. Поле «впиши слово» предполагает, что у ученика есть корейская
+ * раскладка в системе. У начинающего её нет, и ступень 5 для него не трудная, а
+ * физически невыполнимая: он видит вопрос, знает ответ и не может его набрать.
+ * Экранная клавиатура (`jamoType`) закрывает ровно эту дыру.
+ *
+ * НО НЕ ЛЮБОЕ СЛОВО НА НЕЁ ЛОЖИТСЯ. Клавиатура требует минимум двух ЧИСТЫХ
+ * слогов: на одном слоге это неотличимо от сборки слога, а тильда и пробел
+ * («~는데», «어떻게 지내세요?») клавишами не набираются вовсе. Задание при этом
+ * не падало — оно просто переставало проверяться: двадцать восемь повторений
+ * по четырём корейским курсам ученик не мог сдать никак.
+ *
+ * Поэтому форма задания выбирается по самому слову:
+ *
+ *   • два и больше чистых слога — набор по буквам (ступень 5);
+ *   • ровно один слог — сборка слога из букв (ступень 3): та же клавиатура по
+ *     сути, но без требования, которого слово не выполняет;
+ *   • фраза, тильда, пробел — ряд слогов с обманками (ступень 3): собирается
+ *     тапами и тоже не требует раскладки;
+ *   • не хангыль — обычное поле со скелетом (ступень 5).
+ */
+function keyboardFreeRecall(ask: string, target: VocabItem): SeedTask[] {
+  const term = (target.term ?? '').trim()
+  if (!isHangul(term)) return [recall(ask, term, target.alt)]
+  const units = Array.from(term)
+  if (units.every(isSyllable)) {
+    if (units.length >= 2) return [typeWord(ask, term)]
+    if (units.length === 1) return [buildSyl(ask, term)]
+  }
+  return units.length >= 2 ? [sylBank(ask, term)] : [recall(ask, term, target.alt)]
 }
 
 /**
@@ -1406,7 +1437,7 @@ export function vocabPortions(vocab: VocabItem[], size: number): VocabItem[][] {
  * Порядок внутри порции остаётся авторским: блоки приходят по возрастанию
  * номера, каким бы правилом ни попали.
  */
-function spreadTasks(tasks: SeedTask[], parts: VocabItem[][]): SeedTask[][] {
+function spreadTasks(tasks: SeedTask[], parts: VocabItem[][], firstExtra = 0): SeedTask[][] {
   const count = parts.length
   const blocks: SeedTask[][] = []
   for (const task of tasks) {
@@ -1443,7 +1474,12 @@ function spreadTasks(tasks: SeedTask[], parts: VocabItem[][]): SeedTask[][] {
   // Считаем свободное место каждого от общего потолка и раздаём по нему. Тогда
   // добавленное занятие-отработка действительно СНИМАЕТ нагрузку с соседних, а
   // не просто стоит рядом.
-  const budget = parts.map(part => Math.max(2, LESSON_CAP - lessonWeight(part.length)))
+  // Первое занятие юнита несёт то, чего нет у продолжений: видео живой речи,
+  // диалог темы, дрилл конструкции и возврат к прошлым юнитам. Раньше бюджет
+  // этого не знал, и первые занятия разговорника выходили ровно на экран-два
+  // сверх потолка — те самые девятнадцать длинных уроков в kosv.
+  const budget = parts.map((part, i) =>
+    Math.max(2, LESSON_CAP - lessonWeight(part.length) - (i === 0 ? firstExtra : 0)))
   const sizes = new Array(count).fill(0)
   let loose = 0
 
@@ -1459,11 +1495,17 @@ function spreadTasks(tasks: SeedTask[], parts: VocabItem[][]): SeedTask[][] {
    */
   const placeLoose = (type: TaskTypeId) => {
     const free = (i: number) => budget[i] - sizes[i]
+    const sameType = (i: number) => out[i].filter(t => t.type === type).length
     const tailRun = (i: number) => {
       const b = out[i]
       return b.length >= 2 && b[b.length - 1]?.type === type && b[b.length - 2]?.type === type
     }
-    const order = Array.from({ length: count }, (_, i) => i).sort((a, b) => free(b) - free(a))
+    // Сначала туда, где заданий ЭТОГО типа меньше, и лишь при равенстве — где
+    // просторнее. Одна свободность разводит серию плохо: занятие-отработка
+    // свободнее всех и остаётся свободнее всех, так что вся авторская пачка
+    // «впишите форму» оседала в нём, и три подряд уже нечем было развести.
+    const order = Array.from({ length: count }, (_, i) => i)
+      .sort((a, b) => sameType(a) - sameType(b) || free(b) - free(a))
     return order.find(i => !tailRun(i)) ?? order[0]
   }
 
@@ -1543,10 +1585,9 @@ function portionReview(prev: VocabItem[], idBase: string, lang: string, native =
   // Припоминание — на слове, которого не было в сопоставлении выше: иначе это
   // проверка последних десяти секунд, а не памяти.
   const target = words[words.length - 1]
-  out.push(recall(
+  out.push(...keyboardFreeRecall(
     native ? `Повторение: какое слово это описывает — «${target.ru}»?` : `Повторение: как будет «${target.ru}»?`,
-    target.term,
-    target.alt,
+    target,
   ))
   return out.map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
 }
@@ -1601,22 +1642,42 @@ function portionTheory(unit: LangUnit, vocab: VocabItem[], k: number, total: num
 const LESSON_CAP = 30
 
 /**
- * Прикидка генерируемого веса занятия: карточка на слово, три круга лестницы
- * (третий бывает не у всех слов — отсюда 2.5), блок повторения и экзамен
- * порции. Точное число известно только после сборки, а решать, сколько будет
- * занятий и что куда положить, надо ДО неё, поэтому здесь оценка сверху.
+ * Прикидка генерируемого веса занятия — сколько экранов выйдет ДО единой
+ * авторской строки: карточка на каждое слово, три круга лестницы, блок
+ * повторения, экзамен порции, пропуски по банку и добор продукции.
+ *
+ * ЧИСЛА СНЯТЫ С СОБРАННЫХ КУРСОВ, а не выведены из формулы: по девятистам
+ * занятиям восьми курсов генерируемого выходит 6 экранов на одно слово порции,
+ * 11 на два, 16 на три, 21 на четыре (медиана) — и на четверть больше в
+ * тяжёлом хвосте. Занятие без новых слов несёт 2.
+ *
+ * ОЦЕНОК ДВЕ, И ЭТО НЕ ДУБЛЬ. Они отвечают на разные вопросы:
+ *
+ *   • `lessonWeight` — «сколько в занятии УЖЕ занято»: по ней считается,
+ *     сколько авторских заданий оно ещё вынесет. Здесь нужна оценка СВЕРХУ
+ *     (хвост, а не медиана): промах в эту сторону стоит пустого места, в
+ *     обратную — занятия на тридцать пять экранов;
+ *   • `splitWeight` — «нужно ли юниту ещё одно занятие»: здесь нужна
+ *     ТИПИЧНАЯ оценка. С хвостовой юнит дробился до занятий по шесть заданий:
+ *     каждая порция считалась предельно тяжёлой, хотя такой бывает одна.
+ *
+ * ПОЧЕМУ ОЦЕНКА, А НЕ ТОЧНЫЙ СЧЁТ. Решать, сколько будет занятий и что куда
+ * положить, надо ДО сборки: сборка уже зависит от этого решения.
  */
-const lessonWeight = (words: number) => Math.round(words * 3.5 + (words > 0 ? words + 1 : 0) + 4)
+const lessonWeight = (words: number) => (words === 0 ? 2 : words * 6 + 2)
+const splitWeight = (words: number) => (words === 0 ? 2 : words * 5 + 1)
 
-function workPortions(parts: VocabItem[][], taskCount: number): VocabItem[][] {
-  const heaviest = Math.max(...parts.map(p => p.length), 0)
-  const fits = (count: number) => lessonWeight(heaviest) + taskCount / count <= LESSON_CAP
-  let need = parts.length
+function workPortions(parts: VocabItem[][], taskCount: number, firstExtra = 0): VocabItem[][] {
+  // Влезает ли ВСЯ работа юнита в столько занятий. Считаем суммой, а не по
+  // самому тяжёлому занятию: тяжёлое в юните обычно одно, а делили мы так, как
+  // будто все такие, — и юнит из двадцати заданий разлетался на семь вечеров.
+  const load = (list: VocabItem[][]) =>
+    list.reduce((n, p) => n + splitWeight(p.length), 0) + firstExtra + taskCount
+  const out = [...parts]
   // Потолок на число добавленных занятий: юнит из трёх слов и сотни заданий не
   // должен превращаться в двадцать вечеров подряд по одной теме.
-  while (need < parts.length + 4 && !fits(need)) need++
-  if (need <= parts.length) return parts
-  return [...parts, ...Array.from({ length: need - parts.length }, () => [] as VocabItem[])]
+  while (out.length < parts.length + 4 && load(out) > out.length * LESSON_CAP) out.push([])
+  return out
 }
 
 function interleaveCards<T extends { passage?: string }>(work: T[], cards: T[]): T[] {
@@ -1775,8 +1836,14 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
   const introduced: VocabItem[] = []
 
   spec.units.forEach(unit => {
-    const parts = workPortions(vocabPortions(unit.vocab, size), unit.tasks.length)
-    const taskParts = spreadTasks(unit.tasks, parts)
+    // Постоянный груз ПЕРВОГО занятия юнита: ролик живой речи, диалог темы и
+    // дрилл конструкции. Продолжениям он не достаётся, и считать его надо
+    // отдельно — иначе потолок занятия промахивается ровно на его размер.
+    const firstExtra = (spec.homeworkVideos?.[unit.shortId]?.length ?? 0)
+      + (spec.dialogs?.[unit.shortId]?.length ?? 0)
+      + (unit.pattern?.items?.length ? 1 : 0)
+    const parts = workPortions(vocabPortions(unit.vocab, size), unit.tasks.length, firstExtra)
+    const taskParts = spreadTasks(unit.tasks, parts, firstExtra)
     const split = parts.length > 1
     const ids: string[] = []
 
