@@ -137,7 +137,7 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
     // Первое слово урока набирается по буквам на экранной клавиатуре: после
     // сборки слога это следующая ступень — слоги складываются из нажатий,
     // как при настоящем наборе.
-    if (wi === 0 && sylls.length >= 1) {
+    if (wi === 0 && sylls.length >= 2) {
       tasks.push(typeWord(`Наберите по буквам слово «${w.ru}» — ${w.ko}`, w.ko))
     }
     if (sylls.length >= 2) {

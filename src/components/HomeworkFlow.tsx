@@ -28,6 +28,7 @@ import {
 } from '../lib/lessonQueue'
 import { okChime, missBlip } from '../lib/feedback'
 import StarBurst from './StarBurst'
+import ScriptHint from './ScriptHint'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor, subjectSlugFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
@@ -3187,6 +3188,10 @@ export default function HomeworkFlow({
                             }}
                           >
                             {bindShortWords(option.text)}
+                            {/* Незнакомое письмо в варианте — с транскрипцией и
+                                озвучкой (Р14): выбор между четырьмя строками,
+                                которые ещё не читаются, — это выбор картинок. */}
+                            <ScriptHint text={option.text} lang={question.lang} />
                             {active && correctSelected && burst?.id === question.id && (
                               <StarBurst key={burst.n} />
                             )}
@@ -3304,6 +3309,7 @@ export default function HomeworkFlow({
                       // (Р10). После сдачи/разбора включается обычный показ
                       // эталона, иначе распавшаяся пара осталась бы без ответа.
                       instant={!showVerdict && !locked}
+                      lang={question.lang}
                       onChange={next => setFreeAnswer(question.id, matchingCsv(next))}
                     />
 

@@ -76,10 +76,15 @@ function mobileish(): boolean {
   return window.innerWidth <= 1024
 }
 
-/** Снять текущий экран, когда основной поток освободится. */
+/**
+ * Снять текущий экран, когда основной поток освободится.
+ *
+ * Троттл, а не дебаунс: экран живёт и мутирует постоянно (анимации, приходящие
+ * данные), и «отложить ещё раз» означало бы не снять никогда.
+ */
 function scheduleCapture(delay = 400) {
   if (typeof window === 'undefined' || !mobileish()) return
-  if (captureTimer) clearTimeout(captureTimer)
+  if (captureTimer) return
   captureTimer = setTimeout(() => {
     captureTimer = null
     // Пока сцена наверху, экран заморожен и сдвинут — снимать его нельзя.
@@ -149,12 +154,9 @@ function buildStage(under: Snapshot | null): Stage {
     movers.push({ el, css: el.style.cssText })
   }
 
-  ;(window as unknown as { __swipeDbg?: unknown }).__swipeDbg = {
-    movers: movers.map(m => m.el.tagName + (m.el.id ? '#' + m.el.id : '')),
-    bodyKids: Array.from(document.body.children).map(c => c.tagName + ((c as HTMLElement).id ? '#' + (c as HTMLElement).id : '')),
-    underKids: underEl.childElementCount,
-  }
-  const root = document.getElementById('root')
+  // Корень берём из movers, а не поиском по id: это заведомо ЖИВОЙ узел, а не
+  // одноимённый клон из снимка.
+  const root = movers.find(m => m.el.id === 'root')?.el ?? null
   if (root) {
     // Заморозка: коробка корня становится ровно экраном, а прокрутка окна
     // переезжает внутрь него. Без этого transform ниже сломал бы отсчёт у
@@ -295,7 +297,9 @@ function install() {
       captured = true
       stageUp = true
       stage = buildStage(underSnapshot())
-      friction = frictionStart()
+      // Звук — канал вспомогательный: на iOS контекст бывает «перехвачен»
+      // чужим воспроизведением, и его отказ НЕ должен ронять сам жест.
+      try { friction = frictionStart() } catch { friction = null }
     }
 
     // Жест наш: под пальцем ничего не прокручивается.
@@ -320,7 +324,10 @@ function install() {
   }, { passive: false })
 
   const finish = async (cancelled: boolean) => {
-    if (!tracking || !captured) { if (!stageUp) reset(); return }
+    // Сцены нет — сбрасываем всегда. Иначе один прерванный жест (исключение
+    // в доводке, перерисовка посреди анимации) оставлял бы stageUp взведённым,
+    // и свайп умирал бы до перезагрузки страницы.
+    if (!tracking || !captured) { if (!stage) reset(); return }
     tracking = false
 
     const x = Math.max(0, dx)
@@ -370,6 +377,15 @@ if (typeof window !== 'undefined') {
   // Прокрутили — снимок устарел: под пальцем показался бы список, отмотанный
   // к началу. capture:true — scroll не всплывает.
   window.addEventListener('scroll', () => scheduleCapture(600), { capture: true, passive: true })
+  // Экран дорисовался (пришли данные, сменилась вкладка) — снимок устарел.
+  // Без этого первый же свайп после запуска показывал бы под собой главную с
+  // недогруженными карточками: съёмка на старте застаёт её полупустой.
+  if (typeof MutationObserver === 'function') {
+    const root = document.getElementById('root')
+    if (root) new MutationObserver(() => scheduleCapture(700)).observe(root, {
+      childList: true, subtree: true, characterData: true,
+    })
+  }
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) scheduleCapture(400)
   })

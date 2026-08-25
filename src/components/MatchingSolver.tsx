@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import StarBurst from './StarBurst'
+import ScriptHint from './ScriptHint'
 import { okChime, missBlip } from '../lib/feedback'
 
 /**
@@ -93,6 +94,7 @@ export default function MatchingSolver({
   showVerdict = false,
   instant = false,
   onMiss,
+  lang,
 }: {
   pairs: MatchPair[]
   /** Ответ: индекс правой части на каждую левую, -1 = пусто. */
@@ -114,6 +116,11 @@ export default function MatchingSolver({
   instant?: boolean
   /** Промах — на будущий счётчик ошибок урока (очередь, Р8). */
   onMiss?: (leftIdx: number) => void
+  /**
+   * Язык задания: под плиткой на незнакомом письме появляются транскрипция и
+   * кнопка озвучки (Р14). Без него плитки остаются как были.
+   */
+  lang?: string
 }) {
   const [selected, setSelected] = useState<{ side: 'left' | 'right'; idx: number } | null>(null)
   // Неверная связка: живёт только на экране и только 420 мс (Р10).
@@ -279,6 +286,7 @@ export default function MatchingSolver({
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 {pair.left}
+                <ScriptHint text={pair.left} lang={lang} />
                 {showAnswer && (
                   <span style={{ display: 'block', marginTop: 3, fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>
                     {pair.right}
@@ -306,7 +314,10 @@ export default function MatchingSolver({
               style={{ ...tileBase, ...skin({ active: selected?.side === 'right' && selected.idx === idx, num, ok }) }}
             >
               {num > 0 && <Badge num={num} ok={ok} />}
-              <span style={{ minWidth: 0, wordBreak: 'break-word' }}>{pairs[idx].right}</span>
+              <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
+                {pairs[idx].right}
+                <ScriptHint text={pairs[idx].right} lang={lang} />
+              </span>
               {burst?.row === idx && instant && <StarBurst key={`r${burst.n}`} />}
             </button>
           )

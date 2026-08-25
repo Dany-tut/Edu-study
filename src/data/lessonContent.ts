@@ -307,6 +307,12 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
       explanation: '', type: tp,
       image: t.image,
       imageSize: t.imageSize,
+      // Язык задания нужен и ветке выбора: по нему вариант на незнакомом письме
+      // получает транскрипцию и озвучку (ScriptHint, Р14). Без него ученик
+      // выбирал между четырьмя строками хангыля, которые ещё не читаются.
+      lang: t.lang,
+      ttsText: t.ttsText,
+      ttsVoice: t.ttsVoice,
       // Экзаменационное чтение — это почти всегда выбор ответа к отрывку,
       // поэтому passage обязан переноситься и в этой ветке тоже.
       passage: t.passage,

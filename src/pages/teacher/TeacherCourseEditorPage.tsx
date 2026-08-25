@@ -2897,7 +2897,8 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {task.type === 'jamoType' && (() => {
                 const units = charUnits(task.answer ?? '')
                 const keys = units.flatMap(keysOf)
-                const ok = units.length >= 1 && units.every(isSyllable) && keys.length >= 2
+                const hangul = units.length > 0 && units.every(isSyllable)
+                const ok = hangul && units.length >= 2
                 return (
                   <div>
                     <Label>{t('Слово, которое набирают')}</Label>
@@ -2910,9 +2911,14 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     <div style={{ fontSize: 11, color: ok ? 'var(--color-text-3)' : 'var(--color-red-text)', marginTop: 6 }}>
                       {ok
                         ? `${t('Нажатия')}: ${keys.join(' ')} — ${t('слоги соберутся у ученика на глазах.')}`
-                        : task.answer
-                          ? t('Нужно слово хангылем: набор по буквам собирает слоги, латинице и кириллице собираться не из чего.')
-                          : t('Пока слово не задано, задание покажется ученику обычным полем ответа.')}
+                        : !task.answer
+                          ? t('Пока слово не задано, задание покажется ученику обычным полем ответа.')
+                          : !hangul
+                            ? t('Нужно слово хангылем: набор по буквам собирает слоги, латинице и кириллице собираться не из чего.')
+                            // Один слог — это «Собрать слог»: там буквы встают по местам
+                            // квадрата, здесь буквы перетекают через границу слога. На
+                            // одном слоге второе не наступает, и задания совпадают.
+                            : t('Нужно слово от двух слогов: на одном слоге это то же самое, что «Собрать слог» — возьмите тот тип.')}
                     </div>
                   </div>
                 )

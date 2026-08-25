@@ -1095,7 +1095,17 @@ const EN: Record<string, string> = {
   "Тап по слогу убирает последнюю букву": "Tap the syllable to remove the last letter",
   "Убрать последнюю букву": "Remove the last letter",
   "Правильно": "Correct",
+  // — Слоговой блок («Собрать слог») —
+  "согласная": "consonant",
+  "гласная": "vowel",
+  "патчхим": "patchim",
+  "Убрать эту букву": "Remove this letter",
+  "Тап по букве в блоке убирает её и следующие": "Tap a letter in the block to clear it and the ones after",
+
   // — Набор по буквам (jamoType) —
+  "Набор слова по буквам": "Type a word by letters",
+  "Клавиатура: буквы льются в слоги — 안 + 녕": "Keyboard: letters flow into syllables — 안 + 녕",
+  "Нужно слово от двух слогов: на одном слоге это то же самое, что «Собрать слог» — возьмите тот тип.": "Needs a word of at least two syllables: on a single syllable this is the same as “Build a syllable” — use that type instead.",
   "Набор по буквам": "Type by letters",
   "Клавиши-буквы складываются в слоги: ㅇ+ㅏ+ㄴ → 안": "Letter keys merge into syllables: ㅇ+ㅏ+ㄴ → 안",
   "Нажимай буквы — слоги соберутся сами": "Tap the letters — syllables assemble on their own",

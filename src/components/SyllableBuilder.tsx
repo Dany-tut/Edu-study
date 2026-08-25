@@ -16,6 +16,14 @@
 // добавленная ㅁ — в 김. Это и есть то знание, ради которого задание существует;
 // показывать вместо этого три плитки в ряд значило бы его спрятать.
 //
+// ЧЕМ ЭТО ОТЛИЧАЕТСЯ ОТ «НАБОРА ПО БУКВАМ» (jamoType). Там экранная клавиатура:
+// буквы льются в поток и сами режутся на слоги — это про НАБОР слова. Здесь
+// слог разложен по МЕСТАМ: согласная, гласная справа или снизу, патчхим под
+// ними, — и буква встаёт в своё место, а не в конец строки. Пока обе сборки
+// рисовались одинаково (крупный хангыль плюс ряд плиток), они и были одним и
+// тем же заданием: на слоге без составных букв разницы не оставалось вовсе.
+// Место в квадрате — то единственное, чему клавиатура научить не может.
+//
 // ДИСТРАКТОРЫ БЕРУТСЯ ИЗ ПОХОЖИХ (CONFUSABLE), а не случайно: выбор между ㅁ и
 // ㅠ не тренирует ничего, выбор между ㅁ и ㅂ — тренирует.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,7 +31,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
-  CHAMO, chamoOf, confusableWith, joinSyllable, splitSyllable,
+  CHAMO, chamoOf, confusableWith, joinSyllable, splitSyllable, vowelShape,
 } from '../data/hangul'
 import { playPop, vibrate } from '../lib/sound'
 import { useOwnString } from '../lib/useOwnAnswer'
@@ -85,13 +93,23 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
     })
   }
 
-  const back = () => {
+  const parts = splitSyllable(syllable)
+  const shape = parts ? vowelShape(parts.vowel) : 'right'
+
+  // Места слогового блока в порядке письма. Раскладка настоящая: у 가 гласная
+  // справа, у 구 — снизу, патчхим всегда под ними во всю ширину.
+  const slots = [
+    { key: 'ini', label: 'согласная', span: false },
+    { key: 'vow', label: 'гласная', span: shape === 'below' },
+    ...(parts?.final ? [{ key: 'fin', label: 'патчхим', span: true }] : []),
+  ]
+
+  /** Очистить место i и все следующие: патчхим без гласной не бывает. */
+  const cutFrom = (i: number) => {
     if (disabled) return
     vibrate(6)
-    emit(prev => prev.split(',').filter(Boolean).slice(0, -1).join(','))
+    emit(prev => prev.split(',').filter(Boolean).slice(0, i).join(','))
   }
-
-  const parts = splitSyllable(syllable)
 
   return (
     <div className="flex flex-col" style={{ gap: 14 }}>
@@ -104,44 +122,75 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
         </span>
       </div>
 
-      {/* Место сборки. Высота фиксирована: без неё карточка прыгает на каждой
-          добавленной букве, а вместе с ней уезжает и низ экрана. Тап по
-          собранному слогу снимает последнюю букву — отдельной кнопки нет,
-          удаление везде делается кликом по самому собранному. */}
+      {/* Слоговой блок: три места, разложенные так, как их пишут. Буква встаёт
+          в своё место, а не в конец строки, — в этом всё задание. Справа за
+          знаком равенства собирается настоящий слог: три буквы по местам дают
+          один знак, и это ровно то знание, ради которого задание существует.
+
+          Тап по занятому месту очищает его И ВСЁ, ЧТО ПОСЛЕ: патчхима без
+          гласной не бывает, поэтому дырок в середине не оставляем. */}
       <div
         className="flex items-center justify-center"
         style={{
-          minHeight: 128, borderRadius: 22, padding: 16,
+          minHeight: 150, borderRadius: 22, padding: 16, gap: 18,
           background: 'var(--color-bg-3)',
           border: showVerdict
             ? `2px solid ${correct ? 'rgba(110,231,160,0.6)' : 'rgba(244,139,145,0.55)'}`
             : '2px dashed var(--color-border-strong)',
         }}
       >
-        {preview
-          ? (
-            <motion.button
-              key={preview}
-              initial={{ scale: 0.86, opacity: 0.4 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.18 }}
-              onClick={back}
-              disabled={disabled}
-              title={t('Убрать последнюю букву')}
-              style={{
-                fontSize: 64, lineHeight: 1, fontWeight: 700, color: 'var(--color-text)',
-                border: 'none', background: 'transparent', fontFamily: 'inherit', padding: 0,
-                cursor: disabled ? 'default' : 'pointer',
-              }}
-            >
-              {preview}
-            </motion.button>
-          )
-          : (
-            <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
-              {t('Нажимай на буквы по порядку')}
-            </span>
-          )}
+        <div
+          style={{
+            display: 'grid', gap: 4,
+            gridTemplateColumns: shape === 'below' ? '92px' : '58px 58px',
+            gridTemplateRows: parts?.final ? 'auto auto' : 'auto',
+          }}
+        >
+          {slots.map((slot, i) => {
+            const filled = picked[i]
+            return (
+              <motion.button
+                key={slot.key}
+                initial={filled ? { scale: 0.8, opacity: 0.4 } : false}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.16 }}
+                onClick={() => cutFrom(i)}
+                disabled={disabled || !filled}
+                title={filled ? t('Убрать эту букву') : undefined}
+                className="flex items-center justify-center"
+                style={{
+                  gridColumn: slot.span ? '1 / -1' : undefined,
+                  minHeight: slot.span ? 44 : 58,
+                  borderRadius: 12, fontFamily: 'inherit',
+                  fontSize: 32, lineHeight: 1, fontWeight: 700,
+                  color: filled ? 'var(--color-text)' : 'var(--color-text-4)',
+                  border: filled
+                    ? '1.5px solid rgba(99,84,207,0.38)'
+                    : '1.5px dashed var(--color-border-strong)',
+                  background: filled ? 'var(--color-purple-soft)' : 'transparent',
+                  cursor: disabled || !filled ? 'default' : 'pointer',
+                }}
+              >
+                {filled ?? <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.3 }}>{t(slot.label)}</span>}
+              </motion.button>
+            )
+          })}
+        </div>
+
+        <span style={{ fontSize: 24, color: 'var(--color-text-4)', fontWeight: 700 }}>=</span>
+
+        <motion.span
+          key={preview || 'empty'}
+          initial={{ scale: 0.86, opacity: 0.4 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.18 }}
+          style={{
+            fontSize: 62, lineHeight: 1, fontWeight: 700, minWidth: 68, textAlign: 'center',
+            color: preview ? 'var(--color-text)' : 'var(--color-text-4)',
+          }}
+        >
+          {preview || '?'}
+        </motion.span>
       </div>
 
       <div className="flex flex-wrap items-center justify-center" style={{ gap: 10 }}>
@@ -179,7 +228,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
 
       {picked.length > 0 && !disabled && !showVerdict && (
         <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
-          {t('Тап по слогу убирает последнюю букву')}
+          {t('Тап по букве в блоке убирает её и следующие')}
         </span>
       )}
 

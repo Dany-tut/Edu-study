@@ -753,12 +753,15 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
    */
   jamoType: def({
     id: 'jamoType', family: 'input',
-    label: 'Набор по буквам', hint: 'Клавиши-буквы складываются в слоги: ㅇ+ㅏ+ㄴ → 안',
+    label: 'Набор слова по буквам', hint: 'Клавиатура: буквы льются в слоги — 안 + 녕',
     Icon: Keyboard,
     makeDefault: () => ({ answer: '' }),
+    // Слово, а не слог: на ОДНОМ слоге это задание неотличимо от «Собрать слог»
+    // (та же горстка букв, тот же результат), и вся его суть — перетекание
+    // букв через границу слога — там просто не наступает.
     isGradable: t => {
       const units = charUnits(t.answer ?? '')
-      return units.length >= 1 && units.every(isSyllable) && units.flatMap(keysOf).length >= 2
+      return units.length >= 2 && units.every(isSyllable)
     },
     grade: (t, a) => {
       if (!TASK_TYPES.jamoType.isGradable(t)) return NOT_AUTO
