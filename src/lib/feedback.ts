@@ -86,13 +86,57 @@ function withAudio(play: (ac: AudioContext) => void) {
     .catch(() => { /* контекст не проснулся — остаётся вибрация */ })
 }
 
-/** Short haptic buzz. Pattern in ms (Android/mobile only; ignored elsewhere). */
+// ─────────────────────────────────────────────────────────────────────────────
+// Отдача в палец на айфоне.
+//
+// Vibration API на iOS НЕ СУЩЕСТВУЕТ: `navigator.vibrate` там просто нет, и все
+// наши haptic() на айфоне молчали — вибрации не было ни в жестах, ни в
+// вердиктах. Обходной путь у веба на iOS ровно один: невидимый переключатель
+// <input type="checkbox" switch>, на котором Safari (17.4+) сам играет
+// системный щелчок при переключении. Клик по его <label> и есть отдача.
+//
+// Способ негарантированный: на старых iOS он молчит, и это не ошибка — просто
+// там отдачи не будет. Ставим элементы лениво, при первом же haptic().
+// ─────────────────────────────────────────────────────────────────────────────
+let hapticToggle: HTMLLabelElement | null = null
+
+function iosTick() {
+  if (typeof document === 'undefined') return
+  try {
+    if (!hapticToggle) {
+      const hidden = 'position:fixed;top:-64px;left:-64px;width:0;height:0;'
+        + 'opacity:0;pointer-events:none'
+      const box = document.createElement('input')
+      box.type = 'checkbox'
+      box.setAttribute('switch', '')
+      box.id = '__haptic-switch'
+      box.tabIndex = -1
+      box.setAttribute('aria-hidden', 'true')
+      box.style.cssText = hidden
+      const label = document.createElement('label')
+      label.setAttribute('for', '__haptic-switch')
+      label.setAttribute('aria-hidden', 'true')
+      label.style.cssText = hidden
+      document.body.append(box, label)
+      hapticToggle = label
+    }
+    hapticToggle.click()
+  } catch {
+    /* не поддерживается — остаётся только звук */
+  }
+}
+
+/** Short haptic buzz. Pattern in ms (Android); на iOS — системный щелчок. */
 export function haptic(pattern: number | number[] = 10) {
   try {
-    navigator.vibrate?.(pattern)
+    if (typeof navigator.vibrate === 'function') {
+      navigator.vibrate(pattern)
+      return
+    }
   } catch {
     /* ignore */
   }
+  iosTick()
 }
 
 /** A soft, quick UI "blip" via a single decaying sine — no asset needed. */
@@ -276,7 +320,6 @@ export function frictionStart(): Friction {
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07)
       osc.connect(g).connect(ac.destination)
       osc.start(t); osc.stop(t + 0.08)
-      haptic([6, 2, 3])
     },
     stop(fired) {
       if (dead) return

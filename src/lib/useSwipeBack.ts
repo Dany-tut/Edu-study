@@ -45,6 +45,13 @@ const FLING = 0.5
 const PARALLAX = 0.24
 /** Затемнение предыдущего экрана, пока он «в глубине». */
 const DIM = 0.2
+/**
+ * Скругление углов уезжающей страницы — под скругление экрана айфона.
+ * Набегает за первые 26px хода: на нуле углы обязаны быть прямыми, иначе в
+ * покое по краям экрана просвечивал бы нижний слой.
+ */
+const CORNER = 46
+const CORNER_RAMP = 26
 /** Домашняя кривая приложения — та же, что у доков и шапок. */
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)'
 
@@ -168,7 +175,13 @@ function buildStage(under: Snapshot | null): Stage {
     root.style.bottom = '0'
     root.style.overflow = 'hidden'
     root.scrollTop = scrollY
-    root.style.boxShadow = '-12px 0 34px rgba(0,0,0,0.32)'
+    // Своя заливка обязательна: фон приложения лежит на body (index.css), а
+    // #root прозрачен — отъезжающая страница просвечивала бы насквозь, и на
+    // экране оказывались бы видны оба экрана разом.
+    root.style.background = 'var(--color-bg)'
+    // Тень ложится на открывающийся экран — она и создаёт ощущение, что
+    // страница лежит СВЕРХУ, а не нарисована рядом.
+    root.style.boxShadow = '-18px 0 46px rgba(0,0,0,0.38)'
   }
   movers.forEach(({ el }) => {
     el.style.zIndex = el.style.zIndex || '1'
@@ -182,6 +195,7 @@ function buildStage(under: Snapshot | null): Stage {
     const p = Math.min(1, Math.max(0, next / W))
     const shift = `translate3d(${next}px,0,0)`
     movers.forEach(({ el }) => { el.style.transform = shift })
+    if (root) root.style.borderRadius = `${CORNER * Math.min(1, next / CORNER_RAMP)}px`
     underEl.style.transform = `translate3d(${-PARALLAX * W * (1 - p)}px,0,0)`
     dim.style.opacity = String(DIM * (1 - p))
   }
@@ -320,7 +334,13 @@ function install() {
     // Засечка на пороге — в обе стороны: человек должен чувствовать, где
     // «отпущу — уйдёт», не глядя на экран.
     const nowPast = x >= trigger
-    if (nowPast !== past) { past = nowPast; friction?.detent() }
+    if (nowPast !== past) {
+      past = nowPast
+      // Отдача — на самом жесте, а не внутри звука: если аудиоконтекст
+      // недоступен, щелчок в палец на пороге всё равно обязан быть.
+      haptic([6, 2, 3])
+      friction?.detent()
+    }
   }, { passive: false })
 
   const finish = async (cancelled: boolean) => {
