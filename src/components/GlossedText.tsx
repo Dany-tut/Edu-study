@@ -639,8 +639,34 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
           <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', marginTop: 6, ...proseWrap }}>
             {active.seg.gloss
               ? bindShortWords(active.seg.gloss.ru)
-              : <span style={{ color: 'var(--color-text-3)' }}>{bindShortWords(t('Этого слова нет в словаре — но послушать можно.'))}</span>}
+              : active.seg.parts
+                ? <span style={{ color: 'var(--color-text-3)' }}>{bindShortWords(t('Целиком этого слова в словаре нет — вот из чего оно состоит.'))}</span>
+                : <span style={{ color: 'var(--color-text-3)' }}>{bindShortWords(t('Этого слова нет в словаре — но послушать можно.'))}</span>}
           </div>
+          {/* Разбор по составу: слово, которого нет в словаре целиком, но части
+              которого известны.
+              ЗАЧЕМ ОН ЗДЕСЬ, А НЕ В ТЕКСТЕ. Раньше эти части были отдельными
+              кликабельными кусками прямо в строке, и слово в ленте выглядело
+              разобранным по слогам: 스타스퀘어 — пять кнопок, каждая со своим
+              «переводом». Слово должно тапаться целиком, а из чего оно
+              состоит — читаться внутри карточки. */}
+          {!active.seg.gloss && active.seg.parts && (
+            <div style={{ display: 'grid', gap: 4, marginTop: 8 }}>
+              {active.seg.parts.map((p, k) => (
+                <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 12.5, lineHeight: 1.4 }}>
+                  <span style={{
+                    fontWeight: 700, whiteSpace: 'nowrap',
+                    color: p.gloss ? 'var(--color-text)' : 'var(--color-text-3)',
+                  }}>
+                    {p.text}
+                  </span>
+                  <span style={{ color: p.gloss ? 'var(--color-text-2)' : 'var(--color-text-3)', ...proseWrap }}>
+                    {p.gloss ? bindShortWords(p.gloss.ru) : bindShortWords(t('нет в словаре'))}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
           {/* Вес слова: стоит ли учить его сейчас. Показывается только у ядра и
               полезного — плашка «редкое» на каждом втором слове превратила бы
               подсказку в шум, а молчание здесь читается правильно (см.

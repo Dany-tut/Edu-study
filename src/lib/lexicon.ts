@@ -294,6 +294,19 @@ const KO_TAILS: KoTail[] = [
  */
 const KO_MIN_STEM = 2
 
+/**
+ * Частицы из KO_TAILS отдельным множеством.
+ *
+ * Нужно разбору по составу: односложный кусок внутри слова показывается с
+ * переводом ТОЛЬКО если это частица на своём месте — в конце. 문화…부는
+ * кончается на 는 «тема», и это правда; 마포구 кончается на 구, у которого в
+ * словаре записано «и», и к району Мапхо оно отношения не имеет.
+ *
+ * Глагольные хвосты сюда не входят намеренно: у 할 или 해 своя словарная запись
+ * есть, но она про глагол 하다 целиком, а не про роль окончания.
+ */
+const KO_PARTICLES = new Set(KO_TAILS.filter(t => t.add === undefined).map(t => t.tail))
+
 // ─── Письмо без пробелов: разбиение без осколков ─────────────────────────────
 //
 // ПОЧЕМУ НЕ ЖАДНО. В корейском и японском граница слова ничем не помечена, и
@@ -413,9 +426,11 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
     for (const { tail, add, note } of KO_TAILS) {
       if (!word.endsWith(tail) || word.length <= tail.length) continue
       const head = word.slice(0, word.length - tail.length)
-      // Глагольное чтение требует основы хотя бы в два слога (см. KO_MIN_STEM);
-      // существительное с частицей — нет, «저는» это как раз один слог.
-      if (add !== undefined && add !== '' && head.length < KO_MIN_STEM) continue
+      // Глагольное чтение односложного хвоста требует основы хотя бы в два
+      // слога (см. KO_MIN_STEM): 나는 — это «я» с частицей, а не форма 나다.
+      // У хвоста в два слога и длиннее такой развилки нет: 있도록 читается
+      // единственным образом, и порог там только мешал бы.
+      if (add !== undefined && add !== '' && tail.length < 2 && head.length < KO_MIN_STEM) continue
       const g = map.get(key(head + (add ?? '')))
       if (!g) continue
       const tailNote = add === undefined ? map.get(key(tail))?.ru : undefined
@@ -573,13 +588,21 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
       else {
         // Разбор по составу. Односложный кусок идёт без перевода: внутри
         // незнакомого слова он почти всегда чужой (인기 «популярность» — это не
-        // 인 плюс 기). Исключение — последний кусок: там односложная частица
-        // стоит на своём законном месте.
-        const parts: WordPart[] = group.map((s, k) => (
-          s.gloss && (s.text.length > 1 || k === group.length - 1)
-            ? { text: s.text, gloss: s.gloss }
-            : { text: s.text }
-        ))
+        // 인 плюс 기). Исключение — частица в конце: она там на своём месте.
+        //
+        // Соседние куски без перевода склеиваются обратно: 스타스퀘어에서 — это
+        // «스타스퀘어, которого мы не знаем» плюс частица 에서, а не пять
+        // отдельных слогов с вопросительными знаками. Ровно из-за такой
+        // россыпи разбор и читался как побуквенный.
+        const parts: WordPart[] = []
+        group.forEach((s, k) => {
+          const keep = s.gloss
+            && (s.text.length > 1 || (k === group.length - 1 && KO_PARTICLES.has(s.text)))
+          if (keep) { parts.push({ text: s.text, gloss: s.gloss }); return }
+          const last = parts[parts.length - 1]
+          if (last && !last.gloss) last.text += s.text
+          else parts.push({ text: s.text })
+        })
         out.push({ text, word: true, parts: parts.some(p => p.gloss) ? parts : undefined })
       }
       i = j
