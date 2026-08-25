@@ -101,6 +101,20 @@ const SOURCES = {
     topic: 'Погода и природа',
     url: 'https://www.noaa.gov/rss.xml',
   },
+  // NIST и NSF — федеральные агентства США, их материалы в общественном
+  // достоянии. Взяты не «ещё два источника ради счёта»: до них наука в ленте
+  // была только космической (NASA, ESA) и погодной (NOAA), а спрашивают про
+  // ИИ, роботов, материалы и измерения — то есть ровно про эти два.
+  nist: {
+    lang: 'en', name: 'NIST', kind: 'rss', lane: 'free', level: 'B2',
+    topic: 'Технологии и ИИ',
+    url: 'https://www.nist.gov/news-events/news/rss.xml',
+  },
+  nsf: {
+    lang: 'en', name: 'NSF', kind: 'rss', lane: 'free', level: 'B2',
+    topic: 'Наука',
+    url: 'https://www.nsf.gov/rss/rss_www_news.xml',
+  },
 
   // Каналы. Встраивание — штатная функция площадки, поэтому источников тут
   // может быть сколько угодно: это единственная дорожка, которая масштабируется
@@ -191,6 +205,53 @@ const SOURCES = {
     topic: 'Путешествия',
     url: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS03',
   },
+  // ТРЕТИЙ РАЗДЕЛ, И ОН ОТМЕНЯЕТ РЕШЕНИЕ, ЗАПИСАННОЕ ВЫШЕ. «Экономику не берём:
+  // там язык отчёта» — правда, и прогон её подтверждает: рядом с наукой в
+  // разделе лежат закупки риса и защита предоплат. Но отдельного раздела про
+  // науку у 정책브리핑 нет, а деньги на исследования, правила для ИИ и цифровые
+  // сервисы объявляют именно здесь: «올해 기초연구사업에 1520억 원 지원»,
+  // «정부, AI 윤리원칙 제정». Язык отчёта — плата за тему, а не недосмотр.
+  //
+  // ПРОВЕРЕНО 25.08.2026, чтобы не искать заново: EDS01 — экономика (берём),
+  // EDS02 — общество, EDS03 — культура, EDS04 — политика и оборона (не берём,
+  // стоп-список съедает её почти целиком, и правильно делает).
+  'korea-kr-economy': {
+    lang: 'ko', name: '정책브리핑 · 경제', kind: 'kogl', lane: 'free', level: 'TOPIK 4급',
+    topic: 'Наука и техника',
+    url: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS01',
+  },
+
+  // ── Наука, техника, искусство: каналы ──────────────────────────────────────
+  //
+  // ЧЕГО НЕ ХВАТАЛО. Роликов в ленте было много, а научных — почти нет: у
+  // корейского на восемь источников приходились новости, варьете и влоги, у
+  // японского текста не было вовсе. Спрашивали же про другое — науку,
+  // технологии, ИИ, роботов, искусство, историю, моду. Отсюда этот блок: он
+  // добавлен не «ещё каналов», а ровно по одному на каждую названную тему.
+  'science-dream': {
+    lang: 'ko', name: '과학드림', kind: 'youtube', lane: 'embed', level: 'TOPIK 4급',
+    topic: 'Наука', channel: 'UCIk1-yPCTnFuzfgu4gyfWqw',
+  },
+  'anduel-tech': {
+    lang: 'ko', name: '안될공학', kind: 'youtube', lane: 'embed', level: 'TOPIK 5급',
+    topic: 'Технологии и ИИ', channel: 'UCeN2YeJcBCRJoXgzF_OU3qw',
+  },
+  'knowledge-pirates': {
+    lang: 'ko', name: '지식해적단', kind: 'youtube', lane: 'embed', level: 'TOPIK 5급',
+    topic: 'Искусство и история', channel: 'UC9cCBxBAQW2CzLYeT20q49A',
+  },
+  'nmk-museum': {
+    lang: 'ko', name: '국립중앙박물관', kind: 'youtube', lane: 'embed', level: 'TOPIK 4급',
+    topic: 'Искусство и история', channel: 'UC7Pc7sflxGNdgh-ep_jlbEg',
+  },
+  'sherlock-hj': {
+    lang: 'ko', name: '셜록현준', kind: 'youtube', lane: 'embed', level: 'TOPIK 5급',
+    topic: 'Мода и дизайн', channel: 'UC7uDyFIqExDnfXAIZqumFrQ',
+  },
+  'ebs-docu': {
+    lang: 'ko', name: 'EBS 다큐', kind: 'youtube', lane: 'embed', level: 'TOPIK 4급',
+    topic: 'Наука', channel: 'UCFCtZJTuJhE18k8IXwmXTYQ',
+  },
 
   'ann-news': {
     lang: 'ja', name: 'ANNニュース', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
@@ -219,11 +280,51 @@ const SOURCES = {
     lang: 'ja', name: 'QuizKnock', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
     topic: 'Учёба', channel: 'UCQ_MqAw18jFTlBB-f8BP7dw',
   },
+  // Японская наука. Свободного японского ТЕКСТА так и не нашлось (проверено
+  // 25.08.2026: у JAXA, RIKEN и 気象庁 фиды отвечают 404, у サイエンスポータル
+  // условия перепечатки на странице не заявлены), поэтому наука приходит
+  // роликами — зато от самих институтов.
+  'jst-science': {
+    lang: 'ja', name: 'サイエンスチャンネル', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Наука', channel: 'UCHpFyLQgg4h9VZuFyby7RbQ',
+  },
+  miraikan: {
+    lang: 'ja', name: '日本科学未来館', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Технологии и ИИ', channel: 'UCdBvq7IgL4U6u3CzeZaeoFg',
+  },
+  kahaku: {
+    lang: 'ja', name: '国立科学博物館', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Искусство и история', channel: 'UCYvB5iWkIf6uMeA9fPS__sw',
+  },
+  yobinori: {
+    lang: 'ja', name: '予備校のノリで学ぶ', kind: 'youtube', lane: 'embed', level: 'JLPT N2',
+    topic: 'Наука', channel: 'UCqmWJJolqAgjIdLqK3zD1QQ',
+  },
+  'yuru-cs': {
+    lang: 'ja', name: 'ゆるコンピュータ科学ラジオ', kind: 'youtube', lane: 'embed', level: 'JLPT N1',
+    topic: 'Технологии и ИИ', channel: 'UCpLu0KjNy616-E95gPx7LZg',
+  },
 
   ted: {
     lang: 'en', name: 'TEDx Talks', kind: 'youtube', lane: 'embed', level: 'B2',
     topic: 'Технологии и медиа',
     channel: 'UCAuUUnT6oDeKwE6v1NGQxug',
+  },
+  'two-minute-papers': {
+    lang: 'en', name: 'Two Minute Papers', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Технологии и ИИ', channel: 'UCbfYPyITQ-7l4upoX8nvctg',
+  },
+  'boston-dynamics': {
+    lang: 'en', name: 'Boston Dynamics', kind: 'youtube', lane: 'embed', level: 'B1',
+    topic: 'Технологии и ИИ', channel: 'UC7vVhkEfw4nOGp8TyDk7RcQ',
+  },
+  'met-museum': {
+    lang: 'en', name: 'The Met', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Искусство и история', channel: 'UCDlz9C2bhSW6dcVn_PO5mYw',
+  },
+  'mit-open': {
+    lang: 'en', name: 'MIT Open Learning', kind: 'youtube', lane: 'embed', level: 'B2',
+    topic: 'Наука', channel: 'UCN0QBfKk0ZSytyX_16M11fA',
   },
   // ЗАГОТОВКИ, А НЕ МАТЕРИАЛЫ. У ньюсрума Samsung лицензии на перепечатку нет,
   // поэтому автоматически из него взять нечего: их текст показывать нельзя, а
@@ -283,6 +384,16 @@ const STOP = [
   // новость. Формально не происшествие, но обсуждать налоговую реформу на
   // корейском школьнику незачем.
   '반발', '논란', '시위', '규탄', '세제', '개편안', '갈등',
+  // Дипломатия и оборона. Приехали вместе с научно-техническим разделом
+  // 정책브리핑: «한미 외교장관 … 북핵 문제» — формально не происшествие, но и
+  // не то, ради чего открывают ленту. Слова взяты узкие: '안보' целиком нельзя
+  // — оно живёт внутри '에너지안보', а это как раз про технологии.
+  '북핵', '외교장관', '정상회담', '군사', '국방부',
+  // Имена политиков и Северная Корея. Проверено на выдаче: у SBS в ленту
+  // приехал шортс «'김정은 투샷' 사진 또 올린 트럼프» — по-английски 'trump'
+  // отсеивается давно, а по-корейски он записан хангылем, и ни одно из
+  // прежних слов его не ловило.
+  '트럼프', '김정은', '북한', '외교부',
   // Стихия и её последствия. С государственных заметок в ленту поехали
   // «호우 피해», «이재민», «중앙재난안전대책본부» — это ровно то же самое, что
   // сводка происшествий, только написанная канцелярски.

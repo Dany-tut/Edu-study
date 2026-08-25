@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Languages, ChevronDown, Heart, MessageCircle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
@@ -6,6 +6,7 @@ import { outletById, outletHandle, type FeedItem, type Outlet } from '../../data
 import { FeedComments } from './FeedComments'
 import { useFeedLikes } from '../../lib/feedLikes'
 import { markRead, useSeen } from '../../lib/feedRead'
+import { buildLexicon } from '../../lib/lexicon'
 import GlossedText from '../GlossedText'
 import AudioPlayer from '../AudioPlayer'
 

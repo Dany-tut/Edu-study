@@ -118,7 +118,10 @@ for (const d of docs) {
   const lex = buildLexicon(d.lang, d.extra)
   const segments = lex.segment(d.body)
   const words = segments.filter(s => s.word)
-  const holes = words.filter(s => !s.gloss)
+  // Слово, у которого перевода нет целиком, но есть РАЗБОР ПО СОСТАВУ, — не
+  // дыра: тап показывает, из чего оно собрано (см. `parts` в lib/lexicon.ts).
+  // Дыра — когда тап не даёт ни перевода, ни состава.
+  const holes = words.filter(s => !s.gloss && !s.parts?.some(p => p.gloss))
 
   const st = (perLang[d.lang] ??= { words: 0, holes: 0, docs: 0 })
   st.words += words.length
@@ -243,23 +246,31 @@ if (split.length) {
 // тысячи слов без перевода, и в корейском с японским это не «нет перевода», а
 // слово, распавшееся на чужие слоги.
 //
-// ПОЧЕМУ ПОРОГ, А НЕ НОЛЬ. Долг закрывается словами, которые пишутся руками, —
-// это работа на много заходов. Ноль здесь означал бы красный сторож до конца
-// этой работы, то есть отключённый сторож. Порог держит главное: НОВЫЙ текст
-// приезжает со словарём, потому что от него цифра растёт, — а уменьшать её
-// можно и нужно.
+// ПОЧЕМУ ЗДЕСЬ НОЛЬ. Долг был: 25.08.2026 тупиков насчитывалось 8244 на пяти
+// языках — разговорник, справочник и примеры карточек писались без словаря к
+// ним. Он закрыт руками (около 3400 записей в wordGloss.ts), и норма поставлена
+// в ноль: красным сторож становится ровно тогда, когда новый текст приехал без
+// словаря. Числом, а не жёсткой проверкой, — потому что цифра зависит и от
+// разбора: поменялся разбор, перемерьте и впишите, что вышло.
 
-const TAP_DEBT = { ko: 1031, ja: 2139, 'pt-BR': 2508, en: 836, de: 2761 }
+// ЧТО СЧИТАЕТСЯ ТУПИКОМ. Не «нет перевода у слова», а «тап не даёт ничего»:
+// корейское слово, которого нет в словаре целиком, показывает в карточке свой
+// состав (`parts`), и это не тупик, а честный разбор. Тупик — когда нет ни
+// перевода, ни состава. Цифра зависит и от контента, и от разбора: поменялся
+// разбор — перемерьте и впишите новую.
+const TAP_DEBT = { ko: 0, ja: 0, 'pt-BR': 0, en: 0, de: 0 }
 
 const tap = {}
 const tapHoles = {}
 const tapFeed = (lang, text) => {
-  if (!text || !TAP_DEBT[lang]) return
-  const st = (tap[lang] ??= { words: 0, holes: 0 })
+  if (!text || TAP_DEBT[lang] === undefined) return
+  const st = (tap[lang] ??= { words: 0, noGloss: 0, holes: 0 })
   for (const seg of lexOf(lang).segment(String(text))) {
     if (!seg.word) continue
     st.words++
     if (seg.gloss) continue
+    st.noGloss++
+    if (seg.parts?.some(p => p.gloss)) continue
     st.holes++
     const h = (tapHoles[lang] ??= new Map())
     h.set(seg.text, (h.get(seg.text) ?? 0) + 1)
@@ -285,19 +296,20 @@ for (const [lang, maps] of Object.entries(EXAMPLE_MAPS)) {
   for (const map of maps) for (const v of Object.values(map ?? {})) tapFeed(lang, v.term)
 }
 
-console.log('\nРазговорник, справочник и примеры карточек (долг зафиксирован):')
+console.log('\nРазговорник, справочник и примеры карточек:')
 for (const [lang, limit] of Object.entries(TAP_DEBT)) {
-  const st = tap[lang] ?? { words: 0, holes: 0 }
+  const st = tap[lang] ?? { words: 0, noGloss: 0, holes: 0 }
   const pct = st.words ? ((1 - st.holes / st.words) * 100).toFixed(1) : '—'
   const mark = st.holes > limit ? '❌' : st.holes < limit ? '↓' : ' '
-  console.log(`${mark} ${lang.padEnd(6)} слов ${String(st.words).padStart(6)}  без перевода ${String(st.holes).padStart(5)} (порог ${limit})  покрытие ${pct}%`)
+  const shown = st.noGloss > st.holes ? ` · с разбором по составу ${st.noGloss - st.holes}` : ''
+  console.log(`${mark} ${lang.padEnd(6)} слов ${String(st.words).padStart(6)}  тупиков ${String(st.holes).padStart(5)} (порог ${limit})  без тупика ${pct}%${shown}`)
   if (st.holes > limit) {
     bad++
-    const top = [...(tapHoles[lang] ?? new Map())].sort((a, b) => b[1] - a[1]).slice(0, 20)
-    console.log(`   стало хуже на ${st.holes - limit}. Чаще всего: ${top.map(([t, n]) => (n > 1 ? `${t}×${n}` : t)).join(' ')}`)
+    const top = [...(tapHoles[lang] ?? new Map())].sort((a, b) => b[1] - a[1]).slice(0, Number(process.env.TOP ?? 20))
+    console.log(`   тупиков больше нормы на ${st.holes - limit}. Чаще всего: ${top.map(([t, n]) => (n > 1 ? `${t}×${n}` : t)).join(' ')}`)
     console.log('   Новый текст добавляют вместе со словарём: записи — в src/data/wordGloss.ts.')
   } else if (st.holes < limit) {
-    console.log(`   стало лучше на ${limit - st.holes} — впишите ${st.holes} в TAP_DEBT (scripts/checkGloss.mjs).`)
+    console.log(`   тупиков меньше нормы на ${limit - st.holes} — впишите ${st.holes} в TAP_DEBT (scripts/checkGloss.mjs).`)
   }
 }
 

@@ -2203,6 +2203,89 @@ const EN: Record<string, string> = {
   "Голос озвучки": "Voice-over voice",
   "Этим голосом читается всё на этом языке: тексты, карточки, разговорник.":
     "This voice reads everything in this language: texts, cards, phrasebook.",
+  // ── Разметка языковых материалов (data/languageTaxonomy) ──────────────────
+  //
+  // Тема, навык и формат экзамена — это КЛЮЧИ данных: по ним материал
+  // сравнивается с фильтром. Переводится только подпись на экране
+  // (MultiSelectField показывает t(o), наружу отдаёт исходную строку).
+  // Названия экзаменов и их частей на латинице переводить нечего — они
+  // падают в исходную строку сами.
+
+  // Навыки
+  "Аудирование": "Listening",
+  "Говорение": "Speaking",
+  "Письмо": "Writing",
+  "Грамматика": "Grammar",
+  "Лексика": "Vocabulary",
+  "Произношение": "Pronunciation",
+  "Деловой английский": "Business English",
+  "Хангыль": "Hangul",
+  "Правила чтения": "Reading rules",
+  "Уровни вежливости": "Politeness levels",
+  "Счётные слова": "Counters",
+  "Кана": "Kana",
+  "Иероглифы": "Kanji",
+  "Различия с европейским": "Differences from European Portuguese",
+  "Артикль и род": "Article and gender",
+  "Падежи": "Cases",
+  "Порядок слов": "Word order",
+  "Словосложение": "Compound words",
+  "Дикция": "Diction",
+  "Риторика": "Rhetoric",
+  "Словарный запас": "Vocabulary range",
+  "Точность слова": "Precision of wording",
+  "Стиль и регистр": "Style and register",
+  "Орфоэпия": "Standard pronunciation",
+  "Приёмы речи": "Devices of speech",
+  "Разбор отрывка": "Close reading",
+  "Письмо по образцу": "Writing from a model",
+
+  // Темы — костяк
+  "Знакомство": "Meeting people",
+  "Семья и люди": "Family and people",
+  "Еда": "Food",
+  "Дом и город": "Home and city",
+  "Работа": "Work",
+  "Учёба": "Study",
+  "Путешествия": "Travel",
+  "Здоровье": "Health",
+  "Покупки и деньги": "Shopping and money",
+  "Время и планы": "Time and plans",
+  "Погода и природа": "Weather and nature",
+  "Технологии и медиа": "Technology and media",
+
+  // Темы — добавки по языкам
+  "Собеседование и резюме": "Interviews and CVs",
+  "Переписка и созвоны": "Email and calls",
+  "Транспорт и дорога": "Transport and getting around",
+  "Кафе и ресторан": "Cafés and restaurants",
+  "Разговорный бразильский": "Spoken Brazilian",
+  "Ведомства и бумаги": "Offices and paperwork",
+  "Аренда и Anmeldung": "Renting and Anmeldung",
+  "Публичная речь": "Public speaking",
+  "Спор и аргумент": "Argument and debate",
+  "Рабочая переписка": "Work correspondence",
+  "Рассказ о себе": "Talking about yourself",
+  "Деталь и портрет": "Detail and portrait",
+  "Ритм фразы": "Sentence rhythm",
+  "Диалог": "Dialogue",
+  "Пейзаж и настроение": "Landscape and mood",
+  "Ирония": "Irony",
+
+  // Темы, встречающиеся в материалах вне таксономии
+  "Объявления": "Notices",
+  "Переписка": "Correspondence",
+  "Поиск работы": "Job hunting",
+  "Работа в команде": "Teamwork",
+  "Обратная связь": "Feedback",
+
+  // Части экзаменов, где пояснение дано по-русски
+  "TOPIK 듣기 (аудирование)": "TOPIK 듣기 (listening)",
+  "TOPIK 읽기 (чтение)": "TOPIK 읽기 (reading)",
+  "TOPIK 쓰기 (письмо)": "TOPIK 쓰기 (writing)",
+  "TOPIK 말하기 (говорение)": "TOPIK 말하기 (speaking)",
+  "CELPE-Bras — устная часть": "CELPE-Bras — oral part",
+  "CELPE-Bras — письменная часть": "CELPE-Bras — written part",
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

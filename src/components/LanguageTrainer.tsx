@@ -396,13 +396,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (fLen && !LENGTHS.find(l => l.value === fLen)?.fit(x.minutes)) return false
       if (status === 'new' && resultFrom(kind, x.id, results)) return false
       if (status === 'done' && !resultFrom(kind, x.id, results)) return false
-      if (q && !`${x.title} ${x.topic}`.toLowerCase().includes(q)) return false
+      if (q && !`${x.title} ${x.topic} ${t(x.topic)}`.toLowerCase().includes(q)) return false
       return true
     })
     if (sort === 'level') out.sort((a, b) => levelOpts.indexOf(a.level) - levelOpts.indexOf(b.level))
     if (sort === 'short') out.sort((a, b) => a.minutes - b.minutes)
     return out
-  }, [pool, fLevel, fTopic, fSkill, fLen, status, query, sort, kind, results, levelOpts, mode])
+  }, [pool, fLevel, fTopic, fSkill, fLen, status, query, sort, kind, results, levelOpts, mode, t])
 
   // ── Витрина сцен ───────────────────────────────────────────────────────────
   //
@@ -2174,7 +2174,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>{x.level}</TileChip>
                 <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-                  {x.topic} · {x.minutes} {t('мин')}
+                  {t(x.topic)} · {x.minutes} {t('мин')}
                 </span>
               </span>
               <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
@@ -2896,7 +2896,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             // У материала ленты подпись начинается с источника и даты: это
             // первое, что нужно знать про новость, и это же — атрибуция.
             ? `${outletById(feed.outletId)?.name ?? ''} · ${dayLabel(feed.date)} · ${text.level}`
-            : `${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`}
+            : `${text.level} · ${t(text.topic)} · ${text.minutes} ${t('мин')}`}
         palette={palette}
       />
 
@@ -3161,7 +3161,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>
           <div style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
-            {scene && work ? `${work.title} · ${scene.where}` : `${text.topic} · ${text.level}`}
+            {scene && work ? `${work.title} · ${scene.where}` : `${t(text.topic)} · ${text.level}`}
           </div>
 
           {/* «Чем кончилось» — награда за работу и крючок к следующей сцене.
@@ -3369,7 +3369,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
   // туда-обратно на каждый вопрос.
   const rail = (
     <>
-      <RailHero plain title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
+      <RailHero plain title={item.title} subtitle={`${item.level} · ${t(item.topic)} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
       {/* На телефоне рейл целиком уезжает в шторку «Фильтры», и кнопка
           «Играть» уходила туда вместе с ним: запись включалась через фильтры.

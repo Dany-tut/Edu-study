@@ -13,6 +13,14 @@ import { useScrollLock } from '../lib/useScrollLock'
 // expands and wraps all chips; collapsed it shrinks to one line (first chip +N).
 // Shared by the student trainer (TaskBankPage) and the teacher trainers
 // (TrainerBank / homework).
+//
+// ПОДПИСЬ ПЕРЕВОДИТСЯ, ЗНАЧЕНИЕ — НЕТ. `options` и `values` это ключи данных:
+// по ним идёт сравнение с разметкой материала («Кафе и ресторан» стоит в
+// поле topic текста). Показывать их как есть нельзя — в английском интерфейсе
+// фильтр остаётся русским; переводить сами значения нельзя тем более — тогда
+// сравнение перестанет совпадать и фильтр молча вернёт пустой список. Поэтому
+// наружу отдаётся ключ, а на экран — t(ключ), который сам падает обратно в
+// русский, если перевода нет.
 export default function MultiSelectField({
   label, options, values, onChange,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)', small = false,
@@ -44,8 +52,14 @@ export default function MultiSelectField({
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // Ищем и по исходной строке, и по переводу: подпись в списке переведена
+  // (см. t(o) ниже), а значение осталось русским — без второй проверки
+  // англоязычный ученик набирал бы то, что видит, и ничего не находил.
   const shown = query
-    ? options.filter(o => o.toLowerCase().includes(query.toLowerCase()))
+    ? options.filter(o => {
+        const q = query.toLowerCase()
+        return o.toLowerCase().includes(q) || t(o).toLowerCase().includes(q)
+      })
     : options
 
   // Keep selection clean if the option set narrows (cascade) below current picks.
@@ -109,7 +123,7 @@ export default function MultiSelectField({
 
   const chip = (v: string) => (
     <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: '2px 7px', borderRadius: 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</span>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(v)}</span>
       <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 9 : 11} strokeWidth={2.6} /></span>
     </span>
   )
@@ -191,7 +205,7 @@ export default function MultiSelectField({
                         style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize }}
                         {...dropdownRowHover(selected)}
                       >
-                        <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{o}</span>
+                        <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{t(o)}</span>
                         {selected && <Check size={13} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
                       </div>
                     )
