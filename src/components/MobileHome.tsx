@@ -8,6 +8,8 @@ import MobileBottomNav from './MobileBottomNav'
 import MobileDock, { DockSegment } from './MobileDock'
 import { stripCommonPrefix } from '../lib/courseLabels'
 import MobileHScroll from './MobileHScroll'
+import UpdateDockPill from './UpdateDockPill'
+import { useAppUpdate, watchForUpdates } from '../lib/appUpdate'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow, lessonTimeState } from '../lib/useNow'
@@ -70,6 +72,13 @@ export default function MobileHome() {
   // Single course → no dock (В1). Default follows whichever course has the
   // active lesson so "Продолжить" lands where the student left off.
   const multiCourse = subjects.length >= 2
+
+  // Обновление: общий стор (lib/appUpdate.ts) — та же правда, что и в строке
+  // версии в профиле. Сторож запускается один раз и сам перепроверяет при
+  // возвращении в приложение.
+  const updatePhase = useAppUpdate(s => s.phase)
+  const updateReady = updatePhase === 'stale' || updatePhase === 'updating'
+  useEffect(() => { watchForUpdates() }, [])
   // «Все» в подсчёт общего префикса не входит: это не курс, и срезать у него
   // нечего — иначе одна чужая подпись отменяла бы срез для всех остальных.
   const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => s.name)), [subjects])
@@ -266,8 +275,14 @@ export default function MobileHome() {
         )}
       </MobileScreen>
 
-      {/* В2 — course scope switcher (only with 2–4 courses) */}
-      {multiCourse && (
+      {/* Обновление вытесняет переключатель курсов: пока оно есть, док занят им
+          (и показывается даже при одном курсе, когда переключателя нет вовсе).
+          Ушло обновление — треки курсов возвращаются на своё место. */}
+      {updateReady ? (
+        <MobileDock>
+          <UpdateDockPill />
+        </MobileDock>
+      ) : multiCourse && (
         <MobileDock>
           <DockSegment
             options={[{ id: '__all__', label: t('Все') }, ...subjects.map((s, i) => ({ id: s.id, label: dockLabels[i] }))]}

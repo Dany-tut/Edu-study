@@ -65,7 +65,10 @@ function collapseTransition(collapsed: boolean) {
   }
 }
 
-const glassBase: CSSProperties = {
+// Стеклянная основа таблеток дока. Экспортируется, потому что в ряду живут и
+// чужие элементы (плеер тренажёра, таблетка обновления) — им нужен ровно тот
+// же корпус, иначе в ряду стоят две разные «стекляшки».
+export const glassBase: CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.6)',
   backdropFilter: 'blur(28px) saturate(200%)',
   WebkitBackdropFilter: 'blur(28px) saturate(200%)',

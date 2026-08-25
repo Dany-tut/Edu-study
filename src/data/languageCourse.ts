@@ -1230,6 +1230,28 @@ function reviewTasks(
 }
 
 /**
+ * Запас обманок для экзамена порции (Р9).
+ *
+ * Своё — слова юнита, введённые к этому занятию: обманка из той же темы честно
+ * проверяет слово, а не тему. Их набирается меньше четырёх у первых, коротких
+ * порций — тогда добираем недавно пройденным из прошлых юнитов, от свежего к
+ * старому. Ровно четыре и хватит: дальше растёт не сложность, а расстояние
+ * между обманкой и ответом, и вопрос решается вычёркиванием.
+ */
+function examPool(unitSeen: VocabItem[], introduced: VocabItem[]): VocabItem[] {
+  if (unitSeen.length >= 6) return unitSeen
+  const have = new Set(unitSeen.map(w => w.term))
+  const spare: VocabItem[] = []
+  for (let i = introduced.length - 1; i >= 0 && unitSeen.length + spare.length < 6; i--) {
+    const w = introduced[i]
+    if (!w.term?.trim() || have.has(w.term)) continue
+    have.add(w.term)
+    spare.push(w)
+  }
+  return [...unitSeen, ...spare]
+}
+
+/**
  * Карточки слов — вперемешку с работой, а не хвостом в конце.
  *
  * ЗАЧЕМ. Словарь юнита превращался в карточки один к одному и ложился в конец
@@ -1302,18 +1324,23 @@ export function vocabPortions(vocab: VocabItem[], size: number): VocabItem[][] {
  * Блок с одним и тем же отрывком не разрезается между уроками: текст и вопросы
  * к нему в разных днях — это уже не задание с отрывком.
  *
- * РАЗДАЁМ ЧЕРЕЗ ОДНОГО, А НЕ КУСКАМИ ПОДРЯД. Раньше порция получала сплошной
- * отрезок списка — и вместе с ним всё однообразие этого отрезка: в юните
- * патчхима шесть заданий «что прозвучало?» стоят рядом, и все шесть уезжали в
- * одно занятие. Ученик видел пять одинаковых экранов подряд (Р13), а соседнее
- * занятие оставалось вовсе без звука.
+ * ЗАДАНИЕ ЕДЕТ В ПОРЦИЮ СВОЕГО СЛОВА. Если блок называет слово («Обведите
+ * букву ㅡ», «Соберите слово 바다»), он обязан попасть в то занятие, где это
+ * слово вводится, — иначе ученик обводит букву, которую ещё ни разу не видел
+ * (Р3). Это первое правило, и оно сильнее остальных.
  *
- * Раздача по кругу (блок i → порция i % count) чинит это сама собой: серия
- * одинаковых блоков расходится по разным занятиям. Порядок внутри порции
- * остаётся авторским — блоки приходят по возрастанию номера, — а сама порция
- * получает срез по всему юниту, а не его начало или конец.
+ * ОСТАЛЬНОЕ РАЗДАЁМ ЧЕРЕЗ ОДНОГО, А НЕ КУСКАМИ ПОДРЯД. Задания «вообще про
+ * тему» слова не называют, и раньше порция получала их сплошным отрезком — со
+ * всем однообразием этого отрезка: в юните патчхима шесть заданий «что
+ * прозвучало?» стоят рядом, и все шесть уезжали в одно занятие. Ученик видел
+ * пять одинаковых экранов подряд (Р13), а соседнее занятие оставалось вовсе
+ * без звука. Раздача по кругу разводит такую серию сама собой.
+ *
+ * Порядок внутри порции остаётся авторским: блоки приходят по возрастанию
+ * номера, каким бы правилом ни попали.
  */
-function spreadTasks(tasks: SeedTask[], count: number): SeedTask[][] {
+function spreadTasks(tasks: SeedTask[], parts: VocabItem[][]): SeedTask[][] {
+  const count = parts.length
   const blocks: SeedTask[][] = []
   for (const task of tasks) {
     const last = blocks[blocks.length - 1]
@@ -1322,7 +1349,42 @@ function spreadTasks(tasks: SeedTask[], count: number): SeedTask[][] {
     else blocks.push([task])
   }
   const out: SeedTask[][] = Array.from({ length: count }, () => [])
-  blocks.forEach((block, bi) => out[bi % count].push(...block))
+
+  /** Весь текст блока — в нём и ищется слово порции. */
+  const textOf = (block: SeedTask[]) => block
+    .map(t => [t.question, t.answer, t.sentence, t.syllable, t.chamo, t.ttsText,
+      ...(t.choices ?? []), ...(t.sequenceItems ?? []),
+      ...(t.pairs ?? []).flatMap(p => [p.left, p.right])].filter(Boolean).join(' '))
+    .join(' ')
+
+  // Длинные слова ищем раньше коротких: «이» входит в «이거», и короткое слово
+  // притянуло бы к себе всё подряд.
+  const owners = parts
+    .flatMap((part, i) => part.map(w => ({ i, term: (w.term ?? '').trim() })))
+    .filter(x => x.term.length > 0)
+    .sort((a, b) => b.term.length - a.term.length)
+
+  // Потолок на занятие: ровная доля плюс один блок. Без него порция со «своим»
+  // словом собирала всё, что его называет, — сорок три задания в одном вечере
+  // при среднем в пятнадцать, и три однотипных подряд, которые уже нечем
+  // развести (Р13). Запас ровно в один блок: он нужен, чтобы остаток от
+  // деления не выталкивал последнее задание из его же занятия.
+  const cap = Math.max(2, Math.ceil(blocks.length / count) + 1)
+  const sizes = new Array(count).fill(0)
+  let loose = 0
+
+  blocks.forEach(block => {
+    const text = textOf(block)
+    const owner = owners.find(o => text.includes(o.term))
+    if (!owner) { out[loose++ % count].push(...block); sizes[loose % count]++; return }
+    // Перелив только ВПЕРЁД: в занятии позже слово уже введено и Р3 цело, а
+    // раньше — это задание о слове, которого ученик ещё не видел. Некуда
+    // перелить — оставляем у своего слова: правило важнее ровной длины.
+    let at = owner.i
+    while (at < count - 1 && sizes[at] >= cap) at++
+    out[at].push(...block)
+    sizes[at]++
+  })
   return out
 }
 
@@ -1409,8 +1471,38 @@ function portionTheory(unit: LangUnit, vocab: VocabItem[], k: number, total: num
   return [
     `Продолжение юнита ${unit.n} «${unit.title}» — занятие ${k} из ${total}.`,
     `Правило юнита: ${unit.grammar}`,
-    `Слова занятия (${unit.vocabTheme}):\n${words}`,
+    // Занятие-отработка (новых слов нет, см. workPortions) — вместо списка
+    // слов честно сказано, что тут происходит: иначе пустой заголовок
+    // «Слова занятия» читается как потерянный кусок урока.
+    vocab.length
+      ? `Слова занятия (${unit.vocabTheme}):\n${words}`
+      : 'Новых слов сегодня нет: занятие целиком уходит на отработку уже введённых.',
   ].join('\n\n')
+}
+
+/**
+ * Занятия юнита с учётом РАБОТЫ, а не только словаря.
+ *
+ * ЗАЧЕМ. Порция = урок (Р1) считает новые слова и ничего не знает про
+ * упражнения. У юнита патчхима пять слов и тридцать пять авторских заданий:
+ * порции получались две, и в каждую падало по семнадцать упражнений — плюс
+ * карточки, лестница, повторение и экзамен. Сорок один экран за вечер,
+ * поставленный в получасовой слот. Это не «трудный урок», это невыполненный.
+ *
+ * ЧТО ДЕЛАЕМ. Если авторской работы больше, чем WORK_CAP блоков на занятие,
+ * добавляем занятия БЕЗ НОВЫХ СЛОВ: карточек и лестницы там нет, есть работа
+ * юнита, разминка по прошлой порции и повторение. Такое занятие законно и
+ * полезно само по себе — это день отработки, а не день знакомства.
+ *
+ * ПОЧЕМУ НЕ РЕЗАТЬ СЛОВА МЕЛЬЧЕ. Порция и так на потолке (Р1): дробить её
+ * дальше — значит плодить занятия с одним словом, а не разгружать работу.
+ */
+const WORK_CAP = 12
+
+function workPortions(parts: VocabItem[][], taskCount: number): VocabItem[][] {
+  const need = Math.ceil(taskCount / WORK_CAP)
+  if (need <= parts.length) return parts
+  return [...parts, ...Array.from({ length: need - parts.length }, () => [] as VocabItem[])]
 }
 
 function interleaveCards<T extends { passage?: string }>(work: T[], cards: T[]): T[] {
@@ -1569,8 +1661,8 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
   const introduced: VocabItem[] = []
 
   spec.units.forEach(unit => {
-    const parts = vocabPortions(unit.vocab, size)
-    const taskParts = spreadTasks(unit.tasks, parts.length)
+    const parts = workPortions(vocabPortions(unit.vocab, size), unit.tasks.length)
+    const taskParts = spreadTasks(unit.tasks, parts)
     const split = parts.length > 1
     const ids: string[] = []
 
@@ -1633,7 +1725,11 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           // Лестница (ступени 1–3) вперемешку с работой юнита: узнавание из
           // двух, на слух, сборка написания — кругами по всем словам порции,
           // чтобы между двумя касаниями одного слова стояли чужие (Р2).
-          ...interleaveCards(
+          // Разводим однотипное по ВСЕЙ рабочей части, а не только по авторской:
+          // круг лестницы и авторская серия того же типа складывались в одну
+          // длинную полосу («что прозвучало?» четырежды подряд), хотя порознь
+          // каждая укладывалась в потолок Р13.
+          ...breakSameTypeRuns(interleaveCards(
             [
               // Дрилл идёт первым: конструкция сначала ставится в руку
               // подстановкой, и только потом проверяется вразбивку остальными
@@ -1660,11 +1756,15 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
             ],
             ladderTasks(vocab, { native: spec.native, stage: writingStage(spec, unit), seen: earlier })
               .map((task, i) => editorTask(task, `${id}-l${i + 1}`, spec.lang)),
-          ),
+          )),
           // Экзамен порции — в конце (Р4): сопоставление пар и припоминание из
           // четырёх. Раньше сопоставление стояло вторым заданием урока, сразу
           // после показа словаря.
-          ...vocabRecognition(part, `${id}-r`, spec.lang, spec.native, seen),
+          // Обманки экзамена (Р9) — слова юнита, введённые к этому занятию. Их
+          // меньше четырёх (порция первая и короткая) — добираем недавно
+          // пройденным из прошлых юнитов: без запаса весь экзамен порции
+          // пропадал целиком, и ступени 4 у занятия не было вовсе.
+          ...vocabRecognition(part, `${id}-r`, spec.lang, spec.native, examPool(seen, introduced)),
         ],
       })
     })

@@ -42,15 +42,27 @@ export async function fetchRemoteVersion(): Promise<RemoteVersion | null> {
 // Забрать обновление принудительно: снести воркера и все его кеши, затем
 // перезагрузиться. Тупо, зато надёжно — новый воркер регистрируется сам
 // (registerType: 'autoUpdate'), а старый shell уже нечем отдавать.
-export async function applyUpdate(): Promise<void> {
+//
+// `onStep` зовётся после каждого шага: по нему индикатор двигает свою полосу,
+// чтобы тап не выглядел зависшим (см. lib/appUpdate.ts).
+export type UpdateStep = 'sw' | 'caches' | 'done'
+
+export async function applyUpdate(onStep?: (step: UpdateStep) => void): Promise<void> {
   try {
     const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? []
     await Promise.all(regs.map(r => r.unregister().catch(() => false)))
   } catch { /**/ }
+  onStep?.('sw')
   try {
     const keys = await caches.keys()
     await Promise.all(keys.map(k => caches.delete(k).catch(() => false)))
   } catch { /**/ }
+  onStep?.('caches')
+  // Небольшая пауза — не ради техники, а ради глаза: полоса должна дойти до
+  // конца, иначе перезагрузка обрывает её на середине и выглядит как сбой.
+  await new Promise(r => setTimeout(r, 420))
+  onStep?.('done')
+  await new Promise(r => setTimeout(r, 260))
   // Хеш сохраняем — перезагрузка не должна выкидывать со страницы урока.
   window.location.reload()
 }

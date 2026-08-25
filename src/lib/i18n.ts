@@ -50,7 +50,7 @@ const EN: Record<string, string> = {
   'Проверить обновление': 'Check for update',
   'Проверяем…': 'Checking…',
   'Обновляем…': 'Updating…',
-  'Актуальна': 'Up to date',
+  'Есть обновление': 'Update available',
   'Доступна': 'Available',
   'Ошибка связи': 'Check failed',
   'Выйти из аккаунта': 'Log out',
