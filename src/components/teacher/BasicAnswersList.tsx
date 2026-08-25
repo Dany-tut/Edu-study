@@ -6,9 +6,17 @@
 // задании. Здесь разворачивается снимок сдачи (lib/basicAnswers.ts): задание,
 // ответ ученика, эталон и вердикт машины. Голосовые ответы играются плеером —
 // они лежат в приватном бакете task-media и открываются по signed URL.
+//
+// ЗАЧТЁННОЕ УСТНОЕ СВЁРНУТО. «Прочитайте вслух» с эталоном машина проверяет сама
+// (см. VoiceAnswer в HomeworkFlow): она сверяет расшифровку записи с эталоном и
+// знает ровно одно — прозвучали ли нужные слова. Там, где прозвучали, слушать
+// нечего: дюжина таких записей в ленте — это дюжина минут, отнятых у разбора
+// того, что НЕ сошлось. Строки не выброшены, а сложены под строку-раскрыв:
+// счёт виден всегда, записи — по требованию.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { CheckCircle2, CircleAlert, Eye, MicOff, Minus, Send } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Eye, MicOff, Minus, Send } from 'lucide-react'
 import type { BasicAnswerRow, BasicAnswersPayload, BasicAnswerVerdict } from '../../lib/basicAnswers'
 import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'
@@ -82,6 +90,15 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
         </p>
       )}
 
+      {/* Что услышала распознавалка. Показывается только у незачтённых — там это
+          и решает: ученик сказал не то или машина не расслышала сказанное. */}
+      {row.heard && row.verdict !== 'correct' && (
+        <p style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-text-3)', ...proseWrap }}>
+          {t('Машина услышала')}: «{row.heard}»
+          {row.attempts && row.attempts > 1 ? ` · ${t('попыток')}: ${row.attempts}` : ''}
+        </p>
+      )}
+
       {showReference && (
         <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-green-text)' }}>
           {t('Правильный ответ')}: <b>{row.correct}</b>
@@ -91,12 +108,20 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
   )
 }
 
+/** Устное, которое машина зачла: слушать нечего — нужные слова прозвучали. */
+const isPassedVoice = (r: BasicAnswerRow) => !!r.voice && r.verdict === 'correct'
+
 export default function BasicAnswersList({ payload }: { payload: BasicAnswersPayload }) {
   const t = useT()
+  const [showPassed, setShowPassed] = useState(false)
   // Устные задания и описания картинок — то, ради чего преподаватель сюда и
   // заходит: машина их не проверяет, а раньше они вообще не доезжали.
   const reviewCount = payload.rows.filter(r => r.verdict === 'review' || r.verdict === 'skip').length
   const hintCount = payload.rows.filter(r => r.verdict === 'hint').length
+  const passed = payload.rows.filter(isPassedVoice)
+  // Порядок заданий сохраняется: свёрнутые не выдёргиваются наверх, а просто
+  // не рисуются, пока их не попросят.
+  const rows = showPassed ? payload.rows : payload.rows.filter(r => !isPassedVoice(r))
 
   if (payload.rows.length === 0) return null
 
@@ -125,7 +150,24 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
           </span>
         )}
       </div>
-      {payload.rows.map(row => <AnswerCard key={row.n} row={row} />)}
+      {passed.length > 0 && (
+        <button
+          onClick={() => setShowPassed(v => !v)}
+          className="flex items-center cursor-pointer"
+          style={{
+            alignSelf: 'flex-start', gap: 7, padding: '7px 12px', borderRadius: 12,
+            border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
+            color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+          }}
+        >
+          {showPassed ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {t('Устные, зачтённые машиной')}: {passed.length}
+          <span style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
+            · {showPassed ? t('свернуть') : t('послушать')}
+          </span>
+        </button>
+      )}
+      {rows.map(row => <AnswerCard key={row.n} row={row} />)}
     </div>
   )
 }

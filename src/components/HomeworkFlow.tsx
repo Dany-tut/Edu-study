@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
   BookOpen, CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
-  ChevronUp, ChevronDown, Eye, MicOff, Home, RotateCcw, ArrowRight, Volume2,
+  ChevronUp, ChevronDown, Eye, Mic, MicOff, Home, RotateCcw, ArrowRight, Volume2,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import type { PatternItem } from '../data/taskTypes'
@@ -875,6 +875,11 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
  */
 function questionSelfChecks(q: HomeworkQuizQuestion) {
   if (questionIsChoice(q)) return !questionIsMulti(q)
+  // Устное с эталоном отвечает само в момент, когда запись легла: сверка идёт
+  // по расшифровке, и «Проверить» просило бы подтвердить уже увиденное — а на
+  // незачтённой попытке ещё и печатало бы «Пока мимо» там, где машина всего
+  // лишь не расслышала. Ученику вместо этого предлагается сказать ещё раз.
+  if (qType(q) === 'speaking') return !!q.targetText?.trim()
   return qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
@@ -956,6 +961,21 @@ function taskBodyMissing(q: HomeworkQuizQuestion): boolean {
   }
 }
 
+/**
+ * Идёт ли задание в балл домашки.
+ *
+ * Устное проверяет себя само, но балла не стоит — и это не осторожность, а
+ * единственная честная позиция. Распознавалка возвращает текст, а не оценку
+ * произношения (lib/asr.ts): исправно сказанное она не расслышит запросто, а на
+ * дрилле минимальных пар (think–sink) слепа почти всегда. Ставить за это балл
+ * значит оценивать ученика качеством чужого микрофона и чужой модели.
+ *
+ * Что автопроверка устного даёт взамен: ученику — ответ сразу, пока эталон ещё
+ * в ушах; преподавателю — снятые с ленты записи, где сверка сошлась.
+ */
+function questionScored(q: HomeworkQuizQuestion) {
+  return questionAutoGradable(q) && qType(q) !== 'speaking'
+}
 function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (!ans) return false
   if (questionIsMulti(q)) return joinIds(parseIds(ans)) === joinIds(q.correctOptionIds ?? [])
@@ -1160,14 +1180,38 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
 // оставалось неотвеченным и держало кнопку «Сдать». Отказ пишется в ответ
 // отдельным маркером — задание уходит преподавателю с пометкой «без записи», а
 // не притворяется выполненным.
-function VoiceAnswer({ value, maxSeconds, disabled, onChange }: {
+//
+// ВЕРДИКТ НА МЕСТЕ (target). У «прочитайте вслух» эталон есть — и ответ приходит
+// не через неделю, а сразу: пока ученик говорил, ту же речь слушала
+// распознавалка, и её текст сверяется с эталоном тут же, пока образец ещё в
+// ушах. Это не оценка произношения: машина её не умеет и уметь не начнёт
+// (см. lib/asr.ts). Это ответ на один вопрос — прозвучали ли нужные слова.
+//
+// ПОЭТОМУ ВЕРДИКТ МЯГКИЙ. Не расслышать исправно сказанное распознавалка может
+// запросто, а на дрилле минимальных пар (think–sink–three–tree) она слепа почти
+// всегда. Значит «не сошлось» — это не «неверно», а приглашение сказать ещё раз:
+// сколько угодно и без штрафа. Запись при этом остаётся в ответе в любом случае,
+// и незачтённую преподаватель услышит.
+//
+// БЕЗ РАСПОЗНАВАЛКИ ЭКРАН ПРЕЖНИЙ. Firefox, приложение на айфоне, задание без
+// эталона — всё это прежняя ветка «записал и отправил», без единого нового
+// элемента: isAsrAvailable() спрашивается до отрисовки, а не после.
+function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
   value: string | undefined
   maxSeconds: number
   disabled: boolean
   onChange: (v: string) => void
+  /** Эталон «прочитайте вслух». Задан — задание проверяет себя само. */
+  target?: string
+  /** Язык эталона: на нём слушает распознавалка и говорит образец. */
+  lang?: string
 }) {
   const t = useT()
   const skipped = value === NO_VOICE
+  const want = target?.trim() ?? ''
+  const checks = !!want && isAsrAvailable()
+  const answer = parseVoiceAnswer(skipped ? '' : value)
+  const ok = checks && !!answer.heard && heardCovers(answer.heard, want)
 
   if (skipped) {
     // Отказ от записи — это состояние поля, а не предупреждение: жёлтая плашка
@@ -1199,27 +1243,91 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange }: {
     )
   }
 
+  /** Стереть запись, сохранив счётчик попыток: «сошлось с третьей» — это факт. */
+  const retry = () => onChange(formatVoiceAnswer({ path: '', heard: '', attempts: answer.attempts }))
+
+  const sampleBtn = lang && hasVoiceFor(lang) && (
+    <button
+      onClick={() => speak(want, { lang })}
+      className="flex items-center cursor-pointer"
+      style={{
+        gap: 7, padding: '7px 14px', borderRadius: 999,
+        border: '1px solid var(--color-border)', background: 'transparent',
+        color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+      }}
+    >
+      <Volume2 size={14} />
+      {t('Послушать эталон')}
+    </button>
+  )
+
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
       <VoiceRecorder
-        value={value || null}
+        value={answer.path || null}
         maxSeconds={maxSeconds}
-        onChange={path => onChange(path ?? '')}
+        listenLang={checks ? lang : undefined}
+        onChange={(path, heard) => onChange(path
+          ? formatVoiceAnswer({ path, heard: heard ?? '', attempts: answer.attempts + 1 })
+          : formatVoiceAnswer({ path: '', heard: '', attempts: answer.attempts }))}
       />
-      {!value && !disabled && (
-        <button
-          onClick={() => onChange(NO_VOICE)}
-          className="flex items-center cursor-pointer"
-          style={{
-            alignSelf: 'flex-start', gap: 7, padding: '7px 14px', borderRadius: 999,
-            border: '1px solid var(--color-border)', background: 'transparent',
-            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
-          }}
-        >
-          <MicOff size={14} />
-          {t('Не могу записать сейчас')}
-        </button>
-      )}
+
+      {/* Сверка. Пустая расшифровка при работающей распознавалке — это тишина,
+          далёкий микрофон или отвалившаяся сеть у облачного распознавателя;
+          выглядит она иначе, чем «сказал не то», и говорить должна другое. */}
+      {checks && answer.path && (answer.heard ? (
+        <SpeechHeard
+          heard={answer.heard}
+          target={want}
+          ok={ok}
+          title={ok ? t('Засчитано — прозвучало всё') : t('Услышано')}
+        />
+      ) : (
+        <div style={{
+          padding: '10px 14px', borderRadius: 14, fontSize: 13, lineHeight: 1.5,
+          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+          color: 'var(--color-text-2)',
+        }}>
+          {t('Не расслышал. Скажи ещё раз — ближе к микрофону и чуть громче.')}
+        </div>
+      ))}
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {/* Незачтённая попытка ведёт не к «неверно», а обратно к микрофону. */}
+        {checks && answer.path && !ok && !disabled && (
+          <button
+            onClick={retry}
+            className="flex items-center cursor-pointer"
+            style={{
+              gap: 7, padding: '7px 14px', borderRadius: 999, border: 'none',
+              background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 750,
+            }}
+          >
+            <Mic size={14} />
+            {t('Ещё раз')}
+          </button>
+        )}
+
+        {/* Образец нужен и до попытки, и после неудачной — но не после зачёта:
+            там он уже прозвучал голосом самого ученика. */}
+        {checks && !ok && !disabled && sampleBtn}
+
+        {!answer.path && !disabled && (
+          <button
+            onClick={() => onChange(NO_VOICE)}
+            className="flex items-center cursor-pointer"
+            style={{
+              gap: 7, padding: '7px 14px', borderRadius: 999,
+              border: '1px solid var(--color-border)', background: 'transparent',
+              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+            }}
+          >
+            <MicOff size={14} />
+            {t('Не могу записать сейчас')}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -1602,14 +1710,16 @@ export default function HomeworkFlow({
   // вспомнил его сам, и засчитывать это как знание — врать в первую очередь ему.
   const basicCorrectCount = useMemo(() => {
     return basicQuestions.filter(question =>
-      !state.basicHints[question.id] && questionCorrect(question, state.basicAnswers[question.id])
+      questionScored(question)
+      && !state.basicHints[question.id]
+      && questionCorrect(question, state.basicAnswers[question.id])
     ).length
   }, [basicQuestions, state.basicAnswers, state.basicHints])
   // Score over the auto-gradable subset (choice + text/fill with an эталон),
   // mirroring TestFlow. When nothing is auto-gradable (all teacher-reviewed),
   // submitting the answers counts as a full pass so the hard level can open.
   const basicGradableCount = useMemo(
-    () => basicQuestions.filter(questionAutoGradable).length,
+    () => basicQuestions.filter(questionScored).length,
     [basicQuestions],
   )
   const basicScore = basicGradableCount > 0
@@ -1679,8 +1789,12 @@ export default function HomeworkFlow({
       const autoGradable = questionAutoGradable(question)
       const hinted = !!state.basicHints[question.id]
       const answered = questionAnswered(question, raw)
+      // Устный ответ хранится кодеком (путь + расшифровка + попытки), описание
+      // картинки голосом — по-прежнему голым путём. Плеер витрины играет
+      // row.answer напрямую, поэтому наружу отдаём именно путь.
+      const voicePath = tp === 'speaking' ? parseVoiceAnswer(raw).path : (raw ?? '')
       const voice = (tp === 'speaking' || question.responseMode === 'speak')
-        && !!raw && raw !== NO_VOICE
+        && !!voicePath && voicePath !== NO_VOICE
 
       // Ответ в читаемом виде. Выбор хранится id-шниками, сборка предложения —
       // словами через пробел, порядок — индексами: преподавателю нужно то, что
@@ -1717,6 +1831,8 @@ export default function HomeworkFlow({
         answer = drillItems(question)
           .map((item, i) => `${item.cue} → ${given[String(i)]?.trim() || '—'}`)
           .join('; ')
+      } else if (tp === 'speaking' && raw !== NO_VOICE) {
+        answer = voicePath
       } else if (raw === NO_VOICE) {
         answer = ''
       }
@@ -1740,6 +1856,8 @@ export default function HomeworkFlow({
           question.videoWatchSeconds, parseVideoAnswer(raw).duration,
         )
         correct = need > 0 ? `${tStatic('нужно')} ${formatClock(need)}` : ''
+      } else if (tp === 'speaking') {
+        correct = question.targetText?.trim() ?? ''
       }
 
       const verdict: BasicAnswerVerdict =
@@ -1752,6 +1870,12 @@ export default function HomeworkFlow({
           : hinted && !state.basicChecked[question.id] ? 'hint'
           : !autoGradable ? 'review'
           : questionCorrect(question, raw) ? 'correct'
+          // Устное, где сверка НЕ сошлась, — это не «неверно»: машина не
+          // подтвердила, а не опровергла. Отличить «сказал не то» от «не
+          // расслышала» может только ухо, поэтому такая запись идёт
+          // преподавателю с расшифровкой рядом. Зачтённые к нему не попадают
+          // вовсе — см. BasicAnswersList.
+          : tp === 'speaking' ? 'review'
           : 'wrong'
 
       return {
@@ -1762,6 +1886,11 @@ export default function HomeworkFlow({
         ...(correct ? { correct } : {}),
         verdict,
         ...(voice ? { voice: true } : {}),
+        // Что услышала распознавалка — преподавателю в незачтённых: по нему
+        // сразу видно, ученик сказал не то или машина не расслышала.
+        ...(tp === 'speaking' && parseVoiceAnswer(raw).heard
+          ? { heard: parseVoiceAnswer(raw).heard, attempts: parseVoiceAnswer(raw).attempts }
+          : {}),
       }
     })
     return {
@@ -3715,13 +3844,16 @@ export default function HomeworkFlow({
                       )}
                     </div>
 
-                    /* Устный ответ: запись голоса. Проверяет учитель. */
+                    /* Устный ответ. «Прочитайте вслух» (есть targetText) проверяет
+                       себя сам и отвечает сразу; свободный устный — у преподавателя. */
                     ) : qType(question) === 'speaking' ? (
                     <VoiceAnswer
                       value={selectedAnswer}
                       maxSeconds={question.responseSeconds ?? 120}
                       disabled={state.basicSubmitted}
                       onChange={v => setFreeAnswer(question.id, v)}
+                      target={question.targetText}
+                      lang={question.lang}
                     />
 
                     /* Описать картинку — письменно или голосом. */

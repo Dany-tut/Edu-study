@@ -54,9 +54,13 @@ export default function SpeechHeard({ heard, target, ok, title }: {
           </span>
         ))}
       </div>
+      {/* Само пропущенное слово — самое важное в этой строке, и подпись перед
+          ним не должна быть заметнее его: в тёмной теме --color-text-3 уводит
+          короткое слово почти в фон. */}
       {!good && cmp.missing.length > 0 && (
         <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
-          {t('Не прозвучало')}: {cmp.missing.join(', ')}
+          {t('Не прозвучало')}:{' '}
+          <b style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>{cmp.missing.join(', ')}</b>
         </div>
       )}
     </div>

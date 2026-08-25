@@ -56,6 +56,20 @@ const questions: HomeworkQuizQuestion[] = [
     sentence: '김치 예요', distractors: ['두부', '물'],
     explanation: 'После гласной связка принимает форму 예요.',
   }),
+  // Устное с эталоном: проверяет себя само, распознавалкой (см. VoiceAnswer).
+  // Рядом — свободное устное без эталона: оно обязано выглядеть как раньше,
+  // иначе легко не заметить, что вердикт протёк туда, где судить нечем.
+  q({
+    id: 'sp1', type: 'speaking', lang: 'ko',
+    prompt: 'Прочитайте вслух: 학교, 사람, 이름, 방, 빵, 물, 책, 집, 눈, 손.',
+    targetText: '학교 사람 이름 방 빵 물 책 집 눈 손',
+    responseSeconds: 45,
+  }),
+  q({
+    id: 'sp2', type: 'speaking', lang: 'ko',
+    prompt: 'Расскажите о любимом блюде — три предложения.',
+    responseSeconds: 90,
+  }),
 ]
 
 const homework: LessonHomework = {

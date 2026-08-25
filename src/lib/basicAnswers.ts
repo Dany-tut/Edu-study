@@ -40,6 +40,14 @@ export interface BasicAnswerRow {
   verdict: BasicAnswerVerdict
   /** `answer` — путь к голосовой записи в бакете task-media, а не текст. */
   voice?: boolean
+  /**
+   * Устное задание с эталоном: что услышала распознавалка. Нужно ровно там,
+   * где не сошлось, — по расшифровке сразу видно, ученик сказал не то или
+   * машина не расслышала исправно сказанное (второе бывает чаще).
+   */
+  heard?: string
+  /** Сколько раз перезаписывал. Про беглость, а не про правильность. */
+  attempts?: number
 }
 
 export interface BasicAnswersPayload {

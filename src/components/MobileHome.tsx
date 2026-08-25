@@ -338,7 +338,11 @@ function HomeSkeleton() {
       {/* Hero: те же 20px радиуса и padding 14, что у HeroContinue */}
       <div style={{ borderRadius: 20, padding: 14, background: 'var(--color-bg-3)' }}>
         <Skeleton w={120} h={10} radius={999} />
-        <Skeleton w="82%" h={19} style={{ margin: '6px 0 12px' }} />
+        {/* Заголовок скелета — тоже в две строки: в карточке под него
+            зарезервирована постоянная высота, и одна полоска здесь означала бы
+            прыжок ровно в момент, когда данные доехали. */}
+        <Skeleton w="82%" h={19} style={{ margin: '5px 0 4px' }} />
+        <Skeleton w="56%" h={19} style={{ marginBottom: 13 }} />
         <Skeleton w="100%" h={5} radius={99} style={{ marginBottom: 10 }} />
         <div className="flex items-center justify-between">
           <Skeleton w={78} h={11} radius={999} />
@@ -417,9 +421,15 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
         {label} · {subjectName}
       </div>
       <div style={{
-        // На телефоне заголовок занимает ровно столько строк, сколько нужно
-        // (без резерва под вторую), длинный — обрезается на двух.
+        // ПОД ЗАГОЛОВОК ВСЕГДА ДВЕ СТРОКИ, сколько бы он ни занимал.
+        // Курс переключается лентой прямо под карточкой, и названия занятий у
+        // разных курсов разной длины: карточка то в одну строку, то в две — и
+        // на каждом переключении вся главная под ней прыгала на двадцать
+        // пикселей. Резерв дороже пустой строки: место постоянное, глаз держит
+        // и кнопку «Продолжить», и первый пост ленты там, где их оставил.
+        // Длинный заголовок по-прежнему обрезается на второй строке.
         fontSize: 16, fontWeight: 800, margin: '4px 0 10px', lineHeight: 1.2,
+        minHeight: '2.4em',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
       }}>
         {t('Занятие')} #{lesson.number + 1} · {lesson.title}
