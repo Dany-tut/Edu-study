@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { X, ImagePlus, MessageSquarePlus } from 'lucide-react'
+import { X, ImagePlus } from 'lucide-react'
 import TeacherSaveButton from './teacher/TeacherSaveButton'
 import TeacherSelect from './teacher/TeacherSelect'
 import { optimizePhoto, ImageTooLargeError } from '../lib/imageOptim'
@@ -133,12 +133,9 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
             border: '1px solid var(--color-border)', boxShadow: '0 20px 60px rgba(0,0,0,0.28)',
           }}
         >
-          {/* Header — top-aligned so the icon and ✕ line up with the title, not
-              the middle of the two-line subtitle. */}
+          {/* Header — top-aligned so ✕ lines up with the title, not the middle
+              of the two-line subtitle. */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11, marginBottom: 18 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <MessageSquarePlus size={19} style={{ color: 'var(--color-purple)' }} />
-            </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{t('Обратная связь')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Опишите ошибку или пожелание — заявка уйдёт администратору')}</div>

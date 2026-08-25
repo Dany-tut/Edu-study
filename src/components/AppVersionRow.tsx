@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { RefreshCw, Check, ArrowDownToLine } from 'lucide-react'
+import { RefreshCw, ArrowDownToLine } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { tactile } from '../lib/feedback'
 import { APP_VERSION, APP_COMMIT, APP_BUILD, fetchRemoteVersion, applyUpdate } from '../lib/appVersion'
@@ -53,8 +53,8 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
     updating ? t('Обновляем…') :
     status === 'checking' ? t('Проверяем…') :
     stale ? `${t('Доступна')} ${remote}` :
-    status === 'fresh' ? t('Последняя версия') :
-    status === 'error' ? t('Не удалось проверить') :
+    status === 'fresh' ? t('Актуальна') :
+    status === 'error' ? t('Ошибка связи') :
     APP_COMMIT
 
   if (variant === 'compact') {
@@ -83,29 +83,26 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
     <button
       onClick={onTap}
       className="flex items-center justify-between cursor-pointer"
-      style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', ...style }}
-      aria-label={t('Проверить обновление')}
+      style={{ width: '100%', height: 56, padding: '0 15px', background: 'transparent', border: 'none', ...style }}
+      aria-label={`${t('Проверить обновление')} — ${APP_COMMIT}`}
+      title={APP_COMMIT}
     >
-      <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
-        {stale
-          ? <ArrowDownToLine size={18} style={{ color: 'var(--color-accent)' }} />
-          : status === 'fresh'
-            ? <Check size={18} style={{ color: 'var(--color-muted)' }} />
-            : <RefreshCw size={18} style={{ color: 'var(--color-muted)' }} className={status === 'checking' || updating ? 'animate-spin' : undefined} />}
-        <span className="flex flex-col items-start" style={{ gap: 1 }}>
-          {t('Версия')} {APP_VERSION}
-          <span style={{ fontSize: 11.5, fontWeight: 500, color: stale ? 'var(--color-accent)' : 'var(--color-text-4)' }}>{hint}</span>
-        </span>
+      {/* Без иконки — ряд ровно такой же, как «Тема оформления» и «Язык»:
+          подпись слева, состояние пилюлей справа. */}
+      <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+        {t('Версия')} {APP_VERSION}
       </span>
+      {/* Статус живёт в пилюле справа — как «Светлая» у темы: ряд остаётся
+          однострочным и одной высоты с соседями. */}
       <span
         style={{
-          height: 30, display: 'inline-flex', alignItems: 'center', padding: '0 13px', borderRadius: 999,
-          fontSize: 12.5, fontWeight: 650,
+          height: 34, display: 'inline-flex', alignItems: 'center', padding: '0 15px', borderRadius: 999,
+          fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
           background: stale ? 'var(--grad-purple)' : 'var(--color-bg-5)',
-          color: stale ? '#fff' : 'var(--color-text-3)',
+          color: stale ? '#fff' : 'var(--color-accent)',
         }}
       >
-        {stale ? t('Обновить') : APP_COMMIT}
+        {stale ? t('Обновить') : hint}
       </span>
     </button>
   )

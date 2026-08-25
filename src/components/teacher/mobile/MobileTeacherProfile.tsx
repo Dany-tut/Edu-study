@@ -23,6 +23,10 @@ import AppVersionRow from '../../AppVersionRow'
 const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
 const short = (n: number) => (n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n))
 
+// Ряды карточки настроек — одной высоты и без разделителей (как в профиле
+// ученика): ровная колонка вместо лесенки из полосок.
+const ROW_H = 56
+
 // цветные плитки статистики (soft-пары из дизайн-системы)
 function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value: React.ReactNode; label: string; bg: string; fg: string }) {
   return (
@@ -146,7 +150,7 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); setTariffOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
               <Sparkles size={18} style={{ color: 'var(--color-purple-text)' }} />{t('Тариф')} · {m.planName}
@@ -160,7 +164,7 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); toggleTheme() }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
               {dark ? <Moon size={18} style={{ color: 'var(--color-muted)' }} /> : <Sun size={18} style={{ color: 'var(--color-muted)' }} />}{t('Тема оформления')}
@@ -173,7 +177,7 @@ export default function MobileTeacherProfile() {
             onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
             aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
               <Languages size={18} style={{ color: 'var(--color-muted)' }} />{t('Язык')}
@@ -185,7 +189,7 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); setFeedbackOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
               <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
@@ -198,7 +202,7 @@ export default function MobileTeacherProfile() {
             <button
               onClick={() => { tactile(); requestShowInstall() }}
               className="flex items-center justify-between cursor-pointer"
-              style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+              style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
             >
               <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
                 <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}

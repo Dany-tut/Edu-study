@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, MessageSquarePlus, Download, ChevronRight, BookOpen, ListChecks } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, BookOpen, ListChecks } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import HScrollFade from './HScrollFade'
@@ -30,6 +30,10 @@ import { XP_PER_LEVEL } from '../lib/xp'
 
 // Soft colour pairs cycled across the subject chips under the name.
 const CHIP_PALETTE = [PAIR.focus, PAIR.accent2, PAIR.info, PAIR.warning, PAIR.rose, PAIR.success]
+
+// Ряды карточки настроек — одной высоты и без разделителей: список читается
+// ровной колонкой, а не лесенкой из полосок разной толщины.
+const ROW_H = 56
 
 // Русские числительные: «2 курса», а не «2 курсов». Формы: 1 / 2-4 / 5+.
 function plural(n: number, ru: [string, string, string], en: [string, string], lang: string): string {
@@ -261,7 +265,7 @@ export default function MobileProfilePage() {
               <button
                 onClick={() => { tactile(); toggle() }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', padding: '12px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 aria-label={t('Переключить тему')}
               >
                 <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Тема оформления')}</span>
@@ -275,7 +279,7 @@ export default function MobileProfilePage() {
               <button
                 onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', padding: '12px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
               >
                 <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
@@ -288,10 +292,10 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedbackOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
-                  <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
+                  {t('Обратная связь')}
                 </span>
                 <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
               </motion.button>
@@ -301,7 +305,7 @@ export default function MobileProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); requestShowInstall() }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
                     <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
