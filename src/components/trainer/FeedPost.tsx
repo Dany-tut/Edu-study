@@ -255,7 +255,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             <AudioPlayer
               ttsText={item.body}
               lang={lang}
-              compact
+              variant="bare"
               picker={false}
               accent={accent}
             />

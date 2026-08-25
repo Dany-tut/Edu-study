@@ -1,3 +1,5 @@
+import { preferPlaybackSession } from './audioSession'
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Topbar spring — fires ONLY at the compact/expanded boundary transition.
 // Gives all topbar pills a one-shot "resist → snap-through" kick.
@@ -44,14 +46,44 @@ function audioCtx(): AudioContext | null {
   try {
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!Ctor) return null
-    if (!ctx) ctx = new Ctor()
+    if (!ctx) {
+      // Сеанс объявляем ДО создания контекста: тип страницы решает, слышно ли
+      // её при выключенном звонке (см. lib/audioSession.ts).
+      preferPlaybackSession()
+      ctx = new Ctor()
+    }
     // A context created before the first gesture starts suspended; resume it
-    // lazily on the gesture that triggers the first sound.
-    if (ctx.state === 'suspended') void ctx.resume()
+    // lazily on the gesture that triggers the first sound. Safari добавляет к
+    // этому своё состояние 'interrupted' — см. withAudio ниже.
+    if (ctx.state !== 'running') void ctx.resume()
     return ctx
   } catch {
     return null
   }
+}
+
+/**
+ * Сыграть звук в проснувшемся контексте.
+ *
+ * ЗАЧЕМ ОБЁРТКА. Ноты ставятся в очередь по `ac.currentTime`, а у спящего
+ * контекста часы стоят: всё, что запланировано в этот момент, звучит невпопад
+ * или теряется вовсе. На айфоне это происходит регулярно и не только до первого
+ * касания: Safari переводит контекст в СВОЁ состояние `interrupted`, когда звук
+ * страницы перехватил кто-то другой — в том числе наша же озвучка задания через
+ * speechSynthesis. Проверки «если suspended — разбудить» тут мало: `interrupted`
+ * ей не ловится, и на задании «что вы услышали?» вердикт оказывается немым
+ * ровно потому, что перед ним прозвучал вопрос.
+ *
+ * Поэтому: разбудить (resume вызван внутри касания — политика автозапуска не
+ * против) и играть уже после пробуждения.
+ */
+function withAudio(play: (ac: AudioContext) => void) {
+  const ac = audioCtx()
+  if (!ac) return
+  if (ac.state === 'running') { play(ac); return }
+  void ac.resume()
+    .then(() => { if (ac.state === 'running') play(ac) })
+    .catch(() => { /* контекст не проснулся — остаётся вибрация */ })
 }
 
 /** Short haptic buzz. Pattern in ms (Android/mobile only; ignored elsewhere). */
@@ -65,19 +97,19 @@ export function haptic(pattern: number | number[] = 10) {
 
 /** A soft, quick UI "blip" via a single decaying sine — no asset needed. */
 export function blip(freq = 520, duration = 0.06) {
-  const ac = audioCtx()
-  if (!ac) return
-  const osc = ac.createOscillator()
-  const gain = ac.createGain()
-  osc.type = 'sine'
-  osc.frequency.value = freq
-  const t = ac.currentTime
-  gain.gain.setValueAtTime(0, t)
-  gain.gain.linearRampToValueAtTime(0.05, t + 0.006)
-  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration)
-  osc.connect(gain).connect(ac.destination)
-  osc.start(t)
-  osc.stop(t + duration)
+  withAudio(ac => {
+    const osc = ac.createOscillator()
+    const gain = ac.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    const t = ac.currentTime
+    gain.gain.setValueAtTime(0, t)
+    gain.gain.linearRampToValueAtTime(0.05, t + 0.006)
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration)
+    osc.connect(gain).connect(ac.destination)
+    osc.start(t)
+    osc.stop(t + duration)
+  })
 }
 
 /** Combined sound + vibration — the default "something opened / was pressed". */
@@ -283,8 +315,7 @@ export function frictionStart(): Friction {
 
 /** Верно: две ноты вверх (до–соль), короткие и мягкие. */
 export function okChime() {
-  const ac = audioCtx()
-  if (ac) {
+  withAudio(ac => {
     const t = ac.currentTime
     const note = (freq: number, at: number, dur: number, vol: number) => {
       const osc = ac.createOscillator()
@@ -299,14 +330,13 @@ export function okChime() {
     }
     note(587.33, 0, 0.11, 0.045)     // D5
     note(880.00, 0.075, 0.20, 0.040) // A5
-  }
+  })
   haptic([8, 24, 8])
 }
 
 /** Мимо: одна короткая низкая нота. Не «злая» — просто глухая. */
 export function missBlip() {
-  const ac = audioCtx()
-  if (ac) {
+  withAudio(ac => {
     const t = ac.currentTime
     const osc = ac.createOscillator()
     const g = ac.createGain()
@@ -318,6 +348,6 @@ export function missBlip() {
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16)
     osc.connect(g).connect(ac.destination)
     osc.start(t); osc.stop(t + 0.17)
-  }
+  })
   haptic(26)
 }

@@ -18,7 +18,6 @@ import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useFeedGlance } from '../lib/feedRead'
-import { queueTrainerLink } from '../lib/trainerLink'
 import { pickTrainerSubject } from '../lib/trainerSubject'
 import { dayLabel } from '../data/feed'
 import { FeedPost } from './trainer/FeedPost'
@@ -261,7 +260,7 @@ export default function MobileHome() {
               захочется. Отступ здесь заметно больше остальных: это стык двух
               разных половин экрана, а не соседние блоки одного списка. */}
           <div style={{ marginTop: 14 }}>
-            <FeedFlow subject={scopedSubject?.subject} onOpen={() => setActivePage('trainer')} />
+            <FeedFlow subject={scopedSubject?.subject} />
           </div>
         </div>
         )}
@@ -524,8 +523,7 @@ function StoriesRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
 /** Сколько постов показываем сразу и сколько добавляем за одну подгрузку. */
 const FEED_CHUNK = 6
 
-function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void }) {
-  const t = useT()
+function FeedFlow({ subject }: { subject?: string }) {
   const { dark } = useTheme()
   const { lang, subjectId, items } = useFeedGlance(0, subject)
   const [shown, setShown] = useState(FEED_CHUNK)
@@ -560,13 +558,6 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
   // Акцент ленты — цвет её предмета: им красятся глоссы, перевод и сердце.
   const accent = resolveSubjectPalette(subjectId, dark).accent
 
-  const open = () => {
-    tactile()
-    queueTrainerLink({ kind: 'feed', lang })
-    if (subjectId) pickTrainerSubject(subjectId)
-    onOpen()
-  }
-
   const list = items.slice(0, shown)
   const hasMore = shown < items.length
 
@@ -586,20 +577,6 @@ function FeedFlow({ subject, onOpen }: { subject?: string; onOpen: () => void })
 
       {/* Граница подгрузки: показалась — приезжает следующая порция. */}
       {hasMore && <div ref={moreRef} style={{ height: 1 }} aria-hidden />}
-
-      {!hasMore && (
-        <button
-          onClick={open}
-          style={{
-            width: '100%', padding: '13px 0 4px', background: 'none',
-            border: 'none', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'var(--color-accent)',
-            textAlign: 'center',
-          }}
-        >
-          {t('Открыть ленту целиком')}
-        </button>
-      )}
     </div>
   )
 }

@@ -25,6 +25,8 @@
 //    останется гореть индикатор «звучит».
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { preferPlaybackSession } from './audioSession'
+
 const BLANKS = [
   // Подчёркивание в прозе не встречается вовсе — снимаем даже одиночное.
   /_+/g,
@@ -673,6 +675,9 @@ export function stopSpeech() {
  */
 export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   if (typeof speechSynthesis === 'undefined') return NOOP
+  // Задание на слух обязано звучать и при выключенном звонке — иначе на айфоне
+  // «Прослушать» молчит, и понять почему нельзя (lib/audioSession.ts).
+  preferPlaybackSession()
   const lines = speechUnits(raw, opts.unit ?? 'line')
   if (!lines.length) return NOOP
 

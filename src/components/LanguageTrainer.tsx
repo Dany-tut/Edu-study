@@ -378,7 +378,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
     setSceneShelf(''); setSpeakOpen(null)
-    setGChapter(''); setGLevel('')
+    setGChapter(''); setGLevels([])
   }
 
   /** Переключение половин «Конструктора». Открытое при этом закрывается. */

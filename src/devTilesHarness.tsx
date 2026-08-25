@@ -16,6 +16,7 @@ function Demo() {
   const [d, setD] = useState<string | undefined>(undefined)
   const [e, setE] = useState<string | undefined>(undefined)
   const [f, setF] = useState<string | undefined>(undefined)
+  const [g, setG] = useState<string | undefined>(undefined)
   const [verdict, setVerdict] = useState(false)
   const box: React.CSSProperties = {
     maxWidth: 560, margin: '0 auto 24px', padding: 18, borderRadius: 18,
@@ -81,14 +82,14 @@ function Demo() {
       <div style={box}>
         <h3 style={h}>6 · «Собрать слог» — было раньше, проверка правки</h3>
         <div style={sub}>Кнопки «Убрать букву» больше нет: клик по слогу снимает последнюю</div>
-        <SyllableBuilder syllable="김" value={undefined} onChange={() => {}} />
+        <SyllableBuilder syllable="김" value={g} showVerdict={verdict} onChange={setG} />
       </div>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
         <button onClick={() => setVerdict(v => !v)} style={{ padding: '10px 18px', borderRadius: 12, cursor: 'pointer' }}>
           Вердикт: {verdict ? 'вкл' : 'выкл'}
         </button>
         <button
-          onClick={() => { setA(undefined); setB(undefined); setC(undefined); setD(undefined); setE(undefined); setF(undefined); setVerdict(false) }}
+          onClick={() => { setA(undefined); setB(undefined); setC(undefined); setD(undefined); setE(undefined); setF(undefined); setG(undefined); setVerdict(false) }}
           style={{ padding: '10px 18px', borderRadius: 12, cursor: 'pointer' }}
         >
           Сбросить

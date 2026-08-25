@@ -66,8 +66,11 @@ export default function AudioPlayer({
    * `ghost` — мягкая заливка и цветная иконка: там, где плееров сразу десяток
    * (словарь урока), десять залитых кружков превращаются в цветной шум и
    * перетягивают внимание с самих слов. Заливается только тот, что звучит.
+   * `bare` — голая иконка без кружка: в строке действий поста ленты она стоит
+   * рядом с сердцем и репликами, и залитый кружок среди них читался кнопкой
+   * «главное действие», хотя послушать — такое же действие, как остальные.
    */
-  variant?: 'solid' | 'ghost'
+  variant?: 'solid' | 'ghost' | 'bare'
   /**
    * Показывать ли рядом выбор голоса.
    *
@@ -151,7 +154,7 @@ export default function AudioPlayer({
   }
 
   const hasSource = usesTts || !!audioUrl
-  const size = compact ? 38 : 44
+  const size = variant === 'bare' ? 17 : compact ? 38 : 44
   // Цвет предмета, если он передан; иначе общий акцент — так плеер выглядит
   // одинаково в домашке и в тренажёре, но в тренажёре попадает в палитру языка.
   const tone = accent ?? 'var(--color-accent)'
@@ -184,7 +187,14 @@ export default function AudioPlayer({
         onClick={toggle}
         disabled={!hasSource}
         aria-label={playing ? t('Пауза') : t('Играть')}
-        style={{
+        style={variant === 'bare' ? {
+          // Голая иконка ряда действий: ни кружка, ни тени — цвет говорит всё.
+          // Серая молчит, цветная звучит, как сердце рядом.
+          background: 'none', border: 'none', padding: 0, flexShrink: 0,
+          cursor: hasSource ? 'pointer' : 'default', opacity: hasSource ? 1 : 0.4,
+          display: 'inline-flex', alignItems: 'center',
+          color: playing ? tone : 'var(--color-muted)',
+        } : {
           width: size, height: size, borderRadius: '50%', flexShrink: 0,
           cursor: hasSource ? 'pointer' : 'default', opacity: hasSource ? 1 : 0.4,
           display: 'grid', placeItems: 'center',
@@ -200,10 +210,11 @@ export default function AudioPlayer({
         }}
       >
         {/* Треугольник залит, а не обведён: контурная иконка на цветном кружке
-            выглядит бледной наклейкой поверх заливки, а не одной кнопкой. */}
+            выглядит бледной наклейкой поверх заливки, а не одной кнопкой.
+            У голой иконки заливки под ней нет — там контур, как у соседей. */}
         {playing
-          ? <Pause size={compact ? 16 : 18} fill="currentColor" />
-          : <Play size={compact ? 16 : 18} fill="currentColor" style={{ marginLeft: 2 }} />}
+          ? <Pause size={variant === 'bare' ? 17 : compact ? 16 : 18} fill={variant === 'bare' ? 'none' : 'currentColor'} />
+          : <Play size={variant === 'bare' ? 17 : compact ? 16 : 18} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? undefined : { marginLeft: 2 }} />}
       </button>
 
       {allowSlow && hasSource && (

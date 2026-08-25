@@ -149,6 +149,11 @@ function buildStage(under: Snapshot | null): Stage {
     movers.push({ el, css: el.style.cssText })
   }
 
+  ;(window as unknown as { __swipeDbg?: unknown }).__swipeDbg = {
+    movers: movers.map(m => m.el.tagName + (m.el.id ? '#' + m.el.id : '')),
+    bodyKids: Array.from(document.body.children).map(c => c.tagName + ((c as HTMLElement).id ? '#' + (c as HTMLElement).id : '')),
+    underKids: underEl.childElementCount,
+  }
   const root = document.getElementById('root')
   if (root) {
     // Заморозка: коробка корня становится ровно экраном, а прокрутка окна

@@ -1611,7 +1611,11 @@ export default function HomeworkFlow({
       const verdict: BasicAnswerVerdict =
         raw === NO_VOICE ? 'skip'
           : !answered ? 'empty'
-          : hinted ? 'hint'
+          // «Подглядел» — только про ответ, открытый ДО проверки. Подсказка
+          // теперь и появляется-то после ошибки, и если пометить такую работу
+          // «подсказкой», преподаватель прочтёт «сдался, не пробуя» там, где
+          // ученик честно ответил и не угадал.
+          : hinted && !state.basicChecked[question.id] ? 'hint'
           : !autoGradable ? 'review'
           : questionCorrect(question, raw) ? 'correct'
           : 'wrong'

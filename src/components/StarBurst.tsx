@@ -36,8 +36,18 @@ function ensureStyle() {
   18%  { opacity: 1; }
   100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); opacity: 0; }
 }
+/* Разлёт без полёта: звёзды сразу стоят по местам и мягко гаснут.
+   Гасить их за 1мс, как было раньше, — это не «меньше движения», а «никакого
+   вердикта»: на телефоне с включённым «Уменьшением движения» ответ засчитан,
+   а подтверждения не видно вовсе. */
+@keyframes star-burst-hold {
+  0%   { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.9); opacity: 0; }
+  15%  { opacity: 1; }
+  65%  { opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .star-burst-star { animation-duration: 1ms !important; }
+  .star-burst-star { animation-name: star-burst-hold; }
 }`
   document.head.appendChild(el)
 }
