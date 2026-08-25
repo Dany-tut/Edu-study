@@ -69,7 +69,7 @@ function collapseTransition(collapsed: boolean) {
 // чужие элементы (плеер тренажёра, таблетка обновления) — им нужен ровно тот
 // же корпус, иначе в ряду стоят две разные «стекляшки».
 export const glassBase: CSSProperties = {
-  background: 'rgba(var(--glass-rgb), 0.78)',
+  background: 'rgba(var(--glass-rgb), var(--glass-fill))',
   backdropFilter: 'blur(28px) saturate(200%)',
   WebkitBackdropFilter: 'blur(28px) saturate(200%)',
   border: '1px solid var(--color-border-glass)',

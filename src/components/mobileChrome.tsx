@@ -10,7 +10,7 @@ import { TAP_SCALE, JELLY_EASE } from '../lib/mobileTokens'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const glassBase: CSSProperties = {
-  background: 'rgba(var(--glass-rgb), 0.82)',
+  background: 'rgba(var(--glass-rgb), var(--glass-fill-top))',
   backdropFilter: 'blur(20px) saturate(180%)',
   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
   border: '1px solid var(--color-border-glass)',
@@ -41,7 +41,7 @@ export function GlassPill({
     color: 'var(--color-text)',
     whiteSpace: 'nowrap',
     ...glassBase,
-    ...(strong ? { background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-lg)' } : null),
+    ...(strong ? { background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))', boxShadow: 'var(--shadow-lg)' } : null),
     ...style,
   }
   if (!onClick) return <div style={inner}>{children}</div>
