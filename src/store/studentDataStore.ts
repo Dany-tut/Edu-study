@@ -16,6 +16,7 @@ import {
 import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
 import { getSubject } from '../lib/subjects'
+import { reconcileLocalHomework } from '../lib/homeworkReset'
 import { useDashboard } from './dashboardStore'
 import {
   type Subject,
@@ -113,6 +114,26 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     let mergedSubjects = mergeSubjectsWithProgress(fullCatalog, progress)
     let stats = computeStats(progress)
     let scheduleDays = schedule
+
+    // Учитель обнулил курс → строк прогресса в базе нет, но домашка ученика
+    // живёт ещё и в браузере (ответы, балл, самооценка, просмотр записи), и
+    // экран продолжал показывать «Домашка сдана · 25 из 100» поверх пустого
+    // курса. Сверяем: нет строки — нет и сдачи (подробности и оговорки в
+    // lib/homeworkReset.ts). Только когда база РЕАЛЬНО ответила: упавший запрос
+    // даёт ту же пустую карту, и стирать по ней ответы нельзя.
+    if (results[0].status === 'fulfilled') {
+      const lessonIds = fullCatalog.flatMap(s => s.modules.flatMap(m => m.lessons.map(l => l.id)))
+      // Не всякая строка прогресса — сдача: у открытого учителем урока она есть
+      // со статусом 'current' и пустым баллом. Сверяем со следами именно сдачи.
+      const submittedRefs = new Set(
+        Object.entries(progress)
+          .filter(([, p]) => p.status === 'submitted' || p.status === 'returned'
+            || p.status === 'completed' || (p.score ?? 0) > 0)
+          .map(([ref]) => ref),
+      )
+      const wiped = reconcileLocalHomework(lessonIds, submittedRefs)
+      if (wiped.length > 0) useDashboard.getState().forgetLessons(wiped)
+    }
 
     // Demo data so the UI can be reviewed without a teacher-authored course.
     // Local dev only — OR a production build explicitly forced with ?demo=1.

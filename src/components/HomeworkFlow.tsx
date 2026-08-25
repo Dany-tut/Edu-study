@@ -26,6 +26,7 @@ import {
   initialQueue, restoreQueue, questionAt, isRepeatAt, requeue, lessonQueueEnabled, hardIds,
   type QueueState,
 } from '../lib/lessonQueue'
+import { easierSameElement } from '../lib/lessonLadder'
 import { okChime, missBlip } from '../lib/feedback'
 import StarBurst from './StarBurst'
 import ScriptHint from './ScriptHint'
@@ -38,6 +39,7 @@ import { useT, t as tStatic } from '../lib/i18n'
 import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
+import HangulKeyboard, { needsHangul } from './HangulKeyboard'
 import QuestionTable from './QuestionTable'
 import WordBankSolver from './WordBankSolver'
 import MatchingSolver, {
@@ -47,6 +49,7 @@ import AudioPlayer from './AudioPlayer'
 import TaskVideo from './TaskVideo'
 import { videoAnswerDone, parseVideoAnswer, videoRequiredSeconds } from '../lib/videoAnswer'
 import { formatClock } from '../lib/videoProgress'
+import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
 import { charUnits, sentenceTokens } from '../data/taskTypes'
 import CharTilesSolver from './CharTilesSolver'
@@ -624,6 +627,12 @@ interface PersistedHomeworkState {
   // Новый per-task формат: ответ + фото + доска по каждому заданию, ключ = HardTaskDef.key.
   hardTaskDrafts: Record<string, HardTaskDraft>
   basicSubmitted: boolean
+  /**
+   * Когда домашку сдали, ISO. Нужна сверке с базой (lib/homeworkReset.ts):
+   * свежая сдача могла не дойти по сети — на экране висит «Отправить ещё раз»,
+   * и стирать в этот момент ответы как «сдачи в базе нет» нельзя.
+   */
+  submittedAt?: string
   selfAssessmentValue: number | null
   /**
    * Задания, проверенные по кнопке «Проверить» — до сдачи всей домашки.
@@ -683,9 +692,6 @@ const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
 const formatEstimatedTime = (minutes: number) => `~${minutes} ${tStatic('мин')}`
 
-function getStorageKey(lessonId: string) {
-  return `student-dashboard:homework:${lessonId}`
-}
 
 // ─── Части домашки ───────────────────────────────────────────────────────────
 //
@@ -897,6 +903,49 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   // tableFill/whiteboard — teacher review only, not auto-graded.
   return false
 }
+
+/**
+ * У задания нет ТЕЛА — решать нечего.
+ *
+ * ЗАЧЕМ. Решатель включается по данным, а не по типу: сборка — по эталону,
+ * обводка — по букве, выбор — по вариантам. Когда данных нет, ветка не
+ * срабатывает, и ученик видит формулировку и пустоту под ней. Так выглядел
+ * живой урок хангыля после половинчатой сверки с сидом: «Соберите слово
+ * „огурец“ из слогов» с типом `single` и без единого варианта — экран, на
+ * котором нечего нажать и непонятно, ждать ли.
+ *
+ * Здесь мы это называем вслух (плашка вместо пустоты) и не считаем пропуском:
+ * такое задание не идёт ни в «Дописать», ни в ошибки.
+ *
+ * Список типов — только те, чей решатель ТРЕБУЕТ данных. Свободный ответ,
+ * устный ответ и доска тела не имеют по определению: там достаточно вопроса.
+ */
+function taskBodyMissing(q: HomeworkQuizQuestion): boolean {
+  const tp = qType(q)
+  if (tp === 'single' || tp === 'multi') return q.options.length === 0
+  switch (tp) {
+    case 'trace': return !q.chamo
+    case 'buildSyllable': return chamoOf(q.syllable ?? '').length < 2
+    case 'unscramble':
+    case 'charBank': return charUnits(q.referenceAnswer ?? '').length < 2
+    case 'jamoType': return charUnits(q.referenceAnswer ?? '').flatMap(keysOf).length < 2
+    case 'wordBank':
+    case 'listenBank': return !(q.sentence ?? '').trim()
+    case 'blockOrder':
+    case 'sequence': return (q.sequenceItems ?? []).length < 2
+    case 'matching': return (q.pairs?.length ?? 0) < 2
+    case 'wordDrop': return dropRows(q).length === 0
+    case 'crossword': return crosswordRows(q).length < 2
+    case 'dialogGap': return (q.dialog?.length ?? 0) < 2 || !q.referenceAnswer
+    case 'pattern': return drillItems(q).length === 0
+    case 'videoWatch': return !q.videoUrl
+    case 'minimalPair': return !q.pairA || !q.pairB
+    case 'tableFill': return !q.table
+    case 'flashcard': return !(q.front ?? q.prompt ?? '').trim()
+    default: return false
+  }
+}
+
 function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (!ans) return false
   if (questionIsMulti(q)) return joinIds(parseIds(ans)) === joinIds(q.correctOptionIds ?? [])
@@ -1359,7 +1408,7 @@ export default function HomeworkFlow({
   // Нет реального сложного уровня → не показываем вход в хард (кнопки/CTA/карточка).
   const showHard = homework.hasHardLevel !== false
   const [state, setState] = useState<PersistedHomeworkState>(() => {
-    const raw = window.localStorage.getItem(getStorageKey(lessonId))
+    const raw = window.localStorage.getItem(homeworkStorageKey(lessonId))
     if (!raw) return getInitialState()
     try {
       return { ...getInitialState(), ...(JSON.parse(raw) as Partial<PersistedHomeworkState>) }
@@ -1460,8 +1509,20 @@ export default function HomeworkFlow({
     setState(current => (current.selectedLevel === target ? current : { ...current, selectedLevel: target }))
     clearHomeworkInitialLevel()
   }, [homeworkInitialLevel, clearHomeworkInitialLevel, showHard])
+  // Сверка с базой стёрла результат этого урока — учитель обнулил курс, сдачи
+  // больше нет ни у кого (lib/homeworkReset.ts). Перечитываем себя с нуля: без
+  // этого экран остался бы на «Домашка сдана», а автосейв ниже вернул бы
+  // стёртое в localStorage через долю секунды.
+  const homeworkResetTick = useDashboard(s => s.homeworkResetTick)
   useEffect(() => {
-    window.localStorage.setItem(getStorageKey(lessonId), JSON.stringify(state))
+    if (!homeworkResetTick?.ids.includes(lessonId)) return
+    setState(getInitialState())
+    setShowResultModal(null)
+    setSubmitFailed(null)
+  }, [homeworkResetTick, lessonId])
+
+  useEffect(() => {
+    window.localStorage.setItem(homeworkStorageKey(lessonId), JSON.stringify(state))
   }, [lessonId, state])
 
   // Cap the docked title so its right edge stays 10px clear of the centred top
@@ -1514,7 +1575,10 @@ export default function HomeworkFlow({
     const lesson = findLessonById(lessonId)
     return lesson ? getLessonDetail(lesson).paragraphs : []
   }, [lessonId])
-  const answeredCount = basicQuestions.filter(question => questionAnswered(question, state.basicAnswers[question.id])).length
+  // Задание без тела считаем закрытым: ответить на него нельзя, и держать из-за
+  // него всю домашку в «не доделано» — значит запереть ученика (см. taskBodyMissing).
+  const answeredCount = basicQuestions.filter(question =>
+    taskBodyMissing(question) || questionAnswered(question, state.basicAnswers[question.id])).length
   const basicCompleted = basicQuestions.length > 0 && answeredCount === basicQuestions.length
 
   // Подсмотренное подсказкой не идёт в балл: ученик увидел ответ до того, как
@@ -1559,7 +1623,9 @@ export default function HomeworkFlow({
   const basicUnanswered = useMemo(
     () => basicQuestions
       .map((q, i) => ({ q, number: i + 1 }))
-      .filter(({ q }) => !questionAnswered(q, state.basicAnswers[q.id])),
+      // Задание без тела в «Дописать» не зовём: возвращаться к нему некуда,
+      // решать там нечего (см. taskBodyMissing).
+      .filter(({ q }) => !taskBodyMissing(q) && !questionAnswered(q, state.basicAnswers[q.id])),
     [basicQuestions, state.basicAnswers],
   )
   // Ответил ещё на одно — подтверждение сдачи снимается: речь уже про другое
@@ -1863,7 +1929,7 @@ export default function HomeworkFlow({
       return
     }
     setSubmitFailed(null)
-    setState(current => ({ ...current, hardSubmitted: true }))
+    setState(current => ({ ...current, hardSubmitted: true, submittedAt: new Date().toISOString() }))
     setHardCompleted(lessonId)
     await reloadHardRow()
     useStudentData.getState().load()
@@ -1881,6 +1947,10 @@ export default function HomeworkFlow({
     if (!queueOn || !flowMode) return
     const index = basicQuestions.findIndex(q => q.id === questionId)
     if (index < 0) return
+    // Ступень вниз (Р8): к повтору добавляем задание попроще про то же слово —
+    // не набралось с клавиатуры, значит сначала собери из плиток. Нет такого в
+    // уроке — вернётся один повтор, как и раньше.
+    const easier = easierSameElement(basicQuestions, index)
     setState(current => ({
       ...current,
       flowQueue: requeue(restoreQueue(current.flowQueue, basicQuestions.length), {
@@ -1888,6 +1958,7 @@ export default function HomeworkFlow({
         index,
         position: flowPosition,
         baseCount: basicQuestions.length,
+        easier,
       }),
     }))
   }
@@ -2181,6 +2252,43 @@ export default function HomeworkFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep, flowMode])
 
+  /** Закончено ли задание на этом шаге ленты — на него уже ответили и проверили. */
+  const flowStepDone = (step: number): boolean => {
+    const pos = step - flowFirst
+    if (pos < 0) return false
+    // Повтор спрашивает то же задание ЗАНОВО (Р8): пропускать его нельзя, даже
+    // если ответ с прошлого показа ещё лежит в состоянии.
+    if (isRepeatAt(queue, pos)) return false
+    const q = basicQuestions[questionAt(queue, pos)]
+    if (!q) return true
+    if (taskBodyMissing(q)) return true
+    const given = state.basicAnswers[q.id]
+    return !!state.basicChecked[q.id]
+      || !!state.basicHints[q.id]
+      || (questionSelfChecks(q) && questionAnswered(q, given))
+      || (!questionAutoGradable(q) && questionAnswered(q, given))
+  }
+
+  /**
+   * Следующий шаг — ближайшее НЕЗАКОНЧЕННОЕ задание, а не соседняя строка.
+   *
+   * ЗАЧЕМ. Дойдя до конца, ученик возвращается дописать пропущенное — из
+   * плашки «Список закончился, домашка — нет». Дописал первое, нажал «Далее» —
+   * и попадал на задание, которое сделал полчаса назад, потом на следующее
+   * сделанное, и так до конца списка. Пропущенные при этом оставались
+   * пропущенными: единственным способом добраться до второго было пролистать
+   * всё заново и снова найти плашку.
+   *
+   * На прямом проходе поведение прежнее: впереди все задания незакончены, и
+   * ближайшее незаконченное — это и есть соседнее.
+   */
+  const nextFlowStep = (from: number): number => {
+    for (let step = from + 1; step < flowTotal; step++) {
+      if (!flowStepDone(step)) return step
+    }
+    return flowTotal
+  }
+
   /**
    * Единственная кнопка экрана: «Понятно» → «Проверить» → «Далее».
    *
@@ -2193,13 +2301,13 @@ export default function HomeworkFlow({
       checkQuestion(flowQuestion.id)
       return
     }
-    goToFlowStep(flowStep + 1)
+    goToFlowStep(nextFlowStep(flowStep))
   }
 
   const flowLabel = flowOnIntro
     ? t('Понятно')
     : flowDone
-      ? (flowStep === flowTotal - 1 ? t('Закончить') : t('Далее'))
+      ? (nextFlowStep(flowStep) >= flowTotal ? t('Закончить') : t('Далее'))
       : flowAuto
         ? t('Проверить')
         : t('Далее')
@@ -2254,6 +2362,12 @@ export default function HomeworkFlow({
     // это шаг ленты, а не прокрутка.
     if (flowMode) {
       const at = basicQuestions.findIndex(q => q.id === questionId)
+      // Шаг ленты — это МЕСТО В ОЧЕРЕДИ, а не номер задания в списке. Очередь
+      // возвращает промахи (Р8), и после первого же возврата её длина и порядок
+      // расходятся со списком: «вернуться к заданию 8» уводило на восьмое место
+      // очереди, то есть на чужое задание.
+      const pos = at >= 0 ? queue.order.indexOf(at) : -1
+      if (pos >= 0) { goToFlowStep(flowFirst + pos); return }
       if (at >= 0) { goToFlowStep(flowFirst + at); return }
     }
     questionSectionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -2425,7 +2539,7 @@ export default function HomeworkFlow({
           showHard={showHard}
           onContinue={(emojiIndex, goToHard) => {
             const hardAvailable = showHard && basicScore >= homework.recommendationScore
-            setState(current => ({ ...current, basicSubmitted: true, selfAssessmentValue: emojiIndex, ...(goToHard ? { selectedLevel: 'hard' } : {}) }))
+            setState(current => ({ ...current, basicSubmitted: true, submittedAt: new Date().toISOString(), selfAssessmentValue: emojiIndex, ...(goToHard ? { selectedLevel: 'hard' } : {}) }))
             if (goToHard) clearHomeworkWidgetFeedback()
             setLessonAssessment(lessonId, basicScore, emojiIndex, hardAvailable)
             setShowResultModal(null)
@@ -2960,6 +3074,8 @@ export default function HomeworkFlow({
                 if (flowMode && index !== flowQuestionIndex) return null
                 const selectedAnswer = state.basicAnswers[question.id]
                 const isChoice = questionIsChoice(question)
+                // Задание без тела — не «пустой экран», а сломанное задание.
+                const broken = taskBodyMissing(question)
                 const answered = questionAnswered(question, selectedAnswer)
                 const autoGradable = questionAutoGradable(question)
                 // Одиночный выбор и сопоставление проверяются по ходу решения
@@ -3191,7 +3307,20 @@ export default function HomeworkFlow({
                     </div>
 
                     <div style={{ position: 'relative' }}>
-                    {isChoice ? (
+                    {broken ? (
+                    /* Пустой экран вместо задания — то же самое, что молчание:
+                       ученик сидит и ждёт, что сейчас дорисуется. Говорим прямо
+                       и не держим на нём: кнопка внизу пропускает задание. */
+                    <div className="flex items-start" style={{
+                      gap: 10, padding: '14px 16px', borderRadius: 18,
+                      background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
+                    }}>
+                      <CircleAlert size={17} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
+                        {t('Это задание приехало без содержимого — решать нечего. Пропусти его, оно не пойдёт в ошибки.')}
+                      </span>
+                    </div>
+                    ) : isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
                       {/* Стимул — звук, а не текст: «что вы услышали?» (ступень 2,
                           Р2). Без плеера такое задание нечем решить — варианты
@@ -3450,6 +3579,7 @@ export default function HomeworkFlow({
                         disabled={locked}
                         minHeight={HW_ANSWER_MIN_H}
                         placeholder={t('Запиши, что услышал…')}
+                        inputMode={needsHangul(question.referenceAnswer) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
@@ -3458,6 +3588,15 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
+                      {/* Клавиши хангыля показывает САМ ЭТАЛОН: раскладки у
+                          ученика нет, а буквы диктанту не подсказывают ничего —
+                          они одни и те же в каждом задании. */}
+                      {needsHangul(question.referenceAnswer) && !locked && (
+                        <HangulKeyboard
+                          value={selectedAnswer}
+                          onChange={v => setFreeAnswer(question.id, v)}
+                        />
+                      )}
                     </div>
 
                     /* Похожие звуки: прозвучал один из двух — какой? */
@@ -3537,6 +3676,7 @@ export default function HomeworkFlow({
                         disabled={locked}
                         minHeight={HW_ANSWER_MIN_H}
                         placeholder={t('Перевод…')}
+                        inputMode={needsHangul(question.back) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
@@ -3545,6 +3685,12 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
+                      {needsHangul(question.back) && !locked && (
+                        <HangulKeyboard
+                          value={selectedAnswer}
+                          onChange={v => setFreeAnswer(question.id, v)}
+                        />
+                      )}
                       {showVerdict && !isCorrect && question.back && (
                         <div style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>
                           {t('Правильно')}: {question.back}
@@ -3666,6 +3812,7 @@ export default function HomeworkFlow({
                             : qType(question) === 'whiteboard' ? t('Опиши решение (рисунок на доске приложишь учителю)…')
                             : t('Развёрнутый ответ…')
                         }
+                        inputMode={needsHangul(question.referenceAnswer) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit',
@@ -3675,6 +3822,14 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
+                      {/* Ответ ждут по-корейски — значит, ученику нужна корейская
+                          раскладка, а её у него нет (см. HangulKeyboard). */}
+                      {needsHangul(question.referenceAnswer) && !locked && (
+                        <HangulKeyboard
+                          value={selectedAnswer}
+                          onChange={v => setFreeAnswer(question.id, v)}
+                        />
+                      )}
                     </div>
                     )}
                     {/* Салют разлетается вокруг самого ответа — холста, поля,
@@ -3925,7 +4080,7 @@ export default function HomeworkFlow({
                   isMobile={isMobile}
                   navCollapsed={navCollapsed}
                   onPrimary={flowPrimary}
-                  onSkip={flowQuestion && !flowAnswered ? () => goToFlowStep(flowStep + 1) : undefined}
+                  onSkip={flowQuestion && !flowAnswered ? () => goToFlowStep(nextFlowStep(flowStep)) : undefined}
                   // Место «Пропустить» остаётся занятым и после первого тапа:
                   // иначе кнопка исчезала, «Проверить» растягивалась во всю
                   // ширину и главная кнопка экрана переезжала под пальцем.

@@ -90,10 +90,25 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 /** Затемнить цвет на долю k (0…1) — умножением каналов, оттенок сохраняется. */
-function darken(hex: string, k: number): string {
+export function darken(hex: string, k: number): string {
   const [r, g, b] = hexToRgb(hex)
   return rgbToHex(r * (1 - k), g * (1 - k), b * (1 - k))
 }
+
+/** Осветлить на долю k — сдвигом каналов к белому (оттенок сохраняется). */
+export function lighten(hex: string, k: number): string {
+  const [r, g, b] = hexToRgb(hex)
+  return rgbToHex(r + (255 - r) * k, g + (255 - g) * k, b + (255 - b) * k)
+}
+
+/** Смешать два цвета: t=0 — первый, t=1 — второй. */
+export function mixHex(a: string, b: string, t: number): string {
+  const [r1, g1, b1] = hexToRgb(a)
+  const [r2, g2, b2] = hexToRgb(b)
+  return rgbToHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t)
+}
+
+export { hexToRgba }
 
 /** Относительная яркость по WCAG — по ней считается контраст с белым текстом. */
 function relLuminance(hex: string): number {
@@ -119,6 +134,43 @@ export function subjectFill(accent: string): string {
   let base = accent
   for (let i = 0; i < 16 && relLuminance(base) > 0.183; i++) base = darken(base, 0.06)
   return `linear-gradient(135deg, ${base}, ${darken(base, 0.22)})`
+}
+
+/**
+ * Пара палитр из ОДНОГО цвета — под пользовательский выбор.
+ *
+ * Реестровые предметы держат все четыре значения руками (акцент и текст, светлые
+ * и тёмные), но у учителя и ученика в настройках ровно одна пипетка. Остальные
+ * три выводятся здесь, по тем же порогам, что и в `subjectFill`: текст на белом
+ * затемняется до 4.5:1, тёмный акцент осветляется, пока не станет виден на почти
+ * чёрном фоне, тёмный текст — ещё светлее. Пороги в яркости, а не в «минус 20%»,
+ * потому что одинаковый сдвиг уводит жёлтый и синий на разную читаемость.
+ */
+export function paletteFromHex(hex: string): { light: SubjectPalette; dark: SubjectPalette } {
+  let text = hex
+  for (let i = 0; i < 20 && relLuminance(text) > 0.183; i++) text = darken(text, 0.06)
+  let accentDark = hex
+  for (let i = 0; i < 20 && relLuminance(accentDark) < 0.30; i++) accentDark = lighten(accentDark, 0.08)
+  let textDark = accentDark
+  for (let i = 0; i < 20 && relLuminance(textDark) < 0.48; i++) textDark = lighten(textDark, 0.08)
+  return palettePair(hex, accentDark, text, textDark)
+}
+
+// ── Слой переопределений цвета ───────────────────────────────────────────────
+// Карта «id предмета → hex», собранная из базы учителя и личной правки ученика
+// (см. lib/courseTint.ts). Живёт модульной переменной нарочно: цвет предмета
+// читают ~20 мест через resolveSubjectPalette, и прокидывать в каждое ещё один
+// аргумент — значит переписать их все ради данных, которые для всего экрана
+// одинаковы. Карта ставится один раз при загрузке кабинета; перерисовку после
+// правки в настройках дают подписчики tintStore, а не эта переменная.
+let COLOR_OVERRIDES: Record<string, string> = {}
+
+export function setSubjectColorOverrides(map: Record<string, string> | null | undefined) {
+  COLOR_OVERRIDES = map ?? {}
+}
+
+export function subjectColorOverrides(): Record<string, string> {
+  return COLOR_OVERRIDES
 }
 
 /** Build a light+dark palette pair for a tag subject from its accent + AA text color. */
@@ -169,8 +221,29 @@ export function getSubject(idOrName: string | undefined | null): SubjectDef | un
 /** Palette for a subject (light/dark). Unknown subjects fall back to chemistry, as before. */
 export function resolveSubjectPalette(idOrName: string | undefined, dark = false): SubjectPalette {
   const s = getSubject(idOrName) ?? SUBJECTS[0] // SUBJECTS[0] === chemistry
+  const custom = COLOR_OVERRIDES[s.id]
+  if (custom) {
+    const pair = PALETTE_CACHE.get(custom) ?? paletteFromHex(custom)
+    PALETTE_CACHE.set(custom, pair)
+    return dark ? pair.dark : pair.light
+  }
   return dark ? s.dark : s.light
 }
+
+/**
+ * Палитра ИЗ РЕЕСТРА, мимо переопределений — нижний слой цвета.
+ *
+ * Нужна там, где показывают «как было бы без правки»: кнопка «сбросить» в
+ * настройках должна рисовать реестровый цвет, а не тот, что сама же и задала.
+ */
+export function registrySubjectPalette(idOrName: string | undefined, dark = false): SubjectPalette {
+  const s = getSubject(idOrName) ?? SUBJECTS[0]
+  return dark ? s.dark : s.light
+}
+
+// Вывод палитры — два цикла по яркости на каждый вызов, а палитру предмета
+// спрашивают в рендере списков. Ключ — сам hex, поэтому кэш не протухает.
+const PALETTE_CACHE = new Map<string, { light: SubjectPalette; dark: SubjectPalette }>()
 
 /** Родной язык (русский, литература): карточка несёт толкование, а не перевод. */
 export function isNativeSubject(idOrName: string | undefined): boolean {

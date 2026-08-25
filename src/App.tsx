@@ -18,6 +18,39 @@ import ConfirmHost from './components/ConfirmHost'
 import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
+import {
+  bootTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink, trainerHash,
+} from './lib/trainerLink'
+
+// ── Присланная ссылка переживает вход ────────────────────────────────────────
+//
+// Ссылку на экран тренажёра чаще всего открывает тот, у кого в этой вкладке нет
+// сессии. Кабинет показывает ему лендинг — и это правильно, — но адрес при
+// первом же переходе на «Войти» стирается, и после входа человек оказывается на
+// своей главной, без следа того, ради чего пришёл. Ссылка откладывается ДО
+// лендинга и возвращается сразу после входа.
+//
+// НА УРОВНЕ МОДУЛЯ, А НЕ В ЭФФЕКТЕ. Адрес обязан встать на место до первого
+// рендера кабинета: DashboardPage читает его один раз, на монтировании, и hash,
+// поставленный эффектом выше по дереву, до него уже не доедет — экран останется
+// главной, а адрес будет утверждать обратное. Тот же приём, что у темы
+// (см. импорт themeStore выше): подготовка до первого кадра.
+void (() => {
+  const link = bootTrainerLink()
+  if (!getStudentSession()) {
+    if (link) stashTrainerLink(link)
+    return
+  }
+  // Адрес уже на месте (вошедший открыл ссылку сам) — отложенному тут делать
+  // нечего, иначе он увёл бы человека со свежей ссылки на позавчерашнюю.
+  if (link) return
+  const back = takeStashedTrainerLink()
+  if (!back) return
+  // Оба канала сразу: hash — чтобы кабинет открыл вкладку тренажёра и адрес не
+  // врал, очередь — чтобы сам тренажёр знал, какой экран показать.
+  queueTrainerLink(back)
+  window.history.replaceState(null, '', trainerHash(back))
+})()
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash)
   useEffect(() => {
@@ -91,7 +124,24 @@ function AppRoutes() {
           console.error('[realtime] lesson_progress subscription:', status)
         }
       })
-    return () => { supabase.removeChannel(channel) }
+    // Возврат на вкладку = пересинхронизация. Realtime не закрывает удаление:
+    // таблица живёт с REPLICA IDENTITY DEFAULT, и в DELETE-событии приходит
+    // только id — фильтр по student_id его не пропускает. Значит обнуление
+    // курса учителем до уже открытого экрана ученика само не доедет, и домашка
+    // осталась бы «сданной» до перезагрузки. Не чаще раза в 20 секунд: возврат
+    // на вкладку случается десятки раз за занятие, а загрузка — восемь запросов.
+    let lastSync = Date.now()
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      if (Date.now() - lastSync < 20_000) return
+      lastSync = Date.now()
+      loadStudentData()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [loadStudentData])
 
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)

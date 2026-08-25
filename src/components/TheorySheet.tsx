@@ -24,6 +24,7 @@ import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap } from '../lib/typography'
+import Prose from './Prose'
 import GlossedText from './GlossedText'
 
 export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
@@ -155,7 +156,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   />
                   {p.text && (
                     <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45, ...proseWrap }}>
-                      {tidyProse(p.text)}
+                      <Prose text={p.text} />
                     </figcaption>
                   )}
                 </figure>
@@ -170,7 +171,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 />
               ) : (
                 <p key={p.id} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, whiteSpace: 'pre-wrap', ...proseWrap }}>
-                  {tidyProse(p.text)}
+                  <Prose text={p.text} />
                 </p>
               ))}
             </div>

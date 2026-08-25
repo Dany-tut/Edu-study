@@ -33,7 +33,10 @@ export const STATUS_PAIR = {
   returned:  PAIR.warning,
   unviewed:  PAIR.error,
   submitted: PAIR.review,
-  current:   PAIR.focus,
+  // Не PAIR.focus: тот следует за цветом курса (lib/courseTint.ts), а «сейчас»
+  // стоит в одном ряду с зелёным и красным и обязан от них отличаться на любом
+  // предмете. Своя фиксированная пара — --status-now-* в index.css.
+  current:   { bg: 'var(--status-now-soft)', text: 'var(--status-now-text)' } as ColorPair,
 } as const
 
 // ── Button variants (§2.6) ───────────────────────────────────────────────────

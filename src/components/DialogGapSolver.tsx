@@ -17,6 +17,7 @@ import { speak, stopSpeech, voiceOptions, type SpeechHandle } from '../lib/speec
 import { playPop, vibrate } from '../lib/sound'
 import { useT } from '../lib/i18n'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
+import HangulKeyboard, { needsHangul } from './HangulKeyboard'
 
 /** Детерминированная перестановка вариантов — та же, что у плиток сборки. */
 function shuffled(list: string[]): string[] {
@@ -208,19 +209,26 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           </div>
         )
         : (
-          <GrowTextarea
-            value={value ?? ''}
-            onChange={onChange}
-            disabled={disabled}
-            minHeight={growMinHeight(1, 14, 11, 1.5)}
-            placeholder={t('Впиши пропущенную реплику…')}
-            style={{
-              width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 14,
-              fontFamily: 'inherit', fontSize: 14, color: 'var(--color-text)',
-              background: 'var(--color-bg-input)', outline: 'none',
-              border: `1px solid ${showVerdict ? (correct ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
-            }}
-          />
+          <div className="flex flex-col" style={{ gap: 10 }}>
+            <GrowTextarea
+              value={value ?? ''}
+              onChange={onChange}
+              disabled={disabled}
+              minHeight={growMinHeight(1, 14, 11, 1.5)}
+              placeholder={t('Впиши пропущенную реплику…')}
+              inputMode={needsHangul(answer) ? 'none' : undefined}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 14,
+                fontFamily: 'inherit', fontSize: 14, color: 'var(--color-text)',
+                background: 'var(--color-bg-input)', outline: 'none',
+                border: `1px solid ${showVerdict ? (correct ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+              }}
+            />
+            {/* Реплику ждут по-корейски — раскладки у ученика нет. */}
+            {needsHangul(answer) && !disabled && (
+              <HangulKeyboard value={value} onChange={onChange} />
+            )}
+          </div>
         )}
 
       {showVerdict && !correct && (

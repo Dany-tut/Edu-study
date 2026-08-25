@@ -32,9 +32,13 @@ import { useDeskStore } from '../../store/deskStore'
 import { useDeskLayouts } from '../../lib/useDeskLayouts'
 import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
 import { useT } from '../../lib/i18n'
+import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 
 export default function TeacherDashboardPage() {
   const t = useT()
+  // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
+  // читают палитру через реестр, поэтому карту достаточно поставить один раз.
+  useTeacherSubjectColors()
   const activePage = useTeacher(s => s.activePage)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)

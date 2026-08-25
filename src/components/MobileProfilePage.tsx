@@ -8,6 +8,7 @@ import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
 import SubjectSwitcher from './SubjectSwitcher'
 import FeedbackModal from './FeedbackModal'
+import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
@@ -65,6 +66,8 @@ export default function MobileProfilePage() {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const { dark, toggle } = useTheme()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [tintOpen, setTintOpen] = useState(false)
+  const tintColor = useCurrentTintColor()
   // Stats scope: 'all' = account-wide totals, or a single subject's own numbers.
   const [statScope, setStatScope] = useState<'all' | string>('all')
 
@@ -131,7 +134,7 @@ export default function MobileProfilePage() {
             <div className="flex items-center" style={{ gap: 14 }}>
               <div
                 className="flex items-center justify-center flex-shrink-0"
-                style={{ width: 58, height: 58, borderRadius: 999, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', fontSize: 25, fontWeight: 700, boxShadow: '0 8px 22px rgba(123,63,204,0.3)' }}
+                style={{ width: 58, height: 58, borderRadius: 999, background: 'var(--grad-purple)', color: '#fff', fontSize: 25, fontWeight: 700, boxShadow: 'var(--glow-accent)' }}
               >
                 {initial}
               </div>
@@ -155,7 +158,7 @@ export default function MobileProfilePage() {
                 <span style={{ color: 'var(--color-purple-text)' }}>{xpInLevel}/{XP_PER_LEVEL} XP</span>
               </div>
               <div style={{ height: 8, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
-                <div style={{ width: `${Math.round((xpInLevel / XP_PER_LEVEL) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#9B6FE8,#C58BFF)', borderRadius: 99 }} />
+                <div style={{ width: `${Math.round((xpInLevel / XP_PER_LEVEL) * 100)}%`, height: '100%', background: 'var(--grad-purple-bar)', borderRadius: 99 }} />
               </div>
             </div>
           </div>
@@ -206,7 +209,7 @@ export default function MobileProfilePage() {
             </span>
 
             {/* Hero — средний балл + график последних работ */}
-            <div style={{ borderRadius: 22, padding: 16, color: '#fff', background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', boxShadow: '0 10px 26px rgba(123,63,204,0.28)' }}>
+            <div style={{ borderRadius: 22, padding: 16, color: '#fff', background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)' }}>
               <div className="flex items-start justify-between">
                 <div>
                   <div style={{ fontSize: 10.5, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('Средний балл')}</div>
@@ -275,6 +278,24 @@ export default function MobileProfilePage() {
                 </span>
               </button>
 
+              {/* Цвет курса — глубина перекраски и личные цвета предметов */}
+              <motion.button
+                whileTap={{ scale: 0.99 }}
+                onClick={() => { tactile(); setTintOpen(true) }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+              >
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                  {t('Цвет курса')}
+                </span>
+                <span className="flex items-center" style={{ gap: 8 }}>
+                  {tintColor
+                    ? <span style={{ width: 22, height: 22, borderRadius: 999, background: tintColor, boxShadow: '0 0 0 1px var(--color-border-medium)' }} />
+                    : <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Выключено')}</span>}
+                  <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                </span>
+              </motion.button>
+
               {/* Язык — весь ряд кликабелен, один тап меняет язык */}
               <button
                 onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
@@ -333,6 +354,7 @@ export default function MobileProfilePage() {
 
       <MobileBottomNav />
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
+      <CourseTintSheet open={tintOpen} onClose={() => setTintOpen(false)} />
     </>
   )
 }

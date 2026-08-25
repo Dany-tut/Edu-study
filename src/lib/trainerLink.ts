@@ -1,65 +1,133 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Адрес открытого материала тренажёра
+// Адрес экрана тренажёра
 //
-// ЗАЧЕМ. До этого «Чтение» жило целиком внутри состояния: адрес всегда был
-// «#/trainer», что бы ни было открыто. Два следствия, и оба видны сразу.
+// ЗАЧЕМ. До этого адрес был у трёх вещей из «Чтения» — у произведения, сцены и
+// ленты, — а остальные шестнадцать экранов жили целиком внутри состояния: что
+// бы ни было открыто, в строке браузера стояло «#/trainer». Два следствия, и
+// оба видны сразу.
 //
-// 1. ПРИСЛАТЬ РАССКАЗ БЫЛО НЕЧЕМ. «Прочитай „Счастливый день“» приходилось
-//    объяснять словами: тренажёр → корейский → Чтение → Сцены → полка «Корея».
-//    Теперь у каждого произведения и каждой сцены свой адрес, и он открывается
-//    у другого человека ровно на том же экране.
+// 1. ПРИСЛАТЬ БЫЛО НЕЧЕГО. «Посмотри ряд 물·불·뿔·풀·볼» приходилось объяснять
+//    словами: тренажёр → корейский → Карточки → Созвучия → третий ряд. То же с
+//    темой разговорника, формой справочника, главой «О языке», набором счёта.
+//    Теперь у каждого экрана свой адрес, и он открывается у другого человека
+//    ровно тем же экраном.
 //
-// 2. МАТЕРИАЛ ПЕРЕЖИВАЛ СМЕНУ ЯЗЫКА. Что открыто — помнилось по ключу с языком
-//    (`trainer.ko.work`), но usePersistentState читает хранилище только на
-//    первом рендере: при смене предмета ключ менялся, а значение оставалось
-//    прежним и тут же записывалось в новый ключ. Корейский рассказ оказывался
-//    «открыт» в английском — с пустым списком сцен, потому что сцены-то
-//    приезжали английские. Отсюда правило: открытый материал ВСЕГДА сверяется с
-//    языком (см. linkLang и проверку openWorkId в LanguageTrainer).
+// 2. F5 ВОССТАНАВЛИВАЛ ЭКРАН, А АДРЕС ПРО НЕГО ВРАЛ. Открытое переживало
+//    перезагрузку через usePersistentState, но строка браузера про это молчала:
+//    скопировать адрес из неё (единственный путь на телефоне, где кнопки не
+//    было) значило прислать человеку пустой тренажёр.
 //
-// ЯЗЫК ВЫЧИСЛЯЕТСЯ ИЗ ССЫЛКИ СИНХРОННО. Поэтому сцена адресуется вместе со
-// своим произведением (`#/trainer/work/hyun-unsu/sc-unsu-1`): реестр WORKS
-// синхронный, а сами сцены приезжают отдельным чанком — по одному id сцены до
-// загрузки нельзя понять даже, какой язык открывать.
+// СХЕМА. `#/trainer/<язык>/<экран>[/<id>[/<под-id>]]`, например
+// `#/trainer/ko/nests/mul-bul` или `#/trainer/ko/scenes/hyun-unsu/sc-unsu-1`.
+//
+// ЯЗЫК СТОИТ В АДРЕСЕ ЯВНО. Он нужен СИНХРОННО — по нему выбирается предмет
+// тренажёра ещё до того, как приедут курсы и чанки материалов (см.
+// trainerSubject). У рассказа и учебного текста язык можно было вычислить по
+// синхронному реестру, а у темы разговорника, формы грамматики и главы рассказа
+// о языке — нельзя: их книги ленивые, до загрузки id ничего не говорит даже о
+// языке. Один общий разбор с языком в адресе вместо трёх частных.
+//
+// СТАРЫЕ АДРЕСА ПРОДОЛЖАЮТ РАБОТАТЬ. `#/trainer/work/<id>[/<scene>]`,
+// `#/trainer/text/<id>` и `#/trainer/feed/<lang>` уже разошлись по перепискам —
+// они разбираются как раньше (язык у первых двух берётся из реестра), но
+// записываются с этого момента в новом виде.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SUBJECTS } from './subjects'
 import { workById } from '../data/scenes'
 import { READING_LIBRARY } from '../data/readingLibrary'
 
-export type TrainerLink =
-  /** Произведение и, если открыта, его сцена. */
-  | { kind: 'work'; workId: string; sceneId?: string }
-  /** Учебный текст из readingLibrary. */
-  | { kind: 'text'; textId: string }
-  /**
-   * Лента языка. Материал не адресуется: лента — это то, что листают сверху,
-   * и «ссылка на пост» противоречила бы её устройству (см. data/feed). Язык
-   * записан прямо в адрес: в отличие от рассказа и текста, у ленты нет реестра,
-   * по которому язык можно было бы вычислить синхронно.
-   */
-  | { kind: 'feed'; lang: string }
+/**
+ * Экран тренажёра. Плоский список, а не пара «режим + половина»: для адреса
+ * важно не то, как экраны сгруппированы в меню, а то, что человек видит. Две
+ * половины «Конструктора» — это два разных экрана, и адрес у них разный.
+ */
+export type TrainerScreen =
+  // Чтение
+  | 'texts' | 'scenes' | 'feed'
+  // Карточки
+  | 'sets' | 'nests' | 'packs' | 'due' | 'words'
+  // Аудирование и говорение
+  | 'audio' | 'speaking'
+  // Конструктор
+  | 'stems' | 'roots' | 'numbers' | 'sounds'
+  // Справочники
+  | 'grammar' | 'story' | 'books'
 
-const RE = /^#\/trainer\/(work|text|feed)\/([^?#]+)/
+const SCREENS: TrainerScreen[] = [
+  'texts', 'scenes', 'feed',
+  'sets', 'nests', 'packs', 'due', 'words',
+  'audio', 'speaking',
+  'stems', 'roots', 'numbers', 'sounds',
+  'grammar', 'story', 'books',
+]
+
+const isScreen = (x: string): x is TrainerScreen => (SCREENS as string[]).includes(x)
+
+export interface TrainerLink {
+  /** Язык тренажёра: 'ko', 'en', 'pt-BR'. Он же выбирает предмет. */
+  lang: string
+  /**
+   * Экран. Без него ссылка означает «открой этот язык», а на каком экране —
+   * решает сам тренажёр (последним открытым или своим стартовым).
+   */
+  screen?: TrainerScreen
+  /** Открытое на экране: гнездо, тема, форма, глава, набор, текст, запись. */
+  id?: string
+  /** Второй уровень. Пока только один: сцена внутри произведения. */
+  sub?: string
+}
+
+const RE = /^#\/trainer\/([^?#]+)/
 
 /** Базовый код языка: pt-BR → pt. */
 const base = (lang: string) => lang.split('-')[0].toLowerCase()
 
+/** Язык из реестра предметов по коду из адреса. undefined — такого языка нет. */
+function knownLang(code: string): string | undefined {
+  const s = SUBJECTS.find(x => x.isLanguage && x.langCode && base(x.langCode) === base(code))
+  return s?.langCode
+}
+
 export function parseTrainerLink(hash: string): TrainerLink | null {
   const m = RE.exec(hash)
   if (!m) return null
-  const parts = m[2].split('/').filter(Boolean).map(decodeURIComponent)
+  const parts = m[1].split('/').filter(Boolean).map(decodeURIComponent)
   if (parts.length === 0) return null
-  if (m[1] === 'text') return { kind: 'text', textId: parts[0] }
-  if (m[1] === 'feed') return { kind: 'feed', lang: parts[0] }
-  return { kind: 'work', workId: parts[0], sceneId: parts[1] }
+
+  // ── Старые адреса ──────────────────────────────────────────────────────────
+  // Разбираются первыми: 'work' | 'text' | 'feed' не могут оказаться кодом
+  // языка, так что новую схему они не затеняют.
+  if (parts[0] === 'feed') {
+    const lang = parts[1] ? knownLang(parts[1]) : undefined
+    return lang ? { lang, screen: 'feed' } : null
+  }
+  if (parts[0] === 'text') {
+    const lang = READING_LIBRARY.find(x => x.id === parts[1])?.lang
+    return lang ? { lang, screen: 'texts', id: parts[1] } : null
+  }
+  if (parts[0] === 'work') {
+    const lang = workById(parts[1])?.lang
+    return lang ? { lang, screen: 'scenes', id: parts[1], sub: parts[2] } : null
+  }
+
+  // ── Общая схема ────────────────────────────────────────────────────────────
+  const lang = knownLang(parts[0])
+  if (!lang) return null
+  if (parts.length === 1) return { lang }
+  // Экран из будущей (или уже переименованной) версии — не повод потерять язык:
+  // ссылка всё равно откроет корейский тренажёр, просто на его обычном месте.
+  if (!isScreen(parts[1])) return { lang }
+  return { lang, screen: parts[1], id: parts[2], sub: parts[3] }
 }
 
 export function trainerHash(link: TrainerLink): string {
-  if (link.kind === 'feed') return `#/trainer/feed/${encodeURIComponent(link.lang)}`
-  if (link.kind === 'text') return `#/trainer/text/${encodeURIComponent(link.textId)}`
-  const tail = link.sceneId ? `/${encodeURIComponent(link.sceneId)}` : ''
-  return `#/trainer/work/${encodeURIComponent(link.workId)}${tail}`
+  const e = encodeURIComponent
+  let out = `#/trainer/${e(link.lang)}`
+  if (link.screen) out += `/${link.screen}`
+  if (link.screen && link.id) out += `/${e(link.id)}`
+  if (link.screen && link.id && link.sub) out += `/${e(link.sub)}`
+  return out
 }
 
 /** Абсолютный адрес — то, что кладётся в буфер по кнопке «Поделиться». */
@@ -69,27 +137,18 @@ export function trainerShareUrl(link: TrainerLink): string {
 }
 
 /**
- * Переписать адрес под открытый материал. replaceState, а не hash =: смена
- * материала — это не шаг навигации, и «Назад» должен уводить из тренажёра, а не
- * листать двадцать открытых по очереди сцен.
+ * Переписать адрес под открытый экран. replaceState, а не hash =: переход между
+ * экранами тренажёра — это не шаг навигации, и «Назад» должен уводить из
+ * тренажёра, а не листать двадцать открытых по очереди тем.
  */
 export function writeTrainerHash(link: TrainerLink | null) {
   const next = link ? trainerHash(link) : '#/trainer'
   if (window.location.hash !== next) window.history.replaceState(null, '', next)
 }
 
-/** Язык материала по ссылке. undefined — материала уже нет в библиотеке. */
-export function linkLang(link: TrainerLink): string | undefined {
-  if (link.kind === 'feed') return link.lang
-  if (link.kind === 'text') return READING_LIBRARY.find(x => x.id === link.textId)?.lang
-  return workById(link.workId)?.lang
-}
-
-/** Слаг предмета, в котором открывается материал: 'korean', 'english', … */
+/** Слаг предмета, в котором открывается ссылка: 'korean', 'english', … */
 export function linkSubjectId(link: TrainerLink): string | undefined {
-  const lang = linkLang(link)
-  if (!lang) return undefined
-  return SUBJECTS.find(s => s.isLanguage && s.langCode && base(s.langCode) === base(lang))?.id
+  return SUBJECTS.find(s => s.isLanguage && s.langCode && base(s.langCode) === base(link.lang))?.id
 }
 
 /**
@@ -108,12 +167,12 @@ let bootTaken = false
  * Адрес читается один раз при загрузке модуля, и этого хватало, пока по
  * ссылкам приходили снаружи. Но виджет главной («Лента · 3 новых») — это
  * переход ВНУТРИ вкладки: hash сменился бы, а BOOT остался бы прежним, и
- * тренажёр открылся бы на том, что было в нём в прошлый раз. Поэтому у
- * перехода есть второй канал, и оба забираются одним и тем же takeBoot…
+ * тренажёр открылся бы на том, что было в нём в прошлый раз. Тем же каналом
+ * возвращается ссылка, которую гость открыл до входа (см. stashTrainerLink).
  */
 let PENDING: TrainerLink | null = null
 
-/** Открыть материал из кабинета. Забирает тренажёр при следующем монтировании. */
+/** Открыть экран из кабинета. Забирает тренажёр при следующем монтировании. */
 export function queueTrainerLink(link: TrainerLink): void {
   PENDING = link
 }
@@ -123,13 +182,45 @@ export const bootTrainerLink = (): TrainerLink | null => PENDING ?? BOOT
 
 /**
  * Она же, но одноразово: применивший её экран забирает ссылку себе, чтобы
- * повторное монтирование не утаскивало ученика обратно в присланный рассказ.
+ * повторное монтирование не утаскивало ученика обратно в присланный материал.
  */
 export function takeBootTrainerLink(): TrainerLink | null {
   if (PENDING) { const p = PENDING; PENDING = null; return p }
   if (bootTaken) return null
   bootTaken = true
   return BOOT
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ссылка, открытая ДО входа
+//
+// Присланный адрес обычно открывает человек, у которого в этой вкладке нет
+// сессии: кабинет показывает ему лендинг, а адрес при первом же переходе на
+// «Войти» стирается — и после входа он оказывается на своей главной, без
+// всякого следа того, ради чего пришёл. Поэтому ссылка откладывается ДО
+// показа лендинга и забирается после входа (см. App.tsx).
+//
+// sessionStorage, а не localStorage: отложенное живёт ровно в той вкладке, где
+// по ссылке пришли, и умирает вместе с ней. В localStorage такая запись
+// пережила бы и вход, и неделю работы, и однажды утащила бы человека в чужой
+// рассказ посреди обычного дня.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STASH = 'trainer_link_pending'
+
+export function stashTrainerLink(link: TrainerLink): void {
+  try { sessionStorage.setItem(STASH, trainerHash(link)) } catch { /* приватный режим */ }
+}
+
+export function takeStashedTrainerLink(): TrainerLink | null {
+  try {
+    const raw = sessionStorage.getItem(STASH)
+    if (!raw) return null
+    sessionStorage.removeItem(STASH)
+    return parseTrainerLink(raw)
+  } catch {
+    return null
+  }
 }
 
 /** Тот же язык с точностью до региона: pt и pt-BR — один. */

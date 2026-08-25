@@ -45,8 +45,9 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Check, SlidersHorizontal, Layers } from 'lucide-react'
+import { ChevronDown, Search, Check, SlidersHorizontal, Layers, Link2, Share2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { copyToClipboard } from '../../lib/clipboard'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
 import { useFloatingPill } from '../../lib/useFloatingPill'
 import { useScrollLock } from '../../lib/useScrollLock'
@@ -170,11 +171,24 @@ export type TrainerNav = {
   accent?: string
 }
 
-export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, nav, children }: {
+export default function TrainerShell({ rail, toolbar, share, shareAccent, narrowLead, narrowPlayer, nav, children }: {
   /** Карточки рейла — обычно SubjectHero + RailCard'ы. */
   rail: React.ReactNode
   /** Строка управления над содержимым. */
   toolbar?: React.ReactNode
+  /**
+   * Адрес этого экрана. Есть адрес — в правом краю строки управления стоит
+   * кнопка «поделиться» (см. ShareCircle). Своим местом в скелете, а не в
+   * каждой строке управления: экранов у тренажёра под два десятка, у части из
+   * них строки нет вовсе, и кнопка, расставленная по местам вручную, честно
+   * держалась бы ровно там, где про неё не забыли.
+   */
+  share?: string
+  /**
+   * Цвет подтверждения у кнопки адреса — палитра предмета. Отдельным пропом, а
+   * не из nav: у читалки и аудирования своего nav нет вовсе, а палитра есть.
+   */
+  shareAccent?: string
   /** Режимы и половины — для нижней навигации телефона. */
   nav?: TrainerNav
   /**
@@ -213,6 +227,13 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
   const hasPlayer = !!narrowPlayer || claimed
   const [sheet, setSheet] = useState(false)
   const [navSheet, setNavSheet] = useState(false)
+  /**
+   * Прилипшая полоса рисуется и ради одной кнопки адреса: у страниц-разборов
+   * (гнездо созвучий, основа глагола, корень, набор счёта) строки управления
+   * нет, и без этого «поделиться» на них было бы нечем — ровно на тех экранах,
+   * которые чаще всего и присылают.
+   */
+  const bar = toolbar || share
   const railRef = useRef<HTMLElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
 
@@ -252,7 +273,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
     ro.observe(el)
     window.addEventListener('resize', measure)
     return () => { ro.disconnect(); window.removeEventListener('resize', measure) }
-  }, [toolbar, narrow])
+  }, [toolbar, share, narrow])
 
   return (
     <div style={{
@@ -274,7 +295,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
       // 8 px и первая строка вставала под размытие статус-бара. Когда полосы
       // нет — тот же отступ берёт на себя сам скелет.
       width: '100%',
-      paddingTop: narrow && !toolbar ? PAD_TOP : 8,
+      paddingTop: narrow && !bar ? PAD_TOP : 8,
       paddingLeft: narrow ? 16 : 0,
       paddingRight: narrow ? 16 : 0,
       paddingBottom: narrow ? 198 : 80,
@@ -352,7 +373,7 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
             управлением, которое уезжало.
             Полоса непрозрачна и с размытием: под ней едет текст, и сквозь
             промежутки между таблетками он превращал бы кнопки в кашу. */}
-        {toolbar && (
+        {bar && (
         <div
           ref={barRef}
           style={{
@@ -371,7 +392,16 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
           }}
         >
 
-        <div style={{ position: 'relative' }}>{toolbar}</div>
+        {/* Строка управления занимает всю ширину, кнопка адреса — правый край.
+            Ряд, а не ещё один элемент ВНУТРИ строки: строка переносится по
+            словам (flexWrap), и кнопка, поставленная в неё, оказывалась то в
+            конце первого ряда, то одна на втором — служебное действие каждый
+            раз в новом месте. Здесь её место постоянное, а строки может не
+            быть вовсе. */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>{toolbar}</div>
+          {share && <ShareCircle url={share} accent={shareAccent ?? nav?.accent} />}
+        </div>
         </div>
         )}
         <PlayerSlotCtx.Provider value={slot}>{children}</PlayerSlotCtx.Provider>
@@ -442,6 +472,81 @@ export default function TrainerShell({ rail, toolbar, narrowLead, narrowPlayer, 
         </MobileDock>
       )}
     </div>
+  )
+}
+
+/**
+ * «Поделиться» — адрес открытого экрана наружу.
+ *
+ * КНОПКА, А НЕ «СКОПИРУЙТЕ ИЗ СТРОКИ БРАУЗЕРА». На телефоне адресной строки
+ * половину времени не видно вовсе, а в установленном PWA её нет никогда — тот
+ * самый случай, когда прислать другу ряд созвучий физически нечем.
+ *
+ * НА ТЕЛЕФОНЕ — СИСТЕМНЫЙ ЛИСТ. Там «поделиться» значит «отправить в телеграм»,
+ * а не «положить в буфер и дальше сам»: буфер — это лишний шаг, на котором
+ * половина отправок и заканчивается. Где листа нет (десктоп, старый webview) —
+ * копируем, и это честно написано в подсказке.
+ *
+ * КРУЖОК БЕЗ ПОДПИСИ И ПО ПРАВОМУ КРАЮ. Слово «Поделиться» в одном ряду с «К
+ * списку» и «С разбором» весило бы столько же, сколько они, — а это действие
+ * редкое и служебное: место ему с краю, размер — с иконку, подпись отдана
+ * заголовку при наведении.
+ */
+function ShareCircle({ url, accent }: { url: string; accent?: string }) {
+  const t = useT()
+  const narrow = useNarrow()
+  const [done, setDone] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  // Системный лист есть не везде (десктоп, старые webview). Проверяем ключом:
+  // в типах DOM navigator.share объявлен всегда определённым, и обычное
+  // `navigator.share &&` компилятор читает как заведомо истинное.
+  const sheet = narrow && 'share' in navigator
+
+  const flash = () => {
+    setDone(true)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => setDone(false), 2000)
+  }
+  const copy = () => { void copyToClipboard(url).then(ok => { if (ok) flash() }) }
+
+  function onClick() {
+    if (sheet) {
+      // Отмена листа — не ошибка и не повод что-то делать вместо: человек
+      // передумал. А вот отказ самого листа (нет жеста, не тот протокол) — повод
+      // не оставить его ни с чем и положить адрес хотя бы в буфер.
+      navigator.share({ url }).catch((e: unknown) => {
+        if ((e as { name?: string })?.name !== 'AbortError') copy()
+      })
+      return
+    }
+    copy()
+  }
+
+  const label = done
+    ? (sheet ? t('Готово') : t('Ссылка скопирована'))
+    : (sheet ? t('Поделиться') : t('Скопировать ссылку'))
+  const on = done ? (accent ?? MENU_ACCENT) : 'var(--color-text-2)'
+
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        // 36 — высота таблеток строки (10px padding + 16 строки): кружок обязан
+        // стоять с ними вровень, иначе правый край строки «проваливается».
+        width: 36, height: 36, borderRadius: 999, flexShrink: 0,
+        cursor: 'pointer', fontFamily: 'inherit',
+        border: `1px solid ${done ? (accent ?? MENU_ACCENT) : 'var(--color-border-medium)'}`,
+        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
+        color: on,
+      }}
+    >
+      {done ? <Check size={15} /> : sheet ? <Share2 size={15} /> : <Link2 size={15} />}
+    </button>
   )
 }
 

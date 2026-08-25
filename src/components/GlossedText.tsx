@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Plus, Volume2 } from 'lucide-react'
 import { buildLexicon, wordReading, type Segment } from '../lib/lexicon'
 import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
-import { bindShortWords, isDenseScript, langWrap, proseWrap } from '../lib/typography'
+import { BREAK_SPACE, bindShortWords, isDenseScript, keepsTogether, langWrap, proseWrap } from '../lib/typography'
 import { hasTiers, tierLabel, tierNote, wordTier } from '../data/coreWords'
 import { speak, type SpeechHandle } from '../lib/speech'
 import { addCards, deckOwner } from '../data/reviewDeck'
@@ -142,6 +142,41 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   const t = useT()
   const lex = useMemo(() => buildLexicon(lang, extra), [lang, extra])
   const segments = useMemo(() => lex.segment(text), [lex, text])
+
+  // В плотном письме связок нет: пробелов там не бывает вовсе, и «кусок между
+  // пробелами» — это вся реплика. Перенос между знаками для японского и
+  // китайского нормален и единственно возможен (см. isDenseScript).
+  const ties = !isDenseScript(lang)
+
+  // Связки: кусок текста между обычными пробелами едет по строкам целиком.
+  //
+  // Разбор на слова добавляет к тексту разметку, но переносить строку браузер
+  // от этого лучше не стал: на телефоне он по-прежнему оставляет открывающую
+  // кавычку висеть в конце строки, а её содержимое уносит на следующую.
+  // Невидимые склейки WebKit игнорирует, поэтому запрет ставится тегом — на
+  // связку целиком, вместе с попавшими в неё словами-кнопками (почему именно
+  // так — см. lib/typography, «Связки в разметке»).
+  const bundles = useMemo(() => {
+    type Item = { seg: number } | { text: string }
+    type Bundle = { kind: 'gap'; text: string } | { kind: 'tie'; items: Item[]; text: string }
+    const out: Bundle[] = []
+    let tie: { kind: 'tie'; items: Item[]; text: string } | null = null
+    const add = (item: Item, text: string) => {
+      if (!tie) { tie = { kind: 'tie', items: [], text: '' }; out.push(tie) }
+      tie.items.push(item)
+      tie.text += text
+    }
+    segments.forEach((seg, i) => {
+      if (seg.word) { add({ seg: i }, seg.text); return }
+      // Нечётные куски разреза — сами пробелы: только они и рвут связку.
+      seg.text.split(BREAK_SPACE).forEach((chunk, k) => {
+        if (!chunk) return
+        if (k % 2 === 1) { tie = null; out.push({ kind: 'gap', text: chunk }) }
+        else add({ text: chunk }, chunk)
+      })
+    })
+    return out
+  }, [segments])
 
   // Начало каждого куска в строке. По нему караоке находит звучащее слово:
   // браузер сообщает позицию символа, а не номер слова.
@@ -543,7 +578,15 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               </span>
             </span>
           ))
-        : segments.map((seg, i) => (seg.word ? chipFor(seg, i) : <span key={i}>{seg.text}</span>))}
+        : bundles.map((b, k) => (b.kind === 'gap'
+          ? <Fragment key={k}>{b.text}</Fragment>
+          : (
+            <span key={k} style={ties && keepsTogether(b.text) ? { whiteSpace: 'nowrap' } : undefined}>
+              {b.items.map((it, j) => ('seg' in it
+                ? chipFor(segments[it.seg], it.seg)
+                : <Fragment key={`t${j}`}>{it.text}</Fragment>))}
+            </span>
+          )))}
 
       {active && pos && createPortal(
         <div

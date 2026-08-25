@@ -1785,13 +1785,18 @@ function StudentPanel({
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Цель')}
           </div>
+          {/* Янтарь, а не --color-yellow-*: тот подобран как ЦВЕТ ТЕКСТА, и
+              лимонная заливка на графите даёт оливковую грязь (ровно то же
+              правило уже записано у --color-amber в index.css). Рамка была
+              литеральным персиковым с альфой — в тёмной теме она темнее
+              подложки и читалась ободком грязи. */}
           <div style={{
-            background: 'var(--color-yellow-soft)', border: '1px solid #F8C99166',
+            background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
             borderRadius: 12, padding: '10px 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл ЕГЭ')}</span>
-            <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
+            <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-amber-text)' }}>{student.desiredScore}</span>
           </div>
         </section>
 

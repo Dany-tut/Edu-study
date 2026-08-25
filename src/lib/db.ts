@@ -205,17 +205,25 @@ export async function fetchPersonScope(
   }
 }
 
+/**
+ * Прогресс ученика по всем урокам.
+ *
+ * БРОСАЕТ, если базу спросить не удалось (битые id, сеть, RLS). Пустая карта
+ * «ничего не сдано» и пустая карта «мы не знаем» — разные вещи: по первой
+ * сверка стирает локально сданную домашку (lib/homeworkReset.ts), и молчаливый
+ * `return {}` на отвалившемся запросе стёр бы ученику ответы за весь курс.
+ */
 export async function fetchLessonProgress(studentIds: string | string[]): Promise<ProgressMap> {
   // Guard: битые id (undefined / "undefined" / пустые) не должны уходить в сеть.
   const ids = (Array.isArray(studentIds) ? studentIds : [studentIds]).filter(isUuid)
-  if (ids.length === 0) return {}
+  if (ids.length === 0) throw new Error('fetchLessonProgress: нет валидных id ученика')
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('lesson_ref, subject, status, score, comment, review_comment, attachments, review_attachments, hard_submitted')
     .in('student_id', ids)
 
-  if (error) reportDbError('fetchLessonProgress', error)
-  if (error || !data) return {}
+  if (error) { reportDbError('fetchLessonProgress', error); throw error }
+  if (!data) throw new Error('fetchLessonProgress: база вернула пустой ответ')
 
   const map: ProgressMap = {}
   for (const row of data as DbProgress[]) {

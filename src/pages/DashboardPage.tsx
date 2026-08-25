@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from 'react'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
+import { useCourseTint, useTint } from '../store/tintStore'
 import { getStudentSession } from '../lib/studentSession'
 import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment } from '../data/diagnosticData'
 import { ClipboardList, ChevronRight } from 'lucide-react'
@@ -66,6 +67,13 @@ const TRAINER_HASH_RE = /^#\/trainer\//
 
 export default function DashboardPage() {
   useStudentPrefsSync()
+  // Оттенок курса: пишет переменные на <html>, снимает их при выходе.
+  useCourseTint()
+  // Правка цвета в настройках меняет карту предметов, а её читают не только
+  // переменные (карточки курсов, чипсы). Подписка на version перерисовывает
+  // кабинет целиком — иначе новый цвет доезжал бы до них лишь при следующем
+  // рендере по другой причине.
+  useTint(s => s.version)
   useNotificationsInit(getStudentSession()?.id)
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
@@ -94,6 +102,21 @@ export default function DashboardPage() {
   // не находит НИ ОДИН урок и честный адрес улетал на главную. Это и есть тот
   // самый «нажал F5 в уроке — выбросило». Проверка переехала в эффект ниже, где
   // ей есть на чём работать; до загрузки урок показывает «Загрузка…».
+  // Вне главной оттенок ведёт открытый курс: на «Курсах», в уроке и в домашке
+  // контекст задаёт он, а не чипс дока (тот живёт только на главной).
+  const activeCourseId = useDashboard(s => s.activeSubjectId)
+  const allCourses = useStudentData(s => s.subjects)
+  const setTintSubject = useTint(s => s.setActiveSubject)
+  useEffect(() => {
+    if (activePage === 'home') return
+    // Только УСТАНОВКА, без сброса: у части курсов предмета нет вовсе
+    // (отдельная домашка, сборный «Все курсы»), и `?? null` на них гасил
+    // оттенок целиком — экран прыгал в фиолетовый на ровном месте. Снимает
+    // оттенок только явный выбор «Все» на главной.
+    const course = allCourses.find(c => c.id === activeCourseId)
+    if (course?.subject) setTintSubject(course.subject)
+  }, [activePage, activeCourseId, allCourses, setTintSubject])
+
   const bootHash = useRef(window.location.hash)
   const [restored, setRestored] = useState(false)
   useEffect(() => {
@@ -133,6 +156,12 @@ export default function DashboardPage() {
     let hash: string | null = null
     if (activePage === 'lesson' && currentLessonId) hash = `#/lesson/${encodeURIComponent(currentLessonId)}`
     else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(currentLessonId)}`
+    // Внутри тренажёра адрес ведёт он сам — и ведёт подробнее (язык, экран,
+    // открытый материал; см. lib/trainerLink). Ровное «#/trainer» отсюда
+    // затирало бы присланную ссылку ровно в тот момент, когда её открыли:
+    // восстановление выше как раз переключило вкладку, а тренажёр применить
+    // ссылку ещё не успел.
+    else if (activePage === 'trainer' && TRAINER_HASH_RE.test(window.location.hash)) hash = null
     else hash = PAGE_TO_HASH[activePage] ?? null
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)

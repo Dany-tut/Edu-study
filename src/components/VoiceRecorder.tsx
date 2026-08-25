@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { uploadMedia, MediaTooLargeError } from '../lib/mediaStorage'
+import { micProblem } from '../lib/micAccess'
 import AudioPlayer from './AudioPlayer'
 import { useT } from '../lib/i18n'
 
@@ -32,6 +33,9 @@ export default function VoiceRecorder({
   const [phase, setPhase] = useState<Phase>('idle')
   const [elapsed, setElapsed] = useState(0)
   const [error, setError] = useState('')
+  // Что сделать, чтобы отказ снялся. Без этой строки «Нет доступа к микрофону»
+  // остаётся тупиком: на телефоне ни адресной строки, ни замка не видно.
+  const [hint, setHint] = useState('')
 
   const recRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -46,9 +50,12 @@ export default function VoiceRecorder({
   useEffect(() => cleanupStream, [])
 
   async function start() {
-    setError('')
+    setError(''); setHint('')
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setPhase('error'); setError(t('Запись не поддерживается в этом браузере')); return
+      setPhase('error')
+      setError(t('Запись не поддерживается в этом браузере'))
+      setHint(t('Откройте домашку в Safari или Chrome — там запись работает.'))
+      return
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -68,8 +75,11 @@ export default function VoiceRecorder({
           return next
         })
       }, 1000)
-    } catch {
-      setPhase('error'); setError(t('Нет доступа к микрофону'))
+    } catch (e) {
+      // Причина отказа лежит в имени DOMException, и она решает, что советовать:
+      // «разрешите в настройках» бессмысленно, когда микрофона нет вовсе.
+      const problem = micProblem(e)
+      setPhase('error'); setError(t(problem.text)); setHint(t(problem.hint))
     }
   }
 
@@ -137,6 +147,18 @@ export default function VoiceRecorder({
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-red-text)' }}>
           <AlertCircle size={14} /> {error}
         </span>
+      )}
+
+      {/* Совет — отдельной строкой во всю ширину: в него не помещается ни одна
+          инструкция, если держать её в одном ряду с кнопкой. */}
+      {phase === 'error' && !!hint && (
+        <p style={{
+          flexBasis: '100%', margin: 0, fontSize: 12.5, lineHeight: 1.5,
+          color: 'var(--color-text-2)', padding: '10px 12px', borderRadius: 14,
+          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+        }}>
+          {hint}
+        </p>
       )}
     </div>
   )

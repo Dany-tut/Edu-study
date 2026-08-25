@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -15,6 +15,7 @@ import { playTransitionDrop } from '../lib/sound'
 import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
+import { CourseTintModal, useCurrentTintColor } from './CourseTintSheet'
 import FeedbackModal from './FeedbackModal'
 import AppVersionRow from './AppVersionRow'
 import { useTheme } from '../store/themeStore'
@@ -175,6 +176,8 @@ export default function Sidebar() {
   // Which view the avatar popover shows: avatar grid (root) → settings panel.
   const [menuView, setMenuView] = useState<'root' | 'settings'>('root')
   const [orderModalOpen, setOrderModalOpen] = useState(false)
+  const [tintModalOpen, setTintModalOpen] = useState(false)
+  const tintColor = useCurrentTintColor()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -632,6 +635,29 @@ export default function Sidebar() {
                           <span style={{ flex: 1, textAlign: 'left' }}>{t('Настроить виджеты')}</span>
                         </motion.button>
 
+                        {/* Цвет курса — глубина перекраски и цвета предметов */}
+                        <motion.button
+                          whileTap={{ scale: 0.985 }}
+                          onClick={() => { setTintModalOpen(true); closePicker() }}
+                          aria-label={t('Цвет курса')}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                          style={{
+                            width: '100%', padding: '9px 8px',
+                            display: 'flex', alignItems: 'center',
+                            gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
+                            background: 'transparent',
+                            color: 'var(--color-text)',
+                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                          }}
+                        >
+                          <Palette size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <span style={{ flex: 1, textAlign: 'left' }}>{t('Цвет курса')}</span>
+                          {tintColor && (
+                            <span style={{ width: 16, height: 16, borderRadius: 999, background: tintColor, boxShadow: '0 0 0 1px var(--color-border-medium)', flexShrink: 0 }} />
+                          )}
+                        </motion.button>
+
                         {/* Divider */}
                         <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
 
@@ -828,6 +854,7 @@ export default function Sidebar() {
     </motion.div>
 
     <WidgetOrderModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} />
+    <CourseTintModal open={tintModalOpen} onClose={() => setTintModalOpen(false)} />
     {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
     </>
   )

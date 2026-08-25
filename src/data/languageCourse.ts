@@ -1116,11 +1116,11 @@ function reviewTasks(
   idBase: string,
   lang: string,
   native = false,
-) {
+): ReviewBlock {
   const prev = REVIEW_OFFSETS
     .map(o => byN.get(unit.n - o))
     .filter((u): u is LangUnit => !!u)
-  if (prev.length === 0) return []
+  if (prev.length === 0) return { head: [], late: [] }
 
   const label = (w: VocabItem) => (w.reading ? `${w.term} (${w.reading})` : w.term)
   const wordOf = (u: LangUnit, shift: number): VocabItem | null => {
@@ -1149,6 +1149,8 @@ function reviewTasks(
     return from.length ? from[(unit.n + shift) % from.length] : null
   }
   const out: SeedTask[] = []
+  /** Отложенные касания — их сборщик разложит по занятию (placeLate). */
+  const late: SeedTask[] = []
 
   // ── 1. Узнавание: по слову из каждого прошлого юнита ──
   //
@@ -1195,7 +1197,13 @@ function reviewTasks(
     //
     // Другим письменностям это не нужно: кана и латиница набираются с обычной
     // клавиатуры, а иероглифы экранной раскладкой не набрать в принципе.
-    out.push(...keyboardFreeRecall(ask, target))
+    //
+    // И не одним касанием, а лестницей (см. reviewLadder): узнавание здесь,
+    // сборка и ввод — дальше по занятию. Одна попытка в начале урока ничего не
+    // измеряет: ошибся — слово ушло невыученным, ответил — ушло непроверенным.
+    const ladder = reviewLadder(target, prev.flatMap(u => u.vocab), ask)
+    out.push(...ladder.head)
+    late.push(...ladder.late)
   }
 
   // ── 3. Припоминание без опоры: кроссворд по прошлым юнитам (ступень 6) ──
@@ -1240,7 +1248,7 @@ function reviewTasks(
     })
   }
 
-  return splitMatching(out).map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+  return numberReview({ head: splitMatching(out), late }, idBase, lang)
 }
 
 /**
@@ -1275,6 +1283,66 @@ function keyboardFreeRecall(ask: string, target: VocabItem): SeedTask[] {
     if (units.length === 1) return [buildSyl(ask, term)]
   }
   return units.length >= 2 ? [sylBank(ask, term)] : [recall(ask, term, target.alt)]
+}
+
+/**
+ * То же припоминание СТУПЕНЬЮ НИЖЕ — форма собирается из плиток, а не вводится.
+ *
+ * Нужна как средняя ступень лестницы повторения (Р2) и как то, куда очередь
+ * откатывает промах (Р8, lib/lessonLadder.ts): не набралось с клавиатуры —
+ * собери из готовых кусков, а набирать будешь через несколько экранов.
+ *
+ * Пусто, когда собирать не из чего: у слова из одного знака плиток нет.
+ */
+function tilesRecall(ask: string, target: VocabItem): SeedTask[] {
+  const term = (target.term ?? '').trim()
+  if (isHangul(term) && Array.from(term).length === 1 && isSyllable(term)) return [buildSyl(ask, term)]
+  return Array.from(term.replace(/\s+/g, '')).length >= 2 ? [sylBank(ask, term)] : []
+}
+
+/**
+ * Лестница повторения по ОДНОМУ слову: узнавание → сборка → ввод.
+ *
+ * ЗАЧЕМ. Повторение прошлого занятия было одним заданием: «как будет
+ * „ребёнок“?» — и всё. Ошибся — слово ушло невыученным (очередь возвращала тот
+ * же вопрос, то есть ту же неудачу); ответил верно — тоже ушло, потому что
+ * один правильный ответ в начале урока не значит, что слово помнят через
+ * сорок минут. Проверка памяти, состоящая из одной попытки, ничего не измеряет
+ * (Roediger & Karpicke 2006: помнится то, что извлекали НЕСКОЛЬКО раз, с
+ * растущими промежутками).
+ *
+ * ЧТО СТАЛО. Три касания разной формы, разложенные по занятию: узнавание среди
+ * вариантов в разминке, сборка из плиток в середине, набор без опор ближе к
+ * концу. Ошибка на любой ступени возвращает слово через очередь (Р8), причём
+ * на ступень ниже — этим занимается уже не сид, а lib/lessonLadder.ts.
+ *
+ * ПОЧЕМУ ВЕРНЫЙ ВАРИАНТ НЕ ВСЕГДА ПЕРВЫЙ. Позиция считается от длины слова:
+ * иначе ответ у всех разминок курса стоит на одном месте, и его выбирают, не
+ * читая. Случайности тут нельзя — сид обязан собираться одинаково.
+ */
+function reviewLadder(
+  target: VocabItem,
+  others: VocabItem[],
+  ask: string,
+): { head: SeedTask[]; late: SeedTask[] } {
+  const head: SeedTask[] = []
+  const wrong = others
+    .filter(w => w.term?.trim() && w.term.trim() !== target.term.trim())
+    .map(w => w.term.trim())
+    .filter((t, i, all) => all.indexOf(t) === i)
+    .slice(0, 3)
+  if (wrong.length >= 1) {
+    const at = Array.from(target.term).length % (wrong.length + 1)
+    const choices = [...wrong]
+    choices.splice(at, 0, target.term)
+    head.push(one(ask, choices, at))
+  }
+  // Средняя ступень идёт ПЕРВОЙ из отложенных: собрать легче, чем набрать.
+  const late = [...tilesRecall(ask, target), ...keyboardFreeRecall(ask, target)]
+  // Узнавания не вышло (обманок нет) — первое касание берёт на себя сборка,
+  // иначе занятие открылось бы сразу вводом.
+  if (head.length === 0 && late.length > 1) head.push(late.shift()!)
+  return { head, late }
 }
 
 /**
@@ -1569,9 +1637,9 @@ function breakSameTypeRuns<T extends { type: TaskTypeId; passage?: string }>(tas
  * было введено вчера в этом же юните, — иначе порция уходит из вида ровно
  * тогда, когда забывание идёт круче всего.
  */
-function portionReview(prev: VocabItem[], idBase: string, lang: string, native = false) {
+function portionReview(prev: VocabItem[], idBase: string, lang: string, native = false): ReviewBlock {
   const words = prev.filter(w => w.term?.trim() && w.ru?.trim())
-  if (words.length < 2) return []
+  if (words.length < 2) return { head: [], late: [] }
   const label = (w: VocabItem) => (w.reading ? `${w.term} (${w.reading})` : w.term)
   const out: SeedTask[] = []
   if (words.length >= 3) {
@@ -1585,11 +1653,64 @@ function portionReview(prev: VocabItem[], idBase: string, lang: string, native =
   // Припоминание — на слове, которого не было в сопоставлении выше: иначе это
   // проверка последних десяти секунд, а не памяти.
   const target = words[words.length - 1]
-  out.push(...keyboardFreeRecall(
-    native ? `Повторение: какое слово это описывает — «${target.ru}»?` : `Повторение: как будет «${target.ru}»?`,
+  const ladder = reviewLadder(
     target,
-  ))
-  return out.map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+    words,
+    native ? `Повторение: какое слово это описывает — «${target.ru}»?` : `Повторение: как будет «${target.ru}»?`,
+  )
+  out.push(...ladder.head)
+  return numberReview({ head: out, late: ladder.late }, idBase, lang)
+}
+
+/** Разминка занятия: что идёт в начало и что откладывается на потом. */
+type StampedTask = ReturnType<typeof editorTask>
+type ReviewBlock = { head: StampedTask[]; late: StampedTask[] }
+
+/**
+ * Сквозная нумерация разминки — по обеим частям сразу.
+ *
+ * Отложенные касания получают id из того же ряда (`…-rv4`, `…-rv5`), а не свой:
+ * сверка с сидом (lib/seedSync.ts) сопоставляет задания по хвосту id, и два
+ * ряда с одинаковыми номерами склеили бы разные задания в одно. По этому же
+ * хвосту сторож урока узнаёт блок повторения и не требует от него карточки
+ * знакомства (Р3): слова разминки — из ПРОШЛОГО занятия, показывать их заново
+ * незачем.
+ */
+function numberReview(
+  block: { head: SeedTask[]; late: SeedTask[] },
+  idBase: string,
+  lang: string,
+): ReviewBlock {
+  let n = 0
+  const stamp = (task: SeedTask) => editorTask(task, `${idBase}${++n}`, lang)
+  return { head: block.head.map(stamp), late: block.late.map(stamp) }
+}
+
+/**
+ * Разложить отложенные касания по рабочей части занятия.
+ *
+ * ЗАЧЕМ ИМЕННО ТАК. Смысл повторения — извлечь слово ЧЕРЕЗ ВРЕМЯ. Три вопроса
+ * про одно слово подряд проверяют не память, а последние двадцать секунд
+ * (Landauer & Bjork 1978: расширяющиеся промежутки дают больше равномерных).
+ * Поэтому касания встают примерно на половине и на четырёх пятых занятия.
+ *
+ * Место подгоняется на пару шагов, если рядом стоит задание того же типа: два
+ * одинаковых подряд запрещены (Р13), и вставка не имеет права их создать.
+ */
+function placeLate<T extends { type: TaskTypeId }>(work: T[], late: T[]): T[] {
+  if (late.length === 0) return work
+  const out = [...work]
+  const spots = late.length === 1 ? [0.6] : [0.5, 0.82]
+  late.forEach((task, i) => {
+    const want = Math.round(out.length * (spots[i] ?? 0.9))
+    let at = Math.min(Math.max(want, 1), out.length)
+    for (let shift = 0; shift <= 3; shift++) {
+      const cand = Math.min(want + shift, out.length)
+      if (out[cand - 1]?.type !== task.type && out[cand]?.type !== task.type) { at = cand; break }
+    }
+    out.splice(at, 0, task)
+  })
+  return out
 }
 
 /**
@@ -1862,6 +1983,12 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       // этого запаса урок оставался одной карточкой.
       const earlier = [...introduced, ...parts.slice(0, k).flat()]
 
+      // Разминка по пройденному: первое касание идёт в начало занятия,
+      // остальные раскладываются по рабочей части (см. reviewLadder/placeLate).
+      const review = first
+        ? reviewTasks(unit, byN, `${id}-rv`, spec.lang, spec.native)
+        : portionReview(parts[k - 1], `${id}-rv`, spec.lang, spec.native)
+
       lessons.push({
         id,
         title: split ? `${unit.n}.${k + 1} ${unit.title}` : `${unit.n}. ${unit.title}`,
@@ -1894,9 +2021,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
             .map((task, i) => editorTask(task, `${id}-hv${i + 1}`, spec.lang)),
           // Возврат к пройденному — до нового материала. У первой порции это
           // прошлые юниты (reviewTasks), у продолжений — вчерашняя порция.
-          ...(first
-            ? reviewTasks(unit, byN, `${id}-rv`, spec.lang, spec.native)
-            : portionReview(parts[k - 1], `${id}-rv`, spec.lang, spec.native)),
+          ...review.head,
           // ЗНАКОМСТВО ПЕРВЫМ (Р3). Раньше карточки слов размазывались по всей
           // домашке (interleaveCards), и половина заданий про слово шла до
           // того, как слово вообще показали. Порция — это три-четыре слова:
@@ -1910,7 +2035,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           // круг лестницы и авторская серия того же типа складывались в одну
           // длинную полосу («что прозвучало?» четырежды подряд), хотя порознь
           // каждая укладывалась в потолок Р13.
-          ...breakSameTypeRuns(interleaveCards(
+          ...placeLate(breakSameTypeRuns(interleaveCards(
             [
               // Дрилл идёт первым: конструкция сначала ставится в руку
               // подстановкой, и только потом проверяется вразбивку остальными
@@ -1930,6 +2055,15 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
               // целиком, а не про четвёрку её слов (см. dialogs в спеке).
               ...(first ? (spec.dialogs?.[unit.shortId] ?? []) : [])
                 .map((task, i) => editorTask(task, `${id}-dg${i + 1}`, spec.lang)),
+              // Сочетаемость: с чем ходит слово порции. Данные лежат в самом
+              // словаре (`related`) либо в общем словаре сочетаний
+              // (collocations.ts) — и до сих пор доезжали ТОЛЬКО до оборота
+              // карточки: генератор заданий по ним был написан и не вызывался
+              // ни разу. Слово, увиденное в одиночку, в речь не встаёт: ученик
+              // знает, что 약속 — «договорённость», и не может сказать
+              // «у меня назначено».
+              ...splitMatching(relatedTasks(vocab))
+                .map((task, i) => editorTask(task, `${id}-rel${i + 1}`, spec.lang)),
               // Пропуски по общему банку: слова порции в своих же авторских
               // примерах. Появляется там, где примеры написаны (разговорники,
               // курсы с примером у каждого слова) — см. dropInSeed.
@@ -1937,7 +2071,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
             ],
             ladderTasks(vocab, { native: spec.native, stage: writingStage(spec, unit), seen: earlier })
               .map((task, i) => editorTask(task, `${id}-l${i + 1}`, spec.lang)),
-          )),
+          )), review.late),
           // Экзамен порции — в конце (Р4): сопоставление пар и припоминание из
           // четырёх. Раньше сопоставление стояло вторым заданием урока, сразу
           // после показа словаря.

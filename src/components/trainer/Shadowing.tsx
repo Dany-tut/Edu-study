@@ -3,6 +3,7 @@ import { Mic, Square, Play, Volume2, Repeat, Trash2, AlertCircle, ChevronRight }
 import { speak, stopSpeech, preferredVoice, type SpeechHandle } from '../../lib/speech'
 import { isAsrAvailable, listen, asrNormalize, type AsrSession } from '../../lib/asr'
 import { useT } from '../../lib/i18n'
+import { micProblem } from '../../lib/micAccess'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Шэдоуинг: повторить за эталоном и услышать себя рядом с ним
@@ -218,8 +219,11 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           return next
         })
       }, 1000)
-    } catch {
-      setError(t('Нет доступа к микрофону'))
+    } catch (e) {
+      // Причина отказа и шаг, который его снимает (lib/micAccess.ts): «нет
+      // доступа» без продолжения — тупик, особенно с домашнего экрана.
+      const problem = micProblem(e)
+      setError(problem.hint ? `${t(problem.text)}. ${t(problem.hint)}` : t(problem.text))
       setPhase('idle')
     }
   }
@@ -343,8 +347,8 @@ export default function Shadowing({ lines, lang, accent, soft }: {
       </div>
 
       {error && (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-red-text)' }}>
-          <AlertCircle size={14} /> {error}
+        <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6, fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-red-text)' }}>
+          <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 2 }} /> {error}
         </span>
       )}
 

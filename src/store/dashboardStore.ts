@@ -143,6 +143,15 @@ interface DashboardState {
   setLessonAssessment: (lessonId: string, score: number, emojiIndex: number, hardAvailable?: boolean) => void
   setHardCompleted: (lessonId: string) => void
   setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed', comment?: string, reviewAttachments?: { photos: string[]; board: string | null; annotation?: { image: string; w: number; h: number } | null }, reviewBlocks?: HardTaskReviewBlock[], score?: number | null) => void
+  /**
+   * Уроки, чей локальный результат стёрла сверка с базой: учитель обнулил курс,
+   * сдачи больше нет (lib/homeworkReset.ts). Транзиентный сигнал — открытая
+   * домашка держит ответы в React-состоянии и сама пишет их обратно в
+   * localStorage, поэтому без него стёртое возвращалось бы через долю секунды.
+   */
+  homeworkResetTick: { at: number; ids: string[] } | null
+  /** Забыть балл и самооценку этих уроков + поднять сигнал сброса. */
+  forgetLessons: (lessonIds: string[]) => void
 
   // Pomodoro focus timer. Kept in the store (with a module-level interval) so it
   // keeps ticking even when the widget is swiped off-screen and unmounts.
@@ -324,6 +333,12 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
       hardReviewAnnotation: reviewAttachments ? (reviewAttachments.annotation ?? null) : s.lessonAssessments[lessonId]?.hardReviewAnnotation,
       hardReviewBlocks: reviewBlocks && reviewBlocks.length ? reviewBlocks : s.lessonAssessments[lessonId]?.hardReviewBlocks,
     } } })),
+  homeworkResetTick: null,
+  forgetLessons: (lessonIds) => set((s) => {
+    const next = { ...s.lessonAssessments }
+    for (const id of lessonIds) delete next[id]
+    return { lessonAssessments: next, homeworkResetTick: { at: Date.now(), ids: lessonIds } }
+  }),
 
   pomoMode: 'focus',
   pomoTimerMode: 'timer',

@@ -14,7 +14,11 @@
 //   2. дубли — две записи с одним ключом: вторая молча затирает первую, и одна
 //      из них написана зря;
 //   3. подозрительные производные — английская форма, чей перевод взят
-//      отрезанием окончания там, где у формы своё значение (daily → «день»).
+//      отрезанием окончания там, где у формы своё значение (daily → «день»);
+//   4. слова курсов — слово, которое урок только что дал, обязано тапаться
+//      ЦЕЛИКОМ. Иначе ученик тыкает в 오이 «огурец» и получает 오 «приходить»
+//      плюс 이 «частица»: разбор раскладывает незнакомое слово на то, что есть
+//      в словаре, и врёт увереннее, чем молчал бы.
 //
 // Запуск: npm run check:gloss
 
@@ -22,6 +26,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { NATIVE_KEYS, SCRIPT, cardTerms } from './glossTerms.mjs'
 
 // Node умеет исполнять .ts сам, но только с явными расширениями в импортах, а
 // внутри src их нет (там разрешение берёт на себя Vite). Поэтому собираем то,
@@ -41,6 +46,7 @@ await build({
       export { PT_SCENES } from './src/data/scenes/scenesPt'
       export { DE_SCENES } from './src/data/scenes/scenesDe'
       export { RU_SCENES } from './src/data/scenes/scenesRu'
+      export { COURSE_SEEDS } from './src/data/courseSeeds'
       export { EN_FEED } from './src/data/feed/feedEn'
       export { KO_FEED } from './src/data/feed/feedKo'
       export { JA_FEED } from './src/data/feed/feedJa'
@@ -53,7 +59,7 @@ await build({
 })
 const {
   WORD_GLOSS, buildLexicon, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
-  DE_SCENES, RU_SCENES,
+  DE_SCENES, RU_SCENES, COURSE_SEEDS,
   EN_FEED, KO_FEED, JA_FEED, PT_FEED,
 } = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
@@ -142,6 +148,65 @@ if (derived.size) {
   console.log(`⚠️  формы, чей перевод получен отрезанием окончания (${derived.size}) — проверить глазами:`)
   for (const [k, v] of [...derived].sort()) console.log(`   ${k.padEnd(16)} ${v}`)
   console.log('   Если смысл разошёлся — добавить слово в wordGloss.ts целой записью.\n')
+}
+
+// ─── 4. Слова курсов: одно слово — один тап ──────────────────────────────────
+//
+// Проверяется ровно то, что видит ученик в конспекте и в задании: слово из
+// словаря урока. Разобраться оно должно в ОДИН кусок с переводом — тап по
+// слову даёт слово, а не два его слога.
+//
+// Словарь берётся общий, без глоссария урока: слово курса лежит в
+// wordGlossSeed.ts (npm run build:gloss), и проверка заодно ловит, что файл
+// пересобрали после правки курса.
+
+const lexOf = (() => {
+  const cache = new Map()
+  return lang => {
+    if (!cache.has(lang)) cache.set(lang, buildLexicon(lang))
+    return cache.get(lang)
+  }
+})()
+
+const split = []
+const checked = new Set()
+for (const seed of COURSE_SEEDS) {
+  if (NATIVE_KEYS.has(seed.key)) continue
+  let course
+  try {
+    course = await seed.build(`gloss-${seed.key}`)
+  } catch (e) {
+    bad++
+    console.log(`❌ ${seed.key}: курс не собрался — ${e.message}\n`)
+    continue
+  }
+  for (const lesson of course.lessons) {
+    const tasks = lesson.hwTasks ?? []
+    const lang = tasks.map(t => t.lang).find(Boolean)
+    if (!lang || !SCRIPT[lang]) continue
+    const lex = lexOf(lang)
+    for (const task of tasks) {
+      if (task.type !== 'flashcard') continue
+      for (const term of cardTerms(task.front, lang)) {
+        const id = `${lang}\u0000${term}`
+        if (checked.has(id)) continue
+        checked.add(id)
+        const parts = lex.segment(term).filter(s => s.word)
+        if (parts.length === 1 && parts[0].gloss) continue
+        split.push({
+          seed: seed.key, lang, term,
+          pieces: parts.map(s => `${s.text}${s.gloss ? ` «${s.gloss.ru}»` : ' (нет в словаре)'}`).join(' + '),
+        })
+      }
+    }
+  }
+}
+if (split.length) {
+  bad++
+  console.log(`❌ слова курсов, которые тап разбивает на части (${split.length}):`)
+  for (const s of split.slice(0, 40)) console.log(`   ${s.seed} ${s.lang}  ${s.term}  →  ${s.pieces}`)
+  if (split.length > 40) console.log(`   … и ещё ${split.length - 40}`)
+  console.log('   Пересоберите словарь слов курсов: npm run build:gloss\n')
 }
 
 // ─── Итог ────────────────────────────────────────────────────────────────────

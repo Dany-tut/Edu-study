@@ -5,6 +5,9 @@ import {
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import SubjectColorPicker, { type ColorSubject } from '../../components/SubjectColorPicker'
+import { getSubject, registrySubjectPalette } from '../../lib/subjects'
+import { loadTeacherSubjectColors, saveTeacherSubjectColors, type SubjectColorMap } from '../../lib/teacherSubjectColors'
 import { useTeacher } from '../../store/teacherStore'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { useT } from '../../lib/i18n'
@@ -55,6 +58,41 @@ export default function TeacherProfileSettingsPage() {
       if (!hadDraft.avatarId) setAvatarId(u.user_metadata?.avatarId ?? 'flower')
     })
   }, [])
+
+  // ── Цвета предметов ────────────────────────────────────────────────────────
+  // База учителя: этим цветом его предмет виден и ему, и всем его ученикам —
+  // пока ученик не выберет свой в собственных настройках (тот бьёт этот).
+  const [subjectColors, setSubjectColors] = useState<SubjectColorMap>({})
+  const [colorSubjects, setColorSubjects] = useState<ColorSubject[]>([])
+  const [colorSaved, setColorSaved] = useState(false)
+
+  useEffect(() => {
+    loadTeacherSubjectColors().then(setSubjectColors)
+    // Предметы берём из того, что у учителя реально есть — курсы и группы.
+    // Показывать все двенадцать было бы списком настроек ни для чего.
+    ;(async () => {
+      const [courses, groups] = await Promise.all([
+        supabase.from('courses').select('subject'),
+        supabase.from('groups').select('subject'),
+      ])
+      const tags = [...(courses.data ?? []), ...(groups.data ?? [])].map(r => (r as { subject: string | null }).subject)
+      const seen = new Map<string, ColorSubject>()
+      tags.forEach(tag => {
+        const def = getSubject(tag ?? undefined)
+        if (def && !seen.has(def.id)) seen.set(def.id, { id: def.id, name: def.name, icon: def.icon })
+      })
+      setColorSubjects([...seen.values()])
+    })()
+  }, [])
+
+  async function changeSubjectColor(subjectId: string, hex: string | null) {
+    const next = { ...subjectColors }
+    if (hex) next[subjectId] = hex
+    else delete next[subjectId]
+    setSubjectColors(next)
+    const ok = await saveTeacherSubjectColors(next)
+    if (ok) { setColorSaved(true); setTimeout(() => setColorSaved(false), 2000) }
+  }
 
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
   const AvatarIcon = selectedAvatar.Icon
@@ -199,6 +237,27 @@ export default function TeacherProfileSettingsPage() {
             {saving ? t('Сохраняем…') : saved ? t('Сохранено!') : t('Сохранить')}
           </motion.button>
         </div>
+
+        {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:
+            менять цвет и жать «Сохранить» внизу формы — лишний шаг. */}
+        {colorSubjects.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Цвета предметов')}</div>
+              {colorSaved && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Сохранено')}</div>}
+            </div>
+            <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginBottom: 12 }}>
+              {t('Этим цветом предмет видите вы и ваши ученики. Ученик может выбрать свой — у вас останется этот.')}
+            </div>
+            <SubjectColorPicker
+              subjects={colorSubjects}
+              value={subjectColors}
+              baseColor={id => registrySubjectPalette(id, false).accent}
+              onChange={changeSubjectColor}
+              resetLabel={t('Как в приложении')}
+            />
+          </div>
+        )}
 
       </div>
     </div>

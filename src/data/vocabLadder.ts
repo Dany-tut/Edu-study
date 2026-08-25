@@ -448,7 +448,9 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
     // ступень 3 для алфавитного урока (Р6, стадия письма): рука повторяет форму,
     // пока звук ещё в голове.
     if (isChamo(term)) {
-      return [{ type: 'trace', question: `Обведите букву ${term} — ${w.ru}`, chamo: term, ttsText: term, allowSlow: false } as SeedTask]
+      // Формулировка — как в первом знакомстве с буквой (koreanHangul.ts):
+      // «обведите» читается как «обведите кружком», а задание про письмо.
+      return [{ type: 'trace', question: `Напишите букву ${term} по пунктиру — ${w.ru}`, chamo: term, ttsText: term, allowSlow: false } as SeedTask]
     }
     // Один знак собирать не из чего: у хангыля это работа для сборки слога из
     // букв, у остальных письменностей — вообще не задание.

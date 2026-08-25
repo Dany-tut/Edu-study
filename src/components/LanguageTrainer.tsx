@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, Link2, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, type FeedItem } from '../data/feed'
 import { languageTaxonomy } from '../data/languageTaxonomy'
@@ -45,10 +45,9 @@ import TaskVideo from './TaskVideo'
 import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
 import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
 import {
-  bootTrainerLink, linkLang, sameLang, takeBootTrainerLink, trainerShareUrl, writeTrainerHash,
+  bootTrainerLink, sameLang, takeBootTrainerLink, trainerShareUrl, writeTrainerHash,
   type TrainerLink,
 } from '../lib/trainerLink'
-import { copyToClipboard } from '../lib/clipboard'
 import ScoreReader, { hasReadings } from './trainer/ScoreReader'
 import {
   survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
@@ -297,50 +296,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     () => (openSceneId ? (scenes ?? []).find(s => s.id === openSceneId) ?? null : null),
     [scenes, openSceneId],
   )
-
-  // ── Ссылка на материал ─────────────────────────────────────────────────────
-  //
-  // Присланный адрес применяется ОДИН раз и только когда открыт нужный язык:
-  // предмет переключается уровнем выше (см. TaskBankPage), и до этого момента
-  // тренажёр показывает чужую библиотеку, в которой такого рассказа нет.
-  const bootDone = useRef(false)
-  useEffect(() => {
-    if (bootDone.current) return
-    const link = bootTrainerLink()
-    if (!link) { bootDone.current = true; return }
-    if (!sameLang(linkLang(link), lang)) return
-    takeBootTrainerLink()
-    bootDone.current = true
-    setMode('reading')
-    if (link.kind === 'feed') {
-      // У ленты нет «открытого материала»: её открывают целиком, сверху.
-      setReadingView('feed')
-      setOpenTextId(null)
-      setOpenWorkId(null)
-      setOpenSceneId(null)
-    } else if (link.kind === 'text') {
-      setReadingView('texts')
-      setOpenTextId(link.textId)
-      setOpenWorkId(null)
-      setOpenSceneId(null)
-    } else {
-      setReadingView('scenes')
-      setOpenWorkId(link.workId)
-      setOpenSceneId(link.sceneId ?? null)
-      setOpenTextId(null)
-    }
-  }, [lang, setMode, setReadingView, setOpenTextId, setOpenWorkId, setOpenSceneId])
-
-  // Обратная сторона: открытое всегда видно в адресе, поэтому «скопировать
-  // ссылку» работает и без кнопки — из строки браузера. replaceState, а не
-  // переход: листать «Назад» двадцать открытых сцен никто не собирался.
-  const openLink: TrainerLink | null = useMemo(() => (
-    mode !== 'reading' ? null
-      : openTextId ? { kind: 'text', textId: openTextId }
-      : openWork ? { kind: 'work', workId: openWork.id, sceneId: openSceneId ?? undefined }
-      : null
-  ), [mode, openTextId, openWork, openSceneId])
-  useEffect(() => { writeTrainerHash(openLink) }, [openLink])
 
   // Материал мог исчезнуть из библиотеки — тогда просто открывается список.
   const openText = useMemo(
@@ -1097,6 +1052,110 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     [gram, openFormId],
   )
 
+  // ── Адрес экрана ───────────────────────────────────────────────────────────
+  //
+  // Каждый экран тренажёра адресуется — не только открытый рассказ (см.
+  // lib/trainerLink). Две стороны одного правила.
+  //
+  // ТУДА: что открыто, то и в адресе. Строка браузера перестаёт врать (ученик
+  // разбирает ряд созвучий, а адрес говорит «тренажёр»), и присланная ссылка
+  // открывает у другого человека ровно тот же экран, а не «где он был в
+  // прошлый раз». replaceState, а не переход: листать «Назад» двадцать
+  // открытых по очереди тем никто не собирался.
+  //
+  // СЮДА: присланный адрес применяется ОДИН раз и только когда открыт нужный
+  // язык — предмет переключается уровнем выше (см. TaskBankPage), и до этого
+  // момента тренажёр показывает чужую библиотеку, в которой такой темы нет.
+  //
+  // ОТКРЫТОЕ ПЕРЕБИВАЕТ ПОЛОВИНУ. Экраны рисуются по правилу «открытое сильнее
+  // витрины» (тема разговорника показывается и тогда, когда выбрана половина
+  // «Созвучия»), поэтому ссылка ГАСИТ всё открытое и зажигает ровно одно своё.
+  // Иначе присланный ряд созвучий у человека с недочитанной темой открывался бы
+  // его темой — состояние-то переживает перезагрузку.
+  const currentLink = useMemo<TrainerLink>(() => {
+    if (mode === 'reading') {
+      if (readingView === 'feed') return { lang, screen: 'feed' }
+      if (readingView === 'scenes') {
+        return { lang, screen: 'scenes', id: openWorkId ?? undefined, sub: openSceneId ?? undefined }
+      }
+      return { lang, screen: 'texts', id: openTextId ?? undefined }
+    }
+    if (mode === 'vocab') {
+      // «Мои слова» лежат в том же поле, что и тема (см. MY_WORDS_ID), но это
+      // отдельный экран — и адрес у него отдельный.
+      if (openMyWords) return { lang, screen: 'words' }
+      if (vocabView === 'nests') return { lang, screen: 'nests', id: openNestId ?? undefined }
+      if (vocabView === 'packs') return { lang, screen: 'packs', id: openPackId ?? undefined }
+      if (vocabView === 'due') return { lang, screen: 'due' }
+      return { lang, screen: 'sets', id: openTheme ?? undefined }
+    }
+    if (mode === 'listening') return { lang, screen: 'audio', id: openAudioId ?? undefined }
+    if (mode === 'speaking') return { lang, screen: 'speaking' }
+    if (mode === 'blocks') {
+      if (blocksView === 'roots') return { lang, screen: 'roots', id: openRootKo ?? undefined }
+      if (blocksView === 'numbers') return { lang, screen: 'numbers', id: openNumId ?? undefined }
+      if (blocksView === 'sounds') return { lang, screen: 'sounds', id: openPronId ?? undefined }
+      return { lang, screen: 'stems', id: openStemDict ?? undefined }
+    }
+    if (mode === 'grammar') return { lang, screen: 'grammar', id: openFormId ?? undefined }
+    if (guideView === 'books') return { lang, screen: 'books' }
+    return { lang, screen: 'story', id: openChapterId ?? undefined }
+  }, [
+    lang, mode, readingView, vocabView, blocksView, guideView, openMyWords,
+    openTextId, openWorkId, openSceneId, openAudioId, openTheme,
+    openNestId, openPackId, openStemDict, openRootKo, openNumId, openPronId,
+    openChapterId, openFormId,
+  ])
+  useEffect(() => { writeTrainerHash(currentLink) }, [currentLink])
+
+  /** Адрес этого экрана целиком — то, что уходит в буфер или в системный лист. */
+  const shareUrl = useMemo(() => trainerShareUrl(currentLink), [currentLink])
+
+  const bootDone = useRef(false)
+  useEffect(() => {
+    if (bootDone.current) return
+    const link = bootTrainerLink()
+    if (!link) { bootDone.current = true; return }
+    if (!sameLang(link.lang, lang)) return
+    takeBootTrainerLink()
+    bootDone.current = true
+
+    // Гасим всё открытое — см. «открытое перебивает половину» выше.
+    setOpenTextId(null); setOpenWorkId(null); setOpenSceneId(null); setOpenAudioId(null)
+    setOpenTheme(null); setOpenNestId(null); setOpenPackId(null)
+    setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null); setOpenPronId(null)
+    setOpenFormId(null); setOpenChapterId(null); setSpeakOpen(null)
+
+    const id = link.id ?? null
+    switch (link.screen) {
+      // Язык без экрана — «открой корейский»: где именно, решает сам тренажёр
+      // своей памятью. Так выглядит ссылка на предмет целиком.
+      case undefined: break
+      case 'feed':     setMode('reading'); setReadingView('feed'); break
+      case 'scenes':   setMode('reading'); setReadingView('scenes'); setOpenWorkId(id); setOpenSceneId(link.sub ?? null); break
+      case 'texts':    setMode('reading'); setReadingView('texts'); setOpenTextId(id); break
+      case 'sets':     setMode('vocab'); setVocabView('sets'); setOpenTheme(id); break
+      case 'words':    setMode('vocab'); setVocabView('sets'); setOpenTheme(MY_WORDS_ID); break
+      case 'nests':    setMode('vocab'); setVocabView('nests'); setOpenNestId(id); break
+      case 'packs':    setMode('vocab'); setVocabView('packs'); setOpenPackId(id); break
+      case 'due':      setMode('vocab'); setVocabView('due'); break
+      case 'audio':    setMode('listening'); setOpenAudioId(id); break
+      case 'speaking': setMode('speaking'); break
+      case 'stems':    setMode('blocks'); setBlocksView('stems'); setOpenStemDict(id); break
+      case 'roots':    setMode('blocks'); setBlocksView('roots'); setOpenRootKo(id); break
+      case 'numbers':  setMode('blocks'); setBlocksView('numbers'); setOpenNumId(id); break
+      case 'sounds':   setMode('blocks'); setBlocksView('sounds'); setOpenPronId(id); break
+      case 'grammar':  setMode('grammar'); setOpenFormId(id); break
+      case 'story':    setMode('guide'); setGuideView('story'); setOpenChapterId(id); break
+      case 'books':    setMode('guide'); setGuideView('books'); break
+    }
+  }, [
+    lang, setMode, setReadingView, setVocabView, setBlocksView, setGuideView,
+    setOpenTextId, setOpenWorkId, setOpenSceneId, setOpenAudioId, setOpenTheme,
+    setOpenNestId, setOpenPackId, setOpenStemDict, setOpenRootKo, setOpenNumId,
+    setOpenPronId, setOpenFormId, setOpenChapterId,
+  ])
+
   // ── Смена экрана — вид сверху ──────────────────────────────────────────────
   //
   // Режим, половина «Чтения», витрина или открытый материал — для ученика это
@@ -1804,7 +1863,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               ? `${scenesOf(openWork.id).length} ${t(scenesWord(scenesOf(openWork.id).length))}`
               : `${t('Всего:')} ${visibleWorks.length}`}
           </ToolCount>
-          {openWork && <ShareLink link={{ kind: 'work', workId: openWork.id }} accent={palette.accent} />}
         </ToolRight>
       </Toolbar>
     )
@@ -2526,6 +2584,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         text={openScene}
         scene={openScene}
         work={workById(openScene.workId)}
+        share={shareUrl}
         accent={palette.accent}
         palette={palette}
         lang={lang}
@@ -2539,6 +2598,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return (
       <Reader
         text={openText}
+        share={shareUrl}
         accent={palette.accent}
         palette={palette}
         lang={lang}
@@ -2552,6 +2612,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return (
       <Listener
         item={openAudio}
+        share={shareUrl}
         accent={palette.accent}
         palette={palette}
         lang={lang}
@@ -2565,6 +2626,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     <TrainerShell
       rail={rail}
       toolbar={toolbar}
+      share={shareUrl}
+      shareAccent={palette.accent}
       nav={nav}
       // Круг предмета — только когда предметов правда несколько. У ученика с
       // одним языком это была мёртвая кнопка, занимавшая в доке ровно ту
@@ -2621,57 +2684,6 @@ const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 2
 
 /** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
 /**
- * «Поделиться» — адрес открытого материала в буфер обмена.
- *
- * Кнопка, а не «скопируйте из строки браузера»: на телефоне адресной строки
- * половину времени не видно вовсе, а в установленном PWA её нет никогда.
- */
-function ShareLink({ link, accent }: { link: TrainerLink; accent: string }) {
-  const t = useT()
-  // На телефоне кругляша нет: строка управления переносится, и иконка ссылки
-  // вставала одинокой кнопкой отдельной строкой — служебное действие занимало
-  // собственный ряд экрана. Адрес там и так доступен через «Поделиться» ОС.
-  const narrow = useTrainerNarrow()
-  const [copied, setCopied] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
-
-  if (narrow) return null
-
-  // Кругляш без подписи и по правому краю. Слово «Поделиться» слева стояло в
-  // одном ряду с «К списку» и «С разбором», то есть среди того, чем читают, —
-  // и весило столько же, сколько они. Это действие редкое и служебное: место
-  // ему с краю, размер — с иконку, а подпись отдана заголовку при наведении.
-  const label = copied ? t('Ссылка скопирована') : t('Скопировать ссылку')
-  return (
-    <button
-      onClick={() => {
-        copyToClipboard(trainerShareUrl(link)).then(ok => {
-          if (!ok) return
-          setCopied(true)
-          if (timer.current) clearTimeout(timer.current)
-          timer.current = setTimeout(() => setCopied(false), 2000)
-        })
-      }}
-      title={label}
-      aria-label={label}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        // 36 — высота таблеток строки (10px padding + 16 строки): кружок обязан
-        // стоять с ними вровень, иначе правый край строки «проваливается».
-        width: 36, height: 36, borderRadius: 999, flexShrink: 0,
-        cursor: 'pointer', fontFamily: 'inherit',
-        border: `1px solid ${copied ? accent : 'var(--color-border-medium)'}`,
-        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
-        color: copied ? accent : 'var(--color-text-2)',
-      }}
-    >
-      {copied ? <Check size={15} /> : <Link2 size={15} />}
-    </button>
-  )
-}
-
-/**
  * Правый край строки управления: счётчик и служебные кнопки.
  *
  * Одна группа с `marginLeft: auto`, а не два отдельных элемента с ним же: два
@@ -2695,8 +2707,10 @@ const finishChip = {
   fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
 } as const
 
-function Reader({ text, scene, work, feed, accent, palette, lang, owner, subjectId, onBack }: {
+function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, subjectId, onBack }: {
   text: ReadingText
+  /** Адрес этого экрана — считает его родитель, у которого есть весь открытый материал. */
+  share: string
   /**
    * Задано, если открыт материал ленты. Читалка от этого не раздваивается:
    * сверху добавляется строка источника со ссылкой на оригинал — и всё.
@@ -2980,14 +2994,6 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
             {t('Оригинал')}<ExternalLink size={12} />
           </a>
         )}
-        {/* Ссылка ведёт ровно на этот отрывок, а не «в тренажёр»: сцена
-            адресуется вместе со своим произведением, учебный текст — сам собой. */}
-        <ShareLink
-          link={scene && work
-            ? { kind: 'work', workId: work.id, sceneId: scene.id }
-            : { kind: 'text', textId: text.id }}
-          accent={accent}
-        />
       </ToolRight>
     </Toolbar>
   )
@@ -3008,7 +3014,7 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
   ) : null
 
   return (
-    <TrainerShell rail={rail} toolbar={toolbar} narrowPlayer={player}>
+    <TrainerShell rail={rail} toolbar={toolbar} share={share} shareAccent={accent} narrowPlayer={player}>
       {/* «Что вокруг» — до текста и всегда. Без этого абзаца отрывок из
           середины книги остаётся случайным куском: непонятно, кто эти люди и
           почему сцена вообще чего-то стоит. */}
@@ -3321,7 +3327,9 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
 
 // ─── Прослушивание ───────────────────────────────────────────────────────────
 
-function Listener({ item, accent, palette, lang, onBack }: {
+function Listener({ item, share, accent, palette, lang, onBack }: {
+  /** Адрес этого экрана — см. Reader. */
+  share: string
   item: ListeningItem
   accent: string
   palette: { accent: string; text: string; soft: string; ring: string }
@@ -3406,7 +3414,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
   ) : null
 
   return (
-    <TrainerShell rail={rail} toolbar={toolbar} narrowPlayer={player}>
+    <TrainerShell rail={rail} toolbar={toolbar} share={share} shareAccent={accent} narrowPlayer={player}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {item.questions.map((q, qi) => (
           <QuestionCard

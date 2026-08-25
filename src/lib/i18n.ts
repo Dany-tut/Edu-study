@@ -13,6 +13,24 @@ export type Lang = 'ru' | 'en'
 // screens get wrapped in t(); an unknown key harmlessly falls through to RU.
 const EN: Record<string, string> = {
   // — Профиль / Settings —
+  // — Цвет курса —
+  'Цвет курса': 'Course colour',
+  'Насколько красить': 'How much to tint',
+  'Цвета предметов': 'Subject colours',
+  'Выключено': 'Off',
+  'Акцент': 'Accent',
+  'Подложки': 'Fills',
+  'Среда': 'Ambient',
+  'Один фиолетовый на все курсы': 'One purple for every course',
+  'Кнопки, прогресс, активная иконка': 'Buttons, progress, active icon',
+  'Плюс плитки, бейджи, статистика': 'Plus tiles, badges, stats',
+  'Плюс фон и стекло — весь экран в тоне': 'Plus background and glass — the whole screen',
+  'Как у преподавателя': 'Same as teacher',
+  'Как в приложении': 'App default',
+  'свой': 'custom',
+  'Свой цвет виден только вам — у преподавателя останется его.': 'Your colour is yours alone — the teacher keeps theirs.',
+  'Интерфейс подстраивается под открытый курс.': 'The interface follows the course you have open.',
+  'Этим цветом предмет видите вы и ваши ученики. Ученик может выбрать свой — у вас останется этот.': 'You and your students see the subject in this colour. A student may pick their own — yours stays.',
   'Ученик': 'Student',
   'Уровень': 'Level',
   'Все предметы': 'All subjects',
@@ -346,6 +364,7 @@ const EN: Record<string, string> = {
   "Отправьте ссылку учителю — доступ применится при регистрации.": "Send the link to the teacher — access applies on sign-up.",
   "Скопировано!": "Copied!",
   "Скопировать ссылку": "Copy link",
+  "Ссылка скопирована": "Link copied",
   "Готово": "Done",
   "Email учителя (необязательно, подставится в форму)": "Teacher's email (optional, prefilled in the form)",
   "Создаём…": "Creating…",
@@ -1093,6 +1112,7 @@ const EN: Record<string, string> = {
   "Тапай блоки в правильном порядке": "Tap the blocks in the right order",
   "Ряд слогов": "Syllable bank",
   "Собери слово из ряда, часть слогов — обманки": "Build the word from the row — some tiles are decoys",
+  "Написано": "Written",
   "Нажимай на плитки — собери слово правильно": "Tap the tiles to rebuild the word correctly",
   "Нажимай на нужные плитки по порядку": "Tap the right tiles in order",
   "Нажимай на блоки в правильном порядке": "Tap the blocks in the right order",
@@ -1136,6 +1156,11 @@ const EN: Record<string, string> = {
   "патчхим": "patchim",
   "Убрать эту букву": "Remove this letter",
   "Тап по букве в блоке убирает её и следующие": "Tap a letter in the block to clear it and the ones after",
+
+  // — Клавиатура хангыля под полем ответа —
+  "Ответ по-корейски — слоги сложатся сами": "Answer in Korean — syllables assemble on their own",
+  "пробел": "space",
+  "Стереть": "Delete",
 
   // — Набор по буквам (jamoType) —
   "Набор слова по буквам": "Type a word by letters",
@@ -1834,6 +1859,25 @@ const EN: Record<string, string> = {
   "Самооценка:": "Self-assessment:",
   "Открыть хард": "Open advanced",
   "Сдать домашку": "Submit homework",
+  "Это задание приехало без содержимого — решать нечего. Пропусти его, оно не пойдёт в ошибки.":
+    "This task arrived with no content — there is nothing to solve. Skip it; it will not count as a mistake.",
+  // — Микрофон —
+  "Нет доступа к микрофону": "No access to the microphone",
+  "Запись не поддерживается в этом браузере": "Recording is not supported in this browser",
+  "Откройте домашку в Safari или Chrome — там запись работает.": "Open the homework in Safari or Chrome — recording works there.",
+  "Микрофон не найден": "No microphone found",
+  "Проверьте, что микрофон подключён и не отключён в системе.": "Check that a microphone is connected and not muted in the system.",
+  "Микрофон занят другой программой": "The microphone is busy in another app",
+  "Закройте звонок или запись в другом приложении и попробуйте ещё раз.": "Close the call or recording in the other app and try again.",
+  "Запись доступна только по защищённому адресу": "Recording only works over a secure address",
+  "Откройте приложение по адресу с https:// — по http микрофон не работает ни в одном браузере.":
+    "Open the app over https:// — no browser gives microphone access over http.",
+  "Разрешение спрашивают один раз за запуск. Закройте приложение (смахните его в переключателе программ), откройте заново и на вопрос о микрофоне ответьте «Разрешить». Если вопроса нет — проверьте: Настройки → Safari → Микрофон.":
+    "Permission is asked once per launch. Close the app (swipe it away in the app switcher), open it again and answer “Allow” to the microphone prompt. No prompt at all? Check Settings → Safari → Microphone.",
+  "Нажмите «АА» слева в адресной строке → «Настройки для веб-сайта» → Микрофон → «Разрешить». Если такого пункта нет: Настройки → Safari → Микрофон.":
+    "Tap “aA” on the left of the address bar → “Website Settings” → Microphone → “Allow”. No such item? Settings → Safari → Microphone.",
+  "Нажмите на значок замка слева в адресной строке и разрешите этому сайту микрофон, потом попробуйте ещё раз.":
+    "Click the lock icon on the left of the address bar, allow the microphone for this site, then try again.",
   "Список закончился, домашка — нет": "The list is over, the homework isn't",
   "Без ответа": "Unanswered",
   "Можно вернуться к ним — или сдать как есть: пропущенные пойдут в ошибки.": "You can go back to them — or submit as is: skipped ones count as mistakes.",

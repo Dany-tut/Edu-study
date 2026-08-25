@@ -21,6 +21,7 @@ import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap, balancedWrap } from '../lib/typography'
+import Prose from '../components/Prose'
 import GlossedText from '../components/GlossedText'
 import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { resolveSubjectPalette } from '../lib/subjects'
@@ -50,19 +51,19 @@ function formatClock(totalSeconds: number) {
 function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null, reactions: CourseReaction[] = []) {
   // No reaction tag — render plain text, no wrapper. Other paragraphs in the
   // conspect never need the inline-flex pill, so they stay unchanged.
-  if (!reactionId) return tidyProse(text)
+  if (!reactionId) return <Prose text={text} />
 
   const reaction = reactions.find(item => item.id === reactionId)
-  if (!reaction) return tidyProse(text)
+  if (!reaction) return <Prose text={text} />
 
   const highlightText = reaction.equation
   // Склейку коротких слов делаем ПОСЛЕ поиска уравнения: неразрывный пробел
   // внутри текста сбил бы indexOf по исходной строке.
   const matchIndex = text.indexOf(highlightText)
-  if (matchIndex === -1) return tidyProse(text)
+  if (matchIndex === -1) return <Prose text={text} />
 
-  const before = tidyProse(text.slice(0, matchIndex))
-  const after = tidyProse(text.slice(matchIndex + highlightText.length))
+  const before = <Prose text={text.slice(0, matchIndex)} />
+  const after = <Prose text={text.slice(matchIndex + highlightText.length)} />
   const isActive = reactionId === activeReactionId
 
   // The wrapper span is ALWAYS rendered (with the same inline-flex + padding)
@@ -159,7 +160,7 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
         </button>
         {caption && (
           <figcaption style={{ fontSize: 13 * scale, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', ...balancedWrap }}>
-            {tidyProse(caption)}
+            <Prose text={caption} />
           </figcaption>
         )}
       </figure>

@@ -171,3 +171,15 @@ export async function saveVideoWatch(
     updated_at: next.updatedAt,
   }, { onConflict: 'student_id,lesson_ref' })
 }
+
+/**
+ * Забыть локальную копию просмотра.
+ *
+ * Нужна сверке домашки с базой (lib/homeworkReset.ts): после сброса курса
+ * строки `video-<lessonId>` в базе нет, а loadVideoWatch отдаёт предпочтение
+ * более свежей записи — то есть локальной, — и запись урока продолжала
+ * числиться отсмотренной на 90%.
+ */
+export function clearVideoWatchLocal(lessonId: string): void {
+  try { localStorage.removeItem(localKey(lessonId)) } catch { /* приватный режим */ }
+}

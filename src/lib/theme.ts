@@ -41,6 +41,9 @@ export const TRACK_STATUS = {
   returned:  { bg: 'var(--color-yellow-soft)', border: '#F8EF8C', icon: '#7A6A00' },
   unviewed:  { bg: 'var(--color-red-soft)',    border: '#F48B91', icon: '#A8282D' },
   submitted: { bg: 'var(--color-peach-soft)',  border: '#F8C991', icon: '#8A4A00' },
-  current:   { bg: 'var(--color-bg-input)',    border: PURPLE.mid, icon: PURPLE.text },
+  // «Сейчас» держится на --status-now*, а не на PURPLE: брендовый фиолетовый
+  // уходит в цвет открытого курса (lib/courseTint.ts), а статусная линия обязана
+  // оставаться различимой при любом предмете.
+  current:   { bg: 'var(--color-bg-input)',    border: 'var(--status-now)', icon: 'var(--status-now-text)' },
   locked:    { bg: 'var(--color-bg-3)',        border: 'var(--color-border-soft)', icon: 'var(--color-muted)' },
 }

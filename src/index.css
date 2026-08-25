@@ -75,6 +75,10 @@
   --color-amber: #B8770E;
   --color-amber-soft: rgba(184,119,14,0.10);
   --color-amber-border: rgba(184,119,14,0.24);
+  /* Цифра/подпись НА янтарной подложке. В светлой теме сам --color-amber на
+     ней даёт 3.0:1 — на грани даже для крупного текста, поэтому здесь тон
+     темнее; в тёмной теме роли меняются местами (см. переопределение ниже). */
+  --color-amber-text: #8A5A08;
   --reminder-card-medium: rgba(255,160,20,0.14);
   --reminder-card-high: rgba(230,80,90,0.12);
   --reminder-card-medium-border: rgba(255,170,30,0.35);
@@ -108,6 +112,10 @@
 
   /* ── Accent gradients (vivid; shared across themes) ───────── */
   /* Cool blue-purple base #786AD7 — the ONE purple CTA gradient */
+  /* Свечение под сплошной акцентной карточкой. Отдельным токеном, потому что
+     тень тоже красится в цвет курса (lib/courseTint.ts): фиолетовый ореол под
+     коралловой кнопкой выдавал бы «недокрашенный» экран. */
+  --glow-accent:     0 12px 28px rgba(106,90,230,0.35);
   --grad-purple:     linear-gradient(135deg, #9D8BFF, #6A5AE6);
   --grad-purple-bar: linear-gradient(90deg, #6A5AE6, #A697FF);
   --grad-green:      linear-gradient(135deg, #34C877, #2A7D4F);
@@ -137,6 +145,15 @@
   --color-yellow-text: #7A6500;
   --color-peach-text: #8B4900;
   --color-purple-text: #3D33A0;
+  /* ── Статус «сейчас» — фиксированный брендовый фиолетовый ──────────────
+     Отдельная тройка, а не --color-purple*: те уводятся в цвет открытого курса
+     (lib/courseTint.ts), а «текущий урок» на трассе — знак состояния в одном
+     ряду с зелёным «сдано» и красной «просрочкой». На коралловом английском он
+     сливался бы с просрочкой, на португальском — со сдано, и линия статусов
+     переставала читаться. Оттенок курса сюда не дотягивается никогда. */
+  --status-now: #9C8CF0;
+  --status-now-soft: #E7E4FB;
+  --status-now-text: #3D33A0;
   --color-blue-pill-bg: #DCEEFB;
   --color-blue-pill-text: #1F6FB8;
   --color-teal-pill-bg: #CFF3EE;
@@ -225,6 +242,7 @@
   --color-amber: #E0A342;
   --color-amber-soft: rgba(224,163,66,0.14);
   --color-amber-border: rgba(224,163,66,0.24);
+  --color-amber-text: #E0A342;
   --color-purple-soft: rgba(124,108,224,0.22);
   --color-rose-soft: rgba(204,75,123,0.22);
   /* Reminder card backgrounds — higher opacity for readability */
@@ -240,6 +258,10 @@
   --color-yellow-text: #F6E47A;
   --color-peach-text: #FFCE92;
   --color-purple-text: #DAD3FB;
+  /* Статус «сейчас» — та же тройка, что в светлой теме: цвет курса её не берёт. */
+  --status-now: #B3A6F7;
+  --status-now-soft: rgba(124,108,224,0.22);
+  --status-now-text: #DAD3FB;
   --color-blue-pill-bg: rgba(99,179,237,0.20);
   --color-blue-pill-text: #63B3ED;
   --color-teal-pill-bg: rgba(74,222,180,0.20);
@@ -255,6 +277,9 @@
   --color-avatar-bg: #6B5FC0;
   /* Dark-theme accent = --color-purple («стало»). */
   --color-accent: #B3A6F7;
+  /* В тёмной теме цветной ореол вокруг карточки читается грязным пятном —
+     остаётся обычная тень. */
+  --glow-accent: 0 12px 28px rgba(0,0,0,0.45);
   --color-green-accent: #4ADE80;
 
   /* ── Shadows (dark-theme glass cards) ────────────────────── */
@@ -308,6 +333,27 @@ html {
   /* Paint the root canvas (not just body) so the safe-area zones under iOS bars
      are never a transparent/default band — they match the app bg exactly. */
   background-color: var(--color-bg);
+}
+
+/* ── Перетекание цвета при смене курса ────────────────────────────────────
+   Атрибут вешается на <html> на 420 мс в момент, когда акцент курса реально
+   сменился (store/tintStore.ts), и снимается сам. Постоянно такого правила
+   быть не может: переход на КАЖДОМ элементе — это перерасчёт краски на весь
+   экран, и наведение на строку начало бы «догонять» курсор. А на смене курса
+   он и нужен: цвет обязан перетечь, иначе экран выглядит подменённым кадром,
+   а не перекрашенным.
+   transform и opacity намеренно не перечислены — на них живут анимации
+   framer-motion, и вмешательство сюда рвало бы их посреди движения. */
+html[data-tint-shift] body,
+html[data-tint-shift] body * {
+  transition:
+    background-color 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+    color 0.42s cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-tint-shift] body,
+  html[data-tint-shift] body * { transition: none !important; }
 }
 
 body {

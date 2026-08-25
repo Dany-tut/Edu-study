@@ -25,10 +25,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { COURSE_SEEDS } from '../data/courseSeeds'
-import type { CourseEdData, CELesson } from '../pages/teacher/TeacherCourseEditorPage'
+import { normalizeTaskType } from '../data/taskTypes'
+import type { CourseEdData, CELesson, CEModule } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Название урока без ведущего номера — номера съезжают при вставке юнита. */
 const norm = (title: string) => title.replace(/^\d+\.\s*/, '').trim()
+
+/** Id нового модуля — тот же вид, что у редактора (см. uid там же). */
+function uid() { return Math.random().toString(36).slice(2, 8) }
 
 /** Задание курса/сида — у редактора это HWTask, здесь нужен только общий минимум. */
 type Task = { id?: string; label?: string; type?: string; question?: string } & Record<string, unknown>
@@ -47,6 +51,14 @@ const OWNED_FIELDS = [
   'pattern', 'patternGloss', 'patternItems',
   'passage', 'passageTitle', 'passageTranslation',
   'image', 'images', 'table', 'sequenceItems', 'pairs',
+  // Поля, БЕЗ КОТОРЫХ ЗАДАНИЕ НЕ РИСУЕТСЯ. Решатель включается по ним, а не по
+  // типу (см. authoredTaskToQuestion): обводка — по `chamo`, сборка слога — по
+  // `syllable`, диалог — по `dialog`, кроссворд — по `clues`, видео — по
+  // `videoUrl`. Пока их тут не было, сверка переписывала формулировку задания и
+  // оставляла тело от старой версии: «Обведите букву ㅓ» приезжало без буквы.
+  'chamo', 'syllable', 'dialog', 'gaps', 'clues', 'answerSkeleton', 'related',
+  'videoUrl', 'videoStart', 'videoWatchSeconds', 'videoCredit',
+  'audioUrl', 'ttsVoice', 'allowSlow', 'afterNote',
 ] as const
 
 export type SeedChangeKind = 'lesson' | 'lesson-gone' | 'task' | 'task-gone' | 'task-fields' | 'theory' | 'video'
@@ -112,8 +124,35 @@ function taskKey(id: string | undefined): string {
  * `<ключ сида>-<номер юнита>-<место>`, а редактор — шесть случайных символов
  * без дефисов (см. uid в TeacherCourseEditorPage).
  */
-const isSeedTask = (id: string | undefined, seedKey: string): boolean =>
-  !!id && new RegExp(`^${seedKey}-\\d+-`).test(id)
+const isSeedTask = (id: string | undefined, seedKey: string, lessonPrefixes: string[] = []): boolean =>
+  !!id && (
+    new RegExp(`^${seedKey}-`).test(id) ||
+    lessonPrefixes.some(p => id.startsWith(p))
+  )
+
+/**
+ * Начала id уроков сида — второй признак «это положил сид».
+ *
+ * ЗАЧЕМ. Раньше сидовым считался id строго вида `<ключ>-<цифры>-<место>`. Для
+ * большинства курсов это верно, но не для всех: у хангыля уроки называются
+ * `ko-hangul-1`, хотя ключ сида — `kohg`, а у IELTS — `ielt-1p`, с буквой после
+ * номера. Оба под шаблон не подходили, и сверка считала ВСЕ их задания
+ * ручными: у хангыля — все 736 из 736, у IELTS — 74.
+ *
+ * Последствие не косметическое. Урок опознаётся как сидовый по своим заданиям,
+ * поэтому «урока больше нет в сиде» у этих курсов не срабатывало никогда: в
+ * «Кор хангыль» лежат пятнадцать лишних порций от старого дробления, снять их
+ * было нечем — кнопка «Из сида» не появлялась вообще, сверка не находила ни
+ * одного расхождения.
+ *
+ * Признаков теперь два, и хватает любого: id начинается с ключа сида — это
+ * ловит задания юнитов, убранных из сида целиком (их id урока среди свежих уже
+ * нет), — либо с id какого-то урока сида, что ловит курсы с чужим префиксом.
+ * Ручное задание не подходит ни под один: редактор выдаёт шесть случайных
+ * символов без дефисов (см. uid в TeacherCourseEditorPage).
+ */
+const seedLessonPrefixes = (fresh: CourseEdData): string[] =>
+  fresh.lessons.map(l => `${l.id}-`)
 
 /**
  * Пришёл ли урок из этого сида.
@@ -124,8 +163,8 @@ const isSeedTask = (id: string | undefined, seedKey: string): boolean =>
  * руками, таких заданий не содержит и под удаление не попадёт. Пустой урок
  * тоже не трогаем: доказательств, что он из сида, нет.
  */
-const isSeedLesson = (lesson: CELesson, seedKey: string): boolean =>
-  tasksOf(lesson).some(t => isSeedTask(t.id, seedKey))
+const isSeedLesson = (lesson: CELesson, seedKey: string, lessonPrefixes: string[] = []): boolean =>
+  tasksOf(lesson).some(t => isSeedTask(t.id, seedKey, lessonPrefixes))
 
 /**
  * Значение с ключами объектов в одном и том же порядке.
@@ -154,6 +193,32 @@ function canon(value: unknown): unknown {
   return value
 }
 
+/**
+ * Разошёлся ли ТИП задания — и почему это отдельный вид расхождения.
+ *
+ * ЗАЧЕМ. Тип не поле среди полей: он решает, каким решателем задание вообще
+ * рисуется. Пока сверка его не знала, она переписывала формулировку и оставляла
+ * тело от прежней версии — получался кентавр. Живой курс «Корейский с нуля»
+ * дошёл до ученика ровно таким: «Соберите слово „огурец“ из слогов» с типом
+ * `single` и без единого варианта (пустой экран), «Наберите по буквам» с рядом
+ * плиток, «написано с перепутанными слогами» с экранной клавиатурой и
+ * «Обведите букву ㅓ» вообще без буквы. Ни одно из этих заданий решить нельзя,
+ * и виновата не опечатка автора, а сверка, применившая половину правки.
+ *
+ * ПОЧЕМУ ЦЕЛИКОМ, А НЕ ПОЛЕ ЗА ПОЛЕМ. У каждого типа своё тело: у обводки
+ * `chamo`, у сборки слога `syllable`, у выбора `choices`. Сменившийся тип — это
+ * другое задание на том же месте, и переносить в него куски прежнего нечего.
+ *
+ * Легаси-написания (`choice`/`match`/`table`) приводим к каноническим: иначе
+ * старый курс показывал бы расхождение на каждом задании выбора.
+ */
+function typeDiffers(mine: Task, seedTask: Task): boolean {
+  const a = (mine.type ?? '').trim()
+  const b = (seedTask.type ?? '').trim()
+  if (!a || !b) return false
+  return normalizeTaskType(a) !== normalizeTaskType(b)
+}
+
 /** Отличаются ли значения поля. Сравниваем по JSON: значения простые либо массивы. */
 function differs(a: unknown, b: unknown): boolean {
   if (a === b) return false
@@ -178,6 +243,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
   if (!seed) return { seedKey: null, changes: [] }
 
   const fresh = await seed.build(course.id)
+  const prefixes = seedLessonPrefixes(fresh)
   const byTitle = new Map(course.lessons.map(l => [norm(l.title ?? ''), l]))
   const changes: SeedChange[] = []
 
@@ -198,7 +264,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
   course.lessons.forEach(mine => {
     const title = norm(mine.title ?? '')
     if (freshTitles.has(title)) return
-    if (!isSeedLesson(mine, seed.key)) return
+    if (!isSeedLesson(mine, seed.key, prefixes)) return
     changes.push({
       key: `lesson-gone:${title}`,
       kind: 'lesson-gone',
@@ -251,7 +317,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
     // не затрагиваются — они просто перестают показываться, поэтому решение
     // обратимо через отмену сверки, но не через «вернуть как было» после
     // сохранения.
-    const gone = tasksOf(mine).filter(t => isSeedTask(t.id, seed.key) && !freshKeys.has(taskKey(t.id)))
+    const gone = tasksOf(mine).filter(t => isSeedTask(t.id, seed.key, prefixes) && !freshKeys.has(taskKey(t.id)))
     if (gone.length) {
       changes.push({
         key: `gone:${title}`,
@@ -268,7 +334,8 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
     ;(unit.hwTasks ?? []).forEach(t => {
       const my = t.id ? mineByKey.get(taskKey(t.id)) : undefined
       if (!my) return
-      const fields = OWNED_FIELDS.filter(f => differs(my[f], (t as Task)[f]))
+      const fields: string[] = OWNED_FIELDS.filter(f => differs(my[f], (t as Task)[f]))
+      if (typeDiffers(my, t as Task)) fields.unshift(`тип: ${my.type} → ${(t as Task).type}`)
       if (fields.length) drifted.push(`${t.label ?? t.type}: ${fields.join(', ')}`)
     })
     if (drifted.length) {
@@ -329,6 +396,7 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
   if (!seed || keys.size === 0) return course
 
   const fresh = await seed.build(course.id)
+  const prefixes = seedLessonPrefixes(fresh)
   const freshByTitle = new Map(fresh.lessons.map(l => [norm(l.title), l]))
 
   let lessons = course.lessons.map(lesson => {
@@ -357,7 +425,7 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
       next = {
         ...next,
         hwTasks: tasksOf(next).filter(
-          t => !isSeedTask(t.id, seed.key) || freshKeys.has(taskKey(t.id)),
+          t => !isSeedTask(t.id, seed.key, prefixes) || freshKeys.has(taskKey(t.id)),
         ) as CELesson['hwTasks'],
       }
     }
@@ -369,6 +437,9 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
         hwTasks: tasksOf(next).map(t => {
           const src = t.id ? fromSeed.get(taskKey(t.id)) : undefined
           if (!src) return t
+          // Сменился ТИП — задание берётся из сида целиком (см. typeDiffers).
+          // Своим остаётся только id: по нему лежат ответы учеников.
+          if (typeDiffers(t, src)) return { ...src, id: t.id }
           const patch: Record<string, unknown> = {}
           OWNED_FIELDS.forEach(f => { if (differs(t[f], src[f])) patch[f] = src[f] })
           return { ...t, ...patch }
@@ -399,8 +470,98 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
   if (dropped.size) lessons = lessons.filter(l => !dropped.has(l.id))
 
   // ── новые уроки ──
-  const modules = course.modules
+  const modules: CEModule[] = course.modules
     .map(m => ({ ...m, lessonIds: m.lessonIds.filter(id => !dropped.has(id)) }))
+
+  // Модуль, в котором урок стоит У САМОГО СИДА.
+  //
+  // ЗАЧЕМ. Раньше новый урок клали в модуль соседа, а соседа не нашлось — в
+  // ПОСЛЕДНИЙ модуль курса. На обычном добавлении юнита это незаметно. Но стоит
+  // смениться формату названий — а он менялся при вводе порций, когда «1. Юнит»
+  // стало «1.1 Юнит», — как несовпавшими оказываются сразу ВСЕ уроки: первый
+  // падает в хвост, второй цепляется за первый, третий за второй, и весь курс
+  // съезжает в последний модуль, а остальные пустеют. Так и случилось с тремя
+  // корейскими курсами: 132, 102 и 197 уроков одной кучей в конце.
+  //
+  // Сосед остаётся, но только для МЕСТА ВНУТРИ модуля. Сам модуль берётся из
+  // сида — он там задан явно и от названий не зависит.
+  const freshModuleOf = new Map<string, number>()
+  fresh.modules.forEach((m, i) => m.lessonIds.forEach(id => freshModuleOf.set(id, i)))
+  const freshById = new Map(fresh.lessons.map(l => [l.id, l]))
+
+  /**
+   * Модуль курса под модуль сида №i, или -1, если такого в курсе нет.
+   *
+   * Сопоставляем ПО СОДЕРЖИМОМУ, а не по подписи: учитель переименовывает
+   * модули (в живом курсе «Чтение и первые фразы» значится как «Хангыль и
+   * первые фразы»), и матчинг по названию завёл бы этому курсу второй модуль с
+   * тем же смыслом. Голосуют уроки: где лежит больше уроков этого модуля сида,
+   * тот модуль и наш. Подпись — запасной признак, для модуля, из которого в
+   * курсе пока нет ни одного урока.
+   */
+  const courseModuleOf = new Map<string, number>()
+  modules.forEach((m, mi) => m.lessonIds.forEach(id => {
+    const l = lessons.find(x => x.id === id)
+    if (l) courseModuleOf.set(norm(l.title ?? ''), mi)
+  }))
+  const modIndexOfFresh = new Map<number, number>()
+  const claimed = new Set<number>()
+
+  // ВСЕ модули курса опустели — из сида пришла новая программа целиком. Так и
+  // выглядит смена формата названий: ни один урок не совпал, все старые ушли в
+  // «урока больше нет в сиде», все новые пришли из сида. В пустом модуле работы
+  // учителя нет по определению, поэтому берём разбивку сида как есть — иначе к
+  // его пяти модулям добавились бы пять старых пустых, и курс открывался бы с
+  // пятью строчками «Нет уроков». Id переиспользуем по местам: сохранение
+  // сопоставляет модули с базой по позиции, лишних вставок и удалений не будет.
+  const allEmpty = modules.length > 0 && modules.every(m => m.lessonIds.length === 0)
+  if (allEmpty) {
+    const reused = modules.map(m => ({ id: m.id, expanded: m.expanded }))
+    modules.length = 0
+    fresh.modules.forEach((fm, i) => {
+      modules.push({ id: reused[i]?.id ?? uid(), label: fm.label, expanded: reused[i]?.expanded ?? false, lessonIds: [] })
+      modIndexOfFresh.set(i, i)
+      claimed.add(i)
+    })
+  } else fresh.modules.forEach((fm, i) => {
+    const votes = new Map<number, number>()
+    fm.lessonIds.forEach(id => {
+      const fl = freshById.get(id)
+      const mi = fl ? courseModuleOf.get(norm(fl.title)) : undefined
+      if (mi !== undefined && !claimed.has(mi)) votes.set(mi, (votes.get(mi) ?? 0) + 1)
+    })
+    let best = -1
+    let bestN = 0
+    votes.forEach((n, mi) => { if (n > bestN) { best = mi; bestN = n } })
+    if (best < 0) best = modules.findIndex((m, mi) => !claimed.has(mi) && m.label.trim() === fm.label.trim())
+    if (best >= 0) { claimed.add(best); modIndexOfFresh.set(i, best) }
+  })
+
+  /** Модуль курса под модуль сида №i; нет такого — заводим на своём месте. */
+  function moduleFor(i: number): CEModule {
+    const at = modIndexOfFresh.get(i)
+    if (at !== undefined) return modules[at]
+    // Модуля в курсе нет — сид завёл новый раздел (так в «Корейский к TOPIK II»
+    // появилась «Матчасть: глаголы и звучание»). Ставим его между соседями по
+    // порядку сида, а не в конец: раздел про неправильные глаголы обязан стоять
+    // там, где он задуман, иначе программа читается задом наперёд.
+    const created: CEModule = { id: uid(), label: fresh.modules[i].label, expanded: false, lessonIds: [] }
+    let pos = -1
+    for (let j = i - 1; j >= 0 && pos < 0; j--) {
+      const k = modIndexOfFresh.get(j)
+      if (k !== undefined) pos = k + 1
+    }
+    for (let j = i + 1; j < fresh.modules.length && pos < 0; j++) {
+      const k = modIndexOfFresh.get(j)
+      if (k !== undefined) pos = k
+    }
+    if (pos < 0) pos = modules.length
+    modules.splice(pos, 0, created)
+    modIndexOfFresh.forEach((v, k) => { if (v >= pos) modIndexOfFresh.set(k, v + 1) })
+    modIndexOfFresh.set(i, pos)
+    return created
+  }
+
   fresh.lessons.forEach((unit, unitIdx) => {
     const title = norm(unit.title)
     if (!keys.has(`lesson:${title}`)) return
@@ -415,11 +576,21 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
     const at = anchor ? lessons.indexOf(anchor) + 1 : lessons.length
     lessons = [...lessons.slice(0, at), unit, ...lessons.slice(at)]
 
-    const mod = modules.find(m => anchor && m.lessonIds.includes(anchor.id)) ?? modules[modules.length - 1]
-    if (mod) {
-      const pos = anchor ? mod.lessonIds.indexOf(anchor.id) + 1 : mod.lessonIds.length
-      mod.lessonIds = [...mod.lessonIds.slice(0, pos), unit.id, ...mod.lessonIds.slice(pos)]
+    const fi = freshModuleOf.get(unit.id)
+    if (fi === undefined) return
+    const mod = moduleFor(fi)
+    // Место внутри модуля — по порядку сида: встаём сразу за ближайшим
+    // предыдущим уроком ЭТОГО ЖЕ модуля, который в курсе уже есть. Никого перед
+    // нами нет — значит, мы в модуле первые.
+    const sibs = fresh.modules[fi].lessonIds
+    let pos = 0
+    for (let j = sibs.indexOf(unit.id) - 1; j >= 0 && pos === 0; j--) {
+      const sib = freshById.get(sibs[j])
+      const mine = sib ? lessons.find(l => norm(l.title ?? '') === norm(sib.title)) : undefined
+      const k = mine ? mod.lessonIds.indexOf(mine.id) : -1
+      if (k >= 0) pos = k + 1
     }
+    mod.lessonIds = [...mod.lessonIds.slice(0, pos), unit.id, ...mod.lessonIds.slice(pos)]
   })
 
   // Номер урока и номер в его названии — сквозные по курсу, иначе после вставки

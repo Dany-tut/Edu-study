@@ -18,11 +18,10 @@
 // дают больше, чем равномерные. Первый возврат — через два других задания,
 // второй — через шесть.
 //
-// ЧЕГО ЗДЕСЬ НЕТ. Ступеней лестницы (элемент × ступень, Р2): повтор пока
-// возвращает ТО ЖЕ задание, а не более лёгкое по тому же слову. Лёгкая ступень
-// рождается из данных юнита, а их даёт блок C (генератор сида). Планировщик
-// написан так, чтобы ступень легла сюда же: в очереди лежат позиции, а не
-// вопросы, и подменить вопрос на позиции — это одно поле.
+// СТУПЕНЬ ВНИЗ. Промах возвращает не только само задание, но и задание ПОПРОЩЕ
+// про то же слово (`easier`): не набралось с клавиатуры — сначала собери из
+// плиток, потом набирай снова. Какое задание считается более лёгким и про какое
+// слово оно вообще, решает lib/lessonLadder.ts; здесь только порядок.
 //
 // ЭТО НЕ SRS. Здесь минуты и один урок; дни и месяцы считает FSRS
 // (lib/fsrs.ts), и смешивать их нельзя: у них разные единицы и разные цели.
@@ -96,19 +95,33 @@ export const isRepeatAt = (queue: QueueState, position: number): boolean =>
  */
 export function requeue(
   queue: QueueState,
-  opts: { id: string; index: number; position: number; baseCount: number },
+  opts: { id: string; index: number; position: number; baseCount: number; easier?: number },
 ): QueueState {
-  const { id, index, position, baseCount } = opts
+  const { id, index, position, baseCount, easier } = opts
   const used = queue.retries[id] ?? 0
   if (used >= MAX_RETRIES) return queue
-  if (queue.order.length >= Math.ceil(baseCount * LENGTH_CAP)) return queue
+  const cap = Math.ceil(baseCount * LENGTH_CAP)
+  if (queue.order.length >= cap) return queue
 
   const gap = GAPS[used]
-  // Дальше конца очереди вставлять некуда — тогда задание встаёт последним.
-  const at = Math.min(position + gap, queue.order.length)
-  const order = [...queue.order.slice(0, at), index, ...queue.order.slice(at)]
-  // Вставка сдвигает все отметки повторов правее неё.
-  const repeats = queue.repeats.map(p => (p >= at ? p + 1 : p)).concat(at)
+  // Ступень вниз (Р8): перед повтором того же задания ставим задание попроще
+  // про то же слово — собрать из плиток то, что не набралось с клавиатуры.
+  // Ближе, чем сам повтор: это не проверка, а починка, и ждать её шесть экранов
+  // незачем. Места на два вставки нет — идёт один повтор, как раньше.
+  const withEasier = easier !== undefined && easier >= 0 && queue.order.length + 2 <= cap
+
+  const order = [...queue.order]
+  const repeats = [...queue.repeats]
+  const insert = (at: number, value: number) => {
+    const pos = Math.min(Math.max(at, 0), order.length)
+    order.splice(pos, 0, value)
+    for (let i = 0; i < repeats.length; i++) if (repeats[i] >= pos) repeats[i]++
+    repeats.push(pos)
+  }
+
+  if (withEasier) insert(position + 2, easier!)
+  insert(position + gap + (withEasier ? 1 : 0), index)
+
   return { order, retries: { ...queue.retries, [id]: used + 1 }, repeats }
 }
 

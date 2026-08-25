@@ -28,6 +28,7 @@ import { PAIR, type PairName } from '../lib/mobileTokens'
 import { writeDraft } from '../lib/useDraft'
 import { resolveSubjectPalette, getSubject } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
+import { useTint } from '../store/tintStore'
 import { useT, t as tt } from '../lib/i18n'
 import type { LucideIcon } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
@@ -87,6 +88,12 @@ export default function MobileHome() {
     ? (subjects.find(s => s.id === homeSubjectId) ?? null)
     : null
   const scanSubjects = scopedSubject ? [scopedSubject] : subjects
+
+  // Оттенок интерфейса под выбранный курс. У одного курса выбирать нечего —
+  // он и есть контекст, поэтому кабинет красится им сразу, без чипса.
+  const setTintSubject = useTint(s => s.setActiveSubject)
+  const tintSubject = scopedSubject?.subject ?? (subjects.length === 1 ? subjects[0].subject : null)
+  useEffect(() => { setTintSubject(tintSubject ?? null) }, [tintSubject, setTintSubject])
 
   // Continue target: the current lesson, else first unlocked-incomplete lesson.
   const continueInfo = (() => {
@@ -401,7 +408,10 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      style={{ borderRadius: 20, padding: 14, color: '#fff', background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', boxShadow: '0 12px 28px rgba(123,63,204,0.35)' }}
+      // Заливка и ореол — токенами, а не хексом: главная карточка красится в
+      // цвет открытого курса (lib/courseTint.ts), и захардкоженный фиолетовый
+      // оставлял бы её единственным фиолетовым пятном на перекрашенном экране.
+      style={{ borderRadius: 20, padding: 14, color: '#fff', background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)' }}
     >
       <div className="truncate" style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label} · {subjectName}
@@ -423,9 +433,9 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
           whileTap={{ scale: 0.95 }}
           onClick={() => { tactile(); onContinue() }}
           className="flex items-center cursor-pointer"
-          style={{ gap: 6, background: '#fff', color: '#7B3FCC', fontWeight: 800, fontSize: 12.5, padding: '7px 15px', borderRadius: 999, border: 'none' }}
+          style={{ gap: 6, background: '#fff', color: 'var(--color-purple-text)', fontWeight: 800, fontSize: 12.5, padding: '7px 15px', borderRadius: 999, border: 'none' }}
         >
-          <Play size={14} fill="#7B3FCC" />
+          <Play size={14} fill="var(--color-purple-text)" />
           {label}
         </motion.button>
       </div>

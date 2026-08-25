@@ -98,6 +98,26 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
 
   return (
     <div className="flex flex-col" style={{ gap: 14 }}>
+      {/* «Написано неправильно» — это НАПИСАНО, и его надо показать.
+          Раньше неправильное написание существовало только как порядок плиток
+          в банке: задание говорило «слово написано с перепутанными слогами»,
+          а на экране был обычный ряд плиток, и ученик честно спрашивал, где
+          же оно написано. Теперь ошибка стоит строкой — её видно и её чинят. */}
+      {mode === 'unscramble' && (
+        <div className="flex items-center justify-center" style={{ gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-muted)' }}>
+            {t('Написано')}:
+          </span>
+          <span style={{
+            fontSize: big ? 24 : 19, fontWeight: 800, letterSpacing: 1,
+            color: 'var(--color-red-text)', textDecoration: 'line-through',
+            textDecorationThickness: 2, opacity: 0.9,
+          }}>
+            {tiles.map(t2 => t2.ch).join('')}
+          </span>
+        </div>
+      )}
+
       {/* Строка сборки. Плитки в ней живые: тап возвращает слог в банк. */}
       <div
         style={{

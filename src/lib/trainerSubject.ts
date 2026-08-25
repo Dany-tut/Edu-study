@@ -61,6 +61,32 @@ function write(key: string, value: string) {
 }
 
 /**
+ * Языки, пришедшие ссылкой.
+ *
+ * Отметка «этот язык у меня есть», поставленная не курсом, а присланным
+ * адресом: материал тренажёра общий, и человек, которому прислали корейский
+ * ряд созвучий, должен увидеть его, даже если корейского курса у него нет.
+ * Список, а не одно значение: ссылок может прийти несколько, и вторая не
+ * должна стирать первую.
+ */
+const LINKS_KEY = 'trainer_link_subjects'
+
+function linkSubjects(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LINKS_KEY) ?? '[]')
+    return Array.isArray(raw) ? raw.filter(x => typeof x === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function rememberLinkSubject(id: string): void {
+  const list = linkSubjects()
+  if (list.includes(id)) return
+  try { localStorage.setItem(LINKS_KEY, JSON.stringify([...list, id])) } catch { /* приватный режим */ }
+}
+
+/**
  * Выбрать предмет тренажёра ИЗВНЕ — с главной, до того как тренажёр смонтирован.
  *
  * Пишем прямо в ту же память, из которой useTrainerSubject читает свой
@@ -105,6 +131,22 @@ export function useTrainerSubject(): TrainerSubjectState {
   const tasks = useTaskBank(s => s.tasks)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const coursesLoaded = useStudentData(s => s.loaded)
+
+  /**
+   * Предмет из присланной ссылки. Он СИЛЬНЕЕ и памяти, и курса главной: человек
+   * открыл конкретный экран, и показать ему вместо него прошлый предмет —
+   * значит потерять то единственное, зачем он пришёл по этой ссылке.
+   *
+   * Стоит ВЫШЕ списка предметов, потому что заодно ставит отметку «этот язык у
+   * меня есть»: список ниже читает её, и посчитайся он первым — присланный язык
+   * появился бы в меню только со второго рендера.
+   */
+  const linkedSubject = useMemo(() => {
+    const link = bootTrainerLink()
+    const id = link ? linkSubjectId(link) : undefined
+    if (id) rememberLinkSubject(id)
+    return id
+  }, [])
 
   const options = useMemo<TrainerSubjectOption[]>(() => {
     const seen = new Set<string>()
@@ -163,34 +205,30 @@ export function useTrainerSubject(): TrainerSubjectState {
       }
     }
 
-    // 3. Предмет из присланной ссылки — даже если такого курса у ученика нет.
+    // 3. Языки, пришедшие ссылкой, — даже если такого курса у ученика нет.
     //
-    // Полка отрывков не выдаётся курсом: она общая, как и учебные тексты. Если
-    // человеку прислали корейский рассказ, ссылка обязана его открыть, иначе
-    // «уникальный адрес истории» работает только у тех, кто и так этот язык
-    // учит. Пункт появляется в меню предметов — вернуться к своему языку есть
-    // чем, и видно, куда именно попал.
-    const link = bootTrainerLink()
-    const linked = link ? linkSubjectId(link) : undefined
-    if (linked && !seen.has(linked)) {
-      const def = getSubject(linked)
+    // Материал тренажёра не выдаётся курсом: полка отрывков, учебные тексты,
+    // созвучия и разговорник общие. Если человеку прислали корейский рассказ,
+    // ссылка обязана его открыть, иначе «уникальный адрес» работает только у
+    // тех, кто и так этот язык учит. Пункт появляется в меню предметов —
+    // вернуться к своему языку есть чем, и видно, куда именно попал.
+    //
+    // ЯЗЫК ЗАПОМИНАЕТСЯ, А НЕ ЖИВЁТ ОДНУ ЗАГРУЗКУ. Пока он держался только на
+    // самой ссылке, обещание «добавили в мои предметы» было неправдой: стоило
+    // уйти на главную и вернуться в тренажёр — адрес уже другой, ссылки нет,
+    // и присланный язык пропадал из меню вместе со всем, что человек в нём
+    // успел открыть. Теперь это отметка того же веса, что и явный выбор в
+    // меню: список лежит рядом с ним, в localStorage.
+    for (const id of linkSubjects()) {
+      if (seen.has(id)) continue
+      const def = getSubject(id)
       if (def?.isLanguage) {
         add(def, 'lang', textsForLang(def.langCode ?? '').length + sceneCount(def.langCode))
       }
     }
 
     return out
-  }, [courses, tasks, coursesLoaded])
-
-  /**
-   * Предмет из присланной ссылки. Он СИЛЬНЕЕ и памяти, и курса главной: человек
-   * открыл конкретный рассказ, и показать ему вместо него прошлый предмет —
-   * значит потерять то единственное, зачем он пришёл по этой ссылке.
-   */
-  const linkedSubject = useMemo(() => {
-    const link = bootTrainerLink()
-    return link ? linkSubjectId(link) : undefined
-  }, [])
+  }, [courses, tasks, coursesLoaded, linkedSubject])
 
   const [picked, setPicked] = useState(() => {
     if (linkedSubject) { write(KEY, linkedSubject); return linkedSubject }

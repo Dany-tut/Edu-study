@@ -63,7 +63,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
 
   function open() {
     if (!lang) return
-    queueTrainerLink({ kind: 'feed', lang })
+    queueTrainerLink({ lang, screen: 'feed' })
     if (def?.id) pickTrainerSubject(def.id)
     setActivePage('trainer')
   }
@@ -89,7 +89,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
           <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('всё просмотрено')}</span>
         )}
         <a
-          href={trainerHash({ kind: 'feed', lang })}
+          href={trainerHash({ lang, screen: 'feed' })}
           onClick={e => { e.preventDefault(); open() }}
           style={{
             marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -107,7 +107,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
           return (
             <a
               key={item.id}
-              href={trainerHash({ kind: 'feed', lang })}
+              href={trainerHash({ lang, screen: 'feed' })}
               onClick={e => { e.preventDefault(); open() }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, minWidth: 0,
