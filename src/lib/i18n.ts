@@ -2127,8 +2127,8 @@ const EN: Record<string, string> = {
     "The button lights up once every question is answered. Then the full translation opens — it stays closed until then, otherwise there's no point reading the original.",
   // — Лента: виджет главной и счётчик нового —
   'Лента': 'Feed',
-  // — Кружки-сторис мобильной главной —
-  'дрилл': 'drill',
+  // — Плитки переходов мобильной главной —
+  'практика': 'practice',
   'слова': 'words',
   'новое': 'new',
   'ролик · смотреть в ленте': 'video · watch in the feed',

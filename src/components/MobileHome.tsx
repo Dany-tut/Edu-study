@@ -24,7 +24,7 @@ import { pickTrainerSubject } from '../lib/trainerSubject'
 import { dayLabel } from '../data/feed'
 import { FeedPost } from './trainer/FeedPost'
 import { tactile } from '../lib/feedback'
-import { PAIR } from '../lib/mobileTokens'
+import { PAIR, type PairName } from '../lib/mobileTokens'
 import { writeDraft } from '../lib/useDraft'
 import { resolveSubjectPalette, getSubject } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
@@ -175,10 +175,10 @@ export default function MobileHome() {
       <MobileScreen topZone={topZone} topPad={72}>
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
-          {/* Кружки-сторис: все переходы экрана одним рядом. Цветное кольцо —
-              «там есть дело», серое — просто раздел. Ряд заменяет и плитки
-              «Тренажёр»/«Курс», и жёлтую карточку домашки. */}
-          <StoriesRow
+          {/* Плитки переходов: все переходы экрана одним рядом. Цветная
+              заливка — «там есть дело», нейтральная — просто раздел. Ряд
+              заменяет и плитки «Тренажёр»/«Курс», и жёлтую карточку домашки. */}
+          <QuickRow
             subjects={scanSubjects}
             onLesson={continueInfo ? () => openLesson(continueInfo.lesson.id) : undefined}
             onHW={() => setActivePage('homeworkList')}
@@ -318,12 +318,12 @@ export default function MobileHome() {
 function HomeSkeleton() {
   return (
     <div className="flex flex-col" style={{ gap: 10 }} aria-hidden>
-      {/* Кружки-сторис: те же 52px, что у StoryCircle */}
-      <div className="flex items-start" style={{ gap: 4 }}>
+      {/* Плитки переходов: те же 48px и радиус 15, что у QuickTile */}
+      <div className="flex items-start" style={{ gap: 6 }}>
         {[0, 1, 2, 3, 4].map(i => (
-          <div key={i} className="flex flex-col items-center" style={{ gap: 4, flex: 1 }}>
-            <Skeleton circle w={52} />
-            <Skeleton w={30} h={10} radius={6} />
+          <div key={i} className="flex flex-col items-center" style={{ gap: 5, flex: 1 }}>
+            <Skeleton w={48} h={48} radius={15} />
+            <Skeleton w={32} h={11} radius={6} />
           </div>
         ))}
       </div>
@@ -436,42 +436,44 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
 import type { Subject } from '../data/mockData'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Кружки-сторис
+// Плитки переходов
 //
-// Один ряд — все переходы главной: урок, домашка, тренажёр, слова, курс.
-// Язык колец: цветное кольцо зовёт («есть незакрытый урок», «есть домашка»),
-// серое — обычный раздел без срочного. Кольцо рисуется рамкой самого кружка,
-// но серое НЕ из border-переменных: в тёмной теме они почти невидимы
-// (см. память invisible-in-dark), поэтому серый — это --color-text-4.
+// Один ряд — все переходы главной: урок, домашка, практика, слова, курс.
+// Не кружки-сторис: скруглённый квадрат с мягкой заливкой, как иконка
+// приложения, — ряд читается набором разделов, а не непросмотренными историями.
+//
+// Язык заливки: цветная пара зовёт («есть незакрытый урок», «есть домашка»),
+// нейтральная — обычный раздел без срочного. Цвета берём парами из PAIR
+// (mobileTokens) — заливка и текст на ней калиброваны под обе темы; нейтральная
+// плитка — --color-bg-5, а НЕ border-переменные: в тёмной теме они почти
+// невидимы (см. память invisible-in-dark).
 // ─────────────────────────────────────────────────────────────────────────────
-function StoryCircle({ icon, label, ring, tint, badge, onClick }: {
+function QuickTile({ icon, label, pair, badge, onClick }: {
   icon: React.ReactNode
   label: string
-  /** Цвет кольца; undefined = серое «просто раздел». */
-  ring?: string
-  /** Цвет иконки; по умолчанию цвет кольца или приглушённый текст. */
-  tint?: string
+  /** Цветная пара = «здесь есть дело»; undefined = обычный раздел. */
+  pair?: PairName
   badge?: number
   onClick: () => void
 }) {
+  const p = pair ? PAIR[pair] : null
   return (
     <motion.button
       whileTap={{ scale: 0.92 }}
       onClick={() => { tactile(); onClick() }}
       className="flex flex-col items-center cursor-pointer"
-      style={{ gap: 4, background: 'none', border: 'none', padding: 0, minWidth: 0, flex: 1 }}
+      style={{ gap: 5, background: 'none', border: 'none', padding: 0, minWidth: 0, flex: 1 }}
     >
       <span style={{
-        position: 'relative', width: 52, height: 52, borderRadius: 999,
-        border: `2px solid ${ring ?? 'var(--color-text-4)'}`,
-        background: 'var(--color-bg-3)',
+        position: 'relative', width: 48, height: 48, borderRadius: 15,
+        background: p ? p.bg : 'var(--color-bg-5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: tint ?? ring ?? 'var(--color-text-2)',
+        color: p ? p.text : 'var(--color-text-2)',
       }}>
         {icon}
         {badge != null && badge > 0 && (
           <span style={{
-            position: 'absolute', top: -4, right: -6,
+            position: 'absolute', top: -4, right: -4,
             minWidth: 17, height: 17, padding: '0 5px', borderRadius: 999,
             background: 'var(--grad-purple)', color: '#fff',
             fontSize: 9, fontWeight: 800, border: '1.5px solid var(--color-bg)',
@@ -479,12 +481,12 @@ function StoryCircle({ icon, label, ring, tint, badge, onClick }: {
           }}>{badge > 99 ? '99+' : badge}</span>
         )}
       </span>
-      <span className="truncate" style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', maxWidth: '100%' }}>{label}</span>
+      <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', maxWidth: '100%' }}>{label}</span>
     </motion.button>
   )
 }
 
-function StoriesRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
+function QuickRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
   subjects: Subject[]
   onLesson?: () => void
   onHW: () => void
@@ -506,12 +508,12 @@ function StoriesRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
   } : undefined
 
   return (
-    <div className="flex items-start" style={{ gap: 4 }}>
-      <StoryCircle icon={<Play size={21} />} label={t('урок')} ring={onLesson ? 'var(--color-purple-text)' : undefined} onClick={onLesson ?? onCourses} />
-      <StoryCircle icon={<ClipboardList size={21} />} label={t('ДЗ')} ring={pending > 0 ? 'var(--color-yellow-text)' : undefined} badge={pending} onClick={onHW} />
-      <StoryCircle icon={<Dumbbell size={21} />} label={t('дрилл')} ring="var(--color-green-text)" onClick={onTrainer} />
-      {openWords && <StoryCircle icon={<Layers size={21} />} label={t('слова')} onClick={openWords} />}
-      <StoryCircle icon={<BookOpen size={21} />} label={t('курс')} onClick={onCourses} />
+    <div className="flex items-start" style={{ gap: 6 }}>
+      <QuickTile icon={<Play size={20} />} label={t('урок')} pair={onLesson ? 'focus' : undefined} onClick={onLesson ?? onCourses} />
+      <QuickTile icon={<ClipboardList size={20} />} label={t('ДЗ')} pair={pending > 0 ? 'warning' : undefined} badge={pending} onClick={onHW} />
+      <QuickTile icon={<Dumbbell size={20} />} label={t('практика')} pair="success" onClick={onTrainer} />
+      {openWords && <QuickTile icon={<Layers size={20} />} label={t('слова')} onClick={openWords} />}
+      <QuickTile icon={<BookOpen size={20} />} label={t('курс')} onClick={onCourses} />
     </div>
   )
 }
