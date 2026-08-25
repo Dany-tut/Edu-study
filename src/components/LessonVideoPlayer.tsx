@@ -380,7 +380,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const applyRate = useCallback((r: number) => {
     setRate(r); setRateOpen(false)
     if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
-    else if (videoRef.current) videoRef.current.playbackRate = r
+    else if (videoRef.current) {
+      // На верхних ступенях (3×, 4×) без этого голос уезжает в писк — тот же
+      // приём, что и у ускорения жестом.
+      videoRef.current.preservesPitch = true
+      videoRef.current.playbackRate = r
+    }
   }, [source.kind])
 
   // Модуль субтитров грузится вместе с плеером (cc_load_policy), а кнопка лишь
