@@ -85,7 +85,11 @@ export default function SubjectColorPicker({
                   transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                   style={{ overflow: 'hidden' }}
                 >
-                  <div style={{ padding: '2px 15px 14px' }}>
+                  {/* Верхний отступ ≥ кольца выбора. Оно рисуется тенью НАРУЖУ
+                      кнопки на 4px, а раскрывающийся блок обязан держать
+                      overflow:hidden ради анимации высоты — при отступе в 2px
+                      кольцо у верхнего ряда срезалось. */}
+                  <div style={{ padding: '8px 15px 14px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
                       {TINT_SWATCHES.map(hex => {
                         const active = current.toLowerCase() === hex.toLowerCase()

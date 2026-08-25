@@ -64,15 +64,16 @@ export function CourseTintSettings({ surface = 'rgba(var(--glass-rgb), 0.98)' }:
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* Макет липнет к верху: цвета предметов лежат ниже уровня прокрутки, и
           без этого выбор цвета менял бы экран за пределами видимости. */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 2,
-        background: surface,
-        paddingBottom: 10,
-      }}>
-        <CourseTintPreview hex={previewHex} level={level} />
+      <div style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        <div style={{ background: surface, paddingBottom: 6 }}>
+          <CourseTintPreview hex={previewHex} level={level} />
+        </div>
+        {/* Ряды уходят под макет растворяясь, а не срезом по линейке: без этой
+            полоски «Подложки» разрезало пополам ровно по нижнему краю. */}
+        <div style={{ height: 14, background: `linear-gradient(to bottom, ${surface}, transparent)` }} />
       </div>
 
-      <div style={{ marginTop: -8 }}>
+      <div style={{ marginTop: -12 }}>
         <div style={labelStyle}>{t('Насколько красить')}</div>
         <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {TINT_LEVELS.map((l, i) => (
