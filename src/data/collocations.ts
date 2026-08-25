@@ -34,8 +34,15 @@ export interface Collocation {
 }
 
 /**
- * Сочетания по слову изучаемого языка. Ключ — ровно то написание, что стоит
- * в `term` словаря юнита: сверка идёт строкой, без нормализации.
+ * Сочетания по слову изучаемого языка. Ключ ищется как есть, а не найдя —
+ * нормализованным (см. normKey ниже): в словарях курсов немецкое и
+ * португальское существительное записано с артиклем, а здесь ключи голые.
+ *
+ * ЧАСТЬ ЗАПИСЕЙ СЕЙЧАС НЕ СРАБАТЫВАЕТ, И ЭТО НОРМАЛЬНО. Слова вроде time,
+ * decision, meeting в нынешних словарях курсов стоят внутри фраз, а не
+ * отдельными карточками. Запись ждёт своего слова: контент прибавляется чаще,
+ * чем правится этот файл, и выбрасывать готовую работу ради нулевого счётчика
+ * значило бы писать её заново через месяц.
  */
 export const COLLOCATIONS: Record<string, Collocation[]> = {
   // ─── Корейский: существительные ───
@@ -201,6 +208,484 @@ export const COLLOCATIONS: Record<string, Collocation[]> = {
     { phrase: '싸게 사다', ru: 'купить дёшево' },
   ],
 
+
+  // ─── Корейский: ещё существительные ───
+  어머니: [
+    { phrase: '어머니께서', ru: 'мама (вежливо, как подлежащее)' },
+    { phrase: '어머니를 닮다', ru: 'быть похожим на маму' },
+    { phrase: '어머니 생신', ru: 'мамин день рождения (вежливо)' },
+  ],
+  아버지: [
+    { phrase: '아버지께서', ru: 'папа (вежливо, как подлежащее)' },
+    { phrase: '아버지 일', ru: 'папина работа' },
+    { phrase: '아버지를 닮다', ru: 'быть похожим на отца' },
+  ],
+  카페: [
+    { phrase: '카페에서 만나다', ru: 'встретиться в кофейне' },
+    { phrase: '카페에 가다', ru: 'пойти в кофейню' },
+    { phrase: '동네 카페', ru: 'кофейня по соседству' },
+  ],
+  오늘: [
+    { phrase: '오늘 저녁', ru: 'сегодня вечером' },
+    { phrase: '오늘까지', ru: 'до сегодняшнего дня, к сегодня' },
+    { phrase: '오늘 하루', ru: 'сегодняшний день целиком' },
+  ],
+  어제: [
+    { phrase: '어제 저녁', ru: 'вчера вечером' },
+    { phrase: '어제부터', ru: 'со вчерашнего дня' },
+    { phrase: '바로 어제', ru: 'буквально вчера' },
+  ],
+  내일: [
+    { phrase: '내일 봐요', ru: 'до завтра' },
+    { phrase: '내일까지', ru: 'к завтрашнему дню' },
+    { phrase: '내일 아침', ru: 'завтра утром' },
+  ],
+  계획: [
+    { phrase: '계획이 있다', ru: 'есть планы' },
+    { phrase: '계획을 세우다', ru: 'составить план' },
+    { phrase: '계획대로', ru: 'по плану' },
+  ],
+  카드: [
+    { phrase: '카드로 계산하다', ru: 'платить картой' },
+    { phrase: '카드를 만들다', ru: 'оформить карту' },
+    { phrase: '카드가 안 돼요', ru: 'карта не проходит' },
+  ],
+  현금: [
+    { phrase: '현금으로 내다', ru: 'платить наличными' },
+    { phrase: '현금만 받아요', ru: 'только наличные' },
+    { phrase: '현금이 없다', ru: 'нет наличных' },
+  ],
+  지하철: [
+    { phrase: '지하철을 타다', ru: 'ехать на метро' },
+    { phrase: '지하철역', ru: 'станция метро' },
+    { phrase: '지하철로 갈아타다', ru: 'пересесть на метро' },
+  ],
+  택시: [
+    { phrase: '택시를 타다', ru: 'сесть в такси' },
+    { phrase: '택시를 잡다', ru: 'поймать такси' },
+    { phrase: '택시로 가다', ru: 'ехать на такси' },
+  ],
+  약국: [
+    { phrase: '약국에 가다', ru: 'идти в аптеку' },
+    { phrase: '약국에서 사다', ru: 'купить в аптеке' },
+    { phrase: '가까운 약국', ru: 'ближайшая аптека' },
+  ],
+  우체국: [
+    { phrase: '우체국에 가다', ru: 'идти на почту' },
+    { phrase: '우체국에서 부치다', ru: 'отправить с почты' },
+  ],
+  빵: [
+    { phrase: '빵을 굽다', ru: 'печь хлеб' },
+    { phrase: '갓 구운 빵', ru: 'свежеиспечённый хлеб' },
+    { phrase: '빵집', ru: 'пекарня' },
+  ],
+  김치: [
+    { phrase: '김치를 담그다', ru: 'квасить кимчи' },
+    { phrase: '김치찌개', ru: 'суп с кимчи' },
+    { phrase: '김치가 맵다', ru: 'кимчи острое' },
+  ],
+  고기: [
+    { phrase: '고기를 굽다', ru: 'жарить мясо' },
+    { phrase: '고기를 먹다', ru: 'есть мясо' },
+    { phrase: '소고기', ru: 'говядина' },
+  ],
+  신발: [
+    { phrase: '신발을 신다', ru: 'надевать обувь' },
+    { phrase: '신발을 벗다', ru: 'снимать обувь' },
+    { phrase: '신발이 편하다', ru: 'обувь удобная' },
+  ],
+  지금: [
+    { phrase: '지금 당장', ru: 'прямо сейчас' },
+    { phrase: '지금까지', ru: 'до сих пор' },
+    { phrase: '지금부터', ru: 'начиная с этого момента' },
+  ],
+  조금: [
+    { phrase: '조금만 기다려 주세요', ru: 'подождите немного' },
+    { phrase: '조금 전에', ru: 'только что' },
+    { phrase: '조금씩', ru: 'понемногу' },
+  ],
+
+  // ─── Корейский: ещё глаголы ───
+  도착하다: [
+    { phrase: '공항에 도착하다', ru: 'прибыть в аэропорт' },
+    { phrase: '늦게 도착하다', ru: 'приехать поздно' },
+    { phrase: '도착했어요', ru: 'я на месте' },
+  ],
+  출발하다: [
+    { phrase: '지금 출발해요', ru: 'выезжаю' },
+    { phrase: '기차가 출발하다', ru: 'поезд отправляется' },
+    { phrase: '일찍 출발하다', ru: 'выехать пораньше' },
+  ],
+  미루다: [
+    { phrase: '약속을 미루다', ru: 'перенести встречу' },
+    { phrase: '일을 미루다', ru: 'откладывать работу' },
+    { phrase: '자꾸 미루다', ru: 'всё время откладывать' },
+  ],
+
+  // ─── Японский ───
+  みず: [
+    { phrase: 'みずを のむ', ru: 'пить воду' },
+    { phrase: 'おみずを ください', ru: 'воды, пожалуйста' },
+    { phrase: 'みずが でない', ru: 'вода не идёт' },
+  ],
+  がっこう: [
+    { phrase: 'がっこうに いく', ru: 'ходить в школу' },
+    { phrase: 'がっこうを やすむ', ru: 'пропустить школу' },
+    { phrase: 'がっこうの まえ', ru: 'перед школой' },
+  ],
+  びょういん: [
+    { phrase: 'びょういんに いく', ru: 'идти к врачу' },
+    { phrase: 'びょういんに はいる', ru: 'лечь в больницу' },
+  ],
+  ほん: [
+    { phrase: 'ほんを よむ', ru: 'читать книгу' },
+    { phrase: 'ほんを かりる', ru: 'взять книгу (в библиотеке)' },
+    { phrase: 'ほんだな', ru: 'книжная полка' },
+  ],
+  くつ: [
+    { phrase: 'くつを はく', ru: 'надевать обувь' },
+    { phrase: 'くつを ぬぐ', ru: 'снимать обувь' },
+    { phrase: 'くつが きつい', ru: 'обувь жмёт' },
+  ],
+  かさ: [
+    { phrase: 'かさを さす', ru: 'раскрыть зонт' },
+    { phrase: 'かさを わすれる', ru: 'забыть зонт' },
+    { phrase: 'おりたたみがさ', ru: 'складной зонт' },
+  ],
+  ゆき: [
+    { phrase: 'ゆきが ふる', ru: 'идёт снег' },
+    { phrase: 'ゆきが つもる', ru: 'снег ложится' },
+  ],
+  はな: [
+    { phrase: 'はなが さく', ru: 'цветы распускаются' },
+    { phrase: 'はなを かう', ru: 'купить цветы' },
+    { phrase: 'はなみ', ru: 'любование цветением' },
+  ],
+  しゃしん: [
+    { phrase: 'しゃしんを とる', ru: 'фотографировать' },
+    { phrase: 'しゃしんに うつる', ru: 'попасть на фото' },
+  ],
+  コーヒー: [
+    { phrase: 'コーヒーを のむ', ru: 'пить кофе' },
+    { phrase: 'コーヒーを いれる', ru: 'заварить кофе' },
+    { phrase: 'ホットコーヒー', ru: 'горячий кофе' },
+  ],
+  ホテル: [
+    { phrase: 'ホテルを よやくする', ru: 'забронировать отель' },
+    { phrase: 'ホテルに とまる', ru: 'остановиться в отеле' },
+  ],
+  タクシー: [
+    { phrase: 'タクシーに のる', ru: 'сесть в такси' },
+    { phrase: 'タクシーを よぶ', ru: 'вызвать такси' },
+  ],
+  スマホ: [
+    { phrase: 'スマホを みる', ru: 'смотреть в телефон' },
+    { phrase: 'スマホの じゅうでん', ru: 'зарядка телефона' },
+  ],
+
+  // ─── Португальский ───
+  chave: [
+    { phrase: 'perder a chave', ru: 'потерять ключ' },
+    { phrase: 'a chave do quarto', ru: 'ключ от номера' },
+    { phrase: 'fechar à chave', ru: 'запереть на ключ' },
+  ],
+  trabalho: [
+    { phrase: 'ir para o trabalho', ru: 'идти на работу' },
+    { phrase: 'procurar trabalho', ru: 'искать работу' },
+    { phrase: 'dar trabalho', ru: 'доставлять хлопот' },
+  ],
+  sono: [
+    { phrase: 'estar com sono', ru: 'хотеть спать' },
+    { phrase: 'perder o sono', ru: 'потерять сон' },
+    { phrase: 'pegar no sono', ru: 'заснуть' },
+  ],
+  cidade: [
+    { phrase: 'no centro da cidade', ru: 'в центре города' },
+    { phrase: 'conhecer a cidade', ru: 'осмотреть город' },
+    { phrase: 'cidade grande', ru: 'большой город' },
+  ],
+  carro: [
+    { phrase: 'de carro', ru: 'на машине' },
+    { phrase: 'alugar um carro', ru: 'арендовать машину' },
+    { phrase: 'estacionar o carro', ru: 'припарковать машину' },
+  ],
+  conta: [
+    { phrase: 'pedir a conta', ru: 'попросить счёт' },
+    { phrase: 'pagar a conta', ru: 'оплатить счёт' },
+    { phrase: 'abrir uma conta', ru: 'открыть счёт (в банке)' },
+  ],
+  festa: [
+    { phrase: 'fazer uma festa', ru: 'устроить праздник' },
+    { phrase: 'ir a uma festa', ru: 'пойти на праздник' },
+  ],
+  começar: [
+    { phrase: 'começar a trabalhar', ru: 'начать работать' },
+    { phrase: 'começar do zero', ru: 'начать с нуля' },
+    { phrase: 'para começar', ru: 'для начала' },
+  ],
+  falar: [
+    { phrase: 'falar português', ru: 'говорить по-португальски' },
+    { phrase: 'falar com alguém', ru: 'поговорить с кем-то' },
+    { phrase: 'por falar nisso', ru: 'кстати говоря' },
+  ],
+  fazer: [
+    { phrase: 'fazer compras', ru: 'делать покупки' },
+    { phrase: 'fazer sentido', ru: 'иметь смысл' },
+    { phrase: 'faz tempo', ru: 'давно' },
+  ],
+  dar: [
+    { phrase: 'dar certo', ru: 'получиться, сложиться' },
+    { phrase: 'dar uma olhada', ru: 'взглянуть' },
+    { phrase: 'dar para', ru: 'быть возможным' },
+  ],
+
+  // ─── Немецкий ───
+  arbeiten: [
+    { phrase: 'als Designer arbeiten', ru: 'работать дизайнером' },
+    { phrase: 'an einem Projekt arbeiten', ru: 'работать над проектом' },
+    { phrase: 'Vollzeit arbeiten', ru: 'работать полный день' },
+  ],
+  brauchen: [
+    { phrase: 'Hilfe brauchen', ru: 'нуждаться в помощи' },
+    { phrase: 'Zeit brauchen', ru: 'нужно время' },
+    { phrase: 'Du brauchst nicht zu kommen', ru: 'тебе не обязательно приходить' },
+  ],
+  suchen: [
+    { phrase: 'eine Wohnung suchen', ru: 'искать квартиру' },
+    { phrase: 'Arbeit suchen', ru: 'искать работу' },
+    { phrase: 'nach etwas suchen', ru: 'искать что-то' },
+  ],
+  bestellen: [
+    { phrase: 'einen Kaffee bestellen', ru: 'заказать кофе' },
+    { phrase: 'online bestellen', ru: 'заказать онлайн' },
+    { phrase: 'einen Tisch bestellen', ru: 'заказать столик' },
+  ],
+  anprobieren: [
+    { phrase: 'Darf ich das anprobieren?', ru: 'можно это примерить?' },
+    { phrase: 'eine Größe größer anprobieren', ru: 'примерить на размер больше' },
+  ],
+  umtauschen: [
+    { phrase: 'die Jacke umtauschen', ru: 'обменять куртку' },
+    { phrase: 'gegen Quittung umtauschen', ru: 'обменять по чеку' },
+  ],
+  umziehen: [
+    { phrase: 'nach Berlin umziehen', ru: 'переехать в Берлин' },
+    { phrase: 'in eine neue Wohnung umziehen', ru: 'переехать в новую квартиру' },
+  ],
+  Termin: [
+    { phrase: 'einen Termin machen', ru: 'записаться на приём' },
+    { phrase: 'einen Termin absagen', ru: 'отменить приём' },
+    { phrase: 'Termin beim Arzt', ru: 'приём у врача' },
+  ],
+  Wohnung: [
+    { phrase: 'eine Wohnung mieten', ru: 'снимать квартиру' },
+    { phrase: 'möblierte Wohnung', ru: 'квартира с мебелью' },
+    { phrase: 'Wohnung besichtigen', ru: 'смотреть квартиру' },
+  ],
+  Rechnung: [
+    { phrase: 'die Rechnung bezahlen', ru: 'оплатить счёт' },
+    { phrase: 'Die Rechnung, bitte!', ru: 'счёт, пожалуйста' },
+    { phrase: 'eine Rechnung stellen', ru: 'выставить счёт' },
+  ],
+
+  // ─── Английский: ещё ───
+  research: [
+    { phrase: 'to do research', ru: 'проводить исследование' },
+    { phrase: 'desk research', ru: 'кабинетное исследование' },
+    { phrase: 'research shows that', ru: 'исследования показывают, что' },
+  ],
+  hypothesis: [
+    { phrase: 'to test a hypothesis', ru: 'проверить гипотезу' },
+    { phrase: 'to form a hypothesis', ru: 'выдвинуть гипотезу' },
+    { phrase: 'the hypothesis holds', ru: 'гипотеза подтверждается' },
+  ],
+  prototype: [
+    { phrase: 'to build a prototype', ru: 'собрать прототип' },
+    { phrase: 'a clickable prototype', ru: 'кликабельный прототип' },
+    { phrase: 'to test a prototype on users', ru: 'протестировать прототип на пользователях' },
+  ],
+  requirement: [
+    { phrase: 'to meet the requirements', ru: 'соответствовать требованиям' },
+    { phrase: 'a key requirement', ru: 'ключевое требование' },
+    { phrase: 'to gather requirements', ru: 'собрать требования' },
+  ],
+  contract: [
+    { phrase: 'to sign a contract', ru: 'подписать договор' },
+    { phrase: 'to breach a contract', ru: 'нарушить договор' },
+    { phrase: 'under contract', ru: 'по договору' },
+  ],
+  priority: [
+    { phrase: 'to set priorities', ru: 'расставить приоритеты' },
+    { phrase: 'a top priority', ru: 'высший приоритет' },
+    { phrase: 'to take priority over', ru: 'быть важнее, чем' },
+  ],
+  agenda: [
+    { phrase: 'to set the agenda', ru: 'определить повестку' },
+    { phrase: 'on the agenda', ru: 'в повестке' },
+    { phrase: 'a hidden agenda', ru: 'скрытые намерения' },
+  ],
+  draft: [
+    { phrase: 'a rough draft', ru: 'черновик' },
+    { phrase: 'to draft an email', ru: 'набросать письмо' },
+    { phrase: 'the final draft', ru: 'финальная версия' },
+  ],
+  conflict: [
+    { phrase: 'to resolve a conflict', ru: 'разрешить конфликт' },
+    { phrase: 'a conflict of interest', ru: 'конфликт интересов' },
+    { phrase: 'to come into conflict with', ru: 'вступить в конфликт с' },
+  ],
+  expectations: [
+    { phrase: 'to manage expectations', ru: 'управлять ожиданиями' },
+    { phrase: 'to meet expectations', ru: 'оправдать ожидания' },
+    { phrase: 'to exceed expectations', ru: 'превзойти ожидания' },
+  ],
+  access: [
+    { phrase: 'to have access to', ru: 'иметь доступ к' },
+    { phrase: 'to grant access', ru: 'предоставить доступ' },
+    { phrase: 'restricted access', ru: 'ограниченный доступ' },
+  ],
+  statement: [
+    { phrase: 'to make a statement', ru: 'сделать заявление' },
+    { phrase: 'a bold statement', ru: 'смелое утверждение' },
+    { phrase: 'a bank statement', ru: 'выписка со счёта' },
+  ],
+
+  // ─── Английский: слова курса «для дизайнера» и делового английского ───
+  //
+  // Здесь сочетание нужнее, чем где-либо: это слова, которые ученик узнаёт в
+  // чужой речи и не может поставить в свою. «Scope» знают все, а сказать
+  // «the scope crept» — единицы, и именно этой фразой описывают то, что с
+  // проектом на самом деле произошло.
+  client: [
+    { phrase: 'to land a client', ru: 'заполучить клиента' },
+    { phrase: 'to onboard a client', ru: 'ввести клиента в работу' },
+    { phrase: 'a returning client', ru: 'клиент, который вернулся' },
+  ],
+  agency: [
+    { phrase: 'to work at an agency', ru: 'работать в агентстве' },
+    { phrase: 'an in-house team', ru: 'внутренняя команда (не агентство)' },
+    { phrase: 'agency side', ru: 'со стороны агентства' },
+  ],
+  scope: [
+    { phrase: 'scope creep', ru: 'расползание задачи' },
+    { phrase: 'out of scope', ru: 'вне рамок задачи' },
+    { phrase: 'to define the scope', ru: 'очертить рамки' },
+  ],
+  brief: [
+    { phrase: 'to write a brief', ru: 'составить бриф' },
+    { phrase: 'a tight brief', ru: 'жёсткий бриф' },
+    { phrase: 'to brief someone on', ru: 'ввести кого-то в курс' },
+  ],
+  deliverable: [
+    { phrase: 'to agree on deliverables', ru: 'договориться о том, что сдаём' },
+    { phrase: 'the final deliverable', ru: 'итоговый результат работы' },
+  ],
+  stakeholder: [
+    { phrase: 'to align stakeholders', ru: 'согласовать со всеми сторонами' },
+    { phrase: 'a key stakeholder', ru: 'ключевое заинтересованное лицо' },
+    { phrase: 'stakeholder buy-in', ru: 'поддержка со стороны заказчика' },
+  ],
+  iteration: [
+    { phrase: 'the next iteration', ru: 'следующая версия' },
+    { phrase: 'to go through iterations', ru: 'пройти несколько итераций' },
+  ],
+  constraint: [
+    { phrase: 'to work within constraints', ru: 'работать в рамках ограничений' },
+    { phrase: 'a hard constraint', ru: 'жёсткое ограничение' },
+  ],
+  'trade-off': [
+    { phrase: 'to make a trade-off', ru: 'пойти на компромисс' },
+    { phrase: 'a fair trade-off', ru: 'разумный размен' },
+  ],
+  assumption: [
+    { phrase: 'to challenge an assumption', ru: 'подвергнуть допущение сомнению' },
+    { phrase: 'to make assumptions', ru: 'строить догадки' },
+  ],
+  impact: [
+    { phrase: 'to have an impact on', ru: 'влиять на' },
+    { phrase: 'measurable impact', ru: 'измеримое влияние' },
+    { phrase: 'high-impact work', ru: 'работа с большой отдачей' },
+  ],
+  retention: [
+    { phrase: 'to improve retention', ru: 'улучшить удержание' },
+    { phrase: 'user retention', ru: 'удержание пользователей' },
+  ],
+  churn: [
+    { phrase: 'to reduce churn', ru: 'снизить отток' },
+    { phrase: 'churn rate', ru: 'процент оттока' },
+  ],
+  roadmap: [
+    { phrase: 'to build a roadmap', ru: 'составить дорожную карту' },
+    { phrase: 'on the roadmap', ru: 'в планах' },
+  ],
+  handoff: [
+    { phrase: 'a clean handoff', ru: 'аккуратная передача работы' },
+    { phrase: 'design handoff', ru: 'передача макетов в разработку' },
+  ],
+  onboarding: [
+    { phrase: 'the onboarding process', ru: 'процесс введения в работу' },
+    { phrase: 'to go through onboarding', ru: 'пройти онбординг' },
+  ],
+  timeline: [
+    { phrase: 'a realistic timeline', ru: 'реалистичный график' },
+    { phrase: 'to push back the timeline', ru: 'сдвинуть сроки' },
+  ],
+  turnaround: [
+    { phrase: 'a quick turnaround', ru: 'быстрое выполнение' },
+    { phrase: 'turnaround time', ru: 'срок выполнения' },
+  ],
+  blocker: [
+    { phrase: "I'm blocked on", ru: 'я застрял на' },
+    { phrase: 'to remove a blocker', ru: 'снять препятствие' },
+  ],
+  bandwidth: [
+    { phrase: "I don't have the bandwidth", ru: 'у меня нет ресурса на это' },
+    { phrase: 'limited bandwidth', ru: 'мало сил и времени' },
+  ],
+  strength: [
+    { phrase: 'to play to your strengths', ru: 'опираться на сильные стороны' },
+    { phrase: 'a key strength', ru: 'главная сильная сторона' },
+  ],
+  weakness: [
+    { phrase: 'to work on a weakness', ru: 'работать над слабым местом' },
+    { phrase: "my biggest weakness", ru: 'моя главная слабая сторона' },
+  ],
+  recruiter: [
+    { phrase: 'to reach out to a recruiter', ru: 'написать рекрутеру' },
+    { phrase: 'a recruiter reached out', ru: 'со мной связался рекрутер' },
+  ],
+  shortlist: [
+    { phrase: 'to make the shortlist', ru: 'попасть в короткий список' },
+    { phrase: 'to shortlist candidates', ru: 'отобрать кандидатов' },
+  ],
+  freelance: [
+    { phrase: 'to go freelance', ru: 'уйти на фриланс' },
+    { phrase: 'freelance work', ru: 'работа на фрилансе' },
+  ],
+  equity: [
+    { phrase: 'to be offered equity', ru: 'получить предложение с долей' },
+    { phrase: 'equity package', ru: 'пакет с долей в компании' },
+  ],
+  outage: [
+    { phrase: 'a service outage', ru: 'сбой в работе сервиса' },
+    { phrase: 'during the outage', ru: 'во время сбоя' },
+  ],
+  summary: [
+    { phrase: 'in summary', ru: 'подводя итог' },
+    { phrase: 'an executive summary', ru: 'краткая выжимка для руководства' },
+  ],
+  availability: [
+    { phrase: 'to confirm your availability', ru: 'подтвердить, когда вам удобно' },
+    { phrase: 'limited availability', ru: 'мало свободных мест или времени' },
+  ],
+  documentation: [
+    { phrase: 'to write documentation', ru: 'писать документацию' },
+    { phrase: 'up-to-date documentation', ru: 'актуальная документация' },
+  ],
+  contribution: [
+    { phrase: 'to make a contribution', ru: 'внести вклад' },
+    { phrase: 'a valuable contribution', ru: 'ценный вклад' },
+  ],
   // ─── Английский ───
   time: [
     { phrase: 'to run out of time', ru: 'не успевать' },
@@ -265,9 +750,33 @@ export const COLLOCATIONS: Record<string, Collocation[]> = {
   ],
 }
 
+/**
+ * Ключ поиска: слово без служебного начала и в нижнем регистре.
+ *
+ * ЗАЧЕМ. В словарях курсов одно и то же слово записано по-разному: немецкое
+ * существительное стоит с артиклем («der Termin»), потому что артикль — часть
+ * того, что учат; португальское тоже («a conta»); английский глагол иногда
+ * записан с «to». Ключи здесь при этом хочется держать голыми — иначе на
+ * каждое слово пришлось бы завести три записи и следить, чтобы они не
+ * разъехались. Нормализация сводит и то и другое к одному виду.
+ *
+ * Иероглифику и кану это не трогает: регистра и артиклей там нет.
+ */
+function normKey(term: string): string {
+  return term
+    .trim()
+    .replace(/^(der|die|das|den|dem|ein|eine|einen|the|an?|to|os?|as?|um|uma)\s+/i, '')
+    .toLowerCase()
+}
+
+/** Словарь по нормализованному ключу — строится один раз. */
+const BY_KEY: Record<string, Collocation[]> = Object.fromEntries(
+  Object.entries(COLLOCATIONS).map(([k, v]) => [normKey(k), v]),
+)
+
 /** Сочетания слова. Пусто — значит для него их не записали. */
 export function collocationsFor(term: string | undefined): Collocation[] | undefined {
   const key = term?.trim()
   if (!key) return undefined
-  return COLLOCATIONS[key]
+  return COLLOCATIONS[key] ?? BY_KEY[normKey(key)]
 }
