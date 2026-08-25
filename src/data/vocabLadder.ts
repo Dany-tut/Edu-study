@@ -40,7 +40,43 @@ import { chamoOf, syllableDistractors } from './hangul'
  * не находилось, и урок алфавита оставался вовсе без линии формы.
  */
 const FOREIGN_SCRIPT = /[㄰-㆏぀-ヿ가-힯一-鿿]/
-const isHangul = (s: string) => /[가-힯]/.test(s)
+export const isHangul = (s: string) => /[가-힯]/.test(s)
+/**
+ * Насколько два слова похожи НА СЛУХ — 0 (ничего общего) … 1 (совпадают).
+ *
+ * ЗАЧЕМ. Круг слуха спрашивал «что прозвучало?» о паре, собранной по соседству
+ * в списке: 물 против 산, «outage» против «root cause». Такое различение
+ * решается с закрытыми глазами, и восемьсот таких экранов в одном курсе — это
+ * восемьсот бесплатных баллов. Настоящее задание получается там, где слова
+ * действительно можно перепутать, — а для этого их надо ИСКАТЬ, а не брать
+ * соседа.
+ *
+ * КАК СЧИТАЕМ. Расстояние Левенштейна по знакам (у хангыля — по буквам, слог
+ * это до трёх звуков), делённое на длину длинного слова. Грубо, зато без
+ * фонетической модели, которой у нас нет ни для одного из четырёх языков.
+ */
+function soundAlike(a: string, b: string): number {
+  const norm = (t: string) => {
+    const chars = Array.from(t.toLowerCase().replace(/[\s'’-]/g, ''))
+    return chars.some(ch => /[가-힯]/.test(ch)) ? chars.flatMap(chamoOf) : chars
+  }
+  const A = norm(a)
+  const B = norm(b)
+  if (A.length === 0 || B.length === 0) return 0
+  let prev = Array.from({ length: B.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= A.length; i++) {
+    const cur = [i]
+    for (let j = 1; j <= B.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (A[i - 1] === B[j - 1] ? 0 : 1))
+    }
+    prev = cur
+  }
+  return 1 - prev[B.length] / Math.max(A.length, B.length)
+}
+
+/** Ниже этого порога пара на слух не различается, а угадывается. */
+const ALIKE_ENOUGH = 0.5
+
 /** Отдельная буква хангыля — не слог: собирать её не из чего, её обводят. */
 const isChamo = (s: string) => /^[㄰-㆏]$/.test(s)
 
@@ -350,14 +386,41 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
 
   // Звук нужен только там, где слово звучит не так, как пишется по-русски:
   // у курса родного языка эта ступень не несёт ничего.
+  //
+  // ДВА РАЗНЫХ ЗАДАНИЯ ВМЕСТО ОДНОГО. Если среди пройденного нашлось СОЗВУЧНОЕ
+  // слово (물/불, quite/quiet) — это различение на слух: прозвучало одно из
+  // двух, какое. Если не нашлось, различать нечего, и вопрос «что прозвучало?»
+  // проверял бы не слух, а зрение. Тогда спрашиваем ЗНАЧЕНИЕ услышанного —
+  // ровно то, что Р2 и называет ступенью 2: «услышал → выбрал из 2–3».
   const round2: SeedTask[] = native ? [] : pool.map((w, i) => {
-    const other = partner(i)
+    const twin = [...pool, ...spare]
+      .filter(x => x.term !== w.term && x.ru.trim().toLowerCase() !== w.ru.trim().toLowerCase())
+      .map(x => ({ x, score: soundAlike(w.term, x.term) }))
+      .filter(c => c.score >= ALIKE_ENOUGH)
+      .sort((a, b) => b.score - a.score)[0]?.x
     const first = i % 2 === 0
+    if (twin) {
+      return {
+        type: 'minimalPair',
+        question: 'Что прозвучало?',
+        pairA: first ? label(w) : label(twin),
+        pairB: first ? label(twin) : label(w),
+        correctPair: first ? 'A' : 'B',
+        ttsText: w.term,
+        allowSlow: true,
+      }
+    }
+    // Различать нечего — спрашиваем ЗНАЧЕНИЕ услышанного. Тип тот же, и это
+    // намеренно: на экране те же две плитки и тот же плеер сверху, меняется
+    // только то, что на плитках написано — не формы, а переводы. Отдельным
+    // `single` это раздуло бы и без того самый частый тип курса до трети всех
+    // заданий, а выглядело бы как обычный выбор, где звук легко не заметить.
+    const other = partner(i)
     return {
       type: 'minimalPair',
-      question: 'Что прозвучало?',
-      pairA: first ? label(w) : label(other),
-      pairB: first ? label(other) : label(w),
+      question: 'Что вы услышали?',
+      pairA: first ? w.ru : other.ru,
+      pairB: first ? other.ru : w.ru,
       correctPair: first ? 'A' : 'B',
       ttsText: w.term,
       allowSlow: true,

@@ -957,10 +957,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
           {/* Большая кнопка на паузе и в конце ролика. На паузе она занимает
               только середину — иначе накрыла бы собой весь слой жестов.
-              Центр берём не от кадра, а от его свободной части: на паузе
-              нижняя панель показана всегда, и кнопка в геометрическом центре
-              визуально тонет в контролы — поэтому она приподнята на половину
-              высоты панели. */}
+              Центр — геометрический центр кадра, а не свободной части над
+              панелью: панель приходит и уходит, а кнопка не должна прыгать. */}
           {(paused || ended) && !gesture && (
             <button
               onClick={() => (ended ? (doSeek(0), doPlay()) : doPlay())}
@@ -970,7 +968,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 : 'absolute flex items-center justify-center cursor-pointer'}
               style={ended
                 ? { border: 'none', background: 'rgba(0,0,0,0.55)' }
-                : { border: 'none', background: 'transparent', left: '50%', top: 'calc(50% - 28px)', transform: 'translate(-50%, -50%)', padding: 0 }}
+                : { border: 'none', background: 'transparent', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', padding: 0 }}
             >
               <motion.span
                 whileHover={{ scale: 1.08 }}

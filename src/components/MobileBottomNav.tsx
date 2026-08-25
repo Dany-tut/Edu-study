@@ -100,7 +100,7 @@ export default function MobileBottomNav() {
         transition={COLLAPSE}
         style={{
           borderRadius: '28px',
-          background: 'rgba(var(--glass-rgb), 0.6)',
+          background: 'rgba(var(--glass-rgb), 0.78)',
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid var(--color-border-glass)',

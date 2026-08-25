@@ -52,6 +52,7 @@ import { PTB2_VIDEO } from './languageVideosExtra'
 import { PTB2_HOMEWORK_VIDEO } from './homeworkVideos'
 import { PORTUGUESE2_FIGURES_EXTRA } from './portugueseIntermediateFigures'
 import { PORTUGUESE2_EXTRA } from './portugueseIntermediateExtra'
+import { PTB2_DIALOGS } from './languageDialogs'
 
 export const PORTUGUESE2_MODULES: LangModule[] = [
   { title: 'Времена и наклонения', subtitle: 'Условное, три сослагательных, согласование', units: [1, 2, 3, 4, 5] },
@@ -1207,6 +1208,7 @@ export const PORTUGUESE_INTERMEDIATE: LanguageCourseSpec = {
   modules: PORTUGUESE2_MODULES,
   // Конспекты живут отдельным файлом: здесь — последовательность и задания,
   // там — то, что ученик читает.
+  dialogs: PTB2_DIALOGS,
   units: PORTUGUESE2_UNITS.map(u => ({
     ...u,
     theory: PORTUGUESE2_THEORY[u.shortId] ?? u.theory,

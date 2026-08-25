@@ -321,6 +321,10 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
       lang: t.lang,
       ttsText: t.ttsText,
       ttsVoice: t.ttsVoice,
+      // Стимул-звук у выбора: «что вы услышали?» проигрывается плеером, и без
+      // этих двух полей готовый файл и кнопка замедления до него не доезжали.
+      audioUrl: t.audioUrl,
+      allowSlow: t.allowSlow,
       // Экзаменационное чтение — это почти всегда выбор ответа к отрывку,
       // поэтому passage обязан переноситься и в этой ветке тоже.
       passage: t.passage,

@@ -292,7 +292,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           padding: compact ? 0 : '0 14px',
           borderRadius: 999, cursor: many ? 'pointer' : 'default', fontFamily: 'inherit',
           fontSize: 13, fontWeight: 700, color: 'var(--color-text)',
-          background: 'rgba(var(--glass-rgb), 0.6)',
+          background: 'rgba(var(--glass-rgb), 0.78)',
           backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           // Тот же скин, что у соседних кругов дока (MobileDock.glassBase):
           // свой белый inset в тёмной теме рисовал резкий контур, а обводка

@@ -46,6 +46,7 @@ import { JAN3_VIDEO } from './languageVideosExtra'
 import { JAN3_HOMEWORK_VIDEO } from './homeworkVideos'
 import { JAPANESE3_FIGURES_EXTRA } from './japaneseJlptN3Figures'
 import { JAPANESE3_EXTRA } from './japaneseJlptN3Extra'
+import { JAN3_DIALOGS } from './languageDialogs'
 
 export const JAPANESE3_MODULES: LangModule[] = [
   { title: 'Сила て-формы', subtitle: 'てしまう, ておく, てある, てみる', units: [1, 2, 3, 4] },
@@ -1354,6 +1355,7 @@ export const JAPANESE_JLPT_N3: LanguageCourseSpec = {
   modules: JAPANESE3_MODULES,
   // Конспекты живут отдельным файлом: здесь — последовательность и задания,
   // там — то, что ученик читает.
+  dialogs: JAN3_DIALOGS,
   units: JAPANESE3_UNITS.map(u => ({
     ...u,
     theory: JAPANESE3_THEORY[u.shortId] ?? u.theory,

@@ -53,6 +53,7 @@ import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { PORTUGUESE_FIGURES_EXTRA } from './portugueseCelpeFigures'
 import { PORTUGUESE_VIDEO_EXTRA } from './languageVideos'
 import { PTBR_HOMEWORK_VIDEO } from './homeworkVideos'
+import { PTBR_DIALOGS } from './languageDialogs'
 
 export const PORTUGUESE_MODULES: LangModule[] = [
   { title: 'Звучание и первые фразы', subtitle: 'Носовые, открытые гласные, ser/estar', units: [1, 2, 3, 4, 5] },
@@ -1324,6 +1325,7 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
   modules: PORTUGUESE_MODULES,
   // Конспекты живут отдельным файлом: здесь — структура и задания, там —
   // то, что ученик читает.
+  dialogs: PTBR_DIALOGS,
   units: PORTUGUESE_UNITS.map(u => ({
     ...u,
     theory: PORTUGUESE_THEORY[u.shortId] ?? u.theory,

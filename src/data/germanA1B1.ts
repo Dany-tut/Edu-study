@@ -32,6 +32,7 @@ import type { LangUnit, LanguageCourseSpec } from './languageCourse'
 import { DEAB_VIDEO } from './languageVideosExtra'
 import { DEAB_HOMEWORK_VIDEO } from './homeworkVideos'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { DEAB_DIALOGS } from './languageDialogs'
 
 // ─── Юниты 1–8: звук, род, настоящее время, Akkusativ ────────────────────────
 
@@ -1296,6 +1297,7 @@ const MODULES = [
   {
     title: 'Звук, род, первое предложение',
     subtitle: 'A1: читать вслух, представляться, ставить артикль и глагол на место',
+    dialogs: DEAB_DIALOGS,
     units: [1, 2, 3, 4],
   },
   {
@@ -1340,6 +1342,7 @@ export const GERMAN_A1B1_SPEC: LanguageCourseSpec = {
   // своей жизнью (ролики удаляют, каналы закрывают), и держать её рядом с
   // контентом значило бы править контент из-за чужого канала.
   units: [...UNITS_A1, ...UNITS_A2, ...UNITS_B1].map(u => ({ ...u, videoUrl: DEAB_VIDEO[u.shortId] ?? u.videoUrl })),
+  dialogs: DEAB_DIALOGS,
   homeworkVideos: DEAB_HOMEWORK_VIDEO,
 }
 

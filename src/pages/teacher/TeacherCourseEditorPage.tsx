@@ -688,6 +688,49 @@ function CenterCourseAccess({
   // чистим сразу всех её участников, и «крутилка» должна гореть на строке.
   const [resetting, setResetting] = useState<string | null>(null)
   const [resetDone, setResetDone] = useState<string | null>(null)
+  // Что реально лежит в базе по этому курсу: сколько строк прогресса у каждого
+  // ученика и когда их последний раз трогали. Без этой подписи крутилка —
+  // кнопка в никуда: нажал, а было ли что обнулять и обнулилось ли, видно
+  // только сходив в кабинет ученика.
+  const [progressInfo, setProgressInfo] = useState<Record<string, { n: number; last: string }>>({})
+  // Момент обнуления: строк в базе больше нет, и «когда это случилось» хранить
+  // негде — держим локально, чтобы после сброса подпись не превращалась в
+  // безымянное «прогресса нет».
+  const resetLogKey = `course-reset:${course.dbCourseId ?? ''}`
+  const [resetAt, setResetAt] = useState<Record<string, number>>(() => {
+    try { return JSON.parse(localStorage.getItem(resetLogKey) ?? '{}') } catch { return {} }
+  })
+  async function loadProgressInfo() {
+    if (!course.dbCourseId) return
+    const { data } = await supabase
+      .from('lesson_progress')
+      .select('student_id, updated_at')
+      .eq('subject', course.dbCourseId)
+    const next: Record<string, { n: number; last: string }> = {}
+    for (const r of (data ?? []) as Array<{ student_id: string; updated_at: string | null }>) {
+      const cur = next[r.student_id] ?? { n: 0, last: '' }
+      cur.n += 1
+      if ((r.updated_at ?? '') > cur.last) cur.last = r.updated_at ?? ''
+      next[r.student_id] = cur
+    }
+    setProgressInfo(next)
+  }
+  useEffect(() => { void loadProgressInfo() }, [course.dbCourseId])
+  const fmtWhen = (v: string | number) =>
+    new Date(v).toLocaleString(undefined, {
+      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+    })
+  /** Подпись под именем: есть прогресс — сколько и от какого числа; нет — когда обнулили. */
+  const progressLine = (rowKey: string, studentIds: string[]) => {
+    const rows = studentIds.map(id => progressInfo[id]).filter(Boolean) as Array<{ n: number; last: string }>
+    const n = rows.reduce((s, r) => s + r.n, 0)
+    if (n > 0) {
+      const last = rows.map(r => r.last).filter(Boolean).sort().pop()
+      return `${t('прогресс')}: ${n} · ${last ? fmtWhen(last) : '—'}`
+    }
+    const at = resetAt[rowKey]
+    return at ? `${t('обнулено')} ${fmtWhen(at)}` : t('прогресса нет')
+  }
   async function resetCourseProgress(rowKey: string, studentIds: string[], name: string) {
     if (!course.dbCourseId) { void alertDialog(t('Курс ещё не сохранён в базе — прогресса нет.')); return }
     if (studentIds.length === 0) { void alertDialog(t('В группе нет учеников.')); return }
@@ -730,6 +773,12 @@ function CenterCourseAccess({
     } else {
       setResetDone(rowKey)
       setTimeout(() => setResetDone(null), 2500)
+      if ((removed?.length ?? 0) > 0 || (before ?? 0) > 0) {
+        const log = { ...resetAt, [rowKey]: Date.now() }
+        setResetAt(log)
+        try { localStorage.setItem(resetLogKey, JSON.stringify(log)) } catch { /* приватный режим */ }
+      }
+      void loadProgressInfo()
     }
   }
   const resetBtn = (rowKey: string, studentIds: string[], name: string) => (
@@ -904,10 +953,14 @@ function CenterCourseAccess({
                       padding: '7px 7px 7px 12px', borderRadius: 18, background: 'var(--color-green-soft)',
                     }}>
                       <Users size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
-                      <span style={{
-                        fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)',
-                        flex: 1, minWidth: 0, ...oneLine,
-                      }} title={g.name}>{g.name}</span>
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
+                        <span style={{
+                          fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', ...oneLine,
+                        }} title={g.name}>{g.name}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
+                          {progressLine(g.id, memberIdsOf(g.id))}
+                        </span>
+                      </span>
                       <AccessModeSelect
                         value={gm === 'mixed' ? '' : gm}
                         onChange={v => setGroupMode(g.id, v)}
@@ -926,11 +979,9 @@ function CenterCourseAccess({
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', ...oneLine }} title={s.name}>
                         {s.name}
                       </span>
-                      {s.subject && (
-                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
-                          {s.subject}
-                        </span>
-                      )}
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
+                        {s.subject ? `${s.subject} · ` : ''}{progressLine(s.id, [s.id])}
+                      </span>
                     </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                     {resetBtn(s.id, [s.id], s.name)}

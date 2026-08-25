@@ -1803,9 +1803,9 @@ export default function TaskBankPage() {
         initial={false}
         style={{
           ...glassCircle, position: 'relative', width: 46, height: 46,
-          // Frosted glass: more transparent fill so the backdrop-blur reads
-          // through, plus a hairline top highlight (matches the bottom nav).
-          background: 'rgba(var(--glass-rgb), 0.6)',
+          // Тот же корпус, что у нижней навигации и дока: заливка 0.78 —
+          // ниже неё контент под стеклом читался сквозь круг.
+          background: 'rgba(var(--glass-rgb), 0.78)',
           backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
         }}
@@ -1975,7 +1975,7 @@ export default function TaskBankPage() {
                 gap: searchExpanded ? 8 : 0,
                 paddingRight: 15,
                 borderRadius: 999, overflow: 'hidden',
-                background: 'rgba(var(--glass-rgb), 0.6)',
+                background: 'rgba(var(--glass-rgb), 0.78)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
                 border: '1px solid var(--color-border-glass)',
                 boxShadow: 'var(--shadow-pill)',

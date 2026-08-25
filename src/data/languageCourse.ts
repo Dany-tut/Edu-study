@@ -35,7 +35,7 @@ import { nestById } from './soundNests'
 import { pronRuleById } from './koreanPronRules'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import { vocabImage } from './vocabImages'
-import { answerSkeleton, ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
+import { answerSkeleton, isHangul, ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -1175,13 +1175,25 @@ function reviewTasks(
   const recallFrom = prev[1] ?? prev[0]
   const target = unambiguousOf(recallFrom, 3)
   if (target) {
-    out.push(recall(
-      native
-        ? `Повторение: какое слово это описывает — «${target.ru}»?`
-        : `Повторение: как будет «${target.ru}»?`,
-      target.term,
-      target.alt,
-    ))
+    const ask = native
+      ? `Повторение: какое слово это описывает — «${target.ru}»?`
+      : `Повторение: как будет «${target.ru}»?`
+    // ХАНГЫЛЬ НАБИРАЕТСЯ ЭКРАННОЙ КЛАВИАТУРОЙ, А НЕ ПОЛЕМ ВВОДА.
+    //
+    // Поле «впиши слово» предполагает, что у ученика есть корейская раскладка в
+    // системе. У начинающего её нет — и ступень 5 для него оказывалась не
+    // трудной, а физически невыполнимой: он видит вопрос, знает ответ и не
+    // может его ввести. Экранная клавиатура из букв слова закрывает ровно эту
+    // дыру и остаётся ступенью 5 по сути: опора здесь — суженный алфавит
+    // (нужные буквы плюс пара похожих), как у скелета ответа опора — длина.
+    //
+    // Другим письменностям это не нужно: кана и латиница набираются с обычной
+    // клавиатуры, а иероглифы экранной раскладкой не набрать в принципе.
+    out.push(
+      isHangul(target.term)
+        ? typeWord(ask, target.term)
+        : recall(ask, target.term, target.alt),
+    )
   }
 
   // ── 3. Припоминание без опоры: кроссворд по прошлым юнитам (ступень 6) ──
@@ -1227,6 +1239,56 @@ function reviewTasks(
   }
 
   return splitMatching(out).map((task, i) => editorTask(task, `${idBase}${i + 1}`, lang))
+}
+
+/**
+ * Есть ли в занятии свободная продукция — задание, где форма достаётся из
+ * памяти БЕЗ ОПОР: ни вариантов, ни плиток, ни скелета.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНАЯ ПРОВЕРКА. «Линия продукции» по Р13 засчитывается речью и
+ * свободным письмом, но их пишет автор, и в грамматических занятиях их нет.
+ * Между тем ступень 6 — это не обязательно микрофон: вписать слово без
+ * подсказки, решить кроссворд, набрать его на клавиатуре — та же продукция и
+ * так же проверяется машиной. Без неё занятие целиком состоит из узнавания:
+ * ученик весь вечер ВЫБИРАЕТ и ни разу ничего не ПОРОЖДАЕТ.
+ */
+const isFreeProduction = (t: { type: TaskTypeId; answerSkeleton?: string }): boolean =>
+  (t.type === 'fill' && !t.answerSkeleton)
+  || t.type === 'crossword' || t.type === 'jamoType' || t.type === 'listenType'
+  || t.type === 'speaking' || t.type === 'extended' || t.type === 'pattern'
+
+/**
+ * Добор продукции, если в занятии её не оказалось: вписать слово по смыслу,
+ * без скелета и без вариантов.
+ *
+ * СЛОВО БЕРЁТСЯ ИЗ ПРОЙДЕННОГО, А НЕ ИЗ СЕГОДНЯШНЕЙ ПОРЦИИ. Целевая ступень
+ * для новых слов — четвёртая (Р2); требовать свободного воспроизведения через
+ * полчаса после знакомства — это ровно тот дефект, ради которого писался
+ * стандарт. Освоенному слову ступень 6 в самый раз.
+ *
+ * Перевод должен быть единственным в запасе: «как будет „нет“?» при двух
+ * словах с этим переводом не имеет одного верного ответа (та же защита, что в
+ * reviewTasks).
+ */
+function productionTask(earlier: VocabItem[], idBase: string, lang: string, native = false) {
+  const times = new Map<string, number>()
+  for (const w of earlier) {
+    const ru = (w.ru ?? '').trim().toLowerCase()
+    if (ru) times.set(ru, (times.get(ru) ?? 0) + 1)
+  }
+  const pick = [...earlier].reverse().find(w =>
+    w.term?.trim() && w.ru?.trim() && times.get(w.ru.trim().toLowerCase()) === 1)
+  if (!pick) return []
+  return [editorTask(
+    fill(
+      native
+        ? `Напишите слово по толкованию: «${pick.ru}»`
+        : `Напишите по памяти: как будет «${pick.ru}»?`,
+      pick.term,
+      pick.alt,
+    ),
+    `${idBase}1`, lang,
+  )]
 }
 
 /**
@@ -1364,24 +1426,51 @@ function spreadTasks(tasks: SeedTask[], parts: VocabItem[][]): SeedTask[][] {
     .filter(x => x.term.length > 0)
     .sort((a, b) => b.term.length - a.term.length)
 
-  // Потолок на занятие: ровная доля плюс один блок. Без него порция со «своим»
-  // словом собирала всё, что его называет, — сорок три задания в одном вечере
-  // при среднем в пятнадцать, и три однотипных подряд, которые уже нечем
-  // развести (Р13). Запас ровно в один блок: он нужен, чтобы остаток от
-  // деления не выталкивал последнее задание из его же занятия.
-  const cap = Math.max(2, Math.ceil(blocks.length / count) + 1)
+  // Бюджет занятия: сколько авторских блоков оно ещё вынесет.
+  //
+  // ПОЧЕМУ У КАЖДОГО СВОЙ, А НЕ ОБЩАЯ ДОЛЯ. Занятия юнита неравны по весу
+  // ЕЩЁ ДО авторских заданий: порция из четырёх слов несёт четыре карточки,
+  // лестницу и экзамен — под два десятка экранов, — а занятие-отработка (пустая
+  // порция, см. workPortions) не несёт ничего, кроме повторения. Ровная доля
+  // «блоков поровну» грузила их одинаково, и разгрузить длинное занятие было
+  // нечем: перелив упирался в такое же занятое.
+  //
+  // Считаем свободное место каждого от общего потолка и раздаём по нему. Тогда
+  // добавленное занятие-отработка действительно СНИМАЕТ нагрузку с соседних, а
+  // не просто стоит рядом.
+  const budget = parts.map(part => Math.max(2, LESSON_CAP - lessonWeight(part.length)))
   const sizes = new Array(count).fill(0)
   let loose = 0
+
+  /**
+   * Куда положить блок, не назвавший ни одного слова порции.
+   *
+   * Самое свободное занятие — но НЕ то, у которого хвост уже из двух таких же
+   * заданий. Иначе авторская серия («как звучит X?» семь раз подряд — разбор
+   * правил чтения) целиком уезжает в одно занятие: оно свободнее всех, и после
+   * каждого блока остаётся свободнее всех, — а развести серию на месте уже
+   * нечем (Р13). Не нашлось занятия с другим хвостом — берём самое свободное:
+   * потерять задание хуже, чем поставить третье подряд.
+   */
+  const placeLoose = (type: TaskTypeId) => {
+    const free = (i: number) => budget[i] - sizes[i]
+    const tailRun = (i: number) => {
+      const b = out[i]
+      return b.length >= 2 && b[b.length - 1]?.type === type && b[b.length - 2]?.type === type
+    }
+    const order = Array.from({ length: count }, (_, i) => i).sort((a, b) => free(b) - free(a))
+    return order.find(i => !tailRun(i)) ?? order[0]
+  }
 
   blocks.forEach(block => {
     const text = textOf(block)
     const owner = owners.find(o => text.includes(o.term))
-    if (!owner) { out[loose++ % count].push(...block); sizes[loose % count]++; return }
+    if (!owner) { const at = placeLoose(block[0].type); out[at].push(...block); sizes[at]++; loose++; return }
     // Перелив только ВПЕРЁД: в занятии позже слово уже введено и Р3 цело, а
     // раньше — это задание о слове, которого ученик ещё не видел. Некуда
     // перелить — оставляем у своего слова: правило важнее ровной длины.
     let at = owner.i
-    while (at < count - 1 && sizes[at] >= cap) at++
+    while (at < count - 1 && sizes[at] >= budget[at]) at++
     out[at].push(...block)
     sizes[at]++
   })
@@ -1489,18 +1578,38 @@ function portionTheory(unit: LangUnit, vocab: VocabItem[], k: number, total: num
  * карточки, лестница, повторение и экзамен. Сорок один экран за вечер,
  * поставленный в получасовой слот. Это не «трудный урок», это невыполненный.
  *
- * ЧТО ДЕЛАЕМ. Если авторской работы больше, чем WORK_CAP блоков на занятие,
- * добавляем занятия БЕЗ НОВЫХ СЛОВ: карточек и лестницы там нет, есть работа
- * юнита, разминка по прошлой порции и повторение. Такое занятие законно и
- * полезно само по себе — это день отработки, а не день знакомства.
+ * ЧТО ДЕЛАЕМ. Считаем, сколько экранов выйдет в занятии — авторские задания
+ * ПЛЮС генерируемое, — и если больше LESSON_CAP, добавляем занятия БЕЗ НОВЫХ
+ * СЛОВ: карточек и лестницы там нет, есть работа юнита, разминка по прошлой
+ * порции и повторение. Такое занятие законно и полезно само по себе — это день
+ * отработки, а не день знакомства.
+ *
+ * ПОЧЕМУ ГЕНЕРИРУЕМОЕ ТОЖЕ СЧИТАЕМ. На порцию из четырёх слов приходится
+ * четыре карточки, до двенадцати ступеней лестницы, блок повторения и экзамен —
+ * два с половиной десятка экранов ДО единой авторской строки. Считая одну
+ * авторскую часть, потолок промахивался мимо самых длинных занятий: они длинные
+ * не от автора.
  *
  * ПОЧЕМУ НЕ РЕЗАТЬ СЛОВА МЕЛЬЧЕ. Порция и так на потолке (Р1): дробить её
  * дальше — значит плодить занятия с одним словом, а не разгружать работу.
  */
-const WORK_CAP = 12
+const LESSON_CAP = 30
+
+/**
+ * Прикидка генерируемого веса занятия: карточка на слово, три круга лестницы
+ * (третий бывает не у всех слов — отсюда 2.5), блок повторения и экзамен
+ * порции. Точное число известно только после сборки, а решать, сколько будет
+ * занятий и что куда положить, надо ДО неё, поэтому здесь оценка сверху.
+ */
+const lessonWeight = (words: number) => Math.round(words * 3.5 + (words > 0 ? words + 1 : 0) + 4)
 
 function workPortions(parts: VocabItem[][], taskCount: number): VocabItem[][] {
-  const need = Math.ceil(taskCount / WORK_CAP)
+  const heaviest = Math.max(...parts.map(p => p.length), 0)
+  const fits = (count: number) => lessonWeight(heaviest) + taskCount / count <= LESSON_CAP
+  let need = parts.length
+  // Потолок на число добавленных занятий: юнит из трёх слов и сотни заданий не
+  // должен превращаться в двадцать вечеров подряд по одной теме.
+  while (need < parts.length + 4 && !fits(need)) need++
   if (need <= parts.length) return parts
   return [...parts, ...Array.from({ length: need - parts.length }, () => [] as VocabItem[])]
 }
@@ -1767,6 +1876,18 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
           ...vocabRecognition(part, `${id}-r`, spec.lang, spec.native, examPool(seen, introduced)),
         ],
       })
+
+      // Ни одного задания, где ученик что-то ПОРОЖДАЕТ, — добираем одним
+      // припоминанием по пройденному (см. productionTask). Считаем по готовому
+      // списку, а не по замыслу: продукция могла прийти и от автора, и от
+      // блока повторения, и дублировать её незачем.
+      const built = lessons[lessons.length - 1]
+      if (!(built.hwTasks ?? []).some(isFreeProduction)) {
+        built.hwTasks = [
+          ...(built.hwTasks ?? []),
+          ...productionTask(earlier, `${id}-fp`, spec.lang, spec.native),
+        ]
+      }
     })
 
     introduced.push(...unit.vocab)

@@ -60,6 +60,13 @@ const cardWord = (task, native = false) => ({
  * здесь: иначе «показанным» не считалось бы само знакомство, и любая обманка
  * из слов урока выглядела бы незнакомой.
  */
+/** Отдельные поля задания — из них собирается память курса для Р9. */
+const taskFields = task => [
+  task.question, task.answer, task.sentence, task.syllable,
+  task.front, task.back, task.reading, task.ttsText,
+  task.pairA, task.pairB, ...(task.choices ?? []), ...(task.pairs ?? []).flatMap(p => [p.left, p.right]),
+].filter(Boolean).map(x => String(x).trim())
+
 const taskText = task => [
   task.question, task.answer, task.sentence, task.syllable,
   task.front, task.back, task.reading, task.ttsText,
@@ -86,7 +93,12 @@ for (const seed of COURSE_SEEDS) {
   let lessons = 0
   // Всё, что ученик видел в этом курсе РАНЬШЕ: обманка из прошлого занятия —
   // знакомое слово, и правило Р9 её не запрещает (запрещает незнакомое).
-  let seenBefore = ''
+  //
+  // МНОЖЕСТВО, А НЕ СКЛЕЕННАЯ СТРОКА. Строка росла до мегабайтов (у курсов
+  // выживания под двести уроков), и `includes` по ней на каждый вариант
+  // превращал проверку в десятки минут. Здесь достаточно точного совпадения:
+  // варианты собираются генератором из тех же полей, что легли в множество.
+  const seenBefore = new Set()
 
   for (const lesson of course.lessons) {
     const tasks = lesson.hwTasks ?? []
@@ -143,7 +155,7 @@ for (const seed of COURSE_SEEDS) {
       // ничего не значит.
       const generated = /-(l|r|pic)\d+$/.test(task.id ?? '')
       if (generated && task.type === 'single' && (task.choices?.length ?? 0) > 0) {
-        const seenText = seenBefore + ' ' + tasks.slice(0, i).map(taskText).join(' ')
+        const seenText = tasks.slice(0, i).map(taskText).join(' ')
         const strange = task.choices.filter(c => {
           const s = String(c).trim()
           // Считаем только варианты на ИЗУЧАЕМОМ письме (латиница, хангыль,
@@ -151,7 +163,7 @@ for (const seed of COURSE_SEEDS) {
           // незнакомым оно быть не может, и у курсов родного языка (где все
           // варианты русские) правило просто не срабатывает.
           if (!s || !/[A-Za-z가-힯぀-ヿ一-鿿]/.test(s)) return false
-          return !seenText.includes(s)
+          return !seenBefore.has(s) && !seenText.includes(s)
         })
         if (strange.length > 1) {
           fail(where, `в задании ${i + 1} незнакомых вариантов ${strange.length}: ${strange.join(', ')} (Р9)`)
@@ -159,17 +171,22 @@ for (const seed of COURSE_SEEDS) {
       }
     })
 
-    seenBefore += ' ' + tasks.map(taskText).join(' ')
+    // Поля этого урока — в память курса, по одному значению на строку.
+    for (const task of tasks) {
+      for (const piece of taskFields(task)) seenBefore.add(piece)
+    }
 
     // Р13 — однотипные подряд. Исключены три вещи, где серия — это замысел:
-    // карточки знакомства (порция и есть блок из трёх-четырёх карточек, Р3),
-    // круг лестницы (одна ступень = одно задание на каждое слово порции, и
-    // тип у круга по определению один, Р2) и группа вопросов к ОДНОМУ отрывку
-    // (решатель показывает текст один раз на всю группу — это одно упражнение
-    // из нескольких вопросов, а не пять одинаковых экранов подряд).
+    // карточки знакомства (порция и есть блок из трёх-четырёх карточек, Р3);
+    // КРУГ — одна ступень по одному заданию на каждое слово порции, и тип у
+    // круга по определению один (Р2): так устроена и лестница (`-l…`), и
+    // экзамен порции (`-r…`), где каждое слово получает свой выбор из четырёх;
+    // и группа вопросов к ОДНОМУ отрывку — решатель показывает текст один раз
+    // на всю группу, это одно упражнение из нескольких вопросов, а не пять
+    // одинаковых экранов подряд.
     let run = 1
     for (let i = 1; i < tasks.length; i++) {
-      const ladder = /-l\d+$/.test(tasks[i].id ?? '')
+      const ladder = /-[lr]\d+$/.test(tasks[i].id ?? '')
       const samePassage = !!tasks[i].passage && tasks[i].passage === tasks[i - 1].passage
       if (tasks[i].type === 'flashcard' || ladder || samePassage) { run = 1; continue }
       run = tasks[i].type === tasks[i - 1].type ? run + 1 : 1

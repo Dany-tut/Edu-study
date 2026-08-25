@@ -1900,6 +1900,7 @@ const EN: Record<string, string> = {
   "ЕГЭ": "EGE",
   "ОГЭ": "OGE",
   "Олимпиада": "Olympiad",
+  "Углублённый": "Advanced",
   "Интенсив": "Intensive",
   "Логин": "Login",
   "Всего задач": "Total tasks",

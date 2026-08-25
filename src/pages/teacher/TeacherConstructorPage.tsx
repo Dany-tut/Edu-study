@@ -27,7 +27,7 @@ import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy } from '../../data/languageTaxonomy'
-import { levelOptions, matchesLevel, levelOptionsForSubject, usesLanguageLevels } from '../../lib/courseLevels'
+import { levelOptions, matchesLevel, levelOptionsForSubject } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
@@ -603,7 +603,10 @@ function CourseEditor({
           </div>
         </div>
         <div>
-          <TeacherSelect value={level} onChange={setLevel} placeholder={t("Уровень")} options={['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
+          {/* Набор ступеней — из общего справочника (lib/courseLevels), а не
+              своим списком: иначе уровень, выбранный здесь, не предлагается в
+              других формах и выпадает из фильтра. */}
+          <TeacherSelect value={level} onChange={setLevel} placeholder={t("Уровень")} options={levelOptionsForSubject(subject).map(o => ({ value: o, label: t(o) }))} />
         </div>
 
         {/* Description */}
@@ -2906,11 +2909,12 @@ function CreatorView({
               <input value={cSubject} onChange={e => setCSubject(e.target.value)} style={inputSt} placeholder={t("Например, Химия")} />
             </div>
             <div>
-              {/* Предмет здесь вводится текстом: если он опознан как язык —
-                  предлагаем языковые ступени (CEFR + TOPIK/JLPT/HSK), иначе
-                  привычный школьный набор. */}
+              {/* Предмет здесь вводится текстом: опознан как язык — предлагаем
+                  языковые ступени (CEFR + TOPIK/JLPT/HSK), иначе школьный
+                  набор. И то и другое даёт levelOptionsForSubject: у неязыкового
+                  (и вовсе непонятого) предмета он и есть школьный. */}
               <TeacherSelect value={cLevel} onChange={setCLevel} placeholder={t("Уровень")}
-                options={usesLanguageLevels(cSubject) ? levelOptionsForSubject(cSubject) : ['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
+                options={levelOptionsForSubject(cSubject).map(o => ({ value: o, label: t(o) }))} />
             </div>
             <div><Label>{t('Описание')}</Label>
               <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} value={cDesc} onChange={e => { setCDesc(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}

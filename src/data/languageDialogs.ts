@@ -765,3 +765,633 @@ export const IELT_DIALOGS: Record<string, SeedTask[]> = {
     ['Candidate', 'Reading — I need better ____, not more vocabulary.'],
   ], 'time management', { distractors: ['target band', 'accuracy', 'fluency'] })],
 }
+
+/**
+ * Японский до N5 (jajl) — по диалогу на юнит.
+ *
+ * Собеседники: ダーニャ (ученик) и たなか / みか (японцы). Регистр — です・ます:
+ * курс до N5 вежливую речь и ставит, а разговорную форму даёт только в N3.
+ *
+ * ПРОПУСК ВСЕГДА НА КОНСТРУКЦИИ ЮНИТА, А НЕ НА ЛЕКСИКЕ. В юните про を это
+ * частица, в юните про ました — форма прошедшего. Обманки подобраны так, чтобы
+ * все были грамматически возможны и различались ровно тем, чему учит юнит.
+ */
+export const JAJL_DIALOGS: Record<string, SeedTask[]> = {
+  // Кана. Конструкций ещё нет — проверяется чтение слова на слух.
+  'jajl-01': [gapDialog(ASK, [
+    ['たなか', 'これは なんですか。'],
+    ['ダーニャ', '____です。'],
+  ], 'ねこ', { distractors: ['ねご', 'めこ', 'ぬこ'] })],
+
+  'jajl-02': [gapDialog(ASK, [
+    ['たなか', 'あれは やまですか。'],
+    ['ダーニャ', 'いいえ、____です。'],
+  ], 'はな', { distractors: ['はた', 'ばな', 'まな'] })],
+
+  'jajl-03': [gapDialog(ASK, [
+    ['みか', 'なにを のみますか。'],
+    ['ダーニャ', '____を おねがいします。'],
+  ], 'コーヒー', { distractors: ['コヒー', 'コーヒ', 'コービー'] })],
+
+  // Долгота и удвоение — тот случай, где ошибка меняет слово целиком.
+  'jajl-04': [gapDialog(ASK, [
+    ['みか', 'そのしゃしんの ひとは だれですか。'],
+    ['ダーニャ', 'ははの ははです。____です。'],
+  ], 'おばあさん', { distractors: ['おばさん', 'おじいさん', 'おかあさん'] })],
+
+  'jajl-05': [gapDialog(ASK, [
+    ['たなか', 'ダーニャさんは がくせいですか。'],
+    ['ダーニャ', 'いいえ、がくせい____。かいしゃいんです。'],
+  ], 'じゃありません', { distractors: ['です', 'ですか', 'でした'] })],
+
+  'jajl-06': [gapDialog(ASK, [
+    ['ダーニャ', '____は なんですか。'],
+    ['みか', 'それは わたしの かさです。'],
+  ], 'これ', { distractors: ['それ', 'あれ', 'どれ'] })],
+
+  'jajl-07': [gapDialog(ASK, [
+    ['たなか', 'まいあさ なにを しますか。'],
+    ['ダーニャ', 'コーヒーを ____。'],
+  ], 'のみます', { distractors: ['のむます', 'のみです', 'のまます'] })],
+
+  // Частица を — весь юнит про неё, поэтому пропуск на ней.
+  'jajl-08': [gapDialog(ASK, [
+    ['みか', 'ひるは なにを しますか。'],
+    ['ダーニャ', 'ごはん____ たべます。'],
+  ], 'を', { distractors: ['が', 'は', 'に'] })],
+
+  'jajl-09': [gapDialog(ASK, [
+    ['たなか', 'どこで べんきょうしますか。'],
+    ['ダーニャ', 'としょかん____ べんきょうします。'],
+  ], 'で', { distractors: ['に', 'へ', 'を'] })],
+
+  // あります против います — предмет или живое.
+  'jajl-10': [gapDialog(ASK, [
+    ['みか', 'つくえの うえに なにが ありますか。'],
+    ['ダーニャ', 'ねこが ____。'],
+  ], 'います', { distractors: ['あります', 'いります', 'します'] })],
+
+  'jajl-11': [gapDialog(ASK, [
+    ['たなか', 'よく えいがを みますか。'],
+    ['ダーニャ', 'いいえ、あまり ____。'],
+  ], 'みません', { distractors: ['みます', 'みました', 'みないです'] })],
+
+  'jajl-12': [gapDialog(ASK, [
+    ['みか', 'ダーニャさんは ____ですか。'],
+    ['ダーニャ', 'いいえ、ロシアじんです。'],
+  ], '日本人', { distractors: ['日本', '学生', '先生'] })],
+
+  'jajl-13': [gapDialog(ASK, [
+    ['たなか', 'にほんごの クラスは いつですか。'],
+    ['ダーニャ', 'げつようび____ あります。'],
+  ], 'に', { distractors: ['で', 'を', 'から'] })],
+
+  // い-прилагательное в отрицании — самая частая ошибка N5.
+  'jajl-14': [gapDialog(ASK, [
+    ['みか', 'そのかばんは たかいですか。'],
+    ['ダーニャ', 'いいえ、____。やすいです。'],
+  ], 'たかくないです', { distractors: ['たかいじゃありません', 'たかくです', 'たかいでした'] })],
+
+  'jajl-15': [gapDialog(ASK, [
+    ['たなか', 'なんにんで いきますか。'],
+    ['ダーニャ', '____で いきます。'],
+  ], 'ふたり', { distractors: ['にひと', 'ふたつ', 'にじん'] })],
+
+  'jajl-16': [gapDialog(ASK, [
+    ['みか', 'いま なんじですか。'],
+    ['ダーニャ', '____です。'],
+  ], 'よじはん', { distractors: ['しじはん', 'よんじはん', 'よじなか'] })],
+
+  'jajl-17': [gapDialog(ASK, [
+    ['てんいん', 'いらっしゃいませ。'],
+    ['ダーニャ', 'これを ____。'],
+  ], 'ください', { distractors: ['おねがい', 'します', 'たべます'] })],
+
+  'jajl-18': [gapDialog(ASK, [
+    ['てんいん', 'ごちゅうもんは。'],
+    ['ダーニャ', 'ラーメン____ します。'],
+  ], 'に', { distractors: ['を', 'が', 'で'] })],
+
+  'jajl-19': [gapDialog(ASK, [
+    ['たなか', 'かいしゃまで どうやって いきますか。'],
+    ['ダーニャ', 'でんしゃ____ いきます。'],
+  ], 'で', { distractors: ['に', 'を', 'へ'] })],
+
+  'jajl-20': [gapDialog(ASK, [
+    ['みか', 'きのう なにを しましたか。'],
+    ['ダーニャ', 'ともだちに ____。'],
+  ], 'あいました', { distractors: ['あいます', 'あいませんでした', 'あって'] })],
+
+  'jajl-21': [gapDialog(ASK, [
+    ['たなか', 'あさは なにを しますか。'],
+    ['ダーニャ', '____から、ごはんを たべます。'],
+  ], 'おきて', { distractors: ['おきます', 'おきた', 'おきて います'] })],
+
+  // ている — «прямо сейчас» против «вообще».
+  'jajl-22': [gapDialog(ASK, [
+    ['みか', 'いま なにを して いますか。'],
+    ['ダーニャ', 'にほんごを ____。'],
+  ], 'べんきょうして います', { distractors: ['べんきょうします', 'べんきょうしました', 'べんきょうです'] })],
+
+  'jajl-23': [gapDialog(ASK, [
+    ['たなか', 'にちようびは なにを しますか。'],
+    ['ダーニャ', 'うみに ____です。'],
+  ], 'いきたい', { distractors: ['いきます', 'いって', 'いける'] })],
+
+  'jajl-24': [gapDialog(ASK, [
+    ['みか', 'きょうは はやいですね。'],
+    ['ダーニャ', 'しけんが ある____、はやく きました。'],
+  ], 'ので', { distractors: ['のに', 'けど', 'から です'] })],
+
+  'jajl-25': [gapDialog(ASK, [
+    ['たなか', 'あした あめだったら どうしますか。'],
+    ['ダーニャ', 'あめが ____、うちに います。'],
+  ], 'ふったら', { distractors: ['ふると', 'ふって', 'ふります'] })],
+
+  'jajl-26': [gapDialog(ASK, [
+    ['みか', 'しけんは どうでしたか。'],
+    ['ダーニャ', '____が むずかしかったです。'],
+  ], 'ちょうかい', { distractors: ['もんだい', 'こたえ', 'しけん'] })],
+}
+
+/**
+ * Японский N4→N3 (jan3) — по диалогу на юнит.
+ *
+ * Регистр смешанный и это намеренно: курс как раз про то, где кончается
+ * です・ます и начинается разговорная форма, а в юнитах 17–18 — про кэйго.
+ * Поэтому в дружеских диалогах реплики короткие, в рабочих — вежливые.
+ */
+export const JAN3_DIALOGS: Record<string, SeedTask[]> = {
+  'jan3-01': [gapDialog(ASK, [
+    ['みか', 'ケーキは。'],
+    ['ダーニャ', 'ぜんぶ ____。ごめん。'],
+  ], 'たべちゃった', { distractors: ['たべた', 'たべておいた', 'たべてある'] })],
+
+  'jan3-02': [gapDialog(ASK, [
+    ['たなか', 'きんようびの みせ、こんでますよ。'],
+    ['ダーニャ', 'じゃあ、よやくして ____。'],
+  ], 'おきます', { distractors: ['あります', 'みます', 'しまいます'] })],
+
+  // てある против ている — чужое намеренное действие против состояния.
+  'jan3-03': [gapDialog(ASK, [
+    ['みか', 'まどが あいてるね。'],
+    ['ダーニャ', 'あつかったから、あけて ____。'],
+  ], 'あります', { distractors: ['います', 'おきます', 'みます'] })],
+
+  'jan3-04': [gapDialog(ASK, [
+    ['たなか', 'あたらしい みせ、どうでしたか。'],
+    ['ダーニャ', 'いちど ____んですが、おいしかったです。'],
+  ], 'いって みた', { distractors: ['いって おいた', 'いって いった', 'いって しまった'] })],
+
+  'jan3-05': [gapDialog(ASK, [
+    ['みか', 'そのペン、いいね。'],
+    ['ダーニャ', 'たなかさんが ____んです。'],
+  ], 'くれた', { distractors: ['あげた', 'もらった', 'やった'] })],
+
+  'jan3-06': [gapDialog(ASK, [
+    ['たなか', 'にもつ、おもそうですね。'],
+    ['ダーニャ', 'すみません、もって ____ませんか。'],
+  ], 'くれ', { distractors: ['あげ', 'もらい', 'やり'] })],
+
+  'jan3-07': [gapDialog(ASK, [
+    ['みか', 'かいぎは どうだった。'],
+    ['ダーニャ', 'ぶちょうに なまえを ____。'],
+  ], 'よばれた', { distractors: ['よんだ', 'よばせた', 'よべた'] })],
+
+  'jan3-08': [gapDialog(ASK, [
+    ['たなか', 'こどもに やさいを たべさせますか。'],
+    ['ダーニャ', 'むりに ____ないように して います。'],
+  ], 'たべさせ', { distractors: ['たべられ', 'たべ', 'たべさせられ'] })],
+
+  // 様態 против 伝聞: по виду или с чужих слов.
+  'jan3-09': [gapDialog(ASK, [
+    ['みか', 'そのケーキ、どう。'],
+    ['ダーニャ', 'まだ たべてないけど、____ね。'],
+  ], 'おいしそう', { distractors: ['おいしいそう', 'おいしいらしい', 'おいしいみたい'] })],
+
+  'jan3-10': [gapDialog(ASK, [
+    ['たなか', 'たなかさん、けっこんするって。'],
+    ['ダーニャ', 'へえ、ニュースで きいた____ですね。'],
+  ], 'らしい', { distractors: ['よう', 'そう', 'みたい'] })],
+
+  'jan3-11': [gapDialog(ASK, [
+    ['みか', 'かれ、まだ きてないね。'],
+    ['ダーニャ', 'もう つく____ですが。'],
+  ], 'はず', { distractors: ['わけ', 'べき', 'よう'] })],
+
+  'jan3-12': [gapDialog(ASK, [
+    ['たなか', 'あしたの てんきは。'],
+    ['ダーニャ', 'あめが ふる____しれません。'],
+  ], 'かも', { distractors: ['にちがい', 'だろう', 'はず'] })],
+
+  // Четыре условия — юнит целиком про выбор между ними.
+  'jan3-13': [gapDialog(ASK, [
+    ['みか', 'このボタンは。'],
+    ['ダーニャ', 'おす____、みずが でます。'],
+  ], 'と', { distractors: ['たら', 'ば', 'なら'] })],
+
+  'jan3-14': [gapDialog(ASK, [
+    ['たなか', 'せっかく つくったのに。'],
+    ['ダーニャ', 'あめの ____で、ちゅうしに なりました。'],
+  ], 'せい', { distractors: ['おかげ', 'ため', 'ので'] })],
+
+  'jan3-15': [gapDialog(ASK, [
+    ['みか', 'いつも おんがくを きいてるね。'],
+    ['ダーニャ', 'はしり____ きくのが すきなんです。'],
+  ], 'ながら', { distractors: ['たまま', 'うちに', 'ながらも'] })],
+
+  'jan3-16': [gapDialog(ASK, [
+    ['たなか', 'てんきよほうは。'],
+    ['ダーニャ', 'ニュース____、あしたは さむいそうです。'],
+  ], 'によると', { distractors: ['という', 'について', 'にたいして'] })],
+
+  // 尊敬語 — возвышаем собеседника, о себе так не говорят.
+  'jan3-17': [gapDialog(ASK, [
+    ['ダーニャ', 'ぶちょうは もう ____か。'],
+    ['たなか', 'はい、さきほど きました。'],
+  ], 'いらっしゃいました', { distractors: ['まいりました', 'おりました', 'いたしました'] })],
+
+  'jan3-18': [gapDialog(ASK, [
+    ['きゃく', 'ごたんとうの かたは。'],
+    ['ダーニャ', 'わたくしが ____。'],
+  ], '申します', { distractors: ['おっしゃいます', 'いらっしゃいます', 'なさいます'] })],
+
+  'jan3-19': [gapDialog(ASK, [
+    ['みか', 'この かんじ、みたことある。'],
+    ['ダーニャ', 'はい、「国際____」の かです。'],
+  ], '化', { distractors: ['的', '性', '性的'] })],
+
+  'jan3-20': [gapDialog(ASK, [
+    ['たなか', 'N3で いちばん たいへんなのは。'],
+    ['ダーニャ', 'じかんが たりないので、____です。'],
+  ], '読解', { distractors: ['聴解', '文法', '文字・語彙'] })],
+}
+
+/**
+ * Бразильский португальский с нуля (ptbr) — по диалогу на юнит.
+ *
+ * Собеседники: Ana / Bruno (бразильцы) и Dânia (ученица). Обращение — você,
+ * как в Бразилии и говорят; tu появляется только в юните про обращения.
+ */
+export const PTBR_DIALOGS: Record<string, SeedTask[]> = {
+  'ptbr-01': [gapDialog(ASK, [
+    ['Ana', 'Como se escreve o nome do seu filho?'],
+    ['Dânia', 'É ____, com lh.'],
+  ], 'filho', { distractors: ['filio', 'filjo', 'fillo'] })],
+
+  'ptbr-02': [gapDialog(ASK, [
+    ['Bruno', 'O que você comprou na padaria?'],
+    ['Dânia', 'Comprei ____.'],
+  ], 'pão', { distractors: ['pao', 'pau', 'pãn'] })],
+
+  // Открытая против закрытой — здесь она меняет слово целиком.
+  'ptbr-03': [gapDialog(ASK, [
+    ['Ana', 'Quem está na foto, sua avó?'],
+    ['Dânia', 'Não, é o meu ____.'],
+  ], 'avô', { distractors: ['avó', 'avo', 'avôs'] })],
+
+  // ser против estar — постоянное против состояния.
+  'ptbr-04': [gapDialog(ASK, [
+    ['Bruno', 'Você é brasileira?'],
+    ['Dânia', 'Não, eu ____ russa.'],
+  ], 'sou', { distractors: ['estou', 'é', 'está'] })],
+
+  'ptbr-05': [gapDialog(ASK, [
+    ['Ana', 'Bom dia! Tudo bem?'],
+    ['Dânia', 'Tudo bem, ____.'],
+  ], 'obrigada', { distractors: ['obrigado', 'por favor', 'de nada'] })],
+
+  // Ловушка рода: cidade женский, problema мужской.
+  'ptbr-06': [gapDialog(ASK, [
+    ['Bruno', 'Você gosta daqui?'],
+    ['Dânia', 'Gosto muito. ____ cidade é linda.'],
+  ], 'A', { distractors: ['O', 'Um', 'Os'] })],
+
+  'ptbr-07': [gapDialog(ASK, [
+    ['Ana', 'Onde você mora?'],
+    ['Dânia', 'Eu ____ em São Paulo.'],
+  ], 'moro', { distractors: ['mora', 'moras', 'moramos'] })],
+
+  'ptbr-08': [gapDialog(ASK, [
+    ['Bruno', 'Você tem tempo amanhã?'],
+    ['Dânia', 'Não, eu ____ que trabalhar.'],
+  ], 'tenho', { distractors: ['tem', 'temos', 'tinha'] })],
+
+  'ptbr-09': [gapDialog(ASK, [
+    ['Dânia', '____ fica a estação?'],
+    ['Ana', 'Fica ali, depois da praça.'],
+  ], 'Onde', { distractors: ['Quem', 'Quando', 'Como'] })],
+
+  'ptbr-10': [gapDialog(ASK, [
+    ['Bruno', 'Que horas são?'],
+    ['Dânia', 'São ____ e meia.'],
+  ], 'três', { distractors: ['treis', 'trés', 'tres'] })],
+
+  // Притяжательное согласуется с ПРЕДМЕТОМ, а не с владельцем.
+  'ptbr-11': [gapDialog(ASK, [
+    ['Ana', 'Quem é essa moça na foto?'],
+    ['Dânia', 'É ____ irmã.'],
+  ], 'minha', { distractors: ['meu', 'meus', 'minhas'] })],
+
+  'ptbr-12': [gapDialog(ASK, [
+    ['Dânia', '____ custa esta camiseta?'],
+    ['Bruno', 'Trinta reais.'],
+  ], 'Quanto', { distractors: ['Quantos', 'Quanta', 'Qual'] })],
+
+  'ptbr-13': [gapDialog(ASK, [
+    ['garçom', 'O que vai ser?'],
+    ['Dânia', 'Eu ____ querer um café, por favor.'],
+  ], 'vou', { distractors: ['vai', 'quero', 'queria'] })],
+
+  'ptbr-14': [gapDialog(ASK, [
+    ['Ana', 'Como você vem para cá?'],
+    ['Dânia', 'Venho ____ metrô.'],
+  ], 'de', { distractors: ['a', 'em', 'com'] })],
+
+  // Герундий — бразильская норма для «прямо сейчас».
+  'ptbr-15': [gapDialog(ASK, [
+    ['Bruno', 'O que você está fazendo?'],
+    ['Dânia', 'Estou ____ um livro.'],
+  ], 'lendo', { distractors: ['ler', 'leio', 'lido'] })],
+
+  'ptbr-16': [gapDialog(ASK, [
+    ['Ana', 'Vocês vão juntos?'],
+    ['Dânia', 'Vamos. ____ gente sai às oito.'],
+  ], 'A', { distractors: ['O', 'Nós', 'Você'] })],
+
+  // perfeito — законченное событие.
+  'ptbr-17': [gapDialog(ASK, [
+    ['Bruno', 'O que você fez ontem?'],
+    ['Dânia', 'Eu ____ ao cinema.'],
+  ], 'fui', { distractors: ['ia', 'vou', 'era'] })],
+
+  // imperfeito — фон и привычка.
+  'ptbr-18': [gapDialog(ASK, [
+    ['Ana', 'Como era sua infância?'],
+    ['Dânia', 'Quando eu ____ criança, morava no campo.'],
+  ], 'era', { distractors: ['fui', 'sou', 'estava'] })],
+
+  'ptbr-19': [gapDialog(ASK, [
+    ['Bruno', 'O que você faz no fim de semana?'],
+    ['Dânia', 'Eu ____ viajar para a praia.'],
+  ], 'vou', { distractors: ['fui', 'ia', 'irei'] })],
+
+  'ptbr-20': [gapDialog(ASK, [
+    ['Ana', 'Como você se chama mesmo?'],
+    ['Dânia', 'Eu ____ chamo Dânia.'],
+  ], 'me', { distractors: ['se', 'te', 'nos'] })],
+
+  'ptbr-21': [gapDialog(ASK, [
+    ['Bruno', 'Você acha que ele vem?'],
+    ['Dânia', 'Espero que ele ____.'],
+  ], 'venha', { distractors: ['vem', 'veio', 'vir'] })],
+
+  'ptbr-22': [gapDialog(ASK, [
+    ['Ana', 'O que cai na prova?'],
+    ['Dânia', 'A ____ pede um texto de um gênero específico.'],
+  ], 'tarefa', { distractors: ['prova', 'aula', 'nota'] })],
+}
+
+/**
+ * Португальский Intermediário / CELPE-Bras (ptb2) — по диалогу на юнит.
+ *
+ * Здесь пропуск чаще падает на НАКЛОНЕНИЕ: весь курс про subjuntivo и про то,
+ * где португальский требует его там, где русский обходится изъявительным.
+ */
+export const PTB2_DIALOGS: Record<string, SeedTask[]> = {
+  'ptb2-01': [gapDialog(ASK, [
+    ['Ana', 'Vocês já tinham saído quando eu cheguei?'],
+    ['Dânia', 'Sim, quando você chegou nós já ____ saído.'],
+  ], 'tínhamos', { distractors: ['temos', 'tivemos', 'teríamos'] })],
+
+  'ptb2-02': [gapDialog(ASK, [
+    ['Dânia', '____ me ajudar com uma coisa?'],
+    ['Bruno', 'Claro, o que você precisa?'],
+  ], 'Poderia', { distractors: ['Pode', 'Podia', 'Puder'] })],
+
+  'ptb2-03': [gapDialog(ASK, [
+    ['Ana', 'Ele vai conseguir o visto?'],
+    ['Dânia', 'Espero que ____ tudo certo.'],
+  ], 'dê', { distractors: ['dá', 'deu', 'dar'] })],
+
+  // Условие второго типа: se + imperfeito do subjuntivo.
+  'ptb2-04': [gapDialog(ASK, [
+    ['Bruno', 'E se você ganhasse na loteria?'],
+    ['Dânia', 'Se eu ____ dinheiro, viajaria o ano inteiro.'],
+  ], 'tivesse', { distractors: ['tenho', 'tiver', 'tinha'] })],
+
+  // Futuro do subjuntivo — форма, которой нет в других языках.
+  'ptb2-05': [gapDialog(ASK, [
+    ['Ana', 'Me avisa quando terminar?'],
+    ['Dânia', 'Quando eu ____, eu te aviso.'],
+  ], 'puder', { distractors: ['posso', 'pudesse', 'poderia'] })],
+
+  'ptb2-06': [gapDialog(ASK, [
+    ['Bruno', 'O que o professor pediu?'],
+    ['Dânia', 'Ele pediu que nós ____ o texto até sexta.'],
+  ], 'entregássemos', { distractors: ['entreguemos', 'entregamos', 'entregaremos'] })],
+
+  // Личный инфинитив — согласуется с подлежащим.
+  'ptb2-07': [gapDialog(ASK, [
+    ['Ana', 'Vocês avisaram antes de sair?'],
+    ['Dânia', 'Sim, avisamos antes de ____.'],
+  ], 'sairmos', { distractors: ['sair', 'sairem', 'saíssemos'] })],
+
+  'ptb2-08': [gapDialog(ASK, [
+    ['Bruno', 'Quem construiu essa ponte?'],
+    ['Dânia', 'Ela ____ construída em 1950.'],
+  ], 'foi', { distractors: ['era', 'está', 'tinha'] })],
+
+  'ptb2-09': [gapDialog(ASK, [
+    ['Ana', 'Que autor você citou?'],
+    ['Dânia', 'Um autor ____ obra eu li no ano passado.'],
+  ], 'cuja', { distractors: ['que', 'quem', 'onde'] })],
+
+  'ptb2-10': [gapDialog(ASK, [
+    ['Bruno', 'O que ele te falou?'],
+    ['Dânia', 'Ele disse que ____ ocupado naquele dia.'],
+  ], 'estava', { distractors: ['está', 'esteve', 'estivesse'] })],
+
+  'ptb2-11': [gapDialog(ASK, [
+    ['Ana', 'O texto ficou bom, mas falta ligação.'],
+    ['Dânia', 'Vou usar «____» para marcar a conclusão.'],
+  ], 'portanto', { distractors: ['no entanto', 'além disso', 'por outro lado'] })],
+
+  // Модализатор — то, чем письменная осторожность и делается.
+  'ptb2-12': [gapDialog(ASK, [
+    ['Bruno', 'Você afirmaria isso na prova?'],
+    ['Dânia', 'Não. Eu escreveria «____ que» para não afirmar demais.'],
+  ], 'é possível', { distractors: ['é certo', 'com certeza', 'sem dúvida'] })],
+
+  'ptb2-13': [gapDialog(ASK, [
+    ['Ana', 'Posso escrever «cadê» no e-mail formal?'],
+    ['Dânia', 'Não. No formal seria «____».'],
+  ], 'onde está', { distractors: ['cadê', 'tá onde', 'que fim levou'] })],
+
+  'ptb2-14': [gapDialog(ASK, [
+    ['Bruno', 'Como você anota ouvindo só uma vez?'],
+    ['Dânia', 'Anoto só ____, não a frase inteira.'],
+  ], 'palavras-chave', { distractors: ['tudo', 'o texto', 'a gramática'] })],
+
+  'ptb2-15': [gapDialog(ASK, [
+    ['Ana', 'Como você termina a carta de reclamação?'],
+    ['Dânia', 'Com o pedido: «____ a devolução do valor pago».'],
+  ], 'Solicito', { distractors: ['Quero', 'Preciso', 'Gostaria'] })],
+
+  'ptb2-16': [gapDialog(ASK, [
+    ['Bruno', 'Faltou alguma coisa no meu artigo?'],
+    ['Dânia', 'Faltou a ____: você não respondeu quem discorda.'],
+  ], 'contra-argumentação', { distractors: ['introdução', 'conclusão', 'tese'] })],
+
+  'ptb2-17': [gapDialog(ASK, [
+    ['Ana', 'O resumo ficou grande demais.'],
+    ['Dânia', 'É que eu ____ o texto em vez de resumir.'],
+  ], 'copiei', { distractors: ['resumi', 'parafraseei', 'reescrevi'] })],
+
+  'ptb2-18': [gapDialog(ASK, [
+    ['Bruno', 'O que é o elemento provocador?'],
+    ['Dânia', 'É o material que ____ a conversa na parte oral.'],
+  ], 'inicia', { distractors: ['avalia', 'corrige', 'encerra'] })],
+}
+
+/**
+ * Немецкий A1→B1 (deab) — по диалогу на юнит.
+ *
+ * Собеседники: Frau Weber / Max (немцы) и Dania (ученица). Регистр разведён
+ * намеренно: с Frau Weber — Sie, с Max — du. Юнит 2 как раз про этот выбор, и
+ * дальше он выдерживается, а не скачет от реплики к реплике.
+ *
+ * ПРОПУСК ЧАЩЕ ВСЕГО НА ПАДЕЖЕ ИЛИ НА МЕСТЕ ГЛАГОЛА: это две вещи, которыми
+ * немецкий отличается от русского сильнее всего, и обе проверяются только в
+ * целой фразе.
+ */
+export const DEAB_DIALOGS: Record<string, SeedTask[]> = {
+  'deab-01': [gapDialog(ASK, [
+    ['Max', 'Wie schreibt man das?'],
+    ['Dania', 'Mit ____: schön.'],
+  ], 'ö', { distractors: ['oe', 'o', 'ü'] })],
+
+  // Sie или du — весь юнит про этот выбор.
+  'deab-02': [gapDialog(ASK, [
+    ['Frau Weber', 'Guten Tag! Wie heißen Sie?'],
+    ['Dania', 'Ich ____ Dania.'],
+  ], 'heiße', { distractors: ['heißt', 'heißen', 'heiß'] })],
+
+  'deab-03': [gapDialog(ASK, [
+    ['Max', 'Was ist das?'],
+    ['Dania', 'Das ist ____ Buch.'],
+  ], 'das', { distractors: ['der', 'die', 'den'] })],
+
+  // Глагол на второй позиции — даже когда фраза начинается с обстоятельства.
+  'deab-04': [gapDialog(ASK, [
+    ['Frau Weber', 'Wann arbeiten Sie?'],
+    ['Dania', 'Morgen ____ ich bis sechs.'],
+  ], 'arbeite', { distractors: ['ich arbeite', 'arbeiten', 'arbeitet'] })],
+
+  'deab-05': [gapDialog(ASK, [
+    ['Max', 'Wann fängt der Film an?'],
+    ['Dania', 'Um ____ acht.'],
+  ], 'halb', { distractors: ['Viertel', 'halbe', 'um'] })],
+
+  // Akkusativ — меняется только мужской род.
+  'deab-06': [gapDialog(ASK, [
+    ['Frau Weber', 'Was brauchen Sie noch?'],
+    ['Dania', 'Ich brauche ____ Stuhl.'],
+  ], 'einen', { distractors: ['ein', 'einem', 'eines'] })],
+
+  'deab-07': [gapDialog(ASK, [
+    ['Max', 'Kommst du mit ins Kino?'],
+    ['Dania', 'Ich ____ nicht, ich muss lernen.'],
+  ], 'kann', { distractors: ['könne', 'kannst', 'könnte'] })],
+
+  // Отделяемая приставка уезжает в конец.
+  'deab-08': [gapDialog(ASK, [
+    ['Frau Weber', 'Wann stehen Sie auf?'],
+    ['Dania', 'Ich stehe um sechs ____.'],
+  ], 'auf', { distractors: ['an', 'aus', 'ab'] })],
+
+  'deab-09': [gapDialog(ASK, [
+    ['Max', 'Mit wem fährst du?'],
+    ['Dania', 'Mit ____ Freundin.'],
+  ], 'meiner', { distractors: ['meine', 'meinen', 'meinem'] })],
+
+  // Wechselpräposition: «куда» — Akkusativ, «где» — Dativ.
+  'deab-10': [gapDialog(ASK, [
+    ['Frau Weber', 'Wohin stellen wir die Lampe?'],
+    ['Dania', 'Auf ____ Tisch.'],
+  ], 'den', { distractors: ['dem', 'der', 'das'] })],
+
+  'deab-11': [gapDialog(ASK, [
+    ['Kellner', 'Was darf es sein?'],
+    ['Dania', 'Ich ____ gern einen Kaffee.'],
+  ], 'hätte', { distractors: ['habe', 'hatte', 'will'] })],
+
+  'deab-12': [gapDialog(ASK, [
+    ['Max', 'Und die Jacke?'],
+    ['Dania', 'Die nehme ich nicht, sie ist ____ zu klein.'],
+  ], 'mir', { distractors: ['mich', 'ich', 'meine'] })],
+
+  // Perfekt: haben или sein — вот здесь sein, глагол движения.
+  'deab-13': [gapDialog(ASK, [
+    ['Frau Weber', 'Was haben Sie gestern gemacht?'],
+    ['Dania', 'Ich ____ nach Berlin gefahren.'],
+  ], 'bin', { distractors: ['habe', 'war', 'hatte'] })],
+
+  'deab-14': [gapDialog(ASK, [
+    ['Max', 'Wie war es als Kind?'],
+    ['Dania', 'Wir ____ ein kleines Haus am See.'],
+  ], 'hatten', { distractors: ['haben', 'waren', 'hätten'] })],
+
+  'deab-15': [gapDialog(ASK, [
+    ['Frau Weber', 'Welche Tasche nehmen Sie?'],
+    ['Dania', 'Die ____ Tasche dort.'],
+  ], 'rote', { distractors: ['rot', 'roten', 'roter'] })],
+
+  'deab-16': [gapDialog(ASK, [
+    ['Max', 'Ist das Zimmer besser?'],
+    ['Dania', 'Ja, es ist größer ____ das andere.'],
+  ], 'als', { distractors: ['wie', 'als wie', 'denn'] })],
+
+  // Придаточное с weil: глагол уходит в конец.
+  'deab-17': [gapDialog(ASK, [
+    ['Frau Weber', 'Warum kommen Sie später?'],
+    ['Dania', 'Weil ich noch zum Arzt ____.'],
+  ], 'muss', { distractors: ['muss gehen', 'gehen muss', 'will'] })],
+
+  'deab-18': [gapDialog(ASK, [
+    ['Dania', 'Entschuldigung, wie komme ich zum Bahnhof?'],
+    ['Max', '____ Sie geradeaus und dann links.'],
+  ], 'Gehen', { distractors: ['Geht', 'Gehe', 'Zu gehen'] })],
+
+  'deab-19': [gapDialog(ASK, [
+    ['Ärztin', 'Was fehlt Ihnen?'],
+    ['Dania', '____ tut der Kopf weh.'],
+  ], 'Mir', { distractors: ['Mich', 'Ich', 'Meiner'] })],
+
+  'deab-20': [gapDialog(ASK, [
+    ['Frau Weber', 'Wann können wir uns treffen?'],
+    ['Dania', 'Ich ____ Ihnen morgen Bescheid.'],
+  ], 'gebe', { distractors: ['gibt', 'geben', 'gab'] })],
+
+  // Konjunktiv II — вежливость и совет.
+  'deab-21': [gapDialog(ASK, [
+    ['Max', 'Was soll ich machen?'],
+    ['Dania', 'An deiner Stelle ____ ich mit ihm reden.'],
+  ], 'würde', { distractors: ['werde', 'wurde', 'will'] })],
+
+  'deab-22': [gapDialog(ASK, [
+    ['Frau Weber', 'Wo bekomme ich die Anmeldung?'],
+    ['Dania', 'Das Formular ____ im Bürgeramt ausgefüllt.'],
+  ], 'wird', { distractors: ['ist', 'hat', 'war'] })],
+
+  'deab-23': [gapDialog(ASK, [
+    ['Max', 'Wie hoch ist die Miete?'],
+    ['Dania', 'Die Höhe ____ Miete steht im Vertrag.'],
+  ], 'der', { distractors: ['die', 'den', 'dem'] })],
+
+  'deab-24': [gapDialog(ASK, [
+    ['Frau Weber', 'Warum lernen Sie Deutsch?'],
+    ['Dania', '____ hier zu arbeiten.'],
+  ], 'Um', { distractors: ['Für', 'Zu', 'Damit'] })],
+}
+

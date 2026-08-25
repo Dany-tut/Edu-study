@@ -162,8 +162,21 @@ function buildStage(under: Snapshot | null): Stage {
     'position:absolute', 'inset:0', 'background:#000', `opacity:${DIM}`,
   ].join(';')
 
+  // Подложка с запасом за кромки экрана. Слои жеста — `position:fixed`, то есть
+  // ровно по коробке окна; на айфоне под этой коробкой остаётся зона домашней
+  // полосы, и в неё на время жеста просвечивало белым. Заливка с напуском по
+  // 200px закрывает и её, и любой похожий зазор сверху.
+  const bleed = document.createElement('div')
+  bleed.setAttribute(STAGE_ATTR, '')
+  bleed.setAttribute('aria-hidden', 'true')
+  bleed.style.cssText = [
+    'position:fixed', 'left:0', 'right:0', 'top:-200px', 'bottom:-200px',
+    'z-index:0', 'pointer-events:none', 'background:var(--color-bg)',
+  ].join(';')
+
   wrap.append(underEl, dim)
   document.body.insertBefore(wrap, document.body.firstChild)
+  document.body.insertBefore(bleed, wrap)
 
   // ── Верхний слой: живая страница ──
   // Едут все слои приложения разом — корень и порталы (модалки, подсказки
@@ -178,6 +191,18 @@ function buildStage(under: Snapshot | null): Stage {
   // Корень берём из movers, а не поиском по id: это заведомо ЖИВОЙ узел, а не
   // одноимённый клон из снимка.
   const root = movers.find(m => m.el.id === 'root')?.el ?? null
+
+  // Прокрутку страницы переносим внутрь ОТРИЦАТЕЛЬНЫМ ОТСТУПОМ первого ребёнка,
+  // а не прокруткой самого корня (`root.scrollTop = scrollY`, как было).
+  //
+  // Разница видна на любом прокрученном экране. Под transform’ом всё, что внутри
+  // объявлено `position:fixed` (доки, нижняя навигация), считается от коробки
+  // корня. Пока корень был скроллером, эти слои ЕХАЛИ ВМЕСТЕ С ПРОКРУТКОЙ и на
+  // старте жеста подпрыгивали вверх ровно на scrollY — навигация оказывалась
+  // посреди экрана. С отступом коробка корня остаётся экраном, доки стоят на
+  // своих местах, а вверх уезжает только содержимое.
+  const shifted = (root && scrollY > 0 ? root.firstElementChild : null) as HTMLElement | null
+  const shiftedCss = shifted ? shifted.style.cssText : ''
   if (root) {
     // Заморозка: коробка корня становится ровно экраном, а прокрутка окна
     // переезжает внутрь него. Без этого transform ниже сломал бы отсчёт у
@@ -188,15 +213,17 @@ function buildStage(under: Snapshot | null): Stage {
     root.style.right = '0'
     root.style.bottom = '0'
     root.style.overflow = 'hidden'
-    root.scrollTop = scrollY
     // Своя заливка обязательна: фон приложения лежит на body (index.css), а
     // #root прозрачен — отъезжающая страница просвечивала бы насквозь, и на
     // экране оказывались бы видны оба экрана разом.
     root.style.background = 'var(--color-bg)'
     // Тень ложится на открывающийся экран — она и создаёт ощущение, что
-    // страница лежит СВЕРХУ, а не нарисована рядом.
-    root.style.boxShadow = '-18px 0 46px rgba(0,0,0,0.38)'
+    // страница лежит СВЕРХУ, а не нарисована рядом. Мягкая и узкая: прежняя
+    // (-18px / 46px / 0.38) красила треть открывшегося экрана в серое и
+    // читалась как грязь под краем, а не как высота.
+    root.style.boxShadow = '-6px 0 18px rgba(0,0,0,0.13)'
   }
+  if (shifted) shifted.style.marginTop = `${-scrollY}px`
   movers.forEach(({ el }) => {
     el.style.zIndex = el.style.zIndex || '1'
     el.style.willChange = 'transform'
@@ -255,9 +282,11 @@ function buildStage(under: Snapshot | null): Stage {
     },
     destroy(fired) {
       wrap.remove()
+      bleed.remove()
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
+      if (shifted) shifted.style.cssText = shiftedCss
       // Прокрутку возвращаем уже разморозенному документу: ушли — на ту, что
       // была у открывшегося экрана, отменили — на свою.
       const back = fired ? (under?.scrollY ?? 0) : scrollY

@@ -35,23 +35,19 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Pause, Menu } from 'lucide-react'
-import { Volume2 } from 'lucide-react'
+import { Play, Pause } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { speak, stopSpeech, speechUnits, speechMs } from '../../lib/speech'
 import { getMediaUrl } from '../../lib/mediaStorage'
 import { useNavCollapse } from '../../lib/useNavCollapse'
-import { useSmoothCollapse } from '../MobileDock'
 import { tactile } from '../../lib/feedback'
 import MobileSheet from '../MobileSheet'
 import VoicePicker from './VoicePicker'
+import PlayerPill, { CueList } from './PlayerPill'
 import { MOBILE_DOCK_EDGE } from '../../lib/mobileTokens'
 
 /** Радиус магнита в пикселях: ближе этого к границе реплики — прилипаем. */
 const SNAP_PX = 14
-
-/** Самая большая точка бегунка (под пальцем). Её половина — поля полосы. */
-const DOT_MAX = 18
 
 /** Шаг опроса позиции. rAF в превью не работает (см. память проекта), да и
  *  сотни кадров в секунду бегунку не нужны — десять хватает с запасом. */
@@ -75,12 +71,6 @@ function mmss(sec: number): string {
   const m = Math.floor(sec / 60)
   const s = Math.floor(sec % 60)
   return `${m}:${String(s).padStart(2, '0')}`
-}
-
-/** Короткая шапка реплики для списка отрывков. */
-function head(line: string): string {
-  const clean = line.trim()
-  return clean.length > 28 ? `${clean.slice(0, 27)}…` : clean
 }
 
 export default function TrackPlayer({
@@ -110,19 +100,9 @@ export default function TrackPlayer({
 }) {
   const t = useT()
   const collapsed = useNavCollapse()
-  // Тот же сглаженный флаг, что схлопывает круг «Фильтры» рядом (см.
-  // useSmoothCollapse в MobileDock): плеер обязан расти ровно тем же жестом,
-  // которым круг уступает ему место, иначе два движения в одном ряду разъедутся.
-  const dockCollapsed = useSmoothCollapse()
-  // РОСТ. В ряду дока плеер притворяется его частью: те же 46 в высоту, что у
-  // круга, и кнопка «играть» — такой же кружок. Остался один — распрямляется
-  // в настоящий проигрыватель: выше, полоса толще, проступает подпись с
-  // названием записи. Растёт ВВЕРХ: док прижат к низу, нижняя кромка стоит.
-  const grown = !!inline && dockCollapsed
   const usesTts = !audioUrl && !!ttsText
 
   const [menu, setMenu] = useState(false)
-  const [menuHeld, setMenuHeld] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [ms, setMs] = useState(0)
   const [ttsRate, setTtsRate] = useState<TtsRateId>('normal')
@@ -323,8 +303,6 @@ export default function TrackPlayer({
     : mmss(drag.ms / 1000)) : null
 
   const held = !!drag
-  const barH = held ? 7 : grown ? 4 : 3
-  const dotSize = held ? DOT_MAX : grown ? 10 : 9
 
   return (
     <>
@@ -355,178 +333,37 @@ export default function TrackPlayer({
           zIndex: 41, padding: '0 16px', pointerEvents: 'none',
         }}
       >
-        {/* Высота — не «на глаз», а от соседа: 46 = DockCircle. Гоним её тем
-            же COLLAPSE, что схлопывает круг, чтобы рост плеера и уход круга
-            читались одним движением, а не двумя. */}
-        <motion.div
-          initial={false}
-          animate={inline ? { height: grown ? 58 : 46, borderRadius: grown ? 26 : 23 } : undefined}
-          transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-          style={{
-            pointerEvents: 'auto',
-            display: 'flex', alignItems: 'center', gap: inline ? 8 : 12,
-            padding: inline ? (grown ? '0 8px 0 5px' : '0 4px 0 3px') : '10px 12px',
-            borderRadius: inline ? undefined : 22,
-            background: 'rgba(var(--glass-rgb), 0.86)',
-            backdropFilter: 'blur(28px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-            border: '1px solid var(--color-border-glass)',
-            boxShadow: 'var(--shadow-pill)',
+        <PlayerPill
+          inline={inline}
+          accent={accent}
+          icon={playing ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
+          playLabel={playing ? t('Пауза') : t('Играть')}
+          onPlay={toggle}
+          trackRef={trackRef}
+          slider={{
+            onPointerDown: onDown,
+            onPointerMove: onMove,
+            onPointerUp: onUp,
+            onPointerCancel: () => { dragging.current = false; setDrag(null) },
+            onLostPointerCapture: () => setDrag(null),
+            label: t('Промотка записи'),
+            min: 0,
+            max: usesTts ? Math.max(1, lines.length) : Math.round(dur),
+            now: usesTts ? line + 1 : Math.round(shown / 1000),
           }}
-        >
-          <motion.button
-            onClick={toggle}
-            aria-label={playing ? t('Пауза') : t('Играть')}
-            initial={false}
-            animate={inline ? { width: grown ? 46 : 40, height: grown ? 46 : 40 } : undefined}
-            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-            style={{
-              width: 40, height: 40, borderRadius: '50%', flexShrink: 0, border: 'none',
-              display: 'grid', placeItems: 'center', cursor: 'pointer',
-              background: accent, color: '#fff',
-              boxShadow: `0 4px 12px -3px color-mix(in srgb, ${accent} 55%, transparent)`,
-            }}
-          >
-            {playing ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
-          </motion.button>
-
-          {/* Мишень бегунка выше самой полосы: тянуть трёхпиксельную линию
-              пальцем невозможно, поэтому жест ловит вся полоса-подложка. */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              onPointerDown={onDown}
-              onPointerMove={onMove}
-              onPointerUp={onUp}
-              // Палец «потерялся» — жест обрывают и система (звонок, шторка
-              // уведомлений), и браузер, отобрав захват. Без этих двух строк
-              // бегунок оставался в состоянии перетаскивания навсегда: полоса
-              // толстая, точка большая, а звук идёт своим чередом.
-              onPointerCancel={() => { dragging.current = false; setDrag(null) }}
-              onLostPointerCapture={() => setDrag(null)}
-              role="slider"
-              aria-label={t('Промотка записи')}
-              aria-valuemin={0}
-              aria-valuemax={usesTts ? Math.max(1, lines.length) : Math.round(dur)}
-              aria-valuenow={usesTts ? line + 1 : Math.round(shown / 1000)}
-              style={{
-                position: 'relative', height: 22, display: 'flex', alignItems: 'center',
-                touchAction: 'none', cursor: 'pointer',
-                // Поля под радиус точки. Без них точка в нуле наезжает круглым
-                // боком на кнопку «играть» (а в конце — на бургер): она стоит
-                // ЦЕНТРОМ на краю полосы, то есть половиной висит снаружи.
-                // Полоса теперь начинается там, где начинается точка.
-                padding: `0 ${DOT_MAX / 2}px`, boxSizing: 'border-box',
-              }}
-            >
-              <div
-                ref={trackRef}
-                style={{
-                  position: 'relative', width: '100%', height: barH, borderRadius: 4,
-                  background: 'var(--color-border-soft)',
-                  transition: 'height .14s ease',
-                }}
-              >
-                {hint && (
-                  <span style={{
-                    position: 'absolute', left: `${frac * 100}%`, bottom: 16, transform: 'translateX(-50%)',
-                    padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
-                    fontSize: 11, fontWeight: 700, background: accent, color: '#fff',
-                  }}>
-                    {hint}
-                  </span>
-                )}
-                <div style={{
-                  position: 'absolute', inset: 0, right: `${100 - frac * 100}%`,
-                  background: accent, borderRadius: 4,
-                }} />
-                {/* Границы реплик проступают только под пальцем: в покое
-                    десяток рисок на трёхпиксельной полосе — рябь, а не шкала. */}
-                {held && usesTts && spans.slice(1).map(s => (
-                  <div key={s.at} style={{
-                    position: 'absolute', top: 0, bottom: 0, left: `${(s.at / total) * 100}%`,
-                    width: 1, background: 'rgba(var(--glass-rgb), 0.9)',
-                  }} />
-                ))}
-                <div style={{
-                  position: 'absolute', top: '50%', left: `${frac * 100}%`,
-                  width: dotSize, height: dotSize, marginTop: -dotSize / 2, marginLeft: -dotSize / 2,
-                  borderRadius: '50%', background: accent,
-                  border: held ? '2.5px solid rgba(var(--glass-rgb), 1)' : 'none',
-                  transition: 'width .14s ease, height .14s ease, margin .14s ease',
-                }} />
-              </div>
-            </div>
-            {/* Подпись — правда об источнике: у файла секунды, у синтеза номер
-                реплики. Оценку длительности синтеза секундами не подписываем.
-                В ряду дока второй строки нет вовсе — именно она и делала плеер
-                на 14 px выше соседнего круга; вместо неё справа стоит микро-
-                счётчик, а название записи появляется только там, где под него
-                есть ширина. */}
-            <motion.div
-              initial={false}
-              animate={inline ? { height: grown ? 14 : 0, opacity: grown ? 1 : 0, marginTop: grown ? 4 : 0 } : undefined}
-              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-              style={{
-                display: 'flex', justifyContent: 'space-between', gap: 8, overflow: 'hidden',
-                marginTop: inline ? undefined : 3,
-                fontSize: 10.5, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {usesTts ? (
-                // Пока ведут — подпись про ТУ реплику, куда ведут: иначе под
-                // бегунком, стоящим на третьей, написано «реплика 1».
-                <>
-                  {inline && title && (
-                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {title}
-                    </span>
-                  )}
-                  <span style={{ flexShrink: 0 }}>
-                    {`${t('реплика')} ${(drag?.line ?? line) + 1} ${t('из')} ${lines.length}`}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>{mmss(shown / 1000)}</span>
-                  <span>{mmss(dur)}</span>
-                </>
-              )}
-            </motion.div>
-          </div>
-
-          {/* Счётчик компактного состояния: позиция в записи не должна
-              пропадать вместе со второй строкой. */}
-          {inline && !grown && (
-            <span style={{
-              flexShrink: 0, fontSize: 10.5, color: 'var(--color-muted)',
-              fontVariantNumeric: 'tabular-nums',
-            }}>
-              {usesTts ? `${(drag?.line ?? line) + 1}/${lines.length}` : mmss(shown / 1000)}
-            </span>
-          )}
-
-          {/* Голая иконка: коробка с рамкой и заливкой внутри стеклянной
-              капсулы давала обводку в обводке. Мишень остаётся 32×32, а нажатие
-              показывает прозрачность — любая подсветка на стекле снова
-              превращается в ту же коробку. */}
-          <button
-            onClick={() => setMenu(true)}
-            onPointerDown={() => setMenuHeld(true)}
-            onPointerUp={() => setMenuHeld(false)}
-            onPointerLeave={() => setMenuHeld(false)}
-            onPointerCancel={() => setMenuHeld(false)}
-            aria-label={t('Настройки записи')}
-            style={{
-              width: 32, height: 32, flexShrink: 0,
-              display: 'grid', placeItems: 'center', cursor: 'pointer',
-              border: 'none', background: 'transparent', color: 'var(--color-muted)',
-              WebkitTapHighlightColor: 'transparent',
-              opacity: menuHeld ? 0.55 : 1, transition: 'opacity .12s ease',
-            }}
-          >
-            <Menu size={17} />
-          </button>
-        </motion.div>
+          frac={frac}
+          held={held}
+          ticks={usesTts && total ? spans.slice(1).map(s => s.at / total) : undefined}
+          hint={hint}
+          // Подпись — правда об источнике: у файла секунды, у синтеза номер
+          // реплики. Пока ведут — про ТУ реплику, куда ведут: иначе под
+          // бегунком, стоящим на третьей, написано «реплика 1».
+          lead={usesTts ? (inline ? title : undefined) : mmss(shown / 1000)}
+          tail={usesTts ? `${t('реплика')} ${(drag?.line ?? line) + 1} ${t('из')} ${lines.length}` : mmss(dur)}
+          counter={usesTts ? `${(drag?.line ?? line) + 1}/${lines.length}` : mmss(shown / 1000)}
+          onMenu={() => setMenu(true)}
+          menuLabel={t('Настройки записи')}
+        />
       </motion.div>
 
       <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Запись')}>
@@ -571,31 +408,14 @@ export default function TrackPlayer({
           {usesTts && lines.length > 1 && (
             <div>
               <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {lines.map((l, i) => {
-                  const on = i === line
-                  return (
-                    <button
-                      key={`${i}-${l}`}
-                      onClick={() => { goLine(i); setMenu(false) }}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
-                        padding: '9px 11px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                        border: on ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
-                        background: on ? soft : 'var(--color-bg-2)',
-                        color: on ? accent : 'var(--color-text)',
-                        fontSize: 13, fontWeight: on ? 700 : 500,
-                      }}
-                    >
-                      <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 14 }}>{i + 1}</span>
-                      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {head(l)}
-                      </span>
-                      {on && playing && <Volume2 size={14} style={{ marginLeft: 'auto', flexShrink: 0 }} />}
-                    </button>
-                  )
-                })}
-              </div>
+              <CueList
+                items={lines}
+                active={line}
+                playing={playing}
+                accent={accent}
+                soft={soft}
+                onPick={i => { goLine(i); setMenu(false) }}
+              />
             </div>
           )}
 

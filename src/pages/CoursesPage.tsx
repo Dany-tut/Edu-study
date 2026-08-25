@@ -570,7 +570,7 @@ export default function CoursesPage() {
                   aria-label={c.opts.label}
                   style={{
                     ...glassCircle, position: 'relative', width: 46, height: 46,
-                    background: 'rgba(var(--glass-rgb), 0.6)',
+                    background: 'rgba(var(--glass-rgb), 0.78)',
                     backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
                     // Без своего белого inset — glassCircle уже несёт --shadow-pill,
                     // а inset в тёмной теме рисовал резкий контур (не как у соседей).
@@ -602,7 +602,7 @@ export default function CoursesPage() {
                 gap: searchExpanded ? 8 : 0,
                 paddingRight: 15,
                 borderRadius: 999, overflow: 'hidden',
-                background: 'rgba(var(--glass-rgb), 0.6)',
+                background: 'rgba(var(--glass-rgb), 0.78)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
                 border: '1px solid var(--color-border-glass)',
                 boxShadow: 'var(--shadow-pill)',

@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Play, Pause, Square, Languages, Type, Volume2, PanelRight, PanelBottom,
-  Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye, Menu,
+  Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye,
 } from 'lucide-react'
 import GlossedText from '../GlossedText'
 import MobileSheet from '../MobileSheet'
 import VoicePicker from './VoicePicker'
+import PlayerPill, { CueList } from './PlayerPill'
 import { tactile } from '../../lib/feedback'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
@@ -151,7 +152,7 @@ const CTL_H = 30
 /** Высота сегмента внутри рейки: 3 + 26 + 3 = CTL_H, вровень с кнопкой темпа. */
 const SEG_H = CTL_H - 6
 
-export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight, subject }: {
+export default function ScoreReader({ body, translation, lang, glossary, accent, soft, highlight, subject, title }: {
   body: string
   translation?: string
   lang: string
@@ -162,6 +163,8 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   highlight?: string | null
   /** Предмет колоды: с ним у слова в подсказке появляется кнопка «В словарь». */
   subject?: string
+  /** Название текста — подпись распрямившегося плеера и шапка его шторки. */
+  title?: string
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
@@ -421,9 +424,10 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // держала над текстом два этажа управления (кнопка с бегунком и рейка
   // тумблеров), и на 800 px высоты это четверть экрана впустую — при том что
   // «играть» и «переслушать это место» нужны большому пальцу, а не глазу.
-  // Своими силами, а не через TrackPlayer: голос партитуры ведёт по строкам с
-  // подсветкой слова, помнит метку паузы и режим «по строке» — второй плеер на
-  // тот же текст означал бы два бегунка и две разные позиции в одной записи.
+  // Строка плеера — общая с аудированием (trainer/PlayerPill.tsx), а вот
+  // ЗВУК свой: голос партитуры ведёт по строкам с подсветкой слова, помнит
+  // метку паузы и режим «по строке». Позвать сюда целиком TrackPlayer значило
+  // бы два бегунка и две разные позиции в одной записи.
   const slot = useTrainerPlayerSlot()
   const dockPlayer = narrow && !!slot?.el
   useEffect(() => {
@@ -471,6 +475,22 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   const seekPos = seekTo ?? seekNow
   const frac = seekMax ? Math.min(1, Math.max(0, ((seekPos ?? -1) + 1) / (seekMax + 1))) : 0
   const held = seekTo !== null
+  /** Чем считает шкала: в потоке это реплики текста, в «по строке» — фрагменты. */
+  const unitWord = stepping ? t('фрагмент') : t('реплика')
+  /** Границы делений — под пальцем, как у плеера записи. Деления ровные:
+   *  шкала считает СТРОКИ, а не время, и ширина по длительности была бы
+   *  обещанием таймлайна, которого у синтеза нет. */
+  const ticks = useMemo(
+    () => Array.from({ length: seekMax }, (_, i) => (i + 1) / (seekMax + 1)),
+    [seekMax],
+  )
+  /** Отрывки для списка в шторке — теми же единицами, какими идёт шкала. */
+  const cues = useMemo(
+    () => (stepping
+      ? units.map(u => u.rows.map(r => r.chunks.map(c => c.text).join(' ')).join(' '))
+      : allLines),
+    [stepping, units, allLines],
+  )
   /** Есть ли что показывать в рейке тумблеров: без неё шапки нет вовсе. */
   const showRail = !!translation || readings || units.length > 1
 
@@ -796,137 +816,74 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
       )}
     </div>
 
-    {/* ПЛЕЕР ТЕЛЕФОНА — В РЯДУ ДОКА, у большого пальца. Состав тот же, что у
-        плеера аудирования: круг «играть», бегунок по репликам, позиция и
-        бургер с настройками. Всё остальное (темп, голос) — в шторке: строка
-        плеера это три мишени, и таблетка темпа рядом с бегунком отнимала бы у
-        него ширину, то есть точность промотки. */}
+    {/* ПЛЕЕР ТЕЛЕФОНА — В РЯДУ ДОКА, у большого пальца. Строка ровно та же,
+        что у плеера записи, и физически та же самая (PlayerPill): плеер здесь
+        и плеер в простом тексте — один предмет в одном месте экрана, и
+        списанная разметка их уже однажды развела. Своё тут только СОДЕРЖИМОЕ
+        шкалы: голос партитуры идёт по строкам с подсветкой, помнит метку
+        паузы и режим «по строке». Всё остальное (темп, голос, список) — в
+        шторке: строка плеера это три мишени, и таблетка темпа рядом с
+        бегунком отнимала бы у него ширину, то есть точность промотки. */}
     {dockPlayer && slot?.el && createPortal(
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        height: 46, padding: '0 4px 0 3px', borderRadius: 23,
-        background: 'rgba(var(--glass-rgb), 0.86)',
-        backdropFilter: 'blur(28px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-        border: '1px solid var(--color-border-glass)',
-        boxShadow: 'var(--shadow-pill)',
-      }}>
-        <button
-          onClick={() => (stepping ? playUnit(units[at]) : toggle())}
-          aria-label={sounding
-            ? (stepping ? t('Стоп') : t('Пауза'))
-            : (!stepping && paused !== null ? t('Продолжить') : t('Слушать'))}
-          style={{
-            width: 40, height: 40, borderRadius: '50%', flexShrink: 0, border: 'none',
-            display: 'grid', placeItems: 'center', cursor: 'pointer',
-            background: accent, color: '#fff',
-            boxShadow: `0 4px 12px -3px color-mix(in srgb, ${accent} 55%, transparent)`,
-          }}
-        >
-          {sounding
-            ? (stepping ? <Square size={15} fill="currentColor" /> : <Pause size={17} fill="currentColor" />)
-            : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
-        </button>
-
-        {/* Мишень бегунка выше самой полосы: тянуть трёхпиксельную линию
-            пальцем невозможно, поэтому жест ловит вся полоса-подложка. */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            ref={trackRef}
-            onPointerDown={e => {
-              e.currentTarget.setPointerCapture(e.pointerId)
-              seeking.current = true
-              const i = seekIndex(e.clientX)
-              seekToRef.current = i
-              setSeekTo(i)
-            }}
-            onPointerMove={e => {
-              if (!seeking.current) return
-              const i = seekIndex(e.clientX)
-              if (i === seekToRef.current) return
-              // Щелчок на каждой новой реплике: шкала дискретная, и без отдачи
-              // не понять, встал бегунок на следующую строку или ещё нет.
-              seekToRef.current = i
-              tactile()
-              setSeekTo(i)
-            }}
-            onPointerUp={e => {
-              if (!seeking.current) return
-              seeking.current = false
-              const i = seekIndex(e.clientX)
-              seekToRef.current = null
-              setSeekTo(null)
-              applySeek(i)
-            }}
-            // Палец «потерялся» — жест обрывают и система (звонок, шторка
-            // уведомлений), и браузер, отобрав захват: без этих двух строк
-            // бегунок остаётся утолщённым навсегда.
-            onPointerCancel={() => { seeking.current = false; seekToRef.current = null; setSeekTo(null) }}
-            onLostPointerCapture={() => { seeking.current = false; seekToRef.current = null; setSeekTo(null) }}
-            role="slider"
-            aria-label={t('Промотка чтения')}
-            aria-valuemin={1}
-            aria-valuemax={seekMax + 1}
-            aria-valuenow={(seekPos ?? 0) + 1}
-            style={{
-              position: 'relative', height: 22, display: 'flex', alignItems: 'center',
-              touchAction: 'none', cursor: 'pointer',
-            }}
-          >
-            {held && (
-              <span style={{
-                position: 'absolute', left: `${frac * 100}%`, bottom: 20, transform: 'translateX(-50%)',
-                padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
-                fontSize: 11, fontWeight: 700, background: accent, color: '#fff',
-              }}>
-                {`${stepping ? t('фрагмент') : t('реплика')} ${(seekPos ?? 0) + 1} ${t('из')} ${seekMax + 1}`}
-              </span>
-            )}
-            <div style={{
-              position: 'relative', width: '100%', height: held ? 7 : 3, borderRadius: 4,
-              background: 'var(--color-border-soft)', transition: 'height .14s ease',
-            }}>
-              <div style={{
-                position: 'absolute', inset: 0, right: `${100 - frac * 100}%`,
-                background: accent, borderRadius: 4,
-              }} />
-              <div style={{
-                position: 'absolute', top: '50%', left: `${frac * 100}%`,
-                width: held ? 18 : 9, height: held ? 18 : 9,
-                marginTop: held ? -9 : -4.5, marginLeft: held ? -9 : -4.5,
-                borderRadius: '50%', background: accent,
-                border: held ? '2.5px solid rgba(var(--glass-rgb), 1)' : 'none',
-                transition: 'width .14s ease, height .14s ease, margin .14s ease',
-              }} />
-            </div>
-          </div>
-        </div>
-
-        <span style={{
-          flexShrink: 0, fontSize: 10.5, color: 'var(--color-muted)',
-          fontVariantNumeric: 'tabular-nums',
-        }}>
-          {`${(seekPos ?? 0) + 1}/${seekMax + 1}`}
-        </span>
-
-        <button
-          onClick={() => setMenu(true)}
-          aria-label={t('Настройки чтения')}
-          style={{
-            width: 32, height: 32, flexShrink: 0,
-            display: 'grid', placeItems: 'center', cursor: 'pointer',
-            border: 'none', background: 'transparent', color: 'var(--color-muted)',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          <Menu size={17} />
-        </button>
-      </div>,
+      <PlayerPill
+        inline
+        accent={accent}
+        icon={sounding
+          ? (stepping ? <Square size={15} fill="currentColor" /> : <Pause size={17} fill="currentColor" />)
+          : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
+        playLabel={sounding
+          ? (stepping ? t('Стоп') : t('Пауза'))
+          : (!stepping && paused !== null ? t('Продолжить') : t('Слушать'))}
+        onPlay={() => (stepping ? playUnit(units[at]) : toggle())}
+        trackRef={trackRef}
+        slider={{
+          onPointerDown: e => {
+            e.currentTarget.setPointerCapture(e.pointerId)
+            seeking.current = true
+            const i = seekIndex(e.clientX)
+            seekToRef.current = i
+            setSeekTo(i)
+          },
+          onPointerMove: e => {
+            if (!seeking.current) return
+            const i = seekIndex(e.clientX)
+            if (i === seekToRef.current) return
+            // Щелчок на каждой новой реплике: шкала дискретная, и без отдачи
+            // не понять, встал бегунок на следующую строку или ещё нет.
+            seekToRef.current = i
+            tactile()
+            setSeekTo(i)
+          },
+          onPointerUp: e => {
+            if (!seeking.current) return
+            seeking.current = false
+            const i = seekIndex(e.clientX)
+            seekToRef.current = null
+            setSeekTo(null)
+            applySeek(i)
+          },
+          onPointerCancel: () => { seeking.current = false; seekToRef.current = null; setSeekTo(null) },
+          onLostPointerCapture: () => { seeking.current = false; seekToRef.current = null; setSeekTo(null) },
+          label: t('Промотка чтения'),
+          min: 1,
+          max: seekMax + 1,
+          now: (seekPos ?? 0) + 1,
+        }}
+        frac={frac}
+        held={held}
+        ticks={ticks}
+        hint={held ? `${unitWord} ${(seekPos ?? 0) + 1} ${t('из')} ${seekMax + 1}` : null}
+        lead={title}
+        tail={`${unitWord} ${(seekPos ?? 0) + 1} ${t('из')} ${seekMax + 1}`}
+        counter={`${(seekPos ?? 0) + 1}/${seekMax + 1}`}
+        onMenu={() => setMenu(true)}
+        menuLabel={t('Настройки чтения')}
+      />,
       slot.el,
     )}
 
     {dockPlayer && (
-      <MobileSheet open={menu} onClose={() => setMenu(false)} title={t('Чтение вслух')}>
+      <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Чтение вслух')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
@@ -948,6 +905,31 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               ))}
             </div>
           </div>
+
+          {/* Список отрывков — как у плеера записи. Бегунок отвечает на
+              «чуть назад», список — на «мне нужно вон то место»: вслепую
+              искать реплику по дискретной шкале дороже, чем прочитать её
+              первые слова. В «по строке» это фрагменты экрана, в потоке —
+              реплики текста, то есть ровно то, что считает шкала рядом. */}
+          {cues.length > 1 && (
+            <div>
+              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
+              <CueList
+                items={cues}
+                active={seekNow}
+                playing={sounding}
+                accent={accent}
+                soft={soft}
+                onPick={i => {
+                  setMenu(false)
+                  // Выбрали строку — её и читаем: список для того и открыли,
+                  // а метку паузы ставит бегунок, у него это другой жест.
+                  if (stepping) goStep(i)
+                  else play(slow ? 0.8 : 1, i)
+                }}
+              />
+            </div>
+          )}
 
           {/* Голос — здесь же: мысль «не тот диктор» приходит в момент
               прослушивания, а из строки плеера кнопку убрали ради бегунка. */}

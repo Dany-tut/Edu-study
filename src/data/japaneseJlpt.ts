@@ -55,6 +55,7 @@ import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { JAPANESE_FIGURES_EXTRA } from './japaneseJlptFigures'
 import { JAPANESE_VIDEO_EXTRA } from './languageVideos'
 import { JAJL_HOMEWORK_VIDEO } from './homeworkVideos'
+import { JAJL_DIALOGS } from './languageDialogs'
 
 export const JAPANESE_MODULES: LangModule[] = [
   { title: 'Кана и первые фразы', subtitle: 'Хирагана, катакана, долгота, です', units: [1, 2, 3, 4, 5, 6] },
@@ -1590,6 +1591,7 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
   modules: JAPANESE_MODULES,
   // Конспекты живут отдельным файлом: здесь — структура и задания, там —
   // то, что ученик читает.
+  dialogs: JAJL_DIALOGS,
   units: JAPANESE_UNITS.map(u => ({
     ...u,
     theory: JAPANESE_THEORY[u.shortId] ?? u.theory,

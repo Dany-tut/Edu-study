@@ -167,7 +167,10 @@ export default function ConfirmHost() {
                   border: 'none', outline: 'none',
                   // Сплошная кнопка с белым текстом — это --grad-purple; красный
                   // вариант такой же сплошной, иначе «удалить» читается слабее «отмены».
-                  background: danger ? 'var(--color-red-text)' : 'var(--grad-purple)',
+                  // Заливка — --btn-red-bg, а НЕ --color-red-text: последний в тёмной
+                  // теме бледно-розовый (он для текста поверх подложки).
+                  background: danger ? 'var(--btn-red-bg)' : 'var(--grad-purple)',
+                  boxShadow: danger ? 'var(--btn-red-glow)' : undefined,
                   color: '#fff', fontSize: 13, fontWeight: 750,
                 }}
               >
