@@ -55,7 +55,10 @@ export function unitFigures(units: LangUnit[]): CourseFigures {
         src: formulaStrip(unit.title, chunks.slice(0, 5), {
           note: unit.grammarWhy,
         }),
-        caption: `${unit.title}: из чего выбирать`,
+        // Подпись НЕ повторяет заголовок урока: он и так стоит выше, а у
+        // половины юнитов сам содержит двоеточие — выходило «Рассказ о
+        // прошлом: четыре времени: из чего выбирать».
+        caption: 'Из чего выбирать в этом юните',
         after: 2,
       }]
       continue
@@ -74,14 +77,21 @@ export function unitFigures(units: LangUnit[]): CourseFigures {
     out[unit.shortId] = [{
       src: formulaStrip(
         unit.title,
-        tpl.split(/(…)/).filter(s => s.trim()).map(s => (
-          s === '…'
-            ? { text: '…', note: 'сюда подставляем', key: true }
-            : { text: s.trim() }
-        )).slice(0, 5),
+        // Подпись «сюда подставляем» ставится только под ПЕРВЫМ многоточием:
+        // повторённая под каждым, она читается как сбой отрисовки, а не как
+        // пояснение. Остальные места и так помечены акцентом.
+        (() => {
+          let firstGap = true
+          return tpl.split(/(…)/).filter(x => x.trim()).map(x => {
+            if (x !== '…') return { text: x.trim() }
+            const chunk = { text: '…', note: firstGap ? 'сюда подставляем' : undefined, key: true }
+            firstGap = false
+            return chunk
+          }).slice(0, 5)
+        })(),
         { note: unit.pattern?.gloss },
       ),
-      caption: `${unit.title}: скелет конструкции`,
+      caption: 'Скелет конструкции: на месте многоточия — подстановка',
       after: 2,
     }]
   }
