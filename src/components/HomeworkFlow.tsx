@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
   BookOpen, CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
-  ChevronUp, ChevronDown, Eye, MicOff, Home, RotateCcw, ArrowRight,
+  ChevronUp, ChevronDown, Eye, MicOff, Home, RotateCcw, ArrowRight, Volume2,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import type { PatternItem } from '../data/taskTypes'
@@ -35,7 +35,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic } from '../lib/i18n'
-import { setVoiceScene, clearVoiceScene } from '../lib/speech'
+import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import QuestionTable from './QuestionTable'
@@ -3606,6 +3606,44 @@ export default function HomeworkFlow({
                     </div>
                     ) : (
                     <div className="flex flex-col" style={{ gap: 10 }}>
+                      {/* Ступень 5 (Р7): припоминание с опорой. Скелет показывает
+                          длину и начало, динамик даёт звук — этого хватает,
+                          чтобы достать слово из памяти, и не хватает, чтобы его
+                          не вспоминать. Пустое поле без скелета — уже ступень 6. */}
+                      {qType(question) === 'fill' && !!question.answerSkeleton && (
+                        <div className="flex items-center" style={{
+                          gap: 10, padding: '9px 14px', borderRadius: 14, alignSelf: 'flex-start',
+                          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+                        }}>
+                          <span style={{
+                            fontSize: 15, fontWeight: 700, letterSpacing: 0.5,
+                            color: 'var(--color-text-2)', whiteSpace: 'pre',
+                          }}>
+                            {question.answerSkeleton}
+                          </span>
+                          {!!question.ttsText && !!question.lang && hasVoiceFor(question.lang) && (
+                            <span
+                              role="button"
+                              tabIndex={-1}
+                              aria-label={t('Озвучить')}
+                              onClick={e => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                stopSpeech()
+                                speak(question.ttsText!, { lang: question.lang })
+                              }}
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                width: 24, height: 24, borderRadius: 9, flexShrink: 0,
+                                color: 'var(--color-accent)', background: 'var(--color-purple-soft)',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Volume2 size={14} />
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <GrowTextarea
                         value={selectedAnswer ?? ''}
                         onChange={v => setFreeAnswer(question.id, v)}
@@ -3693,7 +3731,7 @@ export default function HomeworkFlow({
 
                     {showVerdict && !isChoice && !isCorrect && question.referenceAnswer && (
                       <div style={{ padding: '12px 14px', borderRadius: 16, background: 'var(--color-green-soft)', border: '1px solid rgba(110,231,160,0.38)' }}>
-                        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-green-text)', marginBottom: 4 }}>{t('Эталонный ответ')}</p>
+                        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-green-text)', marginBottom: 4 }}>{t('Правильный ответ')}</p>
                         <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>{question.referenceAnswer}</p>
                       </div>
                     )}

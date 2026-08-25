@@ -2641,7 +2641,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 <AutoTextarea
                   value={task.answer ?? ''}
                   onChange={v => onUpdate({ ...task, answer: v })}
-                  placeholder={t('Эталонный ответ...')}
+                  placeholder={t('Правильный ответ…')}
                   minHeight={TASK_TEXT_MIN_H}
                   style={taskTextSt}
                 />
@@ -2660,7 +2660,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   <AutoTextarea
                     value={task.sentence ?? ''}
                     onChange={v => onUpdate({ ...task, sentence: v })}
-                    placeholder={t('Эталонное предложение — разобьётся на плитки по словам')}
+                    placeholder={t('Правильное предложение — разобьётся на плитки по словам')}
                     minHeight={TASK_TEXT_MIN_H}
                     style={taskTextSt}
                   />
@@ -2966,7 +2966,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     <AutoTextarea
                       value={task.answer ?? ''}
                       onChange={v => onUpdate({ ...task, answer: v })}
-                      placeholder={t('Что стоит на месте пропуска — эталон ответа')}
+                      placeholder={t('Что стоит на месте пропуска — правильный ответ')}
                       style={taskTextSt}
                     />
                     <AutoTextarea
@@ -3192,7 +3192,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   <AutoTextarea
                     value={task.answer ?? ''}
                     onChange={v => onUpdate({ ...task, answer: v })}
-                    placeholder={t('Что ученик должен напечатать (эталон)')}
+                    placeholder={t('Что ученик должен напечатать (правильный ответ)')}
                     minHeight={TASK_TEXT_MIN_H}
                     style={taskTextSt}
                   />

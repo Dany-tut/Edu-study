@@ -84,7 +84,7 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
 
       {showReference && (
         <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-green-text)' }}>
-          {t('Эталон')}: <b>{row.correct}</b>
+          {t('Правильный ответ')}: <b>{row.correct}</b>
         </p>
       )}
     </div>

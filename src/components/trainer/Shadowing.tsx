@@ -264,7 +264,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           повторил — сравнил. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <button onClick={() => playModel()} style={btn(accent, phase === 'model')}>
-          <Volume2 size={16} /> {t('Эталон')}
+          <Volume2 size={16} /> {t('Образец')}
         </button>
 
         {phase === 'recording' ? (
@@ -365,7 +365,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
             border: `1px solid ${matched ? 'var(--color-green-text)' : 'var(--color-border-medium)'}`,
           }}>
             <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 4 }}>
-              {matched ? t('Услышано — совпало с эталоном') : t('Услышано')}
+              {matched ? t('Услышано — совпало с образцом') : t('Услышано')}
             </div>
             <div style={{ color: 'var(--color-text)' }}>
               {got.map((w, i) => (

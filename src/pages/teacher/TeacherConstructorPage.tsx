@@ -3259,10 +3259,10 @@ function CreatorView({
               {tkAnswerType === 'extended' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div>
-                    <Label>{t('Эталонный ответ (для проверяющего)')}</Label>
+                    <Label>{t('Правильный ответ (для проверяющего)')}</Label>
                     <GrowTextarea value={tkShortAnswer} onChange={setTkShortAnswer}
                       minHeight={growMinHeight(3, 13, 9, 0)}
-                      placeholder={t("Развёрнутый эталон ответа…")} style={inputSt} />
+                      placeholder={t("Развёрнутый правильный ответ…")} style={inputSt} />
                   </div>
                   <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: tkAllowPhoto ? cfg.color : 'var(--color-text-4)', transition: 'background 0.15s' }}>

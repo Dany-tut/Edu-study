@@ -192,6 +192,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // перезагрузка посреди текста — это возврат к списку и поиск заново.
   // Открытое храним идентификатором, а не объектом: материал приезжает из
   // библиотеки языка, и сохранённая копия рано или поздно разойдётся с ней.
+  // Телефон: режимы и половины уехали в нижнюю навигацию (см. nav ниже), и в
+  // шторке фильтров их рисовать больше нельзя — один и тот же переключатель
+  // двумя экземплярами на одном экране. Ширина нужна уже здесь: от неё зависит
+  // набор половин «Чтения» (см. feedLib).
+  const narrow = useTrainerNarrow()
+
   const [mode, setMode] = usePersistentState<Mode>(`trainer.${lang}.mode`, 'reading')
   const [openTextId, setOpenTextId] = usePersistentState<string | null>(`trainer.${lang}.text`, null)
   const [openAudioId, setOpenAudioId] = usePersistentState<string | null>(`trainer.${lang}.audio`, null)
@@ -206,7 +212,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // добавленными полями: она идёт через ту же читалку, тот же словарь по клику
   // и ту же запись результата. Отдельный режим означал бы вторую копию фильтров
   // и вторую читалку, которая разойдётся с первой на первой же правке.
-  const [readingView, setReadingView] = usePersistentState<ReadingView>(`trainer.${lang}.readingView`, 'feed')
+  const [readingViewSaved, setReadingView] = usePersistentState<ReadingView>(`trainer.${lang}.readingView`, 'feed')
   const [openWorkId, setOpenWorkId] = usePersistentState<string | null>(`trainer.${lang}.work`, null)
   const [openSceneId, setOpenSceneId] = usePersistentState<string | null>(`trainer.${lang}.scene`, null)
   const [hideSpoilers, setHideSpoilers] = usePersistentState<boolean>(`trainer.${lang}.spoilers`, true)
@@ -216,6 +222,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [sceneLevels, setSceneLevels] = useState<string[]>([])
 
   const sceneLib = hasScenes(lang)
+
+  // ── Ленты в телефонном тренажёре нет ───────────────────────────────────────
+  //
+  // Она стоит целым экраном на главной, и вторая её копия под чипсом «Лента» —
+  // это тот же материал, отданный дважды: на узком экране половины «Чтения»
+  // умещаются по одной, и лишняя из трёх отодвигает сцены на второй тап.
+  // Поэтому с телефона первой половиной идут сцены, а сохранённая «Лента»
+  // (её мог выбрать тот же ученик с ноутбука) молча читается как «Сцены» —
+  // переписывать хранимое нельзя, иначе выбор потеряется и на десктопе.
+  const feedLib = hasFeed(lang) && !narrow
+  const readingView: ReadingView =
+    readingViewSaved === 'feed' && !feedLib ? (sceneLib ? 'scenes' : 'texts') : readingViewSaved
   const sceneWorks = useMemo(() => worksForLang(lang), [lang])
   const sceneShelves = useMemo(() => shelvesForLang(lang), [lang])
 
@@ -248,7 +266,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // проигрывается и обсуждается на месте. Поэтому здесь нет ни openFeedId, ни
   // «чем открыли» — состояния, которое пришлось бы восстанавливать после F5.
 
-  const feedLib = hasFeed(lang)
   const [feedData, setFeedData] = useState<{ lang: string; list: FeedItem[] } | null>(null)
   const feed = feedData?.lang === lang ? feedData.list : undefined
   const feedTotal = feed?.length ?? feedCount(lang)
@@ -1157,11 +1174,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     guide: guideOn ? (story ? story.chapters.length : 0) + books.length : undefined,
   }
 
-  // Телефон: режимы и половины уехали в нижнюю навигацию (см. nav ниже), и в
-  // шторке фильтров их рисовать больше нельзя — один и тот же переключатель
-  // двумя экземплярами на одном экране.
-  const narrow = useTrainerNarrow()
-
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
     : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
@@ -1674,9 +1686,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const navViews: TrainerNav['views'] =
     mode === 'reading' && (sceneLib || feedLib)
       ? [
+          // На телефоне лента отключена (см. feedLib), и первой половиной идут
+          // сцены: чипс, на который попадаешь без выбора, должен вести в
+          // материал, которого больше нигде нет.
+          ...(sceneLib && narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
           ...(feedLib ? [{ id: 'feed', label: 'Лента', badge: feedTotal }] : []),
           { id: 'texts', label: 'Тексты', badge: allTexts.length },
-          ...(sceneLib ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
+          ...(sceneLib && !narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
         ]
     : mode === 'vocab'
       ? [
@@ -2701,6 +2717,7 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
   onBack: () => void
 }) {
   const t = useT()
+  const narrow = useTrainerNarrow()
   // Свайп от левого края = «К списку»: читалка — вложенный экран тренажёра.
   useSwipeBack(onBack)
   const [answers, setAnswers] = useState<Record<number, number>>({})
@@ -2820,9 +2837,13 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
       text: t('Эта кнопка меняет вид текста — сейчас включён разбор. Под каждым словом стоит транскрипция, перевод идёт колонкой справа по строкам, а голос ведёт по тексту подсветкой.'),
     }] : []),
     {
-      ref: audioRef,
+      // На телефоне плеера в рейле нет — подсвечивать нечего, и подсказка
+      // рассказывает про тот, что стоит внизу экрана.
+      ref: narrow ? undefined : audioRef,
       title: t('Послушать текст'),
-      text: t('Кнопка читает текст вслух целиком. «Медленно» — тот же голос вдвое медленнее, для первого прохода.'),
+      text: narrow
+        ? t('Плеер стоит внизу экрана: круг включает голос, бегунок ведёт по репликам, а темп и диктор — под кнопкой справа.')
+        : t('Кнопка читает текст вслух целиком. «Медленно» — тот же голос вдвое медленнее, для первого прохода.'),
     },
     ...(text.glossary.length > 0 ? [{
       ref: chipsRef,
@@ -2860,12 +2881,18 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
         palette={palette}
       />
 
-      <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
-        <div ref={audioRef} style={{ display: 'grid', gap: 10 }}>
-          <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
-          <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
-        </div>
-      </RailCard>
+      {/* На телефоне рейл целиком уезжает в шторку «Фильтры», и слушать текст
+          пришлось бы через кнопку фильтров. Там плеер стоит внизу экрана (в
+          разборе его рисует сама партитура, в простом тексте — TrackPlayer
+          ниже), а второй плеер в шторке — это два бегунка на одну запись. */}
+      {!narrow && (
+        <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
+          <div ref={audioRef} style={{ display: 'grid', gap: 10 }}>
+            <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
+            <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
+          </div>
+        </RailCard>
+      )}
 
       {text.glossary.length > 0 && (
         <RailCard title="Словарь текста" accent={accent} icon={<ListChecks size={15} />}>
@@ -2965,8 +2992,22 @@ function Reader({ text, scene, work, feed, accent, palette, lang, owner, subject
     </Toolbar>
   )
 
+  // Плеер телефона — в ряду дока, как в аудировании. В разборе его рисует сама
+  // партитура (голос там ведёт по строкам подсветкой, и бегунок у него свой,
+  // см. ScoreReader), поэтому отсюда он ставится только для простого текста.
+  const player = narrow && !(hasScore && scoreView) ? (
+    <TrackPlayer
+      inline
+      ttsText={text.body}
+      lang={lang}
+      accent={palette.accent}
+      soft={palette.soft}
+      title={text.title}
+    />
+  ) : null
+
   return (
-    <TrainerShell rail={rail} toolbar={toolbar}>
+    <TrainerShell rail={rail} toolbar={toolbar} narrowPlayer={player}>
       {/* «Что вокруг» — до текста и всегда. Без этого абзаца отрывок из
           середины книги остаётся случайным куском: непонятно, кто эти люди и
           почему сцена вообще чего-то стоит. */}
@@ -3530,7 +3571,7 @@ function bookTasks(themes: SurvivalThemeCards[], shadow: boolean): SpeakTask[] {
           id: `shadow-${x.theme.id}`,
           kind: 'shadow',
           title: x.theme.title,
-          prompt: `Повторите за эталоном ${SHADOW_LINES} реплик темы и сравните со своей записью.`,
+          prompt: `Повторите за образцом ${SHADOW_LINES} реплик темы и сравните со своей записью.`,
           seconds: 0,
           lines: x.phrases.slice(0, SHADOW_LINES).map(ph => ({
             text: ph.ex?.term ?? ph.term,

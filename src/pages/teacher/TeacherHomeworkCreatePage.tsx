@@ -522,7 +522,7 @@ function TaskCard({
                     <GrowTextarea
                       value={task.answer}
                       onChange={updateAnswer}
-                      placeholder={t('Эталонный ответ...')}
+                      placeholder={t('Правильный ответ…')}
                       minHeight={growMinHeight(3, 13, 9, 0)}
                       style={inputStyle}
                     />
