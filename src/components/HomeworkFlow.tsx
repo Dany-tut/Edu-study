@@ -3174,13 +3174,6 @@ export default function HomeworkFlow({
                           <span style={balancedWrap}>
                             {isCorrect ? t('Верно') : t('Неверно')}
                           </span>
-                          {/* У выбора звёздочки уже разлетелись на самой
-                              плитке ответа — там, куда смотрит палец. Плашке
-                              они достаются только там, где плитки нет:
-                              ввод, сборка, таблица. */}
-                          {isCorrect && !isChoice && burst?.id === question.id && (
-                            <StarBurst key={burst.n} radius={38} />
-                          )}
                         </div>
                       )}
                       {showReview && (
@@ -3200,6 +3193,19 @@ export default function HomeworkFlow({
                     <div style={{ position: 'relative' }}>
                     {isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
+                      {/* Стимул — звук, а не текст: «что вы услышали?» (ступень 2,
+                          Р2). Без плеера такое задание нечем решить — варианты
+                          подписаны по-русски, и слушать было бы нечего. У
+                          обычного выбора ttsText не задан, и строки здесь нет. */}
+                      {!!question.ttsText && (
+                        <AudioPlayer
+                          audioUrl={question.audioUrl}
+                          ttsText={question.ttsText}
+                          ttsVoice={question.ttsVoice}
+                          allowSlow={question.allowSlow}
+                          lang={question.lang}
+                        />
+                      )}
                       {question.options.map(option => {
                         const multi = questionIsMulti(question)
                         const active = multi
@@ -3671,10 +3677,12 @@ export default function HomeworkFlow({
                       />
                     </div>
                     )}
-                    {/* Телефон: салют разлетается от самого поля ответа — там,
-                        куда смотрит ученик. У выбора он уже на нажатой плитке,
-                        на большом экране — на плашке «Верно». */}
-                    {isMobile && isCorrect && !isChoice && burst?.id === question.id && (
+                    {/* Салют разлетается вокруг самого ответа — холста, поля,
+                        собранной фразы, — там, куда смотрит ученик. У выбора он
+                        уже на нажатой плитке. На плашке «Верно» он стоял в
+                        стороне от ответа, у верхнего края карточки: вспышка
+                        читалась как «где-то там», а не «вот это верно». */}
+                    {isCorrect && !isChoice && burst?.id === question.id && (
                       <StarBurst key={burst.n} radius={64} />
                     )}
                     </div>
