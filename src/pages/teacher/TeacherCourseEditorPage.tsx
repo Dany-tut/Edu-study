@@ -841,12 +841,34 @@ function CenterCourseAccess({
     </button>
   )
 
+  /**
+   * Все карточки одного человека.
+   *
+   * У 1:1-ученика на каждый предмет своя строка students, а прогресс курса
+   * пишется под ту, которую выбрал кабинет ученика (ownerStudentIdFor) — она
+   * не обязана совпадать с той, которой курс назначен. У живого примера курс
+   * IELTS назначен карточке «Английский», а 21 строка прогресса из 22 лежит под
+   * карточкой «Корейский»: подпись показывала «прогресс: 1», а «обнулить»
+   * стирало одну строку из двадцати двух и уходило с зелёной галочкой.
+   * Человек один — значит и курс у него один, поэтому и считаем, и чистим по
+   * всем его карточкам сразу.
+   */
+  const personIdsOf = (studentId: string): string[] => {
+    const row = allStudents.find(s => s.id === studentId)
+    if (!row?.personId) return [studentId]
+    const ids = allStudents.filter(s => s.personId === row.personId).map(s => s.id)
+    return ids.includes(studentId) ? ids : [studentId, ...ids]
+  }
+
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
     setAccessModes(m => ({ ...m, [id]: mode }))
   // A group's mode is applied to every current member (stored per-student).
   const memberIdsOf = (groupId: string) =>
     allStudents.filter(s => s.groupId === groupId).map(s => s.id)
+  /** Участники группы вместе со всеми их карточками — для счёта и обнуления. */
+  const groupPersonIds = (groupId: string): string[] =>
+    [...new Set(memberIdsOf(groupId).flatMap(personIdsOf))]
   const groupMode = (groupId: string): AccessMode | 'mixed' => {
     const ids = memberIdsOf(groupId)
     if (ids.length === 0) return 'by_date'
@@ -999,7 +1021,7 @@ function CenterCourseAccess({
                           fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', ...oneLine,
                         }} title={g.name}>{g.name}</span>
                         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
-                          {progressLine(g.id, memberIdsOf(g.id))}
+                          {progressLine(g.id, groupPersonIds(g.id))}
                         </span>
                       </span>
                       <AccessModeSelect
@@ -1007,7 +1029,7 @@ function CenterCourseAccess({
                         onChange={v => setGroupMode(g.id, v)}
                         placeholder={gm === 'mixed' ? t('Разный') : undefined}
                       />
-                      {resetBtn(g.id, memberIdsOf(g.id), g.name)}
+                      {resetBtn(g.id, groupPersonIds(g.id), g.name)}
                     </div>
                   )
                 })}
@@ -1021,11 +1043,11 @@ function CenterCourseAccess({
                         {s.name}
                       </span>
                       <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
-                        {s.subject ? `${s.subject} · ` : ''}{progressLine(s.id, [s.id])}
+                        {s.subject ? `${s.subject} · ` : ''}{progressLine(s.id, personIdsOf(s.id))}
                       </span>
                     </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
-                    {resetBtn(s.id, [s.id], s.name)}
+                    {resetBtn(s.id, personIdsOf(s.id), s.name)}
                   </div>
                 ))}
               </div>

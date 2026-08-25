@@ -20,6 +20,9 @@ import { useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { buildCrossword, type CrosswordWord } from '../lib/crossword'
 import { composeKeys, isSyllable, keysOf } from '../data/hangul'
+
+/** Кана в ответе: по ней сетка узнаёт японское письмо. */
+const KANA = /[぀-ヿ]/
 import type { CrosswordClue } from '../data/taskTypes'
 import { playPop, vibrate } from '../lib/sound'
 import { useOwnString } from '../lib/useOwnAnswer'
@@ -61,18 +64,35 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
   // отдельно не нужно — в клетке и так виден собранный слог, — поэтому ref.
   const keys = useRef<string[]>([])
 
-  // Клавиатура: буквы всех ответов плюс пара похожих. Клетка набирается ими же,
-  // чем собирают слоги в остальных заданиях курса.
-  const keyboard = useMemo(() => {
-    const all = new Set<string>()
-    for (const c of clues) for (const u of Array.from(c.answer)) for (const k of keysOf(u)) all.add(k)
-    return [...all].sort((a, b) => a.localeCompare(b, 'ko'))
+  /**
+   * Письмо сетки. От него зависит и клавиатура, и то, как считается нажатие.
+   *
+   * ЗАЧЕМ РАЗЛИЧАТЬ. Клетки — это кнопки, а не поля ввода: без клавиатуры в
+   * кроссворд нельзя ввести вообще ничего. Пока она была только корейской,
+   * семьдесят девять японских кроссвордов ученик открыть мог, а решить — нет.
+   */
+  const script: 'hangul' | 'kana' | null = useMemo(() => {
+    if (clues.some(c => Array.from(c.answer).some(isSyllable))) return 'hangul'
+    if (clues.some(c => KANA.test(c.answer))) return 'kana'
+    return null
   }, [clues])
 
-  const hangul = useMemo(
-    () => clues.some(c => Array.from(c.answer).some(isSyllable)),
-    [clues],
-  )
+  // Клавиатура: буквы всех ответов плюс пара похожих. Клетка набирается ими же,
+  // чем собирают слоги в остальных заданиях курса.
+  //
+  // У каны клавиша — это сразу знак клетки (слогов из знаков не складывают),
+  // поэтому в набор идут сами знаки ответов, в порядке кодировки — он же
+  // порядок годзюона.
+  const keyboard = useMemo(() => {
+    const all = new Set<string>()
+    for (const c of clues) {
+      for (const u of Array.from(c.answer)) {
+        if (script === 'kana') all.add(u)
+        else for (const k of keysOf(u)) all.add(k)
+      }
+    }
+    return [...all].sort((a, b) => (script === 'kana' ? a.localeCompare(b, 'ja') : a.localeCompare(b, 'ko')))
+  }, [clues, script])
 
   const setCell = (k: string, ch: string) => {
     emit(prev => {
@@ -88,6 +108,12 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
     if (disabled || !cell) return
     playPop()
     vibrate(8)
+    // Кана: один знак — одна клетка, складывать нечего.
+    if (script === 'kana') {
+      keys.current = []
+      setCell(cell, key)
+      return
+    }
     const next = [...keys.current, key]
     const composed = composeKeys(next)
     // Как только буквы перестали помещаться в один слог, нажатие начинает
@@ -175,7 +201,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
 
       {/* Клавиатура выбранной клетки. Без выбранной клетки её нет — иначе
           непонятно, куда попадёт нажатие. */}
-      {!disabled && !showVerdict && hangul && (
+      {!disabled && !showVerdict && script && (
         at
           ? (
             <div className="flex flex-col" style={{ gap: 8 }}>

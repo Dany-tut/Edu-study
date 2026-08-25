@@ -43,6 +43,7 @@ import { useAllStudents, useGroups, fetchSharedCourseIds, groupStudentsByPerson 
 import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
+import { isCourseResetRef } from '../../lib/homeworkReset'
 import { getOwnerId } from '../../lib/owner'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
@@ -2356,10 +2357,12 @@ function CreatorView({
   async function loadEnrolledStudents(dbId: string) {
     const { data } = await supabase
       .from('lesson_progress')
-      .select('student_id')
+      .select('student_id, lesson_ref')
       .eq('subject', dbId)
     if (!data) return
-    const ids = [...new Set(data.map(r => r.student_id))]
+    // Отметка «курс обнулён» — служебная строка, а не признак того, что ученик
+    // курс начал: иначе сброшенный ученик оставался бы в списке приступивших.
+    const ids = [...new Set(data.filter(r => !isCourseResetRef(r.lesson_ref)).map(r => r.student_id))]
     const matched = enrollStudents.filter(s => ids.includes(s.id))
     setEnrolledList(matched)
   }
@@ -7524,11 +7527,11 @@ export default function TeacherConstructorPage() {
     if (!courses.length || !diagAllStudents.length) return
     let cancelled = false
     ;(async () => {
-      const { data } = await supabase.from('lesson_progress').select('student_id, subject')
+      const { data } = await supabase.from('lesson_progress').select('student_id, subject, lesson_ref')
       if (!data || cancelled) return
       const bySubject: Record<string, Set<string>> = {}
-      for (const r of data as Array<{ student_id: string; subject: string | null }>) {
-        if (!r.subject) continue
+      for (const r of data as Array<{ student_id: string; subject: string | null; lesson_ref: string }>) {
+        if (!r.subject || isCourseResetRef(r.lesson_ref)) continue
         ;(bySubject[r.subject] ??= new Set()).add(r.student_id)
       }
       const nameById = new Map(diagAllStudents.map(s => [s.id, s.name]))
