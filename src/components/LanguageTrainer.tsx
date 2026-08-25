@@ -1951,6 +1951,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = (
       <Toolbar>
         <BackToSets onBack={() => setOpenTheme(null)} />
+        {/* Обёртка не декоративная: на телефоне Toolbar забирает StatusTabs в
+            шторку «Фильтры», а здесь это не фильтр, а способ прогона колоды —
+            «Свайп» против «Списком» жмут постоянно и ищут глазами в строке.
+            Обёртка выводит контрол из-под разбора по типу и оставляет в строке
+            (см. Toolbar в TrainerShell). */}
         <div style={{ display: 'flex' }}>
           <StatusTabs
             options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}

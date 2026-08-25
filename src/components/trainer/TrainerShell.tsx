@@ -40,12 +40,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-  createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  Children, Fragment, createContext, isValidElement,
+  useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Check, SlidersHorizontal, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
+import { ChevronDown, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { copyToClipboard } from '../../lib/clipboard'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
@@ -1098,14 +1099,141 @@ export function RailStat({ label, value, tone }: {
 
 // ─── Строка управления ───────────────────────────────────────────────────────
 
+/**
+ * Строка управления. На широком экране — как была; на телефоне ВСЕГДА В ОДНУ
+ * СТРОКУ, а фильтры уезжают в шторку.
+ *
+ * ПОЧЕМУ НЕ «ПОДРЕЗАТЬ ОТСТУПЫ». Телефону достаётся 303px. Сценам нужен 531
+ * (поиск 112 + уровень 99 + платформа 118 + тематика 106 + счётчик 56 и
+ * зазоры), текстам — 550: там ещё группа статусов на 234. Перебор почти вдвое,
+ * и его не закрыть ни шрифтом, ни паддингами — сокращать надо ЧИСЛО контролов
+ * в строке, а не их ширину. Строка переносилась в две и три полосы (90 и 136px
+ * высоты), и до первой карточки нужно было пролистать управление.
+ *
+ * ПОЧЕМУ РАЗБОР ПО ТИПУ, А НЕ НОВЫЙ ПРОП. Строк управления в тренажёре
+ * девятнадцать. Проп `filters` пришлось бы протащить через каждую, и первый же
+ * новый экран собрал бы свою строку мимо правила. Здесь правило держит сам
+ * Toolbar: FilterMenu, StatusTabs и SortMenu — в шторку, поиск, «назад» и
+ * счётчик — в строке. Новый экран получает раскладку даром.
+ *
+ * Порядок сохраняется: таблетка «Фильтры» встаёт ровно на место первого
+ * уехавшего контрола, а не в конец.
+ *
+ * КАК ОСТАВИТЬ КОНТРОЛ В СТРОКЕ. Обернуть его в <div> — разбор смотрит только
+ * на прямых детей. Это нужно там, где StatusTabs означает не фильтр, а способ
+ * прогона («Свайп» / «Списком» в своих словах): такому переключателю в шторке
+ * «Фильтры» не место.
+ */
 export function Toolbar({ children }: { children: React.ReactNode }) {
+  const t = useT()
+  const narrow = useNarrow()
+  const [sheet, setSheet] = useState(false)
+
   // Шаг 10 — как в собственной строке банка: она пока своя (у неё поиск с
   // подсказкой и «Избранное» со счётчиком), и на 9 против 10 два соседних
   // экрана расходились ровно на пиксель в каждом промежутке.
+  const kids = flattenToolbar(children)
+  const moved = kids.filter(isSheetControl)
+
+  if (!narrow || moved.length === 0) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {children}
+      </div>
+    )
+  }
+
+  // Сортировка — не фильтр, и под кнопкой «Фильтры» её не ищут. Пока она в той
+  // же шторке, об этом говорит заголовок.
+  const hasSort = moved.some(el => el.type === SortMenu)
+  // В счётчик идут только фильтры: у сортировки значение выбрано всегда, и она
+  // держала бы бейдж вечно зажжённым.
+  const active = moved.filter(el => el.type !== SortMenu).reduce((n, el) => {
+    const v = (el.props as { value?: unknown }).value
+    if (Array.isArray(v)) return n + (v.length ? 1 : 0)
+    if (typeof v === 'string') return n + (v ? 1 : 0)
+    return n
+  }, 0)
+
+  let placed = false
+  const row = kids.map((el, i) => {
+    if (!isSheetControl(el)) return <Fragment key={i}>{el}</Fragment>
+    if (placed) return null
+    placed = true
+    return <FilterPill key={i} count={active} onClick={() => setSheet(true)} />
+  })
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-      {children}
-    </div>
+    <>
+      {/* nowrap здесь обязателен: без него строка снова разложится на две, как
+          только поиск раскроют. Сжимается при этом поиск — см. SearchPill. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap', minWidth: 0 }}>
+        {row}
+      </div>
+      {/* Шторка — порталом в body. Строка управления живёт в прилипшей полосе
+          внутри анимированных обёрток тренажёра, а любой transform у предка
+          превращает position:fixed в «фиксировано относительно него»: шторка
+          выезжала не от низа экрана, а от верха своей полосы. */}
+      {createPortal(
+        <MobileSheet
+          open={sheet}
+          onClose={() => setSheet(false)}
+          title={t(hasSort ? 'Фильтры и сортировка' : 'Фильтры')}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, padding: '0 4px 8px' }}>{moved}</div>
+        </MobileSheet>,
+        document.body,
+      )}
+    </>
+  )
+}
+
+/** Разворачивает фрагменты: половина строк собрана как <>…</> внутри условия. */
+function flattenToolbar(node: React.ReactNode): React.ReactElement[] {
+  const out: React.ReactElement[] = []
+  Children.forEach(node, child => {
+    if (!isValidElement(child)) return
+    if (child.type === Fragment) {
+      out.push(...flattenToolbar((child.props as { children?: React.ReactNode }).children))
+      return
+    }
+    out.push(child)
+  })
+  return out
+}
+
+function isSheetControl(el: React.ReactElement): boolean {
+  return el.type === FilterMenu || el.type === StatusTabs || el.type === SortMenu
+}
+
+/** Вход в фильтры: одна таблетка на любое их число, с бейджем активных. */
+function FilterPill({ count, onClick }: { count: number; onClick: () => void }) {
+  const t = useT()
+  const on = count > 0
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+        height: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
+        background: on ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS,
+        border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
+        color: on ? 'var(--color-purple-text)' : 'var(--color-text)',
+        fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+      }}
+    >
+      {/* Воронка, а не ползунки: ползунки в доке открывают рейл режима, и два
+          одинаковых значка на экране означали бы одно и то же место. */}
+      <Filter size={14} />
+      {t('Фильтры')}
+      {on && (
+        <span style={{
+          minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+          background: 'var(--color-accent)', color: '#fff',
+          fontSize: 10, fontWeight: 800, lineHeight: '16px', textAlign: 'center',
+        }}>{count}</span>
+      )}
+    </button>
   )
 }
 
@@ -1114,6 +1242,7 @@ export function SearchPill({ value, onChange, placeholder }: {
   value: string; onChange: (v: string) => void; placeholder?: string
 }) {
   const t = useT()
+  const narrow = useNarrow()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLInputElement>(null)
   const wide = open || !!value
@@ -1126,11 +1255,20 @@ export function SearchPill({ value, onChange, placeholder }: {
         // пикселей ниже остальных. minHeight — на случай, когда перенос строки
         // оставил его одного.
         display: 'flex', alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box',
-        gap: 8, padding: '0 14px', minHeight: 36, borderRadius: 999,
+        gap: narrow && !wide ? 0 : 8, minHeight: 36, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
-        width: wide ? 260 : 112, transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
-        overflow: 'hidden', cursor: wide ? 'text' : 'pointer', flexShrink: 0,
+        // На телефоне свёрнутый поиск — круг без слова «Поиск» (112 → 36px):
+        // эти 76px и есть разница между строкой в одну полосу и в две. А
+        // раскрытый не держит свои 260, а забирает остаток строки, иначе он
+        // выталкивал бы за край таблетку фильтров и счётчик.
+        ...(narrow
+          ? wide
+            ? { flex: '1 1 0', minWidth: 0, padding: '0 12px' }
+            : { width: 36, padding: 0, justifyContent: 'center', flexShrink: 0 }
+          : { width: wide ? 260 : 112, padding: '0 14px', flexShrink: 0 }),
+        transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
+        overflow: 'hidden', cursor: wide ? 'text' : 'pointer',
       }}
     >
       <Search size={14} style={{ color: wide ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
@@ -1142,7 +1280,11 @@ export function SearchPill({ value, onChange, placeholder }: {
         onBlur={() => { if (!value) setOpen(false) }}
         placeholder={wide ? (placeholder ?? t('Поиск')) : t('Поиск')}
         style={{
-          flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+          // Свёрнутый круг на телефоне: поле остаётся в разметке (иначе фокус
+          // по тапу некуда ставить), но не занимает ширины — без этого из-под
+          // лупы торчал обрезанный плейсхолдер «По».
+          flex: narrow && !wide ? '0 0 0px' : 1,
+          minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
           fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit',
           width: wide ? 'auto' : 0, pointerEvents: wide ? 'auto' : 'none',
         }}
