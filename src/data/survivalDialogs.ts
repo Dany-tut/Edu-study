@@ -1,17 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Диалоги разговорников выживания
 //
-// ПОЧЕМУ НЕ ВО ВСЕХ ТЕМАХ. Разговорник — это 54 темы, и диалог уместен в
-// большинстве, но не во всех. Не написаны девять: «Числа», «Время», «Тело» —
-// это перечни, а «Слова парами», «Фразовые глаголы», «Идиомы», «Насколько
-// сильно», «Предлоги» и «Слова, которые путает русский» — работа над словом,
-// а не ситуация. Реплику собеседника там пришлось бы придумывать ради формы,
-// и вышла бы не сцена, а карточка в костюме диалога.
+// ДИАЛОГ ЕСТЬ ВО ВСЕХ ТЕМАХ, И ЭТО ВЫВОД, А НЕ ИСХОДНОЕ НАМЕРЕНИЕ. Сначала
+// казалось, что половина тем — перечни: числа, время, тело, предлоги, идиомы.
+// Оказалось наоборот. Ответная реплика — лучшее место для проверки выбора,
+// какой бы ни была тема: у «Чисел» в ней сталкиваются две системы счёта
+// (세 개, а не 삼 개), у «Времени» — 몇 시 против 몇 시간, у «Предлогов» весь
+// вопрос в том, waiting FOR или waiting ON. Список проверяет узнавание,
+// реплика — употребление, и именно второго не хватало.
 //
-// Всё остальное написано — включая то, что на первый взгляд выглядит списком.
-// «Документы», «Банк», «Симкарта», «Граница» — это как раз разговор со
-// стойкой, где чужой человек задаёт вопросы, а ты отвечаешь; именно там
-// приезжий и немеет.
+// «Документы», «Банк», «Симкарта», «Граница» — это разговор со стойкой, где
+// чужой человек задаёт вопросы, а ты отвечаешь; именно там приезжий и немеет.
 //
 // ПОЧЕМУ РУКАМИ, А НЕ ИЗ ФРАЗ. Фразы разговорника лежат готовыми, и соблазн
 // склеить из них диалог автоматически велик. Но две фразы одной темы не
@@ -121,6 +120,23 @@ export const KOSV_DIALOGS: Record<string, SeedTask[]> = {
     ['행인', '괜찮으세요?'],
     ['다냐', '____! 구급차 좀 불러 주세요.'],
   ], '도와주세요', { distractors: ['감사합니다', '괜찮아요', '실례합니다'] })],
+
+  // Две системы счёта: с предметами идут родные числительные, а не 일·이·삼.
+  numbers: [gapDialog(ASK, [
+    ['점원', '몇 개 드릴까요?'],
+    ['다냐', '____ 주세요.'],
+  ], '세 개', { distractors: ['삼 개', '세 번', '삼 번'] })],
+
+  // 몇 시 — «во сколько», 몇 시간 — «сколько часов». Путают постоянно.
+  time: [gapDialog(ASK, [
+    ['다냐', '____에 문 열어요?'],
+    ['점원', '아홉 시부터요.'],
+  ], '몇 시', { distractors: ['몇 시간', '언제부터', '얼마나'] })],
+
+  body: [gapDialog(ASK, [
+    ['의사', '어디가 아프세요?'],
+    ['다냐', '____가 아파요. 어제부터요.'],
+  ], '목', { distractors: ['머리', '배', '다리'] })],
 
   smalltalk: [gapDialog(ASK, [
     ['민수', '한국 음식 어때요?'],
@@ -350,6 +366,53 @@ export const ENSV_DIALOGS: Record<string, SeedTask[]> = {
     ['Operator', 'Emergency, which service?'],
     ['Dania', '____ — there has been an accident.'],
   ], 'Ambulance', { distractors: ['Police', 'Fire', 'Doctor'] })],
+
+  numbers: [gapDialog(ASK, [
+    ['Assistant', 'How many would you like?'],
+    ['Dania', '____, please.'],
+  ], 'Three', { distractors: ['Third', 'Threes', 'Three times'] })],
+
+  time: [gapDialog(ASK, [
+    ['Dania', '____ do you open?'],
+    ['Staff', 'From nine in the morning.'],
+  ], 'What time', { distractors: ['How long', 'How much time', 'When time'] })],
+
+  body: [gapDialog(ASK, [
+    ['Doctor', 'Where does it hurt?'],
+    ['Dania', 'My ____ — since yesterday.'],
+  ], 'throat', { distractors: ['neck', 'chest', 'stomach'] })],
+
+  // Сочетание, а не слово: «сделать» по-английски раздваивается на make и do.
+  collocate: [gapDialog(ASK, [
+    ['Tom', 'Have you decided yet?'],
+    ['Dania', 'Not yet — I need to ____ a decision by Friday.'],
+  ], 'make', { distractors: ['do', 'take', 'give'] })],
+
+  phrasal: [gapDialog(ASK, [
+    ['Tom', 'Can you answer the client today?'],
+    ['Dania', "I'll ____ to them by the end of the day."],
+  ], 'get back', { distractors: ['get over', 'get on', 'get through'] })],
+
+  idiom: [gapDialog(ASK, [
+    ['Tom', 'How was the presentation?'],
+    ['Dania', 'Fine, but I was ____ the whole time.'],
+  ], 'on edge', { distractors: ['over the moon', 'under the weather', 'out of hand'] })],
+
+  emphasis: [gapDialog(ASK, [
+    ['Tom', 'Was it cold out there?'],
+    ['Dania', '____ freezing. I could not feel my hands.'],
+  ], 'Absolutely', { distractors: ['Very', 'Quite a', 'So much'] })],
+
+  // Предлог, который русский ставит по-русски: ждать «автобуса», а не «для».
+  prep: [gapDialog(ASK, [
+    ['Tom', 'What are you doing out here?'],
+    ['Dania', "Waiting ____ the bus."],
+  ], 'for', { distractors: ['on', 'of', 'to'] })],
+
+  mixup: [gapDialog(ASK, [
+    ['Tom', 'What did the manager say?'],
+    ['Dania', 'She ____ me the deadline had moved.'],
+  ], 'told', { distractors: ['said', 'spoke', 'talked'] })],
 
   smalltalk: [gapDialog(ASK, [
     ['Tom', 'Terrible weather, isn’t it?'],
@@ -581,6 +644,22 @@ export const JASV_DIALOGS: Record<string, SeedTask[]> = {
     ['ダーニャ', '____! きゅうきゅうしゃを よんで ください。'],
   ], 'たすけて', { distractors: ['ありがとう', 'すみません', 'だいじょうぶ'] })],
 
+  // Счётный суффикс: у предметов ～つ, а не ～にん и не ～ばん.
+  numbers: [gapDialog(ASK, [
+    ['てんいん', 'いくつ おつけしますか。'],
+    ['ダーニャ', '____ ください。'],
+  ], 'みっつ', { distractors: ['さんにん', 'さんばん', 'みつ'] })],
+
+  time: [gapDialog(ASK, [
+    ['ダーニャ', '____から あいて いますか。'],
+    ['てんいん', 'くじからです。'],
+  ], 'なんじ', { distractors: ['なんじかん', 'いつごろ', 'どのくらい'] })],
+
+  body: [gapDialog(ASK, [
+    ['いしゃ', 'どこが いたいですか。'],
+    ['ダーニャ', '____が いたいです。きのうからです。'],
+  ], 'のど', { distractors: ['あたま', 'おなか', 'あし'] })],
+
   smalltalk: [gapDialog(ASK, [
     ['たなか', 'にほんの たべもの、どうですか。'],
     ['ダーニャ', 'とても ____。とくに ラーメンが すきです。'],
@@ -810,6 +889,21 @@ export const PTSV_DIALOGS: Record<string, SeedTask[]> = {
     ['Passante', 'Você está bem?'],
     ['Dânia', '____! Chame uma ambulância.'],
   ], 'Socorro', { distractors: ['Desculpe', 'Obrigada', 'Com licença'] })],
+
+  numbers: [gapDialog(ASK, [
+    ['Vendedor', 'Quantos você quer?'],
+    ['Dânia', '____, por favor.'],
+  ], 'Três', { distractors: ['Terceiro', 'Trezentos', 'Três vezes'] })],
+
+  time: [gapDialog(ASK, [
+    ['Dânia', '____ vocês abrem?'],
+    ['Atendente', 'A partir das nove.'],
+  ], 'Que horas', { distractors: ['Quanto tempo', 'Quando hora', 'Qual hora'] })],
+
+  body: [gapDialog(ASK, [
+    ['Médico', 'Onde está doendo?'],
+    ['Dânia', 'A minha ____, desde ontem.'],
+  ], 'garganta', { distractors: ['cabeça', 'barriga', 'perna'] })],
 
   smalltalk: [gapDialog(ASK, [
     ['Bruno', 'E a comida daqui?'],
@@ -1041,6 +1135,21 @@ export const DESV_DIALOGS: Record<string, SeedTask[]> = {
     ['Passant', 'Alles in Ordnung?'],
     ['Dania', '____! Rufen Sie bitte einen Krankenwagen.'],
   ], 'Hilfe', { distractors: ['Danke', 'Entschuldigung', 'Achtung'] })],
+
+  numbers: [gapDialog(ASK, [
+    ['Verkäufer', 'Wie viele möchten Sie?'],
+    ['Dania', '____, bitte.'],
+  ], 'Drei', { distractors: ['Dritte', 'Dreimal', 'Dreißig'] })],
+
+  time: [gapDialog(ASK, [
+    ['Dania', '____ haben Sie geöffnet?'],
+    ['Mitarbeiter', 'Ab neun Uhr.'],
+  ], 'Ab wann', { distractors: ['Wie lange', 'Wie viel Zeit', 'Wann Uhr'] })],
+
+  body: [gapDialog(ASK, [
+    ['Ärztin', 'Wo tut es weh?'],
+    ['Dania', 'Mein ____ — seit gestern.'],
+  ], 'Hals', { distractors: ['Kopf', 'Bauch', 'Bein'] })],
 
   smalltalk: [gapDialog(ASK, [
     ['Max', 'Und wie findest du das Wetter hier?'],

@@ -686,6 +686,200 @@ export const COLLOCATIONS: Record<string, Collocation[]> = {
     { phrase: 'to make a contribution', ru: 'внести вклад' },
     { phrase: 'a valuable contribution', ru: 'ценный вклад' },
   ],
+
+  // ─── Корейский: третья очередь ───
+  눈: [
+    { phrase: '눈이 나쁘다', ru: 'плохое зрение' },
+    { phrase: '눈이 오다', ru: 'идёт снег' },
+    { phrase: '눈을 감다', ru: 'закрыть глаза' },
+  ],
+  손: [
+    { phrase: '손을 씻다', ru: 'мыть руки' },
+    { phrase: '손을 잡다', ru: 'взять за руку' },
+    { phrase: '손이 크다', ru: 'щедрый (о человеке)' },
+  ],
+  다리: [
+    { phrase: '다리가 아프다', ru: 'болят ноги' },
+    { phrase: '다리를 건너다', ru: 'перейти мост' },
+    { phrase: '다리를 꼬다', ru: 'закинуть ногу на ногу' },
+  ],
+  부모님: [
+    { phrase: '부모님과 살다', ru: 'жить с родителями' },
+    { phrase: '부모님께 드리다', ru: 'подарить родителям (вежливо)' },
+  ],
+  아침: [
+    { phrase: '아침을 먹다', ru: 'завтракать' },
+    { phrase: '아침 일찍', ru: 'рано утром' },
+    { phrase: '내일 아침', ru: 'завтра утром' },
+  ],
+  저녁: [
+    { phrase: '저녁을 먹다', ru: 'ужинать' },
+    { phrase: '저녁에', ru: 'вечером' },
+    { phrase: '저녁 약속', ru: 'встреча вечером' },
+  ],
+  만들다: [
+    { phrase: '음식을 만들다', ru: 'готовить еду' },
+    { phrase: '친구를 만들다', ru: 'заводить друзей' },
+    { phrase: '시간을 만들다', ru: 'выкроить время' },
+  ],
+  쓰다: [
+    { phrase: '편지를 쓰다', ru: 'писать письмо' },
+    { phrase: '돈을 쓰다', ru: 'тратить деньги' },
+    { phrase: '모자를 쓰다', ru: 'надевать шапку' },
+  ],
+  유학: [
+    { phrase: '유학을 가다', ru: 'уехать учиться за границу' },
+    { phrase: '유학생', ru: 'иностранный студент' },
+  ],
+  일: [
+    { phrase: '일을 하다', ru: 'работать' },
+    { phrase: '일이 많다', ru: 'много работы' },
+    { phrase: '무슨 일이에요?', ru: 'что случилось?' },
+  ],
+
+  // ─── Японский: третья очередь ───
+  しごと: [
+    { phrase: 'しごとを する', ru: 'работать' },
+    { phrase: 'しごとを さがす', ru: 'искать работу' },
+    { phrase: 'しごとが いそがしい', ru: 'много работы' },
+  ],
+  ごはん: [
+    { phrase: 'ごはんを たべる', ru: 'есть, обедать' },
+    { phrase: 'ごはんを つくる', ru: 'готовить еду' },
+    { phrase: 'あさごはん', ru: 'завтрак' },
+  ],
+  ビール: [
+    { phrase: 'ビールを のむ', ru: 'пить пиво' },
+    { phrase: 'なまビール', ru: 'разливное пиво' },
+    { phrase: 'とりあえず ビール', ru: '«для начала пиво» — обиходный заказ' },
+  ],
+  まつ: [
+    { phrase: 'ともだちを まつ', ru: 'ждать друга' },
+    { phrase: 'ちょっと まって', ru: 'подожди немного' },
+    { phrase: 'バスを まつ', ru: 'ждать автобус' },
+  ],
+  てつだう: [
+    { phrase: 'しごとを てつだう', ru: 'помочь с работой' },
+    { phrase: 'てつだって ください', ru: 'помогите, пожалуйста' },
+  ],
+  こまる: [
+    { phrase: 'こまって います', ru: 'я в затруднении' },
+    { phrase: 'おかねが なくて こまる', ru: 'туго с деньгами' },
+  ],
+
+  // ─── Португальский: третья очередь ───
+  banho: [
+    { phrase: 'tomar banho', ru: 'принимать душ' },
+    { phrase: 'banho de sol', ru: 'солнечные ванны' },
+  ],
+  sonho: [
+    { phrase: 'realizar um sonho', ru: 'осуществить мечту' },
+    { phrase: 'um sonho antigo', ru: 'давняя мечта' },
+  ],
+  passar: [
+    { phrase: 'passar mal', ru: 'плохо себя почувствовать' },
+    { phrase: 'passar a noite', ru: 'провести ночь' },
+    { phrase: 'como o tempo passa', ru: 'как летит время' },
+  ],
+  deixar: [
+    { phrase: 'deixar de fumar', ru: 'бросить курить' },
+    { phrase: 'deixar recado', ru: 'оставить сообщение' },
+    { phrase: 'deixa pra lá', ru: 'да ладно, забудь' },
+  ],
+  conseguir: [
+    { phrase: 'conseguir um emprego', ru: 'найти работу' },
+    { phrase: 'não consigo', ru: 'у меня не получается' },
+  ],
+  terminar: [
+    { phrase: 'terminar o trabalho', ru: 'закончить работу' },
+    { phrase: 'terminar um relacionamento', ru: 'расстаться' },
+  ],
+  mão: [
+    { phrase: 'dar uma mão', ru: 'подсобить, помочь' },
+    { phrase: 'estar à mão', ru: 'быть под рукой' },
+    { phrase: 'de segunda mão', ru: 'подержанный' },
+  ],
+
+  // ─── Немецкий: третья очередь ───
+  fahren: [
+    { phrase: 'mit dem Bus fahren', ru: 'ехать на автобусе' },
+    { phrase: 'Auto fahren', ru: 'водить машину' },
+    { phrase: 'in den Urlaub fahren', ru: 'поехать в отпуск' },
+  ],
+  sprechen: [
+    { phrase: 'Deutsch sprechen', ru: 'говорить по-немецки' },
+    { phrase: 'mit jemandem sprechen', ru: 'поговорить с кем-то' },
+    { phrase: 'über etwas sprechen', ru: 'говорить о чём-то' },
+  ],
+  machen: [
+    { phrase: 'Urlaub machen', ru: 'отдыхать, быть в отпуске' },
+    { phrase: 'einen Termin machen', ru: 'записаться на приём' },
+    { phrase: 'Das macht nichts', ru: 'ничего страшного' },
+  ],
+  lernen: [
+    { phrase: 'Deutsch lernen', ru: 'учить немецкий' },
+    { phrase: 'für die Prüfung lernen', ru: 'готовиться к экзамену' },
+    { phrase: 'kennenlernen', ru: 'познакомиться' },
+  ],
+  essen: [
+    { phrase: 'zu Mittag essen', ru: 'обедать' },
+    { phrase: 'essen gehen', ru: 'пойти поесть' },
+    { phrase: 'etwas zu essen', ru: 'что-нибудь поесть' },
+  ],
+  finden: [
+    { phrase: 'eine Wohnung finden', ru: 'найти квартиру' },
+    { phrase: 'Ich finde das gut', ru: 'по-моему, это хорошо' },
+    { phrase: 'statt finden', ru: 'состояться (о событии)' },
+  ],
+  schlafen: [
+    { phrase: 'gut schlafen', ru: 'хорошо спать' },
+    { phrase: 'einschlafen', ru: 'засыпать' },
+    { phrase: 'ausschlafen', ru: 'выспаться' },
+  ],
+
+  // ─── Английский: связки и оценка (третья очередь) ───
+  evidence: [
+    { phrase: 'to provide evidence', ru: 'привести доказательства' },
+    { phrase: 'strong evidence', ru: 'веские доказательства' },
+    { phrase: 'there is no evidence that', ru: 'нет данных, что' },
+  ],
+  outcome: [
+    { phrase: 'a positive outcome', ru: 'хороший исход' },
+    { phrase: 'to affect the outcome', ru: 'повлиять на результат' },
+  ],
+  takeaway: [
+    { phrase: 'the key takeaway', ru: 'главный вывод' },
+    { phrase: 'my takeaway is that', ru: 'для себя я вынес, что' },
+  ],
+  background: [
+    { phrase: 'a design background', ru: 'опыт в дизайне' },
+    { phrase: 'in the background', ru: 'на заднем плане' },
+  ],
+  skills: [
+    { phrase: 'to develop skills', ru: 'развивать навыки' },
+    { phrase: 'transferable skills', ru: 'переносимые навыки' },
+    { phrase: 'soft skills', ru: 'гибкие навыки' },
+  ],
+  references: [
+    { phrase: 'to provide references', ru: 'дать рекомендации' },
+    { phrase: 'references available on request', ru: 'рекомендации по запросу' },
+  ],
+  growth: [
+    { phrase: 'room for growth', ru: 'куда расти' },
+    { phrase: 'personal growth', ru: 'личностный рост' },
+  ],
+  benefits: [
+    { phrase: 'a benefits package', ru: 'социальный пакет' },
+    { phrase: 'the benefits outweigh the costs', ru: 'выгода перевешивает издержки' },
+  ],
+  thread: [
+    { phrase: 'to start a thread', ru: 'создать ветку обсуждения' },
+    { phrase: 'in this thread', ru: 'в этой переписке' },
+  ],
+  'one-on-one': [
+    { phrase: 'to have a one-on-one', ru: 'провести личную встречу' },
+    { phrase: 'a weekly one-on-one', ru: 'еженедельная встреча один на один' },
+  ],
   // ─── Английский ───
   time: [
     { phrase: 'to run out of time', ru: 'не успевать' },
