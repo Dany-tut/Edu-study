@@ -295,4 +295,73 @@ One NASA photographer in Spain captured the total solar eclipse as well as the p
       },
     ],
   },
+
+  // ── ОДНА НОВОСТЬ НА B1, B2 И C1 ────────────────────────────────────────────
+  //
+  // Научная статья написана для коллег, и ученику её закрывает не тема, а
+  // регистр: «superconducting detectors confined to spans measured in
+  // micrometres» — это C1, хотя речь идёт о простой вещи. Поэтому один и тот же
+  // материал стоит здесь трижды, лестницей, и ступень переключается в посте.
+  //
+  // Верхняя ступень нарочно НЕ упрощена: смысл лестницы в том, чтобы по ней
+  // подняться, а не в том, чтобы остаться внизу. Исходник — пресс-релиз NIST,
+  // общественное достояние; пересказ наш (см. sci-retold-en в реестре).
+  {
+    id: 'en-sci-photon',
+    outletId: 'sci-retold-en',
+    lang: 'en',
+    title: 'A detector that counts light one piece at a time',
+    date: '2026-08-26',
+    lane: 'free',
+    textOrigin: 'ours',
+    age: '12+',
+    url: 'https://www.nist.gov/news-events/news/2026/08/nist-researchers-supersize-quantum-technology-help-detect-faint-photons',
+    byline: 'our retelling of a NIST news release',
+    origin: 'original',
+    credit: 'Source material — NIST, public domain',
+    level: 'B1',
+    minutes: 2,
+    topic: 'Технологии и ИИ',
+    skill: 'Чтение',
+    body: `Light is made of very small pieces. Each piece is called a photon.
+
+In daylight there are so many photons that nobody counts them. But some machines have to catch them one by one. Doctors use such machines to look deep inside the body, and quantum computers need them too.
+
+Until now these detectors had to be very small. A small detector can only watch a small spot, so the light has to be aimed at it carefully.
+
+Researchers at NIST have built a much bigger one. It still notices a single photon, but it watches a wider area. That should make the machines simpler and cheaper to build.`,
+    levels: [
+      {
+        level: 'B1',
+        minutes: 2,
+        body: `Light is made of very small pieces. Each piece is called a photon.
+
+In daylight there are so many photons that nobody counts them. But some machines have to catch them one by one. Doctors use such machines to look deep inside the body, and quantum computers need them too.
+
+Until now these detectors had to be very small. A small detector can only watch a small spot, so the light has to be aimed at it carefully.
+
+Researchers at NIST have built a much bigger one. It still notices a single photon, but it watches a wider area. That should make the machines simpler and cheaper to build.`,
+      },
+      {
+        level: 'B2',
+        minutes: 3,
+        body: `A photon is the smallest amount of light there is. Most of the time this hardly matters, because sunlight arrives in enormous numbers. But a growing number of instruments depend on catching photons one at a time: imaging deep inside living tissue, sending messages that cannot be copied, running a quantum computer.
+
+The problem has always been size. A detector sensitive enough to register a single photon had to be tiny, and a tiny detector can only watch a tiny patch of space. Making the patch wider used to mean losing the signal in noise.
+
+Researchers at the National Institute of Standards and Technology have now made such a detector far larger without losing that sensitivity. "Photons carry information," one of the researchers said. A wider detector simply collects more of it, and it does so without the complicated optics that were once needed to squeeze light onto a tiny target.`,
+      },
+      {
+        level: 'C1',
+        minutes: 4,
+        body: `Everyday life is flooded with photons, the quantum building blocks of light, and for most purposes their sheer number makes the individual particle irrelevant. At the frontier of instrumentation the opposite holds: in deep-tissue imaging, in secure communication, in optical quantum computing, the arrival of every single photon carries information that cannot be recovered once it is lost.
+
+Sensitivity of that order has historically come at the cost of area. Detectors capable of registering one photon have been confined to active regions a few micrometres across, and enlarging that region degraded the very signal it was meant to capture. The consequence was an elaborate apparatus of lenses and fibres whose only purpose was to funnel light onto a target smaller than a grain of dust.
+
+Researchers at the National Institute of Standards and Technology now report that they have scaled the active area up substantially while preserving the single-photon response. If the result holds outside the laboratory, an entire layer of optical engineering becomes unnecessary, and instruments that were previously confined to specialised benches become considerably easier to build.`,
+      },
+    ],
+    glossary: [],
+    questions: [],
+  },
 ]

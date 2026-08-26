@@ -32,6 +32,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { WORD_GLOSS, type WordGloss } from '../data/wordGloss'
+import { t } from './i18n'
 import { transcribe } from './translit'
 
 /** Часть слова в разборе по составу: сам кусок и его перевод, если он есть. */
@@ -337,6 +338,7 @@ const KO_TAILS: KoTail[] = [
     '어서', '아서', '아야', '어야', '는지', '니다', '으시겠어요', '으셨어요',
     '시겠어요', '셨어요', '으려고요', '려고요', '자마자', '는군요', '으래요',
     '군요', '래요', '어도', '아도', '여도', '으신', '으실', '시는', '시고',
+    '고', '며', '지', '게', '자', '까',
     '기', '면', '서', '는', '은', '을', '던', '음', '죠', '요', '다',
     // Односложные окончания-деепричастия. Они и самые частые в живой речи
     // (찍어, 가야, 하러), и самые рискованные: незнакомое существительное на
@@ -557,15 +559,15 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
         const role = KO_PARTICLES.has(tail) ? map.get(key(tail))?.ru : undefined
         // Нашёлся сам глагол (연구하다) — это уже не «существительное с 하다»,
         // а обычная форма, и говорить надо именно так.
-        const how = form === head ? note : 'форма глагола'
+        const how = form === head ? note : t('форма глагола')
         return {
           term: word,
           base: g.term,
           ru: g.ru,
           note: [
-            `форма слова «${g.term}»`,
+            `${t('форма слова')} «${g.term}»`,
             role ? `${tail} — ${role}` : how,
-            g.note,
+            g.note && t(g.note),
           ].filter(Boolean).join(' · '),
         }
       }
@@ -578,8 +580,12 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
     // согласная вообще похожа на приклеенную (ㄴ, ㄹ, ㅂ, ㅆ). Иначе оно
     // прочитало бы глаголом каждое незнакомое существительное, а таких в
     // новостях больше, чем глаголов.
+    // Приметы приклеенного окончания две: финальная согласная из KO_GLUED
+    // (한 ← 하 + ㄴ) и СТЯНУТАЯ ГЛАСНАЯ (모여 ← 모이 + 어, 겹쳐 ← 겹치 + 어).
+    // Второй случай без первого выглядит как обычное слово, поэтому его и
+    // проглядели: у 여 никакого хвоста не видно, стяжение сидит внутри знака.
     const end = jamo(word[word.length - 1])
-    if (word.length > 1 && end && KO_GLUED.has(end.tail)) {
+    if (word.length > 1 && end && (KO_GLUED.has(end.tail) || (!end.tail && KO_CONTRACT[end.vowel]))) {
       for (const stem of koStems(word)) {
         if (stem === word) continue
         const g = map.get(key(stem + '다'))
@@ -588,7 +594,7 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
           term: word,
           base: g.term,
           ru: g.ru,
-          note: [`форма слова «${g.term}»`, 'форма глагола', g.note].filter(Boolean).join(' · '),
+          note: [`${t('форма слова')} «${g.term}»`, t('форма глагола'), g.note && t(g.note)].filter(Boolean).join(' · '),
         }
       }
     }
@@ -614,7 +620,7 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
         term: word,
         base: g.term,
         ru: g.ru,
-        note: g.note ? `форма слова «${g.term}» · ${g.note}` : `форма слова «${g.term}»`,
+        note: g.note ? `${t('форма слова')} «${g.term}» · ${t(g.note)}` : `${t('форма слова')} «${g.term}»`,
       }
     }
     return undefined

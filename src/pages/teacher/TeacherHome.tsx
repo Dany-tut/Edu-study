@@ -16,7 +16,7 @@ import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
 import { mskToVietnam } from '../../lib/utils'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
-import { useT, t } from '../../lib/i18n'
+import { useLang, useT, t } from '../../lib/i18n'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -59,6 +59,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 // ─── Stat card ─────────────────────────────────────────────────────────────
 function EarningsCard({ delay }: { delay: number }) {
   const t = useT()
+  const lang = useLang(s => s.lang)
   const [amount, setAmount] = useState<number | null>(null)
   const [payments, setPayments] = useState(0)
   useEffect(() => {
@@ -81,7 +82,7 @@ function EarningsCard({ delay }: { delay: number }) {
   }, [])
 
   const fmt = (n: number) =>
-    n >= 1000 ? `${(n / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} тыс ₽` : `${n} ₽`
+    n >= 1000 ? `${(n / 1000).toLocaleString(lang === 'en' ? 'en-US' : 'ru-RU', { maximumFractionDigits: 0 })} ${t('тыс')} ₽` : `${n} ₽`
 
   return (
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>

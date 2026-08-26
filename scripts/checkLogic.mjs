@@ -20,6 +20,7 @@
 // Запуск: npm run check:logic
 import { confusable, paradigmAffixes, spreadConfusable } from '../src/data/vocabLadder.ts'
 import { initialQueue, requeue, questionAt, isRepeatAt, restoreQueue, hardIds } from '../src/lib/lessonQueue.ts'
+import { reviewSlots, buildReviewTasks, answerFace, DEBT_SLOTS, DEBT_SLOTS_WIDE, DEBT_THRESHOLD } from '../src/lib/lessonDebt.ts'
 
 let bad = 0
 const fail = (what, detail) => { console.log('  ✗', what, detail ? `— ${detail}` : ''); bad++ }
@@ -140,6 +141,90 @@ else fail('урок вырос сверх потолка', String(flood.order.le
 const restored = restoreQueue({ order: [0, 1, 2], retries: {}, repeats: [] }, 5)
 if (restored.order.length === 5) ok('черновик от другой домашки отбрасывается')
 else fail('чужой черновик принят', restored.order.join(','))
+
+// ── 5. Долг колоды в начале занятия (Р17) ────────────────────────────────────
+//
+// Правило живёт в рантайме, а не в сиде: сторож уроков его не видит вовсе —
+// карточки долга приходят из колоды конкретного ученика. Поэтому проверяются
+// сами функции.
+
+console.log('\nР17 — долг колоды:')
+
+const SLOTS = [
+  [0, 0, 'пустая колода не даёт блока'],
+  [2, 2, 'долг меньше потолка берётся целиком'],
+  [10, DEBT_SLOTS, 'обычное занятие берёт не больше четырёх'],
+  [DEBT_THRESHOLD, DEBT_SLOTS_WIDE, 'большой долг открывает расширенный блок'],
+  [500, DEBT_SLOTS_WIDE, 'вернувшийся после паузы не получает вместо урока сто карточек'],
+]
+for (const [due, want, why] of SLOTS) {
+  const got = reviewSlots(due)
+  if (got === want) ok(`долг ${due} → ${got} карточек (${why})`)
+  else fail(`долг ${due} дал ${got}, а не ${want}`, why)
+}
+
+/** Карточка колоды — ровно те поля, которые читает раскладка. */
+const card = (id, prompt, answer, extra = {}) =>
+  ({ id, prompt, answer, source: 'vocab', ...extra })
+
+const POOL = [
+  card('c1', '물', 'вода — муль'),
+  card('c2', '밥', 'еда — пап'),
+  card('c3', '학교', 'школа — хаккё'),
+  card('c4', '빵', 'хлеб — ппан'),
+  card('c5', '사람', 'человек — сарам'),
+]
+
+if (answerFace(POOL[0]) === 'вода') ok('чтение срезано с варианта выбора («вода — муль» → «вода»)')
+else fail('чтение попало в вариант выбора', answerFace(POOL[0]))
+
+
+// Карточка тренажёра пишет оборот как «слово — перевод», и слово в ней то же,
+// что в вопросе. Оставить его в варианте — значит напечатать ответ в задании.
+const trainer = card('t1', '대학교 — что значит? (대 (大) большой + 학 учёба + 교 заведение)', '대학교 — университет', { source: 'trainer' })
+if (answerFace(trainer) === 'университет') ok('слово из вопроса срезано с варианта («대학교 — университет» → «университет»)')
+else fail('вариант печатает слово из вопроса — задание решается сличением строк', answerFace(trainer))
+
+const built = buildReviewTasks(POOL, POOL)
+if (built.every(t => t.kind === 'choice')) ok('колоды из пяти слов хватает на выбор без самооценки')
+else fail('карточка ушла в припоминание при полном пуле', built.map(t => t.kind).join(','))
+
+for (const t of built) {
+  if (t.kind !== 'choice') continue
+  const right = answerFace(t.card)
+  if (t.choices[t.correct] !== right) { fail('верный индекс указывает не на верный ответ', t.card.prompt); break }
+  if (t.choices.filter(c => c === right).length !== 1) { fail('верный ответ встречается в вариантах дважды', t.card.prompt); break }
+  if (new Set(t.choices).size !== t.choices.length) { fail('обманки повторяются', t.choices.join(' / ')); break }
+  if (t.choices.length !== 4) { fail('вариантов не четыре', String(t.choices.length)); break }
+}
+if (bad === 0) ok('варианты собраны честно: верный ровно один, обманки не повторяются, всего четыре')
+
+// Р15 распространяется и на долг: слово возвращается десятки раз, и постоянное
+// место ответа превратило бы повторение в тренировку пальца.
+const slots = new Set(built.filter(t => t.kind === 'choice').map(t => t.correct))
+if (slots.size > 1) ok(`место верного ответа гуляет по карточкам (позиции: ${[...slots].sort().join(',')})`)
+else fail('верный ответ у всех карточек на одном месте', [...slots].join(','))
+
+// Раскладка обязана быть одинаковой при каждом вызове: иначе после F5 ученик
+// видит другой набор обманок к тому же слову.
+const rebuilt = buildReviewTasks(POOL, POOL)
+if (JSON.stringify(rebuilt) === JSON.stringify(built)) ok('раскладка детерминирована (переживает перерисовку и F5)')
+else fail('раскладка меняется между вызовами')
+
+// Колода из одного слова: обманку взять неоткуда — честное припоминание вместо
+// выбора из одного варианта.
+const alone = buildReviewTasks([POOL[0]], [POOL[0]])
+if (alone[0].kind === 'recall') ok('единственное слово колоды показывается припоминанием, а не выбором из одного')
+else fail('выбор собран без обманок', JSON.stringify(alone[0]))
+
+// Карточка из ошибки домашки несёт свои варианты — те же, что были в задании.
+const fromHw = card('h1', 'She ___ to school every day.', 'goes', {
+  source: 'homework', options: ['go', 'goes', 'is go', 'going'],
+})
+const hw = buildReviewTasks([fromHw], POOL)[0]
+if (hw.kind === 'choice' && hw.choices.length === 4 && hw.choices[hw.correct] === 'goes'
+    && hw.choices.includes('going')) ok('ошибка домашки возвращается со своими вариантами')
+else fail('варианты ошибки домашки потеряны', JSON.stringify(hw))
 
 console.log(bad === 0 ? '\nЛогика методики в порядке.' : `\nРасхождений: ${bad}`)
 process.exit(bad === 0 ? 0 : 1)

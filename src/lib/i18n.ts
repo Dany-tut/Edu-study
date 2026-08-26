@@ -3807,6 +3807,51 @@ const EN: Record<string, string> = {
   'Новый': 'New',
   'Задания части 2': 'Part 2 tasks',
   'Говорение — тренажёр': 'Speaking — trainer',
+
+  // ——— Последний хвост ———
+  'Не вспомнил': 'Didn\'t recall',
+  'Вспомнил': 'Recalled',
+  'По подсказке': 'With a hint',
+  'Пропущено': 'Skipped',
+  'О языке': 'About the language',
+  'Записано': 'Recorded',
+  'Тексты с вопросами': 'Texts with questions',
+  'Лекции и разговоры': 'Lectures and conversations',
+  'Записать и отправить': 'Record and send',
+  'Из чего собраны слова': 'What words are built from',
+  'Справочник форм': 'A reference of forms',
+  'Как устроен и что читать': 'How it works and what to read',
+
+  // Синхронизация с готовым курсом
+  'Урока больше нет в сиде': 'The lesson is gone from the seed',
+  'Новых заданий:': 'New tasks:',
+  'Заданий убрано из сида:': 'Tasks removed from the seed:',
+  'Заданий с расхождением:': 'Tasks that drifted:',
+  'тип:': 'type:',
+  'Ссылка на видео отличается от сида': 'The video link differs from the seed',
+  'Видео нет — есть в сиде': 'No video here — the seed has one',
+  'Конспект отличается от сида': 'The notes differ from the seed',
+  'Конспект пуст — есть в сиде': 'The notes are empty — the seed has them',
+
+  // Редактор курса
+  'Интро': 'Intro',
+  'Новые слова': 'New words',
+  'ДЗ урока': 'Lesson homework',
+  'ДЗ записи': 'Recording homework',
+  'открывается в свою дату, прошлые — сразу': 'opens on its own date, past ones right away',
+  'доступны все уроки': 'every lesson is available',
+  'открываешь вручную': 'you unlock them by hand',
+
+  // Разбор корейского слова
+  'форма слова': 'a form of',
+  'форма глагола': 'a verb form',
+  'с 하다: делать это, заниматься этим': 'with 하다: to do this, to be engaged in it',
+  'с 되다: становится, делается': 'with 되다: becomes, is done',
+  'со связкой 이다: «это …»': 'with the copula 이다: "this is …"',
+  'с частицей': 'with a particle',
+
+  'тыс': 'k',
+  'Telegram отклонил сообщение': 'Telegram rejected the message',
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

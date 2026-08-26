@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { t } from './i18n'
 
 // Диалоги с Telegram-ботом в Админке. Входящие пишет Edge Function tg-webhook,
 // ответы админа — tg-reply. Клиент только читает (RLS: только админ) и шлёт ответы
@@ -60,7 +61,7 @@ export async function fetchMessages(threadId: string): Promise<TgMessage[]> {
 export async function sendReply(threadId: string, text: string): Promise<{ error: string | null }> {
   const { data, error } = await supabase.functions.invoke('tg-reply', { body: { thread_id: threadId, text } })
   if (error) return { error: error.message }
-  if (data && (data as { ok?: boolean }).ok === false) return { error: 'Telegram отклонил сообщение' }
+  if (data && (data as { ok?: boolean }).ok === false) return { error: t('Telegram отклонил сообщение') }
   return { error: null }
 }
 

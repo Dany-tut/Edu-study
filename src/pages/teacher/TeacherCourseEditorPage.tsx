@@ -1388,7 +1388,7 @@ function TimecodeRail({
               autoFocus
               value={bulk}
               onChange={e => setBulk(e.target.value)}
-              placeholder={'0:00 Интро\n2:15 Новые слова\n12:30 Разбор'}
+              placeholder={`0:00 ${t('Интро')}\n2:15 ${t('Новые слова')}\n12:30 ${t('Разбор')}`}
               rows={6}
               style={{ ...inputSt, resize: 'none', lineHeight: 1.5, fontVariantNumeric: 'tabular-nums' }}
             />
@@ -3480,8 +3480,8 @@ function HomeworkLeftPanel({
       {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
       <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
         {([
-          { id: 'lesson', label: 'ДЗ урока', n: (lesson.hwTasks ?? []).length },
-          { id: 'rec',    label: 'ДЗ записи', n: (lesson.recHwTasks ?? []).length },
+          { id: 'lesson', label: t('ДЗ урока'), n: (lesson.hwTasks ?? []).length },
+          { id: 'rec',    label: t('ДЗ записи'), n: (lesson.recHwTasks ?? []).length },
         ] as const).map(tt => (
           <button key={tt.id} onClick={() => setHwTab(tt.id)} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
@@ -4143,9 +4143,9 @@ function CenterLessonStudents({
             </div>
             <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
               {[
-                { label: 'По датам', desc: 'открывается в свою дату, прошлые — сразу' },
-                { label: 'Всё открыто', desc: 'доступны все уроки' },
-                { label: 'Настраиваемый', desc: 'открываешь вручную' },
+                { label: t('По датам'), desc: t('открывается в свою дату, прошлые — сразу') },
+                { label: t('Всё открыто'), desc: t('доступны все уроки') },
+                { label: t('Настраиваемый'), desc: t('открываешь вручную') },
               ].map(m => (
                 <div key={m.label} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>
                   <span style={{ flexShrink: 0, fontWeight: 700, color: 'var(--color-text-3)', minWidth: 96 }}>{t(m.label)}</span>
@@ -5728,18 +5728,38 @@ export default function TeacherCourseEditorPage() {
   // иначе он ездил туда-сюда, когда менялась ширина групп кнопок («Курс» у урока
   // слева, «Сохраняю…»/«Из сида · N» справа). Чтобы центр при этом не заезжал
   // под кнопки, свободное поле обрезаем симметрично — по большей из двух групп.
+  const headRef = useRef<HTMLDivElement>(null)
   const headLeftRef = useRef<HTMLDivElement>(null)
   const headRightRef = useRef<HTMLDivElement>(null)
+  const headTitleRef = useRef<HTMLSpanElement>(null)
+  const seedLabelRef = useRef<HTMLSpanElement>(null)
   const [headSideW, setHeadSideW] = useState(0)
+  // Длинное название упиралось в таблетку «Из сида · N» и обрезалось многоточием.
+  // Когда места не хватает, у таблетки прячется подпись — остаётся одна иконка,
+  // и заголовок получает её ширину назад.
+  const [seedCompact, setSeedCompact] = useState(false)
+  // Ширину подписи запоминаем, пока она на экране: свёрнутая таблетка мерила бы
+  // сама себя, места сразу «хватало» бы — и подпись мигала бы туда-сюда.
+  const seedLabelW = useRef(0)
   useLayoutEffect(() => {
-    const l = headLeftRef.current, r = headRightRef.current
-    if (!l || !r) return
-    const measure = () => setHeadSideW(Math.max(l.offsetWidth, r.offsetWidth))
+    const l = headLeftRef.current, r = headRightRef.current, h = headRef.current
+    if (!l || !r || !h) return
+    const measure = () => {
+      const lw = l.offsetWidth, rw = r.offsetWidth
+      setHeadSideW(Math.max(lw, rw))
+      const lab = seedLabelRef.current
+      if (lab && lab.offsetWidth) seedLabelW.current = lab.offsetWidth
+      // Меряем по РАЗВЁРНУТОЙ правой группе — иначе решение зависело бы от себя.
+      const fullRight = rw + (lab ? 0 : seedLabelW.current)
+      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 12)
+      const titleW = headTitleRef.current?.scrollWidth ?? 0
+      setSeedCompact(titleW + 16 > room)
+    }
     measure()
     const ro = new ResizeObserver(measure)
-    ro.observe(l); ro.observe(r)
+    ro.observe(l); ro.observe(r); ro.observe(h)
     return () => ro.disconnect()
-  }, [])
+  }, [courseTitle, seedDiff.changes.length])
 
   // Страница сама НЕ скроллится: три колонки прокручиваются каждая своим
   // внутренним скроллом и не тянут за собой соседей. Раньше общим скроллером
@@ -5754,6 +5774,7 @@ export default function TeacherCourseEditorPage() {
       {/* ── Шапка. Всегда на месте: страница не скроллится, прятать её в
              «доке» больше нечем и незачем — «Назад» и «Опубликовать» под рукой. ── */}
       <motion.div
+        ref={headRef}
         style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
       >
         <div ref={headLeftRef} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -5779,7 +5800,7 @@ export default function TeacherCourseEditorPage() {
             отступы по ширине большей группы кнопок. Длинное название не уезжает
             под кнопки — оно обрезается многоточием. */}
         <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
+          <span ref={headTitleRef} className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div ref={headRightRef} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
@@ -5787,9 +5808,10 @@ export default function TeacherCourseEditorPage() {
               которая каждый раз отвечает «всё совпадает», — это шум в шапке. */}
           {seedDiff.changes.length > 0 && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
-              title={t('Показать, что изменилось в готовом курсе с момента добавления')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-              <RefreshCw size={14} strokeWidth={2} /> {t('Из сида')} · {seedDiff.changes.length}
+              title={`${t('Из сида')} · ${seedDiff.changes.length} — ${t('Показать, что изменилось в готовом курсе с момента добавления')}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: seedCompact ? '9px 11px' : '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <RefreshCw size={14} strokeWidth={2} />
+              {!seedCompact && <span ref={seedLabelRef}>{t('Из сида')} · {seedDiff.changes.length}</span>}
             </motion.button>
           )}
           {course.dbCourseId && (
