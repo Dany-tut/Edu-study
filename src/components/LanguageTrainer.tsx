@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
-import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, type FeedItem } from '../data/feed'
+import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
@@ -272,6 +272,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [feedData, setFeedData] = useState<{ lang: string; list: FeedItem[] } | null>(null)
   const feed = feedData?.lang === lang ? feedData.list : undefined
   const feedTotal = feed?.length ?? feedCount(lang)
+
+  // ПОВОРОТ ЛЕНТЫ — «Видео», «Наука», «Новости». Не выбор материала: выбранное
+  // остаётся лентой по дням, просто уже одного рода. Ряд собирается по тому,
+  // что реально приехало (feedFilters), и живёт per-язык: у корейской ленты
+  // свои темы, и чипс «Здоровье», выбранный в ней, ничего не значит в
+  // португальской — там его в ряду нет вовсе.
+  const [feedFilter, setFeedFilter] = usePersistentState<FeedFilter>(`trainer.${lang}.feedFilter`, 'all')
+  const feedChips = useMemo(() => feedFilters(feed ?? []), [feed])
+  // Чипс мог исчезнуть из ряда: язык сменился, ночная сборка унесла последний
+  // ролик. Выборка по кнопке, которой на экране нет, читается как пустая лента.
+  const feedPick: FeedFilter = feedChips.some(c => c.id === feedFilter) ? feedFilter : 'all'
+  const feedShown = useMemo(
+    () => (feed ?? []).filter(x => matchesFilter(x, feedPick)),
+    [feed, feedPick],
+  )
 
   useEffect(() => {
     if (!feedLib || mode !== 'reading' || readingView !== 'feed' || feed !== undefined) return
@@ -1825,7 +1840,24 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   ]
 
   let toolbar: React.ReactNode = null
-  if (scenesOn) {
+  if (feedOn) {
+    // У ленты в строке только поворот: ни поиска, ни сортировки, ни статусов.
+    // Искать в ленте нечего (её листают, а не подбирают материал), а «сначала
+    // старое» ленте противопоказано — датой она и держится.
+    toolbar = (
+      <Toolbar count={feedShown.length}>
+        <StatusTabs
+          options={feedChips.map(c => ({ value: c.id, label: c.label }))}
+          value={feedPick}
+          onChange={v => setFeedFilter(v as FeedFilter)}
+          accent={palette.accent}
+        />
+        <ToolCount>
+          {feedShown.length} {t(materialsWord(feedShown.length))}
+        </ToolCount>
+      </Toolbar>
+    )
+  } else if (scenesOn) {
     toolbar = (
       <Toolbar count={openWork ? undefined : visibleWorks.length}>
         {openWork ? (
@@ -2162,7 +2194,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
     ) : (
       <FeedList
-        items={feed}
+        items={feedShown}
         lang={lang}
         accent={palette.accent}
         subjectId={subjectId}

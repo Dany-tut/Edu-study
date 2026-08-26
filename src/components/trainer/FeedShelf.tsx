@@ -26,6 +26,20 @@ import { FeedPost } from './FeedPost'
 // уходит в просмотренные молча (lib/feedRead) — ровно этим и живёт счётчик
 // «новое» на главной и в навбаре.
 
+/**
+ * Ширина колонки ленты на большом экране.
+ *
+ * 680 — ширина мобильной ленты, растянутая на монитор: на телефоне она во весь
+ * экран и смотрится нормально, а на 1440 та же колонка занимала половину места
+ * рядом с рейлом и читалась как узкая полоска. Здесь ролик — полноправный
+ * материал, и 16:9 на 680 px это маленькое окно.
+ *
+ * Во всю ширину при этом НЕЛЬЗЯ: строка на 1000 px — это под 130 знаков, и
+ * глаз теряет начало следующей строки. 880 — предел, за которым текст поста
+ * начинает читаться хуже, а не лучше.
+ */
+const FEED_W = 880
+
 export function FeedList({ items, lang, accent, subjectId }: {
   items: FeedItem[]
   lang: string
@@ -41,7 +55,7 @@ export function FeedList({ items, lang, accent, subjectId }: {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 680 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: FEED_W }}>
       {days.map(day => (
         <section key={day.date} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Дата — единственный разделитель в ленте, как в мессенджере. */}

@@ -384,6 +384,7 @@ const EN: Record<string, string> = {
   "выдать": "grant",
   ". Курсы/группы применяются при сохранении.": ". Courses/groups apply on save.",
   "Сохраняем…": "Saving…",
+  "Открываем…": "Opening…",
   "Сохранено": "Saved",
   "Сохранить": "Save",
   "Тариф": "Plan",
@@ -3685,6 +3686,12 @@ const EN: Record<string, string> = {
 
   // ——— Языковой тренажёр: витрины, фильтры, сортировки ———
   'Тексты': 'Texts',
+  // Ряд чипсов над лентой (data/feed → filterLabel).
+  'Новости': 'News',
+  'Наука': 'Science',
+  'Технологии': 'Tech',
+  'Искусство': 'Arts',
+  'Жизнь': 'Life',
   'Сцены': 'Scenes',
   'Наборы': 'Sets',
   'Слова': 'Words',
