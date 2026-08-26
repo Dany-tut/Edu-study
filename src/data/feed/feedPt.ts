@@ -74,23 +74,23 @@ Já no oeste, noroeste e norte do Amazonas e no estado de Roraima, o tempo fica 
       {
         q: 'O que se espera no Sul e no Sudeste?',
         options: [
-          'Altas temperaturas e baixa umidade',
           'Frio, com possibilidade de geadas e nevoeiros',
+          'Altas temperaturas e baixa umidade',
           'Chuva forte e trovoadas',
           'Tempo estável, sem mudanças',
         ],
-        correct: 1,
+        correct: 0,
         why: 'Текст построен на контрасте: «Enquanto o Centro-Oeste … no Sul e Sudeste o frio aparece».',
       },
       {
         q: 'Por que o Inmet emitiu um aviso laranja?',
         options: [
-          'Por causa dos ventos intensos',
           'Por causa da baixa umidade do ar',
+          'Por causa dos ventos intensos',
           'Por causa das trovoadas em Roraima',
           'Por causa das geadas no Sul',
         ],
-        correct: 1,
+        correct: 0,
       },
       {
         q: 'A que nível a umidade pode chegar nas áreas do aviso laranja?',
@@ -148,39 +148,39 @@ O retorno ao Brasil será iniciado no dia 4 de setembro.`,
     questions: [
       {
         q: 'Quantas pessoas viajam com a companhia?',
-        options: ['Cerca de 10', 'Cerca de 20', 'Cerca de 40', 'Só os quatro bailarinos'],
-        correct: 1,
+        options: ['Cerca de 10', 'Cerca de 40', 'Cerca de 20', 'Só os quatro bailarinos'],
+        correct: 2,
       },
       {
         q: 'O espetáculo Still Reich é inspirado em quem?',
         options: [
           'No coreógrafo Alex Neoral',
-          'Na música de Steve Reich',
           'Na dança contemporânea chinesa',
+          'Na música de Steve Reich',
           'Num filme norte-americano',
         ],
-        correct: 1,
+        correct: 2,
       },
       {
         q: 'Quando as peças do espetáculo foram criadas?',
         options: [
           'Todas em 2008',
           'Todas em 2018',
-          'Duas em 2008 e duas em 2018',
           'Todas em 2026, para o festival',
+          'Duas em 2008 e duas em 2018',
         ],
-        correct: 2,
+        correct: 3,
         why: '«as duas primeiras … em 2008 e, as duas últimas, em 2018» — спектакль собран из работ разных лет.',
       },
       {
         q: 'Além das apresentações, o que a companhia fará na China?',
         options: [
           'Gravará um filme',
-          'Dará workshops',
           'Participará de um concurso',
           'Abrirá uma escola de dança',
+          'Dará workshops',
         ],
-        correct: 1,
+        correct: 3,
       },
     ],
   },
@@ -232,8 +232,8 @@ As exibições fazem parte da estratégia da TV Brasil , a tela do futebol femin
     questions: [
       {
         q: 'A que horas começa a partida?',
-        options: ['Às 17h40', 'Às 18h', 'Às 19h', 'Às 20h'],
-        correct: 1,
+        options: ['Às 17h40', 'Às 19h', 'Às 20h', 'Às 18h'],
+        correct: 3,
         why: 'В 17:40 начинается ЭФИР («a jornada esportiva»), сам матч — в 18:00. Разница между двумя временами и есть проверка.',
       },
       {
@@ -258,8 +258,8 @@ As exibições fazem parte da estratégia da TV Brasil , a tela do futebol femin
       },
       {
         q: 'Há quantos anos a TV Brasil exibe a elite do futebol feminino?',
-        options: ['É o primeiro ano', 'Pelo segundo ano', 'Pelo terceiro ano', 'Há dez anos'],
-        correct: 2,
+        options: ['É o primeiro ano', 'Pelo terceiro ano', 'Pelo segundo ano', 'Há dez anos'],
+        correct: 1,
       },
     ],
   },

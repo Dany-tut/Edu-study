@@ -21,10 +21,36 @@
 // авторском порядке, но ученику показываются перемешанными (см. SequenceSolver
 // в HomeworkFlow.tsx) — позиции в данных там не значат ничего.
 //
+// ТРИ РАЗДЕЛА. Курсы-сиды (место чинит placeCorrect в данных), диагностики и
+// placement (место чинит displayOrder на показе) и банки вопросов вне того и
+// другого — тексты, аудио, сцены, лента, справочник грамматики, тренажёр AP.
+// Третьего раздела сторож не видел вовсе, и правило там было нарушено целиком:
+// см. комментарий перед его блоком.
+//
 // Запуск: npm run check:choicepos   (--detail — разбивка по роду заданий)
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { COURSE_SEEDS } from '../src/data/courseSeeds.ts'
 import { DEFAULT_QUESTIONS } from '../src/data/diagnosticData.ts'
 import { displayOrder } from '../src/data/taskTypes.ts'
+import { READING_LIBRARY } from '../src/data/readingLibrary.ts'
+import { LISTENING_LIBRARY } from '../src/data/listeningLibrary.ts'
+import { EN_SCENES } from '../src/data/scenes/scenesEn.ts'
+import { KO_SCENES } from '../src/data/scenes/scenesKo.ts'
+import { JA_SCENES } from '../src/data/scenes/scenesJa.ts'
+import { PT_SCENES } from '../src/data/scenes/scenesPt.ts'
+import { DE_SCENES } from '../src/data/scenes/scenesDe.ts'
+import { RU_SCENES } from '../src/data/scenes/scenesRu.ts'
+import { EN_FEED } from '../src/data/feed/feedEn.ts'
+import { KO_FEED } from '../src/data/feed/feedKo.ts'
+import { JA_FEED } from '../src/data/feed/feedJa.ts'
+import { PT_FEED } from '../src/data/feed/feedPt.ts'
+import { RUSSIAN_GRAMMAR } from '../src/data/grammarRu.ts'
+import { GERMAN_GRAMMAR } from '../src/data/grammarDe.ts'
+import { ENGLISH_GRAMMAR } from '../src/data/grammar/grammarEn.ts'
+import { KOREAN_GRAMMAR } from '../src/data/grammar/grammarKo.ts'
+import { AP_CHEM_TRAINERS } from '../src/data/apChemistry.ts'
 
 const detail = process.argv.includes('--detail')
 
@@ -226,6 +252,160 @@ if (badTests.length) {
     console.log(`  ✗ ${where}: место ${p + 1} перебирает случай на ${sg.toFixed(1)}σ (потолок ${SIGMAS}σ)`)
   }
   console.log('\nПорядок показа считает displayOrder из src/data/taskTypes.ts — его зовёт DiagnosticTestPage.')
+  process.exit(1)
+}
+
+// ── Банки вопросов вне курсов и вне тестов ──────────────────────────────────
+//
+// ЧТО ЭТО. Вопросы к текстам и аудио, сцены, лента, викторина справочника
+// грамматики, тренажёр AP Chemistry. Они не собираются `one()` — значит, мимо
+// placeCorrect и мимо первого раздела; и не показываются через displayOrder —
+// значит, мимо второго. Сторож не видел их вовсе, и правило там было нарушено
+// целиком: замер 26.08.2026 — 2492 вопроса, верный ответ на ВТОРОМ месте в 83%,
+// у русских сцен во всех 20 из 20. Проверка «не стоит первым» на таких данных
+// была бы зелёной.
+//
+// ПОЧЕМУ ЗДЕСЬ ПРАВЯТСЯ ДАННЫЕ, А НЕ ПОКАЗ. Довод второго раздела —
+// «сохранённый номер варианта» — сюда не переносится: ответы на эти вопросы
+// живут в состоянии экрана и номером в БД не ложатся. Значит, чинится сам файл,
+// и правка видна в дифе, а не только в рантайме.
+//
+// ЕДИНИЦА ИЗМЕРЕНИЯ — то, что ученик проходит за раз: тексты одного языка,
+// справочник одного языка, один тренажёр. Мерить файлами нельзя: тексты четырёх
+// языков лежат в одном readingLibrary, а перекос английского банка не лечится
+// корейским.
+
+/**
+ * Все вопросы с ОДНИМ верным ответом внутри любой структуры данных.
+ *
+ * Обход общий, потому что форма записи у банков разная, и сводить их к одной
+ * ради сторожа значило бы переписывать рабочие данные под проверку:
+ *   { options, correct } — тексты, аудио, сцены, лента;
+ *   { options, answer }  — викторина справочника грамматики;
+ *   { answers: [{ correct }] } — вопрос тренажёра.
+ * Вопрос с несколькими верными не в счёт: у него место не определено.
+ */
+function questionsIn(root) {
+  const out = []
+  const seen = new Set()
+  const walk = v => {
+    if (!v || typeof v !== 'object' || seen.has(v)) return
+    seen.add(v)
+    if (Array.isArray(v)) { for (const x of v) walk(x); return }
+    const opts = Array.isArray(v.options) ? v.options : Array.isArray(v.choices) ? v.choices : null
+    if (opts && opts.length >= 2 && opts.every(x => typeof x === 'string')) {
+      const place = typeof v.correct === 'number' ? v.correct
+        : typeof v.answer === 'number' ? v.answer
+        : null
+      if (Number.isInteger(place) && place >= 0 && place < opts.length) out.push({ n: opts.length, place })
+    }
+    if (Array.isArray(v.answers) && v.answers.length >= 2 && v.answers.every(a => a && typeof a.correct === 'boolean')) {
+      const right = v.answers.filter(a => a.correct)
+      if (right.length === 1) out.push({ n: v.answers.length, place: v.answers.indexOf(right[0]) })
+    }
+    for (const k of Object.keys(v)) walk(v[k])
+  }
+  walk(root)
+  return out
+}
+
+const byLang = (items, label) => [...new Set(items.map(i => i.lang))].sort()
+  .map(lang => [`${label} · ${lang}`, items.filter(i => i.lang === lang)])
+
+const BANKS = [
+  ...byLang(READING_LIBRARY, 'тексты'),
+  ...byLang(LISTENING_LIBRARY, 'аудио'),
+  ...byLang([...EN_SCENES, ...KO_SCENES, ...JA_SCENES, ...PT_SCENES, ...DE_SCENES, ...RU_SCENES], 'сцены'),
+  ...byLang([...EN_FEED, ...KO_FEED, ...JA_FEED, ...PT_FEED], 'лента'),
+  ['грамматика · ru', RUSSIAN_GRAMMAR],
+  ['грамматика · de', GERMAN_GRAMMAR],
+  ['грамматика · en', ENGLISH_GRAMMAR],
+  ['грамматика · ko', KOREAN_GRAMMAR],
+  ['тренажёр · AP Chemistry', AP_CHEM_TRAINERS],
+]
+
+const banks = mk()
+const perBank = []
+for (const [name, root] of BANKS) {
+  const acc = mk()
+  for (const q of questionsIn(root)) { add(acc, q.place, q.n); add(banks, q.place, q.n) }
+  if (acc.n) perBank.push([name, acc])
+}
+
+console.log('\n── Банки вне курсов и вне тестов ──')
+for (const [name, acc] of perBank) {
+  const [p, sg] = worstSigma(acc)
+  console.log(`  ${name.padEnd(24)} ${String(acc.n).padStart(4)}  худшее место ${p + 1}: ${sg >= 0 ? '+' : ''}${sg.toFixed(1)}σ  ${spread(acc)}`)
+}
+
+// Порог в сигмах, как у тестов, и по той же причине: банки разного размера —
+// от девяти вопросов у португальских текстов до тысячи у английских сцен, и
+// один вопрос весит в них по-разному. Меньше восьми вопросов не проверяем
+// вовсе: там любое место — это один вопрос туда-сюда.
+const badBanks = [['все банки', banks], ...perBank]
+  .filter(([, acc]) => acc.n >= 8 && worstSigma(acc)[1] > SIGMAS)
+if (badBanks.length) {
+  console.log('')
+  for (const [where, acc] of badBanks) {
+    const [p, sg] = worstSigma(acc)
+    console.log(`  ✗ ${where}: место ${p + 1} перебирает случай на ${sg.toFixed(1)}σ (потолок ${SIGMAS}σ)`)
+  }
+  console.log('\nЗдесь место лежит в самих данных: переставьте варианты вместе с номером верного (Р15).')
+  process.exit(1)
+}
+
+// ── Полнота реестра ─────────────────────────────────────────────────────────
+//
+// Файл с вопросами-выбора, которого нет ни в одном из трёх разделов, не
+// проверяется вообще — ровно так правило и оказалось нарушено на шести
+// поверхностях сразу, пока сторож смотрел только в сиды. Поэтому исходники
+// сверяются со списком учтённых файлов.
+const COVERED = new Set([
+  'src/data/placementTests.ts', 'src/data/diagnosticData.ts',
+  'src/data/readingLibrary.ts', 'src/data/readingEn.ts', 'src/data/readingKo.ts', 'src/data/readingJa.ts',
+  'src/data/listeningLibrary.ts', 'src/data/listeningLibraryExtra.ts',
+  'src/data/scenes/scenesEn.ts', 'src/data/scenes/scenesKo.ts', 'src/data/scenes/scenesJa.ts',
+  'src/data/scenes/scenesPt.ts', 'src/data/scenes/scenesDe.ts', 'src/data/scenes/scenesRu.ts',
+  'src/data/feed/feedEn.ts', 'src/data/feed/feedKo.ts', 'src/data/feed/feedJa.ts', 'src/data/feed/feedPt.ts',
+  'src/data/grammarRu.ts', 'src/data/grammarDe.ts', 'src/data/grammar/grammarEn.ts', 'src/data/grammar/grammarKo.ts',
+  'src/data/apChemistry.ts',
+])
+
+/** Записи вопроса с выбором в исходнике: объектом и вызовом-строителем. */
+const SHAPES = [
+  /(options|choices):\s*\[[\s\S]{0,4000}?\]\s*,?\s*\n?\s*(correct|answer):\s*\d/,
+  /\]\s*,\s*\d+\s*,\s*$/m,
+]
+
+/**
+ * Содержимое сида: варианты собирает `one()` из languageCourse, место им
+ * раскладывает placeCorrect, а меряет их первый раздел. Литерал «список и
+ * номер» там тоже есть (`one(вопрос, [...], 0)`), и без этой отсечки сторож
+ * полноты указывал бы на уже проверенное.
+ */
+const SEED_CONTENT = /\bfrom '[^']*languageCourse'/
+
+function* tsFiles(dir) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, e.name)
+    if (e.isDirectory()) yield* tsFiles(path)
+    else if (e.name.endsWith('.ts')) yield path
+  }
+}
+
+const uncovered = []
+for (const dir of ['src/data', 'src/lib']) {
+  for (const file of tsFiles(dir)) {
+    if (COVERED.has(file)) continue
+    const text = readFileSync(file, 'utf8')
+    if (SEED_CONTENT.test(text)) continue
+    if (SHAPES.some(re => re.test(text))) uncovered.push(file)
+  }
+}
+if (uncovered.length) {
+  console.log('')
+  for (const file of uncovered) console.log(`  ✗ ${file}: вопросы с выбором, которых сторож не меряет`)
+  console.log('\nЗаведите банк в BANKS (или впишите файл в COVERED, если его меряет другой раздел).')
   process.exit(1)
 }
 

@@ -72,13 +72,13 @@ const EN: ListeningItem[] = [
       },
       {
         q: 'Which days work best for her?',
-        options: ['Monday or Tuesday', 'Wednesday or Thursday', 'Friday', 'Any day'],
-        correct: 1,
+        options: ['Monday or Tuesday', 'Friday', 'Any day', 'Wednesday or Thursday'],
+        correct: 3,
       },
       {
         q: 'What does she ask you to send?',
-        options: ['Your portfolio', 'A couple of times that suit you', 'Your salary expectations', 'A cover letter'],
-        correct: 1,
+        options: ['A couple of times that suit you', 'Your portfolio', 'Your salary expectations', 'A cover letter'],
+        correct: 0,
         why: 'Ключевая фраза — «send me a couple of times that suit you». В голосовых сообщениях просьба почти всегда в конце.',
       },
     ],
@@ -99,13 +99,13 @@ const EN: ListeningItem[] = [
     questions: [
       {
         q: 'What is the speaker working on today?',
-        options: ['Empty states', 'The filters', 'The error screens', 'Nothing, they are blocked'],
-        correct: 1,
+        options: ['The filters', 'Empty states', 'The error screens', 'Nothing, they are blocked'],
+        correct: 0,
       },
       {
         q: 'What is blocking them?',
-        options: ['A missing design', 'Waiting on the copy', 'A broken build', 'No blockers'],
-        correct: 1,
+        options: ['A missing design', 'A broken build', 'Waiting on the copy', 'No blockers'],
+        correct: 2,
       },
       {
         q: 'What do they ask the team for?',
@@ -135,8 +135,8 @@ const KO: ListeningItem[] = [
     questions: [
       {
         q: '문은 어느 쪽으로 열려요?',
-        options: ['왼쪽', '오른쪽', '양쪽', '방송에 없어요'],
-        correct: 1,
+        options: ['오른쪽', '왼쪽', '양쪽', '방송에 없어요'],
+        correct: 0,
       },
       {
         q: '공항에 가는 사람은 어떻게 해요?',
@@ -175,18 +175,18 @@ const KO: ListeningItem[] = [
     questions: [
       {
         q: '손님은 뭘 주문했어요?',
-        options: ['아메리카노 한 잔', '아메리카노 두 잔', '차 두 잔', '주스 한 잔'],
-        correct: 1,
+        options: ['아메리카노 한 잔', '차 두 잔', '아메리카노 두 잔', '주스 한 잔'],
+        correct: 2,
       },
       {
         q: '따뜻한 거예요, 차가운 거예요?',
-        options: ['따뜻한 거', '차가운 거', '둘 다', '안 정했어요'],
-        correct: 1,
+        options: ['차가운 거', '따뜻한 거', '둘 다', '안 정했어요'],
+        correct: 0,
       },
       {
         q: '얼마예요?',
-        options: ['칠천 원', '구천 원', '만 원', '안 나왔어요'],
-        correct: 1,
+        options: ['칠천 원', '만 원', '안 나왔어요', '구천 원'],
+        correct: 3,
       },
     ],
   },
@@ -211,13 +211,13 @@ const JA: ListeningItem[] = [
     questions: [
       {
         q: 'でぐちは どちらですか。',
-        options: ['ひだりがわ', 'みぎがわ', 'りょうほう', 'アナウンスに ありません'],
-        correct: 1,
+        options: ['ひだりがわ', 'りょうほう', 'みぎがわ', 'アナウンスに ありません'],
+        correct: 2,
       },
       {
         q: 'くうこうへ いく ひとは どうしますか。',
-        options: ['つぎの えきで おります', 'この えきで のりかえます', 'なにも しません', 'とうきょうで おります'],
-        correct: 1,
+        options: ['この えきで のりかえます', 'つぎの えきで おります', 'なにも しません', 'とうきょうで おります'],
+        correct: 0,
       },
       {
         q: 'つぎの えきは どこですか。',
@@ -256,13 +256,13 @@ Cliente: É, pra viagem.`,
     questions: [
       {
         q: 'Quantos cafés o cliente pediu?',
-        options: ['Um', 'Dois', 'Três', 'Não disse'],
-        correct: 1,
+        options: ['Dois', 'Um', 'Três', 'Não disse'],
+        correct: 0,
       },
       {
         q: 'Como ele quer o café?',
-        options: ['Quente', 'Gelado', 'Com leite', 'Não disse'],
-        correct: 1,
+        options: ['Quente', 'Com leite', 'Gelado', 'Não disse'],
+        correct: 2,
       },
       {
         q: 'O que significa "pra viagem"?',
@@ -298,18 +298,18 @@ const MORE: ListeningItem[] = [
       },
       {
         q: 'How long will the whole interview take?',
-        options: ['Ten minutes', 'Fifteen minutes', 'About forty minutes', 'He does not say'],
-        correct: 2,
+        options: ['About forty minutes', 'Ten minutes', 'Fifteen minutes', 'He does not say'],
+        correct: 0,
       },
       {
         q: 'What happens first?',
         options: [
           'You talk about your background',
-          'He talks about the role and the team',
           'You ask questions',
           'A technical test',
+          'He talks about the role and the team',
         ],
-        correct: 1,
+        correct: 3,
         why: 'Порядок проговаривается в начале — это стандартная практика, и по ней можно готовиться слушать.',
       },
     ],
@@ -343,14 +343,14 @@ const MORE: ListeningItem[] = [
       },
       {
         q: '몇 번 버스를 타요?',
-        options: ['오십이 번', '오백이 번', '이백오 번', '말 안 했어요'],
-        correct: 1,
+        options: ['오십이 번', '이백오 번', '말 안 했어요', '오백이 번'],
+        correct: 3,
         why: '오백이 — 502. Числа в адресах и номерах читаются китайскими числительными.',
       },
       {
         q: '버스로 몇 정거장이에요?',
-        options: ['두 정거장', '세 정거장', '네 정거장', '다섯 정거장'],
-        correct: 1,
+        options: ['두 정거장', '네 정거장', '세 정거장', '다섯 정거장'],
+        correct: 2,
       },
     ],
   },
@@ -391,13 +391,13 @@ const MORE: ListeningItem[] = [
       },
       {
         q: 'いくらですか。',
-        options: ['はっぴゃくえん', 'はっせんえん', 'ろっぴゃくえん', 'いいませんでした'],
-        correct: 0,
+        options: ['はっせんえん', 'はっぴゃくえん', 'ろっぴゃくえん', 'いいませんでした'],
+        correct: 1,
       },
       {
         q: 'どうやって はらいますか。',
-        options: ['げんきんで', 'カードで', 'スマホで', 'いいませんでした'],
-        correct: 1,
+        options: ['げんきんで', 'スマホで', 'いいませんでした', 'カードで'],
+        correct: 3,
       },
     ],
   },
@@ -429,24 +429,24 @@ Turista: Valeu, obrigado!`,
     questions: [
       {
         q: 'Quanto tempo leva a pé?',
-        options: ['Dois minutos', 'Cinco minutos', 'Quinze minutos', 'Ela não diz'],
-        correct: 1,
+        options: ['Cinco minutos', 'Dois minutos', 'Quinze minutos', 'Ela não diz'],
+        correct: 0,
       },
       {
         q: 'O que ela recomenda?',
-        options: ['O ônibus', 'O metrô', 'Táxi', 'Ir a pé'],
-        correct: 1,
+        options: ['O ônibus', 'Táxi', 'O metrô', 'Ir a pé'],
+        correct: 2,
         why: '«O metrô é bem mais rápido a essa hora» — она прямо сравнивает и советует.',
       },
       {
         q: 'O que significa "minutinhos"?',
         options: [
-          'Muitos minutos',
           'Uns poucos minutos — o diminutivo suaviza',
+          'Muitos minutos',
           'Minutos exatos',
           'Horas',
         ],
-        correct: 1,
+        correct: 0,
         why: 'Уменьшительные суффиксы в бразильском смягчают и приуменьшают. Это стилистическая черта, а не размер.',
       },
     ],
@@ -479,19 +479,19 @@ const DE_LISTEN: ListeningItem[] = [
     questions: [
       {
         q: 'Wohin fährt der Zug?',
-        options: ['Nach München', 'Nach Hamburg', 'Nach Köln', 'Nach Berlin'],
-        correct: 1,
+        options: ['Nach München', 'Nach Köln', 'Nach Berlin', 'Nach Hamburg'],
+        correct: 3,
       },
       {
         q: 'Von welchem Gleis fährt der Zug heute ab?',
-        options: ['Gleis sieben', 'Gleis neun', 'Gleis zwei', 'Das wird nicht gesagt'],
-        correct: 1,
+        options: ['Gleis sieben', 'Gleis zwei', 'Gleis neun', 'Das wird nicht gesagt'],
+        correct: 2,
         why: 'Именно это и есть смысл объявления: путь изменён, а сказано об этом в самом конце — как всегда.',
       },
       {
         q: 'Wie viel Verspätung hat der Zug?',
-        options: ['Fünf Minuten', 'Fünfzehn Minuten', 'Fünfzig Minuten', 'Eine Stunde'],
-        correct: 1,
+        options: ['Fünf Minuten', 'Fünfzig Minuten', 'Eine Stunde', 'Fünfzehn Minuten'],
+        correct: 3,
       },
     ],
   },
@@ -512,18 +512,18 @@ const DE_LISTEN: ListeningItem[] = [
     questions: [
       {
         q: 'An welchen Tagen ist das Amt geschlossen?',
-        options: ['Montag und Dienstag', 'Mittwoch und Freitag', 'Donnerstag', 'Nur am Wochenende'],
-        correct: 1,
+        options: ['Mittwoch und Freitag', 'Montag und Dienstag', 'Donnerstag', 'Nur am Wochenende'],
+        correct: 0,
       },
       {
         q: 'Wie vereinbart man einen Termin?',
-        options: ['Am Telefon', 'Online über die Internetseite', 'Persönlich vor Ort', 'Per Brief'],
-        correct: 1,
+        options: ['Am Telefon', 'Persönlich vor Ort', 'Online über die Internetseite', 'Per Brief'],
+        correct: 2,
       },
       {
         q: 'Welche Taste drückt man für Fragen zur Anmeldung?',
-        options: ['Die Eins', 'Die Zwei', 'Die Drei', 'Keine'],
-        correct: 1,
+        options: ['Die Zwei', 'Die Eins', 'Die Drei', 'Keine'],
+        correct: 0,
       },
     ],
   },
@@ -573,8 +573,8 @@ const DE_LISTEN: ListeningItem[] = [
       },
       {
         q: 'Warum zahlt der Kunde bar?',
-        options: ['Er hat keine Karte', 'Die Bäckerei nimmt nur Bargeld', 'Es ist billiger', 'Der Automat ist kaputt'],
-        correct: 1,
+        options: ['Die Bäckerei nimmt nur Bargeld', 'Er hat keine Karte', 'Es ist billiger', 'Der Automat ist kaputt'],
+        correct: 0,
         why: 'Nur Bargeld — обычная ситуация в маленьких немецких кафе и пекарнях.',
       },
       {
@@ -622,13 +622,13 @@ const DE_LISTEN: ListeningItem[] = [
       },
       {
         q: 'Was sagt der Nachbar über Sonntag?',
-        options: ['Sonntags ist alles erlaubt', 'Sonntags ist den ganzen Tag Ruhezeit', 'Sonntags nur bis Mittag', 'Darüber wird nicht gesprochen'],
-        correct: 1,
+        options: ['Sonntags ist alles erlaubt', 'Sonntags nur bis Mittag', 'Darüber wird nicht gesprochen', 'Sonntags ist den ganzen Tag Ruhezeit'],
+        correct: 3,
       },
       {
         q: 'Wie ist der Ton des Gesprächs?',
-        options: ['Streit', 'Sachlich und freundlich', 'Drohend', 'Gleichgültig'],
-        correct: 1,
+        options: ['Streit', 'Drohend', 'Sachlich und freundlich', 'Gleichgültig'],
+        correct: 2,
         why: 'Немецкое замечание соседа звучит буднично и заканчивается пожеланием хорошего вечера — конфликта в этом нет.',
       },
     ],

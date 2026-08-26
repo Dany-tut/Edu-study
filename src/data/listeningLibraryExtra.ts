@@ -49,19 +49,19 @@ export const EN_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'Which gate should passengers go to?',
-        options: ['Gate twelve', 'Gate five', 'Gate two', 'Gate forty'],
-        correct: 0,
+        options: ['Gate five', 'Gate two', 'Gate forty', 'Gate twelve'],
+        correct: 3,
         why: 'В объявлениях о смене выхода всегда звучат оба номера — старый и новый. Держите последний: «will now board at».',
       },
       {
         q: 'When does boarding start?',
-        options: ['At nine fourteen', 'At ten forty', 'At nine forty', 'It is not announced'],
-        correct: 2,
+        options: ['At nine forty', 'At nine fourteen', 'At ten forty', 'It is not announced'],
+        correct: 0,
       },
       {
         q: 'Where is the flight going?',
-        options: ['London', 'Leeds', 'Los Angeles', 'Lisbon'],
-        correct: 3,
+        options: ['London', 'Leeds', 'Lisbon', 'Los Angeles'],
+        correct: 2,
       },
     ],
   },
@@ -92,19 +92,19 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'What does the customer order in the end?',
-        options: ['Only a coffee', 'A coffee and a croissant', 'Two coffees', 'Only a croissant'],
-        correct: 1,
+        options: ['Only a coffee', 'Two coffees', 'A coffee and a croissant', 'Only a croissant'],
+        correct: 2,
         why: 'Сначала «no, thanks», потом «actually — yes». В живой речи заказ часто меняется на ходу, и правильный ответ — последний вариант.',
       },
       {
         q: 'How much is it?',
-        options: ['£5.20', '£5.12', '£5.02', '£15.20'],
-        correct: 0,
+        options: ['£5.12', '£5.02', '£5.20', '£15.20'],
+        correct: 2,
       },
       {
         q: 'Is the order to stay or to go?',
-        options: ['To stay', 'Half and half', 'To go', 'They do not say'],
-        correct: 2,
+        options: ['To go', 'To stay', 'Half and half', 'They do not say'],
+        correct: 0,
       },
     ],
   },
@@ -123,13 +123,13 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'Where will it rain, and when?',
-        options: ['In the south, all day', 'In the north, until midday', 'Everywhere, in the evening', 'Nowhere'],
-        correct: 1,
+        options: ['In the north, until midday', 'In the south, all day', 'Everywhere, in the evening', 'Nowhere'],
+        correct: 0,
       },
       {
         q: 'What is the highest temperature today?',
-        options: ['Eighteen degrees', 'Eight degrees', 'Seven degrees', 'Eighty degrees'],
-        correct: 0,
+        options: ['Eight degrees', 'Eighteen degrees', 'Seven degrees', 'Eighty degrees'],
+        correct: 1,
         why: 'Eighteen и eighty — классическая пара на слух. Ударение: eighTEEN, EIGHty.',
       },
       {
@@ -164,8 +164,8 @@ Barista: Won't be a minute.`,
       },
       {
         q: 'How early should he arrive?',
-        options: ['Ten minutes', 'Five minutes', 'Fifteen minutes', 'He should not be early'],
-        correct: 0,
+        options: ['Five minutes', 'Fifteen minutes', 'Ten minutes', 'He should not be early'],
+        correct: 2,
       },
     ],
   },
@@ -185,18 +185,18 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'Where is the parcel now?',
-        options: ['Back at the depot', 'On its way again', 'Behind the door', 'With the neighbour at number nineteen'],
-        correct: 3,
+        options: ['Back at the depot', 'With the neighbour at number nineteen', 'On its way again', 'Behind the door'],
+        correct: 1,
       },
       {
         q: 'How can you ask for another delivery?',
-        options: ['Call the depot', 'Go to the depot', 'Reply to the text with "again"', 'You cannot'],
-        correct: 2,
+        options: ['Call the depot', 'Reply to the text with "again"', 'Go to the depot', 'You cannot'],
+        correct: 1,
       },
       {
         q: 'Does redelivery cost anything?',
-        options: ['Yes, a small fee', 'No, it is free', 'Only on Saturday', 'He does not say'],
-        correct: 1,
+        options: ['Yes, a small fee', 'Only on Saturday', 'No, it is free', 'He does not say'],
+        correct: 2,
       },
     ],
   },
@@ -221,8 +221,8 @@ Barista: Won't be a minute.`,
       },
       {
         q: 'How long does it take to get to the station on foot?',
-        options: ['Five minutes', 'Nine minutes', 'Fifteen minutes', 'Fifty minutes'],
-        correct: 2,
+        options: ['Five minutes', 'Nine minutes', 'Fifty minutes', 'Fifteen minutes'],
+        correct: 3,
       },
       {
         q: 'What is he unsure about?',
@@ -248,18 +248,18 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'When are the slides published?',
-        options: ['After the lecture', 'The evening before', 'At the end of term', 'They are not published'],
-        correct: 1,
+        options: ['After the lecture', 'At the end of term', 'The evening before', 'They are not published'],
+        correct: 2,
       },
       {
         q: 'How is the module assessed?',
-        options: ['Two essays', 'One exam', 'An exam and an essay', 'Weekly tests'],
-        correct: 0,
+        options: ['One exam', 'Two essays', 'An exam and an essay', 'Weekly tests'],
+        correct: 1,
       },
       {
         q: 'What changed recently?',
-        options: ['The room', 'The lecturer', 'The reading list', 'The office hours'],
-        correct: 3,
+        options: ['The office hours', 'The room', 'The lecturer', 'The reading list'],
+        correct: 0,
         why: 'Глагол «have moved» — сигнал изменения. На лекциях именно такие фразы отделяют новое от привычного.',
       },
     ],
@@ -283,24 +283,24 @@ Barista: Won't be a minute.`,
         options: [
           'How long people spend on phones',
           'How many apps people have',
-          'How often people pick their phones up',
-          'How little people sleep'],
-        correct: 2,
+          'How little people sleep',
+          'How often people pick their phones up'],
+        correct: 3,
         why: 'Конструкция «wasn’t X, it was Y» ставит настоящий ответ во вторую половину. Первая половина — приманка.',
       },
       {
         q: 'How does the speaker define the problem?',
-        options: ['A screen-time problem', 'An attention problem', 'A sleep problem', 'A memory problem'],
-        correct: 1,
+        options: ['An attention problem', 'A screen-time problem', 'A sleep problem', 'A memory problem'],
+        correct: 0,
       },
       {
         q: 'What did the simple fix do?',
         options: [
-          'Nearly doubled focus time',
           'Cut screen time in half',
+          'Nearly doubled focus time',
           'Made no difference',
           'Made people check more often'],
-        correct: 0,
+        correct: 1,
       },
     ],
   },
@@ -354,26 +354,26 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'Which number is technical support?',
-        options: ['Two', 'One', 'Three', 'It is not given'],
-        correct: 0,
+        options: ['One', 'Three', 'Two', 'It is not given'],
+        correct: 2,
       },
       {
         q: 'What does Priya say is the cause?',
         options: [
           'A problem with the customer’s router',
+          'An outage in the area',
           'She does not know yet',
-          'An unpaid bill',
-          'An outage in the area'],
-        correct: 3,
+          'An unpaid bill'],
+        correct: 1,
       },
       {
         q: 'What does she recommend?',
         options: [
+          'Waiting and getting a text when it is fixed',
           'Booking the Thursday visit',
           'Calling back tomorrow',
-          'Waiting and getting a text when it is fixed',
           'Changing the plan'],
-        correct: 2,
+        correct: 0,
         why: 'Совет спрятан в «honestly…» и в вопросе «Shall I… instead?». Вежливая рекомендация по-английски часто выглядит как предложение выбора.',
       },
     ],
@@ -394,26 +394,26 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'What figure is the manager offering to propose?',
-        options: ['Sixty-five', 'Sixty-nine', 'Seventy-two', 'He offers no figure'],
-        correct: 1,
+        options: ['Sixty-nine', 'Sixty-five', 'Seventy-two', 'He offers no figure'],
+        correct: 0,
       },
       {
         q: 'Why can’t he offer the top of the band?',
         options: [
-          'Company policy limits a single step',
           'The employee is not good enough',
           'There is no budget at all',
-          'He does not explain'],
-        correct: 0,
+          'He does not explain',
+          'Company policy limits a single step'],
+        correct: 3,
       },
       {
         q: 'What is his tone at the end?',
         options: [
           'Dismissive — the topic is closed',
           'Angry',
-          'Open — he invites the employee to push back later',
-          'Uncertain about the whole thing'],
-        correct: 2,
+          'Uncertain about the whole thing',
+          'Open — he invites the employee to push back later'],
+        correct: 3,
         why: '«You’re entitled to ask me a harder question» — приглашение вернуться к разговору, а не отказ. На B2 экзаменах отношение говорящего проверяют именно так.',
       },
     ],
@@ -434,8 +434,8 @@ Barista: Won't be a minute.`,
     questions: [
       {
         q: 'What has happened to the strike?',
-        options: ['It has started', 'It has been postponed by a week', 'It has been extended', 'It has been cancelled'],
-        correct: 3,
+        options: ['It has been cancelled', 'It has started', 'It has been postponed by a week', 'It has been extended'],
+        correct: 0,
       },
       {
         q: 'What did the union point out?',
@@ -451,11 +451,11 @@ Barista: Won't be a minute.`,
       {
         q: 'How has the housing review been received?',
         options: [
-          'With objections from several councils',
           'With broad support',
           'With no reaction yet',
-          'It has not been published'],
-        correct: 0,
+          'It has not been published',
+          'With objections from several councils'],
+        correct: 3,
       },
     ],
   },
@@ -479,18 +479,18 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '마리아 씨는 어느 나라 사람이에요?',
-        options: ['한국 사람', '일본 사람', '브라질 사람', '말 안 했어요'],
-        correct: 2,
+        options: ['한국 사람', '일본 사람', '말 안 했어요', '브라질 사람'],
+        correct: 3,
       },
       {
         q: '지금 어디에 살아요?',
-        options: ['부산', '서울', '브라질', '대학교 기숙사'],
-        correct: 1,
+        options: ['부산', '브라질', '서울', '대학교 기숙사'],
+        correct: 2,
       },
       {
         q: '취미가 뭐예요?',
-        options: ['요리하고 등산', '노래하고 춤', '공부하고 운동', '영화 보기'],
-        correct: 0,
+        options: ['노래하고 춤', '공부하고 운동', '요리하고 등산', '영화 보기'],
+        correct: 2,
       },
     ],
   },
@@ -510,18 +510,18 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '비는 언제 와요?',
-        options: ['오전', '밤에만', '오후', '안 와요'],
-        correct: 2,
+        options: ['오후', '오전', '밤에만', '안 와요'],
+        correct: 0,
       },
       {
         q: '밤 기온은 몇 도예요?',
-        options: ['이십삼 도', '십오 도', '삼십 도', '말 안 했어요'],
-        correct: 1,
+        options: ['이십삼 도', '삼십 도', '말 안 했어요', '십오 도'],
+        correct: 3,
       },
       {
         q: '뭘 준비하는 게 좋아요?',
-        options: ['우비', '우산', '모자', '선글라스'],
-        correct: 0,
+        options: ['우산', '모자', '우비', '선글라스'],
+        correct: 2,
         why: 'Совет идёт с «-는 것이 좋겠습니다». Ловушка в том, что зонт тоже назван — но названо, что он хуже.',
       },
     ],
@@ -542,22 +542,22 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '기사는 지금 어디에 있어요?',
-        options: ['경비실', '회사', '차 안', '문 앞'],
-        correct: 3,
+        options: ['문 앞', '경비실', '회사', '차 안'],
+        correct: 0,
       },
       {
         q: '기사가 제안한 것은 뭐예요?',
         options: [
           '우체국에서 찾기',
-          '오늘 저녁에 다시 오기',
           '경비실에 맡기거나 내일 다시 오기',
+          '오늘 저녁에 다시 오기',
           '반품하기'],
-        correct: 2,
+        correct: 1,
       },
       {
         q: '오늘 배송은 몇 시까지예요?',
-        options: ['네 시', '여섯 시', '여덟 시', '말 안 했어요'],
-        correct: 1,
+        options: ['여섯 시', '네 시', '여덟 시', '말 안 했어요'],
+        correct: 0,
       },
     ],
   },
@@ -586,19 +586,19 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '몇 명이 가요?',
-        options: ['네 명', '세 명', '두 명', '다섯 명'],
-        correct: 0,
+        options: ['세 명', '네 명', '두 명', '다섯 명'],
+        correct: 1,
       },
       {
         q: '예약 시간은 몇 시예요?',
-        options: ['일곱 시', '아홉 시', '여덟 시', '못 했어요'],
-        correct: 2,
+        options: ['여덟 시', '일곱 시', '아홉 시', '못 했어요'],
+        correct: 0,
         why: 'Названо два времени. Правильное — то, на котором остановились: «여덟 시로 할게요».',
       },
       {
         q: '직원이 마지막에 뭘 물어봐요?',
-        options: ['음식 메뉴', '결제 방법', '주소', '이름과 전화번호'],
-        correct: 3,
+        options: ['음식 메뉴', '이름과 전화번호', '결제 방법', '주소'],
+        correct: 1,
       },
     ],
   },
@@ -618,13 +618,13 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '할인 행사는 어디에서 해요?',
-        options: ['이 층 계산대', '지하 일 층 수산 코너', '주차장', '일 층 입구'],
-        correct: 1,
+        options: ['이 층 계산대', '주차장', '일 층 입구', '지하 일 층 수산 코너'],
+        correct: 3,
       },
       {
         q: '할인은 몇 퍼센트예요?',
-        options: ['삼십 퍼센트', '이십 퍼센트', '십 퍼센트', '오십 퍼센트'],
-        correct: 0,
+        options: ['이십 퍼센트', '십 퍼센트', '오십 퍼센트', '삼십 퍼센트'],
+        correct: 3,
       },
       {
         q: '주차권은 어디에서 받아요?',
@@ -650,13 +650,13 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '내일 몇 시부터 엘리베이터를 못 써요?',
-        options: ['여덟 시', '열두 시', '아홉 시', '오후 세 시'],
-        correct: 2,
+        options: ['아홉 시', '여덟 시', '열두 시', '오후 세 시'],
+        correct: 0,
       },
       {
         q: '금요일에는 무슨 일이 있어요?',
-        options: ['엘리베이터 점검', '단수', '정전', '이사'],
-        correct: 1,
+        options: ['엘리베이터 점검', '정전', '이사', '단수'],
+        correct: 3,
       },
       {
         q: '방송은 무엇을 부탁했어요?',
@@ -689,8 +689,8 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '환자는 언제부터 아팠어요?',
-        options: ['어제부터', '일주일 전부터', '사흘 전부터', '오늘 아침부터'],
-        correct: 2,
+        options: ['어제부터', '사흘 전부터', '일주일 전부터', '오늘 아침부터'],
+        correct: 1,
       },
       {
         q: '접수원은 뭘 달라고 했어요?',
@@ -699,8 +699,8 @@ export const KO_MORE: ListeningItem[] = [
       },
       {
         q: '얼마나 기다려요?',
-        options: ['십 분', '이십 분', '삼십 분', '한 시간'],
-        correct: 1,
+        options: ['이십 분', '십 분', '삼십 분', '한 시간'],
+        correct: 0,
       },
     ],
   },
@@ -730,13 +730,13 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '손님은 뭘 하러 왔어요?',
-        options: ['체크카드를 만들러', '계좌를 만들러', '돈을 바꾸러', '대출을 받으러'],
-        correct: 0,
+        options: ['계좌를 만들러', '체크카드를 만들러', '돈을 바꾸러', '대출을 받으러'],
+        correct: 1,
       },
       {
         q: '오늘 카드를 받으면 얼마를 내요?',
-        options: ['무료', '오만 원', '만 원', '오천 원'],
-        correct: 3,
+        options: ['무료', '오만 원', '오천 원', '만 원'],
+        correct: 2,
       },
       {
         q: '우편으로 받으면 어때요?',
@@ -762,8 +762,8 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '다음 주 화요일에 수업이 있어요?',
-        options: ['네, 있어요', '아니요, 휴강이에요', '시험이 있어요', '말 안 했어요'],
-        correct: 1,
+        options: ['네, 있어요', '시험이 있어요', '아니요, 휴강이에요', '말 안 했어요'],
+        correct: 2,
       },
       {
         q: '보충 수업은 언제예요?',
@@ -793,8 +793,8 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '이 사람이 문제라고 보는 것은 뭐예요?',
-        options: ['기간이 너무 짧다', '예산이 없다', '사람이 부족하다', '일하는 순서가 잘못됐다'],
-        correct: 3,
+        options: ['기간이 너무 짧다', '예산이 없다', '일하는 순서가 잘못됐다', '사람이 부족하다'],
+        correct: 2,
         why: 'Формула «А가 아니라 B» сразу отсекает первую половину: срок — не проблема, проблема — порядок.',
       },
       {
@@ -808,8 +808,8 @@ export const KO_MORE: ListeningItem[] = [
       },
       {
         q: '이 사람의 태도는 어때요?',
-        options: ['제안만 하고 결정은 팀장에게 맡겨요', '결정을 요구해요', '화가 났어요', '관심이 없어요'],
-        correct: 0,
+        options: ['결정을 요구해요', '화가 났어요', '관심이 없어요', '제안만 하고 결정은 팀장에게 맡겨요'],
+        correct: 3,
       },
     ],
   },
@@ -834,13 +834,13 @@ export const KO_MORE: ListeningItem[] = [
       },
       {
         q: '과제는 어떻게 준비해요?',
-        options: ['미리 준비해야 해요', '집에서 해서 보내요', '미리 준비할 필요 없어요', '과제는 없어요'],
-        correct: 2,
+        options: ['미리 준비해야 해요', '미리 준비할 필요 없어요', '집에서 해서 보내요', '과제는 없어요'],
+        correct: 1,
       },
       {
         q: '연락이 늦으면 무슨 뜻이에요?',
-        options: ['탈락이라는 뜻이에요', '탈락은 아니에요', '다시 지원해야 해요', '말 안 했어요'],
-        correct: 1,
+        options: ['탈락이라는 뜻이에요', '다시 지원해야 해요', '탈락은 아니에요', '말 안 했어요'],
+        correct: 2,
         why: '«-더라도» вводит уступку: «даже если задержится». Именно на этом обороте держится весь смысл последней фразы.',
       },
     ],
@@ -861,26 +861,26 @@ export const KO_MORE: ListeningItem[] = [
     questions: [
       {
         q: '부부가 싸우는 이유 일 위는 뭐였어요?',
-        options: ['집안일', '돈', '아이', '시간'],
-        correct: 0,
+        options: ['돈', '집안일', '아이', '시간'],
+        correct: 1,
       },
       {
         q: '진짜 문제는 뭐라고 했어요?',
         options: [
+          '할 일을 누가 기억하느냐',
           '청소에 쓰는 시간',
           '집이 좁은 것',
-          '할 일을 누가 기억하느냐',
           '돈이 부족한 것'],
-        correct: 2,
+        correct: 0,
       },
       {
         q: "'보이지 않는 일'은 무슨 뜻이에요?",
         options: [
           '밤에 하는 일',
+          '기억하고 계획하는, 눈에 안 보이는 일',
           '아무도 안 하는 일',
-          '돈을 안 받는 일',
-          '기억하고 계획하는, 눈에 안 보이는 일'],
-        correct: 3,
+          '돈을 안 받는 일'],
+        correct: 1,
       },
     ],
   },
@@ -908,18 +908,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'アンナさんは どこから きましたか。',
-        options: ['にほん', 'ロシア', 'かんこく', 'いって いません'],
-        correct: 1,
-      },
-      {
-        q: 'どこで べんきょうして いますか。',
-        options: ['だいがく', 'こうこう', 'かいしゃ', 'うち'],
+        options: ['ロシア', 'にほん', 'かんこく', 'いって いません'],
         correct: 0,
       },
       {
-        q: 'まいあさ なにを しますか。',
-        options: ['べんきょう', 'しごと', 'りょうり', 'さんぽ'],
+        q: 'どこで べんきょうして いますか。',
+        options: ['こうこう', 'かいしゃ', 'うち', 'だいがく'],
         correct: 3,
+      },
+      {
+        q: 'まいあさ なにを しますか。',
+        options: ['さんぽ', 'べんきょう', 'しごと', 'りょうり'],
+        correct: 0,
       },
     ],
   },
@@ -939,18 +939,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'あめは いつ ふりますか。',
-        options: ['ごぜんちゅう', 'ごご', 'よる', 'ふりません'],
-        correct: 2,
-      },
-      {
-        q: 'よるの きおんは なんどですか。',
-        options: ['にじゅうど', 'じゅうにど', 'にじゅうにど', 'いって いません'],
+        options: ['ごぜんちゅう', 'よる', 'ごご', 'ふりません'],
         correct: 1,
       },
       {
+        q: 'よるの きおんは なんどですか。',
+        options: ['にじゅうど', 'にじゅうにど', 'いって いません', 'じゅうにど'],
+        correct: 3,
+      },
+      {
         q: 'あしたの てんきは どうですか。',
-        options: ['はれ', 'くもり', 'あめ', 'ゆき'],
-        correct: 0,
+        options: ['くもり', 'はれ', 'あめ', 'ゆき'],
+        correct: 1,
       },
     ],
   },
@@ -977,18 +977,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'なにを ちゅうもんしましたか。',
-        options: ['ラーメン ひとつ', 'そば ふたつ', 'ラーメン ふたつ', 'おみずだけ'],
-        correct: 2,
+        options: ['ラーメン ひとつ', 'ラーメン ふたつ', 'そば ふたつ', 'おみずだけ'],
+        correct: 1,
       },
       {
         q: 'のみものは なにに しましたか。',
-        options: ['おちゃ', 'ビール', 'たのみませんでした', 'おみず'],
-        correct: 3,
+        options: ['おみず', 'おちゃ', 'ビール', 'たのみませんでした'],
+        correct: 0,
       },
       {
         q: 'てんいんは さいごに なんと いいましたか。',
-        options: ['ありがとうございました', 'すこし おまち ください', 'また どうぞ', 'すみません'],
-        correct: 1,
+        options: ['ありがとうございました', 'また どうぞ', 'すこし おまち ください', 'すみません'],
+        correct: 2,
       },
     ],
   },
@@ -1008,8 +1008,8 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: '電車は いつ 動きますか。',
-        options: ['九時三十分ごろ', '九時ごろ', '十時三十分ごろ', 'わかりません'],
-        correct: 0,
+        options: ['九時ごろ', '十時三十分ごろ', '九時三十分ごろ', 'わかりません'],
+        correct: 2,
       },
       {
         q: '急ぐ人は どうしますか。',
@@ -1018,8 +1018,8 @@ export const JA_MORE: ListeningItem[] = [
       },
       {
         q: '遅れているのは どの方向ですか。',
-        options: ['上りだけ', '下りだけ', '上下線とも', '言っていません'],
-        correct: 2,
+        options: ['上下線とも', '上りだけ', '下りだけ', '言っていません'],
+        correct: 0,
         why: '上下線ともに — «в обоих направлениях». Одно слово とも меняет весь ответ.',
       },
     ],
@@ -1040,18 +1040,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: '荷物は 今 どこに ありますか。',
-        options: ['ドアの前', '宅配会社', 'となりの家', 'ポスト'],
-        correct: 1,
+        options: ['ドアの前', 'となりの家', '宅配会社', 'ポスト'],
+        correct: 2,
       },
       {
         q: '再配達は どうやって 申し込みますか。',
-        options: ['不在票の番号でウェブから', '電話でだけ', '店に行く', 'できません'],
-        correct: 0,
+        options: ['電話でだけ', '店に行く', '不在票の番号でウェブから', 'できません'],
+        correct: 2,
       },
       {
         q: '今日は 何時まで 配達しますか。',
-        options: ['六時', '七時', '八時', '九時'],
-        correct: 2,
+        options: ['六時', '八時', '七時', '九時'],
+        correct: 1,
       },
     ],
   },
@@ -1079,18 +1079,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: '患者の 症状は 何ですか。',
-        options: ['頭痛だけ', '熱と咳', 'お腹が痛い', '言っていません'],
-        correct: 1,
+        options: ['頭痛だけ', 'お腹が痛い', '言っていません', '熱と咳'],
+        correct: 3,
       },
       {
         q: 'いつから 具合が 悪いですか。',
-        options: ['三日前から', '昨日から', '今朝から', '一週間前から'],
-        correct: 0,
+        options: ['昨日から', '三日前から', '今朝から', '一週間前から'],
+        correct: 1,
       },
       {
         q: '待ち時間は どのくらいですか。',
-        options: ['十分', '二十分', '一時間', '三十分'],
-        correct: 3,
+        options: ['十分', '二十分', '三十分', '一時間'],
+        correct: 2,
       },
     ],
   },
@@ -1118,18 +1118,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: '部屋は 何号室ですか。',
-        options: ['三〇七号室', '七三〇号室', '七〇三号室', '言っていません'],
-        correct: 2,
+        options: ['七〇三号室', '三〇七号室', '七三〇号室', '言っていません'],
+        correct: 0,
       },
       {
         q: '朝食は 何時からですか。',
-        options: ['六時', '六時半', '七時', '十時'],
-        correct: 1,
+        options: ['六時', '七時', '六時半', '十時'],
+        correct: 2,
       },
       {
         q: '荷物は 何時まで 預かって もらえますか。',
-        options: ['五時まで', '三時まで', 'お昼まで', '預かって もらえません'],
-        correct: 0,
+        options: ['三時まで', 'お昼まで', '五時まで', '預かって もらえません'],
+        correct: 2,
       },
     ],
   },
@@ -1149,8 +1149,8 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: '何時に 店に 来ますか。',
-        options: ['十時十分', '十時', '九時五十分', '十一時'],
-        correct: 2,
+        options: ['十時十分', '十時', '十一時', '九時五十分'],
+        correct: 3,
         why: 'Прямо время прихода не названо: смена в десять «плюс за десять минут до». Такой счёт в уме — типичное задание N4.',
       },
       {
@@ -1160,8 +1160,8 @@ export const JA_MORE: ListeningItem[] = [
       },
       {
         q: '休むときは どうしますか。',
-        options: ['前の日までに 電話する', 'メールを 送る', '当日の朝 連絡する', '何も しない'],
-        correct: 0,
+        options: ['メールを 送る', '前の日までに 電話する', '当日の朝 連絡する', '何も しない'],
+        correct: 1,
       },
     ],
   },
@@ -1180,18 +1180,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'ゆかさんは 何時の チケットを 買いましたか。',
-        options: ['七時', '買って いません', '日曜の昼', '九時'],
-        correct: 3,
+        options: ['九時', '七時', '買って いません', '日曜の昼'],
+        correct: 0,
       },
       {
         q: 'なぜ 七時に しなかったんですか。',
-        options: ['高かったから', '時間が 早いから', '満席だったから', '言って いません'],
-        correct: 2,
+        options: ['満席だったから', '高かったから', '時間が 早いから', '言って いません'],
+        correct: 0,
       },
       {
         q: 'ゆかさんは 何を お願いしましたか。',
-        options: ['お金を 払うこと', '今日中に 返事を すること', '映画館で 待つこと', '日曜に 行くこと'],
-        correct: 1,
+        options: ['今日中に 返事を すること', 'お金を 払うこと', '映画館で 待つこと', '日曜に 行くこと'],
+        correct: 0,
       },
     ],
   },
@@ -1219,10 +1219,10 @@ export const JA_MORE: ListeningItem[] = [
         q: '何を 提案しましたか。',
         options: [
           '期間を 二倍に する',
-          '開発を 先に 始める',
           '最初の一週間で 画面を 五つ 決める',
+          '開発を 先に 始める',
           'デザインを やめる'],
-        correct: 2,
+        correct: 1,
       },
       {
         q: '話し手の 態度は どうですか。',
@@ -1247,18 +1247,18 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: '今日の 東京の 気温は どうでしたか。',
-        options: ['三十度ちょうど', '三十五度を 超えた', '二十五度くらい', '言って いません'],
-        correct: 1,
+        options: ['三十度ちょうど', '二十五度くらい', '言って いません', '三十五度を 超えた'],
+        correct: 3,
       },
       {
         q: '気象庁は 何を 呼びかけましたか。',
-        options: ['こまめに 水分を とること', '外出しないこと', '窓を 閉めること', '電車に 乗らないこと'],
-        correct: 0,
+        options: ['外出しないこと', '窓を 閉めること', 'こまめに 水分を とること', '電車に 乗らないこと'],
+        correct: 2,
       },
       {
         q: '午後の 電車は どうなりますか。',
-        options: ['止まる', '早くなる', 'いつも通り', '本数が 減る'],
-        correct: 3,
+        options: ['止まる', '早くなる', '本数が 減る', 'いつも通り'],
+        correct: 2,
         why: '「減る見込み」 — сокращение ожидается, а не остановка. Разница между 止まる и 減る здесь решает ответ.',
       },
     ],
@@ -1278,19 +1278,19 @@ export const JA_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'どこで 曲がりますか。',
-        options: ['一つ目の信号を左', '二つ目の信号を左', '二つ目の信号を右', 'コンビニの角'],
-        correct: 2,
+        options: ['一つ目の信号を左', '二つ目の信号を左', 'コンビニの角', '二つ目の信号を右'],
+        correct: 3,
       },
       {
         q: '郵便局は コンビニの どこに ありますか。',
-        options: ['となり', '手前', '向かい', '中'],
-        correct: 1,
+        options: ['となり', '向かい', '中', '手前'],
+        correct: 3,
         why: '手前 — «не доходя до». Ориентир назван не потому, что цель рядом с ним, а чтобы вы поняли, что прошли мимо.',
       },
       {
         q: '今日 郵便局は 使えますか。',
-        options: ['窓口は 閉まって いそうです', '使えます', '工事中です', '言って いません'],
-        correct: 0,
+        options: ['使えます', '窓口は 閉まって いそうです', '工事中です', '言って いません'],
+        correct: 1,
       },
     ],
   },
@@ -1318,19 +1318,19 @@ export const PT_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'De onde ele é?',
-        options: ['De São Paulo', 'Do Rio', 'De Recife', 'Ele não diz'],
-        correct: 2,
+        options: ['De São Paulo', 'Do Rio', 'Ele não diz', 'De Recife'],
+        correct: 3,
         why: 'Назван и родной город, и город проживания: «sou de…» — откуда родом, «moro em…» — где живёт сейчас.',
       },
       {
         q: 'Há quanto tempo ele mora em São Paulo?',
-        options: ['Um ano', 'Dois anos', 'Vinte e sete anos', 'Três anos'],
-        correct: 3,
+        options: ['Três anos', 'Um ano', 'Dois anos', 'Vinte e sete anos'],
+        correct: 0,
       },
       {
         q: 'O que ele faz nas horas vagas?',
-        options: ['Fotografa', 'Joga futebol e cozinha', 'Estuda', 'Viaja'],
-        correct: 1,
+        options: ['Fotografa', 'Estuda', 'Joga futebol e cozinha', 'Viaja'],
+        correct: 2,
       },
     ],
   },
@@ -1350,13 +1350,13 @@ export const PT_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'A partir de que horas chove?',
-        options: ['Das duas da tarde', 'Das dez da manhã', 'Da madrugada', 'Não chove'],
-        correct: 0,
+        options: ['Das dez da manhã', 'Da madrugada', 'Não chove', 'Das duas da tarde'],
+        correct: 3,
       },
       {
         q: 'Qual é a temperatura máxima?',
-        options: ['19 graus', '38 graus', '28 graus', 'Não diz'],
-        correct: 2,
+        options: ['19 graus', '28 graus', '38 graus', 'Não diz'],
+        correct: 1,
       },
       {
         q: 'O que ele diz sobre o mar?',
@@ -1386,18 +1386,18 @@ export const PT_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'Onde está o entregador?',
-        options: ['Na portaria', 'Na rua', 'No elevador', 'Na porta do apartamento'],
-        correct: 0,
+        options: ['Na rua', 'Na portaria', 'No elevador', 'Na porta do apartamento'],
+        correct: 1,
       },
       {
         q: 'Quanto custa o pedido?',
-        options: ['R$ 22', 'R$ 40', 'R$ 42', 'Ele não diz'],
-        correct: 2,
+        options: ['R$ 42', 'R$ 22', 'R$ 40', 'Ele não diz'],
+        correct: 0,
       },
       {
         q: 'Dá para pagar com cartão?',
-        options: ['Não, só dinheiro', 'Sim, ele tem a maquininha', 'Só por aplicativo', 'Ele não diz'],
-        correct: 1,
+        options: ['Sim, ele tem a maquininha', 'Não, só dinheiro', 'Só por aplicativo', 'Ele não diz'],
+        correct: 0,
       },
     ],
   },
@@ -1422,13 +1422,13 @@ export const PT_MORE: ListeningItem[] = [
       },
       {
         q: 'Quanto tempo a mais a viagem pode levar?',
-        options: ['Até dez minutos', 'Até uma hora', 'Até vinte minutos', 'Não diz'],
-        correct: 2,
+        options: ['Até dez minutos', 'Até vinte minutos', 'Até uma hora', 'Não diz'],
+        correct: 1,
       },
       {
         q: 'O que o aviso recomenda?',
-        options: ['Esperar na estação', 'Usar a Linha Verde', 'Pegar ônibus', 'Sair da estação'],
-        correct: 1,
+        options: ['Esperar na estação', 'Pegar ônibus', 'Sair da estação', 'Usar a Linha Verde'],
+        correct: 3,
       },
     ],
   },
@@ -1447,17 +1447,17 @@ export const PT_MORE: ListeningItem[] = [
     questions: [
       {
         q: 'Que horas é a consulta?',
-        options: ['9:30', '9:15', '9:00', '10:30'],
-        correct: 0,
+        options: ['9:15', '9:00', '10:30', '9:30'],
+        correct: 3,
       },
       {
         q: 'O que a paciente precisa levar?',
         options: [
+          'Documento com foto e a carteirinha do convênio',
           'Só o documento',
           'Dinheiro',
-          'Documento com foto e a carteirinha do convênio',
           'Exames antigos'],
-        correct: 2,
+        correct: 0,
       },
       {
         q: 'Como remarcar?',
@@ -1488,13 +1488,13 @@ Cliente: Fechado. Pode pôr numa sacola só.`,
     questions: [
       {
         q: 'Quanto custa o quilo da manga?',
-        options: ['Sete reais', 'Cinco reais', 'Quinze reais', 'Não diz'],
-        correct: 1,
+        options: ['Sete reais', 'Quinze reais', 'Cinco reais', 'Não diz'],
+        correct: 2,
       },
       {
         q: 'Quanto a cliente vai pagar no total?',
-        options: ['R$ 15', 'R$ 12', 'R$ 17', 'R$ 20'],
-        correct: 0,
+        options: ['R$ 12', 'R$ 17', 'R$ 15', 'R$ 20'],
+        correct: 2,
         why: 'Отдельные цены названы, но итог — другой: продавец предлагает свою цену за всё. Слушать надо до конца.',
       },
       {
@@ -1538,18 +1538,18 @@ Recepção: Dá sim, até as seis da tarde.`,
       {
         q: 'Qual é a senha do wi-fi?',
         options: [
-          'A palavra "pousada"',
           'O telefone da pousada, sem o DDD',
+          'A palavra "pousada"',
           'O número do quarto',
           'Não tem senha',
         ],
-        correct: 1,
+        correct: 0,
         why: 'Название сети и пароль звучат подряд — на слух легко склеить их в одно.',
       },
       {
         q: 'Até que horas guardam as malas?',
-        options: ['Seis da tarde', 'Quatro da tarde', 'Meio-dia', 'Não guardam'],
-        correct: 0,
+        options: ['Quatro da tarde', 'Seis da tarde', 'Meio-dia', 'Não guardam'],
+        correct: 1,
       },
     ],
   },
@@ -1569,8 +1569,8 @@ Recepção: Dá sim, até as seis da tarde.`,
     questions: [
       {
         q: 'Quando o material é publicado?',
-        options: ['Depois da aula', 'No fim do semestre', 'Na véspera', 'Não é publicado'],
-        correct: 2,
+        options: ['Depois da aula', 'No fim do semestre', 'Não é publicado', 'Na véspera'],
+        correct: 3,
       },
       {
         q: 'Como a disciplina é avaliada?',
@@ -1579,8 +1579,8 @@ Recepção: Dá sim, até as seis da tarde.`,
       },
       {
         q: 'Quantas faltas reprovam o aluno?',
-        options: ['Duas', 'Mais de quatro', 'Quatro', 'Não há limite'],
-        correct: 1,
+        options: ['Duas', 'Quatro', 'Mais de quatro', 'Não há limite'],
+        correct: 2,
         why: '«Mais de quatro» — четыре ещё можно, пять уже нет. На слух легко потерять «mais de».',
       },
     ],
@@ -1601,18 +1601,18 @@ Recepção: Dá sim, até as seis da tarde.`,
     questions: [
       {
         q: 'O que ele vai fazer hoje?',
-        options: ['Os filtros', 'A tela de busca', 'As telas de erro', 'Nada, está parado'],
-        correct: 0,
-      },
-      {
-        q: 'Qual é o impedimento?',
-        options: ['Falta de design', 'Não tem impedimento', 'O build quebrou', 'Está esperando os textos'],
+        options: ['A tela de busca', 'As telas de erro', 'Nada, está parado', 'Os filtros'],
         correct: 3,
       },
       {
+        q: 'Qual é o impedimento?',
+        options: ['Está esperando os textos', 'Falta de design', 'Não tem impedimento', 'O build quebrou'],
+        correct: 0,
+      },
+      {
         q: 'O que ele pede ao time?',
-        options: ['Mais prazo', 'Uma revisão de código', 'Saber quem é o dono dos textos', 'Ajuda com os filtros'],
-        correct: 2,
+        options: ['Saber quem é o dono dos textos', 'Mais prazo', 'Uma revisão de código', 'Ajuda com os filtros'],
+        correct: 0,
       },
     ],
   },
@@ -1634,17 +1634,17 @@ Recepção: Dá sim, até as seis da tarde.`,
         q: 'Qual dado surpreendeu o apresentador?',
         options: [
           'O número de carros',
-          'O número de viagens curtas',
           'O preço da gasolina',
+          'O número de viagens curtas',
           'O número de acidentes',
         ],
-        correct: 1,
+        correct: 2,
         why: '«Não foi X, foi Y» — настоящий ответ всегда во второй половине.',
       },
       {
         q: 'O que aconteceu onde há ciclovia protegida?',
-        options: ['O uso de bicicleta triplicou', 'Nada mudou', 'Aumentou o trânsito', 'Diminuiu o uso'],
-        correct: 0,
+        options: ['Nada mudou', 'O uso de bicicleta triplicou', 'Aumentou o trânsito', 'Diminuiu o uso'],
+        correct: 1,
       },
       {
         q: 'Qual é a conclusão dele?',
@@ -1673,26 +1673,26 @@ Recepção: Dá sim, até as seis da tarde.`,
     questions: [
       {
         q: 'Quantas etapas tem o processo?',
-        options: ['Duas', 'Três', 'Quatro', 'Ela não diz'],
-        correct: 1,
+        options: ['Duas', 'Quatro', 'Três', 'Ela não diz'],
+        correct: 2,
       },
       {
         q: 'Por que não há teste em casa?',
         options: [
-          'Porque tomava muito tempo dos candidatos',
           'Porque não avaliava bem',
           'Porque ninguém entregava',
+          'Porque tomava muito tempo dos candidatos',
           'Ela não explica'],
-        correct: 0,
+        correct: 2,
       },
       {
         q: 'O que ela pede ao candidato?',
         options: [
           'O currículo atualizado',
+          'Dois horários da semana que vem',
           'A pretensão salarial',
-          'Uma carta de recomendação',
-          'Dois horários da semana que vem'],
-        correct: 3,
+          'Uma carta de recomendação'],
+        correct: 1,
       },
     ],
   },
@@ -1712,28 +1712,28 @@ Recepção: Dá sim, até as seis da tarde.`,
     questions: [
       {
         q: 'O que aconteceu com a greve?',
-        options: ['Começou', 'Foi ampliada', 'Foi suspensa', 'Foi adiada uma semana'],
-        correct: 2,
+        options: ['Começou', 'Foi suspensa', 'Foi ampliada', 'Foi adiada uma semana'],
+        correct: 1,
       },
       {
         q: 'O que o sindicato ressaltou?',
         options: [
-          'Que o acordo é definitivo',
           'Que o reajuste vale só até dezembro',
+          'Que o acordo é definitivo',
           'Que recusou o acordo',
           'Que quer mais filiados',
         ],
-        correct: 1,
+        correct: 0,
         why: 'Оговорка идёт после «porém». В новостях это стандартное место для условия, которое портит хорошую новость.',
       },
       {
         q: 'Como o relatório de moradia foi recebido?',
         options: [
-          'Com críticas de três prefeituras',
           'Com apoio geral',
+          'Com críticas de três prefeituras',
           'Sem reação',
           'Ainda não foi divulgado'],
-        correct: 0,
+        correct: 1,
       },
     ],
   },

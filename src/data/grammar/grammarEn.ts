@@ -127,14 +127,14 @@ const FORMS: GrammarForm[] = [
     quiz: [
       {
         q: 'I ___ five emails since lunch.',
-        options: ['have been writing', 'have written', 'am writing'],
-        answer: 1,
+        options: ['have been writing', 'am writing', 'have written'],
+        answer: 2,
         why: 'Названо количество — считаем сделанное, а количество считает только простой перфект.',
       },
       {
         q: 'Как давно ты его знаешь? — I ___ him for ages.',
-        options: ['have been knowing', 'have known', 'know'],
-        answer: 1,
+        options: ['have been knowing', 'know', 'have known'],
+        answer: 2,
         why: 'know — глагол состояния: длительность передаёт простой перфект, континиус с ним не строится.',
       },
     ],
@@ -173,8 +173,8 @@ Had been doing — тот же шаг назад для процесса: She ha
     quiz: [
       {
         q: 'When I opened the fridge, I saw that someone ___ my cake.',
-        options: ['ate', 'had eaten', 'has eaten'],
-        answer: 1,
+        options: ['ate', 'has eaten', 'had eaten'],
+        answer: 2,
         why: 'Поедание случилось до открытия холодильника — шаг назад из прошлого, Past Perfect.',
       },
       {
@@ -218,8 +218,8 @@ Had been doing — тот же шаг назад для процесса: She ha
     quiz: [
       {
         q: 'When the fire alarm went off, everybody ___ lunch.',
-        options: ['had', 'was having', 'has had'],
-        answer: 1,
+        options: ['had', 'has had', 'was having'],
+        answer: 2,
         why: 'Сигнализация разрезала процесс: обед уже шёл — Past Continuous.',
       },
       {
@@ -268,8 +268,8 @@ Had been doing — тот же шаг назад для процесса: She ha
       },
       {
         q: 'This soup ___ great.',
-        options: ['is tasting', 'tastes', 'has tasted'],
-        answer: 1,
+        options: ['is tasting', 'has tasted', 'tastes'],
+        answer: 2,
         why: 'taste как свойство («на вкус») — глагол состояния, континиус не строится.',
       },
     ],
@@ -306,14 +306,14 @@ Had been doing — тот же шаг назад для процесса: She ha
     quiz: [
       {
         q: 'В ресторане: OK, I ___ the steak, please.',
-        options: ['am going to have', 'will have', 'am having'],
-        answer: 1,
+        options: ['will have', 'am going to have', 'am having'],
+        answer: 0,
         why: 'Решение принято на месте, при официанте — спонтанный выбор берёт will.',
       },
       {
         q: 'Look at the queue! We ___ for an hour.',
-        options: ['will wait', 'are going to wait', 'wait'],
-        answer: 1,
+        options: ['are going to wait', 'will wait', 'wait'],
+        answer: 0,
         why: 'Предсказание по видимой улике (очередь) — going to.',
       },
     ],
@@ -349,14 +349,14 @@ Future Perfect — итог к сроку: By Friday we will have finished the t
     quiz: [
       {
         q: 'By the time the CEO arrives, we ___ the room.',
-        options: ['will prepare', 'will have prepared', 'will be preparing'],
-        answer: 1,
+        options: ['will have prepared', 'will prepare', 'will be preparing'],
+        answer: 0,
         why: 'by the time задаёт срок, к которому нужен итог — Future Perfect.',
       },
       {
         q: 'Зачем спрашивать «Will you be using the car tonight?» вместо «Will you use…»?',
-        options: ['Это формальнее по правилам этикета', 'Континиус подаёт вопрос как разведку планов, а не давление', 'Разницы нет'],
-        answer: 1,
+        options: ['Это формальнее по правилам этикета', 'Разницы нет', 'Континиус подаёт вопрос как разведку планов, а не давление'],
+        answer: 2,
         why: 'Future Continuous спрашивает о естественном ходе вещей — собеседник не чувствует, что у него что-то просят.',
       },
     ],
@@ -393,8 +393,8 @@ Would делает то же для повторявшихся ДЕЙСТВИЙ 
     quiz: [
       {
         q: 'When we were students, we ___ a tiny flat near the station.',
-        options: ['would rent', 'used to rent', 'оба верны'],
-        answer: 1,
+        options: ['would rent', 'оба верны', 'used to rent'],
+        answer: 2,
         why: 'Долгое состояние-обстоятельство (снимали и жили) — would так не может, только used to.',
       },
       {
@@ -439,14 +439,14 @@ Would делает то же для повторявшихся ДЕЙСТВИЙ 
     quiz: [
       {
         q: 'After two years abroad, I’m used to ___ everything twice.',
-        options: ['explain', 'explaining', 'explained'],
-        answer: 1,
+        options: ['explain', 'explained', 'explaining'],
+        answer: 2,
         why: 'to здесь предлог, после предлога глагол стоит в герундии.',
       },
       {
         q: '«Я ещё привыкаю к новой команде» —',
-        options: ['I used to the new team.', 'I’m getting used to the new team.', 'I get used to the new team.'],
-        answer: 1,
+        options: ['I used to the new team.', 'I get used to the new team.', 'I’m getting used to the new team.'],
+        answer: 2,
         why: 'Процесс идёт сейчас — am getting used to. Голое get used to описывало бы обобщение, а used to без be вовсе о прошлом.',
       },
     ],
@@ -553,14 +553,14 @@ Say и tell различаются валентностью: say слова (sai
     quiz: [
       {
         q: '«Она предложила нам перенести встречу» —',
-        options: ['She suggested us to move the meeting.', 'She suggested moving the meeting.', 'She suggested to move the meeting.'],
-        answer: 1,
+        options: ['She suggested us to move the meeting.', 'She suggested to move the meeting.', 'She suggested moving the meeting.'],
+        answer: 2,
         why: 'suggest берёт герундий (или that-придаточное), но не инфинитив и не «smb to do».',
       },
       {
         q: 'He denied ___ the file.',
-        options: ['to delete', 'deleting', 'delete'],
-        answer: 1,
+        options: ['to delete', 'delete', 'deleting'],
+        answer: 2,
         why: 'deny — из группы глаголов с герундием: denied doing.',
       },
     ],
@@ -609,8 +609,8 @@ First conditional — реальная перспектива: if + Present Simp
       },
       {
         q: 'If the demo ___, we’ll roll back.',
-        options: ['will crash', 'crashes', 'crashed'],
-        answer: 1,
+        options: ['crashes', 'will crash', 'crashed'],
+        answer: 0,
         why: 'Реальное условие: if + Present Simple, will живёт только в главной части.',
       },
     ],
@@ -651,14 +651,14 @@ Third conditional — упущенное прошлое: if + Past Perfect, woul
     quiz: [
       {
         q: 'If I ___ about the meeting, I would have joined.',
-        options: ['knew', 'had known', 'would know'],
-        answer: 1,
+        options: ['knew', 'would know', 'had known'],
+        answer: 2,
         why: 'Упущенное прошлое: if + Past Perfect, would have в главной части.',
       },
       {
         q: 'Почему рекрутёру говорят «I would be open to relocation», а не «I am open»?',
-        options: ['Это просто формальнее', 'would подаёт готовность как гипотезу и оставляет простор для торга', 'am — грамматическая ошибка'],
-        answer: 1,
+        options: ['would подаёт готовность как гипотезу и оставляет простор для торга', 'Это просто формальнее', 'am — грамматическая ошибка'],
+        answer: 0,
         why: 'Второй кондиционал переводит разговор в режим рассуждения: обязательств меньше, гибкости больше. am тоже верно, но это уже твёрдое обещание.',
       },
     ],
@@ -694,8 +694,8 @@ Third conditional — упущенное прошлое: if + Past Perfect, woul
     quiz: [
       {
         q: 'If I ___ the car, I ___ to walk everywhere now.',
-        options: ['hadn’t sold / wouldn’t have', 'didn’t sell / wouldn’t have had', 'hadn’t sold / wouldn’t have had'],
-        answer: 0,
+        options: ['didn’t sell / wouldn’t have had', 'hadn’t sold / wouldn’t have', 'hadn’t sold / wouldn’t have had'],
+        answer: 1,
         why: 'Продажа — прошлое (had sold), ходьба пешком — настоящее (would have to… now): третий + второй.',
       },
       {
@@ -740,8 +740,8 @@ Suppose/supposing и what if открывают гипотезу без глав
     quiz: [
       {
         q: 'Unless you ___ now, you’ll miss the bus.',
-        options: ['don’t leave', 'leave', 'will leave'],
-        answer: 1,
+        options: ['don’t leave', 'will leave', 'leave'],
+        answer: 2,
         why: 'unless уже содержит «не»: второе отрицание даст обратный смысл, а will после условного союза не ставится.',
       },
       {
@@ -786,8 +786,8 @@ Were it not for / Had it not been for + существительное — кн�
     quiz: [
       {
         q: 'Формальный эквивалент «If you should require assistance…» —',
-        options: ['Should you require assistance…', 'Required you assistance…', 'You should require assistance…'],
-        answer: 0,
+        options: ['Required you assistance…', 'Should you require assistance…', 'You should require assistance…'],
+        answer: 1,
         why: 'should выходит перед подлежащим, if уходит: Should you require…',
       },
       {
@@ -832,14 +832,14 @@ Would rather + чужое действие тоже берёт Past Simple: I’
     quiz: [
       {
         q: 'I wish I ___ to the warning yesterday.',
-        options: ['listened', 'had listened', 'would listen'],
-        answer: 1,
+        options: ['listened', 'would listen', 'had listened'],
+        answer: 2,
         why: 'Сожаление о прошлом: wish + Past Perfect.',
       },
       {
         q: 'It’s time we ___ .',
-        options: ['go', 'went', 'will go'],
-        answer: 1,
+        options: ['went', 'go', 'will go'],
+        answer: 0,
         why: 'it’s time + подлежащее берёт Past Simple: дело назрело, а всё ещё не сделано.',
       },
     ],
@@ -895,8 +895,8 @@ Should have done стоит особняком: не догадка, а упрё
       },
       {
         q: '«Она наверняка уже видела макет» —',
-        options: ['She must see the layout.', 'She must have seen the layout.', 'She should have seen the layout.'],
-        answer: 1,
+        options: ['She must have seen the layout.', 'She must see the layout.', 'She should have seen the layout.'],
+        answer: 0,
         why: 'Вывод о прошлом: must + have + причастие. should have — упрёк «следовало».',
       },
     ],
@@ -941,8 +941,8 @@ Should / ought to — рекомендация: You should ask for a raise. Мя
       },
       {
         q: '«Мне вчера пришлось задержаться» —',
-        options: ['I must have stayed late.', 'I had to stay late.', 'I should have stayed late.'],
-        answer: 1,
+        options: ['I had to stay late.', 'I must have stayed late.', 'I should have stayed late.'],
+        answer: 0,
         why: 'Прошедшее от must-обязанности — had to. must have stayed — догадка, should have — упрёк.',
       },
     ],
@@ -979,14 +979,14 @@ Should / ought to — рекомендация: You should ask for a raise. Мя
     quiz: [
       {
         q: 'Какая формулировка уместнее в IELTS-эссе?',
-        options: ['All young people are addicted to phones.', 'Many young people tend to overuse their phones.', 'Young people’s phone addiction is obvious.'],
-        answer: 1,
+        options: ['All young people are addicted to phones.', 'Young people’s phone addiction is obvious.', 'Many young people tend to overuse their phones.'],
+        answer: 2,
         why: 'Квантор many + tend to ограждают обобщение; абсолюты и obvious читаются как слабый аргумент.',
       },
       {
         q: 'Коллега прислал слабый макет. Мягкая критика —',
-        options: ['This layout is wrong.', 'I wonder if the layout could be simplified.', 'You must simplify the layout.'],
-        answer: 1,
+        options: ['This layout is wrong.', 'You must simplify the layout.', 'I wonder if the layout could be simplified.'],
+        answer: 2,
         why: 'Вопросная рамка I wonder if + could сохраняет смысл и оставляет собеседнику выход.',
       },
     ],
@@ -1029,14 +1029,14 @@ Should / ought to — рекомендация: You should ask for a raise. Мя
     quiz: [
       {
         q: 'The issue ___ right now.',
-        options: ['is investigating', 'is being investigated', 'investigates'],
-        answer: 1,
+        options: ['is investigating', 'investigates', 'is being investigated'],
+        answer: 2,
         why: 'Процесс идёт сейчас над подлежащим: пассивный континиус is being + причастие.',
       },
       {
         q: '«Мне предложили работу» —',
-        options: ['Me was offered a job.', 'I was offered a job.', 'They offered a job to I.'],
-        answer: 1,
+        options: ['Me was offered a job.', 'They offered a job to I.', 'I was offered a job.'],
+        answer: 2,
         why: 'Человек становится подлежащим пассива: I was offered the job — стандартная формула.',
       },
     ],
@@ -1081,8 +1081,8 @@ Should / ought to — рекомендация: You should ask for a raise. Мя
       },
       {
         q: 'The tomb ___ to belong to a merchant family.',
-        options: ['believes', 'is believed', 'is believing'],
-        answer: 1,
+        options: ['is believed', 'believes', 'is believing'],
+        answer: 0,
         why: 'Мнение принадлежит не гробнице, а публике: пассив is believed to.',
       },
     ],
@@ -1121,14 +1121,14 @@ Should / ought to — рекомендация: You should ask for a raise. Мя
     quiz: [
       {
         q: '«Я вчера постригся (в салоне)» —',
-        options: ['I cut my hair yesterday.', 'I had my hair cut yesterday.', 'My hair cut yesterday.'],
-        answer: 1,
+        options: ['I cut my hair yesterday.', 'My hair cut yesterday.', 'I had my hair cut yesterday.'],
+        answer: 2,
         why: 'Услугу выполнил парикмахер: have + объект + причастие.',
       },
       {
         q: 'He ___ during the reorganisation.',
-        options: ['got promoted', 'promoted', 'had promoted'],
-        answer: 0,
+        options: ['promoted', 'got promoted', 'had promoted'],
+        answer: 1,
         why: 'Событие случилось с ним: get + причастие — разговорный пассив.',
       },
     ],
@@ -1170,8 +1170,8 @@ An — перед гласным ЗВУКОМ, не буквой: an hour, an MV
     quiz: [
       {
         q: 'She works as ___ engineer at ___ company you mentioned.',
-        options: ['an / the', 'a / a', 'the / the'],
-        answer: 0,
+        options: ['a / a', 'an / the', 'the / the'],
+        answer: 1,
         why: 'engineer начинается с гласного звука — an; компания определена придаточным «которую ты упоминал» — the.',
       },
       {
@@ -1227,8 +1227,8 @@ An — перед гласным ЗВУКОМ, не буквой: an hour, an MV
     quiz: [
       {
         q: '___ money can’t buy ___ happiness.',
-        options: ['The / the', '∅ / ∅', 'A / a'],
-        answer: 1,
+        options: ['∅ / ∅', 'The / the', 'A / a'],
+        answer: 0,
         why: 'Оба слова — неисчисляемые абстракции в обобщении: нулевой артикль.',
       },
       {
@@ -1274,14 +1274,14 @@ An — перед гласным ЗВУКОМ, не буквой: an hour, an MV
     quiz: [
       {
         q: 'The information you sent ___ very helpful.',
-        options: ['were', 'was', 'have been'],
-        answer: 1,
+        options: ['was', 'were', 'have been'],
+        answer: 0,
         why: 'information — неисчисляемое, согласуется в единственном: was.',
       },
       {
         q: '«Один совет» по-английски —',
-        options: ['an advice', 'a piece of advice', 'one advices'],
-        answer: 1,
+        options: ['a piece of advice', 'an advice', 'one advices'],
+        answer: 0,
         why: 'advice не считается напрямую; порцию выделяет a piece of.',
       },
     ],
@@ -1387,8 +1387,8 @@ Much — с неисчисляемыми, many — с исчисляемыми; 
       },
       {
         q: 'She is the most experienced developer ___ the company.',
-        options: ['of', 'in', 'from'],
-        answer: 1,
+        options: ['in', 'of', 'from'],
+        answer: 0,
         why: 'Группа или место после превосходной степени присоединяются через in.',
       },
     ],
@@ -1434,8 +1434,8 @@ Much — с неисчисляемыми, many — с исчисляемыми; 
       },
       {
         q: 'Чем больше спишь, тем лучше работаешь: The more you sleep, ___.',
-        options: ['the better you work', 'you work better', 'better you work'],
-        answer: 0,
+        options: ['you work better', 'better you work', 'the better you work'],
+        answer: 2,
         why: 'Обе половины пропорции начинаются с the + сравнительная.',
       },
     ],
@@ -1488,14 +1488,14 @@ Much — с неисчисляемыми, many — с исчисляемыми; 
     quiz: [
       {
         q: 'He suggested ___ a break.',
-        options: ['to take', 'taking', 'take'],
-        answer: 1,
+        options: ['taking', 'to take', 'take'],
+        answer: 0,
         why: 'suggest — из глаголов с герундием: suggested taking.',
       },
       {
         q: '«Я хочу, чтобы она осталась» —',
-        options: ['I want that she stays.', 'I want her to stay.', 'I want her staying.'],
-        answer: 1,
+        options: ['I want her to stay.', 'I want that she stays.', 'I want her staying.'],
+        answer: 0,
         why: 'want строит «хочу, чтобы» через дополнение + инфинитив: want her to stay.',
       },
     ],
@@ -1546,8 +1546,8 @@ Regret doing — сожаление о сделанном: I regret telling him 
     quiz: [
       {
         q: '«Не забудь сохранить файл» —',
-        options: ['Remember saving the file.', 'Remember to save the file.', 'Remember save the file.'],
-        answer: 1,
+        options: ['Remember to save the file.', 'Remember saving the file.', 'Remember save the file.'],
+        answer: 0,
         why: 'Дело, которое предстоит, — remember + to do. remember saving — «помню, как сохранял».',
       },
       {
@@ -1593,14 +1593,14 @@ Regret doing — сожаление о сделанном: I regret telling him 
     quiz: [
       {
         q: 'The music is too loud — please turn ___ .',
-        options: ['off it', 'it off', 'off'],
-        answer: 1,
+        options: ['off it', 'off', 'it off'],
+        answer: 2,
         why: 'turn off — разделяемый: местоимение встаёт только внутрь.',
       },
       {
         q: 'I look forward to ___ you in person.',
-        options: ['meet', 'meeting', 'be meeting'],
-        answer: 1,
+        options: ['meeting', 'meet', 'be meeting'],
+        answer: 0,
         why: 'to в look forward to — предлог, после него герундий.',
       },
     ],
@@ -1647,8 +1647,8 @@ Regret doing — сожаление о сделанном: I regret telling him 
       },
       {
         q: 'The project ___ we discussed needs a bigger budget.',
-        options: ['what', 'which', 'who'],
-        answer: 1,
+        options: ['which', 'what', 'who'],
+        answer: 0,
         why: 'Вещь — which/that (или ничего). what в относительных придаточных после существительного не используется.',
       },
     ],
@@ -1689,14 +1689,14 @@ Which умеет ссылаться на ЦЕЛОЕ предыдущее пре�
     quiz: [
       {
         q: 'My sister, ___ works in Oslo, is visiting next week.',
-        options: ['that', 'who', 'which'],
-        answer: 1,
+        options: ['who', 'that', 'which'],
+        answer: 0,
         why: 'Non-defining (запятые) исключает that; о человеке — who.',
       },
       {
         q: 'The deploy failed twice, ___ delayed the demo.',
-        options: ['that', 'which', 'what'],
-        answer: 1,
+        options: ['which', 'that', 'what'],
+        answer: 0,
         why: 'Ссылка на целое событие после запятой — только which.',
       },
     ],
@@ -1735,8 +1735,8 @@ Which умеет ссылаться на ЦЕЛОЕ предыдущее пре�
     quiz: [
       {
         q: 'Разверните: «The bug reported yesterday is critical.»',
-        options: ['The bug which reported yesterday…', 'The bug which was reported yesterday…', 'The bug which is reporting yesterday…'],
-        answer: 1,
+        options: ['The bug which was reported yesterday…', 'The bug which reported yesterday…', 'The bug which is reporting yesterday…'],
+        answer: 0,
         why: 'Баг не сам сообщил — о нём сообщили: пассив, which was reported.',
       },
       {
@@ -1782,8 +1782,8 @@ Which умеет ссылаться на ЦЕЛОЕ предыдущее пре�
     quiz: [
       {
         q: 'Где ошибка dangling modifier?',
-        options: ['Having read the brief, I had three questions.', 'Having read the brief, three questions came up.', 'After reading the brief, I wrote three questions.'],
-        answer: 1,
+        options: ['Having read the brief, I had three questions.', 'After reading the brief, I wrote three questions.', 'Having read the brief, three questions came up.'],
+        answer: 2,
         why: 'Во втором варианте бриф читали «три вопроса»: подлежащее главной части не совпадает с деятелем причастия.',
       },
       {
@@ -1838,8 +1838,8 @@ Whereas и while противопоставляют параллельные ф�
     quiz: [
       {
         q: '___ the rain, the event went ahead.',
-        options: ['Although', 'Despite', 'However'],
-        answer: 1,
+        options: ['Despite', 'Although', 'However'],
+        answer: 0,
         why: 'Дальше существительное без глагола — нужен предлог: Despite the rain.',
       },
       {
@@ -1887,14 +1887,14 @@ Whereas и while противопоставляют параллельные ф�
     quiz: [
       {
         q: 'Seldom ___ a bug this deep in production.',
-        options: ['we find', 'do we find', 'we do find'],
-        answer: 1,
+        options: ['we find', 'we do find', 'do we find'],
+        answer: 2,
         why: 'seldom в начале включает порядок вопроса: do we find.',
       },
       {
         q: 'Not only ___ late, but he also forgot the slides.',
-        options: ['he was', 'was he', 'he has been'],
-        answer: 1,
+        options: ['was he', 'he was', 'he has been'],
+        answer: 0,
         why: 'После not only в начале — инверсия: was he late.',
       },
     ],
@@ -1933,8 +1933,8 @@ Wh-клефт выделяет через what: What I need is a straight answer
     quiz: [
       {
         q: 'Выделите виновника: «The intern broke the build.»',
-        options: ['It was the intern who broke the build.', 'The intern was it that broke the build.', 'Who broke the build was the intern.'],
-        answer: 0,
+        options: ['The intern was it that broke the build.', 'It was the intern who broke the build.', 'Who broke the build was the intern.'],
+        answer: 1,
         why: 'It-клефт: It was + выделяемое + who/that + остаток.',
       },
       {
@@ -1980,8 +1980,8 @@ Wh-клефт выделяет через what: What I need is a straight answer
     quiz: [
       {
         q: 'Правильный вопрос к «Somebody deleted the file»:',
-        options: ['Who did delete the file?', 'Who deleted the file?', 'Who did the file delete?'],
-        answer: 1,
+        options: ['Who did delete the file?', 'Who did the file delete?', 'Who deleted the file?'],
+        answer: 2,
         why: 'Вопрос к подлежащему обходится без do: Who deleted…?',
       },
       {
@@ -2028,14 +2028,14 @@ Wh-клефт выделяет через what: What I need is a straight answer
     quiz: [
       {
         q: 'Do you know when ___ ?',
-        options: ['does the train leave', 'the train leaves', 'leaves the train'],
-        answer: 1,
+        options: ['does the train leave', 'leaves the train', 'the train leaves'],
+        answer: 2,
         why: 'Внутри косвенного вопроса — прямой порядок: the train leaves.',
       },
       {
         q: 'Вежливо спросить клиента о бюджете:',
-        options: ['What is your budget?', 'Could you give me an idea of what your budget is?', 'Tell me your budget.'],
-        answer: 1,
+        options: ['Could you give me an idea of what your budget is?', 'What is your budget?', 'Tell me your budget.'],
+        answer: 0,
         why: 'Рамка смягчает прямоту, а внутри неё budget is — без инверсии.',
       },
     ],
@@ -2080,8 +2080,8 @@ Wh-клефт выделяет через what: What I need is a straight answer
       },
       {
         q: 'You didn’t break the build, did you? — Сборка цела. Ответ:',
-        options: ['Yes, I didn’t.', 'No, I didn’t.', 'No, I did.'],
-        answer: 1,
+        options: ['Yes, I didn’t.', 'No, I did.', 'No, I didn’t.'],
+        answer: 2,
         why: 'Факт отрицательный (не ломал) → No, I didn’t. «Yes, I didn’t» не существует.',
       },
     ],
@@ -2119,8 +2119,8 @@ It берёт на себя и формальные роли, где по-рус
     quiz: [
       {
         q: '___ a lot of noise in the office today.',
-        options: ['It is', 'There is', 'Is'],
-        answer: 1,
+        options: ['There is', 'It is', 'Is'],
+        answer: 0,
         why: 'Сообщаем, что шум существует, — there is. noise неисчисляемый: is.',
       },
       {
@@ -2174,14 +2174,14 @@ It берёт на себя и формальные роли, где по-рус
     quiz: [
       {
         q: 'The demo is ___ Tuesday ___ 11 am.',
-        options: ['at / on', 'on / at', 'in / at'],
-        answer: 1,
+        options: ['at / on', 'in / at', 'on / at'],
+        answer: 2,
         why: 'День недели — on, час — at.',
       },
       {
         q: '«Кто это на фото?» —',
-        options: ['Who is that on the photo?', 'Who is that in the photo?', 'Who is that at the photo?'],
-        answer: 1,
+        options: ['Who is that on the photo?', 'Who is that at the photo?', 'Who is that in the photo?'],
+        answer: 2,
         why: 'Изображённое находится внутри снимка: in the photo. on the photo — предмет, лежащий на фотокарточке.',
       },
     ],
@@ -2236,14 +2236,14 @@ It берёт на себя и формальные роли, где по-рус
     quiz: [
       {
         q: 'Success ___ hard work and luck.',
-        options: ['depends from', 'depends on', 'depends of'],
-        answer: 1,
+        options: ['depends from', 'depends of', 'depends on'],
+        answer: 2,
         why: 'depend on — словарный факт; from и of — кальки.',
       },
       {
         q: '«Мы обсудили проблему» —',
-        options: ['We discussed about the problem.', 'We discussed the problem.', 'We discussed on the problem.'],
-        answer: 1,
+        options: ['We discussed the problem.', 'We discussed about the problem.', 'We discussed on the problem.'],
+        answer: 0,
         why: 'discuss — переходный глагол без предлога: discuss smth.',
       },
     ],
@@ -2280,14 +2280,14 @@ It берёт на себя и формальные роли, где по-рус
     quiz: [
       {
         q: 'The instructions were so ___ that everyone got ___ .',
-        options: ['confusing / confused', 'confused / confusing', 'confusing / confusing'],
-        answer: 0,
+        options: ['confused / confusing', 'confusing / confused', 'confusing / confusing'],
+        answer: 1,
         why: 'Инструкции — источник (confusing), люди — испытавшие (confused).',
       },
       {
         q: '«Мне скучно на этих встречах» —',
-        options: ['I’m boring at these meetings.', 'I’m bored at these meetings.', 'These meetings are bored.'],
-        answer: 1,
+        options: ['I’m bored at these meetings.', 'I’m boring at these meetings.', 'These meetings are bored.'],
+        answer: 0,
         why: 'Скуку испытываю я: bored. boring сделало бы скучным меня самого.',
       },
     ],

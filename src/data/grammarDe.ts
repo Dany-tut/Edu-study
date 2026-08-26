@@ -65,8 +65,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как правильно: «Я еду к врачу»?',
-          options: ['Ich gehe zu Arzt.', 'Ich gehe zum Arzt.', 'Ich gehe zu der Arzt.'],
-          answer: 1,
+          options: ['Ich gehe zum Arzt.', 'Ich gehe zu Arzt.', 'Ich gehe zu der Arzt.'],
+          answer: 0,
           why: 'zu требует Dativ, артикль мужского рода в Dativ — dem, и zu dem обязательно сливается в zum.',
         },
         {
@@ -112,8 +112,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: '«У меня нет машины» —',
-          options: ['Ich habe nicht ein Auto.', 'Ich habe kein Auto.', 'Ich habe nicht Auto.'],
-          answer: 1,
+          options: ['Ich habe nicht ein Auto.', 'Ich habe nicht Auto.', 'Ich habe kein Auto.'],
+          answer: 2,
           why: 'Отрицание существительного в немецком выражается артиклем kein.',
         },
       ],
@@ -305,8 +305,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: '«Здесь нельзя парковаться» —',
-          options: ['Hier muss man nicht parken.', 'Hier darf man nicht parken.', 'Hier kann man nicht parken.'],
-          answer: 1,
+          options: ['Hier muss man nicht parken.', 'Hier kann man nicht parken.', 'Hier darf man nicht parken.'],
+          answer: 2,
           why: 'Запрет выражается nicht dürfen; nicht müssen значит «не обязательно».',
         },
       ],
@@ -336,8 +336,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как правильно: «Я звоню маме»?',
-          options: ['Ich anrufe meine Mutter.', 'Ich rufe meine Mutter an.', 'Ich rufe an meine Mutter.'],
-          answer: 1,
+          options: ['Ich rufe meine Mutter an.', 'Ich anrufe meine Mutter.', 'Ich rufe an meine Mutter.'],
+          answer: 0,
           why: 'Спрягаемая часть на втором месте, отделяемая приставка — в самом конце.',
         },
       ],
@@ -421,8 +421,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как естественнее сказать «я вчера был дома»?',
-          options: ['Ich bin gestern zu Hause gewesen.', 'Ich war gestern zu Hause.', 'Ich habe gestern zu Hause gewesen.'],
-          answer: 1,
+          options: ['Ich war gestern zu Hause.', 'Ich bin gestern zu Hause gewesen.', 'Ich habe gestern zu Hause gewesen.'],
+          answer: 0,
           why: 'У sein в разговоре используется претеритум war; перфект gewesen тоже существует, но звучит тяжелее.',
         },
       ],
@@ -462,8 +462,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как правильно?',
-          options: ['Heute ich gehe ins Kino.', 'Heute gehe ich ins Kino.', 'Ich heute gehe ins Kino.'],
-          answer: 1,
+          options: ['Heute gehe ich ins Kino.', 'Heute ich gehe ins Kino.', 'Ich heute gehe ins Kino.'],
+          answer: 0,
           why: 'Глагол держит вторую позицию, поэтому подлежащее переезжает за него.',
         },
       ],
@@ -532,8 +532,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: '«Я его не знаю» —',
-          options: ['Ich nicht kenne ihn.', 'Ich kenne ihn nicht.', 'Ich kenne kein ihn.'],
-          answer: 1,
+          options: ['Ich nicht kenne ihn.', 'Ich kenne kein ihn.', 'Ich kenne ihn nicht.'],
+          answer: 2,
           why: 'Отрицается всё высказывание, значит nicht в конце; kein к местоимению не относится.',
         },
       ],
@@ -572,8 +572,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: '«Я живу в маленькой квартире» —',
-          options: ['in eine kleine Wohnung', 'in einer kleinen Wohnung', 'in einer kleine Wohnung'],
-          answer: 1,
+          options: ['in einer kleinen Wohnung', 'in eine kleine Wohnung', 'in einer kleine Wohnung'],
+          answer: 0,
           why: 'Положение (wo?) требует Dativ, а в Dativ прилагательное всегда получает -en.',
         },
       ],
@@ -613,8 +613,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: '«Он старше меня» —',
-          options: ['Er ist älter wie ich.', 'Er ist älter als ich.', 'Er ist alter als mich.'],
-          answer: 1,
+          options: ['Er ist älter wie ich.', 'Er ist alter als mich.', 'Er ist älter als ich.'],
+          answer: 2,
           why: 'Неравное сравнение вводится als, а сравниваемое стоит в Nominativ: als ich.',
         },
       ],
@@ -654,8 +654,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как вежливее заказать?',
-          options: ['Ich will einen Tee.', 'Ich hätte gern einen Tee.', 'Geben Sie mir einen Tee.'],
-          answer: 1,
+          options: ['Ich hätte gern einen Tee.', 'Ich will einen Tee.', 'Geben Sie mir einen Tee.'],
+          answer: 0,
           why: 'Konjunktiv II hätte gern — стандартная вежливая формула заказа.',
         },
       ],
@@ -716,8 +716,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как вежливо попросить незнакомого помочь?',
-          options: ['Hilf mir!', 'Helfen Sie mir bitte.', 'Du hilfst mir.'],
-          answer: 1,
+          options: ['Helfen Sie mir bitte.', 'Hilf mir!', 'Du hilfst mir.'],
+          answer: 0,
           why: 'Вежливый императив — инфинитив + Sie, и bitte здесь обязательно.',
         },
       ],
@@ -782,8 +782,8 @@ export const GERMAN_GRAMMAR: GrammarRef = {
       quiz: [
         {
           q: 'Как правильно?',
-          options: ['Ich fahre nach Berlin morgen.', 'Ich fahre morgen nach Berlin.', 'Ich morgen fahre nach Berlin.'],
-          answer: 1,
+          options: ['Ich fahre nach Berlin morgen.', 'Ich morgen fahre nach Berlin.', 'Ich fahre morgen nach Berlin.'],
+          answer: 2,
           why: 'Время стоит раньше места: morgen nach Berlin.',
         },
       ],
