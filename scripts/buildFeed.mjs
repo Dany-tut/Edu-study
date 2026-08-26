@@ -694,6 +694,53 @@ function paragraphs(html) {
     .filter(p => !/^(Logo |Notícias relacionadas|Edição:|Ouça na Rádio)/i.test(p))
 }
 
+// ── Обрывок источника ────────────────────────────────────────────────────────
+//
+// Три абзаца — предел поста в ленте: дальше читают у источника, и это то же
+// правило, что у превью в мессенджере. Но у превью текст кончается целой
+// мыслью, а тут — чем придётся. RSS у NSF и список 보도자료 у korea.kr отдают
+// не текст заметки, а её анонс, обрезанный САМИМ ИСТОЧНИКОМ на середине слова
+// и подписанный «...». В ленте это читается как ошибка загрузки — и читается
+// правильно: пост, кончающийся полусловом, ничем от неё не отличается.
+//
+// Поэтому последний абзац доводится до последнего ЦЕЛОГО предложения, а если
+// целого предложения в нём не нашлось — абзац выбрасывается вовсе. Пустой
+// результат значит «читать нечего», и такой материал в ленту не идёт: лучше
+// сорок постов вместо сорока пяти, чем пять обрывков среди них.
+const CUT = /(?:\.\.\.|…|\.\.)\s*[»"”\']?\s*$/
+
+function whole(p) {
+  if (!CUT.test(p)) return p
+  const t = p.replace(CUT, '').trim()
+  // Общий знаменатель корейского «다.», японского «。» и латинской точки —
+  // терминатор, за которым конец строки или пробел. Цифра перед точкой не в
+  // счёт: у корейских ведомств дата пишется «8. 26.», и по ней предложение
+  // резалось бы на середине.
+  const end = [...t.matchAll(/(?<![0-9])[.!?。！？](?=\s|$)/g)].pop()
+  return end && end.index > 40 ? t.slice(0, end.index + 1).trim() : ''
+}
+
+// Тело поста: те самые три абзаца, у которых последний доведён до целой мысли.
+function bodyOf(paras) {
+  const three = paras.slice(0, 3)
+  if (!three.length) return ''
+  three[three.length - 1] = whole(three[three.length - 1])
+  return three.filter(Boolean).join('\n\n')
+}
+
+// Тот же разрез, но по УЖЕ ЗАПИСАННОЙ карточке: старые материалы дописываются
+// в файл строкой, а не пересобираются, и починить их можно только здесь.
+// Возвращает карточку с целым хвостом или null, если читать в ней нечего.
+function fixTail(raw) {
+  const m = raw.match(/(body: `)([\s\S]*?)(`,\n)/)
+  if (!m) return raw
+  const paras = m[2].split('\n\n')
+  paras[paras.length - 1] = whole(paras[paras.length - 1])
+  const body = paras.filter(Boolean).join('\n\n')
+  if (!body) return null
+  return body === m[2] ? raw : raw.replace(m[0], m[1] + body + m[3])
+}
+
 const isoDate = s => {
   const d = new Date(s)
   return Number.isNaN(d.getTime()) ? new Date().toISOString().slice(0, 10) : d.toISOString().slice(0, 10)
@@ -815,13 +862,14 @@ async function fromRss(id, src) {
     const hit = stopped(`${title} ${paras.join(' ')}`)
     if (hit) { console.log(`  ✕ «${title.slice(0, 48)}…» — стоп-слово «${hit}»`); continue }
 
+    const text = bodyOf(paras)
+    if (!text) { console.log(`  ✕ «${title.slice(0, 48)}…» — источник отдал обрывок`); continue }
+
     out.push({
       outletId: id, lang: src.lang, lane: src.lane, level: src.level, topic: src.topic,
       title, url: link, date: isoDate(pub),
       byline: creator || src.byline || undefined,
-      // Три абзаца — предел поста в ленте. Дальше читают у источника; и это не
-      // экономия места, а то же правило, что у превью в мессенджере.
-      text: paras.slice(0, 3).join('\n\n'),
+      text,
     })
   }
   return out
@@ -854,10 +902,13 @@ async function fromAtom(id, src) {
     const hit = stopped(`${title} ${paras.join(' ')}`)
     if (hit) { console.log(`  ✕ «${title.slice(0, 48)}…» — стоп-слово «${hit}»`); continue }
 
+    const text = bodyOf(paras)
+    if (!text) { console.log(`  ✕ «${title.slice(0, 48)}…» — источник отдал обрывок`); continue }
+
     out.push({
       outletId: id, lang: src.lang, lane: src.lane, level: src.level, topic: src.topic,
       title, url: link, date: isoDate(published), byline: author || undefined,
-      text: paras.slice(0, 3).join('\n\n'),
+      text,
     })
   }
   return out
@@ -1009,13 +1060,16 @@ async function fromKogl(id, src) {
     const hit = stopped(`${title} ${paras.join(' ')}`)
     if (hit) { console.log(`  ✕ «${title.slice(0, 48)}…» — стоп-слово «${hit}»`); continue }
 
+    const text = bodyOf(paras)
+    if (!text) { console.log(`  ✕ «${title.slice(0, 48)}…» — источник отдал обрывок`); continue }
+
     out.push({
       outletId: id, lang: src.lang, lane: src.lane, level: src.level, topic: src.topic,
       title, url, date,
       // Атрибуция у KOGL — условие лицензии. Ведомство, выпустившее заметку,
       // указано на странице; сам сайт подписан названием источника на карточке.
       byline: dept || src.byline || undefined,
-      text: paras.slice(0, 3).join('\n\n'),
+      text,
     })
   }
   return out
@@ -1084,13 +1138,16 @@ async function fromWikinews(id, src) {
     const hit = stopped(`${m.title} ${paras.join(' ')}`)
     if (hit) { console.log(`  ✕ «${m.title.slice(0, 48)}…» — стоп-слово «${hit}»`); continue }
 
+    const text = bodyOf(paras)
+    if (!text) { console.log(`  ✕ «${m.title.slice(0, 48)}…» — источник отдал обрывок`); continue }
+
     out.push({
       outletId: id, lang: src.lang, lane: 'free', level: src.level ?? '', topic: src.topic ?? 'Технологии и медиа',
       title: m.title,
       url: `https://${src.site}/wiki/${encodeURIComponent(m.title.replace(/ /g, '_'))}`,
       date: (m.timestamp ?? '').slice(0, 10),
       byline: `участники ${src.name}`,
-      text: paras.slice(0, 3).join('\n\n'),
+      text,
     })
   }
   return out
@@ -1302,9 +1359,19 @@ for (const [langKey, cfg] of Object.entries(AUTO_FILES)) {
       console.log(`  ✕ убрано из ленты: ${id} — стоп-слово «${hit}»`)
       continue
     }
+    // ОБРЫВОК УБИРАЕТСЯ И ЗАДНИМ ЧИСЛОМ — по той же причине, что и стоп-слово.
+    // Правило про целое предложение появилось позже самих постов, а старое
+    // переписывается в файл КАК ЕСТЬ: без этой проверки заметки, приехавшие
+    // обрезанными до правила, остались бы в ленте навсегда.
+    const cut = fixTail(m[0])
+    if (id && cut === null) {
+      console.log(`  ✕ убрано из ленты: ${id} — источник отдал обрывок`)
+      continue
+    }
+
     if (id && !keptIds.has(id)) {
       kept.push({
-        raw: m[0],
+        raw: cut,
         date: (m[1].match(/date: '([^']+)'/) ?? [])[1] ?? '',
         outlet: (m[1].match(/outletId: '([^']+)'/) ?? [])[1] ?? '',
         url: (m[1].match(/url: '([^']+)'/) ?? [])[1] ?? '',
