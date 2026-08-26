@@ -57,7 +57,7 @@ import { hasNests, nestById, nestsForLang, nestsUpTo } from '../data/soundNests'
 import { NestGrid, NestPage } from './trainer/SoundNestDrill'
 import { hasEndings, verbByDict, KO_ENDINGS, KO_VERBS } from '../data/koreanEndings'
 import { StemGrid, StemPage } from './trainer/EndingBuilder'
-import { hasHanjaRoots, hanjaRootById, HANJA_GROUPS, HANJA_ROOTS } from '../data/koreanHanja'
+import { hasRoots, rootByIdForLang, rootGroupsForLang, rootsForLang } from '../data/wordRoots'
 import { RootGrid, RootPage } from './trainer/RootBuilder'
 import { hasNumbers, numberSetById, systemLabel, KO_NUMBER_SETS, SYSTEM_RULES } from '../data/koreanNumbers'
 import { NumberGrid, NumberPage } from './trainer/NumberBuilder'
@@ -531,7 +531,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // ko. Режим целиком прячется там, где нет ни того ни другого, — пустая вкладка
   // хуже отсутствующей (то же правило, что у сцен и созвучий).
   const stemsOn = useMemo(() => hasEndings(lang), [lang])
-  const rootsOn = useMemo(() => hasHanjaRoots(lang), [lang])
+  const rootsOn = useMemo(() => hasRoots(lang), [lang])
   const numbersOn = useMemo(() => hasNumbers(lang), [lang])
   const soundsOn = useMemo(() => hasPronRules(lang), [lang])
   const blocksOn = stemsOn || rootsOn || numbersOn || soundsOn
@@ -542,7 +542,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [openRootKo, setOpenRootKo] = usePersistentState<string | null>(`trainer.${lang}.root`, null)
   const [openNumId, setOpenNumId] = usePersistentState<string | null>(`trainer.${lang}.numbers`, null)
   const openStem = useMemo(() => (openStemDict ? verbByDict(openStemDict) ?? null : null), [openStemDict])
-  const openRoot = useMemo(() => (openRootKo ? hanjaRootById(openRootKo) ?? null : null), [openRootKo])
+  const openRoot = useMemo(() => (openRootKo ? rootByIdForLang(lang, openRootKo) ?? null : null), [lang, openRootKo])
   const openNum = useMemo(() => (openNumId ? numberSetById(openNumId) ?? null : null), [openNumId])
   const [openPronId, setOpenPronId] = usePersistentState<string | null>(`trainer.${lang}.pron`, null)
   const openPron = useMemo(() => (openPronId ? pronRuleById(openPronId) ?? null : null), [openPronId])
@@ -565,13 +565,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [query])
   const visibleRoots = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return HANJA_ROOTS.filter(r => {
+    return rootsForLang(lang).filter(r => {
       if (rootGroup && r.group !== rootGroup) return false
       if (!q) return true
       return `${r.ko} ${r.cn} ${r.ru} ${r.words.map(w => `${w.term} ${w.reading} ${w.ru}`).join(' ')}`
         .toLowerCase().includes(q)
     })
-  }, [query, rootGroup])
+  }, [lang, query, rootGroup])
   const visiblePron = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return KO_PRON_RULES
@@ -1226,7 +1226,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     speaking: speakTotal,
     // Всё, что в режиме можно открыть: основы плюс корни. Обе таблицы лежат в
     // коде, поэтому цифра известна синхронно и не прыгает после загрузки.
-    blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? HANJA_ROOTS.length : 0)
+    blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? rootsForLang(lang).length : 0)
       + (numbersOn ? KO_NUMBER_SETS.length : 0) + (soundsOn ? KO_PRON_RULES.length : 0),
     // Из синхронного реестра — чтобы бейдж стоял до того, как чанк поехал.
     grammar: grammarOn ? (GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[lang.split('-')[0]]) : undefined,
@@ -1242,7 +1242,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : feedOn ? `${feedTotal} ${t(materialsWord(feedTotal))} ${t('из свободных источников')}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
-    : mode === 'blocks' ? `${KO_VERBS.length} ${t('основ')} · ${HANJA_ROOTS.length} ${t('корней')} · ${KO_NUMBER_SETS.length} ${t('наборов чисел')} · ${KO_PRON_RULES.length} ${t('правил чтения')}`
+    // Подпись собирается из того, что у ЯЗЫКА реально есть: у японского из
+    // четырёх разделов открыт один, и перечислять ему корейские основы с
+    // правилами чтения значило бы обещать несуществующее.
+    : mode === 'blocks' ? [
+        stemsOn ? `${KO_VERBS.length} ${t('основ')}` : '',
+        rootsOn ? `${rootsForLang(lang).length} ${t('корней')}` : '',
+        numbersOn ? `${KO_NUMBER_SETS.length} ${t('наборов чисел')}` : '',
+        soundsOn ? `${KO_PRON_RULES.length} ${t('правил чтения')}` : '',
+      ].filter(Boolean).join(' · ')
     : mode === 'grammar' && gram ? `${gram.forms.length} ${t('форм')} · ${gram.forms.reduce((n, f) => n + f.examples.length, 0)} ${t('примеров')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
@@ -1618,10 +1626,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           action={rootGroup ? { label: t('Все полки'), onClick: () => setRootGroup('') } : undefined}
         >
           <RailList
-            items={HANJA_GROUPS.map(g => ({
+            items={rootGroupsForLang(lang).map(g => ({
               id: g,
               label: t(g),
-              hint: String(HANJA_ROOTS.filter(r => r.group === g).length),
+              hint: String(rootsForLang(lang).filter(r => r.group === g).length),
             }))}
             value={rootGroup}
             onChange={v => setRootGroup(v === rootGroup ? '' : v)}
@@ -1766,7 +1774,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : mode === 'blocks'
       ? [
           ...(stemsOn ? [{ id: 'stems', label: 'Основы', badge: KO_VERBS.length }] : []),
-          ...(rootsOn ? [{ id: 'roots', label: 'Корни', badge: HANJA_ROOTS.length }] : []),
+          ...(rootsOn ? [{ id: 'roots', label: 'Корни', badge: rootsForLang(lang).length }] : []),
           ...(numbersOn ? [{ id: 'numbers', label: 'Числа', badge: KO_NUMBER_SETS.length }] : []),
           ...(soundsOn ? [{ id: 'sounds', label: 'Звуки', badge: KO_PRON_RULES.length }] : []),
         ]

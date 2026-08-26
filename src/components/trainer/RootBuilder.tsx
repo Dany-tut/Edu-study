@@ -5,9 +5,10 @@ import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'
 import { stopSpeech } from '../../lib/speech'
 import { addCards } from '../../data/reviewDeck'
-import {
-  wordBricks, allBricks, type HanjaBrick, type HanjaRoot, type HanjaWord,
-} from '../../data/koreanHanja'
+import { wordBricks, type HanjaBrick, type HanjaRoot, type HanjaWord } from '../../data/koreanHanja'
+// Пул отвлекающих плиток берётся ПО ЯЗЫКУ: подставить японцу корейский слог
+// значит дать задание, где неверный вариант виден по письменности (см. wordRoots).
+import { bricksForLang } from '../../data/wordRoots'
 import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
 import { TierChip } from '../GlossedText'
 import { Block, TONE_ORDER, say, shuffle, primaryBtn, ghostBtn } from './blockKit'
@@ -199,7 +200,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
   const t = useT()
   // Свайп от левого края = кнопка «назад» дрилла (вложенный экран тренажёра).
   useSwipeBack(onBack)
-  const pool = useMemo(() => allBricks(), [])
+  const pool = useMemo(() => bricksForLang(lang), [lang])
   const canRun = useMemo(() => buildable(root).length >= 2, [root])
 
   const [run, setRun] = useState<Question[] | null>(null)
