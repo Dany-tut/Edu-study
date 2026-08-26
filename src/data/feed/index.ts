@@ -133,6 +133,15 @@ export interface FeedItem extends ReadingText {
   textOrigin: 'verbatim' | 'ours'
   age: Age
   /**
+   * Перевод ЗАГОЛОВКА. Живёт рядом с `translation` (перевод тела) и по той же
+   * причине: в ленте перевод показывается ВМЕСТО оригинала, а не под ним, и
+   * пост с русским текстом под корейским заголовком — половина перевода.
+   *
+   * У ролика тела нет вовсе: там заголовок — единственный текст, и без этого
+   * поля переводить у видео было бы нечего.
+   */
+  titleTranslation?: string
+  /**
    * ВОПРОСЫ В ЛЕНТЕ НЕ ПОКАЗЫВАЮТСЯ. Поле досталось от ReadingText и остаётся
    * заполненным: материал ленты — законный кандидат в домашку и в «Тексты», и
    * выбрасывать уже написанные вопросы, чтобы через месяц писать их заново,
@@ -847,26 +856,65 @@ type Loader = () => Promise<FeedItem[]>
  *
  * Для ленты разницы нет: оба списка склеиваются и сортируются по дате.
  */
+/**
+ * Перевод материала целиком: заголовок и текст по-русски.
+ *
+ * ЛЕЖИТ ОТДЕЛЬНО ОТ САМОГО МАТЕРИАЛА, И ЭТО НЕ УДОБСТВО, А НЕОБХОДИМОСТЬ.
+ * Файлы auto<Lang>.ts целиком перезаписывает `npm run build:feed` при каждом
+ * ночном прогоне: положи перевод туда — и завтрашняя сборка сотрёт вчерашнюю
+ * работу. Ключ — id материала, поэтому перевод переживает любую пересборку и
+ * исчезает вместе с материалом, к которому относится.
+ */
+export interface FeedTranslation {
+  /** Заголовок по-русски. Обязателен: у ролика он единственный текст. */
+  title: string
+  /** Тело по-русски. У роликов тела нет — тогда поля нет. */
+  body?: string
+}
+
+/**
+ * Приклеить переводы к материалам.
+ *
+ * Ручной материал (feed<Lang>.ts) свой перевод несёт в себе, и перебивать его
+ * нельзя: он написан вместе с текстом и вопросами к нему.
+ */
+function withTrans(items: FeedItem[], trans: Record<string, FeedTranslation>): FeedItem[] {
+  return items.map(it => {
+    const t = trans[it.id]
+    if (!t) return it
+    return {
+      ...it,
+      title: it.title,
+      titleTranslation: it.titleTranslation ?? t.title,
+      translation: it.translation || t.body,
+    }
+  })
+}
+
 const LOADERS: Record<string, Loader> = {
   en: () => Promise.all([
     import('./feedEn').then(m => m.EN_FEED),
     import('./autoEn').then(m => m.EN_AUTO),
     import('./adaptEn').then(m => m.EN_ADAPT),
-  ]).then(x => x.flat()),
+    import('./transEn').then(m => m.EN_TRANS),
+  ]).then(([a, b, c, tr]) => withTrans([...a, ...b, ...c], tr)),
   ja: () => Promise.all([
     import('./feedJa').then(m => m.JA_FEED),
     import('./autoJa').then(m => m.JA_AUTO),
     import('./adaptJa').then(m => m.JA_ADAPT),
-  ]).then(x => x.flat()),
+    import('./transJa').then(m => m.JA_TRANS),
+  ]).then(([a, b, c, tr]) => withTrans([...a, ...b, ...c], tr)),
   ko: () => Promise.all([
     import('./feedKo').then(m => m.KO_FEED),
     import('./autoKo').then(m => m.KO_AUTO),
     import('./adaptKo').then(m => m.KO_ADAPT),
-  ]).then(x => x.flat()),
+    import('./transKo').then(m => m.KO_TRANS),
+  ]).then(([a, b, c, tr]) => withTrans([...a, ...b, ...c], tr)),
   pt: () => Promise.all([
     import('./feedPt').then(m => m.PT_FEED),
     import('./autoPt').then(m => m.PT_AUTO),
-  ]).then(x => x.flat()),
+    import('./transPt').then(m => m.PT_TRANS),
+  ]).then(([a, b, tr]) => withTrans([...a, ...b], tr)),
 }
 
 /**

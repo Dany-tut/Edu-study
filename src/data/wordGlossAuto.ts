@@ -14,6 +14,4 @@
 
 import type { WordGloss } from './wordGloss'
 
-export const AUTO_GLOSS: Record<string, WordGloss[]> = {
-
-}
+export const AUTO_GLOSS: Record<string, WordGloss[]> = {}

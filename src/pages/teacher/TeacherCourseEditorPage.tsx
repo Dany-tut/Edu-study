@@ -19,6 +19,8 @@ import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
 import { useGroups, useAllStudents, groupStudentsByPerson, type PersonRow } from '../../lib/useGroups'
+import { ensureCardFillTask } from '../../lib/cardFillTask'
+import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import ScrollFade from '../../components/ScrollFade'
@@ -500,7 +502,7 @@ function RemoveDot({ onClick, label }: { onClick: () => void; label: string }) {
 }
 
 function AssignPicker({
-  items, selectedIdOf, onToggle, onPickCard, pickHintId, wantSubject, kind,
+  items, selectedIdOf, onToggle, onPickCard, onCreateCard, creatingId, pickHintId, wantSubject, kind,
 }: {
   items: AssignItem[]
   /** Выбранная карточка элемента (для группы — её же id) либо null. */
@@ -509,6 +511,10 @@ function AssignPicker({
   onPickCard?: (item: AssignItem, cardId: string) => void
   /** Человек, которому не удалось выбрать карточку автоматически. */
   pickHintId?: string | null
+  /** Завести человеку карточку по предмету курса (её у него нет). */
+  onCreateCard?: (item: AssignItem) => void
+  /** Кому карточку прямо сейчас заводим — на нём крутилка. */
+  creatingId?: string | null
   /** Предмет курса — чтобы объяснить, почему карточка не выбралась сама. */
   wantSubject?: string
   kind: 'group' | 'student'
@@ -632,11 +638,25 @@ function AssignPicker({
                       </button>
                     )
                   })}
+                  {/* Карточки по предмету курса у человека нет — заводим её
+                      отсюда, а не через Группы. Кнопка, а не автоматика: строка
+                      students упирается в квоту тарифа, и молча тратить её
+                      нельзя. */}
+                  {needsPick && !hasWantCard && wantSubject && onCreateCard && (
+                    <button onClick={() => onCreateCard(item)} disabled={creatingId === item.id} style={{
+                      padding: '3px 10px', borderRadius: 999, cursor: creatingId === item.id ? 'default' : 'pointer',
+                      fontFamily: 'inherit', fontSize: 11, fontWeight: 700,
+                      border: '1px dashed var(--color-green-text)', background: 'transparent',
+                      color: 'var(--color-green-text)', opacity: creatingId === item.id ? 0.6 : 1,
+                    }}>
+                      {creatingId === item.id ? t('Завожу…') : `＋ ${wantSubject}`}
+                    </button>
+                  )}
                   {needsPick && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)', alignSelf: 'center' }}>
                       {hasWantCard
                         ? t('— выбери, в какую карточку записать курс')
-                        : `${t('— нет карточки по предмету')} «${wantSubject}»: ${t('выбери, в какую записать')}`}
+                        : `${t('— нет карточки по предмету')} «${wantSubject}»: ${t('заведи направление или выбери карточку')}`}
                     </span>
                   )}
                 </div>
@@ -676,12 +696,14 @@ function AssignPicker({
 }
 
 function CenterCourseAccess({
-  course, setCourse, groups, allStudents, accessModes, setAccessModes,
+  course, setCourse, groups, allStudents, addIndividualCard, accessModes, setAccessModes,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   groups: Array<{ id: string; name: string; isIndividual?: boolean }>
-  allStudents: PersonRow[]
+  allStudents: Student[]
+  /** Завести человеку ещё одно направление (карточку) — из useGroups. */
+  addIndividualCard: ReturnType<typeof useGroups>['addIndividualCard']
   accessModes: Record<string, AccessMode>
   setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
@@ -690,6 +712,18 @@ function CenterCourseAccess({
   // Человек, у которого нет карточки по предмету курса и несколько карточек на
   // выбор: клик по имени не может решить за учителя — просим ткнуть в чипс.
   const [pickHintKey, setPickHintKey] = useState<string | null>(null)
+  // Карточки, заведённые прямо отсюда. useAllStudents тянет список один раз при
+  // монтировании и перезапрашивать себя не умеет, поэтому новую карточку
+  // подмешиваем в список сами — иначе она появлялась бы только после F5, уже
+  // выбранной, но без имени и предмета в интерфейсе.
+  const [freshCards, setFreshCards] = useState<Student[]>([])
+  const [creatingKey, setCreatingKey] = useState<string | null>(null)
+  const [createErr, setCreateErr] = useState<string | null>(null)
+  const students = useMemo(() => {
+    if (!freshCards.length) return allStudents
+    const known = new Set(allStudents.map(s => s.id))
+    return [...allStudents, ...freshCards.filter(s => !known.has(s.id))]
+  }, [allStudents, freshCards])
   // Сброс прогресса по курсу. Снять ученика из «Кому дать доступ» и вернуть —
   // НЕ обнуление: назначение живёт в courses.student_ids, а прогресс в
   // lesson_progress, и строки там остаются. Чистим их адресно по курсу.
@@ -862,9 +896,9 @@ function CenterCourseAccess({
    * всем его карточкам сразу.
    */
   const personIdsOf = (studentId: string): string[] => {
-    const row = allStudents.find(s => s.id === studentId)
+    const row = students.find(s => s.id === studentId)
     if (!row?.personId) return [studentId]
-    const ids = allStudents.filter(s => s.personId === row.personId).map(s => s.id)
+    const ids = students.filter(s => s.personId === row.personId).map(s => s.id)
     return ids.includes(studentId) ? ids : [studentId, ...ids]
   }
 
@@ -873,7 +907,7 @@ function CenterCourseAccess({
     setAccessModes(m => ({ ...m, [id]: mode }))
   // A group's mode is applied to every current member (stored per-student).
   const memberIdsOf = (groupId: string) =>
-    allStudents.filter(s => s.groupId === groupId).map(s => s.id)
+    students.filter(s => s.groupId === groupId).map(s => s.id)
   /** Участники группы вместе со всеми их карточками — для счёта и обнуления. */
   const groupPersonIds = (groupId: string): string[] =>
     [...new Set(memberIdsOf(groupId).flatMap(personIdsOf))]
@@ -918,7 +952,7 @@ function CenterCourseAccess({
   // В списке человек, в course.studentIds — по-прежнему id карточки: от неё
   // зависит, под какой карточкой копится прогресс (ownerStudentId в
   // db.fetchCourseStructure) и в чьё расписание встают занятия курса.
-  const persons = useMemo(() => groupStudentsByPerson(allStudents), [allStudents])
+  const persons = useMemo(() => groupStudentsByPerson(students), [students])
   const personItems: AssignItem[] = useMemo(
     () => persons.map(p => ({ id: p.key, name: p.name, cards: p.cards.map(c => ({ id: c.id, subject: c.subject })) })),
     [persons],
@@ -958,6 +992,38 @@ function CenterCourseAccess({
     setPersonCard(item, pick)
   }
 
+  /**
+   * Завести человеку карточку по предмету курса и сразу записать курс в неё.
+   *
+   * Карточка — отдельная 1:1-группа плюс строка students на том же person_id:
+   * addIndividualCard копирует контакты И связку с аккаунтом, поэтому ученик
+   * видит курс своим прежним логином, без повторной регистрации. Предмет,
+   * уровень и цвет берутся из курса и реестра предметов.
+   */
+  async function createCardFor(item: AssignItem) {
+    const src = students.find(s => cardsOf(item).some(c => c.id === s.id))
+    if (!src || !course.subject.trim() || creatingKey) return
+    setCreatingKey(item.id)
+    setCreateErr(null)
+    const { error, studentId, groupId } = await addIndividualCard({
+      student: src,
+      subject: course.subject as Group['subject'],
+      level: course.level,
+    })
+    setCreatingKey(null)
+    // Квота тарифа (STUDENT_LIMIT) приходит сюда уже человеческим текстом —
+    // молча проглотить её нельзя: учитель жмёт и не понимает, почему пусто.
+    if (error || !studentId || !groupId) {
+      setCreateErr((error as { message?: string } | null)?.message ?? t('Не удалось завести направление'))
+      return
+    }
+    const card: Student = { ...src, id: studentId, groupId, subject: course.subject, isIndividual: true }
+    setFreshCards(prev => [...prev, card])
+    setPickHintKey(null)
+    setPersonCard(item, studentId)
+    ensureCardFillTask({ studentId, groupId, name: src.name, subject: course.subject })
+  }
+
   function pickPersonCard(item: AssignItem, cardId: string) {
     setPickHintKey(null)
     // Повторный клик по активному чипсу снимает выбор целиком.
@@ -965,7 +1031,7 @@ function CenterCourseAccess({
   }
 
   const assignedGroups = groups.filter(g => course.groupIds.includes(g.id))
-  const assignedStudents = allStudents.filter(s => course.studentIds.includes(s.id))
+  const assignedStudents = students.filter(s => course.studentIds.includes(s.id))
 
   return (
     <OverlayScrollArea style={{ flex: 1 }} padding="32px 48px">
@@ -1010,9 +1076,16 @@ function CenterCourseAccess({
               selectedIdOf={selectedCardOf}
               onToggle={togglePerson}
               onPickCard={pickPersonCard}
+              onCreateCard={createCardFor}
+              creatingId={creatingKey}
               pickHintId={pickHintKey}
               wantSubject={course.subject}
             />
+          )}
+          {createErr && (
+            <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: 'var(--color-red-text)' }}>
+              {createErr}
+            </div>
           )}
 
           {/* Assigned + access mode per audience member */}
@@ -4904,7 +4977,7 @@ const railInnerSt: React.CSSProperties = {
 export default function TeacherCourseEditorPage() {
   const t = useT()
   const { setActivePage, editingCourseJson, setCourseEdited } = useTeacher()
-  const { groups } = useGroups()
+  const { groups, addIndividualCard } = useGroups()
   const allStudents = useAllStudents()
 
   const [course, setCourse] = useState<CourseEdData>(() => {
@@ -5080,13 +5153,30 @@ export default function TeacherCourseEditorPage() {
   // 'full' → all lessons open · 'custom' → teacher unlocks by hand ·
   // 'by_date' → lessons open as their scheduled date passes. Absent → 'custom'.
   const [accessModes, setAccessModes] = useState<Record<string, 'full' | 'custom' | 'by_date'>>({})
+  // Курс ищем по тому же ключу, которым его ПИШЕТ syncAccessToSupabase:
+  // `dbCourseId ?? id`. Курс, открытый с карточки сида, приезжает без
+  // dbCourseId (его ставит только загрузка из БД, см. dbCourseToLocal), а id у
+  // него уже стабильный `seed-<ключ>-<владелец>` — и сохранение попадает в
+  // существующую строку. Пока читали строго по dbCourseId, у такого курса
+  // уровни доступа не загружались вовсе: карта оставалась пустой, каждый
+  // ученик показывался «По датам», и выбранное «Всё открыто» откатывалось
+  // назад при следующем открытии редактора, хотя в БД лежало верное значение.
+  const accessCourseKey = course.dbCourseId ?? course.id
+  // Доехала ли карта из БД. Пока нет — сохранение НЕ трогает course_enrollments:
+  // иначе пустая карта выдаёт себя за «у всех по датам» и сохранение курса
+  // (в том числе автосохранение по правке урока) молча сбрасывает выставленные
+  // уровни доступа.
+  const accessModesLoaded = useRef(false)
   useEffect(() => {
-    if (!course.dbCourseId) return
+    if (!accessCourseKey) return
     let cancelled = false
     ;(async () => {
       const { data: courseRow } = await supabase
-        .from('courses').select('id').eq('short_id', course.dbCourseId).single()
-      if (!courseRow?.id) return
+        .from('courses').select('id').eq('short_id', accessCourseKey).maybeSingle()
+      // Курса в БД ещё нет — читать нечего, но и затирать нечего: сохранение
+      // такого курса пишет уровни доступа с чистого листа.
+      if (cancelled) return
+      if (!courseRow?.id) { accessModesLoaded.current = true; return }
       const { data: enr } = await supabase
         .from('course_enrollments')
         .select('student_id, access_mode')
@@ -5097,9 +5187,10 @@ export default function TeacherCourseEditorPage() {
         map[row.student_id] = row.access_mode
       }
       setAccessModes(map)
+      accessModesLoaded.current = true
     })()
     return () => { cancelled = true }
-  }, [course.dbCourseId])
+  }, [accessCourseKey])
 
   const [savedFlash, setSavedFlash] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -5451,7 +5542,9 @@ export default function TeacherCourseEditorPage() {
     const effMode = (id: string): 'full' | 'custom' | 'by_date' => accessModes[id] ?? 'by_date'
 
     // Drop enrollments for students no longer in the audience, then upsert the rest.
-    {
+    // Карта уровней ещё не доехала — не пишем ничего: пустая карта означала бы
+    // «у всех по датам» и стёрла бы выставленное.
+    if (accessModesLoaded.current) {
       let del = supabase.from('course_enrollments').delete().eq('course_id', courseDbId)
       if (audienceIds.length > 0) del = del.not('student_id', 'in', `(${audienceIds.join(',')})`)
       await del
@@ -6128,6 +6221,7 @@ export default function TeacherCourseEditorPage() {
                 <CenterCourseAccess
                   course={course} setCourse={setCourse}
                   groups={groups} allStudents={allStudents}
+                  addIndividualCard={addIndividualCard}
                   accessModes={accessModes} setAccessModes={setAccessModes}
                 />
             ) : (

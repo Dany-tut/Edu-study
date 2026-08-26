@@ -36,6 +36,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Секрет поднят на уровень задачи не для удобства: `secrets` в условии шага
+    # не читается, а `env` читается. Нет секрета — переменная пустая, и шаг с
+    # пересказами просто не выполняется.
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,21 +51,45 @@ jobs:
       - name: Собрать ленту
         run: node scripts/buildFeed.mjs --write --limit 10
 
+      # ── Пересказы по уровням ───────────────────────────────────────────────
+      #
+      # Шаг НЕОБЯЗАТЕЛЬНЫЙ и намеренно молчаливый: нет ключа в секретах — нет и
+      # пересказов, а обычная лента собирается как собиралась. Ставить сборку
+      # ленты в зависимость от чужого API нельзя: день без пересказа — мелочь,
+      # день без ленты — пустой экран у ученика.
+      #
+      # `continue-on-error` по той же причине: отказ модели, таймаут или
+      # исчерпанный лимит не должны отменять уже собранную ленту.
+      - name: Пересказать по уровням
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        continue-on-error: true
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/adaptFeed.mjs --write --limit 2
+
       - name: Пересчитать счётчики
         run: node scripts/checkFeed.mjs --fix
 
       - name: Проверить
         run: node scripts/checkFeed.mjs
 
+      # Сторож словаря СТОИТ ЗДЕСЬ, но не валит сборку. Лента приносит чужие
+      # слова каждое утро, и падать из-за незнакомого имени собственного — это
+      # выключить ленту, а не починить словарь. Зато в логе Actions видно, что
+      # именно дописать руками.
+      - name: Словарь к новым текстам
+        continue-on-error: true
+        run: npm run check:gloss
+
       - name: Закоммитить, если что-то изменилось
         run: |
-          if [ -z "$(git status --porcelain src/data/feed)" ]; then
+          if [ -z "$(git status --porcelain src/data/feed src/data/wordGlossAuto.ts)" ]; then
             echo "Ничего нового — источники молчали."
             exit 0
           fi
           git config user.name  "feed-bot"
           git config user.email "feed-bot@users.noreply.github.com"
-          git add src/data/feed
+          git add src/data/feed src/data/wordGlossAuto.ts
           git commit -m "chore(лента): материалы за $(date -u +%d.%m.%Y)"
           # Между прогоном и коммитом кто-то мог запушить своё: перебазируемся,
           # а не выталкиваем силой — потерять чужой коммит хуже, чем пропустить
