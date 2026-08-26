@@ -4,10 +4,10 @@
 // чтобы одного скрина после свайпа хватало на весь разбор.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from 'react'
-import { repairState } from '../lib/viewportRepair'
 
 export default function ViewportProbe() {
   const probe = useRef<HTMLDivElement>(null)
+  const dvh = useRef<HTMLDivElement>(null)
   const first = useRef('')
   const [line, setLine] = useState('')
   const [t0, setT0] = useState('')
@@ -30,12 +30,14 @@ export default function ViewportProbe() {
         `scr ${window.screen.height}`,
         `vv ${vv ? Math.round(vv.height) : -1}+${vv ? Math.round(vv.offsetTop) : -1}`,
         `safe ${r ? Math.round(r.top) : -1}/${r ? Math.round(r.height) : -1}`,
+        `dvh ${dvh.current ? Math.round(dvh.current.getBoundingClientRect().height) : -1}`,
         `dock ${dock ? Math.round(dock.top) : -1}..${dock ? Math.round(dock.bottom) : -1}`,
       ].join(' ')
       setLine(now)
       if (!first.current) { first.current = now; setT0(now) }
-      const s = repairState()
-      setRep(`step ${s.step} done ${s.done ? 1 : 0} gap ${s.gap} | ${s.meta.replace(/width=device-width, ?/, '')}`)
+      const layer = document.getElementById('mobile-dock-layer')
+      const lr = layer?.getBoundingClientRect()
+      setRep(`layer ${lr ? Math.round(lr.height) : -1} bottom ${lr ? Math.round(lr.bottom) : -1}`)
     }
     read()
     const t = setInterval(read, 250)
@@ -50,6 +52,10 @@ export default function ViewportProbe() {
           position: 'fixed', left: 0, width: 1, pointerEvents: 'none', opacity: 0,
           top: 'env(safe-area-inset-top, 0px)', height: 'env(safe-area-inset-bottom, 0px)',
         }}
+      />
+      <div
+        ref={dvh}
+        style={{ position: 'absolute', top: 0, left: 0, width: 1, height: '100dvh', opacity: 0, pointerEvents: 'none' }}
       />
       <div
         className="md:hidden"

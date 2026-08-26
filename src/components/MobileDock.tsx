@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { createPortal } from 'react-dom'
 import { useRef, useState, useLayoutEffect, useCallback, useEffect } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
@@ -6,6 +7,7 @@ import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
+import { dockLayer } from '../lib/dockLayer'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileDock — the floating glass control zone that rides just ABOVE the bottom
@@ -89,7 +91,10 @@ export default function MobileDock({ children, fill }: {
 }) {
   const collapsed = useSmoothCollapse()
   const kbOpen = useKeyboardOpen()
-  return (
+  // Тот же слой, что у нижней навигации (lib/dockLayer.ts): ряд стоит над ней
+  // и обязан жить в той же системе координат.
+  const layer = dockLayer()
+  const row = (
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the
       // nav when the keyboard opens so it never crowds a focused field.
@@ -97,7 +102,7 @@ export default function MobileDock({ children, fill }: {
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
       style={{
-        position: 'fixed', left: 0, right: 0,
+        position: layer ? 'absolute' : 'fixed', left: 0, right: 0,
         // Тот же прибитый отступ, что у навигации (lib/mobileTokens.ts): сырой
         // env() до первой прокрутки включает нижнюю панель и задирает док вверх.
         bottom: MOBILE_DOCK_EDGE,
@@ -130,6 +135,7 @@ export default function MobileDock({ children, fill }: {
       </motion.div>
     </motion.div>
   )
+  return layer ? createPortal(row, layer) : row
 }
 
 /** Horizontally-scrollable glass segment control — the course/scope switcher. */
