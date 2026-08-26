@@ -978,6 +978,7 @@ export function RailList({ items, value, onChange, accent, soft }: {
   accent: string
   soft: string
 }) {
+  const t = useT()
   // На широком экране скроллится сам рейл, и вложенная 300-пиксельная коробка
   // была бы вторым скроллом внутри первого: колесо над списком дёргало бы то
   // его, то карточку. На узком рейл лежит НАД содержимым во всю ширину и своего
@@ -1012,7 +1013,7 @@ export function RailList({ items, value, onChange, accent, soft }: {
           <button
             key={i.id}
             onClick={() => onChange(i.id)}
-            title={i.label}
+            title={t(i.label)}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 3,
               width: '100%', textAlign: 'left',
@@ -1025,7 +1026,7 @@ export function RailList({ items, value, onChange, accent, soft }: {
             <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, width: '100%' }}>
               <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 1 }}>
                 <span style={{ ...clamp2, lineHeight: 1.25 }}>
-                  {i.label}
+                  {t(i.label)}
                 </span>
                 {/* Транскрипция — под словом и тише его: она нужна, чтобы слово
                     можно было проговорить, но читают всё-таки оригинал. */}
@@ -1035,7 +1036,7 @@ export function RailList({ items, value, onChange, accent, soft }: {
                     color: on ? accent : 'var(--color-text-3)', opacity: on ? 0.8 : 1,
                     ...clamp2,
                   }}>
-                    {i.sub}
+                    {t(i.sub)}
                   </span>
                 )}
               </span>
@@ -1043,11 +1044,11 @@ export function RailList({ items, value, onChange, accent, soft }: {
                 // Слово важнее подписи: она берёт не больше 58% строки, иначе
                 // от самого слова не остаётся ни буквы.
                 <span style={{ ...hintStyle, maxWidth: '58%', textAlign: 'right' }}>
-                  {i.hint}
+                  {t(i.hint)}
                 </span>
               )}
             </span>
-            {i.hint && wide && <span style={hintStyle}>{i.hint}</span>}
+            {i.hint && wide && <span style={hintStyle}>{t(i.hint)}</span>}
           </button>
         )
       })}
