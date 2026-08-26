@@ -1201,6 +1201,34 @@ function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, 
   )
 }
 
+/** Плитка-заглушка витрины: та же геометрия, что у ContentCard, чтобы сетка не
+ *  прыгала, когда курсы приедут из БД. */
+function CardSkeleton() {
+  return (
+    <div style={{
+      background: 'rgba(var(--glass-rgb), 0.88)',
+      border: '1px solid var(--color-border-glass)',
+      borderRadius: 20, padding: '18px 18px 12px',
+      display: 'flex', flexDirection: 'column', gap: 10, height: '100%',
+      boxShadow: '0 3px 16px rgba(0,0,0,0.06)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <Skeleton w={36} h={36} radius={12} />
+        <Skeleton w={64} h={18} radius={7} />
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <Skeleton w="85%" h={13} />
+        <Skeleton w="55%" h={13} />
+        <Skeleton w="70%" h={10} style={{ marginTop: 3 }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
+        <Skeleton w={78} h={11} />
+        <Skeleton w={34} h={11} />
+      </div>
+    </div>
+  )
+}
+
 const COURSE_COLOR    = 'var(--color-purple)'            // hex — for border/shadow concatenation
 const COURSE_BG       = 'var(--color-purple-soft)'
 
@@ -7639,14 +7667,16 @@ export default function TeacherConstructorPage() {
   useEffect(() => { if (!accessLoaded) useTeacherAccess.getState().load() }, [accessLoaded])
   const seedById = useMemo(() => {
     const map = new Map<string, CourseSeed>()
-    if (!accessLoaded || !isAdmin || editMode) return map
+    // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
+    // состоит из чужих готовых курсов, а настоящие подставляются под них позже.
+    if (!accessLoaded || !isAdmin || editMode || dbLoading) return map
     const taken = new Set(courses.map(c => c.id))
     for (const s of COURSE_SEEDS) {
       const id = seedCourseId(s, ownerId)
       if (!taken.has(id)) map.set(id, s)
     }
     return map
-  }, [courses, ownerId, isAdmin, accessLoaded, editMode])
+  }, [courses, ownerId, isAdmin, accessLoaded, editMode, dbLoading])
   // Всё, что вообще показывается на вкладке: свои курсы + плитки сидов. Из этого
   // же списка собираются опции фильтров, поэтому пустых вариантов не бывает.
   const allCourses = useMemo(
@@ -8587,6 +8617,8 @@ export default function TeacherConstructorPage() {
               )}
               <div
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'bank') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                {activeTab === 'course' && dbLoading &&
+                  Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
                 {activeTab === 'course' && filteredCourses.map(c => (
                   <div key={c.id} className={flashId === c.id ? 'constructor-card-flash' : undefined}
                     // В футере теперь часы, поэтому дата правки живёт в подсказке.
@@ -8676,7 +8708,7 @@ export default function TeacherConstructorPage() {
                 ))}
               </div>
 
-              {dbLoading && (
+              {dbLoading && activeTab !== 'course' && (
                 <div style={{ padding: '24px 0' }}><Skeleton.Text lines={3} /></div>
               )}
 
