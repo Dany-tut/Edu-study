@@ -84,6 +84,11 @@ import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 
 type NewBankTask = Omit<BankTask, 'id'>
+// Высота таблеток верхней строки Конструктора (вкладки, крестик режима
+// правки, «Дублировать»/«Удалить», импорт форм). Единственная точка правды:
+// иначе кнопки с другим кеглем и рамкой меняют высоту строки, и список под
+// ней прыгает в момент их появления.
+const PILL_H = 40
 const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
 
 // Палитра типов ответа справа от конструктора задания.
@@ -1827,7 +1832,12 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 20px', borderRadius: 16,
+        // Высота у всех таблеток строки задана числом, а не набегает из
+        // padding + шрифт: у кнопок «Дублировать»/«Удалить» другой кегль и
+        // рамка, и строка от их появления подрастала на пару пикселей —
+        // карточки под ней дёргались.
+        height: PILL_H, boxSizing: 'border-box',
+        padding: '0 20px', borderRadius: 16,
         border: 'none', cursor: 'pointer',
         background: isActive ? bg : 'rgba(var(--glass-rgb), 0.86)',
         ...PILL_GLASS,
@@ -6416,7 +6426,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                   >
                     {(() => { const DomIcon = DOMAIN_ICONS[key]; return <DomIcon size={17} strokeWidth={2} style={{ flexShrink: 0, color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text-2)' : 'var(--color-text-3)' }} /> })()}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: isSel ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.info.short}</div>
+                      <div style={{ fontSize: 12, fontWeight: isSel ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(d.info.short)}</div>
                       <div style={{ fontSize: 10, color: d.enabled ? (isSel ? SCR_ACC : 'var(--color-muted)') : 'var(--color-text-3)', marginTop: 1 }}>{d.enabled ? t('активен') : t('выключен')}</div>
                     </div>
                     {isSel && <div style={{ width: 6, height: 6, borderRadius: '50%', background: SCR_ACC, flexShrink: 0 }} />}
@@ -6478,11 +6488,11 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                     ) })()}
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{info!.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{t(info!.label)}</div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 7, padding: '2px 8px', letterSpacing: 0.3 }}>{info!.chc}</span>
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{info!.dimension}</div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 6, lineHeight: 1.5 }}>{info!.measures}</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{t(info!.dimension)}</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 6, lineHeight: 1.5 }}>{t(info!.measures)}</div>
                     </div>
                   </div>
 
@@ -6507,9 +6517,9 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                       {t('Методология')}
                     </div>
                     {([
-                      [t('Как устроено'), info!.how],
-                      [t('Что определяет'), info!.determines],
-                      [t('Научная основа'), info!.science],
+                      [t('Как устроено'), t(info!.how)],
+                      [t('Что определяет'), t(info!.determines)],
+                      [t('Научная основа'), t(info!.science)],
                     ] as [string, string][]).map(([h, body]) => (
                       <div key={h}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC, marginBottom: 3 }}>{h}</div>
@@ -8338,7 +8348,7 @@ export default function TeacherConstructorPage() {
                   onClick={toggleEditMode}
                   title={editMode ? t('Выйти из режима редактирования') : t('Редактировать')}
                   style={{
-                    width: 44, padding: '10px 0', borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
+                    width: 44, height: PILL_H, boxSizing: 'border-box', padding: 0, borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: editMode ? 'var(--color-red-soft)' : 'rgba(var(--glass-rgb), 0.88)',
                     ...PILL_GLASS,
@@ -8361,7 +8371,8 @@ export default function TeacherConstructorPage() {
                     onClick={() => setFormImportOpen(true)}
                     style={{
                       marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 7,
-                      padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                      height: PILL_H, boxSizing: 'border-box',
+                      padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
                       background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                       color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
@@ -8408,7 +8419,8 @@ export default function TeacherConstructorPage() {
                           onClick={duplicateChecked}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 7,
-                            padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                            height: PILL_H, boxSizing: 'border-box',
+                            padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
                             background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                             color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -8422,7 +8434,8 @@ export default function TeacherConstructorPage() {
                         onClick={deleteChecked}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 7,
-                          padding: '10px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                          height: PILL_H, boxSizing: 'border-box',
+                          padding: '0 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                           background: '#c0303a', color: '#fff', fontSize: 13, fontWeight: 700,
                           boxShadow: '0 4px 14px rgba(192,48,58,0.32)',
                         }}
