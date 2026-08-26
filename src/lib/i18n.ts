@@ -3852,6 +3852,110 @@ const EN: Record<string, string> = {
 
   'тыс': 'k',
   'Telegram отклонил сообщение': 'Telegram rejected the message',
+
+  // ——— Типы заданий (реестр) ———
+  'Соединить пары': 'Match the pairs',
+  'Собрать предложение': 'Build the sentence',
+  'Из плиток-слов': 'From word tiles',
+  'Диктант': 'Dictation',
+  'Услышал — напечатал': 'Hear it, type it',
+  'Диктант с подсказкой': 'Dictation with a hint',
+  'Собрать услышанное из плиток': 'Build what you heard from tiles',
+  'Похожие звуки': 'Similar sounds',
+  'Какой из двух прозвучал': 'Which of the two you heard',
+  'Записать голос': 'Record your voice',
+  'Ученик говорит вслух — эталон сверяется сразу': 'The student speaks aloud — checked against the model at once',
+  'Описать картинку': 'Describe the picture',
+  'Письменно или устно': 'In writing or aloud',
+  'Сравнить картинки': 'Compare pictures',
+  'Две-три картинки, найти общее и разное': 'Two or three pictures — find what is shared and what differs',
+  'Обвести букву': 'Trace the letter',
+  'По чертам, в правильном порядке': 'Stroke by stroke, in the right order',
+  'Собрать слог': 'Build the syllable',
+  'Из букв: ㄱ + ㅣ + ㅁ → 김': 'From letters: ㄱ + ㅣ + ㅁ → 김',
+  'Слово и перевод': 'Word and translation',
+  'Посмотреть видео': 'Watch a video',
+  'Ролик, серия или фильм — с учётом просмотра': 'A clip, an episode or a film — the watch counts',
+
+  // ——— Скрининг: домены и методология ———
+  'Комплексная диагностика когнитивных способностей по 8 доменам CHC-модели.':
+    'A full cognitive assessment across the 8 domains of the CHC model.',
+  'Флюидный интеллект': 'Fluid intelligence',
+  'Способность находить закономерности в новых, незнакомых задачах без опоры на выученные знания.':
+    'The ability to find patterns in new, unfamiliar problems without leaning on learned knowledge.',
+  'В сетке 3×3 одна клетка пустая. Нужно понять правило (по строкам и столбцам) и выбрать недостающий элемент.':
+    'One cell of a 3×3 grid is empty. Work out the rule (across rows and columns) and pick the missing piece.',
+  'Лучший единичный прокси к общему интеллекту (g). Высокий балл — быстро схватывает новое; низкий — нужнее пошаговые объяснения и примеры.':
+    'The single best proxy for general intelligence (g). A high score means new material is picked up fast; a low one means step-by-step explanations and examples matter more.',
+  'Аналог матриц Равена. Сложность задаётся числом одновременных правил: 1 правило ≈ детский уровень (SPM), 3+ правил с distribution-of-3 и XOR ≈ взрослый уровень (APM). Адаптивная подача убирает «эффект потолка».':
+    'An analogue of Raven\'s Matrices. Difficulty is set by how many rules apply at once: 1 rule ≈ child level (SPM), 3+ rules with distribution-of-3 and XOR ≈ adult level (APM). Adaptive delivery removes the ceiling effect.',
+  'Ряды': 'Series',
+  'Числовое мышление': 'Numerical reasoning',
+  'Индуктивное и количественное рассуждение — выявление правила в последовательности.':
+    'Inductive and quantitative reasoning — spotting the rule in a sequence.',
+  'Дан ряд чисел или букв. Нужно понять правило и назвать следующий элемент.':
+    'You get a row of numbers or letters. Work out the rule and name the next item.',
+  'Сильный показатель аналитического и математического мышления. Дополняет матрицы вербально-числовым каналом.':
+    'A strong indicator of analytical and mathematical thinking. Complements matrices with a verbal-numeric channel.',
+  'Числовые/буквенные ряды — классический пункт тестов Gf (Cattell). Сложность растёт от простой арифметики к составным и чередующимся правилам.':
+    'Number and letter series are a classic Gf item (Cattell). Difficulty grows from simple arithmetic to compound and alternating rules.',
+  'Вербальное мышление': 'Verbal reasoning',
+  'Понимание отношений между понятиями + словарный запас (кристаллизованные знания).':
+    'Understanding relations between concepts, plus vocabulary (crystallised knowledge).',
+  '«A относится к B как C относится к ?». Нужно выбрать слово с тем же типом связи.':
+    '"A is to B as C is to ?" — pick the word with the same kind of relation.',
+  'Отражает речевое развитие и эрудицию. Низкий балл при высоких матрицах — потенциал есть, не хватает словарного багажа.':
+    'Reflects language development and general knowledge. A low score alongside high matrices means the potential is there but the vocabulary is not.',
+  'Вербальные аналогии — ядро тестов вербального интеллекта (SAT, GRE). Меряют и знание, и перенос отношений (reasoning).':
+    'Verbal analogies are the core of verbal intelligence tests (SAT, GRE). They measure both knowledge and the transfer of relations (reasoning).',
+  'Пространственное мышление': 'Spatial reasoning',
+  'Мысленное вращение объектов — отдельная способность, не сводимая к вербальной.':
+    'Mental rotation of objects — a separate ability that does not reduce to the verbal one.',
+  'Дана фигура. Нужно найти ту же фигуру, повёрнутую на угол (а не зеркальную).':
+    'You get a shape. Find the same shape rotated by an angle — not its mirror image.',
+  'Важно для STEM, геометрии, черчения, химии. Часто «скрытый» талант у тех, кто слабее в вербальных тестах.':
+    'Matters for STEM, geometry, technical drawing and chemistry. Often a hidden talent in those weaker on verbal tests.',
+  'Парадигма Shepard–Metzler (mental rotation). Время реакции линейно растёт с углом поворота — устойчивый научный эффект.':
+    'The Shepard–Metzler mental-rotation paradigm. Reaction time grows linearly with the angle — a robust scientific effect.',
+  'Рабочая память': 'Working memory',
+  'Объём удержания информации в уме и манипуляция ею.': 'How much can be held in mind at once, and manipulated there.',
+  'Ячейки загораются по очереди — нужно воспроизвести порядок. В обратных раундах — в обратном порядке.':
+    'Cells light up one by one — reproduce the order. In reverse rounds, backwards.',
+  'Ключ к удержанию инструкций, многошаговым задачам, концентрации. Низкая — дробите материал на мелкие шаги.':
+    'Key to holding instructions, multi-step problems and concentration. If it is low, break material into smaller steps.',
+  'Тест Корси. Прямой span ≈ хранение (средний взрослый 5–6), обратный span ≈ манипуляция (входит в WAIS). Адаптивная остановка по 2 провалам — стандарт span-задач.':
+    'The Corsi block test. Forward span ≈ storage (the average adult manages 5–6), backward span ≈ manipulation (part of WAIS). Stopping adaptively after 2 failures is the standard for span tasks.',
+  'Когнитивный контроль': 'Cognitive control',
+  'Торможение автоматических реакций и концентрацию под помехой.':
+    'Inhibiting automatic responses and holding focus under interference.',
+  'Слово написано цветом, не совпадающим со смыслом. Нужно как можно быстрее выбрать ЦВЕТ шрифта, игнорируя слово.':
+    'A word is printed in a colour that contradicts its meaning. Pick the COLOUR of the type as fast as you can, ignoring the word.',
+  'Саморегуляция, устойчивость к отвлечению. Слабый контроль → импульсивные ошибки, трудно держать внимание на уроке.':
+    'Self-regulation and resistance to distraction. Weak control means impulsive mistakes and trouble holding attention in class.',
+  'Эффект Струпа (1935). Научная метрика — не точность (она у потолка), а интерференция = время на конфликтных минус на согласованных пунктах. Поэтому меряем время реакции.':
+    'The Stroop effect (1935). The scientific measure is not accuracy — that sits at ceiling — but interference: time on conflicting items minus time on congruent ones. Hence we measure reaction time.',
+  'Скорость обработки': 'Processing speed',
+  'Скорость точного выполнения простых умственных операций.': 'How fast simple mental operations are done accurately.',
+  'За ограниченное время — как можно больше верных сопоставлений «символ ↔ символ».':
+    'In limited time, make as many correct symbol-to-symbol matches as you can.',
+  'Влияет на скорость чтения, счёта, выполнения заданий. Низкая при высоком интеллекте → ученику нужно больше времени, не путать с «не понимает».':
+    'Affects reading, arithmetic and how fast work gets done. Low speed with high intelligence means the student needs more time — do not mistake it for not understanding.',
+  'Аналог Digit-Symbol/Coding (WAIS). Чистая скорость — отдельный фактор Gs, не сводится к интеллекту; важна для учёбы и реальной успеваемости.':
+    'An analogue of Digit-Symbol/Coding (WAIS). Raw speed is its own factor, Gs; it does not reduce to intelligence and matters for study and real attainment.',
+  'Знания и эрудиция': 'Knowledge and general learning',
+  'Кристаллизованные знания — выученные факты и причинно-следственные связи.':
+    'Crystallised knowledge — learned facts and cause-and-effect links.',
+  'В отличие от матриц — меряет НЕ потенциал, а накопленный багаж по предмету. Разрыв «высокие матрицы / низкие знания» = способный, но с пробелами.':
+    'Unlike matrices, this measures not potential but what has actually been accumulated in the subject. High matrices with low knowledge means able, but with gaps.',
+  'Это блок Gc (знания), а не «чистого» мышления. Полезно держать отдельно от Gf, чтобы не путать потенциал с подготовкой.':
+    'This is a Gc block (knowledge), not "pure" reasoning. Worth keeping apart from Gf so potential is not confused with preparation.',
+
+  // ——— Каркас домашки урока ———
+  '1 уровень': 'Level 1',
+  '2 уровень': 'Level 2',
+  'текст': 'text',
+  'фото': 'photo',
+  'доска': 'whiteboard',
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

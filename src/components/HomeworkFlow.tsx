@@ -1525,6 +1525,16 @@ function getInitialState(): PersistedHomeworkState {
   }
 }
 
+/**
+ * Заголовок домашки на экране. Сам заголовок хранится по-русски («Домашка по
+ * теме «X»»), потому что это ещё и значение в базе; переводим только обёртку,
+ * а название темы — это контент урока, оно остаётся как есть.
+ */
+function hwTitle(title: string, tr: (s: string) => string): string {
+  const m = title.match(/^Домашка по теме\s*«(.+)»$/)
+  return m ? `${tr('Домашка по теме')} «${m[1]}»` : title
+}
+
 export default function HomeworkFlow({
   lessonId,
   lessonTitle,
@@ -2311,8 +2321,21 @@ export default function HomeworkFlow({
    * рамка на месте, которое чаще всего пустое и есть, читается как поломка.
    */
   const [reviewTasks, setReviewTasks] = useState<ReviewTask[] | null>(null)
+  /**
+   * Блок долга приходит только в НАЧАЛЕ занятия.
+   *
+   * Не из методики, а из арифметики ленты: номера шагов считаются от `flowFirst`,
+   * и блок, появившийся в уже начатом занятии, сдвинул бы их все под ногами —
+   * ученик, вернувшийся на седьмое задание, приземлился бы на карточку
+   * повторения. Признак снимается один раз при открытии и дальше не меняется:
+   * пока ученик листает, `flowStep` растёт, а решение уже принято.
+   *
+   * Заодно это и по смыслу верно: долг — это то, с чего вечер начинается, а не
+   * то, что вклинивается в середину.
+   */
+  const reviewAllowed = useRef(state.flowStep === undefined || state.flowStep === 0).current
   useEffect(() => {
-    if (!flowMode) { setReviewTasks([]); return }
+    if (!flowMode || !reviewAllowed) { setReviewTasks([]); return }
     let alive = true
     const owner = deckOwner()
     if (!owner.studentId) { setReviewTasks([]); return }
@@ -2331,7 +2354,7 @@ export default function HomeworkFlow({
       })
       .catch(() => { if (alive) setReviewTasks([]) })
     return () => { alive = false }
-  }, [flowMode, flowSubject, lessonId])
+  }, [flowMode, flowSubject, lessonId, reviewAllowed])
 
   const reviewAnswers = state.reviewAnswers ?? {}
   /**
@@ -2702,7 +2725,7 @@ export default function HomeworkFlow({
     </div>
   )
 
-  const levelLabel = selectedLevel === 'basic' ? basicLevel.title : hardLevel.title
+  const levelLabel = t(selectedLevel === 'basic' ? basicLevel.title : hardLevel.title)
 
   // Glass recipe for the docked top-line pills — matched to the lesson page so
   // the floating Back/title pills read as the same piece of glass as the topbar.
@@ -2857,7 +2880,7 @@ export default function HomeworkFlow({
           className={`flex-1 min-w-0 flex items-center ${isMobile ? '' : 'text-center justify-center'}`}
           style={{ gap: 10, fontSize: isMobile ? 17 : 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
-          <span className="truncate">{homework.title}</span>
+          <span className="truncate">{hwTitle(homework.title, t)}</span>
           {!isMobile && levelPill(false)}
         </h1>
 
@@ -2987,13 +3010,13 @@ export default function HomeworkFlow({
               </span>
               {isMobile && (
                 <span style={{ marginLeft: 'auto', fontSize: 16, fontWeight: 800 }}>
-                  {selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel}
+                  {t(selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel)}
                 </span>
               )}
             </div>
             {!isMobile && (
               <p style={{ fontSize: 21, lineHeight: 1.15, fontWeight: 750, marginBottom: 8 }}>
-                {selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel}
+                {t(selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel)}
               </p>
             )}
             <p style={{ fontSize: isMobile ? 12.5 : 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.86)' }}>
@@ -3073,7 +3096,7 @@ export default function HomeworkFlow({
                       fontWeight: 650,
                     }}
                   >
-                    {item}
+                    {t(item)}
                   </span>
                 ))}
               </div>

@@ -131,10 +131,10 @@ function InfoDot({ info }: { info: DomainInfo }) {
                 <button onClick={() => setOpen(false)} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
               </div>
               {([
-                [t('Что измеряет'), info.measures],
-                [t('Как устроено'), info.how],
-                [t('Что определяет'), info.determines],
-                [t('Методология'), info.science],
+                [t('Что измеряет'), t(info.measures)],
+                [t('Как устроено'), t(info.how)],
+                [t('Что определяет'), t(info.determines)],
+                [t('Методология'), t(info.science)],
               ] as [string, string][]).map(([h, body]) => (
                 <div key={h} style={{ marginTop: 14 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>{h}</div>

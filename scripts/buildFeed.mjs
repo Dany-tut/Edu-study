@@ -115,6 +115,24 @@ const SOURCES = {
     topic: 'Наука',
     url: 'https://www.nsf.gov/rss/rss_www_news.xml',
   },
+  // Медицина по-английски. NIH и NHTSA, на которые был расчёт, закрыты
+  // Cloudflare (403) и битыми адресами (404) — проверено 26.08.2026; живыми
+  // из федеральных остались эти три, и все три в общественном достоянии.
+  cdc: {
+    lang: 'en', name: 'CDC', kind: 'rss', lane: 'free', level: 'B2',
+    topic: 'Медицина и здоровье',
+    url: 'https://tools.cdc.gov/api/v2/resources/media/132608.rss',
+  },
+  fda: {
+    lang: 'en', name: 'FDA', kind: 'rss', lane: 'free', level: 'B2',
+    topic: 'Медицина и здоровье',
+    url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml',
+  },
+  doe: {
+    lang: 'en', name: 'U.S. Dept. of Energy', kind: 'rss', lane: 'free', level: 'B2',
+    topic: 'Технологии и ИИ',
+    url: 'https://www.energy.gov/rss/articles.xml',
+  },
 
   // Каналы. Встраивание — штатная функция площадки, поэтому источников тут
   // может быть сколько угодно: это единственная дорожка, которая масштабируется
@@ -242,6 +260,26 @@ const SOURCES = {
     lang: 'ko', name: '보도자료 · 우주', kind: 'kogl', view: 'press',
     lane: 'free', level: 'TOPIK 5급', topic: 'Наука',
     url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%9A%B0%EC%A3%BC',
+  },
+  // Медицина, чипы и машины — теми же поисковыми словами. Тем ровно столько,
+  // чтобы они не пересекались: «здоровье» тянет и медицину, и еду, и спорт;
+  // «полупроводник» — платы, память и заводы; «электромобиль» — весь транспорт.
+  // Шире брать нельзя: одно слово отдаёт двадцать релизов, до ленты доезжают
+  // четыре, и на широкой теме это будут четыре совещания подряд.
+  'korea-kr-health': {
+    lang: 'ko', name: '보도자료 · 건강', kind: 'kogl', view: 'press',
+    lane: 'free', level: 'TOPIK 4급', topic: 'Медицина и здоровье',
+    url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EA%B1%B4%EA%B0%95',
+  },
+  'korea-kr-chip': {
+    lang: 'ko', name: '보도자료 · 반도체', kind: 'kogl', view: 'press',
+    lane: 'free', level: 'TOPIK 5급', topic: 'Технологии и ИИ',
+    url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EB%B0%98%EB%8F%84%EC%B2%B4',
+  },
+  'korea-kr-car': {
+    lang: 'ko', name: '보도자료 · 전기차', kind: 'kogl', view: 'press',
+    lane: 'free', level: 'TOPIK 4급', topic: 'Машины и транспорт',
+    url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%A0%84%EA%B8%B0%EC%B0%A8',
   },
 
   // ── Наука, техника, искусство: каналы ──────────────────────────────────────
