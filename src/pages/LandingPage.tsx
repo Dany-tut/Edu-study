@@ -26,6 +26,48 @@ const FEATURES = [
   { icon: BookOpen, title: 'Тренажёр и курсы', text: 'Банк заданий и готовые курсы — ученик занимается сам, вы контролируете.' },
 ]
 
+// ── Режимы заданий языкового курса ───────────────────────────────────────────
+//
+// Порядок и названия — из реестра типов (src/data/taskTypes.ts), цвет — из
+// семьи ответа (src/data/taskTypeVisuals.ts): выбор зелёный, ввод персиковый,
+// сборка жёлтая, слух синий, речь фиолетовая, словарь бирюзовый. Список
+// витрины держим руками: сюда попадают все 27 типов, но подписи короче
+// редакторских — это лендинг, а не палитра учителя.
+const TASK_FAMILIES = [
+  {
+    title: 'На слух', color: 'var(--color-blue-pill-text)',
+    modes: ['Диктант', 'Диктант с подсказкой', 'Похожие звуки', 'Пропуск в диалоге', 'Видео с зачётом просмотра'],
+    text: 'Второй темп для тех, кто не разобрал. Реплики диалога озвучены разными голосами.',
+  },
+  {
+    title: 'Сборка тапами', color: 'var(--color-yellow-text)',
+    modes: ['Собрать предложение', 'Написано неправильно', 'Сборка из блоков', 'Ряд слогов', 'Собрать слог', 'Последовательность'],
+    text: 'Без клавиатуры: порядок слов и состав слога ставятся руками, обманки — из того же поля.',
+  },
+  {
+    title: 'Ввод и припоминание', color: 'var(--color-peach-text)',
+    modes: ['Вписать ответ', 'Дрилл по шаблону', 'Пропуски по банку слов', 'Набор слова по буквам', 'Заполнить таблицу'],
+    text: 'Банк один на десяток строк: ошибка в первой строке отнимает слово у седьмой.',
+  },
+  {
+    // --color-accent, а не --color-purple: последний в светлой теме #9C8CF0 —
+    // на белой карточке чипсы в 13px читаются на грани.
+    title: 'Речь и развёрнутый ответ', color: 'var(--color-accent)',
+    modes: ['Записать голос', 'Описать картинку', 'Сравнить картинки', 'Развёрнутый ответ', 'Доска'],
+    text: 'Ученик говорит — распознанное сверяется с эталоном. Письменное проверяете вы, с аннотациями.',
+  },
+  {
+    title: 'Словарь и письменность', color: 'var(--color-teal-pill-text)',
+    modes: ['Карточка со словом', 'Кроссворд', 'Обвести букву'],
+    text: 'Значение картинкой, повторение по расписанию, порядок черт — как в прописи.',
+  },
+  {
+    title: 'Выбор и пары', color: 'var(--color-green-text)',
+    modes: ['Один ответ', 'Несколько верных', 'Сопоставление'],
+    text: 'База, с которой начинается любой курс, — и единственное, что умеют остальные платформы.',
+  },
+]
+
 // ── Как это работает ─────────────────────────────────────────────────────────
 const STEPS = [
   { icon: UserPlus, title: 'Заведите учеников', text: 'Добавьте группы и индивидуальных — каждому создаётся личный кабинет со своим логином.' },
@@ -77,6 +119,7 @@ export default function LandingPage() {
         <nav style={{ marginLeft: 28, display: 'flex', gap: 22 }} className="lp-nav">
           <a href="#how" style={navLink}>{t('Как работает')}</a>
           <a href="#features" style={navLink}>{t('Возможности')}</a>
+          <a href="#modes" style={navLink}>{t('Задания')}</a>
           <a href="#tariffs" style={navLink}>{t('Тарифы')}</a>
         </nav>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -180,6 +223,54 @@ export default function LandingPage() {
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* ── Режимы заданий ── */}
+      <section id="modes" style={{ padding: 'clamp(64px, 9vw, 110px) clamp(16px, 5vw, 56px) 0', maxWidth: 1180, margin: '0 auto' }}>
+        <Reveal><h2 style={sectionTitle}>{t('27 режимов заданий')}</h2></Reveal>
+        <Reveal delay={0.05}><p style={sectionSub}>
+          {t('Языковой курс собирается не из «тестов с четырьмя вариантами». Слух, речь, письмо, сборка тапами и вспоминание по значению — каждый навык тренируется своим экраном.')}
+        </p></Reveal>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 16, marginTop: 40 }}>
+          {TASK_FAMILIES.map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 0.07}>
+              <div className="lp-feature" style={{
+                padding: '24px 22px', borderRadius: 18, background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)', height: '100%',
+                transition: 'transform .18s ease, border-color .18s ease',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 99, background: f.color }} />
+                  <span style={{ fontSize: 16.5, fontWeight: 700 }}>{t(f.title)}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: f.color }}>{f.modes.length}</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {f.modes.map(m => (
+                    <span key={m} style={{
+                      padding: '6px 12px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                      color: f.color, border: `1px solid color-mix(in srgb, ${f.color} 34%, transparent)`,
+                      background: `color-mix(in srgb, ${f.color} 11%, transparent)`,
+                    }}>{t(m)}</span>
+                  ))}
+                </div>
+                <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.5, marginTop: 14 }}>{t(f.text)}</div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal delay={0.1}>
+          <div style={{
+            marginTop: 18, padding: '22px 24px', borderRadius: 18,
+            border: `1px solid color-mix(in srgb, ${ACCENT} 30%, transparent)`,
+            background: `color-mix(in srgb, ${ACCENT} 9%, var(--color-surface))`,
+            display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+          }}>
+            <Sparkles size={18} color={ACCENT} />
+            <span style={{ fontSize: 15, lineHeight: 1.5 }}>
+              {t('Лестница памяти: алфавит → слог → слово → фраза. Урок вводит не больше четырёх новых слов, каждое получает шесть касаний разными режимами, ошибки возвращаются очередью внутри того же урока.')}
+            </span>
+          </div>
+        </Reveal>
       </section>
 
       {/* ── Тарифы ── */}
