@@ -16,7 +16,16 @@ export const EN_VOCAB_EXAMPLES: ExampleMap = {
   'case in point': x('Our checkout is a case in point: three steps, no drop-off.', 'Наш чекаут — показательный пример: три шага и никакого отвала.'),  // a case in point
   'chunk': x('Learn a chunk, not a word: "as far as I know".', 'Учите кусок, а не слово: «as far as I know».'),  // a chunk
   'compelling argument': x('Cost is a compelling argument for the client.', 'Цена — убедительный аргумент для клиента.'),  // a compelling argument
+  'drum': x('He plays the drum in a local band.', 'Он играет на барабане в местной группе.'),
+  'gust': x('A gust of wind took my umbrella.', 'Порыв ветра унёс мой зонт.'),
+  'load': x('I put a load of washing in the machine before work.', 'Перед работой я загрузил бельё в машину.'),
+  'made up afterwards': x('We argued in the morning and made up afterwards.', 'Утром мы поссорились, а потом помирились.'),
+  'nearly due': x('The rent is nearly due, I will pay on Friday.', 'Срок платы за квартиру почти подошёл, заплачу в пятницу.'),
+  'percentage point': x('The rate went up by half a percentage point.', 'Ставка выросла на полпроцентного пункта.'),
+  'power cut': x('There was a power cut for two hours last night.', 'Вчера вечером на два часа отключали электричество.'),
+  'processor': x('The data is stored by an external processor.', 'Данные хранит внешний обработчик.'),
   'realistic timeline': x('A realistic timeline is three weeks, not one.', 'Реалистичный срок — три недели, а не одна.'),  // a realistic timeline
+  'rug': x('There is a small rug by the bed.', 'У кровати лежит маленький коврик.'),
   'steady increase': x('There was a steady increase from 2015 to 2020.', 'С 2015 по 2020 год был устойчивый рост.'),  // a steady increase
   'wide range of': x('The candidate uses a wide range of structures.', 'Кандидат использует широкий набор конструкций.'),  // a wide range of
   'widely held belief': x('It is a widely held belief that exams measure ability.', 'Распространённое мнение, что экзамены измеряют способности.'),  // a widely held belief
@@ -301,6 +310,7 @@ export const EN_VOCAB_EXAMPLES: ExampleMap = {
   'reason i chose': x('The reason I chose design was the research part.', 'Причина, по которой я выбрал дизайн, — исследовательская часть.'),  // the reason I chose
   'risk with that is': x('The risk with that is we ship late.', 'Риск здесь в том, что мы выпустим позже.'),  // the risk with that is
   'second factor': x('The second factor is cost.', 'Второй фактор — стоимость.'),  // the second factor
+  'withdraw consent': x('You can withdraw consent at any time.', 'Согласие можно отозвать в любой момент.'),
   'writer’s stance': x('The writer’s stance is critical, but never stated directly.', 'Позиция автора критическая, но прямо не высказана.'),  // the writer’s stance
   'thereby / thus': x('We cut two steps, thereby saving a minute; thus orders grew.', 'Мы убрали два шага, тем самым сэкономив минуту; таким образом заказы выросли.'),  // thereby / thus
   'therefore': x('The form was too long; therefore, we simplified it.', 'Форма была слишком длинной, поэтому мы её упростили.'),  // therefore

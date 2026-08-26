@@ -13,9 +13,12 @@
 import { x, type ExampleMap } from './model'
 
 export const JA_VOCAB_EXAMPLES: ExampleMap = {
+  '〜ぐらい': x('えきまで あるいて じゅっぷんぐらいです。', 'eki made aruite juppun gurai desu.', 'До станции пешком минут десять.'),
   '〜ことが できます': x('わたしは にほんごを はなす ことが できます。', 'watashi wa nihongo o hanasu koto ga dekimasu.', 'Я могу говорить по-японски.'),  // 〜ことが できます
   '〜だけ': x('コーヒーだけ ください。', 'kōhī dake kudasai.', 'Только кофе, пожалуйста.'),  // 〜だけ
   '〜ないで ください': x('ここで しゃしんを とらないで ください。', 'koko de shashin o toranaide kudasai.', 'Пожалуйста, не фотографируйте здесь.'),  // 〜ないで ください
+  '〜につき': x('ひとりにつき ひとつ おねがいします。', 'hitori ni tsuki hitotsu onegaishimasu.', 'По одному на человека, пожалуйста.'),
+  '〜より': x('でんしゃより バスの ほうが やすいです。', 'densha yori basu no hō ga yasui desu.', 'Автобус дешевле поезда.'),
   '〜られません': x('からいものは たべられません。', 'karai mono wa taberaremasen.', 'Я не могу есть острое.'),  // 〜られません
   'あいだに': x('やすみの あいだに ほんを よみました。', 'yasumi no aida ni hon o yomimashita.', 'Во время каникул я читал книгу.'),  // あいだに
   'あう': x('きのう ともだちに あいました。', 'kinō tomodachi ni aimashita.', 'Вчера я встретился с другом.'),  // あう
@@ -102,6 +105,7 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   'ご覧になる': x('しりょうを ご覧に なりましたか。', 'shiryō o goran ni narimashita ka.', 'Вы посмотрели материалы?'),  // ご覧になる
   'さいきん': x('さいきん あたらしい みせが できました。', 'saikin atarashii mise ga dekimashita.', 'Недавно открылся новый магазин.'),  // さいきん
   'さいごに': x('さいごに しつもんは ありませんか。', 'saigo ni shitsumon wa arimasen ka.', 'В конце: вопросов нет?'),  // さいごに
+  'さける': x('こんざつする じかんを さけて でかけます。', 'konzatsu suru jikan o sakete dekakemasu.', 'Выхожу из дома, избегая часа пик.'),
   'さめる': x('スープが さめて しまいました。', 'sūpu ga samete shimaimashita.', 'Суп остыл.'),  // さめる
   'しかる': x('せんせいに しかられました。', 'sensei ni shikararemashita.', 'Меня отругал учитель.'),  // しかる
   'しけん': x('らいげつ にほんごの しけんを うけます。', 'raigetsu nihongo no shiken o ukemasu.', 'В следующем месяце сдаю экзамен по японскому.'),  // しけん
@@ -160,9 +164,11 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   'でる': x('うちを はちじに でます。', 'uchi o hachiji ni demasu.', 'Выхожу из дома в восемь.'),  // でる
   'とうぜん': x('おくれたら あやまるのは とうぜんです。', 'okuretara ayamaru no wa tōzen desu.', 'Опоздал — извиниться само собой.'),  // とうぜん
   'ときどき': x('ときどき まちで あいます。', 'tokidoki machi de aimasu.', 'Иногда мы встречаемся в городе.'),  // ときどき
+  'とくばい': x('きょうは やさいの とくばいです。', 'kyō wa yasai no tokubai desu.', 'Сегодня распродажа овощей.'),
   'とけい': x('この とけいは ちちの ものです。', 'kono tokei wa chichi no mono desu.', 'Эти часы отцовские.'),  // とけい
   'としょかん': x('としょかんで ほんを かりました。', 'toshokan de hon o karimashita.', 'Я взял книгу в библиотеке.'),  // としょかん
   'となり': x('ぎんこうは えきの となりに あります。', 'ginkō wa eki no tonari ni arimasu.', 'Банк находится рядом со станцией.'),  // となり
+  'とばす': x('ページを とばして よんでも いいです。', 'pēji o tobashite yonde mo ii desu.', 'Можно читать, пропуская страницы.'),
   'とらせる': x('こどもに しゃしんを とらせました。', 'kodomo ni shashin o torasemashita.', 'Я дал ребёнку сфотографировать.'),  // とらせる
   'どうやら': x('どうやら みちを まちがえたようです。', 'dōyara michi o machigaeta yō desu.', 'По всей видимости, мы ошиблись дорогой.'),  // どうやら
   'どっかい': x('どっかいは じかんが たりません。', 'dokkai wa jikan ga tarimasen.', 'На чтение не хватает времени.'),  // どっかい
@@ -181,6 +187,7 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   'ねぼうする': x('ねぼうして でんしゃに のりおくれました。', 'nebō shite densha ni noriokuremashita.', 'Я проспал и опоздал на поезд.'),  // ねぼうする
   'ねる': x('いつも じゅういちじに ねます。', 'itsumo jūichiji ni nemasu.', 'Обычно ложусь спать в одиннадцать.'),  // ねる
   'ねんのため': x('ねんのため かさを もって いきます。', 'nen no tame kasa o motte ikimasu.', 'На всякий случай возьму зонт.'),  // ねんのため
+  'のこす': x('ごはんを のこさないで ください。', 'gohan o nokosanaide kudasai.', 'Не оставляйте еду недоеденной.'),
   'のむ': x('くすりを のんで ください。', 'kusuri o nonde kudasai.', 'Примите лекарство.'),  // のむ
   'のりかえる': x('しんじゅくで のりかえて ください。', 'Shinjuku de norikaete kudasai.', 'Пересядьте в Синдзюку.'),  // のりかえる
   'のる': x('まいあさ バスに のります。', 'maiasa basu ni norimasu.', 'Каждое утро сажусь на автобус.'),  // のる
@@ -219,6 +226,7 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   'もくようび': x('もくようびまでに おくります。', 'mokuyōbi made ni okurimasu.', 'Отправлю до четверга.'),  // もくようび
   'もらう': x('ともだちから てがみを もらいました。', 'tomodachi kara tegami o moraimashita.', 'Я получил письмо от друга.'),  // もらう
   'やはり': x('やはり この みせが いちばん おいしいです。', 'yahari kono mise ga ichiban oishii desu.', 'Всё-таки здесь вкуснее всего.'),  // やはり
+  'やぶる': x('やくそくを やぶって しまいました。', 'yakusoku o yabutte shimaimashita.', 'Я нарушил обещание.'),
   'やま': x('なつに やまに のぼりました。', 'natsu ni yama ni noborimashita.', 'Летом я поднимался в горы.'),  // やま
   'やめさせる': x('いしゃが たばこを やめさせました。', 'isha ga tabako o yamesasemashita.', 'Врач заставил его бросить курить.'),  // やめさせる
   'ゆうめいな': x('ここは ゆうめいな こうえんです。', 'koko wa yūmei na kōen desu.', 'Это известный парк.'),  // ゆうめいな
@@ -246,6 +254,7 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   '伺う': x('明日 そちらに 伺います。', 'asu sochira ni ukagaimasu.', 'Завтра я к вам приду.'),  // 伺う
   '使役': x('使役の 文を 三つ 作って ください。', 'shieki no bun o mittsu tsukutte kudasai.', 'Составьте три предложения в побудительном залоге.'),  // 使役
   '先生': x('先生に しつもんしました。', 'sensei ni shitsumon shimashita.', 'Я задал вопрос учителю.'),  // 先生
+  '出し方': x('ごみの出し方は げんかんに はって あります。', 'gomi no dashikata wa genkan ni hatte arimasu.', 'Правила выноса мусора висят у входа.'),
   '参る': x('すぐに 参ります。', 'sugu ni mairimasu.', 'Сейчас же приду.'),  // 参る
   '受身': x('この 文は 受身に なって います。', 'kono bun wa ukemi ni natte imasu.', 'Это предложение стоит в страдательном залоге.'),  // 受身
   '召し上がる': x('どうぞ 召し上がって ください。', 'dōzo meshiagatte kudasai.', 'Пожалуйста, кушайте.'),  // 召し上がる
@@ -262,6 +271,7 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   '情報': x('もっと くわしい 情報が ひつようです。', 'motto kuwashii jōhō ga hitsuyō desu.', 'Нужна более подробная информация.'),  // 情報
   '文字・語彙': x('文字・語彙は まいにち 十五分 やります。', 'moji goi wa mainichi jūgofun yarimasu.', 'Иероглифами и лексикой занимаюсь по 15 минут в день.'),  // 文字・語彙
   '文法': x('文法より 会話の ほうが すきです。', 'bunpō yori kaiwa no hō ga suki desu.', 'Разговор мне нравится больше грамматики.'),  // 文法
+  '旅館': x('おんせんの ちかくの 旅館に とまりました。', 'onsen no chikaku no ryokan ni tomarimashita.', 'Мы остановились в рёкане рядом с горячим источником.'),
   '日本人': x('となりの せきの ひとは 日本人です。', 'tonari no seki no hito wa nihonjin desu.', 'Человек на соседнем месте — японец.'),  // 日本人
   '時間配分': x('試験は 時間配分が いちばん たいせつです。', 'shiken wa jikan haibun ga ichiban taisetsu desu.', 'На экзамене важнее всего распределение времени.'),  // 時間配分
   '模擬試験': x('どようびに 模擬試験を うけます。', 'doyōbi ni mogi shiken o ukemasu.', 'В субботу пишу пробный экзамен.'),  // 模擬試験
@@ -271,11 +281,14 @@ export const JA_VOCAB_EXAMPLES: ExampleMap = {
   '確認': x('もういちど 確認して ください。', 'mō ichido kakunin shite kudasai.', 'Проверьте ещё раз.'),  // 確認
   '社会': x('社会が はやく かわって います。', 'shakai ga hayaku kawatte imasu.', 'Общество быстро меняется.'),  // 社会
   '経済': x('経済の ニュースを まいあさ よみます。', 'keizai no nyūsu o maiasa yomimasu.', 'Каждое утро читаю экономические новости.'),  // 経済
+  '経験は問いません': x('このバイトは 経験は問いません。', 'kono baito wa keiken wa toimasen.', 'На эту подработку опыт не требуется.'),
   '聴解': x('聴解は 一回しか 聞けません。', 'chōkai wa ikkai shika kikemasen.', 'Аудирование звучит только один раз.'),  // 聴解
+  '見合わせる': x('つよい かぜで でんしゃは 運転を見合わせています。', 'tsuyoi kaze de densha wa unten o miawasete imasu.', 'Из-за сильного ветра поезда временно не ходят.'),
   '見直す': x('だす まえに もう いちど 見直します。', 'dasu mae ni mō ichido minaoshimasu.', 'Перед сдачей перепроверю ещё раз.'),  // 見直す
   '読解': x('読解の れんしゅうを まいにち します。', 'dokkai no renshū o mainichi shimasu.', 'Практикую чтение каждый день.'),  // 読解
   '部長': x('部長に ほうこくして ください。', 'buchō ni hōkoku shite kudasai.', 'Доложите начальнику отдела.'),  // 部長
   '関係': x('この ふたつには 関係が あります。', 'kono futatsu ni wa kankei ga arimasu.', 'Между этими двумя есть связь.'),  // 関係
+  '食べ放題': x('この みせは 二千円で 食べ放題です。', 'kono mise wa nisen-en de tabehōdai desu.', 'В этом заведении за две тысячи иен — сколько съешь.'),
   '～うちに': x('あついうちに たべて ください。', 'atsui uchi ni tabete kudasai.', 'Ешьте, пока горячее.'),  // ～うちに
   '～おかげで': x('せんせいの おかげで ごうかくしました。', 'sensei no okage de gōkaku shimashita.', 'Благодаря учителю я сдал.'),  // ～おかげで
   '～かもしれない': x('あしたは あめが ふるかもしれない。', 'ashita wa ame ga furu kamo shirenai.', 'Завтра, может быть, пойдёт дождь.'),  // ～かもしれない
