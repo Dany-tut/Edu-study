@@ -52,9 +52,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 24, а не 20, как у сборки ленты. На двадцатом нет встроенного
+      # WebSocket, а check:choicepos бандлит исходники приложения вместе с
+      # клиентом Supabase — тот на старте создаёт RealtimeClient и падает
+      # ещё до первой проверки. Локально этого не видно: там Node 24.
+      # Правило простое — версия в CI совпадает с той, на которой пишут.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
 
       # ci, а не install: ставим ровно то, что в package-lock.json, иначе
