@@ -11,10 +11,10 @@ export type ReviewGrade = 0 | 1 | 2 | 3 | 4 | 5
 
 // Student-facing buttons map onto SM-2 grades.
 export const GRADE_BUTTONS: { grade: ReviewGrade; label: string; tone: 'bad' | 'hard' | 'good' | 'easy' }[] = [
-  { grade: 1, label: t('Не помню'), tone: 'bad' },
-  { grade: 3, label: t('Трудно'),   tone: 'hard' },
-  { grade: 4, label: t('Хорошо'),   tone: 'good' },
-  { grade: 5, label: t('Легко'),    tone: 'easy' },
+  { grade: 1, label: 'Не помню', tone: 'bad' },
+  { grade: 3, label: 'Трудно',   tone: 'hard' },
+  { grade: 4, label: 'Хорошо',   tone: 'good' },
+  { grade: 5, label: 'Легко',    tone: 'easy' },
 ]
 
 export interface SrsState {

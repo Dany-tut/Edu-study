@@ -3666,6 +3666,16 @@ const EN: Record<string, string> = {
   'Почти': 'Almost',
   'Ход верный, есть над чем поработать': 'The approach is right, there is work to do',
   'Первый шаг': 'First step',
+
+  // ——— Хвосты: подписи из данных, доезжающие до экрана ———
+  'Тренажёр · линия 8': 'Trainer · line 8',
+  'Смешанный': 'Mixed',
+  'Органика': 'Organic',
+  'Неорганика': 'Inorganic',
+  'Общая': 'General',
+  'Реакция не идёт': 'No reaction',
+  'Уксусная кислота': 'Acetic acid',
+  'Вода': 'Water',
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

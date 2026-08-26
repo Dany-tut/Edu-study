@@ -106,7 +106,7 @@ export default function ReviewSession({ owner, onDone }: {
               return (
                 <button key={g.grade} onClick={() => grade(g)}
                   style={{ padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${TONE[g.tone]}`, background: `${TONE[g.tone]}1a`, color: TONE[g.tone], fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {g.label}
+                  {t(g.label)}
                   <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.85 }}>{intervalLabel(next.intervalDays)}</span>
                 </button>
               )

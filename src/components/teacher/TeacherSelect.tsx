@@ -183,7 +183,7 @@ export default function TeacherSelect({
             fontWeight: 500,
             cursor: 'pointer',
           }}>
-            {isEmpty ? (placeholder ?? '') : current!.label}
+            {isEmpty ? (placeholder ?? '') : t(current!.label)}
           </span>
         )}
 
@@ -290,7 +290,7 @@ export default function TeacherSelect({
                         onMouseLeave={e => { dropdownRowHover(selected).onMouseLeave(e); setHoverDel(p => p === o.value ? null : p) }}
                       >
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                          {o.label}
+                          {t(o.label)}
                         </span>
                         {selected && !showDel && <Check size={small ? 11 : 13} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
                         {editable && onDeleteOption && (

@@ -23,12 +23,12 @@ export interface TeacherPlanRow {
 }
 
 export const PLAN_OPTIONS = [
-  { code: null, label: t('Без тарифа (бета)') },
-  { code: 'free', label: t('Бесплатный · до 2 учеников') },
-  { code: 'basic', label: t('Базовый · 490 ₽/мес · до 5') },
-  { code: 'pro', label: t('Про · 990 ₽/мес · до 15') },
-  { code: 'school', label: t('Школа · 2 490 ₽/мес · до 30') },
-  { code: 'unlimited', label: t('Безлимит · 4 990 ₽/мес · безлимит') },
+  { code: null, label: 'Без тарифа (бета)' },
+  { code: 'free', label: 'Бесплатный · до 2 учеников' },
+  { code: 'basic', label: 'Базовый · 490 ₽/мес · до 5' },
+  { code: 'pro', label: 'Про · 990 ₽/мес · до 15' },
+  { code: 'school', label: 'Школа · 2 490 ₽/мес · до 30' },
+  { code: 'unlimited', label: 'Безлимит · 4 990 ₽/мес · безлимит' },
 ] as const
 
 // Тарифы для витрины (мобильный экран «Тариф»). Оплата пока не подключена —

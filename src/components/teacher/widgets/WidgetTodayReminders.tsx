@@ -98,12 +98,12 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
 }
 
 const stackTypeLabel: Record<Reminder['type'], string> = {
-  'check-hw': t('ДЗ на проверку'),
-  'fill-journal': t('Журнал'),
-  'payment-debt': t('Оплата'),
-  'fill-widget': t('Виджет'),
-  'make-trainer': t('Тренажёр'),
-  'send-push': t('Уведомление'),
+  'check-hw': 'ДЗ на проверку',
+  'fill-journal': 'Журнал',
+  'payment-debt': 'Оплата',
+  'fill-widget': 'Виджет',
+  'make-trainer': 'Тренажёр',
+  'send-push': 'Уведомление',
 }
 
 const COLLAPSE = {
@@ -201,7 +201,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 }}
               >
                 <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
-                  {stackTypeLabel[front.type]} · {items.length}
+                  {t(stackTypeLabel[front.type])} · {items.length}
                 </span>
                 <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
                   {t('Свернуть')} <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />

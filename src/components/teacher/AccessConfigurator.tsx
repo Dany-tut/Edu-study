@@ -112,7 +112,7 @@ export default function AccessConfigurator({
     onSubjectsChange?.(subjList.includes(id) ? subjList.filter(x => x !== id) : [...subjList, id])
 
   const bentoTiles: { key: string; label: string; icon: React.ReactNode; badge?: string }[] = [
-    ...TEACHER_TABS.filter(t => selectedTabs.includes(t.id)).map(t => ({ key: `t-${t.id}`, label: t.label, icon: <LayoutGrid size={13} /> })),
+    ...TEACHER_TABS.filter(tab => selectedTabs.includes(tab.id)).map(tab => ({ key: `t-${tab.id}`, label: tr(tab.label), icon: <LayoutGrid size={13} /> })),
     ...courseAssignments.map(a => {
       const c = courses.find(x => x.id === a.course_id)
       return { key: `c-${a.course_id}`, label: c?.title ?? tr('Курс'), icon: <BookOpen size={13} />, badge: a.mode === 'copy' ? tr('копия') : tr('общий') }
@@ -143,8 +143,8 @@ export default function AccessConfigurator({
       {/* Sections */}
       <SectionTitle>{tr('Разделы (что видит)')}</SectionTitle>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
-        {TEACHER_TABS.map(t => (
-          <Chip key={t.id} label={t.label} on={selectedTabs.includes(t.id)} onToggle={() => toggleTab(t.id)} />
+        {TEACHER_TABS.map(tab => (
+          <Chip key={tab.id} label={tr(tab.label)} on={selectedTabs.includes(tab.id)} onToggle={() => toggleTab(tab.id)} />
         ))}
       </div>
 
@@ -155,7 +155,7 @@ export default function AccessConfigurator({
       </SectionTitle>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: showContent ? 18 : 0, opacity: homeShown ? 1 : 0.45, transition: 'opacity 0.15s' }}>
         {WIDGET_REGISTRY.map(def => (
-          <Chip key={def.type} label={def.label} on={selectedWidgets.includes(def.type)} onToggle={() => toggleWidget(def.type)} />
+          <Chip key={def.type} label={tr(def.label)} on={selectedWidgets.includes(def.type)} onToggle={() => toggleWidget(def.type)} />
         ))}
       </div>
 

@@ -52,11 +52,11 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
 type HardStatus = 'submitted' | 'returned' | 'completed'
 
 export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: string; border: string; iconColor: string; label: string }> = {
-  available:  { bg: 'var(--color-purple-soft)', border: 'var(--color-purple)', iconColor: 'var(--color-purple)', label: t('Доступен хард') },
-  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: t('На проверке') },
-  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: t('Возвращён') },
-  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: t('Сдан') },
-  locked:     { bg: TRACK_STATUS.locked.bg, border: TRACK_STATUS.locked.border, iconColor: TRACK_STATUS.locked.icon, label: t('Недоступно') },
+  available:  { bg: 'var(--color-purple-soft)', border: 'var(--color-purple)', iconColor: 'var(--color-purple)', label: 'Доступен хард' },
+  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: 'На проверке' },
+  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: 'Возвращён' },
+  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: 'Сдан' },
+  locked:     { bg: TRACK_STATUS.locked.bg, border: TRACK_STATUS.locked.border, iconColor: TRACK_STATUS.locked.icon, label: 'Недоступно' },
 }
 
 interface Props {

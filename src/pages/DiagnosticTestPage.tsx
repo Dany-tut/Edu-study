@@ -169,12 +169,12 @@ function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string;
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
 const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: string; label: string; sublabel: string }> = {
-  biology:      { accent: '#22c55e', soft: '#dcfce7',                 label: t('Биология'),       sublabel: t('Диагностика знаний') },
-  chemistry:    { accent: '#8B5CF6', soft: 'rgba(139,92,246,0.12)',   label: t('Химия'),           sublabel: t('Диагностика знаний') },
-  'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: t('AP Химия'),        sublabel: t('Диагностика · RU')   },
+  biology:      { accent: '#22c55e', soft: '#dcfce7',                 label: 'Биология',       sublabel: 'Диагностика знаний' },
+  chemistry:    { accent: '#8B5CF6', soft: 'rgba(139,92,246,0.12)',   label: 'Химия',           sublabel: 'Диагностика знаний' },
+  'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: 'AP Химия',        sublabel: 'Диагностика · RU'   },
   'ap-chem-en': { accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)',   label: 'AP Chemistry',    sublabel: 'Diagnostic · EN'    },
-  'eng-placement': { accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)', label: t('Английский'),   sublabel: t('Определение уровня') },
-  'kor-placement': { accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)',  label: t('Корейский'),    sublabel: t('Определение уровня') },
+  'eng-placement': { accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)', label: 'Английский',   sublabel: 'Определение уровня' },
+  'kor-placement': { accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)',  label: 'Корейский',    sublabel: 'Определение уровня' },
 }
 
 const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement'])
@@ -337,7 +337,7 @@ export default function DiagnosticTestPage() {
             </div>
             <div>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{t('Диагностика')}</div>
-              <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{theme.label} · {total} {t('вопросов')}</div>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t(theme.label)} · {total} {t('вопросов')}</div>
             </div>
           </div>
 
@@ -435,7 +435,7 @@ export default function DiagnosticTestPage() {
               <Target size={14} style={{ color: theme.accent }} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-              {t('Диагностика')} · {theme.label}
+              {t('Диагностика')} · {t(theme.label)}
             </span>
           </div>
 

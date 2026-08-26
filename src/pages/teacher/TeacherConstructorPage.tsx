@@ -292,20 +292,20 @@ export interface Widget {
 
 // ─── Task bank ────────────────────────────────────────────────────────────────
 const TASK_BANK: BankQuestion[] = [
-  { id: 'tb1',  topic: 'Органика',   difficulty: 'easy',   text: t('Гомологи метана — это?'),                      answer: t('Этан (C₂H₆), пропан (C₃H₈), бутан (C₄H₁₀)…')          },
-  { id: 'tb2',  topic: 'Органика',   difficulty: 'medium', text: t('Реакция горения пропана'),                     answer: 'C₃H₈ + 5O₂ → 3CO₂ + 4H₂O'                            },
-  { id: 'tb3',  topic: 'Органика',   difficulty: 'medium', text: t('Изомеры бутана'),                              answer: t('н-бутан и изобутан (метилпропан)')                       },
-  { id: 'tb4',  topic: 'Органика',   difficulty: 'hard',   text: t('Бензол: особенности строения'),                answer: t('Цикл из 6 C, делокализованные π-электроны, ароматичность')},
-  { id: 'tb5',  topic: 'Неорганика', difficulty: 'hard',   text: t('Гидролиз хлорида алюминия'),                  answer: 'AlCl₃ + 3H₂O ⇌ Al(OH)₃↓ + 3HCl'                      },
-  { id: 'tb6',  topic: 'Неорганика', difficulty: 'medium', text: t('ОВР: как определить окислитель?'),             answer: t('Принимает электроны, степень окисления снижается')        },
-  { id: 'tb7',  topic: 'Неорганика', difficulty: 'easy',   text: t('Сильные кислоты'),                            answer: 'HCl, H₂SO₄, HNO₃, HBr, HI, HClO₄'                    },
-  { id: 'tb8',  topic: 'Неорганика', difficulty: 'medium', text: t('Электролитическая диссоциация NaCl'),          answer: t('NaCl → Na⁺ + Cl⁻ (полный электролит)')                  },
-  { id: 'tb9',  topic: 'Общая',      difficulty: 'medium', text: t('Закон Менделеева–Клапейрона'),                answer: 'PV = νRT'                                               },
-  { id: 'tb10', topic: 'Общая',      difficulty: 'hard',   text: t('Принцип Ле Шателье'),                         answer: t('Равновесие смещается, ослабляя внешнее воздействие')      },
-  { id: 'tb11', topic: 'Биология',   difficulty: 'hard',   text: t('Световая фаза фотосинтеза'),                  answer: t('Тилакоиды; разложение H₂O, O₂, синтез АТФ и НАДФH')     },
-  { id: 'tb12', topic: 'Биология',   difficulty: 'medium', text: t('Строение клеточной мембраны'),                answer: t('Двойной фосфолипидный слой с белками')                    },
-  { id: 'tb13', topic: 'Биология',   difficulty: 'easy',   text: t('Функции митохондрий'),                        answer: t('Синтез АТФ, собственный геном, деление')                  },
-  { id: 'tb14', topic: 'Биология',   difficulty: 'medium', text: t('Транспирация растений'),                      answer: t('Испарение воды листьями, движет восходящий ток')          },
+  { id: 'tb1',  topic: 'Органика',   difficulty: 'easy',   text: 'Гомологи метана — это?',                      answer: 'Этан (C₂H₆), пропан (C₃H₈), бутан (C₄H₁₀)…'          },
+  { id: 'tb2',  topic: 'Органика',   difficulty: 'medium', text: 'Реакция горения пропана',                     answer: 'C₃H₈ + 5O₂ → 3CO₂ + 4H₂O'                            },
+  { id: 'tb3',  topic: 'Органика',   difficulty: 'medium', text: 'Изомеры бутана',                              answer: 'н-бутан и изобутан (метилпропан)'                       },
+  { id: 'tb4',  topic: 'Органика',   difficulty: 'hard',   text: 'Бензол: особенности строения',                answer: 'Цикл из 6 C, делокализованные π-электроны, ароматичность'},
+  { id: 'tb5',  topic: 'Неорганика', difficulty: 'hard',   text: 'Гидролиз хлорида алюминия',                  answer: 'AlCl₃ + 3H₂O ⇌ Al(OH)₃↓ + 3HCl'                      },
+  { id: 'tb6',  topic: 'Неорганика', difficulty: 'medium', text: 'ОВР: как определить окислитель?',             answer: 'Принимает электроны, степень окисления снижается'        },
+  { id: 'tb7',  topic: 'Неорганика', difficulty: 'easy',   text: 'Сильные кислоты',                            answer: 'HCl, H₂SO₄, HNO₃, HBr, HI, HClO₄'                    },
+  { id: 'tb8',  topic: 'Неорганика', difficulty: 'medium', text: 'Электролитическая диссоциация NaCl',          answer: 'NaCl → Na⁺ + Cl⁻ (полный электролит)'                  },
+  { id: 'tb9',  topic: 'Общая',      difficulty: 'medium', text: 'Закон Менделеева–Клапейрона',                answer: 'PV = νRT'                                               },
+  { id: 'tb10', topic: 'Общая',      difficulty: 'hard',   text: 'Принцип Ле Шателье',                         answer: 'Равновесие смещается, ослабляя внешнее воздействие'      },
+  { id: 'tb11', topic: 'Биология',   difficulty: 'hard',   text: 'Световая фаза фотосинтеза',                  answer: 'Тилакоиды; разложение H₂O, O₂, синтез АТФ и НАДФH'     },
+  { id: 'tb12', topic: 'Биология',   difficulty: 'medium', text: 'Строение клеточной мембраны',                answer: 'Двойной фосфолипидный слой с белками'                    },
+  { id: 'tb13', topic: 'Биология',   difficulty: 'easy',   text: 'Функции митохондрий',                        answer: 'Синтез АТФ, собственный геном, деление'                  },
+  { id: 'tb14', topic: 'Биология',   difficulty: 'medium', text: 'Транспирация растений',                      answer: 'Испарение воды листьями, движет восходящий ток'          },
 ]
 
 const TOPICS = [...new Set(TASK_BANK.map(q => q.topic))]
@@ -385,11 +385,11 @@ const WIDGETS_INIT: Widget[] = [
 ]
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const WTYPE_LABEL: Record<WidgetType, string> = { quiz: t('Викторина'), facts: t('Научные факты'), reactions: t('Реакции'), pomodoro: t('Фокус'), memes: t('Мемы'), qod: t('Вопрос дня') }
+const WTYPE_LABEL: Record<WidgetType, string> = { quiz: 'Викторина', facts: 'Научные факты', reactions: 'Реакции', pomodoro: 'Фокус', memes: 'Мемы', qod: 'Вопрос дня' }
 const WTYPE_ICON:  Record<WidgetType, React.ElementType> = { quiz: CircleHelp, facts: FlaskConical, reactions: Atom, pomodoro: Timer, memes: Laugh, qod: Sparkles }
 const WTYPE_COLOR: Record<WidgetType, string> = { quiz: 'var(--color-accent)', facts: 'var(--color-green-text)', reactions: 'var(--color-blue-pill-text)', pomodoro: 'var(--color-peach-text)', memes: 'var(--color-accent)', qod: 'var(--color-teal-pill-text)' }
 const WTYPE_BG:    Record<WidgetType, string> = { quiz: 'var(--color-purple-soft)', facts: 'var(--color-green-soft)', reactions: 'var(--color-blue-pill-bg)', pomodoro: 'var(--color-peach-soft)', memes: 'var(--color-purple-soft)', qod: 'var(--color-teal-pill-bg)' }
-const STATUS_LABEL: Record<CourseStatus, string> = { published: t('Опубликован'), draft: t('Черновик') }
+const STATUS_LABEL: Record<CourseStatus, string> = { published: 'Опубликован', draft: 'Черновик' }
 const STATUS_COLOR: Record<CourseStatus, string> = { published: 'var(--color-green-text)', draft: 'var(--color-peach-text)' }
 const STATUS_BG:   Record<CourseStatus, string> = { published: 'var(--color-green-soft)', draft: 'var(--color-peach-soft)' }
 
@@ -803,8 +803,8 @@ function TrainerEditor({
                   {i + 1}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.answer}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(q.text)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(q.answer)}</div>
                 </div>
                 <button onClick={() => removeQ(q.id)} style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
                   <X size={10} />
@@ -917,7 +917,7 @@ function WidgetEditor({
                   color: isActive ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
                 }}>
                   <WIcon size={13} strokeWidth={2} />
-                  {WTYPE_LABEL[wt]}
+                  {t(WTYPE_LABEL[wt])}
                 </button>
               )
             })}
@@ -1055,7 +1055,7 @@ function WidgetEditor({
         {/* Items preview */}
         {type !== 'pomodoro' && (
           <div>
-            <SectionHead>{WTYPE_LABEL[type]}: {items.length} {t('элементов')}</SectionHead>
+            <SectionHead>{t(WTYPE_LABEL[type])}: {items.length} {t('элементов')}</SectionHead>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {items.slice(0, 6).map((item, i) => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'var(--color-bg-2)', borderRadius: 9 }}>
@@ -1286,7 +1286,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
       icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
       badge={
         <div style={{ display: 'flex', gap: 5 }}>
-          <span style={cardChip(STATUS_COLOR[course.status])}>{STATUS_LABEL[course.status]}</span>
+          <span style={cardChip(STATUS_COLOR[course.status])}>{t(STATUS_LABEL[course.status])}</span>
           {course.shared && <span style={cardChip('var(--color-purple-text)')}>{t('Общий')}</span>}
         </div>
       }
@@ -1384,7 +1384,7 @@ function WidgetCard({ widget, isSelected, onClick, actions }: { widget: Widget; 
       accentColor={WTYPE_COLOR[widget.type]} accentBg={WTYPE_BG[widget.type]} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<TypeIcon size={17} strokeWidth={2} style={{ color: WTYPE_COLOR[widget.type] }} />}
-      badge={<span style={cardChip(WTYPE_COLOR[widget.type])}>{WTYPE_LABEL[widget.type]}</span>}
+      badge={<span style={cardChip(WTYPE_COLOR[widget.type])}>{t(WTYPE_LABEL[widget.type])}</span>}
       title={widget.title}
       subtitle={(widget.items.length) + t(' элементов')}
       footerLeft={
@@ -1414,7 +1414,7 @@ export const emptyWidgetFilters: WidgetFilters = {
 }
 
 const WIDGET_SORT_OPTS: [WidgetSortMode, string][] = [
-  ['newest', t('Новые')], ['oldest', t('Старые')], ['az', t('А → Я')], ['items', t('По элементам')],
+  ['newest', 'Новые'], ['oldest', 'Старые'], ['az', 'А → Я'], ['items', 'По элементам'],
 ]
 
 /**
@@ -1433,7 +1433,7 @@ const PILL_GLASS: React.CSSProperties = {
 function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChange: (v: WidgetSortMode) => void }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const label = WIDGET_SORT_OPTS.find(([v]) => v === value)?.[1] ?? t('Новые')
+  const label = t(WIDGET_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые')
   const accent = 'var(--color-blue-pill-text)'
   const accentSoft = 'color-mix(in srgb, var(--color-blue-pill-text) 11%, transparent)'
   return (
@@ -1464,7 +1464,7 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
                 onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
                 onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                {lbl}
+                {t(lbl)}
                 {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
@@ -1477,13 +1477,13 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
 
 type CourseSortMode = 'newest' | 'oldest' | 'az'
 const COURSE_SORT_OPTS: [CourseSortMode, string][] = [
-  ['newest', t('Новые')], ['oldest', t('Старые')], ['az', t('А → Я')],
+  ['newest', 'Новые'], ['oldest', 'Старые'], ['az', 'А → Я'],
 ]
 
 function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const label = COURSE_SORT_OPTS.find(([v]) => v === value)?.[1] ?? t('Новые')
+  const label = t(COURSE_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые')
   const accent = 'var(--color-green-text)'
   const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
   return (
@@ -1514,7 +1514,7 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
                 onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
                 onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                {lbl}
+                {t(lbl)}
                 {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
@@ -1769,7 +1769,7 @@ function WidgetGroupsView({
               <div style={{ width: 28, height: 28, borderRadius: 9, background: WTYPE_BG[wt], display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <TypeIcon size={13} strokeWidth={2} style={{ color: WTYPE_COLOR[wt] }} />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{WTYPE_LABEL[wt]}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(WTYPE_LABEL[wt])}</span>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>{ws.length}</span>
               <div style={{ flex: 1, height: 1, background: 'var(--color-border-soft)', marginLeft: 4 }} />
             </div>
@@ -1955,9 +1955,9 @@ function LessonNameInput({ value, onChange, onAdd }: {
 // и в залитом кружке давал 1.7–2.2:1. Совпадает по смыслу с typeVisual().fill,
 // который подмешивается поверх в режиме тренажёра.
 const CREATOR_CFG = {
-  course:  { label: t('Курс'),     Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)',  accent: 'var(--color-accent)',         fill: 'var(--color-control-accent)' },
-  trainer: { label: t('Тренажёр'), Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)',         fill: 'var(--color-control-accent)' },
-  widget:  { label: t('Виджет'),   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)', fill: 'var(--color-blue-fill)' },
+  course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)',  accent: 'var(--color-accent)',         fill: 'var(--color-control-accent)' },
+  trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)',         fill: 'var(--color-control-accent)' },
+  widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)', fill: 'var(--color-blue-fill)' },
 }
 
 // ─── Lesson content editor (konspekt + homework, persisted to Supabase) ───────
@@ -2991,7 +2991,7 @@ function CreatorView({
                       fontSize: 12, fontWeight: 600,
                       color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
                     }}>
-                      <WIcon size={13} strokeWidth={2} />{WTYPE_LABEL[wt]}
+                      <WIcon size={13} strokeWidth={2} />{t(WTYPE_LABEL[wt])}
                     </button>
                   )
                 })}
@@ -3491,7 +3491,7 @@ function CreatorView({
           {/* ─── WIDGET center ─── */}
           {mode === 'widget' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '20px 22px' }}>
-              <SectionHead>{t('Содержимое —')} {WTYPE_LABEL[wType]}</SectionHead>
+              <SectionHead>{t('Содержимое —')} {t(WTYPE_LABEL[wType])}</SectionHead>
 
               {(wType === 'quiz' || wType === 'qod') && <>
                 <div><Label>{t('Вопрос')}</Label><input value={wQText} onChange={e => setWQText(e.target.value)} placeholder={t("Текст вопроса…")} style={inputSt}
@@ -3695,13 +3695,13 @@ function CreatorView({
 const BASE_URL = window.location.origin + window.location.pathname
 
 const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: string }> = {
-  biology:      { label: t('Биология'),          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
-  chemistry:    { label: t('Химия'),             accent: '#8B5CF6', soft: 'var(--color-purple-soft)' },
-  logic:        { label: t('Скрининг мышления'), accent: '#f59e0b', soft: 'var(--color-yellow-soft)' },
+  biology:      { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
+  chemistry:    { label: 'Химия',             accent: '#8B5CF6', soft: 'var(--color-purple-soft)' },
+  logic:        { label: 'Скрининг мышления', accent: '#f59e0b', soft: 'var(--color-yellow-soft)' },
   'ap-chem-ru': { label: 'AP Chemistry (RU)', accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)'   },
   'ap-chem-en': { label: 'AP Chemistry (EN)', accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)'   },
-  'eng-placement': { label: t('Английский — уровень'), accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)' },
-  'kor-placement': { label: t('Корейский — уровень'),  accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)'  },
+  'eng-placement': { label: 'Английский — уровень', accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)' },
+  'kor-placement': { label: 'Корейский — уровень',  accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)'  },
 }
 const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement']
 const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
@@ -4205,7 +4205,8 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
 
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   const t = useT()
-  const { label, accent, soft } = SUBJECT_META[subject]
+  const { label: rawLabel, accent, soft } = SUBJECT_META[subject]
+  const label = t(rawLabel)
 
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
   const [expanded, setExpanded] = useState(false)
@@ -4499,7 +4500,7 @@ function DiagnosticStudentCard({
             {result.name}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-            <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{subjectLabel}</span>
+            <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{t(subjectLabel)}</span>
             <span>{date} · {time}</span>
             {linkedStudent && (
               <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -4857,7 +4858,9 @@ function DiagResultsTable({
   onRefresh: () => void
 }) {
   const t = useT()
-  const { label, accent, soft } = getSubjectMeta(subject)
+  // Встроенные предметы держат русский ключ; свои названия учителя проходят мимо словаря.
+  const { label: rawSubjectLabel, accent, soft } = getSubjectMeta(subject)
+  const label = t(rawSubjectLabel)
   const [copied, setCopied] = useState(false)
 
   function copyLink() {
@@ -5110,9 +5113,9 @@ function DiagResultStudentPanel({
 }
 
 // ─── Date/time picker helpers ─────────────────────────────────────────────────
-const RU_MONTHS_SHORT = [t('Янв'),t('Фев'),t('Мар'),t('Апр'),t('Май'),t('Июн'),t('Июл'),t('Авг'),t('Сен'),t('Окт'),t('Ноя'),t('Дек')]
-const RU_MONTHS_FULL  = [t('Январь'),t('Февраль'),t('Март'),t('Апрель'),t('Май'),t('Июнь'),t('Июль'),t('Август'),t('Сентябрь'),t('Октябрь'),t('Ноябрь'),t('Декабрь')]
-const RU_DAYS_SHORT   = [t('Пн'),t('Вт'),t('Ср'),t('Чт'),t('Пт'),t('Сб'),t('Вс')]
+const RU_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']
+const RU_MONTHS_FULL  = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
+const RU_DAYS_SHORT   = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 
 function parseDateISO(v: string): Date | null {
   if (!v) return null
@@ -5169,11 +5172,11 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
       style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS_FULL[viewMonth]} {viewYear}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS_FULL[viewMonth])} {viewYear}</span>
         <button onClick={nextMonth} style={calNavBtn}><ChevronRight size={14} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
-        {RU_DAYS_SHORT.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', paddingBottom: 4 }}>{d}</div>)}
+        {RU_DAYS_SHORT.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', paddingBottom: 4 }}>{t(d)}</div>)}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
         {days.map((d, i) => {
@@ -5911,14 +5914,14 @@ const SCR_ACC = '#f59e0b'
 const SCR_SOFT = 'rgba(245,158,11,0.11)'
 
 const RULE_LABELS: Record<MatrixRuleKey, string> = {
-  shape: t('Форма'), size: t('Размер'), fill: t('Заливка'),
-  rotation: t('Поворот'), count: t('Количество'), distribute3: t('Латинский квадрат'), xor: 'XOR',
+  shape: 'Форма', size: 'Размер', fill: 'Заливка',
+  rotation: 'Поворот', count: 'Количество', distribute3: 'Латинский квадрат', xor: 'XOR',
 }
 const ALL_RULES: MatrixRuleKey[] = ['shape','size','fill','rotation','count','distribute3','xor']
 
 const SERIES_LABELS: Record<SeriesType, string> = {
-  arithmetic: t('Арифметика'), geometric: t('Геометрия'),
-  fibonacci: t('Фибоначчи'), alternating: t('Чередование'), letters: t('Буквы'),
+  arithmetic: 'Арифметика', geometric: 'Геометрия',
+  fibonacci: 'Фибоначчи', alternating: 'Чередование', letters: 'Буквы',
 }
 const ALL_SERIES: SeriesType[] = ['arithmetic','geometric','fibonacci','alternating','letters']
 
@@ -5958,6 +5961,7 @@ function ScrNumInput({ label, value, min, max, step = 1, onChange }: {
 function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: {
   label: string; all: T[]; active: T[]; labelMap: Record<T, string>; onChange: (v: T[]) => void
 }) {
+  const t = useT()
   return (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
@@ -5967,7 +5971,7 @@ function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: 
           return (
             <button key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
               style={{ padding: '6px 13px', borderRadius: 8, border: 'none', background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-              {labelMap[key]}
+              {t(labelMap[key])}
             </button>
           )
         })}
@@ -6525,14 +6529,14 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
 
 // ─── Screening domain display meta for test creator ───────────────────────────
 const SCR_DOMAIN_META: Record<DomainKey, { short: string; emoji: string }> = {
-  matrices:  { short: t('Матрицы'),   emoji: '🧩' },
-  series:    { short: t('Серии'),     emoji: '📈' },
-  analogies: { short: t('Аналогии'),  emoji: '🔀' },
-  rotation:  { short: t('Вращение'),  emoji: '🔁' },
-  memory:    { short: t('Память'),    emoji: '🧠' },
-  stroop:    { short: t('Струп'),     emoji: '🎨' },
-  speed:     { short: t('Скорость'),  emoji: '⚡' },
-  matching:  { short: t('Связи'),     emoji: '🔗' },
+  matrices:  { short: 'Матрицы',   emoji: '🧩' },
+  series:    { short: 'Серии',     emoji: '📈' },
+  analogies: { short: 'Аналогии',  emoji: '🔀' },
+  rotation:  { short: 'Вращение',  emoji: '🔁' },
+  memory:    { short: 'Память',    emoji: '🧠' },
+  stroop:    { short: 'Струп',     emoji: '🎨' },
+  speed:     { short: 'Скорость',  emoji: '⚡' },
+  matching:  { short: 'Связи',     emoji: '🔗' },
 }
 const DOMAIN_ICONS: Record<DomainKey, React.ElementType> = {
   matrices:  LayoutGrid,
@@ -6853,7 +6857,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 20, borderRadius: 14, background: accent + '18', border: `1.5px solid ${accent}44` }}>
                         {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <div style={{ width: 52, height: 52, borderRadius: 14, background: accent + '28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><DI size={26} strokeWidth={2} style={{ color: accent }} /></div> })()}
                         <div>
-                          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{t('Скрининг-блок:')} {SCR_DOMAIN_META[editScrDomain].short}</div>
+                          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{t('Скрининг-блок:')} {t(SCR_DOMAIN_META[editScrDomain].short)}</div>
                           <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
                             {editScrCount} {t('автоматически генерируемых заданий этого типа')}<br />{t('будут вставлены в тест в этом месте.')}
                           </div>
@@ -6996,7 +7000,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                           <button key={k} onClick={() => setEditScrDomain(k)}
                             style={{ padding: '8px 6px', borderRadius: 10, border: `2px solid ${isSel ? accent : 'var(--color-border-medium)'}`, background: isSel ? accent : 'var(--color-bg-2)', color: isSel ? '#fff' : 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                             <DI size={18} strokeWidth={2} />
-                            <span style={{ fontSize: 9, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{SCR_DOMAIN_META[k].short}</span>
+                            <span style={{ fontSize: 9, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{t(SCR_DOMAIN_META[k].short)}</span>
                           </button>
                         )
                       })}
@@ -7011,7 +7015,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     </div>
                   </div>
                   <div style={{ padding: 10, borderRadius: 10, background: accent + '18', border: `1px solid ${accent}40`, fontSize: 11, color: 'var(--color-text)', lineHeight: 1.5 }}>
-                    {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <strong style={{ color: accent, display: 'inline-flex', alignItems: 'center', gap: 5 }}><DI size={12} strokeWidth={2.5} /> {SCR_DOMAIN_META[editScrDomain].short}</strong> })()}{' '}— {editScrCount} {t('заданий будут вставлены в этом месте.')}
+                    {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <strong style={{ color: accent, display: 'inline-flex', alignItems: 'center', gap: 5 }}><DI size={12} strokeWidth={2.5} /> {t(SCR_DOMAIN_META[editScrDomain].short)}</strong> })()}{' '}— {editScrCount} {t('заданий будут вставлены в этом месте.')}
                   </div>
                 </>
               )}
@@ -7026,10 +7030,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
 // ─── Chip helpers ─────────────────────────────────────────────────────────────
 const PRESET_CHIPS = [
   { label: 'AI',           color: '#0ea5e9', bg: '#e0f2fe', darkColor: '#67CFFF', darkBg: 'rgba(14,165,233,0.20)' },
-  { label: t('Диагностика'),  color: '#7B3FCC', bg: '#EEDBFF', darkColor: '#C9A6FF', darkBg: 'rgba(123,63,204,0.26)' },
-  { label: t('Тестирование'), color: '#1a6fa8', bg: '#dbeeff', darkColor: '#7BBCED', darkBg: 'rgba(26,111,168,0.26)' },
-  { label: t('Пробник'),      color: '#B87A10', bg: '#FFF0CC', darkColor: '#F0C45A', darkBg: 'rgba(184,122,16,0.24)' },
-  { label: t('Контрольная'),  color: '#C53030', bg: '#FFE1E4', darkColor: '#FF8A8A', darkBg: 'rgba(197,48,48,0.26)' },
+  { label: 'Диагностика',  color: '#7B3FCC', bg: '#EEDBFF', darkColor: '#C9A6FF', darkBg: 'rgba(123,63,204,0.26)' },
+  { label: 'Тестирование', color: '#1a6fa8', bg: '#dbeeff', darkColor: '#7BBCED', darkBg: 'rgba(26,111,168,0.26)' },
+  { label: 'Пробник',      color: '#B87A10', bg: '#FFF0CC', darkColor: '#F0C45A', darkBg: 'rgba(184,122,16,0.24)' },
+  { label: 'Контрольная',  color: '#C53030', bg: '#FFE1E4', darkColor: '#FF8A8A', darkBg: 'rgba(197,48,48,0.26)' },
 ]
 function getChipStyle(chip: string, fallbackAccent?: string, dark?: boolean) {
   const p = PRESET_CHIPS.find(c => c.label === chip)
@@ -7066,7 +7070,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
               outlineOffset: -1,
               transition: 'all 0.13s',
             }}
-          >{chip}</button>
+          >{t(chip)}</button>
         )
       })}
       {adding ? (
@@ -7101,7 +7105,9 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
 // ─── Diagnostic Card ─────────────────────────────────────────────────────────
 function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subject: DiagSubject; isSelected: boolean; onClick: () => void; chipOverride?: string }) {
   const t = useT()
-  const { label, accent, soft } = getSubjectMeta(subject)
+  // Встроенные предметы держат русский ключ; свои названия учителя проходят мимо словаря.
+  const { label: rawSubjectLabel, accent, soft } = getSubjectMeta(subject)
+  const label = t(rawSubjectLabel)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [anonCount, setAnonCount] = useState(0)
@@ -7117,7 +7123,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
       accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={cardChip(chipColor)}>{chip}</span>}
+      badge={<span style={cardChip(chipColor)}>{t(chip)}</span>}
       title={label}
       subtitle={subject === 'logic' ? (loadScreeningConfig().order.length) + t(' доменов') : (questions.length) + t(' вопросов')}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? (anonCount) + t(' прошли тест') : t('Нет сдач')}</span></>}
@@ -7145,7 +7151,7 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={cardChip(chipColor)}>{chip}</span>}
+      badge={<span style={cardChip(chipColor)}>{t(chip)}</span>}
       title={label}
       subtitle={qCount > 0 ? (qCount) + t(' вопросов') : t('Нет вопросов')}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? (anonCount) + t(' прошли тест') : t('Нет сдач')}</span></>}
@@ -7161,7 +7167,9 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
   onEditTest: () => void
 }) {
   const t = useT()
-  const { label, accent, soft } = getSubjectMeta(subject)
+  // Встроенные предметы держат русский ключ; свои названия учителя проходят мимо словаря.
+  const { label: rawSubjectLabel, accent, soft } = getSubjectMeta(subject)
+  const label = t(rawSubjectLabel)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [copied, setCopied] = useState(false)
@@ -7325,7 +7333,8 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
 // ─── Diagnostic Editor Panel (questions editor) ───────────────────────────────
 function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
   const t = useT()
-  const { label, accent, soft } = SUBJECT_META[subject]
+  const { label: rawLabel, accent, soft } = SUBJECT_META[subject]
+  const label = t(rawLabel)
   const Icon = SUBJECT_ICON_MAP[subject]
 
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))

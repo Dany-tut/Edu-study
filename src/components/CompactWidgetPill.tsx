@@ -43,12 +43,12 @@ const PILL_WIDTH = 320
 
 // One-line "kicker" tags + accent colours per widget id.
 const META: Record<number, { kicker: string; accent: string }> = {
-  0: { kicker: t('Сегодня'), accent: 'var(--color-accent)' },
-  1: { kicker: t('Научный факт'), accent: '#2D6BE0' },
-  2: { kicker: t('Реакция курса'), accent: '#1E9E63' },
-  3: { kicker: t('Фокус'), accent: 'var(--color-accent)' },
-  4: { kicker: t('Мем'), accent: '#E0852D' },
-  5: { kicker: t('Вопрос дня'), accent: '#0E7A6F' },
+  0: { kicker: 'Сегодня', accent: 'var(--color-accent)' },
+  1: { kicker: 'Научный факт', accent: '#2D6BE0' },
+  2: { kicker: 'Реакция курса', accent: '#1E9E63' },
+  3: { kicker: 'Фокус', accent: 'var(--color-accent)' },
+  4: { kicker: 'Мем', accent: '#E0852D' },
+  5: { kicker: 'Вопрос дня', accent: '#0E7A6F' },
 }
 
 // Compact previews per widget id. `expanded` toggles the longer copy that
@@ -211,7 +211,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
           📊
         </div>
       }
-      kicker={META[0].kicker}
+      kicker={t(META[0].kicker)}
       title={t('Пока недостаточно данных')}
       expanded={expanded}
       detail={t('Данные появятся после первых занятий.')}

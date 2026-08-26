@@ -603,7 +603,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                        hardStatus === 'locked'    ? <Lock size={14} /> :
                                                     <HardStarLottie size={20} />}
                       <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                        {hardStyleData.label}
+                        {t(hardStyleData.label)}
                       </span>
                     </div>
 

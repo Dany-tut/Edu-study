@@ -13,7 +13,7 @@ import AdminStudentsManager from './AdminStudentsManager'
 // тарифного лимита). Данные из analytics_events (миграция 0039).
 
 const PLAN_LABEL: Record<string, string> = {
-  free: t('Бесплатный'), solo: t('Соло'), pro: t('Про'), school: t('Школа'),
+  free: 'Бесплатный', solo: 'Соло', pro: 'Про', school: 'Школа',
 }
 
 function fmtMin(min: number): string {
@@ -36,10 +36,10 @@ function fmtWhen(iso: string | null): string {
 }
 
 const KIND_LABEL: Record<string, { label: string; color: string }> = {
-  teacher: { label: t('Учитель'), color: 'var(--color-purple)' },
-  admin: { label: t('Админ'), color: '#D07020' },
-  student: { label: t('Ученик'), color: '#2E8F76' },
-  anon: { label: t('Гость'), color: 'var(--color-text-3)' },
+  teacher: { label: 'Учитель', color: 'var(--color-purple)' },
+  admin: { label: 'Админ', color: '#D07020' },
+  student: { label: 'Ученик', color: '#2E8F76' },
+  anon: { label: 'Гость', color: 'var(--color-text-3)' },
 }
 
 const DAYS = [7, 30, 90] as const
@@ -185,7 +185,7 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
           return (
             <tr key={r.actor_id}>
               <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600 }}>{r.name}</td>
-              <td style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 12.5 }}>{k.label}</span></td>
+              <td style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 12.5 }}>{t(k.label)}</span></td>
               <td style={numTd}>{fmtMin(r.active_min)}</td>
               <td style={numTd}>{r.sessions}</td>
               <td style={numTd}>{r.logins || '—'}</td>

@@ -13,6 +13,7 @@ type Props = {
 }
 
 function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
+  const t = useT()
   const Icon = def.icon
   return (
     <button
@@ -40,8 +41,8 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
         <Icon size={20} strokeWidth={1.8} color={def.iconColor} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{def.label}</div>
-        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{def.description}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(def.label)}</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(def.description)}</div>
       </div>
       <div style={{
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
