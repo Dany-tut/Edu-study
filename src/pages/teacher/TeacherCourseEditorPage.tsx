@@ -8,7 +8,7 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
@@ -38,7 +38,7 @@ import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
 import {
-  theoryToParagraphs, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
+  theoryToParagraphs, paragraphsToTheory, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
   cutTheoryAtFigures, joinTheoryAtFigures, setFigureCaption, moveTheoryFigure,
   type TheoryImage,
 } from '../../lib/theoryImages'
@@ -164,9 +164,20 @@ export interface CourseEdData {
   description?: string
   dbCourseId?: string
   lastEdited?: string
+  /**
+   * Курс открыт «лёгким»: уроки приехали без конспектов, домашек и файлов —
+   * это мегабайты, из-за которых открытие ждало по 2–6 секунд. Пока флаг
+   * стоит, тяжёлую половину догружает useHeavyLessons, а сохранение (и ручное,
+   * и автоматическое) заблокировано: запись идёт курсом целиком и затёрла бы
+   * недоехавшее пустотой.
+   */
+  heavyPending?: boolean
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
+
+/** Функцией, а не константой: t() на уровне модуля замерзает на языке загрузки. */
+const HEAVY_WAIT_MSG = () => t('Уроки ещё догружаются — секунду, и можно сохранять.')
 
 // ── Date-shift helpers — used by «Выдать новой группе» to slide the whole
 // calendar so a cloned course starts fresh on a new date. Dates are DD.MM.YYYY.
@@ -4999,6 +5010,70 @@ export default function TeacherCourseEditorPage() {
     return draft ?? base
   })
 
+  const [heavyErr, setHeavyErr] = useState(false)
+
+  // ── Тяжёлая половина уроков ───────────────────────────────────────────────
+  //
+  // Конструктор открывает курс лёгким: список уроков, модули и расписание. У
+  // курса на 215 уроков конспекты и домашки — 2,5 МБ, и раньше редактор ждал их
+  // ДО открытия: клик по карточке на 2–6 секунд не менял на экране ничего.
+  // Теперь они приезжают сюда, вторым запросом, уже на открытом редакторе.
+  //
+  // Правки учителя во время загрузки не затираются: заполняем только те поля,
+  // которых в состоянии ещё нет. Если он успел что-то написать в пустом
+  // конспекте, останется написанное.
+  useEffect(() => {
+    if (!course.heavyPending || !course.dbCourseId) return
+    let alive = true
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('lessons(short_id, content, homework, materials)')
+        .eq('short_id', course.dbCourseId)
+        .single()
+      if (!alive) return
+      if (error || !data) { setHeavyErr(true); return }
+      const byId = new Map<string, any>(
+        ((data as any).lessons ?? []).map((l: any) => [l.short_id, l]),
+      )
+      setCourse(c => {
+        if (!c.heavyPending) return c
+        return {
+          ...c,
+          heavyPending: false,
+          lessons: c.lessons.map(l => {
+            const row = byId.get(l.id)
+            if (!row) return l
+            const theory = paragraphsToTheory(
+              Array.isArray(row.content?.paragraphs) ? row.content.paragraphs : [],
+            )
+            const hw = row.homework ?? {}
+            return {
+              ...l,
+              theory: l.theory ?? (theory.theory || undefined),
+              theoryImages: l.theoryImages ?? theory.images,
+              files: l.files ?? parseLessonFiles(row.materials),
+              hwTitle: l.hwTitle ?? hw.hwTitle ?? undefined,
+              hwTarget: l.hwTarget ?? hw.hwTarget ?? undefined,
+              hwDate: l.hwDate ?? hw.hwDate ?? undefined,
+              hwDateManual: l.hwDateManual ?? hw.hwDateManual ?? false,
+              hwTasks: l.hwTasks ?? (Array.isArray(hw.hwTasks) ? hw.hwTasks : []),
+              recHwTitle: l.recHwTitle ?? hw.recHwTitle ?? undefined,
+              recHwTarget: l.recHwTarget ?? hw.recHwTarget ?? undefined,
+              recHwDate: l.recHwDate ?? hw.recHwDate ?? undefined,
+              recHwDateManual: l.recHwDateManual ?? hw.recHwDateManual ?? false,
+              recHwTasks: l.recHwTasks ?? (Array.isArray(hw.recHwTasks) ? hw.recHwTasks : []),
+            }
+          }),
+        }
+      })
+    })()
+    return () => { alive = false }
+    // Один заход на курс: дальше флаг снят, а по dbCourseId редактор не
+    // переоткрывается — курс меняют через выход в конструктор.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course.heavyPending, course.dbCourseId])
+
   // Конспект, потерянный при сохранении, добираем из сида — иначе редактор
   // показывает пустое поле и следующее «Сохранить» закрепляет пустоту в БД
   // (разбор храповика — в data/seedTheory.ts). Накрывает и залипший черновик,
@@ -5011,6 +5086,9 @@ export default function TeacherCourseEditorPage() {
   // это время состояние не ушло вперёд.
   const theoryRestored = useRef(false)
   useEffect(() => {
+    // Не раньше тяжёлой половины: пока конспекты не приехали, «потерян» каждый
+    // урок, и починка подставила бы сидовый текст туда, где в БД лежит свой.
+    if (course.heavyPending) return
     if (theoryRestored.current) return
     theoryRestored.current = true
     let alive = true
@@ -5056,6 +5134,9 @@ export default function TeacherCourseEditorPage() {
   // а не мигает неверным числом.
   const [seedDiff, setSeedDiff] = useState<SeedDiff>({ seedKey: null, changes: [] })
   useEffect(() => {
+    // Пока уроки без конспектов и домашек, расхождение с сидом — это весь курс
+    // целиком: кнопка «Из сида · 215» врала бы и предлагала перезалить всё.
+    if (course.heavyPending) return
     let alive = true
     diffAgainstSeed(course).then(d => { if (alive) setSeedDiff(d) })
     return () => { alive = false }
@@ -5210,6 +5291,9 @@ export default function TeacherCourseEditorPage() {
   const autosaveArmed = useRef(false)
   useEffect(() => {
     if (!course.dbCourseId) return
+    // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
+    // бы конспекты с домашками, которых пока нет в состоянии.
+    if (course.heavyPending) return
     if (!autosaveArmed.current) { autosaveArmed.current = true; return }
     const t = setTimeout(() => {
       setCourseEdited(JSON.stringify(course))
@@ -5343,6 +5427,10 @@ export default function TeacherCourseEditorPage() {
 
   async function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
     const shortId = c.dbCourseId ?? c.id
+
+    // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
+    // а недогруженный курс — это курс без конспектов и домашек.
+    if (c.heavyPending) return false
 
     // ── Защита от перезаписи устаревшей вкладкой ──────────────────────────────
     //
@@ -5731,11 +5819,15 @@ export default function TeacherCourseEditorPage() {
       modules,
       lessons,
       lastEdited: undefined,
+      heavyPending: undefined,
     }
   }
 
   async function runHandout() {
     if (!handoutGroupId || handoutBusy) return
+    // Копия снимается с состояния редактора: пока тяжёлая половина не приехала,
+    // это курс без конспектов и домашек — вторая группа получила бы пустышку.
+    if (course.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
     setHandoutBusy(true)
     const clone = buildHandoutClone({ groupId: handoutGroupId, title: handoutTitle, newStartIso: handoutStart || undefined })
     const ok = await syncAccessToSupabase(clone)
@@ -5746,6 +5838,7 @@ export default function TeacherCourseEditorPage() {
 
   function handleSave(overrideCourse?: CourseEdData) {
     const c = overrideCourse ?? course
+    if (c.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
     setCourseEdited(JSON.stringify(c))
     const seq = draftSeq.current
     setSaving(true)
@@ -5780,6 +5873,7 @@ export default function TeacherCourseEditorPage() {
   }
 
   function handlePublish() {
+    if (course.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
     const blocker = publishBlocker(course)
     if (blocker) {
       setPublishErr(blocker)
@@ -5913,6 +6007,15 @@ export default function TeacherCourseEditorPage() {
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
               сида, и только когда расхождения реально нашлись: «Подтянуть»,
               которая каждый раз отвечает «всё совпадает», — это шум в шапке. */}
+          {/* Тяжёлая половина едет — говорим об этом прямо: кнопки сохранения в
+              это время не работают, и молчащая шапка выглядела бы поломкой. */}
+          {course.heavyPending && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
+              {heavyErr
+                ? <>{t('Не удалось догрузить уроки — перезагрузите страницу')}</>
+                : <><Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} /> {t('Догружаем уроки…')}</>}
+            </div>
+          )}
           {seedDiff.changes.length > 0 && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
               title={`${t('Из сида')} · ${seedDiff.changes.length} — ${t('Показать, что изменилось в готовом курсе с момента добавления')}`}

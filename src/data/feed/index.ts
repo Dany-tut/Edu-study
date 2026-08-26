@@ -1014,9 +1014,9 @@ const LOADERS: Record<string, Loader> = {
  * плюс loadFeed ругается в консоль, если приехал список другой длины.
  */
 export const FEED_COUNTS: Record<string, number> = {
-  en: 45,
+  en: 43,
   ja: 44,
-  ko: 52,
+  ko: 47,
   pt: 42,
 }
 

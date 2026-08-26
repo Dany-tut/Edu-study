@@ -1,9 +1,17 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
 import { t } from './i18n'
 
+/**
+ * Склейка classNames.
+ *
+ * Без tailwind-merge: тот умеет разрешать конфликты утилит («p-2 p-4» → «p-4»)
+ * и стоит за это 70 КБ в бандле — при ЕДИНСТВЕННОМ вызове cn() во всём
+ * приложении (CourseNode), где конфликтующих утилит нет и в помине. Вёрстка
+ * здесь живёт в inline-стилях, а не в утилитах Tailwind, так что разрешать
+ * нечего: clsx делает ровно то, что нужно.
+ */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return clsx(inputs)
 }
 
 /** Returns '#ffffff' or '#1a1a2e' depending on which contrasts better against `hex`. */

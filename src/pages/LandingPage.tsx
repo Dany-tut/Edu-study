@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send, X, GraduationCap, User, Check, Sparkles, ArrowRight,
@@ -9,7 +9,12 @@ import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
 import { useLang, useT } from '../lib/i18n'
 import ThemeToggleBtn from '../components/ThemeToggleBtn'
-import ProductMock from '../components/landing/ProductMock'
+
+// Мокап продукта — 81 КБ рисованного интерфейса, и он стоит ПОД первым экраном
+// (внутри Reveal, который и так ждёт прокрутки). Держать его в главном чанке
+// значит задерживать заголовок ради картинки, которую ещё не видно. Место под
+// него зарезервировано коробкой той же пропорции, чтобы страница не прыгнула.
+const ProductMock = lazy(() => import('../components/landing/ProductMock'))
 
 const ACCENT = '#786AD7'          // фирменный фиолетовый (как в кабинете)
 const ACCENT_2 = '#6F3FBF'        // глубокий фиолет для градиента
@@ -181,7 +186,9 @@ export default function LandingPage() {
         {/* mock-скриншот продукта */}
         <Reveal delay={0.2}>
           <div style={{ position: 'relative', zIndex: 1, maxWidth: 1080, margin: '54px auto 0' }}>
-            <ProductMock />
+            <Suspense fallback={<div style={{ aspectRatio: '16 / 10', borderRadius: 18, background: 'var(--color-bg-2)' }} />}>
+              <ProductMock />
+            </Suspense>
           </div>
         </Reveal>
       </section>

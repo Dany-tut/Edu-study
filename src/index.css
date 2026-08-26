@@ -755,6 +755,14 @@ a {
   .deck-flip-a, .deck-flip-b { animation: none; }
 }
 
+/* Крутилка ожидания. Объявлена глобально: раньше каждая страница со спиннером
+   заводила свой @keyframes spin, а те, что забыли, показывали неподвижную
+   иконку (AssignPlanButton). */
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 2.4s; }
+}
+
 @keyframes shimmer-bar {
   0%   { transform: translateX(-120%); }
   60%  { transform: translateX(220%); }

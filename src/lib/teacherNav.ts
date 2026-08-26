@@ -40,6 +40,11 @@ export async function openLessonInCourseEditor(lessonId: string, openCourseEdito
     status: c.status, color: c.color, bg: c.bg, description: c.description ?? '',
     dbCourseId: c.short_id, groupIds: c.group_ids ?? [], studentIds: c.student_ids ?? [],
     modules, lessons,
+    // Этот путь и раньше открывал курс без конспектов, домашек и файлов — но
+    // молча, и первое же «Сохранить» затирало их в БД пустотой. Теперь курс
+    // помечен недогруженным: редактор досыпает тяжёлую половину и до неё не даёт
+    // сохранять.
+    heavyPending: true,
   }))
   return true
 }

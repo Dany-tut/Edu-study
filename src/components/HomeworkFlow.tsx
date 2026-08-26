@@ -1,5 +1,4 @@
 import { EMOJI_STEPS } from './homeworkSteps'
-export { EMOJI_STEPS }
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {

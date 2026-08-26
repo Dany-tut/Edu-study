@@ -36,7 +36,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'A2 → B1',
     units: 28,
     vocabCount: 280,
-    taskCount: 2085,
+    taskCount: 2087,
     guidedHours: '180–200',
     lessonMinutes: 90,
     scopeNote:
@@ -69,7 +69,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → B2 (от «здравствуйте» до визы и аренды)',
     units: 54,
     vocabCount: 838,
-    taskCount: 6258,
+    taskCount: 6265,
     guidedHours: '108',
     lessonMinutes: 60,
     scopeNote:
@@ -80,7 +80,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'с нуля → TOPIK I (1급)',
     units: 9,
     vocabCount: 86,
-    taskCount: 809,
+    taskCount: 825,
     guidedHours: '18–24 часа',
     lessonMinutes: 60,
     scopeNote:
@@ -91,7 +91,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → TOPIK I (1급–2급)',
     units: 32,
     vocabCount: 320,
-    taskCount: 2547,
+    taskCount: 2606,
     guidedHours: '70–90',
     lessonMinutes: 90,
     scopeNote:
@@ -102,7 +102,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'TOPIK I → TOPIK II (3급–4급)',
     units: 28,
     vocabCount: 280,
-    taskCount: 2227,
+    taskCount: 2232,
     guidedHours: '80–108',
     lessonMinutes: 90,
     scopeNote:
@@ -113,7 +113,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → TOPIK I (бытовой минимум)',
     units: 48,
     vocabCount: 623,
-    taskCount: 4893,
+    taskCount: 4919,
     guidedHours: '96',
     lessonMinutes: 60,
     scopeNote:
@@ -124,7 +124,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → JLPT N5 → N4',
     units: 26,
     vocabCount: 260,
-    taskCount: 1988,
+    taskCount: 2051,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:
@@ -135,7 +135,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'JLPT N4 → N3',
     units: 20,
     vocabCount: 200,
-    taskCount: 1509,
+    taskCount: 1520,
     guidedHours: '300–360',
     lessonMinutes: 90,
     scopeNote:
@@ -146,7 +146,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → JLPT N4 (от «здравствуйте» до визы и аренды)',
     units: 47,
     vocabCount: 695,
-    taskCount: 5281,
+    taskCount: 5293,
     guidedHours: '94',
     lessonMinutes: 60,
     scopeNote:
@@ -157,7 +157,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'A1 → A2 (фундамент под CELPE-Bras)',
     units: 22,
     vocabCount: 220,
-    taskCount: 1610,
+    taskCount: 1640,
     guidedHours: '180–220',
     lessonMinutes: 90,
     scopeNote:
@@ -179,7 +179,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → B2 (от «bom dia» до визы и аренды)',
     units: 47,
     vocabCount: 694,
-    taskCount: 5201,
+    taskCount: 5212,
     guidedHours: '94',
     lessonMinutes: 60,
     scopeNote:
@@ -190,7 +190,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → B2 (от «Guten Tag» до Anmeldung и аренды)',
     units: 44,
     vocabCount: 528,
-    taskCount: 4002,
+    taskCount: 4011,
     guidedHours: '88',
     lessonMinutes: 60,
     scopeNote:
@@ -201,7 +201,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → B1 (бытовой и рабочий немецкий)',
     units: 24,
     vocabCount: 288,
-    taskCount: 2035,
+    taskCount: 2060,
     guidedHours: '160–200',
     lessonMinutes: 90,
     scopeNote:
@@ -234,7 +234,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'Точность → Мастерская (приёмы, а не сочинение)',
     units: 16,
     vocabCount: 160,
-    taskCount: 821,
+    taskCount: 822,
     guidedHours: '50–60',
     lessonMinutes: 60,
     scopeNote:

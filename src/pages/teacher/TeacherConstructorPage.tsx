@@ -15,7 +15,7 @@ import {
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
   ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette,
   Calculator, Star, Lightbulb, Microscope, Music, Sigma,
-  Lock,
+  Lock, Loader2,
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
@@ -52,8 +52,6 @@ import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
-import { paragraphsToTheory } from '../../lib/theoryImages'
-import { parseLessonFiles } from '../../lib/lessonFiles'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t } from '../../lib/i18n'
@@ -7538,6 +7536,11 @@ export default function TeacherConstructorPage() {
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
   const [flashId, setFlashId] = useState<string | null>(null)
+  // Курс открывается не мгновенно: редактору нужны конспекты и домашки всех
+  // уроков (у больших курсов это мегабайты), а сид ещё и собирается из своего
+  // чанка. Пока идёт загрузка, экран не менялся вообще — клик выглядел как
+  // «не нажалось». Держим id открываемой карточки и показываем на ней крутилку.
+  const [openingId, setOpeningId] = useState<string | null>(null)
   const diagEditorRef = useRef<DiagEditorHandle>(null)
 
   useEffect(() => {
@@ -7877,7 +7880,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, content, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework, materials)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -7885,15 +7888,7 @@ export default function TeacherConstructorPage() {
         studentIds = (dbCourse as any).student_ids ?? []
         const dbModules = [...((dbCourse as any).course_modules ?? [])].sort((a, b) => a.position - b.position)
         const dbLessons = [...((dbCourse as any).lessons ?? [])].sort((a, b) => (a.lesson_number ?? a.position ?? 0) - (b.lesson_number ?? b.position ?? 0))
-        lessons = dbLessons.map((l: any, i: number) => {
-        // Конспект: абзацы lessons.content → одна строка редактора, картинки —
-        // в отдельный список. Без обратной сборки повторное открытие курса
-        // приходило с пустым полем «Конспект», а следующее «Сохранить»
-        // затирало конспект в БД.
-        const theory = paragraphsToTheory(
-          Array.isArray(l.content?.paragraphs) ? l.content.paragraphs : [],
-        )
-        return {
+        lessons = dbLessons.map((l: any, i: number) => ({
           id: l.short_id,
           title: l.title,
           number: (l.lesson_number ?? i) + 1,
@@ -7902,11 +7897,6 @@ export default function TeacherConstructorPage() {
           videoUrl: l.youtube_url ?? undefined,
           timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
           description: l.description ?? undefined,
-          // Прикреплённые файлы (lessons.materials). Без обратной сборки
-          // следующее «Сохранить» затёрло бы их пустым объектом.
-          files: parseLessonFiles(l.materials),
-          theory: theory.theory || undefined,
-          theoryImages: theory.images,
           scheduledDate: l.scheduled_date ?? undefined,
           scheduledTime: l.scheduled_time ?? undefined,
           scheduledDuration: l.scheduled_duration ?? undefined,
@@ -7914,19 +7904,12 @@ export default function TeacherConstructorPage() {
           recTime: l.rec_time ?? undefined,
           recDuration: l.rec_duration ?? undefined,
           lessonSchedManual: l.lesson_sched_manual ?? false,
-          // Homework («Домашки» tab) — restore from the persisted JSONB blob.
-          hwTitle: l.homework?.hwTitle ?? undefined,
-          hwTarget: l.homework?.hwTarget ?? undefined,
-          hwDate: l.homework?.hwDate ?? undefined,
-          hwDateManual: l.homework?.hwDateManual ?? false,
-          hwTasks: Array.isArray(l.homework?.hwTasks) ? l.homework.hwTasks : [],
-          recHwTitle: l.homework?.recHwTitle ?? undefined,
-          recHwTarget: l.homework?.recHwTarget ?? undefined,
-          recHwDate: l.homework?.recHwDate ?? undefined,
-          recHwDateManual: l.homework?.recHwDateManual ?? false,
-          recHwTasks: Array.isArray(l.homework?.recHwTasks) ? l.homework.recHwTasks : [],
-        }
-        })
+          // Конспект, домашки и файлы сюда НЕ едут: это мегабайты, из-за
+          // которых открытие курса ждало секундами. Их досыпает редактор
+          // вторым запросом (loadHeavyLessons), а до его прихода курс помечен
+          // heavyPending и сохранение заблокировано — иначе запись затёрла бы
+          // недоехавшее пустотой.
+        }))
         if (dbModules.length > 0) {
           modules = dbModules.map((m: any) => ({
             id: m.id, label: m.label, expanded: true,
@@ -7952,6 +7935,7 @@ export default function TeacherConstructorPage() {
       status: course.status, color: course.color, bg: course.bg,
       description: course.description ?? '', dbCourseId: course.dbCourseId,
       groupIds, studentIds, modules, lessons,
+      heavyPending: !!course.dbCourseId,
     }
     openCourseEditor(JSON.stringify(edData))
   }
@@ -8080,6 +8064,21 @@ export default function TeacherConstructorPage() {
   // Course card click — open the new 3-column course editor page.
   function handleExpandCourse(c: Course) {
     goToCourseEditor(c)
+  }
+
+  /** Открыть карточку курса с отметкой ожидания. Повторные клики по любой
+   *  карточке, пока идёт загрузка, игнорируются: второй заход в редактор с
+   *  теми же данными ничего не даёт, а гонка двух запросов — даёт. */
+  async function openCourseCard(c: Course) {
+    if (openingId) return
+    setOpeningId(c.id)
+    try {
+      const seed = seedById.get(c.id)
+      if (seed) await goToSeedCourseEditor(seed)
+      else await goToCourseEditor(c)
+    } finally {
+      setOpeningId(null)
+    }
   }
 
   function handleSaveTrainer(t: Trainer) {
@@ -8631,8 +8630,20 @@ export default function TeacherConstructorPage() {
                       // своя дорога в редактор.
                       onClick={() => editMode
                         ? (c.shared ? undefined : toggleCheck(c.id))
-                        : seedById.has(c.id) ? void goToSeedCourseEditor(seedById.get(c.id)!) : handleExpandCourse(c)}
+                        : void openCourseCard(c)}
                       actions={undefined} />
+                    {openingId === c.id && (
+                      <div style={{
+                        position: 'absolute', inset: 0, borderRadius: 20, zIndex: 6,
+                        background: 'rgba(var(--glass-rgb), 0.55)',
+                        backdropFilter: 'blur(1.5px)', WebkitBackdropFilter: 'blur(1.5px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 700,
+                      }}>
+                        <Loader2 size={15} strokeWidth={2.4} style={{ animation: 'spin 1s linear infinite' }} />
+                        {t('Открываем…')}
+                      </div>
+                    )}
                     {editMode && c.shared && (
                       <div title={t("Общий курс — только для чтения")} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,

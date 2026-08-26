@@ -411,6 +411,14 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
     if (!unit) return lesson
     let next = lesson
 
+    // Длительность урока: у сида она посчитана из порции, у старых курсов её в
+    // базе нет вовсе — и карточка курса считала такой урок «обычным занятием на
+    // 90 минут». Отсюда и брались 322,5 ч у разговорника из 215 коротких
+    // уроков. Проставляем только пустую: выставленную учителем не трогаем.
+    if (next.scheduledDuration == null && unit.scheduledDuration != null) {
+      next = { ...next, scheduledDuration: unit.scheduledDuration }
+    }
+
     if (keys.has(`tasks:${title}`)) {
       const mineKeys = new Set(tasksOf(next).map(t => taskKey(t.id)))
       const add = (unit.hwTasks ?? []).filter(t => t.id && !mineKeys.has(taskKey(t.id)))
