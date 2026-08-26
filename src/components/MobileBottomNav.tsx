@@ -9,7 +9,6 @@ import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
-import { useBottomShift } from '../lib/viewportBottomShift'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -40,9 +39,6 @@ export default function MobileBottomNav() {
   // nav straight down out of view so it never crowds the field; it springs
   // back up when the keyboard dismisses.
   const kbOpen = useKeyboardOpen()
-  // На холодном запуске PWA низ вьюпорта выше низа экрана — док садится на
-  // место сам, без ожидания первой прокрутки (lib/viewportBottomShift.ts).
-  const bottomShift = useBottomShift()
   // Отступ снизу — константа, а не живой env(): см. lib/mobileTokens.ts.
 
   // Badge: count lessons with status that implies pending homework (current / returned)
@@ -79,7 +75,7 @@ export default function MobileBottomNav() {
     <motion.div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       initial={false}
-      animate={{ y: kbOpen ? 140 : bottomShift, opacity: kbOpen ? 0 : 1 }}
+      animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
       // Отступ снизу — константа MOBILE_DOCK_EDGE, а не сырой env(): и Safari,
       // и WKWebView какое-то время кладут в safe-area-inset-bottom свою нижнюю

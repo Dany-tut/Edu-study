@@ -105,7 +105,20 @@ function AppRoutes() {
   useEffect(() => {
     const sess = getStudentSession()
     if (!sess) return
-    loadStudentData()
+    // Спиннер снимается ДАЖЕ если загрузка упала.
+    //
+    // `loaded` ставится последней строкой load(), поэтому любой бросок по пути
+    // оставлял кабинет в «Загрузка…» навсегда — до перезагрузки страницы, о
+    // которой ученик не догадается. Внутри load() восемь запросов уже прикрыты
+    // allSettled, но всё, что вокруг них (охват человека, сверка сброса курса),
+    // — нет, и одного отвалившегося токена хватало на мёртвый экран.
+    //
+    // Пустой кабинет вместо спиннера — не победа, но он живой: пересинхронизация
+    // по возврату на вкладку и realtime зовут load() снова.
+    loadStudentData().catch(e => {
+      console.error('[studentData.load]', e)
+      useStudentData.setState({ loaded: true })
+    })
     // Realtime: re-sync when teacher opens a lesson (lesson_progress changes for this student)
     const channel = supabase
       .channel('student-lesson-progress')

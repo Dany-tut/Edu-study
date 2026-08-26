@@ -6,6 +6,7 @@ import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
+import { repairViewport } from './lib/viewportRepair'
 
 const phKey = import.meta.env.VITE_POSTHOG_KEY
 if (phKey) {
@@ -62,6 +63,10 @@ if (phKey) {
     timers.set(el, setTimeout(() => { el.classList.remove('is-scrolling') }, 800))
   }, { capture: true, passive: true })
 })()
+
+// Укороченный вьюпорт на холодном запуске PWA: чиним до первого кадра, иначе
+// нижний док стоит выше края экрана до первого касания (lib/viewportRepair.ts).
+repairViewport()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

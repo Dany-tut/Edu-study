@@ -3,7 +3,6 @@ import { Home, Users, ClipboardCheck, CheckSquare, User } from 'lucide-react'
 import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
 import { useT } from '../../../lib/i18n'
-import { useBottomShift } from '../../../lib/viewportBottomShift'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
 const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
@@ -38,13 +37,10 @@ export default function MobileTeacherNav({
   const t = useT()
   const visibleItems = items.filter(item => !hidden.includes(item.id))
   const collapsed = useNavCollapse()
-  // Низ вьюпорта на холодном запуске PWA выше низа экрана — см.
-  // lib/viewportBottomShift.ts.
-  const bottomShift = useBottomShift()
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)', transform: bottomShift ? `translateY(${bottomShift}px)` : undefined }}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
     >
       <motion.div
         className="mb-4 flex items-center justify-around px-2"

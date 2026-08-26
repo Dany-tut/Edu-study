@@ -177,20 +177,36 @@ export async function fetchPersonScope(
   // и БЕЗ auth-сессии: легаси-вход (student_login) и протухший токен раньше
   // схлопывали охват до одной строки из localStorage, и курсы остальных
   // предметов человека пропадали из кабинета, хотя назначены верно.
+  // ОБА источника — под try: клиент Supabase возвращает `{error}` на ответ
+  // сервера, но БРОСАЕТ на отвалившейся сети и на протухшем токене
+  // (`auth.getUser()` в этот момент ходит обновлять его сам). Раньше такой
+  // бросок улетал наружу, а зовут эту функцию первой строкой загрузки кабинета
+  // — ДО защиты allSettled, — и вся загрузка отменялась: `loaded` навсегда
+  // оставался false, ученик смотрел на «Загрузка…», пока не перезагрузит
+  // страницу. Охват в этом случае честно схлопывается до строки сессии: один
+  // предмет лучше пустого экрана.
   if (isUuid(fallback.id)) {
-    const { data, error } = await supabase.rpc('person_student_rows', { p_student: fallback.id })
-    if (error) reportDbError('fetchPersonScope.rpc', error)
-    for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
+    try {
+      const { data, error } = await supabase.rpc('person_student_rows', { p_student: fallback.id })
+      if (error) reportDbError('fetchPersonScope.rpc', error)
+      for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
+    } catch (e) {
+      reportDbError('fetchPersonScope.rpc', { message: String((e as Error)?.message ?? e) })
+    }
   }
 
   // 2) Строки по auth-аккаунту — дополняют RPC (строка без person_id, но под тем
   // же логином) и держат кабинет живым, если RPC ещё не раскатан в базе.
-  const { data: auth } = await supabase.auth.getUser()
-  if (auth?.user) {
-    const { data, error } = await supabase
-      .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
-    if (error) reportDbError('fetchPersonScope', error)
-    for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
+  try {
+    const { data: auth } = await supabase.auth.getUser()
+    if (auth?.user) {
+      const { data, error } = await supabase
+        .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
+      if (error) reportDbError('fetchPersonScope', error)
+      for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
+    }
+  } catch (e) {
+    reportDbError('fetchPersonScope.auth', { message: String((e as Error)?.message ?? e) })
   }
 
   const rows: Array<{ id: string; groupId: string }> = []
