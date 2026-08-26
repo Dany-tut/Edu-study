@@ -69,6 +69,20 @@ export type Status = 'live' | 'archive'
  */
 export type OutletKind = 'agency' | 'science' | 'company' | 'gov' | 'press' | 'video' | 'post'
 
+/**
+ * О ЧЁМ ИСТОЧНИК. Это НЕ род (`kind`) и не дорожка (`lane`): по роду половина
+ * ленты — «video», потому что и музей, и вечерние новости, и разбор статьи по
+ * ИИ живут на YouTube. Роду всё равно, о чём ролик, а листающему — нет.
+ *
+ * ПОЧЕМУ У ИСТОЧНИКА, А НЕ У МАТЕРИАЛА. Поле `topic` у ReadingText заполняет
+ * ночная сборка по рубрике фида, и там 80 материалов из 130 — «Технологии и
+ * медиа»: рубрика источника новостей общего профиля ничего не различает.
+ * Канал же про своё: 국립중앙박물관 — про музей и завтра, и через год. Поэтому
+ * тема живёт в реестре, где её ставит человек, а `topic` остаётся тем, чем был
+ * — подписью материала.
+ */
+export type FeedTheme = 'news' | 'science' | 'tech' | 'culture' | 'life' | 'health'
+
 export interface Outlet {
   id: string
   /** Как подписан на карточке. */
@@ -77,6 +91,8 @@ export interface Outlet {
   lang: string
   lane: Lane
   kind: OutletKind
+  /** О чём этот источник — по нему собран ряд фильтров над лентой. */
+  theme: FeedTheme
   /**
    * Правовое основание — ОДНОЙ СТРОКОЙ И ПО-ЧЕЛОВЕЧЕСКИ. Показывается ученику
    * рядом с текстом. Пустой строки здесь быть не может: если основание нельзя
@@ -188,7 +204,7 @@ export const OUTLETS: Outlet[] = [
   // ── Английский ─────────────────────────────────────────────────────────────
   {
     id: 'nasa',
-    name: 'NASA', lang: 'en', lane: 'free', kind: 'science', status: 'live',
+    name: 'NASA', lang: 'en', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.nasa.gov/news/',
     feed: 'https://www.nasa.gov/news-release/feed/',
@@ -197,7 +213,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'wikinews-en',
-    name: 'Викиновости', lang: 'en', lane: 'free', kind: 'agency', status: 'archive',
+    name: 'Викиновости', lang: 'en', lane: 'free', kind: 'agency', theme: 'news', status: 'archive',
     license: 'CC BY-SA 2.5 — свободная лицензия, нужна атрибуция',
     home: 'https://en.wikinews.org/',
     note: 'Архив: раздел закрыт 4 мая 2026 года и переведён в режим только для чтения.',
@@ -206,7 +222,7 @@ export const OUTLETS: Outlet[] = [
 
   {
     id: 'the-conversation',
-    name: 'The Conversation', lang: 'en', lane: 'free', kind: 'agency', status: 'live',
+    name: 'The Conversation', lang: 'en', lane: 'free', kind: 'agency', theme: 'science', status: 'live',
     license: 'CC BY-ND 4.0 — перепечатка разрешена самим изданием',
     home: 'https://theconversation.com/us',
     feed: 'https://theconversation.com/us/articles.atom',
@@ -215,7 +231,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'esa',
-    name: 'ESA', lang: 'en', lane: 'free', kind: 'science', status: 'live',
+    name: 'ESA', lang: 'en', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'CC BY-SA 3.0 IGO — свободная лицензия агентства',
     home: 'https://www.esa.int/',
     feed: 'https://www.esa.int/rssfeed/Our_Activities/Space_Science',
@@ -224,7 +240,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'noaa',
-    name: 'NOAA', lang: 'en', lane: 'free', kind: 'science', status: 'live',
+    name: 'NOAA', lang: 'en', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.noaa.gov/news',
     feed: 'https://www.noaa.gov/rss.xml',
@@ -233,7 +249,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'nist',
-    name: 'NIST', lang: 'en', lane: 'free', kind: 'science', status: 'live',
+    name: 'NIST', lang: 'en', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.nist.gov/news-events/news',
     feed: 'https://www.nist.gov/news-events/news/rss.xml',
@@ -242,7 +258,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'nsf',
-    name: 'NSF', lang: 'en', lane: 'free', kind: 'science', status: 'live',
+    name: 'NSF', lang: 'en', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.nsf.gov/news',
     feed: 'https://www.nsf.gov/rss/rss_www_news.xml',
@@ -251,7 +267,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'fda',
-    name: 'FDA', lang: 'en', lane: 'free', kind: 'gov', status: 'live',
+    name: 'FDA', lang: 'en', lane: 'free', kind: 'gov', theme: 'health', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.fda.gov/news-events/fda-newsroom/press-announcements',
     feed: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml',
@@ -260,7 +276,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'cdc',
-    name: 'CDC', lang: 'en', lane: 'free', kind: 'gov', status: 'live',
+    name: 'CDC', lang: 'en', lane: 'free', kind: 'gov', theme: 'health', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.cdc.gov/media/',
     feed: 'https://tools.cdc.gov/api/v2/resources/media/132608.rss',
@@ -269,7 +285,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'doe',
-    name: 'U.S. Dept. of Energy', lang: 'en', lane: 'free', kind: 'gov', status: 'live',
+    name: 'U.S. Dept. of Energy', lang: 'en', lane: 'free', kind: 'gov', theme: 'tech', status: 'live',
     license: 'Общественное достояние — работы федерального агентства США',
     home: 'https://www.energy.gov/articles',
     feed: 'https://www.energy.gov/rss/articles.xml',
@@ -278,7 +294,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'two-minute-papers',
-    name: 'Two Minute Papers', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'Two Minute Papers', lang: 'en', lane: 'embed', kind: 'video', theme: 'tech', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@TwoMinutePapers',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg',
@@ -287,7 +303,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'boston-dynamics',
-    name: 'Boston Dynamics', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'Boston Dynamics', lang: 'en', lane: 'embed', kind: 'video', theme: 'tech', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@BostonDynamics',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC7vVhkEfw4nOGp8TyDk7RcQ',
@@ -296,7 +312,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'met-museum',
-    name: 'The Met', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'The Met', lang: 'en', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@metmuseum',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCDlz9C2bhSW6dcVn_PO5mYw',
@@ -305,7 +321,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'mit-open',
-    name: 'MIT Open Learning', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'MIT Open Learning', lang: 'en', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@mitocw',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCN0QBfKk0ZSytyX_16M11fA',
@@ -314,7 +330,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'cnn-yt',
-    name: 'CNN', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'CNN', lang: 'en', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@CNN',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCupvZG-5ko_eiXAupbDfxWw',
@@ -323,7 +339,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'bbc-yt',
-    name: 'BBC News', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'BBC News', lang: 'en', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@BBCNews',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC16niRr50-MSBwiO3YDb3RA',
@@ -332,7 +348,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'natgeo',
-    name: 'National Geographic', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'National Geographic', lang: 'en', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@NatGeo',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCpVm7bg6pXKo1Pr6k5kxG9A',
@@ -341,7 +357,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'ted-ed',
-    name: 'TED-Ed', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'TED-Ed', lang: 'en', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@TEDEd',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCsooa4yRKGN_zEE8iknghZA',
@@ -350,7 +366,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'kurzgesagt',
-    name: 'Kurzgesagt', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'Kurzgesagt', lang: 'en', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@kurzgesagt',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCsXVk37bltHxD1rDPwtNM8Q',
@@ -359,7 +375,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'veritasium',
-    name: 'Veritasium', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'Veritasium', lang: 'en', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@veritasium',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCHnyfMqiRRG1u-2MsSQLbXA',
@@ -368,7 +384,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'vox',
-    name: 'Vox', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'Vox', lang: 'en', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@Vox',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCLXo7UDZvByw2ixzpQCufnA',
@@ -377,7 +393,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'ted',
-    name: 'TEDx Talks', lang: 'en', lane: 'embed', kind: 'video', status: 'live',
+    name: 'TEDx Talks', lang: 'en', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@TEDx',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCAuUUnT6oDeKwE6v1NGQxug',
@@ -388,7 +404,7 @@ export const OUTLETS: Outlet[] = [
   // ── Корейский ──────────────────────────────────────────────────────────────
   {
     id: 'sbs-news',
-    name: 'SBS 뉴스', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: 'SBS 뉴스', lang: 'ko', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@SBSNews8',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCkinYTS9IHqOEwR1Sze2JTw',
@@ -397,7 +413,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'chimchakman',
-    name: '침착맨', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '침착맨', lang: 'ko', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@ChimChakMan_Official',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCUj6rrhMTR9pipbAWBAMvUQ',
@@ -406,7 +422,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korean-englishman',
-    name: '영국남자', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '영국남자', lang: 'ko', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@KoreanEnglishman',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCg-p3lQIqmhh7gHpyaOmOiQ',
@@ -415,7 +431,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'syuka',
-    name: '슈카월드', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '슈카월드', lang: 'ko', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@syukaworld',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCsJ6RuBiTVWRX156FVbeaGg',
@@ -424,7 +440,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'mbc-ent',
-    name: 'MBC 예능', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: 'MBC 예능', lang: 'ko', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@MBCentertainment',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCiBr0bK06imaMbLc8sAEz0A',
@@ -433,7 +449,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'kbs-world',
-    name: 'KBS WORLD TV', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: 'KBS WORLD TV', lang: 'ko', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@KBSWORLDTV',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC5BMQOsAB8hKUyHu9KI6yig',
@@ -442,7 +458,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'science-dream',
-    name: '과학드림', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '과학드림', lang: 'ko', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@ScienceDream',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCIk1-yPCTnFuzfgu4gyfWqw',
@@ -451,7 +467,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'anduel-tech',
-    name: '안될공학', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '안될공학', lang: 'ko', lane: 'embed', kind: 'video', theme: 'tech', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@Unrealscience',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCeN2YeJcBCRJoXgzF_OU3qw',
@@ -460,7 +476,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'knowledge-pirates',
-    name: '지식해적단', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '지식해적단', lang: 'ko', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@Piratesofknowledge',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC9cCBxBAQW2CzLYeT20q49A',
@@ -469,7 +485,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'nmk-museum',
-    name: '국립중앙박물관', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '국립중앙박물관', lang: 'ko', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@nationalmuseumofkorea',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC7Pc7sflxGNdgh-ep_jlbEg',
@@ -478,7 +494,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'sherlock-hj',
-    name: '셜록현준', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: '셜록현준', lang: 'ko', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@Sherlock_HJ',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC7uDyFIqExDnfXAIZqumFrQ',
@@ -487,7 +503,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'ebs-docu',
-    name: 'EBS 다큐', lang: 'ko', lane: 'embed', kind: 'video', status: 'live',
+    name: 'EBS 다큐', lang: 'ko', lane: 'embed', kind: 'video', theme: 'culture', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@EBSDocumentary',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCFCtZJTuJhE18k8IXwmXTYQ',
@@ -509,7 +525,7 @@ export const OUTLETS: Outlet[] = [
   // заметки: в тех же списках рядом лежат колонки сторонних редакций.
   {
     id: 'korea-kr-society',
-    name: '정책브리핑 · 사회', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '정책브리핑 · 사회', lang: 'ko', lane: 'free', kind: 'gov', theme: 'news', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS02',
     note: 'Школа, транспорт, жильё, здоровье — о чём государство говорит с людьми каждый день. Газетный корейский без жаргона.',
@@ -517,7 +533,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-culture',
-    name: '정책브리핑 · 문화', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '정책브리핑 · 문화', lang: 'ko', lane: 'free', kind: 'gov', theme: 'culture', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS03',
     note: 'Выставки, парки, фестивали, туризм и наследие: тот же язык, но про то, куда пойти и что посмотреть.',
@@ -525,7 +541,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-economy',
-    name: '정책브리핑 · 경제', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '정책브리핑 · 경제', lang: 'ko', lane: 'free', kind: 'gov', theme: 'news', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS01',
     note: 'Деньги на исследования, правила для искусственного интеллекта, цифровые сервисы. Язык отчётный — зато это единственный корейский текст про науку, который разрешено показывать целиком.',
@@ -543,7 +559,7 @@ export const OUTLETS: Outlet[] = [
   // текста и той же лицензии.
   {
     id: 'korea-kr-ai',
-    name: '보도자료 · 인공지능', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '보도자료 · 인공지능', lang: 'ko', lane: 'free', kind: 'gov', theme: 'tech', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5',
     note: 'Что государство делает с искусственным интеллектом: стандарты, правила, совместные проекты. Свежие релизы каждый день.',
@@ -551,7 +567,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-research',
-    name: '보도자료 · 연구개발', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '보도자료 · 연구개발', lang: 'ko', lane: 'free', kind: 'gov', theme: 'science', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%97%B0%EA%B5%AC%EA%B0%9C%EB%B0%9C',
     note: 'Исследования и разработки: что финансируют, что испытали, что построили — от лесной экологии до гибридных самолётов.',
@@ -559,7 +575,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-health',
-    name: '보도자료 · 건강', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '보도자료 · 건강', lang: 'ko', lane: 'free', kind: 'gov', theme: 'health', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EA%B1%B4%EA%B0%95',
     note: 'Здоровье и медицина: что меняется в больницах, чем болеют, что проверяют. Лексика тут самая ходовая из всех научных тем.',
@@ -567,7 +583,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-chip',
-    name: '보도자료 · 반도체', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '보도자료 · 반도체', lang: 'ko', lane: 'free', kind: 'gov', theme: 'tech', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EB%B0%98%EB%8F%84%EC%B2%B4',
     note: 'Чипы, память, платы и заводы, которые их делают. Тема, на которой держится половина корейской экономики, — и половина новостей.',
@@ -575,7 +591,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-car',
-    name: '보도자료 · 전기차', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '보도자료 · 전기차', lang: 'ko', lane: 'free', kind: 'gov', theme: 'tech', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%A0%84%EA%B8%B0%EC%B0%A8',
     note: 'Машины: электромобили, зарядки, безопасность, испытания. Слово 전기차 тянет за собой весь транспорт.',
@@ -583,7 +599,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'korea-kr-space',
-    name: '보도자료 · 우주', lang: 'ko', lane: 'free', kind: 'gov', status: 'live',
+    name: '보도자료 · 우주', lang: 'ko', lane: 'free', kind: 'gov', theme: 'science', status: 'live',
     license: 'KOGL 제1유형 (공공누리,출처표시) — свободное использование при указании источника, только текст',
     home: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%9A%B0%EC%A3%BC',
     note: 'Космос: запуски «Нури», спутники «Чхоллиан», работа Корейского космического агентства.',
@@ -591,7 +607,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'samsung-kr',
-    name: 'Samsung Newsroom', lang: 'ko', lane: 'link', kind: 'company', status: 'live',
+    name: 'Samsung Newsroom', lang: 'ko', lane: 'link', kind: 'company', theme: 'tech', status: 'live',
     license: 'Заголовок и ссылка. Текст на экране — наш: лицензии на перепечатку у ньюсрума нет',
     home: 'https://news.samsung.com/kr/',
     feed: 'https://news.samsung.com/kr/feed',
@@ -600,7 +616,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'wikinews-ko',
-    name: '위키뉴스', lang: 'ko', lane: 'free', kind: 'agency', status: 'archive',
+    name: '위키뉴스', lang: 'ko', lane: 'free', kind: 'agency', theme: 'news', status: 'archive',
     license: 'CC BY-SA 2.5 — свободная лицензия, нужна атрибуция',
     home: 'https://ko.wikinews.org/',
     note: 'Архив на 827 заметок. Короткие сообщения о событиях — ровно тот формат, который нужен для чтения на уровне.',
@@ -610,7 +626,7 @@ export const OUTLETS: Outlet[] = [
   // ── Японский ───────────────────────────────────────────────────────────────
   {
     id: 'ann-news',
-    name: 'ANNニュース', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: 'ANNニュース', lang: 'ja', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@ANNnewsCH',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCGCZAYq5Xxojl_tSXcVJhiQ',
@@ -619,7 +635,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'kevins-room',
-    name: "Kevin's English Room", lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: "Kevin's English Room", lang: 'ja', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@kevinsenglishroom',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCFbp2XdRpKfk7mYt_uT8dxw',
@@ -628,7 +644,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'tbs-news',
-    name: 'TBS NEWS DIG', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: 'TBS NEWS DIG', lang: 'ja', lane: 'embed', kind: 'video', theme: 'news', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@tbsnewsdig',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC6AG81pAkf6Lbi_1VC5NmPA',
@@ -637,7 +653,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'hikakin',
-    name: 'HikakinTV', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: 'HikakinTV', lang: 'ja', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@HikakinTV',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCZf__ehlCEBPop-_sldpBUQ',
@@ -646,7 +662,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'tokai-onair',
-    name: '東海オンエア', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: '東海オンエア', lang: 'ja', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@TokaiOnAir',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCutJqz56653xV2wwSvut_hQ',
@@ -655,7 +671,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'quizknock',
-    name: 'QuizKnock', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: 'QuizKnock', lang: 'ja', lane: 'embed', kind: 'video', theme: 'life', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@QuizKnock',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCQ_MqAw18jFTlBB-f8BP7dw',
@@ -664,7 +680,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'jst-science',
-    name: 'サイエンスチャンネル', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: 'サイエンスチャンネル', lang: 'ja', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@sciencechannel',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCHpFyLQgg4h9VZuFyby7RbQ',
@@ -673,7 +689,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'miraikan',
-    name: '日本科学未来館', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: '日本科学未来館', lang: 'ja', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@miraikan',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCdBvq7IgL4U6u3CzeZaeoFg',
@@ -682,7 +698,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'kahaku',
-    name: '国立科学博物館', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: '国立科学博物館', lang: 'ja', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@kahaku',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCYvB5iWkIf6uMeA9fPS__sw',
@@ -691,7 +707,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'yobinori',
-    name: '予備校のノリで学ぶ', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: '予備校のノリで学ぶ', lang: 'ja', lane: 'embed', kind: 'video', theme: 'science', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@yobinori',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCqmWJJolqAgjIdLqK3zD1QQ',
@@ -700,7 +716,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'yuru-cs',
-    name: 'ゆるコンピュータ科学ラジオ', lang: 'ja', lane: 'embed', kind: 'video', status: 'live',
+    name: 'ゆるコンピュータ科学ラジオ', lang: 'ja', lane: 'embed', kind: 'video', theme: 'tech', status: 'live',
     license: 'Плеер YouTube — встраивание разрешено самой площадкой',
     home: 'https://www.youtube.com/@yurugengo',
     feed: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCpLu0KjNy616-E95gPx7LZg',
@@ -709,7 +725,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'wikinews-ja',
-    name: 'ウィキニュース', lang: 'ja', lane: 'free', kind: 'agency', status: 'archive',
+    name: 'ウィキニュース', lang: 'ja', lane: 'free', kind: 'agency', theme: 'news', status: 'archive',
     license: 'CC BY-SA 2.5 — свободная лицензия, нужна атрибуция',
     home: 'https://ja.wikinews.org/',
     note: 'Архив на 4104 заметки — самый большой из закрытых разделов.',
@@ -719,7 +735,7 @@ export const OUTLETS: Outlet[] = [
   // ── Португальский ──────────────────────────────────────────────────────────
   {
     id: 'agencia-brasil',
-    name: 'Agência Brasil', lang: 'pt-BR', lane: 'free', kind: 'agency', status: 'live',
+    name: 'Agência Brasil', lang: 'pt-BR', lane: 'free', kind: 'agency', theme: 'news', status: 'live',
     license: 'CC BY 3.0 BR — свободная лицензия, нужна атрибуция',
     home: 'https://agenciabrasil.ebc.com.br/',
     feed: 'https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml',
@@ -739,7 +755,7 @@ export const OUTLETS: Outlet[] = [
   // CC BY-SA пересказ пришлось бы отдать под ту же лицензию.
   {
     id: 'sci-retold-ko',
-    name: 'Наука', lang: 'ko', lane: 'free', kind: 'science', status: 'live',
+    name: 'Наука', lang: 'ko', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Наш пересказ — исходные материалы в общественном достоянии',
     home: 'https://science.nasa.gov/',
     note: 'Пересказы научных новостей: одна и та же новость по-корейски на трёх уровнях сразу, от простого к газетному. Исходный материал назван под каждым текстом.',
@@ -747,7 +763,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'sci-retold-ja',
-    name: '科学 · пересказ', lang: 'ja', lane: 'free', kind: 'science', status: 'live',
+    name: '科学 · пересказ', lang: 'ja', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Наш пересказ — исходные материалы в общественном достоянии',
     home: 'https://science.nasa.gov/',
     note: 'Пересказы научных новостей по-японски на трёх ступенях — N4, N3, N2. Свободного японского научного текста в природе нет, и это единственный способ читать науку по-японски, а не смотреть её.',
@@ -755,7 +771,7 @@ export const OUTLETS: Outlet[] = [
   },
   {
     id: 'sci-retold-en',
-    name: 'Наука', lang: 'en', lane: 'free', kind: 'science', status: 'live',
+    name: 'Наука', lang: 'en', lane: 'free', kind: 'science', theme: 'science', status: 'live',
     license: 'Наш пересказ — исходные материалы в общественном достоянии',
     home: 'https://science.nasa.gov/',
     note: 'Пересказы научных новостей: одна и та же новость на B1, B2 и C1 — не «упрощённая версия вместо статьи», а лестница к ней. Исходный материал назван под каждым текстом.',
@@ -798,6 +814,77 @@ export const LANES: { id: Lane; label: string; hint: string }[] = [
 ]
 
 export const laneLabel = (l: Lane): string => LANES.find(x => x.id === l)?.label ?? ''
+
+// ─── Фильтры над лентой ──────────────────────────────────────────────────────
+//
+// РЯД ЧИПСОВ, А НЕ ФИЛЬТРЫ В РЕЙЛЕ. Лента — единственный экран тренажёра, куда
+// заходят не выбирать, а листать, и рейл с галочками ей противопоказан. Но
+// «сегодня хочу только ролики» и «покажи, что там по науке» — это не выбор
+// материала, а поворот той же ленты, и ради него ряд наверху оправдан.
+//
+// ОДИН ВЫБРАННЫЙ ЗА РАЗ. Набор галочек превращает ряд в конструктор запроса:
+// человек начинает собирать выборку вместо того, чтобы читать. Здесь ровно
+// один поворот, и «Все» всегда рядом, чтобы вернуться одним тапом.
+//
+// ВИДЕО СТОИТ РЯДОМ С ТЕМАМИ И НЕ СПОРИТ С НИМИ. Это разные вопросы («в каком
+// виде» против «о чём»), но задавать оба сразу незачем: ряд из двух этажей
+// съедает первый экран ленты ради выборки, которой пользуются раз в неделю.
+
+/** Что выбрано в ряду над лентой. */
+export type FeedFilter = 'all' | 'video' | FeedTheme
+
+const THEME_LABEL: Record<FeedTheme, string> = {
+  news: 'Новости', science: 'Наука', tech: 'Технологии',
+  culture: 'Искусство', life: 'Жизнь', health: 'Здоровье',
+}
+
+/** Подпись чипса. Наружу — ради ленты на телефоне и подписи в шапке. */
+export function filterLabel(f: FeedFilter): string {
+  if (f === 'all') return 'Всё'
+  if (f === 'video') return 'Видео'
+  return THEME_LABEL[f]
+}
+
+/**
+ * Ролик ли это. Не по роду источника: у SBS 뉴스 род 'video', но их же
+ * текстовые заметки роликами не станут. Смотрим на сам материал — есть плеер.
+ */
+export const isVideo = (item: FeedItem): boolean => item.embed?.kind === 'youtube'
+
+/** Тема материала — из реестра источника. Неизвестный источник считаем новостью. */
+export function itemTheme(item: FeedItem): FeedTheme {
+  return outletById(item.outletId)?.theme ?? 'news'
+}
+
+/** Подходит ли материал под выбранный чипс. */
+export function matchesFilter(item: FeedItem, f: FeedFilter): boolean {
+  if (f === 'all') return true
+  if (f === 'video') return isVideo(item)
+  return itemTheme(item) === f
+}
+
+/**
+ * Ряд чипсов по тому, что реально приехало.
+ *
+ * ПУСТЫХ ЧИПСОВ НЕТ. Чипс, который ничего не показывает, — это обещание
+ * материала, которого у языка нет: в португальской ленте один источник и ни
+ * одного ролика, и «Видео (0)» там читается как поломка. Порядок постоянный,
+ * чтобы ряд не перетасовывался от языка к языку.
+ */
+const ORDER: FeedFilter[] = ['video', 'news', 'science', 'tech', 'culture', 'life', 'health']
+
+export function feedFilters(items: FeedItem[]): { id: FeedFilter; label: string; count: number }[] {
+  const row: { id: FeedFilter; label: string; count: number }[] = [
+    { id: 'all', label: filterLabel('all'), count: items.length },
+  ]
+  for (const id of ORDER) {
+    const count = items.reduce((n, it) => n + (matchesFilter(it, id) ? 1 : 0), 0)
+    // Один-единственный материал своей темы — не тема, а случайность: чипс с
+    // единицей занимает место в ряду и выключается сразу после первого тапа.
+    if (count > 1) row.push({ id, label: filterLabel(id), count })
+  }
+  return row
+}
 
 /**
  * Строка происхождения под заголовком: «NASA · 21 августа · оригинал».
