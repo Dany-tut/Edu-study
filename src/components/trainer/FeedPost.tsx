@@ -7,6 +7,7 @@ import { FeedComments } from './FeedComments'
 import { useFeedLikes } from '../../lib/feedLikes'
 import { markRead, useSeen } from '../../lib/feedRead'
 import { buildLexicon } from '../../lib/lexicon'
+import { useGloss } from '../../lib/useGloss'
 import GlossedText from '../GlossedText'
 import AudioPlayer from '../AudioPlayer'
 
@@ -123,6 +124,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
   // Считается ЛЕНИВО. buildLexicon строит Map на несколько тысяч записей, и
   // делать это для сорока постов ленты, из которых откроют один, — работа в
   // стол.
+  const gloss = useGloss() // словарь едет отдельным чанком (см. lexicon.ts)
   const words = useMemo(() => {
     if (!translated || full) return null
     const lex = buildLexicon(lang, item.glossary)
@@ -136,7 +138,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       out.push({ text: seg.text, ru: seg.gloss.ru })
     }
     return out
-  }, [translated, full, item.glossary, body, item.title, lang])
+  }, [translated, full, item.glossary, body, item.title, lang, gloss])
 
   return (
     <article ref={seenRef} style={variant === 'card' ? {

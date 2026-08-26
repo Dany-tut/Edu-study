@@ -18,7 +18,7 @@ import {
 } from '../lib/videoProgress'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
-import { EMOJI_STEPS } from '../components/HomeworkFlow'
+import { EMOJI_STEPS } from '../components/homeworkSteps'
 import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap, balancedWrap } from '../lib/typography'
 import Prose from '../components/Prose'

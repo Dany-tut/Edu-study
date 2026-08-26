@@ -82,6 +82,16 @@ if (phKey) {
   }, { capture: true, passive: true })
 })()
 
+// Пословный словарь (см. lexicon.ts) грузится отдельным чанком и нужен на
+// уроке, в карточках и в тренажёре — то есть почти всем, но не для первого
+// кадра. Просим его на простое: к моменту, когда ученик откроет урок, он уже
+// на месте, а первую отрисовку он не задержал.
+;(() => {
+  const warm = () => { void import('./lib/lexicon').then(m => m.ensureGloss()).catch(() => { /**/ }) }
+  if ('requestIdleCallback' in window) window.requestIdleCallback(warm, { timeout: 5000 })
+  else setTimeout(warm, 2000)
+})()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <OfflineBanner />

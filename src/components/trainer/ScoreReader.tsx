@@ -12,6 +12,7 @@ import { tactile } from '../../lib/feedback'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { buildLexicon, wordReading } from '../../lib/lexicon'
+import { useGloss } from '../../lib/useGloss'
 import { transcribe } from '../../lib/translit'
 import { pairTranslation } from '../../lib/pairing'
 import { speak, speechLines, type SpeechHandle } from '../../lib/speech'
@@ -172,12 +173,13 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // и свой состав кнопок, см. ниже.
   const narrow = !isDesktop
 
+  const gloss = useGloss() // словарь едет отдельным чанком (см. lexicon.ts)
   const { units, loose } = useMemo(() => build(body, translation), [body, translation])
   // Реплики теми же кусками, какими их читает озвучка: по ним считается
   // прогресс, и с них же речь продолжается после паузы.
   const allLines = useMemo(() => speechLines(body), [body])
   const total = allLines.length
-  const readings = useMemo(() => hasReadings(body, lang, glossary), [body, lang, glossary])
+  const readings = useMemo(() => hasReadings(body, lang, glossary), [body, lang, glossary, gloss])
 
   const [playing, setPlaying] = useState(false)
   const [slow, setSlow] = useState(false)
@@ -396,7 +398,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // перевода, либо перестаёт слушать. Поэтому звучащее слово переводится в тот
   // же ключ пары, которым связаны стороны (lib/pairing.ts), и загорается
   // напротив — той же логикой, что и клик по слову, только без клика.
-  const lex = useMemo(() => buildLexicon(lang, glossary), [lang, glossary])
+  const lex = useMemo(() => buildLexicon(lang, glossary), [lang, glossary, gloss])
   const spoken = useMemo(() => {
     // Без позиции символа (тишина, пауза, голос без события boundary) слова
     // нет: подсветилось бы первое слово строки и висело бы там молча.

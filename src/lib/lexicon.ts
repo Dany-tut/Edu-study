@@ -31,7 +31,43 @@
 // функция от строки и словаря, ей нечего делать в React.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { WORD_GLOSS, type WordGloss } from '../data/wordGloss'
+import type { WordGloss } from '../data/wordGloss'
+
+// ── Словарь приезжает отдельным чанком ───────────────────────────────────────
+//
+// wordGloss.ts вместе со своими слоями весит около 700 КБ — это был самый
+// тяжёлый файл главного чанка. Он нужен там, где ученик тыкает в слово (урок,
+// карточки, тренажёр), то есть уже после первого экрана, и держать его в
+// первой загрузке незачем.
+//
+// Разбор остаётся синхронным: пока словарь не приехал, GLOSS пуст, segment()
+// честно отдаёт текст без переводов, а компоненты пересчитываются по подписке
+// (см. useGloss.ts). ensureGloss() дёргается на монтировании тех компонентов,
+// которым словарь нужен, и заранее — на простое после первого кадра.
+let GLOSS: Record<string, WordGloss[]> = {}
+let rev = 0
+const glossSubs = new Set<() => void>()
+let glossPromise: Promise<void> | null = null
+
+/** Загрузить словарь (один раз на страницу). */
+export function ensureGloss(): Promise<void> {
+  glossPromise ??= import('../data/wordGloss')
+    .then(m => {
+      GLOSS = m.WORD_GLOSS
+      readings.clear() // кеш чтений собран на пустом словаре — пересобрать
+      rev++
+      for (const f of glossSubs) f()
+    })
+    .catch(e => { glossPromise = null; throw e })
+  return glossPromise
+}
+
+/** Подписка для React (useSyncExternalStore). */
+export function subscribeGloss(f: () => void) {
+  glossSubs.add(f)
+  return () => { glossSubs.delete(f) }
+}
+export const glossRev = () => rev
 import { t } from './i18n'
 import { transcribe } from './translit'
 
@@ -524,7 +560,7 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
     map.set(k, g)
     if (k.length > maxLen) maxLen = k.length
   }
-  for (const g of WORD_GLOSS[lang] ?? []) put(g)
+  for (const g of GLOSS[lang] ?? []) put(g)
   for (const g of extra) put(g)
 
   /**
@@ -771,7 +807,7 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
 }
 
 /** Есть ли для языка пословный словарь вообще. */
-export const hasLexicon = (lang: string) => (WORD_GLOSS[lang]?.length ?? 0) > 0
+export const hasLexicon = (lang: string) => (GLOSS[lang]?.length ?? 0) > 0
 
 /** Язык → чтения, записанные руками. Считается один раз на язык (см. wordReading). */
 const readings = new Map<string, Map<string, string>>()
@@ -788,7 +824,7 @@ export function wordReading(term: string, lang: string): string {
   let m = readings.get(lang)
   if (!m) {
     m = new Map()
-    for (const g of WORD_GLOSS[lang] ?? []) if (g.reading) m.set(key(g.term.trim()), g.reading)
+    for (const g of GLOSS[lang] ?? []) if (g.reading) m.set(key(g.term.trim()), g.reading)
     readings.set(lang, m)
   }
   return m.get(key(term.trim())) || transcribe(term, lang)

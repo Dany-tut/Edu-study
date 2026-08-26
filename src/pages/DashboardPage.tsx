@@ -9,7 +9,6 @@ import MobileCourses from '../components/MobileCourses'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import LessonPage from './LessonPage'
-import HomeworkFlow from '../components/HomeworkFlow'
 import TestFlow from '../components/TestFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
 import NotificationToastContainer from '../components/NotificationToast'
@@ -36,6 +35,12 @@ import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 // activePage === 'trainer', так что ленивый импорт ничего не меняет по
 // поведению — только переносит вес за пределы первой загрузки.
 const TaskBankPage = lazy(() => import('./TaskBankPage'))
+
+// Домашка — тоже отдельным чанком (196 КБ): монтируется только при
+// activePage === 'homework', то есть после клика по уроку. Шкала самооценки,
+// которую рисуют узлы маршрута, вынесена в homeworkSteps.ts — иначе они тянули
+// бы весь модуль домашки обратно в главный чанк.
+const HomeworkFlow = lazy(() => import('../components/HomeworkFlow'))
 
 // Пока чанк тренажёра едет — фон, а не белый провал: TaskBankPage дальше сам
 // показывает свой скелет.
@@ -339,13 +344,15 @@ export default function DashboardPage() {
             onScroll={e => setLessonScrolled((e.currentTarget as HTMLElement).scrollTop > 64)}
             style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}
           >
-            <HomeworkFlow
-              lessonId={lesson.id}
-              lessonTitle={lesson.title}
-              subject={lesson.subject}
-              homework={homework}
-              onBack={closeHomework}
-            />
+            <Suspense fallback={<LessonLoading />}>
+              <HomeworkFlow
+                lessonId={lesson.id}
+                lessonTitle={lesson.title}
+                subject={lesson.subject}
+                homework={homework}
+                onBack={closeHomework}
+              />
+            </Suspense>
           </main>
         ) : activePage === 'trainer' ? (
           <main
@@ -411,13 +418,15 @@ export default function DashboardPage() {
             ) : activePage === 'homework' && !lesson && !dataLoaded ? (
               <LessonLoading />
             ) : activePage === 'homework' && lesson && homework ? (
-              <HomeworkFlow
-                lessonId={lesson.id}
-                lessonTitle={lesson.title}
-                subject={lesson.subject}
-                homework={homework}
-                onBack={closeHomework}
-              />
+              <Suspense fallback={<LessonLoading />}>
+                <HomeworkFlow
+                  lessonId={lesson.id}
+                  lessonTitle={lesson.title}
+                  subject={lesson.subject}
+                  homework={homework}
+                  onBack={closeHomework}
+                />
+              </Suspense>
             ) : (
               <CoursesPage />
             )}

@@ -14,7 +14,7 @@ import CourseNode from './CourseNode'
 import HScrollFade from './HScrollFade'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { playTransitionDrop } from '../lib/sound'
-import { EMOJI_STEPS } from './HomeworkFlow'
+import { EMOJI_STEPS } from './homeworkSteps'
 import HardStarLottie from './HardStarLottie'
 import { useT } from '../lib/i18n'
 

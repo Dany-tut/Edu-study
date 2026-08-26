@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Plus, Volume2 } from 'lucide-react'
 import { buildLexicon, wordReading, type Segment } from '../lib/lexicon'
+import { useGloss } from '../lib/useGloss'
 import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
@@ -145,7 +146,11 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   // прилипали бы к соседнему слову и уезжали в словарь вместе с ним
   // («**вытягивать» искалось бы как отдельное слово и не находилось).
   const { text: body, bold } = useMemo(() => parseBold(text), [text])
-  const lex = useMemo(() => buildLexicon(lang, extra), [lang, extra])
+  // Словарь едет отдельным чанком: пока его нет, разбор отдаёт текст без
+  // переводов, а `gloss` в зависимостях пересобирает лексикон, как только он
+  // доехал. Без этого текст так и остался бы неразмеченным до перерендера.
+  const gloss = useGloss()
+  const lex = useMemo(() => buildLexicon(lang, extra), [lang, extra, gloss])
   const segments = useMemo(() => lex.segment(body), [lex, body])
 
   // В плотном письме связок нет: пробелов там не бывает вовсе, и «кусок между

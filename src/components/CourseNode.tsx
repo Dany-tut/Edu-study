@@ -13,7 +13,7 @@ import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import { useTheme } from '../store/themeStore'
 import { t, useT } from '../lib/i18n'
-import { EMOJI_STEPS } from './HomeworkFlow'
+import { EMOJI_STEPS } from './homeworkSteps'
 import HardSatelliteLottie from './HardSatelliteLottie'
 
 type IconProps = { color?: string; size?: number }

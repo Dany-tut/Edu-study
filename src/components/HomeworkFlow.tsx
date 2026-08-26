@@ -1,3 +1,5 @@
+import { EMOJI_STEPS } from './homeworkSteps'
+export { EMOJI_STEPS }
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
@@ -101,13 +103,6 @@ const VERDICT_PILL_H = 36
 
 // ─── Emoji self-assessment ────────────────────────────────────────────────
 
-export const EMOJI_STEPS = [
-  { emoji: '😞', label: 'Совсем непонятно' },
-  { emoji: '😕', label: 'Многое неясно' },
-  { emoji: '😐', label: 'Кое-что усвоил' },
-  { emoji: '🙂', label: 'Понял хорошо' },
-  { emoji: '🤩', label: 'Всё чётко!' },
-]
 
 function playSliderTick() {
   try {

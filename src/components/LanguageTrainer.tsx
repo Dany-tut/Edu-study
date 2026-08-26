@@ -76,6 +76,7 @@ import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
 import { hasLexicon, wordReading } from '../lib/lexicon'
+import { useGloss } from '../lib/useGloss'
 import { usePersistentState } from '../lib/useDraft'
 import { useScreenTop } from '../lib/useScreenTop'
 import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
@@ -2837,6 +2838,9 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
   // Пословный перевод есть не у всех языков (см. data/wordGloss.ts). Где
   // словаря нет, текст остаётся обычным: кликать по каждому слову ради ответа
   // «нет в словаре» — хуже, чем не кликать вовсе.
+  // Словарь приезжает отдельным чанком — пересчитываемся, когда он доехал,
+  // иначе экран навсегда остался бы в режиме «словаря для языка нет».
+  useGloss()
   const glossed = hasLexicon(lang)
 
   // Разбор (см. trainer/ScoreReader.tsx) имеет смысл там, где есть что
