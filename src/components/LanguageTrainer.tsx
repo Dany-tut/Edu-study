@@ -1598,7 +1598,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               <span style={{ fontSize: 13, fontWeight: 800, color: palette.accent, whiteSpace: 'nowrap' }}>
                 {letters}
               </span>
-              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{sound}</span>
+              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(sound)}</span>
             </div>
           ))}
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
@@ -3578,6 +3578,21 @@ function countSpeakTasks(themes: SurvivalThemeCards[], shadow: boolean): number 
  */
 const SHADOW_LINES = 8
 
+/**
+ * Начало задания «прочитай вслух». Вынесено в константу, потому что сам
+ * `prompt` — ещё и ключ хранения (по нему ищутся уже отправленные записи), и
+ * переводить его целиком нельзя: список фраз в конце у каждой темы свой.
+ * Переводим только это начало — см. speakPrompt().
+ */
+const ALOUD_PREFIX = 'Прочитайте вслух пять фраз темы:'
+
+/** Текст задания на экран: у «вслух» переводим только начало, хвост — фразы темы. */
+function speakPrompt(prompt: string, tr: (s: string) => string): string {
+  return prompt.startsWith(ALOUD_PREFIX)
+    ? tr(ALOUD_PREFIX) + prompt.slice(ALOUD_PREFIX.length)
+    : tr(prompt)
+}
+
 function bookTasks(themes: SurvivalThemeCards[], shadow: boolean): SpeakTask[] {
   const out: SpeakTask[] = []
   for (const x of themes) {
@@ -3608,7 +3623,7 @@ function bookTasks(themes: SurvivalThemeCards[], shadow: boolean): SpeakTask[] {
         id: `aloud-${x.theme.id}`,
         kind: 'aloud',
         title: x.theme.title,
-        prompt: `Прочитайте вслух пять фраз темы: ${x.phrases.slice(0, 5).map(p => p.term).join(' · ')}`,
+        prompt: `${ALOUD_PREFIX} ${x.phrases.slice(0, 5).map(p => p.term).join(' · ')}`,
         seconds: 45,
       })
     }
@@ -3711,7 +3726,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
             </span>
           </div>
           <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{t(open.title)}</div>
-          <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{t(open.prompt)}</p>
+          <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{speakPrompt(open.prompt, t)}</p>
         </div>
 
         {/* Шэдоуинг живёт по своим правилам: не одна запись на всё задание, а
@@ -3785,7 +3800,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
               flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
               overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3,
             }}>
-              {t(x.prompt)}
+              {speakPrompt(x.prompt, t)}
             </span>
             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
               <span style={{ color: 'var(--color-text-3)' }}>

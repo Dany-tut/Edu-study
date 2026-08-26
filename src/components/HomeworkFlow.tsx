@@ -31,7 +31,7 @@ import { okChime, missBlip } from '../lib/feedback'
 import StarBurst from './StarBurst'
 import ScriptHint from './ScriptHint'
 import { useDashboard } from '../store/dashboardStore'
-import { useStudentData, ownerStudentIdFor, subjectSlugFor } from '../store/studentDataStore'
+import { useStudentData, ownerStudentIdFor, subjectSlugFor, subjectAliases } from '../store/studentDataStore'
 import { useTint } from '../store/tintStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
@@ -63,9 +63,11 @@ import WordDropSolver, { parseDrops } from './WordDropSolver'
 import CrosswordSolver, { parseCells } from './CrosswordSolver'
 import { buildCrossword } from '../lib/crossword'
 import DialogGapSolver from './DialogGapSolver'
-import { addCards, deckOwner } from '../data/reviewDeck'
+import { addCards, deckOwner, dueCards, collectedCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
+import { reviewSlots, buildReviewTasks, gradeFor, type ReviewTask } from '../lib/lessonDebt'
 import VocabIntro from './VocabIntro'
+import LessonReview from './LessonReview'
 import HomeworkFlowBar from './HomeworkFlowBar'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
@@ -676,6 +678,14 @@ interface PersistedHomeworkState {
    * пока режим выключен флагом (lib/lessonQueue.ts).
    */
   flowQueue?: QueueState
+  /**
+   * Ответы по карточкам долга — блок повторения в начале занятия (Р17).
+   *
+   * Ключ — id строки review_cards. Лежит в черновике, потому что грейд уже ушёл
+   * в базу: без этой отметки перерисовка показала бы карточку как неотвеченную,
+   * и одно слово получило бы два грейда за вечер.
+   */
+  reviewAnswers?: Record<string, 'ok' | 'miss'>
 }
 
 /**
@@ -1487,6 +1497,15 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
   )
 }
 
+/**
+ * Карточки без повторов по id — долг и словарь приезжают разными запросами и
+ * пересекаются (просроченное слово лежит и там, и там).
+ */
+function dedupeCards(cards: ReviewCard[]): ReviewCard[] {
+  const seen = new Set<string>()
+  return cards.filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)))
+}
+
 function getInitialState(): PersistedHomeworkState {
   return {
     selectedLevel: 'basic',
@@ -1502,6 +1521,7 @@ function getInitialState(): PersistedHomeworkState {
     basicChecked: {},
     basicHints: {},
     flowStep: 0,
+    reviewAnswers: {},
   }
 }
 
@@ -2279,9 +2299,54 @@ export default function HomeworkFlow({
   // литература) не разбираются: там переводить нечего.
   const theoryDef = getSubject(flowSubject)
   const theoryLang = theoryDef?.isLanguage && !theoryDef.native ? theoryDef.langCode : undefined
-  /** Есть ли нулевой шаг — знакомство со словами урока. */
+  /**
+   * Долг колоды — первый блок занятия (Р17, см. lib/lessonDebt.ts).
+   *
+   * Карточки тянутся один раз на открытие домашки и по предмету КУРСА: колода
+   * одна на человека, и без фильтра в корейское занятие приехали бы карточки по
+   * химии (подробности про синонимы предмета — subjectAliases).
+   *
+   * `null` — ещё не загрузили; в это время блока нет и лента считается по
+   * прежним правилам. Отдельного скелета блок не получает намеренно: пустая
+   * рамка на месте, которое чаще всего пустое и есть, читается как поломка.
+   */
+  const [reviewTasks, setReviewTasks] = useState<ReviewTask[] | null>(null)
+  useEffect(() => {
+    if (!flowMode) { setReviewTasks([]); return }
+    let alive = true
+    const owner = deckOwner()
+    if (!owner.studentId) { setReviewTasks([]); return }
+    const subjects = subjectAliases(flowSubject)
+    // Долг и пул обманок — одним заходом: пул нужен, чтобы карточка стала
+    // выбором из четырёх, а не самооценкой (Р9 и шапка lib/lessonDebt.ts).
+    Promise.all([
+      dueCards(owner, 60, subjects),
+      collectedCards(owner, subjects, 120),
+    ])
+      .then(([due, pool]) => {
+        if (!alive) return
+        const slots = reviewSlots(due.length)
+        const taken = due.slice(0, slots)
+        setReviewTasks(buildReviewTasks(taken, dedupeCards([...due, ...pool])))
+      })
+      .catch(() => { if (alive) setReviewTasks([]) })
+    return () => { alive = false }
+  }, [flowMode, flowSubject, lessonId])
+
+  const reviewAnswers = state.reviewAnswers ?? {}
+  /**
+   * Карточки, которые ещё показываются в этом занятии.
+   *
+   * Отвеченные не выпадают из ленты: грейд уже ушёл в базу, но выкинуть экран
+   * из середины блока значило бы сдвинуть все номера шагов под ногами у
+   * ученика — «Далее» перескочило бы через карточку.
+   */
+  const reviewBlock = reviewTasks ?? []
+  const reviewCount = reviewBlock.length
+
+  /** Есть ли шаг знакомства со словами урока. Идёт ПОСЛЕ долга. */
   const flowIntro = vocabWords.length > 0
-  const flowFirst = flowIntro ? 1 : 0
+  const flowFirst = reviewCount + (flowIntro ? 1 : 0)
 
   /**
    * Очередь урока (Р8) — под флагом, см. lib/lessonQueue.ts.
@@ -2299,7 +2364,12 @@ export default function HomeworkFlow({
 
   const flowTotal = flowFirst + queue.order.length
   const flowStep = Math.min(Math.max(state.flowStep ?? 0, 0), flowTotal)
-  const flowOnIntro = flowIntro && flowStep === 0
+  /** Шаг долга — первые `reviewCount` экранов занятия (Р17). */
+  const reviewAt = flowStep < reviewCount ? reviewBlock[flowStep] : undefined
+  const flowOnReview = !!reviewAt
+  /** На карточку долга уже ответили — кнопка «Далее» открыта. */
+  const reviewCardDone = !!reviewAt && !!reviewAnswers[reviewAt.card.id]
+  const flowOnIntro = flowIntro && flowStep === reviewCount
   /** Задания кончились — дальше сдача, и хвост страницы снова виден целиком. */
   const flowFinished = flowStep >= flowTotal
   const flowPosition = flowStep - flowFirst
@@ -2465,7 +2535,26 @@ export default function HomeworkFlow({
    * Она не переезжает и не раздваивается — за один шаг делается ровно одно
    * действие, и какое именно, видно по надписи.
    */
+  /**
+   * Ответ по карточке долга: грейд в колоду плюс отметка в черновике.
+   *
+   * Грейд уходит сразу, а не при сдаче домашки: расписание карточки — это её
+   * собственная жизнь, и брошенное на середине занятие не повод сделать вид,
+   * что повторения не было. Отметка в черновике держит экран отвеченным до
+   * конца вечера (второй грейд по тому же слову был бы враньём планировщику).
+   */
+  const answerReviewCard = (task: ReviewTask, ok: boolean) => {
+    if (reviewAnswers[task.card.id]) return
+    setState(current => ({
+      ...current,
+      reviewAnswers: { ...(current.reviewAnswers ?? {}), [task.card.id]: ok ? 'ok' : 'miss' },
+    }))
+    gradeCard(task.card, gradeFor(ok)).catch(e => console.error('lesson review grade:', e))
+  }
+
   const flowPrimary = () => {
+    // Карточка долга закрывается своим ответом (Р17): кнопка только листает.
+    if (flowOnReview) { goToFlowStep(flowStep + 1); return }
     if (flowOnIntro) { goToFlowStep(flowStep + 1); return }
     if (flowQuestion && flowAuto && !flowChecked && !flowHinted && flowAnswered) {
       checkQuestion(flowQuestion.id)
@@ -2474,7 +2563,9 @@ export default function HomeworkFlow({
     goToFlowStep(nextFlowStep(flowStep))
   }
 
-  const flowLabel = flowOnIntro
+  const flowLabel = flowOnReview
+    ? t('Далее')
+    : flowOnIntro
     ? t('Понятно')
     : flowDone
       ? (nextFlowStep(flowStep) >= flowTotal ? t('Закончить') : t('Далее'))
@@ -3203,6 +3294,22 @@ export default function HomeworkFlow({
               {/* В режиме одного экрана знакомство — это отдельный нулевой шаг,
                   а не блок над списком: иначе на первом же экране рядом с
                   заданием лежали бы все ответы. */}
+              {/* Долг колоды — до знакомства с новыми словами (Р17). Порядок
+                  тут и есть всё правило: просроченное слово встречается ДО
+                  того, как вечер потратится на новое, а не «если останутся
+                  силы» — на отдельный экран повторения ученик не заходит. */}
+              {reviewAt && (
+                <LessonReview
+                  task={reviewAt}
+                  index={flowStep + 1}
+                  total={reviewCount}
+                  lang={theoryLang}
+                  palette={palette}
+                  answered={reviewAnswers[reviewAt.card.id]}
+                  onAnswer={ok => answerReviewCard(reviewAt, ok)}
+                />
+              )}
+
               {(!flowMode || flowOnIntro) && (
                 <VocabIntro
                   words={vocabWords}
@@ -4246,7 +4353,9 @@ export default function HomeworkFlow({
                   step={flowStep}
                   total={flowTotal}
                   label={flowLabel}
-                  disabled={!flowOnIntro && !flowAnswered && !flowDone}
+                  disabled={flowOnReview
+                    ? !reviewCardDone
+                    : !flowOnIntro && !flowAnswered && !flowDone}
                   isMobile={isMobile}
                   navCollapsed={navCollapsed}
                   onPrimary={flowPrimary}

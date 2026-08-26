@@ -60,8 +60,22 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
   // разворачивает его прямо здесь. Порог по числу знаков, а не по строкам:
   // реальные строки известны только после отрисовки, и считать их ради
   // кнопки «ещё» пришлось бы измерением на каждый ресайз.
-  const long = item.body.length > 420
-  const shown = long && !expanded ? item.body.slice(0, 380).trimEnd() + '…' : item.body
+  // ── Уровень пересказа ───────────────────────────────────────────────────────
+  //
+  // У материала с `levels` тело зависит от выбранной ступени, и дальше ВЕСЬ пост
+  // работает с локальным `body`, а не с `item.body`: озвучка, словарь и «Ещё»
+  // не должны знать, что уровней несколько.
+  //
+  // Сразу показывается ПЕРВЫЙ, самый простой. Не «уровень ученика»: уровень
+  // курса и уровень чтения — разные вещи (читать всегда легче, чем говорить), а
+  // упереться в стену на первой же строке — вернейший способ закрыть ленту.
+  // Поднять ступень — один тап, и он виден.
+  const [tier, setTier] = useState(0)
+  const step = item.levels?.[Math.min(tier, item.levels.length - 1)]
+  const body = step?.body ?? item.body
+
+  const long = body.length > 420
+  const shown = long && !expanded ? body.slice(0, 380).trimEnd() + '…' : body
 
   const toggleTranslate = () => { setTranslated(v => !v); touched() }
 
@@ -85,7 +99,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
     const lex = buildLexicon(lang, item.glossary)
     const seen = new Set<string>()
     const out: { text: string; ru: string }[] = []
-    for (const seg of lex.segment(item.body || item.title)) {
+    for (const seg of lex.segment(body || item.title)) {
       if (!seg.word || !seg.gloss) continue
       const k = seg.gloss.term.trim().toLowerCase()
       if (seen.has(k)) continue
@@ -93,7 +107,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       out.push({ text: seg.text, ru: seg.gloss.ru })
     }
     return out
-  }, [translated, item.translation, item.glossary, item.body, item.title, lang])
+  }, [translated, item.translation, item.glossary, body, item.title, lang])
 
   return (
     <article ref={seenRef} style={variant === 'card' ? {
@@ -221,8 +235,31 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       )}
 
       {/* ── Текст читается здесь, слово переводится по клику ──────────────── */}
-      {item.body && (
+      {body && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* СТУПЕНИ СТОЯТ НАД ТЕКСТОМ, а не в строке действий внизу: решение
+              «мне тяжело» принимают на первой строке, а не дочитав до конца.
+              Смена ступени сбрасывает «Ещё» — иначе на простом уровне текст
+              оказывался бы развёрнут, а на сложном обрезан по той же метке. */}
+          {item.levels && item.levels.length > 1 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {item.levels.map((l, i) => (
+                <button
+                  key={l.level}
+                  onClick={() => { setTier(i); setExpanded(false); touched() }}
+                  style={{
+                    padding: '3px 10px', borderRadius: 999, cursor: 'pointer',
+                    fontFamily: 'inherit', fontSize: 11.5, fontWeight: 750,
+                    border: `1px solid ${i === tier ? accent : 'var(--color-border)'}`,
+                    background: i === tier ? `${accent}1A` : 'transparent',
+                    color: i === tier ? accent : 'var(--color-muted)',
+                  }}
+                >
+                  {l.level}
+                </button>
+              ))}
+            </div>
+          )}
           <GlossedText
             text={shown}
             lang={lang}
@@ -304,7 +341,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               оставался голым. Но заголовок у них на изучаемом языке и ровно
               такой же материал для слуха, что и абзац заметки. */}
           <AudioPlayer
-            ttsText={item.body || item.title}
+            ttsText={body || item.title}
             lang={lang}
             variant="bare"
             picker={false}

@@ -1581,7 +1581,9 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
       <button onClick={() => { setOpen(o => !o); setQuery('') }}
         style={{ display: 'flex', alignItems: 'center', gap: iconGap, padding: '7px 12px', borderRadius: 999,
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
-          border: `1px solid ${value ? 'var(--color-border-strong)' : open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          // Выбранное значение помечаем только жирным текстом: своя яркая
+          // рамка у заполненного фасета выбивалась из ряда таблеток шапки.
+          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: value ? 700 : 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <span style={{ display: 'flex', color: 'var(--color-text-3)' }}>{icon}</span>
         <span style={{ minWidth, textAlign: 'left' }}>{value ? label(value) : allLabel}</span>

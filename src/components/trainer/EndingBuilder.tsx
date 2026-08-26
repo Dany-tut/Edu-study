@@ -161,7 +161,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
         </div>
         {merged && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}>
-            {verb.stem} + {ending.block} {'→'} {form.form} {'— основа слилась с хвостом'}
+            {verb.stem} + {ending.block} {'→'} {form.form} {t('— основа слилась с хвостом')}
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
@@ -215,7 +215,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
   const cardsFor = useCallback((list: Ending[]) => list.map(e => ({
     subject: subjectId,
     source: 'trainer' as const,
-    prompt: `${verb.dict} · ${e.label} — как сказать?`,
+    prompt: `${verb.dict} · ${t(e.label)} — ${t('как сказать?')}`,
     answer: `${verb.forms[e.id].form} — ${verb.forms[e.id].ru}`,
     options: endings.map(x => verb.forms[x.id].form),
   })), [verb, endings, subjectId])

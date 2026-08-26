@@ -373,7 +373,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
 
 // ─── Public component ─────────────────────────────────────────────────────────
 
-const DEFAULT_PALETTE = { accent: 'var(--color-accent)', soft: 'var(--color-purple-soft)', text: 'var(--color-accent)', ring: 'rgba(120,106,215,0.3)' }
+const DEFAULT_PALETTE = { accent: 'var(--color-accent)', soft: 'var(--color-purple-soft)', text: 'var(--color-accent)', ring: 'rgba(var(--accent-rgb), 0.3)' }
 
 export default function HardConversation({
   tabs, studentBlocks, reviewBlocks, role, activeKey, onSelectTab, onZoomPhoto,

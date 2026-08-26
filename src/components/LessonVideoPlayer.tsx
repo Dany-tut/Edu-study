@@ -1085,14 +1085,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   position: 'relative', width: touch ? 28 : 34, height: touch ? 17 : 21, borderRadius: 999, overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(255,255,255,0.13)',
-                  border: `1px solid ${boostLocked ? 'rgba(167,139,250,0.9)' : 'rgba(255,255,255,0.14)'}`,
+                  border: `1px solid ${boostLocked ? 'rgba(var(--accent-rgb), 0.9)' : 'rgba(255,255,255,0.14)'}`,
                 }}
               >
                 <span
                   style={{
                     position: 'absolute', left: 0, right: 0, bottom: 0,
                     height: `${(boostLocked ? 1 : lockFill) * 100}%`,
-                    background: 'linear-gradient(180deg, #A78BFA, #7C5CFF)',
+                    background: 'var(--grad-purple)',
                     transition: 'height 0.08s linear',
                   }}
                 />
@@ -1150,7 +1150,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 <div
                   style={{
                     position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999,
-                    background: 'linear-gradient(90deg, rgba(124,92,255,0.45), #7C5CFF 55%, #C7BCFF 86%, #FFFFFF)',
+                    background: 'linear-gradient(90deg, rgba(var(--accent-rgb), 0.45), rgba(var(--accent-rgb), 1) 55%, rgba(var(--accent-rgb), 0.45) 86%, #FFFFFF)',
                   }}
                 />
                 {/* Главы — прорези цветом корпуса, а не точки поверх линии. */}
@@ -1170,7 +1170,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     position: 'absolute', top: '50%', left: `max(0px, calc(${pct}% - 16px))`,
                     width: 16, height: scrubbing ? 7 : 5, borderRadius: 999,
                     transform: 'translateY(-50%)', background: '#fff',
-                    boxShadow: '0 0 10px rgba(199,188,255,0.85)',
+                    boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.85)',
                     transition: 'height 0.14s ease',
                   }}
                 />
@@ -1386,7 +1386,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           {/* Полоска уже отсмотренного по низу заставки — сразу видно, что урок начат. */}
           {ratio > 0.01 && (
             <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 4, background: 'rgba(255,255,255,0.18)' }}>
-              <div style={{ height: '100%', width: `${ratio * 100}%`, background: 'var(--grad-purple, linear-gradient(90deg,#7C5CFF,#A855F7))' }} />
+              <div style={{ height: '100%', width: `${ratio * 100}%`, background: 'var(--grad-purple)' }} />
             </div>
           )}
 

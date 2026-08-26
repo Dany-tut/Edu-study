@@ -160,7 +160,7 @@ function WordRow({ word, root, lang, accent, tone, reading }: {
             а не опечатка, и молчать о нём нельзя (두음법칙 и прочее). */}
         {word.alt && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}>
-            {root.ko} {'→'} {word.alt} {'— корень звучит здесь иначе'}
+            {root.ko} {'→'} {word.alt} {t('— корень звучит здесь иначе')}
           </div>
         )}
       </div>
@@ -218,7 +218,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
   const cardsFor = useCallback((list: HanjaWord[]) => list.map(word => ({
     subject: subjectId,
     source: 'trainer' as const,
-    prompt: `${word.term} — что значит? (${word.parts})`,
+    prompt: `${word.term} — ${t('что значит?')} (${word.parts})`,
     answer: `${word.term} — ${word.ru}`,
   })), [subjectId])
 

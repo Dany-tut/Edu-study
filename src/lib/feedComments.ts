@@ -16,6 +16,7 @@
 // бы сокет на каждом открытом материале. Перечитываем после своей отправки и
 // при открытии треда.
 import { useCallback, useEffect, useState } from 'react'
+import { t } from './i18n'
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
 
@@ -129,7 +130,7 @@ export function useFeedComments(itemId: string, lang: string) {
       // Обсуждение — не главное на экране: если оно не загрузилось, материал
       // всё равно должен читаться. Поэтому ошибка живёт в треде, а не выше.
       console.error('feedComments load:', e)
-      setError('Не удалось загрузить обсуждение')
+      setError(t('Не удалось загрузить обсуждение'))
     } finally {
       setLoading(false)
     }
@@ -180,7 +181,7 @@ export function useFeedComments(itemId: string, lang: string) {
       await load()
     } catch (e) {
       console.error('feedComments remove:', e)
-      setError('Не удалось удалить')
+      setError(t('Не удалось удалить'))
     }
   }, [load])
 
@@ -204,12 +205,12 @@ export function whenLabel(iso: string, now = Date.now()): string {
   const ms = now - new Date(iso).getTime()
   if (!Number.isFinite(ms)) return ''
   const min = Math.floor(ms / 60000)
-  if (min < 1) return 'только что'
-  if (min < 60) return `${min} мин назад`
+  if (min < 1) return t('только что')
+  if (min < 60) return `${min} ${t('мин назад')}`
   const h = Math.floor(min / 60)
-  if (h < 24) return `${h} ч назад`
+  if (h < 24) return `${h} ${t('ч назад')}`
   const d = Math.floor(h / 24)
-  if (d === 1) return 'вчера'
-  if (d < 7) return `${d} дн. назад`
+  if (d === 1) return t('вчера')
+  if (d < 7) return `${d} ${t('дн. назад')}`
   return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
 }

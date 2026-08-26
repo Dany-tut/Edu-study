@@ -19,6 +19,8 @@
 // Когда время понадобится учителю — здесь появится тот же интерфейс поверх
 // таблицы (student_id, day, subject, ms, right, wrong), вызовы не изменятся.
 // ─────────────────────────────────────────────────────────────────────────────
+import { t } from './i18n'
+
 
 const KEY = 'trainer-day-v1'
 
@@ -147,18 +149,18 @@ export const GOAL_MS = 20 * 60_000
  */
 export function formatDur(ms: number): string {
   const min = Math.floor(ms / 60_000)
-  if (min < 1) return 'меньше минуты'
-  if (min < 60) return `${min} мин`
+  if (min < 1) return t('меньше минуты')
+  if (min < 60) return `${min} ${t('мин')}`
   const h = Math.floor(min / 60)
   const rest = min % 60
-  return rest ? `${h} ч ${rest} мин` : `${h} ч`
+  return rest ? `${h} ${t('ч')} ${rest} ${t('мин')}` : `${h} ${t('ч')}`
 }
 
 /** Та же длительность в два-три знака — для кружка и мини-пилюли: «12м», «1ч». */
 export function formatShort(ms: number): string {
   const min = Math.floor(ms / 60_000)
-  if (min < 60) return `${min}м`
+  if (min < 60) return `${min}${t('м')}`
   const h = Math.floor(min / 60)
   const rest = min % 60
-  return rest ? `${h}ч${String(rest).padStart(2, '0')}` : `${h}ч`
+  return rest ? `${h}${t('ч')}${String(rest).padStart(2, '0')}` : `${h}${t('ч')}`
 }

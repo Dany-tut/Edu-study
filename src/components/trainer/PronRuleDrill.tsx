@@ -193,7 +193,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
   const cardOf = useCallback((ex: PronExample) => ({
     subject: subjectId,
     source: 'trainer' as const,
-    prompt: rule.kind === 'sound' ? `Как звучит ${ex.written}?` : `Как пишется в начале слова: ${ex.written}?`,
+    prompt: rule.kind === 'sound' ? `${t('Как звучит')} ${ex.written}?` : `${t('Как пишется в начале слова:')} ${ex.written}?`,
     answer: `${spokenLabel(rule, ex.spoken)} — ${ex.ru}`,
     options: [ex.spoken, ...ex.distractors].map(s => spokenLabel(rule, s)),
   }), [rule, subjectId])

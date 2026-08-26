@@ -78,7 +78,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             {c.lessonTitle}
           </span>
           <span style={{ display: 'block', fontSize: 12.5, color: 'var(--color-muted)', marginTop: 1 }}>
-            {KIND_LABEL[c.kind]} · {c.summary}
+            {t(KIND_LABEL[c.kind])} · {c.summary}
             {!!c.details?.length && ` · ${openKey === c.key ? t('скрыть') : t('подробнее')}`}
           </span>
         </button>

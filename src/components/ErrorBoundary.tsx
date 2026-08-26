@@ -50,10 +50,10 @@ export default class ErrorBoundary extends Component<Props, State> {
     const e = this.state.error
     return [
       '', '',
-      '--- технические данные ---',
-      'Адрес: ' + window.location.href,
-      'Версия: ' + __APP_VERSION__,
-      'Ошибка: ' + String(e?.message ?? e ?? '').slice(0, 300),
+      `--- ${t('технические данные')} ---`,
+      t('Адрес:') + ' ' + window.location.href,
+      t('Версия:') + ' ' + __APP_VERSION__,
+      t('Ошибка:') + ' ' + String(e?.message ?? e ?? '').slice(0, 300),
       String(e?.stack ?? '').split('\n').slice(0, 4).join('\n'),
       this.componentStack.split('\n').slice(0, 5).join('\n').trim(),
     ].join('\n').trimEnd()

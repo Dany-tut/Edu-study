@@ -25,6 +25,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { COURSE_SEEDS } from '../data/courseSeeds'
+import { t as tr } from './i18n'
 import { lessonBody, plainTitle, withNumber } from './lessonKey'
 import { normalizeTaskType } from '../data/taskTypes'
 import type { CourseEdData, CELesson, CEModule } from '../pages/teacher/TeacherCourseEditorPage'
@@ -274,7 +275,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
       key: `lesson-gone:${title}`,
       kind: 'lesson-gone',
       lessonTitle: mine.title ?? title,
-      summary: `Урока больше нет в сиде · ${tasksOf(mine).length} заданий`,
+      summary: `${tr('Урока больше нет в сиде')} · ${tasksOf(mine).length} ${tr('заданий')}`,
       overwrites: true,
     })
   })
@@ -288,7 +289,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         key: `lesson:${title}`,
         kind: 'lesson',
         lessonTitle: unit.title,
-        summary: `Новый урок · ${(unit.hwTasks ?? []).length} заданий`,
+        summary: `${tr('Новый урок')} · ${(unit.hwTasks ?? []).length} ${tr('заданий')}`,
         overwrites: false,
       })
       return
@@ -303,7 +304,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         key: `tasks:${title}`,
         kind: 'task',
         lessonTitle: mine.title,
-        summary: `Новых заданий: ${added.length}`,
+        summary: `${tr('Новых заданий:')} ${added.length}`,
         overwrites: false,
         details: added.map(t => `${t.label ?? t.type} — ${String(t.question ?? '').slice(0, 70)}`),
       })
@@ -328,7 +329,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         key: `gone:${title}`,
         kind: 'task-gone',
         lessonTitle: mine.title,
-        summary: `Заданий убрано из сида: ${gone.length}`,
+        summary: `${tr('Заданий убрано из сида:')} ${gone.length}`,
         overwrites: true,
         details: gone.map(t => `${t.label ?? t.type} — ${String(t.question ?? '').slice(0, 70)}`),
       })
@@ -340,7 +341,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
       const my = t.id ? mineByKey.get(taskKey(t.id)) : undefined
       if (!my) return
       const fields: string[] = OWNED_FIELDS.filter(f => differs(my[f], (t as Task)[f]))
-      if (typeDiffers(my, t as Task)) fields.unshift(`тип: ${my.type} → ${(t as Task).type}`)
+      if (typeDiffers(my, t as Task)) fields.unshift(`${tr('тип:')} ${my.type} → ${(t as Task).type}`)
       if (fields.length) drifted.push(`${t.label ?? t.type}: ${fields.join(', ')}`)
     })
     if (drifted.length) {
@@ -348,7 +349,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         key: `fields:${title}`,
         kind: 'task-fields',
         lessonTitle: mine.title,
-        summary: `Заданий с расхождением: ${drifted.length}`,
+        summary: `${tr('Заданий с расхождением:')} ${drifted.length}`,
         overwrites: true,
         details: drifted,
       })
@@ -366,7 +367,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         key: `video:${title}`,
         kind: 'video',
         lessonTitle: mine.title,
-        summary: mine.videoUrl?.trim() ? 'Ссылка на видео отличается от сида' : 'Видео нет — есть в сиде',
+        summary: mine.videoUrl?.trim() ? tr('Ссылка на видео отличается от сида') : tr('Видео нет — есть в сиде'),
         overwrites: !!mine.videoUrl?.trim(),
         details: [unit.videoUrl],
       })
@@ -378,7 +379,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         key: `theory:${title}`,
         kind: 'theory',
         lessonTitle: mine.title,
-        summary: mine.theory?.trim() ? 'Конспект отличается от сида' : 'Конспект пуст — есть в сиде',
+        summary: mine.theory?.trim() ? tr('Конспект отличается от сида') : tr('Конспект пуст — есть в сиде'),
         overwrites: !!mine.theory?.trim(),
       })
     }

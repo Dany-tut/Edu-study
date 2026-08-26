@@ -480,7 +480,7 @@ export default function WhiteboardCanvas({
             position: 'absolute',
             left: `${(marquee.x / CANVAS_W) * 100}%`, top: `${(marquee.y / pxH) * 100}%`,
             width: `${(marquee.w / CANVAS_W) * 100}%`, height: `${(marquee.h / pxH) * 100}%`,
-            border: '1.5px dashed var(--color-accent)', background: 'rgba(120,106,215,0.10)',
+            border: '1.5px dashed var(--color-accent)', background: 'rgba(var(--accent-rgb), 0.10)',
             boxSizing: 'border-box', pointerEvents: 'none', borderRadius: 2,
           }} />
         )}
@@ -497,7 +497,7 @@ export default function WhiteboardCanvas({
               width: `${(sel.w / CANVAS_W) * 100}%`, height: `${(sel.h / pxH) * 100}%`,
               border: '1.5px dashed var(--color-accent)', boxSizing: 'border-box',
               cursor: 'move', pointerEvents: 'auto', touchAction: 'none', borderRadius: 2,
-              background: 'rgba(120,106,215,0.06)',
+              background: 'rgba(var(--accent-rgb), 0.06)',
             }}
           >
             {HANDLES.map(cid => (

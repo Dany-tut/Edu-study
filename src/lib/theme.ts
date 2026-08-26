@@ -30,7 +30,7 @@ export const PURPLE = {
   text: 'var(--color-accent)',
   soft: 'var(--color-purple-soft)',
   mid: 'var(--color-purple)',
-  ring: 'rgba(99,84,207,0.14)',
+  ring: 'rgba(var(--accent-rgb), 0.14)',
   gradient: 'var(--grad-purple)',
 } as const
 

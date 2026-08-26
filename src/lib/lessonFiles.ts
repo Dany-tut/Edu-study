@@ -9,6 +9,7 @@
 // сгенерированный на лету в JS.
 
 import { supabase } from './supabase'
+import { t } from './i18n'
 
 const BUCKET = 'lesson-materials'
 
@@ -35,7 +36,7 @@ export const MAX_LESSON_FILE_BYTES = 25 * 1024 * 1024
 
 export class LessonFileTooLargeError extends Error {
   constructor(public bytes: number) {
-    super(`Файл ${(bytes / 1024 / 1024).toFixed(1)} МБ — больше ${(MAX_LESSON_FILE_BYTES / 1024 / 1024).toFixed(0)} МБ`)
+    super(`${t('Файл')} ${(bytes / 1024 / 1024).toFixed(1)} ${t('МБ')} — ${t('больше')} ${(MAX_LESSON_FILE_BYTES / 1024 / 1024).toFixed(0)} ${t('МБ')}`)
     this.name = 'LessonFileTooLargeError'
   }
 }
@@ -59,7 +60,7 @@ export function parseLessonFiles(raw: unknown): LessonFiles {
     if (typeof f.path !== 'string' || !f.path) return undefined
     return {
       id: typeof f.id === 'string' ? f.id : f.path,
-      name: typeof f.name === 'string' && f.name ? f.name : 'Файл',
+      name: typeof f.name === 'string' && f.name ? f.name : t('Файл'),
       path: f.path,
       size: typeof f.size === 'number' ? f.size : 0,
       mime: typeof f.mime === 'string' ? f.mime : '',
@@ -89,7 +90,7 @@ export async function uploadLessonFile(file: File): Promise<LessonFile> {
 
   const { data: userData } = await supabase.auth.getUser()
   const uid = userData.user?.id
-  if (!uid) throw new Error('Не авторизован — войдите заново')
+  if (!uid) throw new Error(t('Не авторизован — войдите заново'))
 
   const id = crypto.randomUUID()
   const path = `${uid}/${id}.${extOf(file.name)}`
@@ -116,7 +117,7 @@ export async function uploadLessonFile(file: File): Promise<LessonFile> {
  */
 export async function downloadLessonFile(file: LessonFile): Promise<void> {
   const { data, error } = await supabase.storage.from(BUCKET).download(file.path)
-  if (error || !data) throw error ?? new Error('Файл не найден')
+  if (error || !data) throw error ?? new Error(t('Файл не найден'))
   const url = URL.createObjectURL(data)
   const a = document.createElement('a')
   a.href = url
@@ -138,7 +139,7 @@ export async function deleteLessonFile(path: string): Promise<void> {
 /** Человекочитаемый размер для подписи плитки. */
 export function formatFileSize(bytes: number): string {
   if (!bytes) return ''
-  if (bytes < 1024) return `${bytes} Б`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} КБ`
-  return `${(bytes / 1024 / 1024).toFixed(1)} МБ`
+  if (bytes < 1024) return `${bytes} ${t('Б')}`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} ${t('КБ')}`
+  return `${(bytes / 1024 / 1024).toFixed(1)} ${t('МБ')}`
 }

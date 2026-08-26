@@ -283,7 +283,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
   const cardsFor = useCallback((list: NumberRow[]) => list.map(row => ({
     subject: subjectId,
     source: 'trainer' as const,
-    prompt: `${row.ru} — как сказать? (${t(set.title)})`,
+    prompt: `${row.ru} — ${t('как сказать?')} (${t(set.title)})`,
     answer: `${row.form} — ${row.ru}`,
     options: set.rows.map(x => x.form),
   })), [set, subjectId, t])

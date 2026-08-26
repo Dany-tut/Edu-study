@@ -99,7 +99,7 @@ export default function MobileCourses() {
   const xpInLevel = stats.totalPoints % XP_PER_LEVEL
   // Звание — из лестницы предмета: у языка «Слова · Фразы · Диалоги», а не
   // химические «Молекулы» (lib/subjects.ts).
-  const rank = subjectRank(subject?.subject, level)
+  const rank = t(subjectRank(subject?.subject, level))
 
   const selectSubject = (id: string) => {
     setActiveSubject(id)

@@ -16,6 +16,8 @@
  * Пишется в lesson_progress.attachments базовой строки (у хард-уровня своя
  * строка `<lessonId>-hard` и свой формат `{v:2, tasks}` — они не пересекаются).
  */
+import { t } from './i18n'
+
 
 /** Как машина оценила один ответ. */
 export type BasicAnswerVerdict =
@@ -82,11 +84,11 @@ export function parseBasicAnswers(attachments: unknown): BasicAnswersPayload | n
 /** Подпись и цвет вердикта — общие для всех витрин проверки. */
 export function verdictLabel(v: BasicAnswerVerdict): string {
   switch (v) {
-    case 'correct': return 'Верно'
-    case 'wrong': return 'Неверно'
-    case 'hint': return 'По подсказке'
-    case 'review': return 'На проверке'
-    case 'skip': return 'Без записи'
-    case 'empty': return 'Пропущено'
+    case 'correct': return t('Верно')
+    case 'wrong': return t('Неверно')
+    case 'hint': return t('По подсказке')
+    case 'review': return t('На проверке')
+    case 'skip': return t('Без записи')
+    case 'empty': return t('Пропущено')
   }
 }

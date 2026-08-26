@@ -3676,6 +3676,137 @@ const EN: Record<string, string> = {
   'Реакция не идёт': 'No reaction',
   'Уксусная кислота': 'Acetic acid',
   'Вода': 'Water',
+
+  // ——— Языковой тренажёр: витрины, фильтры, сортировки ———
+  'Тексты': 'Texts',
+  'Сцены': 'Scenes',
+  'Наборы': 'Sets',
+  'Слова': 'Words',
+  'Созвучия': 'Sound nests',
+  'Основы': 'Stems',
+  'Корни': 'Roots',
+  'Звуки': 'Sounds',
+  'Как устроен': 'How it works',
+  'Учебники': 'Textbooks',
+  'Шэдоуинг': 'Shadowing',
+  'Ролевые': 'Role-play',
+  'Вслух': 'Aloud',
+  'Рассказ': 'Story',
+  'Ролевое': 'Role-play',
+  'до 3 мин': 'under 3 min',
+  'По порядку': 'In order',
+  'По уровню': 'By level',
+  'Покороче': 'Shortest first',
+  'По размеру': 'By length',
+  'По прогрессу': 'By progress',
+  'Не слушал': 'Not listened',
+  'Не читал': 'Not read',
+  'Не начатые': 'Not started',
+  'Не записаны': 'Not recorded',
+  'Свайп': 'Swipe',
+  'Списком': 'List',
+  'Найти слово или корень…': 'Find a word or a root…',
+  'Найти правило или слово…': 'Find a rule or a word…',
+  'Найти число или ситуацию…': 'Find a number or a situation…',
+  'Для этого языка материалов пока нет. Учитель может добавить свои.':
+    'There is no material for this language yet. Your teacher can add their own.',
+  'Ряды созвучий открываются по мере прохождения курса — пока ни одного юнита не пройдено.':
+    'Sound nests open up as you move through the course — no unit is finished yet.',
+  'Все слова набора уже разобраны и ждут своего дня.\nМожно прогнать его заново — расписание при этом продолжит считаться.':
+    'Every word in this set is covered and waiting for its day.\nYou can run it again — the schedule keeps counting either way.',
+  'Все фразы этой темы уже разобраны и ждут своего дня.\nМожно прогнать её заново — расписание при этом продолжит считаться.':
+    'Every phrase in this topic is covered and waiting for its day.\nYou can run it again — the schedule keeps counting either way.',
+  'Одна основа и восемь хвостов. Хвост цепляется одинаково к любому глаголу, поэтому выучить нужно восемь хвостов, а не сорок форм.':
+    'One stem and eight endings. An ending attaches to any verb the same way, so what you learn is eight endings, not forty forms.',
+  'Больше половины корейских слов собрано из односложных кирпичей. Один кирпич открывает сразу гнездо слов, а промахи прогона уходят в колоду повторений.':
+    'More than half of Korean words are built from one-syllable bricks. One brick opens a whole nest of words, and whatever you miss goes into the review deck.',
+  'Корейское слово часто звучит не так, как написано, — и расходятся они не как попало, а по десятку правил. Каждое правило здесь — разбор, частые слова и прогон; промахи уходят в колоду повторений.':
+    'A Korean word often sounds nothing like its spelling — and the two part ways by rule, about ten of them. Each rule here comes with a breakdown, common words and a run-through; misses go into the review deck.',
+  'Рядов счёта два, и выбирают между ними не по числу, а по тому, что считают: людей и часы — исконным, деньги, минуты и даты — китайским. Наборы здесь и есть эти ситуации.':
+    'There are two counting systems, and what picks between them is not the number but the thing counted: people and hours take the native one, money, minutes and dates the Sino-Korean one. The sets here are exactly those situations.',
+  'Расскажи о себе: имя, чем занимаешься, зачем учишь язык. Минута.':
+    'Introduce yourself: your name, what you do, why you are learning the language. One minute.',
+  'Опиши свой обычный день с утра до вечера.': 'Describe an ordinary day of yours, morning to night.',
+  'Расскажи о месте, где ты вырос. Что там было хорошего?':
+    'Tell us about the place you grew up in. What was good about it?',
+  'Что ты делал на прошлых выходных? Используй прошедшее время.':
+    'What did you do last weekend? Use the past tense.',
+  'Какие у тебя планы на ближайший год?': 'What are your plans for the coming year?',
+  'Повторите за образцом 8 реплик темы и сравните со своей записью.':
+    'Repeat 8 lines of the topic after the model and compare with your own recording.',
+  'Прочитайте вслух пять фраз темы:': 'Read five phrases of the topic aloud:',
+  'Фильтры и сортировка': 'Filters and sorting',
+  'формы': 'forms',
+  '— основа слилась с хвостом': '— the stem merged with the ending',
+  '— корень звучит здесь иначе': '— the root sounds different here',
+  'как сказать?': 'how do you say it?',
+  'что значит?': 'what does it mean?',
+  'Как звучит': 'How does it sound:',
+  'Как пишется в начале слова:': 'How is it spelled at the start of a word:',
+  'Спокойно': 'Calm',
+  'Быстро': 'Fast',
+
+  // Семь конечных: русская запись звучания — в английском своя
+  '[к]': '[k]',
+  '[н]': '[n]',
+  '[т]': '[t]',
+  '[ль]': '[l]',
+  '[м]': '[m]',
+  '[п]': '[p]',
+  '[нъ]': '[ng]',
+
+  // ——— Звания по предметам ———
+  'Разговор': 'Conversation',
+  'Точность': 'Accuracy',
+  'Стиль': 'Style',
+  'Публично': 'In public',
+  'Мастерская': 'Workshop',
+  'Немецкий': 'German',
+
+  // ——— Синхронизация с сидом ———
+  'Новый урок': 'New lesson',
+  'Урок убран из сида': 'Lesson removed from the seed',
+  'Новые задания': 'New tasks',
+  'Убраны из готового курса': 'Removed from the ready-made course',
+  'Правки в заданиях': 'Task edits',
+  'Видео урока': 'Lesson video',
+
+  // ——— Трек курса: подписи статусов ———
+  'возвращено на доработку': 'sent back for rework',
+  'запись урока': 'lesson recording',
+  'отправлено на проверку': 'sent for review',
+  'текущий урок': 'current lesson',
+  'недоступно': 'locked',
+
+  // ——— Обсуждение и время ———
+  'Не удалось загрузить обсуждение': 'Couldn\'t load the discussion',
+  'Не удалось удалить': 'Couldn\'t delete',
+
+  // ——— Отчёт об ошибке ———
+  'технические данные': 'technical details',
+  'Адрес:': 'Address:',
+  'Версия:': 'Version:',
+  'Ошибка:': 'Error:',
+  'Ошибка на странице': 'Page error',
+
+  // ——— Файлы урока ———
+  'Файл': 'File',
+  'Не авторизован — войдите заново': 'Not signed in — sign in again',
+  'Файл не найден': 'File not found',
+
+  // ——— Время за экраном ———
+  'меньше минуты': 'under a minute',
+
+  // ——— Глубина по курсу ———
+  'Открыто уроков курса:': 'Course lessons open:',
+  'Новое доливается по мере прохождения.': 'More arrives as you go.',
+  'Курс не назначен — показан весь материал языка.': 'No course assigned — the whole language library is shown.',
+
+  // ——— Мелочи кабинета ———
+  'Заработок': 'Earnings',
+  'Новый': 'New',
+  'Задания части 2': 'Part 2 tasks',
+  'Говорение — тренажёр': 'Speaking — trainer',
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }
