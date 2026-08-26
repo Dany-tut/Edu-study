@@ -29,7 +29,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { numberedTitle } from '../lib/lessonKey'
-import { GAP_MARK, TASK_TYPES, placeCorrect } from './taskTypes'
+import { GAP_MARK, TASK_TYPES, answerSide, placeCorrect, spreadMulti } from './taskTypes'
 import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { nestById } from './soundNests'
@@ -290,9 +290,17 @@ export const one = (question: string, choices: string[], correct: number): SeedT
   return { type: 'single', question, choices: spread.choices, correctChoices: [spread.correct] }
 }
 
-/** Несколько верных вариантов. */
-export const many = (question: string, choices: string[], correct: number[]): SeedTask =>
-  ({ type: 'multi', question, choices, correctChoices: correct })
+/**
+ * Несколько верных вариантов.
+ *
+ * Как и у `one()`, номера означают «верны вот эти», а не «поставь их сверху»
+ * (Р15): список переставляет spreadMulti. Иначе «отметьте всё верное» решается
+ * выбором верхних строк — верные шли первыми в 84 заданиях из 85.
+ */
+export const many = (question: string, choices: string[], correct: number[]): SeedTask => {
+  const spread = spreadMulti(choices, correct, question)
+  return { type: 'multi', question, choices: spread.choices, correctChoices: spread.correct }
+}
 
 /** Вписать слово или форму — точечная отработка. */
 export const fill = (question: string, answer: string, altAnswers?: string[]): SeedTask =>
@@ -525,9 +533,28 @@ export const traceChamo = (question: string, chamo: string): SeedTask =>
 export const buildSyl = (question: string, syllable: string): SeedTask =>
   ({ type: 'buildSyllable', question, syllable, ttsText: syllable, allowSlow: true })
 
-/** Минимальные пары: прозвучал один из двух похожих — какой? */
-export const minPair = (question: string, a: string, b: string, correct: 'A' | 'B'): SeedTask =>
-  ({ type: 'minimalPair', question, pairA: a, pairB: b, correctPair: correct, ttsText: correct === 'A' ? a : b, allowSlow: true })
+/**
+ * Минимальные пары: прозвучал один из двух похожих — какой?
+ *
+ * `correct` говорит, КОТОРЫЙ из двух прозвучал, а не с какой он будет стороны:
+ * сторону считает answerSide (Р15). Вопрос у таких заданий дословно один («Что
+ * вы услышали?»), поэтому в ключ идёт ещё и сам верный вариант — иначе все пары
+ * курса встали бы одной стороной.
+ */
+export const minPair = (question: string, a: string, b: string, correct: 'A' | 'B'): SeedTask => {
+  const right = correct === 'A' ? a : b
+  const other = correct === 'A' ? b : a
+  const side = answerSide(`${question}|${right}`)
+  return {
+    type: 'minimalPair',
+    question,
+    pairA: side === 'A' ? right : other,
+    pairB: side === 'A' ? other : right,
+    correctPair: side,
+    ttsText: right,
+    allowSlow: true,
+  }
+}
 
 /**
  * Задания по гнезду созвучий — различение на слух плюс сцепка со смыслом.
@@ -1057,9 +1084,13 @@ function pictureTasks(unit: LangUnit, idBase: string, lang: string) {
       .filter(w => w.term !== target.term && vocabImage(w.ru) !== targetImage)
       .slice(k, k + 3)
     if (others.length < 3) break
-    const choices = others.map(w => w.term)
-    const correct = (unit.n + k) % 4
-    choices.splice(correct, 0, target.term)
+    // Задание собирается объектом, а не через `one()` (у него картинка и свой
+    // размер), поэтому место верного ответа зовётся руками (Р15). Ключ — id
+    // задания, а не текст вопроса: вопрос у всех картинок дословно один, и по
+    // нему все они уехали бы в одно и то же место.
+    const spread = placeCorrect(`${idBase}${k + 1}`, [target.term, ...others.map(w => w.term)], 0)
+    const choices = spread.choices
+    const correct = spread.correct
     tasks.push(editorTask(
       {
         type: 'single',

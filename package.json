@@ -24,7 +24,8 @@
     "build:feed": "node scripts/buildFeed.mjs",
     "check:feed": "node scripts/checkFeed.mjs",
     "check:logic": "esbuild scripts/checkLogic.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLogic.mjs --log-level=error && node node_modules/.cache/checkLogic.mjs",
-    "check:lesson": "esbuild scripts/checkLesson.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLesson.mjs --log-level=error && node node_modules/.cache/checkLesson.mjs"
+    "check:lesson": "esbuild scripts/checkLesson.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLesson.mjs --log-level=error && node node_modules/.cache/checkLesson.mjs",
+    "check:choicepos": "esbuild scripts/checkChoicePos.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkChoicePos.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkChoicePos.mjs"
   },
   "dependencies": {
     "@capacitor/cli": "^8.4.1",

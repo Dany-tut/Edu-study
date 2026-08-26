@@ -107,15 +107,10 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
     const mine = audibleSyllable(ch)
     const other = partner ? audibleSyllable(partner) : null
     if (mine && other && mine !== other) {
-      // Сторона верного ответа выводится из номера буквы, а не из случайности:
-      // сид обязан собираться одинаково каждый раз.
-      const meFirst = i % 2 === 0
-      tasks.push(minPair(
-        'Что вы услышали?',
-        meFirst ? mine : other,
-        meFirst ? other : mine,
-        meFirst ? 'A' : 'B',
-      ))
+      // Прозвучал слог с НАШЕЙ буквой; с какой он окажется стороны, решает
+      // `minPair()` — сид при этом собирается одинаково каждый раз (Р15).
+      // Здесь стоял свой счёт `i % 2`, начинавшийся заново в каждом уроке.
+      tasks.push(minPair('Что вы услышали?', mine, other, 'A'))
     }
 
     // Письмо. Отдельным шагом и сразу после узнавания: рука запоминает форму,

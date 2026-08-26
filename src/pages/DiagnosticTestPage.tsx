@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
@@ -15,6 +15,7 @@ import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
 import { t, useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
+import { displayOrder } from '../data/taskTypes'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
 function playVictorySound() {
@@ -242,6 +243,13 @@ export default function DiagnosticTestPage() {
   const isLinkMode = !assignmentId  // shared link: no feedback shown
 
   const q: DiagQuestion | undefined = questions[current]
+  // Порядок ПОКАЗА вариантов (Р15). В данных верный ответ стоит по привычке
+  // автора: у корейского placement он первый во всех 25 вопросах, у английского
+  // второй в 73%, у биологии с химией третий в половине. Переставить сами
+  // вопросы нельзя — ответ ученика хранится НОМЕРОМ варианта
+  // (diag_results.answers), и правка данных переврала бы все уже сданные тесты.
+  // Поэтому меняется только показ, а `pick()` ниже получает исходный номер.
+  const optionOrder = useMemo(() => (q ? displayOrder(q.options, q.text) : []), [q])
   const total = questions.length
   const progress = Object.keys(chosen).length / total
   const done = step === 'done'
@@ -498,9 +506,10 @@ export default function DiagnosticTestPage() {
 
             {/* Options */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, opacity: askConfidence && picked === undefined && confident === null ? 0.45 : 1, pointerEvents: askConfidence && picked === undefined && confident === null ? 'none' : 'auto', transition: 'opacity 0.15s' }}>
-              {q.options.map((opt, idx) => {
-                const isChosen = picked === idx
-                const isCorrect = q.correct === idx
+              {optionOrder.map((canon, place) => {
+                const opt = q.options[canon]
+                const isChosen = picked === canon
+                const isCorrect = q.correct === canon
                 const showResult = picked !== undefined && !isLinkMode
 
                 const PICK_COLOR = '#786AD7'
@@ -514,8 +523,8 @@ export default function DiagnosticTestPage() {
 
                 return (
                   <motion.button
-                    key={idx}
-                    onClick={() => pick(idx)}
+                    key={canon}
+                    onClick={() => pick(canon)}
                     disabled={picked !== undefined}
                     whileHover={picked === undefined ? { scale: 1.01 } : {}}
                     whileTap={picked === undefined ? { scale: 0.99 } : {}}
@@ -546,7 +555,7 @@ export default function DiagnosticTestPage() {
                       boxShadow: !showResult && isChosen ? getCircleShadow(PICK_COLOR) : 'none',
                       transition: 'all 0.2s',
                     }}>
-                      {'АБВГ'[idx]}
+                      {'АБВГ'[place]}
                     </div>
                     <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4, ...proseWrap }}>
                       {bindShortWords(opt)}

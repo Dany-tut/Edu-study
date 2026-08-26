@@ -30,7 +30,7 @@
 
 import type { SeedTask, VocabItem } from './languageCourse'
 import { chamoOf, syllableDistractors } from './hangul'
-import { placeCorrect } from './taskTypes'
+import { answerSide, placeCorrect } from './taskTypes'
 
 /**
  * Хангыль или кана: письмо, которое ученику курса «с нуля» ещё незнакомо.
@@ -537,14 +537,18 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
       .map(x => ({ x, score: soundAlike(w.term, x.term) }))
       .filter(c => c.score >= ALIKE_ENOUGH)
       .sort((a, b) => b.score - a.score)[0]?.x
-    const first = i % 2 === 0
+    // Сторона верного ответа — от самого слова, а не от его номера в порции
+    // (Р15). Здесь оставался прежний счёт `i % 2` — с тем же вырождением, что
+    // уже вычистили из первого круга выше: в порции из одного слова номер
+    // всегда нулевой, и «A» выпадала в 62% из 6051 задания.
     if (twin) {
+      const side = answerSide(`Что прозвучало?|${label(w)}`)
       return {
         type: 'minimalPair',
         question: 'Что прозвучало?',
-        pairA: first ? label(w) : label(twin),
-        pairB: first ? label(twin) : label(w),
-        correctPair: first ? 'A' : 'B',
+        pairA: side === 'A' ? label(w) : label(twin),
+        pairB: side === 'A' ? label(twin) : label(w),
+        correctPair: side,
         ttsText: w.term,
         allowSlow: true,
       }
@@ -555,12 +559,13 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
     // `single` это раздуло бы и без того самый частый тип курса до трети всех
     // заданий, а выглядело бы как обычный выбор, где звук легко не заметить.
     const other = partner(i)
+    const side = answerSide(`Что вы услышали?|${w.ru}|${w.term}`)
     return {
       type: 'minimalPair',
       question: 'Что вы услышали?',
-      pairA: first ? w.ru : other.ru,
-      pairB: first ? other.ru : w.ru,
-      correctPair: first ? 'A' : 'B',
+      pairA: side === 'A' ? w.ru : other.ru,
+      pairB: side === 'A' ? other.ru : w.ru,
+      correctPair: side,
       ttsText: w.term,
       allowSlow: true,
     }
