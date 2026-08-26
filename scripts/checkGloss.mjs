@@ -124,10 +124,37 @@ for (const f of [...EN_FEED, ...KO_FEED, ...JA_FEED, ...PT_FEED]) {
   push({ ...f, body: `${f.title}\n${steps.join('\n')}` }, 'лента')
 }
 
+// ─── Разбор по составу: куски без перевода ───────────────────────────────────
+//
+// Слово, которого нет в словаре целиком, показывает свой состав — и вот в этом
+// составе кусок без перевода снова пишет ученику «нет в словаре», только уже
+// внутри карточки. Формально покрытие 100%, на деле тап опять ни во что не
+// упёрся. Мерится по ВСЕМ поверхностям сразу (тексты, лента, разговорник,
+// справочник, примеры) и держится ratchet'ом, как и тупики: расти нельзя.
+//
+// Что осталось в корейском — деревенская и чеджуская речь литературных сцен
+// (형님두, 왔수과, 들어갔댔쉐까) плюс пара собственных имён. Это не пробел
+// словаря, а слова, которых в словаре языка и нет.
+const PARTS_DEBT = { ko: 20, ja: 0, 'pt-BR': 0, en: 0, de: 0 }
+const partHoles = {}
+const partWords = {}
+const countParts = (lang, segments) => {
+  if (PARTS_DEBT[lang] === undefined) return
+  for (const seg of segments) {
+    if (!seg.word || seg.gloss || !seg.parts?.some(p => p.gloss)) continue
+    const bad = seg.parts.filter(p => !p.gloss)
+    if (!bad.length) continue
+    partHoles[lang] = (partHoles[lang] ?? 0) + 1
+    const w = (partWords[lang] ??= new Map())
+    w.set(seg.text, (w.get(seg.text) ?? 0) + 1)
+  }
+}
+
 const perLang = {}
 for (const d of docs) {
   const lex = buildLexicon(d.lang, d.extra)
   const segments = lex.segment(d.body)
+  countParts(d.lang, segments)
   const words = segments.filter(s => s.word)
   // Слово, у которого перевода нет целиком, но есть РАЗБОР ПО СОСТАВУ, — не
   // дыра: тап показывает, из чего оно собрано (см. `parts` в lib/lexicon.ts).
@@ -276,7 +303,9 @@ const tapHoles = {}
 const tapFeed = (lang, text) => {
   if (!text || TAP_DEBT[lang] === undefined) return
   const st = (tap[lang] ??= { words: 0, noGloss: 0, holes: 0 })
-  for (const seg of lexOf(lang).segment(String(text))) {
+  const segs = lexOf(lang).segment(String(text))
+  countParts(lang, segs)
+  for (const seg of segs) {
     if (!seg.word) continue
     st.words++
     if (seg.gloss) continue
@@ -321,6 +350,21 @@ for (const [lang, limit] of Object.entries(TAP_DEBT)) {
     console.log('   Новый текст добавляют вместе со словарём: записи — в src/data/wordGloss.ts.')
   } else if (st.holes < limit) {
     console.log(`   тупиков меньше нормы на ${limit - st.holes} — впишите ${st.holes} в TAP_DEBT (scripts/checkGloss.mjs).`)
+  }
+}
+
+console.log('\nРазбор по составу — куски без перевода:')
+for (const [lang, limit] of Object.entries(PARTS_DEBT)) {
+  const n = partHoles[lang] ?? 0
+  const mark = n > limit ? '❌' : n < limit ? '↓' : ' '
+  console.log(`${mark} ${lang.padEnd(6)} слов с дырой в составе ${String(n).padStart(5)} (порог ${limit})`)
+  if (n > limit) {
+    bad++
+    const top = [...(partWords[lang] ?? new Map())].sort((a, b) => b[1] - a[1]).slice(0, 20)
+    console.log(`   больше нормы на ${n - limit}. Чаще всего: ${top.map(([t, k]) => (k > 1 ? `${t}×${k}` : t)).join(' ')}`)
+    console.log('   Либо слово в src/data/wordGloss.ts, либо окончание в KO_TAILS (src/lib/lexicon.ts).')
+  } else if (n < limit) {
+    console.log(`   меньше нормы на ${limit - n} — впишите ${n} в PARTS_DEBT (scripts/checkGloss.mjs).`)
   }
 }
 
