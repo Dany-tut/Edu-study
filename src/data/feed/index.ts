@@ -737,6 +737,14 @@ export const OUTLETS: Outlet[] = [
     mark: '과학', tint: '#3E6E8E',
   },
   {
+    id: 'sci-retold-ja',
+    name: '科学 · пересказ', lang: 'ja', lane: 'free', kind: 'science', status: 'live',
+    license: 'Наш пересказ — исходные материалы в общественном достоянии',
+    home: 'https://science.nasa.gov/',
+    note: 'Пересказы научных новостей по-японски на трёх ступенях — N4, N3, N2. Свободного японского научного текста в природе нет, и это единственный способ читать науку по-японски, а не смотреть её.',
+    mark: '科学', tint: '#3E6E8E',
+  },
+  {
     id: 'sci-retold-en',
     name: 'Наука', lang: 'en', lane: 'free', kind: 'science', status: 'live',
     license: 'Наш пересказ — исходные материалы в общественном достоянии',
@@ -843,14 +851,17 @@ const LOADERS: Record<string, Loader> = {
   en: () => Promise.all([
     import('./feedEn').then(m => m.EN_FEED),
     import('./autoEn').then(m => m.EN_AUTO),
+    import('./adaptEn').then(m => m.EN_ADAPT),
   ]).then(x => x.flat()),
   ja: () => Promise.all([
     import('./feedJa').then(m => m.JA_FEED),
     import('./autoJa').then(m => m.JA_AUTO),
+    import('./adaptJa').then(m => m.JA_ADAPT),
   ]).then(x => x.flat()),
   ko: () => Promise.all([
     import('./feedKo').then(m => m.KO_FEED),
     import('./autoKo').then(m => m.KO_AUTO),
+    import('./adaptKo').then(m => m.KO_ADAPT),
   ]).then(x => x.flat()),
   pt: () => Promise.all([
     import('./feedPt').then(m => m.PT_FEED),

@@ -2796,6 +2796,8 @@ const EN: Record<string, string> = {
   'Без предмета': 'No subject',
   '— выбери, в какую карточку записать курс': '— choose which card the course goes on',
   '— нет карточки по предмету': '— no card for the subject',
+  'Заполнить карточку': 'Fill in the card',
+  'Карточка заведена автоматически: проверьте уровень, цену занятия, дату старта и желаемый балл.': 'Card created automatically — check the level, lesson price, start date and target score.',
   'выбери, в какую записать': 'choose which card to use',
   'Обычных групп нет — раздайте курс во вкладке «Ученику»': 'There are no regular groups — hand the course out on the "Student" tab',
   'Ничего не нашлось': 'Nothing found',

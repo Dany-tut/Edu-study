@@ -18,6 +18,7 @@ import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
 import { useGroups, useStudents, useAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
+import { ensureCardFillTask } from '../../lib/cardFillTask'
 import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
@@ -2111,11 +2112,12 @@ export default function TeacherGroupsPage() {
     if (!activeStudent || !activeStudentGroup) return
     // Цвет — предмета, а не той карточки, из которой добавляли: направления
     // одного человека должны различаться на глаз (реестр предметов).
-    await addIndividualCard({
+    const { studentId, groupId } = await addIndividualCard({
       student: activeStudent,
       subject: subject as Group['subject'],
       level,
     })
+    if (studentId && groupId) ensureCardFillTask({ studentId, groupId, name: activeStudent.name, subject })
   }
 
   function handleGroupClick(group: Group) {
@@ -2194,7 +2196,8 @@ export default function TeacherGroupsPage() {
   async function createIndivForExisting(person: PersonLike, subject: string, level: string) {
     // Цвет не передаём: карточка красится цветом своего предмета из реестра, а
     // не первым из INDIV_COLORS — иначе все заведённые так карточки одинаковы.
-    const { inviteToken } = await addIndividualCard({ student: person, subject: subject as Group['subject'], level })
+    const { inviteToken, studentId, groupId } = await addIndividualCard({ student: person, subject: subject as Group['subject'], level })
+    if (studentId && groupId) ensureCardFillTask({ studentId, groupId, name: person.name, subject })
     return { inviteToken: person.authUserId ? null : (inviteToken ?? null), registered: !!person.authUserId }
   }
 

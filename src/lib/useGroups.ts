@@ -311,6 +311,8 @@ export function useGroups() {
     return {
       error: friendlyStudentError(sErr),
       studentId: (srow?.id as string | undefined) ?? null,
+      // Группа новой карточки — по ней задача «заполнить карточку» её открывает.
+      groupId: g.id as string,
       // Fresh token so an UNregistered existing person can still activate this card.
       inviteToken: (srow?.invite_token as string | undefined) ?? null,
     }

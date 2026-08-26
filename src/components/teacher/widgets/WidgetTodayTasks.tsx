@@ -139,6 +139,14 @@ export default function WidgetTodayTasks() {
   const updateTask = useTeacher(s => s.updateTask)
   // Persisted so an open edit modal (and its draft) re-opens after a reload.
   const [editingTask, setEditingTask] = usePersistentState<TeacherTask | null>('createTask.editingWidget', null)
+  const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
+  // Задача про карточку ученика ведёт в саму карточку, а не в модалку правки:
+  // «Заполнить карточку: Анна · Японский», после которой карточку ищут руками в
+  // Группах, — это не задача, а напоминание о поиске.
+  const openTask = (task: TeacherTask) => {
+    if (task.studentId && task.groupId) openStudentDashboard(task.studentId, task.groupId)
+    else setEditingTask(task)
+  }
   const [tasksAtTop, setTasksAtTop] = useState(true)
   const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
@@ -228,7 +236,7 @@ export default function WidgetTodayTasks() {
                 task={task}
                 onToggle={() => toggleTask(task.id)}
                 onRemove={() => removeTask(task.id)}
-                onClick={() => setEditingTask(task)}
+                onClick={() => openTask(task)}
               />
             ))}
           </div>

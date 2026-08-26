@@ -31,6 +31,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SEED_GLOSS } from './wordGlossSeed'
+import { AUTO_GLOSS } from './wordGlossAuto'
 
 /** Слово или устойчивое сочетание с переводом. */
 export interface WordGloss {
@@ -17605,10 +17606,24 @@ export const MANUAL_GLOSS: Record<string, WordGloss[]> = {
  */
 const glossKey = (term: string) => term.trim().toLowerCase().replace(/[’‘`]/g, "'")
 
+/**
+ * ТРИ СЛОЯ, И ПОРЯДОК У НИХ СМЫСЛОВОЙ: слова курсов → слова к пересказам ленты
+ * (wordGlossAuto.ts, пишется конвейером) → написанное человеком.
+ *
+ * Кто позже, тот и побеждает: buildLexicon складывает записи в Map по очереди.
+ * Значит, ручная запись бьёт машинную, а машинная — автоматическую выжимку из
+ * сидов. Поправить машинный перевод можно обычной записью в этом файле, и
+ * ночной прогон её не затрёт: он пишет только wordGlossAuto.ts.
+ */
 export const WORD_GLOSS: Record<string, WordGloss[]> = Object.fromEntries(
-  [...new Set([...Object.keys(MANUAL_GLOSS), ...Object.keys(SEED_GLOSS)])].map(lang => {
+  [...new Set([
+    ...Object.keys(MANUAL_GLOSS), ...Object.keys(SEED_GLOSS), ...Object.keys(AUTO_GLOSS),
+  ])].map(lang => {
     const manual = MANUAL_GLOSS[lang] ?? []
     const own = new Set(manual.map(g => glossKey(g.term)))
-    return [lang, [...(SEED_GLOSS[lang] ?? []).filter(g => !own.has(glossKey(g.term))), ...manual]]
+    const auto = (AUTO_GLOSS[lang] ?? []).filter(g => !own.has(glossKey(g.term)))
+    const taken = new Set([...own, ...auto.map(g => glossKey(g.term))])
+    const seed = (SEED_GLOSS[lang] ?? []).filter(g => !taken.has(glossKey(g.term)))
+    return [lang, [...seed, ...auto, ...manual]]
   }),
 )
