@@ -176,7 +176,7 @@ const bundle = join(tmp, 'bundle.mjs')
 await build({
   stdin: {
     contents: `
-      export { buildLexicon } from './src/lib/lexicon'
+      export { buildLexicon, ensureGloss } from './src/lib/lexicon'
       export { EN_AUTO } from './src/data/feed/autoEn'
       export { KO_AUTO } from './src/data/feed/autoKo'
       export { JA_AUTO } from './src/data/feed/autoJa'
@@ -192,6 +192,11 @@ await build({
 })
 const M = await import(pathToFileURL(bundle).href)
 rmSync(tmp, { recursive: true, force: true })
+
+// Словарь приезжает отдельным чанком и до ensureGloss() пуст (см. шапку
+// lib/lexicon.ts). Без этой строки buildLexicon() соберёт пустой словарь и
+// дырой окажется КАЖДОЕ слово — пересказ выйдет разобранным по слогам.
+await M.ensureGloss()
 
 const POOL = [...FACTS, ...M.EN_AUTO, ...M.KO_AUTO, ...M.JA_AUTO]
 const EXISTING = { ko: M.KO_ADAPT, en: M.EN_ADAPT, ja: M.JA_ADAPT }

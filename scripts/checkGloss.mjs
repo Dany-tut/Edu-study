@@ -42,7 +42,7 @@ await build({
   stdin: {
     contents: `
       export { WORD_GLOSS } from './src/data/wordGloss'
-      export { buildLexicon } from './src/lib/lexicon'
+      export { buildLexicon, ensureGloss } from './src/lib/lexicon'
       export { READING_LIBRARY } from './src/data/readingLibrary'
       export { EN_SCENES } from './src/data/scenes/scenesEn'
       export { KO_SCENES } from './src/data/scenes/scenesKo'
@@ -80,7 +80,7 @@ await build({
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'error',
 })
 const {
-  WORD_GLOSS, buildLexicon, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
+  WORD_GLOSS, buildLexicon, ensureGloss, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
   DE_SCENES, RU_SCENES, COURSE_SEEDS,
   EN_FEED, KO_FEED, JA_FEED, PT_FEED,
   KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL,
@@ -89,6 +89,12 @@ const {
   KO_MINED_EXAMPLES, JA_MINED_EXAMPLES, EN_MINED_EXAMPLES, PT_MINED_EXAMPLES, DE_MINED_EXAMPLES,
 } = await import(pathToFileURL(out).href)
 rmSync(tmp, { recursive: true, force: true })
+
+// Словарь приезжает отдельным чанком и до ensureGloss() пуст (см. шапку
+// lib/lexicon.ts). В браузере это незаметно — компоненты пересчитываются по
+// подписке, — а здесь buildLexicon() молча собрал бы пустой словарь, и сторож
+// отрапортовал бы, что переводов нет НИ У ОДНОГО слова. Ждём загрузку.
+await ensureGloss()
 
 let bad = 0
 
