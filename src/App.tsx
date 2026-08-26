@@ -1,13 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import DashboardPage from './pages/DashboardPage'
-import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
-import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
-import JoinPage from './pages/JoinPage'
-import JoinTeacherPage from './pages/JoinTeacherPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import LandingPage from './pages/LandingPage'
-import DiagnosticTestPage from './pages/DiagnosticTestPage'
-import ReviewSession from './components/ReviewSession'
+
+// ── Кабинет учителя и разовые экраны — отдельными чанками ────────────────────
+//
+// Эти страницы висели обычными импортами, то есть ехали в главный чанк всем
+// подряд. Один кабинет учителя — это 2,1 МБ из 12 (Конструктор, редакторы
+// курса и урока, админка), которые ученик на телефоне качал и разбирал, ни
+// разу их не увидев. Точки входа взаимоисключающие (или #/teacher, или
+// кабинет ученика), так что ленивая загрузка не отнимает ничего у первого
+// кадра ни у той стороны, ни у другой.
+const TeacherDashboardPage = lazy(() => import('./pages/teacher/TeacherDashboardPage'))
+const TeacherLoginPage = lazy(() => import('./pages/teacher/TeacherLoginPage'))
+const JoinPage = lazy(() => import('./pages/JoinPage'))
+const JoinTeacherPage = lazy(() => import('./pages/JoinTeacherPage'))
+const DiagnosticTestPage = lazy(() => import('./pages/DiagnosticTestPage'))
+const ReviewSession = lazy(() => import('./components/ReviewSession'))
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
@@ -51,6 +60,17 @@ void (() => {
   queueTrainerLink(back)
   window.history.replaceState(null, '', trainerHash(back))
 })()
+// Пока чанк страницы едет, показываем пустой экран цвета фона, а не белый
+// провал: страницы ниже сами рисуют свою загрузку, а мигание белым между
+// кадрами заметнее, чем лишние 150 мс тишины.
+function Chunk({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--color-bg)' }} />}>
+      {children}
+    </Suspense>
+  )
+}
+
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash)
   useEffect(() => {
@@ -159,29 +179,29 @@ function AppRoutes() {
 
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
   if (hash.startsWith('#/landing')) return <LandingPage />
-  if (hash.startsWith('#/join-teacher')) return <JoinTeacherPage />
-  if (hash.startsWith('#/join')) return <JoinPage />
-  if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
+  if (hash.startsWith('#/join-teacher')) return <Chunk><JoinTeacherPage /></Chunk>
+  if (hash.startsWith('#/join')) return <Chunk><JoinPage /></Chunk>
+  if (hash.startsWith('#/diagnostic')) return <Chunk><DiagnosticTestPage /></Chunk>
   if (hash.startsWith('#/review')) {
     const q = new URLSearchParams(hash.split('?')[1] ?? '')
     const sid = getStudentSession()?.id
     const owner = sid ? { studentId: sid } : { anonName: q.get('name') ?? undefined }
     return (
       <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
-        <ReviewSession owner={owner} onDone={() => { window.location.hash = '#/' }} />
+        <Chunk><ReviewSession owner={owner} onDone={() => { window.location.hash = '#/' }} /></Chunk>
       </div>
     )
   }
 
   if (hash.startsWith('#/teacher')) {
-    if (recovery) return <TeacherLoginPage onLogin={() => setRecovery(false)} recovery />
+    if (recovery) return <Chunk><TeacherLoginPage onLogin={() => setRecovery(false)} recovery /></Chunk>
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
     const isStudentAccount = session?.user?.user_metadata?.role === 'student'
-    if ((!session || isStudentAccount) && !import.meta.env.DEV) return <TeacherLoginPage onLogin={() => {}} />
+    if ((!session || isStudentAccount) && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
-        <TeacherDashboardPage />
+        <Chunk><TeacherDashboardPage /></Chunk>
         <InstallPrompt />
       </>
     )

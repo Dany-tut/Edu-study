@@ -3962,6 +3962,17 @@ const EN: Record<string, string> = {
   'текст': 'text',
   'фото': 'photo',
   'доска': 'whiteboard',
+
+  // ——— Доступы учителя ———
+  'Предметы (что видит)': 'Subjects (what they see)',
+  '· пусто = все предметы': '· empty = every subject',
+
+  // ——— Лендинг ———
+  '27 режимов заданий': '27 task modes',
+  'Языковой курс собирается не из «тестов с четырьмя вариантами». Слух, речь, письмо, сборка тапами и вспоминание по значению — каждый навык тренируется своим экраном.':
+    'A language course is not built out of "pick one of four" tests. Listening, speaking, writing, tap-to-assemble and recall by meaning — every skill gets a screen of its own.',
+  'Лестница памяти: алфавит → слог → слово → фраза. Урок вводит не больше четырёх новых слов, каждое получает шесть касаний разными режимами, ошибки возвращаются очередью внутри того же урока.':
+    'A ladder for memory: alphabet → syllable → word → phrase. A lesson introduces no more than four new words, each gets six touches in different modes, and mistakes come back in a queue inside that same lesson.',
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

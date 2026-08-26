@@ -1,7 +1,8 @@
-import Lottie from 'lottie-react'
-import animationData from '../../hard-star-satellite.json'
+import LottieIcon from './LottieIcon'
 
-// Deep-clone and recolor all solid fill colors to yellow (#F5C842)
+// Перекрашиваем все сплошные заливки в жёлтый (#F5C842). Данные те же, что у
+// звезды: hard-star-satellite.json был её точной копией, отличалась только
+// эта правка цвета.
 function recolor(data: unknown, r: number, g: number, b: number): unknown {
   if (Array.isArray(data)) return data.map(v => recolor(v, r, g, b))
   if (data && typeof data === 'object') {
@@ -35,16 +36,16 @@ function recolor(data: unknown, r: number, g: number, b: number): unknown {
   return data
 }
 
-// Yellow: #F5C842 → 0.96, 0.78, 0.26 in [0..1]
-const yellowData = recolor(animationData, 0.96, 0.78, 0.26)
+const toYellow = (data: unknown) => recolor(data, 0.96, 0.78, 0.26)
 
 export default function HardSatelliteLottie({ size = 18 }: { size?: number }) {
   return (
-    <Lottie
-      animationData={yellowData}
-      loop
-      autoplay
-      style={{ width: size, height: size, flexShrink: 0, marginTop: -2 }}
+    <LottieIcon
+      name="star"
+      size={size}
+      transform={toYellow}
+      transformKey="yellow"
+      style={{ marginTop: -2 }}
     />
   )
 }

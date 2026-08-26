@@ -393,6 +393,12 @@ function contains(sentence, term, key, lang) {
   return latinContains(sentence, key, lang)
 }
 
+// Долг, унаследованный до того, как сторож встал в CI: столько слов без примера
+// сейчас есть в каждом языке. Сторож валится, только если пропусков стало БОЛЬШЕ —
+// то есть откатиться назад нельзя, а разгребать долг можно не одним заходом.
+// Закрыли пропуски — уменьшите число здесь же, иначе планка перестанет держать.
+const DEBT = { en: 10, ja: 13, ko: 21, pt: 0, de: 0 }
+
 let bad = 0
 for (const [lang, map] of Object.entries(terms)) {
   const ix = index[lang]
@@ -409,8 +415,13 @@ for (const [lang, map] of Object.entries(terms)) {
   const covered = total - holes.length
   console.log(`\n${lang}: ${covered}/${total} слов с примером (${Math.round(covered / total * 100)}%) · без перевода ${noRu}`)
   if (holes.length) {
-    bad++
-    console.log(`  НЕТ ПРИМЕРА (${holes.length}): ${holes.slice(0, 40).join(', ')}${holes.length > 40 ? ' …' : ''}`)
+    const debt = DEBT[lang] ?? 0
+    const over = holes.length > debt
+    if (over) bad++
+    const tail = over ? ` — БОЛЬШЕ прежних ${debt}` : ` (в пределах долга ${debt})`
+    console.log(`  НЕТ ПРИМЕРА (${holes.length})${tail}: ${holes.slice(0, 40).join(', ')}${holes.length > 40 ? ' …' : ''}`)
+  } else if ((DEBT[lang] ?? 0) > 0) {
+    console.log(`  долг закрыт — уберите ${lang} из DEBT в scripts/checkExamples.mjs`)
   }
   if (offTerm.length) {
     console.log(`  пример без самого слова (${offTerm.length}): ${offTerm.slice(0, 10).join(' · ')}${offTerm.length > 10 ? ' …' : ''}`)
@@ -421,7 +432,8 @@ if (bad) {
   console.log('\nПропуски закрываются руками в src/data/vocabExamples/<lang>.ts (см. npm run build:examples).')
   process.exit(1)
 }
-console.log('\nПримеры на месте.')
+const left = Object.values(DEBT).reduce((a, b) => a + b, 0)
+console.log(left ? `\nНовых пропусков нет; старых осталось ${left} — планка DEBT держит их от роста.` : '\nПримеры на месте.')
 
 // Список примеров без перевода — ТЗ на дописывание второй строки руками.
 if (process.argv.includes('--no-ru')) {

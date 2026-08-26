@@ -1,23 +1,42 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import posthog from 'posthog-js'
 import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
 
+// ── PostHog — после первого кадра, отдельным чанком ──────────────────────────
+//
+// Библиотека весит ~200 КБ и в главном чанке стояла впереди приложения: её
+// нужно было скачать и выполнить до того, как человек увидит хоть что-то.
+// Ничего срочного она не делает — первый pageview спокойно уходит на пару
+// сотен миллисекунд позже. Переходы, случившиеся до загрузки, копятся в
+// очереди, чтобы ни один не потерялся.
 const phKey = import.meta.env.VITE_POSTHOG_KEY
 if (phKey) {
-  posthog.init(phKey, {
-    api_host: 'https://eu.i.posthog.com',
-    capture_pageview: false, // управляем вручную через hashchange
-    session_recording: { maskAllInputs: true },
-  })
-  // Трекаем hash-переходы как pageview
-  const trackPage = () => posthog.capture('$pageview', { path: window.location.hash || '/' })
-  trackPage()
-  window.addEventListener('hashchange', trackPage)
+  const pending: string[] = []
+  const path = () => window.location.hash || '/'
+  let track = (p: string) => { pending.push(p) }
+  const onHash = () => track(path())
+  window.addEventListener('hashchange', onHash)
+  track(path())
+
+  const boot = () => {
+    void import('posthog-js').then(({ default: posthog }) => {
+      posthog.init(phKey, {
+        api_host: 'https://eu.i.posthog.com',
+        capture_pageview: false, // управляем вручную через hashchange
+        session_recording: { maskAllInputs: true },
+      })
+      track = p => posthog.capture('$pageview', { path: p })
+      for (const p of pending.splice(0)) track(p)
+    }).catch(() => { /* аналитика не обязана взлететь */ })
+  }
+  // requestIdleCallback есть не везде (в Safari до 18 — нет), поэтому таймер
+  // как запасной путь: важно лишь не соревноваться с первой отрисовкой.
+  if ('requestIdleCallback' in window) window.requestIdleCallback(boot, { timeout: 3000 })
+  else setTimeout(boot, 1200)
 }
 
 // After a new deploy, a client running the old HTML asks for a JS chunk whose

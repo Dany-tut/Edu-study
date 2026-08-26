@@ -409,6 +409,13 @@ function fmtDate(iso: string | null | undefined) {
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
 }
+// Витрина курсов рисует только счётчик уроков и минуты, но `lessons(*)` тянул
+// вместе с ними content и homework — 12 МБ JSON на 1234 урока, из-за чего
+// карточки ждали ответ секундами. Берём ровно те поля, что читает
+// dbCourseToLocal.
+const COURSE_CARD_SELECT =
+  '*, lessons(id, short_id, title, lesson_number, trainer_id, widget_id, scheduled_duration, rec_duration)'
+
 function dbCourseToLocal(c: any, uid?: string | null): Course {
   const lessons = (c.lessons ?? [])
     .sort((a: any, b: any) => a.lesson_number - b.lesson_number)
@@ -7513,8 +7520,8 @@ export default function TeacherConstructorPage() {
       setOwnerId(uid)
       const sharedIds = await fetchSharedCourseIds(uid)
       const courseQuery = sharedIds.length
-        ? supabase.from('courses').select('*, lessons(*)').or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
-        : supabase.from('courses').select('*, lessons(*)').eq('created_by', uid).order('created_at')
+        ? supabase.from('courses').select(COURSE_CARD_SELECT).or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
+        : supabase.from('courses').select(COURSE_CARD_SELECT).eq('created_by', uid).order('created_at')
       const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
         courseQuery,
         supabase.from('trainers').select('*').order('created_at'),

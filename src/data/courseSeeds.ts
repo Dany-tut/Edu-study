@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SEED_CARDS } from './courseSeedCards'
-import type { CourseSummary } from './languageCourse'
+import { countTasks, type CourseSummary } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 export interface CourseSeed {
@@ -51,13 +51,24 @@ function lazy(
     const m = await load()
     const card = SEED_CARDS[key]
     const real = m.COURSE_SUMMARY
-    const drift = (['units', 'vocabCount', 'taskCount'] as const)
-      .filter(f => card[f] !== real[f])
-      .map(f => `${f}: карточка ${card[f]}, курс ${real[f]}`)
+    const built = pick(m)(courseId)
+    // Юниты и слова сверяются со сводкой спеки, а ЗАДАНИЯ — с собранным курсом.
+    // Сводка знает только авторские задания юнитов; ученик получает вдесятеро
+    // больше, потому что лестницу, экзамен порции и повторения дописывает
+    // генератор. Плитка обязана обещать то, что доедет, а не то, что написано
+    // в спеке (см. countTasks в languageCourse.ts).
+    const drift = [
+      ...(['units', 'vocabCount'] as const)
+        .filter(f => card[f] !== real[f])
+        .map(f => `${f}: карточка ${card[f]}, курс ${real[f]}`),
+      ...(card.taskCount === countTasks(built.lessons)
+        ? []
+        : [`taskCount: карточка ${card.taskCount}, курс ${countTasks(built.lessons)}`]),
+    ]
     if (drift.length > 0) {
       console.warn(`SEED_CARDS[${key}] разошлась с курсом — обновите courseSeedCards.ts:`, drift.join('; '))
     }
-    return pick(m)(courseId)
+    return built
   }
 }
 

@@ -1,0 +1,158 @@
+# Сторожа на каждый push
+#
+# ЗАЧЕМ. В репозитории уже лежат `tsc`, девять сторожей содержания и сборка —
+# и до сих пор их запускал только человек, вспомнив об этом. Пока над проектом
+# работает несколько сессий одновременно, «вспомнил» — не механизм: сломать
+# чужое можно, ни разу не открыв сломанный файл, и узнать об этом через день.
+# Этот workflow превращает набор команд в правило: не прошло — не в main.
+#
+# ЧТО ИМЕННО ГОНЯЕМ И ПОЧЕМУ ИМЕННО ТАК:
+#   1. tsc --noEmit — типы. Первым, потому что дешевле всего отсеивает
+#      опечатку в имени поля, до которой остальные проверки просто не дойдут.
+#   2. Десять check:* — содержание. Каждый сторож ловит то, что НЕ ловит
+#      сборка: слово без перевода, урок мимо стандарта, ответ, стоящий чаще
+#      других на одной и той же позиции. Именно поэтому они и написаны — такие
+#      поломки зелёной сборке не мешают.
+#   3. build — последним. Он проверяет то, чего не видит tsc: что всё
+#      действительно собирается в dist и Vercel не встанет на деплое.
+#
+# ПОЧЕМУ ВСЁ В ОДНОЙ ЗАДАЧЕ, А НЕ В ДЕСЯТИ ПАРАЛЛЕЛЬНЫХ. Полный прогон занимает
+# около минуты, а установка зависимостей — дольше самих проверок. Десять задач
+# поставили бы `npm ci` десять раз ради экономии секунд.
+#
+# ПОЧЕМУ ШАГИ НЕ ОБРЫВАЮТСЯ НА ПЕРВОМ ПАДЕНИИ (continue-on-error у сторожей).
+# Уронить сборку должен ЛЮБОЙ красный сторож, но увидеть автор должен ВСЕ сразу:
+# иначе починка десяти мелочей превращается в десять push-ей по кругу. Поэтому
+# сторожа отмечаются как «упавшие», прогон идёт до конца, а итог подводится
+# отдельным шагом в самом низу.
+#
+# ЧЕГО ЗДЕСЬ НЕТ. Деплоя: выкладывает Vercel по коммиту в main, и дублировать
+# это здесь незачем. И правок в репозиторий — этот workflow только читает.
+
+name: Проверки
+
+on:
+  push:
+  pull_request:
+
+# Несколько сессий пушат в одну ветку подряд. Держать очередь из прогонов,
+# каждый из которых уже неактуален, смысла нет — оставляем последний.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Ничего не пишем — значит, и прав на запись не просим.
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Типы, сторожа, сборка
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # ci, а не install: ставим ровно то, что в package-lock.json, иначе
+      # «у меня работает» и «в CI падает» разъезжаются на минорных версиях.
+      - name: Зависимости
+        run: npm ci
+
+      - name: Типы (tsc --noEmit)
+        id: types
+        continue-on-error: true
+        run: npx tsc --noEmit
+
+      # ── Сторожа содержания ────────────────────────────────────────────────
+      #
+      # Порядок — от быстрых к медленным, чтобы дешёвая поломка всплывала в
+      # логе раньше. Четыре последних гоняются через esbuild (они импортируют
+      # исходники приложения), поэтому идут в конце.
+
+      - name: Словарь слов (check:gloss)
+        id: gloss
+        continue-on-error: true
+        run: npm run check:gloss
+
+      - name: Английский интерфейс (check:i18n)
+        id: i18n
+        continue-on-error: true
+        run: npm run check:i18n
+
+      - name: Переводы вопросов (check:questions)
+        id: questions
+        continue-on-error: true
+        run: npm run check:questions
+
+      - name: Конспекты (check:prose)
+        id: prose
+        continue-on-error: true
+        run: npm run check:prose
+
+      - name: Примеры к словам (check:examples)
+        id: examples
+        continue-on-error: true
+        run: npm run check:examples
+
+      - name: Сцены (check:scenes)
+        id: scenes
+        continue-on-error: true
+        run: npm run check:scenes
+
+      - name: Лента (check:feed)
+        id: feed
+        continue-on-error: true
+        run: npm run check:feed
+
+      - name: Методика (check:logic)
+        id: logic
+        continue-on-error: true
+        run: npm run check:logic
+
+      - name: Стандарт урока (check:lesson)
+        id: lesson
+        continue-on-error: true
+        run: npm run check:lesson
+
+      - name: Позиции верных ответов (check:choicepos)
+        id: choicepos
+        continue-on-error: true
+        run: npm run check:choicepos
+
+      - name: Сборка
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      # ── Итог ───────────────────────────────────────────────────────────────
+      #
+      # Единственный шаг без continue-on-error: он и красит прогон. Печатает
+      # табличку, чтобы не искать красный крестик по десятку свёрнутых шагов.
+      - name: Итог
+        run: |
+          fail=0
+          check () {
+            if [ "$2" = "success" ]; then
+              echo "✅ $1"
+            else
+              echo "❌ $1"
+              fail=1
+            fi
+          }
+          check "типы"                  "${{ steps.types.outcome }}"
+          check "check:gloss"           "${{ steps.gloss.outcome }}"
+          check "check:i18n"            "${{ steps.i18n.outcome }}"
+          check "check:questions"       "${{ steps.questions.outcome }}"
+          check "check:prose"           "${{ steps.prose.outcome }}"
+          check "check:examples"        "${{ steps.examples.outcome }}"
+          check "check:scenes"          "${{ steps.scenes.outcome }}"
+          check "check:feed"            "${{ steps.feed.outcome }}"
+          check "check:logic"           "${{ steps.logic.outcome }}"
+          check "check:lesson"          "${{ steps.lesson.outcome }}"
+          check "check:choicepos"       "${{ steps.choicepos.outcome }}"
+          check "сборка"                "${{ steps.build.outcome }}"
+          exit $fail

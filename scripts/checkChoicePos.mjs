@@ -50,6 +50,7 @@ import { RUSSIAN_GRAMMAR } from '../src/data/grammarRu.ts'
 import { GERMAN_GRAMMAR } from '../src/data/grammarDe.ts'
 import { ENGLISH_GRAMMAR } from '../src/data/grammar/grammarEn.ts'
 import { KOREAN_GRAMMAR } from '../src/data/grammar/grammarKo.ts'
+import { JAPANESE_GRAMMAR } from '../src/data/grammar/grammarJa.ts'
 import { AP_CHEM_TRAINERS } from '../src/data/apChemistry.ts'
 
 const detail = process.argv.includes('--detail')
@@ -319,6 +320,7 @@ const BANKS = [
   ['грамматика · de', GERMAN_GRAMMAR],
   ['грамматика · en', ENGLISH_GRAMMAR],
   ['грамматика · ko', KOREAN_GRAMMAR],
+  ['грамматика · ja', JAPANESE_GRAMMAR],
   ['тренажёр · AP Chemistry', AP_CHEM_TRAINERS],
 ]
 
@@ -361,11 +363,14 @@ if (badBanks.length) {
 const COVERED = new Set([
   'src/data/placementTests.ts', 'src/data/diagnosticData.ts',
   'src/data/readingLibrary.ts', 'src/data/readingEn.ts', 'src/data/readingKo.ts', 'src/data/readingJa.ts',
+  // Немецкая и русская полки доезжают до замера через READING_LIBRARY («тексты · de», «тексты · ru»).
+  'src/data/readingDe.ts', 'src/data/readingRu.ts',
   'src/data/listeningLibrary.ts', 'src/data/listeningLibraryExtra.ts',
   'src/data/scenes/scenesEn.ts', 'src/data/scenes/scenesKo.ts', 'src/data/scenes/scenesJa.ts',
   'src/data/scenes/scenesPt.ts', 'src/data/scenes/scenesDe.ts', 'src/data/scenes/scenesRu.ts',
   'src/data/feed/feedEn.ts', 'src/data/feed/feedKo.ts', 'src/data/feed/feedJa.ts', 'src/data/feed/feedPt.ts',
   'src/data/grammarRu.ts', 'src/data/grammarDe.ts', 'src/data/grammar/grammarEn.ts', 'src/data/grammar/grammarKo.ts',
+  'src/data/grammar/grammarJa.ts',
   'src/data/apChemistry.ts',
 ])
 

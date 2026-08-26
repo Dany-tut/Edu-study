@@ -1954,11 +1954,31 @@ export interface CourseSummary {
   level: string
   units: number
   vocabCount: number
+  /**
+   * Заданий В КУРСЕ — столько их получит ученик, со всеми сгенерированными.
+   * Считается по собранному курсу (`countTasks`), а не по спеке: в спеке лежат
+   * только авторские задания юнитов, и их в десять раз меньше.
+   *
+   * В `courseSummary` это поле заполняется авторским числом — там курса ещё
+   * нет. Настоящее число живёт в карточке сида (courseSeedCards.ts) и
+   * сверяется с собранным курсом при первом же открытии (courseSeeds.ts).
+   */
   taskCount: number
   guidedHours: string
   /** Длительность занятия в минутах — из неё считаются часы курса в списке. */
   lessonMinutes: number
   scopeNote?: string
+}
+
+/**
+ * Сколько заданий ученик получит на самом деле.
+ *
+ * Считается по СОБРАННОМУ курсу: `courseSummary` знает только про авторские
+ * задания юнитов, а генератор добавляет к ним лестницу, экзамен порции, блок
+ * повторения и разбор сочетаемости — вдесятеро больше.
+ */
+export function countTasks(lessons: CELesson[]): number {
+  return lessons.reduce((n, l) => n + (l.hwTasks?.length ?? 0), 0)
 }
 
 export function courseSummary(spec: LanguageCourseSpec): CourseSummary {
@@ -2191,6 +2211,44 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     lessonIds: m.units.flatMap(n => lessonIdsOfUnit.get(n) ?? []),
   }))
 
+  // ── Артефакт модуля: единственное сложное задание курса ──
+  //
+  // У каждого юнита в спеке заявлено, что ученик СДЕЛАЕТ своими руками
+  // («Записанное вслух чтение 10 фраз», «Диалог из 6 реплик», «Таблица 10
+  // глаголов»). До этого места артефакт жил подписью `hwTarget` и нигде не
+  // сдавался: строка на экране, за которой ничего не стоит.
+  //
+  // ПОЧЕМУ ХАРД. Артефакт нельзя проверить машиной — это связная работа, и
+  // ценность её в разборе от учителя. Ровно для этого сделан хард-уровень:
+  // вкладка на задание, переписка раундами (решение → комментарий → принято),
+  // вердикт с оценкой 1–5 и стикер за чистую сдачу. Без `isHard` вход в него у
+  // языковых курсов просто не показывался (см. lessonHasHardLevel).
+  //
+  // ПОЧЕМУ РАЗ В МОДУЛЬ, А НЕ РАЗ В ЮНИТ. Артефакт заявлен у каждого юнита, но
+  // юнитов в курсе до сотни, и хард по каждому — это сотня проверок вручную на
+  // одного ученика. Модуль — крупный шаг программы (их 3–14 на курс), и раз в
+  // модуль большая работа с разбором приходит примерно раз в три-четыре
+  // недели. Остальные артефакты остаются целью занятия, как и были.
+  spec.modules.forEach(m => {
+    const ids = m.units.flatMap(n => lessonIdsOfUnit.get(n) ?? [])
+    const last = lessons.find(l => l.id === ids[ids.length - 1])
+    const lastUnit = spec.units.find(u => u.n === m.units[m.units.length - 1])
+    if (!last || !lastUnit?.artifact?.trim()) return
+    last.hwTasks = [
+      ...(last.hwTasks ?? []),
+      editorTask(
+        {
+          type: 'extended',
+          isHard: true,
+          question: `Итог модуля «${m.title}». Сдайте работу: ${lastUnit.artifact}. `
+            + 'Учитель разберёт её и вернётся с комментарием — при необходимости не один раз.',
+        },
+        `${last.id}-art`,
+        spec.lang,
+      ),
+    ]
+  })
+
   const s = courseSummary(spec)
   return {
     id: courseId,
@@ -2206,7 +2264,12 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     lessons,
     description: [
       `${s.units} юнитов (${lessons.length} занятий), ${s.vocabCount} слов, ` +
-        `${s.taskCount} заданий. ` +
+        // Заданий — СОБРАННЫХ, а не заявленных в спеке. `courseSummary` считает
+        // только авторские задания юнитов, а к ученику едут ещё и все
+        // сгенерированные: лестница, экзамен порции, повторения, разбор пар.
+        // Разница десятикратная — курс, обещавший 225 заданий, даёт 2080, — и
+        // именно эта строка уезжает в описание сохранённого курса.
+        `${countTasks(lessons)} заданий. ` +
         `Ориентир — ${s.guidedHours} учебных часов.`,
       s.scopeNote,
     ].filter(Boolean).join(' '),

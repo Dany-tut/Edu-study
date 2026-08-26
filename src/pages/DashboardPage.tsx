@@ -9,7 +9,6 @@ import MobileCourses from '../components/MobileCourses'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import LessonPage from './LessonPage'
-import TaskBankPage from './TaskBankPage'
 import HomeworkFlow from '../components/HomeworkFlow'
 import TestFlow from '../components/TestFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
@@ -17,7 +16,7 @@ import NotificationToastContainer from '../components/NotificationToast'
 import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
@@ -27,6 +26,26 @@ import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment 
 import { ClipboardList, ChevronRight } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+
+// ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
+//
+// TaskBankPage тянет за собой весь каталог тренажёра: LanguageTrainer, папку
+// components/trainer и словарь формулировок questionRu.ts — вместе около
+// мегабайта. Всё это ехало в главном чанке, хотя вкладка открывается по клику
+// и до неё доходят не все и не сразу. Монтируется страница и так только при
+// activePage === 'trainer', так что ленивый импорт ничего не меняет по
+// поведению — только переносит вес за пределы первой загрузки.
+const TaskBankPage = lazy(() => import('./TaskBankPage'))
+
+// Пока чанк тренажёра едет — фон, а не белый провал: TaskBankPage дальше сам
+// показывает свой скелет.
+function TrainerChunk() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '60vh', background: 'var(--color-bg)' }} />}>
+      <TaskBankPage />
+    </Suspense>
+  )
+}
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -334,7 +353,7 @@ export default function DashboardPage() {
             onScroll={e => setLessonScrolled((e.currentTarget as HTMLElement).scrollTop > 64)}
             style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100, scrollbarGutter: 'stable' }}
           >
-            <TaskBankPage />
+            <TrainerChunk />
           </main>
         ) : (
           /* Courses catalogue (screen 3) */
@@ -360,7 +379,7 @@ export default function DashboardPage() {
         ) : activePage === 'profile' ? (
           <MobileProfilePage />
         ) : activePage === 'trainer' ? (
-          <TaskBankPage />
+          <TrainerChunk />
         ) : activePage === 'homeworkList' ? (
           /* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
              сортировка в нижнем доке). Отдельная страница, а не 'homework':

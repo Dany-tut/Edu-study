@@ -1,13 +1,5 @@
-import Lottie from 'lottie-react'
-import animationData from '../../party-popper.json'
+import LottieIcon from './LottieIcon'
 
 export default function PartyPopperLottie({ size = 54 }: { size?: number }) {
-  return (
-    <Lottie
-      animationData={animationData}
-      loop={true}
-      autoplay
-      style={{ width: size, height: size, flexShrink: 0 }}
-    />
-  )
+  return <LottieIcon name="party-popper" size={size} />
 }

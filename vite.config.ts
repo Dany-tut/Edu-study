@@ -35,19 +35,53 @@ export default defineConfig({
         // cached shell is only used offline — avoids the classic stale-SPA trap.
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/, /supabase\.co/],
-        // Потолок precache. Бандл растёт вместе с контентом курсов (сиды,
-        // библиотеки текстов, разговорники) и уже дважды упирался в эту цифру:
-        // сборка при этом не предупреждает, а ПАДАЕТ, то есть деплой встаёт от
-        // добавления обычных данных. Настоящее лечение — вынести контент из
-        // главного чанка (survivalKo уже так и грузится, ленивым импортом);
-        // до тех пор держим запас, а не догоняем размер вплотную.
-        maximumFileSizeToCacheInBytes: 12 * 1024 * 1024, // главный чанк ~6.3 МБ
+        // ── Precache = только оболочка ──────────────────────────────────────
+        //
+        // По умолчанию сюда попадали ВСЕ файлы из dist — 115 штук на 17 МБ.
+        // Воркер начинал качать их сразу при первом заходе: все двадцать курсов,
+        // сцены, three.js. Человек в это время смотрел на первый экран, а канал
+        // у него был занят содержимым, которое он, может, и не откроет. Теперь
+        // предзагружается оболочка (входной чанк, стили, иконки), а остальные
+        // чанки кладутся в кеш по факту обращения — правилом ниже.
+        globPatterns: [
+          'index.html',
+          'manifest.webmanifest',
+          'assets/index-*.js',
+          'assets/*.css',
+          '*.{svg,png,ico}',
+        ],
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
 
-        runtimeCaching: [{
-          urlPattern: ({ request }) => request.mode === 'navigate',
-          handler: 'NetworkFirst',
-          options: { cacheName: 'app-shell', networkTimeoutSeconds: 4 },
-        }],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'app-shell', networkTimeoutSeconds: 4 },
+          },
+          {
+            // Чанки приложения. Имя содержит хеш содержимого, поэтому файл по
+            // такому адресу не меняется никогда — CacheFirst без ревалидации.
+            // Взамен precache: офлайн доступно то, что человек уже открывал.
+            urlPattern: ({ url, request }) =>
+              url.origin === self.location.origin &&
+              url.pathname.startsWith('/assets/') &&
+              (request.destination === 'script' || request.destination === 'style'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'app-chunks',
+              expiration: { maxEntries: 250, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+          {
+            // Анимации Lottie (public/anim/*.json) — приезжают по требованию.
+            urlPattern: ({ url }) => url.pathname.startsWith('/anim/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'anim',
+              expiration: { maxEntries: 20, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+        ],
         cleanupOutdatedCaches: true,
       },
     }),

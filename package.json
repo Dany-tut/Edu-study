@@ -15,6 +15,7 @@
     "check:examples": "node scripts/checkExamples.mjs",
     "build:examples": "node scripts/buildExamples.mjs",
     "check:scenes": "node scripts/checkScenes.mjs",
+  "check:i18n": "node scripts/checkI18n.mjs",
     "preview": "vite preview",
     "start": "node server/index.js",
     "seed": "node server/seed.js",
@@ -26,6 +27,7 @@
     "adapt:feed": "node scripts/adaptFeed.mjs",
     "translate:feed": "node scripts/translateFeed.mjs",
     "check:logic": "esbuild scripts/checkLogic.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLogic.mjs --log-level=error && node node_modules/.cache/checkLogic.mjs",
+    "stamp:seeds": "esbuild scripts/stampSeedCards.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/stampSeedCards.mjs --log-level=error && node node_modules/.cache/stampSeedCards.mjs",
     "check:lesson": "esbuild scripts/checkLesson.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLesson.mjs --log-level=error && node node_modules/.cache/checkLesson.mjs",
     "check:choicepos": "esbuild scripts/checkChoicePos.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkChoicePos.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkChoicePos.mjs"
   },
