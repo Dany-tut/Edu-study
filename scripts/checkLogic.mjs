@@ -185,6 +185,44 @@ const trainer = card('t1', '대학교 — что значит? (대 (大) бол
 if (answerFace(trainer) === 'университет') ok('слово из вопроса срезано с варианта («대학교 — университет» → «университет»)')
 else fail('вариант печатает слово из вопроса — задание решается сличением строк', answerFace(trainer))
 
+
+// Обманка подбирается по форме. В одной колоде лежат буквы алфавита, значения
+// слов и формулировки правил чтения; смешанные в одном задании, они решаются
+// длиной строки, а не знанием. Пример с живой колоды — этот экран и всплыл на
+// прогоне: «쉽니다 — что значит?» с вариантами «р», «п», «нога, мост», «не
+// работает, выходной» формально даёт четыре варианта, а на деле два.
+const MIXED = [
+  card('m1', '쉽니다', 'не работает, выходной'),
+  card('m2', 'ㄹ', 'р'),
+  card('m3', 'ㅍ', 'п'),
+  card('m4', '다리', 'нога, мост'),
+  card('m5', 'правило', 'Он переходит в начало следующего слога'),
+  card('m6', '버스', 'автобус'),
+  card('m7', '평일', 'будни'),
+  card('m8', '학교', 'школа'),
+  card('m9', '사람', 'человек'),
+  card('m10', '시간', 'время, час'),
+]
+const ratio = (a, b) => Math.max(a.length, b.length) / Math.min(a.length, b.length)
+
+for (const target of [MIXED[0], MIXED[5], MIXED[6]]) {
+  const t = buildReviewTasks([target], MIXED)[0]
+  if (t.kind !== 'choice') { fail('задание не собралось выбором', target.answer); continue }
+  const right = answerFace(t.card)
+  const bad = t.choices.filter(c => c !== right && ratio(c, right) > 2.5)
+  if (bad.length === 0) ok(`обманки к «${right}» одной формы (${t.choices.filter(c => c !== right).join(' / ')})`)
+  else fail(`к «${right}» подставлена обманка другой формы`, bad.join(' / '))
+}
+
+// Голодный пул: подходящих по форме меньше трёх. Задание всё равно обязано
+// собраться четырьмя вариантами — слабая обманка хуже хорошей, но лучше
+// выбора из двух.
+const STARVED = [card('s1', '버스', 'автобус'), card('s2', 'ㄹ', 'р'), card('s3', 'правило', 'Он переходит в начало следующего слога')]
+const starved = buildReviewTasks([STARVED[0]], STARVED)[0]
+if (starved.kind === 'choice' && starved.choices.length === 3
+    && starved.choices.includes('автобус')) ok('на голодном пуле задание добирает варианты, а не разваливается')
+else fail('голодный пул сломал задание', JSON.stringify(starved))
+
 const built = buildReviewTasks(POOL, POOL)
 if (built.every(t => t.kind === 'choice')) ok('колоды из пяти слов хватает на выбор без самооценки')
 else fail('карточка ушла в припоминание при полном пуле', built.map(t => t.kind).join(','))

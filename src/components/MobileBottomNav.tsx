@@ -9,6 +9,7 @@ import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
+import ViewportProbe from './ViewportProbe' // ВРЕМЕННО: диагностика нижнего края
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -72,7 +73,10 @@ export default function MobileBottomNav() {
   }
 
   return (
+    <>
+    <ViewportProbe />
     <motion.div
+      data-probe-dock
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
@@ -175,5 +179,6 @@ export default function MobileBottomNav() {
         })}
       </motion.div>
     </motion.div>
+    </>
   )
 }

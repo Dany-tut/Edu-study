@@ -79,6 +79,9 @@ export default function MobileScreen({
           top zone; paddingBottom clears the bottom dock. */}
       <div
         key={scrollKey}
+        // Метка для починки вьюпорта: этот контейнер ученик и двигает пальцем,
+        // его же дёргает lib/viewportRepair.ts.
+        data-scroll-body
         className="no-scrollbar"
         style={{
           height: '100%',

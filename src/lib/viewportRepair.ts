@@ -60,14 +60,20 @@ function nudge() {
     original = meta.content
     meta.content = `${original}, height=device-height`
   } else if (step === 1) {
-    // Толчок прокруткой: корень на пиксель выше экрана, съездить туда и
-    // обратно. Без временной прибавки высоты прокручивать нечего.
+    // Толчок прокруткой ТОГО контейнера, который ученик двигает пальцем:
+    // прокручивается не корень (он у нас во весь экран и не ездит), а тело
+    // экрана внутри MobileScreen. Корень тоже дёргаем — вдруг поможет он.
+    document.querySelectorAll<HTMLElement>('[data-scroll-body]').forEach(el => {
+      const prev = el.scrollTop
+      el.scrollTop = prev + 1
+      el.scrollTop = prev
+    })
     const root = document.documentElement
-    const prev = root.style.height
+    const prevH = root.style.height
     root.style.height = 'calc(100% + 1px)'
     window.scrollTo(0, 1)
     window.scrollTo(0, 0)
-    root.style.height = prev
+    root.style.height = prevH
   } else {
     // Не помогло ничего — снимаем свою правку meta и больше не трогаем.
     if (meta && original) meta.content = original
@@ -86,4 +92,10 @@ export function repairViewport() {
   ;[60, 200, 500, 1000, 1800].forEach(ms => setTimeout(nudge, ms))
   // Первое касание чинит вьюпорт и само по себе — после него проверять нечего.
   window.addEventListener('touchstart', () => { setTimeout(nudge, 60) }, { passive: true, once: true })
+}
+
+/** Что успела сделать починка — читает временный зонд. */
+export function repairState() {
+  const meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null
+  return { step, done, gap: gap(), meta: meta?.content ?? '' }
 }
