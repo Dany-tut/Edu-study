@@ -399,6 +399,86 @@ const SOURCES = {
     url: 'https://news.samsung.com/kr/feed',
   },
 
+  // ── СЫРЬЁ ДЛЯ ПЕРЕСКАЗОВ (`facts: true`) ────────────────────────────────────
+  //
+  // Эти источники в ленту НЕ ПОПАДАЮТ никогда: лицензии на перепечатку у них
+  // нет. Но факты авторским правом не охраняются, и по ним можно написать свой
+  // текст — этим занимается scripts/adaptFeed.mjs.
+  //
+  // ПОЭТОМУ ЗДЕСЬ МОЖЕТ БЫТЬ ЧТО УГОДНО, И ЯЗЫК ИСТОЧНИКА НЕ ВАЖЕН. Заметка
+  // N+1 по-русски годится в сырьё для корейского пересказа ровно так же, как
+  // релиз NASA по-английски: пересказ на другом языке — это заведомо не копия
+  // чужого изложения, а свой текст о том же событии.
+  //
+  // Проверено запросом 26.08.2026; чьи фиды не нашлись — записано в
+  // docs/FEED_SOURCES.md, чтобы не искать заново.
+
+  // Русскоязычные: наука, техника, архитектура, мир.
+  nplus1: {
+    lang: 'ru', name: 'N+1', kind: 'rss', facts: true,
+    topic: 'Наука', url: 'https://nplus1.ru/rss',
+  },
+  habr: {
+    lang: 'ru', name: 'Хабр', kind: 'rss', facts: true,
+    topic: 'Технологии и ИИ', url: 'https://habr.com/ru/rss/news/?fl=ru',
+  },
+  archi: {
+    lang: 'ru', name: 'Archi.ru', kind: 'rss', facts: true,
+    topic: 'Искусство и история', url: 'https://archi.ru/rss.xml',
+  },
+  'euronews-ru': {
+    lang: 'ru', name: 'Euronews', kind: 'rss', facts: true,
+    topic: 'Технологии и ИИ', url: 'https://ru.euronews.com/rss',
+  },
+
+  // Корейские издания. Для ленты они закрыты, для пересказа — лучший источник
+  // именно корейской повестки: что в Корее считают новостью, а не что о Корее
+  // пишут снаружи.
+  'bbc-korean': {
+    lang: 'ko', name: 'BBC News 코리아', kind: 'rss', facts: true,
+    topic: 'Учёба', url: 'https://feeds.bbci.co.uk/korean/rss.xml',
+  },
+  yonhap: {
+    lang: 'ko', name: '연합뉴스', kind: 'rss', facts: true,
+    topic: 'Учёба', url: 'https://www.yna.co.kr/rss/news.xml',
+  },
+  hani: {
+    lang: 'ko', name: '한겨레', kind: 'rss', facts: true,
+    topic: 'Учёба', url: 'https://www.hani.co.kr/rss/',
+  },
+  etnews: {
+    lang: 'ko', name: '전자신문', kind: 'rss', facts: true,
+    topic: 'Технологии и ИИ', url: 'https://rss.etnews.com/Section901.xml',
+  },
+  'zdnet-kr': {
+    lang: 'ko', name: 'ZDNet Korea', kind: 'rss', facts: true,
+    topic: 'Технологии и ИИ', url: 'https://feeds.feedburner.com/zdkorea',
+  },
+  aitimes: {
+    lang: 'ko', name: 'AI타임스', kind: 'rss', facts: true,
+    topic: 'Технологии и ИИ', url: 'https://www.aitimes.com/rss/allArticle.xml',
+  },
+  'design-kr': {
+    lang: 'ko', name: '월간 디자인', kind: 'rss', facts: true,
+    topic: 'Мода и дизайн', url: 'https://design.co.kr/rss',
+  },
+  mdtoday: {
+    lang: 'ko', name: '메디컬투데이', kind: 'rss', facts: true,
+    topic: 'Медицина и здоровье', url: 'https://www.mdtoday.co.kr/rss/allArticle.xml',
+  },
+
+  // Биология и медицина из открытых журналов. Копировать их аннотации в ленту
+  // нельзя по языку, а не по праву: они написаны для коллег. Зато как сырьё
+  // для пересказа они идеальны — CC BY разрешает и переработку тоже.
+  'plos-biology': {
+    lang: 'en', name: 'PLOS Biology', kind: 'atom', facts: true,
+    topic: 'Биология', url: 'https://journals.plos.org/plosbiology/feed/atom',
+  },
+  elife: {
+    lang: 'en', name: 'eLife', kind: 'rss', facts: true,
+    topic: 'Биология', url: 'https://elifesciences.org/rss/recent.xml',
+  },
+
   // Викиновости закрыты 04.05.2026 и переведены в read-only: свежего не будет.
   // Адаптер оставлен, но в автопрогон эти источники не входят (archive: true) —
   // им ДОБИРАЮТ материал руками, когда нужно.
@@ -1100,6 +1180,9 @@ for (const [k, v] of Object.entries(gloss)) {
 }
 
 const ids = ONLY ? [ONLY] : Object.keys(SOURCES).filter(id => !SOURCES[id].archive && !SOURCES[id].drafts)
+
+/** Сырьё для пересказов: сюда падают источники с `facts: true` (см. ниже). */
+const facts = []
 const collected = {}
 
 for (const id of ids) {
@@ -1119,6 +1202,25 @@ for (const id of ids) {
 
     const langKey = base(src.lang)
     for (const it of raw) {
+      // ── ИСТОЧНИК ФАКТОВ ────────────────────────────────────────────────
+      //
+      // В ленту такой материал не попадает НИКОГДА: у него нет лицензии на
+      // перепечатку, и показывать чужой текст нельзя. Но факты авторским
+      // правом не охраняются — охраняется изложение, — поэтому по ним можно
+      // написать СВОЙ текст. Этим и занимается scripts/adaptFeed.mjs, а сюда
+      // они складываются просто как сырьё.
+      //
+      // Отсюда же следует, что язык источника значения не имеет: заметка N+1
+      // по-русски годится в сырьё для пересказа на корейском ровно так же, как
+      // релиз NASA по-английски.
+      if (src.facts) {
+        facts.push({
+          outletId: id, outletName: src.name, lang: it.lang,
+          title: it.title, url: it.url,
+          date: it.date, topic: src.topic, body: it.text ?? '',
+        })
+        continue
+      }
       if (src.drafts) {
         // Заготовке нужен не словарь, а место на столе: краткое содержание
         // целиком, чтобы по нему писать, и пустые поля под наш текст.
@@ -1155,6 +1257,14 @@ for (const id of ids) {
   } catch (e) {
     console.error(`  ✕ ${e.message}`)
   }
+}
+
+// Сырьё пишется ВСЕГДА, и до проверки на --write: пересказы собираются
+// отдельным прогоном, и ему всё равно, записывали мы в этот раз ленту или нет.
+if (facts.length) {
+  mkdirSync(stageDir, { recursive: true })
+  writeFileSync(join(stageDir, 'facts.json'), JSON.stringify(facts, null, 2) + '\n', 'utf8')
+  console.log(`\nСырьё для пересказов: ${facts.length} материалов в scripts/feed-staging/facts.json`)
 }
 
 if (!WRITE) {

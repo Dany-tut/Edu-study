@@ -1,5 +1,6 @@
 import { type ReactNode, type CSSProperties } from 'react'
 import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
+import { useBottomShift } from '../lib/viewportBottomShift'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -40,6 +41,10 @@ export default function MobileScreen({
   // content scrolls EDGE-TO-EDGE under it (paddingTop = safe-area + bar height),
   // so the notch/home-indicator zones are filled by content, never an empty band.
   void topRaise
+  // На холодном запуске PWA 100dvh короче экрана: низ каркаса (а с ним и док)
+  // висит выше физического края, пока вебвью не пересчитает вьюпорт после
+  // первого касания. Сдвиг сажает док на место сразу — lib/viewportBottomShift.
+  const bottomShift = useBottomShift()
   const SAFE_TOP = 'env(safe-area-inset-top, 0px)'
   const SAFE_BOTTOM = 'env(safe-area-inset-bottom, 0px)'
   // Зазор, а не вплотную к safe-area: у статус-бара iPhone своё размытие, и
@@ -103,7 +108,7 @@ export default function MobileScreen({
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: -bottomShift,
             zIndex: 70,
             paddingBottom: `${MOBILE_EDGE - 16}px`,
             paddingLeft: 16,

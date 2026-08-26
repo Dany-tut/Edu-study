@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Languages, ChevronDown, Heart, MessageCircle } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import { outletById, outletHandle, type FeedItem, type Outlet } from '../../data/feed'
@@ -85,8 +85,26 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
   const step = item.levels?.[Math.min(tier, item.levels.length - 1)]
   const body = step?.body ?? item.body
 
-  const long = body.length > 420
-  const shown = long && !expanded ? body.slice(0, 380).trimEnd() + '…' : body
+  // ── Перевод показывается ВМЕСТО оригинала ─────────────────────────────────
+  //
+  // Раньше он раскрывался ПОД текстом, и это было хуже, чем кажется: читать
+  // приходилось, прыгая глазами между двумя абзацами, а на телефоне русский
+  // текст вообще уезжал за нижний край — жмёшь «перевод» и не видишь перевода.
+  // Теперь пост целиком переключает язык, как «Перевести пост» в X: заголовок,
+  // тело и обрезка «Ещё» — всё считается по показываемому тексту.
+  //
+  // ЗАГОЛОВОК ПЕРЕВОДИТСЯ ВМЕСТЕ С ТЕЛОМ. У ролика тела нет вовсе, и без
+  // перевода заголовка кнопка на нём не делала бы ровно ничего.
+  const full = item.translation || item.titleTranslation
+    ? { title: item.titleTranslation ?? item.title, body: item.translation ?? '' }
+    : null
+  const ru = translated && !!full
+
+  const shownTitle = ru ? full!.title : item.title
+  const text = ru ? full!.body : body
+
+  const long = text.length > 420
+  const shown = long && !expanded ? text.slice(0, 380).trimEnd() + '…' : text
 
   const toggleTranslate = () => { setTranslated(v => !v); touched() }
 
@@ -106,7 +124,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
   // делать это для сорока постов ленты, из которых откроют один, — работа в
   // стол.
   const words = useMemo(() => {
-    if (!translated || item.translation) return null
+    if (!translated || full) return null
     const lex = buildLexicon(lang, item.glossary)
     const seen = new Set<string>()
     const out: { text: string; ru: string }[] = []
@@ -118,7 +136,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       out.push({ text: seg.text, ru: seg.gloss.ru })
     }
     return out
-  }, [translated, item.translation, item.glossary, body, item.title, lang])
+  }, [translated, full, item.glossary, body, item.title, lang])
 
   return (
     <article ref={seenRef} style={variant === 'card' ? {
@@ -176,17 +194,28 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           всегда: он собран в data/wordGloss.ts и работает тем же тапом, что в
           абзаце заметки. Слово отсюда так же уезжает в колоду повторения. */}
       <h3 style={{ margin: 0 }}>
-        <GlossedText
-          text={item.title}
-          lang={lang}
-          extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
-          accent={accent}
-          subject={subjectId}
-          style={{
-            fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
+        {ru ? (
+          // Переведённый заголовок — обычный текст: разбирать по словам в нём
+          // нечего, он уже по-русски.
+          <span style={{
+            display: 'block', fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
             color: 'var(--color-text)', ...proseWrap,
-          }}
-        />
+          }}>
+            {bindShortWords(shownTitle)}
+          </span>
+        ) : (
+          <GlossedText
+            text={item.title}
+            lang={lang}
+            extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
+            accent={accent}
+            subject={subjectId}
+            style={{
+              fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
+              color: 'var(--color-text)', ...proseWrap,
+            }}
+          />
+        )}
       </h3>
 
       {/* ── Ролик играет прямо в посте ──────────────────────────────────────
@@ -252,7 +281,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               «мне тяжело» принимают на первой строке, а не дочитав до конца.
               Смена ступени сбрасывает «Ещё» — иначе на простом уровне текст
               оказывался бы развёрнут, а на сложном обрезан по той же метке. */}
-          {item.levels && item.levels.length > 1 && (
+          {!ru && item.levels && item.levels.length > 1 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {item.levels.map((l, i) => (
                 <button
@@ -271,14 +300,22 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               ))}
             </div>
           )}
-          <GlossedText
-            text={shown}
-            lang={lang}
-            extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
-            accent={accent}
-            subject={subjectId}
-            style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-text)' }}
-          />
+          {ru ? (
+            <div style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-text)', ...proseWrap }}>
+              {shown.split('\n\n').map((para, i) => (
+                <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
+              ))}
+            </div>
+          ) : (
+            <GlossedText
+              text={shown}
+              lang={lang}
+              extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
+              accent={accent}
+              subject={subjectId}
+              style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-text)' }}
+            />
+          )}
 
           {long && !expanded && (
             <button
@@ -293,10 +330,12 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             </button>
           )}
 
-          {/* «Показать перевод» — текстовая ссылка под постом, как Translate
-              post в X: перевод — свойство текста, и его выключатель стоит у
-              текста, а не в общей строке действий поста. */}
-          {item.translation && (
+          {/* Выключатель перевода — текстовой ссылкой у самого текста, как
+              «Перевести пост» в X: перевод это свойство текста, и его место
+              рядом с текстом, а не только в общей строке действий. Подпись
+              называет то, что произойдёт по нажатию, — на переведённом посте
+              это «оригинал», потому что русский уже перед глазами. */}
+          {full && (
             <button
               onClick={toggleTranslate}
               style={{
@@ -304,20 +343,8 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
                 cursor: 'pointer', fontSize: 13, fontWeight: 650, color: accent,
               }}
             >
-              {translated ? t('Скрыть перевод') : t('Показать перевод')}
+              {ru ? t('Показать оригинал') : t('Показать перевод')}
             </button>
-          )}
-
-          {translated && item.translation && (
-            <div style={{
-              padding: '10px 12px', borderRadius: 12,
-              background: 'var(--color-bg-3)',
-              fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap,
-            }}>
-              {item.translation.split('\n\n').map((p, i) => (
-                <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(p)}</p>
-              ))}
-            </div>
           )}
         </div>
       )}
@@ -332,7 +359,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             {/* Закрашенное сердце вместо цветного контура: на тёмной теме
                 тонкий контур в акцентном цвете почти не отличается от
                 серого, а заливка видна сразу. */}
-            <Heart size={17} fill={liked ? accent : 'none'} />
+            <HeartGlyph filled={liked} accent={accent} />
           </IconBtn>
         )}
         <IconBtn
@@ -342,7 +369,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           onClick={() => { setThread(v => !v); touched() }}
           count={replies}
         >
-          <MessageCircle size={17} />
+          <ReplyGlyph filled={thread} accent={accent} />
         </IconBtn>
 
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -366,7 +393,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             title={item.translation ? t('Перевод') : t('Перевод по словам')}
             onClick={toggleTranslate}
           >
-            <Languages size={17} />
+            <TranslateGlyph />
           </IconBtn>
         </span>
       </div>
@@ -413,6 +440,85 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
         </div>
       )}
     </article>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗНАЧКИ СТРОКИ ДЕЙСТВИЙ — СВОИ, А НЕ ИЗ НАБОРА
+//
+// Библиотечные значки нарисованы под интерфейс вообще: одинаковая жёсткая
+// сетка, острые сочленения, одна и та же толщина у сердца и у буквы. В ленте
+// они стоят вплотную друг к другу и на просвет читаются как забор из палочек.
+//
+// Здесь три знака одного семейства: общий кегль, скруглённые концы, одна
+// толщина линии и — главное — ЗАЛИВКА КАК СОСТОЯНИЕ. Нажатое сердце и
+// открытый тред залиты акцентом целиком, а не подкрашены контуром: тонкий
+// цветной контур на тёмной теме почти неотличим от серого (см. память про
+// «невидимое в тёмной теме»), заливка видна с первого взгляда.
+//
+// `vectorEffect` держит толщину линии постоянной: значок иногда едет вместе с
+// кнопкой (нажатие ужимает её), и без него штрих ужимался бы вместе с ним.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SIZE = 19
+
+function Glyph({ children, filled, accent }: {
+  children: React.ReactNode
+  filled?: boolean
+  accent?: string
+}) {
+  return (
+    <svg
+      width={SIZE} height={SIZE} viewBox="0 0 24 24"
+      fill={filled && accent ? accent : 'none'}
+      stroke="currentColor" strokeWidth={1.7}
+      strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden
+      style={{ display: 'block', overflow: 'visible' }}
+    >
+      {children}
+    </svg>
+  )
+}
+
+/** Сердце: одна замкнутая кривая — потому и заливается ровно. */
+function HeartGlyph({ filled, accent }: { filled: boolean; accent: string }) {
+  return (
+    <Glyph filled={filled} accent={accent}>
+      <path d="M12 20.1c-.42 0-.82-.15-1.13-.42C6.28 15.85 3.6 13.28 3.6 10.15A4.55 4.55 0 0 1 8.1 5.55c1.6 0 2.95.83 3.9 2.15.95-1.32 2.3-2.15 3.9-2.15a4.55 4.55 0 0 1 4.5 4.6c0 3.13-2.68 5.7-7.27 9.53-.31.27-.71.42-1.13.42Z" />
+    </Glyph>
+  )
+}
+
+/** Облако реплики с хвостом влево-вниз — как в мессенджере, а не кружок. */
+function ReplyGlyph({ filled, accent }: { filled: boolean; accent: string }) {
+  return (
+    <Glyph filled={filled} accent={accent}>
+      <path d="M12 4.9c4.42 0 8 2.94 8 6.57s-3.58 6.57-8 6.57c-.87 0-1.71-.11-2.5-.32l-3.83 1.6a.4.4 0 0 1-.54-.48l.83-2.83C4.68 14.85 4 13.28 4 11.47 4 7.84 7.58 4.9 12 4.9Z" />
+    </Glyph>
+  )
+}
+
+/**
+ * Перевод: латинская «A» и китайский знак 文 — два письма рядом.
+ *
+ * Готовый значок «Languages» рисует стопку палочек, в которой на 17 пикселях
+ * не разобрать ни буквы, ни иероглифа. Здесь оба знака нарисованы штрихами
+ * той же толщины, что сердце: на просвет видно ровно то, что значок обещает, —
+ * перевод с одного письма на другое.
+ */
+function TranslateGlyph() {
+  return (
+    <Glyph>
+      {/* A */}
+      <path d="M3.4 14.6 6.6 6.4l3.2 8.2" />
+      <path d="M4.5 12.1h4.2" />
+      {/* 文 */}
+      <path d="M16.4 5.6v1" />
+      <path d="M13.2 8.8h6.6" />
+      <path d="M18 8.8c-.5 3.4-2 5.9-4.6 8" />
+      <path d="M15.7 12.3c1.1 2.4 2.6 4.3 4.6 5.6" />
+    </Glyph>
   )
 }
 
@@ -465,20 +571,44 @@ function IconBtn({ children, on, accent, title, count, onClick }: {
   count?: number
   onClick: () => void
 }) {
+  // Подсветка кружком под пальцем/курсором — та же, что во всех лентах: она
+  // говорит, что нажимается ЗНАЧОК, а не строка целиком, и заодно даёт цель
+  // размером с палец там, где сам знак 19 пикселей. Держим состоянием, а не
+  // :hover: инлайновые стили псевдоклассов не знают.
+  const [hot, setHot] = useState(false)
   return (
     <button
       onClick={onClick}
+      onMouseEnter={() => setHot(true)}
+      onMouseLeave={() => setHot(false)}
       title={title}
       aria-label={title}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
+        display: 'inline-flex', alignItems: 'center', gap: 2,
         background: 'none', border: 'none', padding: 0, cursor: 'pointer',
         color: on ? accent : 'var(--color-muted)',
         fontSize: 12.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-        lineHeight: '17px',
+        lineHeight: '19px',
+        transition: 'color .15s ease',
       }}
     >
-      {children}
+      <span style={{
+        position: 'relative', width: 30, height: 30, flexShrink: 0,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        marginLeft: -5.5,
+      }}>
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute', inset: 0, borderRadius: 999,
+            background: 'currentColor',
+            opacity: hot ? 0.12 : 0,
+            transform: hot ? 'scale(1)' : 'scale(0.75)',
+            transition: 'opacity .15s ease, transform .15s ease',
+          }}
+        />
+        <span style={{ position: 'relative', display: 'flex' }}>{children}</span>
+      </span>
       {count !== undefined && (
         // Ширина слота — 1ch, а не «на глаз»: при tabular-nums выше ch равен
         // ширине цифры ровно, и пустой слот совпадает с однозначным числом до

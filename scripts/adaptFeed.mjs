@@ -39,7 +39,8 @@
 //   node scripts/adaptFeed.mjs --plan          — что взял бы, без обращений к модели
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { writeFileSync, mkdtempSync, rmSync } from 'node:fs'
+import { writeFileSync, readFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -86,6 +87,35 @@ const ALLOWED = new Set([
   'korea-kr-health', 'korea-kr-chip', 'korea-kr-car',
 ])
 
+// ─── Сырьё, которого в ленте нет ─────────────────────────────────────────────
+//
+// scripts/feed-staging/facts.json пишет buildFeed из источников с `facts: true`
+// (N+1, Хабр, Archi.ru, 연합뉴스, AI타임스, eLife…). Их текст показывать
+// нельзя — лицензии на перепечатку нет, — но пересказать факты можно: факты
+// авторским правом не охраняются.
+//
+// ЭТО ЕДИНСТВЕННЫЙ СПОСОБ ПОЛУЧИТЬ БИОЛОГИЮ И АРХИТЕКТУРУ. Свободных лицензий
+// в этих темах почти нет: у федеральных агентств США биологии мало, у korea.kr
+// её нет вовсе, а открытые журналы (eLife, PLOS Biology) написаны для коллег и
+// в ленту как есть не годятся — зато для пересказа годятся идеально.
+//
+// РИСК ОДИН, И ОН СНИМАЕТСЯ ЯЗЫКОМ. Пересказ на языке, отличном от языка
+// источника, копией чужого изложения быть не может по построению. Там, где
+// языки совпадают (корейское издание → корейский пересказ), защита слабее —
+// поэтому в промпте отдельным правилом стоит запрет повторять формулировки, а
+// ступень 3급 переписывает газетную фразу до неузнаваемости просто потому, что
+// иначе она не станет простой.
+const factsPath = join(root, 'scripts/feed-staging/facts.json')
+const FACTS = existsSync(factsPath)
+  ? JSON.parse(readFileSync(factsPath, 'utf8')).map(f => ({
+      ...f,
+      // Идентификатор стабилен по адресу: тот же материал на втором прогоне
+      // не пересказывается заново.
+      id: `fact-${f.outletId}-${createHash('sha1').update(f.url).digest('hex').slice(0, 8)}`,
+    }))
+  : []
+for (const f of FACTS) ALLOWED.add(f.outletId)
+
 // ─── Лестницы уровней ────────────────────────────────────────────────────────
 //
 // Ступени НЕ равны уровню ученика: читать всегда легче, чем говорить, и первая
@@ -130,8 +160,9 @@ const LADDERS = {
 // Темы берутся из уже заведённых в ленте — новый ярлык на каждый материал
 // превратил бы фильтр в свалку.
 const TOPICS = [
-  'Наука', 'Технологии и ИИ', 'Медицина и здоровье', 'Машины и транспорт',
-  'Искусство и история', 'Погода и природа', 'Учёба',
+  'Наука', 'Биология', 'Технологии и ИИ', 'Медицина и здоровье',
+  'Машины и транспорт', 'Искусство и история', 'Мода и дизайн',
+  'Погода и природа', 'Учёба',
 ]
 
 // ─── Данные проекта ──────────────────────────────────────────────────────────
@@ -162,7 +193,7 @@ await build({
 const M = await import(pathToFileURL(bundle).href)
 rmSync(tmp, { recursive: true, force: true })
 
-const POOL = [...M.EN_AUTO, ...M.KO_AUTO, ...M.JA_AUTO]
+const POOL = [...FACTS, ...M.EN_AUTO, ...M.KO_AUTO, ...M.JA_AUTO]
 const EXISTING = { ko: M.KO_ADAPT, en: M.EN_ADAPT, ja: M.JA_ADAPT }
 
 // ─── Дыры разбора ────────────────────────────────────────────────────────────
@@ -356,7 +387,7 @@ async function adapt(item, lang, ladder, glossSoFar) {
       textOrigin: 'ours',
       age: '12+',
       url: item.url,
-      byline: `по материалу ${item.outletId}`,
+      byline: `по материалу ${item.outletName ?? item.outletId}`,
       origin: 'original',
       level: first.level,
       minutes: first.minutes,

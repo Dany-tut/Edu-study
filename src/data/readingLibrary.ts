@@ -60,6 +60,20 @@ export interface ReadingText {
   glossary: Gloss[]
   questions: ReadingQuestion[]
   /**
+   * Предмет, которому принадлежит текст, — ТОЛЬКО там, где на одном языке
+   * сидят два предмета.
+   *
+   * Русский и литература имеют общий langCode 'ru' (см. lib/subjects), и без
+   * этого поля «Чтение» у обоих показывало одну и ту же полку: ученик, открывший
+   * литературу, видел разбор делового письма, а пришедший за точностью речи —
+   * пейзаж у Тургенева. Язык у них действительно один, а материал разный,
+   * и разделить их может только сам текст.
+   *
+   * Пусто — текст принадлежит всем предметам этого языка. Для языков, где
+   * предмет один (английский, корейский), поле не нужно и не ставится.
+   */
+  subject?: 'russian' | 'literature'
+  /**
    * Происхождение текста. 'original' — написан нами. Для заимствованных
    * обязательно указание источника и лицензии, иначе текст нельзя показывать.
    */
@@ -70,6 +84,8 @@ export interface ReadingText {
 import { KO_TEXTS } from './readingKo'
 import { EN_TEXTS } from './readingEn'
 import { JA_TEXTS } from './readingJa'
+import { DE_TEXTS } from './readingDe'
+import { RU_TEXTS } from './readingRu'
 
 // ─── Английский: рабочие ситуации под курс «Карьера дизайнера» ───────────────
 
@@ -1425,6 +1441,7 @@ const RU: ReadingText[] = [
     id: 'ru-two-letters',
     lang: 'ru', title: 'Два письма об одном и том же', level: 'Точность', minutes: 4,
     topic: 'Рабочая переписка', skill: 'Чтение',
+    subject: 'russian',
     origin: 'original',
     body: `ПЕРВОЕ ПИСЬМО
 
@@ -1487,6 +1504,7 @@ const RU: ReadingText[] = [
     id: 'ru-three-versions',
     lang: 'ru', title: 'Три версии одного абзаца', level: 'Стиль', minutes: 4,
     topic: 'Ритм фразы', skill: 'Чтение',
+    subject: 'literature',
     origin: 'original',
     body: `НЕЙТРАЛЬНО
 
@@ -1545,6 +1563,7 @@ const RU: ReadingText[] = [
     id: 'ru-speech-two-minutes',
     lang: 'ru', title: 'Речь на две минуты', level: 'Публично', minutes: 5,
     topic: 'Публичная речь', skill: 'Говорение',
+    subject: 'russian',
     origin: 'original',
     body: `Структура, которая работает почти всегда: тезис — пример — вывод. Ниже одна и та же мысль, произнесённая без структуры и с ней.
 
@@ -1606,6 +1625,7 @@ const RU: ReadingText[] = [
     id: 'ru-detail',
     lang: 'ru', title: 'Деталь вместо описания', level: 'Точность', minutes: 4,
     topic: 'Деталь и портрет', skill: 'Письмо',
+    subject: 'literature',
     origin: 'original',
     body: `ОПИСАНИЕ
 
@@ -1678,6 +1698,7 @@ const RU: ReadingText[] = [
     id: 'ru-argument',
     lang: 'ru', title: 'Спор: три способа возразить', level: 'Публично', minutes: 4,
     topic: 'Спор и аргумент', skill: 'Говорение',
+    subject: 'russian',
     origin: 'original',
     body: `ИСХОДНОЕ УТВЕРЖДЕНИЕ
 
@@ -1754,11 +1775,19 @@ const RU: ReadingText[] = [
 ]
 
 // Корейский растёт отдельным файлом — темы для фильтра «Тема» (см. readingKo).
-export const READING_LIBRARY: ReadingText[] = [...EN, ...EN_TEXTS, ...KO, ...KO_TEXTS, ...JA, ...JA_TEXTS, ...PT, ...DE, ...RU, ...MORE]
+export const READING_LIBRARY: ReadingText[] = [...EN, ...EN_TEXTS, ...KO, ...KO_TEXTS, ...JA, ...JA_TEXTS, ...PT, ...DE, ...DE_TEXTS, ...RU, ...RU_TEXTS, ...MORE]
 
-/** Тексты нужного языка, по возрастанию уровня. */
-export function textsForLang(lang: string): ReadingText[] {
-  return READING_LIBRARY.filter(t => t.lang === lang)
+/**
+ * Тексты нужного языка, по возрастанию уровня.
+ *
+ * `subject` отсекает чужой предмет там, где язык общий: у русского и
+ * литературы один langCode, и без второго аргумента полка была бы общей
+ * (см. поле subject у ReadingText). Не передан — возвращается всё, как раньше:
+ * так считают счётчики предметов и виджет «доза дня», которым деление ни к чему.
+ */
+export function textsForLang(lang: string, subject?: string): ReadingText[] {
+  return READING_LIBRARY.filter(t =>
+    t.lang === lang && (!subject || !t.subject || t.subject === subject))
 }
 
 /** Языки, для которых в библиотеке вообще что-то есть. */

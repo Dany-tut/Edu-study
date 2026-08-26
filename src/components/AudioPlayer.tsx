@@ -90,6 +90,9 @@ export default function AudioPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [src, setSrc] = useState<string | null>(null)
   const [playing, setPlaying] = useState(false)
+  // Подсветка кружком под курсором — только у голой иконки в строке действий
+  // поста: там она стоит рядом с сердцем и переводом, у которых такая же.
+  const [hot, setHot] = useState(false)
   // Звук пошёл на самом деле: у файла это событие play, у синтеза — onStart.
   // Кнопка живёт на `playing` (отклик обязан быть мгновенным), индикаторы
   // снаружи — на этом.
@@ -185,14 +188,19 @@ export default function AudioPlayer({
       )}
       <button
         onClick={toggle}
+        onMouseEnter={() => setHot(true)}
+        onMouseLeave={() => setHot(false)}
         disabled={!hasSource}
         aria-label={playing ? t('Пауза') : t('Играть')}
         style={variant === 'bare' ? {
           // Голая иконка ряда действий: ни кружка, ни тени — цвет говорит всё.
-          // Серая молчит, цветная звучит, как сердце рядом.
+          // Серая молчит, цветная звучит, как сердце рядом. Место под подсветку
+          // отведено всегда (30×30), чтобы иконка стояла на одной сетке с
+          // соседями и попадала под палец, а не только под курсор.
           background: 'none', border: 'none', padding: 0, flexShrink: 0,
           cursor: hasSource ? 'pointer' : 'default', opacity: hasSource ? 1 : 0.4,
-          display: 'inline-flex', alignItems: 'center',
+          position: 'relative', width: 30, height: 30,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           color: playing ? tone : 'var(--color-muted)',
         } : {
           width: size, height: size, borderRadius: '50%', flexShrink: 0,
@@ -212,9 +220,21 @@ export default function AudioPlayer({
         {/* Треугольник залит, а не обведён: контурная иконка на цветном кружке
             выглядит бледной наклейкой поверх заливки, а не одной кнопкой.
             У голой иконки заливки под ней нет — там контур, как у соседей. */}
+        {variant === 'bare' && (
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute', inset: 0, borderRadius: 999,
+              background: 'currentColor',
+              opacity: hot && hasSource ? 0.12 : 0,
+              transform: hot && hasSource ? 'scale(1)' : 'scale(0.75)',
+              transition: 'opacity .15s ease, transform .15s ease',
+            }}
+          />
+        )}
         {playing
-          ? <Pause size={variant === 'bare' ? 17 : compact ? 16 : 18} fill={variant === 'bare' ? 'none' : 'currentColor'} />
-          : <Play size={variant === 'bare' ? 17 : compact ? 16 : 18} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? undefined : { marginLeft: 2 }} />}
+          ? <Pause size={variant === 'bare' ? 19 : compact ? 16 : 18} strokeWidth={variant === 'bare' ? 1.7 : 2} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? { position: 'relative' } : undefined} />
+          : <Play size={variant === 'bare' ? 19 : compact ? 16 : 18} strokeWidth={variant === 'bare' ? 1.7 : 2} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? { position: 'relative', marginLeft: 1 } : { marginLeft: 2 }} />}
       </button>
 
       {allowSlow && hasSource && (

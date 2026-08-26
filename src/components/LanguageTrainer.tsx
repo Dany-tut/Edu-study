@@ -201,7 +201,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [openTextId, setOpenTextId] = usePersistentState<string | null>(`trainer.${lang}.text`, null)
   const [openAudioId, setOpenAudioId] = usePersistentState<string | null>(`trainer.${lang}.audio`, null)
 
-  const allTexts = useMemo(() => textsForLang(lang), [lang])
+  // Предмет передаётся вторым аргументом: у русского и литературы общий язык,
+  // и без него «Чтение» показывало бы одну полку на два предмета
+  // (см. textsForLang в data/readingLibrary).
+  const allTexts = useMemo(() => textsForLang(lang, subjectId), [lang, subjectId])
 
   const audio = useMemo(() => listeningForLang(lang), [lang])
 

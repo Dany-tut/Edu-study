@@ -6,6 +6,7 @@ import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
+import { useBottomShift } from '../lib/viewportBottomShift'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileDock — the floating glass control zone that rides just ABOVE the bottom
@@ -89,12 +90,15 @@ export default function MobileDock({ children, fill }: {
 }) {
   const collapsed = useSmoothCollapse()
   const kbOpen = useKeyboardOpen()
+  // Тот же сдвиг, что у нижней навигации: ряд стоит над ней и обязан ехать
+  // вместе с ней (lib/viewportBottomShift.ts).
+  const bottomShift = useBottomShift()
   return (
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the
       // nav when the keyboard opens so it never crowds a focused field.
       initial={false}
-      animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
+      animate={{ y: kbOpen ? 140 : bottomShift, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
       style={{
         position: 'fixed', left: 0, right: 0,
