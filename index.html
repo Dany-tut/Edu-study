@@ -27,11 +27,17 @@
           var href = teacher ? './icon-teacher.svg?v=2' : './icon.svg?v=2'
           var fav = document.getElementById('app-favicon')
           if (fav) fav.href = href
+          // Заголовок вкладки — тоже интерфейс: язык берём там же, где его
+          // держит приложение (localStorage 'lang'), до загрузки бандла.
+          var en = false
+          try { en = localStorage.getItem('lang') === 'en' } catch (e) {}
           document.title = teacher
-            ? 'Искра — Кабинет учителя'
-            : 'Искра — Кабинет ученика'
+            ? (en ? 'Iskra — teacher workspace' : 'Искра — Кабинет учителя')
+            : (en ? 'Iskra — student workspace' : 'Искра — Кабинет ученика')
         }
         window.addEventListener('hashchange', syncIcon)
+        // Смена языка в приложении перерисовывает и заголовок вкладки.
+        window.__syncAppTitle = syncIcon
         syncIcon()
       })()
     </script>

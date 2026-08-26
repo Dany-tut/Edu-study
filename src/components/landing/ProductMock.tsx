@@ -114,7 +114,7 @@ export default function ProductMock() {
             }}>
               <ShieldCheck size={12} style={{ color: OK, flexShrink: 0 }} />
               <span style={{ flex: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{url}</span>
-              <button onClick={reload} title="Обновить" style={{ ...iconBtnBase, width: 18, height: 18 }}>
+              <button onClick={reload} title={t('Обновить')} style={{ ...iconBtnBase, width: 18, height: 18 }}>
                 <RotateCw size={12} className={spinning ? 'lp-spin' : ''} />
               </button>
             </div>
@@ -135,7 +135,7 @@ export default function ProductMock() {
         }}>
           <BrowserTabBtn on={tab === 'teacher'} onClick={() => setTab('teacher')} title="Искра — кабинет учителя" />
           <BrowserTabBtn on={tab === 'student'} onClick={() => setTab('student')} title="Искра — кабинет ученика" />
-          <button title="Новая вкладка" style={{ ...iconBtnBase, width: 24, height: 24, marginLeft: 2, marginBottom: 2, color: 'var(--color-text-3)' }}>
+          <button title={t('Новая вкладка')} style={{ ...iconBtnBase, width: 24, height: 24, marginLeft: 2, marginBottom: 2, color: 'var(--color-text-3)' }}>
             <Plus size={14} />
           </button>
         </div>
@@ -319,7 +319,7 @@ function BrowserTabBtn({ on, onClick, title }: { on: boolean; onClick: () => voi
       transition: 'background .15s, color .15s',
     }}>
       <span style={{ width: 12, height: 12, borderRadius: 4, flexShrink: 0, background: on ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-border)' }} />
-      <span className="lp-tab-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
+      <span className="lp-tab-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(title)}</span>
       {on && <X size={11} style={{ flexShrink: 0, opacity: 0.5 }} />}
     </button>
   )
@@ -362,6 +362,7 @@ const WEEK_LABELS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
 function MockOverview({ query, accepted, onAccept, onGo }: {
   query: string; accepted: string[]; onAccept: (n: string) => void; onGo: (key: string) => void
 }) {
+  const t = useT()
   const [period, setPeriod] = useState<keyof typeof WEEK>('7 дней')
   const [hover, setHover] = useState<number | null>(null)
   const bars = WEEK[period]
@@ -381,10 +382,10 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
           { k: 'На проверку', v: String(pending), c: pending ? ACCENT_L : OK, to: 'Домашки' },
           { k: 'Средний балл', v: (4.3 + accepted.length * 0.1).toFixed(1), c: WARN, to: 'Аналитика' },
         ].map(s => (
-          <div key={s.k} className="lp-row lp-clickrow" onClick={() => onGo(s.to)} title={`Открыть «${s.to}»`}
+          <div key={s.k} className="lp-row lp-clickrow" onClick={() => onGo(s.to)} title={`${t('Открыть')} «${t(s.to)}»`}
             style={{ ...mockCard, border: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-3)', marginBottom: 6 }}>
-              {s.k} <ArrowRight size={11} style={{ opacity: 0.55 }} />
+              {t(s.k)} <ArrowRight size={11} style={{ opacity: 0.55 }} />
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: s.c, transition: 'color .2s' }}>{s.v}</div>
           </div>
@@ -393,7 +394,7 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
 
       <div style={{ ...mockCard, marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, fontWeight: 700 }}>Сдачи домашек</span>
+          <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Сдачи домашек')}</span>
           <Segmented value={period} options={Object.keys(WEEK) as (keyof typeof WEEK)[]} onChange={setPeriod} />
         </div>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 8, height: 66 }}>
@@ -412,7 +413,7 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
               position: 'absolute', left: `${(hover + 0.5) * (100 / bars.length)}%`, transform: 'translate(-50%, -100%)', top: -4,
               padding: '4px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
               background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: '0 8px 20px -8px rgba(20,12,50,.4)',
-            }}>{WEEK_LABELS[hover]} · {Math.round(bars[hover] / 4)} сдач</div>
+            }}>{t(WEEK_LABELS[hover])} · {Math.round(bars[hover] / 4)} {t('сдач')}</div>
           )}
         </div>
       </div>
@@ -424,12 +425,12 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
             <div key={r.n} className="lp-row" style={mockRow}>
               <Avatar name={r.n} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{r.n}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.t}</div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{t(r.n)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(r.t)}</div>
               </div>
               {ok
-                ? <span style={pill(true)}><Check size={11} /> Принято</span>
-                : <button onClick={() => onAccept(r.n)} style={{ ...pill(false), cursor: 'pointer', border: `1px solid color-mix(in srgb, ${ACCENT} 35%, transparent)` }}>Проверить</button>}
+                ? <span style={pill(true)}><Check size={11} /> {t('Принято')}</span>
+                : <button onClick={() => onAccept(r.n)} style={{ ...pill(false), cursor: 'pointer', border: `1px solid color-mix(in srgb, ${ACCENT} 35%, transparent)` }}>{t('Проверить')}</button>}
             </div>
           )
         })}
@@ -447,6 +448,7 @@ const GROUPS = [
 ]
 
 function MockGroups({ query }: { query: string }) {
+  const t = useT()
   const [open, setOpen] = useState<string | null>(null)
   const q = query.trim().toLowerCase()
   const list = GROUPS.filter(g => !q || g.n.toLowerCase().includes(q) || g.st.some(s => s.toLowerCase().includes(q)))
@@ -457,10 +459,10 @@ function MockGroups({ query }: { query: string }) {
         return (
           <div key={g.n} className="lp-row" style={{ ...mockCard, padding: 0, overflow: 'hidden' }}>
             <div className="lp-clickrow" onClick={() => setOpen(on ? null : g.n)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px' }}>
-              <span style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 15, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>{g.n[0]}</span>
+              <span style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 15, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>{t(g.n)[0]}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700 }}>{g.n}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{g.s}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t(g.n)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{t(g.s)}</div>
               </div>
               <div className="lp-stack" style={{ display: 'flex' }}>
                 {Array.from({ length: Math.min(g.cnt, 4) }).map((_, i) => (
@@ -475,11 +477,11 @@ function MockGroups({ query }: { query: string }) {
               <div className="lp-mock-panel" style={{ padding: '0 15px 13px', display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                 {g.st.map(s => (
                   <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px 5px 5px', borderRadius: 999, fontSize: 11.5, fontWeight: 600, background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                    <Avatar name={s} size={18} /> {s}
+                    <Avatar name={s} size={18} /> {t(s)}
                   </span>
                 ))}
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, fontSize: 11.5, fontWeight: 600, color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, cursor: 'pointer' }}>
-                  <Plus size={12} /> Добавить
+                  <Plus size={12} /> {t('Добавить')}
                 </span>
               </div>
             )}
@@ -506,6 +508,7 @@ const SCHEDULE: Slot[] = [
 ]
 
 function MockSchedule({ query }: { query: string }) {
+  const t = useT()
   const [slots, setSlots] = useState(SCHEDULE)
   const [day, setDay] = useState(1)
   const [held, setHeld] = useState<string[]>([])   // «проведено» → в журнал
@@ -538,7 +541,7 @@ function MockSchedule({ query }: { query: string }) {
               background: on ? `color-mix(in srgb, ${ACCENT} 12%, var(--color-bg))` : 'var(--color-bg)',
               color: on ? ACCENT : 'var(--color-text-2)',
             }}>
-              <div style={{ fontSize: 10.5, opacity: 0.75 }}>{d}</div>
+              <div style={{ fontSize: 10.5, opacity: 0.75 }}>{t(d)}</div>
               <div style={{ fontSize: 13, fontWeight: 800 }}>{WEEK_DATES[i].slice(0, 2)}</div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 4, height: 5 }}>
                 {Array.from({ length: cnt }).map((_, k) => (
@@ -558,15 +561,15 @@ function MockSchedule({ query }: { query: string }) {
             <div key={s.id} className="lp-row" style={{ ...mockRow, alignItems: 'stretch', gap: 12, padding: '11px 13px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: 46, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 800, color: on ? OK : ACCENT }}>{s.time}</span>
-                <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{s.solo ? '1:1' : 'группа'}</span>
+                <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{s.solo ? '1:1' : t('группа')}</span>
               </div>
               <div style={{ width: 3, borderRadius: 999, background: on ? OK : `linear-gradient(180deg, ${ACCENT}, ${ACCENT_2})`, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.who}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.topic}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(s.who)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(s.topic)}</div>
               </div>
               <div className="lp-slot-btns" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                <button onClick={() => move(s.id)} title="Перенести на следующий день" style={{
+                <button onClick={() => move(s.id)} title={t('Перенести на следующий день')} style={{
                   ...iconBtnBase, width: 28, height: 28, borderRadius: 9, color: 'var(--color-text-2)',
                   background: 'var(--color-surface)', border: '1px solid var(--color-border)',
                 }}><ChevronRight size={14} /></button>
@@ -575,7 +578,7 @@ function MockSchedule({ query }: { query: string }) {
                   fontSize: 11.5, fontWeight: 700, border: '1px solid transparent', color: '#fff',
                   background: on ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, transition: 'background .2s',
                 }}>
-                  {on ? <><Check size={12} /> Проведено</> : <><Play size={11} /> Провести</>}
+                  {on ? <><Check size={12} /> {t('Проведено')}</> : <><Play size={11} /> {t('Провести')}</>}
                 </button>
               </div>
             </div>
@@ -583,7 +586,7 @@ function MockSchedule({ query }: { query: string }) {
         })}
         {!ofDay.length && (
           <div style={{ ...mockCard, textAlign: 'center', padding: '20px 0', fontSize: 12, color: 'var(--color-text-3)' }}>
-            {q ? 'Ничего не нашлось — очистите поиск' : `${DAY_LABELS[day]}, ${WEEK_DATES[day]} — занятий нет`}
+            {q ? t('Ничего не нашлось — очистите поиск') : `${t(DAY_LABELS[day])}, ${WEEK_DATES[day]} — ${t('занятий нет')}`}
           </div>
         )}
         <button onClick={add} className="lp-clickrow" style={{
@@ -591,11 +594,11 @@ function MockSchedule({ query }: { query: string }) {
           fontSize: 12, fontWeight: 700, cursor: 'pointer', color: ACCENT,
           background: `color-mix(in srgb, ${ACCENT} 8%, transparent)`,
           border: `1px dashed color-mix(in srgb, ${ACCENT} 40%, transparent)`,
-        }}><Plus size={13} /> Добавить занятие</button>
+        }}><Plus size={13} /> {t('Добавить занятие')}</button>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10.5, color: 'var(--color-text-3)' }}>
-        <Clock size={12} /> Проведённые занятия сразу попадают в журнал — отмечать дважды не нужно.
+        <Clock size={12} /> {t('Проведённые занятия сразу попадают в журнал — отмечать дважды не нужно.')}
       </div>
       <style>{`@media (max-width: 560px){ .lp-slot-btns{ flex-direction: column; align-items: stretch !important; } }`}</style>
     </div>
@@ -617,6 +620,7 @@ const NOTE_PRESETS = [
 ]
 
 function MockHomework({ query, accepted, onAccept }: { query: string; accepted: string[]; onAccept: (n: string) => void }) {
+  const t = useT()
   const q = query.trim().toLowerCase()
   const list = HW_QUEUE.filter(r => !q || r.n.toLowerCase().includes(q))
   const [pick, setPick] = useState(0)
@@ -627,22 +631,22 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
   // выданный стикер: балл + счётчик, чтобы перезапускать анимацию «приклеивания»
   const [award, setAward] = useState<{ score: number; n: number; who: string } | null>(null)
   const cur = list[Math.min(pick, list.length - 1)] ?? HW_QUEUE[0]
-  const toggle = (t: string) => setTools(s => (s.includes(t) ? s.filter(x => x !== t) : [...s, t]))
+  const toggle = (id: string) => setTools(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]))
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 12 }} className="lp-mock-hw">
       <div style={{ ...mockCard, padding: 0, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px', borderBottom: '1px solid var(--color-border)' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cur.n} · {cur.task}</span>
-          {[{ id: 'pen', icon: Pencil, t: 'Перо' }, { id: 'shape', icon: Circle, t: 'Фигура' }, { id: 'note', icon: MessageSquare, t: 'Комментарий' }].map(t => {
-            const on = tools.includes(t.id)
+          <span style={{ fontSize: 12, fontWeight: 700, flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(cur.n)} · {t(cur.task)}</span>
+          {[{ id: 'pen', icon: Pencil, label: 'Перо' }, { id: 'shape', icon: Circle, label: 'Фигура' }, { id: 'note', icon: MessageSquare, label: 'Комментарий' }].map(tool => {
+            const on = tools.includes(tool.id)
             return (
-              <button key={t.id} title={t.t} onClick={() => toggle(t.id)} style={{
+              <button key={tool.id} title={t(tool.label)} onClick={() => toggle(tool.id)} style={{
                 ...iconBtnBase, width: 24, height: 24, borderRadius: 7, flexShrink: 0,
                 color: on ? '#fff' : 'var(--color-text-2)',
                 background: on ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
                 border: '1px solid var(--color-border)', transition: 'background .15s, color .15s',
-              }}><t.icon size={12} /></button>
+              }}><tool.icon size={12} /></button>
             )
           })}
         </div>
@@ -660,7 +664,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
           {tools.includes('note') && (
             <>
               <div key={note} className="lp-mock-panel" style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, fontSize: 11.5, lineHeight: 1.4, color: 'var(--color-text-2)', background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${ACCENT} 30%, transparent)` }}>
-                <b style={{ color: ACCENT }}>Комментарий:</b> {NOTE_PRESETS[note].text}
+                <b style={{ color: ACCENT }}>{t('Комментарий:')}</b> {t(NOTE_PRESETS[note].text)}
               </div>
               {/* заготовки комментариев — учитель не печатает одно и то же руками */}
               <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
@@ -670,7 +674,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
                     color: note === i ? '#fff' : 'var(--color-text-2)',
                     background: note === i ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
                     border: '1px solid var(--color-border)',
-                  }}>{p.k}</button>
+                  }}>{t(p.k)}</button>
                 ))}
               </div>
             </>
@@ -678,7 +682,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
         </div>
         {/* вердикт */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 12px', borderTop: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>Балл</span>
+          <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{t('Балл')}</span>
           {[2, 3, 4, 5].map(g => (
             <button key={g} className="lp-chip" onClick={() => setGrade(g)} style={{
               width: 24, height: 24, borderRadius: 8, fontSize: 12, fontWeight: 700,
@@ -695,7 +699,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
             background: rework.includes(cur.n) ? WARN : `color-mix(in srgb, ${WARN} 13%, transparent)`,
             border: `1px solid color-mix(in srgb, ${WARN} 40%, transparent)`, transition: 'background .2s, color .2s',
           }}>
-            <Undo2 size={12} /> {rework.includes(cur.n) ? 'Отправлено' : 'На доработку'}
+            <Undo2 size={12} /> {rework.includes(cur.n) ? t('Отправлено') : t('На доработку')}
           </button>
           <button onClick={() => {
             const g = grade ?? 4
@@ -707,7 +711,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
             fontSize: 11.5, fontWeight: 700, cursor: 'pointer', color: '#fff', border: 'none',
             background: accepted.includes(cur.n) ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
           }}>
-            <Check size={12} /> {accepted.includes(cur.n) ? 'Принято' : 'Принять'}
+            <Check size={12} /> {accepted.includes(cur.n) ? t('Принято') : t('Принять')}
           </button>
         </div>
       </div>
@@ -725,12 +729,12 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
             }}>
               <Avatar name={r.n} size={26} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700 }}>{r.n}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{r.t}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700 }}>{t(r.n)}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t(r.t)}</div>
               </div>
               {rework.includes(r.n) && !ok
-                ? <span style={{ ...pill(false), color: WARN, background: `color-mix(in srgb, ${WARN} 15%, transparent)` }}>Доработка</span>
-                : <span style={pill(ok)}>{ok ? 'Принято' : 'Проверить'}</span>}
+                ? <span style={{ ...pill(false), color: WARN, background: `color-mix(in srgb, ${WARN} 15%, transparent)` }}>{t('Доработка')}</span>
+                : <span style={pill(ok)}>{ok ? t('Принято') : t('Проверить')}</span>}
             </div>
           )
         })}
@@ -747,6 +751,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
 
 // Стикер, который ученик получает за принятое задание: балл = редкость фольги.
 function AwardCard({ score, who, nonce }: { score: number; who: string; nonce: number }) {
+  const t = useT()
   const tier = tierOf(score)
   return (
     <div className="lp-mock-panel" style={{
@@ -759,14 +764,14 @@ function AwardCard({ score, who, nonce }: { score: number; who: string; nonce: n
           (остальное — воздух под отогнутый уголок), поэтому поля отрицательные
           с запасом — иначе кажется, что стикер аккуратно вписан в карточку. */}
       <HoloSticker
-        key={nonce} score={score} sublabel="задание 13" size={156} reveal
+        key={nonce} score={score} sublabel={t('задание 13')} size={156} reveal
         // Верхнее и нижнее поля меняем встречно (-20 / +20): сумма полей та же,
         // поэтому карточка не меняет высоту — сдвигается только сам стикер.
         style={{ margin: '-77px 0 -21px -45px', flex: '0 0 auto' }}
       />
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 800 }}>{who} получает стикер</div>
-        <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>«{tier.name}» · {score} из 5 — в коллекцию</div>
+        <div style={{ fontSize: 12.5, fontWeight: 800 }}>{t(who)} {t('получает стикер')}</div>
+        <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>«{t(tier.name)}» · {score} {t('из 5 — в коллекцию')}</div>
       </div>
     </div>
   )
@@ -783,6 +788,7 @@ const DATES = ['02.09', '05.09', '09.09', '12.09', '16.09']
 const CYCLE = ['·', '✓', '5', '4', '3']
 
 function MockJournal({ query }: { query: string }) {
+  const t = useT()
   const [edits, setEdits] = useState<Record<string, string>>({})
   const q = query.trim().toLowerCase()
   const rows = JOURNAL_ROWS.filter(r => !q || r.n.toLowerCase().includes(q))
@@ -804,18 +810,18 @@ function MockJournal({ query }: { query: string }) {
       <div style={{ display: 'grid', gridTemplateColumns: `96px repeat(${DATES.length}, 1fr) 44px`, gap: 6, minWidth: 380 }}>
         <div />
         {DATES.map((d, i) => (
-          <button key={d} className="lp-chip" onClick={() => markColumn(i)} title="Отметить всех присутствующими"
+          <button key={d} className="lp-chip" onClick={() => markColumn(i)} title={t('Отметить всех присутствующими')}
             style={{ fontSize: 10.5, color: 'var(--color-text-3)', fontWeight: 600, cursor: 'pointer', border: 'none', background: 'transparent', padding: '2px 0', borderRadius: 6 }}>
             {d}
           </button>
         ))}
-        <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', textAlign: 'center', fontWeight: 600 }}>ср.</div>
+        <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', textAlign: 'center', fontWeight: 600 }}>{t('ср.')}</div>
         {rows.map(r => (
           <JournalRow key={r.n} name={r.n} cells={r.cells} edits={edits} onCell={bump} />
         ))}
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap', fontSize: 10.5, color: 'var(--color-text-3)' }}>
-        <span>Клик по клетке меняет отметку: · → ✓ → 5 → 4 → 3. Клик по дате — отметить всю колонку.</span>
+        <span>{t('Клик по клетке меняет отметку: · → ✓ → 5 → 4 → 3. Клик по дате — отметить всю колонку.')}</span>
       </div>
       {!rows.length && <Empty />}
     </div>
@@ -825,13 +831,14 @@ function MockJournal({ query }: { query: string }) {
 function JournalRow({ name, cells, edits, onCell }: {
   name: string; cells: string[]; edits: Record<string, string>; onCell: (k: string, cur: string) => void
 }) {
+  const t = useT()
   const values = cells.map((base, i) => edits[`${name}-${i}`] ?? base)
   const marks = values.filter(v => /^[2-5]$/.test(v)).map(Number)
   const avg = marks.length ? (marks.reduce((a, b) => a + b, 0) / marks.length).toFixed(1) : '—'
   return (
     <>
       <div style={{ fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
-        <Avatar name={name} size={20} /> {name}
+        <Avatar name={name} size={20} /> {t(name)}
       </div>
       {values.map((v, i) => {
         const { c, bg } = cellColor(v)
@@ -870,6 +877,7 @@ const SLICES = {
 } as const
 
 function MockAnalytics() {
+  const t = useT()
   const [range, setRange] = useState<keyof typeof RANGES>('Месяц')
   const [slice, setSlice] = useState<keyof typeof SLICES>('Все')
   const [hover, setHover] = useState<number | null>(null)
@@ -883,12 +891,12 @@ function MockAnalytics() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>Срез</span>
+        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{t('Срез')}</span>
         <Segmented value={slice} options={Object.keys(SLICES) as (keyof typeof SLICES)[]} onChange={s => { setSlice(s); setHover(null) }} />
       </div>
       <div style={mockCard}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 700 }}>Средний балл потока</span>
+          <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Средний балл потока')}</span>
           <span style={{ fontSize: 12, fontWeight: 700, color: OK }}>▲ +{grow}</span>
           <Segmented value={range} options={Object.keys(RANGES) as (keyof typeof RANGES)[]} onChange={r => { setRange(r); setHover(null) }} />
         </div>
@@ -922,17 +930,17 @@ function MockAnalytics() {
               transform: `translateX(${hover === 0 ? '0' : hover === line.length - 1 ? '-100%' : '-50%'})`,
               padding: '3px 7px', borderRadius: 8, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap', pointerEvents: 'none',
               background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: '0 8px 20px -8px rgba(20,12,50,.4)',
-            }}>{score(line[hover]).toFixed(1)} балла</div>
+            }}>{score(line[hover]).toFixed(1)} {t('балла')}</div>
           )}
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }} className="lp-mock-an">
         <div style={mockCard}>
-          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>Распределение оценок</div>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>{t('Распределение оценок')}</div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 56 }}>
             {SLICES[slice].bars.map((h, i) => (
-              <div key={i} className="lp-bar" title={`Оценка ${i + 2}`} style={{
+              <div key={i} className="lp-bar" title={`${t('Оценка')} ${i + 2}`} style={{
                 flex: 1, height: `${h}%`, borderRadius: 5, background: `linear-gradient(180deg, ${ACCENT_L}, ${ACCENT})`,
                 transition: 'height .3s cubic-bezier(.22,1,.36,1)',
               }} />
@@ -945,7 +953,7 @@ function MockAnalytics() {
         <div style={{ ...mockCard, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 12 }}>
           {[{ k: 'Сдаваемость ДЗ', v: SLICES[slice].hw }, { k: 'Активных за неделю', v: SLICES[slice].act }].map(s => (
             <div key={s.k}>
-              <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{s.k}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t(s.k)}</div>
               <div style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>{s.v}</div>
             </div>
           ))}
@@ -977,6 +985,7 @@ const COLLECTION = [
 ]
 
 function MockStudent() {
+  const t = useT()
   const [done, setDone] = useState(3)          // сколько уроков пройдено
   const [pick, setPick] = useState(3)          // выбранный узел трека
   const [sent, setSent] = useState(false)
@@ -994,21 +1003,21 @@ function MockStudent() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* шапка ученика */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Avatar name="Анна К." size={38} />
+          <Avatar name={t('Анна К.')} size={38} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 800 }}>Привет, Анна</div>
-            <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>ЕГЭ Математика · профиль</div>
+            <div style={{ fontSize: 15, fontWeight: 800 }}>{t('Привет, Анна')}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{t('ЕГЭ Математика')} · {t('профиль')}</div>
           </div>
           <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700, padding: '5px 10px', borderRadius: 999, color: WARN, background: `color-mix(in srgb, ${WARN} 14%, transparent)` }}>
-            <Flame size={12} /> 12 дней
+            <Flame size={12} /> 12 {t('дней')}
           </span>
         </div>
 
         {/* трек курса */}
         <div style={mockCard}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>Курс · прогресс {pct}%</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{done} из {LESSONS.length}</span>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Курс · прогресс')} {pct}%</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{done} {t('из')} {LESSONS.length}</span>
           </div>
           <div style={{ height: 6, borderRadius: 999, background: 'color-mix(in srgb, var(--color-text-3) 16%, transparent)', marginBottom: 14, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${pct}%`, borderRadius: 999, background: `linear-gradient(90deg, ${ACCENT}, ${ACCENT_L})`, transition: 'width .4s cubic-bezier(.22,1,.36,1)' }} />
@@ -1019,7 +1028,7 @@ function MockStudent() {
               const on = pick === i
               return (
                 <div key={l} style={{ display: 'flex', alignItems: 'center', flex: i === LESSONS.length - 1 ? '0 0 auto' : 1 }}>
-                  <button title={l} onClick={() => { setPick(i); setSent(false) }} style={{
+                  <button title={t(l)} onClick={() => { setPick(i); setSent(false) }} style={{
                     width: 30, height: 30, borderRadius: 999, flexShrink: 0, cursor: 'pointer', display: 'grid', placeItems: 'center',
                     fontSize: 11, fontWeight: 700, transition: 'transform .15s, box-shadow .15s',
                     color: state === 'lock' ? 'var(--color-text-3)' : '#fff',
@@ -1040,8 +1049,8 @@ function MockStudent() {
 
         {/* карточка выбранного урока */}
         <div key={pick} className="lp-mock-panel" style={mockCard}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>{LESSONS[pick]} · Иррациональные уравнения</div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 12 }}>Конспект · 6 заданий · дедлайн 18.09</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>{t(LESSONS[pick])} · {t('Иррациональные уравнения')}</div>
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 12 }}>{t('Конспект · 6 заданий · дедлайн 18.09')}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={submit} disabled={sent} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 10, border: 'none',
@@ -1049,10 +1058,10 @@ function MockStudent() {
               background: sent ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
               transition: 'background .2s',
             }}>
-              {sent ? <><Check size={14} /> Отправлено</> : 'Сдать домашку'}
+              {sent ? <><Check size={14} /> {t('Отправлено')}</> : t('Сдать домашку')}
             </button>
             <button style={{ padding: '9px 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', color: 'var(--color-text-2)', background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-              Открыть конспект
+              {t('Открыть конспект')}
             </button>
           </div>
           {/* Плашки «работа ушла преподавателю» здесь нет намеренно: она
@@ -1069,11 +1078,11 @@ function MockStudent() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={mockCard}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>Тренажёр · линия 8</span>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Тренажёр · линия 8')}</span>
             <Segmented value={mode} options={['Тест', 'Порядок']} onChange={setMode} />
           </div>
           {mode === 'Порядок' ? <StepsTask /> : <>
-          <div style={{ fontSize: 13, marginBottom: 12 }}>{QUIZ.q}</div>
+          <div style={{ fontSize: 13, marginBottom: 12 }}>{t(QUIZ.q)}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {QUIZ.opts.map((o, i) => {
               const chosen = answer === i
@@ -1091,14 +1100,14 @@ function MockStudent() {
                   <span style={{ width: 18, height: 18, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 700, background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}>
                     {show ? (right ? <Check size={11} /> : <X size={11} />) : String.fromCharCode(65 + i)}
                   </span>
-                  {o}
+                  {t(o)}
                 </button>
               )
             })}
           </div>
           {answer !== null && (
             <div className="lp-mock-panel" style={{ marginTop: 10, fontSize: 11.5, lineHeight: 1.45, color: 'var(--color-text-2)' }}>
-              {answer === QUIZ.right ? 'Верно: подкоренное выражение неотрицательно.' : 'Не то: корень определён и при x = 3 — знак нестрогий.'}
+              {answer === QUIZ.right ? t('Верно: подкоренное выражение неотрицательно.') : t('Не то: корень определён и при x = 3 — знак нестрогий.')}
             </div>
           )}
           </>}
@@ -1108,7 +1117,7 @@ function MockStudent() {
             <Bell size={15} />
           </span>
           <div style={{ fontSize: 11.5, color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-            Преподаватель проверил вариант 6 — <b style={{ color: ACCENT }}>оценка 5</b>
+            {t('Преподаватель проверил вариант 6 —')} <b style={{ color: ACCENT }}>{t('оценка 5')}</b>
           </div>
         </div>
       </div>
@@ -1128,7 +1137,7 @@ function StepsTask() {
 
   return (
     <div>
-      <div style={{ fontSize: 13, marginBottom: 10 }}>Расставьте шаги решения √(x − 3) = x − 5</div>
+      <div style={{ fontSize: 13, marginBottom: 10 }}>{t('Расставьте шаги решения')} √(x − 3) = x − 5</div>
       {/* собранное решение */}
       <div style={{
         display: 'flex', flexDirection: 'column', gap: 6, minHeight: 42, padding: 8, borderRadius: 10, marginBottom: 8,
@@ -1146,11 +1155,11 @@ function StepsTask() {
               transition: 'background .15s, color .15s',
             }}>
               <span style={{ width: 17, height: 17, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800, color: '#fff', background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>{pos + 1}</span>
-              {STEPS[s]}
+              {t(STEPS[s])}
             </button>
           )
         })}
-        {!order.length && <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', padding: '5px 2px' }}>Кликайте по шагам ниже — они встанут по порядку</div>}
+        {!order.length && <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', padding: '5px 2px' }}>{t('Кликайте по шагам ниже — они встанут по порядку')}</div>}
       </div>
       {/* банк шагов */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1158,13 +1167,13 @@ function StepsTask() {
           <button key={s} onClick={() => setOrder(o => [...o, s])} className="lp-chip" style={{
             padding: '7px 11px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600,
             color: 'var(--color-text)', background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-          }}>{STEPS[s]}</button>
+          }}>{t(STEPS[s])}</button>
         ))}
       </div>
       {full && (
         <div className="lp-mock-panel" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 11.5, lineHeight: 1.45, color: ok ? OK : 'var(--color-text-2)' }}>
-          {ok ? 'Верно — порядок шагов правильный, задание засчитано.' : 'Порядок не тот: ОДЗ пишут до возведения в квадрат.'}
-          {!ok && <button onClick={() => setOrder([])} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: 'none' }}>Заново</button>}
+          {ok ? t('Верно — порядок шагов правильный, задание засчитано.') : t('Порядок не тот: ОДЗ пишут до возведения в квадрат.')}
+          {!ok && <button onClick={() => setOrder([])} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: 'none' }}>{t('Заново')}</button>}
         </div>
       )}
     </div>
@@ -1188,22 +1197,22 @@ function StickerShelf() {
     <div style={mockCard}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <Sparkles size={13} style={{ color: ACCENT }} />
-        <span style={{ fontSize: 12, fontWeight: 700 }}>Коллекция стикеров</span>
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{got} из {COLLECTION.length}</span>
+        <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Коллекция стикеров')}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{got} {t('из')} {COLLECTION.length}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
         {/* без key: HoloSticker сам меняет <canvas> под новый стикер, а сам
             компонент живёт — иначе на время загрузки рендера место пустует */}
-        <HoloSticker score={cur.score} sublabel={cur.label} stickerId={cur.label}
+        <HoloSticker score={cur.score} sublabel={t(cur.label)} stickerId={cur.label}
           emblem={SHELF_EMBLEMS[cur.label]} size={76} reveal />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 800, color: tier.ink }}>{tier.name}</div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{cur.got ? tier.hint : 'Сдайте задание на 5 — и стикер откроется'}</div>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: tier.ink }}>{t(tier.name)}</div>
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{cur.got ? t(tier.hint) : t('Сдайте задание на 5 — и стикер откроется')}</div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {COLLECTION.map((c, i) => (
-          <StickerBadge key={c.label} score={c.score} label={c.label} stickerId={c.label}
+          <StickerBadge key={c.label} score={c.score} label={t(c.label)} stickerId={c.label}
             emblem={SHELF_EMBLEMS[c.label]} size={46} locked={!c.got} onClick={() => setSel(i)}
             // Стикер круглый, поэтому и рамка выделения круглая: с borderRadius 10
             // outline обводил квадрат, и на клике вылезали его углы.
@@ -1216,6 +1225,7 @@ function StickerShelf() {
 
 // ── мелочи ───────────────────────────────────────────────────────────────────
 function Segmented<T extends string>({ value, options, onChange }: { value: T; options: T[]; onChange: (v: T) => void }) {
+  const t = useT()
   return (
     <div style={{ marginLeft: 'auto', display: 'flex', gap: 3, padding: 3, borderRadius: 9, background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
       {options.map(o => (
@@ -1223,19 +1233,20 @@ function Segmented<T extends string>({ value, options, onChange }: { value: T; o
           padding: '3px 9px', borderRadius: 7, fontSize: 10.5, fontWeight: value === o ? 700 : 500, border: 'none',
           color: value === o ? '#fff' : 'var(--color-text-2)',
           background: value === o ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'transparent',
-        }}>{o}</button>
+        }}>{t(o)}</button>
       ))}
     </div>
   )
 }
 
 function Avatar({ name, size = 28 }: { name: string; size?: number }) {
+  const t = useT()
   return (
     <span style={{
       width: size, height: size, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center',
       fontSize: size * 0.4, fontWeight: 700, color: '#fff',
       background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_L})`,
-    }}>{name[0]}</span>
+    }}>{t(name)[0]}</span>
   )
 }
 

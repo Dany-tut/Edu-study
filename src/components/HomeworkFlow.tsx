@@ -32,6 +32,7 @@ import StarBurst from './StarBurst'
 import ScriptHint from './ScriptHint'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor, subjectSlugFor } from '../store/studentDataStore'
+import { useTint } from '../store/tintStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
@@ -1518,7 +1519,12 @@ export default function HomeworkFlow({
   // не знает и ЛЮБАЯ домашка получала палитру запасного предмета — фиолетовую.
   // Отсюда «1 уровень», «Правило», «Дальше» и карточки слов оставались
   // брендовыми на коралловом английском. Курс → предмет, как во flowSubject.
-  const palette = subjectTheme(subjectSlugFor(subject) ?? subject, dark)
+  //
+  // Оттенок «выключен» — это выбор ученика «один фиолетовый на все курсы», и
+  // домашка обязана его слушаться: там предмет не спрашиваем вовсе, палитра
+  // остаётся запасной (та самая брендовая), как было до этой правки.
+  const tintOff = useTint(s => s.level) === 'off'
+  const palette = subjectTheme(tintOff ? undefined : (subjectSlugFor(subject) ?? subject), dark)
   const readingVisible = useReadingVisible(s => s.visible)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
