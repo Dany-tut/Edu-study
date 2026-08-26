@@ -1588,7 +1588,7 @@ export function SearchPill({ value, onChange, placeholder }: {
  * другой дизайн для другой раскладки, а не вариация этого. Он остался в
  * TaskBankPage, рядом со своей вёрсткой.
  */
-export function StatusTabs({ options, value, onChange, accent }: {
+export function StatusTabs({ options, value, onChange, accent, fill }: {
   options: { value: string; label: string; Icon?: React.ComponentType<{ size?: number }> }[]
   value: string
   onChange: (v: string) => void
@@ -1598,6 +1598,15 @@ export function StatusTabs({ options, value, onChange, accent }: {
    * который посреди зелёного или оранжевого предмета читается как чужой.
    */
   accent?: string
+  /**
+   * Ряд во всю эту ширину, сегменты делят её поровну.
+   *
+   * ЗАЧЕМ. По умолчанию ряд шириной по своим подписям, и это правильно там, где
+   * он стоит среди других контролов строки. Но над лентой он один и обязан
+   * совпадать с колонкой постов: ряд по подписям кончался на трети её ширины и
+   * читался как случайно брошенный в углу, а не как шапка ленты.
+   */
+  fill?: number
 }) {
   const t = useT()
   const pill = useFloatingPill(value)
@@ -1605,7 +1614,8 @@ export function StatusTabs({ options, value, onChange, accent }: {
     <div
       ref={pill.containerRef}
       style={{
-        position: 'relative', display: 'inline-flex', alignItems: 'center',
+        position: 'relative', display: fill ? 'flex' : 'inline-flex', alignItems: 'center',
+        width: fill, maxWidth: '100%',
         padding: 3, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), 0.88)',
         border: '1px solid var(--color-border)',
@@ -1642,7 +1652,11 @@ export function StatusTabs({ options, value, onChange, accent }: {
             title={t(o.label)}
             style={{
               position: 'relative', zIndex: 1,
-              display: 'flex', alignItems: 'center', gap: 6,
+              // Растянутый ряд делит ширину поровну: подписи разной длины
+              // («Всё» против «Технологии») иначе дали бы рваный шаг, и ряд
+              // читался бы как список, а не как шкала.
+              flex: fill ? '1 1 0' : undefined,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               padding: '7px 14px', borderRadius: 999, border: 'none',
               background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
               color: on ? (accent ?? 'var(--color-text)') : 'var(--color-text-3)',

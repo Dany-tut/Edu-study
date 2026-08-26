@@ -40,7 +40,7 @@ import {
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
-import { FeedList } from './trainer/FeedShelf'
+import { FeedList, FEED_W } from './trainer/FeedShelf'
 import TaskVideo from './TaskVideo'
 import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
 import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
@@ -1846,11 +1846,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // старое» ленте противопоказано — датой она и держится.
     toolbar = (
       <Toolbar count={feedShown.length}>
+        {/* Ряд ровно по колонке постов: он тут один и работает шапкой ленты. */}
         <StatusTabs
           options={feedChips.map(c => ({ value: c.id, label: c.label }))}
           value={feedPick}
           onChange={v => setFeedFilter(v as FeedFilter)}
           accent={palette.accent}
+          fill={FEED_W}
         />
         <ToolCount>
           {feedShown.length} {t(materialsWord(feedShown.length))}

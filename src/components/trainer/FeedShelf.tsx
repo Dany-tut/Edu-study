@@ -38,7 +38,7 @@ import { FeedPost } from './FeedPost'
  * глаз теряет начало следующей строки. 880 — предел, за которым текст поста
  * начинает читаться хуже, а не лучше.
  */
-const FEED_W = 880
+export const FEED_W = 880
 
 export function FeedList({ items, lang, accent, subjectId }: {
   items: FeedItem[]
