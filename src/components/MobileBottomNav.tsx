@@ -11,6 +11,7 @@ import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { dockLayer } from '../lib/dockLayer'
+import { useIsDesktop } from '../lib/useIsDesktop'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -41,6 +42,7 @@ export default function MobileBottomNav() {
   // nav straight down out of view so it never crowds the field; it springs
   // back up when the keyboard dismisses.
   const kbOpen = useKeyboardOpen()
+  const isDesktop = useIsDesktop()
   // Отступ снизу — константа, а не живой env(): см. lib/mobileTokens.ts.
 
   // Badge: count lessons with status that implies pending homework (current / returned)
@@ -76,10 +78,15 @@ export default function MobileBottomNav() {
   // Док рисуется в слое высотой 100dvh (index.html), а не fixed: fixed
   // обрезается по короткому вьюпорту холодного запуска PWA — lib/dockLayer.ts.
   const layer = dockLayer()
+  if (isDesktop) return null
+  // Портал уносит навигацию наружу скрытой мобильной обёртки, поэтому ширину
+  // она проверяет сама. Раньше это делал класс md:hidden — но у него порог 768,
+  // а разметка переключается на 1024: в этой полосе мобильный экран оставался
+  // без нижней навигации.
 
   const nav = (
     <motion.div
-      className={`${layer ? 'absolute' : 'fixed'} bottom-0 left-0 right-0 z-50 md:hidden`}
+      className={`${layer ? 'absolute' : 'fixed'} bottom-0 left-0 right-0 z-50`}
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}

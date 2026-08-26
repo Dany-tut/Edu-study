@@ -297,12 +297,10 @@ interface DbCourse {
       title: string
       lesson_number: number
       shape: string
-      content?: import('../data/lessonContent').LessonContentData | Record<string, never>
       youtube_url?: string | null
       timecodes?: import('../data/lessonContent').LessonTimecode[]
       kind?: string | null
       test_tasks?: import('../data/mockData').TestTask[] | null
-      homework?: import('../data/lessonContent').AuthoredHomework | null
       scheduled_date?: string | null
       scheduled_time?: string | null
       rec_date?: string | null
@@ -362,6 +360,21 @@ function hardDefsToTasks(defs: HardTaskDef[]): import('../data/lessonContent').A
   }))
 }
 
+/**
+ * ЛЁГКАЯ ПОЛОВИНА КУРСА — то, из чего рисуется трек.
+ *
+ * Раньше этот запрос забирал курс целиком, вместе с `content` и `homework`
+ * каждого урока. Замер на ученике с двумя курсами выживания (516 уроков):
+ * ответ 5 374 КБ, из них конспекты и домашки — 4 717 КБ, то есть 88 %. Это
+ * больше, чем весь JS приложения, и приезжало при КАЖДОМ входе — ради экрана,
+ * которому нужны только названия, номера и статусы. Один раз запрос и вовсе
+ * оборвался: `57014 canceling statement due to statement timeout`.
+ *
+ * Тяжёлую половину забирает fetchCourseHeavy — вторым запросом, уже на
+ * нарисованном треке. До её приезда у уроков стоит `heavyPending`, и по нему
+ * экраны понимают: «домашки нет» ещё не значит, что её нет (см. открытие
+ * урока в DashboardPage и lessonHasHardLevel в data/lessonContent.ts).
+ */
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
   // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
   const studentIds = [...new Set(rows.map(r => r.id))].filter(isUuid)
@@ -379,7 +392,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       id, short_id, title, subject, student_ids, group_ids,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description, materials )
+        lessons ( id, short_id, title, lesson_number, shape, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description, materials )
       )
     `)
     .eq('status', 'published')
@@ -388,9 +401,6 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
 
   if (error) reportDbError('fetchCourseStructure', error)
   if (error || !data || data.length === 0) return []
-
-  // Сложные задания, назначенные на уроки этих курсов через «Создать домашку».
-  const hardByLessonId = await fetchLessonHardTasks(groupIds)
 
   // Per-student access mode (full / custom / by_date). Absent row → 'custom'
   // (only teacher-unlocked lessons open), preserving legacy behaviour.
@@ -421,6 +431,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
 
   return (data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
+    dbId: course.id,
     name: course.title,
     subject: course.subject,
     progress: 0,
@@ -435,22 +446,6 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
         lessons: [...mod.lessons]
           .sort((a, b) => a.lesson_number - b.lesson_number)
           .flatMap(l => {
-            // Хард из банка, назначенный на этот урок, дописываем к авторским
-            // заданиям ДЗ (дедуп по id) — так у урока появляется настоящий
-            // сложный уровень даже если в Конструкторе его не размечали.
-            const bankHard = hardByLessonId.get(l.id)
-            const authoredHw = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
-              ? l.homework
-              : undefined
-            const homework = bankHard?.length
-              ? {
-                  ...(authoredHw ?? {}),
-                  hwTasks: [
-                    ...(authoredHw?.hwTasks ?? []),
-                    ...hardDefsToTasks(bankHard).filter(ht => !(authoredHw?.hwTasks ?? []).some(t => t.id === ht.id)),
-                  ],
-                }
-              : authoredHw
             const base = {
               title: l.title,
               number: l.lesson_number,
@@ -458,10 +453,8 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               kind: l.kind === 'test' ? 'test' as const : 'lesson' as const,
               testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : undefined,
               subject: course.short_id,
-              content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
-                ? (l.content as import('../data/lessonContent').LessonContentData)
-                : undefined,
-              homework,
+              // Конспект и домашка сюда НЕ едут — см. fetchCourseHeavy ниже.
+              heavyPending: true,
               description: l.description ?? undefined,
               videoUrl: l.youtube_url ?? undefined,
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
@@ -475,7 +468,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               && (l.rec_date !== l.scheduled_date || l.rec_time !== l.scheduled_time)
             if (diverged) {
               return [
-                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, content: undefined, scheduledDate: l.rec_date ?? undefined },
+                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, scheduledDate: l.rec_date ?? undefined },
                 { ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoUrl: undefined },
               ]
             }
@@ -483,6 +476,69 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
           }),
       })),
   }))
+}
+
+/** Конспект и домашка урока — то, что не нужно треку и приезжает вторым заходом. */
+export interface LessonHeavy {
+  content?: import('../data/lessonContent').LessonContentData
+  homework?: import('../data/lessonContent').AuthoredHomework
+}
+
+/**
+ * ТЯЖЁЛАЯ ПОЛОВИНА: конспекты и домашки уроков перечисленных курсов.
+ *
+ * Ключ результата — `short_id`, тот самый id, которым урок зовётся на клиенте.
+ * Сюда же вливаются сложные задания из банка (`homework.hard_tasks`,
+ * назначенные группам через «Создать домашку»): у харда должен остаться ОДИН
+ * источник правды — `hwTasks` урока, — иначе трек и HomeworkFlow разойдутся в
+ * том, есть ли у урока сложный уровень.
+ *
+ * @param courseDbIds uuid курсов (не short_id): `lessons.course_id`.
+ * @param groupIds    группы человека — по ним ищутся назначения из банка.
+ */
+export async function fetchCourseHeavy(
+  courseDbIds: string[],
+  groupIds: string[],
+): Promise<Map<string, LessonHeavy>> {
+  const out = new Map<string, LessonHeavy>()
+  const ids = courseDbIds.filter(isUuid)
+  if (ids.length === 0) return out
+
+  const [lessonsRes, hardByLessonId] = await Promise.all([
+    supabase.from('lessons').select('id, short_id, content, homework').in('course_id', ids),
+    fetchLessonHardTasks(groupIds),
+  ])
+  const { data, error } = lessonsRes
+  if (error) reportDbError('fetchCourseHeavy', error)
+  if (error || !data) return out
+
+  type Row = {
+    id: string
+    short_id: string
+    content?: { paragraphs?: unknown[] } | null
+    homework?: import('../data/lessonContent').AuthoredHomework | null
+  }
+  for (const l of data as Row[]) {
+    const bankHard = hardByLessonId.get(l.id)
+    const authoredHw = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
+      ? l.homework
+      : undefined
+    const homework = bankHard?.length
+      ? {
+          ...(authoredHw ?? {}),
+          hwTasks: [
+            ...(authoredHw?.hwTasks ?? []),
+            ...hardDefsToTasks(bankHard).filter(ht => !(authoredHw?.hwTasks ?? []).some(t => t.id === ht.id)),
+          ],
+        }
+      : authoredHw
+    const content = l.content && l.content.paragraphs?.length
+      ? (l.content as import('../data/lessonContent').LessonContentData)
+      : undefined
+    if (!homework && !content) continue
+    out.set(l.short_id, { content, homework })
+  }
+  return out
 }
 
 // ─── Subjects merged with progress ───────────────────────────────────────────

@@ -1,30 +1,31 @@
 import { lazy, type ComponentType } from 'react'
 import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { retryImport } from '../../../lib/chunkError'
 
-const WidgetFinanceKpi        = lazy(() => import('./WidgetFinanceKpi'))
-const WidgetFinanceOverdue    = lazy(() => import('./WidgetFinanceOverdue'))
-const WidgetFinanceActivity   = lazy(() => import('./WidgetFinanceActivity'))
-const WidgetStudentStats      = lazy(() => import('./WidgetStudentStats'))
-const WidgetGroupsList        = lazy(() => import('./WidgetGroupsList'))
-const WidgetAttentionStudents = lazy(() => import('./WidgetAttentionStudents'))
-const WidgetTodayStats        = lazy(() => import('./WidgetTodayStats'))
-const WidgetTodaySchedule     = lazy(() => import('./WidgetTodaySchedule'))
-const WidgetTodayReminders    = lazy(() => import('./WidgetTodayReminders'))
-const WidgetTodayTasks        = lazy(() => import('./WidgetTodayTasks'))
+const WidgetFinanceKpi        = lazy(() => retryImport(() => import('./WidgetFinanceKpi')))
+const WidgetFinanceOverdue    = lazy(() => retryImport(() => import('./WidgetFinanceOverdue')))
+const WidgetFinanceActivity   = lazy(() => retryImport(() => import('./WidgetFinanceActivity')))
+const WidgetStudentStats      = lazy(() => retryImport(() => import('./WidgetStudentStats')))
+const WidgetGroupsList        = lazy(() => retryImport(() => import('./WidgetGroupsList')))
+const WidgetAttentionStudents = lazy(() => retryImport(() => import('./WidgetAttentionStudents')))
+const WidgetTodayStats        = lazy(() => retryImport(() => import('./WidgetTodayStats')))
+const WidgetTodaySchedule     = lazy(() => retryImport(() => import('./WidgetTodaySchedule')))
+const WidgetTodayReminders    = lazy(() => retryImport(() => import('./WidgetTodayReminders')))
+const WidgetTodayTasks        = lazy(() => retryImport(() => import('./WidgetTodayTasks')))
 // Individual stat widgets
-const WidgetStatStudents      = lazy(() => import('./WidgetStatStudents'))
-const WidgetStatHW            = lazy(() => import('./WidgetStatHW'))
-const WidgetStatLessons       = lazy(() => import('./WidgetStatLessons'))
-const WidgetStatEarnings      = lazy(() => import('./WidgetStatEarnings'))
-const WidgetFinanceReceived   = lazy(() => import('./WidgetFinanceReceived'))
-const WidgetFinanceExpected   = lazy(() => import('./WidgetFinanceExpected'))
-const WidgetFinanceDebt       = lazy(() => import('./WidgetFinanceDebt'))
-const WidgetFinanceForecast   = lazy(() => import('./WidgetFinanceForecast'))
-const WidgetStudentCount      = lazy(() => import('./WidgetStudentCount'))
-const WidgetStudentGroups     = lazy(() => import('./WidgetStudentGroups'))
-const WidgetStudentActive     = lazy(() => import('./WidgetStudentActive'))
-const WidgetStudentDebtors    = lazy(() => import('./WidgetStudentDebtors'))
+const WidgetStatStudents      = lazy(() => retryImport(() => import('./WidgetStatStudents')))
+const WidgetStatHW            = lazy(() => retryImport(() => import('./WidgetStatHW')))
+const WidgetStatLessons       = lazy(() => retryImport(() => import('./WidgetStatLessons')))
+const WidgetStatEarnings      = lazy(() => retryImport(() => import('./WidgetStatEarnings')))
+const WidgetFinanceReceived   = lazy(() => retryImport(() => import('./WidgetFinanceReceived')))
+const WidgetFinanceExpected   = lazy(() => retryImport(() => import('./WidgetFinanceExpected')))
+const WidgetFinanceDebt       = lazy(() => retryImport(() => import('./WidgetFinanceDebt')))
+const WidgetFinanceForecast   = lazy(() => retryImport(() => import('./WidgetFinanceForecast')))
+const WidgetStudentCount      = lazy(() => retryImport(() => import('./WidgetStudentCount')))
+const WidgetStudentGroups     = lazy(() => retryImport(() => import('./WidgetStudentGroups')))
+const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStudentActive')))
+const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
 
 export type WidgetDef = {
   type: string

@@ -111,6 +111,11 @@ export default function DashboardPage() {
   const closeLesson = useDashboard(s => s.closeLesson)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
   const homework = lesson ? getLessonDetail(lesson).homework : null
+  // Конспект и домашка урока едут вторым запросом (см. heavyPending в
+  // data/mockData.ts). Пока они в пути, «домашки нет» ещё не значит, что её
+  // нет, — и урок нельзя ни показывать пустым, ни отбивать назад. Узел-тест
+  // исключение: его задания лежат в лёгкой половине.
+  const lessonPending = !!lesson?.heavyPending && lesson.kind !== 'test'
   // Курсы приходят из Supabase; до этого искать в них урок бессмысленно.
   const dataLoaded = useStudentData(s => s.loaded)
 
@@ -168,8 +173,8 @@ export default function DashboardPage() {
     // Домашки у урока может не быть вовсе. Тогда «#/homework/…» вёл в пустоту:
     // на экране каталог курсов, а адрес продолжает утверждать, что мы в
     // домашке. Открываем сам урок — это ближайшее, что имелось в виду.
-    if (activePage === 'homework' && currentLessonId && !homework) closeHomework()
-  }, [dataLoaded, currentLessonId, activePage, homework, setActivePage, closeHomework])
+    if (activePage === 'homework' && currentLessonId && !homework && !lessonPending) closeHomework()
+  }, [dataLoaded, currentLessonId, activePage, homework, lessonPending, setActivePage, closeHomework])
 
   // Sync the hash whenever the view changes so it's always refresh-restorable.
   useEffect(() => {
@@ -324,13 +329,13 @@ export default function DashboardPage() {
               paddingTop: 100,
             }}
           >
-            {!lesson && !dataLoaded
+            {(!lesson && !dataLoaded) || lessonPending
               ? <LessonLoading />
               : lesson?.kind === 'test'
                 ? <TestFlow lesson={lesson} onBack={closeLesson} />
                 : <LessonPage />}
           </main>
-        ) : activePage === 'homework' && !lesson && !dataLoaded ? (
+        ) : activePage === 'homework' && ((!lesson && !dataLoaded) || lessonPending) ? (
           <main className="dashboard-main" style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
             <LessonLoading />
           </main>
@@ -410,12 +415,12 @@ export default function DashboardPage() {
             overflowX: 'clip', overscrollBehavior: 'contain',
           }}>
             {activePage === 'lesson' ? (
-              !lesson && !dataLoaded
+              (!lesson && !dataLoaded) || lessonPending
                 ? <LessonLoading />
                 : lesson?.kind === 'test'
                   ? <TestFlow lesson={lesson} onBack={closeLesson} />
                   : <LessonPage />
-            ) : activePage === 'homework' && !lesson && !dataLoaded ? (
+            ) : activePage === 'homework' && ((!lesson && !dataLoaded) || lessonPending) ? (
               <LessonLoading />
             ) : activePage === 'homework' && lesson && homework ? (
               <Suspense fallback={<LessonLoading />}>

@@ -18,6 +18,12 @@
     <!-- iOS ignores SVG apple-touch-icon → must be a PNG for a crisp home-screen icon. -->
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <title>Искра — Кабинет ученика</title>
+    <!-- Слой мобильного дока живёт в <body>, снаружи разметки React: скрытие
+         мобильной ветки через display:none у обёртки до портала не достаёт.
+         Порог 1024 — тот же, по которому DashboardPage переключает разметку. -->
+    <style>
+      @media (min-width: 1024px) { #mobile-dock-layer { display: none !important } }
+    </style>
     <!-- Фавикон + заголовок переключаются по маршруту: ученик (книга) / учитель (искра).
          apple-touch-icon is intentionally NOT switched — iOS reads it once at add-time. -->
     <script>

@@ -76,6 +76,20 @@ export interface TrainerLink {
   id?: string
   /** Второй уровень. Пока только один: сцена внутри произведения. */
   sub?: string
+  /**
+   * Предмет, если по языку его не угадать.
+   *
+   * ЗАЧЕМ. Язык в адресе выбирает предмет — и на одном языке предметов бывает
+   * два: «Русский» и «Литература» оба идут с `langCode: 'ru'`. Поиск по коду
+   * находил первый в реестре, то есть ЛЮБАЯ ссылка на литературу открывалась
+   * русским: экран другой, тексты другие (они разведены по `subject`), и
+   * присланная сцена просто не открывалась — молча, без сообщения.
+   *
+   * Поэтому у неоднозначного языка в адрес пишется слаг предмета
+   * (`#/trainer/literature/texts/lit-irony`), а у однозначного — по-прежнему
+   * код языка: ссылки на корейский и английский не меняются.
+   */
+  subjectId?: string
 }
 
 const RE = /^#\/trainer\/([^?#]+)/
@@ -87,6 +101,19 @@ const base = (lang: string) => lang.split('-')[0].toLowerCase()
 function knownLang(code: string): string | undefined {
   const s = SUBJECTS.find(x => x.isLanguage && x.langCode && base(x.langCode) === base(code))
   return s?.langCode
+}
+
+/** Предмет-язык по слагу из адреса: 'literature' → предмет «Литература». */
+const subjectBySlug = (slug: string) =>
+  SUBJECTS.find(x => x.isLanguage && x.langCode && x.id === slug.toLowerCase())
+
+/** Делят ли этот код языка два предмета и больше (ru — «Русский» и «Литература»). */
+const langIsShared = (lang: string) =>
+  SUBJECTS.filter(x => x.isLanguage && x.langCode && base(x.langCode) === base(lang)).length > 1
+
+/** Что писать в адрес первым сегментом: слаг предмета у общего языка, иначе код. */
+function pathSubject(link: TrainerLink): string {
+  return link.subjectId && langIsShared(link.lang) ? link.subjectId : link.lang
 }
 
 export function parseTrainerLink(hash: string): TrainerLink | null {
@@ -103,8 +130,8 @@ export function parseTrainerLink(hash: string): TrainerLink | null {
     return lang ? { lang, screen: 'feed' } : null
   }
   if (parts[0] === 'text') {
-    const lang = READING_LIBRARY.find(x => x.id === parts[1])?.lang
-    return lang ? { lang, screen: 'texts', id: parts[1] } : null
+    const text = READING_LIBRARY.find(x => x.id === parts[1])
+    return text ? { lang: text.lang, subjectId: text.subject, screen: 'texts', id: parts[1] } : null
   }
   if (parts[0] === 'work') {
     const lang = workById(parts[1])?.lang
@@ -112,18 +139,23 @@ export function parseTrainerLink(hash: string): TrainerLink | null {
   }
 
   // ── Общая схема ────────────────────────────────────────────────────────────
-  const lang = knownLang(parts[0])
+  // Первым сегментом бывает и слаг предмета — у языка, на котором предметов
+  // несколько (см. subjectId). Проверяем его раньше кода: 'ru' и 'russian' не
+  // сталкиваются, а вот 'literature' по коду не находится вовсе.
+  const bySlug = subjectBySlug(parts[0])
+  const lang = bySlug?.langCode ?? knownLang(parts[0])
   if (!lang) return null
-  if (parts.length === 1) return { lang }
+  const subjectId = bySlug?.id
+  if (parts.length === 1) return { lang, subjectId }
   // Экран из будущей (или уже переименованной) версии — не повод потерять язык:
   // ссылка всё равно откроет корейский тренажёр, просто на его обычном месте.
-  if (!isScreen(parts[1])) return { lang }
-  return { lang, screen: parts[1], id: parts[2], sub: parts[3] }
+  if (!isScreen(parts[1])) return { lang, subjectId }
+  return { lang, subjectId, screen: parts[1], id: parts[2], sub: parts[3] }
 }
 
 export function trainerHash(link: TrainerLink): string {
   const e = encodeURIComponent
-  let out = `#/trainer/${e(link.lang)}`
+  let out = `#/trainer/${e(pathSubject(link))}`
   if (link.screen) out += `/${link.screen}`
   if (link.screen && link.id) out += `/${e(link.id)}`
   if (link.screen && link.id && link.sub) out += `/${e(link.sub)}`
@@ -148,6 +180,9 @@ export function writeTrainerHash(link: TrainerLink | null) {
 
 /** Слаг предмета, в котором открывается ссылка: 'korean', 'english', … */
 export function linkSubjectId(link: TrainerLink): string | undefined {
+  // Явный предмет из адреса важнее поиска по языку: у общего кода поиск всегда
+  // отдаёт первый предмет реестра, то есть «Русский» вместо «Литературы».
+  if (link.subjectId) return link.subjectId
   return SUBJECTS.find(s => s.isLanguage && s.langCode && base(s.langCode) === base(link.lang))?.id
 }
 

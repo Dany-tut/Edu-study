@@ -8,6 +8,7 @@ import { tactile } from '../lib/feedback'
 import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 import { dockLayer } from '../lib/dockLayer'
+import { useIsDesktop } from '../lib/useIsDesktop'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileDock — the floating glass control zone that rides just ABOVE the bottom
@@ -91,9 +92,15 @@ export default function MobileDock({ children, fill }: {
 }) {
   const collapsed = useSmoothCollapse()
   const kbOpen = useKeyboardOpen()
+  // Мобильная разметка на десктопе не удаляется, а прячется (display:none у
+  // обёртки в DashboardPage) — но портал уносит док в #mobile-dock-layer, то
+  // есть НАРУЖУ этой обёртки, и скрытие его не достаёт. Без своей проверки
+  // ширины ряд чипсов курса висел внизу десктопной «Главной» и «Курсов».
+  const isDesktop = useIsDesktop()
   // Тот же слой, что у нижней навигации (lib/dockLayer.ts): ряд стоит над ней
   // и обязан жить в той же системе координат.
   const layer = dockLayer()
+  if (isDesktop) return null
   const row = (
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the

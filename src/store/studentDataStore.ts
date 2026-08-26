@@ -3,6 +3,8 @@ import {
   fetchScheduleDays,
   fetchLessonProgress,
   fetchCourseStructure,
+  fetchCourseHeavy,
+  type LessonHeavy,
   fetchPersonScope,
   mergeSubjectsWithProgress,
   computeStats,
@@ -195,9 +197,15 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       }
     }
 
+    // Курсы, тяжёлую половину которых уже приносили на этой странице, отдаём
+    // сразу собранными. Иначе повторный load() (realtime после проверки ДЗ,
+    // возврат на вкладку) на кадр показал бы открытый урок как «Загрузка…» —
+    // данные-то в кеше, ждать нечего.
+    const withHeavy = applyHeavy(mergedSubjects, heavyCache, heavyDone)
+
     set({
       loaded: true,
-      subjects: mergedSubjects,
+      subjects: withHeavy,
       scheduleDays,
       scheduleTodayIndex: todayIdx >= 0 ? todayIdx : 3,
       stats,
@@ -218,8 +226,88 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       const target = mergedSubjects.find(s => s.id === dash.activeSubjectId) ?? mergedSubjects[0]
       dash.setActiveSubject(target.id)
     }
+
+    // ── Тяжёлая половина уроков — вторым заходом ─────────────────────────────
+    //
+    // Трек уже нарисован: выше стоял set(), и экран показывает курс. Конспекты
+    // и домашки (в восемь раз тяжелее всего остального, см. fetchCourseHeavy)
+    // едут сюда и вливаются в уже показанные уроки. Не await: кабинет не ждёт.
+    void loadHeavy(withHeavy, scope.rows.map(r => r.groupId))
   },
 }))
+
+// ─── Тяжёлая половина уроков ─────────────────────────────────────────────────
+//
+// Кеш на всю жизнь страницы, а не на один load(). load() зовут заново и
+// realtime (учитель проверил домашку), и возврат на вкладку — а тяжёлая
+// половина это мегабайты. Тянуть их по второму разу ради обновившегося
+// статуса было бы хуже, чем то, от чего мы уходили.
+//
+// Цена: конспект, поправленный учителем во время сеанса ученика, доедет только
+// после перезагрузки страницы. Это осознанный размен — realtime и раньше звал
+// load() ради прогресса, а не ради текста урока.
+const heavyCache = new Map<string, LessonHeavy>()
+const heavyDone = new Set<string>()
+
+/** Влить конспекты и домашки в уроки. Чистая функция: и для свежего ответа, и для кеша. */
+function applyHeavy(subjects: Subject[], heavy: Map<string, LessonHeavy>, onlyCourses?: Set<string>): Subject[] {
+  return subjects.map(subj => {
+    if (onlyCourses && subj.dbId && !onlyCourses.has(subj.dbId)) return subj
+    return {
+      ...subj,
+      modules: subj.modules.map(mod => ({
+        ...mod,
+        lessons: mod.lessons.map(l => {
+          if (!l.heavyPending) return l
+          // Узел записи живёт под синтетическим id `<урок>~rec` — тяжёлую
+          // половину он берёт у своего урока, но БЕЗ конспекта: конспект
+          // принадлежит уроку, а запись это отдельный узел трека.
+          const rec = l.nodeType === 'rec'
+          const found = heavy.get(rec ? l.id.slice(0, -'~rec'.length) : l.id)
+          return {
+            ...l,
+            heavyPending: false,
+            content: rec ? undefined : found?.content,
+            homework: found?.homework,
+          }
+        }),
+      })),
+    }
+  })
+}
+
+/**
+ * Догрузить конспекты и домашки к уже показанным курсам.
+ *
+ * Состояние читаем заново, а не склеиваем с переданным `subjects`: пока ехал
+ * запрос, ученик мог сдать домашку и realtime мог перезапустить load() — своя
+ * копия массива затёрла бы свежие статусы.
+ *
+ * Провал запроса тоже снимает `heavyPending`. Урок без конспекта — плохо, но
+ * это живой экран; урок, навсегда застрявший в «Загрузка…», — тупик, из
+ * которого ученик выйдет только перезагрузкой, о которой не догадается.
+ */
+async function loadHeavy(subjects: Subject[], groupIds: string[]) {
+  const dbIds = subjects.map(s => s.dbId).filter((x): x is string => !!x)
+  if (dbIds.length === 0) return
+
+  const fresh = dbIds.filter(id => !heavyDone.has(id))
+  if (fresh.length > 0) {
+    try {
+      const heavy = await fetchCourseHeavy(fresh, groupIds)
+      for (const [k, v] of heavy) heavyCache.set(k, v)
+    } catch (e) {
+      // Снимаем флаг всё равно — см. комментарий выше.
+      console.error('[studentData.loadHeavy]', e)
+    }
+    for (const id of fresh) heavyDone.add(id)
+  }
+
+  const touched = new Set(dbIds)
+  useStudentData.setState(state => ({
+    subjects: applyHeavy(state.subjects, heavyCache, touched),
+  }))
+}
 
 // Which student row a progress write for `subjectId` (a course short_id) must
 // use: the course's owning enrollment row (so a multi-subject/multi-group person's

@@ -140,7 +140,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       </div>
 
       <a
-        href={trainerHash({ lang: text.lang, screen: 'texts', id: text.id })}
+        href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
         style={{
           display: 'block', padding: '11px 13px', borderRadius: 14,
           background: `${palette.accent}1F`, textDecoration: 'none',
@@ -166,7 +166,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
           за свою рамку на соседний ряд. Обещание «ровно три слова» держит кнопка. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <a
-          href={trainerHash({ lang: text.lang, screen: 'texts', id: text.id })}
+          href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
             borderRadius: 999, background: palette.accent, color: '#fff',

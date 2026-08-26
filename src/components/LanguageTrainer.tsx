@@ -1125,10 +1125,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     openNestId, openPackId, openStemDict, openRootKo, openNumId, openPronId,
     openChapterId, openFormId,
   ])
-  useEffect(() => { writeTrainerHash(currentLink) }, [currentLink])
+  // Предмет дописывается здесь, а не в двенадцати ветках выше: он один на весь
+  // экран. Нужен там, где по языку предмет не угадать («Русский» и
+  // «Литература» — оба ru): без него присланная ссылка открывала бы у человека
+  // другой предмет с другими текстами (см. subjectId в trainerLink).
+  const linkWithSubject = useMemo<TrainerLink>(
+    () => ({ ...currentLink, subjectId }), [currentLink, subjectId])
+  useEffect(() => { writeTrainerHash(linkWithSubject) }, [linkWithSubject])
 
   /** Адрес этого экрана целиком — то, что уходит в буфер или в системный лист. */
-  const shareUrl = useMemo(() => trainerShareUrl(currentLink), [currentLink])
+  const shareUrl = useMemo(() => trainerShareUrl(linkWithSubject), [linkWithSubject])
 
   const bootDone = useRef(false)
   useEffect(() => {
@@ -3592,13 +3598,53 @@ const SPEAKING_PROMPTS = [
   'Какие у тебя планы на ближайший год?',
 ]
 
-const STORY_TASKS: SpeakTask[] = SPEAKING_PROMPTS.map((prompt, i) => ({
-  id: `story-${i}`,
-  kind: 'story',
-  title: prompt.split(/[:.]/)[0],
-  prompt,
-  seconds: 60,
-}))
+/**
+ * Рассказы для курсов РОДНОГО языка.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНЫЙ НАБОР. Общий список написан для изучающего чужой язык, и
+ * ученику русского он предлагал «расскажи, зачем учишь язык» и «используй
+ * прошедшее время». Первое бессмысленно, второе — инструкция человеку, который
+ * говорит на этом языке с рождения. Родной курс тренирует не язык, а РЕЧЬ:
+ * связность, точность, умение держать минуту, — и задания должны спрашивать
+ * именно это.
+ */
+const NATIVE_SPEAKING_PROMPTS = [
+  'Объясни незнакомому человеку, чем ты занимаешься. Минута, без «ну» и «как бы».',
+  'Перескажи вчерашний разговор так, чтобы слушателю было понятно без вопросов.',
+  'Возрази собеседнику, не повышая голоса: сначала согласись, потом поспорь.',
+  'Опиши место, где ты вырос, тремя деталями — без общих слов «красиво» и «хорошо».',
+  'Объясни за минуту вещь, в которой ты разбираешься, человеку не в теме.',
+]
+
+/**
+ * Рассказы для литературы: разбор вслух, а не рассказ о себе.
+ *
+ * Курс про приёмы («деталь вместо описания», «первая строка»), и говорение в
+ * нём — это устный разбор: то же, что делают на семинаре.
+ */
+const LITERATURE_SPEAKING_PROMPTS = [
+  'Расскажи о книге, которую дочитал последней, не пересказывая сюжет.',
+  'Возьми любую первую строку из прочитанного и объясни, что она обещает читателю.',
+  'Опиши героя одной деталью — так, чтобы слушатель его увидел.',
+  'Перескажи сцену от лица второстепенного персонажа.',
+  'Объясни, чем ирония отличается от насмешки, на своём примере.',
+]
+
+/** Набор рассказов под предмет: чужой язык, родной язык, литература. */
+function storyTasks(subjectId: string): SpeakTask[] {
+  const prompts = subjectId === 'literature'
+    ? LITERATURE_SPEAKING_PROMPTS
+    : subjectId === 'russian'
+      ? NATIVE_SPEAKING_PROMPTS
+      : SPEAKING_PROMPTS
+  return prompts.map((prompt, i) => ({
+    id: `story-${i}`,
+    kind: 'story',
+    title: prompt.split(/[:.]/)[0],
+    prompt,
+    seconds: 60,
+  }))
+}
 
 /**
  * Задания из разговорника.
@@ -3615,7 +3661,9 @@ const STORY_TASKS: SpeakTask[] = SPEAKING_PROMPTS.map((prompt, i) => ({
  * строить ради неё восемьдесят объектов на каждый рендер незачем.
  */
 function countSpeakTasks(themes: SurvivalThemeCards[], shadow: boolean): number {
-  return themes.reduce((n, x) => n + 1 + (x.phrases.length >= 5 ? (shadow ? 2 : 1) : 0), 0) + STORY_TASKS.length
+  // Рассказов у всех наборов поровну (пять), поэтому предмет здесь не нужен:
+  // счётчик рейла считает длину, а не содержимое.
+  return themes.reduce((n, x) => n + 1 + (x.phrases.length >= 5 ? (shadow ? 2 : 1) : 0), 0) + SPEAKING_PROMPTS.length
 }
 
 /**
@@ -3715,7 +3763,9 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
 
   // Без голоса шэдоуинга нет: сравнивать себя не с чем.
   const canShadow = hasVoiceFor(lang)
-  const tasks = useMemo(() => [...bookTasks(themes, canShadow), ...STORY_TASKS], [themes, canShadow])
+  const tasks = useMemo(
+    () => [...bookTasks(themes, canShadow), ...storyTasks(subjectId)],
+    [themes, canShadow, subjectId])
 
   useEffect(() => {
     let alive = true

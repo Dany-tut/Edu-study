@@ -48,6 +48,17 @@ export interface Lesson {
   files?: import('../lib/lessonFiles').LessonFiles
   /** Scheduled calendar date (ISO "YYYY-MM-DD") — shown on the track to match the schedule. */
   scheduledDate?: string
+  /**
+   * Конспект и домашка ещё не приехали.
+   *
+   * Курс грузится в два захода: сначала лёгкий скелет для трека, потом
+   * `content` и `homework` (см. fetchCourseHeavy в lib/db.ts) — они весят в
+   * восемь раз больше всего остального. Пока флаг стоит, отсутствие домашки
+   * НИЧЕГО не значит: её просто ещё не спросили. Экраны, которым это важно,
+   * обязаны различать «нет» и «не знаю» — иначе трек зажжёт спутник-звезду на
+   * каждом узле (см. lessonHasHardLevel), а урок откроется пустым.
+   */
+  heavyPending?: boolean
 }
 
 export interface Module {
@@ -83,6 +94,11 @@ export interface Subject {
   // the active session row, so a multi-subject/multi-group person's submissions
   // land under the row the teacher actually reads. Undefined → use session.id.
   ownerStudentId?: string
+  /**
+   * uuid курса в БД. `id` — это short_id, которым курс зовётся на клиенте, а
+   * тяжёлая половина уроков ищется по `lessons.course_id` (см. fetchCourseHeavy).
+   */
+  dbId?: string
 }
 
 export type ScheduleLesson = {

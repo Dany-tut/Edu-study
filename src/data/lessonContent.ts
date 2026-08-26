@@ -406,6 +406,12 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
  *  треке, кнопку «Хард-уровень», строку в карточке ДЗ) не нужно. У старых
  *  сгенерированных ДЗ (химия/биология/AP) хард есть всегда. */
 export function lessonHasHardLevel(lesson: Lesson): boolean {
+  // Домашка ещё не приехала (курс грузится в два захода, см. heavyPending в
+  // mockData.ts) — значит мы НЕ ЗНАЕМ, есть ли хард. Молчим: иначе сработала бы
+  // ветка «нет авторских заданий → хард есть всегда», и спутник-звезда вспыхнул
+  // бы на каждом узле трека, чтобы через полсекунды погаснуть на половине из
+  // них. Появиться с опозданием честнее, чем мигнуть не там.
+  if (lesson.heavyPending) return false
   const authored = lesson.homework?.hwTasks
   if (authored?.length) return authored.some(task => task.isHard)
   return true

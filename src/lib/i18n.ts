@@ -400,6 +400,7 @@ const EN: Record<string, string> = {
   "Курсы": "Courses",
   "без владельца": "without owner",
   "Обновить": "Refresh",
+  "Вышла новая версия": "A new version is out",
   "Пусто.": "Empty.",
   "Курс": "Course",
   "уроков": "lessons",
@@ -3748,6 +3749,27 @@ const EN: Record<string, string> = {
   'Что ты делал на прошлых выходных? Используй прошедшее время.':
     'What did you do last weekend? Use the past tense.',
   'Какие у тебя планы на ближайший год?': 'What are your plans for the coming year?',
+  // Рассказы курсов родного языка и литературы (см. storyTasks в LanguageTrainer).
+  'Объясни незнакомому человеку, чем ты занимаешься. Минута, без «ну» и «как бы».':
+    'Explain what you do to a stranger. One minute, no filler words.',
+  'Перескажи вчерашний разговор так, чтобы слушателю было понятно без вопросов.':
+    'Retell yesterday\'s conversation so the listener needs no follow-up questions.',
+  'Возрази собеседнику, не повышая голоса: сначала согласись, потом поспорь.':
+    'Disagree without raising your voice: concede first, then argue.',
+  'Опиши место, где ты вырос, тремя деталями — без общих слов «красиво» и «хорошо».':
+    'Describe the place you grew up in with three details — no vague "nice" or "good".',
+  'Объясни за минуту вещь, в которой ты разбираешься, человеку не в теме.':
+    'In one minute, explain something you know well to someone outside the field.',
+  'Расскажи о книге, которую дочитал последней, не пересказывая сюжет.':
+    'Talk about the last book you finished without retelling the plot.',
+  'Возьми любую первую строку из прочитанного и объясни, что она обещает читателю.':
+    'Take any opening line you have read and explain what it promises the reader.',
+  'Опиши героя одной деталью — так, чтобы слушатель его увидел.':
+    'Describe a character with a single detail, so the listener can see them.',
+  'Перескажи сцену от лица второстепенного персонажа.':
+    'Retell a scene from a minor character\'s point of view.',
+  'Объясни, чем ирония отличается от насмешки, на своём примере.':
+    'Explain how irony differs from mockery, using your own example.',
   'Повторите за образцом 8 реплик темы и сравните со своей записью.':
     'Repeat 8 lines of the topic after the model and compare with your own recording.',
   'Прочитайте вслух пять фраз темы:': 'Read five phrases of the topic aloud:',
