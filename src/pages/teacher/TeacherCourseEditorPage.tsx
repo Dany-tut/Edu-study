@@ -500,7 +500,7 @@ function RemoveDot({ onClick, label }: { onClick: () => void; label: string }) {
 }
 
 function AssignPicker({
-  items, selectedIdOf, onToggle, onPickCard, pickHintId, kind,
+  items, selectedIdOf, onToggle, onPickCard, pickHintId, wantSubject, kind,
 }: {
   items: AssignItem[]
   /** Выбранная карточка элемента (для группы — её же id) либо null. */
@@ -509,6 +509,8 @@ function AssignPicker({
   onPickCard?: (item: AssignItem, cardId: string) => void
   /** Человек, которому не удалось выбрать карточку автоматически. */
   pickHintId?: string | null
+  /** Предмет курса — чтобы объяснить, почему карточка не выбралась сама. */
+  wantSubject?: string
   kind: 'group' | 'student'
 }) {
   const t = useT()
@@ -565,6 +567,10 @@ function AssignPicker({
             ? (on ? chips.find(c => c.id === selected)?.subject ?? '' : chips.map(c => c.subject).join(' · '))
             : item.subject ?? ''
           const needsPick = pickHintId === item.id && !on
+          // Есть ли у человека карточка ровно по предмету курса — от этого
+          // зависит, о чём подсказка: «выбери из своих» или «такой карточки нет».
+          const want = (wantSubject ?? '').trim().toLowerCase()
+          const hasWantCard = !!want && chips.some(c => c.subject.trim().toLowerCase() === want)
           return (
             <div key={item.id} style={{
               position: 'relative',
@@ -608,7 +614,7 @@ function AssignPicker({
                 <RemoveDot onClick={() => onToggle(item)} label={kind === 'group' ? t('Убрать группу') : t('Убрать ученика')} />
               )}
 
-              {chips.length > 1 && onPickCard && (
+              {(chips.length > 1 || (needsPick && chips.length > 0)) && onPickCard && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '0 14px 9px 48px' }}>
                   {chips.map(c => {
                     const active = c.id === selected
@@ -628,7 +634,9 @@ function AssignPicker({
                   })}
                   {needsPick && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)', alignSelf: 'center' }}>
-                      {t('— выбери, в какую карточку записать курс')}
+                      {hasWantCard
+                        ? t('— выбери, в какую карточку записать курс')
+                        : `${t('— нет карточки по предмету')} «${wantSubject}»: ${t('выбери, в какую записать')}`}
                     </span>
                   )}
                 </div>
@@ -918,13 +926,18 @@ function CenterCourseAccess({
   const cardsOf = (item: AssignItem) => item.cards ?? []
   const selectedCardOf = (item: AssignItem) =>
     cardsOf(item).find(c => course.studentIds.includes(c.id))?.id ?? null
-  // Карточка по предмету курса; если предмет не совпал ни с одной, но карточка
-  // всего одна — она и есть ответ. Иначе выбирает учитель.
+  // Карточка по предмету курса. Единственная карточка берётся автоматом ТОЛЬКО
+  // когда сверять нечего: у курса не проставлен предмет или он не проставлен у
+  // карточки. Раньше единственная карточка бралась всегда — и японский курс
+  // молча приземлялся в карточку «Физика», а с ним туда же уезжали расписание,
+  // прогресс и журнал. Не совпало — решает учитель.
   const autoCard = (item: AssignItem): string | null => {
     const want = course.subject.trim().toLowerCase()
-    const bySubject = cardsOf(item).find(c => c.subject.trim().toLowerCase() === want)
+    const cards = cardsOf(item)
+    const bySubject = cards.find(c => c.subject.trim().toLowerCase() === want)
     if (bySubject) return bySubject.id
-    return cardsOf(item).length === 1 ? cardsOf(item)[0].id : null
+    if (cards.length === 1 && (!want || !cards[0].subject.trim())) return cards[0].id
+    return null
   }
   /** Курс уходит ровно в одну карточку человека — прежние выборы снимаем. */
   const setPersonCard = (item: AssignItem, cardId: string | null) => {
@@ -998,6 +1011,7 @@ function CenterCourseAccess({
               onToggle={togglePerson}
               onPickCard={pickPersonCard}
               pickHintId={pickHintKey}
+              wantSubject={course.subject}
             />
           )}
 

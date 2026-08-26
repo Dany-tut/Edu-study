@@ -2109,12 +2109,12 @@ export default function TeacherGroupsPage() {
   }
   async function addCardForActive(subject: string, level: string) {
     if (!activeStudent || !activeStudentGroup) return
+    // Цвет — предмета, а не той карточки, из которой добавляли: направления
+    // одного человека должны различаться на глаз (реестр предметов).
     await addIndividualCard({
       student: activeStudent,
       subject: subject as Group['subject'],
       level,
-      color: activeStudentGroup.color,
-      colorSoft: activeStudentGroup.colorSoft,
     })
   }
 
@@ -2192,8 +2192,9 @@ export default function TeacherGroupsPage() {
   // Existing person → brand-new 1:1 card (reuses their account via addIndividualCard).
   // Returns whether they're registered so the modal skips the invite link for them.
   async function createIndivForExisting(person: PersonLike, subject: string, level: string) {
-    const c = INDIV_COLORS[0]
-    const { inviteToken } = await addIndividualCard({ student: person, subject: subject as Group['subject'], level, color: c.color, colorSoft: c.soft })
+    // Цвет не передаём: карточка красится цветом своего предмета из реестра, а
+    // не первым из INDIV_COLORS — иначе все заведённые так карточки одинаковы.
+    const { inviteToken } = await addIndividualCard({ student: person, subject: subject as Group['subject'], level })
     return { inviteToken: person.authUserId ? null : (inviteToken ?? null), registered: !!person.authUserId }
   }
 

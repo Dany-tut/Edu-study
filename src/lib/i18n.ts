@@ -2795,6 +2795,8 @@ const EN: Record<string, string> = {
   'Убрать ученика': 'Remove student',
   'Без предмета': 'No subject',
   '— выбери, в какую карточку записать курс': '— choose which card the course goes on',
+  '— нет карточки по предмету': '— no card for the subject',
+  'выбери, в какую записать': 'choose which card to use',
   'Обычных групп нет — раздайте курс во вкладке «Ученику»': 'There are no regular groups — hand the course out on the "Student" tab',
   'Ничего не нашлось': 'Nothing found',
   'Показать всех': 'Show everyone',

@@ -430,6 +430,10 @@ const STOP = [
   'abortion', 'immigration', 'deport', 'lawsuit', 'sues', 'indicted', 'impeach',
   'protest', 'racism', 'racist', 'shutdown', 'tariff',
   'dei', 'conservative', 'liberal', 'woke',
+  // Речи и некрологи. С фида CDC приехало «HHS Secretary Kennedy's Remarks
+  // Honoring David Rose» — формально не политика и не происшествие, но это
+  // выступление на панихиде, а не новость.
+  'remarks', 'kennedy', 'eulogy', 'obituary',
   // Катастрофы и происшествия по-английски: до этого в ленту приехали «9/11
   // Reunited», «crash driver who cost him his leg» и мальчик, брошенный отцом
   // на Фудзи. Формально ни одного стоп-слова из первой строки там нет.

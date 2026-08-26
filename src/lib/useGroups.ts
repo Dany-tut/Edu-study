@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { parseStudentLimitError, studentLimitMessage } from './plan'
 import { t } from './i18n'
+import { subjectIcon, resolveSubjectPalette } from './subjects'
 import type { Group, GroupTrack, Student } from '../data/teacherMockData'
 
 // Квота тарифа (0037): триггер students_enforce_limit кидает "STUDENT_LIMIT:<max>" —
@@ -15,11 +16,13 @@ function friendlyStudentError<T>(error: T): T {
 }
 
 
-// Subject → emoji, mirrored from the modal's SUBJECT_ICONS so each extra
-// направление card gets the right icon when the modal only passes its name.
-const SUBJECT_ICON: Record<string, string> = {
-  'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
-  'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
+// Иконка и цвет новой карточки-направления берутся из реестра предметов —
+// единственного места, где предмет описан целиком. Своя карта на восемь
+// школьных предметов, что стояла здесь раньше, выдавала «Японскому» 📚 и
+// разъезжалась с реестром на каждом новом предмете.
+function cardLook(subject: string): { icon: string; color: string; colorSoft: string } {
+  const pal = resolveSubjectPalette(subject)
+  return { icon: subjectIcon(subject), color: pal.accent, colorSoft: pal.soft }
 }
 
 type DbGroup = {
@@ -170,7 +173,7 @@ export function useGroups() {
         .map(t => ({
           subject: t.subject as Group['subject'],
           level: t.level,
-          icon: SUBJECT_ICON[t.subject] ?? '📚',
+          icon: cardLook(t.subject).icon,
         })),
     ]
 
@@ -266,17 +269,19 @@ export function useGroups() {
     student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'>
     subject: Group['subject']
     level: string
-    color: string
-    colorSoft: string
+    /** Цвет карточки. Не задан — берётся цвет предмета из реестра. */
+    color?: string
+    colorSoft?: string
   }) {
     const uid = await getOwnerId()
+    const look = cardLook(opts.subject)
     const { data: g, error: gErr } = await supabase.from('groups').insert({
       name: opts.student.name,
       subject: opts.subject,
-      icon: SUBJECT_ICON[opts.subject] ?? '📚',
+      icon: look.icon,
       level: opts.level,
-      color: opts.color,
-      color_soft: opts.colorSoft,
+      color: opts.color ?? look.color,
+      color_soft: opts.colorSoft ?? look.colorSoft,
       start_date: null,
       total_lessons: 0,
       is_individual: true,

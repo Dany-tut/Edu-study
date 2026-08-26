@@ -25,6 +25,10 @@ export type TeacherTask = {
   time: string
   comment: string
   done: boolean
+  /** Карточка ученика, о которой задача (students.id). Клик по задаче ведёт в неё. */
+  studentId?: string | null
+  /** Её группа — нужна, чтобы открыть карточку (openStudentDashboard). */
+  groupId?: string | null
 }
 
 // ── teacher_tasks row ⇄ TeacherTask mapping ──────────────────────────────────
@@ -41,6 +45,8 @@ type TaskRow = {
   time: string | null
   comment: string | null
   done: boolean | null
+  student_id?: string | null
+  group_id?: string | null
 }
 function rowToTask(r: TaskRow): TeacherTask {
   return {
@@ -54,6 +60,8 @@ function rowToTask(r: TaskRow): TeacherTask {
     time: r.time ?? '',
     comment: r.comment ?? '',
     done: r.done ?? false,
+    studentId: r.student_id ?? null,
+    groupId: r.group_id ?? null,
   }
 }
 function taskToRow(t: Partial<TeacherTask>): Record<string, unknown> {
@@ -67,6 +75,10 @@ function taskToRow(t: Partial<TeacherTask>): Record<string, unknown> {
   if ('time' in t)      row.time       = t.time
   if ('comment' in t)   row.comment    = t.comment
   if ('done' in t)      row.done       = t.done
+  // Ссылку на карточку пишем ТОЛЬКО когда она есть: у обычной задачи ключей нет
+  // вовсе, и строка уходит в базу без этих колонок.
+  if ('studentId' in t) row.student_id = t.studentId
+  if ('groupId' in t)   row.group_id   = t.groupId
   return row
 }
 

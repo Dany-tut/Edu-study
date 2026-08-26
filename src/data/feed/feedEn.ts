@@ -316,7 +316,7 @@ One NASA photographer in Spain captured the total solar eclipse as well as the p
     textOrigin: 'ours',
     age: '12+',
     url: 'https://www.nist.gov/news-events/news/2026/08/nist-researchers-supersize-quantum-technology-help-detect-faint-photons',
-    byline: 'our retelling of a NIST news release',
+    byline: 'по материалу NIST',
     origin: 'original',
     credit: 'Source material — NIST, public domain',
     level: 'B1',
