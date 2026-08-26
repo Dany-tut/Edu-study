@@ -116,6 +116,12 @@
      тень тоже красится в цвет курса (lib/courseTint.ts): фиолетовый ореол под
      коралловой кнопкой выдавал бы «недокрашенный» экран. */
   --glow-accent:     0 12px 28px rgba(106,90,230,0.35);
+  /* Акцент в виде трёх чисел — для теней, каёмок и подсветок, которым нужен
+     тот же цвет, но со своей прозрачностью (rgba(var(--accent-rgb), 0.35)).
+     Красится в цвет курса вместе с остальными акцентными переменными
+     (lib/courseTint.ts): раньше эти места стояли литералом rgba(99,84,207,…) и
+     оставляли фиолетовый ореол под коралловой кнопкой английского. */
+  --accent-rgb:      99, 84, 207;
   --grad-purple:     linear-gradient(135deg, #9D8BFF, #6A5AE6);
   --grad-purple-bar: linear-gradient(90deg, #6A5AE6, #A697FF);
   --grad-green:      linear-gradient(135deg, #34C877, #2A7D4F);
@@ -280,6 +286,7 @@
   /* В тёмной теме цветной ореол вокруг карточки читается грязным пятном —
      остаётся обычная тень. */
   --glow-accent: 0 12px 28px rgba(0,0,0,0.45);
+  --accent-rgb: 124, 108, 224;
   --color-green-accent: #4ADE80;
 
   /* ── Shadows (dark-theme glass cards) ────────────────────── */
@@ -432,7 +439,7 @@ a {
 
 /* Focus visible */
 *:focus-visible {
-  outline: 2px solid rgba(145,128,230,0.7);
+  outline: 2px solid rgba(var(--accent-rgb), 0.7);
   outline-offset: 3px;
 }
 /* Lesson rows live inside an overflow-clipped scroll list, so the default

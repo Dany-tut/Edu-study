@@ -812,6 +812,7 @@ export function RailCard({ icon, title, accent, children, action }: {
   /** Ссылка-действие в правом углу заголовка — «сбросить», «все». */
   action?: { label: string; onClick: () => void }
 }) {
+  const t = useT()
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 16,
@@ -821,7 +822,7 @@ export function RailCard({ icon, title, accent, children, action }: {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         {icon && <span style={{ display: 'flex', color: accent }}>{icon}</span>}
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{title}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(title)}</span>
         {action && (
           <button
             onClick={action.onClick}
@@ -830,7 +831,7 @@ export function RailCard({ icon, title, accent, children, action }: {
               fontFamily: 'inherit', fontSize: 11.5, fontWeight: 650, color: accent, padding: 0,
             }}
           >
-            {action.label}
+            {t(action.label)}
           </button>
         )}
       </div>
@@ -1125,10 +1126,24 @@ export function RailStat({ label, value, tone }: {
  * прогона («Свайп» / «Списком» в своих словах): такому переключателю в шторке
  * «Фильтры» не место.
  */
-export function Toolbar({ children }: { children: React.ReactNode }) {
+export function Toolbar({ children, count }: {
+  children: React.ReactNode
+  /**
+   * Сколько карточек в выборке ПРЯМО СЕЙЧАС — на кнопку внизу шторки.
+   *
+   * Счётчик экрана (ToolCount) стоит в самой строке управления и в момент
+   * выбора закрыт шторкой: фильтр выбирали вслепую и узнавали результат, только
+   * закрыв её. Проп необязательный — без него кнопка просто закрывает шторку
+   * («Готово»), и новый экран по-прежнему получает раскладку даром.
+   */
+  count?: number
+}) {
   const t = useT()
   const narrow = useNarrow()
   const [sheet, setSheet] = useState(false)
+  // Какая группа открыта на весь экран шторки. Список тематик на английском —
+  // 53 значения: таблетками он не показывается ни при какой вёрстке.
+  const [drill, setDrill] = useState<number | null>(null)
 
   // Шаг 10 — как в собственной строке банка: она пока своя (у неё поиск с
   // подсказкой и «Избранное» со счётчиком), и на 9 против 10 два соседних
@@ -1144,17 +1159,22 @@ export function Toolbar({ children }: { children: React.ReactNode }) {
     )
   }
 
+  // Уехавшие контролы в шторке НЕ рисуются собой: плашка с выпадающим меню —
+  // приём большого экрана, где меню есть куда уронить. Внутри шторки места под
+  // ним остаётся около сотни пикселей, а меню в этом случае берёт максимум
+  // (см. FilterMenu) и уходит за нижний край. Поэтому отсюда читаются только
+  // ЗНАЧЕНИЯ контрола, а показывает их шторка своими средствами — плоскостью
+  // таблеток, без единого всплывающего слоя.
+  const groups = moved.map(readGroup)
   // Сортировка — не фильтр, и под кнопкой «Фильтры» её не ищут. Пока она в той
   // же шторке, об этом говорит заголовок.
-  const hasSort = moved.some(el => el.type === SortMenu)
+  const hasSort = groups.some(g => g.kind === 'sort')
   // В счётчик идут только фильтры: у сортировки значение выбрано всегда, и она
   // держала бы бейдж вечно зажжённым.
-  const active = moved.filter(el => el.type !== SortMenu).reduce((n, el) => {
-    const v = (el.props as { value?: unknown }).value
-    if (Array.isArray(v)) return n + (v.length ? 1 : 0)
-    if (typeof v === 'string') return n + (v ? 1 : 0)
-    return n
-  }, 0)
+  const active = groups.reduce((n, g) => n + (g.kind !== 'sort' && g.values.some(Boolean) ? 1 : 0), 0)
+
+  const close = () => { setSheet(false); setDrill(null) }
+  const resetAll = () => { for (const g of groups) if (g.kind !== 'sort') g.clear() }
 
   let placed = false
   const row = kids.map((el, i) => {
@@ -1178,10 +1198,42 @@ export function Toolbar({ children }: { children: React.ReactNode }) {
       {createPortal(
         <MobileSheet
           open={sheet}
-          onClose={() => setSheet(false)}
-          title={t(hasSort ? 'Фильтры и сортировка' : 'Фильтры')}
+          onClose={close}
+          // В открытой группе заголовок называет её саму: «Тематика» вместо
+          // «Фильтры» — иначе непонятно, из чего этот список.
+          title={drill != null ? t(groups[drill].title) : t(hasSort ? 'Фильтры и сортировка' : 'Фильтры')}
+          /* Итог выбора — прикреплённой строкой внизу. Число на кнопке и есть
+             ответ на вопрос, ради которого фильтр открывали: сколько останется. */
+          footer={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={resetAll}
+                disabled={active === 0}
+                style={{
+                  ...SHEET_BTN, padding: '0 18px', flexShrink: 0,
+                  border: '1px solid var(--color-border-medium)', background: 'transparent',
+                  color: 'var(--color-text-2)',
+                  cursor: active === 0 ? 'default' : 'pointer', opacity: active === 0 ? 0.4 : 1,
+                }}
+              >
+                {t('Сбросить')}
+              </button>
+              <button
+                onClick={close}
+                style={{
+                  ...SHEET_BTN, flex: 1, padding: '0 20px', border: 'none', color: '#fff',
+                  background: groups.find(g => g.accent)?.accent
+                    ? subjectFill(groups.find(g => g.accent)!.accent!)
+                    : 'var(--grad-purple)',
+                  cursor: 'pointer',
+                }}
+              >
+                {count == null ? t('Готово') : `${t('Показать')} ${count}`}
+              </button>
+            </div>
+          }
         >
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, padding: '0 4px 8px' }}>{moved}</div>
+          <SheetFilters groups={groups} drill={drill} onDrill={setDrill} />
         </MobileSheet>,
         document.body,
       )}
@@ -1238,6 +1290,223 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
   )
 }
 
+/** Кнопки подвала шторки — геометрия таблеток тренажёра (см. blockKit). */
+const SHEET_BTN: React.CSSProperties = {
+  height: 42, boxSizing: 'border-box', borderRadius: 999,
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, lineHeight: 1, whiteSpace: 'nowrap',
+}
+
+/**
+ * Значения контрола строки, вынутые для показа в шторке.
+ *
+ * Один вид на все три контрола: разница между «выбрать несколько» и «выбрать
+ * одно» — это разница в toggle, а не в том, как выглядит список. Поэтому и
+ * таблетка, и строка списка ниже рисуются одним кодом.
+ */
+type SheetOpt = { value: string; label: string; count?: number }
+type SheetGroup = {
+  kind: 'multi' | 'one' | 'sort'
+  title: string
+  options: SheetOpt[]
+  /** Выбранное. У «одного из» — массив из одного значения, пустая строка = «все». */
+  values: string[]
+  accent?: string
+  soft?: string
+  toggle: (v: string) => void
+  clear: () => void
+}
+
+function readGroup(el: React.ReactElement): SheetGroup {
+  const p = el.props as {
+    label?: string; options: SheetOpt[]; value: unknown; onChange: unknown
+    accent?: string; soft?: string
+  }
+  const base = { options: p.options ?? [], accent: p.accent, soft: p.soft }
+  if (el.type === FilterMenu) {
+    const set = p.onChange as React.Dispatch<React.SetStateAction<string[]>>
+    return {
+      ...base, kind: 'multi', title: p.label ?? 'Фильтр', values: (p.value as string[]) ?? [],
+      toggle: v => set(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]),
+      clear: () => set([]),
+    }
+  }
+  const pick = p.onChange as (v: string) => void
+  const one = (p.value as string) ?? ''
+  if (el.type === SortMenu) {
+    return { ...base, kind: 'sort', title: 'Сортировка', values: [one], toggle: pick, clear: () => {} }
+  }
+  return { ...base, kind: 'one', title: 'Показывать', values: [one], toggle: pick, clear: () => pick('') }
+}
+
+/**
+ * Длина списка, после которой он перестаёт быть таблетками.
+ *
+ * Двенадцать — граница, за которой ряд перестаёт читаться одним взглядом и
+ * шторка превращается в поле из чипсов. Уровней и платформ всегда меньше,
+ * тематик на английском — 53: ровно тот случай, ради которого нужен свой экран.
+ */
+const LONG_LIST = 12
+
+/**
+ * Содержимое шторки: плоскость групп, а при открытой группе — её список.
+ *
+ * Без AnimatePresence: у неё в паре с React 19 теряется сигнал выхода
+ * (см. память animatepresence-wait-deadlock), а здесь он и не нужен — экран
+ * один, меняется его ключ, и новый въезжает с той стороны, куда шли.
+ */
+function SheetFilters({ groups, drill, onDrill }: {
+  groups: SheetGroup[]
+  drill: number | null
+  onDrill: (i: number | null) => void
+}) {
+  const t = useT()
+  const open = drill != null ? groups[drill] : null
+  return (
+    <motion.div
+      key={drill ?? 'root'}
+      initial={{ opacity: 0, x: drill != null ? 20 : -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '0 2px 4px' }}
+    >
+      {open ? (
+        <>
+          <button
+            onClick={() => onDrill(null)}
+            style={{
+              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4,
+              padding: '6px 12px 6px 8px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              border: '1px solid var(--color-border-medium)', background: 'transparent',
+              fontSize: 12.5, fontWeight: 650, color: 'var(--color-text-2)',
+            }}
+          >
+            <ChevronLeft size={14} /> {t('Ко всем фильтрам')}
+          </button>
+          <OptionRows g={open} />
+        </>
+      ) : groups.map((g, i) => g.options.length > LONG_LIST
+        ? <DrillRow key={i} g={g} onClick={() => onDrill(i)} />
+        : <ChipGroup key={i} g={g} />)}
+    </motion.div>
+  )
+}
+
+function GroupTitle({ g }: { g: SheetGroup }) {
+  const t = useT()
+  const n = g.kind === 'multi' ? g.values.filter(Boolean).length : 0
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'baseline', gap: 7,
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+      color: 'var(--color-text-3)',
+    }}>
+      {t(g.title)}
+      {n > 0 && <span style={{ color: g.accent ?? 'var(--color-accent, #7c3aed)' }}>{n}</span>}
+    </div>
+  )
+}
+
+/** Короткая группа — ряд таблеток: выбор в один тап, состояние видно целиком. */
+function ChipGroup({ g }: { g: SheetGroup }) {
+  const t = useT()
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <GroupTitle g={g} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        {g.options.map(o => {
+          const on = g.values.includes(o.value)
+          const tint = g.accent ?? 'var(--color-accent, #7c3aed)'
+          return (
+            <button
+              key={o.value}
+              onClick={() => g.toggle(o.value)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '9px 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 13, fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
+                border: `1px solid ${on ? tint : 'var(--color-border-medium)'}`,
+                background: on ? (g.soft ?? 'var(--color-purple-soft)') : 'transparent',
+                color: on ? tint : 'var(--color-text-2)',
+              }}
+            >
+              {t(o.label)}
+              {o.count != null && (
+                <span style={{ fontSize: 11.5, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>{o.count}</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/** Длинная группа — строка со своим экраном внутри шторки. */
+function DrillRow({ g, onClick }: { g: SheetGroup; onClick: () => void }) {
+  const t = useT()
+  const chosen = g.values.filter(Boolean)
+  const tint = g.accent ?? 'var(--color-accent, #7c3aed)'
+  const summary = chosen.length === 0
+    ? t('все')
+    : chosen.length === 1
+      ? t(g.options.find(o => o.value === chosen[0])?.label ?? chosen[0])
+      : `${chosen.length} ${t('выбрано')}`
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+        padding: '13px 14px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+        border: `1px solid ${chosen.length ? tint : 'var(--color-border-medium)'}`,
+        background: 'transparent',
+      }}
+    >
+      <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t(g.title)}</span>
+      <span style={{
+        marginLeft: 'auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        fontSize: 12.5, fontWeight: chosen.length ? 700 : 500,
+        color: chosen.length ? tint : 'var(--color-text-3)',
+      }}>{summary}</span>
+      <ChevronRight size={15} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+    </button>
+  )
+}
+
+/** Список значений открытой группы — строками, тап переключает. */
+function OptionRows({ g }: { g: SheetGroup }) {
+  const t = useT()
+  const tint = g.accent ?? 'var(--color-accent, #7c3aed)'
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {g.options.map(o => {
+        const on = g.values.includes(o.value)
+        return (
+          <button
+            key={o.value}
+            onClick={() => g.toggle(o.value)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
+              padding: '11px 12px', borderRadius: 11, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              background: on ? (g.soft ?? 'var(--color-purple-soft)') : 'transparent',
+              color: on ? tint : 'var(--color-text-2)',
+              fontSize: 13.5, fontWeight: on ? 700 : 500,
+            }}
+          >
+            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {t(o.label)}
+            </span>
+            {o.count != null && (
+              <span style={{ fontSize: 12, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>{o.count}</span>
+            )}
+            {on && <Check size={15} style={{ flexShrink: 0 }} />}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 /** Поиск-таблетка: свёрнут до иконки, раскрывается по клику. Как в банке. */
 export function SearchPill({ value, onChange, placeholder }: {
   value: string; onChange: (v: string) => void; placeholder?: string
@@ -1279,7 +1548,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         onChange={e => onChange(e.target.value)}
         onFocus={() => setOpen(true)}
         onBlur={() => { if (!value) setOpen(false) }}
-        placeholder={wide ? (placeholder ?? t('Поиск')) : t('Поиск')}
+        placeholder={wide ? (placeholder ? t(placeholder) : t('Поиск')) : t('Поиск')}
         style={{
           // Свёрнутый круг на телефоне: поле остаётся в разметке (иначе фокус
           // по тапу некуда ставить), но не занимает ширины — без этого из-под
@@ -1411,12 +1680,13 @@ export function ToolButton({ children, on, onClick, accent, btnRef, icon, label 
   /** Название действия для значка без подписи: подсказка мыши и экранный диктор. */
   label?: string
 }) {
+  const t = useT()
   return (
     <button
       ref={btnRef}
       onClick={onClick}
-      title={label}
-      aria-label={label}
+      title={label ? t(label) : undefined}
+      aria-label={label ? t(label) : undefined}
       style={{
         // Как «Избранное» в банке: 10×14, кегль 12 — тогда таблетка встаёт вровень
         // с поиском и группой статусов, а не оказывается на два пикселя ниже.

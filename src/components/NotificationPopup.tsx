@@ -41,7 +41,7 @@ function timeAgo(ts: number) {
 function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notification) => void }) {
   return (
     <motion.button
-      whileHover={{ background: 'rgba(155,109,255,0.07)' }}
+      whileHover={{ background: 'rgba(var(--accent-rgb), 0.07)' }}
       whileTap={{ scale: 0.98 }}
       onClick={() => onActivate(n)}
       style={{

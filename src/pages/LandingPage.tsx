@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
-import { useLang } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
 import ThemeToggleBtn from '../components/ThemeToggleBtn'
 import ProductMock from '../components/landing/ProductMock'
 
@@ -35,6 +35,7 @@ const STEPS = [
 
 export default function LandingPage() {
   const { lang } = useLang()
+  const t = useT()
   const [leadOpen, setLeadOpen] = useState(false)
   const [chooserOpen, setChooserOpen] = useState(false)
   const [presetPlan, setPresetPlan] = useState<string>('')
@@ -74,14 +75,14 @@ export default function LandingPage() {
           Искра
         </div>
         <nav style={{ marginLeft: 28, display: 'flex', gap: 22 }} className="lp-nav">
-          <a href="#how" style={navLink}>Как работает</a>
-          <a href="#features" style={navLink}>Возможности</a>
-          <a href="#tariffs" style={navLink}>Тарифы</a>
+          <a href="#how" style={navLink}>{t('Как работает')}</a>
+          <a href="#features" style={navLink}>{t('Возможности')}</a>
+          <a href="#tariffs" style={navLink}>{t('Тарифы')}</a>
         </nav>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggleBtn />
-          <button onClick={() => setChooserOpen(true)} style={ghostBtn}>Личный кабинет</button>
-          <button onClick={() => openLead()} style={primaryBtn}>Оставить заявку</button>
+          <button onClick={() => setChooserOpen(true)} style={ghostBtn}>{t('Личный кабинет')}</button>
+          <button onClick={() => openLead()} style={primaryBtn}>{t('Оставить заявку')}</button>
         </div>
       </header>
       {/* спейсер под фиксированную шапку */}
@@ -105,31 +106,30 @@ export default function LandingPage() {
               fontSize: 13, fontWeight: 600, marginBottom: 24,
               border: `1px solid color-mix(in srgb, ${ACCENT} 30%, transparent)`,
             }}>
-              <Sparkles size={15} /> Платформа для репетиторов и учебных центров
+              <Sparkles size={15} /> {t('Платформа для репетиторов и учебных центров')}
             </div>
           </Reveal>
           <Reveal delay={0.05}>
             <h1 style={{ fontSize: 'clamp(34px, 6.4vw, 64px)', lineHeight: 1.04, fontWeight: 800, letterSpacing: -1.4, margin: 0 }}>
-              Вся преподавательская<br />
-              операционка —{' '}
+              {t('Вся преподавательская')}<br />
+              {t('операционка —')}{' '}
               <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${ACCENT_L})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-                в одном окне
+                {t('в одном окне')}
               </span>
             </h1>
           </Reveal>
           <Reveal delay={0.1}>
             <p style={{ fontSize: 'clamp(16px, 2.4vw, 20px)', color: 'var(--color-text-2)', maxWidth: 640, margin: '24px auto 0', lineHeight: 1.55 }}>
-              Курсы, домашки с проверкой части 2, журнал, аналитика и уведомления.
-              Ученики занимаются, вы — управляете, а не тонете в чатах и таблицах.
+              {t('Курсы, домашки с проверкой части 2, журнал, аналитика и уведомления. Ученики занимаются, вы — управляете, а не тонете в чатах и таблицах.')}
             </p>
           </Reveal>
           <Reveal delay={0.15}>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 34 }}>
               <button onClick={() => openLead()} style={{ ...primaryBtn, padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${ACCENT}` }}>
-                <Send size={17} /> Оставить заявку
+                <Send size={17} /> {t('Оставить заявку')}
               </button>
               <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, padding: '15px 28px', fontSize: 16 }}>
-                Войти в кабинет <ArrowRight size={17} />
+                {t('Войти в кабинет')} <ArrowRight size={17} />
               </button>
             </div>
           </Reveal>
@@ -145,8 +145,8 @@ export default function LandingPage() {
 
       {/* ── Как это работает ── */}
       <section id="how" style={{ padding: 'clamp(64px, 9vw, 110px) clamp(16px, 5vw, 56px) 0', maxWidth: 1180, margin: '0 auto' }}>
-        <Reveal><h2 style={sectionTitle}>Как это работает</h2></Reveal>
-        <Reveal delay={0.05}><p style={sectionSub}>Три шага от «завёл учеников» до «вижу прогресс каждого».</p></Reveal>
+        <Reveal><h2 style={sectionTitle}>{t('Как это работает')}</h2></Reveal>
+        <Reveal delay={0.05}><p style={sectionSub}>{t('Три шага от «завёл учеников» до «вижу прогресс каждого».')}</p></Reveal>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18, marginTop: 40 }}>
           {STEPS.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.08}>
@@ -155,8 +155,8 @@ export default function LandingPage() {
                 <div style={{ width: 46, height: 46, borderRadius: 13, display: 'grid', placeItems: 'center', background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, color: '#fff', marginBottom: 16, boxShadow: `0 8px 20px -8px ${ACCENT}` }}>
                   <s.icon size={22} />
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 7 }}>{s.title}</div>
-                <div style={{ fontSize: 14.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{s.text}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 7 }}>{t(s.title)}</div>
+                <div style={{ fontSize: 14.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{t(s.text)}</div>
               </div>
             </Reveal>
           ))}
@@ -165,8 +165,8 @@ export default function LandingPage() {
 
       {/* ── УТП ── */}
       <section id="features" style={{ padding: 'clamp(64px, 9vw, 110px) clamp(16px, 5vw, 56px) 0', maxWidth: 1180, margin: '0 auto' }}>
-        <Reveal><h2 style={sectionTitle}>Почему «Искра»</h2></Reveal>
-        <Reveal delay={0.05}><p style={sectionSub}>Не ещё один чат и не Google-таблица — цельная рабочая среда преподавателя.</p></Reveal>
+        <Reveal><h2 style={sectionTitle}>{t('Почему «Искра»')}</h2></Reveal>
+        <Reveal delay={0.05}><p style={sectionSub}>{t('Не ещё один чат и не Google-таблица — цельная рабочая среда преподавателя.')}</p></Reveal>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 16, marginTop: 40 }}>
           {FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={(i % 3) * 0.07}>
@@ -174,8 +174,8 @@ export default function LandingPage() {
                 <div style={{ width: 44, height: 44, borderRadius: 12, display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${ACCENT} 15%, transparent)`, color: ACCENT, marginBottom: 15 }}>
                   <f.icon size={22} />
                 </div>
-                <div style={{ fontSize: 16.5, fontWeight: 700, marginBottom: 7 }}>{f.title}</div>
-                <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.55 }}>{f.text}</div>
+                <div style={{ fontSize: 16.5, fontWeight: 700, marginBottom: 7 }}>{t(f.title)}</div>
+                <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.55 }}>{t(f.text)}</div>
               </div>
             </Reveal>
           ))}
@@ -184,14 +184,15 @@ export default function LandingPage() {
 
       {/* ── Тарифы ── */}
       <section id="tariffs" style={{ padding: 'clamp(64px, 9vw, 110px) clamp(16px, 5vw, 56px) 0', maxWidth: 1180, margin: '0 auto' }}>
-        <Reveal><h2 style={sectionTitle}>Тарифы</h2></Reveal>
-        <Reveal delay={0.05}><p style={sectionSub}>Оплата подключается вручную: оставьте заявку — мы активируем нужный тариф.</p></Reveal>
+        <Reveal><h2 style={sectionTitle}>{t('Тарифы')}</h2></Reveal>
+        <Reveal delay={0.05}><p style={sectionSub}>{t('Оплата подключается вручную: оставьте заявку — мы активируем нужный тариф.')}</p></Reveal>
         {/* 4 основных тарифа сеткой + «Безлимит» широкой карточкой — иначе
             пятая карточка висит сиротой в ряду из четырёх */}
         <div className="lp-tariffs" style={{ marginTop: 46 }}>
           {gridTiers.map((p, i) => {
             const featured = p.code === 'pro'
             const limit = p.maxStudents == null ? 'Без лимита учеников' : `До ${p.maxStudents} учеников`
+            const limitLabel = p.maxStudents == null ? t('Без лимита учеников') : `${t('До')} ${p.maxStudents} ${t('учеников')}`
             return (
               <Reveal key={p.code} delay={i * 0.05} style={{ height: '100%' }}>
                 <div className="lp-tariff" style={{
@@ -203,23 +204,23 @@ export default function LandingPage() {
                 }}>
                   {featured && (
                     <div style={{ position: 'absolute', top: -11, left: 22, padding: '4px 12px', borderRadius: 999, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, color: '#fff', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.2 }}>
-                      Популярный
+                      {t('Популярный')}
                     </div>
                   )}
-                  <div style={{ fontSize: 17, fontWeight: 700 }}>{p.name}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{p.tagline}</div>
+                  <div style={{ fontSize: 17, fontWeight: 700 }}>{t(p.name)}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{t(p.tagline)}</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '18px 0 3px' }}>
                     <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{planPrice(p, lang)}</span>
-                    {p.priceRub > 0 && <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ мес</span>}
+                    {p.priceRub > 0 && <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('/ мес')}</span>}
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{limit}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{limitLabel}</div>
                   <div style={{ height: 1, background: 'var(--color-border)', opacity: 0.7, margin: '18px 0' }} />
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                     {p.features.filter(f => f !== limit).map(f => <PlanFeature key={f} text={f} />)}
                   </ul>
                   <button onClick={() => openLead(`${p.name} · ${planPrice(p, lang)}`)}
                     style={{ ...(featured ? primaryBtn : outlineBtn), marginTop: 24, justifyContent: 'center', width: '100%', padding: '12px' }}>
-                    {p.priceRub === 0 ? 'Начать бесплатно' : 'Оставить заявку'}
+                    {p.priceRub === 0 ? t('Начать бесплатно') : t('Оставить заявку')}
                   </button>
                 </div>
               </Reveal>
@@ -236,11 +237,11 @@ export default function LandingPage() {
               display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap',
             }}>
               <div style={{ minWidth: 190 }}>
-                <div style={{ fontSize: 17, fontWeight: 700 }}>{wideTier.name}</div>
-                <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{wideTier.tagline}</div>
+                <div style={{ fontSize: 17, fontWeight: 700 }}>{t(wideTier.name)}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{t(wideTier.tagline)}</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 14 }}>
                   <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{planPrice(wideTier, lang)}</span>
-                  <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ мес</span>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('/ мес')}</span>
                 </div>
               </div>
               <ul style={{
@@ -251,7 +252,7 @@ export default function LandingPage() {
               </ul>
               <button onClick={() => openLead(`${wideTier.name} · ${planPrice(wideTier, lang)}`)}
                 style={{ ...outlineBtn, justifyContent: 'center', padding: '12px 26px', flexShrink: 0 }}>
-                Оставить заявку
+                {t('Оставить заявку')}
               </button>
             </div>
           </Reveal>
@@ -264,12 +265,12 @@ export default function LandingPage() {
           <div style={{ position: 'relative', overflow: 'hidden', padding: 'clamp(34px, 6vw, 60px)', borderRadius: 28, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, color: '#fff', textAlign: 'center' }}>
             <div aria-hidden style={{ position: 'absolute', top: -80, right: -60, width: 320, height: 320, background: `radial-gradient(circle, color-mix(in srgb, ${ACCENT_L} 55%, transparent), transparent 70%)`, filter: 'blur(10px)', opacity: 0.5 }} />
             <div style={{ position: 'relative' }}>
-              <h2 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 800, margin: 0, letterSpacing: -0.6 }}>Готовы попробовать?</h2>
+              <h2 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 800, margin: 0, letterSpacing: -0.6 }}>{t('Готовы попробовать?')}</h2>
               <p style={{ fontSize: 16.5, opacity: 0.92, margin: '14px auto 28px', maxWidth: 500, lineHeight: 1.55 }}>
-                Оставьте контакт — расскажем, как начать, и поможем перенести учеников.
+                {t('Оставьте контакт — расскажем, как начать, и поможем перенести учеников.')}
               </p>
               <button onClick={() => openLead()} style={{ ...onAccentBtn, padding: '15px 32px', fontSize: 16, boxShadow: '0 14px 34px -12px rgba(0,0,0,0.4)' }}>
-                <Send size={17} /> Оставить заявку
+                <Send size={17} /> {t('Оставить заявку')}
               </button>
             </div>
           </div>
@@ -280,7 +281,7 @@ export default function LandingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, color: 'var(--color-text-2)' }}>
           <img src="/icon.svg" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
         </div>
-        <span style={{ marginLeft: 'auto' }}>© Искра · Платформа для преподавателей</span>
+        <span style={{ marginLeft: 'auto' }}>© Искра · {t('Платформа для преподавателей')}</span>
       </footer>
 
       <style>{`
@@ -308,12 +309,13 @@ export default function LandingPage() {
 
 // строка возможности тарифа (сетка и широкая карточка «Безлимита»)
 function PlanFeature({ text }: { text: string }) {
+  const t = useT()
   return (
     <li style={{ display: 'flex', gap: 8, fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4 }}>
       <span style={{ flexShrink: 0, marginTop: 1, width: 18, height: 18, borderRadius: 999, display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
         <Check size={12} style={{ color: ACCENT }} />
       </span>
-      {text}
+      {t(text)}
     </li>
   )
 }
@@ -363,26 +365,27 @@ function Reveal({ children, delay = 0, style }: { children: React.ReactNode; del
 
 // ── Выбор роли для входа ─────────────────────────────────────────────────────
 function RoleChooser({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const go = (hash: string) => { window.location.hash = hash; onClose() }
   return (
     <Backdrop onClose={onClose}>
       <ModalCard width={420}>
         <ModalClose onClose={onClose} />
-        <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>Личный кабинет</h3>
-        <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 22px' }}>Кто вы?</p>
+        <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>{t('Личный кабинет')}</h3>
+        <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 22px' }}>{t('Кто вы?')}</p>
         <div style={{ display: 'grid', gap: 12 }}>
           <button onClick={() => go('#/login')} style={roleBtn}>
             <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT_L} 20%, transparent)`, color: ACCENT_L }}><User size={22} /></div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>Я ученик</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>Вход по логину и паролю от учителя</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я ученик')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Вход по логину и паролю от учителя')}</div>
             </div>
           </button>
           <button onClick={() => go('#/teacher')} style={roleBtn}>
             <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT} 20%, transparent)`, color: ACCENT }}><GraduationCap size={22} /></div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>Я преподаватель</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>Кабинет учителя и администратора</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я преподаватель')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Кабинет учителя и администратора')}</div>
             </div>
           </button>
         </div>
@@ -394,6 +397,7 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
 // ── Форма заявки ─────────────────────────────────────────────────────────────
 function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () => void }) {
   const { lang } = useLang()
+  const t = useT()
   const [name, setName] = useState('')
   const [contact, setContact] = useState('')
   const [plan, setPlan] = useState(presetPlan)
@@ -403,11 +407,11 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
   const [error, setError] = useState('')
 
   async function send() {
-    if (!contact.trim()) { setError('Укажите контакт для связи'); return }
+    if (!contact.trim()) { setError(t('Укажите контакт для связи')); return }
     setSending(true); setError('')
     const { error } = await submitLead({ name, contact, plan, message })
     setSending(false)
-    if (error) { setError('Не удалось отправить. Попробуйте ещё раз.'); return }
+    if (error) { setError(t('Не удалось отправить. Попробуйте ещё раз.')); return }
     setDone(true)
   }
 
@@ -420,23 +424,23 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
             <div style={{ width: 60, height: 60, borderRadius: 999, margin: '0 auto 18px', display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${OK} 22%, transparent)`, color: OK }}>
               <Check size={30} />
             </div>
-            <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px' }}>Заявка отправлена</h3>
+            <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px' }}>{t('Заявка отправлена')}</h3>
             <p style={{ fontSize: 14.5, color: 'var(--color-text-2)', margin: '0 0 24px', lineHeight: 1.5 }}>
-              Спасибо! Мы свяжемся с вами по указанному контакту.
+              {t('Спасибо! Мы свяжемся с вами по указанному контакту.')}
             </p>
-            <button onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>Готово</button>
+            <button onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>{t('Готово')}</button>
           </div>
         ) : (
           <>
-            <h3 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 6px' }}>Оставить заявку</h3>
+            <h3 style={{ fontSize: 23, fontWeight: 800, margin: '0 0 6px' }}>{t('Оставить заявку')}</h3>
             <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 20px', lineHeight: 1.5 }}>
-              Оставьте контакт — расскажем, как начать, и поможем с настройкой.
+              {t('Оставьте контакт — расскажем, как начать, и поможем с настройкой.')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Как к вам обращаться" style={field} />
-              <input value={contact} onChange={e => setContact(e.target.value)} placeholder="Контакт для связи — email, телефон или Telegram *" style={field} />
+              <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Как к вам обращаться')} style={field} />
+              <input value={contact} onChange={e => setContact(e.target.value)} placeholder={t('Контакт для связи — email, телефон или Telegram *')} style={field} />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', margin: '4px 0 8px' }}>Интересующий тариф</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', margin: '4px 0 8px' }}>{t('Интересующий тариф')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
                   {PLAN_TIERS.map(p => {
                     const label = `${p.name} · ${planPrice(p, lang)}`
@@ -448,17 +452,17 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
                         background: active ? `color-mix(in srgb, ${ACCENT} 15%, transparent)` : 'var(--color-surface)',
                         color: 'var(--color-text)', transition: 'all .12s',
                       }}>
-                        <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{t(p.name)}</div>
                         <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{planPrice(p, lang)}</div>
                       </button>
                     )
                   })}
                 </div>
               </div>
-              <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Сообщение — коротко о задаче (необязательно)" rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
+              <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t('Сообщение — коротко о задаче (необязательно)')} rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
               {error && <div style={{ fontSize: 13, color: '#E86A6A', fontWeight: 600 }}>{error}</div>}
               <button onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
-                <Send size={17} /> {sending ? 'Отправляем…' : 'Отправить заявку'}
+                <Send size={17} /> {sending ? t('Отправляем…') : t('Отправить заявку')}
               </button>
             </div>
           </>
@@ -487,8 +491,9 @@ function ModalCard({ children, width }: { children: React.ReactNode; width: numb
   )
 }
 function ModalClose({ onClose }: { onClose: () => void }) {
+  const t = useT()
   return (
-    <button onClick={onClose} aria-label="Закрыть" style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: 9, border: 'none', background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+    <button onClick={onClose} aria-label={t('Закрыть')} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: 9, border: 'none', background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
       <X size={20} />
     </button>
   )

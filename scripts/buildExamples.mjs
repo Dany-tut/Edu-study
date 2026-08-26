@@ -92,9 +92,17 @@ const SCRIPT_OK = {
 const MIN = 12
 const MAX = 120
 
+/**
+ * Без разметки выделения: **важное** в конспекте показывается жирным
+ * (src/lib/markup.ts), но в примере к слову это просто звёздочки посреди
+ * фразы — да ещё и непарные, если предложение разрезано по точке внутри
+ * выделения («Quanto custa?**»).
+ */
+const noMarks = text => String(text).replace(/\*\*/g, '')
+
 /** Предложения строки: латиница режется по .!?, японский и корейский — по 。！？ */
 function sentences(text) {
-  return String(text)
+  return noMarks(text)
     .split('\n')
     .flatMap(line => line.split(/(?<=[.!?。！？])\s+/))
     .map(s => s.replace(/^[\s•·—–\-*>]+/, '').replace(/\s+/g, ' ').trim())
@@ -142,7 +150,7 @@ for (const spec of SPECS) {
       if (t.passage) c.plain.push(...sentences(t.passage))
     }
     if (!u.theory) continue
-    for (const line of String(u.theory).split('\n')) {
+    for (const line of noMarks(u.theory).split('\n')) {
       // 3. «I'm blocked on the API — я застрял из-за API»: слева язык, справа перевод.
       const m = line.match(/^(.{6,110}?)\s+[—–]\s+(.{4,110})$/)
       if (m && SCRIPT_OK[lang](m[1]) && CYR.test(m[2]) && !CYR.test(m[1])) {

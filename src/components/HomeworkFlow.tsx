@@ -208,7 +208,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           width: 26, height: 26, borderRadius: '50%',
           background: 'var(--grad-purple)',
           border: '3px solid var(--color-bg)',
-          boxShadow: '0 2px 12px rgba(99,84,207,0.45)',
+          boxShadow: '0 2px 12px rgba(var(--accent-rgb), 0.45)',
           transition: 'left 0.16s ease',
           pointerEvents: 'none',
         }} />
@@ -567,7 +567,7 @@ function ResultModal({
                   background: PURPLE.gradient,
                   color: '#fff', fontSize: 15, fontWeight: 750,
                   cursor: 'pointer',
-                  boxShadow: '0 12px 32px rgba(99,84,207,0.32)',
+                  boxShadow: '0 12px 32px rgba(var(--accent-rgb), 0.32)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2,
                   overflow: 'visible',
                 }}
@@ -589,7 +589,7 @@ function ResultModal({
                 background: PURPLE.gradient,
                 color: '#fff', fontSize: 15, fontWeight: 750,
                 cursor: 'pointer',
-                boxShadow: '0 12px 32px rgba(99,84,207,0.32)',
+                boxShadow: '0 12px 32px rgba(var(--accent-rgb), 0.32)',
               }}
             >
               {t('Продолжить')}
@@ -1514,7 +1514,11 @@ export default function HomeworkFlow({
   const t = useT()
   const isMobile = !useIsDesktop()
   const { dark } = useTheme()
-  const palette = subjectTheme(subject, dark)
+  // `subject` здесь — short_id курса («kohg»), а не слаг предмета: реестр о нём
+  // не знает и ЛЮБАЯ домашка получала палитру запасного предмета — фиолетовую.
+  // Отсюда «1 уровень», «Правило», «Дальше» и карточки слов оставались
+  // брендовыми на коралловом английском. Курс → предмет, как во flowSubject.
+  const palette = subjectTheme(subjectSlugFor(subject) ?? subject, dark)
   const readingVisible = useReadingVisible(s => s.visible)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
@@ -2365,7 +2369,6 @@ export default function HomeworkFlow({
     !!state.basicChecked[flowQuestion.id]
     || (questionSelfChecks(flowQuestion) && flowAnswered)
   )
-  const flowCorrect = !!flowQuestion && !flowHinted && questionCorrect(flowQuestion, flowGiven)
   /** Проверять нечего — ответ уже открыт или машина его не сверяет. */
   const flowDone = !!flowQuestion && (flowChecked || flowHinted || (!flowAuto && flowAnswered))
 
@@ -2566,7 +2569,7 @@ export default function HomeworkFlow({
           style={{
             flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16, border: 'none',
             background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
-            fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(99,84,207,0.2)',
+            fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.2)',
           }}
         >
           {t('Открыть хард')}
@@ -2877,7 +2880,7 @@ export default function HomeworkFlow({
               borderRadius: 16,
               background: PURPLE.gradient,
               color: '#fff',
-              boxShadow: isMobile ? '0 10px 24px rgba(123, 63, 204, 0.18)' : '0 18px 44px rgba(123, 63, 204, 0.24)',
+              boxShadow: isMobile ? '0 10px 24px rgba(var(--accent-rgb), 0.18)' : '0 18px 44px rgba(var(--accent-rgb), 0.24)',
             }}
           >
             <div className="flex items-center" style={{ gap: 10, marginBottom: isMobile ? 4 : 12 }}>
@@ -2953,7 +2956,7 @@ export default function HomeworkFlow({
                 padding: 16,
                 borderRadius: 16,
                 background: 'var(--color-purple-soft)',
-                border: '1px solid rgba(99,84,207,0.14)',
+                border: '1px solid rgba(var(--accent-rgb), 0.14)',
                 gap: 10,
                 display: 'flex',
                 flexDirection: 'column',
@@ -3028,7 +3031,7 @@ export default function HomeworkFlow({
                       style={{
                         padding: '13px 22px', borderRadius: 16, border: 'none',
                         background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 750,
-                        boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
+                        boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                         display: 'flex', alignItems: 'center', gap: 8,
                       }}
                     >
@@ -3522,7 +3525,7 @@ export default function HomeworkFlow({
                               border: `1px solid ${
                                 correctSelected ? '#6EE7A0'
                                   : wrongSelected ? '#F48B91'
-                                  : active ? 'rgba(99,84,207,0.38)'
+                                  : active ? 'rgba(var(--accent-rgb), 0.38)'
                                   : 'var(--color-border)'
                               }`,
                               background: correctSelected ? 'var(--color-green-soft)'
@@ -3788,7 +3791,7 @@ export default function HomeworkFlow({
                                 border: `1px solid ${
                                   showVerdict && right ? '#6EE7A0'
                                     : showVerdict && active ? '#F48B91'
-                                    : active ? 'rgba(99,84,207,0.38)' : 'var(--color-border)'
+                                    : active ? 'rgba(var(--accent-rgb), 0.38)' : 'var(--color-border)'
                                 }`,
                                 background: showVerdict && right ? 'var(--color-green-soft)'
                                   : showVerdict && active ? 'var(--color-red-soft)'
@@ -4167,7 +4170,7 @@ export default function HomeworkFlow({
                         flex: '1 1 200px', minWidth: 0,
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
                         background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
-                        fontSize: 14, fontWeight: 750, boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
+                        fontSize: 14, fontWeight: 750, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                       }}
                     >
                       {t('К заданию')} {basicUnanswered[0].number}
@@ -4238,20 +4241,10 @@ export default function HomeworkFlow({
                   total={flowTotal}
                   label={flowLabel}
                   disabled={!flowOnIntro && !flowAnswered && !flowDone}
-                  verdict={
-                    !flowQuestion || !flowDone ? 'none'
-                      : !flowAuto ? 'review'
-                        : flowCorrect ? 'correct' : 'wrong'
-                  }
-                  answer={flowQuestion && flowDone && flowAuto && !flowCorrect ? flowQuestion.referenceAnswer : undefined}
                   isMobile={isMobile}
                   navCollapsed={navCollapsed}
                   onPrimary={flowPrimary}
                   onSkip={flowQuestion && !flowAnswered ? () => goToFlowStep(nextFlowStep(flowStep)) : undefined}
-                  // Место «Пропустить» остаётся занятым и после первого тапа:
-                  // иначе кнопка исчезала, «Проверить» растягивалась во всю
-                  // ширину и главная кнопка экрана переезжала под пальцем.
-                  skipSlot={!!flowQuestion}
                 />
               )}
 
@@ -4497,7 +4490,7 @@ function ProgressStrip({
                     ? '0 4px 12px rgba(110,231,160,0.4)'
                     : isWrong
                       ? '0 4px 12px rgba(244,139,145,0.4)'
-                      : '0 4px 14px rgba(99,84,207,0.35)',
+                      : '0 4px 14px rgba(var(--accent-rgb), 0.35)',
                 }}
               >
                 {index + 1}
@@ -4730,7 +4723,7 @@ function BottomProgressBar({
                       ? '0 2px 8px rgba(110,231,160,0.4)'
                       : isWrong
                         ? '0 2px 8px rgba(244,139,145,0.4)'
-                        : '0 2px 10px rgba(99,84,207,0.35)',
+                        : '0 2px 10px rgba(var(--accent-rgb), 0.35)',
                   }}
                 >
                   {active + 1}

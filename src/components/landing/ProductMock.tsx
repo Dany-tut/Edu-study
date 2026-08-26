@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../../lib/i18n'
 import type { CSSProperties } from 'react'
 import HoloSticker from '../HoloSticker'
 import StickerBadge from '../StickerBadge'
@@ -38,6 +39,7 @@ const SECTIONS = [
 type BrowserTab = 'teacher' | 'student'
 
 export default function ProductMock() {
+  const t = useT()
   const [tab, setTab] = useState<BrowserTab>('teacher')
   // история навигации по разделам — под кнопки «назад/вперёд» как в браузере
   const [history, setHistory] = useState<number[]>([0])
@@ -79,7 +81,7 @@ export default function ProductMock() {
   }
   const accept = (name: string) => setAccepted(a => (a.includes(name) ? a : [...a, name]))
 
-  const url = tab === 'teacher' ? `iskra.app/кабинет/${sec.slug}` : 'iskra.app/ученик/курс'
+  const url = tab === 'teacher' ? `iskra.app/${t('кабинет')}/${t(sec.slug)}` : `iskra.app/${t('ученик')}/${t('курс')}`
 
   return (
     <div>
@@ -156,7 +158,7 @@ export default function ProductMock() {
                     background: on ? `color-mix(in srgb, ${ACCENT} 14%, transparent)` : 'transparent',
                     transition: 'background .15s, color .15s',
                   }}>
-                    <s.icon size={15} /> {s.key}
+                    <s.icon size={15} /> {t(s.key)}
                   </button>
                 )
               })}
@@ -172,27 +174,27 @@ export default function ProductMock() {
                     border: `1px solid ${section === i ? ACCENT : 'var(--color-border)'}`,
                     color: section === i ? '#fff' : 'var(--color-text-2)',
                     background: section === i ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'transparent',
-                  }}>{s.key}</button>
+                  }}>{t(s.key)}</button>
                 ))}
               </div>
 
               {/* шапка раздела: заголовок, поиск, колокольчик */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 2 }}>{sec.key}</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sec.sub}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 2 }}>{t(sec.key)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(sec.sub)}</div>
                 </div>
                 <div className="lp-mock-search" style={{
                   marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, height: 30, padding: '0 10px',
                   borderRadius: 9, background: 'var(--color-bg)', border: '1px solid var(--color-border)', width: 150,
                 }}>
                   <Search size={13} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Поиск ученика"
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Поиск ученика')}
                     style={{ border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 12, width: '100%', minWidth: 0 }} />
                   {query && <button onClick={() => setQuery('')} style={{ ...iconBtnBase, width: 16, height: 16 }}><X size={11} /></button>}
                 </div>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <button onClick={() => setBellOpen(o => !o)} title="Уведомления" style={{
+                  <button onClick={() => setBellOpen(o => !o)} title={t('Уведомления')} style={{
                     ...iconBtnBase, width: 30, height: 30, borderRadius: 9,
                     background: bellOpen ? `color-mix(in srgb, ${ACCENT} 14%, transparent)` : 'var(--color-bg)',
                     border: '1px solid var(--color-border)', color: bellOpen ? ACCENT : 'var(--color-text-2)',
@@ -241,7 +243,7 @@ export default function ProductMock() {
 
       <div style={{ marginTop: 12, textAlign: 'center', fontSize: 12.5, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
         <span style={{ width: 6, height: 6, borderRadius: 999, background: OK, boxShadow: `0 0 0 3px color-mix(in srgb, ${OK} 25%, transparent)` }} />
-        живое демо — переключайте вкладки, проверяйте работы, правьте журнал
+        {t('живое демо — переключайте вкладки, проверяйте работы, правьте журнал')}
       </div>
 
       <style>{`
@@ -294,8 +296,9 @@ const iconBtnBase: CSSProperties = {
 }
 
 function ToolBtn({ children, onClick, disabled, title }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; title?: string }) {
+  const t = useT()
   return (
-    <button className="lp-tool" onClick={onClick} disabled={disabled} title={title} style={{
+    <button className="lp-tool" onClick={onClick} disabled={disabled} title={title ? t(title) : undefined} style={{
       ...iconBtnBase, width: 26, height: 26, flexShrink: 0,
       color: 'var(--color-text-2)', opacity: disabled ? 0.32 : 1,
       cursor: disabled ? 'default' : 'pointer',
@@ -304,6 +307,7 @@ function ToolBtn({ children, onClick, disabled, title }: { children: React.React
 }
 
 function BrowserTabBtn({ on, onClick, title }: { on: boolean; onClick: () => void; title: string }) {
+  const t = useT()
   return (
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 7, maxWidth: 230, minWidth: 44, height: 28, padding: '0 10px',
@@ -322,6 +326,7 @@ function BrowserTabBtn({ on, onClick, title }: { on: boolean; onClick: () => voi
 }
 
 function BellPopup({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const items = [
     { t: 'Анна К. сдала ДЗ', s: 'Часть 2 · вариант 7 · 2 мин назад', c: ACCENT },
     { t: 'Игорь П. открыл урок 12', s: 'Курс «ЕГЭ Математика» · 18 мин назад', c: ACCENT_L },
@@ -334,15 +339,15 @@ function BellPopup({ onClose }: { onClose: () => void }) {
       boxShadow: '0 18px 40px -14px rgba(20,12,50,.45)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '2px 6px 8px' }}>
-        <span style={{ fontSize: 12, fontWeight: 700 }}>Уведомления</span>
+        <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Уведомления')}</span>
         <button onClick={onClose} style={{ ...iconBtnBase, marginLeft: 'auto', width: 18, height: 18, color: 'var(--color-text-3)' }}><X size={12} /></button>
       </div>
       {items.map(n => (
         <div key={n.t} className="lp-row lp-clickrow" onClick={onClose} style={{ display: 'flex', gap: 8, padding: '8px 8px', borderRadius: 9, border: '1px solid transparent' }}>
           <span style={{ width: 7, height: 7, borderRadius: 999, background: n.c, marginTop: 5, flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>{n.t}</div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{n.s}</div>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>{t(n.t)}</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t(n.s)}</div>
           </div>
         </div>
       ))}
@@ -1115,6 +1120,7 @@ function MockStudent() {
 // Задание «расставь по порядку»: клик по шагу отправляет его в решение,
 // клик по шагу в решении возвращает обратно. Проверка — когда собраны все.
 function StepsTask() {
+  const t = useT()
   const [order, setOrder] = useState<number[]>([])
   const bank = STEPS_SHUFFLED.filter(i => !order.includes(i))
   const full = order.length === STEPS.length
@@ -1172,6 +1178,7 @@ function StepsTask() {
 const SHELF_EMBLEMS = assignEmblems(COLLECTION.map(c => c.label))
 
 function StickerShelf() {
+  const t = useT()
   const [sel, setSel] = useState(0)
   const cur = COLLECTION[sel]
   const tier = tierOf(cur.score)
@@ -1233,7 +1240,8 @@ function Avatar({ name, size = 28 }: { name: string; size?: number }) {
 }
 
 function Empty() {
-  return <div style={{ padding: '22px 0', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не нашлось — очистите поиск</div>
+  const t = useT()
+  return <div style={{ padding: '22px 0', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не нашлось — очистите поиск')}</div>
 }
 
 const mockCard: CSSProperties = { padding: '14px 16px', borderRadius: 12, background: 'var(--color-bg)', border: '1px solid var(--color-border)' }

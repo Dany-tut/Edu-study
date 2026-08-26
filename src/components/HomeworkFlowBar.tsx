@@ -10,7 +10,9 @@
 // том же пикселе — палец остаётся там, где был. Как только кнопка начинает
 // прыгать (появился вердикт → карточка выросла → кнопка уехала), темп сессии
 // ломается: каждый раз надо заново прицелиться. Поэтому полоса зафиксирована
-// снизу, а вердикт растёт вверх от неё, а не толкает её вниз.
+// снизу и держит только шкалу и кнопки: вердикт печатается на самой карточке
+// задания — второй раз повторять его под пальцем незачем ни на телефоне, ни на
+// мониторе.
 //
 // ЦВЕТ ЗДЕСЬ — ФИРМЕННЫЙ, А НЕ ЦВЕТ ПРЕДМЕТА. Кнопка и шкала красились
 // palette.accent, и на уроке без узнанного предмета это давало лиловый запасной
@@ -25,25 +27,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion'
-import { ArrowRight, CheckCircle2, X } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { useKeyboardState } from '../lib/useKeyboardInset'
-import { bindShortWords, proseWrap } from '../lib/typography'
-
-export type FlowVerdict = 'none' | 'correct' | 'wrong' | 'review'
 
 export default function HomeworkFlowBar({
   step,
   total,
   label,
   disabled,
-  verdict,
-  answer,
   isMobile,
   navCollapsed,
   onPrimary,
   onSkip,
-  skipSlot = false,
 }: {
   /** Сколько шагов пройдено — на прогресс-линию. Знакомство идёт нулевым. */
   step: number
@@ -51,25 +47,14 @@ export default function HomeworkFlowBar({
   /** Надпись на кнопке: «Понятно» / «Проверить» / «Далее» / «Закончить». */
   label: string
   disabled?: boolean
-  verdict: FlowVerdict
-  /** Верный ответ — показывается только когда ошиблись. */
-  answer?: string
   isMobile: boolean
   navCollapsed: boolean
   onPrimary: () => void
   /** Пропуск задания. Не показывается, когда пропускать уже нечего. */
   onSkip?: () => void
-  /** Держать место под «Пропустить», даже когда пропускать уже нечего. */
-  skipSlot?: boolean
 }) {
   const t = useT()
   const keyboard = useKeyboardState()
-
-  const tone = verdict === 'correct'
-    ? { bg: 'var(--color-green-soft)', fg: 'var(--color-green-text)' }
-    : verdict === 'wrong'
-      ? { bg: 'var(--color-red-soft)', fg: 'var(--color-red-text)' }
-      : { bg: 'var(--color-bg-3)', fg: 'var(--color-text-2)' }
 
   // На телефоне полоса поднимается над нижней навигацией, на мониторе просто
   // прижата к низу. Клавиатура сдвигает всё вверх на свою высоту: под ней
@@ -116,56 +101,16 @@ export default function HomeworkFlowBar({
           />
         </div>
 
-        {/* «Верно» полоса не повторяет: этот вердикт напечатан на карточке, у
-            самого ответа. Здесь остаётся то, чего на карточке нет, — разбор
-            неверного ответа.
-            На телефоне у кнопок не остаётся ничего: и «Неверно» с эталонным
-            ответом, и «ответ ушёл на проверку» уже сказаны на самой карточке.
-            Плашка над «Пропустить/Далее» отъедала строку, переносилась на две
-            и подсказывала ответ там, куда смотрит палец, а не глаз. */}
-        {!isMobile && (verdict === 'review' || verdict === 'wrong') && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-start"
-            style={{
-              gap: 10, padding: '11px 14px', borderRadius: 16,
-              background: tone.bg, color: tone.fg,
-              // Своя тень у каждого плавающего элемента — иначе вердикт сливается
-              // с заданием, поверх которого он теперь лежит.
-              boxShadow: '0 8px 22px rgba(0,0,0,0.10)',
-              pointerEvents: 'auto',
-            }}
-          >
-            <span style={{ flexShrink: 0, marginTop: 1 }}>
-              {verdict === 'wrong' ? <X size={17} /> : <CheckCircle2 size={17} />}
-            </span>
-            <span style={{ fontSize: 14, fontWeight: 750, lineHeight: 1.4, ...proseWrap }}>
-              {verdict === 'review' && t('Ответ сохранён — на проверке')}
-              {verdict === 'wrong' && (
-                answer
-                  ? <>{t('Правильный ответ')}: <b style={{ fontWeight: 800 }}>{bindShortWords(answer)}</b></>
-                  : t('Не совсем')
-              )}
-            </span>
-          </motion.div>
-        )}
-
         {/* items-stretch: «Пропустить» тянется по высоте главной кнопки. Своя
             вертикальная набивка делала её ниже, и пара кнопок стояла ступенькой. */}
-        {/* Ширина главной кнопки не меняется от того, ответили уже или нет:
-            «Пропустить» уходит, но его место остаётся (skipSlot). Иначе
-            «Проверить» на первом же тапе раздувалась во всю ширину и уезжала
-            в сторону — палец промахивался мимо той самой кнопки, ради которой
-            вся полоса и зафиксирована. */}
+        {/* «Пропустить» уходит вместе с надобностью, и главная кнопка занимает
+            всю ширину — ровно ширину шкалы над ней. Зарезервированное пустое
+            место под ушедшую кнопку оставляло шкалу шире кнопки, и полоса
+            выглядела съехавшей вбок. */}
         <div className="flex items-stretch" style={{ gap: 12 }}>
-          {(onSkip || skipSlot) && (
+          {onSkip && (
             <button
               onClick={onSkip}
-              disabled={!onSkip}
-              aria-hidden={!onSkip}
-              tabIndex={onSkip ? undefined : -1}
               className="cursor-pointer flex items-center justify-center"
               style={{
                 // Граница — не декор: без панели кнопка ложится то на серый фон
@@ -178,9 +123,7 @@ export default function HomeworkFlowBar({
                 backdropFilter: 'blur(14px)',
                 boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
                 color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-                flexShrink: 0, pointerEvents: onSkip ? 'auto' : 'none',
-                visibility: onSkip ? 'visible' : 'hidden',
-                cursor: onSkip ? 'pointer' : 'default',
+                flexShrink: 0, pointerEvents: 'auto',
               }}
             >
               {t('Пропустить')}
@@ -199,7 +142,7 @@ export default function HomeworkFlowBar({
               color: disabled ? 'var(--color-muted)' : '#fff',
               fontFamily: 'inherit', fontSize: 15, fontWeight: 780,
               cursor: disabled ? 'default' : 'pointer',
-              boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(99,84,207,0.35)',
+              boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(var(--accent-rgb), 0.35)',
               pointerEvents: 'auto',
               transition: 'background 0.18s ease, color 0.18s ease',
             }}

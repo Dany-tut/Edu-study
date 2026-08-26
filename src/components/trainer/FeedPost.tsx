@@ -65,6 +65,36 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
 
   const toggleTranslate = () => { setTranslated(v => !v); touched() }
 
+  // ── Перевод там, где перевода нет ───────────────────────────────────────────
+  //
+  // У автоматической части ленты поля `translation` нет и не будет: машинного
+  // перевода в проекте нет, а выдавать его за свой — врать. Но кнопка «перевод»
+  // нужна на КАЖДОМ посте: её отсутствие читается не как «перевода нет», а как
+  // «тут что-то сломалось», и человек ищет её глазами на каждом посте заново.
+  //
+  // Поэтому кнопка стоит всегда, а показывает то, что у нас честно есть:
+  // пословный разбор. Это тот же словарь, что открывается тапом по слову, —
+  // только весь список сразу, для тех, кому проще пробежать глазами, чем
+  // тыкать в каждое незнакомое слово.
+  //
+  // Считается ЛЕНИВО. buildLexicon строит Map на несколько тысяч записей, и
+  // делать это для сорока постов ленты, из которых откроют один, — работа в
+  // стол.
+  const words = useMemo(() => {
+    if (!translated || item.translation) return null
+    const lex = buildLexicon(lang, item.glossary)
+    const seen = new Set<string>()
+    const out: { text: string; ru: string }[] = []
+    for (const seg of lex.segment(item.body || item.title)) {
+      if (!seg.word || !seg.gloss) continue
+      const k = seg.gloss.term.trim().toLowerCase()
+      if (seen.has(k)) continue
+      seen.add(k)
+      out.push({ text: seg.text, ru: seg.gloss.ru })
+    }
+    return out
+  }, [translated, item.translation, item.glossary, item.body, item.title, lang])
+
   return (
     <article ref={seenRef} style={variant === 'card' ? {
       background: 'var(--color-surface)',
@@ -280,13 +310,42 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             picker={false}
             accent={accent}
           />
-          {item.translation && (
-            <IconBtn on={translated} accent={accent} title={t('Перевод')} onClick={toggleTranslate}>
-              <Languages size={17} />
-            </IconBtn>
-          )}
+          {/* Кнопка перевода — на КАЖДОМ посте (см. `words` выше). У поста с
+              переводом она открывает перевод, у остальных — пословный разбор. */}
+          <IconBtn
+            on={translated}
+            accent={accent}
+            title={item.translation ? t('Перевод') : t('Перевод по словам')}
+            onClick={toggleTranslate}
+          >
+            <Languages size={17} />
+          </IconBtn>
         </span>
       </div>
+
+      {/* Пословный разбор. Стоит ПОД строкой действий, а не внутри текста:
+          у ролика тела нет вовсе, а кнопка есть и у него — разбирается
+          заголовок. */}
+      {words && (
+        <div style={{
+          padding: '10px 12px', borderRadius: 12,
+          background: 'var(--color-bg-3)', ...proseWrap,
+        }}>
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-4)', lineHeight: 1.45, marginBottom: words.length ? 8 : 0 }}>
+            {bindShortWords(words.length
+              ? t('Перевода целиком у этого поста нет — вот слова из него. Любое слово в тексте открывается и тапом.')
+              : t('Перевода целиком у этого поста нет, а слов, знакомых словарю, здесь не нашлось.'))}
+          </div>
+          <div style={{ display: 'grid', gap: 4 }}>
+            {words.map((w, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 13, lineHeight: 1.4 }}>
+                <span style={{ fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>{w.text}</span>
+                <span style={{ color: 'var(--color-text-2)', ...proseWrap }}>{bindShortWords(w.ru)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <FeedComments
         itemId={item.id}

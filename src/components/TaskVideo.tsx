@@ -143,8 +143,11 @@ export default function TaskVideo({
   const ratio = need > 0 ? Math.min(1, seen / need) : 0
 
   return (
-    <div className="flex flex-col" style={{ gap: 10 }}>
-      <div style={{ maxWidth: 720, width: '100%' }}>
+    // Одна колонка на всё: полоса просмотра и подпись канала обязаны кончаться
+    // там же, где кончается кадр. Ширину держал только плеер — полоса убегала
+    // на всю карточку, и «Просмотрено» висело в метре правее видео.
+    <div className="flex flex-col" style={{ gap: 10, maxWidth: 720, width: '100%' }}>
+      <div style={{ width: '100%' }}>
         <LessonVideoPlayer
           source={source}
           title={title}

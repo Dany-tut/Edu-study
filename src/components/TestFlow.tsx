@@ -509,7 +509,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
               padding: '13px 40px', borderRadius: 16, border: 'none',
               background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 750,
               cursor: submitting ? 'wait' : 'pointer', fontFamily: 'inherit',
-              boxShadow: '0 8px 24px rgba(99,84,207,0.35)', opacity: submitting ? 0.7 : 1,
+              boxShadow: '0 8px 24px rgba(var(--accent-rgb), 0.35)', opacity: submitting ? 0.7 : 1,
             }}>
             {submitting ? t('Отправляем…') : `${t('Отправить тест')} (${answeredCount}/${tasks.length})`}
           </motion.button>

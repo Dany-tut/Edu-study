@@ -117,7 +117,7 @@ export interface GrammarRef {
 export const GRAMMAR_COUNTS: Record<string, number> = {
   ko: 85,
   de: 20,
-  ru: 16,
+  ru: 25,
   en: 46,
 }
 

@@ -169,7 +169,7 @@ export default function AudioPlayer({
   // фирменным. Цифры — тёмный конец --grad-purple (#6A5AE6).
   const glow = accent
     ? `0 4px 12px -3px color-mix(in srgb, ${accent} 55%, transparent)`
-    : '0 4px 14px rgba(106,90,230,0.34)'
+    : '0 4px 14px rgba(var(--accent-rgb), 0.34)'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

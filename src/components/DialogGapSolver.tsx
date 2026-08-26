@@ -111,7 +111,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           borderRadius: 8, textAlign: 'center', fontWeight: 700,
           border: showVerdict
             ? `1.5px solid ${correct ? '#6EE7A0' : '#F48B91'}`
-            : value?.trim() ? '1.5px solid rgba(99,84,207,0.38)' : '1.5px dashed var(--color-border-strong)',
+            : value?.trim() ? '1.5px solid rgba(var(--accent-rgb), 0.38)' : '1.5px dashed var(--color-border-strong)',
           background: showVerdict
             ? (correct ? 'var(--color-green-soft)' : 'var(--color-red-soft)')
             : value?.trim() ? 'var(--color-purple-soft)' : 'transparent',
@@ -151,7 +151,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                 maxWidth: '86%', padding: '9px 13px',
                 borderRadius: side ? '15px 15px 4px 15px' : '15px 15px 15px 4px',
                 background: side ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                border: `1px solid ${active ? 'rgba(99,84,207,0.45)' : 'var(--color-border-soft)'}`,
+                border: `1px solid ${active ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-soft)'}`,
               }}>
                 <div className="flex items-center" style={{ gap: 7, marginBottom: 2 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-accent)' }}>

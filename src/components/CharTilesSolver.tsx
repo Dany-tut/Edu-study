@@ -89,7 +89,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
   // настоящих плиток: только так посчитанная высота совпадает с реальной.
   const pickedTile: React.CSSProperties = {
     minWidth: big ? 46 : 38, padding: big ? '8px 10px' : '7px 9px', borderRadius: 12,
-    border: '1px solid rgba(99,84,207,0.38)', background: 'var(--color-purple-soft)',
+    border: '1px solid rgba(var(--accent-rgb), 0.38)', background: 'var(--color-purple-soft)',
     color: 'var(--color-text)', fontFamily: 'inherit',
     fontSize: big ? 26 : 19, lineHeight: 1.15, fontWeight: 700,
     textAlign: 'center',

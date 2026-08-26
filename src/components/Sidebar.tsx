@@ -117,7 +117,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         borderRadius: 10,
         border: 'none',
         cursor: 'pointer',
-        background: active ? 'rgba(99,84,207,0.1)' : 'transparent',
+        background: active ? 'rgba(var(--accent-rgb), 0.1)' : 'transparent',
         color: danger ? '#C53030' : 'var(--color-text)',
         fontSize: 14,
         fontWeight: 550,
@@ -755,7 +755,7 @@ export default function Sidebar() {
                 // the bright glass over the dark video.
                 color: isActive ? '#fff' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
                 background: isActive ? 'var(--grad-purple)' : 'transparent',
-                boxShadow: isActive ? '0 4px 14px rgba(106,90,230,0.42)' : 'none',
+                boxShadow: isActive ? '0 4px 14px rgba(var(--accent-rgb), 0.42)' : 'none',
                 transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                 whiteSpace: 'nowrap',
               }}
@@ -809,7 +809,7 @@ export default function Sidebar() {
                   color: isActive ? '#3D33A0' : '#fff',
                   fontSize: 10, fontWeight: 800, lineHeight: 1,
                   fontVariantNumeric: 'tabular-nums',
-                  boxShadow: isActive ? 'none' : '0 2px 6px rgba(106,90,230,0.45)',
+                  boxShadow: isActive ? 'none' : '0 2px 6px rgba(var(--accent-rgb), 0.45)',
                 }}>
                   {badge > 99 ? '99+' : badge}
                 </span>

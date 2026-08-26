@@ -28,6 +28,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useT } from '../lib/i18n'
 import { Volume2 } from 'lucide-react'
 import { speak, speechMs, speechTarget, stopSpeech } from '../lib/speech'
 
@@ -144,6 +145,7 @@ export function SoundBadge({
   inset?: number
   style?: React.CSSProperties
 }) {
+  const t = useT()
   const common: React.CSSProperties = {
     position: 'absolute', top: inset, right: inset,
     width: size, height: size, borderRadius: '50%',
@@ -160,7 +162,7 @@ export function SoundBadge({
       <button
         type="button"
         onClick={onClick}
-        aria-label={label}
+        aria-label={label ? t(label) : undefined}
         className="sound-badge sound-badge--btn"
         style={{ ...common, border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
       >

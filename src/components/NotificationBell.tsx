@@ -30,7 +30,7 @@ type Props = {
   onClick?: () => void
 }
 
-export default function NotificationBell({ size = 16, hoverBg = 'rgba(155,109,255,0.14)', onClick }: Props) {
+export default function NotificationBell({ size = 16, hoverBg = 'rgba(var(--accent-rgb), 0.14)', onClick }: Props) {
   const t = useT()
   const notifications   = useNotificationsStore(s => s.notifications)
   const dismissLive     = useNotificationsStore(s => s.dismissLive)

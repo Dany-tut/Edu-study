@@ -77,6 +77,12 @@ export function toDarkAccent(hex: string): string {
   return a
 }
 
+/** «r, g, b» для rgba(var(--accent-rgb), α) — теней и каёмок в цвете курса. */
+function rgbTriple(hex: string): string {
+  const h = hex.replace('#', '')
+  return `${parseInt(h.slice(0, 2), 16)}, ${parseInt(h.slice(2, 4), 16)}, ${parseInt(h.slice(4, 6), 16)}`
+}
+
 function luminance(hex: string): number {
   const h = hex.replace('#', '')
   const [r, g, b] = [0, 2, 4].map(i => {
@@ -125,6 +131,10 @@ export function tintVars(hex: string, level: TintLevel, dark: boolean): Record<s
     '--grad-purple': `linear-gradient(135deg, ${luminance(hex) > luminance(fillBase) ? hex : lighten(fillBase, 0.18)}, ${fillBase})`,
     '--grad-purple-bar': `linear-gradient(90deg, ${fillBase}, ${lighten(fillBase, 0.22)})`,
     '--glow-accent': dark ? '0 12px 28px rgba(0,0,0,0.45)' : `0 12px 28px ${hexToRgba(fillBase, 0.35)}`,
+    // Тени и каёмки, что живут не переменной, а собственной прозрачностью.
+    // В тёмной теме от осветлённого акцента: затемнённый fillBase на почти
+    // чёрном фоне не виден вовсе.
+    '--accent-rgb': rgbTriple(dark ? accent : fillBase),
   }
   if (level === 'accent') return vars
 
@@ -157,6 +167,7 @@ const BASE: Record<'light' | 'dark', Record<string, string>> = {
     '--grad-purple': 'linear-gradient(135deg, #9D8BFF, #6A5AE6)',
     '--grad-purple-bar': 'linear-gradient(90deg, #6A5AE6, #A697FF)',
     '--glow-accent': '0 12px 28px rgba(106,90,230,0.35)',
+    '--accent-rgb': '99, 84, 207',
     '--color-purple-soft': '#E7E4FB',
     '--color-purple-text': '#3D33A0',
     '--color-bg': NEUTRAL.light.bg,
@@ -174,6 +185,7 @@ const BASE: Record<'light' | 'dark', Record<string, string>> = {
     '--grad-purple': 'linear-gradient(135deg, #9D8BFF, #6A5AE6)',
     '--grad-purple-bar': 'linear-gradient(90deg, #6A5AE6, #A697FF)',
     '--glow-accent': '0 12px 28px rgba(0,0,0,0.45)',
+    '--accent-rgb': '124, 108, 224',
     '--color-purple-soft': 'rgba(124,108,224,0.22)',
     '--color-purple-text': '#DAD3FB',
     '--color-bg': NEUTRAL.dark.bg,
@@ -199,7 +211,7 @@ export function previewVars(hex: string, level: TintLevel, dark: boolean): Recor
 // не по последней применённой карте: иначе понижение уровня «среда» → «акцент»
 // оставляло бы подкрашенный фон навсегда.
 const OWNED = [
-  '--color-accent', '--color-purple', '--color-control-accent', '--grad-purple', '--grad-purple-bar', '--glow-accent',
+  '--color-accent', '--color-purple', '--color-control-accent', '--grad-purple', '--grad-purple-bar', '--glow-accent', '--accent-rgb',
   '--color-purple-soft', '--color-purple-text',
   '--color-bg', '--color-bg-2', '--color-bg-3', '--color-bg-4', '--color-bg-5', '--color-bg-input', '--glass-rgb',
 ]

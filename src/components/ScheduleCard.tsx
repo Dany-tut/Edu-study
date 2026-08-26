@@ -204,7 +204,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
                       {lesson.time}
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: isMissed ? 'rgba(248,99,107,0.30)' : isUpcoming ? 'rgba(120,106,215,0.26)' : 'var(--color-bg-4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: isMissed ? 'rgba(248,99,107,0.30)' : isUpcoming ? 'rgba(var(--accent-rgb), 0.26)' : 'var(--color-bg-4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {/* Same camera-with-bars glyph in every state — only the
                           colour changes (missed/upcoming → palette text, else muted). */}
                       <IconMissedLesson size={11} color={isMissed || isUpcoming ? pal.text : 'var(--color-muted)'} />

@@ -87,7 +87,7 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
     border: `1px solid ${
       verdict === 'good' ? '#6EE7A0'
         : verdict === 'bad' ? '#F48B91'
-        : state === 'answer' ? 'rgba(99,84,207,0.38)'
+        : state === 'answer' ? 'rgba(var(--accent-rgb), 0.38)'
         : 'var(--color-border-strong)'
     }`,
     background: verdict === 'good' ? 'var(--color-green-soft)'

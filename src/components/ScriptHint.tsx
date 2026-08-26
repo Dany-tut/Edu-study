@@ -25,6 +25,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Volume2 } from 'lucide-react'
+import { useT } from '../lib/i18n'
 import { transcribe } from '../lib/translit'
 import { speak, stopSpeech, hasVoiceFor } from '../lib/speech'
 
@@ -41,6 +42,8 @@ export default function ScriptHint({
   lang?: string
   align?: 'left' | 'right'
 }) {
+  // Хук — до ранних возвратов ниже.
+  const t = useT()
   const clean = (text ?? '').trim()
   if (!clean || !lang) return null
 
@@ -73,7 +76,7 @@ export default function ScriptHint({
         <span
           role="button"
           tabIndex={-1}
-          aria-label="Озвучить"
+          aria-label={t('Озвучить')}
           onClick={e => {
             // Тап по динамику — это прослушать, а не ответить.
             e.preventDefault()

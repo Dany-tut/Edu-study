@@ -137,7 +137,7 @@ export default function MobileBottomNav() {
                   borderRadius: 999, background: 'var(--grad-purple)',
                   color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(106,90,230,0.45)',
+                  boxShadow: '0 2px 6px rgba(var(--accent-rgb), 0.45)',
                 }}>{feedBadge > 99 ? '99+' : feedBadge}</span>
               )}
               {item.id === 'homeworkList' && hwBadge > 0 && (
@@ -151,7 +151,7 @@ export default function MobileBottomNav() {
                   borderRadius: 999, background: 'var(--grad-purple)',
                   color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(106,90,230,0.45)',
+                  boxShadow: '0 2px 6px rgba(var(--accent-rgb), 0.45)',
                 }}>{hwBadge > 99 ? '99+' : hwBadge}</span>
               )}
               <motion.span

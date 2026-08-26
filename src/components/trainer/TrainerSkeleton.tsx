@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import TrainerShell from './TrainerShell'
+import { useT } from '../../lib/i18n'
 
 /** Серая плашка: класс .skeleton даёт фон и бегущий блик. */
 function Bar({ w = '100%', h = 14, r = 8 }: { w?: number | string; h?: number; r?: number }) {
@@ -21,8 +22,9 @@ function Bar({ w = '100%', h = 14, r = 8 }: { w?: number | string; h?: number; r
 }
 
 export default function TrainerSkeleton() {
+  const t = useT()
   return (
-    <div role="status" aria-busy="true" aria-label="Загрузка тренажёра">
+    <div role="status" aria-busy="true" aria-label={t('Загрузка тренажёра')}>
       <TrainerShell
         rail={
           <>

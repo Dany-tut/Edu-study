@@ -361,7 +361,7 @@ function PomoControls() {
                   fontSize: 12.5, fontWeight: 650, lineHeight: 1,
                   border: active ? `1px solid ${POMO_ACCENT}` : '1px solid transparent',
                   color: active ? POMO_ACCENT : 'var(--color-text-2)',
-                  background: active ? 'rgba(123,97,255,0.10)' : 'var(--color-bg-3)',
+                  background: active ? 'rgba(var(--accent-rgb), 0.10)' : 'var(--color-bg-3)',
                   transition: 'all 0.18s ease',
                 }}
               >

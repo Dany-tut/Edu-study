@@ -114,7 +114,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                 cursor: disabled ? 'default' : 'pointer',
                 border: `1px solid ${
                   showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
-                    : chosen ? 'rgba(99,84,207,0.45)' : 'var(--color-border-soft)'
+                    : chosen ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-soft)'
                 }`,
                 background: showVerdict
                   ? (ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)')
@@ -138,7 +138,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                     borderRadius: 9, fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
                     textAlign: 'center', verticalAlign: 'middle',
                     color: word ? 'var(--color-text)' : 'var(--color-text-4)',
-                    border: word ? '1.5px solid rgba(99,84,207,0.4)' : '1.5px dashed var(--color-border-strong)',
+                    border: word ? '1.5px solid rgba(var(--accent-rgb), 0.4)' : '1.5px dashed var(--color-border-strong)',
                     background: word ? 'rgba(var(--glass-rgb), 0.96)' : 'transparent',
                     cursor: disabled ? 'default' : 'pointer',
                   }}

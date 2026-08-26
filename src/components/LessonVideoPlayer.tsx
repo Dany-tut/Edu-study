@@ -1308,6 +1308,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               src={poster}
               alt=""
               onError={() => setPosterFallback(true)}
+              // На отсутствующий maxresdefault YouTube отвечает 404, но телом
+              // отдаёт НАСТОЯЩУЮ картинку — серую заглушку 120×90. Браузер
+              // рисует её как обычный кадр, onError молчит, и у ролика без
+              // maxres заставкой становился серый прямоугольник. Ловим по
+              // размеру: настоящий кадр всегда шире 120 пикселей.
+              onLoad={e => {
+                if (e.currentTarget.naturalWidth <= 120) setPosterFallback(true)
+              }}
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.62 }}
             />
           )}

@@ -6,6 +6,7 @@ import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
 import { BREAK_SPACE, bindShortWords, isDenseScript, keepsTogether, langWrap, proseWrap } from '../lib/typography'
+import { BOLD_WEIGHT, isBoldAt, parseBold } from '../lib/markup'
 import { hasTiers, tierLabel, tierNote, wordTier } from '../data/coreWords'
 import { speak, type SpeechHandle } from '../lib/speech'
 import { addCards, deckOwner } from '../data/reviewDeck'
@@ -140,8 +141,12 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   style?: React.CSSProperties
 }) {
   const t = useT()
+  // Выделение **важного** снимается до разбора на слова: иначе звёздочки
+  // прилипали бы к соседнему слову и уезжали в словарь вместе с ним
+  // («**вытягивать» искалось бы как отдельное слово и не находилось).
+  const { text: body, bold } = useMemo(() => parseBold(text), [text])
   const lex = useMemo(() => buildLexicon(lang, extra), [lang, extra])
-  const segments = useMemo(() => lex.segment(text), [lex, text])
+  const segments = useMemo(() => lex.segment(body), [lex, body])
 
   // В плотном письме связок нет: пробелов там не бывает вовсе, и «кусок между
   // пробелами» — это вся реплика. Перенос между знаками для японского и
@@ -157,22 +162,25 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   // связку целиком, вместе с попавшими в неё словами-кнопками (почему именно
   // так — см. lib/typography, «Связки в разметке»).
   const bundles = useMemo(() => {
-    type Item = { seg: number } | { text: string }
+    type Item = { at: number; seg: number } | { at: number; text: string }
     type Bundle = { kind: 'gap'; text: string } | { kind: 'tie'; items: Item[]; text: string }
     const out: Bundle[] = []
     let tie: { kind: 'tie'; items: Item[]; text: string } | null = null
+    // Место куска в тексте: по нему кусок узнаёт, попал ли он в выделение.
+    let at = 0
     const add = (item: Item, text: string) => {
       if (!tie) { tie = { kind: 'tie', items: [], text: '' }; out.push(tie) }
       tie.items.push(item)
       tie.text += text
     }
     segments.forEach((seg, i) => {
-      if (seg.word) { add({ seg: i }, seg.text); return }
+      if (seg.word) { add({ at, seg: i }, seg.text); at += seg.text.length; return }
       // Нечётные куски разреза — сами пробелы: только они и рвут связку.
       seg.text.split(BREAK_SPACE).forEach((chunk, k) => {
         if (!chunk) return
         if (k % 2 === 1) { tie = null; out.push({ kind: 'gap', text: chunk }) }
-        else add({ text: chunk }, chunk)
+        else add({ at, text: chunk }, chunk)
+        at += chunk.length
       })
     })
     return out
@@ -199,10 +207,11 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   // разницу — «될까요 ?».
   const rubyUnits = useMemo(() => {
     if (!ruby) return null
-    type Item = { seg: number } | { text: string }
+    type Item = { at: number; seg: number } | { at: number; text: string }
     type Unit = { kind: 'col'; items: Item[]; text: string } | { kind: 'space'; text: string }
     const out: Unit[] = []
     let col: { kind: 'col'; items: Item[]; text: string } | null = null
+    let at = 0
     const flush = () => { if (col) { out.push(col); col = null } }
     // В японском пробелов нет, и «колонка до пробела» склеивала ВСЮ реплику в
     // одну колонку с nowrap: строка переставала переноситься и уезжала поверх
@@ -230,7 +239,8 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     segments.forEach((seg, i) => {
       if (seg.word) {
         if (dense && breaks(seg.text, !!seg.gloss)) flush()
-        add({ seg: i }, seg.text)
+        add({ at, seg: i }, seg.text)
+        at += seg.text.length
         return
       }
       // Пробелы рвут колонку, всё остальное липнет к соседнему слову.
@@ -238,8 +248,9 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
         if (/^\s/.test(chunk)) { flush(); out.push({ kind: 'space', text: chunk }) }
         else {
           if (dense && breaks(chunk, false)) flush()
-          add({ text: chunk }, chunk)
+          add({ at, text: chunk }, chunk)
         }
+        at += chunk.length
       }
     })
     flush()
@@ -471,7 +482,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   }
 
   /** Слово: кликабельный кусок текста со всеми его состояниями. */
-  function chipFor(seg: Segment, i: number) {
+  function chipFor(seg: Segment, i: number, at: number) {
     const on = active?.i === i
     const hit = isHit(seg)
     const said = i === spokenIndex
@@ -523,6 +534,10 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               boxShadow: hit || said || on
                 ? `0 0 0 2px ${hit ? `${accent}3d` : said ? `${accent}33` : `${accent}22`}`
                 : 'none',
+              // Выделенное автором слово остаётся выделенным и разобранным по
+              // словарю: жирность — свойство куска текста, а не отдельного слоя
+              // разметки поверх него.
+              fontWeight: isBoldAt(bold, at) ? BOLD_WEIGHT : undefined,
               transition: 'background 140ms ease',
             }}
           >
@@ -564,8 +579,8 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
             }}>
               <span style={{ whiteSpace: 'nowrap' }}>
                 {u.items.map((it, j) => ('seg' in it
-                  ? chipFor(segments[it.seg], it.seg)
-                  : <span key={`p${j}`}>{it.text}</span>))}
+                  ? chipFor(segments[it.seg], it.seg, it.at)
+                  : <span key={`p${j}`} style={isBoldAt(bold, it.at) ? { fontWeight: BOLD_WEIGHT } : undefined}>{it.text}</span>))}
               </span>
               <span style={{
                 fontSize: RUBY_SIZE, lineHeight: 1.4, color: 'var(--color-text-3)',
@@ -583,8 +598,10 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
           : (
             <span key={k} style={ties && keepsTogether(b.text) ? { whiteSpace: 'nowrap' } : undefined}>
               {b.items.map((it, j) => ('seg' in it
-                ? chipFor(segments[it.seg], it.seg)
-                : <Fragment key={`t${j}`}>{it.text}</Fragment>))}
+                ? chipFor(segments[it.seg], it.seg, it.at)
+                : isBoldAt(bold, it.at)
+                  ? <span key={`t${j}`} style={{ fontWeight: BOLD_WEIGHT }}>{it.text}</span>
+                  : <Fragment key={`t${j}`}>{it.text}</Fragment>))}
             </span>
           )))}
 

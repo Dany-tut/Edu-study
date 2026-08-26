@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 import { BREAK_SPACE, keepsTogether, tidyProse } from '../lib/typography'
+import { BOLD_WEIGHT, parseBold } from '../lib/markup'
 
 // Учебный текст с правильными переносами.
 //
@@ -31,5 +32,22 @@ export function proseNodes(text: string, keyPrefix = 'p'): ReactNode[] {
 
 /** Абзац учебного текста: причёсан и разрезан на неразрывные связки. */
 export default function Prose({ text }: { text: string }) {
-  return <>{proseNodes(tidyProse(text))}</>
+  // Выделение снимаем ПОСЛЕ типографики: она вставляет в текст невидимые
+  // склейки, и границы, посчитанные до неё, разъехались бы на эти знаки.
+  const { text: clean, bold } = parseBold(tidyProse(text))
+  if (!bold.length) return <>{proseNodes(clean)}</>
+
+  const out: ReactNode[] = []
+  let at = 0
+  bold.forEach((run, i) => {
+    if (run.start > at) out.push(<Fragment key={`n${i}`}>{proseNodes(clean.slice(at, run.start), `n${i}`)}</Fragment>)
+    out.push(
+      <strong key={`b${i}`} style={{ fontWeight: BOLD_WEIGHT }}>
+        {proseNodes(clean.slice(run.start, run.end), `b${i}`)}
+      </strong>,
+    )
+    at = run.end
+  })
+  if (at < clean.length) out.push(<Fragment key="tail">{proseNodes(clean.slice(at), 'tail')}</Fragment>)
+  return <>{out}</>
 }

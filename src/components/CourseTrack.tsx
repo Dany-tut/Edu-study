@@ -533,7 +533,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: 4,
-                              boxShadow: '0 6px 20px rgba(99,84,207,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
+                              boxShadow: '0 6px 20px rgba(var(--accent-rgb), 0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
                             }}
                           >
                             <HardStarLottie size={26} />
@@ -669,7 +669,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                         width: '100%',
-                        boxShadow: '0 4px 14px rgba(99,84,207,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+                        boxShadow: '0 4px 14px rgba(var(--accent-rgb), 0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
                       }}
                     >
                       {t('Открыть урок')}

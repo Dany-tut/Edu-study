@@ -99,8 +99,8 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
             inset: 0,
             transformOrigin: 'left center',
             borderRadius: 12,
-            background: 'rgba(156,140,240,0.42)',
-            boxShadow: 'inset 0 0 0 1px rgba(99,84,207,0.18)',
+            background: 'rgba(var(--accent-rgb), 0.42)',
+            boxShadow: 'inset 0 0 0 1px rgba(var(--accent-rgb), 0.18)',
             zIndex: 0,
           }}
         />
@@ -252,7 +252,7 @@ function tileStyle(active: boolean, open: boolean): React.CSSProperties {
     padding: '10px 12px',
     borderRadius: 14,
     background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'var(--color-bg-2)',
-    border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
+    border: open ? '1px solid rgba(var(--accent-rgb), 0.4)' : '1px solid var(--color-border-soft)',
     boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
     minHeight: 56,
     cursor: active ? 'pointer' : 'default',
@@ -548,7 +548,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
         gap: 6,
         borderRadius: singleRow ? 16 : 20,
         background: 'var(--grad-purple)',
-        boxShadow: '0 12px 28px rgba(123,97,255,0.28)',
+        boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
       }}
     >
       {rows.map(({ id, icon: Icon, iconSize, title }) => {
@@ -593,7 +593,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
                   fontSize: 12,
                   fontWeight: 700,
                   color: solidWhite ? 'var(--color-accent)' : 'rgba(255,255,255,0.92)',
-                  background: solidWhite ? 'rgba(99,84,207,0.10)' : 'rgba(255,255,255,0.18)',
+                  background: solidWhite ? 'rgba(var(--accent-rgb), 0.10)' : 'rgba(255,255,255,0.18)',
                   borderRadius: 8,
                   padding: '2px 7px',
                 }}

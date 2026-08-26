@@ -32,7 +32,7 @@ export default function ThemeToggleBtn() {
         cursor: 'pointer',
         paddingLeft: 8,
         paddingRight: 8,
-        background: dark ? 'rgba(124,108,224,0.16)' : 'transparent',
+        background: dark ? 'rgba(var(--accent-rgb), 0.16)' : 'transparent',
         color: dark ? 'var(--color-accent)' : 'var(--color-muted)',
         transition: 'background 0.25s, color 0.25s',
         flexShrink: 0,

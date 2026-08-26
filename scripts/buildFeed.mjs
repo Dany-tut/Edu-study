@@ -220,6 +220,29 @@ const SOURCES = {
     topic: 'Наука и техника',
     url: 'https://www.korea.kr/news/policyNewsList.do?smenu=EDS01',
   },
+  // НАУКА КАЖДЫЙ ДЕНЬ — через поиск по пресс-релизам ведомств (см. `view` в
+  // fromKogl). Отдельного научного раздела у korea.kr нет, зато есть 보도자료
+  // всех министерств с работающим `srchWord`, и 과학기술정보통신부 выпускает
+  // релизы про ИИ, исследования и космос ежедневно. Лицензия та же — 제1유형.
+  //
+  // Тем ТРИ, а не одна: один поисковый запрос отдаёт двадцать заметок, из
+  // которых до ленты доезжают четыре, и в узкой теме они были бы про одно и
+  // то же совещание. Слова выбраны так, чтобы почти не пересекаться.
+  'korea-kr-ai': {
+    lang: 'ko', name: '보도자료 · 인공지능', kind: 'kogl', view: 'press',
+    lane: 'free', level: 'TOPIK 5급', topic: 'Технологии и ИИ',
+    url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5',
+  },
+  'korea-kr-research': {
+    lang: 'ko', name: '보도자료 · 연구개발', kind: 'kogl', view: 'press',
+    lane: 'free', level: 'TOPIK 5급', topic: 'Наука',
+    url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%97%B0%EA%B5%AC%EA%B0%9C%EB%B0%9C',
+  },
+  'korea-kr-space': {
+    lang: 'ko', name: '보도자료 · 우주', kind: 'kogl', view: 'press',
+    lane: 'free', level: 'TOPIK 5급', topic: 'Наука',
+    url: 'https://www.korea.kr/briefing/pressReleaseList.do?srchWord=%EC%9A%B0%EC%A3%BC',
+  },
 
   // ── Наука, техника, искусство: каналы ──────────────────────────────────────
   //
@@ -522,6 +545,9 @@ const unescape = s => s
   .replace(/&quot;/g, '"').replace(/&#0?39;|&#8217;|&rsquo;|&apos;/g, '’')
   .replace(/&#8220;|&ldquo;/g, '“').replace(/&#8221;|&rdquo;/g, '”')
   .replace(/&#8212;|&mdash;/g, '—').replace(/&#8230;|&hellip;/g, '…')
+  // Корейские ведомства пишут «한·중», и в их разметке это именованная
+  // сущность: без неё в заголовок ленты приезжало «한&middot;중».
+  .replace(/&middot;/g, '·').replace(/&bull;/g, '•').replace(/&deg;/g, '°')
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
   .replace(/&amp;/g, '&')
 
@@ -737,6 +763,42 @@ async function fromAtom(id, src) {
  * на самой странице: «단, 텍스트를 제외한 사진·이미지…». Подписи под снимками
  * приходят внутри текста заметки, поэтому их вырезаем отдельно.
  */
+/**
+ * Лиды пресс-релизов из списка 보도자료: id → пригодный для чтения абзац.
+ *
+ * ГОДИТСЯ ДАЛЕКО НЕ КАЖДЫЙ, и отсев тут не придирка — прогон показал ровно три
+ * вида мусора на четыре релиза:
+ *   • «…분석하고 최종 판단은» — лид обрезан С НАЧАЛА, предложение начинается с
+ *     многоточия;
+ *   • «자세한 사항은 붙임파일을 참고하시기 바랍니다» — вместо текста отписка про
+ *     вложенный PDF;
+ *   • «국정 전반에  ,  이를  (AI)  시대에» — текст, вынутый из
+ *     сконвертированного документа вместе с его вёрсткой: пробелы перед
+ *     запятыми и в середине слов.
+ * Читать такое нельзя, а отличить машинно — можно, чем ниже и заняты три
+ * проверки.
+ */
+function pressLeads(section) {
+  const RE = /pressReleaseView\.do\?newsId=(\d+)[\s\S]{0,700}?<span class="lead">([\s\S]*?)<span class="source">/g
+  const out = new Map()
+  for (const m of section.matchAll(RE)) {
+    if (out.has(m[1])) continue
+    const lead = strip(m[2])
+    if (/^\s*[.…]/.test(lead)) continue
+    if (/붙임파일|참고하시기 바랍니다|관련 보도자료 내용입니다/.test(lead)) continue
+    // Вёрстка документа: пробел перед знаком препинания или двойной пробел.
+    // Три попадания — уже не опечатка, а разобранная на куски строка.
+    if ((lead.match(/\s[.,)]|\s{2}/g) ?? []).length >= 3) continue
+    // Режем по последнему ЦЕЛОМУ предложению: лид обрывается на середине, и
+    // пост, кончающийся полусловом, читается как ошибка загрузки.
+    const end = Math.max(lead.lastIndexOf('다.'), lead.lastIndexOf('. '))
+    const text = end > 40 ? lead.slice(0, end + 2).trim() : lead
+    if (text.length < 60) continue
+    out.set(m[1], text)
+  }
+  return out
+}
+
 const koglSeen = new Set()
 
 async function fromKogl(id, src) {
@@ -750,16 +812,37 @@ async function fromKogl(id, src) {
   const to = list.indexOf('paging', from)
   const section = from < 0 ? list : list.slice(from, to > 0 ? to : undefined)
 
+  // ДВЕ ВИТРИНЫ ОДНОГО САЙТА. `policyNews` — редакционные заметки 정책브리핑,
+  // написанные газетным языком. `press` — сырые пресс-релизы ведомств
+  // (브리핑룸 · 보도자료): язык суше, зато их несколько сотен в неделю и они
+  // ФИЛЬТРУЮТСЯ ПОИСКОМ. Это и есть ответ на «кто в Корее пишет про науку
+  // каждый день»: отдельного научного раздела у korea.kr нет, а
+  // `?srchWord=인공지능` отдаёт ровно релизы про ИИ — и всё под тем же
+  //공공누리 제1유형.
+  const press = src.view === 'press'
+  const viewPath = press ? 'briefing/pressReleaseView' : 'news/policyNewsView'
+  const linkRe = press
+    ? /pressReleaseView\.do\?newsId=(\d+)/g
+    : /policyNewsView\.do\?newsId=(\d+)/g
+
   const newsIds = []
-  for (const m of section.matchAll(/policyNewsView\.do\?newsId=(\d+)/g)) {
+  for (const m of section.matchAll(linkRe)) {
     if (!newsIds.includes(m[1])) newsIds.push(m[1])
   }
+
+  // ТЕКСТ ПРЕСС-РЕЛИЗА БЕРЁТСЯ ИЗ СПИСКА, А НЕ СО СТРАНИЦЫ. На странице
+  // 보도자료 тела нет вовсе: там iframe вьюера документов, который дорисовывает
+  // сконвертированный HWP скриптом. Зато в списке у каждого релиза стоит лид на
+  // два-три предложения — тот же текст, та же лицензия, и читать его в ленте
+  // даже лучше, чем министерский документ целиком.
+  const leads = press ? pressLeads(section) : null
+
+  const out = []
 
   // Подпись под фотографией, копирайт фотобанка и служебный хвост заметки.
   // Всё это лежит в тексте абзацами и без отсева читается как часть новости.
   const SERVICE = /\(사진=|사진 제공|사진=|저작권자|무단 전재|무단전재|재배포 금지|^문의\s*[:：]|정책브리핑.{0,24}자료는|공공누리/
 
-  const out = []
   for (const newsId of newsIds) {
     if (out.length >= LIMIT) break
 
@@ -768,7 +851,7 @@ async function fromKogl(id, src) {
     if (koglSeen.has(newsId)) continue
     koglSeen.add(newsId)
 
-    const url = `https://www.korea.kr/news/policyNewsView.do?newsId=${newsId}`
+    const url = `https://www.korea.kr/${viewPath}.do?newsId=${newsId}`
     const page = await get(url)
 
     if (!page.includes('공공누리 제1유형')) {
@@ -783,7 +866,19 @@ async function fromKogl(id, src) {
 
     const bodyHtml = ((page.match(/<div class="article_body">([\s\S]*?)<div class="article_footer"/) ?? [])[1] ?? '')
       .replace(/<(script|style)[\s\S]*?<\/\1>/g, '')
-    const paras = paragraphs(bodyHtml).filter(p => !SERVICE.test(p))
+    const paras = press
+      ? (leads.get(newsId) ? [leads.get(newsId)] : [])
+      : paragraphs(bodyHtml).filter(p => !SERVICE.test(p))
+    // Один релиз ведомства попадает в выдачу нескольких поисковых слов, а
+    // иногда и подаётся дважды разными агентствами: «천리안위성 6호» приехал и
+    // по «연구개발», и по «우주». Номера у таких заметок разные, поэтому
+    // помним ещё и заголовок.
+    if (title && koglSeen.has(title)) {
+      console.log(`  ✕ «${title.slice(0, 44)}…» — уже есть в ленте`)
+      continue
+    }
+    if (title) koglSeen.add(title)
+
     if (!title || paras.length === 0) {
       console.log(`  ✕ ${newsId} — на странице не нашлось текста`)
       continue

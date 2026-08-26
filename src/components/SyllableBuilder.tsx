@@ -165,7 +165,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                   fontSize: 32, lineHeight: 1, fontWeight: 700,
                   color: filled ? 'var(--color-text)' : 'var(--color-text-4)',
                   border: filled
-                    ? '1.5px solid rgba(99,84,207,0.38)'
+                    ? '1.5px solid rgba(var(--accent-rgb), 0.38)'
                     : '1.5px dashed var(--color-border-strong)',
                   background: filled ? 'var(--color-purple-soft)' : 'transparent',
                   cursor: disabled || !filled ? 'default' : 'pointer',

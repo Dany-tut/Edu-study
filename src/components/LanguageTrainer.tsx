@@ -1815,7 +1815,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   let toolbar: React.ReactNode = null
   if (scenesOn) {
     toolbar = (
-      <Toolbar>
+      <Toolbar count={openWork ? undefined : visibleWorks.length}>
         {openWork ? (
           <ToolButton onClick={() => setOpenWorkId(null)}>
             <ChevronLeft size={14} /> {t('К полкам')}
@@ -1868,7 +1868,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (isLang) {
     toolbar = (
-      <Toolbar>
+      <Toolbar count={library.length}>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Название или тема…')} />
         <StatusTabs
           options={[
@@ -1886,7 +1886,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (mode === 'grammar') {
     toolbar = (
-      <Toolbar>
+      <Toolbar count={openForm ? undefined : gramFound}>
         {openForm ? (
           <ToolButton onClick={() => setOpenFormId(null)}>
             <ChevronLeft size={14} /> {t('К справочнику')}
@@ -1969,7 +1969,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (mode === 'vocab' && hasBook && vocabView === 'sets' && !openItem) {
     toolbar = (
-      <Toolbar>
+      <Toolbar count={visibleThemes.length}>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Найти тему…')} />
         <StatusTabs
           options={[
@@ -1990,7 +1990,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (mode === 'vocab' && packsOn && vocabView === 'packs' && !openPack) {
     toolbar = (
-      <Toolbar>
+      <Toolbar count={packDecks.length}>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или набор…')} />
         <StatusTabs
           options={[
@@ -2055,7 +2055,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (mode === 'speaking') {
     toolbar = (
-      <Toolbar>
+      <Toolbar count={speakCounts.shown}>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Найти задание…')} />
         <StatusTabs
           options={[
