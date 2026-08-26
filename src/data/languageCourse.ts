@@ -283,12 +283,19 @@ export interface LanguageCourseSpec {
 // Язык в хелперы не передаётся: `lang` штампуется сборщиком на все задания
 // курса разом, иначе его пришлось бы указывать в каждой строке контента.
 
-/** Один верный вариант. */
-export const one = (question: string, choices: string[], correct: number): SeedTask => {
-  // Место верного ответа считается от вопроса, а не пишется нулём (Р15).
-  const spread = placeCorrect(question, choices, correct)
-  return { type: 'single', question, choices: spread.choices, correctChoices: [spread.correct] }
-}
+/**
+ * Один верный вариант.
+ *
+ * Место верного ответа ЗДЕСЬ НЕ СЧИТАЕТСЯ, хотя раньше считалось. В момент
+ * вызова задание безадресно: сиды — это списки, которые собираются на загрузке
+ * модуля, а в каком уроке и каким по счёту окажется задание, решает сборщик
+ * курса. Позиция же обязана зависеть именно от адреса (Р15, см. placeCorrect),
+ * иначе одинаково сформулированные вопросы получают одну ячейку на весь курс.
+ * Раскладывает editorTask — единственная точка, через которую проходит КАЖДОЕ
+ * задание и где у него уже есть id.
+ */
+export const one = (question: string, choices: string[], correct: number): SeedTask =>
+  ({ type: 'single', question, choices, correctChoices: [correct] })
 
 /**
  * Несколько верных вариантов.
@@ -707,10 +714,31 @@ export const compareImages = (question: string, images: string[], hints: ImageTa
  * Задание сида → задание редактора. Дефолты типа кладутся первыми, поля сида
  * их перекрывают: так задание не приезжает в редактор с пустыми обязательными
  * полями (например, `allowSlow` у аудио-типов), но и не теряет своё содержимое.
+ *
+ * ЗДЕСЬ ЖЕ РАСКЛАДЫВАЕТСЯ ВЫБОР (Р15). Через editorTask проходит каждое задание
+ * курса, и здесь у него впервые есть АДРЕС — id вида `<урок>-t7`, то есть урок
+ * плюс номер задания в уроке. Именно адрес и служит солью: от него зависит и
+ * место верного варианта, и порядок обманок. Считать это раньше (в хелперах
+ * `one`, в лестнице) было нельзя — там известен только текст вопроса, а он у
+ * генерируемых заданий повторяется дословно.
+ *
+ * Заодно правило перестало зависеть от автора: раскладывается ЛЮБОЙ одиночный
+ * выбор, включая написанные руками прямо в юните, а не только собранные через
+ * `one()`.
  */
 function editorTask(seed: SeedTask, id: string, lang: string) {
   const def = TASK_TYPES[seed.type]
-  return { isHard: false, label: def.label, lang, ...def.makeDefault(), ...seed, id }
+  const task = { isHard: false, label: def.label, lang, ...def.makeDefault(), ...seed, id }
+  const choices = task.choices ?? []
+  const correct = task.correctChoices ?? []
+  // Только одиночный выбор: у множественного верных несколько, и «место
+  // верного» там не определено.
+  if (task.type === 'single' && choices.length > 1 && correct.length === 1) {
+    const spread = placeCorrect(task.question ?? '', choices, correct[0], id)
+    task.choices = spread.choices
+    task.correctChoices = [spread.correct]
+  }
+  return task
 }
 
 /**

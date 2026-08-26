@@ -30,7 +30,7 @@
 
 import type { SeedTask, VocabItem } from './languageCourse'
 import { chamoOf, syllableDistractors } from './hangul'
-import { answerSide, placeCorrect } from './taskTypes'
+import { answerSide } from './taskTypes'
 
 /**
  * Хангыль или кана: письмо, которое ученику курса «с нуля» ещё незнакомо.
@@ -509,18 +509,16 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
     // ПОЧЕМУ НЕ «ЧЕРЕЗ ОДНОГО». Раньше сторона считалась как `i % 2 === 0` — по
     // номеру слова В ПОРЦИИ. В порции из одного слова номер всегда нулевой, и
     // верный ответ у неё всегда первый; порций из одного-двух слов в курсах
-    // большинство. Общий хелпер считает место от самого вопроса и такого
-    // вырождения не имеет.
+    // большинство.
+    //
+    // ПОЧЕМУ НЕ ЗДЕСЬ. Место считает editorTask (languageCourse.ts): солью
+    // служит адрес задания — id урока плюс номер, — а он появляется только на
+    // сборке курса. Ступени лестницы формулируются одинаково («Что значит …?»)
+    // и от одного текста вопроса разложились бы на весь курс одинаково.
     const question = native
       ? `Что точно значит «${label(w)}»?`
       : `Что значит ${label(w)}?`
-    const spread = placeCorrect(question, [w.ru, other.ru], 0)
-    return {
-      type: 'single',
-      question,
-      choices: spread.choices,
-      correctChoices: [spread.correct],
-    }
+    return { type: 'single', question, choices: [w.ru, other.ru], correctChoices: [0] }
   })
 
   // Звук нужен только там, где слово звучит не так, как пишется по-русски:
