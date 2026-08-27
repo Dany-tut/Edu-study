@@ -61,11 +61,29 @@ const TRIGGER_MAX = 92
 const RUBBER = 0.32
 /** Быстрый смах засчитывается и не дотянув до порога (px/мс). */
 const FLING = 0.5
-/** Скругление углов уезжающей карточки — набегает за первые пиксели хода. */
+/**
+ * Скругление углов уезжающей карточки.
+ *
+ * ВСТАЁТ ОДИН РАЗ, В НАЧАЛЕ ЖЕСТА, а не набегает по мере хода. Радиус,
+ * привязанный к пройденному пути, «съезжал»: углы дышали на каждом дрожании
+ * пальца, а на возврате скругление успевало распрямиться раньше, чем карточка
+ * доезжала до места, — два движения вместо одного. В X пост скруглён всегда, и
+ * читается это как одна вещь, которую двигают, а не как форма, которая по
+ * дороге меняется.
+ */
 const CORNER = 18
-const CORNER_RAMP = 22
-/** Воздух вокруг заливки: она не должна резать пост по фотографии. */
-const BLEED_Y = 12
+/** Сколько занимает само появление скругления и тени. */
+const CORNER_IN = '.2s'
+/**
+ * Насколько заливка выходит за строку поста по вертикали.
+ *
+ * НОЛЬ, И ЭТО НЕ ЭКОНОМИЯ. Лента разрезана на посты волосяными линиями, и
+ * подсветка действия — это подсветка СТРОКИ: ровно от разделителя до
+ * разделителя, как в X. Стоило ей выйти за них на десяток пикселей, и цвет
+ * ложился на низ соседнего поста сверху и на верх следующего снизу — то есть
+ * обещал действие тем постам, к которым отношения не имеет.
+ */
+const BLEED_Y = 0
 /**
  * Воздух ВНУТРИ уезжающей карточки — по бокам.
  *
@@ -269,12 +287,17 @@ export default function FeedSwipe({
       return !!el?.closest('a, button, input, textarea, select, iframe, video, [role="button"], [data-no-gesture]')
     }
 
+    /** Форму и тень ставим один раз, на старте жеста: дальше карточку только возят. */
+    const liftCard = () => {
+      card.style.transition = `border-radius ${CORNER_IN} ease, box-shadow ${CORNER_IN} ease`
+      card.style.borderRadius = `${CORNER}px`
+      card.style.boxShadow = '0 6px 22px rgba(0,0,0,0.16)'
+    }
+
+    // Только transform: он не перечислен в переходе выше, поэтому идёт за
+    // пальцем кадр в кадр, пока форма доезжает своим чередом.
     const paintCard = (x: number) => {
-      const p = Math.min(1, Math.abs(x) / trigger())
-      const r = Math.min(CORNER, Math.abs(x) / CORNER_RAMP * CORNER)
       card.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`
-      card.style.borderRadius = `${r.toFixed(2)}px`
-      card.style.boxShadow = x ? `0 ${(6 * p).toFixed(1)}px ${(22 * p).toFixed(1)}px rgba(0,0,0,${(0.16 * p).toFixed(3)})` : 'none'
     }
 
     /**
@@ -329,16 +352,23 @@ export default function FeedSwipe({
     }
 
     const settle = (fired: boolean) => {
-      card.style.transition = `transform .42s ${EASE}, border-radius .3s ${EASE}, box-shadow .3s ease`
+      // ОДНА ДЛИТЕЛЬНОСТЬ И ОДНА КРИВАЯ НА ВСЁ. Раньше углы распрямлялись за
+      // .3s, а карточка возвращалась за .42s: форма приезжала раньше места, и
+      // возврат читался двумя движениями вместо одного.
+      card.style.transition = `transform .42s ${EASE}, border-radius .42s ${EASE}, box-shadow .42s ${EASE}`
       paintCard(0)
+      card.style.borderRadius = '0px'
+      card.style.boxShadow = 'none'
       const layers = [leftRef.current, rightRef.current]
       layers.forEach(l => {
         if (!l) return
-        l.style.transition = 'opacity .3s ease, background .3s ease'
+        // Заливка гаснет ровно столько, сколько едет карточка: она и есть то,
+        // что из-под карточки видно, и жить своей длительностью ей незачем.
+        l.style.transition = `opacity .42s ${EASE}, background .42s ${EASE}`
         l.style.opacity = '0'
         const dot = l.firstElementChild as HTMLElement | null
         if (dot) {
-          dot.style.transition = `transform .34s ${EASE}, opacity .3s ease`
+          dot.style.transition = `transform .42s ${EASE}, opacity .34s ease`
           // Сработало — знак уходит «наверх и в стороны», как отпущенный;
           // не дотянул — просто складывается обратно в ноль.
           dot.style.transform = fired ? 'scale(1.45) rotate(0deg)' : 'scale(0.2) rotate(-22deg)'
@@ -436,6 +466,7 @@ export default function FeedSwipe({
         card.style.margin = `0 ${-CARD_AIR}px`
         card.style.position = 'relative'
         card.style.zIndex = '1'
+        liftCard()
         // Пост на мобильной главной прозрачный — без подложки слой действия
         // просвечивал бы сквозь текст, пока карточка едет.
         card.style.background = cfg.current.surface
