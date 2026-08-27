@@ -61,6 +61,8 @@ const WRITE = args.includes('--write')
 /** `--via gpt` — обходной поставщик на случай, когда Claude-адаптер шлюза лежит. */
 const VIA_GPT = String(flag('--via', 'claude')) === 'gpt'
 const GPT_MODEL = String(flag('--gpt-model', 'gpt-5-6-sol'))
+/** Слов в одном запросе. Больше сорока — ответ упирается в лимит вывода. */
+const BATCH = Number(flag('--batch', 40))
 const SRT_DIR = String(flag('--srt', '')).replace(/^~/, process.env.HOME ?? '')
 const LIMIT = Number(flag('--limit', 60))
 /**
@@ -259,10 +261,27 @@ async function translate(words) {
 
   if (VIA_GPT) {
     if (!kie) throw new Error('--via gpt работает только через шлюз: задай KIE_API_KEY')
-    const list = words.map(w => `${w.term} — в ${w.episodes} сериях; в реплике: "${w.context}"`).join('\n')
-    const text = await viaCodex(`${SYSTEM}\n\nСлова:\n${list}`, kie, GPT_MODEL)
-    const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
-    return JSON.parse(json)
+    // Пачками, а не одним запросом: на трёх сотнях слов ответ упирается в
+    // лимит вывода и обрывается на середине JSON, а обрыв виден только тем, что
+    // половина карточек молча не доехала. Сорок слов проходят гарантированно.
+    const out = []
+    for (let i = 0; i < words.length; i += BATCH) {
+      const chunk = words.slice(i, i + BATCH)
+      const list = chunk.map(w => `${w.term} — в ${w.episodes} сериях; в реплике: "${w.context}"`).join('\n')
+      process.stdout.write(`  пачка ${Math.floor(i / BATCH) + 1}/${Math.ceil(words.length / BATCH)} (${chunk.length} слов)… `)
+      try {
+        const text = await viaCodex(`${SYSTEM}\n\nСлова:\n${list}`, kie, GPT_MODEL)
+        const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
+        const parsed = JSON.parse(json)
+        out.push(...parsed)
+        console.log(`${parsed.length} шт.`)
+      } catch (e) {
+        // Пачка потеряна — это не повод ронять весь прогон: остальные доедут,
+        // а недостающие слова назовёт сверка в конце.
+        console.log(`сбой: ${String(e.message).slice(0, 80)}`)
+      }
+    }
+    return out
   }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk')
