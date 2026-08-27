@@ -169,7 +169,9 @@ export default function MobileSheet({
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               borderRadius: '28px 28px 0 0',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+              // Низа у шторки нет: контент уходит под край экрана, как на
+              // главной и в курсах. Отступ под safe-area живёт внутри —
+              // в прокрутке (или в подвале), а не мёртвой полосой под ними.
               maxHeight: '85dvh',
               display: 'flex', flexDirection: 'column',
             }}
@@ -211,7 +213,9 @@ export default function MobileSheet({
               style={{
                 overflowY: 'auto',
                 overscrollBehavior: 'contain',
-                padding: footer ? '10px 20px 20px' : '10px 20px 8px',
+                padding: footer
+                  ? '10px 20px 20px'
+                  : '10px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)',
                 // Content melts under the grabber/header instead of hard-cutting:
                 // the top edge fades out as rows scroll up to it, and the bottom
                 // edge fades under the pinned footer. paddingTop/Bottom keep the
@@ -227,7 +231,7 @@ export default function MobileSheet({
               {children}
             </div>
             {footer && (
-              <div style={{ flexShrink: 0, padding: '8px 20px 0' }}>
+              <div style={{ flexShrink: 0, padding: '8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
                 {footer}
               </div>
             )}

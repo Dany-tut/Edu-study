@@ -2726,8 +2726,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                     <Layers size={15} style={{ color: palette.accent, flexShrink: 0 }} aria-hidden />
                     {g.title}
                   </div>
+                  {/* Описание полки — тремя строками: у сида это целый абзац,
+                      и во всю длину плитка полки вырастала вчетверо выше
+                      соседних. */}
                   {!!g.about && (
-                    <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45 }}>
+                    <div style={{
+                      fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45,
+                      display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
                       {g.about}
                     </div>
                   )}
