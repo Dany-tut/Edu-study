@@ -50,7 +50,9 @@ const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeTex
   returned: { bg: 'var(--color-yellow-soft)', badgeBg: 'var(--color-yellow-soft)', badgeText: 'var(--color-yellow-text)', badgeLabel: 'возвращено на доработку', textColor: 'var(--color-text)', icon: RotateCcw },
   unviewed: { bg: 'var(--color-red-soft)', badgeBg: 'var(--color-red-soft)', badgeText: 'var(--color-red-text)', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: IconLessonRecording, custom: true },
   submitted: { bg: 'var(--color-peach-soft)', badgeBg: 'var(--color-peach-soft)', badgeText: 'var(--color-peach-text)', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
-  current: { bg: 'var(--color-purple-soft)', badgeBg: 'var(--color-purple-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
+  // Карточка (не узел трассы — тот держится на --status-now*): цвет курса с
+  // уровня «Акцент», как в сетке «Курсов».
+  current: { bg: 'var(--lesson-card-soft)', badgeBg: 'var(--lesson-card-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
   locked: { bg: 'var(--color-bg-4)', badgeBg: 'var(--color-bg-5)', badgeText: 'var(--color-muted)', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
 }
 

@@ -26,7 +26,7 @@ export type TintLevel = 'off' | 'accent' | 'soft' | 'ambient'
 
 export const TINT_LEVELS: { id: TintLevel; label: string; hint: string }[] = [
   { id: 'off',     label: 'Выключено', hint: 'Один фиолетовый на все курсы' },
-  { id: 'accent',  label: 'Акцент',    hint: 'Кнопки, прогресс, активная иконка' },
+  { id: 'accent',  label: 'Акцент',    hint: 'Кнопки, прогресс, карточки занятий' },
   { id: 'soft',    label: 'Подложки',  hint: 'Плюс плитки, бейджи, статистика' },
   { id: 'ambient', label: 'Среда',     hint: 'Плюс фон и стекло — весь экран в тоне' },
 ]
@@ -140,6 +140,12 @@ export function tintVars(hex: string, level: TintLevel, dark: boolean): Record<s
     // пятном посреди кораллового английского: экран уже перекрашен, а кнопка,
     // которой этот курс и выбирают, — ещё нет.
     '--tab-pill-active': dark ? hexToRgba(accent, 0.30) : hexToRgba(hex, 0.12),
+    // Плита карточки занятия — единственная «подложка», что красится уже здесь.
+    // Причина: подпись внутри карточки стоит на --color-accent, и на уровне
+    // «акцент» получалась коралловая строка на брендово-фиолетовой плите —
+    // читается как недокрашенный экран, а не как выбор глубины. Формула та же,
+    // что у --color-purple-soft ниже.
+    '--lesson-card-soft': dark ? hexToRgba(accent, 0.22) : hexToRgba(hex, 0.13),
   }
   if (level === 'accent') return vars
 
@@ -174,6 +180,7 @@ const BASE: Record<'light' | 'dark', Record<string, string>> = {
     '--glow-accent': '0 12px 28px rgba(106,90,230,0.35)',
     '--accent-rgb': '99, 84, 207',
     '--tab-pill-active': 'rgba(120,106,215,0.12)',
+    '--lesson-card-soft': '#E7E4FB',
     '--color-purple-soft': '#E7E4FB',
     '--color-purple-text': '#3D33A0',
     '--color-bg': NEUTRAL.light.bg,
@@ -193,6 +200,7 @@ const BASE: Record<'light' | 'dark', Record<string, string>> = {
     '--glow-accent': '0 12px 28px rgba(0,0,0,0.45)',
     '--accent-rgb': '124, 108, 224',
     '--tab-pill-active': 'rgba(140,128,235,0.30)',
+    '--lesson-card-soft': 'rgba(124,108,224,0.22)',
     '--color-purple-soft': 'rgba(124,108,224,0.22)',
     '--color-purple-text': '#DAD3FB',
     '--color-bg': NEUTRAL.dark.bg,
@@ -218,7 +226,7 @@ export function previewVars(hex: string, level: TintLevel, dark: boolean): Recor
 // не по последней применённой карте: иначе понижение уровня «среда» → «акцент»
 // оставляло бы подкрашенный фон навсегда.
 const OWNED = [
-  '--color-accent', '--color-purple', '--color-control-accent', '--grad-purple', '--grad-purple-bar', '--glow-accent', '--accent-rgb', '--tab-pill-active',
+  '--color-accent', '--color-purple', '--color-control-accent', '--grad-purple', '--grad-purple-bar', '--glow-accent', '--accent-rgb', '--tab-pill-active', '--lesson-card-soft',
   '--color-purple-soft', '--color-purple-text',
   '--color-bg', '--color-bg-2', '--color-bg-3', '--color-bg-4', '--color-bg-5', '--color-bg-input', '--glass-rgb',
 ]

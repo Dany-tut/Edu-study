@@ -21,7 +21,7 @@ export const EN: Record<string, string> = {
   'Подложки': 'Fills',
   'Среда': 'Ambient',
   'Один фиолетовый на все курсы': 'One purple for every course',
-  'Кнопки, прогресс, активная иконка': 'Buttons, progress, active icon',
+  'Кнопки, прогресс, карточки занятий': 'Buttons, progress, lesson cards',
   'Плюс плитки, бейджи, статистика': 'Plus tiles, badges, stats',
   'Плюс фон и стекло — весь экран в тоне': 'Plus background and glass — the whole screen',
   'Как у преподавателя': 'Same as teacher',

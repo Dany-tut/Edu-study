@@ -35,7 +35,8 @@ const ALL = 'all' as const
 type StatusVisual = { icon: typeof CheckCircle2; tintBg: string; tint: string; label: string }
 const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
   completed: { icon: CheckCircle2, tintBg: 'var(--color-green-soft)',  tint: 'var(--color-green-text)',  label: 'Выполнено' },
-  current:   { icon: Play,         tintBg: 'var(--color-purple-soft)', tint: 'var(--color-purple-text)', label: 'Сейчас' },
+  // Та же плита, что в десктопной сетке: цвет курса с уровня «Акцент».
+  current:   { icon: Play,         tintBg: 'var(--lesson-card-soft)', tint: 'var(--color-purple-text)', label: 'Сейчас' },
   returned:  { icon: RotateCcw,    tintBg: 'var(--color-yellow-soft)', tint: 'var(--color-yellow-text)', label: 'Возврат' },
   submitted: { icon: Clock,        tintBg: 'var(--color-peach-soft)',  tint: 'var(--color-peach-text)',  label: 'Проверка' },
   unviewed:  { icon: Video,        tintBg: 'var(--color-red-soft)',    tint: 'var(--color-red-text)',    label: 'Запись' },

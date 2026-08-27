@@ -103,6 +103,11 @@
   --color-control-accent: #6353C4;
   --color-avatar-bg: #7B6BD4;
   --color-purple-soft: #E7E4FB;
+  /* Плита карточки занятия «сейчас». Отдельно от --color-purple-soft, потому
+     что цвет курса берёт её уже на уровне «Акцент»: подпись внутри карточки —
+     --color-accent, и коралловый английский на брендово-фиолетовой плите
+     читался ошибкой вёрстки, а не оттенком (lib/courseTint.ts). */
+  --lesson-card-soft: #E7E4FB;
   --color-rose-soft: #FFE1F0;
   --color-rose-text: #CC4B7B;
   /* Accent = the lighter purple («стало»); in light theme kept a touch darker
@@ -250,6 +255,7 @@
   --color-amber-border: rgba(224,163,66,0.24);
   --color-amber-text: #E0A342;
   --color-purple-soft: rgba(124,108,224,0.22);
+  --lesson-card-soft: rgba(124,108,224,0.22);
   --color-rose-soft: rgba(204,75,123,0.22);
   /* Reminder card backgrounds — higher opacity for readability */
   --reminder-card-medium: rgba(255,160,20,0.14);
