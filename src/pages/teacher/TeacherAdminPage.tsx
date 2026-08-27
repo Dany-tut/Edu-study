@@ -11,11 +11,14 @@ import AdminUserActivity from '../../components/teacher/AdminUserActivity'
 import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsManager'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
+import Checkbox from '../../components/Checkbox'
+import { fetchAppFlags, setAppFlag } from '../../lib/cardGroups'
 import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
 import { useT, t as tGlobal } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
+import { getAuthUser } from '../../lib/owner'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -248,6 +251,67 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+
+/**
+ * Функции продукта — переключатели из app_flags.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНАЯ ПАНЕЛЬ, А НЕ КОНСТАНТА В КОДЕ. Часть возможностей выкатывают
+ * раньше, чем решают, показывать ли их всем: «ученик собирает свои наборы
+ * карточек» написан целиком и лежит выключенным. Переключить его — решение
+ * продуктовое, а не сборочное, и приниматься оно должно в проде, без деплоя.
+ *
+ * ТОЛЬКО У АДМИНА. Это рубильник на весь продукт: учитель не должен включать
+ * фичу чужим ученикам (политика на app_flags так и написана).
+ */
+function FeatureFlags() {
+  const t = useT()
+  const [rows, setRows] = useState<Array<{ key: string; enabled: boolean; about: string }>>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    fetchAppFlags().then(list => { if (alive) { setRows(list); setLoading(false) } })
+    return () => { alive = false }
+  }, [])
+
+  async function toggle(key: string, on: boolean) {
+    setBusy(key)
+    // Экран показывает новое состояние сразу, но откатывается, если база
+    // отказала: молчаливо соврать про рубильник хуже, чем моргнуть галочкой.
+    setRows(list => list.map(r => (r.key === key ? { ...r, enabled: on } : r)))
+    const ok = await setAppFlag(key, on)
+    if (!ok) setRows(list => list.map(r => (r.key === key ? { ...r, enabled: !on } : r)))
+    setBusy(null)
+  }
+
+  if (loading || rows.length === 0) return null
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
+        {t('Функции')}
+      </div>
+      <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
+        {rows.map((r, i) => (
+          <div key={r.key} style={{ padding: '14px 18px', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
+            <Checkbox
+              checked={r.enabled}
+              disabled={busy === r.key}
+              align="start"
+              onChange={v => toggle(r.key, v)}
+            >
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)' }}>{r.about || r.key}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{r.key}</div>
+              </div>
+            </Checkbox>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[], subjects: string[]) => void }) {
   const t = useT()
@@ -796,8 +860,8 @@ export default function TeacherAdminPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setIsAdmin(data.user?.app_metadata?.role === 'admin')
+    getAuthUser().then(u => {
+      setIsAdmin(u?.app_metadata?.role === 'admin')
     })
   }, [])
 
@@ -955,6 +1019,8 @@ export default function TeacherAdminPage() {
             loading={firstLoad}
           />
         </div>
+
+        <FeatureFlags />
 
         {/* Teachers */}
         <div style={{ marginBottom: 24 }}>

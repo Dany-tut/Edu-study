@@ -118,6 +118,16 @@ export default function DashboardPage() {
   const lessonPending = !!lesson?.heavyPending && lesson.kind !== 'test'
   // Курсы приходят из Supabase; до этого искать в них урок бессмысленно.
   const dataLoaded = useStudentData(s => s.loaded)
+  const ensureLessonHeavy = useStudentData(s => s.ensureLessonHeavy)
+
+  // Открыли урок — спрашиваем его конспект и домашку. Здесь, а не в openLesson:
+  // в урок попадают и мимо него — восстановлением из адреса после F5, ссылкой,
+  // переходом из виджета, — а этот эффект видит ЛЮБОЙ способ, каким id оказался
+  // текущим. Повторные вызовы безвредны: стор сам отсекает уже приехавшее и уже
+  // летящее.
+  useEffect(() => {
+    if (currentLessonId) ensureLessonHeavy(currentLessonId)
+  }, [currentLessonId, ensureLessonHeavy])
 
   // Restore the exact view from the hash on mount — including lesson/homework
   // (with the lesson id) so a hard refresh never dumps the student back on Home.

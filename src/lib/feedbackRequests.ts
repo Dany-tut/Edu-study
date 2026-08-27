@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
+import { getSessionUser } from './owner'
 
 // Обратная связь: ученик/учитель шлёт заявку об ошибке → таблица feedback_requests
 // → вкладка «Заявки» в Админке. См. миграцию 0031_feedback_requests.sql.
@@ -40,8 +41,7 @@ export type FeedbackRequest = {
 // Определяем автора: учитель — из Supabase auth, ученик — из localStorage-сессии.
 async function resolveAuthor(role: FeedbackRole): Promise<{ id: string | null; name: string | null }> {
   if (role === 'teacher') {
-    const { data } = await supabase.auth.getUser()
-    const u = data.user
+    const u = await getSessionUser()
     const name = (u?.user_metadata?.name as string | undefined)?.trim() || u?.email || null
     return { id: u?.id ?? null, name }
   }

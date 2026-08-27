@@ -3,6 +3,7 @@ import { ChevronDown, Check } from 'lucide-react'
 import ScrollFade from './ScrollFade'
 import { supabase } from '../lib/supabase'
 import { getStudentSession, setStudentSession } from '../lib/studentSession'
+import { getSessionUser } from '../lib/owner'
 
 // A 1:1 student can own several subject cards — each a separate individual group
 // + student row for the same person, all sharing one auth account. This switcher
@@ -23,12 +24,12 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
       if (!session) return
       // Prefer the auth account (all sibling cards share auth_user_id). Fall back
       // to name-matching for legacy temp_password logins with no linked auth user.
-      const { data: auth } = await supabase.auth.getUser()
+      const authUser = await getSessionUser()
       let query = supabase
         .from('students')
         .select('id, group_id, name, groups(subject, level, icon, color, is_individual)')
-      query = auth?.user
-        ? query.eq('auth_user_id', auth.user.id)
+      query = authUser
+        ? query.eq('auth_user_id', authUser.id)
         : query.eq('name', session.name)
       const { data } = await query
       if (cancelled || !data) return

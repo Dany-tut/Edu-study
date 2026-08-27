@@ -10,6 +10,7 @@ import { streakDays } from './trainerDay'
 import { parseLessonFiles } from './lessonFiles'
 import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
+import { getSessionUser } from './owner'
 
 /**
  * Report a real Supabase error (RLS denial, 5xx, timeout) to console + analytics
@@ -198,10 +199,14 @@ export async function fetchPersonScope(
   // 2) Строки по auth-аккаунту — дополняют RPC (строка без person_id, но под тем
   // же логином) и держат кабинет живым, если RPC ещё не раскатан в базе.
   try {
-    const { data: auth } = await supabase.auth.getUser()
-    if (auth?.user) {
+    // Сохранённая сессия вместо getUser(): последнему нужен круг до
+    // `/auth/v1/user` (250–500 мс замером), а он стоит ПЕРВЫМ на загрузке
+    // кабинета — вся остальная восьмёрка запросов ждала его. Здесь нужен id,
+    // чьи строки читать, а не проверка права: что отдать, решает RLS.
+    const authUser = await getSessionUser()
+    if (authUser) {
       const { data, error } = await supabase
-        .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
+        .from('students').select('id, group_id').eq('auth_user_id', authUser.id)
       if (error) reportDbError('fetchPersonScope', error)
       for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
     }
@@ -297,6 +302,10 @@ interface DbCourse {
       title: string
       lesson_number: number
       shape: string
+      /** Лёгкий признак сложного уровня — зеркало lessonHasHardLevel, считается
+       *  в базе (миграция 0067). Нужен, чтобы трек знал про хард, не таща
+       *  колонку homework. */
+      has_hard?: boolean | null
       youtube_url?: string | null
       timecodes?: import('../data/lessonContent').LessonTimecode[]
       kind?: string | null
@@ -368,12 +377,16 @@ function hardDefsToTasks(defs: HardTaskDef[]): import('../data/lessonContent').A
  * ответ 5 374 КБ, из них конспекты и домашки — 4 717 КБ, то есть 88 %. Это
  * больше, чем весь JS приложения, и приезжало при КАЖДОМ входе — ради экрана,
  * которому нужны только названия, номера и статусы. Один раз запрос и вовсе
- * оборвался: `57014 canceling statement due to statement timeout`.
+ * оборвался: `57014 canceling statement due to statement timeout`. Замер того
+ * же запроса в проде 26.08.2026: 5,5–8,1 с, при том что все остальные два
+ * десятка запросов входа укладывались в 0,4–0,5 с каждый.
  *
- * Тяжёлую половину забирает fetchCourseHeavy — вторым запросом, уже на
- * нарисованном треке. До её приезда у уроков стоит `heavyPending`, и по нему
- * экраны понимают: «домашки нет» ещё не значит, что её нет (см. открытие
- * урока в DashboardPage и lessonHasHardLevel в data/lessonContent.ts).
+ * Тяжёлую половину забирает fetchLessonsHeavy — по требованию, на те уроки,
+ * которые ученик открывает (плюс небольшой префетч вокруг его места в курсе,
+ * см. ensureLessonsHeavy в store/studentDataStore.ts). До её приезда у урока
+ * стоит `heavyPending`, и по нему экраны понимают: «домашки нет» ещё не
+ * значит, что её нет (см. открытие урока в DashboardPage и lessonHasHardLevel
+ * в data/lessonContent.ts).
  */
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
   // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
@@ -386,13 +399,19 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
     ...groupIds.map(g => `group_ids.cs.{${g}}`),
   ]
   if (orParts.length === 0) return []
+  // Сложные задания из банка («Создать домашку» → выбран урок → «Сложные
+  // задания») нужны УЖЕ треку: хард, назначенный так, а не размеченный в
+  // Конструкторе, в колонке lessons.has_hard не отражён, и без этого запроса
+  // спутник-звезда у такого урока не зажглась бы. Запрос лёгкий — строка на
+  // назначение — и идёт параллельно скелету, своего круга не добавляя.
+  const hardTasksP = fetchLessonHardTasks(groupIds).catch(() => new Map<string, HardTaskDef[]>())
   const { data, error } = await supabase
     .from('courses')
     .select(`
       id, short_id, title, subject, student_ids, group_ids,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description, materials )
+        lessons ( id, short_id, title, lesson_number, shape, has_hard, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description, materials )
       )
     `)
     .eq('status', 'published')
@@ -401,6 +420,8 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
 
   if (error) reportDbError('fetchCourseStructure', error)
   if (error || !data || data.length === 0) return []
+
+  const hardByLessonId = await hardTasksP
 
   // Per-student access mode (full / custom / by_date). Absent row → 'custom'
   // (only teacher-unlocked lessons open), preserving legacy behaviour.
@@ -446,6 +467,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
         lessons: [...mod.lessons]
           .sort((a, b) => a.lesson_number - b.lesson_number)
           .flatMap(l => {
+            const bankHard = hardByLessonId.get(l.id)
             const base = {
               title: l.title,
               number: l.lesson_number,
@@ -453,8 +475,15 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               kind: l.kind === 'test' ? 'test' as const : 'lesson' as const,
               testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : undefined,
               subject: course.short_id,
-              // Конспект и домашка сюда НЕ едут — см. fetchCourseHeavy ниже.
+              // Конспект и домашка сюда НЕ едут — см. fetchLessonsHeavy ниже.
               heavyPending: true,
+              // Хард-уровень трек берёт отсюда, а не из домашки: колонка
+              // has_hard повторяет lessonHasHardLevel целиком (миграция 0067),
+              // а назначенное из банка добавляется сверху.
+              hasHard: l.has_hard !== false || !!bankHard?.length,
+              // Едут вместе с уроком, чтобы при догрузке конспекта не спрашивать
+              // назначения второй раз.
+              bankHard: bankHard?.length ? bankHard : undefined,
               description: l.description ?? undefined,
               videoUrl: l.youtube_url ?? undefined,
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
@@ -485,57 +514,65 @@ export interface LessonHeavy {
 }
 
 /**
- * ТЯЖЁЛАЯ ПОЛОВИНА: конспекты и домашки уроков перечисленных курсов.
+ * Влить сложные задания из банка в авторскую домашку урока.
  *
- * Ключ результата — `short_id`, тот самый id, которым урок зовётся на клиенте.
- * Сюда же вливаются сложные задания из банка (`homework.hard_tasks`,
- * назначенные группам через «Создать домашку»): у харда должен остаться ОДИН
- * источник правды — `hwTasks` урока, — иначе трек и HomeworkFlow разойдутся в
- * том, есть ли у урока сложный уровень.
- *
- * @param courseDbIds uuid курсов (не short_id): `lessons.course_id`.
- * @param groupIds    группы человека — по ним ищутся назначения из банка.
+ * У харда должен остаться ОДИН источник правды — `hwTasks` урока: иначе трек
+ * (спутник-звезда) и HomeworkFlow разойдутся в том, есть ли у урока сложный
+ * уровень. Дедуп по id — назначение и авторская разметка могут описывать одно
+ * и то же задание.
  */
-export async function fetchCourseHeavy(
-  courseDbIds: string[],
-  groupIds: string[],
-): Promise<Map<string, LessonHeavy>> {
+export function withBankHard(
+  authored: import('../data/lessonContent').AuthoredHomework | undefined,
+  defs: HardTaskDef[] | undefined,
+): import('../data/lessonContent').AuthoredHomework | undefined {
+  if (!defs?.length) return authored
+  const own = authored?.hwTasks ?? []
+  return {
+    ...(authored ?? {}),
+    hwTasks: [...own, ...hardDefsToTasks(defs).filter(ht => !own.some(t => t.id === ht.id))],
+  }
+}
+
+/**
+ * ТЯЖЁЛАЯ ПОЛОВИНА: конспекты и домашки ПЕРЕЧИСЛЕННЫХ уроков.
+ *
+ * Спрашиваем ровно те уроки, которые ученику вот-вот понадобятся, а не курс
+ * целиком: на ученике с пятью курсами `content` + `homework` — это 6 МБ и
+ * полсекунды работы Postgres против 459 КБ и 2,6 мс у скелета. За сеанс ученик
+ * открывает один-два урока, и возить ради них конспекты трёхсот — та же плата,
+ * от которой мы уходили, только отложенная.
+ *
+ * Ключ и на входе, и на выходе — `short_id`, тот самый id, которым урок зовётся
+ * на клиенте. Синтетический узел записи (`<урок>~rec`) сюда приходить не должен:
+ * его тяжёлую половину берут у родного урока (см. applyHeavy в сторе).
+ *
+ * Назначенное из банка сюда НЕ едет — оно уже приехало со скелетом
+ * (`Lesson.bankHard`) и вливается при раскладке, см. withBankHard.
+ */
+export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string, LessonHeavy>> {
   const out = new Map<string, LessonHeavy>()
-  const ids = courseDbIds.filter(isUuid)
+  const ids = [...new Set(shortIds)].filter(Boolean)
   if (ids.length === 0) return out
 
-  const [lessonsRes, hardByLessonId] = await Promise.all([
-    supabase.from('lessons').select('id, short_id, content, homework').in('course_id', ids),
-    fetchLessonHardTasks(groupIds),
-  ])
-  const { data, error } = lessonsRes
-  if (error) reportDbError('fetchCourseHeavy', error)
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('short_id, content, homework')
+    .in('short_id', ids)
+  if (error) reportDbError('fetchLessonsHeavy', error)
   if (error || !data) return out
 
   type Row = {
-    id: string
     short_id: string
     content?: { paragraphs?: unknown[] } | null
     homework?: import('../data/lessonContent').AuthoredHomework | null
   }
   for (const l of data as Row[]) {
-    const bankHard = hardByLessonId.get(l.id)
-    const authoredHw = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
+    const homework = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
       ? l.homework
       : undefined
-    const homework = bankHard?.length
-      ? {
-          ...(authoredHw ?? {}),
-          hwTasks: [
-            ...(authoredHw?.hwTasks ?? []),
-            ...hardDefsToTasks(bankHard).filter(ht => !(authoredHw?.hwTasks ?? []).some(t => t.id === ht.id)),
-          ],
-        }
-      : authoredHw
     const content = l.content && l.content.paragraphs?.length
       ? (l.content as import('../data/lessonContent').LessonContentData)
       : undefined
-    if (!homework && !content) continue
     out.set(l.short_id, { content, homework })
   }
   return out

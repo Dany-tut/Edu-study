@@ -7,28 +7,29 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { setSubjectColorOverrides } from './subjects'
+import { getOwnerId } from './owner'
 
 export type SubjectColorMap = Record<string, string>
 
 export async function loadTeacherSubjectColors(): Promise<SubjectColorMap> {
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth?.user) return {}
+  const uid = await getOwnerId()
+  if (!uid) return {}
   const { data } = await supabase
     .from('profiles')
     .select('subject_colors')
-    .eq('id', auth.user.id)
+    .eq('id', uid)
     .maybeSingle()
   const map = data?.subject_colors
   return map && typeof map === 'object' ? (map as SubjectColorMap) : {}
 }
 
 export async function saveTeacherSubjectColors(map: SubjectColorMap): Promise<boolean> {
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth?.user) return false
+  const uid = await getOwnerId()
+  if (!uid) return false
   const { error } = await supabase
     .from('profiles')
     .update({ subject_colors: map })
-    .eq('id', auth.user.id)
+    .eq('id', uid)
   return !error
 }
 

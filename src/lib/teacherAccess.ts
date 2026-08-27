@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from './supabase'
 import type { TeacherPage } from '../store/teacherStore'
+import { getAuthUser } from './owner'
 
 // ── Nav tabs that can be gated ─────────────────────────────────────────────
 // These ids match profiles.hidden_tabs entries and the nav item ids.
@@ -62,8 +63,9 @@ export const useTeacherAccess = create<AccessState>((set, get) => ({
   subjects: [],
 
   load: async () => {
-    const { data: userData } = await supabase.auth.getUser()
-    const user = userData.user
+    // Роль админа — решение о ПРАВЕ, поэтому здесь нужен проверенный сервером
+    // ответ, а не сохранённая сессия. Общий кеш: один запрос на страницу.
+    const user = await getAuthUser()
     // Trust ONLY app_metadata (server-controlled). user_metadata is client-editable,
     // so keying admin off it lets a teacher unhide restricted tabs/widgets locally.
     const isAdmin = user?.app_metadata?.role === 'admin'

@@ -8,6 +8,7 @@
 // getMediaUrl().
 
 import { supabase } from './supabase'
+import { getOwnerId } from './owner'
 
 const BUCKET = 'task-media'
 
@@ -42,8 +43,7 @@ function baseMime(type: string): string {
 export async function uploadMedia(blob: Blob, category: MediaCategory): Promise<string> {
   if (blob.size > MAX_MEDIA_BYTES) throw new MediaTooLargeError(blob.size)
 
-  const { data: userData } = await supabase.auth.getUser()
-  const uid = userData.user?.id
+  const uid = await getOwnerId()
   if (!uid) throw new Error('Not authenticated')
 
   const mime = baseMime(blob.type)

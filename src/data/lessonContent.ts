@@ -407,11 +407,14 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
  *  сгенерированных ДЗ (химия/биология/AP) хард есть всегда. */
 export function lessonHasHardLevel(lesson: Lesson): boolean {
   // Домашка ещё не приехала (курс грузится в два захода, см. heavyPending в
-  // mockData.ts) — значит мы НЕ ЗНАЕМ, есть ли хард. Молчим: иначе сработала бы
-  // ветка «нет авторских заданий → хард есть всегда», и спутник-звезда вспыхнул
-  // бы на каждом узле трека, чтобы через полсекунды погаснуть на половине из
-  // них. Появиться с опозданием честнее, чем мигнуть не там.
-  if (lesson.heavyPending) return false
+  // mockData.ts) — значит по самой домашке судить нельзя: сработала бы ветка
+  // «нет авторских заданий → хард есть всегда», и спутник-звезда вспыхнула бы
+  // на каждом узле трека. Спрашиваем лёгкий признак, который для того и заведён
+  // (lessons.has_hard, миграция 0067): он повторяет эту функцию целиком, но
+  // считается в базе. У большинства уроков домашка не приедет НИКОГДА — ученик
+  // до них не дойдёт, — так что ждать её здесь означало бы не показать хард
+  // вовсе.
+  if (lesson.heavyPending) return lesson.hasHard === true
   const authored = lesson.homework?.hwTasks
   if (authored?.length) return authored.some(task => task.isHard)
   return true

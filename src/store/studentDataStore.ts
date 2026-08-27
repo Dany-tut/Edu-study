@@ -3,7 +3,8 @@ import {
   fetchScheduleDays,
   fetchLessonProgress,
   fetchCourseStructure,
-  fetchCourseHeavy,
+  fetchLessonsHeavy,
+  withBankHard,
   type LessonHeavy,
   fetchPersonScope,
   mergeSubjectsWithProgress,
@@ -46,6 +47,12 @@ interface StudentDataState {
   scienceMemes: ScienceMeme[]
   courseReactions: CourseReaction[]
   load: () => Promise<void>
+  /**
+   * Догрузить конспект и домашку конкретного урока — вызывается при его
+   * открытии. Идемпотентно: уже приехавший или уже летящий урок второго
+   * запроса не порождает.
+   */
+  ensureLessonHeavy: (lessonId: string) => void
 }
 
 const defaultStats: StudentStats = {
@@ -197,11 +204,12 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       }
     }
 
-    // Курсы, тяжёлую половину которых уже приносили на этой странице, отдаём
+    // Уроки, тяжёлую половину которых уже приносили на этой странице, отдаём
     // сразу собранными. Иначе повторный load() (realtime после проверки ДЗ,
     // возврат на вкладку) на кадр показал бы открытый урок как «Загрузка…» —
-    // данные-то в кеше, ждать нечего.
-    const withHeavy = applyHeavy(mergedSubjects, heavyCache, heavyDone)
+    // данные-то в кеше, ждать нечего. Синхронно, ДО set(): между ними не должно
+    // быть кадра.
+    const withHeavy = applyHeavy(mergedSubjects)
 
     set({
       loaded: true,
@@ -227,86 +235,147 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       dash.setActiveSubject(target.id)
     }
 
-    // ── Тяжёлая половина уроков — вторым заходом ─────────────────────────────
+    // ── Тяжёлая половина уроков — по требованию ──────────────────────────────
     //
     // Трек уже нарисован: выше стоял set(), и экран показывает курс. Конспекты
-    // и домашки (в восемь раз тяжелее всего остального, см. fetchCourseHeavy)
-    // едут сюда и вливаются в уже показанные уроки. Не await: кабинет не ждёт.
-    void loadHeavy(withHeavy, scope.rows.map(r => r.groupId))
+    // и домашки к нему не едут вовсе — их спрашивают поурочно при открытии
+    // (ensureLessonHeavy). Здесь только префетч вокруг места ученика в курсе,
+    // чтобы клик по уроку, до которого он и так вот-вот дойдёт, не ждал сети.
+    // Не await: кабинет не ждёт.
+    void ensureLessonsHeavy(prefetchTargets(withHeavy))
   },
+
+  ensureLessonHeavy: (lessonId) => { void ensureLessonsHeavy([lessonId]) },
 }))
 
 // ─── Тяжёлая половина уроков ─────────────────────────────────────────────────
 //
+// Конспекты и домашки спрашиваются ПОУРОЧНО, в момент открытия урока. На
+// ученике с пятью курсами эти две колонки — 6 МБ ответа и полсекунды работы
+// Postgres против 459 КБ и 2,6 мс у скелета, а за сеанс он открывает один-два
+// урока: возить остальные триста незачем ни фоном, ни тем более на входе.
+//
 // Кеш на всю жизнь страницы, а не на один load(). load() зовут заново и
-// realtime (учитель проверил домашку), и возврат на вкладку — а тяжёлая
-// половина это мегабайты. Тянуть их по второму разу ради обновившегося
-// статуса было бы хуже, чем то, от чего мы уходили.
+// realtime (учитель проверил домашку), и возврат на вкладку — второй раз
+// спрашивать уже приехавший урок незачем.
 //
 // Цена: конспект, поправленный учителем во время сеанса ученика, доедет только
 // после перезагрузки страницы. Это осознанный размен — realtime и раньше звал
 // load() ради прогресса, а не ради текста урока.
 const heavyCache = new Map<string, LessonHeavy>()
+/** Уроки, про которые база уже ответила, — включая ответ «пусто» и провал
+ *  запроса. Отдельно от кеша именно поэтому: пустой урок не должен спрашиваться
+ *  снова и снова. */
 const heavyDone = new Set<string>()
+/** Уроки, запрос по которым сейчас летит: два тапа подряд не должны слать два. */
+const heavyInflight = new Set<string>()
+/** Уроки, чей запрос провалился. Флаг с них снят (экран живой), но второй
+ *  заход разрешён: при догрузке по требованию неудача — это чей-то открытый
+ *  прямо сейчас урок, и молча оставлять его пустым до перезагрузки нельзя. */
+const heavyFailed = new Set<string>()
 
-/** Влить конспекты и домашки в уроки. Чистая функция: и для свежего ответа, и для кеша. */
-function applyHeavy(subjects: Subject[], heavy: Map<string, LessonHeavy>, onlyCourses?: Set<string>): Subject[] {
-  return subjects.map(subj => {
-    if (onlyCourses && subj.dbId && !onlyCourses.has(subj.dbId)) return subj
-    return {
-      ...subj,
-      modules: subj.modules.map(mod => ({
-        ...mod,
-        lessons: mod.lessons.map(l => {
-          if (!l.heavyPending) return l
-          // Узел записи живёт под синтетическим id `<урок>~rec` — тяжёлую
-          // половину он берёт у своего урока, но БЕЗ конспекта: конспект
-          // принадлежит уроку, а запись это отдельный узел трека.
-          const rec = l.nodeType === 'rec'
-          const found = heavy.get(rec ? l.id.slice(0, -'~rec'.length) : l.id)
-          return {
-            ...l,
-            heavyPending: false,
-            content: rec ? undefined : found?.content,
-            homework: found?.homework,
-          }
-        }),
-      })),
-    }
-  })
+/** Урок, которому принадлежит тяжёлая половина: узел записи живёт под
+ *  синтетическим id `<урок>~rec` и берёт её у своего урока. */
+function heavyKey(lessonId: string): string {
+  return lessonId.endsWith('~rec') ? lessonId.slice(0, -'~rec'.length) : lessonId
+}
+
+/** Влить приехавшие конспекты и домашки в уроки. Чистая функция от кеша. */
+function applyHeavy(subjects: Subject[]): Subject[] {
+  if (heavyDone.size === 0) return subjects
+  return subjects.map(subj => ({
+    ...subj,
+    modules: subj.modules.map(mod => ({
+      ...mod,
+      lessons: mod.lessons.map(l => {
+        if (!l.heavyPending) return l
+        const key = heavyKey(l.id)
+        // Про этот урок ещё не спрашивали — пусть так и остаётся «не знаю».
+        if (!heavyDone.has(key)) return l
+        const found = heavyCache.get(key)
+        // Конспект принадлежит уроку, а запись — отдельный узел трека.
+        const rec = l.nodeType === 'rec'
+        return {
+          ...l,
+          heavyPending: false,
+          content: rec ? undefined : found?.content,
+          homework: withBankHard(found?.homework, l.bankHard),
+        }
+      }),
+    })),
+  }))
 }
 
 /**
- * Догрузить конспекты и домашки к уже показанным курсам.
+ * Догрузить конспекты и домашки перечисленных уроков.
  *
- * Состояние читаем заново, а не склеиваем с переданным `subjects`: пока ехал
+ * Состояние читаем заново, а не склеиваем с копией `subjects`: пока ехал
  * запрос, ученик мог сдать домашку и realtime мог перезапустить load() — своя
  * копия массива затёрла бы свежие статусы.
  *
  * Провал запроса тоже снимает `heavyPending`. Урок без конспекта — плохо, но
  * это живой экран; урок, навсегда застрявший в «Загрузка…», — тупик, из
- * которого ученик выйдет только перезагрузкой, о которой не догадается.
+ * которого ученик выйдет только перезагрузкой, о которой не догадается. При
+ * догрузке по требованию это тем более важно: запросов больше, и каждый из них
+ * — чей-то открытый экран.
  */
-async function loadHeavy(subjects: Subject[], groupIds: string[]) {
-  const dbIds = subjects.map(s => s.dbId).filter((x): x is string => !!x)
-  if (dbIds.length === 0) return
+async function ensureLessonsHeavy(lessonIds: string[]) {
+  const want = [...new Set(lessonIds.map(heavyKey))]
+    .filter(id => id && !heavyInflight.has(id) && (!heavyDone.has(id) || heavyFailed.has(id)))
+  if (want.length === 0) return
 
-  const fresh = dbIds.filter(id => !heavyDone.has(id))
-  if (fresh.length > 0) {
-    try {
-      const heavy = await fetchCourseHeavy(fresh, groupIds)
-      for (const [k, v] of heavy) heavyCache.set(k, v)
-    } catch (e) {
-      // Снимаем флаг всё равно — см. комментарий выше.
-      console.error('[studentData.loadHeavy]', e)
-    }
-    for (const id of fresh) heavyDone.add(id)
+  for (const id of want) { heavyInflight.add(id); heavyFailed.delete(id) }
+  try {
+    const heavy = await fetchLessonsHeavy(want)
+    for (const [k, v] of heavy) heavyCache.set(k, v)
+  } catch (e) {
+    // Снимаем флаг всё равно — см. комментарий выше, — но помечаем на повтор.
+    console.error('[studentData.ensureLessonsHeavy]', e)
+    for (const id of want) heavyFailed.add(id)
+  } finally {
+    for (const id of want) { heavyDone.add(id); heavyInflight.delete(id) }
   }
 
-  const touched = new Set(dbIds)
-  useStudentData.setState(state => ({
-    subjects: applyHeavy(state.subjects, heavyCache, touched),
-  }))
+  useStudentData.setState(state => ({ subjects: applyHeavy(state.subjects) }))
+}
+
+/**
+ * Что догрузить заранее — чтобы клик по уроку не ждал сети.
+ *
+ * Берём место ученика в курсе: последний урок, до которого он дошёл, и окно
+ * вперёд от него. Не «первые N»: в курсе на триста уроков ученик середины
+ * стоит не в начале. И не «все незалоченные»: у курса с доступом `full`
+ * незалочено всё, а это ровно тот мегабайт, от которого мы уходили.
+ *
+ * Щедро, но конечно: PREFETCH_AHEAD вперёд и PREFETCH_BACK назад по каждому
+ * курсу. Урок тянет примерно 7 КБ, то есть окно — около 70 КБ на курс: у
+ * обычного ученика с одним-двумя курсами это меньше самого скелета, у
+ * демо-аккаунта с семью — полмегабайта, всё равно на порядок меньше пяти
+ * мегабайт и, в отличие от них, мимо критического пути.
+ *
+ * Уходит ОДНИМ запросом на все курсы разом: ensureLessonsHeavy спрашивает
+ * список short_id, а не курс.
+ */
+const PREFETCH_AHEAD = 6
+const PREFETCH_BACK = 3
+function prefetchTargets(subjects: Subject[]): string[] {
+  const out: string[] = []
+  for (const subj of subjects) {
+    const lessons = subj.modules.flatMap(m => m.lessons)
+    if (lessons.length === 0) continue
+    // Фронт работы: последний урок со следом прогресса. Ни одного — ученик
+    // только пришёл, фронт в начале курса.
+    let front = 0
+    lessons.forEach((l, i) => {
+      if (l.status !== 'locked' || l.points !== undefined) front = i
+    })
+    const from = Math.max(0, front - PREFETCH_BACK)
+    // Только те, у кого тяжёлой половины и вправду нет: у синтетического трека
+    // «Домашние задания» (standaloneHomework) задания лежат прямо в узле, и его
+    // id — не `lessons.short_id`, спрашивать его в базе бессмысленно.
+    out.push(...lessons.slice(from, front + PREFETCH_AHEAD + 1).filter(l => l.heavyPending).map(l => l.id))
+  }
+  return out
 }
 
 // Which student row a progress write for `subjectId` (a course short_id) must

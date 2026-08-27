@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
+import { getOwnerId, getSessionUser } from './owner'
 
 export function useFeedLikes(itemId: string) {
   const [count, setCount] = useState(0)
@@ -27,7 +28,7 @@ export function useFeedLikes(itemId: string) {
   const load = useCallback(async () => {
     if (!itemId || !groupId) return
     try {
-      const me = (await supabase.auth.getUser()).data.user?.id ?? null
+      const me = await getOwnerId()
       setAuthed(!!me)
       if (!me) { setCount(0); setLiked(false); return }
       const { data, error } = await supabase
@@ -60,11 +61,11 @@ export function useFeedLikes(itemId: string) {
         let q = supabase.from('feed_likes').delete().eq('item_id', itemId)
         q = session?.id
           ? q.eq('student_id', session.id)
-          : q.eq('author_user', (await supabase.auth.getUser()).data.user?.id ?? '')
+          : q.eq('author_user', (await getOwnerId()) ?? '')
         const { error } = await q
         if (error) throw error
       } else {
-        const me = (await supabase.auth.getUser()).data.user
+        const me = await getSessionUser()
         const row: Record<string, unknown> = { item_id: itemId, group_id: groupId }
         if (session?.id) row.student_id = session.id
         else if (me?.id) row.author_user = me.id

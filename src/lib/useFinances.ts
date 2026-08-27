@@ -57,10 +57,10 @@ export async function addPayment(params: {
   lessonsPaid: number
   note?: string
 }) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const uid = await getOwnerId()
   const { error } = await supabase.from('payments').insert({
     student_id: params.studentId,
-    teacher_id: user?.id ?? null,
+    teacher_id: uid,
     amount: params.amount,
     lessons_paid: params.lessonsPaid,
     note: params.note ?? null,
@@ -78,9 +78,9 @@ export function useFinanceSummary() {
   const [summary, setSummary] = useState<FinanceSummary>({ received: 0, expected: 0, debt: 0, forecast: 0 })
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return
-      supabase.rpc('teacher_finance_summary', { p_teacher_id: data.user.id })
+    getOwnerId().then(uid => {
+      if (!uid) return
+      supabase.rpc('teacher_finance_summary', { p_teacher_id: uid })
         .then(({ data: rows }) => {
           if (rows?.[0]) {
             const r = rows[0]

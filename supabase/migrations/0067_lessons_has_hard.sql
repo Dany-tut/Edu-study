@@ -1,16 +1,21 @@
 -- Лёгкий признак «у урока есть сложный уровень».
 --
--- Трек рисует спутник-звезду через lessonHasHardLevel (data/lessonContent.ts),
--- а тот читает homework.hwTasks[].isHard. С тех пор как вход ученика перестал
--- везти колонку homework (она весит 3,5 МБ по базе против 6,6 КБ у соседних),
--- трек про хард ничего не знает: «домашки нет» и «домашку ещё не спросили»
--- выглядят одинаково, и звезда либо гаснет у всех, либо горит у всех.
+-- Трек рисует спутник-звезду через lessonHasHardLevel (data/lessonContent.ts).
+-- Пока курс приезжал целиком, тот читал homework.hwTasks[].isHard. Теперь
+-- колонка homework в кабинет ученика не едет вовсе (3,5 МБ по базе против
+-- 6,6 КБ у соседних), и «домашки нет» стало неотличимо от «домашку ещё не
+-- спросили»: звезда либо гасла у всех, либо горела у всех.
 --
--- Считать признак на лету нельзя: в GENERATED-выражении подзапросы запрещены,
--- поэтому разбор массива вынесен в immutable-функцию.
+-- Колонка ПОВТОРЯЕТ логику lessonHasHardLevel целиком, а не только поиск
+-- isHard. У старых сгенерированных ДЗ (химия, биология, AP) авторских заданий
+-- нет вообще, и хард у них есть всегда — если считать только isHard, звезда
+-- пропала бы у всех химических курсов разом.
 --
--- По базе на 26.08.2026 хард есть у 22 уроков из 1332 — колонка почти вся
--- false, места не стоит.
+-- Считать признак прямо в GENERATED-выражении нельзя: подзапросы там
+-- запрещены, поэтому разбор массива вынесен в immutable-функцию.
+--
+-- По базе на 26.08.2026: 1332 урока, из них 1209 с авторскими заданиями (хард
+-- у 22) и 123 без заданий (хард по умолчанию). Итого колонка true у 145.
 
 create or replace function public.lesson_hw_has_hard(hw jsonb)
 returns boolean
@@ -18,12 +23,15 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select coalesce((
-    select bool_or(t -> 'isHard' = 'true'::jsonb)
-    from jsonb_array_elements(
-      case when jsonb_typeof(hw -> 'hwTasks') = 'array' then hw -> 'hwTasks' else '[]'::jsonb end
-    ) as t
-  ), false)
+  select case
+    when jsonb_typeof(hw -> 'hwTasks') = 'array' and jsonb_array_length(hw -> 'hwTasks') > 0
+      then coalesce((
+        select bool_or(t -> 'isHard' = 'true'::jsonb)
+        from jsonb_array_elements(hw -> 'hwTasks') as t
+      ), false)
+    -- Нет авторских заданий → домашка генерируется, а у генерируемой хард есть.
+    else true
+  end
 $$;
 
 alter table public.lessons
@@ -31,4 +39,4 @@ alter table public.lessons
   generated always as (public.lesson_hw_has_hard(homework)) stored;
 
 comment on column public.lessons.has_hard is
-  'Есть ли среди homework.hwTasks задание с isHard. Нужен треку ученика, чтобы не тянуть всю колонку homework.';
+  'Есть ли у урока сложный уровень (зеркало lessonHasHardLevel). Нужен треку ученика, чтобы не тянуть колонку homework целиком.';

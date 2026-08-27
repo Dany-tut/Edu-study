@@ -15,6 +15,7 @@ import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/te
 import { useT, useLang, type Lang } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 import AppVersionRow from '../../AppVersionRow'
+import { getSessionUser } from '../../../lib/owner'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -54,10 +55,10 @@ export default function MobileTeacherProfile() {
   const home = useHomeData()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? '')
-      if (!data.user) return
-      supabase.from('profiles').select('name, first_name, subject').eq('id', data.user.id).maybeSingle()
+    getSessionUser().then(u => {
+      setEmail(u?.email ?? '')
+      if (!u) return
+      supabase.from('profiles').select('name, first_name, subject').eq('id', u.id).maybeSingle()
         .then(({ data: p }) => {
           if (p) setProfile({ name: (p.first_name || p.name) ?? undefined, subject: p.subject ?? undefined })
         })

@@ -12,6 +12,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
+import { getAuthUser } from '../../lib/owner'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -49,8 +50,7 @@ export default function TeacherProfileSettingsPage() {
   const [error,    setError]    = useState('')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const u = data.user
+    getAuthUser().then(u => {
       if (!u) return
       if (!hadDraft.name) setName(u.user_metadata?.name ?? u.email?.split('@')[0] ?? '')
       setEmail(u.email ?? '')

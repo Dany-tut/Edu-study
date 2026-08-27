@@ -27,6 +27,7 @@ import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
+import { getAuthUser } from '../../lib/owner'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -144,8 +145,7 @@ export default function TeacherTopBar() {
   const [teacherRole,  setTeacherRole]  = useState<'admin' | 'teacher'>('teacher')
   const [avatarId,     setAvatarId]     = useState('flower')
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const u = data.user
+    getAuthUser().then(u => {
       if (!u) return
       const name = u.user_metadata?.name ?? u.email?.split('@')[0] ?? ''
       const role: 'admin' | 'teacher' = u.app_metadata?.role === 'admin' ? 'admin' : 'teacher'

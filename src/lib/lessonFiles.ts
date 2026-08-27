@@ -10,6 +10,7 @@
 
 import { supabase } from './supabase'
 import { t } from './i18n'
+import { getOwnerId } from './owner'
 
 const BUCKET = 'lesson-materials'
 
@@ -88,8 +89,7 @@ export function hasLessonFiles(files: LessonFiles): boolean {
 export async function uploadLessonFile(file: File): Promise<LessonFile> {
   if (file.size > MAX_LESSON_FILE_BYTES) throw new LessonFileTooLargeError(file.size)
 
-  const { data: userData } = await supabase.auth.getUser()
-  const uid = userData.user?.id
+  const uid = await getOwnerId()
   if (!uid) throw new Error(t('Не авторизован — войдите заново'))
 
   const id = crypto.randomUUID()

@@ -2,6 +2,7 @@
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
+import { getSessionUser } from './owner'
 
 type Identity = { user_id: string | null; student_id: string | null; role: string }
 
@@ -47,8 +48,10 @@ async function resolveIdentity() {
   // otherwise a stale student_session left in localStorage from prior testing
   // mislabels every teacher/admin click as role='student'.
   try {
-    const { data } = await supabase.auth.getUser()
-    const u = data.user
+    // Сохранённая сессия, а не getUser(): телеметрии нужна подпись события, а
+    // не проверка права, и платить за неё сетевым кругом на каждом входе
+    // (в том числе ученическом) незачем — см. lib/owner.ts.
+    const u = await getSessionUser()
     if (u) {
       // Respect the role stamped at sign-up (admin/student/teacher); default to
       // teacher for legacy sessions with no role metadata.

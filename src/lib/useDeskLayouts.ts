@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from './supabase'
+import { getOwnerId } from './owner'
 
 export type LayoutItem = {
   i: string        // react-grid-layout id
@@ -79,12 +80,12 @@ export function useDeskLayouts() {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { setLoading(false); return }
+    getOwnerId().then(async uid => {
+      if (!uid) { setLoading(false); return }
       const { data: row } = await supabase
         .from('desk_layouts')
         .select('desks, active_desk_id')
-        .eq('teacher_id', data.user.id)
+        .eq('teacher_id', uid)
         .maybeSingle()
       if (row && Array.isArray(row.desks) && row.desks.length > 0) {
         // Preserve user-saved layouts; only fill in defaults for built-in desks that have no items
@@ -102,10 +103,10 @@ export function useDeskLayouts() {
   }, [])
 
   const persistConfig = useCallback(async (next: DeskConfig) => {
-    const { data } = await supabase.auth.getUser()
-    if (!data.user) return
+    const uid = await getOwnerId()
+    if (!uid) return
     await supabase.from('desk_layouts').upsert(
-      { teacher_id: data.user.id, desks: next.desks, active_desk_id: next.activeDeskId },
+      { teacher_id: uid, desks: next.desks, active_desk_id: next.activeDeskId },
       { onConflict: 'teacher_id' }
     )
   }, [])

@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { t } from './i18n'
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
+import { getOwnerId, getSessionUser } from './owner'
 
 export interface FeedComment {
   id: string
@@ -113,7 +114,7 @@ export function useFeedComments(itemId: string, lang: string) {
     setLoading(true)
     setError(null)
     try {
-      const me = (await supabase.auth.getUser()).data.user?.id ?? null
+      const me = await getOwnerId()
       setAuthed(!!me)
       if (!me) { setList([]); setLoading(false); return }
       let q = supabase
@@ -142,7 +143,7 @@ export function useFeedComments(itemId: string, lang: string) {
     const text = body.trim()
     if (!text || !groupId) return false
     try {
-      const me = (await supabase.auth.getUser()).data.user
+      const me = await getSessionUser()
       // Автор — ЛИБО ученик, либо пользователь: в таблице это check-constraint,
       // и отправлять оба поля разом нельзя. Тип строки один, чтобы билдер не
       // разбирал объединение двух форм.
