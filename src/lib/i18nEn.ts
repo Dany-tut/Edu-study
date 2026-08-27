@@ -4081,4 +4081,14 @@ export const EN: Record<string, string> = {
     'A language course is not built out of "pick one of four" tests. Listening, speaking, writing, tap-to-assemble and recall by meaning — every skill gets a screen of its own.',
   'Лестница памяти: алфавит → слог → слово → фраза. Урок вводит не больше четырёх новых слов, каждое получает шесть касаний разными режимами, ошибки возвращаются очередью внутри того же урока.':
     'A ladder for memory: alphabet → syllable → word → phrase. A lesson introduces no more than four new words, each gets six touches in different modes, and mistakes come back in a queue inside that same lesson.',
+  'Тот же рейл, что видит ученик. Число — сколько материалов на полках режима; у ученика в рейле счёт мельче: сцены поштучно, разговорник — фразами. Правятся из кабинета только «Подборки», остальное приезжает с кодом.': 'The same rail the student sees. The number is how many materials sit on that mode\u2019s shelves; the student\u2019s rail counts finer \u2014 scenes one by one, the phrasebook by phrase. Only \u00abCollections\u00bb are edited here, the rest ships with the code.',
+  'Подборки': 'Collections',
+  'У этого языка такого материала нет. Режим виден в списке, чтобы было понятно, чего не хватает, — а не потому, что за ним что-то есть.': 'This language has no such material. The mode is listed so it is clear what is missing \u2014 not because there is something behind it.',
+  'Поиск по названию': 'Search by title',
+  'У этого языка такого материала нет.': 'This language has no such material.',
+  'Под отбор ничего не подошло.': 'Nothing matched the filter.',
+  'К материалам': 'Back to materials',
+  'Из кода': 'From code',
+  'У этого материала нет текста — он собирается в тренажёре из своих частей.': 'This material has no text \u2014 the trainer assembles it from its parts.',
+  'Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.': 'No sets yet. Add the first one with the \u00ab+\u00bb on the tab \u2014 it will show up in the students\u2019 trainer.',
 }
