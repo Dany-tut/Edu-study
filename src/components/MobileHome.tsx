@@ -21,15 +21,16 @@ import { computeSubjectStats } from '../lib/db'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useFeedGlance } from '../lib/feedRead'
 import { pickTrainerSubject } from '../lib/trainerSubject'
-import { dayLabel } from '../data/feed'
+import { dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
 import { FeedPost } from './trainer/FeedPost'
+import { RubricBar, useRubricSwipe } from './MobileFeedRubrics'
 import { tactile } from '../lib/feedback'
 import { PAIR, type PairName } from '../lib/mobileTokens'
 import { writeDraft } from '../lib/useDraft'
 import { resolveSubjectPalette, getSubject } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { useTint } from '../store/tintStore'
-import { useT, t as tt } from '../lib/i18n'
+import { useT, t as tt, useLang } from '../lib/i18n'
 import type { LucideIcon } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
 
@@ -41,6 +42,15 @@ import type { Lesson } from '../data/mockData'
 //   · Quick actions — trainer / courses
 // Desktop widgets (StatsWidget/CourseTrack/WidgetCarousel) are
 // no longer crammed in here.
+
+/**
+ * Линия, на которой шапка переключается со стрика на рубрики.
+ *
+ * Это низ плавающей шапки: вырез (safe-area) плюс её собственная высота с
+ * зазором. Считаем от верха окна, а не от панели прокрутки: getBoundingClientRect
+ * у ленты тоже оконный.
+ */
+const FEED_BAR_LINE = 104
 
 function fmtUntil(mins: number) {
   if (mins <= 0) return tt('идёт сейчас')
@@ -95,6 +105,76 @@ export default function MobileHome() {
   const tintSubject = scopedSubject?.subject ?? (subjects.length === 1 ? subjects[0].subject : null)
   useEffect(() => { setTintSubject(tintSubject ?? null) }, [tintSubject, setTintSubject])
 
+  // ── Лента и её рубрики ───────────────────────────────────────────────────
+  //
+  // Данные живут ЗДЕСЬ, а не внутри FeedFlow: рубрики показывает шапка экрана,
+  // и собрать ряд она может только по тому, что реально приехало. Отбор тоже
+  // здесь — иначе шапка и лента разошлись бы в том, что считать выбранным.
+  const feedGlance = useFeedGlance(0, scopedSubject?.subject)
+  const feedRef = useRef<HTMLDivElement>(null)
+  const rubrics = useMemo(() => feedFilters(feedGlance.items), [feedGlance.items])
+  const [rubricPick, setRubricPick] = useState<FeedFilter>('all')
+  // Рубрика могла исчезнуть вместе со сменой курса: у корейской ленты своё
+  // «Здоровье», у португальской его нет вовсе.
+  const rubric: FeedFilter = rubrics.some(r => r.id === rubricPick) ? rubricPick : 'all'
+  const feedItems = useMemo(
+    () => feedGlance.items.filter(x => matchesFilter(x, rubric)),
+    [feedGlance.items, rubric],
+  )
+  const feedAccent = resolveSubjectPalette(feedGlance.subjectId, dark).accent
+
+  // ГДЕ КОНЧАЕТСЯ ГЛАВНАЯ И НАЧИНАЕТСЯ ЛЕНТА. Шапка меняет содержимое ровно на
+  // этом рубеже: пока видно «Продолжить» и «Сегодня», наверху стрик и XP; как
+  // только под шапку ушёл верх ленты — рубрики.
+  //
+  // Гистерезис не для красоты: без него на границе шапка мигала бы туда-сюда
+  // от каждого пикселя прокрутки (смена содержимого сама двигает раскладку).
+  const [atFeed, setAtFeed] = useState(false)
+  useEffect(() => {
+    const check = () => {
+      const el = feedRef.current
+      if (!el) { setAtFeed(false); return }
+      // Линию берём у самой шапки (колокольчик — её правый край): высота
+      // выреза у моделей разная, и зашитое число промахивалось бы на
+      // полсантиметра то в одну, то в другую сторону.
+      const bar = bellRef.current?.getBoundingClientRect().bottom
+      const line = (bar ?? FEED_BAR_LINE) + 8
+      const top = el.getBoundingClientRect().top
+      setAtFeed(was => (was ? top > line + 40 ? false : true : top <= line))
+    }
+    check()
+    window.addEventListener('scroll', check, { capture: true, passive: true })
+    window.addEventListener('resize', check)
+    return () => {
+      window.removeEventListener('scroll', check, { capture: true } as EventListenerOptions)
+      window.removeEventListener('resize', check)
+    }
+    // `rubric` в зависимостях — из-за pickRubric: он двигает прокрутку сам, а
+    // событие scroll от программной прокрутки приходит не всегда. Перемер после
+    // смены рубрики гарантирует, что шапка не останется в чужом виде.
+  }, [loaded, feedItems.length, rubric])
+
+  // СМЕНА РУБРИКИ НАЧИНАЕТ ЛЕНТУ СВЕРХУ. Без этого человек, ушедший на десятый
+  // пост, после свайпа оказывался в середине другой рубрики — а то и ниже её
+  // конца, если постов там меньше. Прокручиваем к началу ленты, а не к началу
+  // экрана: шапка остаётся рубриками, из ленты никуда не выкидывает.
+  const pickRubric = (id: FeedFilter) => {
+    setRubricPick(id)
+    const el = feedRef.current
+    const box = el?.closest('.no-scrollbar') as HTMLElement | null
+    if (!el || !box) return
+    const line = (bellRef.current?.getBoundingClientRect().bottom ?? FEED_BAR_LINE) + 8
+    const delta = el.getBoundingClientRect().top - line
+    if (delta < -1) box.scrollTop += delta
+  }
+
+  // Свайп по ленте водит по рубрикам — только пока шапка ими и занята: выше по
+  // экрану тот же жест ничего бы не значил, а прокрутку бы перехватывал.
+  useRubricSwipe(feedRef, {
+    chips: rubrics, value: rubric, onChange: pickRubric,
+    enabled: atFeed && rubrics.length > 1,
+  })
+
   // Continue target: the current lesson, else first unlocked-incomplete lesson.
   const continueInfo = (() => {
     for (const subj of scanSubjects) {
@@ -148,10 +228,34 @@ export default function MobileHome() {
     .filter(x => !x.st.passed)
     .sort((a, b) => a.st.minutesUntil - b.st.minutesUntil)[0]
 
+  // Рубрики занимают место острова, только когда они есть и есть что листать:
+  // одна рубрика — это не выбор, а подпись, и ради неё стрик уводить незачем.
+  const barOnFeed = atFeed && rubrics.length > 1
+
   const topZone = (
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
-      <div style={{ width: 38, flexShrink: 0 }} />
-      <DynamicIsland>
+      {/* Место под колокольчиком слева — оно центрует остров. Рубрикам центр не
+          нужен, они панель во всю ширину, и распорка уезжает вместе с ними. */}
+      <motion.div
+        animate={{ width: barOnFeed ? 0 : 38 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+        style={{ flexShrink: 0 }}
+      />
+      {/* ОБЕ ШАПКИ ЖИВУТ В ОДНОМ СЛОЕ И ПЕРЕЛИВАЮТСЯ ДРУГ В ДРУГА. Не
+          AnimatePresence: обёртке нужен только вход, а presence на React 19
+          теряет сигнал выхода и оставляет пустое место до F5. Обе смонтированы
+          всегда, гасшая не ловит касания. */}
+      <div style={{ position: 'relative', flex: 1, minWidth: 0, height: 42 }}>
+        <motion.div
+          animate={{ opacity: barOnFeed ? 0 : 1, y: barOnFeed ? -6 : 0, scale: barOnFeed ? 0.94 : 1 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          style={{
+            position: 'absolute', inset: 0, display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            pointerEvents: barOnFeed ? 'none' : 'auto',
+          }}
+        >
+          <DynamicIsland>
         {nextToday ? (
           <>
             <Calendar size={15} style={{ color: 'var(--color-accent)' }} />
@@ -169,7 +273,22 @@ export default function MobileHome() {
             <span>{stats.totalPoints}</span>
           </>
         )}
-      </DynamicIsland>
+          </DynamicIsland>
+        </motion.div>
+
+        <motion.div
+          animate={{ opacity: barOnFeed ? 1 : 0, y: barOnFeed ? 0 : 6, scale: barOnFeed ? 1 : 0.94 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+            pointerEvents: barOnFeed ? 'auto' : 'none',
+          }}
+        >
+          <div style={{ width: '100%' }}>
+            <RubricBar chips={rubrics} value={rubric} onChange={pickRubric} accent={feedAccent} />
+          </div>
+        </motion.div>
+      </div>
       <div ref={bellRef} style={{ display: 'inline-flex' }}>
         <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
       </div>
@@ -275,8 +394,13 @@ export default function MobileHome() {
               кончается; дальше начинается то, что можно листать сколько
               захочется. Отступ здесь заметно больше остальных: это стык двух
               разных половин экрана, а не соседние блоки одного списка. */}
-          <div style={{ marginTop: 14 }}>
-            <FeedFlow subject={scopedSubject?.subject} />
+          <div ref={feedRef} style={{ marginTop: 14 }}>
+            <FeedFlow
+              lang={feedGlance.lang}
+              subjectId={feedGlance.subjectId}
+              items={feedItems}
+              rubric={rubric}
+            />
           </div>
         </div>
         )}
@@ -443,9 +567,14 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
           whileTap={{ scale: 0.95 }}
           onClick={() => { tactile(); onContinue() }}
           className="flex items-center cursor-pointer"
-          style={{ gap: 6, background: '#fff', color: 'var(--color-purple-text)', fontWeight: 800, fontSize: 12.5, padding: '7px 15px', borderRadius: 999, border: 'none' }}
+          // Текст и стрелка на БЕЛОЙ таблетке, поэтому --color-control-accent,
+          // а не --color-purple-text: последний в тёмной теме — светлая сирень
+          // (он для текста на мягкой ЗАЛИВКЕ), и на белом «Продолжить» блёкло
+          // выцветало. control-accent затемнён до читаемого с белым в обеих
+          // темах и так же уходит в цвет открытого курса.
+          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 12.5, padding: '7px 15px', borderRadius: 999, border: 'none' }}
         >
-          <Play size={14} fill="var(--color-purple-text)" />
+          <Play size={14} fill="var(--color-control-accent)" />
           {label}
         </motion.button>
       </div>
@@ -477,6 +606,13 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
   onClick: () => void
 }) {
   const p = pair ? PAIR[pair] : null
+  // Подписи ряда — строчными, весь ряд одним регистром. В русском регистр берём
+  // как есть: «ДЗ» — аббревиатура, строчными она читается опечаткой. В переводе
+  // такой оговорки нет, а словарь отдаёт «Homework» с большой (в таблицах
+  // учителя это верно) — и в ряду одна плитка торчала заглавной среди
+  // lesson/practice/words/course. Здесь приводим к строчным сами.
+  const lang = useLang(s => s.lang)
+  const text = lang === 'ru' ? label : label.toLowerCase()
   return (
     <motion.button
       whileTap={{ scale: 0.92 }}
@@ -501,7 +637,7 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
           }}>{badge > 99 ? '99+' : badge}</span>
         )}
       </span>
-      <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', maxWidth: '100%' }}>{label}</span>
+      <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', maxWidth: '100%' }}>{text}</span>
     </motion.button>
   )
 }
@@ -560,14 +696,20 @@ function QuickRow({ subjects, onLesson, onHW, onTrainer, onCourses }: {
 /** Сколько постов показываем сразу и сколько добавляем за одну подгрузку. */
 const FEED_CHUNK = 6
 
-function FeedFlow({ subject }: { subject?: string }) {
+function FeedFlow({ lang, subjectId, items, rubric }: {
+  lang?: string
+  subjectId?: string
+  /** Уже отобранные рубрикой материалы — отбор живёт в шапке. */
+  items: FeedItem[]
+  /** Выбранная рубрика: сменилась — лента начинается заново, с первой порции. */
+  rubric: FeedFilter
+}) {
   const { dark } = useTheme()
-  const { lang, subjectId, items } = useFeedGlance(0, subject)
   const [shown, setShown] = useState(FEED_CHUNK)
   const moreRef = useRef<HTMLDivElement>(null)
 
-  // Сменился курс (а с ним язык ленты) — начинаем сначала.
-  useEffect(() => { setShown(FEED_CHUNK) }, [lang])
+  // Сменился курс (а с ним язык ленты) или рубрика — начинаем сначала.
+  useEffect(() => { setShown(FEED_CHUNK) }, [lang, rubric])
 
   useEffect(() => {
     const check = () => {
