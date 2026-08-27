@@ -206,18 +206,41 @@ export default function FeedSwipe({
      * Поля считаются по месту, а не зашиты числом: у поста в ленте они одни
      * (колонка главной), у поста в тренажёре — другие.
      */
+    let bled = false
     const bleed = () => {
-      host.style.margin = ''
+      host.style.marginLeft = ''
+      host.style.marginRight = ''
       host.style.paddingLeft = ''
       host.style.paddingRight = ''
       const r = host.getBoundingClientRect()
+      // МЕРИТЬ НЕВИДИМОЕ НЕЛЬЗЯ. Настольная и телефонная раскладки живут в
+      // дереве обе, и спрятанная (display:none) отдаёт нули: правое поле
+      // посчиталось бы во всю ширину окна, и пост, став видимым, вылез бы за
+      // экран на эту ширину. Нулевая коробка — это «ещё не знаем», и тогда
+      // мерить будем, когда покажется (io ниже).
+      if (!r.width) { bled = false; return }
       const left = Math.max(0, Math.round(r.left))
       const right = Math.max(0, Math.round(window.innerWidth - r.right))
       if (left) { host.style.marginLeft = `${-left}px`; host.style.paddingLeft = `${left}px` }
       if (right) { host.style.marginRight = `${-right}px`; host.style.paddingRight = `${right}px` }
+      bled = true
     }
     bleed()
     window.addEventListener('resize', bleed)
+
+    // Наблюдатель ставится ТОЛЬКО если померить не удалось, и снимается с
+    // первого удачного замера. ResizeObserver тут не годится принципиально:
+    // отрицательное поле меняет размер самой коробки, то есть каждый замер
+    // порождал бы следующий.
+    let io: IntersectionObserver | null = null
+    if (!bled && typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(es => {
+        if (!es.some(e => e.isIntersecting)) return
+        bleed()
+        if (bled) { io?.disconnect(); io = null }
+      })
+      io.observe(host)
+    }
 
     const width = () => host.getBoundingClientRect().width || window.innerWidth
     const trigger = () => Math.min(TRIGGER_MAX, width() * TRIGGER_RATIO)
@@ -537,6 +560,7 @@ export default function FeedSwipe({
     return () => {
       clearHold()
       window.removeEventListener('resize', bleed)
+      io?.disconnect()
       if (tapTimer) clearTimeout(tapTimer)
       friction?.stop(false)
       host.removeEventListener('touchstart', onStart)

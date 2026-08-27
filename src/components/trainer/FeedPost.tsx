@@ -562,8 +562,12 @@ function Marks({ liked, commented, inset }: { liked: boolean; commented: boolean
     <span
       aria-hidden
       style={{
+        // КОРОТКАЯ ЗАСЕЧКА, А НЕ ПОЛОСА ВО ВСЮ ВЫСОТУ. Полоса в рост поста
+        // читалась цветной рамкой — то есть свойством самой карточки, вроде
+        // выделения или статуса материала. Двадцать пикселей у середины
+        // правого поля читаются ровно тем, чем являются: пометкой на полях.
         position: 'absolute', zIndex: 1,
-        top: inset ? 12 : 16, bottom: inset ? 12 : 12,
+        top: '50%', transform: 'translateY(-50%)',
         // В карточке метка стоит внутри рамки, в ленте — на поле колонки, за
         // текстовым краем: там она читается полем страницы, а не рамкой поста.
         right: inset ? 6 : -9,
@@ -572,7 +576,7 @@ function Marks({ liked, commented, inset }: { liked: boolean; commented: boolean
       }}
     >
       {marks.map(c => (
-        <span key={c} style={{ flex: 1, borderRadius: 999, background: c, opacity: 0.9 }} />
+        <span key={c} style={{ height: 20, borderRadius: 999, background: c, opacity: 0.9 }} />
       ))}
     </span>
   )
