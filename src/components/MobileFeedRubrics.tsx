@@ -71,6 +71,14 @@ export function RubricBar({ chips, value, onChange, accent }: {
     return () => clearTimeout(again)
   }, [value, chips.length])
 
+  // Ряд ТЕСНЫЙ только когда рубрик много: восемь чипсов в 375 px влезают лишь
+  // впритык, и остаток ширины там честно отдаётся подписи выбранной. Когда
+  // рубрик четыре-пять, тот же приём растягивает выбранную кнопку на пол-экрана
+  // — таблетка длиной с заголовок рядом с горсткой значков. Поэтому в коротком
+  // ряду выбранная — обычный чипс по содержимому, а свободная ширина уходит в
+  // зазоры и центрирование.
+  const tight = chips.length >= 7
+
   return (
     <div
       ref={scrollRef}
@@ -78,7 +86,10 @@ export function RubricBar({ chips, value, onChange, accent }: {
       style={{
         // Зазор в два пикселя — свёрнутый ряд из восьми рубрик обязан влезть в
         // 375 px целиком: прокручиваемая шапка не показывает, что там дальше.
-        display: 'flex', alignItems: 'center', gap: 2,
+        // Рубрик мало — тесниться незачем: лишнюю ширину забирают ЗАЗОРЫ между
+        // значками, а не подпись выбранной (см. `tight` ниже).
+        display: 'flex', alignItems: 'center', gap: tight ? 2 : 8,
+        justifyContent: tight ? undefined : 'center',
         overflowX: 'auto', overscrollBehaviorX: 'contain',
         padding: 4, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))',
@@ -102,13 +113,15 @@ export function RubricBar({ chips, value, onChange, accent }: {
             // Растёт, но НЕ сжимается (1 0 auto): подпись выбранной рубрики —
             // это заголовок ленты, ужимать её нельзя. Если ряд всё же не влез,
             // работает прежний горизонтальный скролл, а не обрезка слова.
-            style={on ? { display: 'flex', flex: '1 0 auto', minWidth: 0 } : { display: 'flex', flex: '0 1 auto', minWidth: 0 }}
+            style={on && tight
+              ? { display: 'flex', flex: '1 0 auto', minWidth: 0 }
+              : { display: 'flex', flex: '0 1 auto', minWidth: 0 }}
           >
             <RubricChip
               rubric={c}
               on={on}
               label={on}
-              grow={on}
+              grow={on && tight}
               accent={accent}
               onClick={() => { if (!on) { tactile(); onChange(c.id) } }}
             />
