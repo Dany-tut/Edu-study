@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Check, Image as ImageIcon, Key, ListChecks, Eye, EyeOff,
   ChevronDown, Search, Shuffle, AlertCircle, Trash2, Save,
-  LayoutGrid, List, ArrowUpDown, Pencil, Zap, Clock,
+  LayoutGrid, List, ArrowUpDown, Pencil, Zap, Clock, Database,
 } from 'lucide-react'
 import TeacherSelect from './TeacherSelect'
 import {
@@ -139,6 +139,10 @@ export type TrainerFilters = {
 export const emptyTrainerFilters: TrainerFilters = {
   search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [],
 }
+
+/** Что показывает банк: сами задания или их разметку (разделы, темы, части,
+ *  линии). Разметка — настройка банка, поэтому и живёт рядом с его отбором. */
+export type BankView = 'tasks' | 'map'
 
 type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
 type ViewMode = 'list' | 'grid'
@@ -751,11 +755,16 @@ export function TrainerBankBrowser({
 // ─── Filter panel (right rail) ──────────────────────────────────────────────────
 export function TrainerBankFilterPanel({
   filters, onChange, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
+  view, onViewChange,
 }: {
   filters: TrainerFilters
   onChange: (f: Partial<TrainerFilters>) => void
   accent?: string
   accentBg?: string
+  /** Задания ↔ Разметка. Переключатель живёт в панели: он такой же отбор банка,
+   *  как раздел или линия, и над списком он занимал целый ряд впустую. */
+  view?: BankView
+  onViewChange?: (v: BankView) => void
 }) {
   const t = useT()
   const tasks = useTaskBank(s => s.tasks)
@@ -797,6 +806,7 @@ export function TrainerBankFilterPanel({
   // Разметка ЕГЭ (раздел → тема → часть → линия) у языка отсутствует: у его
   // заданий эти поля пустые, поэтому вместо них показываем уровень и навык.
   const langTax = languageTaxonomy(filters.subject)
+  const isMap = view === 'map'
 
   return (
     <motion.div
@@ -808,6 +818,24 @@ export function TrainerBankFilterPanel({
         display: 'flex', flexDirection: 'column', gap: 12,
       }}
     >
+      {onViewChange && (
+        <div style={{ display: 'flex', gap: 6 }}>
+          {([['tasks', t('Задания'), Zap], ['map', t('Разметка'), Database]] as const).map(([v, label, Icon]) => {
+            const on = view === v
+            return (
+              <button key={v} onClick={() => onViewChange(v)}
+                style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  background: on ? (accentBg ?? 'var(--color-purple-soft)') : 'var(--color-bg-3)',
+                  color: on ? accent : 'var(--color-muted)', transition: 'all 0.15s' }}>
+                <Icon size={13} strokeWidth={2.2} /> {label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {isMap ? null : <>
       {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Search size={15} style={{ color: accent }} />
@@ -867,6 +895,7 @@ export function TrainerBankFilterPanel({
           <Trash2 size={12} /> {t('Сбросить фильтры')}
         </button>
       )}
+      </>}
 
       <div style={{ fontSize: 11, color: 'var(--color-text-3)', textAlign: 'center', paddingTop: 2 }}>{tasks.length} {t('заданий в базе')}</div>
     </motion.div>

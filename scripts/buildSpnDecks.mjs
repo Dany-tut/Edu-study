@@ -58,6 +58,9 @@ const flag = (name, def = null) => {
 }
 const FAKE = args.includes('--fake')
 const WRITE = args.includes('--write')
+/** `--via gpt` — обходной поставщик на случай, когда Claude-адаптер шлюза лежит. */
+const VIA_GPT = String(flag('--via', 'claude')) === 'gpt'
+const GPT_MODEL = String(flag('--gpt-model', 'gpt-5-6-sol'))
 const SRT_DIR = String(flag('--srt', '')).replace(/^~/, process.env.HOME ?? '')
 const LIMIT = Number(flag('--limit', 60))
 /**
@@ -152,7 +155,17 @@ const makeLemma = rank => w => {
   return w
 }
 
-/** Слова, которые в тексте почти всегда с прописной, — имена и топонимы. */
+/**
+ * Слова, которые в тексте пишут с прописной, — имена и топонимы.
+ *
+ * ПОРОГ НИЗКИЙ, И ЭТО НЕ ОПЕЧАТКА. Интуитивно кажется, что имя должно быть с
+ * прописной почти всегда, и первый вариант требовал 60%. По корпусу 104 серий
+ * это пропускало имена насквозь: winchester 0,46 · bobby 0,49 · castiel 0,44 ·
+ * impala 0,17 — реплика часто начинается с имени (тогда прописная не в счёт)
+ * или набрана целиком капсом. А вот обратное верно железно: обычное слово в
+ * середине предложения с прописной не пишут вовсе — psychic 0,02, journal 0,00,
+ * motel 0,03, sulfur 0,00. Между 0,03 и 0,17 пропасть, граница проходит там.
+ */
 function properNames(texts) {
   const cap = new Map(), low = new Map()
   for (const t of texts) {
@@ -166,7 +179,7 @@ function properNames(texts) {
   const out = new Set()
   for (const w of new Set([...cap.keys(), ...low.keys()])) {
     const c = cap.get(w) ?? 0, l = low.get(w) ?? 0
-    if (c + l >= 5 && c / (c + l) > 0.6) out.add(w)
+    if (c + l >= 3 && c / (c + l) > 0.1) out.add(w)
   }
   return out
 }
@@ -197,8 +210,45 @@ const SYSTEM = `Ты составляешь словарные карточки 
 На каждое слово дай:
 - ru: перевод тем словом, которое сказал бы русский. Не подстрочник. Если у слова в этом сериале особое значение — его и дай, пометив общее вторым через точку с запятой.
 - note: одно-два предложения о том, что важно знать: ложный друг, ловушка произношения, ограничение употребления, разница с близким словом. Не пересказывай перевод.
-- ex / exRu: ТВОЁ СОБСТВЕННОЕ короткое предложение в регистре сериала (дорога, мотель, охота) и его перевод. Реплики сериала использовать запрещено — придумывай своё.
-Отвечай только JSON-массивом, по объекту на слово, в том же порядке.`
+- ex / exRu: ТВОЁ СОБСТВЕННОЕ короткое предложение в регистре сериала (дорога, мотель, охота) и его перевод.
+
+СТРОКА ПОСЛЕ «в реплике:» ДАНА ТОЛЬКО ДЛЯ ТОГО, ЧТОБЫ ТЫ ПОНЯЛ ЗНАЧЕНИЕ СЛОВА.
+Копировать её в ex запрещено — это чужой текст. Придумай другое предложение,
+с другими словами и другой ситуацией.
+
+Отвечай только JSON-массивом, по объекту на слово, в том же порядке.
+Поле term повторяй ТОЧНО в том виде, в каком слово дано, — по нему идёт сверка.`
+
+/** Вытащить готовый текст из SSE-потока Responses API. */
+function textFromSSE(body) {
+  // Финальный текст приходит одним событием response.output_text.done; собирать
+  // его из дельт не надо, а брать первую попавшуюся строку "text" нельзя —
+  // такие же поля есть у промежуточных событий.
+  const done = body.split('\n').filter(l => l.startsWith('data:'))
+    .map(l => { try { return JSON.parse(l.slice(5)) } catch { return null } })
+    .filter(Boolean)
+    .find(e => e.type === 'response.output_text.done')
+  if (!done?.text) throw new Error('в ответе нет response.output_text.done')
+  return done.text
+}
+
+/**
+ * Второй поставщик: GPT через тот же шлюз, но по другому маршруту.
+ *
+ * Заведён не для разнообразия, а по нужде: Claude-адаптер kie.ai лежал, а
+ * /codex/v1/responses на том же ключе и тех же кредитах отвечал нормально.
+ * Работа механическая (перевод слова и пример к нему), поэтому поставщик здесь
+ * взаимозаменяем — важно, чтобы что-то из двух было живо.
+ */
+async function viaCodex(prompt, key, model) {
+  const res = await fetch('https://api.kie.ai/codex/v1/responses', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, input: prompt }),
+  })
+  if (!res.ok) throw new Error(`codex ${res.status}: ${(await res.text()).slice(0, 200)}`)
+  return textFromSSE(await res.text())
+}
 
 async function translate(words) {
   if (FAKE) return words.map(w => ({ term: w.term, ru: `‹перевод: ${w.term}›`, note: '‹пояснение›', ex: `‹пример с ${w.term}›`, exRu: '‹перевод примера›' }))
@@ -206,6 +256,14 @@ async function translate(words) {
   const kie = process.env.KIE_API_KEY
   const key = kie ?? process.env.ANTHROPIC_API_KEY
   if (!key) throw new Error('нет ключа: задай ANTHROPIC_API_KEY или KIE_API_KEY (или гоняй с --fake)')
+
+  if (VIA_GPT) {
+    if (!kie) throw new Error('--via gpt работает только через шлюз: задай KIE_API_KEY')
+    const list = words.map(w => `${w.term} — в ${w.episodes} сериях; в реплике: "${w.context}"`).join('\n')
+    const text = await viaCodex(`${SYSTEM}\n\nСлова:\n${list}`, kie, GPT_MODEL)
+    const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
+    return JSON.parse(json)
+  }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk')
   // Шлюз kie.ai говорит на диалекте Anthropic, но авторизуется через
@@ -286,11 +344,21 @@ const take = candidates.slice(0, LIMIT)
 console.log(`беру ${take.length}${FAKE ? ' (режим --fake, без сети)' : ''}`)
 const cards = await translate(take)
 
+// Сверка по слову, а не по позиции: модель может вернуть меньше объектов, чем
+// просили, или переставить их. Молчаливая потеря здесь особенно неприятна —
+// карточки просто не доезжают, а прогон выглядит успешным, поэтому расхождения
+// пишутся вслух.
 const byTerm = new Map(take.map(w => [w.term, w]))
-const rows = cards.map(c => {
-  const src = byTerm.get(c.term)
-  return { ...c, episodes: src?.episodes ?? 0 }
-}).filter(c => c.episodes)
+const rows = []
+const lost = []
+for (const c of cards) {
+  const src = byTerm.get(String(c.term ?? '').trim().toLowerCase())
+  if (!src) { lost.push(c.term ?? '‹без term›'); continue }
+  rows.push({ ...c, term: src.term, episodes: src.episodes })
+}
+const missing = take.filter(w => !cards.some(c => String(c.term ?? '').trim().toLowerCase() === w.term))
+if (lost.length) console.warn(`не сошлись по слову (${lost.length}): ${lost.slice(0, 8).join(', ')}`)
+if (missing.length) console.warn(`модель не вернула (${missing.length}): ${missing.slice(0, 8).map(w => w.term).join(', ')}`)
 
 const out = `// СГЕНЕРИРОВАНО scripts/buildSpnDecks.mjs — правки руками затрёт следующий прогон.
 //

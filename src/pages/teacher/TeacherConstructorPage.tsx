@@ -1571,9 +1571,11 @@ function WidgetGroupsView({
  * растить ряд на каждый новый род контента: сегодня шесть вкладок, через месяц
  * девять, и уже ни одна не находится с первого взгляда.
  *
- * ВЫГЛЯДИТ МЕЛЬЧЕ РЯДА НАМЕРЕННО. Высота 34 против 44 и мягкая рамка вместо
- * стекла: половина не должна спорить с вкладкой, под которой стоит, — иначе
- * читаются два равных ряда, и непонятно, какой из них главный.
+ * ВЫГЛЯДИТ МЕЛЬЧЕ РЯДА НАМЕРЕННО. Высота 34 против 44, заливка только у
+ * выбранной и никакого стекла: половина не должна спорить с вкладкой, под
+ * которой стоит, — иначе читаются два равных ряда, и непонятно, какой из них
+ * главный. Рамки у погашенной половины нет — на тёмном фоне она давала третий
+ * контур в ряду, где уже есть таблетки вкладок.
  */
 function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
   options: Array<{ value: T; label: string; icon?: React.ElementType }>
@@ -1597,7 +1599,7 @@ function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
               display: 'flex', alignItems: 'center', gap: 7,
               height: 34, boxSizing: 'border-box', padding: '0 15px',
               borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-              border: on ? '1px solid transparent' : '1px solid var(--color-border-soft)',
+              border: 'none',
               background: on ? bg : 'transparent',
               color: on ? color : 'var(--color-muted)',
               fontSize: 13, fontWeight: 700,
@@ -1655,13 +1657,11 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus,
         background: isActive ? bg : 'rgba(var(--glass-rgb), 0.86)',
         ...PILL_GLASS,
         color: isActive ? color : 'var(--color-muted)', fontSize: 14, fontWeight: 600,
-        // Обводка активной вкладки — её собственным цветом, разбавленным до
-        // намёка. Раньше здесь стояло `${color}44`, но color — это var(), а
-        // «var(--x)44» невалидно: браузер отбрасывал ВСЮ строку box-shadow, и
-        // активная таблетка оставалась вообще без обводки и без тени.
-        boxShadow: isActive
-          ? `0 0 0 1.5px color-mix(in srgb, ${color} 27%, transparent), 0 4px 14px rgba(0,0,0,0.06)`
-          : '0 2px 8px rgba(0,0,0,0.04)',
+        // Обводки у таблетки нет — ни у активной, ни у погашенной. Активную
+        // и так видно по заливке, цвету подписи и жирной иконке; кольцо поверх
+        // цветного фона добавляло второй контур того же цвета и в тёмной теме
+        // читалось как рамка, наведённая вручную. Осталась только тень.
+        boxShadow: isActive ? '0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
         transition: 'all 0.15s',
       }}>
       <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
@@ -8221,9 +8221,7 @@ export default function TeacherConstructorPage() {
                     ...PILL_GLASS,
                     color: editMode ? 'var(--color-red-text)' : 'var(--color-muted)',
                     opacity: editToggleShown ? 1 : 0.4,
-                    boxShadow: editMode
-                      ? '0 0 0 1.5px rgba(192,48,58,0.27), 0 4px 14px rgba(0,0,0,0.06)'
-                      : '0 2px 8px rgba(0,0,0,0.07)',
+                    boxShadow: editMode ? '0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
                     transition: 'all 0.15s',
                   } as React.CSSProperties}
                 >
@@ -8345,48 +8343,37 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               </div>
+              {/* Задания ↔ Разметка переехали в панель справа: это тот же отбор
+                  банка, что раздел или линия, а отдельным рядом над списком
+                  переключатель съедал высоту первого экрана. */}
               {activeTab === 'trainer' && (
-                <div style={{ marginBottom: 16 }}>
-                  <HalfSwitch
-                    options={[
-                      { value: 'tasks', label: t('Задания'), icon: Zap },
-                      // Разметка — настройка банка: разделы, темы, части, линии.
-                      // Раньше она была отдельной вкладкой «Банк заданий», хотя
-                      // банка в ней нет ни одного задания.
-                      { value: 'map', label: t('Разметка'), icon: Database },
-                    ]}
-                    value={taskView}
-                    onChange={v => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
-                    color="var(--color-accent)"
-                    bg="var(--color-purple-soft)"
-                  />
-                </div>
-              )}
-              {activeTab === 'trainer' && taskView === 'tasks' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <TrainerBankBrowser
-                      filters={bankFilters}
-                      selectedIds={new Set([...checkedIds].map(Number).filter(n => !isNaN(n)))}
-                      onToggleSelected={id => toggleCheck(String(id))}
-                      onForkSelected={() => {}}
-                      onDeleteTask={id => removeTask(id)}
-                      showSelect={false}
-                      compact={true}
-                      editMode={editMode}
-                      accent="var(--color-purple-text)"
-                      accentBg="var(--color-purple-soft)"
-                    />
+                    {taskView === 'tasks' ? (
+                      <TrainerBankBrowser
+                        filters={bankFilters}
+                        selectedIds={new Set([...checkedIds].map(Number).filter(n => !isNaN(n)))}
+                        onToggleSelected={id => toggleCheck(String(id))}
+                        onForkSelected={() => {}}
+                        onDeleteTask={id => removeTask(id)}
+                        showSelect={false}
+                        compact={true}
+                        editMode={editMode}
+                        accent="var(--color-purple-text)"
+                        accentBg="var(--color-purple-soft)"
+                      />
+                    ) : <CurriculumManager />}
                   </div>
                   <TrainerBankFilterPanel
                     filters={bankFilters}
                     onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
                     accent="var(--color-purple-text)"
                     accentBg="rgba(120,106,215,0.13)"
+                    view={taskView}
+                    onViewChange={v => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
                   />
                 </div>
               )}
-              {activeTab === 'trainer' && taskView === 'map' && <CurriculumManager />}
               {activeTab === 'decks' && <TrainerMaterials createNonce={deckNonce} />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

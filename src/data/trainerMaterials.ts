@@ -118,19 +118,21 @@ const scenesFamily: MaterialFamily = {
   async load(lang) {
     // Берём РЕЕСТР произведений, а не сами сцены: у английского они весят 1,1 МБ,
     // и витрине для списка полок они не нужны ни строкой.
-    const { worksForLang, workLine, sceneCount } = await import('./scenes')
-    return worksForLang(lang).map(w => {
-      const n = sceneCount(w.id)
-      return {
-        id: w.id,
-        title: w.title,
-        about: workLine(w),
-        level: `${w.age} · ${w.medium}`,
-        topic: w.shelf,
-        size: n,
-        meta: plural(n, 'сцена', 'сцены', 'сцен'),
-      }
-    })
+    //
+    // Поэтому же тут нет числа сцен у произведения: sceneCount считает их у
+    // ЯЗЫКА, а поштучно они известны только внутри чанка. Ставить вместо этого
+    // ноль хуже, чем не ставить ничего, — плитка врала бы «0 сцен».
+    const { worksForLang, workLine, SHELVES } = await import('./scenes')
+    const shelfTitle = (id: string) => SHELVES.find(sh => sh.id === id)?.title ?? id
+    return worksForLang(lang).map(w => ({
+      id: w.id,
+      title: w.title,
+      about: w.blurb,
+      level: w.age,
+      topic: shelfTitle(w.shelf),
+      size: 0,
+      meta: `${workLine(w)} · ${w.medium === 'book' ? 'книга' : w.medium === 'film' ? 'фильм' : 'сериал'}`,
+    }))
   },
 }
 
