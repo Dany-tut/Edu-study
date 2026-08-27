@@ -136,8 +136,8 @@ export function RubricBar({ chips, value, onChange, accent }: {
   )
 }
 
-/** Насколько далеко нужно увести палец, чтобы рубрика сменилась. */
-const SWIPE = 56
+/** Насколько далеко нужно увести палец (сверх люфта), чтобы рубрика сменилась. */
+const COMMIT = 31
 /** Дальше этого лента за пальцем не едет — жест «отзывается», а не таскается. */
 const RUBBER = 44
 
@@ -182,6 +182,12 @@ export function useRubricSwipe(
     let axis: 'x' | 'y' | null = null
     let active = false
     let dx = 0
+    // Люфт: сколько пальцем уже прошли, когда ось определилась. Смещение
+    // считается ОТ ЭТОЙ точки, иначе лента в первый же кадр прыгает на все
+    // накопленные десять пикселей — тот самый рывок в начале свайпа.
+    let slack = 0
+    // Порог уже пройден — щелчок отдан, второй раз не звучит.
+    let armed = false
 
     // СМЕЩЕНИЕ ПИШЕМ ПРЯМО В СТИЛЬ, А НЕ В СОСТОЯНИЕ. Каждый touchmove — это
     // кадр: состояние перерисовывало бы всю главную вместе с полусотней постов
@@ -193,7 +199,11 @@ export function useRubricSwipe(
       el.style.transform = x ? `translate3d(${x}px, 0, 0)` : ''
     }
 
-    const reset = () => { active = false; axis = null; shift(0, true) }
+    const reset = () => {
+      active = false; axis = null; slack = 0; armed = false
+      shift(0, true)
+      el.style.willChange = ''
+    }
 
     const onStart = (e: TouchEvent) => {
       if (!live.current.enabled || e.touches.length !== 1) return
@@ -211,15 +221,23 @@ export function useRubricSwipe(
         if (Math.abs(mx) < 10 && Math.abs(my) < 10) return
         axis = Math.abs(mx) > Math.abs(my) * 1.4 ? 'x' : 'y'
         if (axis === 'y') { active = false; return }
+        // Ось наша: слой уводим на композитор ЗАРАНЕЕ, чтобы первый же кадр
+        // смещения не совпал с подъёмом слоя — на нём лента и вздрагивала.
+        slack = mx
+        el.style.willChange = 'transform'
       }
       // Прокрутку экрана в этом касании берём на себя.
       if (e.cancelable) e.preventDefault()
       // На краю списка рубрик лента почти не поддаётся: упор виден пальцем.
       const { chips: cs, value: v } = live.current
       const i = cs.findIndex(c => c.id === v)
-      const edge = (mx > 0 && i <= 0) || (mx < 0 && i >= cs.length - 1)
-      const soft = RUBBER * Math.tanh(mx / (RUBBER * 2))
+      const m = mx - slack
+      const edge = (m > 0 && i <= 0) || (m < 0 && i >= cs.length - 1)
+      const soft = RUBBER * Math.tanh(m / (RUBBER * 2))
       shift(edge ? soft * 0.25 : soft, false)
+      // Щелчок в МОМЕНТ прохождения порога, а не после отпускания пальца: рука
+      // узнаёт, что рубрика уже сменится, пока жест ещё идёт.
+      if (!armed && !edge && Math.abs(m) >= COMMIT) { armed = true; tactile() }
     }
 
     const onEnd = () => {
@@ -227,10 +245,12 @@ export function useRubricSwipe(
       const { chips: cs, value: v, onChange: fire } = live.current
       const i = cs.findIndex(c => c.id === v)
       // Знак берём у накопленного смещения, а не у последнего события: у
-      // touchend координат нет вовсе.
-      if (Math.abs(dx) >= SWIPE * 0.55) {
+      // touchend координат нет вовсе. Смещение уже упругое (tanh), поэтому
+      // сверяем его с упругим же порогом.
+      if (Math.abs(dx) >= RUBBER * Math.tanh(COMMIT / (RUBBER * 2))) {
         const next = dx < 0 ? i + 1 : i - 1
-        if (i >= 0 && next >= 0 && next < cs.length) { tactile(); fire(cs[next].id) }
+        // Щелчок уже отдан на проходе порога — здесь только смена рубрики.
+        if (i >= 0 && next >= 0 && next < cs.length) { if (!armed) tactile(); fire(cs[next].id) }
       }
       reset()
     }

@@ -62,18 +62,27 @@ const RUBBER = 0.32
 /** Быстрый смах засчитывается и не дотянув до порога (px/мс). */
 const FLING = 0.5
 /**
- * Скругление углов уезжающей карточки.
+ * РЕЗИНОВЫЙ СТЫК
  *
- * ВСТАЁТ ОДИН РАЗ, В НАЧАЛЕ ЖЕСТА, а не набегает по мере хода. Радиус,
- * привязанный к пройденному пути, «съезжал»: углы дышали на каждом дрожании
- * пальца, а на возврате скругление успевало распрямиться раньше, чем карточка
- * доезжала до места, — два движения вместо одного. В X пост скруглён всегда, и
- * читается это как одна вещь, которую двигают, а не как форма, которая по
- * дороге меняется.
+ * Лента — это склеенная лента, а не стопка отдельных карточек: посты сидят
+ * встык, разделённые волосяной линией, и углов у них нет. Жест начинает ЭТОТ
+ * стык тянуть. Пока пост едет, скругление набегает не только у него, но и у
+ * соседей — у нижнего края верхнего поста и у верхнего края нижнего: клей
+ * тянется, и края у места разрыва округляются с обеих сторон.
+ *
+ * На пороге пост ОТРЫВАЕТСЯ. Скругление коротко перескакивает через своё
+ * значение и замирает, волосяная линия у места отрыва гаснет, и дальше углы
+ * больше ни за чем не следят: оторванное не тянется. Это же и подсказка руке —
+ * порог виден, а не только слышен засечкой.
+ *
+ * Обратно всё склеивается на возврате, вместе с карточкой и одной с ней
+ * длительностью.
  */
 const CORNER = 18
-/** Сколько занимает само появление скругления и тени. */
-const CORNER_IN = '.2s'
+/** Перескок в момент отрыва: во столько раз угол на миг больше своего. */
+const SNAP = 1.18
+/** Сколько длится сам отрыв. */
+const SNAP_MS = 130
 /**
  * Насколько заливка выходит за строку поста по вертикали.
  *
@@ -287,11 +296,104 @@ export default function FeedSwipe({
       return !!el?.closest('a, button, input, textarea, select, iframe, video, [role="button"], [data-no-gesture]')
     }
 
-    /** Форму и тень ставим один раз, на старте жеста: дальше карточку только возят. */
+    // ── Резиновый стык (см. шапку файла) ─────────────────────────────────────
+    //
+    // Соседи ищутся по DOM: слой жеста стоит вокруг каждого поста, и соседний
+    // пост — это соседний элемент. Ни один из них может и не найтись (первый и
+    // последний в ленте, разделитель-дата в тренажёре) — тогда тянется только
+    // наш край.
+    let seamPrev: HTMLElement | null = null
+    let seamNext: HTMLElement | null = null
+    let seamLine: HTMLElement | null = null
+    /** Порог пройден: стык порван, углы больше ни за кем не следуют. */
+    let torn = false
+    let snapTimer: number | null = null
+
+    const neighbour = (el: Element | null | undefined) =>
+      (el?.querySelector('[data-feed-card]') as HTMLElement | null) ?? null
+
+    /** Тень и соседи готовятся один раз, на старте жеста. */
     const liftCard = () => {
-      card.style.transition = `border-radius ${CORNER_IN} ease, box-shadow ${CORNER_IN} ease`
-      card.style.borderRadius = `${CORNER}px`
+      card.style.transition = `box-shadow .2s ease`
       card.style.boxShadow = '0 6px 22px rgba(0,0,0,0.16)'
+      torn = false
+      seamPrev = neighbour(host.previousElementSibling)
+      seamNext = neighbour(host.nextElementSibling)
+      // Волосяная линия ниже нашего поста принадлежит СЛЕДУЮЩЕМУ (она у него
+      // сверху). Гасить её в момент отрыва — значит показать, что пост
+      // отделился с обеих сторон, а не только сверху, где линия уехала вместе
+      // с ним.
+      seamLine = (seamNext?.firstElementChild as HTMLElement | null) ?? null
+      for (const n of [seamPrev, seamNext]) if (n) n.style.transition = 'none'
+    }
+
+    /**
+     * Стык при ходе `p` (0…1 до порога).
+     *
+     * Соседям достаются только ОБРАЩЁННЫЕ К НАМ углы: верхний пост округляется
+     * снизу, нижний — сверху. Их дальние края к нашему жесту отношения не
+     * имеют и должны остаться встык со своими соседями.
+     */
+    const paintSeam = (p: number) => {
+      if (torn) return
+      // До отрыва радиус идёт ЗА ПАЛЬЦЕМ, без перехода: это натяжение, а не
+      // анимация, и любое сглаживание здесь читается как задержка.
+      card.style.transition = 'box-shadow .2s ease'
+      // Кубическая кривая: клей поддаётся сразу и дальше идёт всё туже.
+      const r = CORNER * (1 - Math.pow(1 - Math.min(1, p), 3))
+      const v = `${r.toFixed(2)}px`
+      card.style.borderRadius = v
+      if (seamPrev) { seamPrev.style.borderBottomLeftRadius = v; seamPrev.style.borderBottomRightRadius = v }
+      if (seamNext) { seamNext.style.borderTopLeftRadius = v; seamNext.style.borderTopRightRadius = v }
+      for (const l of [leftRef.current, rightRef.current]) if (l) l.style.borderRadius = v
+    }
+
+    /** Отрыв: перескок через своё значение — и всё замирает. */
+    const tear = () => {
+      if (torn) return
+      torn = true
+      const over = `${(CORNER * SNAP).toFixed(1)}px`
+      const full = `${CORNER}px`
+      const put = (v: string) => {
+        card.style.borderRadius = v
+        if (seamPrev) { seamPrev.style.borderBottomLeftRadius = v; seamPrev.style.borderBottomRightRadius = v }
+        if (seamNext) { seamNext.style.borderTopLeftRadius = v; seamNext.style.borderTopRightRadius = v }
+        for (const l of [leftRef.current, rightRef.current]) if (l) l.style.borderRadius = v
+      }
+      // Сам перескок — с переходом, а не рывком: до этого момента углы шли за
+      // пальцем кадр в кадр, и мгновенная подстановка читалась бы сбоем.
+      const jump = `border-radius ${SNAP_MS}ms ease`
+      card.style.transition = `${jump}, box-shadow .2s ease`
+      for (const n of [seamPrev, seamNext]) if (n) n.style.transition = jump
+      for (const l of [leftRef.current, rightRef.current]) if (l) l.style.transition = jump
+      put(over)
+      if (seamLine) { seamLine.style.transition = `border-color ${SNAP_MS}ms ease`; seamLine.style.borderTopColor = 'transparent' }
+      if (snapTimer) clearTimeout(snapTimer)
+      snapTimer = window.setTimeout(() => { snapTimer = null; put(full) }, SNAP_MS)
+    }
+
+    /** Склеить обратно — вместе с карточкой и одной с ней длительностью. */
+    const glue = () => {
+      if (snapTimer) { clearTimeout(snapTimer); snapTimer = null }
+      torn = false
+      const back = `border-radius .42s ${EASE}`
+      card.style.borderRadius = '0px'
+      for (const n of [seamPrev, seamNext]) if (n) n.style.transition = back
+      if (seamPrev) { seamPrev.style.borderBottomLeftRadius = '0px'; seamPrev.style.borderBottomRightRadius = '0px' }
+      if (seamNext) { seamNext.style.borderTopLeftRadius = '0px'; seamNext.style.borderTopRightRadius = '0px' }
+      if (seamLine) seamLine.style.borderTopColor = ''
+      window.setTimeout(() => {
+        for (const n of [seamPrev, seamNext]) {
+          if (!n) continue
+          n.style.transition = ''
+          n.style.borderBottomLeftRadius = ''
+          n.style.borderBottomRightRadius = ''
+          n.style.borderTopLeftRadius = ''
+          n.style.borderTopRightRadius = ''
+        }
+        if (seamLine) seamLine.style.transition = ''
+        seamPrev = seamNext = seamLine = null
+      }, 440)
     }
 
     // Только transform: он не перечислен в переходе выше, поэтому идёт за
@@ -357,15 +459,16 @@ export default function FeedSwipe({
       // возврат читался двумя движениями вместо одного.
       card.style.transition = `transform .42s ${EASE}, border-radius .42s ${EASE}, box-shadow .42s ${EASE}`
       paintCard(0)
-      card.style.borderRadius = '0px'
       card.style.boxShadow = 'none'
+      glue()
       const layers = [leftRef.current, rightRef.current]
       layers.forEach(l => {
         if (!l) return
         // Заливка гаснет ровно столько, сколько едет карточка: она и есть то,
         // что из-под карточки видно, и жить своей длительностью ей незачем.
-        l.style.transition = `opacity .42s ${EASE}, background .42s ${EASE}`
+        l.style.transition = `opacity .42s ${EASE}, background .42s ${EASE}, border-radius .42s ${EASE}`
         l.style.opacity = '0'
+        l.style.borderRadius = '0px'
         const dot = l.firstElementChild as HTMLElement | null
         if (dot) {
           dot.style.transition = `transform .42s ${EASE}, opacity .34s ease`
@@ -505,10 +608,15 @@ export default function FeedSwipe({
       const x = dir * Math.max(0, Math.min(travel, width() * 0.42))
       paintCard(x)
       paintReveal(x)
+      paintSeam(Math.abs(x) / th)
 
       const nowArmed = Math.abs(x) >= th
       if (nowArmed !== armed) {
         armed = nowArmed
+        // Порог — это и есть отрыв: клей кончился. Обратно он не склеивается
+        // посреди жеста (оторванное не тянется), поэтому tear() зовётся один
+        // раз, а обратный ход просто возит уже отдельную карточку.
+        if (nowArmed) tear()
         if (cfg.current.sound) { haptic(nowArmed ? [8, 3, 5] : 6); friction?.detent() }
       }
       friction?.move(speed, Math.min(1, Math.abs(x) / th))
@@ -601,6 +709,7 @@ export default function FeedSwipe({
     host.addEventListener('touchcancel', onCancel, { passive: true })
     return () => {
       clearHold()
+      if (snapTimer) clearTimeout(snapTimer)
       window.removeEventListener('resize', bleed)
       io?.disconnect()
       if (tapTimer) clearTimeout(tapTimer)
@@ -639,7 +748,9 @@ export default function FeedSwipe({
     <div ref={hostRef} style={{ position: 'relative', touchAction: 'pan-y' }}>
       {layer('left', leftRef)}
       {layer('right', rightRef)}
-      <div ref={cardRef} style={{ willChange: 'transform' }}>
+      {/* Метка для соседей: резиновый стык ищет соседний пост по DOM и красит
+          ему обращённые к нам углы (см. paintSeam). */}
+      <div ref={cardRef} data-feed-card style={{ willChange: 'transform' }}>
         {children}
       </div>
       {/* Вспышка знака у жестов без хода — поверх поста, по центру. */}
