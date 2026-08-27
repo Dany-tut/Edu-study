@@ -63,7 +63,7 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
         // отдают соседи-значки, по семь на каждого, и ряд влезает целиком.
         flex: grow ? '1 1 0' : '0 1 auto',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: grow ? 0 : 20, height: 30, padding: label ? '0 11px' : '0 7px',
+        minWidth: grow ? 0 : 20, height: 32, padding: label ? '0 11px' : '0 7px',
         borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         fontSize: 12, fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
         background: on ? `${accent}26` : 'transparent',

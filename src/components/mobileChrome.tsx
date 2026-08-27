@@ -122,7 +122,9 @@ export function DynamicIsland({ children, onClick }: { children: ReactNode; onCl
       transition={{ type: 'spring', stiffness: 420, damping: 26 }}
       style={{ display: 'flex', justifyContent: 'center' }}
     >
-      <GlassPill strong onClick={onClick} style={{ padding: '10px 18px', fontSize: 13 }}>
+      {/* Высота задана явно (42) и совпадает с кружками шапки и рядом рубрик:
+          верхний ряд должен читаться как одна линия одинаковых плиток. */}
+      <GlassPill strong onClick={onClick} style={{ height: 42, padding: '0 18px', fontSize: 13 }}>
         {children}
       </GlassPill>
     </motion.div>

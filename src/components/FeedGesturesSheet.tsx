@@ -40,8 +40,8 @@ export const ACTION_LABEL: Record<FeedAction, string> = {
 }
 
 const GESTURES: { id: FeedGesture; label: string; hint: string }[] = [
-  { id: 'swipeLeft',  label: 'Свайп влево',    hint: 'Тянуть пост влево — знак выходит справа' },
-  { id: 'swipeRight', label: 'Свайп вправо',   hint: 'Тянуть пост вправо — знак выходит слева' },
+  { id: 'swipeLeft',  label: 'Свайп влево',    hint: 'От правого края экрана внутрь' },
+  { id: 'swipeRight', label: 'Свайп вправо',   hint: 'От левого края экрана внутрь' },
   { id: 'doubleTap',  label: 'Двойной тап',    hint: 'Два быстрых касания подряд' },
   { id: 'longPress',  label: 'Долгое нажатие', hint: 'Задержать палец на посте' },
   { id: 'tap',        label: 'Тап по посту',   hint: 'Одно касание мимо слов, кнопок и ролика' },
@@ -119,7 +119,9 @@ function GesturePreview({ gesture, action, engagement }: {
   const finger = dead
     ? { opacity: 0 }
     : swipe
-      ? { opacity: [0, 0.9, 0.9, 0], x: [-dir * 18, dir * (DEMO_X - 10), dir * (DEMO_X - 10), dir * (DEMO_X - 10)], scale: [0.8, 1, 1, 1] }
+      // Палец кладут У КРАЯ и ведут внутрь — макет показывает именно это, а не
+      // «карточка сама поехала из середины».
+      ? { opacity: [0, 0.9, 0.9, 0], x: [0, dir * DEMO_X, dir * DEMO_X, dir * DEMO_X], scale: [0.8, 1, 1, 1] }
       : gesture === 'doubleTap'
         ? { opacity: [0, 0.9, 0.25, 0.9, 0], scale: [0.7, 1, 0.9, 1, 0.8] }
         : gesture === 'longPress'
@@ -197,7 +199,12 @@ function GesturePreview({ gesture, action, engagement }: {
           transition={{ ...markT, times: undefined, duration: cardT.duration }}
           style={{
             position: 'absolute', zIndex: 2, opacity: 0,
-            left: '50%', top: '50%', marginLeft: -17, marginTop: -17,
+            top: '50%', marginTop: -17,
+            // У свайпа палец привязан к тому краю, от которого жест
+            // начинается; у тапов — к середине поста.
+            ...(swipe
+              ? (dir < 0 ? { right: 6 } : { left: 6 })
+              : { left: '50%', marginLeft: -17 }),
             width: 34, height: 34, borderRadius: 999,
             background: 'rgba(var(--glass-rgb), 0.5)',
             boxShadow: '0 0 0 1.5px var(--color-border-medium), 0 4px 14px rgba(0,0,0,0.18)',
@@ -304,14 +311,17 @@ export function FeedGesturesSettings() {
       {/* Макет липнет к верху: ряды жестов уходят под него, и выбор действия
           виден сразу, без прокрутки обратно наверх. */}
       <div style={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <div style={{ background: 'rgba(var(--glass-rgb), 0.98)', paddingBottom: 4 }}>
+        {/* Непрозрачная, а не «почти»: под липкой шапкой уезжают ряды чипсов,
+            и даже двух процентов просвета хватает, чтобы они читались тенью
+            поверх макета. */}
+        <div style={{ background: 'rgb(var(--glass-rgb))', paddingBottom: 4 }}>
           <GesturePreview
             gesture={focus}
             action={gestures ? map[focus] : 'none'}
             engagement={engagement}
           />
         </div>
-        <div style={{ height: 14, background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.98), transparent)' }} />
+        <div style={{ height: 14, background: 'linear-gradient(to bottom, rgb(var(--glass-rgb)), transparent)' }} />
       </div>
 
       <div style={{ marginTop: -12 }}>
@@ -320,7 +330,7 @@ export function FeedGesturesSettings() {
           <FlagRow
             first
             label="Кнопки под постом"
-            hint="Сердце, реплики и числа. Выключено — их место занимают жесты"
+            hint="Сердце, реплики, озвучка и перевод. Выключено — их место занимают жесты"
             value={engagement}
             onChange={v => { tactile(); setFlag('engagement', v) }}
           />
@@ -359,9 +369,12 @@ export function FeedGesturesSettings() {
                 transition: 'background .2s ease',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 9 }}>
-                <span style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t(g.label)}</span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-4)', lineHeight: 1.35 }}>{t(g.hint)}</span>
+              {/* Название и пояснение — строками, а не в ряд: в ряду «Свайп
+                  вправо» ломался пополам на 375 px, и заголовок ряда читался
+                  хуже собственного пояснения. */}
+              <div style={{ marginBottom: 9 }}>
+                <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t(g.label)}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-4)', lineHeight: 1.35, marginTop: 2 }}>{t(g.hint)}</div>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                 {ACTIONS.map(a => (
@@ -376,6 +389,10 @@ export function FeedGesturesSettings() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', padding: '0 4px' }}>
+        {t('Свайп начинается от края экрана — узкой полосой слева или справа. Смах по середине поста листает рубрики, как раньше.')}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '0 4px' }}>

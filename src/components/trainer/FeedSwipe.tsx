@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { frictionStart, haptic, tactile, type Friction } from '../../lib/feedback'
+import { backArmed, BACK_EDGE } from '../../lib/useSwipeBack'
 import { HeartGlyph, ReplyGlyph, TranslateGlyph, SpeakGlyph } from './feedGlyphs'
 import type { FeedAction, FeedGesture } from '../../store/feedGesturesStore'
 
@@ -23,13 +24,30 @@ import type { FeedAction, FeedGesture } from '../../store/feedGesturesStore'
 // вызывается вовсе (см. память preview-no-raf) — анимация возврата держится на
 // CSS-переходе, а не на цикле кадров.
 //
-// ЛЕВЫЙ КРАЙ ЭКРАНА НЕ НАШ: оттуда начинается «назад» (lib/useSwipeBack.ts).
-// Касание в этой полосе жест поста не начинает вовсе — иначе два жеста
-// боролись бы за один и тот же палец.
+// ЖЕСТ НАЧИНАЕТСЯ ТОЛЬКО ОТ КРАЯ ЭКРАНА — по узкой полосе слева и справа.
+// Середина поста уже занята: горизонтальный смах по ней листает рубрики
+// (MobileFeedRubrics, useRubricSwipe), и два жеста на одном движении — это
+// лотерея, а не интерфейс. Полосы у краёв дают каждому своё место и заодно
+// повторяют привычку телефона: от края тянут, в середине листают.
+//
+// ЗАТО В САМОЙ ПОЛОСЕ ТЯНЕТСЯ ЧТО УГОДНО: текст, кадр ролика, шапка автора,
+// строка действий. Внутри полосы мы не смотрим, что под пальцем, — пост
+// целиком одна карточка, и «здесь тянется, а здесь нет» человеку объяснить
+// нечем. Разбор «слово это или кнопка» остаётся только у тапов.
+//
+// ЛЕВАЯ ПОЛОСА УСТУПАЕТ «НАЗАД», НО ТОЛЬКО КОГДА ЕМУ ЕСТЬ КУДА ВЕСТИ: на
+// мобильной главной, где лента и живёт, стек возврата пуст (backArmed), и
+// полоса наша от самого края. На вложенном экране она начинается за краем
+// «назад» — два жеста не борются за один палец.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Полоса у левого края, отданная свайпу «назад» (px). */
-const EDGE_GUARD = 24
+/**
+ * Ширина полосы у края экрана, из которой начинается жест (px).
+ *
+ * Двадцати пикселей хватает пальцу, положенному у самой рамки, и не хватает
+ * пальцу, который лёг на середину поста, — а именно этого мы и добиваемся.
+ */
+const ZONE = 22
 /** Путь пальца, до которого намерение не разбирается вовсе. */
 const SLOP = 10
 /** Насколько горизонталь должна перевешивать вертикаль в момент разбора. */
@@ -44,6 +62,21 @@ const FLING = 0.5
 /** Скругление углов уезжающей карточки — набегает за первые пиксели хода. */
 const CORNER = 18
 const CORNER_RAMP = 22
+/** Воздух вокруг заливки: она не должна резать пост по фотографии. */
+const BLEED_Y = 12
+/**
+ * Воздух ВНУТРИ уезжающей карточки — по бокам.
+ *
+ * Пока пост едет, его подложка кончалась ровно по содержимому: скруглённый
+ * угол ложился на угол фотографии, а цветная заливка шла впритык к значкам.
+ * Поэтому на время жеста подложка становится шире содержимого — поля добавляем
+ * padding'ом и тут же снимаем отрицательным margin'ом, чтобы текст и кадр
+ * остались ровно там же, где стояли. По вертикали так делать НЕЛЬЗЯ:
+ * отрицательный margin сверху и снизу сдвинул бы всю ленту под постом.
+ */
+const CARD_AIR = 10
+/** Отступ знака от края экрана. */
+const MARK_PAD = 20
 /** Долгое нажатие. */
 const HOLD_MS = 420
 /** Окно ожидания второго тапа. Ставится ТОЛЬКО когда двойной тап назначен. */
@@ -145,6 +178,8 @@ export default function FeedSwipe({
     let startX = 0, startY = 0, startT = 0
     let lastX = 0, lastT = 0, speed = 0
     let mode: 'wait' | 'swipe' | 'scroll' | 'off' = 'off'
+    /** С какой полосы начался жест. null — палец лёг в середине поста. */
+    let zone: 'left' | 'right' | null = null
     let armed = false
     let dir: 1 | -1 = -1
     let hold: number | null = null
@@ -156,6 +191,14 @@ export default function FeedSwipe({
 
     const width = () => host.getBoundingClientRect().width || window.innerWidth
     const trigger = () => Math.min(TRIGGER_MAX, width() * TRIGGER_RATIO)
+
+    /** В какой краевой полосе лежит палец. Слева полосу может занимать «назад». */
+    const edgeSide = (x: number): 'left' | 'right' | null => {
+      const from = backArmed() ? BACK_EDGE : 0
+      if (x >= from && x <= from + ZONE) return 'left'
+      if (x >= window.innerWidth - ZONE) return 'right'
+      return null
+    }
 
     /** Действие жеста, уже с учётом «выключено». */
     const act = (g: FeedGesture): FeedAction => cfg.current.map[g] ?? 'none'
@@ -187,6 +230,30 @@ export default function FeedSwipe({
      * Пройден порог — кружок заливается цветом действия целиком, знак
      * выворачивается в цвет фона. Это и есть «уже сработает, отпускай».
      */
+    /**
+     * РАСПАХНУТЬ СЛОИ ДО КРАЁВ ЭКРАНА.
+     *
+     * Пост лежит в колонке с полями, и слой действия, обрезанный по его
+     * коробке, начинался в воздухе — цветной прямоугольник проходил прямо по
+     * фотографии и обрывался, не дойдя до рамки телефона. Заливка обязана
+     * идти ОТ КРАЯ ЭКРАНА, поэтому перед жестом слой уезжает наружу ровно на
+     * то расстояние, которое до этого края осталось, — считаем его по месту, а
+     * не зашиваем поля страницы числом.
+     */
+    const spread = () => {
+      const r = host.getBoundingClientRect()
+      const right = window.innerWidth - r.right
+      for (const l of [leftRef.current, rightRef.current]) {
+        if (!l) continue
+        l.style.left = `${-r.left}px`
+        l.style.right = `${-right}px`
+        l.style.top = `${-BLEED_Y}px`
+        l.style.bottom = `${-BLEED_Y}px`
+        l.style.paddingLeft = `${MARK_PAD}px`
+        l.style.paddingRight = `${MARK_PAD}px`
+      }
+    }
+
     const paintReveal = (x: number) => {
       const side = x < 0 ? rightRef.current : leftRef.current
       const other = x < 0 ? leftRef.current : rightRef.current
@@ -227,6 +294,8 @@ export default function FeedSwipe({
       })
       window.setTimeout(() => {
         card.style.background = ''
+        card.style.padding = ''
+        card.style.margin = ''
         card.style.position = ''
         card.style.zIndex = ''
         layers.forEach(l => { if (l) l.style.transition = '' })
@@ -238,7 +307,15 @@ export default function FeedSwipe({
     const onStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) { mode = 'off'; clearHold(); return }
       const t = e.touches[0]
-      if (interactive(t.target)) { mode = 'off'; return }
+      // Полоса у края — наша. Внутри неё под пальцем может быть что угодно
+      // (слово, кадр ролика, кнопка): тянется пост целиком.
+      const from = edgeSide(t.clientX)
+      // Пока палец в полосе, свайп рубрик о нём не узнает: он слушает ленту
+      // выше по дереву, и без этого одно движение двигало бы и пост, и ряд
+      // рубрик сразу.
+      if (from) e.stopPropagation()
+      else if (interactive(t.target)) { mode = 'off'; return }
+      zone = from
       id = t.identifier
       startX = lastX = t.clientX
       startY = t.clientY
@@ -291,12 +368,19 @@ export default function FeedSwipe({
         card.style.transform = ''
         // Пологое движение достаётся прокрутке — конус около 30°.
         if (Math.abs(dx) < Math.abs(dy) * DOMINANCE) { mode = 'scroll'; return }
-        // Жест от левого края — это «назад», не наш.
-        if (startX <= EDGE_GUARD) { mode = 'off'; return }
-        dir = dx < 0 ? -1 : 1
+        // Палец лёг в середине поста — это смена рубрики, не наш жест.
+        if (!zone) { mode = 'off'; return }
+        // ОТ ЛЕВОГО КРАЯ ТЯНУТ ВПРАВО, ОТ ПРАВОГО — ВЛЕВО, и никак иначе:
+        // от края экрана внутрь. Обратное движение из полосы — это либо
+        // промах, либо начало прокрутки, и подхватывать его нечестно.
+        dir = zone === 'left' ? 1 : -1
+        if (Math.sign(dx) !== dir) { mode = 'off'; return }
         // Действия на этой стороне нет — тянуть некуда.
         if (act(dir < 0 ? 'swipeLeft' : 'swipeRight') === 'none') { mode = 'off'; return }
         mode = 'swipe'
+        spread()
+        card.style.padding = `0 ${CARD_AIR}px`
+        card.style.margin = `0 ${-CARD_AIR}px`
         card.style.position = 'relative'
         card.style.zIndex = '1'
         // Пост на мобильной главной прозрачный — без подложки слой действия
@@ -430,10 +514,13 @@ export default function FeedSwipe({
       ref={ref}
       aria-hidden
       style={{
-        position: 'absolute', inset: 0, opacity: 0, borderRadius: CORNER,
+        // Прямоугольник без скруглений: слой распахивается до самых краёв
+        // экрана (spread), и скруглённый угол у рамки телефона читался бы
+        // обрывком чужой карточки.
+        position: 'absolute', inset: 0, opacity: 0,
         display: 'flex', alignItems: 'center',
         justifyContent: side === 'left' ? 'flex-start' : 'flex-end',
-        padding: '0 8px', pointerEvents: 'none',
+        padding: `0 ${MARK_PAD}px`, pointerEvents: 'none',
       }}
     >
       <span style={{

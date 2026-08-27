@@ -86,7 +86,7 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
 // сидит собственное размытие статус-бара, и контент, прижатый к самой границе,
 // читается как «залез под чёлку». Один зазор на все мобильные экраны —
 // MobileScreen и каркас тренажёра берут его отсюда.
-export const MOBILE_TOP_GAP = 28
+export const MOBILE_TOP_GAP = 14
 /** Полный отступ сверху: safe-area + зазор (в браузере без выреза — просто зазор). */
 export const MOBILE_TOP_INSET = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
 

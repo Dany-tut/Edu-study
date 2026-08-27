@@ -7,7 +7,7 @@ import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
-import { dockLayer } from '../lib/dockLayer'
+import { useDockLayer } from '../lib/dockLayer'
 import { useIsDesktop } from '../lib/useIsDesktop'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ export default function MobileDock({ children, fill }: {
   const isDesktop = useIsDesktop()
   // Тот же слой, что у нижней навигации (lib/dockLayer.ts): ряд стоит над ней
   // и обязан жить в той же системе координат.
-  const layer = dockLayer()
+  const layer = useDockLayer()
   if (isDesktop) return null
   const row = (
     <motion.div

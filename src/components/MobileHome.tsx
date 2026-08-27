@@ -252,7 +252,7 @@ export default function MobileHome() {
       {/* Место под колокольчиком слева — оно центрует остров. Рубрикам центр не
           нужен, они панель во всю ширину, и распорка уезжает вместе с ними. */}
       <motion.div
-        animate={{ width: barOnFeed ? 0 : 38 }}
+        animate={{ width: barOnFeed ? 0 : 44 }}
         transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         style={{ flexShrink: 0 }}
       />
@@ -260,7 +260,7 @@ export default function MobileHome() {
           AnimatePresence: обёртке нужен только вход, а presence на React 19
           теряет сигнал выхода и оставляет пустое место до F5. Обе смонтированы
           всегда, гасшая не ловит касания. */}
-      <div style={{ position: 'relative', flex: 1, minWidth: 0, height: 42 }}>
+      <div style={{ position: 'relative', flex: 1, minWidth: 0, height: 44 }}>
         <motion.div
           animate={{ opacity: barOnFeed ? 0 : 1, y: barOnFeed ? -6 : 0, scale: barOnFeed ? 0.94 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -310,21 +310,25 @@ export default function MobileHome() {
           место фильтру ровно вместе с шапкой, одним переливом. Обе кнопки
           смонтированы всегда: гаснущая не ловит касания, а якорь всплывающих
           уведомлений не должен исчезать из дерева. */}
-      <div ref={bellRef} style={{ position: 'relative', width: 38, height: 38, flexShrink: 0 }}>
+      {/* Коробка ровно по кнопке (44 = её тап-зона), иначе 44-пиксельная кнопка
+          свисала вниз из 38-пиксельной коробки и кружок стоял на 3 px ниже
+          острова и ряда рубрик. */}
+      <div ref={bellRef} style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
         <motion.div
           animate={{ opacity: barOnFeed ? 0 : 1, scale: barOnFeed ? 0.88 : 1 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          style={{ position: 'absolute', inset: 0, pointerEvents: barOnFeed ? 'none' : 'auto' }}
+          style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'none' : 'auto' }}
         >
-          <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+          <GlassIconButton icon={<Bell size={17} />} size={42} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
         </motion.div>
         <motion.div
           animate={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          style={{ position: 'absolute', inset: 0, pointerEvents: barOnFeed ? 'auto' : 'none' }}
+          style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'auto' : 'none' }}
         >
           <GlassIconButton
-            icon={<SlidersHorizontal size={16} />}
+            icon={<SlidersHorizontal size={17} />}
+            size={42}
             // Точка — не «новое», а «лента показана не целиком»: по ней видно,
             // что пустоватая лента это ваш же отбор, а не поломка.
             dot={prefsTouched(prefs)}

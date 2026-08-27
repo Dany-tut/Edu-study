@@ -48,6 +48,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
   const [playing, setPlaying] = useState(false)
   const [thread, setThread] = useState(false)
   const [replies, setReplies] = useState(0)
+  const [myComment, setMyComment] = useState(false)
   const { count: likes, liked, toggle: like, canLike } = useFeedLikes(item.id)
   const seenRef = useSeen(lang, item.id)
 
@@ -200,16 +201,31 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
 
   const post = (
     <article ref={seenRef} style={variant === 'card' ? {
+      position: 'relative',
       background: 'var(--color-surface)',
       border: '1px solid var(--color-border)',
       borderRadius: 18,
       padding: 16,
       display: 'flex', flexDirection: 'column', gap: 12,
     } : {
+      position: 'relative',
       padding: '14px 0',
       borderTop: '1px solid var(--color-border-soft)',
       display: 'flex', flexDirection: 'column', gap: 11,
     }}>
+      {/* ── МЕТКА НА ПОЛЕ: «я это отметил» ───────────────────────────────────
+          Сердце и реплики ушли в жесты, а вместе с ними ушёл и ответ на
+          вопрос «я это уже лайкал?»: у жеста нет своего значка, который
+          остался бы залитым. Метка возвращает ответ — узкая полоска у правого
+          края поста в цвете действия.
+
+          ВСЕГДА СПРАВА, КАК БЫ НИ БЫЛИ НАЗНАЧЕНЫ ЖЕСТЫ. Это не подсказка про
+          жест, а состояние поста: место у него должно быть одно и то же у
+          всех, иначе метку придётся каждый раз искать глазами.
+
+          ПЕРЕВОД НЕ ОТМЕЧАЕТСЯ: он ничего не оставляет ни в чьей ленте — это
+          способ прочитать пост, а не отметка о нём. */}
+      <Marks liked={liked} commented={myComment} inset={variant === 'card'} />
       {/* ── Кто это написал ─────────────────────────────────────────────── */}
       {outlet && (
         <header style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -414,12 +430,13 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           (сердце, реплики), как в любой ленте; справа — что сделать с
           материалом (послушать, перевести).
 
-          ЛЕВАЯ ПОЛОВИНА НА ТЕЛЕФОНЕ ПО УМОЛЧАНИЮ СНЯТА: сердце и реплики
-          переехали в жесты (см. showActions выше и FeedSwipe). Правая
-          остаётся всегда — озвучка и перевод это работа с материалом, а не
-          отметка о нём, и жестов на всех не хватит. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        {showActions && canLike && (
+          НА ТЕЛЕФОНЕ ПО УМОЛЧАНИЮ СНЯТА ЦЕЛИКОМ: и сердце с репликами, и
+          озвучка с переводом переехали в жесты (см. showActions выше и
+          FeedSwipe). Четыре мишени по 30px под каждым постом стоили больше,
+          чем давали: любое из этих действий назначается на жест, а кому
+          нужны кнопки — включает строку в «Ленте и жестах». */}
+      {showActions && <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {canLike && (
           <IconBtn on={liked} accent={accent} title={t('Нравится')} onClick={() => void like()} count={likes}>
             {/* Закрашенное сердце вместо цветного контура: на тёмной теме
                 тонкий контур в акцентном цвете почти не отличается от
@@ -427,17 +444,15 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             <HeartGlyph filled={liked} accent={accent} />
           </IconBtn>
         )}
-        {showActions && (
-          <IconBtn
-            on={thread}
-            accent={accent}
-            title={t('Комментарии')}
-            onClick={() => { setThread(v => !v); touched() }}
-            count={replies}
-          >
-            <ReplyGlyph filled={thread} accent={accent} />
-          </IconBtn>
-        )}
+        <IconBtn
+          on={thread}
+          accent={accent}
+          title={t('Комментарии')}
+          onClick={() => { setThread(v => !v); touched() }}
+          count={replies}
+        >
+          <ReplyGlyph filled={thread} accent={accent} />
+        </IconBtn>
 
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
           {/* ОЗВУЧКА ЕСТЬ У ЛЮБОГО ПОСТА — читаем заголовок, когда текста нет.
@@ -463,7 +478,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             <TranslateGlyph />
           </IconBtn>
         </span>
-      </div>
+      </div>}
 
       {/* Пословный разбор. Стоит ПОД строкой действий, а не внутри текста:
           у ролика тела нет вовсе, а кнопка есть и у него — разбирается
@@ -495,6 +510,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
         accent={accent}
         open={thread}
         onCount={setReplies}
+        onMine={setMyComment}
       />
 
       {mustCredit && (
@@ -527,6 +543,39 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       </FeedSwipe>
     )
     : post
+}
+
+/**
+ * Полоски-метки у правого поля поста: лайк и своя реплика.
+ *
+ * Ширина в три пикселя и цвет действия — этого хватает, чтобы заметить их
+ * периферийным зрением, листая ленту, и не хватает, чтобы они спорили с
+ * содержимым. Две метки делят полосу пополам, одна занимает её целиком.
+ */
+function Marks({ liked, commented, inset }: { liked: boolean; commented: boolean; inset?: boolean }) {
+  const marks = [
+    liked && 'var(--color-rose-text)',
+    commented && 'var(--color-blue-pill-text)',
+  ].filter(Boolean) as string[]
+  if (!marks.length) return null
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: 'absolute', zIndex: 1,
+        top: inset ? 12 : 16, bottom: inset ? 12 : 12,
+        // В карточке метка стоит внутри рамки, в ленте — на поле колонки, за
+        // текстовым краем: там она читается полем страницы, а не рамкой поста.
+        right: inset ? 6 : -9,
+        width: 3, borderRadius: 999,
+        display: 'flex', flexDirection: 'column', gap: 4,
+      }}
+    >
+      {marks.map(c => (
+        <span key={c} style={{ flex: 1, borderRadius: 999, background: c, opacity: 0.9 }} />
+      ))}
+    </span>
+  )
 }
 
 /**

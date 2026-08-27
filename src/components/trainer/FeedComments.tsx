@@ -22,7 +22,7 @@ import { useFeedComments, whenLabel, type FeedComment } from '../../lib/feedComm
 // заметок в ленту из ста реплик.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function FeedComments({ itemId, lang, accent, open, onCount }: {
+export function FeedComments({ itemId, lang, accent, open, onCount, onMine }: {
   itemId: string
   lang: string
   accent: string
@@ -30,6 +30,8 @@ export function FeedComments({ itemId, lang, accent, open, onCount }: {
   open: boolean
   /** Сколько реплик — для счётчика у иконки в посте. */
   onCount?: (n: number) => void
+  /** Писал ли сюда сам ученик — по этому пост ставит себе метку на поле. */
+  onMine?: (mine: boolean) => void
 }) {
   const t = useT()
   const { threads, list, loading, error, canWrite, needsAccount, add, remove } = useFeedComments(itemId, lang)
@@ -37,6 +39,11 @@ export function FeedComments({ itemId, lang, accent, open, onCount }: {
   // Счётчик считается здесь и уезжает наверх: две реализации подсчёта дали бы
   // два разных числа — у иконки одно, в треде другое.
   useEffect(() => { onCount?.(list.length) }, [list.length, onCount])
+
+  // «Я тут писал» — тем же путём и по той же причине: считать авторство второй
+  // раз в посте значит завести второй источник правды о том же треде.
+  const mine = list.some(c => c.mine)
+  useEffect(() => { onMine?.(mine) }, [mine, onMine])
 
   return (
     <>

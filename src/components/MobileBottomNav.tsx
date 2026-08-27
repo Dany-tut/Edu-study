@@ -12,7 +12,7 @@ import { useFeedGlance } from '../lib/feedRead'
 import { tactile } from '../lib/feedback'
 import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { MOBILE_SCROLL_ATTR } from './MobileScreen'
-import { dockLayer } from '../lib/dockLayer'
+import { useDockLayer } from '../lib/dockLayer'
 import { useIsDesktop } from '../lib/useIsDesktop'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
@@ -88,7 +88,7 @@ export default function MobileBottomNav() {
 
   // Док рисуется в слое высотой 100dvh (index.html), а не fixed: fixed
   // обрезается по короткому вьюпорту холодного запуска PWA — lib/dockLayer.ts.
-  const layer = dockLayer()
+  const layer = useDockLayer()
   if (isDesktop) return null
   // Портал уносит навигацию наружу скрытой мобильной обёртки, поэтому ширину
   // она проверяет сама. Раньше это делал класс md:hidden — но у него порог 768,
