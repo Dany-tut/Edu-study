@@ -1130,6 +1130,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       })
   }, [groups, openGroupId, query, status, states])
 
+  // Полки могла не пережить перезагрузку: группу удалили в Конструкторе, а её
+  // id остался в памяти вкладки. Без сброса витрина фильтровалась бы по
+  // несуществующей папке и стояла пустой.
+  useEffect(() => {
+    if (groups === undefined) return
+    if (openGroupId && !groups.some(g => g.id === openGroupId && isShelf(g))) setOpenGroupId('')
+    if (openSetId && !groups.some(g => g.sets.some(x => x.id === openSetId))) setOpenSetId(null)
+  }, [groups, openGroupId, setOpenGroupId, openSetId, setOpenSetId])
+
   /** Открытая папка — только названная группа: обёртка одиночного набора папкой не бывает. */
   const openGroup = useMemo(
     () => (groups ?? []).find(g => g.id === openGroupId && isShelf(g)) ?? null,
@@ -1266,8 +1275,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (vocabView === 'due') return { lang, screen: 'due' }
       // Набор группы и папка живут в «Наборах», но адрес у них прежний
       // (`decks`): ссылки на набор уже разошлись, и ломать их незачем.
-      if (openSetId || openGroupId) return { lang, screen: 'decks', id: openSetId ?? undefined, sub: openGroupId || undefined }
-      return { lang, screen: 'sets', id: openTheme ?? undefined }
+      // Папка без набора адресуется тем же полем id: что приехало — полка или
+      // набор, — разбирается на входе (см. case 'decks'). Второй сегмент адреса
+      // (`sub`) живёт только рядом с id, поэтому одной папке он не достался бы.
+      if (openSetId) return { lang, screen: 'decks', id: openSetId, sub: openGroupId || undefined }
+      if (openTheme) return { lang, screen: 'sets', id: openTheme }
+      if (openGroupId) return { lang, screen: 'decks', id: openGroupId }
+      return { lang, screen: 'sets' }
     }
     if (mode === 'listening') return { lang, screen: 'audio', id: openAudioId ?? undefined }
     if (mode === 'speaking') return { lang, screen: 'speaking' }
@@ -1324,7 +1338,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'words':    setMode('vocab'); setVocabView('sets'); setOpenTheme(MY_WORDS_ID); break
       case 'nests':    setMode('vocab'); setVocabView('nests'); setOpenNestId(id); break
       case 'packs':    setMode('vocab'); setVocabView('packs'); setOpenPackId(id); break
-      case 'decks':    setMode('vocab'); setVocabView('sets'); setOpenSetId(id); setOpenGroupId(link.sub ?? ''); break
+      // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
+      // приехавшим группам (см. эффект рядом с openGroup).
+      case 'decks':    setMode('vocab'); setVocabView('sets'); setOpenSetId(id); setOpenGroupId(link.sub || id || ''); break
       case 'due':      setMode('vocab'); setVocabView('due'); break
       case 'audio':    setMode('listening'); setOpenAudioId(id); break
       case 'speaking': setMode('speaking'); break
@@ -2627,43 +2643,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {run === 'swipe' && <DeckHint />}
       </div>
     )
-  } else if (mode === 'vocab' && vocabView === 'decks' && decksOn && !editGroup) {
-    content = groups === undefined
-      ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
-      : (
-        <PhraseDecks
-          themes={groupDecks}
-          states={states}
-          accent={palette.accent}
-          soft={palette.soft}
-          // Подпись плитки — не уровень, а группа: наборов у одной группы много,
-          // и «Сезон 4» без «Сверхъестественного» рядом ничего не значит, когда
-          // группа в рейле не выбрана.
-          levelLabel={x => x.group.title}
-          // Плитка «Своя подборка» — первой в сетке и только при поднятом
-          // флаге. Ведущей, а не кнопкой в панели: собрать своё — это такой же
-          // вход в материал, как открыть чужой набор, и место у него там же.
-          lead={mySetsOn && owner.studentId ? (
-            <Tile
-              accent={palette.accent}
-              stack
-              tint={{ surface: `${palette.accent}14`, border: `${palette.accent}4d` }}
-              onClick={() => setEditGroup(emptyMyGroup(lang, subjectId))}
-            >
-              <TileChip tone="solid" accent={palette.accent} soft={palette.soft}>
-                {t('Своя')}
-              </TileChip>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginTop: 8 }}>
-                {t('Своя подборка')}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45 }}>
-                {t('Свои слова, разложенные по своим наборам: сериал по сезонам, книга по главам.')}
-              </div>
-            </Tile>
-          ) : undefined}
-          onOpen={id => { setOpenSetId(id); setQuery(''); setStatus(''); setRun('list') }}
-        />
-      )
   } else if (mode === 'vocab' && openPack) {
     content = (
       <PhraseRun
@@ -2700,31 +2679,93 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           onOpen={id => { setOpenPackId(id); setQuery(''); setStatus(''); setRun('list') }}
         />
       )
-  } else if (mode === 'vocab' && vocabView === 'sets' && hasBook) {
-    content = book === undefined
+  } else if (mode === 'vocab' && vocabView === 'sets' && (hasBook || decksOn) && !editGroup) {
+    // ВСЕ НАБОРЫ ЯЗЫКА В ОДНОЙ ВИТРИНЕ: темы разговорника, наборы полок и
+    // одиночные наборы учителя. Полка стоит папкой (плитки ниже), внутри
+    // папки — её наборы; см. setsDecks.
+    content = (hasBook && book === undefined) || groups === undefined
       ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
       : (
         <PhraseDecks
-          themes={visibleThemes}
+          themes={setsDecks}
           states={states}
           accent={palette.accent}
           soft={palette.soft}
-          levelLabel={themeLevel}
-          early={themeAhead}
-          lead={
-            <MyWordsTile
-              words={myWords}
-              states={states}
-              ready={cardsReady}
-              accent={palette.accent}
-              soft={palette.soft}
-              // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят
-              // посмотреть, что набрано, — стопка на сегодня в двух кликах,
-              // а обратно из свайпа к списку человек догадается не сразу.
-              onOpen={() => { setOpenTheme(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') }}
-            />
-          }
-          onOpen={id => { setOpenTheme(id); setQuery(''); setStatus(''); setRun('swipe') }}
+          levelLabel={x => x.label}
+          early={x => x.ahead}
+          lead={openGroup ? undefined : (
+            <>
+              {hasBook && (
+                <MyWordsTile
+                  words={myWords}
+                  states={states}
+                  ready={cardsReady}
+                  accent={palette.accent}
+                  soft={palette.soft}
+                  // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят
+                  // посмотреть, что набрано, — стопка на сегодня в двух кликах,
+                  // а обратно из свайпа к списку человек догадается не сразу.
+                  onOpen={() => { setOpenTheme(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') }}
+                />
+              )}
+              {/* Папки полок. Стоят перед сеткой и не участвуют в поиске: по
+                  слову ищут набор, а не полку, и найденные наборы приезжают в
+                  сетку сами (см. setsDecks). */}
+              {!query.trim() && (groups ?? []).filter(isShelf).map(g => (
+                <Tile key={g.id} accent={palette.accent} stack onClick={() => setOpenGroupId(g.id)}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>
+                      {g.sets.length} {t('наборов')}
+                    </TileChip>
+                    <TileChip>{g.sets.reduce((n, x) => n + x.cards.length, 0)} {t('карточек')}</TileChip>
+                  </span>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 7,
+                    fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginTop: 8,
+                  }}>
+                    <Layers size={15} style={{ color: palette.accent, flexShrink: 0 }} aria-hidden />
+                    {g.title}
+                  </div>
+                  {!!g.about && (
+                    <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45 }}>
+                      {g.about}
+                    </div>
+                  )}
+                </Tile>
+              ))}
+              {/* Плитка «Своя подборка» — только при поднятом флаге. Плиткой, а
+                  не кнопкой в панели: собрать своё — такой же вход в материал,
+                  как открыть чужой набор, и место у него там же. */}
+              {mySetsOn && owner.studentId && (
+                <Tile
+                  accent={palette.accent}
+                  stack
+                  tint={{ surface: `${palette.accent}14`, border: `${palette.accent}4d` }}
+                  onClick={() => setEditGroup(emptyMyGroup(lang, subjectId))}
+                >
+                  <TileChip tone="solid" accent={palette.accent} soft={palette.soft}>
+                    {t('Своя')}
+                  </TileChip>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginTop: 8 }}>
+                    {t('Своя подборка')}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45 }}>
+                    {t('Свои слова, разложенные по своим наборам: сериал по сезонам, книга по главам.')}
+                  </div>
+                </Tile>
+              )}
+            </>
+          )}
+          onOpen={id => {
+            setQuery(''); setStatus('')
+            // Набор группы и тема разговорника лежат в одной сетке, и открывать
+            // их надо разным: у набора своя стопка (PhraseRun), у темы — своя.
+            if ((groups ?? []).some(g => g.sets.some(x => x.id === id))) {
+              setOpenSetId(id); setRun('list')
+            } else {
+              setOpenTheme(id); setRun('swipe')
+            }
+          }}
         />
       )
   } else if (mode === 'vocab') {

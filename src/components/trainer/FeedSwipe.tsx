@@ -44,10 +44,12 @@ import type { FeedAction, FeedGesture } from '../../store/feedGesturesStore'
 /**
  * Ширина полосы у края экрана, из которой начинается жест (px).
  *
- * Двадцати пикселей хватает пальцу, положенному у самой рамки, и не хватает
- * пальцу, который лёг на середину поста, — а именно этого мы и добиваемся.
+ * Сорок пикселей — это подушечка большого пальца целиком, а не его кончик:
+ * на двадцати приходилось ЦЕЛИТЬСЯ в край, и половина жестов уходила свайпу
+ * рубрик. Середине поста при этом остаётся больше двухсот пикселей на любом
+ * телефоне — спорить полосам не с чем.
  */
-const ZONE = 22
+const ZONE = 44
 /** Путь пальца, до которого намерение не разбирается вовсе. */
 const SLOP = 10
 /** Насколько горизонталь должна перевешивать вертикаль в момент разбора. */
@@ -188,6 +190,34 @@ export default function FeedSwipe({
     let friction: Friction | null = null
     let lastTap = 0
     let tapTimer: number | null = null
+
+    /**
+     * РАСПАХНУТЬ САМ ХОСТ ДО РАМКИ ТЕЛЕФОНА.
+     *
+     * Полоса у края не работала не потому, что была узкой: пост лежит в
+     * колонке с полями, и касание в этих полях не доходило до него ВООБЩЕ —
+     * слушатель висит на посте, а палец опускался на фон страницы. Никакая
+     * ширина зоны этого не лечит.
+     *
+     * Поэтому коробка жеста уезжает наружу ровно на оставшиеся до края поля, а
+     * внутрь возвращает их отступом: содержимое остаётся на прежнем месте до
+     * пикселя, а касания ловятся от самой рамки.
+     *
+     * Поля считаются по месту, а не зашиты числом: у поста в ленте они одни
+     * (колонка главной), у поста в тренажёре — другие.
+     */
+    const bleed = () => {
+      host.style.margin = ''
+      host.style.paddingLeft = ''
+      host.style.paddingRight = ''
+      const r = host.getBoundingClientRect()
+      const left = Math.max(0, Math.round(r.left))
+      const right = Math.max(0, Math.round(window.innerWidth - r.right))
+      if (left) { host.style.marginLeft = `${-left}px`; host.style.paddingLeft = `${left}px` }
+      if (right) { host.style.marginRight = `${-right}px`; host.style.paddingRight = `${right}px` }
+    }
+    bleed()
+    window.addEventListener('resize', bleed)
 
     const width = () => host.getBoundingClientRect().width || window.innerWidth
     const trigger = () => Math.min(TRIGGER_MAX, width() * TRIGGER_RATIO)
@@ -506,6 +536,7 @@ export default function FeedSwipe({
     host.addEventListener('touchcancel', onCancel, { passive: true })
     return () => {
       clearHold()
+      window.removeEventListener('resize', bleed)
       if (tapTimer) clearTimeout(tapTimer)
       friction?.stop(false)
       host.removeEventListener('touchstart', onStart)
