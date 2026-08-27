@@ -61,6 +61,7 @@ import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type T
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { questionToBankTask, type ImportedQuestion } from '../../lib/googleFormsImport'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
+import CardGroupsManager from '../../components/teacher/CardGroupsManager'
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useTaskMeta, mergeOptions, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
@@ -185,7 +186,7 @@ function GoogleFormBankCategoryModal({
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'bank'
+type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'bank' | 'decks'
 export type CourseStatus = 'published' | 'draft'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
@@ -2246,7 +2247,7 @@ function CreatorView({
   onSaveWidget,
   onCancel,
 }: {
-  initialMode: Exclude<Tab, 'testing' | 'bank'>
+  initialMode: Exclude<Tab, 'testing' | 'bank' | 'decks'>
   editCourse?: Course | null
   editTrainer?: Trainer | null
   editingTask?: BankTask | null
@@ -2259,7 +2260,7 @@ function CreatorView({
   onCancel: () => void
 }) {
   const t = useT()
-  const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'bank'>>(initialMode)
+  const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'bank' | 'decks'>>(initialMode)
   const addTask = useTaskBank(s => s.addTask)
   const replaceTask = useTaskBank(s => s.replaceTask)
 
@@ -7521,7 +7522,7 @@ export default function TeacherConstructorPage() {
   }, [selectedAssignmentId])
   // Reopen the trainer task composer after a reload (its field drafts survive
   // in sessionStorage); other creator modes hold object state we can't restore.
-  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'bank'> | null>(
+  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'bank' | 'decks'> | null>(
     () => readDraft<string>('taskctor.open') === 'trainer' ? 'trainer' : null
   )
   const [editCourse, setEditCourse] = useState<Course | null>(null)
@@ -7986,6 +7987,9 @@ export default function TeacherConstructorPage() {
 
   function handlePlus() {
     if (activeTab === 'bank') return // the bank tab manages taxonomy inline; nothing to create
+    // Наборы карточек создаются своей кнопкой внутри вкладки: «плюс» в шапке
+    // открыл бы пустой редактор поверх списка, которого ещё не видели.
+    if (activeTab === 'decks') return
     if (activeTab === 'testing') { setDiagCreating(true); return }
     if (activeTab === 'course') { goToNewCourseEditor(); return }
     setEditCourse(null); setEditTrainer(null); setEditingTaskId(null); setEditWidget(null)
@@ -8263,6 +8267,7 @@ export default function TeacherConstructorPage() {
     widget:   { label: t('Виджет'),      Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
     testing:  { label: t('Тестирование'), Icon: Target,  color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
     bank:     { label: t('Банк заданий'), Icon: Database, color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
+    decks:    { label: t('Наборы карточек'), Icon: Layers, color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
   }
 
   return (
@@ -8396,7 +8401,7 @@ export default function TeacherConstructorPage() {
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
 
-                {(['course', 'trainer', 'widget', 'testing', 'bank'] as const).map(t => {
+                {(['course', 'trainer', 'widget', 'testing', 'bank', 'decks'] as const).map(t => {
                   const cfg = tabCfg[t]
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
@@ -8534,6 +8539,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               {activeTab === 'bank' && <CurriculumManager />}
+              {activeTab === 'decks' && <CardGroupsManager />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -8615,7 +8621,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               <div
-                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'bank') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'bank' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
                 {activeTab === 'course' && dbLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
                 {activeTab === 'course' && filteredCourses.map(c => (
