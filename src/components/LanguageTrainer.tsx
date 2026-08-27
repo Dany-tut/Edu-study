@@ -2700,6 +2700,23 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               >
                 {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossaryCards.length}`}
               </button>
+            ) : allTexts.length > 0 ? (
+              // Брать ещё нечего: человек не читал ни одного текста, и слов,
+              // из которых набирается колода, просто не существует. Экран
+              // объяснял, ОТКУДА берутся карточки, но не давал туда пойти —
+              // и у нового ученика вкладка оказывалась тупиком. Кнопка ведёт
+              // ровно в то единственное место, где колода начинает набираться.
+              <button
+                onClick={() => { setMode('reading'); setReadingView('texts') }}
+                style={{
+                  height: DECK_CTA.height, padding: DECK_CTA.padding, borderRadius: 999,
+                  cursor: 'pointer',
+                  border: `1px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
+                  fontFamily: 'inherit', fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight,
+                }}
+              >
+                {`${t('Начать с текста')} · ${allTexts.length}`}
+              </button>
             ) : null
           }
         />

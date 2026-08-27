@@ -564,11 +564,6 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
                 onShelf={() => { setDraft(x.group); setFocus(null) }}
               />
             ))}
-            {items.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-                {t('Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.')}
-              </div>
-            )}
             {items.length > 0 && shown.length === 0 && (
               <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('На этой полке пока пусто.')}</div>
             )}

@@ -49,7 +49,6 @@ export const EN: Record<string, string> = {
   'На полку складываются наборы одного языка — снимите лишние.': 'A shelf holds sets of one language — untick the odd ones.',
   'Вынуть с полки': 'Take off the shelf',
   'Снять отметки': 'Clear ticks',
-  'Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.': 'No sets yet. Start the first one with the “plus” on the tab — it shows up in your students’ trainer.',
   'На этой полке пока пусто.': 'This shelf is empty so far.',
   'Настройки полки': 'Shelf settings',
   'Удалить полку': 'Delete shelf',
@@ -2783,6 +2782,8 @@ export const EN: Record<string, string> = {
   'Скопировать ссылку приглашения': 'Copy invite link',
   // Панель переезда на аккаунты (PendingAccountsPanel в TeacherGroupsPage).
   'Ещё без своего аккаунта': 'No account yet',
+  'Решено всего:': 'Solved in total:',
+  'Начать с текста': 'Start with a text',
   // Пустой хвост мобильной главной (MobileHome).
   'На сегодня всё': "That's it for today",
   'Занятий нет и лента пуста — можно позаниматься в тренажёре':

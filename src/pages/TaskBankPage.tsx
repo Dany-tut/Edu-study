@@ -34,6 +34,7 @@ import CardDeck, { type DeckSource } from '../components/CardDeck'
 import { captureMistake, deckOwner, type ReviewCard } from '../data/reviewDeck'
 import { getContrastColor } from '../lib/utils'
 import { bindShortWords, bindShortWordsHtml, balancedWrap } from '../lib/typography'
+import { sanitizeHtml } from '../lib/sanitizeHtml'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
@@ -435,7 +436,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
       <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
-        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(task.question) }} />
+        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(task.question)) }} />
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
@@ -735,7 +736,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 
       {/* Question */}
       <div style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-        dangerouslySetInnerHTML={{ __html: task.question }} />
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.question) }} />
 
       {/* Topic */}
       <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 'auto' }}>{task.topic}</span>

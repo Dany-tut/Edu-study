@@ -135,6 +135,11 @@ export function tintVars(hex: string, level: TintLevel, dark: boolean): Record<s
     // В тёмной теме от осветлённого акцента: затемнённый fillBase на почти
     // чёрном фоне не виден вовсе.
     '--accent-rgb': rgbTriple(dark ? accent : fillBase),
+    // Подложка активной таблетки переключателей — курса, модулей, разделов
+    // тренажёра. Без неё переключатель курса оставался единственным фиолетовым
+    // пятном посреди кораллового английского: экран уже перекрашен, а кнопка,
+    // которой этот курс и выбирают, — ещё нет.
+    '--tab-pill-active': dark ? hexToRgba(accent, 0.30) : hexToRgba(hex, 0.12),
   }
   if (level === 'accent') return vars
 
@@ -168,6 +173,7 @@ const BASE: Record<'light' | 'dark', Record<string, string>> = {
     '--grad-purple-bar': 'linear-gradient(90deg, #6A5AE6, #A697FF)',
     '--glow-accent': '0 12px 28px rgba(106,90,230,0.35)',
     '--accent-rgb': '99, 84, 207',
+    '--tab-pill-active': 'rgba(120,106,215,0.12)',
     '--color-purple-soft': '#E7E4FB',
     '--color-purple-text': '#3D33A0',
     '--color-bg': NEUTRAL.light.bg,
@@ -186,6 +192,7 @@ const BASE: Record<'light' | 'dark', Record<string, string>> = {
     '--grad-purple-bar': 'linear-gradient(90deg, #6A5AE6, #A697FF)',
     '--glow-accent': '0 12px 28px rgba(0,0,0,0.45)',
     '--accent-rgb': '124, 108, 224',
+    '--tab-pill-active': 'rgba(140,128,235,0.30)',
     '--color-purple-soft': 'rgba(124,108,224,0.22)',
     '--color-purple-text': '#DAD3FB',
     '--color-bg': NEUTRAL.dark.bg,
@@ -211,7 +218,7 @@ export function previewVars(hex: string, level: TintLevel, dark: boolean): Recor
 // не по последней применённой карте: иначе понижение уровня «среда» → «акцент»
 // оставляло бы подкрашенный фон навсегда.
 const OWNED = [
-  '--color-accent', '--color-purple', '--color-control-accent', '--grad-purple', '--grad-purple-bar', '--glow-accent', '--accent-rgb',
+  '--color-accent', '--color-purple', '--color-control-accent', '--grad-purple', '--grad-purple-bar', '--glow-accent', '--accent-rgb', '--tab-pill-active',
   '--color-purple-soft', '--color-purple-text',
   '--color-bg', '--color-bg-2', '--color-bg-3', '--color-bg-4', '--color-bg-5', '--color-bg-input', '--glass-rgb',
 ]

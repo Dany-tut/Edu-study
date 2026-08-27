@@ -15,6 +15,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
     subject, subjectId, kind, todayMs, weekMs, counting, setOpenModal,
   } = useTrainerProgress()
   const activePage = useDashboard(s => s.activePage)
+  const setActivePage = useDashboard(s => s.setActivePage)
 
   // Тот же предметный цвет, что и в пилюле верхней строки: два виджета про одно
   // и то же не должны быть разного цвета.
@@ -27,8 +28,22 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
   const wide = columns >= 2
 
   if (activePage !== 'trainer') {
+    // Виджет вне тренажёра — это ВХОД в него, а не табличка.
+    //
+    // Раньше здесь стоял абзац «Перейди в Тренажёр…», по которому нельзя было
+    // перейти: серый текст рядом с четырьмя живыми числами читался как блок,
+    // который не загрузился. Теперь это кнопка, и она делает ровно то, что
+    // написано; а если человек уже что-то решал — вместо уговора стоит его
+    // собственный счёт.
     return (
-      <div style={{ width: '100%', height: '100%', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center' }}>
+      <button
+        onClick={() => setActivePage('trainer')}
+        style={{
+          width: '100%', height: '100%', padding: '20px 24px', textAlign: 'left',
+          background: 'none', border: 'none', cursor: 'pointer',
+          display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <TrendingUp size={16} style={{ color: accent }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Прогресс тренажёра')}</span>
@@ -38,12 +53,17 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
             {t('Сегодня в тренажёре:')} <b style={{ color: palette.text }}>{formatDur(todayMs)}</b>
             {weekMs > todayMs ? ` · ${t('за неделю')} ${formatDur(weekMs)}` : ''}
           </p>
+        ) : doneCount > 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
+            {t('Решено всего:')} <b style={{ color: palette.text }}>{doneCount}</b>
+            {favCount > 0 ? ` · ${t('в избранном')} ${favCount}` : ''}
+          </p>
         ) : (
           <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
             {t('Перейди в Тренажёр, чтобы увидеть свой прогресс по решённым заданиям.')}
           </p>
         )}
-      </div>
+      </button>
     )
   }
 
