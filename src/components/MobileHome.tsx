@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from 'lucide-react'
+import { Flame, Zap, Bell, SlidersHorizontal, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from 'lucide-react'
 import NotificationPopup from './NotificationPopup'
 import { useNotificationsStore } from '../store/notificationsStore'
 import MobileScreen from './MobileScreen'
@@ -24,6 +24,8 @@ import { pickTrainerSubject } from '../lib/trainerSubject'
 import { dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
 import { FeedPost } from './trainer/FeedPost'
 import { RubricBar, useRubricSwipe } from './MobileFeedRubrics'
+import FeedContentSheet from './FeedContentSheet'
+import { useFeedPrefs, applyFeedPrefs, prefsTouched } from '../store/feedPrefsStore'
 import { tactile } from '../lib/feedback'
 import { PAIR, type PairName } from '../lib/mobileTokens'
 import { writeDraft } from '../lib/useDraft'
@@ -112,14 +114,27 @@ export default function MobileHome() {
   // здесь — иначе шапка и лента разошлись бы в том, что считать выбранным.
   const feedGlance = useFeedGlance(0, scopedSubject?.subject)
   const feedRef = useRef<HTMLDivElement>(null)
-  const rubrics = useMemo(() => feedFilters(feedGlance.items), [feedGlance.items])
+
+  // ── Состав ленты: настройка фильтра из шапки ──────────────────────────────
+  //
+  // Отбор по темам и типу материала стоит ПЕРЕД всем остальным: рубрики
+  // собираются по тому, что осталось (чипс темы, выключенной в настройках, —
+  // обещание пустого экрана), и лента листается по нему же.
+  const prefs = useFeedPrefs()
+  const [prefsOpen, setPrefsOpen] = useState(false)
+  const shownItems = useMemo(
+    () => applyFeedPrefs(feedGlance.items, prefs),
+    [feedGlance.items, prefs],
+  )
+
+  const rubrics = useMemo(() => feedFilters(shownItems), [shownItems])
   const [rubricPick, setRubricPick] = useState<FeedFilter>('all')
   // Рубрика могла исчезнуть вместе со сменой курса: у корейской ленты своё
   // «Здоровье», у португальской его нет вовсе.
   const rubric: FeedFilter = rubrics.some(r => r.id === rubricPick) ? rubricPick : 'all'
   const feedItems = useMemo(
-    () => feedGlance.items.filter(x => matchesFilter(x, rubric)),
-    [feedGlance.items, rubric],
+    () => shownItems.filter(x => matchesFilter(x, rubric)),
+    [shownItems, rubric],
   )
   const feedAccent = resolveSubjectPalette(feedGlance.subjectId, dark).accent
 
@@ -289,8 +304,34 @@ export default function MobileHome() {
           </div>
         </motion.div>
       </div>
-      <div ref={bellRef} style={{ display: 'inline-flex' }}>
-        <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+      {/* ПРАВЫЙ КРАЙ ШАПКИ РАБОТАЕТ НА ТО, ЧТО ПОД НЕЙ.
+          Наверху главной это колокольчик: там читают «что нового у меня». В
+          ленте новое — сама лента, а нужен ей отбор, и колокольчик уступает
+          место фильтру ровно вместе с шапкой, одним переливом. Обе кнопки
+          смонтированы всегда: гаснущая не ловит касания, а якорь всплывающих
+          уведомлений не должен исчезать из дерева. */}
+      <div ref={bellRef} style={{ position: 'relative', width: 38, height: 38, flexShrink: 0 }}>
+        <motion.div
+          animate={{ opacity: barOnFeed ? 0 : 1, scale: barOnFeed ? 0.88 : 1 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+          style={{ position: 'absolute', inset: 0, pointerEvents: barOnFeed ? 'none' : 'auto' }}
+        >
+          <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+        </motion.div>
+        <motion.div
+          animate={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+          style={{ position: 'absolute', inset: 0, pointerEvents: barOnFeed ? 'auto' : 'none' }}
+        >
+          <GlassIconButton
+            icon={<SlidersHorizontal size={16} />}
+            // Точка — не «новое», а «лента показана не целиком»: по ней видно,
+            // что пустоватая лента это ваш же отбор, а не поломка.
+            dot={prefsTouched(prefs)}
+            ariaLabel={t('Настройки ленты')}
+            onClick={() => { tactile(); setPrefsOpen(true) }}
+          />
+        </motion.div>
       </div>
       <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
     </div>
@@ -464,6 +505,11 @@ export default function MobileHome() {
       )}
 
       <MobileBottomNav />
+
+      {/* Настройки ленты — из фильтра в шапке. Список тем и типов собирается по
+          ВСЕЙ ленте языка (до отбора): у выключенной темы иначе всегда стоял бы
+          ноль, и включать её пришлось бы вслепую. */}
+      <FeedContentSheet open={prefsOpen} onClose={() => setPrefsOpen(false)} items={feedGlance.items} />
     </>
   )
 }

@@ -9,6 +9,8 @@ import MobileBell from './MobileBell'
 import SubjectSwitcher from './SubjectSwitcher'
 import FeedbackModal from './FeedbackModal'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
+import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
+import { useFeedGestures } from '../store/feedGesturesStore'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
@@ -67,6 +69,10 @@ export default function MobileProfilePage() {
   const { dark, toggle } = useTheme()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [tintOpen, setTintOpen] = useState(false)
+  const [feedOpen, setFeedOpen] = useState(false)
+  // Что стоит на самом ходовом жесте — прямо в ряду настроек: строка
+  // «Лента и жесты → Нравится» отвечает на вопрос, ради которого её открыли бы.
+  const swipeLeftAction = useFeedGestures(s => s.map.swipeLeft)
   const tintColor = useCurrentTintColor()
   // Stats scope: 'all' = account-wide totals, or a single subject's own numbers.
   const [statScope, setStatScope] = useState<'all' | string>('all')
@@ -296,6 +302,24 @@ export default function MobileProfilePage() {
                 </span>
               </motion.button>
 
+              {/* Лента и жесты — раскладка свайпов по посту */}
+              <motion.button
+                whileTap={{ scale: 0.99 }}
+                onClick={() => { tactile(); setFeedOpen(true) }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+              >
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                  {t('Лента и жесты')}
+                </span>
+                <span className="flex items-center" style={{ gap: 8 }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>
+                    {t('Свайп влево')} · {t(ACTION_LABEL[swipeLeftAction])}
+                  </span>
+                  <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                </span>
+              </motion.button>
+
               {/* Язык — весь ряд кликабелен, один тап меняет язык */}
               <button
                 onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
@@ -355,6 +379,7 @@ export default function MobileProfilePage() {
       <MobileBottomNav />
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
       <CourseTintSheet open={tintOpen} onClose={() => setTintOpen(false)} />
+      <FeedGesturesSheet open={feedOpen} onClose={() => setFeedOpen(false)} />
     </>
   )
 }

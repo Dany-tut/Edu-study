@@ -869,6 +869,28 @@ export function filterIcon(f: FeedFilter): LucideIcon {
  */
 export const isVideo = (item: FeedItem): boolean => item.embed?.kind === 'youtube'
 
+/**
+ * ЧЕМ материал является — в отличие от `theme` («о чём») и `lane` («по какому
+ * праву»). По этому человек отбирает ленту под обстоятельства: ролик требует
+ * звука и внимания, текст читается где угодно.
+ *
+ * Картинки отдельным типом ЗДЕСЬ ПОКА НЕТ, и выдумывать её нельзя: в модели
+ * материала нет своего изображения — единственная картинка в ленте это кадр
+ * ролика с YouTube, то есть тот же 'video'. Появится у постов своя иллюстрация
+ * — здесь добавится 'photo', и ряд типов в настройках подхватит её сам: он
+ * рисуется по тому, что реально встретилось в ленте.
+ */
+export type FeedKind = 'text' | 'video'
+
+export function feedKind(item: FeedItem): FeedKind {
+  return isVideo(item) ? 'video' : 'text'
+}
+
+export const KIND_LABEL: Record<FeedKind, string> = {
+  text: 'Тексты',
+  video: 'Видео',
+}
+
 /** Тема материала — из реестра источника. Неизвестный источник считаем новостью. */
 export function itemTheme(item: FeedItem): FeedTheme {
   return outletById(item.outletId)?.theme ?? 'news'
@@ -890,6 +912,13 @@ export function matchesFilter(item: FeedItem, f: FeedFilter): boolean {
  * чтобы ряд не перетасовывался от языка к языку.
  */
 const ORDER: FeedFilter[] = ['video', 'news', 'science', 'tech', 'culture', 'life', 'health']
+
+/**
+ * Порядок тем по умолчанию — тот же, что в ряду чипсов, но БЕЗ 'video': видео
+ * это тип материала, а не тема (см. feedKind), и в списке тем, который человек
+ * тасует под себя, ему делать нечего.
+ */
+export const THEME_ORDER: FeedTheme[] = ['news', 'science', 'tech', 'culture', 'life', 'health']
 
 export function feedFilters(items: FeedItem[]): { id: FeedFilter; label: string; count: number }[] {
   const row: { id: FeedFilter; label: string; count: number }[] = [
