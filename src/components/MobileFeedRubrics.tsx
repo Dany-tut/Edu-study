@@ -89,7 +89,11 @@ export function RubricBar({ chips, value, onChange, accent }: {
         // Рубрик мало — тесниться незачем: лишнюю ширину забирают ЗАЗОРЫ между
         // значками, а не подпись выбранной (см. `tight` ниже).
         display: 'flex', alignItems: 'center', gap: tight ? 2 : 8,
-        justifyContent: tight ? undefined : 'center',
+        // Короткий ряд — таблетка ПО СОДЕРЖИМОМУ, а не панель во всю строку:
+        // растянутое стекло вокруг горстки значков читается как пустая полоса.
+        // Тесный ряд по-прежнему занимает всю ширину — ему её не хватает.
+        width: tight ? undefined : 'fit-content',
+        maxWidth: '100%', marginInline: tight ? undefined : 'auto',
         overflowX: 'auto', overscrollBehaviorX: 'contain',
         padding: 4, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))',
