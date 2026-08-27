@@ -151,7 +151,19 @@ export default function MultiSelectField({
               placeholder={isEmpty ? label : ''}
               onClick={e => { if (open && !query && isEmpty) { e.stopPropagation(); close() } }}
               onKeyDown={e => { if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1)) }}
-              style={{ flex: 1, minWidth: 80, border: 'none', outline: 'none', background: 'transparent', fontSize, color: 'var(--color-text)', fontFamily: 'inherit', padding: '2px 0' }}
+              // ВЫСОТА СТРОКИ ПРИБИТА, А НЕ УНАСЛЕДОВАНА.
+              //
+              // Поле раскрывается подменой подписи на поле ввода, и без этого
+              // подмена меняла высоту всей коробки: на телефоне у input'а
+              // насильно 16px (.mobile-input-16 — иначе iOS зумит страницу
+              // при фокусе), а межстрочный он брал у body (24px), и открытое
+              // поле оказывалось на 4px выше закрытого. В шторке, которая
+              // растёт снизу вверх, эти 4px подбрасывали ВЕСЬ её контент —
+              // заголовок уезжал вверх ровно в момент тапа по полю.
+              //
+              // Двадцать пикселей при кегле 16 — свободная строка, и вся
+              // коробка остаётся на своих 38.
+              style={{ flex: 1, minWidth: 80, border: 'none', outline: 'none', background: 'transparent', fontSize, lineHeight: '20px', height: 20, color: 'var(--color-text)', fontFamily: 'inherit', padding: 0 }}
             />
             {values.map(chip)}
           </div>
