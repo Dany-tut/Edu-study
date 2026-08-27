@@ -43,6 +43,7 @@ import MobileScreen from '../components/MobileScreen'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
 import { useTrainerSubject } from '../lib/trainerSubject'
+import { useTint } from '../store/tintStore'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
@@ -1452,6 +1453,16 @@ export default function TaskBankPage() {
   const subjectState = useTrainerSubject()
   const langSubject = subjectState.current?.def
   const isLangTrainer = !!langSubject?.isLanguage
+
+  // Оттенок кабинета на этом экране ведёт предмет ТРЕНАЖЁРА, а не открытый курс.
+  // Выбор языка переводит и курс (lib/trainerSubject.ts), так что обычно это
+  // одно и то же; расходятся они там, где курса нет — язык из присланной ссылки
+  // и запасной банк заданий. Раньше в этом случае тренажёр читал корейский, а
+  // шапка и таблетки оставались в цвете английского курса.
+  const setTintSubject = useTint(s => s.setActiveSubject)
+  useEffect(() => {
+    if (langSubject) setTintSubject(langSubject.id)
+  }, [langSubject, setTintSubject])
 
   // Часы захода — общие на оба тренажёра, поэтому стоят ДО развилки: время в
   // корейских карточках считается ровно так же, как время в банке ЕГЭ.

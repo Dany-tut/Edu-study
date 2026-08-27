@@ -107,7 +107,9 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.45, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>{subtitle}</div>
         {extra}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
+      {/* gap 10 обязателен: левая половина обрезается многоточием, и без зазора
+          обрезанное слово вплотную упиралось в правую подпись — «2 вопрСвязка». */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-3)', fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap' }}>{footerRight}</div>
       </div>

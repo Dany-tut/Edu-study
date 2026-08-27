@@ -58,6 +58,11 @@ import { cardChip } from '../../lib/pillStyles'
 /** Языки, на которых вообще бывает тренажёр, — по реестру предметов. */
 const LANG_OPTIONS = SUBJECTS
   .filter(s => s.isLanguage && s.langCode)
+  // Дедуп по коду языка: «Русский» и «Литература» — разные предметы с одним
+  // `langCode: 'ru'`, и без него в списке стояли две строки с одинаковым
+  // значением (React ругался на дублирующийся ключ), а подпись у обеих бралась
+  // от последней. Первый выигрывает — это сам язык.
+  .filter((s, i, all) => all.findIndex(x => x.langCode === s.langCode) === i)
   .map(s => ({ value: s.langCode!, label: `${s.icon} ${s.name}`, subject: s.id }))
 
 /**
@@ -137,7 +142,18 @@ export function parseBulk(text: string): SetCard[] {
     .filter((x): x is SetCard => !!x)
 }
 
-export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: number }) {
+export default function CardGroupsManager({ createNonce = 0, lang }: {
+  createNonce?: number
+  /**
+   * Язык, выбранный вкладкой «Материалы».
+   *
+   * Витрина обязана слушаться рейла: пока подборки не знали про выбранный язык,
+   * под вывеской «Русский» лежали английские сиды — вкладка сама себе
+   * противоречила. Без пропа (вкладка вызвана откуда-то ещё) показываем всё и
+   * оставляем свой фасет языка.
+   */
+  lang?: string
+}) {
   const t = useT()
   const students = useAllStudents()
 
@@ -160,7 +176,10 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
   // Отбор витрины. Полка — тоже фильтр, но своим рядом чипов: полок бывают
   // единицы и у каждой своё имя, дропдауном они читаются хуже, чем в лицо.
   const [sort, setSort] = useState<SetSortMode>('newest')
+  // Свой фасет языка нужен, только когда язык не пришёл сверху: два выбора
+  // одного и того же в одном экране расходятся на первом же клике.
   const [langPick, setLangPick] = useState('')
+  const langFilter = lang ?? langPick
   const [studentPick, setStudentPick] = useState('')
   const [shelfName, setShelfName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -400,9 +419,14 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
     [students],
   )
 
+  const seedsShown = useMemo(
+    () => (langFilter ? seeds.filter(g => g.lang === langFilter) : seeds),
+    [seeds, langFilter],
+  )
+
   const shown = useMemo(() => {
     let list = shelfPick ? items.filter(x => x.group.id === shelfPick) : items
-    if (langPick) list = list.filter(x => x.group.lang === langPick)
+    if (langFilter) list = list.filter(x => x.group.lang === langFilter)
     // Пустой student_ids значит «всем», поэтому такой набор попадает в выборку
     // любого ученика: он его и правда видит.
     if (studentPick) list = list.filter(x => x.group.studentIds.length === 0 || x.group.studentIds.includes(studentPick))
@@ -412,7 +436,7 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
     else if (sort === 'cards') sorted.sort((a, b) => b.set.cards.length - a.set.cards.length)
     else sorted.sort((a, b) => sort === 'oldest' ? at(a).localeCompare(at(b)) : at(b).localeCompare(at(a)))
     return sorted
-  }, [items, shelfPick, langPick, studentPick, sort])
+  }, [items, shelfPick, langFilter, studentPick, sort])
 
 
   return (
@@ -423,12 +447,12 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <SortDropdown value={sort} options={SET_SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
-        <FacetDropdown
+        {!lang && <FacetDropdown
           value={langPick} options={langOpts} allLabel={t('Все языки')} accent={MAT_COLOR}
           labels={Object.fromEntries(LANG_OPTIONS.map(o => [o.value, o.label]))}
           icon={<Globe size={12} />} iconGap={9} minWidth={92}
           onChange={setLangPick}
-        />
+        />}
         <FacetDropdown
           value={studentPick} options={studentOpts} allLabel={t('Все ученики')} accent={MAT_COLOR}
           labels={studentNames} searchable
@@ -564,8 +588,16 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
                 onShelf={() => { setDraft(x.group); setFocus(null) }}
               />
             ))}
+            {/* Пустая витрина обязана сказать, почему она пустая: молчащая сетка
+                читается как «не загрузилось». Причин две и они разные — своих
+                наборов нет вовсе, или их отсеял отбор. */}
+            {items.length === 0 && (
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+                {t('Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.')}
+              </div>
+            )}
             {items.length > 0 && shown.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('На этой полке пока пусто.')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Под отбор ничего не подошло.')}</div>
             )}
           </div>
 
@@ -586,11 +618,11 @@ export default function CardGroupsManager({ createNonce = 0 }: { createNonce?: n
             </div>
           )}
 
-          {seeds.length > 0 && (
+          {seedsShown.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 6 }}>
               <div style={{ ...labelStyle, marginBottom: 0 }}>{t('Готовые подборки')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
-                {seeds.map(g => <SeedCard key={g.id} group={g} onTake={() => takeSeed(g)} />)}
+                {seedsShown.map(g => <SeedCard key={g.id} group={g} onTake={() => takeSeed(g)} />)}
               </div>
             </div>
           )}

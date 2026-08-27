@@ -391,6 +391,13 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   name: 'student-dashboard-preferences',
   storage: createJSONStorage(() => localStorage),
   partialize: (state) => ({
+    // Открытый курс переживает перезагрузку. Без этого кабинет на каждом F5
+    // падал на ПЕРВЫЙ курс списка (studentDataStore: `?? mergedSubjects[0]`), и
+    // ученик, работавший в корейском, возвращался в английский — а следом за
+    // курсом уезжал и предмет тренажёра (lib/trainerSubject.ts). Чужой id (курс
+    // другого ученика на общем устройстве) в списке не найдётся, и запасной
+    // путь на первый курс отработает как раньше.
+    activeSubjectId: state.activeSubjectId,
     avatarId: state.avatarId,
     widgetColumns: state.widgetColumns,
     widgetOrder: state.widgetOrder,

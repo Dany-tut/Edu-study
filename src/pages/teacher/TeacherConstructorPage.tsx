@@ -62,7 +62,7 @@ import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type T
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { questionToBankTask, type ImportedQuestion } from '../../lib/googleFormsImport'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
-import CardGroupsManager from '../../components/teacher/CardGroupsManager'
+import TrainerMaterials from '../../components/teacher/TrainerMaterials'
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useTaskMeta, mergeOptions, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
@@ -1614,38 +1614,16 @@ function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
 }
 
 /**
- * «Материалы» — контент языкового тренажёра.
+ * «Материалы» — контент языкового тренажёра целиком.
  *
- * Половины здесь — те же режимы, что ученик видит в рейле тренажёра: карточки,
- * чтение, аудирование. Живая пока одна: остальное лежит в src/data и правится
- * кодом (тексты, сцены, лента, разговорник, наборы слов, созвучия). Заглушек
- * под них нет намеренно — по тому же правилу, по которому у ученика не
- * показывается ненаписанный режим: пустая вкладка хуже отсутствующей.
+ * Вкладка показывает ВСЁ, что ученик может открыть в тренажёре, и в той же
+ * раскладке: рейл режимов, полки внутри режима, витрина материалов. Правятся из
+ * кабинета только «Подборки» — они из базы; остальное приезжает с кодом и
+ * показано на просмотр, с путём к файлу вместо кнопки «Сохранить».
  *
- * Добавить половину — это добавить строку в HALVES и ветку в рендер;
- * переключатель появится сам, как только их станет две.
+ * Список семей и их загрузка — в data/trainerMaterials.ts, разметка — в
+ * components/teacher/TrainerMaterials.tsx.
  */
-const MATERIAL_HALVES = [
-  { value: 'cards' as const, label: 'Карточки' },
-]
-
-function MaterialsTab({ createNonce }: { createNonce: number }) {
-  const t = useT()
-  const [half, setHalf] = useState<'cards'>('cards')
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <HalfSwitch
-        options={MATERIAL_HALVES.map(h => ({ ...h, label: t(h.label) }))}
-        value={half}
-        onChange={setHalf}
-        color="var(--color-peach-text)"
-        bg="var(--color-peach-soft)"
-      />
-      {half === 'cards' && <CardGroupsManager createNonce={createNonce} />}
-    </div>
-  )
-}
-
 function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus, plus = true }: {
   tab: Tab; activeTab: Tab; label: string; icon: React.ElementType
   color: string; bg: string; onClick: () => void; onPlus: () => void
@@ -8409,7 +8387,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               {activeTab === 'trainer' && taskView === 'map' && <CurriculumManager />}
-              {activeTab === 'decks' && <MaterialsTab createNonce={deckNonce} />}
+              {activeTab === 'decks' && <TrainerMaterials createNonce={deckNonce} />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>

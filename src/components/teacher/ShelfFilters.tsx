@@ -126,7 +126,7 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
  * заполненного уровня) — кнопка не рисуется вообще, чтобы не занимать строку
  * мёртвым контролом.
  */
-export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth = 92, iconGap = 6, labels, searchable, onChange }: {
+export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth = 92, iconGap = 6, labels, searchable, noAll, onChange }: {
   value: string
   options: string[]
   allLabel: string
@@ -139,6 +139,15 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
   labels?: Record<string, string>
   /** Строка поиска над списком: у учеников опций десятки, глазами не найти. */
   searchable?: boolean
+  /**
+   * Убрать строку «все».
+   *
+   * Нужна выбору, у которого нет состояния «не выбрано»: язык материалов —
+   * всегда какой-то один, и строка «Все языки» была бы кнопкой, которая ничего
+   * не делает. Такой выбор ещё и не прячется при единственной опции: язык
+   * должен быть виден, даже когда он один.
+   */
+  noAll?: boolean
   minWidth?: number
   /**
    * Отступ иконка→текст. Дефолт годится для эмодзи и иконок с полями, но у
@@ -150,7 +159,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  if (options.filter(o => o !== FACET_SEP).length < 2) return null
+  if (!noAll && options.filter(o => o !== FACET_SEP).length < 2) return null
   const label = (v: string) => labels?.[v] ?? v
   const soft = softOf(accent)
   // Группы разделены — значит и «все» отделяем от них, иначе первая группа
@@ -159,7 +168,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
   const q = query.trim().toLowerCase()
   // Под поиском разделители групп теряют смысл — они делят полный список.
   const shown = q ? options.filter(o => o !== FACET_SEP && label(o).toLowerCase().includes(q)) : options
-  const rows = q ? shown : ['', ...(grouped ? [FACET_SEP] : []), ...shown]
+  const rows = q ? shown : [...(noAll ? [] : ['']), ...(grouped ? [FACET_SEP] : []), ...shown]
   return (
     // Закрытие ловим на обёртке, а не на кнопке: со строкой поиска фокус уходит
     // с кнопки внутрь меню, и «потерял фокус — закрылись» захлопывало список

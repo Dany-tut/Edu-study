@@ -12,12 +12,18 @@
 //   2. предмет активного курса на главной,
 //   3. первый предмет из списка (курсы идут раньше банка).
 //
-// ТРЕК НА ГЛАВНОЙ ПРИ ЭТОМ НЕ ТРОГАЕТСЯ. Переключение в тренажёре — это смена
-// вида, а не смена курса: ученик заглянул в другой язык и вернулся, а прогресс,
-// уроки и расписание на главной остались там же, где были. Обратная связь
-// односторонняя и осознанная: сменил курс на ГЛАВНОЙ — тренажёр переезжает
-// следом (иначе он врал бы про «твой предмет»), сменил предмет в ТРЕНАЖЁРЕ —
-// главная не шевелится.
+// ЯЗЫК В КАБИНЕТЕ ОДИН, И ВЫБИРАЕТСЯ ОН ГДЕ УГОДНО. Связь двусторонняя: сменил
+// курс на ГЛАВНОЙ — тренажёр переезжает следом; выбрал предмет в ТРЕНАЖЁРЕ —
+// кабинет открывает курс этого языка. Раньше вторая половина была отключена
+// нарочно («заглянул в другой язык и вернулся»), и получалось расхождение,
+// которое ученик видел на одном экране: тренажёр читает корейский, а шапка,
+// оттенок и трек — про английский. Одно место выбора, одно состояние.
+//
+// КАКОЙ ИМЕННО КУРС. У языка их бывает несколько («Кор к TOPIK I», «Кор для
+// выживания»): если открытый курс уже этого языка — он и остаётся, иначе берём
+// тот, в котором ученик сидел в прошлый раз (память по предметам ниже), и лишь
+// затем первый по списку. Прыгать с «TOPIK II» на «TOPIK I» из-за выбора языка
+// в тренажёре — терять место, где человек работал.
 //
 // СПИСОК — ОДИН НА ЯЗЫКИ И БАНК. Для ученика это одна кнопка, хотя под ней
 // меняется движок: у языков свой тренажёр (чтение/карточки/аудирование), у
@@ -51,6 +57,13 @@ const KEY = 'trainer_subject'
  * явный выбор в тренажёре (см. эффект ниже).
  */
 const COURSE_KEY = 'trainer_subject_course'
+/**
+ * Последний открытый курс каждого предмета: id предмета → id курса.
+ *
+ * Пишется при каждой смене курса в кабинете, читается, когда язык выбирают в
+ * тренажёре и курс надо подобрать обратно.
+ */
+const COURSE_BY_SUBJECT_KEY = 'trainer_course_by_subject'
 
 function read(key: string): string {
   try { return localStorage.getItem(key) ?? '' } catch { return '' }
@@ -86,16 +99,59 @@ function rememberLinkSubject(id: string): void {
   try { localStorage.setItem(LINKS_KEY, JSON.stringify([...list, id])) } catch { /* приватный режим */ }
 }
 
+/** Предмет курса: русское имя из реестра, с запасным путём по id (демо, старые курсы). */
+function courseSubjectId(c: { subject?: string; id: string }): string | undefined {
+  return (getSubject(c.subject) ?? getSubject(c.id))?.id
+}
+
+function courseMemory(): Record<string, string> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(COURSE_BY_SUBJECT_KEY) ?? '{}')
+    return raw && typeof raw === 'object' ? raw as Record<string, string> : {}
+  } catch {
+    return {}
+  }
+}
+
+function rememberCourse(subjectId: string, courseId: string): void {
+  const map = courseMemory()
+  if (map[subjectId] === courseId) return
+  try { localStorage.setItem(COURSE_BY_SUBJECT_KEY, JSON.stringify({ ...map, [subjectId]: courseId })) } catch { /* приватный режим */ }
+}
+
+/**
+ * Открыть в кабинете курс выбранного языка.
+ *
+ * Тихо ничего не делает, когда курса нет вовсе: предмет мог прийти ссылкой или
+ * подставиться банком заданий, и гасить из-за этого открытый курс — значит
+ * ронять трек, расписание и статистику на главной ради экрана, который к ним
+ * отношения не имеет.
+ */
+export function syncCourseToSubject(id: string): void {
+  const courses = useStudentData.getState().subjects
+  const mine = courses.filter(c => courseSubjectId(c) === id)
+  if (mine.length === 0) return
+  const dash = useDashboard.getState()
+  // Уже в этом языке — курс не трогаем: выбор «Кор к TOPIK II» на главной
+  // старше, чем выбор «корейского» в тренажёре, он про то же самое, но точнее.
+  if (mine.some(c => c.id === dash.activeSubjectId)) return
+  const last = courseMemory()[id]
+  const target = mine.find(c => c.id === last) ?? mine[0]
+  dash.setActiveSubject(target.id)
+}
+
 /**
  * Выбрать предмет тренажёра ИЗВНЕ — с главной, до того как тренажёр смонтирован.
  *
  * Пишем прямо в ту же память, из которой useTrainerSubject читает свой
  * стартовый выбор: виджет главной открывает ленту конкретного языка, и предмет
- * должен быть выбран к первому кадру тренажёра, а не после него. Трек главной
- * при этом не трогается — переход в тренажёр не меняет открытый курс.
+ * должен быть выбран к первому кадру тренажёра, а не после него. Кабинет
+ * переезжает на курс этого языка вместе с тренажёром — правило одно на все
+ * места выбора (см. шапку файла).
  */
 export function pickTrainerSubject(id: string): void {
   write(KEY, id)
+  syncCourseToSubject(id)
 }
 
 export interface TrainerSubjectOption {
@@ -113,7 +169,7 @@ export interface TrainerSubjectState {
   options: TrainerSubjectOption[]
   /** Открытый предмет. undefined только пока не приехали ни курсы, ни задания. */
   current: TrainerSubjectOption | undefined
-  /** Явный выбор в меню. Трек на главной не меняет. */
+  /** Явный выбор в меню. Кабинет открывает курс этого языка (syncCourseToSubject). */
   pick: (id: string) => void
   /** Карточек «на повтор» по предметам — считается лениво, при открытии меню. */
   due: Record<string, number>
@@ -274,6 +330,7 @@ export function useTrainerSubject(): TrainerSubjectState {
       linkFresh.current = false
       lastCourse.current = courseSubject
       write(COURSE_KEY, courseSubject)
+      rememberCourse(courseSubject, activeSubjectId)
       return
     }
     if (lastCourse.current && lastCourse.current !== courseSubject) {
@@ -282,7 +339,10 @@ export function useTrainerSubject(): TrainerSubjectState {
     }
     lastCourse.current = courseSubject
     write(COURSE_KEY, courseSubject)
-  }, [courseSubject])
+    // Какой именно курс языка был открыт — чтобы выбор языка в тренажёре вернул
+    // ученика в него, а не в первый курс списка.
+    rememberCourse(courseSubject, activeSubjectId)
+  }, [courseSubject, activeSubjectId])
 
   const current = useMemo(
     () => options.find(o => o.def.id === picked)
@@ -294,6 +354,9 @@ export function useTrainerSubject(): TrainerSubjectState {
   const pick = useCallback((id: string) => {
     write(KEY, id)
     setPicked(id)
+    // Кабинет едет следом. Эффект выше увидит новый курс и запишет ту же пару в
+    // память синхронизации — сменой курса это не считается, значение то же.
+    syncCourseToSubject(id)
   }, [])
 
   // ── Долг по повторению ─────────────────────────────────────────────────────

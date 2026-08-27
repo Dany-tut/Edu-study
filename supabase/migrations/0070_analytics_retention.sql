@@ -22,14 +22,20 @@
 -- Отсюда два разных срока, а не один общий.
 --
 -- ЧЕГО ЗДЕСЬ НЕТ. Удаления мусорных уроков из прода: это контент, и решать,
--- что из восемнадцати «кусок говно» удалять, должен человек, а не миграция.
+-- что удалять, должен человек, а не миграция. Их, к слову, всего два — оба
+-- «кусок говно» в курсе «химия огэ 2027 про». Первый счёт (восемнадцать) был
+-- неверным: поиск ловил слова «тест» и «проверка» в законных названиях вроде
+-- «Финальный тест» и «Хангыль: проверка перед стартом».
 
 -- ── 1. Расписание: pg_cron ───────────────────────────────────────────────────
 --
 -- В проекте расширение не включено. На Supabase оно ставится из SQL-редактора
 -- (или через Database → Extensions) — здесь строка на месте, чтобы миграция
 -- была самодостаточной.
-create extension if not exists pg_cron with schema extensions;
+--
+-- Без `with schema`: pg_cron заводит собственную схему `cron` и не переносится
+-- в чужую, а явное указание схемы даёт ошибку установки.
+create extension if not exists pg_cron;
 
 -- ── 2. Правило ───────────────────────────────────────────────────────────────
 create or replace function public.prune_analytics()
@@ -39,19 +45,25 @@ security definer
 set search_path to 'public'
 as $$
 declare
-  removed integer;
+  removed integer := 0;
+  -- Отдельная переменная под счётчик: справа от `get diagnostics` стоит ИМЯ
+  -- элемента диагностики (row_count), а не выражение. `removed + row_count`
+  -- Postgres не принимает — 42601, unrecognized GET DIAGNOSTICS item.
+  n integer;
 begin
   -- Поток поведения: две недели. Дальше он не нужен ни одному экрану.
   delete from public.analytics_events
    where event in ('heartbeat', 'click', 'rage_click', 'page_leave')
      and created_at < now() - interval '14 days';
-  get diagnostics removed = row_count;
+  get diagnostics n = row_count;
+  removed := removed + n;
 
   -- Всё остальное — полгода: воронку смотрят по кварталам.
   delete from public.analytics_events
    where event not in ('heartbeat', 'click', 'rage_click', 'page_leave')
      and created_at < now() - interval '180 days';
-  get diagnostics removed = removed + row_count;
+  get diagnostics n = row_count;
+  removed := removed + n;
 
   return removed;
 end $$;

@@ -2693,7 +2693,7 @@ export const EN: Record<string, string> = {
   'Банк ЕГЭ': 'Exam bank',
   'Мои предметы': 'My subjects',
   'на повтор': 'to review',
-  'Выбор тренажёра не меняет курс на главной': 'Picking a trainer does not change the course on the home screen',
+  'Кабинет открывает курс этого предмета': 'Your cabinet opens this subject\u2019s course',
   'Промотка записи': 'Recording position',
   'Настройки записи': 'Recording settings',
   'В системе нет голоса для этого языка — браузеру нечем прочитать текст. Голос ставится в настройках системы: на Mac это «Универсальный доступ → Устная речь», на Windows — «Время и язык → Речь».':

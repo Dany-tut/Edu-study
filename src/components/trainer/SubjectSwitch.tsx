@@ -17,8 +17,9 @@
 //
 // НИКАКОЙ ПЕРЕЗАГРУЗКИ. Есть похожий на вид SubjectSwitcher (components/), но
 // он меняет СЕССИЮ ученика (другая группа, другой курс) и потому делает
-// window.location.reload(). Здесь меняется только вид тренажёра, поэтому
-// переключение мгновенное и трек главной не трогает.
+// window.location.reload(). Здесь переключение мгновенное: выбор языка заодно
+// открывает курс этого языка в кабинете (lib/trainerSubject.ts), но это запись
+// в стор, а не перезагрузка.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react'
@@ -120,7 +121,7 @@ export function SubjectList({ state, onPicked, accent }: {
         padding: '8px 10px 4px', marginTop: 4, fontSize: 11, lineHeight: 1.4,
         color: 'var(--color-text-3)', borderTop: '1px solid var(--color-border-soft)',
       }}>
-        {t('Выбор тренажёра не меняет курс на главной')}
+        {t('Кабинет открывает курс этого предмета')}
       </div>
     </div>
   )
