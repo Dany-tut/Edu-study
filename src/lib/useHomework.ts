@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
+import { createSharedQuery, useSharedQuery } from './sharedQuery'
 import type { HomeworkItem } from '../data/teacherMockData'
 import { parseBasicAnswers, type BasicAnswersPayload } from './basicAnswers'
 
@@ -315,44 +316,43 @@ function mapRow(h: any, counts?: { submitted: number; reviewed: number }): HwAss
   }
 }
 
-export function useHomework() {
-  const [homework, setHomework] = useState<HwAssignment[]>([])
-  const [loading, setLoading] = useState(true)
+// Домашки владельца. Общий запрос: хук зовут 12 компонентов кабинета, и раньше
+// каждый слал свою пару запросов (см. lib/sharedQuery.ts).
+const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
+  const uid = await getOwnerId()
+  const { data } = await supabase
+    .from('homework')
+    .select('*, groups(name, icon, color, is_individual)')
+    .eq('created_by', uid)
+    .order('created_at', { ascending: false })
+  if (!data) return []
 
-  async function load() {
-    const uid = await getOwnerId()
-    const { data } = await supabase
-      .from('homework')
-      .select('*, groups(name, icon, color, is_individual)')
-      .eq('created_by', uid)
-      .order('created_at', { ascending: false })
-    if (!data) { setLoading(false); return }
-
-    // Счётчики «сдано / проверено» — из lesson_progress (ключ `hw-<id>`), где
-    // и живут сдачи учеников. submitted = все сдавшие; reviewed = приняты/возвращены.
-    const refs = data.map(h => `hw-${h.id}`)
-    const countsByHw = new Map<string, { submitted: number; reviewed: number }>()
-    if (refs.length > 0) {
-      const { data: progress } = await supabase
-        .from('lesson_progress')
-        .select('lesson_ref, status, students!inner(groups!inner(created_by))')
-        .in('lesson_ref', refs)
-        .eq('students.groups.created_by', uid)
-        .in('status', ['submitted', 'returned', 'completed'])
-      for (const p of (progress ?? []) as any[]) {
-        const hwId = (p.lesson_ref as string).slice(3) // strip 'hw-'
-        const c = countsByHw.get(hwId) ?? { submitted: 0, reviewed: 0 }
-        c.submitted += 1
-        if (p.status === 'completed' || p.status === 'returned') c.reviewed += 1
-        countsByHw.set(hwId, c)
-      }
+  // Счётчики «сдано / проверено» — из lesson_progress (ключ `hw-<id>`), где
+  // и живут сдачи учеников. submitted = все сдавшие; reviewed = приняты/возвращены.
+  const refs = data.map(h => `hw-${h.id}`)
+  const countsByHw = new Map<string, { submitted: number; reviewed: number }>()
+  if (refs.length > 0) {
+    const { data: progress } = await supabase
+      .from('lesson_progress')
+      .select('lesson_ref, status, students!inner(groups!inner(created_by))')
+      .in('lesson_ref', refs)
+      .eq('students.groups.created_by', uid)
+      .in('status', ['submitted', 'returned', 'completed'])
+    for (const p of (progress ?? []) as any[]) {
+      const hwId = (p.lesson_ref as string).slice(3) // strip 'hw-'
+      const c = countsByHw.get(hwId) ?? { submitted: 0, reviewed: 0 }
+      c.submitted += 1
+      if (p.status === 'completed' || p.status === 'returned') c.reviewed += 1
+      countsByHw.set(hwId, c)
     }
-
-    setHomework(data.map(h => mapRow(h, countsByHw.get(h.id))))
-    setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  return data.map(h => mapRow(h, countsByHw.get(h.id)))
+}, [])
+
+export function useHomework() {
+  const { value: homework, loading } = useSharedQuery(homeworkQuery)
+  const load = homeworkQuery.reload
 
   async function createHomework(hw: {
     groupId: string
@@ -419,87 +419,86 @@ export function useHomework() {
 
 let hardChannelSeq = 0
 
-export function useHardSubmissions() {
-  const [submissions, setSubmissions] = useState<HardSub[]>([])
-  const [loading, setLoading] = useState(true)
+// Сдачи сложных заданий. Общий запрос И ОДИН живой канал на всех: хук зовут
+// девять компонентов, и раньше каждый заводил свой канал на lesson_progress —
+// одно изменение перезапускало загрузку девять раз.
+const hardQuery = createSharedQuery<HardSub[]>(async () => {
+  // Fetch hard submissions: new format (lesson_ref ends with '-hard')
+  // OR old format (comment non-empty, no '-hard' suffix)
+  const uid = await getOwnerId()
+  const { data: rows } = await supabase
+    .from('lesson_progress')
+    .select('*, students!inner(name, groups!inner(created_by))')
+    .eq('students.groups.created_by', uid)
+    .or('lesson_ref.like.%-hard,and(comment.neq.,lesson_ref.not.like.%-hard)')
+    .in('status', ['submitted', 'returned', 'completed'])
+    .order('updated_at', { ascending: false })
 
-  async function load() {
-    // Fetch hard submissions: new format (lesson_ref ends with '-hard')
-    // OR old format (comment non-empty, no '-hard' suffix)
-    const uid = await getOwnerId()
-    const { data: rows } = await supabase
-      .from('lesson_progress')
-      .select('*, students!inner(name, groups!inner(created_by))')
-      .eq('students.groups.created_by', uid)
-      .or('lesson_ref.like.%-hard,and(comment.neq.,lesson_ref.not.like.%-hard)')
-      .in('status', ['submitted', 'returned', 'completed'])
-      .order('updated_at', { ascending: false })
+  if (!rows) return []
 
-    if (!rows) { setLoading(false); return }
+  // Derive base lesson refs (strip '-hard' suffix if present)
+  const baseRefs = [...new Set(rows.map(r =>
+    r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
+  ))]
 
-    // Derive base lesson refs (strip '-hard' suffix if present)
-    const baseRefs = [...new Set(rows.map(r =>
-      r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
-    ))]
+  // Fetch lesson titles
+  const { data: lessons } = await supabase
+    .from('lessons')
+    .select('short_id, title')
+    .in('short_id', baseRefs)
+  const titleMap: Record<string, string> = Object.fromEntries(
+    (lessons ?? []).map(l => [l.short_id, l.title])
+  )
 
-    // Fetch lesson titles
-    const { data: lessons } = await supabase
-      .from('lessons')
-      .select('short_id, title')
-      .in('short_id', baseRefs)
-    const titleMap: Record<string, string> = Object.fromEntries(
-      (lessons ?? []).map(l => [l.short_id, l.title])
-    )
-
-    setSubmissions(rows.map(r => {
-      const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
-      // Единая per-task/раунд-модель: v2 берём как есть, legacy одиночный хард
-      // синтезируем в одну вкладку с одним раундом — чтобы тред показывался везде.
-      const lg = legacyHardToBlocks(r)
-      const taskBlocks = isNewHard(r.attachments) ? (r.attachments.tasks as HardTaskStudentBlock[]) : lg.taskBlocks
-      const reviewBlocks = isNewHard(r.review_attachments) ? (r.review_attachments.tasks as HardTaskReviewBlock[]) : lg.reviewBlocks
-      const isMulti = taskBlocks.length > 0
-      return {
-        id: r.id,
-        lessonRef: r.lesson_ref,
-        baseRef: base,
-        lessonTitle: titleMap[base] ?? base,
-        studentId: r.student_id,
-        studentName: (r.students as { name: string } | null)?.name ?? '',
-        score: r.score ?? 0,
-        comment: r.comment ?? '',
-        reviewComment: r.review_comment ?? '',
-        status: r.status as HardSub['status'],
-        updatedAt: r.updated_at ?? '',
-        isMultiTask: isMulti,
-        taskBlocks,
-        reviewBlocks,
-        attachments: {
-          photos: !isMulti && Array.isArray(r.attachments?.photos) ? r.attachments.photos : [],
-          board: !isMulti ? (r.attachments?.board ?? null) : null,
-        },
-        reviewAttachments: {
-          photos: Array.isArray(r.review_attachments?.photos) ? r.review_attachments.photos : [],
-          board: r.review_attachments?.board ?? null,
-          annotation: r.review_attachments?.annotation ?? null,
-        },
-      }
-    }))
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    load()
-    // Unique channel name per hook instance — multiple components (e.g. the
-    // homework list + the full-screen hard review) can mount this hook at once,
-    // and Supabase throws if two subscribers share a channel name.
-    const channelName = `hard-submissions-${hardChannelSeq++}`
+  return rows.map(r => {
+    const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
+    // Единая per-task/раунд-модель: v2 берём как есть, legacy одиночный хард
+    // синтезируем в одну вкладку с одним раундом — чтобы тред показывался везде.
+    const lg = legacyHardToBlocks(r)
+    const taskBlocks = isNewHard(r.attachments) ? (r.attachments.tasks as HardTaskStudentBlock[]) : lg.taskBlocks
+    const reviewBlocks = isNewHard(r.review_attachments) ? (r.review_attachments.tasks as HardTaskReviewBlock[]) : lg.reviewBlocks
+    const isMulti = taskBlocks.length > 0
+    return {
+      id: r.id,
+      lessonRef: r.lesson_ref,
+      baseRef: base,
+      lessonTitle: titleMap[base] ?? base,
+      studentId: r.student_id,
+      studentName: (r.students as { name: string } | null)?.name ?? '',
+      score: r.score ?? 0,
+      comment: r.comment ?? '',
+      reviewComment: r.review_comment ?? '',
+      status: r.status as HardSub['status'],
+      updatedAt: r.updated_at ?? '',
+      isMultiTask: isMulti,
+      taskBlocks,
+      reviewBlocks,
+      attachments: {
+        photos: !isMulti && Array.isArray(r.attachments?.photos) ? r.attachments.photos : [],
+        board: !isMulti ? (r.attachments?.board ?? null) : null,
+      },
+      reviewAttachments: {
+        photos: Array.isArray(r.review_attachments?.photos) ? r.review_attachments.photos : [],
+        board: r.review_attachments?.board ?? null,
+        annotation: r.review_attachments?.annotation ?? null,
+      },
+    }
+  })
+}, [], {
+  watch: reload => {
+    // Имя канала всё равно уникальное: Supabase бросает, если два подписчика
+    // делят одно, а страницу могут открыть и переоткрыть за одну жизнь вкладки.
     const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => load())
+      .channel(`hard-submissions-${hardChannelSeq++}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  },
+})
+
+export function useHardSubmissions() {
+  const { value: submissions, loading } = useSharedQuery(hardQuery)
+  const load = hardQuery.reload
 
   async function reviewHard(
     id: string,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
+import { createSharedQuery, useSharedQuery } from './sharedQuery'
 import { parseStudentLimitError, studentLimitMessage } from './plan'
 import { t } from './i18n'
 import { subjectIcon, resolveSubjectPalette } from './subjects'
@@ -95,38 +96,41 @@ export async function bindGroupToCourse(groupId: string, courseId: string): Prom
   await appendCourseAccess('group_ids', courseId, groupId)
 }
 
+// Группы владельца. Общий запрос: хук зовут 20 компонентов кабинета, и раньше
+// каждый слал свой (см. lib/sharedQuery.ts).
+const groupsQuery = createSharedQuery<Group[]>(async () => {
+  const uid = await getOwnerId()
+  const { data } = await supabase
+    .from('groups')
+    .select('*, students(count)')
+    .eq('created_by', uid)
+    .order('created_at')
+  return (data ?? []).map((g: DbGroup) => ({
+    id: g.id,
+    name: g.name,
+    subject: g.subject as Group['subject'],
+    icon: g.icon,
+    level: g.level,
+    color: g.color,
+    colorSoft: g.color_soft,
+    startDate: g.start_date ?? '',
+    studentCount: g.students?.[0]?.count ?? 0,
+    lessonsCompleted: 0,
+    totalLessons: g.total_lessons,
+    isIndividual: g.is_individual,
+    tracks: Array.isArray(g.tracks) ? g.tracks : [],
+  }))
+}, [])
+
 export function useGroups() {
-  const [groups, setGroups] = useState<Group[]>([])
-  const [loading, setLoading] = useState(true)
-
-  async function load() {
-    const uid = await getOwnerId()
-    const { data } = await supabase
-      .from('groups')
-      .select('*, students(count)')
-      .eq('created_by', uid)
-      .order('created_at')
-    if (data) {
-      setGroups(data.map((g: DbGroup) => ({
-        id: g.id,
-        name: g.name,
-        subject: g.subject as Group['subject'],
-        icon: g.icon,
-        level: g.level,
-        color: g.color,
-        colorSoft: g.color_soft,
-        startDate: g.start_date ?? '',
-        studentCount: g.students?.[0]?.count ?? 0,
-        lessonsCompleted: 0,
-        totalLessons: g.total_lessons,
-        isIndividual: g.is_individual,
-        tracks: Array.isArray(g.tracks) ? g.tracks : [],
-      })))
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => { load() }, [])
+  const { value: groups, loading } = useSharedQuery(groupsQuery)
+  // Имя `load` сохранено: им пользуются мутации ниже. Теперь перечитывание
+  // видят ВСЕ подписчики, а не только тот компонент, что добавил группу.
+  //
+  // Заодно перечитываем учеников: половина мутаций ниже создаёт и переносит их,
+  // а список учеников — общий и в кабинете живёт своей жизнью. Раньше он не
+  // обновлялся вовсе до перезагрузки страницы.
+  const load = () => Promise.all([groupsQuery.reload(), allStudentsQuery.reload()]).then(() => {})
 
   async function addGroup(g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>) {
     const { data, error } = await supabase.from('groups').insert({
@@ -938,43 +942,48 @@ export function groupStudentsByPerson(students: PersonRow[]): PersonCards[] {
   return [...byKey.values()]
 }
 
+// Все ученики владельца. Тоже общий запрос: хук зовут 17 компонентов.
+const allStudentsQuery = createSharedQuery<Student[]>(async () => {
+  const uid = await getOwnerId()
+  const { data } = await supabase
+    .from('students')
+    .select('*, groups!inner(created_by, subject, is_individual)')
+    .eq('groups.created_by', uid)
+    .order('name')
+  return (data ?? []).map((s: any) => ({
+    id: s.id,
+    groupId: s.group_id,
+    subject: s.groups?.subject ?? '',
+    isIndividual: s.groups?.is_individual ?? false,
+    authUserId: s.auth_user_id ?? undefined,
+    personId: s.person_id ?? undefined,
+    name: s.name,
+    phone: s.phone ?? '',
+    telegramLink: s.telegram_link ?? '',
+    parentContact: s.parent_contact ?? '',
+    startedAt: s.started_at ?? '',
+    lastVisit: s.last_visit ?? '',
+    hwScore: s.hw_score ?? 0,
+    testScore: s.test_score ?? 0,
+    trialScore: s.trial_score ?? null,
+    desiredScore: s.desired_score ?? 80,
+    attendance: s.attendance ?? 0,
+    comment: s.comment ?? '',
+    paymentDue: s.payment_due ?? '',
+    paymentAmount: s.payment_amount ?? 0,
+    lastPayment: s.last_payment ?? '',
+    debt: s.debt ?? 0,
+    lessonBalance: s.lesson_balance ?? 0,
+    inviteToken: s.invite_token ?? null,
+    email: s.email ?? '',
+    tempPassword: s.temp_password ?? '',
+  }))
+}, [])
+
 export function useAllStudents() {
-  const [students, setStudents] = useState<Student[]>([])
-  useEffect(() => {
-    ;(async () => {
-    const uid = await getOwnerId()
-    supabase.from('students').select('*, groups!inner(created_by, subject, is_individual)').eq('groups.created_by', uid).order('name')
-      .then(({ data }) => {
-        if (data) setStudents(data.map((s: any) => ({
-          id: s.id,
-          groupId: s.group_id,
-          subject: s.groups?.subject ?? '',
-          isIndividual: s.groups?.is_individual ?? false,
-          authUserId: s.auth_user_id ?? undefined,
-          personId: s.person_id ?? undefined,
-          name: s.name,
-          phone: s.phone ?? '',
-          telegramLink: s.telegram_link ?? '',
-          parentContact: s.parent_contact ?? '',
-          startedAt: s.started_at ?? '',
-          lastVisit: s.last_visit ?? '',
-          hwScore: s.hw_score ?? 0,
-          testScore: s.test_score ?? 0,
-          trialScore: s.trial_score ?? null,
-          desiredScore: s.desired_score ?? 80,
-          attendance: s.attendance ?? 0,
-          comment: s.comment ?? '',
-          paymentDue: s.payment_due ?? '',
-          paymentAmount: s.payment_amount ?? 0,
-          lastPayment: s.last_payment ?? '',
-          debt: s.debt ?? 0,
-          lessonBalance: s.lesson_balance ?? 0,
-          inviteToken: s.invite_token ?? null,
-          email: s.email ?? '',
-          tempPassword: s.temp_password ?? '',
-        })))
-      })
-    })()
-  }, [])
-  return students
+  return useSharedQuery(allStudentsQuery).value
 }
+
+/** Перечитать список учеников во всех местах сразу — после создания, перевода
+ *  или удаления. */
+export const reloadAllStudents = () => allStudentsQuery.reload()
