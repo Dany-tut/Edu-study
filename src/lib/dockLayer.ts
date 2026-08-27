@@ -61,6 +61,17 @@ function sync() {
   }
 }
 
+if (typeof window !== 'undefined') {
+  sync()
+  window.addEventListener('resize', sync)
+  window.addEventListener('orientationchange', sync)
+  window.addEventListener('pageshow', sync)
+  window.visualViewport?.addEventListener('resize', sync)
+  // Первое касание вьюпорт и чинит — сразу после него перемеряем.
+  window.addEventListener('touchstart', () => setTimeout(sync, 60), { passive: true })
+  ;[60, 300, 1000].forEach(ms => setTimeout(sync, ms))
+}
+
 /** Слой дока, если он сейчас нужен (иначе null — рисуй fixed). */
 export function dockLayer(): HTMLElement | null {
   if (typeof document === 'undefined') return null
