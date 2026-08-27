@@ -15,8 +15,7 @@ import {
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
   ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette,
   Calculator, Star, Lightbulb, Microscope, Music, Sigma,
-  Lock, Loader2,
-} from 'lucide-react'
+  Lock, Loader2, Library,} from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
@@ -186,7 +185,28 @@ function GoogleFormBankCategoryModal({
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'bank' | 'decks'
+/**
+ * Вкладка Конструктора.
+ *
+ * РАЗРЕЗ ПО СУЩНОСТИ, А НЕ ПО ДВИЖКУ. Раньше ряд был нарезан тремя разными
+ * способами сразу: «Курс», «Тестирование», «Виджет» — по тому, ЧТО создаётся;
+ * «Тренажёр» и «Банк заданий» — по движку ЕГЭ; «Наборы карточек» — по типу
+ * контента. Отсюда и странность, которую видно глазами: «Тренажёр» открывал
+ * задания банка, а «Банк заданий» — вовсе не банк, а его РАЗМЕТКУ (разделы,
+ * темы, части, линии), и тем же словом «тренажёр» ученик называет третий экран.
+ *
+ * Теперь принцип один: вкладка = сущность.
+ *   course   — «Курсы»:     уроки, теория, ДЗ
+ *   trainer  — «Задания»:   банк заданий, а разметка — половина внутри него
+ *   decks    — «Материалы»: контент языкового тренажёра (пока — наборы карточек)
+ *   testing  — «Тесты»:     диагностики и placement
+ *   widget   — «Виджеты»:   виджеты главной ученика
+ *
+ * `trainer` и `decks` остались внутренними ключами: по ним лежит выбранная
+ * вкладка в localStorage у всех, кто уже пользуется Конструктором, и переименуй
+ * я их — вкладка после обновления сбрасывалась бы на «Курсы» у каждого.
+ */
+type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'decks'
 export type CourseStatus = 'published' | 'draft'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
@@ -1854,9 +1874,100 @@ function WidgetGroupsView({
 }
 
 // ─── Tab pill (list view) ─────────────────────────────────────────────────────
-function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus }: {
+/**
+ * Половины внутри вкладки — второй уровень раскладки.
+ *
+ * ЗАЧЕМ ОН ВООБЩЕ. Вкладка отвечает на вопрос «что я создаю», половина — «какого
+ * рода». Задания и их разметка — одна сущность с двух сторон; карточки, тексты и
+ * записи — один материал в разных режимах. Разводить это по вкладкам значило бы
+ * растить ряд на каждый новый род контента: сегодня шесть вкладок, через месяц
+ * девять, и уже ни одна не находится с первого взгляда.
+ *
+ * ВЫГЛЯДИТ МЕЛЬЧЕ РЯДА НАМЕРЕННО. Высота 34 против 44 и мягкая рамка вместо
+ * стекла: половина не должна спорить с вкладкой, под которой стоит, — иначе
+ * читаются два равных ряда, и непонятно, какой из них главный.
+ */
+function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
+  options: Array<{ value: T; label: string; icon?: React.ElementType }>
+  value: T
+  onChange: (v: T) => void
+  color: string
+  bg: string
+}) {
+  if (options.length < 2) return null
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {options.map(o => {
+        const on = o.value === value
+        const Icon = o.icon
+        return (
+          <button
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              height: 34, boxSizing: 'border-box', padding: '0 15px',
+              borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+              border: on ? '1px solid transparent' : '1px solid var(--color-border-soft)',
+              background: on ? bg : 'transparent',
+              color: on ? color : 'var(--color-muted)',
+              fontSize: 13, fontWeight: 700,
+              transition: 'all 0.15s',
+            }}
+          >
+            {Icon && <Icon size={14} strokeWidth={2.2} />}
+            {o.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * «Материалы» — контент языкового тренажёра.
+ *
+ * Половины здесь — те же режимы, что ученик видит в рейле тренажёра: карточки,
+ * чтение, аудирование. Живая пока одна: остальное лежит в src/data и правится
+ * кодом (тексты, сцены, лента, разговорник, наборы слов, созвучия). Заглушек
+ * под них нет намеренно — по тому же правилу, по которому у ученика не
+ * показывается ненаписанный режим: пустая вкладка хуже отсутствующей.
+ *
+ * Добавить половину — это добавить строку в HALVES и ветку в рендер;
+ * переключатель появится сам, как только их станет две.
+ */
+const MATERIAL_HALVES = [
+  { value: 'cards' as const, label: 'Карточки' },
+]
+
+function MaterialsTab() {
+  const t = useT()
+  const [half, setHalf] = useState<'cards'>('cards')
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <HalfSwitch
+        options={MATERIAL_HALVES.map(h => ({ ...h, label: t(h.label) }))}
+        value={half}
+        onChange={setHalf}
+        color="var(--color-peach-text)"
+        bg="var(--color-peach-soft)"
+      />
+      {half === 'cards' && <CardGroupsManager />}
+    </div>
+  )
+}
+
+function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus, plus = true }: {
   tab: Tab; activeTab: Tab; label: string; icon: React.ElementType
   color: string; bg: string; onClick: () => void; onPlus: () => void
+  /**
+   * Показывать ли «плюс» на наведении.
+   *
+   * У «Материалов» и у разметки создавать по «плюсу» нечего: группа заводится
+   * своей кнопкой внутри вкладки, разметка правится на месте. Плюс, который
+   * ничего не открывает, — обещание, которого интерфейс не держит.
+   */
+  plus?: boolean
 }) {
   const isActive = tab === activeTab
   const [hover, setHover] = useState(false)
@@ -1881,7 +1992,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
       }}>
       <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
       <AnimatePresence>
-        {isActive && hover && (
+        {isActive && hover && plus && (
           <motion.span
             key="plus"
             initial={{ width: 0, opacity: 0, marginLeft: -8 }}
@@ -2247,7 +2358,7 @@ function CreatorView({
   onSaveWidget,
   onCancel,
 }: {
-  initialMode: Exclude<Tab, 'testing' | 'bank' | 'decks'>
+  initialMode: Exclude<Tab, 'testing' | 'decks'>
   editCourse?: Course | null
   editTrainer?: Trainer | null
   editingTask?: BankTask | null
@@ -2260,7 +2371,7 @@ function CreatorView({
   onCancel: () => void
 }) {
   const t = useT()
-  const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'bank' | 'decks'>>(initialMode)
+  const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'decks'>>(initialMode)
   const addTask = useTaskBank(s => s.addTask)
   const replaceTask = useTaskBank(s => s.replaceTask)
 
@@ -7468,9 +7579,24 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
 export default function TeacherConstructorPage() {
   const t = useT()
   const [activeTab, setActiveTab] = useState<Tab>(() => {
-    const s = localStorage.getItem('constructor-active-tab') as Tab | null
-    return (s && ['course','trainer','widget','testing'].includes(s)) ? s : 'course'
+    const s = localStorage.getItem('constructor-active-tab')
+    // Легаси-значение 'bank': вкладки с таким ключом больше нет, но человек,
+    // закрывший Конструктор на разметке, должен вернуться на разметку — она
+    // теперь половина внутри «Заданий» (см. taskView ниже).
+    if (s === 'bank') return 'trainer'
+    return (s && ['course','trainer','widget','testing','decks'].includes(s)) ? (s as Tab) : 'course'
   })
+  /**
+   * Половина внутри «Заданий»: сами задания или разметка банка.
+   *
+   * Разметка — это НАСТРОЙКА заданий (какие бывают разделы, темы, части и
+   * линии), а не отдельная сущность: собственной вкладки она не заслуживает и
+   * занимала её только потому, что жить ей было больше негде.
+   */
+  const [taskView, setTaskView] = useState<'tasks' | 'map'>(() =>
+    (localStorage.getItem('constructor-active-tab') === 'bank'
+      || localStorage.getItem('constructor-task-view') === 'map') ? 'map' : 'tasks')
+  useEffect(() => { localStorage.setItem('constructor-task-view', taskView) }, [taskView])
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     localStorage.getItem('constructor-selected-id')
   )
@@ -7522,7 +7648,7 @@ export default function TeacherConstructorPage() {
   }, [selectedAssignmentId])
   // Reopen the trainer task composer after a reload (its field drafts survive
   // in sessionStorage); other creator modes hold object state we can't restore.
-  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'bank' | 'decks'> | null>(
+  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'decks'> | null>(
     () => readDraft<string>('taskctor.open') === 'trainer' ? 'trainer' : null
   )
   const [editCourse, setEditCourse] = useState<Course | null>(null)
@@ -7986,9 +8112,10 @@ export default function TeacherConstructorPage() {
   }
 
   function handlePlus() {
-    if (activeTab === 'bank') return // the bank tab manages taxonomy inline; nothing to create
-    // Наборы карточек создаются своей кнопкой внутри вкладки: «плюс» в шапке
-    // открыл бы пустой редактор поверх списка, которого ещё не видели.
+    // Разметка правится на месте, группы карточек — своей кнопкой внутри
+    // вкладки: «плюс» в шапке открыл бы пустой редактор поверх списка,
+    // которого ещё не видели.
+    if (activeTab === 'trainer' && taskView === 'map') return
     if (activeTab === 'decks') return
     if (activeTab === 'testing') { setDiagCreating(true); return }
     if (activeTab === 'course') { goToNewCourseEditor(); return }
@@ -8261,13 +8388,15 @@ export default function TeacherConstructorPage() {
     if (isUUID(w.id)) await supabase.from('widgets').delete().eq('id', w.id)
   }
 
+  // Подписи — по сущности (см. тип Tab). Цвет разметки достался «Материалам»:
+  // персиковый освободился вместе со вкладкой, а два синих подряд («Виджеты» и
+  // «Материалы») в ряду не различались.
   const tabCfg = {
-    course:   { label: t('Курс'),        Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
-    trainer:  { label: t('Тренажёр'),    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
-    widget:   { label: t('Виджет'),      Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
-    testing:  { label: t('Тестирование'), Icon: Target,  color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
-    bank:     { label: t('Банк заданий'), Icon: Database, color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
-    decks:    { label: t('Наборы карточек'), Icon: Layers, color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+    course:   { label: t('Курсы'),      Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
+    trainer:  { label: t('Задания'),    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+    decks:    { label: t('Материалы'),  Icon: Library,  color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
+    testing:  { label: t('Тесты'),      Icon: Target,   color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
+    widget:   { label: t('Виджеты'),    Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
   }
 
   return (
@@ -8383,7 +8512,12 @@ export default function TeacherConstructorPage() {
                 } : null),
               } as React.CSSProperties}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
-                {/* Edit-mode toggle — square button */}
+                {/* Edit-mode toggle — square button.
+                    Прячется там, где выделять нечего: разметка правится на
+                    месте, а группы карточек удаляются своей корзиной на
+                    карточке. Кнопка, которая ничего не делает, читается как
+                    поломка. */}
+                {!(activeTab === 'decks' || (activeTab === 'trainer' && taskView === 'map')) && (
                 <motion.button
                   whileTap={{ scale: 0.93 }}
                   onClick={toggleEditMode}
@@ -8400,14 +8534,17 @@ export default function TeacherConstructorPage() {
                 >
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
+                )}
 
-                {(['course', 'trainer', 'widget', 'testing', 'bank', 'decks'] as const).map(t => {
+                {(['course', 'trainer', 'decks', 'testing', 'widget'] as const).map(t => {
                   const cfg = tabCfg[t]
+                  const canCreate = !(t === 'decks' || (t === 'trainer' && taskView === 'map'))
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
+                    plus={canCreate}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
-                {activeTab === 'trainer' && !editMode && (
+                {activeTab === 'trainer' && taskView === 'tasks' && !editMode && (
                   <button
                     onClick={() => setFormImportOpen(true)}
                     style={{
@@ -8515,6 +8652,23 @@ export default function TeacherConstructorPage() {
               )}
               </div>
               {activeTab === 'trainer' && (
+                <div style={{ marginBottom: 16 }}>
+                  <HalfSwitch
+                    options={[
+                      { value: 'tasks', label: t('Задания'), icon: Zap },
+                      // Разметка — настройка банка: разделы, темы, части, линии.
+                      // Раньше она была отдельной вкладкой «Банк заданий», хотя
+                      // банка в ней нет ни одного задания.
+                      { value: 'map', label: t('Разметка'), icon: Database },
+                    ]}
+                    value={taskView}
+                    onChange={v => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
+                    color="var(--color-accent)"
+                    bg="var(--color-purple-soft)"
+                  />
+                </div>
+              )}
+              {activeTab === 'trainer' && taskView === 'tasks' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <TrainerBankBrowser
@@ -8538,8 +8692,8 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
-              {activeTab === 'bank' && <CurriculumManager />}
-              {activeTab === 'decks' && <CardGroupsManager />}
+              {activeTab === 'trainer' && taskView === 'map' && <CurriculumManager />}
+              {activeTab === 'decks' && <MaterialsTab />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -8621,7 +8775,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               <div
-                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'bank' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
                 {activeTab === 'course' && dbLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
                 {activeTab === 'course' && filteredCourses.map(c => (

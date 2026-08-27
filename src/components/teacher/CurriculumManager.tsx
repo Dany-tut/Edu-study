@@ -288,7 +288,10 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
   )
 }
 
-// ── Curriculum manager (the "Банк заданий" tab body) ─────────────────────────
+// ── Разметка заданий — половина внутри вкладки «Задания» ─────────────────────
+//
+// Раньше жила отдельной вкладкой «Банк заданий», и это путало: банка заданий в
+// ней нет ни одного — только структура, по которой они раскладываются.
 export default function CurriculumManager() {
   const t = useT()
   const [subject, setSubject] = useState<Subject>('biology')
@@ -323,7 +326,7 @@ export default function CurriculumManager() {
             <Database size={19} />
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{t('Банк заданий — структура')}</div>
+            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{t('Разметка заданий')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Разделы, темы, линии и части. Меняется всюду в фильтрах тренажёра.')}</div>
           </div>
         </div>
