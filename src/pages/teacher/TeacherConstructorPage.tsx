@@ -1,5 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
+import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
+import { SortDropdown, FacetDropdown, SegmentFilter, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -1132,121 +1134,9 @@ function WidgetEditor({
 
 // ─── Card components ──────────────────────────────────────────────────────────
 
-// Shared card shell used by all three tab types.
-// accentColor may be hex (#3EC87A) or a CSS var — icon box and glow use accentBg to stay safe.
-export interface CardActions {
-  onEdit?: () => void
-  onDuplicate?: () => void
-  onDelete?: () => void
-}
-
-// Hover-reveal action cluster (Редактировать / Дублировать / Удалить) shared by
-// every constructor card. Each button stops propagation so it never triggers the
-// card's own onClick (open editor).
-function CardActionBar({ actions, visible, accentColor }: { actions: CardActions; visible: boolean; accentColor: string }) {
-  const t = useT()
-  const btn = (onClick: () => void, title: string, danger: boolean, children: React.ReactNode) => (
-    <button
-      title={title}
-      onClick={e => { e.stopPropagation(); onClick() }}
-      style={{
-        width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: '1px solid var(--color-border-soft)', background: 'var(--color-surface)', cursor: 'pointer',
-        color: danger ? '#c0303a' : accentColor, padding: 0, transition: 'all 0.12s',
-      }}
-    >{children}</button>
-  )
-  return (
-    <div style={{
-      position: 'absolute', top: 10, right: 10, display: 'flex', gap: 5, zIndex: 6,
-      opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-3px)',
-      pointerEvents: visible ? 'auto' : 'none', transition: 'opacity 0.14s, transform 0.14s',
-    }}>
-      {actions.onEdit && btn(actions.onEdit, t('Редактировать'), false, <Pencil size={13} strokeWidth={2} />)}
-      {actions.onDuplicate && btn(actions.onDuplicate, t('Дублировать'), false, <Copy size={13} strokeWidth={2} />)}
-      {actions.onDelete && btn(actions.onDelete, t('Удалить'), true, <Trash2 size={13} strokeWidth={2} />)}
-    </div>
-  )
-}
-
-function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra, actions }: {
-  accentColor: string
-  accentBg: string
-  borderColor?: string
-  isSelected: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  iconBg?: string
-  badge?: React.ReactNode
-  title: string
-  subtitle: React.ReactNode
-  footerLeft: React.ReactNode
-  footerRight: React.ReactNode
-  extra?: React.ReactNode
-  actions?: CardActions
-}) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <motion.div
-      whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={onClick}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'relative',
-        background: isSelected ? accentBg : 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: isSelected ? `1.5px solid ${borderColor ?? accentColor}` : '1px solid var(--color-border-glass)',
-        borderRadius: 20, padding: '18px 18px 12px', cursor: 'pointer',
-        boxShadow: isSelected ? `0 0 0 3px ${(borderColor ?? accentColor)}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
-        display: 'flex', flexDirection: 'column', gap: 10, transition: 'all 0.18s', height: '100%',
-      }}
-    >
-      {actions && <CardActionBar actions={actions} visible={hovered} accentColor={accentColor} />}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          {icon}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</div>
-      </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>{title}</div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{subtitle}</div>
-        {extra}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-3)', fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap' }}>{footerRight}</div>
-      </div>
-    </motion.div>
-  )
-}
-
-/** Плитка-заглушка витрины: та же геометрия, что у ContentCard, чтобы сетка не
- *  прыгала, когда курсы приедут из БД. */
-function CardSkeleton() {
-  return (
-    <div style={{
-      background: 'rgba(var(--glass-rgb), 0.88)',
-      border: '1px solid var(--color-border-glass)',
-      borderRadius: 20, padding: '18px 18px 12px',
-      display: 'flex', flexDirection: 'column', gap: 10, height: '100%',
-      boxShadow: '0 3px 16px rgba(0,0,0,0.06)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <Skeleton w={36} h={36} radius={12} />
-        <Skeleton w={64} h={18} radius={7} />
-      </div>
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 7 }}>
-        <Skeleton w="85%" h={13} />
-        <Skeleton w="55%" h={13} />
-        <Skeleton w="70%" h={10} style={{ marginTop: 3 }} />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-        <Skeleton w={78} h={11} />
-        <Skeleton w={34} h={11} />
-      </div>
-    </div>
-  )
-}
+// Каркас плитки живёт в components/teacher/ContentCard: им пользуются и вкладки,
+// собранные отдельными компонентами (см. CardGroupsManager).
+export type { CardActions }
 
 const COURSE_COLOR    = 'var(--color-purple)'            // hex — for border/shadow concatenation
 const COURSE_BG       = 'var(--color-purple-soft)'
@@ -1477,61 +1367,11 @@ const WIDGET_SORT_OPTS: [WidgetSortMode, string][] = [
 ]
 
 /**
- * Стекло таблеток шапки конструктора.
- *
- * Под прилипшей шапкой нет подложки (сплошная заливка поперёк списка читается
- * как прямоугольник чужого цвета), поэтому карточки едут прямо под кнопками —
- * и без размытия сквозь них просвечивали названия курсов. Размытие + плотный
- * фон дают каждой таблетке собственное стекло, как у плавающего топбара.
+ * Контролы ряда фильтров — общие для всех вкладок (components/teacher/ShelfFilters).
+ * Здесь остались только настройки под конкретную витрину: набор опций и акцент.
  */
-const PILL_GLASS: React.CSSProperties = {
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-}
-
 function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChange: (v: WidgetSortMode) => void }) {
-  const t = useT()
-  const [open, setOpen] = useState(false)
-  const label = t(WIDGET_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые')
-  const accent = 'var(--color-blue-pill-text)'
-  const accentSoft = 'color-mix(in srgb, var(--color-blue-pill-text) 11%, transparent)'
-  return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
-          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
-          fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
-        <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
-          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
-              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
-            {WIDGET_SORT_OPTS.map(([val, lbl]) => (
-              <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? accentSoft : 'transparent',
-                  fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
-                onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                {t(lbl)}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
+  return <SortDropdown value={value} options={WIDGET_SORT_OPTS} accent="var(--color-blue-pill-text)" onChange={onChange} />
 }
 
 type CourseSortMode = 'newest' | 'oldest' | 'az'
@@ -1540,177 +1380,25 @@ const COURSE_SORT_OPTS: [CourseSortMode, string][] = [
 ]
 
 function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
-  const t = useT()
-  const [open, setOpen] = useState(false)
-  const label = t(COURSE_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые')
-  const accent = 'var(--color-green-text)'
-  const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
-  return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
-          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
-          fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
-        <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
-          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
-              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
-            {COURSE_SORT_OPTS.map(([val, lbl]) => (
-              <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? accentSoft : 'transparent',
-                  fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
-                onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                {t(lbl)}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
+  return <SortDropdown value={value} options={COURSE_SORT_OPTS} accent="var(--color-green-text)" onChange={onChange} />
 }
 
-/**
- * Дропдаун-фильтр списка курсов (предмет, уровень). От CourseSortDropdown
- * отличается тем, что опции приходят снаружи и зависят от данных: если
- * фильтровать не по чему (один предмет, ни одного заполненного уровня) —
- * кнопка не рисуется вообще, чтобы не занимать строку мёртвым контролом.
- */
-/**
- * Разделитель в списке опций фасета: строка-маркер, которую дропдаун рисует
- * тонкой чертой вместо кнопки. Так список предметов делится на «все» → языки →
- * остальные, не заводя второй тип данных для опций.
- */
-const FACET_SEP = '\u0000sep'
+type CourseFacetProps = Omit<React.ComponentProps<typeof FacetDropdown>, 'accent'>
+const CourseFacetDropdown = (p: CourseFacetProps) => <FacetDropdown {...p} accent="var(--color-green-text)" />
 
-function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, iconGap = 6, labels, searchable, onChange }: {
-  value: string
-  options: string[]
-  allLabel: string
-  icon: ReactNode
-  /**
-   * Подписи для опций, если значение — не то, что видит глаз (у фильтра по
-   * ученику значение это ключ человека, а в кнопке должно стоять имя).
-   */
-  labels?: Record<string, string>
-  /** Строка поиска над списком: у учеников опций десятки, глазами не найти. */
-  searchable?: boolean
-  minWidth?: number
-  /**
-   * Отступ иконка→текст. Дефолт годится для эмодзи и иконок с полями, но у
-   * стрелочных lucide-иконок штрих доходит до края бокса, и при gap 6 остриё
-   * почти касается буквы — таким иконкам ставим 9.
-   */
-  iconGap?: number
-  onChange: (v: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  if (options.filter(o => o !== FACET_SEP).length < 2) return null
-  const label = (v: string) => labels?.[v] ?? v
-  const accent = 'var(--color-green-text)'
-  const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
-  // Группы разделены — значит и «все» отделяем от них, иначе первая группа
-  // слипается с общей строкой.
-  const grouped = options.includes(FACET_SEP)
-  const q = query.trim().toLowerCase()
-  // Под поиском разделители групп теряют смысл — они делят полный список.
-  const shown = q ? options.filter(o => o !== FACET_SEP && label(o).toLowerCase().includes(q)) : options
-  const rows = q ? shown : ['', ...(grouped ? [FACET_SEP] : []), ...shown]
-  return (
-    // Закрытие ловим на обёртке, а не на кнопке: со строкой поиска фокус уходит
-    // с кнопки внутрь меню, и «потерял фокус — закрылись» захлопывало список
-    // сразу после открытия.
-    <div style={{ position: 'relative' }}
-      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
-      <button onClick={() => { setOpen(o => !o); setQuery('') }}
-        style={{ display: 'flex', alignItems: 'center', gap: iconGap, padding: '7px 12px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
-          // Выбранное значение помечаем только жирным текстом: своя яркая
-          // рамка у заполненного фасета выбивалась из ряда таблеток шапки.
-          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
-          fontSize: 12, fontWeight: value ? 700 : 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
-        <span style={{ display: 'flex', color: 'var(--color-text-3)' }}>{icon}</span>
-        <span style={{ minWidth, textAlign: 'left' }}>{value ? label(value) : allLabel}</span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
-          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170,
-              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
-            {searchable && (
-              <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
-                onMouseDown={e => e.stopPropagation()}
-                placeholder={allLabel}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', marginBottom: 4,
-                  borderRadius: 9, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)',
-                  fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none' }} />
-            )}
-            <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
-              {rows.map((val, i) => val === FACET_SEP ? (
-                <div key={`sep${i}`} style={{ height: 1, margin: '5px 8px', background: 'var(--color-border)' }} />
-              ) : (
-                <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false); setQuery('') }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                    width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                    background: value === val ? accentSoft : 'transparent',
-                    fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                    cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
-                  onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                  {val ? label(val) : allLabel}
-                  {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </button>
-              ))}
-            </ScrollFade>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// Segmented status filter: Все / Черновик / Опубликован.
+// Отбор по статусу: Все / Черновик / Опубликован.
 function CourseStatusFilter({ value, onChange }: { value: '' | CourseStatus; onChange: (v: '' | CourseStatus) => void }) {
   const t = useT()
-  const opts: ['' | CourseStatus, string][] = [['', t('Все')], ['draft', t('Черновик')], ['published', t('Опубликован')]]
   return (
-    <div style={{ display: 'flex', padding: 2, borderRadius: 999, background: 'var(--color-bg-3)', ...PILL_GLASS, gap: 2 }}>
-      {opts.map(([val, lbl]) => {
-        const active = value === val
-        return (
-          <button key={val || 'all'} onClick={() => onChange(val)}
-            style={{ padding: '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 12, fontWeight: active ? 700 : 500,
-              background: active ? 'var(--color-surface)' : 'transparent',
-              color: active ? (val === 'published' ? 'var(--color-green-text)' : val === 'draft' ? 'var(--color-peach-text)' : 'var(--color-text)') : 'var(--color-text-3)',
-              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
-            <span style={{ display: 'grid', justifyItems: 'center' }}>
-              <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{lbl}</span>
-              <span style={{ gridArea: '1 / 1' }}>{lbl}</span>
-            </span>
-          </button>
-        )
-      })}
-    </div>
+    <SegmentFilter<'' | CourseStatus>
+      value={value}
+      options={[
+        ['', t('Все')],
+        ['draft', t('Черновик'), 'var(--color-peach-text)'],
+        ['published', t('Опубликован'), 'var(--color-green-text)'],
+      ]}
+      onChange={onChange}
+    />
   )
 }
 
@@ -1903,6 +1591,7 @@ function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
         return (
           <button
             key={o.value}
+            className="tab-pill"
             onClick={() => onChange(o.value)}
             style={{
               display: 'flex', alignItems: 'center', gap: 7,
@@ -1940,7 +1629,7 @@ const MATERIAL_HALVES = [
   { value: 'cards' as const, label: 'Карточки' },
 ]
 
-function MaterialsTab() {
+function MaterialsTab({ createNonce }: { createNonce: number }) {
   const t = useT()
   const [half, setHalf] = useState<'cards'>('cards')
   return (
@@ -1952,7 +1641,7 @@ function MaterialsTab() {
         color="var(--color-peach-text)"
         bg="var(--color-peach-soft)"
       />
-      {half === 'cards' && <CardGroupsManager />}
+      {half === 'cards' && <CardGroupsManager createNonce={createNonce} />}
     </div>
   )
 }
@@ -1973,6 +1662,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus,
   const [hover, setHover] = useState(false)
   return (
     <motion.button
+      className="tab-pill"
       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onClick}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
@@ -1987,7 +1677,13 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus,
         background: isActive ? bg : 'rgba(var(--glass-rgb), 0.86)',
         ...PILL_GLASS,
         color: isActive ? color : 'var(--color-muted)', fontSize: 14, fontWeight: 600,
-        boxShadow: isActive ? `0 0 0 1.5px ${color}44, 0 4px 14px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.04)',
+        // Обводка активной вкладки — её собственным цветом, разбавленным до
+        // намёка. Раньше здесь стояло `${color}44`, но color — это var(), а
+        // «var(--x)44» невалидно: браузер отбрасывал ВСЮ строку box-shadow, и
+        // активная таблетка оставалась вообще без обводки и без тени.
+        boxShadow: isActive
+          ? `0 0 0 1.5px color-mix(in srgb, ${color} 27%, transparent), 0 4px 14px rgba(0,0,0,0.06)`
+          : '0 2px 8px rgba(0,0,0,0.04)',
         transition: 'all 0.15s',
       }}>
       <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
@@ -7662,6 +7358,10 @@ export default function TeacherConstructorPage() {
   const [ownerId, setOwnerId] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
+  // «Плюс» на «Материалах». Счётчик едет вниз пропом, потому что создаёт не
+  // страница, а вкладка: держать редактор набора здесь значило бы поднять сюда
+  // всю его модель ради одной кнопки.
+  const [deckNonce, setDeckNonce] = useState(0)
   const [flashId, setFlashId] = useState<string | null>(null)
   // Курс открывается не мгновенно: редактору нужны конспекты и домашки всех
   // уроков (у больших курсов это мегабайты), а сид ещё и собирается из своего
@@ -8112,11 +7812,12 @@ export default function TeacherConstructorPage() {
   }
 
   function handlePlus() {
-    // Разметка правится на месте, группы карточек — своей кнопкой внутри
-    // вкладки: «плюс» в шапке открыл бы пустой редактор поверх списка,
-    // которого ещё не видели.
+    // Разметка правится на месте — там создавать нечего.
     if (activeTab === 'trainer' && taskView === 'map') return
-    if (activeTab === 'decks') return
+    // «Материалы» заводят НАБОР карточек — та же единица, что курс и задание на
+    // соседних вкладках. Счётчик, а не флаг: второе нажатие подряд должно
+    // открыть чистый набор поверх недописанного, а не молча ничего не сделать.
+    if (activeTab === 'decks') { setDeckNonce(n => n + 1); return }
     if (activeTab === 'testing') { setDiagCreating(true); return }
     if (activeTab === 'course') { goToNewCourseEditor(); return }
     setEditCourse(null); setEditTrainer(null); setEditingTaskId(null); setEditWidget(null)
@@ -8400,7 +8101,7 @@ export default function TeacherConstructorPage() {
   }
 
   // Где режим выделения имеет смысл. Кнопка рисуется всегда — на «Разметке» и
-  // «Материалах» она невидима, но место держит (см. ряд вкладок ниже).
+  // «Материалах» она погашена (см. ряд вкладок ниже).
   const editToggleShown = !(activeTab === 'decks' || (activeTab === 'trainer' && taskView === 'map'))
 
   return (
@@ -8517,26 +8218,35 @@ export default function TeacherConstructorPage() {
               } as React.CSSProperties}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 {/* Edit-mode toggle — square button.
+                    Стоит в ряду ВСЕГДА: иначе на «Разметке» и «Материалах»
+                    строка вкладок прыгала бы влево на ширину кнопки.
                     Там, где выделять нечего (разметка правится на месте, а
                     группы карточек удаляются своей корзиной на карточке),
-                    кнопки нет: кнопка, которая ничего не делает, читается как
-                    поломка. Но место за собой она держит — иначе ряд вкладок
-                    прыгал бы влево на «Разметке» и «Подборках». */}
+                    карандаш видно, но он погашен и не нажимается — подсказка
+                    объясняет почему. Живая кнопка, которая ничего не делает,
+                    читалась бы как поломка. */}
                 <motion.button
-                  whileTap={{ scale: 0.93 }}
-                  onClick={toggleEditMode}
-                  title={editMode ? t('Выйти из режима редактирования') : t('Редактировать')}
-                  aria-hidden={!editToggleShown}
-                  tabIndex={editToggleShown ? undefined : -1}
+                  className="tab-pill"
+                  whileTap={editToggleShown ? { scale: 0.93 } : undefined}
+                  onClick={editToggleShown ? toggleEditMode : undefined}
+                  disabled={!editToggleShown}
+                  title={
+                    !editToggleShown ? t('Здесь выделять нечего: правится на месте')
+                      : editMode ? t('Выйти из режима редактирования')
+                      : t('Редактировать')
+                  }
                   style={{
-                    width: 44, height: PILL_H, boxSizing: 'border-box', padding: 0, borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
+                    width: 44, height: PILL_H, boxSizing: 'border-box', padding: 0, borderRadius: 16, border: 'none', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: editToggleShown ? 'pointer' : 'default',
                     background: editMode ? 'var(--color-red-soft)' : 'rgba(var(--glass-rgb), 0.88)',
                     ...PILL_GLASS,
                     color: editMode ? 'var(--color-red-text)' : 'var(--color-muted)',
-                    boxShadow: editMode ? '0 0 0 1.5px #c0303a44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
+                    opacity: editToggleShown ? 1 : 0.4,
+                    boxShadow: editMode
+                      ? '0 0 0 1.5px rgba(192,48,58,0.27), 0 4px 14px rgba(0,0,0,0.06)'
+                      : '0 2px 8px rgba(0,0,0,0.07)',
                     transition: 'all 0.15s',
-                    ...(editToggleShown ? null : { visibility: 'hidden', pointerEvents: 'none' }),
                   } as React.CSSProperties}
                 >
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
@@ -8544,7 +8254,7 @@ export default function TeacherConstructorPage() {
 
                 {(['course', 'trainer', 'decks', 'testing', 'widget'] as const).map(t => {
                   const cfg = tabCfg[t]
-                  const canCreate = !(t === 'decks' || (t === 'trainer' && taskView === 'map'))
+                  const canCreate = !(t === 'trainer' && taskView === 'map')
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     plus={canCreate}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
@@ -8699,7 +8409,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               {activeTab === 'trainer' && taskView === 'map' && <CurriculumManager />}
-              {activeTab === 'decks' && <MaterialsTab />}
+              {activeTab === 'decks' && <MaterialsTab createNonce={deckNonce} />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>

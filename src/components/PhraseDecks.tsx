@@ -203,8 +203,10 @@ export default function PhraseDecks<T extends DeckCard>({ themes, states, accent
           <Tile key={x.theme.id} accent={accent} stack onClick={() => onOpen(x.theme.id)}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: ahead ? 0.75 : 1 }}>
               {/* Ступень первой и цветом: по ней тему выбирают или пропускают,
-                  а число фраз — уже подробность внутри выбранного. */}
-              <TileChip tone="accent" accent={accent} soft={soft}>{levelLabel(x)}</TileChip>
+                  а число фраз — уже подробность внутри выбранного. Пустая
+                  подпись чипса не заводит: у одиночного набора полки нет, и
+                  пустая пилюля читалась бы как «что-то не загрузилось». */}
+              {!!levelLabel(x) && <TileChip tone="accent" accent={accent} soft={soft}>{levelLabel(x)}</TileChip>}
               <TileChip>{x.phrases.length} {t('фраз')}</TileChip>
               {ahead && !started && <TileChip>{t('на вырост')}</TileChip>}
               {st.learned === st.total && st.total > 0 ? (

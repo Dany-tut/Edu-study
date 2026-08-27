@@ -70,6 +70,7 @@ await build({
       export { PT_MINED_EXAMPLES } from './src/data/vocabExamples/ptMined'
       export { DE_MINED_EXAMPLES } from './src/data/vocabExamples/deMined'
       export { SUPERNATURAL } from './src/data/cardSeeds/supernatural'
+      export { SPOKEN_EN } from './src/data/cardSeeds/spokenEn'
       export { EN_FEED } from './src/data/feed/feedEn'
       export { KO_FEED } from './src/data/feed/feedKo'
       export { JA_FEED } from './src/data/feed/feedJa'
@@ -83,7 +84,7 @@ await build({
 const {
   WORD_GLOSS, buildLexicon, ensureGloss, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
   DE_SCENES, RU_SCENES, COURSE_SEEDS,
-  EN_FEED, KO_FEED, JA_FEED, PT_FEED, SUPERNATURAL,
+  EN_FEED, KO_FEED, JA_FEED, PT_FEED, SUPERNATURAL, SPOKEN_EN,
   KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL,
   KOREAN_GRAMMAR, ENGLISH_GRAMMAR, GERMAN_GRAMMAR,
   KO_VOCAB_EXAMPLES, JA_VOCAB_EXAMPLES, EN_VOCAB_EXAMPLES, PT_VOCAB_EXAMPLES, DE_VOCAB_EXAMPLES,
@@ -325,7 +326,7 @@ for (const book of [KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENG
 }
 // Подборки-сиды (data/cardSeeds) — такая же поверхность тапа: и слово карточки,
 // и пример под ним разбираются тем же GlossedText в списке набора.
-for (const g of [SUPERNATURAL]) {
+for (const g of [SUPERNATURAL, SPOKEN_EN]) {
   for (const set of g.sets) {
     for (const c of set.cards) { tapFeed(g.lang, c.term); if (c.ex) tapFeed(g.lang, c.ex.term) }
   }

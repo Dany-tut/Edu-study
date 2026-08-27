@@ -21,7 +21,13 @@ import type { CardGroup } from '../lib/cardGroups'
 
 /** Какие языки вообще имеют сидовые группы — синхронно, по этому рисуется вкладка. */
 const SEED_LANGS: Record<string, () => Promise<CardGroup[]>> = {
-  en: () => import('./cardSeeds/supernatural').then(m => [m.SUPERNATURAL]),
+  // Порядок здесь — порядок на витрине. Стянутая речь стоит первой намеренно:
+  // она пятнадцать карточек длиной, учится один раз и делает понятнее ВСЁ
+  // остальное, включая соседнюю подборку по сериалу.
+  en: () => Promise.all([
+    import('./cardSeeds/spokenEn').then(m => m.SPOKEN_EN),
+    import('./cardSeeds/supernatural').then(m => m.SUPERNATURAL),
+  ]),
 }
 
 export function hasCardSeeds(lang: string): boolean {

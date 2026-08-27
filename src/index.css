@@ -442,6 +442,14 @@ a {
   outline: 2px solid rgba(var(--accent-rgb), 0.7);
   outline-offset: 3px;
 }
+/* Цветная таблетка носит свой цвет и в фокусе. Общий фиолетовый ринг вокруг
+   зелёных «Курсов», персиковых «Материалов» или бирюзовых «Тестов» читается как
+   чужая обводка — будто у кнопки две разные принадлежности сразу. currentColor
+   у активной таблетки — её собственный цвет, у погашенной — тот же серый, что
+   и подпись. */
+.tab-pill:focus-visible {
+  outline-color: currentColor;
+}
 /* Lesson rows live inside an overflow-clipped scroll list, so the default
    outward focus ring gets sliced. Draw it inside the row instead. */
 .lesson-row:focus-visible {

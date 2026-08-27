@@ -39,6 +39,8 @@ export interface CardSet {
   title: string
   about: string
   level?: SurvivalLevel | null
+  /** Момент создания — по нему витрина Конструктора строит порядок «Новые». */
+  createdAt?: string
   cards: SetCard[]
 }
 
@@ -62,6 +64,8 @@ export interface CardGroup {
   authorStudentId?: string | null
   /** Группа из кода (сид), а не из БД: её нельзя править и удалять. */
   seed?: boolean
+  /** Момент создания — по нему витрина Конструктора строит порядок «Новые». */
+  createdAt?: string
   sets: CardSet[]
 }
 
@@ -71,6 +75,7 @@ type GroupRow = {
   id: string; created_by: string | null; author_student_id: string | null
   lang: string; subject: string | null; title: string; about: string
   level: string | null; sort: number; student_ids: string[] | null
+  created_at?: string | null
 }
 
 function rowToGroup(r: GroupRow): CardGroup {
@@ -85,6 +90,7 @@ function rowToGroup(r: GroupRow): CardGroup {
     studentIds: r.student_ids ?? [],
     createdBy: r.created_by,
     authorStudentId: r.author_student_id,
+    createdAt: r.created_at ?? undefined,
     sets: [],
   }
 }
@@ -96,7 +102,7 @@ async function fillSets(groups: CardGroup[]): Promise<CardGroup[]> {
 
   const { data: setRows, error: setErr } = await supabase
     .from('card_sets')
-    .select('id, group_id, title, about, level, sort')
+    .select('id, group_id, title, about, level, sort, created_at')
     .in('group_id', [...byId.keys()])
     .order('sort')
   if (setErr) { console.error('cardGroups: sets', setErr); return groups }
@@ -108,6 +114,7 @@ async function fillSets(groups: CardGroup[]): Promise<CardGroup[]> {
       title: (r.title as string) ?? '',
       about: (r.about as string) ?? '',
       level: (r.level as SurvivalLevel | null) ?? null,
+      createdAt: (r.created_at as string | null) ?? undefined,
       cards: [],
     }
     sets.set(set.id, set)
@@ -167,7 +174,7 @@ export async function fetchCardGroups(lang: string, studentId?: string): Promise
 export async function fetchOwnCardGroups(ownerId: string): Promise<CardGroup[]> {
   const { data, error } = await supabase
     .from('card_groups')
-    .select('id, created_by, author_student_id, lang, subject, title, about, level, sort, student_ids')
+    .select('id, created_by, author_student_id, lang, subject, title, about, level, sort, student_ids, created_at')
     .eq('created_by', ownerId)
     .order('sort')
   if (error) { console.error('cardGroups: own', error); return [] }
@@ -275,6 +282,154 @@ export async function saveCardGroup(
   }
 
   return groupId ?? null
+}
+
+/**
+ * Полка или обёртка одного набора.
+ *
+ * ПОЧЕМУ ЭТО ВООБЩЕ ВОПРОС. В базе набора без группы не бывает
+ * (card_sets.group_id NOT NULL), а учителю сплошь и рядом нужен «просто набор»:
+ * двадцать слов с урока, никакой полки. Заставлять его перед этим придумывать
+ * имя группе — просить лишнее решение ради строки-родителя.
+ *
+ * ПОЭТОМУ одиночный набор лежит в группе БЕЗ НАЗВАНИЯ. Такая группа нигде не
+ * показывается: ни рейлом у ученика, ни списком полок в Конструкторе, — она
+ * существует только как родитель. Полка — это группа, которую НАЗВАЛИ, и
+ * называют её тогда, когда наборов стало несколько (см. groupSets).
+ *
+ * Отдельной колонки под это нет намеренно: «полка без имени» невозможна и без
+ * флага — витрине нечего было бы на ней написать.
+ */
+export const isShelf = (g: CardGroup) => g.title.trim().length > 0
+
+/**
+ * Стереть группы, в которых не осталось наборов.
+ *
+ * Зовётся после переездов: обёртка, из которой набор уехал на полку, — мусор.
+ * НАЗВАННЫЕ группы не трогаются даже пустыми: имя полки придумал человек, и
+ * молча стирать его за то, что последний набор временно вынули, нельзя.
+ */
+export async function purgeEmptyGroups(ids: string[]): Promise<void> {
+  const list = [...new Set(ids)].filter(Boolean)
+  if (list.length === 0) return
+  const { data: rows } = await supabase.from('card_groups').select('id, title').in('id', list)
+  const wrappers = (rows ?? []).filter(r => !((r.title as string) ?? '').trim()).map(r => r.id as string)
+  if (wrappers.length === 0) return
+  const { data: busyRows } = await supabase.from('card_sets').select('group_id').in('group_id', wrappers)
+  const busy = new Set((busyRows ?? []).map(r => r.group_id as string))
+  const empty = wrappers.filter(id => !busy.has(id))
+  if (empty.length === 0) return
+  const { error } = await supabase.from('card_groups').delete().in('id', empty)
+  if (error) console.error('cardGroups: purge', error)
+}
+
+/**
+ * Перенести наборы в группу.
+ *
+ * Порядок дописывается В КОНЕЦ полки, а не с нуля: наборы могут переезжать в
+ * уже непустую группу, и общий `sort: i` перемешал бы её содержимое.
+ */
+export async function moveSetsToGroup(setIds: string[], groupId: string): Promise<boolean> {
+  if (setIds.length === 0) return true
+  // Откуда наборы уезжают — спрашиваем ДО переезда: после него обёртку по
+  // набору уже не найти, а пустой она остаться не должна.
+  const { data: before } = await supabase.from('card_sets').select('group_id').in('id', setIds)
+  const from = [...new Set((before ?? []).map(r => r.group_id as string))].filter(id => id !== groupId)
+
+  const { data: tail } = await supabase
+    .from('card_sets').select('sort').eq('group_id', groupId)
+    .order('sort', { ascending: false }).limit(1)
+  let sort = ((tail?.[0]?.sort as number | undefined) ?? -1) + 1
+
+  let ok = true
+  for (const id of setIds) {
+    const { error } = await supabase.from('card_sets').update({ group_id: groupId, sort }).eq('id', id)
+    if (error) { console.error('cardGroups: move set', error); ok = false; continue }
+    sort += 1
+  }
+  await purgeEmptyGroups(from)
+  return ok
+}
+
+/**
+ * Сложить отмеченные наборы в новую полку.
+ *
+ * Это единственный способ завести группу: её не создают пустой и не заполняют
+ * потом — она появляется в тот момент, когда наборам стало тесно списком.
+ * Возвращает id полки.
+ */
+export async function groupSets(opts: {
+  title: string
+  lang: string
+  subject?: string | null
+  studentIds?: string[]
+  createdBy?: string | null
+  authorStudentId?: string | null
+  setIds: string[]
+}): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('card_groups')
+    .insert({
+      lang: opts.lang,
+      subject: opts.subject ?? null,
+      title: opts.title.trim(),
+      about: '',
+      level: null,
+      sort: 0,
+      student_ids: opts.studentIds ?? [],
+      created_by: opts.createdBy ?? null,
+      author_student_id: opts.authorStudentId ?? null,
+    })
+    .select('id')
+    .single()
+  if (error || !data) { console.error('cardGroups: create shelf', error); return null }
+  const id = data.id as string
+  await moveSetsToGroup(opts.setIds, id)
+  return id
+}
+
+/**
+ * Вынуть наборы с полки: каждый уезжает в собственную обёртку и снова живёт
+ * сам по себе. Язык и адресность наследуются от полки — иначе набор пропал бы
+ * из витрины ученика, которому был назначен.
+ */
+export async function ungroupSets(
+  setIds: string[],
+  meta: {
+    lang: string; subject?: string | null; studentIds?: string[]
+    createdBy?: string | null; authorStudentId?: string | null
+  },
+): Promise<boolean> {
+  let ok = true
+  for (const setId of setIds) {
+    const { data, error } = await supabase
+      .from('card_groups')
+      .insert({
+        lang: meta.lang,
+        subject: meta.subject ?? null,
+        title: '',
+        about: '',
+        level: null,
+        sort: 0,
+        student_ids: meta.studentIds ?? [],
+        created_by: meta.createdBy ?? null,
+        author_student_id: meta.authorStudentId ?? null,
+      })
+      .select('id')
+      .single()
+    if (error || !data) { console.error('cardGroups: wrapper', error); ok = false; continue }
+    if (!await moveSetsToGroup([setId], data.id as string)) ok = false
+  }
+  return ok
+}
+
+/** Удалить набор. Обёртка, оставшаяся без него, уезжает следом. */
+export async function deleteCardSet(setId: string): Promise<boolean> {
+  const { data: row } = await supabase.from('card_sets').select('group_id').eq('id', setId).maybeSingle()
+  const { error } = await supabase.from('card_sets').delete().eq('id', setId)
+  if (error) { console.error('cardGroups: delete set', error); return false }
+  if (row?.group_id) await purgeEmptyGroups([row.group_id as string])
+  return true
 }
 
 /** Удалить группу вместе с наборами и карточками (каскад в БД). */

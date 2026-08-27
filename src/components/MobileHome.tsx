@@ -402,6 +402,45 @@ export default function MobileHome() {
               rubric={rubric}
             />
           </div>
+
+          {/* Конец экрана вместо пустоты.
+              Хвост главной складывается из четырёх необязательных блоков:
+              занятия сегодня, стикеры, виджеты дня и лента. У ученика
+              неязыкового предмета ленты нет вовсе, а в свободный день нет и
+              первых трёх — и экран обрывался сразу после полосы статистики,
+              оставляя две трети высоты пустыми. Пустота читается как
+              «не загрузилось», хотя загружать было нечего. */}
+          {todayLessons.length === 0
+            && !dayCards.quiz && !dayCards.facts && !dayCards.memes
+            && feedItems.length === 0 && (
+            <button
+              onClick={() => { tactile(); setActivePage('trainer') }}
+              style={{
+                marginTop: 6, width: '100%', textAlign: 'left', cursor: 'pointer',
+                borderRadius: 16, padding: '14px 16px',
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border-glass)',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex', alignItems: 'center', gap: 12,
+              }}
+            >
+              <div style={{
+                width: 34, height: 34, borderRadius: 12, flexShrink: 0,
+                background: 'var(--color-bg-3)', display: 'grid', placeItems: 'center',
+              }}>
+                <Dumbbell size={17} strokeWidth={2.2} style={{ color: 'var(--color-text-2)' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+                  {t('На сегодня всё')}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
+                  {t('Занятий нет и лента пуста — можно позаниматься в тренажёре')}
+                </div>
+              </div>
+              <ChevronRight size={17} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+            </button>
+          )}
         </div>
         )}
       </MobileScreen>

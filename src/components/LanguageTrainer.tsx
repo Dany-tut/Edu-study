@@ -1570,9 +1570,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               <MultiSelectField label={t('Уровень')} options={packLevelOpts} values={fLevel} onChange={setFLevel}
                 accent={palette.accent} accentBg={palette.soft} lockScroll />
             )}
-            {vocabView === 'decks' && (groups?.length ?? 0) > 0 && (
+            {/* Полки. Группа БЕЗ ИМЕНИ — это обёртка одиночного набора, а не
+                полка (см. isShelf в lib/cardGroups): в рейле ей нечего было бы
+                написать на строке, поэтому её здесь нет. Сам набор витрину не
+                теряет — плитки ниже строятся по наборам, а не по группам. */}
+            {vocabView === 'decks' && (groups ?? []).some(g => g.title.trim()) && (
               <RailList
-                items={(groups ?? []).map(g => ({
+                items={(groups ?? []).filter(g => g.title.trim()).map(g => ({
                   id: g.id,
                   label: g.title,
                   sub: g.about,
