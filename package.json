@@ -8,6 +8,7 @@
     "build": "vite build",
     "stamp": "node scripts/stampVersion.mjs",
     "check:gloss": "node scripts/checkGloss.mjs",
+    "build:spn": "node scripts/buildSpnDecks.mjs",
     "build:gloss": "node scripts/buildGlossSeed.mjs",
     "check:questions": "node scripts/checkQuestionRu.mjs",
     "check:prose": "node scripts/checkProse.mjs",

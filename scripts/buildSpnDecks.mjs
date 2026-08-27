@@ -1,0 +1,315 @@
+#!/usr/bin/env node
+// ─────────────────────────────────────────────────────────────────────────────
+// Сборка колод по сериям «Сверхъестественного» из субтитров
+//
+// ЗАЧЕМ. Редакторский набор (data/cardSeeds/supernatural.ts) отбирает лексику по
+// памяти: что в сериале ярко, то и попадает. Это работает, но у памяти слепое
+// пятно — она не знает, ЧТО ЧАСТО. Этот скрипт закрывает пятно счётом: читает
+// субтитры, считает, что реально повторяется, и отдаёт кандидатов в карточки.
+//
+// СУБТИТРЫ В РЕПОЗИТОРИЙ НЕ ПОПАДАЮТ И НЕ ДОЛЖНЫ. Скрипт читает .srt с диска
+// (--srt <папка>), а записывает только производную таблицу «слово — сколько
+// серий — перевод». Это разные вещи и юридически, и по смыслу: список слов —
+// факт о произведении, реплики — само произведение.
+//
+// ЧЕМУ НЕЛЬЗЯ ВЕРИТЬ В ИМЕНАХ ФАЙЛОВ. Проверено на живых архивах: в сезонном
+// паке первого сезона НАЗВАНИЯ сдвинуты на серию (файл «1x02 - Pilot» содержит
+// вторую серию), а в отдельных зипах с торрент-трекеров содержимое бывает
+// вообще из другого сезона. Поэтому отсюда берётся ТОЛЬКО НОМЕР, а название
+// подставляется из канонического списка ниже. И на всякий случай считается
+// «отпечаток» серии: если в файле не находится ни одного слова, характерного
+// для сериала, файл в сборку не идёт — скорее всего это чужое кино.
+//
+// ЧТО ОТБРАСЫВАЕТСЯ И ПОЧЕМУ (порядок важен, каждый фильтр ловит своё):
+//   1. песни (строки с ♪) — это не речь, а текст песни, и учить его не надо;
+//   2. пометки для глухих в скобках, теги <i>, тире реплик, «ИМЯ:» в начале;
+//   3. мусор площадок субтитров — водяные знаки вида www / tvsubtitles / addic;
+//   4. междометия (aaah, whew, hm) — пишутся кто во что горазд, словом не
+//      являются;
+//   5. стяжения и притяжательные (всё с апострофом) — им место в отдельной
+//      колоде data/cardSeeds/spokenEn.ts, а «Dean's» вообще не слово;
+//   6. имена собственные — по доле прописной буквы в корпусе: имя не переводят,
+//      его узнают, и его место в справке по лору, а не в колоде;
+//   7. слова, которые уже есть в готовых наборах, — второй раз учить нечего.
+//
+// ПОЧЕМУ ПОРОГ «В N СЕРИЯХ», А НЕ «N РАЗ ЗА СЕРИЮ». Две трети редкой лексики
+// сериала встречается ровно в одной серии из ста четырёх: это монстр недели,
+// который больше не вернётся. Карточка на такое слово — худшее вложение времени
+// в этом проекте. Поэтому вес слова считается по числу СЕРИЙ, где оно звучит.
+//
+// ЗАПУСК
+//   node scripts/buildSpnDecks.mjs --srt ~/srt --fake      # без сети, посмотреть отбор
+//   node scripts/buildSpnDecks.mjs --srt ~/srt --write     # с переводами, записать файл
+//   node scripts/buildSpnDecks.mjs --srt ~/srt --limit 40  # сколько слов за прогон
+//
+// КЛЮЧ. Берётся из ANTHROPIC_API_KEY, а если задан KIE_API_KEY — запрос уходит
+// на шлюз kie.ai (там свой адрес и авторизация через Bearer вместо x-api-key).
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const args = process.argv.slice(2)
+const flag = (name, def = null) => {
+  const i = args.indexOf(name)
+  return i >= 0 ? (args[i + 1] ?? true) : def
+}
+const FAKE = args.includes('--fake')
+const WRITE = args.includes('--write')
+const SRT_DIR = String(flag('--srt', '')).replace(/^~/, process.env.HOME ?? '')
+const LIMIT = Number(flag('--limit', 60))
+/** В скольких сериях слово должно встретиться, чтобы попасть в кандидаты. */
+const MIN_EPISODES = Number(flag('--min', 8))
+
+if (!SRT_DIR || !existsSync(SRT_DIR)) {
+  console.error('Укажи папку с субтитрами: --srt <путь>\nСубтитры не коммитятся — скрипт читает их с диска.')
+  process.exit(1)
+}
+
+// ─── Канонические названия серий ─────────────────────────────────────────────
+//
+// Только первые пять сезонов: дальше субтитров пока не считали, а придумывать
+// названия нельзя — ученик поверит подписи и полезет проверять.
+
+const TITLES = {
+  1: ['Pilot', 'Wendigo', 'Dead in the Water', 'Phantom Traveler', 'Bloody Mary', 'Skin', 'Hook Man', 'Bugs', 'Home', 'Asylum', 'Scarecrow', 'Faith', 'Route 666', 'Nightmare', 'The Benders', 'Shadow', 'Hell House', 'Something Wicked', 'Provenance', "Dead Man's Blood", 'Salvation', "Devil's Trap"],
+}
+
+// ─── Частотный список ────────────────────────────────────────────────────────
+//
+// Корпус субтитров (OpenSubtitles), а не книжный: у книжного наверху стоят
+// «правительство» и «общество», которых в сериале про дорогу нет вовсе, и
+// уровень считался бы не по тому языку. Файл кэшируется — он не меняется.
+
+const CACHE = join(root, 'node_modules/.cache')
+const FREQ_FILE = join(CACHE, 'en_50k.txt')
+const FREQ_URL = 'https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_50k.txt'
+
+async function loadFreq() {
+  if (!existsSync(FREQ_FILE)) {
+    mkdirSync(CACHE, { recursive: true })
+    process.stdout.write('качаю частотный список… ')
+    const res = await fetch(FREQ_URL)
+    if (!res.ok) throw new Error(`частотный список не скачался: ${res.status}`)
+    writeFileSync(FREQ_FILE, await res.text())
+    console.log('готово')
+  }
+  const rank = new Map()
+  readFileSync(FREQ_FILE, 'utf8').trim().split('\n').forEach((l, i) => {
+    const w = l.split(' ')[0]
+    if (!rank.has(w)) rank.set(w, i + 1)
+  })
+  return rank
+}
+
+// ─── Разбор .srt ─────────────────────────────────────────────────────────────
+
+// Водяные знаки площадок субтитров и пометки релизов. Список пополняется по
+// факту: каждое такое «слово» иначе всплывает в кандидатах с частотой 100%,
+// потому что стоит в каждом файле. Сюда же — «supernatural»: в субтитрах это
+// заставка, а не произнесённое слово, и подпись «в 12 сериях» врала бы.
+const JUNK = new Set('www com net org subtitle subtitles tvsubtitles opensubtitles sync corrected elderman hdtv xvid xor nbs dvdrip yyets addic addicted encoded ripped proper repack aac supernatural'.split(' '))
+const INTERJ = /^(a{2,}h?|o+h+|u+h+|e+h+|hm+|mm+|wh?ew|ugh|argh|gah|huh|hey+|yay|woo+|shh+|psst|geez|jeez|whoa|aw+)$/
+
+/** Только произнесённое: без песен, ремарок для глухих, тегов и имён говорящих. */
+function speechOf(raw) {
+  return raw.replace(/\r/g, '').split('\n').map(l => l.trim())
+    .filter(t => t && !/^\d+$/.test(t) && !/-->/.test(t) && !/[♪♫]/.test(t))
+    .map(s => s
+      .replace(/<[^>]+>/g, '')
+      .replace(/\([^)]*\)/g, ' ')
+      .replace(/\[[^\]]*\]/g, ' ')
+      .replace(/^\s*[-–]\s*/, '')
+      .replace(/^[A-Z][A-Z' .\-]{1,20}:\s*/, ''))
+    .filter(s => s.trim()).join('\n')
+}
+
+/**
+ * Отпечаток сериала. Файл, в котором не нашлось ничего из этого, почти наверняка
+ * не «Сверхъестественное» — а имя файла, как мы выяснили, врёт спокойно.
+ */
+// Флаг g обязателен: без него String.match возвращает ПЕРВОЕ совпадение с
+// группами захвата, длина такого массива всегда 2, и порог не набирается
+// никогда — то есть отсеивались бы все серии подряд.
+const FINGERPRINT = /\b(winchester|impala|dean|sammy|bobby|hunter|demon|ghost|salt)\b/gi
+const fingerprintOk = text => (text.match(FINGERPRINT)?.length ?? 0) >= 5
+
+// ─── Слова ───────────────────────────────────────────────────────────────────
+
+const makeLemma = rank => w => {
+  if (rank.has(w)) return w
+  for (const [re, rep] of [[/ies$/, 'y'], [/ied$/, 'y'], [/es$/, ''], [/s$/, ''], [/ed$/, ''], [/ed$/, 'e'], [/ing$/, ''], [/ing$/, 'e']]) {
+    if (re.test(w)) { const c = w.replace(re, rep); if (rank.has(c)) return c }
+  }
+  return w
+}
+
+/** Слова, которые в тексте почти всегда с прописной, — имена и топонимы. */
+function properNames(texts) {
+  const cap = new Map(), low = new Map()
+  for (const t of texts) {
+    for (const m of t.matchAll(/\b([A-Za-z][a-z']{2,})\b/g)) {
+      const w = m[1].toLowerCase()
+      const start = /[.!?"\n]\s*$|^$/.test(t.slice(Math.max(0, m.index - 2), m.index))
+      if (/^[A-Z]/.test(m[1])) { if (!start) cap.set(w, (cap.get(w) ?? 0) + 1) }
+      else low.set(w, (low.get(w) ?? 0) + 1)
+    }
+  }
+  const out = new Set()
+  for (const w of new Set([...cap.keys(), ...low.keys()])) {
+    const c = cap.get(w) ?? 0, l = low.get(w) ?? 0
+    if (c + l >= 5 && c / (c + l) > 0.6) out.add(w)
+  }
+  return out
+}
+
+/** Слова, уже разобранные в готовых наборах, — второй раз их учить нечего. */
+function alreadyCovered() {
+  const seen = new Set()
+  const dir = join(root, 'src/data/cardSeeds')
+  for (const f of readdirSync(dir).filter(f => f.endsWith('.ts'))) {
+    const src = readFileSync(join(dir, f), 'utf8')
+    for (const m of src.matchAll(/(?:term: |c\(\s*)'((?:[^'\\]|\\.)*)'/g)) {
+      for (const w of m[1].replace(/\\'/g, "'").toLowerCase().split(/[^a-z'’]+/)) {
+        if (w.length > 2) seen.add(w.replace(/[’']/g, "'"))
+      }
+    }
+  }
+  return seen
+}
+
+// ─── Перевод ─────────────────────────────────────────────────────────────────
+//
+// Слово переводится СО СТРОКОЙ, В КОТОРОЙ ОНО СТОИТ, но строка никуда не
+// сохраняется — она нужна модели, чтобы выбрать значение, а не первое словарное.
+// Без неё «shot» в сериале про охотников станет «броском», а «gank» вообще
+// ничем. Пример же модель пишет СВОЙ: реплику сериала в карточку класть нельзя.
+
+const SYSTEM = `Ты составляешь словарные карточки к сериалу «Сверхъестественное» для русскоязычного ученика уровня B1.
+На каждое слово дай:
+- ru: перевод тем словом, которое сказал бы русский. Не подстрочник. Если у слова в этом сериале особое значение — его и дай, пометив общее вторым через точку с запятой.
+- note: одно-два предложения о том, что важно знать: ложный друг, ловушка произношения, ограничение употребления, разница с близким словом. Не пересказывай перевод.
+- ex / exRu: ТВОЁ СОБСТВЕННОЕ короткое предложение в регистре сериала (дорога, мотель, охота) и его перевод. Реплики сериала использовать запрещено — придумывай своё.
+Отвечай только JSON-массивом, по объекту на слово, в том же порядке.`
+
+async function translate(words) {
+  if (FAKE) return words.map(w => ({ term: w.term, ru: `‹перевод: ${w.term}›`, note: '‹пояснение›', ex: `‹пример с ${w.term}›`, exRu: '‹перевод примера›' }))
+
+  const kie = process.env.KIE_API_KEY
+  const key = kie ?? process.env.ANTHROPIC_API_KEY
+  if (!key) throw new Error('нет ключа: задай ANTHROPIC_API_KEY или KIE_API_KEY (или гоняй с --fake)')
+
+  const { default: Anthropic } = await import('@anthropic-ai/sdk')
+  // Шлюз kie.ai говорит на диалекте Anthropic, но авторизуется через
+  // «Authorization: Bearer», а не «x-api-key» — за это отвечает authToken.
+  const client = kie
+    ? new Anthropic({ baseURL: 'https://api.kie.ai/claude', authToken: kie })
+    : new Anthropic({ apiKey: key })
+
+  const list = words.map(w => `${w.term} — встречается в ${w.episodes} сериях; в реплике: "${w.context}"`).join('\n')
+  const res = await client.messages.create({
+    model: 'claude-opus-5',
+    max_tokens: 16000,
+    output_config: { effort: 'low' },
+    system: SYSTEM,
+    messages: [{ role: 'user', content: list }],
+  })
+  const text = res.content.filter(b => b.type === 'text').map(b => b.text).join('')
+  const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
+  return JSON.parse(json)
+}
+
+// ─── Сборка ──────────────────────────────────────────────────────────────────
+
+const rank = await loadFreq()
+const lemma = makeLemma(rank)
+
+const files = readdirSync(SRT_DIR).filter(f => f.toLowerCase().endsWith('.srt'))
+if (!files.length) { console.error(`в ${SRT_DIR} нет .srt`); process.exit(1) }
+
+// Один файл на серию: из нескольких релизов берём тот, чьё имя короче — у
+// «чистых» раздач имя без пометок вроде HDTV.XOR.
+const byEp = new Map()
+for (const f of files) {
+  const m = f.match(/(\d{1,2})\s*[xXeE]\s*(\d{2})/) ?? f.match(/[sS](\d{2})[eE](\d{2})/)
+  if (!m) { console.warn(`не понял номер серии: ${f} — пропускаю`); continue }
+  const key = `${+m[1]}x${m[2]}`
+  if (!byEp.has(key) || f.length < byEp.get(key).length) byEp.set(key, f)
+}
+
+const episodes = []
+for (const [id, f] of [...byEp].sort()) {
+  let raw
+  try { raw = readFileSync(join(SRT_DIR, f), 'utf8') } catch { raw = readFileSync(join(SRT_DIR, f), 'latin1') }
+  const text = speechOf(raw)
+  if (!fingerprintOk(text)) { console.warn(`${id}: не похоже на «Сверхъестественное» (${f}) — пропускаю`); continue }
+  episodes.push({ id, text })
+}
+console.log(`серий взято: ${episodes.length}`)
+
+const NAMES = properNames(episodes.map(e => e.text))
+const COVERED = alreadyCovered()
+
+// Сколько серий знает слово + одна живая строка на слово (для контекста модели).
+const docFreq = new Map(), sample = new Map()
+for (const e of episodes) {
+  const seen = new Set()
+  for (const line of e.text.split('\n')) {
+    for (const raw of line.toLowerCase().replace(/’/g, "'").match(/[a-z]+(?:'[a-z]+)?/g) ?? []) {
+      if (raw.length <= 2 || raw.includes("'") || JUNK.has(raw) || INTERJ.test(raw)) continue
+      const w = lemma(raw)
+      seen.add(w)
+      if (!sample.has(w) && line.length < 90) sample.set(w, line.trim())
+    }
+  }
+  for (const w of seen) docFreq.set(w, (docFreq.get(w) ?? 0) + 1)
+}
+
+const candidates = [...docFreq]
+  .filter(([w, d]) => d >= MIN_EPISODES && (rank.get(w) ?? 1e9) > 4000 && !NAMES.has(w) && !COVERED.has(w))
+  .sort((a, b) => b[1] - a[1])
+  .map(([term, episodes]) => ({ term, episodes, context: sample.get(term) ?? '' }))
+
+console.log(`кандидатов выше B1 и минимум в ${MIN_EPISODES} сериях: ${candidates.length}`)
+console.log(`имён отброшено: ${NAMES.size} · уже в наборах: ${COVERED.size} слов`)
+if (!candidates.length) process.exit(0)
+
+const take = candidates.slice(0, LIMIT)
+console.log(`беру ${take.length}${FAKE ? ' (режим --fake, без сети)' : ''}`)
+const cards = await translate(take)
+
+const byTerm = new Map(take.map(w => [w.term, w]))
+const rows = cards.map(c => {
+  const src = byTerm.get(c.term)
+  return { ...c, episodes: src?.episodes ?? 0 }
+}).filter(c => c.episodes)
+
+const out = `// СГЕНЕРИРОВАНО scripts/buildSpnDecks.mjs — правки руками затрёт следующий прогон.
+//
+// Отобрано по субтитрам ${episodes.length} серий: слово выше B1, звучит минимум
+// в ${MIN_EPISODES} сериях и не разобрано в других наборах. Число в \`ep\` — сколько серий.
+
+import type { SetCard } from '../../lib/cardGroups'
+
+export const SPN_AUTO: SetCard[] = [
+${rows.map(c => `  {
+    term: ${JSON.stringify(c.term)},
+    ru: ${JSON.stringify(c.ru)},
+    ep: ${JSON.stringify(`в ${c.episodes} сериях из ${episodes.length}`)},
+    note: ${JSON.stringify(c.note ?? '')},
+    ex: { term: ${JSON.stringify(c.ex ?? '')}, ru: ${JSON.stringify(c.exRu ?? '')} },
+  },`).join('\n')}
+]
+`
+
+const dest = join(root, 'src/data/cardSeeds/spnAuto.ts')
+if (WRITE) {
+  writeFileSync(dest, out)
+  console.log(`записано: ${dest} (${rows.length} карточек)`)
+  console.log('дальше: зарегистрируй набор в cardGroupSeeds.ts и прогони npm run check:gloss')
+} else {
+  console.log(`\n— без --write файл не записан. Первые строки того, что получилось:\n`)
+  console.log(out.split('\n').slice(0, 22).join('\n'))
+}
