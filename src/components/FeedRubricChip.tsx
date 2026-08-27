@@ -56,9 +56,14 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
       aria-label={text}
       aria-pressed={on}
       style={{
-        flex: grow ? '1 1 0' : '0 0 auto',
+        // Не растянутая чипса всё равно ДОПУСКАЕТ сжатие (0 1 auto), но не ниже
+        // 20 px — это значок плюс воздух. Иначе ряд из восьми рубрик вылезал за
+        // экран, стоило выбранной получить длинную подпись: «Технологии»
+        // добавляли 52 px, и ряд уезжал под колокольчик. Теперь эти пиксели
+        // отдают соседи-значки, по семь на каждого, и ряд влезает целиком.
+        flex: grow ? '1 1 0' : '0 1 auto',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: 0, height: 30, padding: label ? '0 11px' : '0 7px',
+        minWidth: grow ? 0 : 20, height: 30, padding: label ? '0 11px' : '0 7px',
         borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         fontSize: 12, fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
         background: on ? `${accent}26` : 'transparent',
@@ -80,7 +85,10 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
             style={{ display: 'block', overflow: 'hidden' }}
           >
             {/* Зазор до значка внутри уезжающей коробки: снаружи (gap у кнопки)
-                он остался бы висеть и у голого значка. */}
+                он остался бы висеть и у голого значка.
+                БЕЗ overflow/text-overflow: подпись здесь ровно по содержимому,
+                и многоточие тут не «страхует», а срабатывает на долях пикселя —
+                «Всё» превращалось в «В…» при полностью влезающем ряде. */}
             <span style={{ display: 'block', paddingLeft: 6 }}>{text}</span>
           </motion.span>
         )}

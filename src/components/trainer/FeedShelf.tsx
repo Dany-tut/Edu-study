@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { byDay, dayLabel, type FeedFilter, type FeedItem } from '../../data/feed'
@@ -114,16 +114,17 @@ function scrollBoxOf(el: HTMLElement | null): HTMLElement | null {
   return null
 }
 
-function useScrolledFeed(ref: RefObject<HTMLElement | null>): boolean {
+function useFeedScroll(ref: RefObject<HTMLElement | null>) {
   const [past, setPast] = useState(false)
+  // Панель ищем ЛЕНИВО и запоминаем: на первом кадре материал ленты ещё не
+  // приехал, содержимое короче экрана, и прокручиваемого предка у ряда в этот
+  // момент нет вовсе.
+  const boxRef = useRef<HTMLElement | null>(null)
+
   useEffect(() => {
-    // Панель ищем ЛЕНИВО и запоминаем: на первом кадре материал ленты ещё не
-    // приехал, содержимое короче экрана, и прокручиваемого предка у ряда в этот
-    // момент нет вовсе.
-    let box: HTMLElement | null = null
     const check = () => {
-      if (!box) box = scrollBoxOf(ref.current)
-      const y = box ? box.scrollTop : window.scrollY
+      if (!boxRef.current) boxRef.current = scrollBoxOf(ref.current)
+      const y = boxRef.current ? boxRef.current.scrollTop : window.scrollY
       setPast(was => (was ? y > COMPACT_OFF : y > COMPACT_ON))
     }
     check()
@@ -132,7 +133,26 @@ function useScrolledFeed(ref: RefObject<HTMLElement | null>): boolean {
     window.addEventListener('scroll', check, { capture: true, passive: true })
     return () => window.removeEventListener('scroll', check, { capture: true } as EventListenerOptions)
   }, [ref])
-  return past
+
+  /**
+   * СМЕНА РУБРИКИ НАЧИНАЕТ ЛЕНТУ СВЕРХУ.
+   *
+   * Выбранное на десятом посте иначе оставляет человека в середине ДРУГОЙ
+   * ленты — а то и ниже её конца, если постов в рубрике меньше: выглядит как
+   * «нажал и ничего не показали». Заодно ряд разворачивается обратно в
+   * оглавление, из которого выбор и делали.
+   *
+   * Прыжком, а не плавно: содержимое под рядом всё равно сменилось целиком, и
+   * тянуть глаз через три экрана чужих постов не за чем.
+   */
+  const toTop = useCallback(() => {
+    const box = boxRef.current ?? scrollBoxOf(ref.current)
+    boxRef.current = box
+    if (box) box.scrollTop = 0
+    else window.scrollTo(0, 0)
+  }, [ref])
+
+  return { compact: past, toTop }
 }
 
 /**
@@ -148,7 +168,7 @@ export function FeedTabs({ chips, value, onChange, accent }: {
   accent: string
 }) {
   const box = useRef<HTMLDivElement>(null)
-  const compact = useScrolledFeed(box)
+  const { compact, toTop } = useFeedScroll(box)
 
   return (
     <div
@@ -182,7 +202,7 @@ export function FeedTabs({ chips, value, onChange, accent }: {
             label={!compact || c.id === value}
             grow={!compact}
             accent={accent}
-            onClick={() => { if (c.id !== value) onChange(c.id) }}
+            onClick={() => { if (c.id !== value) { onChange(c.id); toTop() } }}
           />
         ))}
       </div>

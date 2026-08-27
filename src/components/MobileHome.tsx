@@ -298,7 +298,7 @@ export default function MobileHome() {
 
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={72}>
+      <MobileScreen topZone={topZone} topPad={72} restoreKey="home">
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* Плитки переходов: все переходы экрана одним рядом. Цветная

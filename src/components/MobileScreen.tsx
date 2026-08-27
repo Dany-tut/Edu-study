@@ -1,4 +1,4 @@
-import { type ReactNode, type CSSProperties } from 'react'
+import { type ReactNode, type CSSProperties, useEffect, useRef } from 'react'
 import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,6 +14,17 @@ export const MOBILE_EDGE = 44
 /** Default height reserved at the top for the floating widget zone. */
 const DEFAULT_TOP_PAD = 96
 
+// ─── Место в ленте не теряется при уходе на соседнюю вкладку ────────────────
+//
+// Экраны нижней навигации размонтируются при переключении (DashboardPage
+// рисует ровно один activePage), поэтому прокрутка живёт не в DOM, а здесь.
+// Ученик, ушедший на десятый пост ленты и заглянувший в «Курсы», возвращается
+// на своё место, а не в начало главной.
+const savedScroll = new Map<string, number>()
+
+/** Тег на теле прокрутки: по нему нижняя навигация листает экран наверх. */
+export const MOBILE_SCROLL_ATTR = 'data-mobile-scroll'
+
 export default function MobileScreen({
   topZone,
   topPad = DEFAULT_TOP_PAD,
@@ -21,6 +32,7 @@ export default function MobileScreen({
   bottomDock,
   children,
   scrollKey,
+  restoreKey,
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
@@ -34,8 +46,53 @@ export default function MobileScreen({
   children: ReactNode
   /** Change to reset scroll state when the page swaps. */
   scrollKey?: string | number
+  /** Запоминать место прокрутки под этим ключом и возвращать на него при
+   *  следующем открытии экрана. */
+  restoreKey?: string
 }) {
   const TOP_ZONE = topPad
+  const bodyRef = useRef<HTMLDivElement>(null)
+
+  // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
+  // одним присваиванием не обойтись: держим цель, пока страница дорастает до
+  // неё, и отпускаем, как только человек тронул прокрутку сам.
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el || !restoreKey) return
+    const want = savedScroll.get(restoreKey) ?? 0
+    let done = want <= 0
+    let cleanupRestore: (() => void) | null = null
+    if (!done) {
+      const apply = () => {
+        if (done || !bodyRef.current) return
+        const box = bodyRef.current
+        const max = box.scrollHeight - box.clientHeight
+        box.scrollTop = Math.min(want, Math.max(0, max))
+        if (max >= want) done = true
+      }
+      apply()
+      // Пока контент растёт — дотягиваем. Наблюдать нечего: высота меняется у
+      // содержимого, а не у самой коробки, поэтому просто пробуем несколько раз.
+      // Полторы секунды хватает и на медленный ответ; дальше место считаем
+      // недостижимым (постов в ленте стало меньше, чем было).
+      const tick = window.setInterval(apply, 80)
+      const stop = window.setTimeout(() => { done = true; window.clearInterval(tick) }, 1500)
+      cleanupRestore = () => { window.clearInterval(tick); window.clearTimeout(stop) }
+    }
+    const remember = () => { if (bodyRef.current) savedScroll.set(restoreKey, bodyRef.current.scrollTop) }
+    // Тронул прокрутку сам — доводка отменяется: спорить с пальцем нельзя.
+    const release = () => { done = true }
+    el.addEventListener('scroll', remember, { passive: true })
+    el.addEventListener('touchstart', release, { passive: true })
+    el.addEventListener('wheel', release, { passive: true })
+    return () => {
+      remember()
+      el.removeEventListener('scroll', remember)
+      el.removeEventListener('touchstart', release)
+      el.removeEventListener('wheel', release)
+      cleanupRestore?.()
+    }
+  }, [restoreKey, scrollKey])
   // Portfolio top-nav logic: the bar floats just below the safe-area edge, and
   // content scrolls EDGE-TO-EDGE under it (paddingTop = safe-area + bar height),
   // so the notch/home-indicator zones are filled by content, never an empty band.
@@ -79,6 +136,8 @@ export default function MobileScreen({
           top zone; paddingBottom clears the bottom dock. */}
       <div
         key={scrollKey}
+        ref={bodyRef}
+        {...{ [MOBILE_SCROLL_ATTR]: '' }}
         className="no-scrollbar"
         style={{
           height: '100%',

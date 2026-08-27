@@ -9,7 +9,9 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { useT } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
+import { tactile } from '../lib/feedback'
 import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
+import { MOBILE_SCROLL_ATTR } from './MobileScreen'
 import { dockLayer } from '../lib/dockLayer'
 import { useIsDesktop } from '../lib/useIsDesktop'
 
@@ -57,7 +59,16 @@ export default function MobileBottomNav() {
   useEffect(() => { setActive(activePage) }, [activePage])
 
   const handleClick = (id: string) => {
-    if (id === activePage) return
+    // ПОВТОРНЫЙ ТАП ПО СВОЕЙ ВКЛАДКЕ = НАВЕРХ. Уйдя далеко в ленту, вернуться
+    // к началу главной больше нечем: своей кнопки «вверх» на телефоне нет, а
+    // соседняя вкладка теперь возвращает на то же место, откуда ушёл.
+    if (id === activePage) {
+      const box = document.querySelector(`[${MOBILE_SCROLL_ATTR}]`) as HTMLElement | null
+      if (box && box.scrollTop > 0) box.scrollTo({ top: 0, behavior: 'smooth' })
+      else window.scrollTo({ top: 0, behavior: 'smooth' })
+      tactile()
+      return
+    }
     playTransitionDrop()
     setActive(id)
     if (id === 'home') {

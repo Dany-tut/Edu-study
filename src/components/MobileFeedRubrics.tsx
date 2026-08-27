@@ -88,21 +88,33 @@ export function RubricBar({ chips, value, onChange, accent }: {
         boxShadow: 'var(--shadow-bar)',
       }}
     >
-      {chips.map(c => (
-        <div
-          key={c.id}
-          ref={node => { if (node) itemRefs.current.set(c.id, node); else itemRefs.current.delete(c.id) }}
-          style={{ display: 'flex', flexShrink: 0 }}
-        >
-          <RubricChip
-            rubric={c}
-            on={c.id === value}
-            label={c.id === value}
-            accent={accent}
-            onClick={() => { if (c.id !== value) { tactile(); onChange(c.id) } }}
-          />
-        </div>
-      ))}
+      {chips.map(c => {
+        const on = c.id === value
+        return (
+          <div
+            key={c.id}
+            ref={node => { if (node) itemRefs.current.set(c.id, node); else itemRefs.current.delete(c.id) }}
+            // Ряд перестал зависеть от длины подписи. Значки держат свой размер,
+            // а выбранная рубрика забирает ВЕСЬ остаток ширины — и он же её и
+            // ограничивает: раньше подпись просто раздвигала ряд, восемь рубрик
+            // переставали помещаться в 375 px, и он уползал под колокольчик,
+            // хотя прокручиваемая шапка про спрятанное ничего не сообщает.
+            // Растёт, но НЕ сжимается (1 0 auto): подпись выбранной рубрики —
+            // это заголовок ленты, ужимать её нельзя. Если ряд всё же не влез,
+            // работает прежний горизонтальный скролл, а не обрезка слова.
+            style={on ? { display: 'flex', flex: '1 0 auto', minWidth: 0 } : { display: 'flex', flex: '0 1 auto', minWidth: 0 }}
+          >
+            <RubricChip
+              rubric={c}
+              on={on}
+              label={on}
+              grow={on}
+              accent={accent}
+              onClick={() => { if (!on) { tactile(); onChange(c.id) } }}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }

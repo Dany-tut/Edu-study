@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
@@ -10,6 +10,11 @@ import { buildLexicon } from '../../lib/lexicon'
 import { useGloss } from '../../lib/useGloss'
 import GlossedText from '../GlossedText'
 import AudioPlayer from '../AudioPlayer'
+import FeedSwipe, { type GestureMap } from './FeedSwipe'
+import { HeartGlyph, ReplyGlyph, TranslateGlyph } from './feedGlyphs'
+import { useFeedGestures, type FeedAction } from '../../store/feedGesturesStore'
+import { speak, stopSpeech } from '../../lib/speech'
+import { touchDevice } from '../../lib/touchDevice'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Пост ленты — один на всю платформу
@@ -140,7 +145,60 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
     return out
   }, [translated, full, item.glossary, body, item.title, lang, gloss])
 
-  return (
+  // ── Жесты вместо кнопок ────────────────────────────────────────────────────
+  //
+  // Настройка живёт на устройстве (store/feedGesturesStore.ts): что делает
+  // свайп влево, свайп вправо, двойной тап, долгое нажатие и тап по телу поста.
+  // Здесь пост только исполняет то, что жест назвал, — разбор самого движения
+  // лежит в FeedSwipe и о ленте ничего не знает.
+  //
+  // МЫШЬЮ ЖЕСТОВ НЕТ, и строка действий на десктопе стоит всегда: спрятать её
+  // там значило бы отобрать действия совсем.
+  const gEngagement = useFeedGestures(s => s.engagement)
+  const gOn = useFeedGestures(s => s.gestures)
+  const gSound = useFeedGestures(s => s.sound)
+  const gMap = useFeedGestures(s => s.map)
+  const showActions = !touchDevice || gEngagement
+
+  const speakingRef = useRef(false)
+
+  const runAction = useCallback((a: FeedAction) => {
+    if (a === 'like') {
+      // Без входа лайк не ставится (см. useFeedLikes) — жест в этом случае
+      // до сюда и не доходит: недоступное действие приходит в слой как 'none'.
+      if (canLike) void like()
+      return
+    }
+    if (a === 'comment') { setThread(v => !v); touched(); return }
+    if (a === 'translate') { toggleTranslate(); return }
+    if (a === 'listen') {
+      // Тот же переключатель, что у кнопки озвучки: жест на говорящем посте
+      // замолкает, а не запускает вторую речь поверх первой.
+      if (speakingRef.current) { stopSpeech(); speakingRef.current = false; return }
+      speakingRef.current = true
+      speak(body || item.title, { lang, onEnd: () => { speakingRef.current = false } })
+      touched()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canLike, like, body, item.title, lang])
+
+  // Недоступное действие гасится ЗДЕСЬ, а не в слое жеста: слой не знает ни
+  // про вход в аккаунт, ни про то, есть ли у поста перевод. Погашенное
+  // действие означает, что карточка на этом жесте просто не поедет — обещать
+  // движением то, чего не произойдёт, хуже, чем не обещать ничего.
+  const resolved = useMemo(() => {
+    const ok = (a: FeedAction): FeedAction => {
+      if (a === 'like' && !canLike) return 'none'
+      return a
+    }
+    return Object.fromEntries(
+      Object.entries(gMap).map(([k, v]) => [k, ok(v as FeedAction)]),
+    ) as GestureMap
+  }, [gMap, canLike])
+
+  const swipeOn = touchDevice && gOn
+
+  const post = (
     <article ref={seenRef} style={variant === 'card' ? {
       background: 'var(--color-surface)',
       border: '1px solid var(--color-border)',
@@ -354,9 +412,14 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       {/* ── Одна строка действий, всё иконками ──────────────────────────────
           Ни разделительной черты, ни подписей. Слева — что сделать с постом
           (сердце, реплики), как в любой ленте; справа — что сделать с
-          материалом (послушать, перевести). */}
+          материалом (послушать, перевести).
+
+          ЛЕВАЯ ПОЛОВИНА НА ТЕЛЕФОНЕ ПО УМОЛЧАНИЮ СНЯТА: сердце и реплики
+          переехали в жесты (см. showActions выше и FeedSwipe). Правая
+          остаётся всегда — озвучка и перевод это работа с материалом, а не
+          отметка о нём, и жестов на всех не хватит. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        {canLike && (
+        {showActions && canLike && (
           <IconBtn on={liked} accent={accent} title={t('Нравится')} onClick={() => void like()} count={likes}>
             {/* Закрашенное сердце вместо цветного контура: на тёмной теме
                 тонкий контур в акцентном цвете почти не отличается от
@@ -364,15 +427,17 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             <HeartGlyph filled={liked} accent={accent} />
           </IconBtn>
         )}
-        <IconBtn
-          on={thread}
-          accent={accent}
-          title={t('Комментарии')}
-          onClick={() => { setThread(v => !v); touched() }}
-          count={replies}
-        >
-          <ReplyGlyph filled={thread} accent={accent} />
-        </IconBtn>
+        {showActions && (
+          <IconBtn
+            on={thread}
+            accent={accent}
+            title={t('Комментарии')}
+            onClick={() => { setThread(v => !v); touched() }}
+            count={replies}
+          >
+            <ReplyGlyph filled={thread} accent={accent} />
+          </IconBtn>
+        )}
 
         <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
           {/* ОЗВУЧКА ЕСТЬ У ЛЮБОГО ПОСТА — читаем заголовок, когда текста нет.
@@ -443,85 +508,25 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       )}
     </article>
   )
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ЗНАЧКИ СТРОКИ ДЕЙСТВИЙ — СВОИ, А НЕ ИЗ НАБОРА
-//
-// Библиотечные значки нарисованы под интерфейс вообще: одинаковая жёсткая
-// сетка, острые сочленения, одна и та же толщина у сердца и у буквы. В ленте
-// они стоят вплотную друг к другу и на просвет читаются как забор из палочек.
-//
-// Здесь три знака одного семейства: общий кегль, скруглённые концы, одна
-// толщина линии и — главное — ЗАЛИВКА КАК СОСТОЯНИЕ. Нажатое сердце и
-// открытый тред залиты акцентом целиком, а не подкрашены контуром: тонкий
-// цветной контур на тёмной теме почти неотличим от серого (см. память про
-// «невидимое в тёмной теме»), заливка видна с первого взгляда.
-//
-// `vectorEffect` держит толщину линии постоянной: значок иногда едет вместе с
-// кнопкой (нажатие ужимает её), и без него штрих ужимался бы вместе с ним.
-// ─────────────────────────────────────────────────────────────────────────────
-
-const SIZE = 19
-
-function Glyph({ children, filled, accent }: {
-  children: React.ReactNode
-  filled?: boolean
-  accent?: string
-}) {
-  return (
-    <svg
-      width={SIZE} height={SIZE} viewBox="0 0 24 24"
-      fill={filled && accent ? accent : 'none'}
-      stroke="currentColor" strokeWidth={1.7}
-      strokeLinecap="round" strokeLinejoin="round"
-      aria-hidden
-      style={{ display: 'block', overflow: 'visible' }}
-    >
-      {children}
-    </svg>
-  )
-}
-
-/** Сердце: одна замкнутая кривая — потому и заливается ровно. */
-function HeartGlyph({ filled, accent }: { filled: boolean; accent: string }) {
-  return (
-    <Glyph filled={filled} accent={accent}>
-      <path d="M12 20.1c-.42 0-.82-.15-1.13-.42C6.28 15.85 3.6 13.28 3.6 10.15A4.55 4.55 0 0 1 8.1 5.55c1.6 0 2.95.83 3.9 2.15.95-1.32 2.3-2.15 3.9-2.15a4.55 4.55 0 0 1 4.5 4.6c0 3.13-2.68 5.7-7.27 9.53-.31.27-.71.42-1.13.42Z" />
-    </Glyph>
-  )
-}
-
-/** Облако реплики с хвостом влево-вниз — как в мессенджере, а не кружок. */
-function ReplyGlyph({ filled, accent }: { filled: boolean; accent: string }) {
-  return (
-    <Glyph filled={filled} accent={accent}>
-      <path d="M12 4.9c4.42 0 8 2.94 8 6.57s-3.58 6.57-8 6.57c-.87 0-1.71-.11-2.5-.32l-3.83 1.6a.4.4 0 0 1-.54-.48l.83-2.83C4.68 14.85 4 13.28 4 11.47 4 7.84 7.58 4.9 12 4.9Z" />
-    </Glyph>
-  )
-}
-
-/**
- * Перевод: латинская «A» и китайский знак 文 — два письма рядом.
- *
- * Готовый значок «Languages» рисует стопку палочек, в которой на 17 пикселях
- * не разобрать ни буквы, ни иероглифа. Здесь оба знака нарисованы штрихами
- * той же толщины, что сердце: на просвет видно ровно то, что значок обещает, —
- * перевод с одного письма на другое.
- */
-function TranslateGlyph() {
-  return (
-    <Glyph>
-      {/* A */}
-      <path d="M3.4 14.6 6.6 6.4l3.2 8.2" />
-      <path d="M4.5 12.1h4.2" />
-      {/* 文 */}
-      <path d="M16.4 5.6v1" />
-      <path d="M13.2 8.8h6.6" />
-      <path d="M18 8.8c-.5 3.4-2 5.9-4.6 8" />
-      <path d="M15.7 12.3c1.1 2.4 2.6 4.3 4.6 5.6" />
-    </Glyph>
-  )
+  // Слой жеста ставится ТОЛЬКО там, где он работает: лишняя обёртка с
+  // touch-слушателями под каждым постом настольной ленты — сорок подписок
+  // ради жеста, которого мышью не сделать.
+  return swipeOn
+    ? (
+      <FeedSwipe
+        map={resolved}
+        sound={gSound}
+        // Чем карточка закрывает знак под собой, пока едет: у поста в
+        // тренажёре своя поверхность, у поста на главной — фон страницы
+        // (сам он прозрачный, и знак просвечивал бы сквозь текст).
+        surface={variant === 'card' ? 'var(--color-surface)' : 'var(--color-bg)'}
+        onAction={runAction}
+      >
+        {post}
+      </FeedSwipe>
+    )
+    : post
 }
 
 /**

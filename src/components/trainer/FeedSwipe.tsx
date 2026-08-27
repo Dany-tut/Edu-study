@@ -1,0 +1,476 @@
+import { useEffect, useRef } from 'react'
+import { frictionStart, haptic, tactile, type Friction } from '../../lib/feedback'
+import { HeartGlyph, ReplyGlyph, TranslateGlyph, SpeakGlyph } from './feedGlyphs'
+import type { FeedAction, FeedGesture } from '../../store/feedGesturesStore'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Слой жестов над постом ленты
+//
+// Пост не знает, что его тянут: он остаётся тем же деревом, а этот слой лишь
+// возит его по горизонтали и разбирает, чем движение кончилось. Наверх уходит
+// одно — «сработало действие X».
+//
+// ПАЛЕЦ ВЕДЁМ САМИ, НА touch-СОБЫТИЯХ С {passive:false}.
+// Указателями это не делается: как только Safari решает, что палец начал
+// скроллить список, он присылает pointercancel и БОЛЬШЕ НЕ ШЛЁТ pointermove —
+// схема «дождёмся движения и решим, чей жест» над лентой не работает никогда
+// (та же грабля, что в MobileSheet). Поэтому на первом же движении решаем сами
+// и, если жест наш, гасим событие preventDefault'ом ДО того, как браузер
+// начнёт прокрутку.
+//
+// КАРТОЧКА ЕДЕТ ЖИВАЯ, БЕЗ rAF. Стили пишутся прямо в обработчике движения:
+// touchmove и так приходит раз в кадр, а в превью requestAnimationFrame не
+// вызывается вовсе (см. память preview-no-raf) — анимация возврата держится на
+// CSS-переходе, а не на цикле кадров.
+//
+// ЛЕВЫЙ КРАЙ ЭКРАНА НЕ НАШ: оттуда начинается «назад» (lib/useSwipeBack.ts).
+// Касание в этой полосе жест поста не начинает вовсе — иначе два жеста
+// боролись бы за один и тот же палец.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Полоса у левого края, отданная свайпу «назад» (px). */
+const EDGE_GUARD = 24
+/** Путь пальца, до которого намерение не разбирается вовсе. */
+const SLOP = 10
+/** Насколько горизонталь должна перевешивать вертикаль в момент разбора. */
+const DOMINANCE = 1.7
+/** Порог срабатывания: доля ширины, но не больше потолка. */
+const TRIGGER_RATIO = 0.26
+const TRIGGER_MAX = 92
+/** Дальше порога карточка идёт с сопротивлением, а не за пальцем один в один. */
+const RUBBER = 0.32
+/** Быстрый смах засчитывается и не дотянув до порога (px/мс). */
+const FLING = 0.5
+/** Скругление углов уезжающей карточки — набегает за первые пиксели хода. */
+const CORNER = 18
+const CORNER_RAMP = 22
+/** Долгое нажатие. */
+const HOLD_MS = 420
+/** Окно ожидания второго тапа. Ставится ТОЛЬКО когда двойной тап назначен. */
+const DOUBLE_MS = 260
+/** Домашняя кривая приложения — та же, что у доков, шапок и свайпа назад. */
+const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)'
+
+/** Цвет действия: мягкая подложка + насыщенный знак. Обе — из палитры темы. */
+const TONE: Record<Exclude<FeedAction, 'none'>, { soft: string; ink: string }> = {
+  like:      { soft: 'var(--color-rose-soft)',    ink: 'var(--color-rose-text)' },
+  comment:   { soft: 'var(--color-blue-pill-bg)', ink: 'var(--color-blue-pill-text)' },
+  translate: { soft: 'var(--color-teal-pill-bg)', ink: 'var(--color-teal-pill-text)' },
+  listen:    { soft: 'var(--color-peach-soft)',   ink: 'var(--color-peach-text)' },
+}
+
+export function actionTone(a: FeedAction) {
+  return a === 'none' ? { soft: 'var(--color-bg-3)', ink: 'var(--color-muted)' } : TONE[a]
+}
+
+/** Знак действия — тот же, что стоял бы в строке под постом. */
+export function ActionGlyph({ action, size = 22 }: { action: FeedAction; size?: number }) {
+  if (action === 'like') return <HeartGlyph filled accent="currentColor" size={size} />
+  if (action === 'comment') return <ReplyGlyph filled accent="currentColor" size={size} />
+  if (action === 'translate') return <TranslateGlyph size={size} />
+  if (action === 'listen') return <SpeakGlyph size={size} />
+  return null
+}
+
+export type GestureMap = Record<FeedGesture, FeedAction>
+
+export default function FeedSwipe({
+  map,
+  sound,
+  surface,
+  onAction,
+  children,
+}: {
+  /** Уже разрешённая карта: недоступное действие приходит сюда как 'none'. */
+  map: GestureMap
+  /** Звук и отдача в палец. */
+  sound: boolean
+  /** Чем карточка закрывает слой под собой, пока едет. */
+  surface: string
+  onAction: (a: FeedAction, g: FeedGesture) => void
+  children: React.ReactNode
+}) {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const leftRef = useRef<HTMLDivElement>(null)
+  const rightRef = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+
+  // Свежие настройки внутрь слушателей — через ref: переподписывать touch на
+  // каждую правку настроек нельзя, посреди жеста это его обрывает.
+  const cfg = useRef({ map, sound, surface, onAction })
+  cfg.current = { map, sound, surface, onAction }
+
+  // ── Вспышка знака посередине карточки ─────────────────────────────────────
+  //
+  // У тапа, двойного тапа и долгого нажатия нет хода, по которому было бы
+  // видно, что именно сработало: палец опустился и поднялся на одном месте.
+  // Поэтому знак действия коротко всплывает над постом — «криво», из нуля и с
+  // поворотом, и выпрямляется, пока растёт.
+  const pop = (a: FeedAction) => {
+    const el = popRef.current
+    if (!el || a === 'none') return
+    const tone = actionTone(a)
+    // Знаки лежат в слое все сразу и переключаются показом: собирать svg на
+    // каждой вспышке — работа в стол, а вспышка обязана начаться в тот же кадр,
+    // в котором палец оторвался.
+    el.querySelectorAll<HTMLElement>('[data-act]').forEach(n => {
+      n.style.display = n.dataset.act === a ? 'flex' : 'none'
+    })
+    el.style.color = tone.ink
+    el.style.background = tone.soft
+    el.style.transition = 'none'
+    el.style.opacity = '0'
+    el.style.transform = 'translate(-50%, -50%) scale(0.35) rotate(-16deg)'
+    // Считываем размер — иначе браузер склеит оба состояния в одно и перехода
+    // не будет вовсе.
+    void el.offsetWidth
+    el.style.transition = `transform .26s ${EASE}, opacity .16s ease`
+    el.style.opacity = '1'
+    el.style.transform = 'translate(-50%, -50%) scale(1.06) rotate(0deg)'
+    window.setTimeout(() => {
+      if (!popRef.current) return
+      popRef.current.style.transition = `transform .3s ${EASE}, opacity .3s ease`
+      popRef.current.style.opacity = '0'
+      popRef.current.style.transform = 'translate(-50%, -50%) scale(1.34) rotate(0deg)'
+    }, 260)
+  }
+
+  useEffect(() => {
+    const host = hostRef.current
+    const card = cardRef.current
+    if (!host || !card) return
+
+    let id: number | null = null
+    let startX = 0, startY = 0, startT = 0
+    let lastX = 0, lastT = 0, speed = 0
+    let mode: 'wait' | 'swipe' | 'scroll' | 'off' = 'off'
+    let armed = false
+    let dir: 1 | -1 = -1
+    let hold: number | null = null
+    let held = false
+    let moved = false
+    let friction: Friction | null = null
+    let lastTap = 0
+    let tapTimer: number | null = null
+
+    const width = () => host.getBoundingClientRect().width || window.innerWidth
+    const trigger = () => Math.min(TRIGGER_MAX, width() * TRIGGER_RATIO)
+
+    /** Действие жеста, уже с учётом «выключено». */
+    const act = (g: FeedGesture): FeedAction => cfg.current.map[g] ?? 'none'
+
+    const fire = (g: FeedGesture) => {
+      const a = act(g)
+      if (a === 'none') return false
+      cfg.current.onAction(a, g)
+      return true
+    }
+
+    /** Тап по слову, кнопке, ссылке или ролику — не наш жест ни в каком виде. */
+    const interactive = (t: EventTarget | null) => {
+      const el = t instanceof Element ? t : null
+      return !!el?.closest('a, button, input, textarea, select, iframe, video, [role="button"], [data-no-gesture]')
+    }
+
+    const paintCard = (x: number) => {
+      const p = Math.min(1, Math.abs(x) / trigger())
+      const r = Math.min(CORNER, Math.abs(x) / CORNER_RAMP * CORNER)
+      card.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`
+      card.style.borderRadius = `${r.toFixed(2)}px`
+      card.style.boxShadow = x ? `0 ${(6 * p).toFixed(1)}px ${(22 * p).toFixed(1)}px rgba(0,0,0,${(0.16 * p).toFixed(3)})` : 'none'
+    }
+
+    /**
+     * Знак под карточкой. Растёт из нуля вместе с ходом и выпрямляется:
+     * поворот на старте — не украшение, а подсказка, что жест ещё не дошёл.
+     * Пройден порог — кружок заливается цветом действия целиком, знак
+     * выворачивается в цвет фона. Это и есть «уже сработает, отпускай».
+     */
+    const paintReveal = (x: number) => {
+      const side = x < 0 ? rightRef.current : leftRef.current
+      const other = x < 0 ? leftRef.current : rightRef.current
+      if (other) other.style.opacity = '0'
+      if (!side) return
+      const a = act(x < 0 ? 'swipeLeft' : 'swipeRight')
+      if (a === 'none') { side.style.opacity = '0'; return }
+      const p = Math.min(1, Math.abs(x) / trigger())
+      const tone = actionTone(a)
+      const dot = side.firstElementChild as HTMLElement | null
+      side.style.opacity = '1'
+      side.style.background = `color-mix(in srgb, ${tone.soft} ${(p * 100).toFixed(0)}%, transparent)`
+      if (!dot) return
+      const full = p >= 1
+      const s = full ? 1.12 : 0.2 + 0.8 * p * p
+      dot.style.transform = `scale(${s.toFixed(3)}) rotate(${((1 - p) * -22).toFixed(1)}deg)`
+      dot.style.opacity = Math.min(1, Math.pow(p, 0.65)).toFixed(3)
+      dot.style.background = full ? tone.ink : `color-mix(in srgb, ${tone.ink} 14%, transparent)`
+      dot.style.color = full ? 'var(--color-bg)' : tone.ink
+    }
+
+    const settle = (fired: boolean) => {
+      card.style.transition = `transform .42s ${EASE}, border-radius .3s ${EASE}, box-shadow .3s ease`
+      paintCard(0)
+      const layers = [leftRef.current, rightRef.current]
+      layers.forEach(l => {
+        if (!l) return
+        l.style.transition = 'opacity .3s ease, background .3s ease'
+        l.style.opacity = '0'
+        const dot = l.firstElementChild as HTMLElement | null
+        if (dot) {
+          dot.style.transition = `transform .34s ${EASE}, opacity .3s ease`
+          // Сработало — знак уходит «наверх и в стороны», как отпущенный;
+          // не дотянул — просто складывается обратно в ноль.
+          dot.style.transform = fired ? 'scale(1.45) rotate(0deg)' : 'scale(0.2) rotate(-22deg)'
+          dot.style.opacity = '0'
+        }
+      })
+      window.setTimeout(() => {
+        card.style.background = ''
+        card.style.position = ''
+        card.style.zIndex = ''
+        layers.forEach(l => { if (l) l.style.transition = '' })
+      }, 440)
+    }
+
+    const clearHold = () => { if (hold) { clearTimeout(hold); hold = null } }
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { mode = 'off'; clearHold(); return }
+      const t = e.touches[0]
+      if (interactive(t.target)) { mode = 'off'; return }
+      id = t.identifier
+      startX = lastX = t.clientX
+      startY = t.clientY
+      startT = lastT = e.timeStamp
+      speed = 0
+      armed = false
+      held = false
+      moved = false
+      mode = 'wait'
+      card.style.transition = 'none'
+      card.style.transform = ''
+
+      // Долгое нажатие взводится сразу: если палец сдвинется — таймер снимут.
+      clearHold()
+      if (act('longPress') !== 'none') {
+        // Карточка медленно проседает под пальцем — по ней и видно, что
+        // нажатие СЧИТАЕТСЯ, а не просто игнорируется.
+        card.style.transition = `transform ${HOLD_MS}ms ${EASE}`
+        card.style.transform = 'scale(0.985)'
+        hold = window.setTimeout(() => {
+          hold = null
+          if (mode !== 'wait') return
+          held = true
+          mode = 'off'
+          card.style.transition = `transform .26s ${EASE}`
+          card.style.transform = 'scale(1)'
+          if (cfg.current.sound) haptic([9, 26, 9])
+          const a = act('longPress')
+          pop(a)
+          if (cfg.current.sound && a !== 'none') tactile({ freq: a === 'like' ? 880 : 560, vibrate: 0 })
+          fire('longPress')
+        }, HOLD_MS)
+      }
+    }
+
+    const onMove = (e: TouchEvent) => {
+      if (mode === 'off' || id === null) return
+      const t = Array.from(e.touches).find(x => x.identifier === id)
+      if (!t) return
+      const dx = t.clientX - startX
+      const dy = t.clientY - startY
+
+      if (mode === 'wait') {
+        if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return
+        moved = true
+        clearHold()
+        // Палец поехал — просадка «долгого нажатия» снимается немедленно,
+        // иначе карточка уезжала бы вбок ужатой.
+        card.style.transition = 'none'
+        card.style.transform = ''
+        // Пологое движение достаётся прокрутке — конус около 30°.
+        if (Math.abs(dx) < Math.abs(dy) * DOMINANCE) { mode = 'scroll'; return }
+        // Жест от левого края — это «назад», не наш.
+        if (startX <= EDGE_GUARD) { mode = 'off'; return }
+        dir = dx < 0 ? -1 : 1
+        // Действия на этой стороне нет — тянуть некуда.
+        if (act(dir < 0 ? 'swipeLeft' : 'swipeRight') === 'none') { mode = 'off'; return }
+        mode = 'swipe'
+        card.style.position = 'relative'
+        card.style.zIndex = '1'
+        // Пост на мобильной главной прозрачный — без подложки слой действия
+        // просвечивал бы сквозь текст, пока карточка едет.
+        card.style.background = cfg.current.surface
+        if (cfg.current.sound) friction = frictionStart()
+      }
+      if (mode !== 'swipe') return
+
+      e.preventDefault()   // прокрутка страницы под нашим жестом не нужна
+      const now = e.timeStamp
+      if (now > lastT) {
+        const v = Math.abs(t.clientX - lastX) / (now - lastT)
+        speed = speed * 0.6 + v * 0.4     // сглаживание: кадры тача неровные
+        lastX = t.clientX
+        lastT = now
+      }
+
+      const th = trigger()
+      const raw = dx
+      // Сопротивление за порогом: карточку можно утянуть дальше, но всё
+      // тяжелее — рука чувствует, что дальше «уже всё равно сработает».
+      const over = Math.abs(raw) - th
+      const travel = over > 0 ? th + over * RUBBER : Math.abs(raw)
+      // Обратный ход (палец пошёл назад через ноль) карточку не переворачивает:
+      // сторона выбрана в начале жеста и до конца жеста не меняется.
+      const x = dir * Math.max(0, Math.min(travel, width() * 0.42))
+      paintCard(x)
+      paintReveal(x)
+
+      const nowArmed = Math.abs(x) >= th
+      if (nowArmed !== armed) {
+        armed = nowArmed
+        if (cfg.current.sound) { haptic(nowArmed ? [8, 3, 5] : 6); friction?.detent() }
+      }
+      friction?.move(speed, Math.min(1, Math.abs(x) / th))
+    }
+
+    const onEnd = (e: TouchEvent) => {
+      clearHold()
+      const wasSwipe = mode === 'swipe'
+      const t = Array.from(e.changedTouches).find(x => x.identifier === id)
+      const dt = e.timeStamp - startT
+
+      if (wasSwipe) {
+        const fling = speed >= FLING && Math.abs((t?.clientX ?? startX) - startX) > 36
+        const go = armed || fling
+        friction?.stop(go)
+        friction = null
+        settle(go)
+        if (go) {
+          const g: FeedGesture = dir < 0 ? 'swipeLeft' : 'swipeRight'
+          const a = act(g)
+          if (cfg.current.sound && a !== 'none') {
+            tactile({ freq: a === 'like' ? 880 : a === 'comment' ? 560 : a === 'translate' ? 660 : 500, vibrate: [10, 24, 12] })
+          }
+          fire(g)
+        }
+        mode = 'off'
+        id = null
+        return
+      }
+
+      card.style.transition = ''
+      card.style.transform = ''
+      const tap = mode === 'wait' && !moved && !held && dt < 500 && !interactive(t?.target ?? null)
+      mode = 'off'
+      id = null
+      if (!tap) return
+
+      // ── Тап и двойной тап ────────────────────────────────────────────────
+      //
+      // Ожидание второго тапа ставится ТОЛЬКО когда двойной назначен: иначе
+      // каждый одиночный тап отвечал бы на четверть секунды позже, платя
+      // задержкой за жест, которым никто не пользуется.
+      if (act('doubleTap') === 'none') {
+        const a = act('tap')
+        if (a !== 'none') {
+          pop(a)
+          if (cfg.current.sound) tactile({ freq: a === 'like' ? 880 : 560 })
+          fire('tap')
+        }
+        return
+      }
+      const nowMs = e.timeStamp
+      if (tapTimer && nowMs - lastTap < DOUBLE_MS) {
+        clearTimeout(tapTimer)
+        tapTimer = null
+        lastTap = 0
+        const a = act('doubleTap')
+        pop(a)
+        if (cfg.current.sound) tactile({ freq: a === 'like' ? 880 : 640, vibrate: [9, 22, 11] })
+        fire('doubleTap')
+        return
+      }
+      lastTap = nowMs
+      tapTimer = window.setTimeout(() => {
+        tapTimer = null
+        const a = act('tap')
+        if (a === 'none') return
+        pop(a)
+        if (cfg.current.sound) tactile({ freq: a === 'like' ? 880 : 560 })
+        fire('tap')
+      }, DOUBLE_MS)
+    }
+
+    const onCancel = () => {
+      clearHold()
+      if (mode === 'swipe') { friction?.stop(false); friction = null; settle(false) }
+      mode = 'off'
+      id = null
+    }
+
+    host.addEventListener('touchstart', onStart, { passive: true })
+    host.addEventListener('touchmove', onMove, { passive: false })
+    host.addEventListener('touchend', onEnd, { passive: true })
+    host.addEventListener('touchcancel', onCancel, { passive: true })
+    return () => {
+      clearHold()
+      if (tapTimer) clearTimeout(tapTimer)
+      friction?.stop(false)
+      host.removeEventListener('touchstart', onStart)
+      host.removeEventListener('touchmove', onMove as EventListener)
+      host.removeEventListener('touchend', onEnd)
+      host.removeEventListener('touchcancel', onCancel)
+    }
+  }, [])
+
+  const layer = (side: 'left' | 'right', ref: React.RefObject<HTMLDivElement | null>) => (
+    <div
+      ref={ref}
+      aria-hidden
+      style={{
+        position: 'absolute', inset: 0, opacity: 0, borderRadius: CORNER,
+        display: 'flex', alignItems: 'center',
+        justifyContent: side === 'left' ? 'flex-start' : 'flex-end',
+        padding: '0 8px', pointerEvents: 'none',
+      }}
+    >
+      <span style={{
+        width: 46, height: 46, borderRadius: 999, opacity: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <ActionGlyph action={map[side === 'left' ? 'swipeRight' : 'swipeLeft']} />
+      </span>
+    </div>
+  )
+
+  return (
+    <div ref={hostRef} style={{ position: 'relative', touchAction: 'pan-y' }}>
+      {layer('left', leftRef)}
+      {layer('right', rightRef)}
+      <div ref={cardRef} style={{ willChange: 'transform' }}>
+        {children}
+      </div>
+      {/* Вспышка знака у жестов без хода — поверх поста, по центру. */}
+      <div
+        ref={popRef}
+        aria-hidden
+        style={{
+          position: 'absolute', left: '50%', top: '50%', opacity: 0,
+          width: 62, height: 62, borderRadius: 999, pointerEvents: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transform: 'translate(-50%, -50%) scale(0.35)',
+          backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
+          zIndex: 2,
+        }}
+      >
+        {(['like', 'comment', 'translate', 'listen'] as const).map(a => (
+          <span key={a} data-act={a} style={{ display: 'none', alignItems: 'center', justifyContent: 'center' }}>
+            <ActionGlyph action={a} size={26} />
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
