@@ -60,8 +60,14 @@ const FAKE = args.includes('--fake')
 const WRITE = args.includes('--write')
 const SRT_DIR = String(flag('--srt', '')).replace(/^~/, process.env.HOME ?? '')
 const LIMIT = Number(flag('--limit', 60))
-/** В скольких сериях слово должно встретиться, чтобы попасть в кандидаты. */
-const MIN_EPISODES = Number(flag('--min', 8))
+/**
+ * В скольких сериях слово должно встретиться, чтобы попасть в кандидаты.
+ *
+ * По 104 сериям пяти сезонов: 2 → 2660 кандидатов, 3 → 1218, 5 → 365, 8 → 90,
+ * 12 → 31. Порог 5 выбран как рабочий: ниже начинается хвост слов, встреченных
+ * дважды за весь сериал, выше остаётся слишком узкий костяк.
+ */
+const MIN_EPISODES = Number(flag('--min', 5))
 
 if (!SRT_DIR || !existsSync(SRT_DIR)) {
   console.error('Укажи папку с субтитрами: --srt <путь>\nСубтитры не коммитятся — скрипт читает их с диска.')
