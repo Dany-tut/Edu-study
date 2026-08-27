@@ -24,6 +24,7 @@ import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../s
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { copyToClipboard } from '../../lib/clipboard'
 import MultiSelectField from '../MultiSelectField'
+import { useScrollLock } from '../../lib/useScrollLock'
 import { useT, t } from '../../lib/i18n'
 
 // ─── Copyable №-badge (glass tooltip) ────────────────────────────────────────
@@ -568,7 +569,12 @@ function BankGridCard({
 function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: SortMode) => void }) {
   const t = useT()
   const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const label = SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  // Список висит абсолютом над сеткой заданий и едет вместе с триггером: колесо
+  // под ним прокручивало страницу, и выбор шёл поверх меняющегося экрана. Пока
+  // открыт — фон стоит, крутится только сам список (lib/useScrollLock).
+  useScrollLock(open, menuRef)
   return (
     <div style={{ position: 'relative' }}>
       <button
@@ -589,12 +595,16 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
       </button>
       {open && (
         <motion.div
+          ref={menuRef}
           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.12 }}
           style={{
             position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
             background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: '1px solid var(--color-border-glass)', borderRadius: 14,
             boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5,
+            // Свой скролл — единственный живой, пока меню открыто. `contain`
+            // обязателен: докрутив до края, список потянул бы за собой фон.
+            maxHeight: 'min(60vh, 320px)', overflowY: 'auto', overscrollBehavior: 'contain',
           }}
         >
           {SORT_OPTS.map(([val, lbl]) => (

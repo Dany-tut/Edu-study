@@ -30,11 +30,11 @@ export const PT_AUTO: FeedItem[] = [
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `As inscrições para participação na Olimpíada do Tesouro Direto de Educação Financeira (Olitef) entram em sua última semana e estão abertas até o dia 1º de setembro. Dezessete mil escolas, entre públicas e particulares, participarão da edição 2026.
+    body: `As inscrições para participação na Olimpíada do Tesouro Direto de Educação Financeira (Olitef) entram em sua última semana e estão abertas até o dia 1º de setembro. Dezessete mil escolas, entre públicas e particulares, participarão da edição 2026.
 
-As inscrições são gratuitas e podem ser feitas por estudantes do ensino fundamental (6º ao 9º ano) e médio (1º ao 3º ano) no  site da competição .
+As inscrições são gratuitas e podem ser feitas por estudantes do ensino fundamental (6º ao 9º ano) e médio (1º ao 3º ano) no site da competição .
 
-No caso da Olitef, a participação pode ser feita com provas presenciais ou online, e as regras estão disponíveis também no site da olimpíada.`,
+No caso da Olitef, a participação pode ser feita com provas presenciais ou online, e as regras estão disponíveis também no site da olimpíada.`,
     glossary: [
       { term: 'última', ru: 'прошлый, последний' },
       { term: 'semana', ru: 'неделя' },
@@ -105,8 +105,7 @@ Sobre a autoidentificação e migração de brancos para o grupo de pessoas negr
 
 Os concorrentes ao Palácio do Planalto participam ainda de panfletagens e ações de campanha em comunidades e universidades.
 
-Flávio Bolsonaro (PL) 
-Participa de motociata no centro de Arapiraca (AL), seguida de comício. Também participa de encontro com representantes do setor produtivo do Agreste e do Sertão.`,
+Flávio Bolsonaro (PL) Participa de motociata no centro de Arapiraca (AL), seguida de comício. Também participa de encontro com representantes do setor produtivo do Agreste e do Sertão.`,
     glossary: [
       { term: 'feira', ru: 'уличный рынок' },
       { term: 'saúde', ru: 'здоровье; медстраховка' },
@@ -209,9 +208,9 @@ Os outros dois avisos são para baixa umidade do ar, sendo um laranja de perigo 
     skill: 'Чтение',
     body: `A Agência Nacional de Vigilância Sanitária (Anvisa) atualizou regras de segurança sanitária para aviões e aeroportos no Brasil. Norma publicada nesta quarta-feira (26) prevê medidas relacionadas à qualidade da água, limpeza, ao gerenciamento de resíduos, controle de pragas e atendimento de saúde em aeroportos. Cada área deverá ter plano de gestão específico.
 
-O texto substitui regulamentação vigente desde 2002 e busca adequar os procedimentos sanitários do setor aeroportuário às exigências atuais de vigilância em saúde. A Resolução nº 1.038 entra em vigor em 150 dias.
+O texto substitui regulamentação vigente desde 2002 e busca adequar os procedimentos sanitários do setor aeroportuário às exigências atuais de vigilância em saúde. A Resolução nº 1.038 entra em vigor em 150 dias.
 
-O Sistema de Gestão da Qualidade deverá conter:`,
+O Sistema de Gestão da Qualidade deverá conter:`,
     glossary: [
       { term: 'para', ru: 'для, чтобы' },
       { term: 'brasil', ru: 'Бразилия' },
@@ -282,38 +281,7 @@ Dos nove grupos de produtos e serviços apurados pelo IBGE, cinco apresentaram d
     skill: 'Чтение',
     body: `Sete cidades nos estados de Alagoas, Bahia e Paraíba tiveram situação de emergência reconhecida devido ao período de estiagem. A Secretaria Nacional de Proteção e Defesa Civil publicou portaria com a medida nesta quarta-feira (26).
 
-Os municípios tiveram situação de emergência reconhecida, de acordo com os registros apresentados nos Formulários de Informações do Desastre (Fide), apresentados neste mês de agosto, e nos decretos municipais que fundamentaram os pedidos de reconhecimento.
-
-Estados 
- Cidades 
- 
- 
- Alagoas 
- Canapi 
- 
- 
- Bahia 
- Gavião 
- 
- 
- Bahia 
- Poções 
- 
- 
- Paraíba 
- Brejo dos Santos 
- 
- 
- Paraíba 
- Frei Martinho 
- 
- 
- Paraíba 
- Monte Horebe 
- 
- 
- Paraíba 
- São José de Espinharas`,
+Os municípios tiveram situação de emergência reconhecida, de acordo com os registros apresentados nos Formulários de Informações do Desastre (Fide), apresentados neste mês de agosto, e nos decretos municipais que fundamentaram os pedidos de reconhecimento.`,
     glossary: [
       { term: 'civil', ru: 'гражданский' },
       { term: 'cidades', ru: 'города' },
@@ -383,12 +351,11 @@ As deep fakes ocorrem pela criação de conteúdo artificial para prejudicar can
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `Nenhum apostador acertou as seis dezenas do Concurso 3.049 da Mega-Sena, realizado nesta terça-feira (25). O prêmio acumulou e está estimado em R$ 25 milhões para o próximo sorteio.
+    body: `Nenhum apostador acertou as seis dezenas do Concurso 3.049 da Mega-Sena, realizado nesta terça-feira (25). O prêmio acumulou e está estimado em R$ 25 milhões para o próximo sorteio.
 
-Os números sorteados são: 06 - 13 - 36 - 43 - 53 - 55
+Os números sorteados são: 06 - 13 - 36 - 43 - 53 - 55
 
-22 apostas acertaram cinco dezenas e irão receber R$ 41.986,04 cada 
- 1.567 apostas acertaram quatro dezenas e irão receber R$ 971,64 cada`,
+22 apostas acertaram cinco dezenas e irão receber R$ 41.986,04 cada 1.567 apostas acertaram quatro dezenas e irão receber R$ 971,64 cada`,
     glossary: [
       { term: 'para', ru: 'для, чтобы' },
       { term: 'números', ru: 'цифры, числа' },
@@ -423,8 +390,7 @@ Os números sorteados são: 06 - 13 - 36 - 43 - 53 - 55
 
 >> Veja como foi a terça-feira (25) dos presidenciáveis:
 
-Flávio Bolsonaro (PL) 
-O candidato Flávio Bolsonaro cumpriu agenda de campanha em Maceió, onde teve reunião com empresários do setor produtivo e participou de uma carreata.`,
+Flávio Bolsonaro (PL) O candidato Flávio Bolsonaro cumpriu agenda de campanha em Maceió, onde teve reunião com empresários do setor produtivo e participou de uma carreata.`,
     glossary: [
       { term: 'como', ru: 'как' },
       { term: 'terça', ru: 'вторник' },
@@ -638,13 +604,9 @@ A maior parte da penalidade corresponde a duas multas de R$ 63,1 milhões cada. 
     skill: 'Чтение',
     body: `A agenda dos candidatos à Presidência da República nesta terça-feira (25) inclui sabatinas, entrevistas à imprensa e participação em fóruns e eventos de campanha. Também estão previstas visitas a entidades e órgãos públicos, além de encontros com empresários e representantes religiosos.
 
-Os concorrentes ao Palácio do Planalto participam ainda de carreata, panfletagem e caminhadas com trabalhadores e apoiadores. 
- 
- Augusto Cury (Avante) 
-Participa de sabatina do Grupo Thathi/Novabrasil FM, em São Paulo (SP). À tarde, visita a Sociedade Rural e a prefeitura de Montes Claros (MG). À noite, participa de evento de lançamento de campanha e jantar na cidade mineira.
+Os concorrentes ao Palácio do Planalto participam ainda de carreata, panfletagem e caminhadas com trabalhadores e apoiadores. Augusto Cury (Avante) Participa de sabatina do Grupo Thathi/Novabrasil FM, em São Paulo (SP). À tarde, visita a Sociedade Rural e a prefeitura de Montes Claros (MG). À noite, participa de evento de lançamento de campanha e jantar na cidade mineira.
 
-Flávio Bolsonaro (PL) 
-Participa de carreata em Maceió (AL), com saída do aeroporto passando pela BR-104 em direção ao corredor Durval de Góes Monteiro/Fernandes Lima. À tarde, participa de encontro com empresários do setor produtivo e de Convenção dos Ministros das Assembleias de Deus.`,
+Flávio Bolsonaro (PL) Participa de carreata em Maceió (AL), com saída do aeroporto passando pela BR-104 em direção ao corredor Durval de Góes Monteiro/Fernandes Lima. À tarde, participa de encontro com empresários do setor produtivo e de Convenção dos Ministros das Assembleias de Deus.`,
     glossary: [
       { term: 'terça', ru: 'вторник' },
       { term: 'feira', ru: 'уличный рынок' },
@@ -751,11 +713,11 @@ Segundo o texto, a campanha busca fortalecer as iniciativas de conscientização
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `O Brasil apresentou nesta terça-feira (25) as primeiras metas de Neutralidade da Degradação da Terra (LDN, na sigla em inglês). A promessa é restaurar mais de 163 mil quilômetros quadrados (km²) até 2030. O anúncio foi feito durante a 17ª Conferência das Nações Unidas de Combate à Desertificação (COP17) , em Ulaanbaatar, na Mongólia.
+    body: `O Brasil apresentou nesta terça-feira (25) as primeiras metas de Neutralidade da Degradação da Terra (LDN, na sigla em inglês). A promessa é restaurar mais de 163 mil quilômetros quadrados (km²) até 2030. O anúncio foi feito durante a 17ª Conferência das Nações Unidas de Combate à Desertificação (COP17) , em Ulaanbaatar, na Mongólia.
 
-Para chegar a esse número, estão previstas iniciativas para recuperar a vegetação nativa, investimento em sistemas agroflorestais, além de ações em unidades de conservação, territórios indígenas, áreas de preservação permanente e bacias hidrográficas.
+Para chegar a esse número, estão previstas iniciativas para recuperar a vegetação nativa, investimento em sistemas agroflorestais, além de ações em unidades de conservação, territórios indígenas, áreas de preservação permanente e bacias hidrográficas.
 
-O Brasil usa como referência o ano de 2020, quando detinha 55,7 milhões de hectares com tendência à degradação. Ou seja, para cumprir o compromisso de neutralidade, precisa chegar em 2030 com, pelo menos, o mesmo número.`,
+O Brasil usa como referência o ano de 2020, quando detinha 55,7 milhões de hectares com tendência à degradação. Ou seja, para cumprir o compromisso de neutralidade, precisa chegar em 2030 com, pelo menos, o mesmo número.`,
     glossary: [
       { term: 'brasil', ru: 'Бразилия' },
       { term: 'terça', ru: 'вторник' },
@@ -936,22 +898,24 @@ O total de requerimentos não representa o número de pessoas porque, em tese, u
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `Os estudantes beneficiários do programa Pé-de-Meia de 2026 que atingiram pelo menos 80% de frequência nas aulas entre maio e junho começaram a receber nesta segunda-feira (24) a quinta parcela do incentivo frequência.
+    body: `Os estudantes beneficiários do programa Pé-de-Meia de 2026 que atingiram pelo menos 80% de frequência nas aulas entre maio e junho começaram a receber nesta segunda-feira (24) a quinta parcela do incentivo frequência.
 
 O programa funciona como uma poupança para incentivar a permanência de jovens nos estudos até a conclusão do ensino médio.
 
-No ensino médio EJA, o estudante recebe até quatro parcelas do incentivo frequência no valor de R$ 225 cada, totalizando até oito parcelas de frequência por ano. Já no ensino médio regular, os estudantes recebem até nove parcelas de frequência por ano, cada uma delas no valor de R$ 200.`,
+No ensino médio EJA, o estudante recebe até quatro parcelas do incentivo frequência no valor de R$ 225 cada, totalizando até oito parcelas de frequência por ano. Já no ensino médio regular, os estudantes recebem até nove parcelas de frequência por ano, cada uma delas no valor de R$ 200.`,
     glossary: [
+      { term: 'meia', ru: 'половина' },
       { term: 'começa', ru: 'начинается' },
+      { term: 'pagar', ru: 'платить' },
+      { term: 'quinta', ru: 'четверг' },
       { term: 'segunda', ru: 'понедельник' },
       { term: 'pelo', ru: 'по, через' },
       { term: 'menos', ru: 'меньше' },
       { term: 'entre', ru: 'между' },
+      { term: 'maio', ru: 'май' },
       { term: 'feira', ru: 'уличный рынок' },
+      { term: 'funciona', ru: 'работает' },
       { term: 'como', ru: 'как' },
-      { term: 'para', ru: 'для, чтобы' },
-      { term: 'quatro', ru: 'четыре' },
-      { term: 'oito', ru: 'восемь' },
     ],
     questions: [],
   },
@@ -1037,9 +1001,9 @@ O novo sistema também prevê um credenciamento digital permanente dos fornecedo
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `Em vigor desde o fim de julho, a renegociação especial de dívidas dos produtores rurais será facilitada. Nesta segunda-feira (24), o Conselho Monetário Nacional (CMN) aprovou uma resolução  que flexibiliza o uso de recursos obrigatórios pelos bancos e cooperativas de crédito para quitar ou reduzir débitos contratados originalmente com outras fontes de financiamento.
+    body: `Em vigor desde o fim de julho, a renegociação especial de dívidas dos produtores rurais será facilitada. Nesta segunda-feira (24), o Conselho Monetário Nacional (CMN) aprovou uma resolução que flexibiliza o uso de recursos obrigatórios pelos bancos e cooperativas de crédito para quitar ou reduzir débitos contratados originalmente com outras fontes de financiamento.
 
-A medida está relacionada à renegociação de dívidas rurais autorizada pela Medida Provisória 1.376/2026  e busca resolver uma dificuldade que vinha limitando a atuação das instituições financeiras.
+A medida está relacionada à renegociação de dívidas rurais autorizada pela Medida Provisória 1.376/2026 e busca resolver uma dificuldade que vinha limitando a atuação das instituições financeiras.
 
 Antes da decisão do CMN, esses recursos só poderiam ser usados para renegociar operações que tivessem sido contratadas originalmente com a mesma fonte de recursos. Na prática, isso restringia a quantidade de dívidas que cada instituição financeira conseguia renegociar.`,
     glossary: [
@@ -1050,11 +1014,11 @@ Antes da decisão do CMN, esses recursos só poderiam ser usados para renegociar
       { term: 'feira', ru: 'уличный рынок' },
       { term: 'conselho', ru: 'совет' },
       { term: 'pelos', ru: 'из-за, с' },
+      { term: 'crédito', ru: 'кредит' },
+      { term: 'outras', ru: 'другие' },
       { term: 'está', ru: 'находится, является (временно)' },
       { term: 'pela', ru: 'через, по' },
       { term: 'antes', ru: 'раньше, до того' },
-      { term: 'mesma', ru: 'та же самая' },
-      { term: 'isso', ru: 'это, то самое' },
     ],
     questions: [],
   },
@@ -1108,16 +1072,19 @@ Para terça-feira (25), está prevista a apresentação do recaatingamento como 
     skill: 'Чтение',
     body: `Três candidatos à Presidência da República participam neste domingo (23) do primeiro debate presidencial das eleições de 2026, promovido pelo Grupo Bandeirantes de Comunicação.
 
-Outros compromissos do dia foram atos políticos e religiosos, entrevista coletiva e estudos. Quatro candidatos não tiveram agenda pública neste domingo.
+Outros compromissos do dia foram atos políticos e religiosos, entrevista coletiva e estudos. Quatro candidatos não tiveram agenda pública neste domingo.
 
 >> Veja como foi o dia dos presidenciáveis:`,
     glossary: [
       { term: 'como', ru: 'как' },
       { term: 'domingo', ru: 'воскресенье' },
+      { term: 'três', ru: 'три' },
       { term: 'primeiro', ru: 'сначала; первый' },
       { term: 'pelo', ru: 'по, через' },
+      { term: 'outros', ru: 'другие' },
       { term: 'foram', ru: 'были' },
       { term: 'quatro', ru: 'четыре' },
+      { term: 'tiveram', ru: 'у них было' },
     ],
     questions: [],
   },
@@ -1172,22 +1139,22 @@ Grace Passô esteve presente na cerimônia de premiação, acompanhada da direto
     skill: 'Чтение',
     body: `No próximo dia 4 de outubro, o agricultor Joaquim Moreira, de 87 anos, pessoa mais velha da comunidade quilombola de Antinha de Baixo, em Santo Antônio do Descoberto (GO), fará o caminho até a escola em que vai votar em uma companhia especial.
 
-Ele estará com a neta, a estudante Thauany Silva, de 16 anos, que terá a primeira experiência na urna. Ambos estão muito ansiosos pela data e com os títulos bem guardados em suas carteiras. “Sempre votei e vou votar de novo”, diz o agricultor.
+Ele estará com a neta, a estudante Thauany Silva, de 16 anos, que terá a primeira experiência na urna. Ambos estão muito ansiosos pela data e com os títulos bem guardados em suas carteiras. “Sempre votei e vou votar de novo”, diz o agricultor.
 
 Thauany tem 16 anos e votará pela primeira vez. Foto: acervo da família`,
     glossary: [
+      { term: 'próximo', ru: 'следующий' },
       { term: 'anos', ru: 'годы' },
       { term: 'pessoa', ru: 'человек' },
       { term: 'mais', ru: 'ещё, больше' },
       { term: 'fará', ru: 'сделает, проведёт' },
+      { term: 'caminho', ru: 'путь, дорога' },
+      { term: 'escola', ru: 'школа' },
       { term: 'companhia', ru: 'труппа; компания' },
       { term: 'terá', ru: 'будет иметь' },
       { term: 'primeira', ru: 'первая' },
       { term: 'experiência', ru: 'опыт' },
       { term: 'ambos', ru: 'оба' },
-      { term: 'muito', ru: 'очень, много' },
-      { term: 'pela', ru: 'через, по' },
-      { term: 'sempre', ru: 'всегда' },
     ],
     questions: [],
   },
@@ -1459,20 +1426,20 @@ Conhecido internacionalmente como cavalo-de-Przewalski, o animal recebeu esse no
 
 É da Cozinha das Caranguejeiras, localizada na sede da ACAMM, que saem estrogonofe, escondidinho, almôndegas, bolinhos, coxinhas, croquetes, quibes e risoles, entre outras receitas feitas com a ubarana.
 
-“A gente pega muitos turista, pessoas de faculdade, ou que estão estudando a área ambiental e vêm conversar com a gente. São empresas que passam por lá, pessoas que têm interesse em conhecer o nosso trabalho e vão lá almoçar com a gente. Nisso, a gente vai fomentando as mulheres caranguejeiras”, conta Márcia Regina, pescadora durante 40 anos e agora aposentada da atividade.`,
+“A gente pega muitos turista, pessoas de faculdade, ou que estão estudando a área ambiental e vêm conversar com a gente. São empresas que passam por lá, pessoas que têm interesse em conhecer o nosso trabalho e vão lá almoçar com a gente. Nisso, a gente vai fomentando as mulheres caranguejeiras”, conta Márcia Regina, pescadora durante 40 anos e agora aposentada da atividade.`,
     glossary: [
       { term: 'antes', ru: 'раньше, до того' },
       { term: 'pode', ru: 'можно, может' },
       { term: 'experiência', ru: 'опыт' },
       { term: 'amigos', ru: 'друзья' },
       { term: 'partir', ru: 'уходить; a partir de — начиная с' },
+      { term: 'forma', ru: 'форма, способ' },
+      { term: 'local', ru: 'местный' },
+      { term: 'centro', ru: 'центр' },
+      { term: 'dessa', ru: 'этой' },
       { term: 'está', ru: 'находится, является (временно)' },
       { term: 'então', ru: 'тогда, значит' },
-      { term: 'entre', ru: 'между' },
-      { term: 'gente', ru: 'люди; a gente — мы' },
-      { term: 'pessoas', ru: 'люди' },
-      { term: 'nosso', ru: 'наш' },
-      { term: 'trabalho', ru: 'работа' },
+      { term: 'cozinha', ru: 'кухня' },
     ],
     questions: [],
   },

@@ -364,8 +364,6 @@ During winter, your energy tends to dip , your immune system takes a hit and you
     skill: 'Чтение',
     body: `A man walks through a tiny home village in Sun Valley, Calif., on Aug. 10, 2026.
 
- Sarah Reingewirtz/MediaNews Group/Los Angeles Daily News via Getty Images
-
 Recent population estimates show that Charlotte, North Carolina, is the fastest-growing large city in the United States . The city added more than 20,000 residents between 2024 and 2025 and is rapidly approaching a population of 1 million.
 
 Charlotte has become a magnet for businesses and residents seeking opportunities and a lower cost of living.`,
@@ -377,11 +375,11 @@ Charlotte has become a magnet for businesses and residents seeking opportunities
       { term: 'home', ru: 'дом; домой' },
       { term: 'village', ru: 'деревня' },
       { term: 'valley', ru: 'долина' },
-      { term: 'group', ru: 'группа' },
-      { term: 'daily', ru: 'ежедневный; ежедневно' },
       { term: 'recent', ru: 'недавний' },
       { term: 'population', ru: 'популяция, население' },
       { term: 'show', ru: 'показывать' },
+      { term: 'that', ru: 'тот; что' },
+      { term: 'north', ru: 'север' },
     ],
     questions: [],
   },
@@ -437,42 +435,22 @@ Much of Alaska’s soil is permafrost – ground that remains below 32 degrees F
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `Science 
- APOD 
- APOD: 2026 August 26 – JWST… 
- 
- 
- 
- 
- 
- 
- Today’s APOD 
- Archive 
- Submissions 
- Index 
- Search 
- Calendar 
- RSS 
- Education 
- About 
- Discuss
-
-Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer.
+    body: `Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer.
 
 Explanation: Are we looking at the future of our Sun ? The James Webb Space Telescope captured today’s composite image of the Lion’s Head Nebula ( NGC 2392 ) with its NIRCam and MIRI instruments. The Lion’s Head Nebula is the remnant of a Sun-like star . This star was unable to sustain the nuclear fusion in its core needed to remain stable. It began to shed layers of gas and dust into space, forming this planetary nebula . A hot stellar core, called a white dwarf , is left behind within the lion’s nose. Do not boop this nose! Intense radiation from the white dwarf is ionizing the gas as it expands, creating the irregular bubble that makes up the lion’s face. Dust clumps that have survived the white dwarf’s radiation and a cloud of ionized gas make up the lion’s mane. This new and more detailed view of the nebula will help humanity learn more about how the gas and dust interact with each other and the white dwarf radiation.`,
     glossary: [
       { term: 'august', ru: 'август' },
       { term: 'head', ru: 'голова; возглавлять' },
-      { term: 'science', ru: 'наука; естественные предметы' },
-      { term: 'today', ru: 'сегодня' },
-      { term: 'search', ru: 'поиск' },
-      { term: 'calendar', ru: 'календарь' },
-      { term: 'about', ru: 'о, насчёт' },
-      { term: 'discuss', ru: 'обсуждать' },
       { term: 'discover', ru: 'обнаружить, открыть' },
       { term: 'each', ru: 'каждый' },
       { term: 'different', ru: 'другой, разный' },
       { term: 'image', ru: 'изображение, образ' },
+      { term: 'photograph', ru: 'фотография' },
+      { term: 'fascinating', ru: 'увлекательный, обворожительный' },
+      { term: 'along', ru: 'вдоль; вместе' },
+      { term: 'with', ru: 'с' },
+      { term: 'brief', ru: 'короткий; краткая сводка' },
+      { term: 'explanation', ru: 'объяснение' },
     ],
     questions: [],
   },
@@ -529,25 +507,7 @@ Hired as a civil servant under the agency’s workforce directive to restore cor
     minutes: 1,
     topic: 'Технологии и медиа',
     skill: 'Чтение',
-    body: `5 Min Read 
- 
- NASA Begins Moon Mission Plume-Surface Interaction Tests 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- A run of the plume-surface interaction testing with the ethane nozzle firing into the simulated lunar dirt. 
- 
- 
- Credits: 
- NASA
+    body: `A run of the plume-surface interaction testing with the ethane nozzle firing into the simulated lunar dirt.
 
 EDITOR’S NOTE: This story, originally published in December , was revised Aug. 26, 2026 with an update on a new phase of testing, including video from a recent test run and new images.
 
@@ -556,15 +516,15 @@ To help NASA and commercial partners better understand the science of lunar land
       { term: 'nasa', ru: 'НАСА' },
       { term: 'moon', ru: 'Луна; месяц' },
       { term: 'interaction', ru: 'взаимодействие' },
-      { term: 'read', ru: 'прочитать' },
       { term: 'with', ru: 'с' },
       { term: 'into', ru: 'в' },
-      { term: 'credits', ru: 'титры; зачётные баллы' },
       { term: 'editor', ru: 'редактор' },
       { term: 'note', ru: 'заметка; записка' },
       { term: 'this', ru: 'этот' },
       { term: 'story', ru: 'история; этаж (амер.)' },
       { term: 'december', ru: 'декабрь' },
+      { term: 'update', ru: 'обновлять' },
+      { term: 'phase', ru: 'фаза' },
     ],
     questions: [],
   },

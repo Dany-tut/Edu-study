@@ -41,6 +41,29 @@ export const MATERIAL_MODES: { id: MaterialMode; label: string; hint: string }[]
 ]
 
 /**
+ * Кусок материала в просмотрщике.
+ *
+ * ПОЧЕМУ НЕ ОДНА СТРОКА. Первая версия отдавала просмотрщику единственное поле
+ * `body`, и всё, что не проза, склеивалось в него через `\n`: пары «слово —
+ * перевод», строки таблицы, примеры. Читалось это столбиком в треть экрана, а
+ * половина материала не доезжала вовсе — карточка формы обещала «8 примеров ·
+ * 2 вопроса» и показывала только объяснение. Подпись, которая называет то,
+ * чего на странице нет, хуже отсутствующей подписи.
+ *
+ * Видов ровно четыре, и они покрывают все четырнадцать семей: проза, пары,
+ * таблица и самопроверка. Пятый вид заводится тогда, когда материал
+ * действительно не ложится ни в один из них, а не потому, что у семьи своё
+ * название для того же самого.
+ */
+export type MaterialBlock =
+  | { kind: 'text'; title?: string; text: string; tone?: 'warn' }
+  /** Двуязычные строки: слово и перевод, фраза и перевод, форма и значение. */
+  | { kind: 'pairs'; title?: string; rows: { term: string; ru: string; note?: string }[] }
+  | { kind: 'table'; title?: string; head: string[]; rows: string[][] }
+  /** Вопросы с отмеченным верным ответом: учитель видит и ключ, и объяснение. */
+  | { kind: 'quiz'; title?: string; items: { q: string; options: string[]; answer: number; why?: string }[] }
+
+/**
  * Материал в витрине — общий вид для текста, фразы, формы и главы.
  *
  * Поля намеренно бедные: витрине нужно опознать материал и отобрать его, а
@@ -61,8 +84,15 @@ export interface MaterialItem {
   size: number
   /** Подпись объёма в подвале плитки. */
   meta: string
-  /** Материал целиком — то, что показывает просмотрщик. */
+  /** Проза материала: объяснение, текст, расшифровка. */
   body?: string
+  /**
+   * Всё остальное содержимое — примеры, словарь, таблицы, вопросы.
+   *
+   * Списком, а не полями: просмотрщик рисует блоки по порядку и ничего не знает
+   * про то, из какой они семьи.
+   */
+  blocks?: MaterialBlock[]
 }
 
 export interface MaterialFamily {
@@ -73,6 +103,15 @@ export interface MaterialFamily {
   hint: string
   /** Файл-источник — учителю он нужен, чтобы знать, куда идти за правкой. */
   source: string
+  /**
+   * Файл-источник ЭТОГО языка, когда он у каждого свой.
+   *
+   * У справочника грамматики папка в `source` называет место, а не файл:
+   * корейский лежит в `grammar/grammarKo.ts`, русский — в `grammarRu.ts`.
+   * Учителю нужен адрес, по которому правка действительно делается, поэтому
+   * семья вправе уточнить его по языку.
+   */
+  sourceOf?: (lang: string) => string
   /**
    * Правится ли из кабинета. Сегодня — только подборки; остальное живёт в
    * коде, и признак честно об этом говорит вместо неработающей формы.
@@ -107,6 +146,18 @@ const readingFamily: MaterialFamily = {
       size: x.questions.length,
       meta: `${plural(x.questions.length, 'вопрос', 'вопроса', 'вопросов')} · ${x.minutes} мин · ${plural(x.glossary.length, 'слово', 'слова', 'слов')}`,
       body: x.body,
+      blocks: [
+        ...(x.translation ? [{ kind: 'text', title: 'Перевод', text: x.translation } as const] : []),
+        ...(x.glossary.length
+          ? [{ kind: 'pairs', title: 'Словарь по клику', rows: x.glossary.map(g => ({ term: g.term, ru: g.ru })) } as const]
+          : []),
+        ...(x.questions.length
+          ? [{
+            kind: 'quiz', title: 'Вопросы к тексту',
+            items: x.questions.map(q => ({ q: q.q, options: q.options, answer: q.correct, why: q.why })),
+          } as const]
+          : []),
+      ],
     }))
   },
 }
@@ -174,7 +225,7 @@ const packsFamily: MaterialFamily = {
       topic: shelf.title,
       size: p.words.length,
       meta: plural(p.words.length, 'слово', 'слова', 'слов'),
-      body: p.words.map(w => `${w.term} — ${w.ru}`).join('\n'),
+      blocks: [{ kind: 'pairs', title: 'Слова набора', rows: p.words.map(w => ({ term: w.term, ru: w.ru })) }],
     })))
   },
 }
@@ -195,7 +246,10 @@ const phrasebookFamily: MaterialFamily = {
       topic: `Тема ${x.theme.n}`,
       size: x.phrases.length,
       meta: plural(x.phrases.length, 'фраза', 'фразы', 'фраз'),
-      body: x.phrases.map(p => `${p.term} — ${p.ru}${p.note ? `\n   ${p.note}` : ''}`).join('\n'),
+      blocks: [{
+        kind: 'pairs', title: 'Фразы темы',
+        rows: x.phrases.map(p => ({ term: p.term, ru: p.ru, note: p.note })),
+      }],
     }))
   },
 }
@@ -213,7 +267,8 @@ const nestsFamily: MaterialFamily = {
       topic: nestAxisLabel(n.axis),
       size: n.words.length,
       meta: `${plural(n.words.length, 'слово', 'слова', 'слов')} · с юнита ${n.fromUnit}`,
-      body: n.words.map(w => `${w.term} — ${w.ru}`).join('\n'),
+      body: n.why,
+      blocks: [{ kind: 'pairs', title: 'Что путается', rows: n.words.map(w => ({ term: w.term, ru: w.ru })) }],
     }))
   },
 }
@@ -235,6 +290,19 @@ const listeningFamily: MaterialFamily = {
       size: x.questions.length,
       meta: `${plural(x.questions.length, 'вопрос', 'вопроса', 'вопросов')} · ${x.minutes} мин · ${x.videoUrl ? 'видео' : 'озвучка'}`,
       body: x.script,
+      blocks: [
+        ...(x.credit ? [{ kind: 'text', title: 'Источник', text: x.credit } as const] : []),
+        ...(x.translation ? [{ kind: 'text', title: 'Перевод', text: x.translation } as const] : []),
+        ...(x.glossary.length
+          ? [{ kind: 'pairs', title: 'Словарь', rows: x.glossary.map(g => ({ term: g.term, ru: g.ru })) } as const]
+          : []),
+        ...(x.questions.length
+          ? [{
+            kind: 'quiz', title: 'Вопросы к записи',
+            items: x.questions.map(q => ({ q: q.q, options: q.options, answer: q.correct, why: q.why })),
+          } as const]
+          : []),
+      ],
     }))
   },
 }
@@ -266,7 +334,14 @@ const stemsFamily: MaterialFamily = {
       about: `Основа «${v.stem}», чтение ${v.reading}.`,
       size: Object.keys(v.forms).length,
       meta: plural(Object.keys(v.forms).length, 'форма', 'формы', 'форм'),
-      body: KO_ENDINGS.map(e => `${e.id}: ${v.forms[e.id] ?? '—'}`).join('\n'),
+      blocks: [{
+        kind: 'table', title: 'Восемь смыслов одной основы',
+        head: ['Хвост', 'Смысл', 'Форма', 'Чтение', 'Перевод'],
+        rows: KO_ENDINGS.map(e => {
+          const f = v.forms[e.id]
+          return [e.block, e.label, f?.form ?? '—', f?.reading ?? '—', f?.ru ?? '—']
+        }),
+      }],
     }))
   },
 }
@@ -284,7 +359,7 @@ const rootsFamily: MaterialFamily = {
       topic: r.group,
       size: r.words.length,
       meta: plural(r.words.length, 'слово', 'слова', 'слов'),
-      body: r.words.map(w => `${w.term} — ${w.ru}`).join('\n'),
+      blocks: [{ kind: 'pairs', title: 'Что из него выводится', rows: r.words.map(w => ({ term: w.term, ru: w.ru })) }],
     }))
   },
 }
@@ -304,6 +379,11 @@ const numbersFamily: MaterialFamily = {
       size: s.rows.length,
       meta: plural(s.rows.length, 'строка', 'строки', 'строк'),
       body: s.note,
+      blocks: [{
+        kind: 'table', title: 'Ряд счёта',
+        head: ['Форма', 'Чтение', 'Перевод', 'Замечание'],
+        rows: s.rows.map(r => [r.form, r.reading, r.ru, r.note ?? '']),
+      }],
     }))
   },
 }
@@ -319,23 +399,48 @@ const soundsFamily: MaterialFamily = {
       id: r.id,
       title: `${r.title} · ${r.ko}`,
       about: r.tagline,
-      size: 1,
-      meta: r.ko,
+      size: r.examples.length,
+      meta: `${r.ko} · ${plural(r.examples.length, 'пример', 'примера', 'примеров')}`,
       body: r.why,
+      blocks: [
+        ...(r.trap ? [{ kind: 'text', title: 'Когда не работает', text: r.trap, tone: 'warn' } as const] : []),
+        ...(r.examples.length
+          ? [{
+            kind: 'pairs', title: 'Примеры',
+            rows: r.examples.map(e => ({ term: `${e.written} → [${e.spoken}]`, ru: e.ru, note: e.note })),
+          } as const]
+          : []),
+      ],
     }))
   },
 }
 
 // ─── Грамматика ──────────────────────────────────────────────────────────────
 
+const GRAMMAR_FILES: Record<string, string> = {
+  ko: 'src/data/grammar/grammarKo.ts',
+  ja: 'src/data/grammar/grammarJa.ts',
+  en: 'src/data/grammar/grammarEn.ts',
+  de: 'src/data/grammarDe.ts',
+  ru: 'src/data/grammarRu.ts',
+}
+
 const grammarFamily: MaterialFamily = {
   id: 'grammar', mode: 'grammar', label: 'Формы', source: 'src/data/grammar/',
+  sourceOf: lang => GRAMMAR_FILES[lang.split('-')[0].toLowerCase()] ?? 'src/data/grammar/',
   hint: 'Справочник форм: не курс, а место, куда приходят с вопросом «чем 은/는 отличается от 이/가».',
   editable: false,
   async load(lang) {
     const { loadGrammarRef } = await import('./grammar')
     const ref = await loadGrammarRef(lang)
     if (!ref) return []
+    // Форма, названная по id, ничего не говорит: сравнение «отличается от
+    // ko-eun-neun» читается как ошибка выгрузки. Поэтому соседа ищем в том же
+    // справочнике и показываем его человеческим именем.
+    const nameOf = (id: string) => {
+      const other = ref.forms.find(x => x.id === id)
+      return other ? `${other.form} — ${other.title}` : id
+    }
     return ref.forms.map(f => ({
       id: f.id,
       title: `${f.form} — ${f.title}`,
@@ -345,6 +450,29 @@ const grammarFamily: MaterialFamily = {
       size: f.examples.length,
       meta: `${plural(f.examples.length, 'пример', 'примера', 'примеров')} · ${plural(f.quiz.length, 'вопрос', 'вопроса', 'вопросов')}`,
       body: f.rule,
+      blocks: [
+        { kind: 'text', title: 'К чему клеится', text: f.attach },
+        ...(f.table ? [{ kind: 'table', title: 'Формы', head: f.table.head, rows: f.table.rows } as const] : []),
+        ...(f.examples.length
+          ? [{
+            kind: 'pairs', title: 'Примеры',
+            rows: f.examples.map(e => ({ term: e.text, ru: e.ru, note: e.when })),
+          } as const]
+          : []),
+        ...(f.pitfall ? [{ kind: 'text', title: 'Ловушка', text: f.pitfall, tone: 'warn' } as const] : []),
+        ...(f.contrast?.length
+          ? [{
+            kind: 'text', title: 'Чем отличается от соседних',
+            text: f.contrast.map(c => `${nameOf(c.with)}: ${c.note}`).join('\n\n'),
+          } as const]
+          : []),
+        ...(f.quiz.length
+          ? [{
+            kind: 'quiz', title: 'Самопроверка',
+            items: f.quiz.map(q => ({ q: q.q, options: q.options, answer: q.answer, why: q.why })),
+          } as const]
+          : []),
+      ],
     }))
   },
 }
@@ -365,6 +493,15 @@ const storyFamily: MaterialFamily = {
       about: c.about,
       size: c.cards.length,
       meta: plural(c.cards.length, 'карточка', 'карточки', 'карточек'),
+      blocks: c.cards.map(card => ({
+        kind: 'text' as const,
+        title: card.title,
+        text: [
+          card.text,
+          ...(card.bullets ?? []).map(b => `• ${b}`),
+          ...(card.keep ? [`Унести: ${card.keep}`] : []),
+        ].join('\n'),
+      })),
     }))
   },
 }
@@ -381,8 +518,18 @@ const booksFamily: MaterialFamily = {
       about: [b.authors, b.publisher].filter(Boolean).join(' · '),
       level: b.level,
       topic: b.kind,
-      size: 1,
+      size: b.parts.length,
       meta: `${b.kind} · ${b.free ? 'бесплатно' : 'платно'} · объясняет на ${b.explainedIn}`,
+      body: b.about,
+      blocks: [
+        { kind: 'text', title: 'Когда за неё браться', text: b.when },
+        ...(b.parts.length
+          ? [{ kind: 'text', title: 'Что внутри', text: b.parts.map(x => `• ${x}`).join('\n') } as const]
+          : []),
+        ...(b.url
+          ? [{ kind: 'text', title: 'Официальная страница', text: [b.url, b.urlNote].filter(Boolean).join('\n') } as const]
+          : []),
+      ],
     }))
   },
 }

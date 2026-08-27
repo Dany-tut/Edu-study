@@ -441,10 +441,6 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.5, maxWidth: 620 }}>
-        {t('Набор — стопка карточек, которую ученик проходит за раз. Новый заводится «плюсом» на вкладке. Когда наборов много, отметьте их и сложите на полку — она станет группой в тренажёре.')}
-      </div>
-
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <SortDropdown value={sort} options={SET_SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
         {!lang && <FacetDropdown
@@ -588,14 +584,10 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
                 onShelf={() => { setDraft(x.group); setFocus(null) }}
               />
             ))}
-            {/* Пустая витрина обязана сказать, почему она пустая: молчащая сетка
-                читается как «не загрузилось». Причин две и они разные — своих
-                наборов нет вовсе, или их отсеял отбор. */}
-            {items.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-                {t('Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.')}
-              </div>
-            )}
+            {/* Про «наборов нет вовсе» витрина молчит: под ней сразу лежат
+                готовые подборки, и абзац про «плюс» на вкладке повторял то же
+                самое над той же сеткой. А вот отбор, отсеявший всё, объяснить
+                надо — иначе пустая сетка читается как «не загрузилось». */}
             {items.length > 0 && shown.length === 0 && (
               <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Под отбор ничего не подошло.')}</div>
             )}

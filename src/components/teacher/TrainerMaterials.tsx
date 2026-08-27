@@ -24,19 +24,23 @@
 //
 // ЧТО МОЖНО, А ЧЕГО НЕЛЬЗЯ. Всё, кроме подборок, приезжает из кода:
 // перечислить, отобрать, открыть и прочитать — да; править — нет. Вместо
-// кнопки «Сохранить» чип «Из кода» и путь к файлу. Обещание, которого
-// интерфейс не держит, хуже честного отказа.
+// кнопки «Сохранить» чип «Из кода» и путь к файлу, который копируется по
+// клику. Обещание, которого интерфейс не держит, хуже честного отказа.
+//
+// ПРОЧИТАТЬ — ЗНАЧИТ ЦЕЛИКОМ. Просмотрщик показывает не только объяснение, но и
+// примеры, словарь, таблицы и вопросы (см. MaterialBlock): плитка, обещающая
+// «8 примеров · 2 вопроса», обязана их показать.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ChevronLeft, FileCode2, LayoutGrid, List, Search, Trash2, X,
+  Check, ChevronLeft, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { SUBJECTS } from '../../lib/subjects'
 import {
   MATERIAL_MODES, MATERIAL_FAMILIES,
-  type MaterialMode, type MaterialFamily, type MaterialItem,
+  type MaterialMode, type MaterialFamily, type MaterialItem, type MaterialBlock,
 } from '../../data/trainerMaterials'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { SortDropdown, ShelfCount, PILL_GLASS } from './ShelfFilters'
@@ -533,6 +537,12 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
         fontFamily: 'inherit', fontSize: small ? 12 : 12.5, fontWeight: on ? 700 : 500,
         background: on ? MAT_BG : 'transparent',
         color: on ? MAT_COLOR : 'var(--color-text-2)',
+        // Кольцо фокуса — персиковым, цветом вкладки. Общий фиолетовый ринг
+        // (см. *:focus-visible в index.css) вокруг персиковой строки в
+        // персиковой панели читался как чужая обводка, наведённая поверх.
+        // Инлайн бьёт правило из таблицы стилей, поэтому шорткат outline
+        // оттуда доедет, а цвет возьмётся отсюда.
+        outlineColor: MAT_COLOR,
         transition: 'all 0.14s',
       }}
       onMouseEnter={e => { if (!on) e.currentTarget.style.background = 'var(--color-bg-3)' }}
@@ -552,13 +562,37 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
 /**
  * Просмотрщик материала.
  *
- * Читать, а не править: поле ввода здесь сохраняло бы в никуда. Вместо кнопки
- * «Сохранить» — путь к файлу, по которому материал действительно меняется.
+ * ЧИТАТЬ, А НЕ ПРАВИТЬ. Поле ввода над константой сохраняло бы в никуда, поэтому
+ * вместо кнопки «Сохранить» — путь к файлу, по которому материал действительно
+ * меняется, и он копируется по клику: адрес нужен не глазам, а редактору.
+ * У справочника грамматики путь ещё и уточняется по языку (`sourceOf`) —
+ * «src/data/grammar/» называет папку, а правка делается в файле языка.
+ *
+ * ЦЕЛИКОМ, А НЕ ОДНИМ АБЗАЦЕМ. Раньше просмотрщик показывал только `body`:
+ * карточка формы обещала «8 примеров · 2 вопроса», открывалась — и там три
+ * абзаца объяснения, полстраницы пустоты и ни одного примера. Теперь материал
+ * отдаёт блоки (см. MaterialBlock), и видно всё, что у него есть.
+ *
+ * ШИРИНА ПО СОДЕРЖИМОМУ. Проза держит читаемую строку в 68 знаков, а пары,
+ * таблицы и вопросы разложены колонками во всю ширину: сорок пар «слово —
+ * перевод» столбиком в треть экрана — это четыре экрана прокрутки там, где
+ * хватает одного.
  */
 function MaterialReader({ item, onBack }: { item: Row; onBack: () => void }) {
   const t = useT()
+  const path = item.family.sourceOf?.(item.lang) ?? item.family.source
+  const [copied, setCopied] = useState(false)
+  const blocks = item.blocks ?? []
+
+  const copyPath = () => {
+    void navigator.clipboard?.writeText(path).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1400)
+    }).catch(() => {})
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 820 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <button
           onClick={onBack}
@@ -572,16 +606,25 @@ function MaterialReader({ item, onBack }: { item: Row; onBack: () => void }) {
           <ChevronLeft size={14} /> {t('К материалам')}
         </button>
         <span style={cardChip(MAT_COLOR)}>{t('Из кода')}</span>
-        <span style={cardChip('var(--color-text-3)', { fontFamily: 'ui-monospace, monospace' })}>
-          {item.family.source}
-        </span>
+        <button
+          onClick={copyPath}
+          title={t('Скопировать путь к файлу')}
+          style={{
+            ...cardChip('var(--color-text-3)', { fontFamily: 'ui-monospace, monospace' }),
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            border: 'none', cursor: 'pointer', fontSize: 11.5,
+          }}
+        >
+          {copied ? <Check size={12} /> : <Copy size={12} />}
+          {copied ? t('Путь скопирован') : path}
+        </button>
       </div>
 
       <div style={{
         borderRadius: 18, padding: 20,
         background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
         border: '1px solid var(--color-border-glass)',
-        display: 'flex', flexDirection: 'column', gap: 12,
+        display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
           {item.title}
@@ -593,17 +636,145 @@ function MaterialReader({ item, onBack }: { item: Row; onBack: () => void }) {
           <span style={cardChip('var(--color-text-3)')}>{item.meta}</span>
         </div>
         {item.body ? (
-          <div style={{
-            fontSize: 14, lineHeight: 1.7, color: 'var(--color-text)',
-            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-          }}>
-            {item.body}
-          </div>
-        ) : (
+          <div style={PROSE}>{item.body}</div>
+        ) : blocks.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>
             {item.about || t('У этого материала нет текста — он собирается в тренажёре из своих частей.')}
           </div>
-        )}
+        ) : null}
+
+        {blocks.map((b, i) => <BlockView key={i} block={b} />)}
+      </div>
+    </div>
+  )
+}
+
+/** Проза: читаемая строка, а не строка во всю ширину кабинета. */
+const PROSE: React.CSSProperties = {
+  fontSize: 14, lineHeight: 1.7, color: 'var(--color-text)',
+  whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxWidth: '68ch',
+}
+
+const BLOCK_TITLE: React.CSSProperties = {
+  fontSize: 11.5, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase',
+  color: 'var(--color-text-3)',
+}
+
+/** Кусок материала. Один компонент на четыре вида — их и есть четыре. */
+function BlockView({ block }: { block: MaterialBlock }) {
+  const t = useT()
+  const head = block.title
+    ? <div style={BLOCK_TITLE}>{t(block.title)}</div>
+    : null
+
+  if (block.kind === 'text') {
+    const warn = block.tone === 'warn'
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {head}
+        <div style={{
+          ...PROSE,
+          ...(warn ? {
+            padding: '10px 14px', borderRadius: 12,
+            background: MAT_BG, color: 'var(--color-text)',
+            borderLeft: `2px solid ${MAT_COLOR}`,
+          } : null),
+        }}>
+          {block.text}
+        </div>
+      </div>
+    )
+  }
+
+  if (block.kind === 'pairs') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {head}
+        <div style={{
+          display: 'grid', gap: 8,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+        }}>
+          {block.rows.map((r, i) => (
+            <div key={i} style={{
+              display: 'flex', flexDirection: 'column', gap: 2,
+              padding: '9px 12px', borderRadius: 12,
+              background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+            }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)' }}>{r.term}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--color-text-2)' }}>{r.ru}</div>
+              {/* Подпись примера — то, ради чего он и написан: когда так говорят. */}
+              {r.note && <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>{r.note}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (block.kind === 'table') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {head}
+        {/* Таблица шире колонки прокручивается внутри себя, а не тянет страницу. */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13, minWidth: '100%' }}>
+            <thead>
+              <tr>
+                {block.head.map((h, i) => (
+                  <th key={i} style={{
+                    textAlign: 'left', padding: '7px 12px', whiteSpace: 'nowrap',
+                    fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)',
+                    borderBottom: '1px solid var(--color-border-soft)',
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => (
+                    <td key={j} style={{
+                      padding: '7px 12px', color: j === 0 ? 'var(--color-text)' : 'var(--color-text-2)',
+                      fontWeight: j === 0 ? 600 : 400,
+                      borderBottom: '1px solid var(--color-border-soft)',
+                    }}>{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {head}
+      <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+        {block.items.map((q, i) => (
+          <div key={i} style={{
+            display: 'flex', flexDirection: 'column', gap: 6,
+            padding: '11px 14px', borderRadius: 14,
+            background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5 }}>{q.q}</div>
+            {/* Учителю нужен ключ: он смотрит материал, а не проходит его. */}
+            {q.options.map((o, j) => (
+              <div key={j} style={{
+                display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12.5,
+                color: j === q.answer ? MAT_COLOR : 'var(--color-text-2)',
+                fontWeight: j === q.answer ? 600 : 400,
+              }}>
+                <span style={{ width: 10 }}>{j === q.answer ? '✓' : '·'}</span>
+                <span>{o}</span>
+              </div>
+            ))}
+            {q.why && (
+              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>{q.why}</div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )

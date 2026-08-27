@@ -4091,4 +4091,10 @@ export const EN: Record<string, string> = {
   'Из кода': 'From code',
   'У этого материала нет текста — он собирается в тренажёре из своих частей.': 'This material has no text \u2014 the trainer assembles it from its parts.',
   'Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.': 'No sets yet. Add the first one with the \u00ab+\u00bb on the tab \u2014 it will show up in the students\u2019 trainer.',
+  'Плитками': 'Tiles',
+  'Строками': 'Rows',
+  'Считаем…': 'Counting\u2026',
+  'материалов в базе': 'materials in the base',
+  'Скопировать путь к файлу': 'Copy the file path',
+  'Путь скопирован': 'Path copied',
 }

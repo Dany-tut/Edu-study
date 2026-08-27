@@ -684,14 +684,66 @@ const tag = (xml, name) => {
   return m ? m[1] : ''
 }
 
+// ── Меню, шапка и таблица — не текст ─────────────────────────────────────────
+//
+// В content:encoded приезжает не только заметка. NASA кладёт в фид APOD целиком
+// свою вторичную навигацию, Agência Brasil — таблицу «Estados/Cidades», и всё
+// это между <p>, то есть внутри одного «абзаца». Тегов там нет уже после strip,
+// а переводы строк из разметки остаются — и в ленте получается столбик из
+// «Archive», «Submissions», «RSS» вперемешку с пустыми строками от иконок.
+// Ученик видит дырку в тексте и читает её как ошибку загрузки.
+//
+// Отличает меню от текста не разметка (её к этому моменту нет), а строки:
+// у прозы строка кончается концом предложения, у меню — не кончается ничем.
+const PROSE = /[.!?…。！？][»"”’)\]]?$/
+
+// Точка есть не у всякой фразы: пункт списка у Agência Brasil («22 apostas
+// acertaram cinco dezenas e irão receber R$ 41.986,04 cada») кончается ничем, а
+// читать его нужно. Отличает фразу от подписи и пункта меню не длина, а
+// грамматика: в меню и в подписи слова с большой буквы («Today’s APOD», «Sarah
+// Reingewirtz/MediaNews Group … via Getty Images»), во фразе — строчные.
+const WORDY = s => (s.match(/(?:^|\s)\p{Ll}[\p{Ll}’']+/gu) ?? []).length >= 3
+
+const isText = s => PROSE.test(s) || WORDY(s)
+
+/**
+ * Абзац в одну строку: проза остаётся, служебные строки выбрасываются.
+ *
+ * Исключение — ЗАГОЛОВОК: короткая строка перед прозой держит абзац, который
+ * без неё теряет подлежащее («Augusto Cury (Avante)» и следом его расписание).
+ * Такая строка приклеивается к следующей, а не выбрасывается. Длинная строка
+ * без точки заголовком не считается: это дубль названия из шапки статьи.
+ */
+function flatten(chunk) {
+  const lines = chunk.split('\n').map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean)
+  if (lines.length < 2) return lines.join(' ')
+  const out = []
+  for (let i = 0; i < lines.length; i++) {
+    if (isText(lines[i])) out.push(lines[i])
+    else if (lines[i].length <= 40 && lines[i + 1] && isText(lines[i + 1])) {
+      lines[i + 1] = `${lines[i]} ${lines[i + 1]}`
+    }
+  }
+  return out.join(' ')
+}
+
+// Колонтитулы источников: то, что приезжает в КАЖДОЙ заметке и к тексту дня
+// отношения не имеет. У Agência Brasil это подписи и врезки, у APOD — строка
+// «Tomorrow’s picture» и колофон службы («ASD at NASA / GSFC…»), которым в
+// ленте нашлось место ровно после того, как из неё убрали меню.
+const BOILER = /^(Logo |Notícias relacionadas|Edição:|Ouça na Rádio)|Tomorrow’s picture|ASD at NASA/i
+
 function paragraphs(html) {
   return html
+    // Навигация, кнопки и иконки: строки из них не проза и не заголовок, так
+    // что до ленты они и так не дошли бы, — но выбросить их дешевле здесь.
+    .replace(/<(script|style|svg|nav|button)[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<\/p>|<p[^>]*>/gi, '\n\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .split('\n\n')
-    .map(strip)
+    .map(chunk => flatten(strip(chunk)))
     .filter(p => p.length > 40)
-    .filter(p => !/^(Logo |Notícias relacionadas|Edição:|Ouça na Rádio)/i.test(p))
+    .filter(p => !BOILER.test(p))
 }
 
 // ── Обрывок источника ────────────────────────────────────────────────────────
@@ -739,6 +791,39 @@ function fixTail(raw) {
   const body = paras.filter(Boolean).join('\n\n')
   if (!body) return null
   return body === m[2] ? raw : raw.replace(m[0], m[1] + body + m[3])
+}
+
+// Тот же разбор меню, но по УЖЕ ЗАПИСАННОЙ карточке — и по той же причине, что
+// у fixTail: правило появилось позже постов, а старые переписываются в файл как
+// есть. Текст поменялся — значит, к нему заново считаются словарь и минуты:
+// слова «Archive» и «Discuss» в словаре к тексту, где их больше нет, — это
+// ровно тот обман, ради которого словарь и собирается по порядку появления.
+// Возвращает карточку без служебных строк или null, если читать в ней нечего.
+function fixJunk(raw, langKey, gloss) {
+  const m = raw.match(/(body: `)([\s\S]*?)(`,\n)/)
+  if (!m) return raw
+  // Порог в сорок знаков — правило СБОРКИ, а не файла: короткий абзац в ленте
+  // уже есть (по-корейски сорок знаков — это три предложения), и выбрасывать
+  // его задним числом нельзя. Здесь короткое выбрасывается, только если от
+  // абзаца что-то отрезали: тогда это остаток подписи, а не абзац.
+  const body = m[2].split('\n\n')
+    .map(p => [flatten(p), p.replace(/\s+/g, ' ').trim()])
+    .filter(([f, was]) => f && !BOILER.test(f) && (f.length > 40 || f === was))
+    .map(([f]) => f)
+    .join('\n\n')
+  if (!body) return null
+  if (body === m[2]) return raw
+
+  const title = (raw.match(/title: '((?:[^'\\]|\\.)*)'/) ?? [])[1] ?? ''
+  const cjk = /^ {4}lang: '(ja|ko|zh)/m.test(raw)
+  const size = cjk ? body.replace(/\s/g, '').length : body.split(/\s+/).filter(Boolean).length
+  const glossary = glossFor(`${title}\n${body}`, langKey, gloss, 12)
+    .map(g => `\n      { term: ${q(g.term)}, ru: ${q(g.ru)} },`).join('')
+
+  return raw
+    .replace(m[0], m[1] + body + m[3])
+    .replace(/^ {4}minutes: \d+,$/m, `    minutes: ${Math.max(1, Math.round(size / (cjk ? 400 : 180)))},`)
+    .replace(/^ {4}glossary: \[[\s\S]*?\],$/m, `    glossary: [${glossary}${glossary ? '\n    ' : ''}],`)
 }
 
 const isoDate = s => {
@@ -1418,7 +1503,16 @@ for (const [langKey, cfg] of Object.entries(AUTO_FILES)) {
     // Правило про целое предложение появилось позже самих постов, а старое
     // переписывается в файл КАК ЕСТЬ: без этой проверки заметки, приехавшие
     // обрезанными до правила, остались бы в ленте навсегда.
-    const cut = fixTail(m[0])
+    // МЕНЮ УБИРАЕТСЯ И ЗАДНИМ ЧИСЛОМ: столбик «Archive / Submissions / RSS»
+    // посреди заметки читается как дырка в тексте, и сам он оттуда не уйдёт.
+    const clean = fixJunk(m[0], langKey, gloss)
+    if (id && clean === null) {
+      console.log(`  ✕ убрано из ленты: ${id} — в тексте одно меню`)
+      continue
+    }
+    if (id && clean !== m[0]) console.log(`  ✎ ${id} — убрано меню источника`)
+
+    const cut = fixTail(clean)
     if (id && cut === null) {
       console.log(`  ✕ убрано из ленты: ${id} — источник отдал обрывок`)
       continue
