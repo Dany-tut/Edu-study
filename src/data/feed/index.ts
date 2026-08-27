@@ -51,6 +51,7 @@
 // загрузки), а сами материалы едут чанком на язык.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Cpu, FlaskConical, HeartPulse, LayoutGrid, Leaf, Newspaper, Palette, Play, type LucideIcon } from 'lucide-react'
 import type { ReadingText } from '../readingLibrary'
 import type { Age } from '../scenes'
 
@@ -843,6 +844,23 @@ export function filterLabel(f: FeedFilter): string {
   if (f === 'all') return 'Всё'
   if (f === 'video') return 'Видео'
   return THEME_LABEL[f]
+}
+
+/**
+ * Значок чипса — им рубрика показывается, когда подписи нет места.
+ *
+ * ЗНАЧОК ЕСТЬ У КАЖДОЙ, включая «Всё»: свёрнутый ряд рисует словом только
+ * текущую рубрику, а остальные значками, и рубрика без картинки оказалась бы
+ * единственной дырой в ряду.
+ */
+const FILTER_ICON: Record<FeedFilter, LucideIcon> = {
+  all: LayoutGrid, video: Play,
+  news: Newspaper, science: FlaskConical, tech: Cpu,
+  culture: Palette, life: Leaf, health: HeartPulse,
+}
+
+export function filterIcon(f: FeedFilter): LucideIcon {
+  return FILTER_ICON[f] ?? Newspaper
 }
 
 /**

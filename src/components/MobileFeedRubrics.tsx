@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { tactile } from '../lib/feedback'
-import { useT } from '../lib/i18n'
+import { RubricChip, type Rubric } from './FeedRubricChip'
 import type { FeedFilter } from '../data/feed'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,9 +23,14 @@ import type { FeedFilter } from '../data/feed'
 // самой ленте, как вкладки в мессенджере, а ряд едет следом и подтягивает
 // выбранное в центр: он показывает, где ты, а не служит единственным способом
 // переключиться.
+//
+// ПОДПИСЬ ТОЛЬКО У ВЫБРАННОЙ, остальные значками (см. FeedRubricChip). Восемь
+// подписей в ряд на телефоне не влезают ни при какой вёрстке, а свёрнутый ряд
+// помещается целиком — то есть по нему видно ВСЕ рубрики сразу, а не три из
+// восьми, и свайп перестаёт быть единственным способом узнать, что там дальше.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface Rubric { id: FeedFilter; label: string; count: number }
+export type { Rubric }
 
 /**
  * Ряд рубрик в стекле шапки.
@@ -40,7 +45,6 @@ export function RubricBar({ chips, value, onChange, accent }: {
   /** Цвет предмета — им красится выбранная рубрика. */
   accent: string
 }) {
-  const t = useT()
   const scrollRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef(new Map<string, HTMLElement>())
 
@@ -48,15 +52,23 @@ export function RubricBar({ chips, value, onChange, accent }: {
   // и активный чипс иначе остаётся за краем — по шапке было бы не понять, в
   // какой ты рубрике.
   useEffect(() => {
-    const box = scrollRef.current
-    const el = itemRefs.current.get(value)
-    if (!box || !el) return
-    const left = el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2
-    const to = Math.max(0, Math.min(left, box.scrollWidth - box.clientWidth))
-    // Прокрутка вручную, а не scrollIntoView: он тянет к себе и внешнюю
-    // панель прокрутки экрана — лента уезжала бы вверх от смены рубрики.
-    if (typeof box.scrollTo === 'function') box.scrollTo({ left: to, behavior: 'smooth' })
-    else box.scrollLeft = to
+    const center = () => {
+      const box = scrollRef.current
+      const el = itemRefs.current.get(value)
+      if (!box || !el) return
+      const left = el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2
+      const to = Math.max(0, Math.min(left, box.scrollWidth - box.clientWidth))
+      // Прокрутка вручную, а не scrollIntoView: он тянет к себе и внешнюю
+      // панель прокрутки экрана — лента уезжала бы вверх от смены рубрики.
+      if (typeof box.scrollTo === 'function') box.scrollTo({ left: to, behavior: 'smooth' })
+      else box.scrollLeft = to
+    }
+    center()
+    // Второй заход — после того, как подписи доехали. В момент тапа выбранный
+    // чипс ещё значок, а прошлый ещё со словом: центр, посчитанный по этим
+    // ширинам, промахивается ровно на длину подписи.
+    const again = setTimeout(center, 280)
+    return () => clearTimeout(again)
   }, [value, chips.length])
 
   return (
@@ -64,7 +76,9 @@ export function RubricBar({ chips, value, onChange, accent }: {
       ref={scrollRef}
       className="no-scrollbar"
       style={{
-        display: 'flex', alignItems: 'center', gap: 4,
+        // Зазор в два пикселя — свёрнутый ряд из восьми рубрик обязан влезть в
+        // 375 px целиком: прокручиваемая шапка не показывает, что там дальше.
+        display: 'flex', alignItems: 'center', gap: 2,
         overflowX: 'auto', overscrollBehaviorX: 'contain',
         padding: 4, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))',
@@ -74,28 +88,21 @@ export function RubricBar({ chips, value, onChange, accent }: {
         boxShadow: 'var(--shadow-bar)',
       }}
     >
-      {chips.map(c => {
-        const on = c.id === value
-        return (
-          <button
-            key={c.id}
-            ref={node => { if (node) itemRefs.current.set(c.id, node); else itemRefs.current.delete(c.id) }}
-            type="button"
-            onClick={() => { if (!on) { tactile(); onChange(c.id) } }}
-            style={{
-              flexShrink: 0,
-              padding: '6px 12px', borderRadius: 999, border: 'none',
-              fontFamily: 'inherit', fontSize: 12.5, fontWeight: on ? 800 : 600,
-              whiteSpace: 'nowrap', cursor: 'pointer',
-              background: on ? `${accent}26` : 'transparent',
-              color: on ? accent : 'var(--color-text-3)',
-              transition: 'background 0.16s ease, color 0.16s ease',
-            }}
-          >
-            {t(c.label)}
-          </button>
-        )
-      })}
+      {chips.map(c => (
+        <div
+          key={c.id}
+          ref={node => { if (node) itemRefs.current.set(c.id, node); else itemRefs.current.delete(c.id) }}
+          style={{ display: 'flex', flexShrink: 0 }}
+        >
+          <RubricChip
+            rubric={c}
+            on={c.id === value}
+            label={c.id === value}
+            accent={accent}
+            onClick={() => { if (c.id !== value) { tactile(); onChange(c.id) } }}
+          />
+        </div>
+      ))}
     </div>
   )
 }

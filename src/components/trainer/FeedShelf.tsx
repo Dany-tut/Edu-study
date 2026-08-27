@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
-import { byDay, dayLabel, type FeedItem } from '../../data/feed'
+import { byDay, dayLabel, type FeedFilter, type FeedItem } from '../../data/feed'
+import { RubricChip, type Rubric } from '../FeedRubricChip'
 import { FeedPost } from './FeedPost'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +75,117 @@ export function FeedList({ items, lang, accent, subjectId }: {
           ))}
         </section>
       ))}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ряд поворотов над лентой
+//
+// НАВЕРХУ ОН РАЗВЁРНУТ, ДАЛЬШЕ — СВЁРНУТ. На первом экране ряд работает
+// оглавлением: видно, что лента вообще умеет показывать наука/техника/жизнь, и
+// подписи здесь стоят своих сорока пикселей. Но полоса прилипшая, и на десятом
+// посте те же восемь подписей — это уже не оглавление, а рамка вокруг чтения:
+// человек листает ленту, а не выбирает рубрику.
+//
+// Поэтому при прокрутке ряд сжимается до текущей рубрики словом и значков
+// соседей и встаёт ПО ЦЕНТРУ КОЛОНКИ ПОСТОВ. Центр, а не левый край: свёрнутая
+// таблетка у левого края читается как случайно оставшийся контрол, а по центру
+// — как шапка того, что под ней.
+//
+// ГИСТЕРЕЗИС ОБЯЗАТЕЛЕН. Один порог означал бы, что на границе ряд разворачивается
+// и сворачивается от каждого пикселя колеса — а смена вида сама двигает
+// содержимое под ним.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Прокрутили настолько — ряд сворачивается. */
+const COMPACT_ON = 72
+/** Вернулись выше этого — разворачивается обратно. */
+const COMPACT_OFF = 8
+
+/** Панель прокрутки, внутри которой живёт тренажёр. Её может не быть — тогда окно. */
+function scrollBoxOf(el: HTMLElement | null): HTMLElement | null {
+  let p = el?.parentElement ?? null
+  while (p) {
+    const oy = getComputedStyle(p).overflowY
+    if ((oy === 'auto' || oy === 'scroll') && p.scrollHeight > p.clientHeight + 4) return p
+    p = p.parentElement
+  }
+  return null
+}
+
+function useScrolledFeed(ref: RefObject<HTMLElement | null>): boolean {
+  const [past, setPast] = useState(false)
+  useEffect(() => {
+    // Панель ищем ЛЕНИВО и запоминаем: на первом кадре материал ленты ещё не
+    // приехал, содержимое короче экрана, и прокручиваемого предка у ряда в этот
+    // момент нет вовсе.
+    let box: HTMLElement | null = null
+    const check = () => {
+      if (!box) box = scrollBoxOf(ref.current)
+      const y = box ? box.scrollTop : window.scrollY
+      setPast(was => (was ? y > COMPACT_OFF : y > COMPACT_ON))
+    }
+    check()
+    // capture: события прокрутки не всплывают, и слушатель на окне без него не
+    // услышит панель кабинета — прокрутку ведёт именно она, а не окно.
+    window.addEventListener('scroll', check, { capture: true, passive: true })
+    return () => window.removeEventListener('scroll', check, { capture: true } as EventListenerOptions)
+  }, [ref])
+  return past
+}
+
+/**
+ * Ряд поворотов ленты. Только для широкого экрана: на телефоне ленты в
+ * тренажёре нет вовсе — она стоит целым экраном на главной, и рубрики ей
+ * рисует шапка (components/MobileFeedRubrics), тем же чипсом.
+ */
+export function FeedTabs({ chips, value, onChange, accent }: {
+  chips: Rubric[]
+  value: FeedFilter
+  onChange: (id: FeedFilter) => void
+  /** Цвет предмета — им красится выбранная рубрика. */
+  accent: string
+}) {
+  const box = useRef<HTMLDivElement>(null)
+  const compact = useScrolledFeed(box)
+
+  return (
+    <div
+      ref={box}
+      style={{
+        // Коробка шириной в колонку постов и при свёрнутом ряде: она и держит
+        // таблетку по центру ленты, а не по центру остатка строки управления.
+        display: 'flex', justifyContent: 'center',
+        width: FEED_W, maxWidth: '100%', minWidth: 0,
+      }}
+    >
+      <div
+        className="no-scrollbar"
+        style={{
+          display: 'flex', alignItems: 'center', gap: compact ? 2 : 0,
+          flex: compact ? '0 1 auto' : '1 1 auto', minWidth: 0,
+          overflowX: 'auto', overscrollBehaviorX: 'contain',
+          padding: 3, borderRadius: 999,
+          background: 'rgba(var(--glass-rgb), 0.88)',
+          border: '1px solid var(--color-border)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
+      >
+        {chips.map(c => (
+          <RubricChip
+            key={c.id}
+            rubric={c}
+            on={c.id === value}
+            label={!compact || c.id === value}
+            grow={!compact}
+            accent={accent}
+            onClick={() => { if (c.id !== value) onChange(c.id) }}
+          />
+        ))}
+      </div>
     </div>
   )
 }
