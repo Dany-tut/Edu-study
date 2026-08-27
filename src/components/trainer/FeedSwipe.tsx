@@ -310,6 +310,8 @@ export default function FeedSwipe({
     let snapTimer: number | null = null
     /** Номер жеста: по нему уборка после возврата узнаёт «свой» ли он. */
     let seamGen = 0
+    /** Докуда дотянулся стык. Обратно не отматывается — см. paintSeam. */
+    let seamPeak = 0
 
     const neighbour = (el: Element | null | undefined) =>
       (el?.querySelector('[data-feed-card]') as HTMLElement | null) ?? null
@@ -319,6 +321,7 @@ export default function FeedSwipe({
       card.style.transition = `box-shadow .2s ease`
       card.style.boxShadow = '0 6px 22px rgba(0,0,0,0.16)'
       torn = false
+      seamPeak = 0
       seamGen++
       seamPrev = neighbour(host.previousElementSibling)
       seamNext = neighbour(host.nextElementSibling)
@@ -327,7 +330,17 @@ export default function FeedSwipe({
       // отделился с обеих сторон, а не только сверху, где линия уехала вместе
       // с ним.
       seamLine = (seamNext?.firstElementChild as HTMLElement | null) ?? null
-      for (const n of [seamPrev, seamNext]) if (n) n.style.transition = 'none'
+      for (const n of [seamPrev, seamNext]) {
+        if (!n) continue
+        n.style.transition = 'none'
+        // Соседи на время жеста становятся настоящими карточками: своя
+        // поверхность и слой выше поля действия. Без поверхности красить у них
+        // было бы нечего — прозрачный пост углов не показывает, — а без слоя
+        // цвет лёг бы поверх их текста (поле спозиционировано, они нет).
+        n.style.position = 'relative'
+        n.style.zIndex = '1'
+        n.style.background = cfg.current.surface
+      }
     }
 
     /**
@@ -344,6 +357,12 @@ export default function FeedSwipe({
       card.style.transition = 'box-shadow .2s ease'
       // Кубическая кривая: клей поддаётся сразу и дальше идёт всё туже.
       const r = CORNER * (1 - Math.pow(1 - Math.min(1, p), 3))
+      // ОБРАТНО КЛЕЙ НЕ СХВАТЫВАЕТСЯ. Радиус только растёт: повёл палец
+      // назад — углы остаются такими, какими стали. Иначе стык дышал бы на
+      // каждом покачивании руки, а «оторвал наполовину и передумал» выглядело
+      // бы как отмена того, что уже произошло.
+      if (r <= seamPeak) return
+      seamPeak = r
       const v = `${r.toFixed(2)}px`
       card.style.borderRadius = v
       if (seamPrev) { seamPrev.style.borderBottomLeftRadius = v; seamPrev.style.borderBottomRightRadius = v }
@@ -394,6 +413,9 @@ export default function FeedSwipe({
         for (const n of [seamPrev, seamNext]) {
           if (!n) continue
           n.style.transition = ''
+          n.style.position = ''
+          n.style.zIndex = ''
+          n.style.background = ''
           n.style.borderBottomLeftRadius = ''
           n.style.borderBottomRightRadius = ''
           n.style.borderTopLeftRadius = ''
@@ -429,14 +451,23 @@ export default function FeedSwipe({
     const spread = () => {
       const r = host.getBoundingClientRect()
       const right = window.innerWidth - r.right
+      // ЦВЕТ ЛОЖИТСЯ И ПОД СОСЕДЕЙ. Стык тянется между тремя постами, и если
+      // покрасить только средний, соседние края останутся на чёрном — рвётся
+      // будто одна карточка, а не лента. Поле действия покрывает всю тройку, а
+      // сами посты лежат НА нём (см. liftCard: им на время жеста выдаётся
+      // поверхность), поэтому их округлившиеся углы прорезают цвет.
+      const up = seamPrev ? Math.max(0, r.top - seamPrev.getBoundingClientRect().top) : BLEED_Y
+      const down = seamNext ? Math.max(0, seamNext.getBoundingClientRect().bottom - r.bottom) : BLEED_Y
       for (const l of [leftRef.current, rightRef.current]) {
         if (!l) continue
         l.style.left = `${-r.left}px`
         l.style.right = `${-right}px`
-        l.style.top = `${-BLEED_Y}px`
-        l.style.bottom = `${-BLEED_Y}px`
-        l.style.paddingLeft = `${MARK_PAD}px`
-        l.style.paddingRight = `${MARK_PAD}px`
+        l.style.top = `${-up}px`
+        l.style.bottom = `${-down}px`
+        // Знак — по центру НАШЕГО поста, а не поля: поле теперь высотой в три
+        // карточки, и flex-центрирование увело бы сердце на стык.
+        const dot = l.firstElementChild as HTMLElement | null
+        if (dot) dot.style.top = `${up + r.height / 2}px`
       }
     }
 
@@ -455,7 +486,7 @@ export default function FeedSwipe({
       if (!dot) return
       const full = p >= 1
       const s = full ? 1.12 : 0.2 + 0.8 * p * p
-      dot.style.transform = `scale(${s.toFixed(3)}) rotate(${((1 - p) * -22).toFixed(1)}deg)`
+      dot.style.transform = `translateY(-50%) scale(${s.toFixed(3)}) rotate(${((1 - p) * -22).toFixed(1)}deg)`
       dot.style.opacity = Math.min(1, Math.pow(p, 0.65)).toFixed(3)
       dot.style.background = full ? tone.ink : `color-mix(in srgb, ${tone.ink} 14%, transparent)`
       dot.style.color = full ? 'var(--color-bg)' : tone.ink
@@ -482,7 +513,11 @@ export default function FeedSwipe({
           dot.style.transition = `transform .42s ${EASE}, opacity .34s ease`
           // Сработало — знак уходит «наверх и в стороны», как отпущенный;
           // не дотянул — просто складывается обратно в ноль.
-          dot.style.transform = fired ? 'scale(1.45) rotate(0deg)' : 'scale(0.2) rotate(-22deg)'
+          // translateY(-50%) обязателен и здесь: знак центрируется сдвигом, и
+          // без него он на прощание прыгнул бы вниз на пол-своей высоты.
+          dot.style.transform = fired
+            ? 'translateY(-50%) scale(1.45) rotate(0deg)'
+            : 'translateY(-50%) scale(0.2) rotate(-22deg)'
           dot.style.opacity = '0'
         }
       })
@@ -572,12 +607,14 @@ export default function FeedSwipe({
         // Действия на этой стороне нет — тянуть некуда.
         if (act(dir < 0 ? 'swipeLeft' : 'swipeRight') === 'none') { mode = 'off'; return }
         mode = 'swipe'
+        // Порядок важен: соседей находит liftCard, а поле действия (spread)
+        // считает свою высоту по ним.
+        liftCard()
         spread()
         card.style.padding = `0 ${CARD_AIR}px`
         card.style.margin = `0 ${-CARD_AIR}px`
         card.style.position = 'relative'
         card.style.zIndex = '1'
-        liftCard()
         // Пост на мобильной главной прозрачный — без подложки слой действия
         // просвечивал бы сквозь текст, пока карточка едет.
         card.style.background = cfg.current.surface
@@ -734,17 +771,20 @@ export default function FeedSwipe({
       ref={ref}
       aria-hidden
       style={{
-        // Прямоугольник без скруглений: слой распахивается до самых краёв
-        // экрана (spread), и скруглённый угол у рамки телефона читался бы
-        // обрывком чужой карточки.
-        position: 'absolute', inset: 0, opacity: 0,
-        display: 'flex', alignItems: 'center',
-        justifyContent: side === 'left' ? 'flex-start' : 'flex-end',
-        padding: `0 ${MARK_PAD}px`, pointerEvents: 'none',
+        // Поле действия: во всю ширину экрана и на высоту тройки постов
+        // (наш и оба соседних) — распахивает его spread. Скругление ему
+        // ставит стык, тем же радиусом, что и карточкам.
+        position: 'absolute', inset: 0, opacity: 0, pointerEvents: 'none',
       }}
     >
+      {/* Знак прибит к центру НАШЕГО поста абсолютно (top ставит spread), а не
+          отцентрован флексом: поле высотой в три карточки увело бы его на
+          стык между ними. */}
       <span style={{
+        position: 'absolute', top: '50%',
+        ...(side === 'left' ? { left: MARK_PAD } : { right: MARK_PAD }),
         width: 46, height: 46, borderRadius: 999, opacity: 0,
+        transform: 'translateY(-50%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <ActionGlyph action={map[side === 'left' ? 'swipeRight' : 'swipeLeft']} />
