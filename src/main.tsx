@@ -74,7 +74,15 @@ if (phKey) {
 // уроке, в карточках и в тренажёре — то есть почти всем, но не для первого
 // кадра. Просим его на простое: к моменту, когда ученик откроет урок, он уже
 // на месте, а первую отрисовку он не задержал.
+//
+// ТОЛЬКО ученику. Чанк весит 933 КБ (≈300 КБ сжатым) и качается почти секунду —
+// замер на проде. Гостю на лендинге и учителю в кабинете он не нужен ни на
+// одном экране, а канал делит с теми запросами, которые нужны.
 ;(() => {
+  const hasStudent = (() => {
+    try { return !!localStorage.getItem('student_session') } catch { return false }
+  })()
+  if (!hasStudent) return
   const warm = () => { void import('./lib/lexicon').then(m => m.ensureGloss()).catch(() => { /**/ }) }
   if ('requestIdleCallback' in window) window.requestIdleCallback(warm, { timeout: 5000 })
   else setTimeout(warm, 2000)

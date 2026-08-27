@@ -90,24 +90,37 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
     const firstLoad = !get().loaded
 
+    // Шесть из восьми запросов кабинета охвата НЕ ждут: расписание и внекурсовое
+    // ДЗ знают группу из сессии, а викторина, факты, мемы и реакции вообще ничьи.
+    // Раньше они всё равно стояли за `await fetchPersonScope` — в таймингах это
+    // было видно двумя волнами, 395 мс и 700 мс. Запускаем их СРАЗУ, а охвата
+    // ждут только те двое, кому он правда нужен.
+    const scopeP = fetchPersonScope({ id: session.id, groupId: session.groupId })
+    const scheduleP = fetchScheduleDays(session.groupId, session.id)
+    const quizP = fetchQuizQuestions()
+    const factsP = fetchScienceFacts()
+    const memesP = fetchScienceMemes()
+    const reactionsP = fetchCourseReactions()
+    const hwP = fetchStandaloneSubject(session.groupId)
+
+    // Охват — все строки ученика и его группы: трек должен показать ВСЕ его
+    // курсы, включая назначенные группе, в которую его записали позже, а не
+    // только курс активной сессии.
+    const scope = await scopeP
+
     // allSettled (not Promise.all): one failing request must NOT reject the whole
     // load and leave `loaded:false` forever — that strands the dashboard on an
     // infinite "Загрузка…" spinner (a dead white screen for the student). Each
     // slice falls back to an empty value so the UI renders whatever succeeded.
-    // Resolve the person's full scope (all their student rows + groups) so the
-    // track shows every course they have — including ones assigned to a group
-    // they were later enrolled into — not just the active subject session.
-    const scope = await fetchPersonScope({ id: session.id, groupId: session.groupId })
-
     const results = await Promise.allSettled([
       fetchLessonProgress(scope.studentIds),
-      fetchScheduleDays(session.groupId, session.id),
+      scheduleP,
       fetchCourseStructure(scope.rows),
-      fetchQuizQuestions(),
-      fetchScienceFacts(),
-      fetchScienceMemes(),
-      fetchCourseReactions(),
-      fetchStandaloneSubject(session.groupId),
+      quizP,
+      factsP,
+      memesP,
+      reactionsP,
+      hwP,
     ])
     const val = <T,>(i: number, fallback: T): T =>
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback

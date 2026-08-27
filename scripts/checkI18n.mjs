@@ -34,7 +34,9 @@
 import { readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 
-const DICT = 'src/lib/i18n.ts'
+// Словарь переехал в отдельный модуль: он грузится лениво и в главный чанк не
+// попадает (см. комментарий в src/lib/i18n.ts).
+const DICT = 'src/lib/i18nEn.ts'
 
 // Кириллица здесь — данные, а не интерфейс. Пополнять список осознанно.
 const DATA = new Set([

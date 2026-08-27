@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ─────────────────────────────────────────────────────────────────────────────
-// Сверяет SCENE_COUNTS в src/data/scenes/index.ts с тем, сколько сцен реально
+// Сверяет SCENE_COUNTS в src/data/scenes/counts.ts с тем, сколько сцен реально
 // лежит в файлах-чанках.
 //
 // ЗАЧЕМ. Тексты сцен грузятся отдельным чанком, а «Чтение» в меню режимов
@@ -19,6 +19,9 @@ import { dirname, join } from 'node:path'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const indexPath = join(root, 'src/data/scenes/index.ts')
+// Счётчики живут отдельным лёгким модулем: index.ts весит 122 КБ (в нём WORKS),
+// и импорт ради одного числа тащил его в главный чанк.
+const countsPath = join(root, 'src/data/scenes/counts.ts')
 const src = readFileSync(indexPath, 'utf8')
 
 // Языки и их файлы берём из самих LOADERS: добавили язык — проверка подхватила.
@@ -35,9 +38,10 @@ for (const [, lang, file] of loaders[1].matchAll(/(\w+): \(\) => import\('\.\/(\
   real[lang] = (text.match(/^ {4}workId:/gm) ?? []).length
 }
 
-const block = src.match(/export const SCENE_COUNTS: Record<string, number> = \{([\s\S]*?)\n\}/)
+const countsSrc = readFileSync(countsPath, 'utf8')
+const block = countsSrc.match(/export const SCENE_COUNTS: Record<string, number> = \{([\s\S]*?)\n\}/)
 if (!block) {
-  console.error('checkScenes: не нашёл SCENE_COUNTS в data/scenes/index.ts')
+  console.error('checkScenes: не нашёл SCENE_COUNTS в data/scenes/counts.ts')
   process.exit(1)
 }
 const declared = {}
@@ -60,5 +64,5 @@ if (!process.argv.includes('--fix')) {
 }
 
 const body = Object.entries(real).map(([lang, n]) => `  ${lang}: ${n},`).join('\n')
-writeFileSync(indexPath, src.replace(block[0], `export const SCENE_COUNTS: Record<string, number> = {\n${body}\n}`))
+writeFileSync(countsPath, countsSrc.replace(block[0], `export const SCENE_COUNTS: Record<string, number> = {\n${body}\n}`))
 console.log('\nТаблица переписана по файлам.')

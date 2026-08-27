@@ -1454,7 +1454,7 @@ export const WORKS: Work[] = [
     inOriginal: {
       from: 'B1',
       subs: 'Английские субтитры есть на всех легальных площадках; они же — основа наших колод к сериям.',
-      hard: 'Дин глотает половину слогов: «whatcha», «dunno», «lemme», «coupla». Фраза, которую вы без запинки прочли бы глазами, на слух не распознаётся.',
+      hard: 'Речь стянута: «how did you» звучит как how’d (38 серий из 104), «them» — как ’em (29 серий), плюс ain’t в 55 сериях и gonna вообще в каждой. Фраза, которую вы без запинки прочли бы глазами, на слух не распознаётся.',
       how: 'На B1 вы понимаете около 95% слов серии, и разрыв закрывается не редкой лексикой, а десятком слов охотничьего лора (journal, psychic, demons, salt-and-burn) плюс стяжениями. За все 104 измеренные серии выше B1 регулярно возвращаются лишь восемь слов — остальные две трети встречаются ровно один раз в жизни и учить их не надо.',
     },
     quote: {
@@ -2126,27 +2126,13 @@ const LOADERS: Record<string, Loader> = {
  * когда приехавший список другой длины, а на экране счётчик после загрузки
  * берётся уже из самого списка (см. LanguageTrainer).
  */
-export const SCENE_COUNTS: Record<string, number> = {
-  en: 273,
-  ja: 46,
-  ko: 82,
-  de: 7,
-  ru: 5,
-  pt: 4,
-}
+// Счётчики переехали в ./counts — лёгкий модуль без WORKS, чтобы витрина
+// предметов не тащила полтора мегабайта описаний ради одного числа.
+export { SCENE_COUNTS, hasScenes, sceneCount } from './counts'
+import { sceneCount } from './counts'
 
 /** Базовый код языка: pt-BR → pt. */
 const base = (lang: string) => lang.split('-')[0].toLowerCase()
-
-/** Есть ли для языка сцены. Синхронно — по этому решается, рисовать ли раздел. */
-export const hasScenes = (lang: string | undefined): boolean =>
-  !!lang && (lang in LOADERS || base(lang) in LOADERS)
-
-/** Сколько сцен у языка — синхронно, ещё до загрузки чанка. */
-export function sceneCount(lang: string | undefined): number {
-  if (!lang) return 0
-  return SCENE_COUNTS[lang] ?? SCENE_COUNTS[base(lang)] ?? 0
-}
 
 /** Произведения языка — из синхронного реестра, без загрузки текстов. */
 export function worksForLang(lang: string | undefined): Work[] {
@@ -2175,7 +2161,7 @@ export async function loadScenes(lang: string | undefined): Promise<Scene[]> {
     const list = await load()
     const declared = sceneCount(lang)
     if (declared !== list.length) {
-      console.warn(`scenes: у «${lang}» в SCENE_COUNTS ${declared}, а в файле ${list.length} — поправь таблицу в data/scenes/index.ts`)
+      console.warn(`scenes: у «${lang}» в SCENE_COUNTS ${declared}, а в файле ${list.length} — поправь таблицу в data/scenes/counts.ts`)
     }
     return list
   } catch (e) {
