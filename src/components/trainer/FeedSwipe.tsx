@@ -308,6 +308,8 @@ export default function FeedSwipe({
     /** Порог пройден: стык порван, углы больше ни за кем не следуют. */
     let torn = false
     let snapTimer: number | null = null
+    /** Номер жеста: по нему уборка после возврата узнаёт «свой» ли он. */
+    let seamGen = 0
 
     const neighbour = (el: Element | null | undefined) =>
       (el?.querySelector('[data-feed-card]') as HTMLElement | null) ?? null
@@ -317,6 +319,7 @@ export default function FeedSwipe({
       card.style.transition = `box-shadow .2s ease`
       card.style.boxShadow = '0 6px 22px rgba(0,0,0,0.16)'
       torn = false
+      seamGen++
       seamPrev = neighbour(host.previousElementSibling)
       seamNext = neighbour(host.nextElementSibling)
       // Волосяная линия ниже нашего поста принадлежит СЛЕДУЮЩЕМУ (она у него
@@ -382,7 +385,12 @@ export default function FeedSwipe({
       if (seamPrev) { seamPrev.style.borderBottomLeftRadius = '0px'; seamPrev.style.borderBottomRightRadius = '0px' }
       if (seamNext) { seamNext.style.borderTopLeftRadius = '0px'; seamNext.style.borderTopRightRadius = '0px' }
       if (seamLine) seamLine.style.borderTopColor = ''
+      // Уборка узнаёт свой жест по номеру: следующий свайп мог начаться раньше,
+      // чем доехал возврат предыдущего, и обнулять его соседей нельзя — стык
+      // остался бы натянутым, а тянуть было бы уже нечего.
+      const gen = seamGen
       window.setTimeout(() => {
+        if (gen !== seamGen) return
         for (const n of [seamPrev, seamNext]) {
           if (!n) continue
           n.style.transition = ''
