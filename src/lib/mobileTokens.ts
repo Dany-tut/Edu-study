@@ -90,8 +90,8 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
 // ВЫШЕ ЭТОГО РАЗМЫТИЯ НЕ ПОДНЯТЬСЯ. Полупрозрачная дымка над самым верхом —
 // не наш слой и не CSS: её рисует сам iOS под статус-баром, поверх страницы,
 // и никакой z-index её не перебьёт. Единственное лекарство — держать таблетки
-// НИЖЕ неё; 16 px — граница, на которой шапка уже читается целиком.
-export const MOBILE_TOP_GAP = 16
+// НИЖЕ неё; 20 px — граница, на которой шапка уже читается целиком.
+export const MOBILE_TOP_GAP = 20
 /** Полный отступ сверху: safe-area + зазор (в браузере без выреза — просто зазор). */
 export const MOBILE_TOP_INSET = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
 
