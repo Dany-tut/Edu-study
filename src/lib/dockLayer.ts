@@ -53,6 +53,11 @@ function sync() {
   // Выправился вьюпорт — гасим слой и больше не вмешиваемся.
   el.style.height = gap ? `${window.innerHeight + gap}px` : '100dvh'
   el.style.display = gap ? '' : 'none'
+  // Слой не fixed — пока он живой, он едет вместе с прокруткой документа.
+  // Экраны урока и домашки прокручивают именно документ, поэтому держим слой
+  // на месте вручную. Обычно это короткая жизнь: первое касание выправляет
+  // вьюпорт, слой гаснет и док снова обычный fixed.
+  el.style.top = gap ? `${window.scrollY}px` : '0px'
   const next = gap > 0
   if (next !== active) {
     active = next
@@ -64,6 +69,7 @@ function sync() {
 if (typeof window !== 'undefined') {
   sync()
   window.addEventListener('resize', sync)
+  window.addEventListener('scroll', () => { if (active) sync() }, { passive: true })
   window.addEventListener('orientationchange', sync)
   window.addEventListener('pageshow', sync)
   window.visualViewport?.addEventListener('resize', sync)
