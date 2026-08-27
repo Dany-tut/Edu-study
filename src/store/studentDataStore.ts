@@ -53,6 +53,11 @@ interface StudentDataState {
    * запроса не порождает.
    */
   ensureLessonHeavy: (lessonId: string) => void
+  /**
+   * Префетч окна вокруг места ученика в ОДНОМ курсе — том, что открыт. Зовётся
+   * на загрузке и при смене курса.
+   */
+  prefetchCourseHeavy: (subjectId: string | undefined) => void
 }
 
 const defaultStats: StudentStats = {
@@ -239,13 +244,22 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     //
     // Трек уже нарисован: выше стоял set(), и экран показывает курс. Конспекты
     // и домашки к нему не едут вовсе — их спрашивают поурочно при открытии
-    // (ensureLessonHeavy). Здесь только префетч вокруг места ученика в курсе,
-    // чтобы клик по уроку, до которого он и так вот-вот дойдёт, не ждал сети.
-    // Не await: кабинет не ждёт.
-    void ensureLessonsHeavy(prefetchTargets(withHeavy))
+    // (ensureLessonHeavy). Здесь только префетч вокруг места ученика — и лишь в
+    // ОТКРЫТОМ курсе, а не во всех сразу: на аккаунте с семью курсами «все»
+    // означало 48 уроков и секунду сети (замер на проде) ради экранов, которых
+    // ученик в этот заход не увидит. Смена курса тянет своё окно сама
+    // (prefetchCourseHeavy). Не await: кабинет не ждёт.
+    const openSubject = useDashboard.getState().activeSubjectId
+    const target = withHeavy.find(s => s.id === openSubject) ?? withHeavy[0]
+    if (target) void ensureLessonsHeavy(prefetchTargets([target]))
   },
 
   ensureLessonHeavy: (lessonId) => { void ensureLessonsHeavy([lessonId]) },
+
+  prefetchCourseHeavy: (subjectId) => {
+    const subj = get().subjects.find(s => s.id === subjectId)
+    if (subj) void ensureLessonsHeavy(prefetchTargets([subj]))
+  },
 }))
 
 // ─── Тяжёлая половина уроков ─────────────────────────────────────────────────

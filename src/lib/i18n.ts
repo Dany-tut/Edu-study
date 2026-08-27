@@ -2756,6 +2756,12 @@ const EN: Record<string, string> = {
   '● ● ●  нажмите чтобы показать': '● ● ●  click to reveal',
   'нажмите ещё раз — скопирует оба поля': 'click again to copy both fields',
   'Скопировать ссылку приглашения': 'Copy invite link',
+  // Панель переезда на аккаунты (PendingAccountsPanel в TeacherGroupsPage).
+  'Ещё без своего аккаунта': 'No account yet',
+  'Пока ученик не завёл аккаунт, его домашка видна всем, у кого есть адрес сайта':
+    'Until a student has an account, their homework is visible to anyone who knows the site address',
+  'Скопировать все ссылки списком': 'Copy every link as a list',
+  'Скопировано — осталось разослать': 'Copied — now send them out',
   'Ещё не зарегистрирован': 'Not registered yet',
   'Контакты': 'Contacts',
   'Прочее': 'Other',

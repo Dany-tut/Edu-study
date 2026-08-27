@@ -120,6 +120,8 @@ export default function DashboardPage() {
   // Курсы приходят из Supabase; до этого искать в них урок бессмысленно.
   const dataLoaded = useStudentData(s => s.loaded)
   const ensureLessonHeavy = useStudentData(s => s.ensureLessonHeavy)
+  const prefetchCourseHeavy = useStudentData(s => s.prefetchCourseHeavy)
+  const openCourseId = useDashboard(s => s.activeSubjectId)
 
   // Открыли урок — спрашиваем его конспект и домашку. Здесь, а не в openLesson:
   // в урок попадают и мимо него — восстановлением из адреса после F5, ссылкой,
@@ -129,6 +131,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (currentLessonId) ensureLessonHeavy(currentLessonId)
   }, [currentLessonId, ensureLessonHeavy])
+
+  // Сменили курс — тянем окно уроков вокруг места ученика уже в нём. На входе
+  // префетчится только открытый курс (см. studentDataStore): у аккаунта с семью
+  // курсами «все сразу» стоили 48 уроков и секунду сети ради экранов, которые в
+  // этот заход никто не откроет.
+  useEffect(() => {
+    if (dataLoaded) prefetchCourseHeavy(openCourseId)
+  }, [dataLoaded, openCourseId, prefetchCourseHeavy])
 
   // Restore the exact view from the hash on mount — including lesson/homework
   // (with the lesson id) so a hard refresh never dumps the student back on Home.

@@ -25787,4 +25787,306 @@ _(на обороте, другим почерком: «Лаванда. В дв�
       },
     ],
   },
+
+  // ── Сверхъестественное ─────────────────────────────────────────────────────
+  //
+  // Корзина 'inspired': текст наш целиком, герои наши, сюжета сериала здесь нет.
+  // Взяты у вещи только РЕГИСТР и обстановка — дорога, мотель, закусочная в
+  // городке, где все всё знают и никто ничего не говорит прямо.
+  //
+  // ЧТО ИМЕННО ТРЕНИРУЕМ. Разбор 104 серий показал, что на B1 понимание упирается
+  // не в редкие слова (их 95% и так знакомы), а в стяжения: how'd, coupla, lemme,
+  // dunno, kinda. Поэтому первая сцена собрана вокруг них намеренно — это не
+  // стилизация ради стилизации, а единственный слой, который в учебниках не
+  // встречается, а в каждой серии звучит по десять раз.
+  {
+    id: 'sc-spn-1',
+    workId: 'supernatural',
+    lang: 'en', title: 'Четыреста миль без остановки', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Двое едут вторые сутки и уже давно разговаривают не о дороге, а друг о друге. Ровно тот разговор, из которого состоит половина сериала: длинный перегон, радио, спор о том, когда остановиться поесть. Смотрите не на слова — они простые, — а на то, во что они склеиваются.',
+    after: 'Если вы прочли это без запинки, а на слух такие же фразы не разбираете — дело не в лексике. Дело в том, что в живой речи «how did you» звучит как одно слово, и узнавать его надо отдельно.',
+    body: `— How'd you sleep?
+— I didn't. You had the radio on all night.
+— That's the point of the radio.
+— At three in the morning?
+— Look, I'm not stopping again. We stopped twice already.
+— We stopped for gas. Gas doesn't count.
+— Since when does gas not count?
+— Since I've been eating chips for eleven hours.
+— There's a diner in about forty miles. Coupla hours and we're there.
+— Forty miles isn't a couple of hours.
+— It is the way you drive.
+— You know what? Lemme drive.
+— No.
+— Why not?
+— Because last time you fell asleep at a red light.
+— That was one time.
+— That was twice. The second one you don't even remember, which kinda proves my point.
+— ...Fine. Wake me when there's food.
+— Dunno if I will.
+— You will.`,
+    translation: `— Как спалось?
+— Никак. У тебя всю ночь радио играло.
+— В этом и смысл радио.
+— В три часа ночи?
+— Слушай, я больше не останавливаюсь. Мы уже два раза стояли.
+— Мы стояли на заправке. Заправка не считается.
+— С каких пор заправка не считается?
+— С тех пор, как я одиннадцать часов ем чипсы.
+— Через сорок миль будет закусочная. Пара часов — и мы там.
+— Сорок миль — это не пара часов.
+— С твоей манерой водить — пара.
+— Знаешь что? Дай я поведу.
+— Нет.
+— Почему?
+— Потому что в прошлый раз ты уснул на светофоре.
+— Это было один раз.
+— Это было два раза. Второй ты даже не помнишь, что как бы подтверждает мою мысль.
+— ...Ладно. Разбуди, когда будет еда.
+— Не знаю, разбужу ли.
+— Разбудишь.`,
+    glossary: [
+      { term: "how'd", ru: 'как (how did) — в речи звучит одним слогом' },
+      { term: 'coupla', ru: 'пара (a couple of) — так это произносят всегда' },
+      { term: 'lemme', ru: 'дай, разреши (let me)' },
+      { term: 'dunno', ru: 'не знаю (I don’t know)' },
+      { term: 'kinda', ru: 'вроде как, как бы (kind of)' },
+      { term: 'gas', ru: 'бензин; заправка (амер.)' },
+      { term: 'diner', ru: 'придорожная закусочная' },
+      { term: 'that’s the point', ru: 'в этом и смысл' },
+      { term: 'since when', ru: 'с каких пор' },
+      { term: 'to prove a point', ru: 'подтверждать чью-то правоту' },
+    ],
+    questions: [
+      {
+        q: 'Why does the second speaker say gas “doesn’t count”?',
+        options: [
+          'The car did not actually need gas',
+          'They stopped for fuel, not for food',
+          'Someone else paid for it',
+          'The gas station was closed',
+        ],
+        correct: 1,
+        why: 'Спор идёт про еду: остановка на заправке не считается остановкой, потому что поесть на ней не удалось. Дальше это и говорится прямо — «eleven hours of chips».',
+      },
+      {
+        q: 'What does “Coupla hours and we’re there” mean?',
+        options: [
+          'We arrive in about two hours',
+          'We have been driving for two hours',
+          'We need two more people',
+          'We will stop for two hours',
+        ],
+        correct: 0,
+        why: 'Coupla — это произносимое «a couple of». Фраза строится без глагола: «пара часов — и мы на месте».',
+      },
+      {
+        q: 'Why is the request to drive refused?',
+        options: [
+          'The car belongs to the other person',
+          'The road is too dangerous at night',
+          'The asker once fell asleep while driving',
+          'The asker has no licence',
+        ],
+        correct: 2,
+        why: '«You fell asleep at a red light» — и вторым аргументом идёт то, что этих случаев было два, а один из них забыт.',
+      },
+      {
+        q: 'In “which kinda proves my point”, what does “kinda” do?',
+        options: [
+          'It makes the statement softer and more ironic',
+          'It means the opposite of what is said',
+          'It marks a question',
+          'It shows the speaker is angry',
+        ],
+        correct: 0,
+        why: 'Kinda (kind of) смягчает: говорящий не заявляет, а подсовывает вывод как будто вскользь. Убрать его — фраза станет резкой.',
+      },
+    ],
+  },
+  {
+    id: 'sc-spn-2',
+    workId: 'supernatural',
+    lang: 'en', title: 'У стойки мотеля, поздно вечером', level: 'B1', minutes: 2,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ночное заселение в придорожный мотель — обстановка, в которой сериал проводит примерно треть экранного времени. Разговор короткий и весь состоит из формул: их произносят одинаково от Огайо до Невады, и знать их полезнее, чем кажется.',
+    body: `— Evening. You got a room?
+— Single or double?
+— Double. Two nights.
+— Name?
+— Peterson.
+— Card or cash?
+— Cash.
+— I'll still need a card for the deposit.
+— I don't have one on me.
+— ...Then it's forty up front, and you're out by eleven on Sunday.
+— Fair enough.
+— Room twelve. Ice machine's broken, don't bother with it. And the wall by the parking lot is thin, so if you hear the truck, that's just the truck.
+— What's with the truck?
+— Fella loads it at four. Every morning. Been doing it eleven years.
+— Great.
+— You want quiet, you drive another sixty miles. You want a bed, it's room twelve.`,
+    translation: `— Добрый вечер. Номер есть?
+— Одноместный или двухместный?
+— Двухместный. На две ночи.
+— Фамилия?
+— Питерсон.
+— Картой или наличными?
+— Наличными.
+— Карта всё равно нужна — под залог.
+— С собой нет.
+— ...Тогда сорок вперёд, и в воскресенье до одиннадцати съезжаете.
+— Идёт.
+— Двенадцатый номер. Автомат со льдом сломан, даже не подходите. И стена со стороны парковки тонкая, так что если услышите грузовик — это просто грузовик.
+— А что с грузовиком?
+— Мужик грузится в четыре. Каждое утро. Одиннадцать лет уже.
+— Прекрасно.
+— Хотите тишины — езжайте ещё шестьдесят миль. Хотите кровать — это двенадцатый номер.`,
+    glossary: [
+      { term: 'deposit', ru: 'залог (возвращается при выезде)' },
+      { term: 'up front', ru: 'вперёд, сразу (об оплате)' },
+      { term: 'fair enough', ru: 'ладно, справедливо; согласен' },
+      { term: 'on me', ru: 'при себе' },
+      { term: 'to bother with', ru: 'связываться с чем-то, тратить силы' },
+      { term: "what's with", ru: 'а что не так с…, а что за история с…' },
+      { term: 'fella', ru: 'мужик, парень (разг.)' },
+      { term: 'to load', ru: 'грузить' },
+    ],
+    questions: [
+      {
+        q: 'Why does the guest end up paying forty up front?',
+        options: [
+          'The room costs forty a night',
+          'They have no card for the deposit',
+          'They booked online in advance',
+          'It is a discount for two nights',
+        ],
+        correct: 1,
+        why: 'Залог обычно замораживают на карте. Карты нет — значит вместо залога берут деньги вперёд.',
+      },
+      {
+        q: 'What does “Fair enough” signal here?',
+        options: [
+          'The guest thinks the price is too high',
+          'The guest accepts the condition without arguing',
+          'The guest asks for a better room',
+          'The guest is offended',
+        ],
+        correct: 1,
+        why: 'Это готовая формула согласия с условием, которое не нравится, но принимается. Не «отлично», а «ладно, справедливо».',
+      },
+      {
+        q: 'What is the clerk’s point about the truck?',
+        options: [
+          'The truck will wake you and nothing can be done',
+          'The truck belongs to another guest',
+          'The parking lot is closed at night',
+          'You must move your car before four',
+        ],
+        correct: 0,
+        why: 'Смысл в «that’s just the truck» и в последней реплике: хочешь тишины — уезжай. Это предупреждение, а не предложение решения.',
+      },
+    ],
+  },
+  {
+    id: 'sc-spn-3',
+    workId: 'supernatural',
+    lang: 'en', title: 'Расспросить местных в закусочной', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Приезжий пытается разузнать у официантки про заброшенную мельницу за городом. Это второй по частоте разговор сериала после разговора в машине: чужак задаёт вопросы местному, а местный отвечает так, чтобы ничего не сказать. Обратите внимание, как ни один ответ не является ответом.',
+    after: 'Такой диалог держится не на словах, а на уклонении: «depends what», «nothing you could write down», «because nobody goes at night». По-русски это звучало бы грубо, по-английски — совершенно обычно.',
+    body: `— More coffee?
+— Please. Can I ask you something?
+— Depends what.
+— We're writing something on the old mill. You know anything about it?
+— I know people don't go up there.
+— Why's that?
+— Ask around long enough, you'll get four answers and none of them match. Some say the floor's gone. Some say worse.
+— What do you say?
+— I say my brother went up there on a dare in ninety-eight, and he doesn't talk about it. And he talks about everything.
+— Did something happen to him?
+— Nothing you could write down. He just stopped going anywhere alone for about a year.
+— Anyone else?
+— Couple of kids last spring. Came back fine. Loud about it, too — you know how kids are. But they came back at three in the afternoon. Nobody goes at night.
+— Why not at night?
+— Because nobody goes at night, honey. That's the whole answer. More coffee?`,
+    translation: `— Ещё кофе?
+— Да, пожалуйста. Можно вас спросить?
+— Смотря о чём.
+— Мы пишем про старую мельницу. Вы что-нибудь о ней знаете?
+— Знаю, что туда не ходят.
+— А почему?
+— Поспрашивайте подольше — получите четыре ответа, и ни один не сойдётся с другим. Кто говорит, там пол провалился. Кто — что похуже.
+— А вы что скажете?
+— Скажу, что мой брат полез туда на спор в девяносто восьмом и с тех пор об этом не говорит. А он говорит обо всём.
+— С ним что-то случилось?
+— Ничего такого, что вы бы записали. Просто он потом с год никуда не ходил один.
+— Кто-нибудь ещё?
+— Пара подростков прошлой весной. Вернулись нормально. И раззвонили на весь город, сами понимаете, дети. Но вернулись они в три часа дня. Ночью туда никто не ходит.
+— А почему не ночью?
+— Потому что ночью туда никто не ходит, милый. Это и есть весь ответ. Ещё кофе?`,
+    glossary: [
+      { term: 'depends what', ru: 'смотря о чём' },
+      { term: 'mill', ru: 'мельница; заброшенное производство' },
+      { term: 'to ask around', ru: 'поспрашивать у разных людей' },
+      { term: 'none of them match', ru: 'ни один с другим не сходится' },
+      { term: 'on a dare', ru: 'на спор, на слабо' },
+      { term: 'to write down', ru: 'записать' },
+      { term: 'loud about it', ru: 'раззвонивший на всю округу' },
+      { term: 'honey', ru: 'милый, дорогуша — обращение официантки, не нежность' },
+    ],
+    questions: [
+      {
+        q: 'What does “Depends what” mean as an answer to “Can I ask you something?”',
+        options: [
+          'Yes, ask anything',
+          'I will answer if I like the question',
+          'I do not have time now',
+          'Ask the manager instead',
+        ],
+        correct: 1,
+        why: 'Это условное согласие: собеседница не отказывает, но и не обещает ответить. Полная форма — «it depends on what you ask».',
+      },
+      {
+        q: 'Why does she mention that her brother “talks about everything”?',
+        options: [
+          'To show he is unreliable',
+          'To show his silence about the mill is unusual',
+          'To explain why he moved away',
+          'To warn that he exaggerates',
+        ],
+        correct: 1,
+        why: 'Аргумент строится на контрасте: болтливый человек молчит именно об этом. Само событие не названо ни разу.',
+      },
+      {
+        q: 'What does “Nothing you could write down” imply?',
+        options: [
+          'Nothing happened at all',
+          'Something happened, but it cannot be stated as a fact',
+          'The story is a well-known local legend',
+          'She was asked not to tell anyone',
+        ],
+        correct: 1,
+        why: 'Фраза отвечает на «did something happen» уклончиво: событие было, но в отчёт его не занесёшь. Следующее предложение это подтверждает.',
+      },
+      {
+        q: 'What is the point of “Because nobody goes at night”?',
+        options: [
+          'It is a rule set by the town council',
+          'She is refusing to explain further',
+          'The road is closed after dark',
+          'She does not know the reason herself',
+        ],
+        correct: 1,
+        why: 'Ответ по кругу повторяет вопрос и закрывается словами «that’s the whole answer» и предложением кофе. Разговор окончен.',
+      },
+    ],
+  },
 ]

@@ -811,6 +811,125 @@ function Card({
   )
 }
 
+/**
+ * Кто ещё не завёл настоящий аккаунт.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНАЯ ПАНЕЛЬ. Ученик без `auth_user_id` ходит в базу под ролью
+ * `anon`, и все политики для него — «любой легаси-ученик», то есть по сути «все
+ * видят всех». Пока такие есть, публичное чтение курсов, уроков и домашек снять
+ * нельзя: на нём и держится их кабинет. Переезд упирается не в код — ссылки
+ * готовы у всех, — а в то, что каждому надо эту ссылку ОТПРАВИТЬ. Ссылка при
+ * этом лежала по одной, под наведением на аватар в раскрытой группе: чтобы
+ * собрать двадцать шесть, нужно было обойти все группы и вспомнить, кого уже
+ * звал.
+ *
+ * ПОЯВЛЯЕТСЯ ТОЛЬКО КОГДА ЕСТЬ КОГО ЗВАТЬ и исчезает сама, когда последний
+ * переехал: это не раздел кабинета, а работа с концом.
+ */
+function PendingAccountsPanel({ students }: { students: Student[] }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [copiedAll, setCopiedAll] = useState(false)
+
+  // Карточек у одного человека бывает несколько (1:1 по предмету), а ссылка
+  // нужна одна: claim_student_account сам подтягивает соседние карточки по
+  // person_id. Поэтому людей схлопываем по имени и берём первую карточку.
+  const pending = useMemo(() => {
+    const seen = new Map<string, Student>()
+    for (const s of students) {
+      if (s.authUserId || !s.inviteToken) continue
+      const key = (s.personId ?? s.name.trim().toLowerCase())
+      if (!seen.has(key)) seen.set(key, s)
+    }
+    return [...seen.values()]
+  }, [students])
+
+  if (pending.length === 0) return null
+
+  const linkFor = (s: Student) =>
+    `${window.location.origin}${window.location.pathname}#/join?token=${s.inviteToken}`
+
+  async function copyOne(s: Student) {
+    if (!await copyToClipboard(linkFor(s))) return
+    setCopiedId(s.id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  async function copyAll() {
+    const text = pending.map(s => `${s.name}: ${linkFor(s)}`).join('\n')
+    if (!await copyToClipboard(text)) return
+    setCopiedAll(true)
+    setTimeout(() => setCopiedAll(false), 2500)
+  }
+
+  return (
+    <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: open ? 12 : 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: 12, flexShrink: 0,
+          background: 'var(--color-bg-4)', display: 'grid', placeItems: 'center',
+        }}>
+          <UserPlus size={17} strokeWidth={2.2} style={{ color: 'var(--color-text-2)' }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+            {t('Ещё без своего аккаунта')} · {pending.length}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
+            {t('Пока ученик не завёл аккаунт, его домашка видна всем, у кого есть адрес сайта')}
+          </div>
+        </div>
+        <button
+          onClick={() => setOpen(v => !v)}
+          style={{
+            padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
+            border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+            color: 'var(--color-text)', fontSize: 12, fontWeight: 600,
+          }}
+        >
+          {open ? t('Свернуть') : t('Показать')}
+        </button>
+      </div>
+
+      {open && (
+        <>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {pending.map(s => (
+              <button
+                key={s.id}
+                onClick={() => copyOne(s)}
+                title={t('Скопировать ссылку приглашения')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  padding: '7px 11px', borderRadius: 999, cursor: 'pointer',
+                  border: '1px solid var(--color-border-medium)',
+                  background: 'var(--color-bg-3)', color: 'var(--color-text)',
+                  fontSize: 12.5, fontWeight: 600,
+                }}
+              >
+                {copiedId === s.id
+                  ? <Check size={13} strokeWidth={2.6} style={{ color: 'var(--color-success, #2C7A58)' }} />
+                  : <Copy size={13} strokeWidth={2.2} style={{ color: 'var(--color-text-3)' }} />}
+                {s.name}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={copyAll}
+            style={{
+              padding: '9px 14px', borderRadius: 12, cursor: 'pointer', border: 'none',
+              background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700,
+            }}
+          >
+            {copiedAll ? t('Скопировано — осталось разослать') : t('Скопировать все ссылки списком')}
+          </button>
+        </>
+      )}
+    </Card>
+  )
+}
+
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const [fadeLeft, setFadeLeft] = useState(false)
@@ -1147,7 +1266,14 @@ function StudentAvatar({
   const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
   const [hovered, setHovered] = useState(false)
   const [copied, setCopied] = useState(false)
-  const isRegistered = !!student.email
+  // «Завёл аккаунт» — это auth_user_id, а НЕ заполненный email.
+  //
+  // По email судить нельзя: у легаси-ученика он тоже заполнен — это его логин
+  // для входа по student_login со сравнением пароля в открытом виде. Такой
+  // ученик выглядел зарегистрированным, точки «ещё не завёл» у него не было и
+  // ссылку-приглашение скопировать было нельзя — при том что переехать на
+  // настоящий аккаунт нужно как раз ему. На 27.08.2026 таких трое из 26.
+  const isRegistered = !!student.authUserId
 
   async function copyInvite() {
     if (!student.inviteToken) return
@@ -2223,6 +2349,11 @@ export default function TeacherGroupsPage() {
             tabConfig={stripTabConfig}
             onAddToGroup={activeStripTab === 'groups' ? (gid) => setAddToGroupTarget(gid) : undefined}
           />
+        </motion.div>
+
+        {/* Переезд на аккаунты: показывается, только пока есть кого звать. */}
+        <motion.div {...fadeUp(0.06)}>
+          <PendingAccountsPanel students={allStudents} />
         </motion.div>
 
         {/* Student table */}

@@ -23,11 +23,27 @@
          Порог 1024 — тот же, по которому DashboardPage переключает разметку. -->
     <style>
       @media (min-width: 1024px) { #mobile-dock-layer { display: none !important } }
+      /* Заглушка первого кадра — см. #boot в разметке ниже. */
+      :root { --boot-bg: #F5F5F6; --boot-block: rgba(0,0,0,0.055) }
+      html[data-theme="dark"] { --boot-bg: #111113; --boot-block: rgba(255,255,255,0.06) }
+      html, body { background: var(--boot-bg) }
+      #boot { max-width: 980px; margin: 0 auto; padding: 24px 20px 0 }
+      #boot i { display: block; background: var(--boot-block); border-radius: 18px;
+                animation: boot-pulse 1.6s ease-in-out infinite }
+      @keyframes boot-pulse { 0%, 100% { opacity: .6 } 50% { opacity: 1 } }
+      @media (prefers-reduced-motion: reduce) { #boot i { animation: none } }
     </style>
     <!-- Фавикон + заголовок переключаются по маршруту: ученик (книга) / учитель (искра).
          apple-touch-icon is intentionally NOT switched — iOS reads it once at add-time. -->
     <script>
       (function () {
+        // Тема — до первой отрисовки. Стор ставит data-theme на монтировании, то
+        // есть через секунды после начала загрузки, и всё это время тёмный
+        // пользователь смотрел на белый экран.
+        try {
+          document.documentElement.setAttribute('data-theme',
+            localStorage.getItem('theme') === 'dark' ? 'dark' : 'light')
+        } catch (e) {}
         function syncIcon() {
           var teacher = location.hash.indexOf('#/teacher') === 0
           var href = teacher ? './icon-teacher.svg?v=2' : './icon.svg?v=2'
@@ -59,7 +75,21 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- ЗАГЛУШКА ПЕРВОГО КАДРА.
+         До неё #root был пуст, и экран оставался белым, пока не выполнится
+         главный чанк — замер на проде: 3092 мс до первого пикселя при том, что
+         сам HTML приезжал за 350 мс. Пользователь всё это время не мог отличить
+         загрузку от сломанного сайта.
+         Разметка самодостаточная (свои стили, без классов из index.css) и
+         исчезает сама: createRoot().render() очищает контейнер. -->
+    <div id="root">
+      <div id="boot" aria-hidden="true">
+        <i style="height:44px;width:min(340px,72vw);margin:0 auto;border-radius:22px"></i>
+        <i style="height:26vh;min-height:150px;margin-top:38px"></i>
+        <i style="height:88px;margin-top:16px"></i>
+        <i style="height:88px;margin-top:16px;width:68%"></i>
+      </div>
+    </div>
     <!-- Нижний слой (док + навигация) живёт ЗДЕСЬ, а не в #root, и намеренно
          не position:fixed. На холодном запуске установленного PWA вебвью
          какое-то время держит вьюпорт короче экрана (замер на iPhone 16 Pro:

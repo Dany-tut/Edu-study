@@ -8399,6 +8399,10 @@ export default function TeacherConstructorPage() {
     widget:   { label: t('Виджеты'),    Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
   }
 
+  // Где режим выделения имеет смысл. Кнопка рисуется всегда — на «Разметке» и
+  // «Материалах» она невидима, но место держит (см. ряд вкладок ниже).
+  const editToggleShown = !(activeTab === 'decks' || (activeTab === 'trainer' && taskView === 'map'))
+
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', marginTop: -100 }}>
@@ -8513,15 +8517,17 @@ export default function TeacherConstructorPage() {
               } as React.CSSProperties}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 {/* Edit-mode toggle — square button.
-                    Прячется там, где выделять нечего: разметка правится на
-                    месте, а группы карточек удаляются своей корзиной на
-                    карточке. Кнопка, которая ничего не делает, читается как
-                    поломка. */}
-                {!(activeTab === 'decks' || (activeTab === 'trainer' && taskView === 'map')) && (
+                    Там, где выделять нечего (разметка правится на месте, а
+                    группы карточек удаляются своей корзиной на карточке),
+                    кнопки нет: кнопка, которая ничего не делает, читается как
+                    поломка. Но место за собой она держит — иначе ряд вкладок
+                    прыгал бы влево на «Разметке» и «Подборках». */}
                 <motion.button
                   whileTap={{ scale: 0.93 }}
                   onClick={toggleEditMode}
                   title={editMode ? t('Выйти из режима редактирования') : t('Редактировать')}
+                  aria-hidden={!editToggleShown}
+                  tabIndex={editToggleShown ? undefined : -1}
                   style={{
                     width: 44, height: PILL_H, boxSizing: 'border-box', padding: 0, borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -8530,11 +8536,11 @@ export default function TeacherConstructorPage() {
                     color: editMode ? 'var(--color-red-text)' : 'var(--color-muted)',
                     boxShadow: editMode ? '0 0 0 1.5px #c0303a44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
                     transition: 'all 0.15s',
-                  }}
+                    ...(editToggleShown ? null : { visibility: 'hidden', pointerEvents: 'none' }),
+                  } as React.CSSProperties}
                 >
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
-                )}
 
                 {(['course', 'trainer', 'decks', 'testing', 'widget'] as const).map(t => {
                   const cfg = tabCfg[t]

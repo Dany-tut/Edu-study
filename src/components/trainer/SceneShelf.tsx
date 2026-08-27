@@ -37,13 +37,31 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
 }) {
   const t = useT()
 
-  if (groups.length === 0) {
+  // Произведение без единой сцены — плитка в никуда: она честно пишет «0 сцен»,
+  // но всё равно открывается, и за ней пустой экран. Так бывает у вещи, которая
+  // заведена в реестре раньше, чем к ней написан текст (реестр имеет на это
+  // право — он же и подписывает полку). Поэтому сторож стоит на витрине, а не в
+  // данных: показываем только то, что можно открыть.
+  //
+  // НО СНАЧАЛА НАДО ОТЛИЧИТЬ «сцен нет» ОТ «сцены ещё едут». Тексты приезжают
+  // отдельным чанком, и до его загрузки scenesOf пуст для ВСЕХ произведений —
+  // отфильтровав по нему сразу, витрина на пол-секунды показала бы «Под
+  // выбранные фильтры ничего не подошло» вместо своих тридцати карточек.
+  // Признак загрузки — хоть одна сцена хоть у кого-нибудь.
+  const loaded = groups.some(g => g.works.some(w => scenesOf(w.id).length > 0))
+  const shown = loaded
+    ? groups
+        .map(g => ({ ...g, works: g.works.filter(w => scenesOf(w.id).length > 0) }))
+        .filter(g => g.works.length > 0)
+    : groups
+
+  if (shown.length === 0) {
     return <Empty text={t('Под выбранные фильтры ничего не подошло. Сбрось один из них.')} />
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
-      {groups.map(g => (
+      {shown.map(g => (
         <section key={g.title} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <header>
             <h2 style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', margin: 0 }}>
