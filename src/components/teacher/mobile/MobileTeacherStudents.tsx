@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Users, ChevronRight, ArrowLeft, Phone, Send, Wallet, CalendarCheck, Check } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
+import Skeleton from '../../Skeleton'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { useGroups, useStudents, useAllStudents } from '../../../lib/useGroups'
@@ -125,9 +126,13 @@ export function StudentSheet({ student, group, open, loading, onClose }: { stude
   return (
     <MobileSheet open={open} onClose={onClose} title={student?.name ?? group.name}>
       {!student && (
-        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-muted)', padding: '28px 0', textAlign: 'center' }}>
-          {loading ? t('Загрузка…') : t('Нет данных об ученике')}
-        </div>
+        loading ? (
+          <div style={{ padding: '20px 0' }} aria-busy="true"><Skeleton.List rows={3} /></div>
+        ) : (
+          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-muted)', padding: '28px 0', textAlign: 'center' }}>
+            {t('Нет данных об ученике')}
+          </div>
+        )
       )}
       {student && (
         <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: 8 }}>

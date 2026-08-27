@@ -2,12 +2,26 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import StarStickerLottie from './StarStickerLottie'
+import Skeleton from './Skeleton'
 import { useT } from '../lib/i18n'
 
 const STAT_ICONS: Record<string, string> = {
   'Успеваемость': '📈',
   'Средний балл': '🎯',
   'Общий балл':   '💎',
+}
+
+/** Курс ещё едет из Supabase. Скелетон, а НЕ «нет данных»: до загрузки мы не
+ *  знаем, есть ли у ученика оценки, а «нет данных» — это утверждение. Ученик с
+ *  полным курсом успевал прочитать его четыре раза за вход и решить, что
+ *  прогресс потерян. */
+function PendingValue() {
+  return (
+    <span aria-busy="true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <Skeleton w={34} h={28} radius={9} />
+      <Skeleton w={58} h={11} />
+    </span>
+  )
 }
 
 function EmptyValue({ icon }: { icon: string }) {
@@ -94,7 +108,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
         {statCards.map(s => (
           <div key={s.label} className="stat-card flex flex-col items-center justify-center rounded-[24px]" style={{ ...cardStyle, textAlign: 'center', gap: 8 }}>
             <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1 }}>
-              {s.value ?? <EmptyValue icon={STAT_ICONS[s.label]} />}
+              {s.value ?? (loaded ? <EmptyValue icon={STAT_ICONS[s.label]} /> : <PendingValue />)}
             </span>
             <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
               {t(s.label)}
@@ -110,8 +124,10 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
                 <span style={{ display: 'flex', transform: 'translateY(-1px)' }}><StarStickerLottie size={36} /></span>
                 <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{stats.stars}</span>
               </>
-            ) : (
+            ) : loaded ? (
               <EmptyValue icon="⭐" />
+            ) : (
+              <PendingValue />
             )}
           </span>
           <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>

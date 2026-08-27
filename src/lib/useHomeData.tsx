@@ -64,7 +64,7 @@ export function useHomeData() {
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const { openGradebook } = useTeacher()
-  const { groups } = useGroups()
+  const { groups, loading: groupsLoading } = useGroups()
   const { homework: allHomework } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
   const allStudents = useAllStudents()
@@ -175,6 +175,9 @@ export function useHomeData() {
 
   return {
     groups,
+    // Группы — основа всех цифр стола: пока их нет, любой ноль ниже ничего не
+    // значит. Виджеты по нему рисуют скелетон вместо нуля.
+    loading: groupsLoading,
     totalStudents,
     pendingCount,
     todaySchedule,

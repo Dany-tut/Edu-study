@@ -5,6 +5,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
+import Skeleton from './Skeleton'
 
 // Side card widths by distance from center — must match ScheduleCard.
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
@@ -14,6 +15,7 @@ export default function ScheduleCarousel() {
   const t = useT()
   const { scheduleIndex, setScheduleIndex } = useDashboard()
   const scheduleDays = useStudentData(s => s.scheduleDays)
+  const loaded = useStudentData(s => s.loaded)
   const total = scheduleDays.length
   const isDesktop = useIsDesktop()
   const mobile = !isDesktop
@@ -54,6 +56,19 @@ export default function ScheduleCarousel() {
   })
 
   if (total === 0) {
+    // Пока расписание едет, лента карточек — скелетон: «Расписание не
+    // добавлено» это утверждение об учителе, и говорить его до ответа базы
+    // нечестно. Ряд той же формы, что и настоящие карточки дней.
+    if (!loaded) {
+      return (
+        <div className="flex items-end justify-center" role="status" aria-busy="true"
+          aria-label={t('Расписание не добавлено')} style={{ height: 198, gap: 12 }}>
+          {[110, 130, 160, 220, 160, 130, 110].map((w, i) => (
+            <Skeleton key={i} w={w} h={i === 3 ? 172 : 128 - Math.abs(i - 3) * 14} radius={20} />
+          ))}
+        </div>
+      )
+    }
     return (
       <div className="flex items-center justify-center" style={{ height: 198 }}>
         <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Расписание не добавлено')}</p>

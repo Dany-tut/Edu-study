@@ -16,6 +16,7 @@ import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+import Skeleton from '../components/Skeleton'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
@@ -464,9 +465,19 @@ export default function DashboardPage() {
  */
 function LessonLoading() {
   const t = useT()
+  // Скелетон, а не слово «Загрузка…»: ожидание должно быть формой того, что
+  // сейчас появится, — заголовок, строка-подпись и абзацы конспекта. Слово в
+  // центре пустого экрана не говорит ученику ничего о том, чего он ждёт, и
+  // читается как сбой, а не как пауза.
   return (
-    <div className="flex items-center justify-center" style={{ minHeight: 300 }}>
-      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Загрузка…')}</p>
+    <div role="status" aria-busy="true" aria-label={t('Загрузка…')}
+      style={{ minHeight: 300, display: 'flex', flexDirection: 'column', gap: 18, padding: '8px 0' }}>
+      <Skeleton w="62%" h={26} radius={10} />
+      <Skeleton w="34%" h={13} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 22, marginTop: 6 }}>
+        <Skeleton.Text lines={4} />
+        <Skeleton.Text lines={3} />
+      </div>
     </div>
   )
 }

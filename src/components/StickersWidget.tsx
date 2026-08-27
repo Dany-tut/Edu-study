@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, X } from 'lucide-react'
 import StickerBadge from './StickerBadge'
+import Skeleton from './Skeleton'
 import HoloSticker from './HoloSticker'
 import { tierOf, STICKER_TIERS, assignEmblems } from '../lib/holo/presets'
 import { useStickers, stickerCaption, stickerLabel, type EarnedSticker } from '../lib/stickers'
@@ -35,7 +36,9 @@ export default function StickersWidget({ columns }: { columns: number }) {
       </div>
 
       {loading ? (
-        <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>{t('Загрузка…')}</div>
+        <div style={{ display: 'flex', gap: 8 }} aria-busy="true">
+          {[0, 1, 2].map(i => <Skeleton key={i} w={56} h={72} radius={10} />)}
+        </div>
       ) : stickers.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
           {t('Стикер даётся за принятое сложное задание и за тему разговорника, пройденную без единой ошибки. Балл 5 — голограмма.')}

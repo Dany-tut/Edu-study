@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import Skeleton from '../../Skeleton'
 
 type Props = {
   icon: LucideIcon
@@ -8,11 +9,15 @@ type Props = {
   accentBg: string
   accentColor: string
   dimmed?: boolean
+  /** Данные ещё едут. Скелетон вместо цифры: ноль — это утверждение, и
+   *  «Студентов 0» на полсекунды у учителя с тридцатью учениками читается как
+   *  потеря данных, а не как ожидание. */
+  loading?: boolean
 }
 
-export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, accentColor, dimmed }: Props) {
+export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading }: Props) {
   return (
-    <div style={{
+    <div aria-busy={loading || undefined} style={{
       width: '100%', height: '100%',
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'blur(16px) saturate(180%)',
@@ -34,16 +39,24 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
           <Icon size={14} strokeWidth={2.2} style={{ color: accentColor }} />
         </div>
       </div>
-      <div style={{ fontSize: 32, fontWeight: 800, color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.5px' }}>
-        {value}
-      </div>
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: dimmed ? 'var(--color-text-3)' : accentColor,
-        background: dimmed ? 'var(--color-bg-4)' : accentBg,
-        borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
-      }}>
-        {sub}
-      </div>
+      {loading ? (
+        <Skeleton w={72} h={32} radius={10} />
+      ) : (
+        <div style={{ fontSize: 32, fontWeight: 800, color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+          {value}
+        </div>
+      )}
+      {loading ? (
+        <Skeleton w={104} h={17} radius={8} />
+      ) : (
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: dimmed ? 'var(--color-text-3)' : accentColor,
+          background: dimmed ? 'var(--color-bg-4)' : accentBg,
+          borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
+        }}>
+          {sub}
+        </div>
+      )}
     </div>
   )
 }

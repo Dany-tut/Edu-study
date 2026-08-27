@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
 import WidgetBoundary from './WidgetBoundary'
+import Skeleton from '../Skeleton'
 import { useDeskStore } from '../../store/deskStore'
 import { useT } from '../../lib/i18n'
 
@@ -104,10 +105,15 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
     >
       <WidgetBoundary label={item.type}>
         <Suspense fallback={
-          <div style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb),0.5)',
+          // Скелетон формы виджета, а не крутилка по центру: на столе их
+          // десяток, и десять вращающихся точек читаются как «всё сломалось»,
+          // тогда как проступающая раскладка — как «сейчас будет».
+          <div aria-busy="true" style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb),0.5)',
             borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--color-border-medium)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.7s linear infinite' }} />
+            display: 'flex', flexDirection: 'column', gap: 12, padding: 18, overflow: 'hidden' }}>
+            <Skeleton w="46%" h={13} />
+            <Skeleton w="72%" h={24} radius={9} />
+            <Skeleton.Text lines={2} style={{ marginTop: 'auto' }} />
           </div>
         }>
           <Comp />

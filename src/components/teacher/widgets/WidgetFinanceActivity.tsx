@@ -1,6 +1,7 @@
 import { CheckCircle2, Wallet } from 'lucide-react'
 import { usePayments } from '../../../lib/useFinances'
 import { useAllStudents } from '../../../lib/useGroups'
+import Skeleton from '../../Skeleton'
 import { t, useT } from '../../../lib/i18n'
 
 function fmtDate(iso: string) {
@@ -61,9 +62,7 @@ export default function WidgetFinanceActivity() {
       {/* List */}
       <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--color-border-medium)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.7s linear infinite' }} />
-          </div>
+          <div style={{ padding: '4px 2px' }} aria-busy="true"><Skeleton.List rows={3} gap={14} /></div>
         ) : recent.length === 0 ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
