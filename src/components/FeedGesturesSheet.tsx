@@ -310,11 +310,16 @@ export function FeedGesturesSettings() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* Макет липнет к верху: ряды жестов уходят под него, и выбор действия
           виден сразу, без прокрутки обратно наверх. */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+      {/* `top: -10` — на верхнее поле прокрутки самой шторки (MobileSheet,
+          padding 10px сверху). Липкий блок прилипает к КРАЮ ПРОКРУТКИ, и без
+          этой поправки над ним оставалась десятипиксельная щель, сквозь
+          которую уезжающие ряды было видно поверх макета. Поле возвращается
+          отступом внутрь — макет остаётся на прежнем месте. */}
+      <div style={{ position: 'sticky', top: -10, zIndex: 2 }}>
         {/* Непрозрачная, а не «почти»: под липкой шапкой уезжают ряды чипсов,
             и даже двух процентов просвета хватает, чтобы они читались тенью
             поверх макета. */}
-        <div style={{ background: 'rgb(var(--glass-rgb))', paddingBottom: 4 }}>
+        <div style={{ background: 'rgb(var(--glass-rgb))', paddingTop: 10, paddingBottom: 4 }}>
           <GesturePreview
             gesture={focus}
             action={gestures ? map[focus] : 'none'}

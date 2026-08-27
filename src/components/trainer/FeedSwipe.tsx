@@ -421,6 +421,10 @@ export default function FeedSwipe({
 
     const onEnd = (e: TouchEvent) => {
       clearHold()
+      // Долгое нажатие уже сработало — гасим щелчок, который браузер соберёт
+      // из этого касания: палец мог держаться на слове, и вместе с открытым
+      // тредом выскочил бы ещё и разбор слова.
+      if (held && e.cancelable) e.preventDefault()
       const wasSwipe = mode === 'swipe'
       const t = Array.from(e.changedTouches).find(x => x.identifier === id)
       const dt = e.timeStamp - startT
@@ -496,7 +500,9 @@ export default function FeedSwipe({
 
     host.addEventListener('touchstart', onStart, { passive: true })
     host.addEventListener('touchmove', onMove, { passive: false })
-    host.addEventListener('touchend', onEnd, { passive: true })
+    // Не passive: на сработавшем долгом нажатии этот обработчик обязан уметь
+    // отменить последующий щелчок (см. onEnd).
+    host.addEventListener('touchend', onEnd, { passive: false })
     host.addEventListener('touchcancel', onCancel, { passive: true })
     return () => {
       clearHold()
