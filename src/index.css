@@ -20,9 +20,10 @@
   --color-bg-3: #F0F0F2;
   --color-bg-4: #FAFAFA;
   --color-bg-5: #EBEBEF;
-  /* Плитка сетки (тренажёр): всегда светлее фона страницы, чтобы край
-     карточки читался без серой рамки. */
-  --color-tile: #FFFFFF;
+  /* Тень плитки сетки (тренажёр): очерчивает край вместо серой рамки.
+     В тёмной теме она заметно плотнее — на тёмном фоне мягкая тень
+     не видна вовсе. */
+  --tile-shadow: 0 3px 16px rgba(0,0,0,0.06);
   --color-bg-input: #ECEDF1;
   /* Idle/upcoming schedule-lesson row fill (subtle, theme-aware) */
   --color-schedule-row: rgba(0,0,0,0.025);
@@ -218,7 +219,7 @@
   --color-bg-3: #222224;
   --color-bg-4: #1E1E20;
   --color-bg-5: #2A2A2C;
-  --color-tile: #2A2A2C;
+  --tile-shadow: 0 4px 18px rgba(0,0,0,0.45);
   --color-bg-input: #202022;
   /* Lighter than the card so idle/upcoming rows read on the dark glass */
   --color-schedule-row: rgba(255,255,255,0.055);
