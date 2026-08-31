@@ -152,17 +152,26 @@ type Stage = {
 function buildStage(under: Snapshot | null): Stage {
   const W = Math.max(1, window.innerWidth)
   const scrollY = Math.round(window.scrollY)
-  // ── Геометрия слоёв: от ЭКРАНА, а не от коробки окна ──
+  // ── Геометрия слоёв: до настоящего низа экрана ──
   //
-  // На холодном запуске установленного PWA вебвью держит вьюпорт короче экрана
-  // и режет `position:fixed` ровно по этой ложной границе (подробности —
-  // lib/dockLayer.ts). Слои жеста стояли на `inset:0` и обрывались там же:
-  // уезжающая страница показывала скругление ВЫШЕ низа экрана, а под ним
-  // светилась подложка. Пока зазор есть, слои обычные (не fixed) и высотой в
-  // настоящий экран — тем же приёмом до низа достаёт слой доков; отсчёт при
-  // этом ведём от текущей прокрутки. Зазора нет — всё как было, fixed.
-  const gap = viewportGap()
-  const H = window.innerHeight + gap
+  // В установленном PWA вебвью держит ДОКУМЕНТ короче окна и режет
+  // `position:fixed` по этой, документной границе. Замер на устройстве:
+  // innerHeight 874, documentElement.clientHeight 812. Слои жеста стояли на
+  // `inset:0`; рамка корня честно возвращала 0…874, а краска обрывалась на
+  // 812 — уезжающая страница показывала скругление ВЫШЕ низа экрана, и снизу
+  // оставалась полоса голого холста в 62px.
+  //
+  // Мерить это через `screen.height` (как lib/dockLayer.ts, которому нужно
+  // другое — ложная граница ОКНА) нельзя: на том же устройстве screen 874 =
+  // innerHeight, и зазора «по экрану» нет вовсе.
+  //
+  // Пока зазор есть, слои обычные (не fixed) и высотой в окно: обрезка бьёт
+  // только по fixed, а обычный слой рисуется до самого низа. Отсчёт ведём от
+  // текущей прокрутки. Зазора нет — всё как было, fixed.
+  const clip = Math.round(window.innerHeight - document.documentElement.clientHeight)
+  const gap = Math.max(0, clip, viewportGap())
+  // Высота — настоящий экран: окно плюс зазор ОКНА (не документного).
+  const H = window.innerHeight + Math.max(0, viewportGap())
   const POS = gap ? 'absolute' : 'fixed'
   const TOP = gap ? scrollY : 0
 
@@ -283,12 +292,6 @@ function buildStage(under: Snapshot | null): Stage {
     el.style.willChange = 'transform'
   })
 
-  // ── Временный замер (включается вручную) ──────────────────────────────────
-  // localStorage.setItem('swipeDebug','1') — и на время жеста поверх экрана
-  // висит табличка с настоящими координатами слоёв. Снимать её, когда полоса
-  // снизу будет объяснена.
-  const probe = debugProbe(gap, H, scrollY, root, wrap)
-
   let x = 0
 
   const apply = (next: number) => {
@@ -343,7 +346,6 @@ function buildStage(under: Snapshot | null): Stage {
     destroy(fired) {
       wrap.remove()
       bleed.remove()
-      probe?.remove()
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
@@ -358,56 +360,6 @@ function buildStage(under: Snapshot | null): Stage {
       freezeDockLayer(false)
     },
   }
-}
-
-/**
- * Включён ли замер. Флаг ставится ссылкой (`…?swipedebug=1`) и живёт в
- * localStorage: на телефоне консоли под рукой нет, а PWA перезапускают.
- * Выключается тем же адресом с `=0`.
- */
-function debugOn(): boolean {
-  // ВРЕМЕННО ВКЛЮЧЕНО ВСЕМ. В установленном PWA нет адресной строки, а его
-  // localStorage отдельный от Safari — иначе флаг туда никак не поставить.
-  // СНЯТЬ сразу, как полоса снизу будет объяснена: вернуть чтение флага.
-  return true
-}
-
-/**
- * Табличка с замерами на время жеста. Ничего не делает без флага в
- * localStorage — это отладочный инструмент, а не часть жеста.
- */
-function debugProbe(
-  gap: number, H: number, scrollY: number,
-  root: HTMLElement | null, wrap: HTMLElement,
-): HTMLElement | null {
-  if (!debugOn()) return null
-  const layer = document.getElementById('mobile-dock-layer')
-  const nav = layer?.firstElementChild as HTMLElement | null
-  const r = (el: Element | null | undefined) => {
-    if (!el) return '—'
-    const b = el.getBoundingClientRect()
-    return `${Math.round(b.top)}…${Math.round(b.bottom)}`
-  }
-  const el = document.createElement('div')
-  el.setAttribute(STAGE_ATTR, '')
-  el.style.cssText = [
-    'position:absolute', `top:${scrollY + 60}px`, 'left:8px', 'right:8px',
-    'z-index:99999', 'pointer-events:none',
-    'background:rgba(0,0,0,0.82)', 'color:#fff', 'padding:8px 10px',
-    'border-radius:10px', 'font:600 11px/1.45 ui-monospace,monospace',
-    'white-space:pre',
-  ].join(';')
-  el.textContent = [
-    `inner ${window.innerHeight}  screen ${Math.round(Math.max(screen.height, screen.width))}  gap ${gap}`,
-    `H ${H}  scrollY ${scrollY}→${Math.round(window.scrollY)}`,
-    `root   ${r(root)}`,
-    `wrap   ${r(wrap)}`,
-    `layer  ${r(layer)}  h ${layer?.style.height || '—'}`,
-    `nav    ${r(nav)}`,
-    `body   ${Math.round(document.body.getBoundingClientRect().bottom)}  doc ${document.documentElement.scrollHeight}`,
-  ].join('\n')
-  document.body.appendChild(el)
-  return el
 }
 
 // ─── Жест ────────────────────────────────────────────────────────────────────
