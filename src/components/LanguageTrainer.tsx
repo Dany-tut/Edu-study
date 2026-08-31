@@ -1880,7 +1880,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             <RailSegment
               options={[
                 ...(storyOn ? [{ value: 'story', label: 'Как устроен' }] : []),
-                ...(booksOn ? [{ value: 'books', label: 'Учебники', badge: books.length, icon: <Library size={15} /> }] : []),
+                // Без значка: с иконкой кнопка теряла подпись совсем и в ряду
+                // стояла безымянной плиткой рядом с «Как устроен». Двум
+                // подписям ширины рейла хватает, счётчик остаётся на неактивной.
+                ...(booksOn ? [{ value: 'books', label: 'Учебники', badge: books.length }] : []),
               ]}
               value={guideView}
               onChange={v => v && setGuideView(v as GuideView)}
