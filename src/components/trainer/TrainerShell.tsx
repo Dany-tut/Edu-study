@@ -2113,8 +2113,8 @@ export function Tile({ children, onClick, accent, stack, tint }: {
             // Нижние листы стопки красятся вместе с верхним, иначе цветная
             // карточка выглядит наклейкой, положенной на чужую пачку.
             background: tint
-              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-3)`
-              : 'var(--color-bg-3)',
+              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-tile)`
+              : 'var(--color-tile)',
             border: `1px solid ${tint ? tint.border : 'var(--color-border-glass)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
@@ -2130,16 +2130,16 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           display: 'flex', flexDirection: 'column', gap: 7,
           padding: '13px 15px', borderRadius: 16, cursor: onClick ? 'pointer' : 'default',
           fontFamily: 'inherit',
-          // Подложка на ступень контрастнее фона страницы (`bg-3`, не `bg-2`):
-          // без серой рамки край плитки держит только разница с фоном, и на
-          // `bg-2` соседние карточки сливались в одно пятно.
+          // Подложка заметно светлее фона страницы (`--color-tile`): без серой
+          // рамки край плитки держит только разница с фоном, и на `bg-2`
+          // соседние карточки сливались в одно пятно.
           //
           // Заливка «своей» плитки — слоем поверх подложки, а не вместо неё:
           // `soft` палитры полупрозрачен, и без второго слоя сквозь плитку
           // светился бы фон страницы.
           background: tint
-            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-3)`
-            : 'var(--color-bg-3)',
+            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-tile)`
+            : 'var(--color-tile)',
           // Серой рамки в покое нет — как у карточек курса в учительской: там
           // край держат стеклянная обводка (в тёмной теме прозрачная) и мягкая
           // тень. Акцентная рамка — только ответ на наведение.
