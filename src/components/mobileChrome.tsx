@@ -23,12 +23,18 @@ export function GlassPill({
   onClick,
   strong = false,
   style,
+  morph,
 }: {
   children: ReactNode
   onClick?: () => void
   /** Slightly more opaque + lifted — used for the central "island". */
   strong?: boolean
   style?: CSSProperties
+  /**
+   * Имя пары для свайпа «назад»: одноимённые таблетки соседних экранов не
+   * сменяют друг друга, а перетекают (lib/useSwipeBack.ts, MORPH_ATTR).
+   */
+  morph?: string
 }) {
   const inner: CSSProperties = {
     display: 'inline-flex',
@@ -44,10 +50,11 @@ export function GlassPill({
     ...(strong ? { background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))', boxShadow: 'var(--shadow-lg)' } : null),
     ...style,
   }
-  if (!onClick) return <div style={inner}>{children}</div>
+  if (!onClick) return <div data-swipe-morph={morph} style={inner}>{children}</div>
   return (
     <motion.button
       type="button"
+      data-swipe-morph={morph}
       whileTap={{ scale: TAP_SCALE }}
       transition={{ duration: 0.16, ease: JELLY_EASE }}
       onClick={() => { tactile(); onClick() }}

@@ -120,7 +120,7 @@ export default function MobileCourses() {
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
       {/* Название курса ужимается многоточием: «Немецкий с нуля — A1 → B1,
           живой» иначе выдавливал уровень и колокольчик за край экрана. */}
-      <GlassPill style={{ minWidth: 0, overflow: 'hidden' }}>
+      <GlassPill morph="lead" style={{ minWidth: 0, overflow: 'hidden' }}>
         <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>{subject ? subjectIcon(subject.subject) : '📚'}</span>
         <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{subject?.name ?? t('Курс')}</span>
       </GlassPill>

@@ -96,6 +96,19 @@ const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)'
  */
 const PIN_ATTR = 'data-swipe-pin'
 
+/**
+ * Метка морфящейся кнопки: `data-swipe-morph="<имя>"`.
+ *
+ * Одноимённые кнопки соседних экранов на свайпе не сменяют друг друга, а
+ * перетекают: корпус тянется из круга в длинную таблетку по геометрии, а
+ * содержимое расходится размытием и масштабом. Кнопка без пары просто
+ * растворяется на месте.
+ */
+const MORPH_ATTR = 'data-swipe-morph'
+/** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
+const MORPH_BLUR = 7
+const MORPH_SCALE = 0.9
+
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'LINK', 'TEMPLATE', 'NOSCRIPT'])
 
 // ─── Память переходов ────────────────────────────────────────────────────────
@@ -314,13 +327,13 @@ function buildStage(under: Snapshot | null): Stage {
   ].join(';')
   document.body.appendChild(pinLayer)
 
-  type Pin = {
-    kind: string
-    live: HTMLElement; vis: string
-    clone: HTMLElement; left: number; width: number
-    under: HTMLElement | null; uLeft: number; uWidth: number
-  }
+  type Pin = { live: HTMLElement; vis: string; clone: HTMLElement; under: HTMLElement | null }
+  /** Кадр морфа: стили элемента при ходе p (0 — уходящий экран, 1 — нижний). */
+  type Morph = { el: HTMLElement; at(p: number): Record<string, string> }
   const pins: Pin[] = []
+  const morphs: Morph[] = []
+
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
   /** Поставить узел в слой ровно туда, где он сейчас виден на экране. */
   const place = (el: HTMLElement, box: DOMRect, origin: { left: number; top: number }) => {
@@ -332,6 +345,90 @@ function buildStage(under: Snapshot | null): Stage {
     el.style.width = `${box.width}px`
     el.style.height = `${box.height}px`
     pinLayer.appendChild(el)
+  }
+
+  /**
+   * Содержимое кнопки — в свою обёртку.
+   *
+   * Гасить надо именно его, а не саму кнопку: корпус в это время тянется. И
+   * обёртка обязательна, а не перебор детей, — у кнопки бывает голый текст
+   * («12 Lvl»), а текстовому узлу стиль не назначишь.
+   */
+  const wrapKids = (el: HTMLElement) => {
+    const box = document.createElement('div')
+    box.style.cssText = [
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'gap:6px', 'width:100%', 'height:100%', 'white-space:nowrap',
+      'will-change:opacity,filter,transform',
+    ].join(';')
+    while (el.firstChild) box.appendChild(el.firstChild)
+    el.appendChild(box)
+    return box
+  }
+
+  /** Развести одноимённые кнопки двух экранов в перетекающую пару. */
+  const pairMorphs = (from: HTMLElement, to: HTMLElement | null) => {
+    if (!to) return
+    const base = pinLayer.getBoundingClientRect()
+    const rel = (el: HTMLElement) => {
+      const b = el.getBoundingClientRect()
+      return { left: b.left - base.left, top: b.top - base.top, w: b.width, h: b.height }
+    }
+    for (const a of Array.from(from.querySelectorAll<HTMLElement>(`[${MORPH_ATTR}]`))) {
+      const name = a.getAttribute(MORPH_ATTR)
+      const b = to.querySelector<HTMLElement>(`[${MORPH_ATTR}="${name}"]`)
+      if (!b) continue
+      const ra = rel(a)
+      const rb = rel(b)
+      if (!ra.w || !rb.w) continue
+
+      const ia = wrapKids(a)
+      const ib = wrapKids(b)
+      // Корпус на экране один: у кнопки нижнего экрана снимаем всё, что его
+      // рисует, иначе два стекла легли бы друг на друга и потемнели.
+      b.style.background = 'none'
+      b.style.boxShadow = 'none'
+      b.style.border = '0'
+
+      for (const el of [a, b]) {
+        el.style.position = 'absolute'
+        el.style.margin = '0'
+        el.style.padding = '0'
+        el.style.overflow = 'hidden'
+        el.style.display = 'flex'
+        el.style.alignItems = 'center'
+        el.style.justifyContent = 'center'
+        el.style.willChange = 'left,top,width,height'
+        pinLayer.appendChild(el)
+      }
+
+      // Корпус обеих половин идёт по ОДНОЙ коробке — она и есть морф.
+      const shell = (p: number) => ({
+        left: `${lerp(ra.left, rb.left, p)}px`,
+        top: `${lerp(ra.top, rb.top, p)}px`,
+        width: `${lerp(ra.w, rb.w, p)}px`,
+        height: `${lerp(ra.h, rb.h, p)}px`,
+      })
+      morphs.push({ el: a, at: shell }, { el: b, at: shell })
+      // Содержимое расходится: уходящее уплывает в размытие, приходящее из
+      // него выступает. Опорные точки не 0 и 1, а с перехлёстом — иначе на
+      // середине хода в таблетке пусто.
+      morphs.push({
+        el: ia,
+        at: p => ({
+          opacity: String(Math.max(0, 1 - p * 1.35)),
+          filter: `blur(${MORPH_BLUR * p}px)`,
+          transform: `scale(${lerp(1, MORPH_SCALE, p)})`,
+        }),
+      }, {
+        el: ib,
+        at: p => ({
+          opacity: String(Math.max(0, p * 1.35 - 0.35)),
+          filter: `blur(${MORPH_BLUR * (1 - p)}px)`,
+          transform: `scale(${lerp(2 - MORPH_SCALE, 1, p)})`,
+        }),
+      })
+    }
   }
 
   const zero = { left: 0, top: 0 }
@@ -355,26 +452,41 @@ function buildStage(under: Snapshot | null): Stage {
     // Двойник с нижнего экрана. Снимок — инертный DOM, его узел можно
     // ПЕРЕНЕСТИ: копировать нечего и незачем.
     let under: HTMLElement | null = null
-    let uLeft = 0
-    let uWidth = 0
     const found = underEl.querySelector<HTMLElement>(`[${PIN_ATTR}="${kind}"]`)
-    if (found) {
-      if (kind === 'top') {
-        const ub = found.getBoundingClientRect()
-        under = found
-        place(found, ub, { left: underBase.left, top: underBase.top })
-        uLeft = ub.left - underBase.left
-        uWidth = ub.width
-        // До первого движения нижняя кнопка спрятана целиком: копия ложится
-        // ПОВЕРХ живой, и без этого на нуле была бы видна чужая.
-        found.style.clipPath = `inset(0 ${uWidth}px 0 0)`
-      } else {
-        // Нижний бар один на все экраны — второй только двоился бы.
-        found.remove()
+    if (found && kind === 'top') {
+      const ub = found.getBoundingClientRect()
+      under = found
+      place(found, ub, { left: underBase.left, top: underBase.top })
+    } else if (found) {
+      // Нижний бар один на все экраны — второй только двоился бы.
+      found.remove()
+    }
+
+    if (kind === 'top') {
+      pairMorphs(clone, under)
+      // Всё, что осталось без пары (заголовок, дата, колокольчик), просто
+      // расходится по прозрачности на своих местах.
+      morphs.push({ el: clone, at: p => ({ opacity: String(Math.max(0, 1 - p * 1.6)) }) })
+      if (under) {
+        morphs.push({
+          el: under,
+          at: p => ({
+            opacity: String(Math.max(0, p * 1.6 - 0.6)),
+            // Затемнение нижнего экрана лежит слоем НИЖЕ закреплённого —
+            // его копии затемняем сами, иначе кнопка ярче своего экрана.
+            filter: `brightness(${1 - DIM * (1 - p)})`,
+          }),
+        })
       }
     }
-    pins.push({ kind, live, vis, clone, left: box.left, width: box.width, under, uLeft, uWidth })
+    pins.push({ live, vis, clone, under })
   }
+
+  /** Поставить морф на ход p — и на пальце, и в доводке одним кодом. */
+  const setMorphs = (p: number) => {
+    for (const m of morphs) Object.assign(m.el.style, m.at(p))
+  }
+  setMorphs(0)
 
   let x = 0
 
@@ -432,6 +544,9 @@ function buildStage(under: Snapshot | null): Stage {
           opts,
         ),
         dim.animate([{ opacity: DIM * (1 - pFrom) }, { opacity: DIM * (1 - pTo) }], opts),
+        // Морф — линейная интерполяция, поэтому доводка описывается ровно
+        // двумя кадрами: кривую наложит сам WAAPI, как и на страницу.
+        ...morphs.map(m => m.el.animate([m.at(pFrom), m.at(pTo)], opts)),
       ]
       // Гонка со сторожем: если вкладку свернули посреди жеста, анимация встаёт
       // и `finished` не наступает никогда — а страница в это время висит

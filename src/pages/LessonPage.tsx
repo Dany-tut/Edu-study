@@ -963,6 +963,9 @@ export default function LessonPage() {
               whileTap={{ scale: 0.96 }}
               onClick={closeLesson}
               aria-label={t('Назад')}
+              // Пара для свайпа «назад»: кружок со стрелкой перетекает в
+              // ведущую таблетку экрана под ним (lib/useSwipeBack.ts).
+              data-swipe-morph="lead"
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
                 gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999,
