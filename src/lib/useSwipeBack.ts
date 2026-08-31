@@ -361,6 +361,19 @@ function buildStage(under: Snapshot | null): Stage {
 }
 
 /**
+ * Включён ли замер. Флаг ставится ссылкой (`…?swipedebug=1`) и живёт в
+ * localStorage: на телефоне консоли под рукой нет, а PWA перезапускают.
+ * Выключается тем же адресом с `=0`.
+ */
+function debugOn(): boolean {
+  try {
+    const m = /swipedebug=([01])/i.exec(location.href)
+    if (m) localStorage.setItem('swipeDebug', m[1])
+    return localStorage.getItem('swipeDebug') === '1'
+  } catch { return false }
+}
+
+/**
  * Табличка с замерами на время жеста. Ничего не делает без флага в
  * localStorage — это отладочный инструмент, а не часть жеста.
  */
@@ -368,9 +381,7 @@ function debugProbe(
   gap: number, H: number, scrollY: number,
   root: HTMLElement | null, wrap: HTMLElement,
 ): HTMLElement | null {
-  let on = false
-  try { on = localStorage.getItem('swipeDebug') === '1' } catch { on = false }
-  if (!on) return null
+  if (!debugOn()) return null
   const layer = document.getElementById('mobile-dock-layer')
   const nav = layer?.firstElementChild as HTMLElement | null
   const r = (el: Element | null | undefined) => {
