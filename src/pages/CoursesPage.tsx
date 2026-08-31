@@ -33,10 +33,10 @@ const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string;
   returned:  { bg: 'var(--color-yellow-soft)', ring: '#F8EF8C', label: 'var(--color-text)', subText: 'var(--color-yellow-text)' },
   unviewed:  { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: 'var(--color-red-text)' },
   submitted: { bg: 'var(--color-peach-soft)', ring: '#F8C991', label: 'var(--color-text)', subText: 'var(--color-peach-text)' },
-  // Плита «сейчас» идёт за цветом курса с уровня «Акцент» (--lesson-card-soft,
+  // Плита «сейчас» идёт за цветом курса с уровня «Акцент» (--color-accent-soft,
   // lib/courseTint.ts): подпись здесь — --color-accent, и фиолетовая карточка
   // под коралловой подписью английского выглядела недокрашенной.
-  current:   { bg: 'var(--lesson-card-soft)', ring: 'var(--color-purple)', label: 'var(--color-text)', subText: 'var(--color-accent)' },
+  current:   { bg: 'var(--color-accent-soft)', ring: 'var(--color-purple)', label: 'var(--color-text)', subText: 'var(--color-accent)' },
   locked:    { bg: 'var(--color-bg-3)', ring: '#E0E0E2', label: 'var(--color-text-3)', subText: 'var(--color-text-5)' },
 }
 

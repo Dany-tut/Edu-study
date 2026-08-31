@@ -94,7 +94,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
         {day.label}
       </span>
       {day.isToday && isCenter && (
-        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 8px', borderRadius: 999 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: PURPLE.text, background: PURPLE.soft, padding: '2px 8px', borderRadius: 999 }}>
           {t('Сегодня')}
         </span>
       )}

@@ -28,7 +28,10 @@ export function subjectTheme(subject: string | undefined, dark = false): Subject
 // current lesson node, primary CTA). Not tied to a subject.
 export const PURPLE = {
   text: 'var(--color-accent)',
-  soft: 'var(--color-purple-soft)',
+  // Подложка под .text — поэтому --color-accent-soft, а не --color-purple-soft:
+  // тот уходит в цвет курса только на уровне «Мягкий», и на «Акценте» таблетка
+  // «Сегодня» выходила коралловой надписью на брендово-фиолетовом.
+  soft: 'var(--color-accent-soft)',
   mid: 'var(--color-purple)',
   ring: 'rgba(var(--accent-rgb), 0.14)',
   gradient: 'var(--grad-purple)',

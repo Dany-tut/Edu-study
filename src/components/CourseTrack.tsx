@@ -52,7 +52,7 @@ const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeTex
   submitted: { bg: 'var(--color-peach-soft)', badgeBg: 'var(--color-peach-soft)', badgeText: 'var(--color-peach-text)', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
   // Карточка (не узел трассы — тот держится на --status-now*): цвет курса с
   // уровня «Акцент», как в сетке «Курсов».
-  current: { bg: 'var(--lesson-card-soft)', badgeBg: 'var(--lesson-card-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
+  current: { bg: 'var(--color-accent-soft)', badgeBg: 'var(--color-accent-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
   locked: { bg: 'var(--color-bg-4)', badgeBg: 'var(--color-bg-5)', badgeText: 'var(--color-muted)', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
 }
 
