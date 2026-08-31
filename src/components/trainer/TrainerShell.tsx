@@ -2136,11 +2136,13 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           background: tint
             ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
             : 'var(--color-bg-2)',
-          // Серой рамки в покое нет — как у карточек курса в учительской: там
-          // край держат стеклянная обводка (в тёмной теме прозрачная) и мягкая
-          // тень. Акцентная рамка — только ответ на наведение.
+          // Серой рамки в покое нет — как у карточек курса в учительской.
+          // Акцентная рамка — только ответ на наведение.
           border: `1px solid ${hover && onClick ? accent : 'var(--color-border-glass)'}`,
-          boxShadow: 'var(--tile-shadow)',
+          // Тень — только у стопки: там верхний лист лежит на нижних, и без
+          // тени пачка читается как одно пятно. Одиночную плитку тень зря
+          // отрывает от страницы.
+          boxShadow: stack ? 'var(--tile-shadow)' : undefined,
           transition: 'border-color .16s',
         }}
       >
