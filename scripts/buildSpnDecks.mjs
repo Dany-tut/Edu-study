@@ -205,7 +205,12 @@ function properNames(texts) {
 function alreadyCovered() {
   const seen = new Set()
   const dir = join(root, 'src/data/cardSeeds')
-  for (const f of readdirSync(dir).filter(f => f.endsWith('.ts'))) {
+  // supernatural.ts пропускается намеренно: файл лежит на месте, но его полка
+  // снята с витрины (см. data/cardGroupSeeds.ts). Считать его слова
+  // «разобранными» значило бы вычесть их из колод серий и не дать нигде —
+  // ровно та потеря, которой не видно, пока не пересчитаешь.
+  const SKIP = new Set(['supernatural.ts', 'spnAuto.ts'])
+  for (const f of readdirSync(dir).filter(f => f.endsWith('.ts') && !SKIP.has(f))) {
     const src = readFileSync(join(dir, f), 'utf8')
     for (const m of src.matchAll(/(?:term: |c\(\s*)'((?:[^'\\]|\\.)*)'/g)) {
       for (const w of m[1].replace(/\\'/g, "'").toLowerCase().split(/[^a-z'’]+/)) {

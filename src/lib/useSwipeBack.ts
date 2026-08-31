@@ -470,11 +470,17 @@ function buildStage(under: Snapshot | null): Stage {
 
       const ia = wrapKids(a)
       const ib = wrapKids(b)
-      // Корпус на экране один: у кнопки нижнего экрана снимаем всё, что его
-      // рисует, иначе два стекла легли бы друг на друга и потемнели.
+      // Корпус на экране один: у кнопки нижнего экрана снимаем ВСЁ, что его
+      // рисует. Стекло — это ещё и backdrop-filter: пока он оставался, копия
+      // матировала всё под собой, то есть ровно ту кнопку, которая в этот
+      // момент обязана быть видна. На экране это выглядело так, будто стрелка
+      // исчезает в самом начале жеста, а сквозь корпус просвечивает нижний
+      // экран.
       b.style.background = 'none'
       b.style.boxShadow = 'none'
       b.style.border = '0'
+      b.style.backdropFilter = 'none'
+      b.style.setProperty('-webkit-backdrop-filter', 'none')
 
       for (const el of [a, b]) {
         el.style.position = 'absolute'

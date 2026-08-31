@@ -2083,6 +2083,22 @@ export function ToolCount({ children }: { children: React.ReactNode }) {
  * `stack` дорисовывает две подложки сзади: так плашка читается как пачка
  * карточек, а не как ещё одна кнопка перехода.
  */
+/**
+ * Заливка «своей» плитки — не ровный слой, а свет из нижнего правого угла.
+ *
+ * Ровная заливка в 8% на тёмном фоне читается как грязь на стекле: она есть,
+ * но не выглядит намеренной. Радиальная — с яркостью у угла и полным нулём к
+ * верхнему левому — оставляет заголовок и чипсы стоять на чистой подложке,
+ * а цвет предмета показывает там, где текста нет.
+ */
+function tintWash(surface: string) {
+  // Цвет гаснет в прозрачность СВОЕГО же тона, а не в `transparent`: в Safari
+  // `transparent` — это прозрачный ЧЁРНЫЙ, и на светлой теме растяжка идёт
+  // через серую грязь. `#rrggbbaa` палитры для этого обнуляется по альфе.
+  const clear = /^#[0-9a-f]{8}$/i.test(surface) ? `${surface.slice(0, 7)}00` : surface
+  return `radial-gradient(125% 115% at 100% 100%, ${surface} 0%, ${clear} 62%)`
+}
+
 export function Tile({ children, onClick, accent, stack, tint }: {
   children: React.ReactNode
   onClick?: () => void
@@ -2112,9 +2128,7 @@ export function Tile({ children, onClick, accent, stack, tint }: {
             borderRadius: 16,
             // Нижние листы стопки красятся вместе с верхним, иначе цветная
             // карточка выглядит наклейкой, положенной на чужую пачку.
-            background: tint
-              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
-              : 'var(--color-bg-2)',
+            background: tint ? `${tintWash(tint.surface)}, var(--color-bg-2)` : 'var(--color-bg-2)',
             border: `1px solid ${tint ? tint.border : 'var(--color-border-glass)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
@@ -2133,9 +2147,7 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           // Заливка «своей» плитки — слоем поверх подложки, а не вместо неё:
           // `soft` палитры полупрозрачен, и без второго слоя сквозь плитку
           // светился бы фон страницы.
-          background: tint
-            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
-            : 'var(--color-bg-2)',
+          background: tint ? `${tintWash(tint.surface)}, var(--color-bg-2)` : 'var(--color-bg-2)',
           // Серой рамки в покое нет — как у карточек курса в учительской.
           // Акцентная рамка — только ответ на наведение.
           border: `1px solid ${hover && onClick ? accent : 'var(--color-border-glass)'}`,
