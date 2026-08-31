@@ -421,9 +421,30 @@ function buildStage(under: Snapshot | null): Stage {
       pairs.push([a, b])
       taken.add(a).add(b)
     }
-    const left = chips(from).filter(el => !taken.has(el) && !pairs.some(([a]) => a.contains(el)))
-    const right = chips(to).filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
-    for (let i = 0; i < Math.min(left.length, right.length); i++) pairs.push([left[i], right[i]])
+    // Разбор идёт ОТ СВОЕГО КРАЯ. Таблетка, прижатая вправо, обязана попасть
+    // на правое место: считать всех подряд слева направо нельзя — стоит
+    // одному экрану иметь лишний чип посередине, и правая кнопка поехала бы
+    // не на свой край, а под соседа.
+    const mid = W / 2
+    const free = (root: HTMLElement, used: (p: [HTMLElement, HTMLElement]) => HTMLElement) =>
+      chips(root).filter(el => !taken.has(el) && !pairs.some(p => used(p).contains(el)))
+    const side = (list: HTMLElement[], rightward: boolean) => list
+      .filter(el => {
+        const b = el.getBoundingClientRect()
+        return (b.left + b.width / 2 >= mid) === rightward
+      })
+      .sort((l, r) => {
+        const d = l.getBoundingClientRect().left - r.getBoundingClientRect().left
+        return rightward ? -d : d
+      })
+
+    const fromChips = free(from, p => p[0])
+    const toChips = free(to, p => p[1])
+    for (const rightward of [false, true]) {
+      const a = side(fromChips, rightward)
+      const b = side(toChips, rightward)
+      for (let i = 0; i < Math.min(a.length, b.length); i++) pairs.push([a[i], b[i]])
+    }
 
     for (const [live, b] of pairs) {
       const ra = rel(live)
