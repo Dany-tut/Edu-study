@@ -61,9 +61,14 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
         // экран, стоило выбранной получить длинную подпись: «Технологии»
         // добавляли 52 px, и ряд уезжал под колокольчик. Теперь эти пиксели
         // отдают соседи-значки, по семь на каждого, и ряд влезает целиком.
-        flex: grow ? '1 1 0' : '0 1 auto',
+        // В растянутом ряде базис — СОДЕРЖИМОЕ (1 0 auto), а не нулевая ширина:
+        // с `1 1 0` восемь сегментов делили ширину поровну, и самой длинной
+        // подписи («Технологии», да ещё жирной у выбранной) не хватало своей
+        // доли — хвост уезжал под overflow:hidden коробки подписи. Теперь
+        // лишнее место делится поверх содержимого, и обрезать нечего.
+        flex: grow ? '1 0 auto' : '0 1 auto',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: grow ? 0 : 20, height: 32, padding: label ? '0 11px' : '0 7px',
+        minWidth: 20, height: 32, padding: label ? '0 11px' : '0 7px',
         borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         fontSize: 12, fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
         background: on ? `${accent}26` : 'transparent',
