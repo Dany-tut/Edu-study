@@ -902,6 +902,9 @@ export default function LessonPage() {
           below, which sits ON the topbar line so nothing slides under blur. */}
       <motion.div
         className="flex items-center"
+        // Шапка урока в покое — тоже закреплённая на свайпе «назад»: пока
+        // страница не прокручена, видна именно она, а не докнутый двойник.
+        data-swipe-pin="top"
         style={{ gap: 16 }}
         animate={{ opacity: docked ? 0 : 1 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -910,6 +913,7 @@ export default function LessonPage() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
           onClick={closeLesson}
+          data-swipe-morph="lead"
           aria-label={t('Назад')}
           className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{

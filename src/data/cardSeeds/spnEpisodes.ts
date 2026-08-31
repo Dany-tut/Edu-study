@@ -24,7 +24,7 @@
 // значение, а в карточку идёт своё предложение в том же регистре.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { CardGroup, CardSet, SetCard } from '../../lib/cardGroups'
+import type { CardGroup, CardSet, CardSubset, SetCard } from '../../lib/cardGroups'
 
 const c = (
   term: string, ru: string, ep: string, note: string,
@@ -285,13 +285,30 @@ const S01E04: SetCard[] = [
     'He filled out the form and left it at the desk.', 'Он заполнил бланк и оставил его на стойке.'),
 ]
 
+/** Стопка серии. Название — то, под которым серию знают, без номера: номер уже
+ *  стоит слева в списке, и дублировать его в подписи незачем. */
+const ep = (n: number, title: string, cards: SetCard[]): CardSubset => ({
+  id: `seed:spn-ep:s01e${String(n).padStart(2, '0')}`,
+  title: `${n}. ${title}`,
+  about: `${cards.length} слов`,
+  cards,
+})
+
 const SETS: CardSet[] = [
   {
     id: 'seed:spn-ep:s01',
-    title: 'Сезон 1 · перед серией',
-    about: 'Слова каждой серии, по двадцать штук: проходишь колоду, включаешь серию и понимаешь. Метка на карточке — номер серии, по ней внутри набора работает фильтр.',
+    title: 'Сезон 1',
+    about: 'Двадцать слов перед каждой серией: проходишь стопку, включаешь серию и понимаешь. Серии заполняются по мере готовности.',
     level: 'B1',
-    cards: [...S01E01, ...S01E02, ...S01E03, ...S01E04],
+    // Карточек у самого сезона нет — они в стопках серий. Это и есть четвёртый
+    // уровень: полка → сезон → серия → карточки.
+    cards: [],
+    subsets: [
+      ep(1, 'Pilot', S01E01),
+      ep(2, 'Wendigo', S01E02),
+      ep(3, 'Dead in the Water', S01E03),
+      ep(4, 'Phantom Traveler', S01E04),
+    ],
   },
 ]
 

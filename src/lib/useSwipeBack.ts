@@ -71,8 +71,14 @@ const MIN_TRIGGER = 76
 const TRIGGER_RATIO = 0.32
 /** Быстрый смах засчитывается и без порога (px/мс). */
 const FLING = 0.5
-/** Насколько предыдущий экран отстаёт от уходящего (доля ширины). */
-const PARALLAX = 0.24
+/**
+ * Насколько предыдущий экран отстаёт от уходящего (доля ширины).
+ *
+ * Ноль: нижний экран стоит НЕПОДВИЖНО, по нему просто проезжает карточка.
+ * Классический параллакс (0.24) читался как «оба экрана едут» и мешал
+ * закреплённым барам — они стоят, а фон под ними подтягивался вбок.
+ */
+const PARALLAX = 0
 /** Затемнение предыдущего экрана, пока он «в глубине». */
 const DIM = 0.2
 /**
@@ -376,7 +382,8 @@ function buildStage(under: Snapshot | null): Stage {
     }
     for (const a of Array.from(from.querySelectorAll<HTMLElement>(`[${MORPH_ATTR}]`))) {
       const name = a.getAttribute(MORPH_ATTR)
-      const b = to.querySelector<HTMLElement>(`[${MORPH_ATTR}="${name}"]`)
+      if (!visible(a)) continue
+      const b = pickVisible(to, `[${MORPH_ATTR}="${name}"]`)
       if (!b) continue
       const ra = rel(a)
       const rb = rel(b)
@@ -431,14 +438,33 @@ function buildStage(under: Snapshot | null): Stage {
     }
   }
 
+  /**
+   * Видно ли элемент прямо сейчас.
+   *
+   * У экрана бывает ДВЕ шапки разом: у урока строка в потоке и её
+   * закреплённый двойник, и та, что не в ходу, погашена прозрачностью, а не
+   * снята. Без этой проверки в слой попадала невидимая, забирала себе пару
+   * для морфа — и видимой кнопке перетекать было уже не во что.
+   */
+  const visible = (el: HTMLElement) => {
+    const box = el.getBoundingClientRect()
+    if (!box.width || !box.height) return false
+    const cs = getComputedStyle(el)
+    return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05
+  }
+
+  /** Первый ВИДИМЫЙ элемент по селектору (см. `visible`). */
+  const pickVisible = (scope: ParentNode, sel: string) =>
+    Array.from(scope.querySelectorAll<HTMLElement>(sel)).find(visible) ?? null
+
   const zero = { left: 0, top: 0 }
   const underBase = underEl.getBoundingClientRect()
   for (const live of Array.from(document.querySelectorAll<HTMLElement>(`[${PIN_ATTR}]`))) {
     // Копии из снимка и из уже собранного слоя — не исходники.
     if (wrap.contains(live) || pinLayer.contains(live)) continue
     const kind = live.getAttribute(PIN_ATTR) || ''
+    if (!visible(live)) continue
     const box = live.getBoundingClientRect()
-    if (!box.width || !box.height) continue
 
     // Копия, а не сам узел: живой узел принадлежит React, и переносить его
     // в чужой слой нельзя — экран под ним размонтируется прямо посреди жеста.
@@ -452,7 +478,7 @@ function buildStage(under: Snapshot | null): Stage {
     // Двойник с нижнего экрана. Снимок — инертный DOM, его узел можно
     // ПЕРЕНЕСТИ: копировать нечего и незачем.
     let under: HTMLElement | null = null
-    const found = underEl.querySelector<HTMLElement>(`[${PIN_ATTR}="${kind}"]`)
+    const found = pickVisible(underEl, `[${PIN_ATTR}="${kind}"]`)
     if (found && kind === 'top') {
       const ub = found.getBoundingClientRect()
       under = found

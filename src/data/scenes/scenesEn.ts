@@ -26094,4 +26094,238 @@ _(на обороте, другим почерком: «Лаванда. В дв�
       },
     ],
   },
+
+  // ── По правде говоря: карточка, наш текст ─────────────────────────────────
+  {
+    id: 'sc-truth-be-told-1',
+    workId: 'truth-be-told',
+    lang: 'en', title: 'Расшифровка выпуска подкаста', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина сериала — речь в микрофон: ведущая объясняет слушателю дело, которое сама же разбирает. Ниже наша расшифровка такого выпуска, дело вымышленное. Читать её стоит ради приёмов устной речи: как по-английски удерживают внимание («here is the thing», «bear with me»), как честно помечают то, что не доказано («allegedly», «according to»), и как звучит запись голоса на бумаге.',
+    after: 'Обратите внимание, чем отличаются «he said he was at home» и «he is recorded as saying he was at home». Второе — не о человеке, а о документе: так говорят, когда за слова отвечает бумага, а не память. В журналистике этой разницей и держится осторожность.',
+    body: `RECONSIDERING — EPISODE 4: "THE SECOND CAR"
+[COLD OPEN — tape, phone quality]
+
+VOICE (archive): "...and I told them then, same as I am telling you now, there was another car on that road."
+
+[THEME — 20 SEC — UNDER]
+
+HOST: That is a recording from 1998. The man you just heard gave that statement three times: once at the scene, once at the station, and once, four years later, from prison. Nobody wrote the second car down.
+
+I am going to be careful here. I am not telling you that this man is innocent. I do not know that. What I am telling you is that the file has a hole in it, and the hole is exactly the size of a car.
+
+Here is the thing. The case rests on two people: a neighbour who says she heard shouting at around nine, and a driver who says the road was empty. The driver was never asked what "empty" meant. Bear with me, because this is where it gets strange.
+
+According to the report, the road was closed for resurfacing that week. Allegedly it reopened on the Friday. We have found no document that says so.
+
+[TAPE — interview, kitchen, kettle in background]
+
+HOST (on tape): Can I ask you about the Friday?
+WITNESS: You can ask. I have been asked. I said what I said.
+HOST (on tape): And what did you say?
+WITNESS: [pause] That I was not sure. They wrote down that I was.
+
+[TAPE OUT]
+
+HOST: She is recorded as saying she was certain. She now says she was not. Both of those things are in the world at the same time, and only one of them was read out in court.
+
+We reached out to the office that handled the case. They declined to comment. If you were on that road, you know where to find us.
+
+[END OF PART ONE]`,
+    translation: `«ПЕРЕСМОТР» — ВЫПУСК 4: «ВТОРАЯ МАШИНА»
+[ХОЛОДНОЕ ОТКРЫТИЕ — плёнка, телефонное качество]
+
+ГОЛОС (архив): «...и я тогда им сказал ровно то же, что говорю вам сейчас: на той дороге была ещё одна машина».
+
+[ЗАСТАВКА — 20 СЕК — ФОНОМ]
+
+ВЕДУЩАЯ: Это запись 1998 года. Человек, которого вы только что слышали, говорил это трижды: на месте, потом в отделении и ещё раз, четыре года спустя, из тюрьмы. Вторую машину никто не записал.
+
+Я буду осторожна. Я не говорю вам, что этот человек невиновен. Я этого не знаю. Я говорю вам, что в деле есть дыра — и эта дыра ровно размером с машину.
+
+Вот в чём дело. Всё обвинение держится на двух людях: соседке, которая слышала крики около девяти, и водителе, который говорит, что дорога была пуста. У водителя так и не спросили, что значит «пуста». Потерпите, дальше начинается странное.
+
+Согласно протоколу, на той неделе дорогу закрывали на укладку покрытия. Предположительно её открыли в пятницу. Документа, который бы это подтверждал, мы не нашли.
+
+[ПЛЁНКА — интервью, кухня, на фоне чайник]
+
+ВЕДУЩАЯ (на плёнке): Можно спросить вас про пятницу?
+СВИДЕТЕЛЬНИЦА: Спросить можно. У меня уже спрашивали. Я сказала то, что сказала.
+ВЕДУЩАЯ (на плёнке): А что вы сказали?
+СВИДЕТЕЛЬНИЦА: [пауза] Что я не уверена. А записали, что уверена.
+
+[КОНЕЦ ПЛЁНКИ]
+
+ВЕДУЩАЯ: В протоколе она значится как уверенная. Сейчас она говорит, что уверена не была. Обе эти вещи существуют одновременно, а вслух в суде прозвучала только одна.
+
+Мы обратились в ведомство, которое вело дело. Там отказались от комментариев. Если вы были на той дороге — вы знаете, где нас найти.
+
+[КОНЕЦ ПЕРВОЙ ЧАСТИ]`,
+    glossary: [
+      { term: 'cold open', ru: 'начало без заставки, сразу с материала' },
+      { term: 'archive tape', ru: 'архивная запись' },
+      { term: 'the case rests on', ru: 'обвинение держится на' },
+      { term: 'bear with me', ru: 'потерпите, сейчас объясню' },
+      { term: 'allegedly', ru: 'предположительно, по утверждению (без доказательства)' },
+      { term: 'according to the report', ru: 'согласно протоколу' },
+      { term: 'to be recorded as saying', ru: 'значиться в записи как сказавший' },
+      { term: 'to decline to comment', ru: 'отказаться от комментариев' },
+      { term: 'to reach out to', ru: 'обратиться к, связаться с' },
+    ],
+    questions: [
+      {
+        q: 'Why does the host say "I am not telling you that this man is innocent"?',
+        options: [
+          'She believes he is guilty',
+          'She is required to say it by law',
+          'She separates what she can show from what she cannot, before the listener assumes the rest',
+          'She is quoting the court',
+        ],
+        correct: 2,
+        why: 'Это рабочий приём жанра: сначала очертить границы того, что доказано, иначе слушатель достроит сам.',
+      },
+      {
+        q: 'What does "allegedly" do in the sentence about the Friday?',
+        options: [
+          'Marks the reopening as claimed but unconfirmed',
+          'Means the road was definitely open',
+          'Means the road was closed',
+          'Refers to the court decision',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why is "she is recorded as saying she was certain" not the same as "she was certain"?',
+        options: [
+          'It is more polite',
+          'It is the past perfect',
+          'It says what the document contains, not what the person knew',
+          'It means somebody recorded her voice',
+        ],
+        correct: 2,
+      },
+      {
+        q: '"They declined to comment" tells us that…',
+        options: [
+          'The office was asked and refused to answer',
+          'The office was never contacted',
+          'The office denied everything',
+          'The office answered off the record',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── По правде говоря, 2: письмо адвоката ──────────────────────────────────
+  {
+    id: 'sc-truth-be-told-2',
+    workId: 'truth-be-told',
+    lang: 'en', title: 'Письмо адвоката перед пересмотром', level: 'C1', minutes: 4,
+    topic: 'Переписка', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вторая речь сериала — бумажная: ходатайства, запросы, письма адвокатов. Ниже наше такое письмо, дело вымышленное. Полезно оно тем, что почти целиком собрано из готовых юридических формул; их достаточно узнавать, а придумывать заново не нужно.',
+    after: 'Заметьте, что письмо ни разу не говорит «он невиновен». Оно говорит «сведения не были раскрыты» и «просим предоставить». В этом жанре выигрывают не утверждением о правде, а указанием на нарушенный порядок — и по-английски это видно по глаголам.',
+    body: `HALE & OYELARAN LLP
+Attorneys at Law
+
+Re: State v. R. Okonjo — request for disclosure
+
+Dear Ms Carver,
+
+We act for Mr Okonjo in connection with the above matter. We write further to our letter of 14 March, to which we have received no substantive response.
+
+Our client's conviction rests in part on a statement taken at the scene on 11 September 1998. We are instructed that a second statement was taken from the same witness later that evening and that it differs materially from the first. That second statement does not appear in the material disclosed to trial counsel.
+
+We would be grateful if you would confirm, by 30 of this month, whether such a statement exists and, if so, provide a copy together with any accompanying notes. Should no such record be held, we ask that you say so expressly and in writing.
+
+For the avoidance of doubt, nothing in this letter should be taken as an allegation of bad faith on the part of your office. Our concern is with the completeness of the file.
+
+We reserve our client's position in full, including his right to apply to the court for an order for disclosure should this request not be met.
+
+We look forward to hearing from you.
+
+Yours sincerely,
+A. Oyelaran`,
+    translation: `«ХЕЙЛ И ОЙЕЛАРАН»
+Адвокатское бюро
+
+Касательно: дело «Штат против Р. Оконджо» — запрос о раскрытии материалов
+
+Уважаемая госпожа Карвер,
+
+Мы представляем интересы господина Оконджо по указанному делу. Пишем в дополнение к нашему письму от 14 марта, ответа по существу на которое не получили.
+
+Обвинительный приговор нашему доверителю частично основан на показаниях, снятых на месте 11 сентября 1998 года. Согласно имеющимся у нас сведениям, в тот же вечер у того же свидетеля были сняты вторые показания, существенно расходящиеся с первыми. Этих вторых показаний нет среди материалов, переданных защите на процессе.
+
+Просим вас до 30 числа текущего месяца подтвердить, существует ли такой документ, и, если да, предоставить копию вместе со всеми сопутствующими записями. Если такой записи не имеется, просим прямо заявить об этом письменно.
+
+Во избежание сомнений: ничто в настоящем письме не следует понимать как обвинение вашего ведомства в недобросовестности. Наш вопрос — полнота дела.
+
+Мы полностью сохраняем за доверителем его права, включая право обратиться в суд с требованием об истребовании материалов, если настоящий запрос не будет удовлетворён.
+
+Ожидаем вашего ответа.
+
+С уважением,
+А. Ойеларан`,
+    glossary: [
+      { term: 'we act for', ru: 'мы представляем интересы' },
+      { term: 'further to our letter of', ru: 'в дополнение к нашему письму от' },
+      { term: 'a substantive response', ru: 'ответ по существу' },
+      { term: 'we are instructed that', ru: 'согласно сведениям от доверителя' },
+      { term: 'to differ materially', ru: 'существенно расходиться' },
+      { term: 'disclosure', ru: 'раскрытие материалов дела защите' },
+      { term: 'we would be grateful if you would', ru: 'просим вас (вежливая формула)' },
+      { term: 'expressly and in writing', ru: 'прямо и в письменном виде' },
+      { term: 'for the avoidance of doubt', ru: 'во избежание сомнений' },
+      { term: 'to reserve one’s position', ru: 'сохранять за собой все права и возражения' },
+    ],
+    questions: [
+      {
+        q: 'What is the letter actually asking for?',
+        options: [
+          'A new trial',
+          'Confirmation of whether a second statement exists, and a copy of it',
+          'An apology from the office',
+          'The release of the client',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the letter say "nothing in this letter should be taken as an allegation of bad faith"?',
+        options: [
+          'It keeps the request procedural, so the other side can comply without admitting fault',
+          'It is a formality with no effect',
+          'It withdraws the request',
+          'It accuses the office indirectly',
+        ],
+        correct: 0,
+        why: 'Классический ход письменного английского: снять личное обвинение, чтобы остался только вопрос порядка — на него отвечать проще, чем на упрёк.',
+      },
+      {
+        q: '"We reserve our client’s position in full" means…',
+        options: [
+          'They agree with the office for now',
+          'They will not go to court',
+          'They give up the disclosure request',
+          'Nothing here limits what they may argue or do later',
+        ],
+        correct: 3,
+      },
+      {
+        q: 'Which verb carries the real force of the letter?',
+        options: [
+          'is — "his conviction is unsafe"',
+          'does not appear — the record is missing from what was disclosed',
+          'look forward — they expect a friendly reply',
+          'act — they represent the client',
+        ],
+        correct: 1,
+        why: 'Письмо нигде не заявляет о невиновности. Оно фиксирует пропуск в материалах — и именно этот пропуск даёт основание для суда.',
+      },
+    ],
+  },
 ]

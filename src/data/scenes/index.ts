@@ -1630,6 +1630,23 @@ export const WORKS: Work[] = [
     },
   },
   {
+    id: 'truth-be-told',
+    title: 'По правде говоря', origTitle: 'Truth Be Told', author: 'Нишель Трэмбл Спеллман · по роману Кэтлин Барбер', year: 2019,
+    medium: 'series', platform: 'Apple TV+', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',
+    tags: ['сериал', 'детектив', 'медиа'],
+    blurb: 'Журналистка ведёт подкаст о преступлениях и берётся заново разобрать дело, по которому человек уже сидит двадцать лет: её собственный давний репортаж и посадил его. Язык сериала — это две речи рядом: свободная разговорная речь у микрофона, где всё объясняют слушателю, и жёсткие формулировки протоколов, ходатайств и адвокатских писем.',
+    inOriginal: {
+      from: 'B2',
+      subs: 'Apple TV+, английские субтитры.',
+      hard: 'Юридическая лексика американского суда: appeal, testimony, plea, exoneration — и разговорные сокращения в записях подкаста.',
+      how: 'Половина серии — речь в микрофон: медленно, разборчиво, с паузами. Судебные сцены заметно плотнее, их стоит смотреть с субтитрами.',
+    },
+    quote: {
+      text: 'Reconsidering, a true-crime podcast.',
+      attribution: 'Truth Be Told, Apple TV+ (2019)',
+    },
+  },
+  {
     id: 'silicon-valley',
     title: 'Кремниевая долина', origTitle: 'Silicon Valley', author: 'Майк Джадж', year: 2014,
     medium: 'series', platform: 'HBO', shelf: 'series', lang: 'en', bucket: 'inspired', age: '16+',

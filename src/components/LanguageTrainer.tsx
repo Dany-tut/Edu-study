@@ -742,6 +742,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return null
   }, [groups, openSetId])
 
+  // Четвёртый уровень: стопка внутри набора (серия внутри сезона). Открыт он
+  // или нет — решает не отдельный экран, а наличие подстопок у набора: у
+  // обычного набора их нет, и он открывается сразу карточками, как раньше.
+  const [openSubsetId, setOpenSubsetId] = usePersistentState<string | null>(`trainer.${lang}.cardSubset`, null)
+  const openSubset = useMemo(() => {
+    if (!openSubsetId || !openSet) return null
+    return openSet.set.subsets?.find(s => s.id === openSubsetId) ?? null
+  }, [openSet, openSubsetId])
+
   // ── О языке: рассказ и полка учебников ────────────────────────────────────
   //
   // Рассказ ленивый (текст плюс векторные схемы), полка учебников — нет: восемь
@@ -2715,13 +2724,52 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         onSaved={() => { setEditGroup(null); setGroupsKey(k => k + 1) }}
       />
     )
+  } else if (mode === 'vocab' && openSet && openSet.set.subsets?.length && !openSubset) {
+    // Набор с подстопками сам карточек не показывает: между ним и прогоном
+    // стоит выбор серии. Плитка та же, что у наборов, — витрина не должна
+    // менять язык на четвёртом уровне.
+    content = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <TileGrid min={220}>
+          {openSet.set.subsets.map(sub => {
+            const st = themeStats({ theme: { id: sub.id, title: sub.title }, phrases: sub.cards }, states)
+            const pct = st.total ? Math.round((st.learned / st.total) * 100) : 0
+            return (
+              <Tile key={sub.id} accent={palette.accent} onClick={() => setOpenSubsetId(sub.id)}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <TileChip tone="mute">{sub.cards.length} {t('слов')}</TileChip>
+                </span>
+                <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+                    {sub.title}
+                  </span>
+                </span>
+                <TileMeter value={pct} />
+                <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
+                  <span>{st.total - st.fresh > 0 ? t('в работе') : t('не начата')}</span>
+                  {st.learned > 0 && (
+                    <span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>
+                      {st.learned} / {st.total}
+                    </span>
+                  )}
+                </span>
+              </Tile>
+            )
+          })}
+        </TileGrid>
+      </div>
+    )
   } else if (mode === 'vocab' && openSet) {
+    // Прогон идёт по стопке серии, если она открыта, и по самому набору, если
+    // подстопок у него нет. Ключи прогресса и стикера берутся у того же
+    // источника — иначе серия считала бы прогресс сезона.
+    const run = openSubset ?? openSet.set
     content = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <PhraseRun
-          runId={`cg-${openSet.set.id}`}
-          phrases={openSet.set.cards}
-          label={openSet.set.title}
+          runId={`cg-${run.id}`}
+          phrases={run.cards}
+          label={run.title}
           // Стикер за чистый прогон — как у темы разговорника и набора слов.
           // Ключ с префиксом cg: и id набора: он стабилен и у сида (см.
           // data/cardSeeds), и у строки в базе.
