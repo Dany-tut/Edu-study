@@ -422,13 +422,16 @@ function buildStage(under: Snapshot | null): Stage {
       return { left: b.left - base.left, top: b.top - base.top, w: b.width, h: b.height }
     }
 
-    const pairs: [HTMLElement, HTMLElement][] = []
+    // [источник, цель, номер цели в группе]. Номер нужен потому, что одна
+    // кнопка может делиться на несколько: у шапки урока справа одна дата, а
+    // под ней — и уровень, и колокольчик.
+    const pairs: [HTMLElement, HTMLElement, number][] = []
     const taken = new Set<HTMLElement>()
     for (const a of Array.from(from.querySelectorAll<HTMLElement>(`[${MORPH_ATTR}]`))) {
       if (!visible(a)) continue
       const b = pickVisible(to, `[${MORPH_ATTR}="${a.getAttribute(MORPH_ATTR)}"]`)
       if (!b) continue
-      pairs.push([a, b])
+      pairs.push([a, b, 0])
       taken.add(a).add(b)
     }
     // ── Кто с кем ──
@@ -458,15 +461,28 @@ function buildStage(under: Snapshot | null): Stage {
       }
     }
     cand.sort((l, r) => l.d - r.d)
+    // Цель занимается один раз, ИСТОЧНИК — сколько угодно: если под кнопкой
+    // лежат две таблетки, она делится на две и каждая половина идёт в свою.
+    // Раньше лишняя цель просто оставалась без пары, и дата «не превращалась».
+    const groups = new Map<HTMLElement, HTMLElement[]>()
     for (const { a, b } of cand) {
-      if (taken.has(a) || taken.has(b)) continue
-      pairs.push([a, b])
-      taken.add(a).add(b)
+      if (taken.has(b)) continue
+      taken.add(b)
+      const list = groups.get(a) ?? []
+      list.push(b)
+      groups.set(a, list)
     }
+    for (const [a, list] of groups) list.forEach((b, i) => pairs.push([a, b, i]))
 
-    for (const [live, b] of pairs) {
-      const ra = rel(live)
-      const rb = rel(b)
+    // Геометрию снимаем ЗАРАНЕЕ, всю разом. Перенос первой же пары в
+    // закреплённый слой вынимает таблетку из ряда, ряд схлопывается, и
+    // следующая цель меряется уже на новом месте: колокольчик уезжал к левому
+    // краю, а кнопка «морфилась» туда, где на экране ничего нет.
+    const boxes = pairs.map(([a, b]) => ({ ra: rel(a), rb: rel(b) }))
+
+    for (let i = 0; i < pairs.length; i++) {
+      const [live, b, nth] = pairs[i]
+      const { ra, rb } = boxes[i]
       if (!ra.w || !rb.w) continue
 
       // Копия, а не сам узел: живой принадлежит React и размонтируется
@@ -529,18 +545,28 @@ function buildStage(under: Snapshot | null): Stage {
       // глаз это читалось как «прилетела откуда-то не пойми что». Края у
       // шапок общие (те же 16px полей), поэтому корпус и так приходит ровно
       // в коробку двойника.
+      // Держится за свой край: прижатая влево — за левый, вправо — за правый.
+      // Сам край при этом переезжает к краю цели, но это единицы пикселей у
+      // общих полей шапки — и настоящий ход у отпочковавшейся половины,
+      // которой надо отойти на место своей таблетки.
       const rightward = ra.left + ra.w / 2 >= W / 2
-      const anchorX = rightward ? ra.left + ra.w : ra.left
-      const midY = ra.top + ra.h / 2
+      const srcX = rightward ? ra.left + ra.w : ra.left
+      const dstX = rightward ? rb.left + rb.w : rb.left
+      const srcY = ra.top + ra.h / 2
+      const dstY = rb.top + rb.h / 2
       const shell = (raw: number) => {
         const p = q(raw)
         const w = lerp(ra.w, rb.w, p)
         const h = lerp(ra.h, rb.h, p)
+        const x = lerp(srcX, dstX, p)
         return {
-          left: `${rightward ? anchorX - w : anchorX}px`,
-          top: `${midY - h / 2}px`,
+          left: `${rightward ? x - w : x}px`,
+          top: `${lerp(srcY, dstY, p) - h / 2}px`,
           width: `${w}px`,
           height: `${h}px`,
+          // Отпочковавшаяся половина проявляется, отходя: на нуле она стоит
+          // ровно под первой, и без этого корпус на старте был бы двойным.
+          ...(nth > 0 ? { opacity: String(smooth(Math.min(1, p * 2))) } : null),
         }
       }
       morphs.push({ el: a, at: shell }, { el: b, at: shell })
@@ -551,7 +577,9 @@ function buildStage(under: Snapshot | null): Stage {
       morphs.push({
         el: ia,
         at: raw => {
-          const t = smooth(q(raw))
+          // У отпочковавшейся половины уходящего содержимого нет: оно живёт
+          // на первой, иначе стрелка двоилась бы на обеих.
+          const t = nth > 0 ? 1 : smooth(q(raw))
           return {
             opacity: String(1 - t),
             filter: `blur(${MORPH_BLUR * t}px)`,
