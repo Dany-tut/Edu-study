@@ -265,6 +265,19 @@ function buildStage(under: Snapshot | null): Stage {
     root.style.boxShadow = '-6px 0 18px rgba(0,0,0,0.13)'
   }
   if (shifted) shifted.style.marginTop = `${-scrollY}px`
+
+  // Прокрутку возвращаем НАСИЛЬНО. Корень ушёл из потока, и браузер успевает
+  // сбросить scrollY в 0 ещё до того, как подействует `body.minHeight`. Слой
+  // доков не fixed: он стоит на `top:scrollY`, и после сброса оказывался ниже
+  // экрана ровно на прокрутку — нижняя навигация уезжала за край, и по низу
+  // оставалась её белая полоса без скруглений. Заодно фиксируем сам слой: пока
+  // сцена наверху, его никто не пересчитывает (freezeDockLayer выше).
+  if (gap) {
+    const layer = document.getElementById('mobile-dock-layer')
+    if (layer) layer.style.top = `${scrollY}px`
+    if (Math.round(window.scrollY) !== scrollY) window.scrollTo(0, scrollY)
+  }
+
   movers.forEach(({ el }) => {
     el.style.zIndex = el.style.zIndex || '1'
     el.style.willChange = 'transform'
@@ -324,7 +337,6 @@ function buildStage(under: Snapshot | null): Stage {
     destroy(fired) {
       wrap.remove()
       bleed.remove()
-      freezeDockLayer(false)
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
@@ -334,6 +346,9 @@ function buildStage(under: Snapshot | null): Stage {
       // была у открывшегося экрана, отменили — на свою.
       const back = fired ? (under?.scrollY ?? 0) : scrollY
       window.scrollTo(0, back)
+      // Слой доков размораживаем ПОСЛЕ возврата прокрутки: sync() ставит его
+      // top по scrollY, и разморозка до этого посадила бы его по старой.
+      freezeDockLayer(false)
     },
   }
 }
