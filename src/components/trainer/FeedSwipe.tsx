@@ -93,17 +93,6 @@ const SNAP_MS = 130
  * обещал действие тем постам, к которым отношения не имеет.
  */
 const BLEED_Y = 0
-/**
- * Воздух ВНУТРИ уезжающей карточки — по бокам.
- *
- * Пока пост едет, его подложка кончалась ровно по содержимому: скруглённый
- * угол ложился на угол фотографии, а цветная заливка шла впритык к значкам.
- * Поэтому на время жеста подложка становится шире содержимого — поля добавляем
- * padding'ом и тут же снимаем отрицательным margin'ом, чтобы текст и кадр
- * остались ровно там же, где стояли. По вертикали так делать НЕЛЬЗЯ:
- * отрицательный margin сверху и снизу сдвинул бы всю ленту под постом.
- */
-const CARD_AIR = 10
 /** Отступ знака от края экрана. */
 const MARK_PAD = 20
 /** Долгое нажатие. */
@@ -234,6 +223,9 @@ export default function FeedSwipe({
      * (колонка главной), у поста в тренажёре — другие.
      */
     let bled = false
+    /** Поля колонки — ими карточки распахиваются до самых краёв экрана. */
+    let gutterL = 0
+    let gutterR = 0
     const bleed = () => {
       host.style.marginLeft = ''
       host.style.marginRight = ''
@@ -250,6 +242,8 @@ export default function FeedSwipe({
       const right = Math.max(0, Math.round(window.innerWidth - r.right))
       if (left) { host.style.marginLeft = `${-left}px`; host.style.paddingLeft = `${left}px` }
       if (right) { host.style.marginRight = `${-right}px`; host.style.paddingRight = `${right}px` }
+      gutterL = left
+      gutterR = right
       bled = true
     }
     bleed()
@@ -316,6 +310,29 @@ export default function FeedSwipe({
     const neighbour = (el: Element | null | undefined) =>
       (el?.querySelector('[data-feed-card]') as HTMLElement | null) ?? null
 
+    /**
+     * Распахнуть карточку до краёв экрана, оставив содержимое на месте.
+     *
+     * Соседям это нужно ровно так же, как нашей: пост, покрашенный по ширине
+     * КОЛОНКИ, лежит на поле действия обрезанным прямоугольником — по бокам
+     * от него светит цвет, и вместо ленты видно три отдельные плашки с
+     * дырками по краям. Стык обязан идти от рамки до рамки; скругление —
+     * единственное, что при жесте меняет форму.
+     */
+    const widen = (el: HTMLElement) => {
+      el.style.paddingLeft = `${gutterL}px`
+      el.style.marginLeft = `${-gutterL}px`
+      el.style.paddingRight = `${gutterR}px`
+      el.style.marginRight = `${-gutterR}px`
+    }
+
+    const narrow = (el: HTMLElement) => {
+      el.style.paddingLeft = ''
+      el.style.marginLeft = ''
+      el.style.paddingRight = ''
+      el.style.marginRight = ''
+    }
+
     /** Тень и соседи готовятся один раз, на старте жеста. */
     const liftCard = () => {
       card.style.transition = `box-shadow .2s ease`
@@ -340,6 +357,7 @@ export default function FeedSwipe({
         n.style.position = 'relative'
         n.style.zIndex = '1'
         n.style.background = cfg.current.surface
+        widen(n)
       }
     }
 
@@ -416,6 +434,7 @@ export default function FeedSwipe({
           n.style.position = ''
           n.style.zIndex = ''
           n.style.background = ''
+          narrow(n)
           n.style.borderBottomLeftRadius = ''
           n.style.borderBottomRightRadius = ''
           n.style.borderTopLeftRadius = ''
@@ -523,8 +542,7 @@ export default function FeedSwipe({
       })
       window.setTimeout(() => {
         card.style.background = ''
-        card.style.padding = ''
-        card.style.margin = ''
+        narrow(card)
         card.style.position = ''
         card.style.zIndex = ''
         layers.forEach(l => { if (l) l.style.transition = '' })
@@ -611,8 +629,10 @@ export default function FeedSwipe({
         // считает свою высоту по ним.
         liftCard()
         spread()
-        card.style.padding = `0 ${CARD_AIR}px`
-        card.style.margin = `0 ${-CARD_AIR}px`
+        // Карточка распахивается до КРАЁВ ЭКРАНА, а не на условные 10 px:
+        // иначе на ведущей стороне между постом и рамкой оставалась щель, в
+        // которую светило поле действия.
+        widen(card)
         card.style.position = 'relative'
         card.style.zIndex = '1'
         // Пост на мобильной главной прозрачный — без подложки слой действия
@@ -755,6 +775,23 @@ export default function FeedSwipe({
     return () => {
       clearHold()
       if (snapTimer) clearTimeout(snapTimer)
+      // Пост мог уехать из ленты прямо посреди жеста (подгрузка порции, смена
+      // рубрики). Соседи при этом остались бы покрашенными и скруглёнными
+      // навсегда — снимаем с них наши стили сразу, без плавности: показывать
+      // склейку уже нечему и некому.
+      for (const n of [seamPrev, seamNext]) {
+        if (!n) continue
+        n.style.transition = ''
+        n.style.position = ''
+        n.style.zIndex = ''
+        n.style.background = ''
+        n.style.borderTopLeftRadius = ''
+        n.style.borderTopRightRadius = ''
+        n.style.borderBottomLeftRadius = ''
+        n.style.borderBottomRightRadius = ''
+        narrow(n)
+      }
+      if (seamLine) { seamLine.style.transition = ''; seamLine.style.borderTopColor = '' }
       window.removeEventListener('resize', bleed)
       io?.disconnect()
       if (tapTimer) clearTimeout(tapTimer)
