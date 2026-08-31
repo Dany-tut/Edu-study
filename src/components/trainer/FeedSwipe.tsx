@@ -358,6 +358,13 @@ export default function FeedSwipe({
         n.style.zIndex = '1'
         n.style.background = cfg.current.surface
         widen(n)
+        // ЗАМОК НА СОСЕДА. Пост, которого сейчас красит ЧУЖОЙ жест, не должен
+        // прибираться своей собственной уборкой: свайпнул один пост, тут же
+        // свайпнул соседний — и уборка первого, доехав, снимала подложку с
+        // карточки, которую второй уже держит своим полем действия. Тот же
+        // розовый пост, только от соседа. Счётчик, а не флаг: держать могут
+        // оба соседа сразу.
+        n.dataset.seamHold = String(Number(n.dataset.seamHold ?? 0) + 1)
       }
     }
 
@@ -430,6 +437,9 @@ export default function FeedSwipe({
         if (gen !== seamGen) return
         for (const n of [seamPrev, seamNext]) {
           if (!n) continue
+          const held = Number(n.dataset.seamHold ?? 0) - 1
+          if (held > 0) { n.dataset.seamHold = String(held); continue }
+          delete n.dataset.seamHold
           n.style.transition = ''
           n.style.position = ''
           n.style.zIndex = ''
@@ -540,7 +550,18 @@ export default function FeedSwipe({
           dot.style.opacity = '0'
         }
       })
+      // УБОРКА УЗНАЁТ СВОЙ ЖЕСТ ПО НОМЕРУ.
+      //
+      // Возврат длится 440 мс, а следующий свайп по тому же посту может
+      // начаться раньше — и тогда этот таймер срабатывал уже посреди НОВОГО
+      // жеста: снимал с карточки подложку, и пост, оставшись прозрачным,
+      // наливался цветом поля действия (в светлой теме — розовел). Отсюда
+      // «иногда проскакивает»: воспроизводится только на быстром повторе.
+      const gen = seamGen
       window.setTimeout(() => {
+        if (gen !== seamGen) return
+        // Нас держит соседний жест — он и приберёт (см. замок в liftCard).
+        if (card.dataset.seamHold) return
         card.style.background = ''
         narrow(card)
         card.style.position = ''
@@ -781,6 +802,9 @@ export default function FeedSwipe({
       // склейку уже нечему и некому.
       for (const n of [seamPrev, seamNext]) {
         if (!n) continue
+        const held = Number(n.dataset.seamHold ?? 0) - 1
+        if (held > 0) { n.dataset.seamHold = String(held); continue }
+        delete n.dataset.seamHold
         n.style.transition = ''
         n.style.position = ''
         n.style.zIndex = ''
