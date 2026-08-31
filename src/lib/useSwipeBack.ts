@@ -107,8 +107,11 @@ const PIN_ATTR = 'data-swipe-pin'
  *
  * Одноимённые кнопки соседних экранов на свайпе не сменяют друг друга, а
  * перетекают: корпус тянется из круга в длинную таблетку по геометрии, а
- * содержимое расходится размытием и масштабом. Кнопка без пары просто
- * растворяется на месте.
+ * содержимое расходится размытием и масштабом.
+ *
+ * Имя — только для исключений. По умолчанию таблетки шапки разбираются в
+ * пары САМИ, по порядку слева направо: первая с первой, вторая со второй.
+ * Кнопка без пары растворяется на месте.
  */
 const MORPH_ATTR = 'data-swipe-morph'
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
@@ -372,7 +375,30 @@ function buildStage(under: Snapshot | null): Stage {
     return box
   }
 
-  /** Развести одноимённые кнопки двух экранов в перетекающую пару. */
+  /**
+   * Таблетки шапки — сами по себе, без разметки.
+   *
+   * Признак таблетки — скруглённый корпус: у шапок приложения это круглая
+   * кнопка, стеклянная таблетка или чип. Обёртки отбрасываем: если внутри
+   * лежит такая же таблетка, корпус здесь не свой, а групповой.
+   */
+  const chips = (root: ParentNode) => {
+    const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
+      if (!visible(el)) return false
+      return parseFloat(getComputedStyle(el).borderTopLeftRadius) >= 14
+    })
+    return all
+      .filter(el => !all.some(other => other !== el && el.contains(other)))
+      .sort((l, r) => l.getBoundingClientRect().left - r.getBoundingClientRect().left)
+  }
+
+  /**
+   * Развести кнопки двух экранов в перетекающие пары.
+   *
+   * Сначала — именованные (исключения), потом остальные таблетки по порядку
+   * встречи слева направо: первая с первой, вторая со второй. Лишние (у
+   * одного экрана чипсов больше) остаются без пары и растворяются.
+   */
   const pairMorphs = (from: HTMLElement, to: HTMLElement | null) => {
     if (!to) return
     const base = pinLayer.getBoundingClientRect()
@@ -380,11 +406,21 @@ function buildStage(under: Snapshot | null): Stage {
       const b = el.getBoundingClientRect()
       return { left: b.left - base.left, top: b.top - base.top, w: b.width, h: b.height }
     }
+
+    const pairs: [HTMLElement, HTMLElement][] = []
+    const taken = new Set<HTMLElement>()
     for (const a of Array.from(from.querySelectorAll<HTMLElement>(`[${MORPH_ATTR}]`))) {
-      const name = a.getAttribute(MORPH_ATTR)
       if (!visible(a)) continue
-      const b = pickVisible(to, `[${MORPH_ATTR}="${name}"]`)
+      const b = pickVisible(to, `[${MORPH_ATTR}="${a.getAttribute(MORPH_ATTR)}"]`)
       if (!b) continue
+      pairs.push([a, b])
+      taken.add(a).add(b)
+    }
+    const left = chips(from).filter(el => !taken.has(el) && !pairs.some(([a]) => a.contains(el)))
+    const right = chips(to).filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
+    for (let i = 0; i < Math.min(left.length, right.length); i++) pairs.push([left[i], right[i]])
+
+    for (const [a, b] of pairs) {
       const ra = rel(a)
       const rb = rel(b)
       if (!ra.w || !rb.w) continue

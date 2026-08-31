@@ -27,7 +27,9 @@ import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
 import { addCards, collectedCards, deckOwner, dueCount, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
-import { fetchCardGroups, appFlag, isShelf, type CardGroup } from '../lib/cardGroups'
+// setCards переименован при импорте: в этом файле уже есть сеттер состояния
+// с тем же именем, и без псевдонима вызов молча уходил бы в него.
+import { fetchCardGroups, appFlag, isShelf, setCards as allSetCards, type CardGroup } from '../lib/cardGroups'
 import { hasCardSeeds, loadCardSeeds } from '../data/cardGroupSeeds'
 import MySetEditor, { emptyMyGroup } from './trainer/MySetEditor'
 import { hasWordPacks, loadWordPacks } from '../data/wordPackBooks'
@@ -1145,7 +1147,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Открытая папка держит выборку даже при поиске: искали внутри неё.
     // Без папки ищется и показывается всё подряд — групп у ученика единицы.
     const list = (groups ?? []).filter(g => openGroupId ? g.id === openGroupId : true)
-    return list.flatMap(g => g.sets.map(set => ({ group: g, set, theme: { id: set.id, title: set.title }, phrases: set.cards })))
+    return list.flatMap(g => g.sets.map(set => ({ group: g, set, theme: { id: set.id, title: set.title }, phrases: allSetCards(set) })))
       .filter(x => {
         if (q) {
           const hay = `${x.group.title} ${x.set.title} ${x.set.about} ${x.phrases.map(c => `${c.term} ${c.ru} ${c.ep ?? ''}`).join(' ')}`
@@ -1167,7 +1169,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   useEffect(() => {
     if (groups === undefined) return
     if (openGroupId && !groups.some(g => g.id === openGroupId && isShelf(g))) setOpenGroupId('')
-    if (openSetId && !groups.some(g => g.sets.some(x => x.id === openSetId))) setOpenSetId(null)
+    if (openSetId && !groups.some(g => g.sets.some(x => x.id === openSetId))) { setOpenSetId(null); setOpenSubsetId(null) }
+    if (openSubsetId && !openSubset) setOpenSubsetId(null)
   }, [groups, openGroupId, setOpenGroupId, openSetId, setOpenSetId])
 
   /** Открытая папка — только названная группа: обёртка одиночного набора папкой не бывает. */
@@ -1353,7 +1356,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
     // Гасим всё открытое — см. «открытое перебивает половину» выше.
     setOpenTextId(null); setOpenWorkId(null); setOpenSceneId(null); setOpenAudioId(null)
-    setOpenTheme(null); setOpenNestId(null); setOpenPackId(null); setOpenSetId(null); setOpenGroupId('')
+    setOpenTheme(null); setOpenNestId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
     setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null); setOpenPronId(null)
     setOpenFormId(null); setOpenChapterId(null); setSpeakOpen(null)
 
@@ -2394,7 +2397,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && openSet) {
     toolbar = (
       <Toolbar>
-        <BackToSets onBack={() => setOpenSetId(null)} />
+        <BackToSets onBack={() => (openSubset ? setOpenSubsetId(null) : setOpenSetId(null))} />
         <StatusTabs
           options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
           value={run}
@@ -2763,17 +2766,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Прогон идёт по стопке серии, если она открыта, и по самому набору, если
     // подстопок у него нет. Ключи прогресса и стикера берутся у того же
     // источника — иначе серия считала бы прогресс сезона.
-    const run = openSubset ?? openSet.set
+    const runSet = openSubset ?? openSet.set
     content = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <PhraseRun
-          runId={`cg-${run.id}`}
-          phrases={run.cards}
-          label={run.title}
+          runId={`cg-${runSet.id}`}
+          phrases={runSet.cards}
+          label={runSet.title}
           // Стикер за чистый прогон — как у темы разговорника и набора слов.
           // Ключ с префиксом cg: и id набора: он стабилен и у сида (см.
           // data/cardSeeds), и у строки в базе.
-          reward={{ key: `cg:${openSet.set.id}`, title: openSet.set.title, size: openSet.set.cards.length }}
+          reward={{ key: `cg:${runSet.id}`, title: runSet.title, size: runSet.cards.length }}
           doneTitle="Набор пройден"
           emptyTitle="На сегодня набор закрыт"
           emptyText={'Все слова набора уже разобраны и ждут своего дня.\nМожно прогнать его заново — расписание при этом продолжит считаться.'}
