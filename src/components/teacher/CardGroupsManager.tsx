@@ -41,7 +41,7 @@ import { SUBJECTS } from '../../lib/subjects'
 import {
   fetchOwnCardGroups, saveCardGroup, deleteCardGroup, deleteCardSet,
   groupSets, moveSetsToGroup, ungroupSets, isShelf,
-  type CardGroup, type CardSet, type SetCard,
+  type CardGroup, type CardSet, type CardSubset, type SetCard,
 } from '../../lib/cardGroups'
 import { hasCardSeeds, loadCardSeeds } from '../../data/cardGroupSeeds'
 import { SURVIVAL_LEVELS, type SurvivalLevel } from '../../data/survivalPhrases'
@@ -88,6 +88,14 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-1)',
   color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 13.5,
   padding: '9px 12px', outline: 'none',
+}
+
+/** Кнопка без заливки: возврат, «добавить», удаление строки. */
+const ghostBtn: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 7,
+  border: 'none', background: 'transparent', cursor: 'pointer',
+  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+  color: 'var(--color-muted)', padding: '6px 8px', borderRadius: 8,
 }
 
 const labelStyle: React.CSSProperties = {
@@ -978,17 +986,105 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
         )}
       </div>
 
-      <CardsEditor set={set} onChange={onChange} />
+      {set.subsets?.length
+        ? <SubsetsEditor set={set} onChange={onChange} />
+        : <CardsEditor cards={set.cards} onCards={cards => patch({ cards })} />}
     </div>
   )
 }
 
-function CardsEditor({ set, onChange }: { set: CardSet; onChange: (s: CardSet) => void }) {
+/**
+ * Редактор стопок: четвёртый уровень внутри набора.
+ *
+ * ЗАЧЕМ ОН ЗДЕСЬ. Набор с сериями хранит карточки не у себя, а в стопках, и без
+ * этого экрана учитель, забравший себе сезон, видел бы набор с нулём карточек и
+ * не понимал, куда делись серии. Данные при этом не терялись — терялась
+ * видимость, что ничем не лучше.
+ *
+ * ОДИН УРОВЕНЬ И ВСЁ. Кнопки «разбить стопку ещё раз» здесь нет и не будет:
+ * глубже четырёх запрещено и типом (CardSubset без своих подстопок), и
+ * триггером в базе (миграция 0071).
+ */
+function SubsetsEditor({ set, onChange }: { set: CardSet; onChange: (s: CardSet) => void }) {
+  const t = useT()
+  const [openId, setOpenId] = useState<string | null>(null)
+  const subsets = set.subsets ?? []
+  const open = subsets.find(x => x.id === openId) ?? null
+
+  const patchSubsets = (next: CardSubset[]) => onChange({ ...set, subsets: next })
+
+  if (open) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <button type="button" onClick={() => setOpenId(null)} style={ghostBtn}>
+          <ChevronLeft size={14} /> {t('К стопкам')}
+        </button>
+        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Field label={t('Название стопки')}>
+            <input
+              value={open.title}
+              onChange={e => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, title: e.target.value } : x)))}
+              placeholder={t('Например: 1. Pilot')}
+              style={{ ...inputStyle, fontWeight: 700 }}
+            />
+          </Field>
+        </div>
+        <CardsEditor
+          cards={open.cards}
+          onCards={cards => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, cards } : x)))}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={labelStyle}>{t('Стопки')} · {subsets.length}</div>
+      {subsets.map(sub => (
+        <div key={sub.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
+          <button type="button" onClick={() => setOpenId(sub.id)} style={{ ...ghostBtn, flex: 1, justifyContent: 'flex-start' }}>
+            <span style={{ fontWeight: 700 }}>{sub.title || t('Без названия')}</span>
+            <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>{sub.cards.length} {t('карточек')}</span>
+          </button>
+          <button
+            type="button"
+            title={t('Удалить стопку')}
+            onClick={() => patchSubsets(subsets.filter(x => x.id !== sub.id))}
+            style={ghostBtn}
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => patchSubsets([...subsets, {
+          // Временный id — как у нового набора: до сохранения он нужен ключам
+          // React и тому, чтобы diff в saveCardGroup отличил новое от удалённого.
+          id: `new-sub-${subsets.length}-${Math.random().toString(36).slice(2, 8)}`,
+          title: '', about: '', cards: [],
+        }])}
+        style={ghostBtn}
+      >
+        + {t('Добавить стопку')}
+      </button>
+    </div>
+  )
+}
+
+/**
+ * Редактор карточек. Берёт СПИСОК, а не набор: карточки лежат и у набора, и у
+ * стопки внутри него, а форма для них одна и та же. Передавали бы набор —
+ * пришлось бы писать вторую копию редактора под стопку, и они разошлись бы на первой
+ * же правке формата карточки.
+ */
+function CardsEditor({ cards, onCards }: { cards: SetCard[]; onCards: (c: SetCard[]) => void }) {
   const t = useT()
   const [bulk, setBulk] = useState('')
   const [row, setRow] = useState<SetCard>({ term: '', ru: '', note: '', ep: '' })
 
-  const setCards = (cards: SetCard[]) => onChange({ ...set, cards })
+  const set = { cards }
+  const setCards = onCards
 
   function addRow() {
     if (!row.term.trim() || !row.ru.trim()) return

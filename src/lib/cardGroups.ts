@@ -33,7 +33,6 @@ export interface SetCard extends Phrase {
   id?: string
 }
 
-/** Набор — то, что ученик открывает одной стопкой. */
 /**
  * Четвёртый уровень: стопка внутри набора.
  *
@@ -56,6 +55,7 @@ export interface CardSubset {
   cards: SetCard[]
 }
 
+/** Набор — то, что ученик открывает со второго уровня витрины. */
 export interface CardSet {
   id: string
   title: string
@@ -141,13 +141,20 @@ async function fillSets(groups: CardGroup[]): Promise<CardGroup[]> {
 
   const { data: setRows, error: setErr } = await supabase
     .from('card_sets')
-    .select('id, group_id, title, about, level, sort, created_at')
+    .select('id, group_id, parent_set_id, title, about, level, sort, created_at')
     .in('group_id', [...byId.keys()])
     .order('sort')
   if (setErr) { console.error('cardGroups: sets', setErr); return groups }
 
+  // Наборы и стопки приезжают ОДНИМ списком — они лежат в одной таблице и
+  // различаются только parent_set_id. Раскладываются в два прохода: сперва все
+  // наборы второго уровня, потом дети к родителям. Один проход тут не годится —
+  // порядок строк задан полем sort, и ребёнок запросто приходит раньше отца.
   const sets = new Map<string, CardSet>()
+  const children: { parent: string; row: Record<string, unknown> }[] = []
   for (const r of setRows ?? []) {
+    const parent = (r.parent_set_id as string | null) ?? null
+    if (parent) { children.push({ parent, row: r }); continue }
     const set: CardSet = {
       id: r.id as string,
       title: (r.title as string) ?? '',
@@ -158,6 +165,22 @@ async function fillSets(groups: CardGroup[]): Promise<CardGroup[]> {
     }
     sets.set(set.id, set)
     byId.get(r.group_id as string)?.sets.push(set)
+  }
+
+  // Второй проход: стопки к своим наборам. В общую карту `sets` они кладутся
+  // тоже — иначе запрос карточек ниже их просто не увидит, и стопка приехала бы
+  // пустой при полном молчании: строки в базе есть, а на экране ноль слов.
+  for (const { parent, row } of children) {
+    const owner = sets.get(parent)
+    if (!owner) { console.warn('cardGroups: стопка без набора', row.id); continue }
+    const sub: CardSubset = {
+      id: row.id as string,
+      title: (row.title as string) ?? '',
+      about: (row.about as string) ?? '',
+      cards: [],
+    }
+    ;(owner.subsets ??= []).push(sub)
+    sets.set(sub.id, sub as unknown as CardSet)
   }
   if (sets.size === 0) return groups
 
@@ -238,6 +261,34 @@ export async function fetchOwnCardGroups(ownerId: string): Promise<CardGroup[]> 
  * Возвращает id группы (новая получает его от БД) — редактору он нужен, чтобы
  * следующее сохранение шло в ту же строку, а не плодило копии.
  */
+/**
+ * Карточки одной стопки переписываются целиком: их десятки, порядок значим, и
+ * построчный diff здесь дороже полной замены ровно ничем не окупаясь.
+ *
+ * Общий для набора и подстопки: обе — строки card_sets, и карточки у них лежат
+ * в одной таблице set_cards. Две копии этой функции разошлись бы на первой же
+ * правке формата карточки.
+ */
+async function writeCards(setId: string, cards: SetCard[]): Promise<void> {
+  const { error: delErr } = await supabase.from('set_cards').delete().eq('set_id', setId)
+  if (delErr) console.error('cardGroups: clear cards', delErr)
+  const rows = cards
+    .filter(c => c.term.trim() && c.ru.trim())
+    .map((c, n) => ({
+      set_id: setId,
+      term: c.term.trim(),
+      ru: c.ru.trim(),
+      reading: c.reading?.trim() || null,
+      note: c.note?.trim() || null,
+      ep: c.ep?.trim() || null,
+      ex: c.ex ?? null,
+      sort: n,
+    }))
+  if (rows.length === 0) return
+  const { error } = await supabase.from('set_cards').insert(rows)
+  if (error) console.error('cardGroups: insert cards', error)
+}
+
 export async function saveCardGroup(
   group: CardGroup,
   owner: { createdBy?: string | null; authorStudentId?: string | null },
@@ -273,7 +324,14 @@ export async function saveCardGroup(
 
   // Наборы: чего нет в состоянии — стереть (карточки уедут каскадом).
   const { data: oldSets } = await supabase.from('card_sets').select('id').eq('group_id', groupId)
-  const keep = new Set(group.sets.map(s => s.id).filter(Boolean))
+  // В `keep` идут И СТОПКИ ТОЖЕ: они лежат в той же таблице и попадают в
+  // oldSets наравне с наборами. Собрав список только по group.sets, сохранение
+  // сносило бы все стопки при каждой правке — тихо и каскадом вместе с
+  // карточками.
+  const keep = new Set([
+    ...group.sets.map(s => s.id),
+    ...group.sets.flatMap(s => (s.subsets ?? []).map(x => x.id)),
+  ].filter(Boolean))
   const dropSets = (oldSets ?? []).map(r => r.id as string).filter(id => !keep.has(id))
   if (dropSets.length > 0) {
     const { error } = await supabase.from('card_sets').delete().in('id', dropSets)
@@ -298,25 +356,30 @@ export async function saveCardGroup(
       if (error) { console.error('cardGroups: update set', error); continue }
     }
 
-    // Карточки набора переписываются целиком: их десятки, порядок значим, и
-    // построчный diff здесь дороже полной замены ровно ничем не окупаясь.
-    const { error: delErr } = await supabase.from('set_cards').delete().eq('set_id', setId)
-    if (delErr) console.error('cardGroups: clear cards', delErr)
-    const rows = set.cards
-      .filter(c => c.term.trim() && c.ru.trim())
-      .map((c, n) => ({
-        set_id: setId,
-        term: c.term.trim(),
-        ru: c.ru.trim(),
-        reading: c.reading?.trim() || null,
-        note: c.note?.trim() || null,
-        ep: c.ep?.trim() || null,
-        ex: c.ex ?? null,
-        sort: n,
-      }))
-    if (rows.length > 0) {
-      const { error } = await supabase.from('set_cards').insert(rows)
-      if (error) console.error('cardGroups: insert cards', error)
+    await writeCards(setId, set.cards)
+
+    // Стопки набора — строки той же таблицы с ссылкой на родителя. Пишутся
+    // после самого набора: до вставки у нового набора ещё нет id, а без него
+    // parent_set_id поставить не из чего.
+    for (const [k, sub] of (set.subsets ?? []).entries()) {
+      const subBase = {
+        group_id: groupId,
+        parent_set_id: setId,
+        title: sub.title.trim(),
+        about: (sub.about ?? '').trim(),
+        level: null,
+        sort: k,
+      }
+      let subId = sub.id
+      if (!subId || !keep.has(subId) || isNew) {
+        const { data, error } = await supabase.from('card_sets').insert(subBase).select('id').single()
+        if (error || !data) { console.error('cardGroups: insert subset', error); continue }
+        subId = data.id as string
+      } else {
+        const { error } = await supabase.from('card_sets').update(subBase).eq('id', subId)
+        if (error) { console.error('cardGroups: update subset', error); continue }
+      }
+      await writeCards(subId, sub.cards)
     }
   }
 

@@ -468,12 +468,13 @@ function buildStage(under: Snapshot | null): Stage {
       })
       morphs.push({ el: a, at: shell }, { el: b, at: shell })
       // Содержимое расходится: уходящее уплывает в размытие, приходящее из
-      // него выступает. Опорные точки не 0 и 1, а с перехлёстом — иначе на
-      // середине хода в таблетке пусто.
+      // него выступает. Сумма прозрачностей всегда единица — с перехлёстом
+      // (уходящее гасло раньше, приходящее опаздывало) на середине хода
+      // корпус стоял пустым, и морфа было не видно вовсе.
       morphs.push({
         el: ia,
         at: p => {
-          const t = smooth(p * 1.35)
+          const t = smooth(p)
           return {
             opacity: String(1 - t),
             filter: `blur(${MORPH_BLUR * t}px)`,
@@ -483,7 +484,7 @@ function buildStage(under: Snapshot | null): Stage {
       }, {
         el: ib,
         at: p => {
-          const t = smooth(p * 1.35 - 0.35)
+          const t = smooth(p)
           return {
             opacity: String(t),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
@@ -559,21 +560,9 @@ function buildStage(under: Snapshot | null): Stage {
     underEl.style.transform = `translate3d(${-PARALLAX * W * (1 - p)}px,0,0)`
     dim.style.opacity = String(DIM * (1 - p))
 
-    // Закреплённое стоит; у верхних кнопок по линии стыка одна половина
-    // сменяет другую. Затемнение нижнего экрана лежит слоем НИЖЕ, поэтому
-    // его копии затемняем сами — иначе кнопка была бы ярче своего экрана.
-    // Геометрия снята один раз, на сборке сцены: замер в каждом кадре жеста
-    // заставлял бы браузер пересчитывать раскладку под пальцем.
-    for (const pin of pins) {
-      if (pin.kind !== 'top') continue
-      const cut = Math.min(pin.width, Math.max(0, next - pin.left))
-      pin.clone.style.clipPath = `inset(0 0 0 ${cut}px)`
-      if (pin.under) {
-        const uCut = Math.min(pin.uWidth, Math.max(0, next - pin.uLeft))
-        pin.under.style.clipPath = `inset(0 ${pin.uWidth - uCut}px 0 0)`
-        pin.under.style.filter = `brightness(${1 - DIM * (1 - p)})`
-      }
-    }
+    // Закреплённое стоит на месте — но перетекает: таблетки уходящего экрана
+    // тянутся в таблетки нижнего тем же ходом, что и страница.
+    setMorphs(p)
   }
 
   return {
