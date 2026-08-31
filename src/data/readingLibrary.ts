@@ -1774,8 +1774,481 @@ const RU: ReadingText[] = [
   },
 ]
 
+// ─── Английский: «Работа в команде» ──────────────────────────────────────────
+//
+// Тема была одним текстом (стендап в Slack), и фильтр «Навык → Лексика» давал
+// ровно одну карточку. Здесь она разворачивается в полку: жанры, которые
+// работающий человек читает каждый день, — тред в чате, повестка встречи,
+// заметки после созвона, передача дел, разбор инцидента, правки к тексту.
+// Ценность именно в регистре: те же слова в письме клиенту звучали бы иначе.
+
+const EN_TEAMWORK: ReadingText[] = [
+  {
+    id: 'en-team-thread',
+    lang: 'en', title: 'A thread about a deadline', level: 'A2', minutes: 2,
+    topic: 'Работа в команде', skill: 'Лексика',
+    origin: 'original',
+    body: `Tom: quick question — is the deadline for the deck Friday or Monday? I have it as Friday but the calendar says Monday
+
+Maria: Monday. we moved it last week because Anna is away on Friday
+
+Tom: ah, good. that gives me the weekend, I mean the extra day 🙂
+
+Maria: no need to work on the weekend, please. Monday morning is fine
+
+Tom: understood. I'll send a draft Friday anyway so you can look at it early
+
+Maria: perfect, thanks. one thing — please put the numbers on slide 4, not in the notes. people never open the notes`,
+    translation: `Том: короткий вопрос — дедлайн по презентации в пятницу или в понедельник? У меня записана пятница, а в календаре понедельник
+
+Мария: понедельник. мы сдвинули на прошлой неделе, потому что в пятницу Анны нет
+
+Том: а, хорошо. значит, у меня есть выходные, то есть лишний день 🙂
+
+Мария: в выходные работать не надо, пожалуйста. утро понедельника — нормально
+
+Том: понял. черновик всё равно пришлю в пятницу, чтобы вы посмотрели заранее
+
+Мария: отлично, спасибо. и ещё — цифры поставь на четвёртый слайд, а не в заметки. заметки никто не открывает`,
+    glossary: [
+      { term: 'deadline', ru: 'срок сдачи' },
+      { term: 'deck', ru: 'презентация (слайды)' },
+      { term: 'to move a date', ru: 'перенести дату' },
+      { term: 'away', ru: 'в отъезде, отсутствует' },
+      { term: 'draft', ru: 'черновик' },
+      { term: 'anyway', ru: 'всё равно' },
+      { term: 'slide', ru: 'слайд' },
+      { term: 'notes', ru: 'заметки к слайду' },
+    ],
+    questions: [
+      {
+        q: 'When is the deck due?',
+        options: ['On Friday', 'On Monday', 'On the weekend', 'It is not decided yet'],
+        correct: 1,
+        why: 'Maria отвечает одним словом: «Monday». Пятница у Тома — старая дата, которую сдвинули.',
+      },
+      {
+        q: 'Why was the date moved?',
+        options: ['Because Anna is away on Friday', 'Because Tom asked for more time', 'Because the deck is too long', 'The thread does not say'],
+        correct: 0,
+        why: '«We moved it last week because Anna is away on Friday» — причина названа прямо в том же сообщении.',
+      },
+      {
+        q: 'What does Maria think about working on the weekend?',
+        options: ['She expects it', 'She asks him not to', 'She does not care', 'She offers to help'],
+        correct: 1,
+        why: '«No need to work on the weekend, please» — это просьба не делать, а не разрешение.',
+      },
+      {
+        q: 'Where should the numbers go?',
+        options: ['In the notes', 'On slide 4', 'In a separate file', 'In the email'],
+        correct: 1,
+        why: '«Put the numbers on slide 4, not in the notes» — и объяснение рядом: заметки никто не открывает.',
+      },
+    ],
+  },
+  {
+    id: 'en-meeting-agenda',
+    lang: 'en', title: 'An agenda for the weekly', level: 'A2', minutes: 2,
+    topic: 'Работа в команде', skill: 'Лексика',
+    origin: 'original',
+    body: `Weekly sync — Thursday, 11:00–11:45 CET
+
+Please read this before the call. If a point is clear from the document, we will not discuss it.
+
+1. Release 2.4 — status (Maria, 10 min)
+2. Search filters: two options, we need a decision today (Daniil, 15 min)
+3. Support tickets from last week — what keeps coming back (Tom, 10 min)
+4. AOB
+
+Not on the agenda: the new brand colours. That is a separate meeting next week.
+
+If you cannot join, send your update in the thread and read the notes afterwards. We record the call.`,
+    translation: `Еженедельная встреча — четверг, 11:00–11:45 CET
+
+Пожалуйста, прочитайте это до созвона. Если пункт понятен из документа, обсуждать его не будем.
+
+1. Релиз 2.4 — статус (Мария, 10 мин)
+2. Фильтры поиска: два варианта, решение нужно сегодня (Даниил, 15 мин)
+3. Обращения в поддержку за прошлую неделю — что повторяется (Том, 10 мин)
+4. Разное
+
+Не в повестке: новые цвета бренда. Это отдельная встреча на следующей неделе.
+
+Если не можете быть, пришлите свой апдейт в тред и потом прочитайте заметки. Созвон записывается.`,
+    glossary: [
+      { term: 'agenda', ru: 'повестка встречи' },
+      { term: 'weekly sync', ru: 'еженедельная встреча команды' },
+      { term: 'release', ru: 'релиз, выпуск версии' },
+      { term: 'decision', ru: 'решение' },
+      { term: 'support ticket', ru: 'обращение в поддержку' },
+      { term: 'AOB', ru: 'разное (в конце повестки)' },
+      { term: 'to join', ru: 'подключиться (к встрече)' },
+      { term: 'update', ru: 'краткий отчёт о ходе дел' },
+    ],
+    questions: [
+      {
+        q: 'What should you do before the call?',
+        options: ['Read the agenda', 'Prepare slides', 'Write to Maria', 'Nothing'],
+        correct: 0,
+        why: '«Please read this before the call» — первая строка после времени, и дальше объясняется зачем.',
+      },
+      {
+        q: 'Which point needs a decision on Thursday?',
+        options: ['Release 2.4', 'The search filters', 'The support tickets', 'The brand colours'],
+        correct: 1,
+        why: '«Two options, we need a decision today» стоит только у пункта про фильтры.',
+      },
+      {
+        q: 'Will the team discuss the new brand colours?',
+        options: ['Yes, at the end', 'Yes, under AOB', 'No, that is a separate meeting', 'Only if there is time'],
+        correct: 2,
+        why: '«Not on the agenda… a separate meeting next week» — пункт вынесен намеренно.',
+      },
+      {
+        q: 'What does AOB mean here?',
+        options: ['Any other business — other topics at the end', 'A break', 'A vote', 'The name of a project'],
+        correct: 0,
+        why: 'AOB — стандартный последний пункт повестки: короткое «разное» на всё, что не заняло отдельной строки.',
+      },
+    ],
+  },
+  {
+    id: 'en-meeting-notes',
+    lang: 'en', title: 'Notes after the call', level: 'B1', minutes: 2,
+    topic: 'Работа в команде', skill: 'Лексика',
+    origin: 'original',
+    body: `Notes — weekly sync, 14 May
+
+Decisions
+• Search filters: we go with option B (one row, scrollable). Option A was clearer but did not fit on small screens.
+• Release 2.4 moves to Tuesday. We would rather ship two days late than ship the payment bug.
+
+Action items
+• Daniil — update the prototype with option B — by Friday
+• Maria — tell support about the new date — today
+• Tom — collect the three most frequent tickets and share numbers — before the next sync
+
+Open questions
+• Do we need a separate empty state for filtered results? Nobody had a strong opinion; parked until we see the data.
+
+Anna was not on the call and will read these notes.`,
+    translation: `Заметки — еженедельная встреча, 14 мая
+
+Решения
+• Фильтры поиска: берём вариант B (одна строка с прокруткой). Вариант A был понятнее, но не помещался на маленьких экранах.
+• Релиз 2.4 переносится на вторник. Лучше выпустить на два дня позже, чем выпустить с багом в оплате.
+
+Задачи
+• Даниил — обновить прототип под вариант B — до пятницы
+• Мария — сообщить поддержке о новой дате — сегодня
+• Том — собрать три самых частых обращения и прислать цифры — до следующей встречи
+
+Открытые вопросы
+• Нужно ли отдельное пустое состояние для отфильтрованных результатов? Ни у кого не было твёрдого мнения; отложено до данных.
+
+Анны на созвоне не было, она прочитает эти заметки.`,
+    glossary: [
+      { term: 'action item', ru: 'задача с исполнителем и сроком' },
+      { term: 'to go with', ru: 'остановиться на (варианте)' },
+      { term: 'to ship', ru: 'выпустить, отдать пользователям' },
+      { term: 'frequent', ru: 'частый' },
+      { term: 'open question', ru: 'нерешённый вопрос' },
+      { term: 'parked', ru: 'отложено (до времени)' },
+      { term: 'strong opinion', ru: 'твёрдое мнение' },
+    ],
+    questions: [
+      {
+        q: 'Which option did the team choose, and why?',
+        options: [
+          'Option A, because it is clearer',
+          'Option B, because it fits small screens',
+          'Both, for different screens',
+          'Neither — the decision was postponed',
+        ],
+        correct: 1,
+        why: 'Вариант A назван более понятным, и всё же взяли B: решает не «красивее», а «помещается».',
+      },
+        {
+        q: 'Why is the release late?',
+        options: [
+          'The team preferred two extra days to shipping a payment bug',
+          'Daniil did not finish the prototype',
+          'Support asked for more time',
+          'The notes do not say',
+        ],
+        correct: 0,
+        why: '«We would rather ship two days late than ship the payment bug» — сознательный выбор, а не срыв.',
+      },
+      {
+        q: 'What must Maria do today?',
+        options: ['Update the prototype', 'Tell support about the new date', 'Collect ticket numbers', 'Nothing'],
+        correct: 1,
+        why: 'В списке задач у каждой строки есть срок; у Марии стоит «today».',
+      },
+      {
+        q: 'What does "parked" mean in these notes?',
+        options: ['Rejected', 'Done', 'Left for later, on purpose', 'Given to another team'],
+        correct: 2,
+        why: 'Parked — «поставлено на стоянку»: вопрос не закрыт и не забыт, к нему вернутся, когда появятся данные.',
+      },
+    ],
+  },
+  {
+    id: 'en-handover-note',
+    lang: 'en', title: 'Handover before holiday', level: 'B1', minutes: 3,
+    topic: 'Работа в команде', skill: 'Лексика',
+    origin: 'original',
+    body: `Hi team,
+
+I'm off from Monday to the 28th. Here is where everything stands.
+
+Search filters. The prototype is done and linked in the ticket. Development starts on Wednesday — Tom knows the details and can answer questions. Please don't change the order of the filters without asking; it comes from the research, not from taste.
+
+Onboarding copy. Waiting on legal. If they come back with changes, Maria can approve small edits. Anything that touches the pricing text should wait for me.
+
+Usability sessions. Three are booked for the week after I'm back. The participants are confirmed, so please don't move the dates.
+
+If something is truly urgent, Maria has my number. "Urgent" means the release is blocked — not that someone wants an opinion on a colour.
+
+See you in two weeks,
+Daniil`,
+    translation: `Привет, команда!
+
+Меня не будет с понедельника по 28-е. Вот в каком состоянии дела.
+
+Фильтры поиска. Прототип готов, ссылка в задаче. Разработка стартует в среду — детали знает Том, вопросы к нему. Порядок фильтров, пожалуйста, не меняйте без спроса: он взят из исследования, а не из вкуса.
+
+Тексты онбординга. Ждём юристов. Если они вернут правки, мелкие может утвердить Мария. Всё, что касается текста про цены, ждёт меня.
+
+Юзабилити-сессии. Три встречи назначены на неделю после моего выхода. Участники подтверждены, поэтому даты не двигайте.
+
+Если что-то действительно срочное, у Марии есть мой номер. «Срочное» — это когда встал релиз, а не когда кому-то нужно мнение о цвете.
+
+До встречи через две недели,
+Даниил`,
+    glossary: [
+      { term: 'handover', ru: 'передача дел' },
+      { term: "I'm off", ru: 'меня не будет (в отпуске)' },
+      { term: 'where everything stands', ru: 'в каком состоянии дела' },
+      { term: 'ticket', ru: 'задача в трекере' },
+      { term: 'waiting on', ru: 'ждём от (кого-то)' },
+      { term: 'legal', ru: 'юридический отдел' },
+      { term: 'to approve', ru: 'утвердить' },
+      { term: 'booked', ru: 'назначено, забронировано' },
+      { term: 'urgent', ru: 'срочный' },
+    ],
+    questions: [
+      {
+        q: 'Who can answer questions about the filters while Daniil is away?',
+        options: ['Tom', 'Maria', 'Anna', 'Nobody'],
+        correct: 0,
+        why: '«Tom knows the details and can answer questions» — по каждой теме назначен свой человек, и это смысл всей записки.',
+      },
+      {
+        q: 'Which edits can Maria approve?',
+        options: ['Any changes to the copy', 'Small edits, but not the pricing text', 'Only the pricing text', 'None'],
+        correct: 1,
+        why: 'Мелкие правки — да; «anything that touches the pricing text should wait for me» — исключение названо отдельно.',
+      },
+      {
+        q: 'Why should the order of the filters stay as it is?',
+        options: [
+          'Because it comes from research, not from personal taste',
+          'Because development already started',
+          'Because legal approved it',
+          'Because Daniil likes it',
+        ],
+        correct: 0,
+        why: '«It comes from the research, not from taste» — довод, который работает и без автора в чате.',
+      },
+      {
+        q: 'What counts as urgent for Daniil?',
+        options: [
+          'A blocked release',
+          'A question about a colour',
+          'Any question from Maria',
+          'Anything the team cannot decide',
+        ],
+        correct: 0,
+        why: 'Он сам даёт определение: «Urgent means the release is blocked» — и тут же отсекает пример, который срочным не считается.',
+      },
+    ],
+  },
+  {
+    id: 'en-incident-report',
+    lang: 'en', title: 'What went wrong on Tuesday', level: 'B2', minutes: 3,
+    topic: 'Работа в команде', skill: 'Лексика',
+    origin: 'original',
+    body: `Incident summary — checkout unavailable, 12 March, 14:05–14:52 CET
+
+What happened. For 47 minutes, users could add items to the basket but could not pay. The button was there; the request failed silently. Support received 31 tickets, and we saw a drop of about 400 orders compared with a normal Tuesday.
+
+Root cause. A configuration change went out with the morning release. It was tested on staging, where the payment provider runs in test mode and returns success for everything — so the fault could not appear there.
+
+How we found it. Not from our monitoring: the first signal was a support ticket. Our alert only fires when requests fail with an error code, and these requests returned 200.
+
+What we are changing.
+• An alert on the number of completed payments per minute, not only on error codes.
+• Configuration changes get their own release, separate from features, so they are easy to roll back.
+• Staging will use the provider's sandbox, which can also return failures.
+
+This is not about who pushed the change. Anyone could have; the point is that nothing stopped it and nothing told us.`,
+    translation: `Разбор инцидента — оплата недоступна, 12 марта, 14:05–14:52 CET
+
+Что произошло. 47 минут пользователи могли складывать товары в корзину, но не могли оплатить. Кнопка была на месте, запрос молча падал. В поддержку пришёл 31 тикет, заказов стало примерно на 400 меньше, чем в обычный вторник.
+
+Первопричина. С утренним релизом уехало изменение конфигурации. Его проверяли на стенде, где платёжный провайдер работает в тестовом режиме и на всё отвечает успехом, — там ошибка появиться не могла.
+
+Как нашли. Не по мониторингу: первым сигналом стало обращение в поддержку. Наш алерт срабатывает, только когда запросы падают с кодом ошибки, а эти возвращали 200.
+
+Что меняем.
+• Алерт на число успешных оплат в минуту, а не только на коды ошибок.
+• Изменения конфигурации выезжают отдельным релизом, без функций, — чтобы легко откатить.
+• Стенд переводим на песочницу провайдера, которая умеет отвечать и отказами.
+
+Дело не в том, кто выкатил изменение. Мог любой; смысл в том, что его ничто не остановило и никто нам не сообщил.`,
+    glossary: [
+      { term: 'incident', ru: 'инцидент, сбой' },
+      { term: 'checkout', ru: 'оформление заказа, оплата' },
+      { term: 'silently', ru: 'молча, без сообщения' },
+      { term: 'drop', ru: 'падение (показателя)' },
+      { term: 'root cause', ru: 'первопричина' },
+      { term: 'staging', ru: 'тестовый стенд' },
+      { term: 'fault', ru: 'неисправность, сбой' },
+      { term: 'alert', ru: 'оповещение мониторинга' },
+      { term: 'to fire', ru: 'сработать (об оповещении)' },
+      { term: 'to roll back', ru: 'откатить' },
+      { term: 'sandbox', ru: 'песочница' },
+    ],
+    questions: [
+      {
+        q: 'What could users still do during the incident?',
+        options: ['Pay', 'Add items to the basket', 'Nothing at all', 'Only browse the help pages'],
+        correct: 1,
+        why: '«Could add items to the basket but could not pay» — сбой был узким, и именно поэтому его не заметили сразу.',
+      },
+      {
+        q: 'Why did staging not catch the fault?',
+        options: [
+          'It was not tested there',
+          'The payment provider in test mode returns success for everything',
+          'Staging was down that morning',
+          'The change was made after testing',
+        ],
+        correct: 1,
+        why: 'Тест был, но среда не умела отвечать отказом — проверка ничего не проверяла.',
+      },
+      {
+        q: 'Why did the alert stay quiet?',
+        options: [
+          'The failing requests returned code 200, and the alert watches error codes',
+          'Nobody had set up an alert',
+          'The alert was switched off during the release',
+          'Support turned it off',
+        ],
+        correct: 0,
+        why: 'Формально ошибки не было: сервер отвечал «успех». Отсюда и первая мера — считать успешные оплаты.',
+      },
+      {
+        q: 'What is the tone of the last paragraph?',
+        options: [
+          'It names the person responsible',
+          'It says the process failed, not a person',
+          'It says nothing needs to change',
+          'It blames the payment provider',
+        ],
+        correct: 1,
+        why: '«This is not about who pushed the change… nothing stopped it and nothing told us» — разбор ищет дыру в процессе, а не виноватого.',
+      },
+    ],
+  },
+  {
+    id: 'en-code-review-comments',
+    lang: 'en', title: 'Comments on a draft', level: 'B1', minutes: 2,
+    topic: 'Работа в команде', skill: 'Лексика',
+    origin: 'original',
+    body: `Comments left on the help-page draft:
+
+Sara: "Contact us if you have any issues" — can we say what happens after they write? People want to know how long they will wait.
+
+Sara: nit: "utilise" → "use". Same meaning, one is just heavier.
+
+Tom: this paragraph explains how the feature works inside. Do users need that, or do they need to know what to press?
+
+Sara: I'd cut the last sentence entirely. It repeats the title.
+
+Maria: agreed on all of the above. @Daniil no rush — Thursday is fine.
+
+Daniil: thanks all, will fix. Keeping "utilise" out of my life from now on.`,
+    translation: `Комментарии к черновику страницы помощи:
+
+Сара: «Contact us if you have any issues» — можно сказать, что будет после того, как напишут? Людям важно, сколько ждать ответа.
+
+Сара: мелочь: «utilise» → «use». Смысл тот же, просто одно тяжелее.
+
+Том: этот абзац объясняет, как функция устроена внутри. Пользователю это нужно — или ему нужно знать, что нажать?
+
+Сара: последнее предложение я бы вырезала целиком. Оно повторяет заголовок.
+
+Мария: со всем согласна. @Даниил не горит — четверг подойдёт.
+
+Даниил: спасибо всем, поправлю. «Utilise» из своей жизни убираю.`,
+    glossary: [
+      { term: 'draft', ru: 'черновик' },
+      { term: 'issue', ru: 'проблема, неполадка' },
+      { term: 'nit', ru: 'мелкое замечание, придирка' },
+      { term: 'heavier', ru: 'тяжелее (о слове, стиле)' },
+      { term: 'to cut', ru: 'вырезать (из текста)' },
+      { term: 'agreed', ru: 'согласен' },
+      { term: 'no rush', ru: 'не срочно' },
+    ],
+    questions: [
+      {
+        q: 'What does Sara want to add to the contact sentence?',
+        options: [
+          'How long the answer will take',
+          'A phone number',
+          'The name of the support team',
+          'A link to the pricing page',
+        ],
+        correct: 0,
+        why: '«People want to know how long they will wait» — она просит не вежливости, а конкретного срока.',
+      },
+      {
+        q: 'What does "nit" mean before a comment?',
+        options: [
+          'This is a serious problem',
+          'This is a small point, fix it if you like',
+          'This part must be deleted',
+          'This is a question for the team',
+        ],
+        correct: 1,
+        why: 'Пометка «nit» заранее говорит: замечание мелкое и не блокирует. Так отделяют важное от вкусового.',
+      },
+      {
+        q: 'What is Tom really asking?',
+        options: [
+          'Whether the paragraph is useful to the reader',
+          'Whether the feature works correctly',
+          'Who wrote the paragraph',
+          'Whether the title is right',
+        ],
+        correct: 0,
+        why: 'Вопрос «do they need that, or do they need to know what to press?» — про пользу для читателя, а не про верность описания.',
+      },
+      {
+        q: 'When does Daniil have to fix the draft?',
+        options: ['Today', 'By Thursday', 'Before the release', 'There is no deadline'],
+        correct: 1,
+        why: '«No rush — Thursday is fine»: «не горит» здесь не значит «когда-нибудь», срок всё равно назван.',
+      },
+    ],
+  },
+]
+
 // Корейский растёт отдельным файлом — темы для фильтра «Тема» (см. readingKo).
-export const READING_LIBRARY: ReadingText[] = [...EN, ...EN_TEXTS, ...KO, ...KO_TEXTS, ...JA, ...JA_TEXTS, ...PT, ...DE, ...DE_TEXTS, ...RU, ...RU_TEXTS, ...MORE]
+export const READING_LIBRARY: ReadingText[] = [...EN, ...EN_TEAMWORK, ...EN_TEXTS, ...KO, ...KO_TEXTS, ...JA, ...JA_TEXTS, ...PT, ...DE, ...DE_TEXTS, ...RU, ...RU_TEXTS, ...MORE]
 
 /**
  * Тексты нужного языка, по возрастанию уровня.

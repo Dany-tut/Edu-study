@@ -955,13 +955,17 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                   {t(o.label)}
                 </span>
               )}
-            {/* У активной кнопки бейдж прячется: имя и так забрало почти всю
-                ширину строки, а число рядом обрезало «Тексты» в «Текс…».
-                Счётчик остаётся только на неактивных значках. */}
-            {o.badge !== undefined && o.badge > 0 && !on && (
+            {/* Бейдж прячется у активной только в режиме idleIcon: там имя
+                забирает почти всю строку и число обрезало «Тексты» в «Текс…».
+                В обычном ряду счётчик остаётся всегда — иначе кнопка на клике
+                меняла ширину и соседка прыгала следом. */}
+            {o.badge !== undefined && o.badge > 0 && !(idleIcon && on) && (
               <span style={{
                 padding: '1px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
-                background: soft, color: accent, fontVariantNumeric: 'tabular-nums',
+                // На выбранной кнопке фон уже мягкий — бейдж того же цвета там
+                // растворялся; берём цвет поля, число читается впадиной.
+                background: on ? 'var(--color-bg-input)' : soft, color: accent,
+                fontVariantNumeric: 'tabular-nums',
               }}>
                 {o.badge}
               </span>

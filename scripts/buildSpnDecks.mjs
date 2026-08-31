@@ -66,13 +66,28 @@ const BATCH = Number(flag('--batch', 40))
 const SRT_DIR = String(flag('--srt', '')).replace(/^~/, process.env.HOME ?? '')
 const LIMIT = Number(flag('--limit', 60))
 /**
- * В скольких сериях слово должно встретиться, чтобы попасть в кандидаты.
+ * В скольких сериях слово должно встретиться, чтобы попасть в колоду.
  *
- * По 104 сериям пяти сезонов: 2 → 2660 кандидатов, 3 → 1218, 5 → 365, 8 → 90,
- * 12 → 31. Порог 5 выбран как рабочий: ниже начинается хвост слов, встреченных
- * дважды за весь сериал, выше остаётся слишком узкий костяк.
+ * ПОРОГ 2, А НЕ 5 — И ЭТО ПРИНЦИПИАЛЬНО. Задача колоды: выучить слова ПЕРЕД
+ * КОНКРЕТНОЙ СЕРИЕЙ и понять её. Не «выучить ядро сериала»: у этих двух задач
+ * разные ответы, и первый вариант скрипта отвечал на вторую.
+ *
+ * Замерено по 104 сериям, слов на серию после отсева имён и уже разобранного:
+ *   всё выше B1  — 79,5 в среднем (медиана 78) — неподъёмно;
+ *   ≥2 серий     — 24,1 (медиана 20) — то, что нужно;
+ *   ≥3 серий     — 10,6 (медиана 9);
+ *   ≥5 серий     — 3,0 (медиана 1) — ядро сериала, но серию оно не открывает.
+ *
+ * Единица «≥2» означает «слово вернётся хотя бы ещё раз»: одноразовую лексику
+ * монстра недели (68% всей редкой) она по-прежнему отсекает.
  */
-const MIN_EPISODES = Number(flag('--min', 5))
+const MIN_EPISODES = Number(flag('--min', 2))
+/**
+ * Потолок карточек на серию. Двадцать — это медиана полосы ≥2, то есть в
+ * половине серий потолок вообще не срабатывает, а в тяжёлых (до 86 слов) режет
+ * хвост по весу. Колода перед серией должна быть предсказуемой по объёму.
+ */
+const CAP = Number(flag('--cap', 20))
 
 if (!SRT_DIR || !existsSync(SRT_DIR)) {
   console.error('Укажи папку с субтитрами: --srt <путь>\nСубтитры не коммитятся — скрипт читает их с диска.')
@@ -337,25 +352,50 @@ const COVERED = alreadyCovered()
 
 // Сколько серий знает слово + одна живая строка на слово (для контекста модели).
 const docFreq = new Map(), sample = new Map()
+const perEpisode = []
 for (const e of episodes) {
-  const seen = new Set()
+  const inEp = new Map()
   for (const line of e.text.split('\n')) {
     for (const raw of line.toLowerCase().replace(/’/g, "'").match(/[a-z]+(?:'[a-z]+)?/g) ?? []) {
       if (raw.length <= 2 || raw.includes("'") || JUNK.has(raw) || INTERJ.test(raw)) continue
       const w = lemma(raw)
-      seen.add(w)
+      inEp.set(w, (inEp.get(w) ?? 0) + 1)
       if (!sample.has(w) && line.length < 90) sample.set(w, line.trim())
     }
   }
-  for (const w of seen) docFreq.set(w, (docFreq.get(w) ?? 0) + 1)
+  perEpisode.push({ id: e.id, inEp })
+  for (const w of inEp.keys()) docFreq.set(w, (docFreq.get(w) ?? 0) + 1)
 }
 
-const candidates = [...docFreq]
-  .filter(([w, d]) => d >= MIN_EPISODES && (rank.get(w) ?? 1e9) > 4000 && !NAMES.has(w) && !COVERED.has(w))
-  .sort((a, b) => b[1] - a[1])
-  .map(([term, episodes]) => ({ term, episodes, context: sample.get(term) ?? '' }))
+// ── Разнесение слов по сериям ────────────────────────────────────────────────
+//
+// Слово достаётся ТОЙ СЕРИИ, ГДЕ ВСТРЕЧАЕТСЯ ВПЕРВЫЕ, и больше нигде не
+// повторяется. Это прямо следует из того, зачем колода: её проходят ПЕРЕД
+// просмотром, значит слово нужно выдать до первой встречи, а на второй раз оно
+// уже знакомо и места в колоде не занимает. Побочный эффект приятный — колоды
+// поздних серий сами собой становятся короче.
+//
+// Внутри серии вес: сначала то, что вернётся чаще (по числу серий), при
+// равенстве — то, что звучит чаще в самой серии. Потолок режет хвост, а не
+// начало.
+const assigned = new Set()
+const decks = []
+for (const p of perEpisode) {
+  const fresh = [...p.inEp]
+    .filter(([w]) => docFreq.get(w) >= MIN_EPISODES && (rank.get(w) ?? 1e9) > 4000
+      && !NAMES.has(w) && !COVERED.has(w) && !assigned.has(w))
+    .sort((a, b) => (docFreq.get(b[0]) - docFreq.get(a[0])) || (b[1] - a[1]))
+    .slice(0, CAP)
+  fresh.forEach(([w]) => assigned.add(w))
+  decks.push({ id: p.id, words: fresh.map(([term, times]) => ({
+    term, times, episodes: docFreq.get(term), context: sample.get(term) ?? '', ep: p.id,
+  })) })
+}
 
-console.log(`кандидатов выше B1 и минимум в ${MIN_EPISODES} сериях: ${candidates.length}`)
+const sizes = decks.map(d => d.words.length)
+const candidates = decks.flatMap(d => d.words)
+console.log(`колод: ${decks.length} · карточек всего: ${candidates.length}`)
+console.log(`на серию: в среднем ${(candidates.length / decks.length).toFixed(1)} · разброс ${Math.min(...sizes)}..${Math.max(...sizes)} (потолок ${CAP})`)
 console.log(`имён отброшено: ${NAMES.size} · уже в наборах: ${COVERED.size} слов`)
 if (!candidates.length) process.exit(0)
 
