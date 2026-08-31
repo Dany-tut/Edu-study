@@ -425,7 +425,7 @@ export default function FeedGesturesSheet({ open, onClose }: { open: boolean; on
   const t = useT()
   return (
     <MobileSheet open={open} onClose={onClose} title={t('Лента и жесты')}>
-      <div style={{ padding: '0 16px 8px' }}>
+      <div style={{ padding: '0 0 8px' }}>
         <FeedGesturesSettings />
       </div>
     </MobileSheet>

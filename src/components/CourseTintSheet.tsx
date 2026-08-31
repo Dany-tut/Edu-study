@@ -122,7 +122,7 @@ export default function CourseTintSheet({ open, onClose }: { open: boolean; onCl
   const t = useT()
   return (
     <MobileSheet open={open} onClose={onClose} title={t('Цвет курса')}>
-      <div style={{ padding: '0 16px 8px' }}>
+      <div style={{ padding: '0 0 8px' }}>
         <CourseTintSettings />
       </div>
     </MobileSheet>

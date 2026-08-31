@@ -265,7 +265,7 @@ export default function FeedContentSheet({ open, onClose, items }: {
   const t = useT()
   return (
     <MobileSheet open={open} onClose={onClose} title={t('Настройки ленты')}>
-      <div style={{ padding: '0 16px 8px' }}>
+      <div style={{ padding: '0 0 8px' }}>
         <FeedContentSettings items={items} />
       </div>
     </MobileSheet>
