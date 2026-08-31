@@ -14,7 +14,7 @@ function Stand() {
       <div style={{ marginBottom: 16 }}>{p} px {locked ? '· щелчок' : ''}</div>
       <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
         <PullStamp progress={p / PULL_THRESHOLD} locked={locked} size={80} />
-        {[0.2, 0.45, 0.7, 0.9, 1].map(v => (
+        {[0.25, 0.5, 0.75, 1].map(v => (
           <PullStamp key={v} progress={v} locked={false} size={56} />
         ))}
         <PullStamp progress={1} locked size={56} />

@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
 import { BookOpen, X } from 'lucide-react'
 import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
@@ -72,6 +72,98 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
     return () => ro.disconnect()
   }, [open, paragraphs])
 
+  // Свайп вниз закрывает шторку, как у MobileSheet: правило открывают посреди
+  // задания, и тянуться к крестику в углу неудобно. Логика жеста та же и по той
+  // же причине — на айфоне указатели над прокруткой умирают pointercancel'ом,
+  // поэтому касание ведём сами на touch-событиях с {passive:false}: на первом
+  // движении решаем, чей жест, и гасим событие ДО того, как Safari начнёт
+  // скроллить. Заодно это замок на страницу позади: фон под шторкой не едет.
+  const y = useMotionValue(0)
+  const sheetRef = useRef<HTMLElement | null>(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+
+  useEffect(() => {
+    if (!open || isDesktop) return
+    let id: number | null = null
+    let startY = 0
+    let startX = 0
+    let mode: 'wait' | 'pull' | 'scroll' = 'wait'
+    let lastY = 0
+    let lastT = 0
+    let vy = 0
+
+    const finger = (e: TouchEvent) => Array.from(e.touches).find(t => t.identifier === id)
+      ?? Array.from(e.changedTouches).find(t => t.identifier === id)
+
+    const onStart = (e: TouchEvent) => {
+      const t = e.touches[0]
+      if (e.touches.length !== 1 || !sheetRef.current?.contains(t.target as Node)) { id = null; return }
+      id = t.identifier
+      startY = lastY = t.clientY
+      startX = t.clientX
+      lastT = e.timeStamp
+      vy = 0
+      mode = 'wait'
+    }
+
+    const onMove = (e: TouchEvent) => {
+      const sc = scrollRef.current
+      const target = e.target as Node
+      const inScroll = !!sc && sc.contains(target)
+      const scrollable = !!sc && sc.scrollHeight > sc.clientHeight + 1
+      if (id === null) {
+        if (!inScroll || !scrollable) e.preventDefault()
+        return
+      }
+      const t = finger(e)
+      if (!t) return
+      const dy = t.clientY - startY
+      const dx = t.clientX - startX
+      if (mode === 'wait') {
+        if (Math.abs(dy) < 4 && Math.abs(dx) < 4) { if (!inScroll || !scrollable) e.preventDefault(); return }
+        const atTop = !inScroll || !scrollable || sc!.scrollTop <= 0
+        mode = dy > 0 && Math.abs(dy) > Math.abs(dx) && atTop ? 'pull' : 'scroll'
+      }
+      if (mode === 'pull') {
+        e.preventDefault()
+        const now = e.timeStamp
+        if (now > lastT) vy = ((t.clientY - lastY) / (now - lastT)) * 1000
+        lastY = t.clientY
+        lastT = now
+        y.set(Math.max(0, dy - 4))
+        return
+      }
+      if (!inScroll || !scrollable) e.preventDefault()
+    }
+
+    const onEnd = () => {
+      if (id === null) return
+      const pulled = mode === 'pull'
+      const offset = y.get()
+      id = null
+      mode = 'wait'
+      if (!pulled) return
+      if (offset > 110 || vy > 600) closeRef.current()
+      else animate(y, 0, { type: 'spring', stiffness: 500, damping: 42 })
+    }
+
+    document.addEventListener('touchstart', onStart, { passive: false })
+    document.addEventListener('touchmove', onMove, { passive: false })
+    document.addEventListener('touchend', onEnd)
+    document.addEventListener('touchcancel', onEnd)
+    return () => {
+      document.removeEventListener('touchstart', onStart)
+      document.removeEventListener('touchmove', onMove)
+      document.removeEventListener('touchend', onEnd)
+      document.removeEventListener('touchcancel', onEnd)
+    }
+  }, [open, isDesktop, y])
+
+  // Шторку закрыли и открыли снова — начинаем с нуля, иначе она встанет
+  // сдвинутой на остаток прошлого жеста.
+  useEffect(() => { if (!open) y.set(0) }, [open, y])
+
   // Escape закрывает — шторка перекрывает задания, и выход должен быть без мыши.
   useEffect(() => {
     if (!open) return
@@ -104,11 +196,13 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
               — то есть выглядит как «кнопка не работает». */}
           <motion.aside
             key="theory-panel"
+            ref={sheetRef}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             style={{
+              ...(isDesktop ? null : { y }),
               position: 'fixed', zIndex: 201,
               display: 'flex', flexDirection: 'column',
               background: 'rgba(var(--glass-rgb), 0.98)',
@@ -127,10 +221,15 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 }),
             }}
           >
+            {!isDesktop && (
+              <div className="flex justify-center flex-shrink-0" style={{ padding: '10px 0 0', touchAction: 'none' }}>
+                <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
+              </div>
+            )}
             <header
               className="flex items-center flex-shrink-0"
               style={{
-                gap: 10, padding: '18px 20px',
+                gap: 10, padding: isDesktop ? '18px 20px' : '14px 20px 16px',
                 borderBottom: '1px solid var(--color-border-soft)',
               }}
             >
@@ -166,7 +265,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
               ref={scrollRef}
               onScroll={syncFade}
               className="flex flex-col flex-1"
-              style={{ gap: 14, padding: '18px 20px 28px', overflowY: 'auto', minHeight: 0 }}
+              style={{ gap: 14, padding: '18px 20px 28px', overflowY: 'auto', minHeight: 0, overscrollBehavior: 'contain' }}
             >
               {paragraphs.map(p => p.image ? (
                 <figure key={p.id} style={{ margin: 0 }}>

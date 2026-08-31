@@ -72,13 +72,13 @@
      Отдельно от --color-yellow-*: тот подобран как ЦВЕТ ТЕКСТА (#7A6500 /
      #F6E47A), и заливкой на графите даёт оливковую грязь. Этот тон, наоборот,
      держит сразу три роли — подложку иконки, цифру и полосу порога. */
-  --color-amber: #B8770E;
-  --color-amber-soft: rgba(184,119,14,0.10);
-  --color-amber-border: rgba(184,119,14,0.24);
+  --color-amber: #C2660C;
+  --color-amber-soft: rgba(250,160,40,0.14);
+  --color-amber-border: rgba(245,150,35,0.28);
   /* Цифра/подпись НА янтарной подложке. В светлой теме сам --color-amber на
      ней даёт 3.0:1 — на грани даже для крупного текста, поэтому здесь тон
      темнее; в тёмной теме роли меняются местами (см. переопределение ниже). */
-  --color-amber-text: #8A5A08;
+  --color-amber-text: #A0530A;
   --reminder-card-medium: rgba(255,160,20,0.14);
   --reminder-card-high: rgba(230,80,90,0.12);
   --reminder-card-medium-border: rgba(255,170,30,0.35);
@@ -127,6 +127,11 @@
      (lib/courseTint.ts): раньше эти места стояли литералом rgba(99,84,207,…) и
      оставляли фиолетовый ореол под коралловой кнопкой английского. */
   --accent-rgb:      99, 84, 207;
+  /* Янтарь-ЗАЛИВКА. Пара к --grad-purple и по той же причине: --color-amber
+     подобран как цвет ТЕКСТА, залитый им прогресс в светлой теме выглядит
+     тёмно-горчичной грязью. Градиент одинаков в обеих темах. */
+  --grad-amber:     linear-gradient(135deg, #FFC94D, #F58A2E);
+  --grad-amber-bar: linear-gradient(90deg, #FFC94D, #F58A2E);
   --grad-purple:     linear-gradient(135deg, #9D8BFF, #6A5AE6);
   --grad-purple-bar: linear-gradient(90deg, #6A5AE6, #A697FF);
   --grad-green:      linear-gradient(135deg, #34C877, #2A7D4F);

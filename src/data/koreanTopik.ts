@@ -42,7 +42,7 @@
 
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
-  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, drill,
+  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, readAloudEach, drill,
   dictation, dictationBank, minPair, describeImage, reading, nestTasks, pronRuleTasks,
 } from './languageCourse'
 import { art } from './artworks'
@@ -125,7 +125,8 @@ export const KOREAN_UNITS: LangUnit[] = [
       fill('Запишите хангылем слово «человек».', '사람'),
       dictation('Запишите услышанное слово.', '이름'),
       dictation('Запишите услышанное слово.', '물'),
-      readAloud('Прочитайте вслух без транскрипции: 학교, 이름, 빵, 물, 집.', '학교 이름 빵 물 집', 25),
+      ...readAloudEach(['학교', '사람', '이름', '방', '빵', '물', '책', '집', '눈', '손'],
+        { prompt: 'Прочитайте вслух без транскрипции' }),
       // Разбор слога на буквы — плитками, а не текстом. Набрать «ㅎ + ㅏ + ㄱ» в
       // поле нельзя даже с корейской раскладкой: она склеивает буквы обратно в
       // слог, ради чего и существует. Заодно проверка стала автоматической —
@@ -187,8 +188,8 @@ export const KOREAN_UNITS: LangUnit[] = [
         ['좋아요', '조아요'],
       ]),
       dictation('Напечатайте услышанную фразу так, как она пишется.', '맛있어요'),
-      readAloud('Прочитайте вслух, применяя правила чтения: 감사합니다, 한국어, 좋아요, 맛있어요.',
-        '감사합니다 한국어 좋아요 맛있어요', 25),
+      ...readAloudEach(['감사합니다', '한국어', '한국말', '좋아요', '맛있어요', '괜찮아요'],
+        { prompt: 'Прочитайте вслух, применяя правила чтения' }),
     // Три правила урока — из koreanPronRules, выбором чтения. Смещение
     // пропускает слова, которые урок уже разобрал руками (꽃이, 감사합니다,
     // 좋아요), — генератор добавляет новые, а не переспрашивает решённое.

@@ -1,4 +1,4 @@
-import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock, Captions, Ear, Lightbulb, PlayCircle } from 'lucide-react'
+import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock, Check, Captions, Ear, Lightbulb, PlayCircle } from 'lucide-react'
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
@@ -398,14 +398,19 @@ function SceneRow({ scene, passed, hidden, accent, soft, onOpen }: {
     >
       <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
         <TileChip tone="accent" accent={accent} soft={soft}>{scene.level}</TileChip>
-        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-          {scene.where} · {scene.minutes} {t('мин')} · {t(originLabel(scene))}
-        </span>
         {passed && (
-          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
+            padding: '2px 8px 2px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
+            background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
+          }}>
+            <Check size={12} strokeWidth={3} />
             {t('пройдено')}
           </span>
         )}
+        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+          {scene.where} · {scene.minutes} {t('мин')} · {t(originLabel(scene))}
+        </span>
       </span>
 
       <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>

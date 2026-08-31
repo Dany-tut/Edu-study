@@ -37,17 +37,30 @@ import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 // поведению — только переносит вес за пределы первой загрузки.
 const TaskBankPage = lazy(() => import('./TaskBankPage'))
 
+// Заглушка ожидания чанка — НЕ lazy и без тяжёлых импортов: её вес целиком
+// уходит в главный чанк, и показать её нужно раньше всего остального.
+import TrainerBootSkeleton from '../components/trainer/TrainerBootSkeleton'
+
 // Домашка — тоже отдельным чанком (196 КБ): монтируется только при
 // activePage === 'homework', то есть после клика по уроку. Шкала самооценки,
 // которую рисуют узлы маршрута, вынесена в homeworkSteps.ts — иначе они тянули
 // бы весь модуль домашки обратно в главный чанк.
 const HomeworkFlow = lazy(() => import('../components/HomeworkFlow'))
 
-// Пока чанк тренажёра едет — фон, а не белый провал: TaskBankPage дальше сам
-// показывает свой скелет.
+// Пока чанк тренажёра едет — сразу его скелет, а не пустой фон: иначе ожидание
+// шло тремя экранами подряд (белый → скелетон → содержимое). Дальше TaskBankPage
+// показывает свой, той же геометрии, — переход между ними незаметен.
 function TrainerChunk() {
+  const isDesktop = useIsDesktop()
   return (
-    <Suspense fallback={<div style={{ minHeight: '60vh', background: 'var(--color-bg)' }} />}>
+    <Suspense fallback={
+      <>
+        <TrainerBootSkeleton desktop={isDesktop} />
+        {/* Нижнюю навигацию на телефоне рисует сам тренажёр — пока его нет,
+            рисует заглушка, иначе таб-бар мигает на время загрузки. */}
+        {!isDesktop && <MobileBottomNav />}
+      </>
+    }>
       <TaskBankPage />
     </Suspense>
   )

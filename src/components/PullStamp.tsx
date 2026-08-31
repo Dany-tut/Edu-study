@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { useTheme } from '../store/themeStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,11 +15,18 @@ import { useTheme } from '../store/themeStore'
 // pathLength=1, и рост дают dasharray/dashoffset. Цена — координаты руками
 // (ниже), выгода — сам жест.
 //
-// ЩЕЛЧОК НА ПОРОГЕ. Пока тянут, печать — только контур цвета киновари. На
-// пороге она СОБИРАЕТСЯ: поле заливается, черты выворачиваются в белое,
-// рамка коротко вспыхивает. Дальше отпускать можно где угодно — печать уже
-// «схватилась», обратно контуром не разбирается (то же правило, что у стыка
-// ленты в FeedSwipe: радиус только растёт).
+// ЗАЛИВКА ПОДНИМАЕТСЯ ВМЕСТЕ С ТЯГОЙ. Киноварь наливается снизу вверх ровно
+// на столько, на сколько вытянули, — печать макают в краску, а не включают
+// на пороге. Черты живут в двух слоях: поверх пустого поля они цвета краски,
+// а внутри залитой части — вывороткой (тот же путь, обрезанный по уровню).
+// Один слой не годится: черта, попавшая на границу, должна менять цвет
+// ПОСЕРЕДИНЕ себя.
+//
+// ЩЕЛЧОК НА ПОРОГЕ — не появление заливки, а её завершение: уровень
+// доливается до края, рамка утолщается, поверх проходит вспышка. Дальше
+// отпускать можно где угодно — печать уже «схватилась», обратно не
+// разбирается (то же правило, что у стыка ленты в FeedSwipe: радиус только
+// растёт).
 //
 // НАДПИСЬ. 새로 — «заново». Два слога, мало черт: на 44 px линии ещё
 // читаются, а 새로고침 в том же квадрате превратилось бы в сетку. И это не
@@ -74,6 +82,19 @@ export default function PullStamp({
   const seal = dark ? '#E2685C' : '#C1352B'
   const ink = dark ? '#17161A' : '#FFFFFF'
   const p = Math.max(0, Math.min(1, progress))
+  const inkClip = 'pullstamp-ink-' + useId().replace(/:/g, '')
+  // Уровень краски. Не в ноль на старте: первый же миллиметр тяги должен
+  // что-то делать, иначе жест начинается «вхолостую».
+  // До края не доливаем: последние проценты — работа щелчка, иначе порог
+  // ничего не добавляет и его невозможно заметить глазом.
+  const level = locked ? 100 : p * 93
+  const strokeW = locked ? 5.5 : 4.5
+  const strokeMove = locked
+    ? 'stroke-dashoffset 220ms ease-out, stroke-width 180ms ease-out'
+    : 'none'
+  const strokes = STROKES.map((d, i) => ({
+    d, i, off: 1 - (locked ? 1 : strokeAt(p, i)),
+  }))
 
   return (
     <svg
@@ -86,7 +107,7 @@ export default function PullStamp({
         overflow: 'visible',
         // До порога печать ещё не проявилась целиком — приглушаем её вместе с
         // тягой, иначе первая же черта выглядит как готовый знак.
-        opacity: locked ? 1 : 0.35 + p * 0.65,
+        opacity: locked ? 1 : 0.55 + p * 0.45,
         transform: `scale(${locked ? 1 : 0.86 + p * 0.14})`,
         transformOrigin: '50% 50%',
         transition: locked
@@ -106,46 +127,65 @@ export default function PullStamp({
         }
       `}</style>
 
-      {/* Поле печати. До порога прозрачное — виден только контур. */}
+      <defs>
+        {/* Уровень краски: снизу вверх, по тяге. */}
+        <clipPath id={inkClip}>
+          <rect
+            x="0" y={100 - level} width="100" height={level}
+            style={{ transition: locked ? 'y 200ms ease-out, height 200ms ease-out' : 'none' }}
+          />
+        </clipPath>
+      </defs>
+
+      {/* Пустое поле печати — только рамка. */}
       <rect
         x="4" y="4" width="92" height="92" rx="10"
-        fill={locked ? seal : 'transparent'}
+        fill="none"
         stroke={seal}
         strokeWidth={locked ? 5 : 3}
-        style={{ transition: 'fill 180ms ease-out, stroke-width 180ms ease-out' }}
+        style={{ transition: 'stroke-width 180ms ease-out' }}
       />
+      {/* Налитая краска. Обрезана и по уровню, и по самой рамке — иначе
+          прямоугольник заливки торчал бы за скруглённые углы печати. */}
+      <g clipPath={`url(#${inkClip})`}>
+        <rect x="4" y="4" width="92" height="92" rx="10" fill={seal} />
+      </g>
+
       {/* Внутренняя нить — у настоящей 도장 рамка двойная. */}
       <rect
         x="11" y="11" width="78" height="78" rx="6"
         fill="none"
-        stroke={locked ? ink : seal}
+        stroke={seal}
         strokeWidth="1"
-        opacity={locked ? 0.5 : 0.35 + p * 0.4}
-        style={{ transition: 'stroke 180ms ease-out' }}
+        opacity={0.35 + p * 0.4}
       />
+      <g clipPath={`url(#${inkClip})`}>
+        <rect
+          x="11" y="11" width="78" height="78" rx="6"
+          fill="none" stroke={ink} strokeWidth="1" opacity="0.5"
+        />
+      </g>
 
-      {STROKES.map((d, i) => {
-        const s = locked ? 1 : strokeAt(p, i)
-        return (
+      {/* Черты: сначала все краской по пустому полю... */}
+      {strokes.map(({ d, i, off }) => (
+        <path
+          key={i} d={d} pathLength={1} fill="none" stroke={seal}
+          strokeWidth={strokeW} strokeLinecap="round" strokeLinejoin="round"
+          strokeDasharray={1} strokeDashoffset={off}
+          style={{ transition: strokeMove }}
+        />
+      ))}
+      {/* ...и они же вывороткой внутри залитой части. */}
+      <g clipPath={`url(#${inkClip})`}>
+        {strokes.map(({ d, i, off }) => (
           <path
-            key={i}
-            d={d}
-            pathLength={1}
-            fill="none"
-            stroke={locked ? ink : seal}
-            strokeWidth={locked ? 5.5 : 4.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray={1}
-            strokeDashoffset={1 - s}
-            style={{
-              transition: locked
-                ? 'stroke-dashoffset 220ms ease-out, stroke 180ms ease-out, stroke-width 180ms ease-out'
-                : 'none',
-            }}
+            key={i} d={d} pathLength={1} fill="none" stroke={ink}
+            strokeWidth={strokeW} strokeLinecap="round" strokeLinejoin="round"
+            strokeDasharray={1} strokeDashoffset={off}
+            style={{ transition: strokeMove }}
           />
-        )
-      })}
+        ))}
+      </g>
 
       {/* Вспышка на щелчке: одноразовая, поверх всего, гаснет сама. */}
       {locked && (

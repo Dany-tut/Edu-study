@@ -42,7 +42,7 @@
 
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
-  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
+  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, readAloudEach,
   dictation, dictationBank, minPair, describeImage, drill, nestTasks,
 } from './languageCourse'
 import { art } from './artworks'
@@ -104,8 +104,7 @@ export const JAPANESE_UNITS: LangUnit[] = [
       fill('Запишите хираганой слово «утро».', 'あさ'),
       fill('Запишите хираганой слово «кошка».', 'ねこ'),
       dictation('Напечатайте услышанное слово хираганой.', 'さかな'),
-      readAloud('Прочитайте вслух: あさ、ねこ、いぬ、さかな、くつ。',
-        'あさ ねこ いぬ さかな くつ', 25),
+      ...readAloudEach(['あさ', 'いえ', 'かさ', 'ねこ', 'いぬ', 'さかな', 'なつ', 'くつ']),
     ],
   },
   {
@@ -186,8 +185,8 @@ export const JAPANESE_UNITS: LangUnit[] = [
       fill('Запишите катаканой слово «Россия».', 'ロシア'),
       fill('Запишите катаканой слово «отель».', 'ホテル'),
       dictation('Напечатайте услышанное слово катаканой.', 'ビール'),
-      readAloud('Прочитайте вслух меню: コーヒー、ビール、アイスクリーム、レストラン、タクシー。',
-        'コーヒー ビール アイスクリーム レストラン タクシー', 40),
+      ...readAloudEach(['コーヒー', 'ビール', 'アイスクリーム', 'レストラン', 'タクシー'],
+        { prompt: 'Прочитайте вслух пункт меню' }),
     ],
   },
   {

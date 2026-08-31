@@ -439,8 +439,8 @@ function ResultModal({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: context === 'hard'
                 ? 'var(--color-green-soft)'
-                : 'var(--color-amber-soft)',
-              color: context === 'hard' ? 'var(--color-green-text)' : 'var(--color-amber)',
+                : 'var(--grad-amber)',
+              color: context === 'hard' ? 'var(--color-green-text)' : '#fff',
             }}>
               {context === 'hard' ? <Send size={24} /> : <CircleAlert size={24} />}
             </div>
@@ -496,7 +496,7 @@ function ResultModal({
                 <div style={{
                   position: 'absolute', left: 0, top: 0, bottom: 0,
                   width: `${Math.min(100, score)}%`, borderRadius: 999,
-                  background: passed ? 'var(--color-green-accent)' : 'var(--color-amber)',
+                  background: passed ? 'var(--color-green-accent)' : 'var(--grad-amber-bar)',
                 }} />
                 <div style={{
                   position: 'absolute', left: `${Math.min(100, recommendationScore)}%`,
@@ -3175,8 +3175,8 @@ export default function HomeworkFlow({
                       <div style={{
                         width: 44, height: 44, borderRadius: 14, flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: basicPassed ? 'var(--color-green-soft)' : 'var(--color-amber-soft)',
-                        color: basicPassed ? 'var(--color-green-text)' : 'var(--color-amber)',
+                        background: basicPassed ? 'var(--color-green-soft)' : 'var(--grad-amber)',
+                        color: basicPassed ? 'var(--color-green-text)' : '#fff',
                       }}>
                         {basicPassed ? <Trophy size={20} /> : <CircleAlert size={20} />}
                       </div>
@@ -3237,7 +3237,7 @@ export default function HomeworkFlow({
                         <div style={{
                           position: 'absolute', left: 0, top: 0, bottom: 0,
                           width: `${Math.min(100, basicScore)}%`, borderRadius: 999,
-                          background: basicPassed ? 'var(--color-green-accent)' : 'var(--color-amber)',
+                          background: basicPassed ? 'var(--color-green-accent)' : 'var(--grad-amber-bar)',
                         }} />
                         <div style={{
                           position: 'absolute', left: `${Math.min(100, homework.recommendationScore)}%`,

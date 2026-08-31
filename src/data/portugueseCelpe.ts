@@ -40,7 +40,7 @@
 
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
-  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
+  one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, readAloudEach,
   dictation, dictationBank, minPair, describeImage, drill, nestTasks,
 } from './languageCourse'
 import { art } from './artworks'
@@ -97,8 +97,7 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
         ['cidade', 'сидáджи'],
       ]),
       dictation('Напечатайте услышанное слово.', 'trabalho'),
-      readAloud('Прочитайте вслух: chave, filho, banho, começar, trabalho.',
-        'chave, filho, banho, começar, trabalho', 25),
+      ...readAloudEach(['chave', 'filho', 'banho', 'passar', 'começar', 'aqui', 'cidade', 'trabalho']),
     ],
   },
   {
@@ -143,8 +142,8 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
       ...nestTasks('pt-mao', 1),
       fill('Впишите пропущенное слово: Eu ___ falo português ainda. (не)', 'não'),
       dictation('Напечатайте услышанное слово.', 'irmão'),
-      readAloud('Прочитайте вслух, держа носовое звучание: pão, mãe, irmão, coração, bem.',
-        'pão, mãe, irmão, coração, bem', 25),
+      ...readAloudEach(['pão', 'mão', 'mãe', 'irmão', 'coração', 'não', 'bem', 'sim'],
+        { prompt: 'Прочитайте вслух, держа носовое звучание' }),
     ],
   },
   {
