@@ -2112,7 +2112,7 @@ export function Tile({ children, onClick, accent, stack, tint }: {
             background: tint
               ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
               : 'var(--color-bg-2)',
-            border: `1px solid ${tint ? tint.border : 'var(--color-border-soft)'}`,
+            border: `1px solid ${tint ? tint.border : 'transparent'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
           }}
@@ -2133,7 +2133,10 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           background: tint
             ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
             : 'var(--color-bg-2)',
-          border: `1px solid ${hover && onClick ? accent : tint ? tint.border : 'var(--color-border)'}`,
+          // Серой рамки в покое нет: карточки держит подложка, как в курсах
+          // Конструктора. Рамка появляется только при наведении (акцент) и у
+          // «своих» плиток (цвет предмета).
+          border: `1px solid ${hover && onClick ? accent : tint ? tint.border : 'transparent'}`,
           transition: 'border-color .16s',
         }}
       >

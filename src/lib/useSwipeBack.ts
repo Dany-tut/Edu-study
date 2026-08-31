@@ -366,11 +366,10 @@ function buildStage(under: Snapshot | null): Stage {
  * Выключается тем же адресом с `=0`.
  */
 function debugOn(): boolean {
-  try {
-    const m = /swipedebug=([01])/i.exec(location.href)
-    if (m) localStorage.setItem('swipeDebug', m[1])
-    return localStorage.getItem('swipeDebug') === '1'
-  } catch { return false }
+  // ВРЕМЕННО ВКЛЮЧЕНО ВСЕМ. В установленном PWA нет адресной строки, а его
+  // localStorage отдельный от Safari — иначе флаг туда никак не поставить.
+  // СНЯТЬ сразу, как полоса снизу будет объяснена: вернуть чтение флага.
+  return true
 }
 
 /**
