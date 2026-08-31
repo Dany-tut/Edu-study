@@ -505,12 +505,13 @@ function buildStage(under: Snapshot | null): Stage {
       // Корпус обеих половин идёт по ОДНОЙ коробке — она и есть морф.
       const shell = (raw: number) => {
         const p = q(raw)
-        return ({
-        left: `${lerp(ra.left, rb.left, p)}px`,
-        top: `${lerp(ra.top, rb.top, p)}px`,
-        width: `${lerp(ra.w, rb.w, p)}px`,
-        height: `${lerp(ra.h, rb.h, p)}px`,
-      })}
+        return {
+          left: `${lerp(ra.left, rb.left, p)}px`,
+          top: `${lerp(ra.top, rb.top, p)}px`,
+          width: `${lerp(ra.w, rb.w, p)}px`,
+          height: `${lerp(ra.h, rb.h, p)}px`,
+        }
+      }
       morphs.push({ el: a, at: shell }, { el: b, at: shell })
       // Содержимое расходится: уходящее уплывает в размытие, приходящее из
       // него выступает. Сумма прозрачностей всегда единица — с перехлёстом
