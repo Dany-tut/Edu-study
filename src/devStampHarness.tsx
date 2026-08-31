@@ -13,11 +13,11 @@ function Stand() {
       <input type="range" min={0} max={104} value={p} onChange={e => setP(+e.target.value)} style={{ width: 320 }} />
       <div style={{ marginBottom: 16 }}>{p} px {locked ? '· щелчок' : ''}</div>
       <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
-        <PullStamp progress={p / PULL_THRESHOLD} locked={locked} size={80} />
+        <PullStamp progress={p / PULL_THRESHOLD} locked={locked} size={96} />
         {[0.25, 0.5, 0.75, 1].map(v => (
-          <PullStamp key={v} progress={v} locked={false} size={56} />
+          <PullStamp key={v} progress={v} locked={false} size={64} />
         ))}
-        <PullStamp progress={1} locked size={56} />
+        <PullStamp progress={1} locked size={64} />
       </div>
     </div>
   )

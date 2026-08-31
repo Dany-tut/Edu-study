@@ -26,6 +26,7 @@ const SEED_LANGS: Record<string, () => Promise<CardGroup[]>> = {
   // остальное, включая соседнюю подборку по сериалу.
   en: () => Promise.all([
     import('./cardSeeds/spokenEn').then(m => m.SPOKEN_EN),
+    import('./cardSeeds/spnEpisodes').then(m => m.SPN_EPISODES),
     import('./cardSeeds/supernatural').then(m => m.SUPERNATURAL),
     import('./cardSeeds/spnMeasured').then(m => m.SPN_MEASURED),
   ]),
