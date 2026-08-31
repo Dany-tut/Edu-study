@@ -122,6 +122,8 @@ const MORPH_ATTR = 'data-swipe-morph'
  * ширине кнопки (кружок 38px) смена читалась бы щелчком.
  */
 const SEAM_SPAN = 150
+/** Дальше этой доли ширины экрана таблетки в пару не сводятся. */
+const DROP_REACH = 0.35
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
 const MORPH_BLUR = 7
 const MORPH_SCALE = 0.9
@@ -429,29 +431,37 @@ function buildStage(under: Snapshot | null): Stage {
       pairs.push([a, b])
       taken.add(a).add(b)
     }
-    // Разбор идёт ОТ СВОЕГО КРАЯ. Таблетка, прижатая вправо, обязана попасть
-    // на правое место: считать всех подряд слева направо нельзя — стоит
-    // одному экрану иметь лишний чип посередине, и правая кнопка поехала бы
-    // не на свой край, а под соседа.
-    const mid = W / 2
-    const free = (root: HTMLElement, used: (p: [HTMLElement, HTMLElement]) => HTMLElement) =>
-      chips(root).filter(el => !taken.has(el) && !pairs.some(p => used(p).contains(el)))
-    const side = (list: HTMLElement[], rightward: boolean) => list
-      .filter(el => {
-        const b = el.getBoundingClientRect()
-        return (b.left + b.width / 2 >= mid) === rightward
-      })
-      .sort((l, r) => {
-        const d = l.getBoundingClientRect().left - r.getBoundingClientRect().left
-        return rightward ? -d : d
-      })
-
-    const fromChips = free(from, p => p[0])
-    const toChips = free(to, p => p[1])
-    for (const rightward of [false, true]) {
-      const a = side(fromChips, rightward)
-      const b = side(toChips, rightward)
-      for (let i = 0; i < Math.min(a.length, b.length); i++) pairs.push([a[i], b[i]])
+    // ── Кто с кем ──
+    //
+    // По ближайшей: у каждой таблетки уходящего экрана партнёр — та, что
+    // стоит к ней ближе всего по центру, и разбор идёт от самых близких пар
+    // к дальним. Деление «левые к левым, правые к правым» по середине экрана
+    // не годится: ширина таблетки зависит от содержимого (у курса — от
+    // названия), и стоило ей смениться, как соседний чип переезжал через
+    // середину и уводил пару себе — на экране «назад» превращалось в
+    // «2 Lvl», а дата не менялась вовсе.
+    //
+    // Дальше DROP_REACH таблетки не сходятся: лучше пары нет, и обе просто
+    // расходятся по прозрачности, чем тянуть кнопку через полшапки.
+    const mid = (el: HTMLElement) => {
+      const b = el.getBoundingClientRect()
+      return b.left + b.width / 2
+    }
+    const fromChips = chips(from).filter(el => !taken.has(el) && !pairs.some(([a]) => a.contains(el)))
+    const toChips = chips(to).filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
+    const reach = W * DROP_REACH
+    const cand: { a: HTMLElement; b: HTMLElement; d: number }[] = []
+    for (const a of fromChips) {
+      for (const b of toChips) {
+        const d = Math.abs(mid(a) - mid(b))
+        if (d <= reach) cand.push({ a, b, d })
+      }
+    }
+    cand.sort((l, r) => l.d - r.d)
+    for (const { a, b } of cand) {
+      if (taken.has(a) || taken.has(b)) continue
+      pairs.push([a, b])
+      taken.add(a).add(b)
     }
 
     for (const [live, b] of pairs) {

@@ -34,8 +34,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SUBJECTS } from './subjects'
-import { workById } from '../data/scenes'
-import { READING_LIBRARY } from '../data/readingLibrary'
+// Лёгкая таблица, а не сами реестры: разбор идёт до первого кадра, и WORKS с
+// READING_LIBRARY уезжали ради двух полей во входной чанк (см. legacyLinkIndex).
+import { TEXT_LANG, WORK_LANG } from './legacyLinkIndex'
 
 /**
  * Экран тренажёра. Плоский список, а не пара «режим + половина»: для адреса
@@ -130,11 +131,12 @@ export function parseTrainerLink(hash: string): TrainerLink | null {
     return lang ? { lang, screen: 'feed' } : null
   }
   if (parts[0] === 'text') {
-    const text = READING_LIBRARY.find(x => x.id === parts[1])
-    return text ? { lang: text.lang, subjectId: text.subject, screen: 'texts', id: parts[1] } : null
+    // 'ru|literature' — язык и предмет там, где по языку предмет не угадать.
+    const [lang, subjectId] = (TEXT_LANG[parts[1]] ?? '').split('|')
+    return lang ? { lang, subjectId, screen: 'texts', id: parts[1] } : null
   }
   if (parts[0] === 'work') {
-    const lang = workById(parts[1])?.lang
+    const lang = WORK_LANG[parts[1]]
     return lang ? { lang, screen: 'scenes', id: parts[1], sub: parts[2] } : null
   }
 
