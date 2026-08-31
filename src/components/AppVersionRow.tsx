@@ -59,7 +59,10 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
         style={{
           display: 'flex', alignItems: 'center', gap: 6, width: '100%',
           padding: '6px 8px', background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 11.5, fontWeight: 550, textAlign: 'left',
+          // lineHeight: 1 — иначе глобальные 1.5 добавляют под цифрами ~4.5px
+          // пустой строки, и подвал меню выглядит просевшим: слева от текста до
+          // края панели 22px, а снизу — почти 25. Со сжатой строкой поля равны.
+          fontSize: 11.5, lineHeight: 1, fontWeight: 550, textAlign: 'left',
           color: filled ? 'var(--color-accent)' : 'var(--color-text-4)',
           ...style,
         }}

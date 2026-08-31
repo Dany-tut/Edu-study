@@ -110,6 +110,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
       onClick={onClick}
       className="flex-shrink-0 cursor-pointer h-full"
       style={{
+        // Карточка — кнопка, а не текст: тап не должен подсвечивать надписи.
+        userSelect: 'none', WebkitUserSelect: 'none',
         width: mobile
           ? (isCenter ? (centerWidth ?? 300) : distance === 1 ? 84 : distance === 2 ? 60 : 44)
           : (isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110),

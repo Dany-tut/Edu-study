@@ -1667,7 +1667,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                   id: g.id,
                   label: g.title,
                   sub: g.about,
-                  hint: String(g.sets.reduce((n, x) => n + x.cards.length, 0)),
+                  // Через allSetCards, а не x.cards: у набора с сериями свои карточки
+                  // пусты, они лежат в стопках, и прямой счёт давал полке ноль.
+                  hint: String(g.sets.reduce((n, x) => n + allSetCards(x).length, 0)),
                 }))}
                 value={openGroupId}
                 onChange={v => setOpenGroupId(v === openGroupId ? '' : v)}
@@ -2868,7 +2870,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                     <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>
                       {g.sets.length} {t('наборов')}
                     </TileChip>
-                    <TileChip>{g.sets.reduce((n, x) => n + x.cards.length, 0)} {t('карточек')}</TileChip>
+                    <TileChip>{g.sets.reduce((n, x) => n + allSetCards(x).length, 0)} {t('карточек')}</TileChip>
                   </span>
                   {/* Значок стоит у ПЕРВОЙ строки заголовка, а не по центру
                       двух: у длинных названий он уезжал в межстрочье и читался
