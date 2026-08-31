@@ -2870,11 +2870,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                     </TileChip>
                     <TileChip>{g.sets.reduce((n, x) => n + x.cards.length, 0)} {t('карточек')}</TileChip>
                   </span>
+                  {/* Значок стоит у ПЕРВОЙ строки заголовка, а не по центру
+                      двух: у длинных названий он уезжал в межстрочье и читался
+                      как значок пустоты. marginTop — до центра первой строки. */}
                   <div style={{
-                    display: 'flex', alignItems: 'center', gap: 7,
-                    fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginTop: 8,
+                    display: 'flex', alignItems: 'flex-start', gap: 7,
+                    fontSize: 15, lineHeight: 1.3, fontWeight: 700, color: 'var(--color-text)', marginTop: 8,
                   }}>
-                    <Layers size={15} style={{ color: palette.accent, flexShrink: 0 }} aria-hidden />
+                    <Layers size={15} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
                     {g.title}
                   </div>
                   {/* Описание полки — тремя строками: у сида это целый абзац,
