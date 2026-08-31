@@ -142,6 +142,21 @@ export function feedOnce(lang: string): Promise<FeedItem[]> {
   return p
 }
 
+/**
+ * Забыть кэш языка и загрузить ленту заново.
+ *
+ * Файл ленты пересобирается скриптом (scripts/buildFeed.mjs) и уезжает в
+ * прод вместе со сборкой, поэтому обновление имеет смысл: у человека,
+ * который не закрывал вкладку сутки, оно приносит новые материалы.
+ */
+export function feedReload(lang: string): Promise<FeedItem[]> {
+  feeds.delete(base(lang))
+  inflight.delete(base(lang))
+  // emit — чтобы список у уже смонтированных хуков сменился сам: они читают
+  // кэш при перерисовке, а не только на первом эффекте.
+  return feedOnce(lang).then(list => { emit(); return list })
+}
+
 export interface FeedGlance {
   /** Код языка активного курса — пусто, если курс не языковой. */
   lang?: string
@@ -197,11 +212,15 @@ export function useFeedGlance(delayMs = 0, subjectOverride?: string | null): Fee
     return () => { alive = false; clearTimeout(timer) }
   }, [on, lang, delayMs])
 
+  // Кэш главнее локального состояния: после feedReload в нём уже новый
+  // список, а состояние осталось со старым эффектом.
+  const list = on && lang ? feeds.get(base(lang)) ?? items : items
+
   return {
     lang,
     subjectId: def?.id,
-    items,
-    unread: on && lang ? unreadOf(lang, items) : EMPTY,
+    items: list,
+    unread: on && lang ? unreadOf(lang, list) : EMPTY,
   }
 }
 

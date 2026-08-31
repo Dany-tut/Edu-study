@@ -245,6 +245,10 @@ export function DockSegment<T extends string | number>({
                 // таблетка на 40px стояла в ряду заметно ниже соседей.
                 flexShrink: 0, height: 40, padding: '0 15px', borderRadius: 999,
                 border: 'none', cursor: active ? 'default' : 'pointer',
+                // Длинное название режется многоточием, а не растягивает чипсу
+                // на всю таблетку: «Немецкий с нуля — A1 → B1, живой» съедал ряд
+                // целиком, и соседних курсов в нём не оставалось видно вовсе.
+                maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis',
                 fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
                 background: active ? (accent ?? 'var(--grad-purple)') : 'transparent',
                 color: active ? '#fff' : 'var(--color-text-2)',

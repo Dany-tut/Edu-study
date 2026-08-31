@@ -157,6 +157,28 @@ export default function DashboardPage() {
   const activeCourseId = useDashboard(s => s.activeSubjectId)
   const allCourses = useStudentData(s => s.subjects)
   const setTintSubject = useTint(s => s.setActiveSubject)
+
+  // ОДИН КУРС НА ВЕСЬ КАБИНЕТ — И ОН ЛЕЖИТ В СТОРЕ, А НЕ ДОДУМЫВАЕТСЯ ЭКРАНАМИ.
+  //
+  // Открытый курс читают полтора десятка мест (главная, «Курсы», вкладка «ДЗ»,
+  // виджеты, лента, оттенок), и каждое умеет запасной путь `?? subjects[0]`.
+  // Пока `activeSubjectId` не находится в списке — стартовое значение стора
+  // ('chemistry'), курс другого ученика на общем устройстве, курс, доступ к
+  // которому отозвали, — все эти места отвечают на вопрос «какой курс открыт»
+  // сами, и ответы расходятся: на главной один корейский, во вкладке «ДЗ»
+  // другой, а тренажёр (lib/trainerSubject.ts) синхронизируется с третьим.
+  //
+  // Чиним в одном месте: как только курсы приехали, несуществующий выбор
+  // ЗАПИСЫВАЕТСЯ первым курсом списка — тем самым, на который экраны и падали.
+  // Дальше все читают одно значение, и выбор на главной действительно
+  // становится выбором и в домашке, и в тренажёре.
+  const setActiveSubject = useDashboard(s => s.setActiveSubject)
+  useEffect(() => {
+    if (!dataLoaded || allCourses.length === 0) return
+    if (allCourses.some(c => c.id === activeCourseId)) return
+    setActiveSubject(allCourses[0].id)
+  }, [dataLoaded, allCourses, activeCourseId, setActiveSubject])
+
   useEffect(() => {
     if (activePage === 'home') return
     // В ТРЕНАЖЁРЕ оттенок ставит он сам (TaskBankPage): выбор языка обычно

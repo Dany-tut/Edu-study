@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { frictionStart, haptic, type Friction } from './feedback'
 import { captureScreen, paintSnapshot, STAGE_ATTR, type Snapshot } from './screenSnapshot'
+import { freezeDockLayer, viewportGap } from './dockLayer'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useSwipeBack — «свайп назад» жестом от левого края экрана (как в iOS).
@@ -151,13 +152,30 @@ type Stage = {
 function buildStage(under: Snapshot | null): Stage {
   const W = Math.max(1, window.innerWidth)
   const scrollY = Math.round(window.scrollY)
+  // ── Геометрия слоёв: от ЭКРАНА, а не от коробки окна ──
+  //
+  // На холодном запуске установленного PWA вебвью держит вьюпорт короче экрана
+  // и режет `position:fixed` ровно по этой ложной границе (подробности —
+  // lib/dockLayer.ts). Слои жеста стояли на `inset:0` и обрывались там же:
+  // уезжающая страница показывала скругление ВЫШЕ низа экрана, а под ним
+  // светилась подложка. Пока зазор есть, слои обычные (не fixed) и высотой в
+  // настоящий экран — тем же приёмом до низа достаёт слой доков; отсчёт при
+  // этом ведём от текущей прокрутки. Зазора нет — всё как было, fixed.
+  const gap = viewportGap()
+  const H = window.innerHeight + gap
+  const POS = gap ? 'absolute' : 'fixed'
+  const TOP = gap ? scrollY : 0
+
+  // Пока сцена наверху, слой доков не переставляем: заморозка корня сбрасывает
+  // прокрутку документа, и слой дёргался бы вслед за ней.
+  freezeDockLayer(true)
 
   // ── Нижний слой: предыдущий экран ──
   const wrap = document.createElement('div')
   wrap.setAttribute(STAGE_ATTR, '')
   wrap.setAttribute('aria-hidden', 'true')
   wrap.style.cssText = [
-    'position:fixed', 'inset:0', 'z-index:0',
+    `position:${POS}`, 'left:0', 'right:0', `top:${TOP}px`, `height:${H}px`, 'z-index:0',
     'overflow:hidden', 'pointer-events:none',
     'background:var(--color-bg)',
   ].join(';')
@@ -185,9 +203,16 @@ function buildStage(under: Snapshot | null): Stage {
   bleed.setAttribute(STAGE_ATTR, '')
   bleed.setAttribute('aria-hidden', 'true')
   bleed.style.cssText = [
-    'position:fixed', 'left:0', 'right:0', 'top:-200px', 'bottom:-200px',
+    `position:${POS}`, 'left:0', 'right:0', `top:${TOP - 200}px`,
+    `height:${H + 400}px`,
     'z-index:0', 'pointer-events:none', 'background:var(--color-bg)',
   ].join(';')
+
+  // Корень уходит из потока — документ схлопывается, браузер сбрасывает
+  // прокрутку в 0, и вся сцена (она стоит на `top:scrollY`) уезжает вверх.
+  // Держим высоту документа на время жеста.
+  const bodyCss = document.body.style.cssText
+  if (gap) document.body.style.minHeight = `${scrollY + H}px`
 
   wrap.append(underEl, dim)
   document.body.insertBefore(wrap, document.body.firstChild)
@@ -222,11 +247,12 @@ function buildStage(under: Snapshot | null): Stage {
     // Заморозка: коробка корня становится ровно экраном, а прокрутка окна
     // переезжает внутрь него. Без этого transform ниже сломал бы отсчёт у
     // `position:fixed` — доки прыгнули бы к низу документа.
-    root.style.position = 'fixed'
-    root.style.top = '0'
+    root.style.position = POS
+    root.style.top = `${TOP}px`
     root.style.left = '0'
     root.style.right = '0'
-    root.style.bottom = '0'
+    // Высотой, а не `bottom:0`: низ коробки окна не всегда низ экрана.
+    root.style.height = `${H}px`
     root.style.overflow = 'hidden'
     // Своя заливка обязательна: фон приложения лежит на body (index.css), а
     // #root прозрачен — отъезжающая страница просвечивала бы насквозь, и на
@@ -298,9 +324,11 @@ function buildStage(under: Snapshot | null): Stage {
     destroy(fired) {
       wrap.remove()
       bleed.remove()
+      freezeDockLayer(false)
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
+      if (gap) document.body.style.cssText = bodyCss
       if (shifted) shifted.style.cssText = shiftedCss
       // Прокрутку возвращаем уже разморозенному документу: ушли — на ту, что
       // была у открывшегося экрана, отменили — на свою.

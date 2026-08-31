@@ -161,7 +161,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                 style={{
                   gridColumn: slot.span ? '1 / -1' : undefined,
                   minHeight: slot.span ? 44 : 58,
-                  borderRadius: 12, fontFamily: 'inherit',
+                  borderRadius: 12, fontFamily: 'inherit', overflow: 'hidden', padding: '0 3px',
                   fontSize: 32, lineHeight: 1, fontWeight: 700,
                   color: filled ? 'var(--color-text)' : 'var(--color-text-4)',
                   border: filled
@@ -171,7 +171,12 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                   cursor: disabled || !filled ? 'default' : 'pointer',
                 }}
               >
-                {filled ?? <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.3 }}>{t(slot.label)}</span>}
+                {filled ?? (
+                  <span style={{
+                    fontSize: 10.5, fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.1,
+                    maxWidth: '100%', textAlign: 'center', overflowWrap: 'anywhere', hyphens: 'auto',
+                  }}>{t(slot.label)}</span>
+                )}
               </motion.button>
             )
           })}

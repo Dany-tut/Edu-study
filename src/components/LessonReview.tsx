@@ -42,10 +42,13 @@ export default function LessonReview({
   const [shown, setShown] = useState(false)
   // Счётчик разлёта звёзд: ремоунт по ключу, как у вариантов домашки.
   const [burst, setBurst] = useState(0)
+  // Какой вариант нажали: промах подсвечивается вместе с верным ответом,
+  // иначе экран молча меняет тему и непонятно, что именно было не так.
+  const [pickedIdx, setPickedIdx] = useState<number | null>(null)
   const sounded = useRef(false)
 
   // Карточка сменилась — экран начинается заново.
-  useEffect(() => { setShown(false); sounded.current = false }, [card.id])
+  useEffect(() => { setShown(false); setPickedIdx(null); sounded.current = false }, [card.id])
 
   const done = !!answered
   const face = answerFace(card)
@@ -103,23 +106,23 @@ export default function LessonReview({
           {task.choices.map((choice, i) => {
             const right = i === task.correct
             const picked = done && (answered === 'ok' ? right : false)
-            // Промах не подсвечивает «что нажали»: карточка долга возвращается
-            // сегодня же (грейд 1), и запоминать надо верное, а не своё.
             const reveal = done && right
+            // Свой промах виден рядом с верным: без него непонятно, что нажал.
+            const wrong = done && pickedIdx === i && !right
             return (
               <button
                 key={`${card.id}-${i}`}
                 disabled={done}
-                onClick={() => report(right)}
+                onClick={() => { setPickedIdx(i); report(right) }}
                 className="cursor-pointer text-left"
                 style={{
                   padding: '14px 16px', borderRadius: 18,
-                  border: `1px solid ${reveal ? '#6EE7A0' : 'var(--color-border)'}`,
-                  background: reveal ? 'var(--color-green-soft)' : 'var(--color-bg-input)',
+                  border: `1px solid ${reveal ? '#6EE7A0' : wrong ? '#F8636B' : 'var(--color-border)'}`,
+                  background: reveal ? 'var(--color-green-soft)' : wrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)',
                   color: 'var(--color-text)',
                   fontSize: 14, lineHeight: 1.45, fontWeight: 600,
                   transition: 'all 0.18s ease',
-                  opacity: done && !reveal ? 0.84 : 1,
+                  opacity: done && !reveal && !wrong ? 0.84 : 1,
                   position: 'relative', fontFamily: 'inherit',
                   ...proseWrap,
                 }}

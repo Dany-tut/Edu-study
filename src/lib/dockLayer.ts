@@ -44,9 +44,26 @@ function screenGap(): number {
 
 let active = false
 let cached: HTMLElement | null = null
+let frozen = false
 const subs = new Set<() => void>()
 
+/**
+ * Заморозка слоя на время жеста «назад» (lib/useSwipeBack.ts).
+ *
+ * Слой не fixed, и его `top` вручную держится равным прокрутке документа. На
+ * старте жеста корень примораживается (`position:fixed`), высота документа
+ * схлопывается, браузер сбрасывает scrollY в 0 — и sync() честно переставлял
+ * слой с `top:scrollY` на `top:0`. Нижние бары от этого прыгали и мерцали
+ * ровно в момент касания, а на выходе прыгали обратно. Пока сцена наверху,
+ * слой не трогаем вовсе: он едет вместе со страницей своим transform’ом.
+ */
+export function freezeDockLayer(on: boolean) {
+  frozen = on
+  if (!on) sync()
+}
+
 function sync() {
+  if (frozen) return
   const el = document.getElementById('mobile-dock-layer')
   if (!el) return
   const gap = screenGap()
@@ -76,6 +93,18 @@ if (typeof window !== 'undefined') {
   // Первое касание вьюпорт и чинит — сразу после него перемеряем.
   window.addEventListener('touchstart', () => setTimeout(sync, 60), { passive: true })
   ;[60, 300, 1000].forEach(ms => setTimeout(sync, ms))
+}
+
+/**
+ * Насколько настоящий низ экрана ниже коробки `position:fixed` (px, иначе 0).
+ *
+ * Наружу — жесту «назад»: он примораживает корень к окну, а окно на коротком
+ * вьюпорте кончается выше экрана, и страница «обрывалась» с скруглением
+ * посреди зоны домашней полосы.
+ */
+export function viewportGap(): number {
+  if (typeof window === 'undefined') return 0
+  return screenGap()
 }
 
 /** Слой дока, если он сейчас нужен (иначе null — рисуй fixed). */

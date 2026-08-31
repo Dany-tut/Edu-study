@@ -695,9 +695,15 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               {units.length > 1 && (translation || readings) && <SegSep />}
               {translation && (
                 <Seg
-                  icon={Languages} label={t('Перевод')} on={showRu} iconOnly={narrow}
+                  // Разовый показ перевода («Показать перевод» на фрагменте) —
+                  // то же состояние экрана, что и общий тумблер, поэтому рейка
+                  // горит и от него, а гашение снимает разовый показ тоже.
+                  icon={Languages} label={t('Перевод')} on={showRu || peek} iconOnly={narrow}
                   accent={accent} soft={soft}
-                  onClick={() => setShowRu(v => !v)}
+                  onClick={() => {
+                    if (peek) { setPeek(false); setShowRu(false); return }
+                    setShowRu(v => !v)
+                  }}
                 />
               )}
               {readings && (

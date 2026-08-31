@@ -16,7 +16,7 @@
 // «краткого правила» не заводим, иначе учителю пришлось бы писать текст дважды.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookOpen, X } from 'lucide-react'
@@ -46,6 +46,31 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
+
+  // Фейды на краях прокрутки. Правило почти всегда длиннее шторки, а обрыв
+  // текста ровно по краю панели читается как «здесь всё» — ученик не листает
+  // и не доходит до стяжений. Фейд рисуем стеклом самой шторки
+  // (--glass-rgb), а не белым: белая растушёвка в тёмной теме невидима.
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const [fade, setFade] = useState({ top: false, bottom: false })
+  const syncFade = () => {
+    const el = scrollRef.current
+    if (!el) return
+    const top = el.scrollTop > 4
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 4
+    setFade(prev => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }))
+  }
+  // Пересчёт после открытия: до вставки в DOM высоты ещё нет, и нижний фейд
+  // не появился бы, пока ученик не тронет прокрутку.
+  useEffect(() => {
+    if (!open) return
+    syncFade()
+    const el = scrollRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(syncFade)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [open, paragraphs])
 
   // Escape закрывает — шторка перекрывает задания, и выход должен быть без мыши.
   useEffect(() => {
@@ -136,9 +161,12 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
               </button>
             </header>
 
+            <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
             <div
-              className="flex flex-col"
-              style={{ gap: 14, padding: '18px 20px 28px', overflowY: 'auto' }}
+              ref={scrollRef}
+              onScroll={syncFade}
+              className="flex flex-col flex-1"
+              style={{ gap: 14, padding: '18px 20px 28px', overflowY: 'auto', minHeight: 0 }}
             >
               {paragraphs.map(p => p.image ? (
                 <figure key={p.id} style={{ margin: 0 }}>
@@ -174,6 +202,23 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   <Prose text={p.text} />
                 </p>
               ))}
+            </div>
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: 28,
+                  background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.98), rgba(var(--glass-rgb), 0))',
+                  opacity: fade.top ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none',
+                }}
+              />
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0, height: 36,
+                  background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.98), rgba(var(--glass-rgb), 0))',
+                  opacity: fade.bottom ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none',
+                }}
+              />
             </div>
           </motion.aside>
         </>

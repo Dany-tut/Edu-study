@@ -125,7 +125,10 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
   // слог хотя бы раз собрался из букв на глазах у ученика.
   const syl = pickSyllable(lesson, known)
   if (syl) {
-    tasks.push(buildSyl(`Соберите слог ${syl} из букв`, syl))
+    // Слог в вопросе НЕ печатаем: он же и есть ответ — собранный знак виден
+    // справа за знаком равенства. Ученик слышит слог (плеер в задании) и
+    // собирает его из букв; напечатанный 아 превращал сборку в срисовывание.
+    tasks.push(buildSyl('Послушайте и соберите слог из букв', syl))
   }
 
   // Слова урока: собрать из слогов и прочитать вслух. Первое — про письмо,
@@ -202,8 +205,10 @@ function unitVocab(lesson: HangulLesson): VocabItem[] {
       ru: clash ? `${main} (${letter.latin})` : main,
       reading: letter.name,
       // Голый звук принимается всегда: пометка нужна глазу на знакомстве, а не
-      // пальцам в поле ответа.
-      alt: clash ? [main, ...alt] : alt,
+      // пальцам в поле ответа. Сама пометка тоже принимается: она напечатана в
+      // эталоне на виду у ученика, и требовать «о», отвергая показанное «eo», —
+      // проверка внимательности к нашей вёрстке, а не знания буквы.
+      alt: clash ? [main, letter.latin, ...alt] : alt,
     }]
   })
   const words = lesson.words.map(w => ({ term: w.ko, ru: w.ru, reading: transcribe(w.ko, 'ko') }))

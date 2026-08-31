@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
   BookOpen, CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
-  ChevronUp, ChevronDown, Eye, Mic, MicOff, Home, RotateCcw, ArrowRight, Volume2,
+  ChevronUp, ChevronDown, Eye, Mic, MicOff, Library, RotateCcw, ArrowRight, Volume2,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import type { PatternItem } from '../data/taskTypes'
@@ -1555,7 +1555,8 @@ export default function HomeworkFlow({
   // Свайп от левого края = кнопка «Назад» в шапке домашки.
   useSwipeBack(() => { clearHomeworkWidgetFeedback(); onBack() }, isMobile)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
-  const setActivePage = useDashboard(s => s.setActivePage)
+  const openCourses = useDashboard(s => s.openCourses)
+  const currentLessonId = useDashboard(s => s.currentLessonId)
   const questionSectionRefs = useRef<Record<string, HTMLElement | null>>({})
   // Итоги сдачи — цель прокрутки из нижней полосы («Сдано ✓»).
   const summaryRef = useRef<HTMLElement | null>(null)
@@ -2705,7 +2706,7 @@ export default function HomeworkFlow({
       </motion.button>
       <motion.button
         whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-        onClick={() => { onBack(); setActivePage('home') }}
+        onClick={() => { clearHomeworkWidgetFeedback(); openCourses(currentLessonId ?? undefined) }}
         className="flex items-center justify-center cursor-pointer"
         style={{
           flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
@@ -2713,8 +2714,8 @@ export default function HomeworkFlow({
           color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
         }}
       >
-        <Home size={15} />
-        {t('На главную')}
+        <Library size={15} />
+        {t('К урокам')}
       </motion.button>
     </div>
   )
@@ -3121,7 +3122,7 @@ export default function HomeworkFlow({
                 >
                   <div className="flex items-start" style={{ gap: 12 }}>
                     <div style={{
-                      width: 44, height: 44, borderRadius: 14,
+                      width: 44, height: 44, borderRadius: 14, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)',
                     }}>
@@ -3517,9 +3518,20 @@ export default function HomeworkFlow({
                             Сверяем по началу строки, а не по равенству: в
                             подписи задания к слову приписано чтение — «우유
                             (uyu)», — и точное сравнение с ним не сходится. */}
-                        {!(qType(question) === 'flashcard' && !!question.front && question.prompt.startsWith(question.front)) && (
-                          <QuestionPrompt prompt={question.prompt} />
-                        )}
+                        {qType(question) === 'flashcard' && !!question.front && question.prompt.startsWith(question.front)
+                          ? (
+                            // Вместо повтора слова — что с ним, собственно,
+                            // делать: без этой строки на экране оставались
+                            // карточка и пустое поле, и ученик не знал ни что
+                            // писать, ни на каком языке. У одиночной буквы
+                            // пишется её звук, у слова — перевод.
+                            <p style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.45, ...proseWrap }}>
+                              {[...(question.front ?? '').trim()].length === 1
+                                ? t('Запиши звук буквы русскими буквами')
+                                : t('Напиши перевод на русский')}
+                            </p>
+                          )
+                          : <QuestionPrompt prompt={question.prompt} />}
                         {/* Картинка условия. У словарной карточки она рисуется
                             на самой карточке (ниже), поэтому здесь пропускается —
                             иначе одно и то же изображение показывалось дважды. */}
@@ -3646,8 +3658,15 @@ export default function HomeworkFlow({
                         return (
                           <button
                             key={option.id}
-                            disabled={multi ? locked : answered}
-                            onClick={() => answerQuestion(index, question.id, option.id)}
+                            // НЕ `disabled`: внутри плитки живёт динамик
+                            // ScriptHint, а у выключенной кнопки браузер гасит
+                            // события всей ветки — озвучку было не нажать после
+                            // ответа. Блокируем сам выбор, а не поддерево.
+                            aria-disabled={multi ? locked : answered}
+                            onClick={() => {
+                              if (multi ? locked : answered) return
+                              answerQuestion(index, question.id, option.id)
+                            }}
                             className="cursor-pointer text-left"
                             style={{
                               padding: '14px 16px',
@@ -3970,7 +3989,7 @@ export default function HomeworkFlow({
                         onChange={v => setFreeAnswer(question.id, v)}
                         disabled={locked}
                         minHeight={HW_ANSWER_MIN_H}
-                        placeholder={t('Перевод…')}
+                        placeholder={[...(question.front ?? '').trim()].length === 1 ? t('Звук буквы…') : t('Перевод…')}
                         inputMode={scriptKeyboardCovers(question.back) ? 'none' : undefined}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',

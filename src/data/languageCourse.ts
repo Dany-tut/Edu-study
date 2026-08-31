@@ -38,7 +38,7 @@ import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryI
 import { vocabImage } from './vocabImages'
 import { collocationsFor } from './collocations'
 import { answerSkeleton, isHangul, ladderTasks, spreadConfusable, type WritingStage } from './vocabLadder'
-import { isSyllable } from './hangul'
+import { CHAMO, isSyllable } from './hangul'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -56,6 +56,13 @@ export interface VocabItem {
   reading?: string
   /** Пример употребления — контекст важнее изолированного слова. */
   example?: string
+  /**
+   * Форма, выводимая от слова: 먹다 → 먹어요. Пишется в словаре одной строкой
+   * («есть → 먹어요»), а при сборке отрезается от перевода (splitGloss): в
+   * карточке спрашивается ПЕРЕВОД, и требовать в ответе ещё и форму, о которой
+   * в условии ни слова, нельзя. Форма остаётся в списке слов конспекта.
+   */
+  formHint?: string
   /**
    * Другие верные переводы. Падежи, вид глагола и предлоги машина разбирает
    * сама (lib/answerMatch.ts) — сюда пишутся только СИНОНИМЫ, которые из
@@ -520,7 +527,14 @@ export const watch = (
 export const say = (question: string, responseSeconds = 90): SeedTask =>
   ({ type: 'speaking', question, prepSeconds: 20, responseSeconds })
 
-/** Прочитать вслух заданный текст — эталон есть, вердикт всё равно за учителем. */
+/**
+ * Прочитать вслух заданный текст — эталон есть, вердикт всё равно за учителем.
+ *
+ * СПИСОК СЛОВ — НЕ БОЛЬШЕ ПЯТИ. Одна запись = один заход: десять слов подряд
+ * ученик не читает, а отбывает, и ошибку в третьем слове уже не переписать,
+ * не начав всё сначала. Пять слов покрывают тот же набор звуков и умещаются
+ * в двадцать пять секунд. Нужно больше материала — это второе задание.
+ */
 export const readAloud = (question: string, targetText: string, responseSeconds = 45): SeedTask =>
   ({ type: 'speaking', question, targetText, prepSeconds: 15, responseSeconds })
 
@@ -739,6 +753,29 @@ function editorTask(seed: SeedTask, id: string, lang: string) {
     task.correctChoices = [spread.correct]
   }
   return task
+}
+
+/**
+ * Перевод и выводимая форма в одной строке словаря.
+ *
+ * В словарях уроков про спряжение значение записано как «есть → 먹어요»: слева
+ * перевод, справа форма, которую урок ставит. Целиком эта строка уходила в
+ * ОТВЕТ словарной карточки — на экране стояло слово 먹다 и пустое поле, а
+ * зачёт получал только тот, кто догадался дописать 해요체, о которой в задании
+ * не спрашивали. Ответ — это перевод; форма отрезается сюда.
+ */
+export function splitGloss(word: VocabItem): VocabItem {
+  const i = word.ru.indexOf('→')
+  if (i < 0) return word
+  const ru = word.ru.slice(0, i).trim()
+  const form = word.ru.slice(i + 1).trim()
+  if (!ru || !form) return word
+  return { ...word, ru, formHint: word.formHint ?? form }
+}
+
+/** Тот же разрез по всему курсу — до сборки заданий и колоды. */
+function splitGlossSpec(spec: LanguageCourseSpec): LanguageCourseSpec {
+  return { ...spec, units: spec.units.map(u => ({ ...u, vocab: u.vocab.map(splitGloss) })) }
 }
 
 /**
@@ -1252,9 +1289,7 @@ function reviewTasks(
   const recallFrom = prev[1] ?? prev[0]
   const target = unambiguousOf(recallFrom, 3)
   if (target) {
-    const ask = native
-      ? `Повторение: какое слово это описывает — «${target.ru}»?`
-      : `Повторение: как будет «${target.ru}»?`
+    const ask = askForm(target.ru, target.term, native)
     // ХАНГЫЛЬ НАБИРАЕТСЯ ЭКРАННОЙ КЛАВИАТУРОЙ, А НЕ ПОЛЕМ ВВОДА.
     //
     // Поле «впиши слово» предполагает, что у ученика есть корейская раскладка в
@@ -1343,15 +1378,40 @@ function reviewTasks(
  *     тапами и тоже не требует раскладки;
  *   • не хангыль — обычное поле со скелетом (ступень 5).
  */
+/**
+ * ОТДЕЛЬНАЯ БУКВА В ОТВЕТЕ ПИШЕТСЯ СЛОГОМ.
+ *
+ * Гласная в тексте не стоит одна: «у» — это 우, а голая ㅜ живёт только в
+ * таблице алфавита. Ученик отвечает так, как видел букву в словах, и получает
+ * ошибку за верный ответ (по вопросу «как будет „у“?» неоткуда узнать, что
+ * ждут именно знак). Принимаются обе записи.
+ *
+ * Поле `alt` у слова сюда не годится: там синонимы ПЕРЕВОДА, а не формы.
+ */
+export function termAlts(term: string | undefined): string[] {
+  const t = (term ?? '').trim()
+  if (Array.from(t).length !== 1) return []
+  const letter = CHAMO[t]
+  return letter && letter.kind === 'vowel' ? [letter.name] : []
+}
+
+/** Вопрос о букве спрашивает букву, а не «как будет»: см. termAlts. */
+export function askForm(ru: string, term: string | undefined, native = false): string {
+  if (termAlts(term).length > 0) return `Повторение: какая буква даёт звук «${ru}»?`
+  return native
+    ? `Повторение: какое слово это описывает — «${ru}»?`
+    : `Повторение: как будет «${ru}»?`
+}
+
 function keyboardFreeRecall(ask: string, target: VocabItem): SeedTask[] {
   const term = (target.term ?? '').trim()
-  if (!isHangul(term)) return [recall(ask, term, target.alt)]
+  if (!isHangul(term)) return [recall(ask, term, termAlts(term))]
   const units = Array.from(term)
   if (units.every(isSyllable)) {
     if (units.length >= 2) return [typeWord(ask, term)]
     if (units.length === 1) return [buildSyl(ask, term)]
   }
-  return units.length >= 2 ? [sylBank(ask, term)] : [recall(ask, term, target.alt)]
+  return units.length >= 2 ? [sylBank(ask, term)] : [recall(ask, term, termAlts(term))]
 }
 
 /**
@@ -1458,7 +1518,7 @@ function productionTask(earlier: VocabItem[], idBase: string, lang: string, nati
         ? `Напишите слово по толкованию: «${pick.ru}»`
         : `Напишите по памяти: как будет «${pick.ru}»?`,
       pick.term,
-      pick.alt,
+      termAlts(pick.term),
     ),
     `${idBase}1`, lang,
   )]
@@ -1725,7 +1785,7 @@ function portionReview(prev: VocabItem[], idBase: string, lang: string, native =
   const ladder = reviewLadder(
     target,
     words,
-    native ? `Повторение: какое слово это описывает — «${target.ru}»?` : `Повторение: как будет «${target.ru}»?`,
+    askForm(target.ru, target.term, native),
   )
   out.push(...ladder.head)
   return numberReview({ head: out, late: ladder.late }, idBase, lang)
@@ -1798,7 +1858,7 @@ function placeLate<T extends { type: TaskTypeId }>(work: T[], late: T[], room: n
  */
 function portionTheory(unit: LangUnit, vocab: VocabItem[], k: number, total: number): string {
   const words = vocab
-    .map(w => `• ${w.reading ? `${w.term} (${w.reading})` : w.term} — ${w.ru}${w.example ? `\n   ${w.example}` : ''}`)
+    .map(w => `• ${w.reading ? `${w.term} (${w.reading})` : w.term} — ${w.ru}${w.formHint ? ` → ${w.formHint}` : ''}${w.example ? `\n   ${w.example}` : ''}`)
     .join('\n')
   return [
     `Продолжение юнита ${unit.n} «${unit.title}» — занятие ${k} из ${total}.`,
@@ -1913,7 +1973,7 @@ function interleaveCards<T extends { passage?: string }>(work: T[], cards: T[]):
  */
 function composeTheory(unit: LangUnit): string {
   const words = unit.vocab
-    .map(w => `• ${w.reading ? `${w.term} (${w.reading})` : w.term} — ${w.ru}${w.example ? `\n   ${w.example}` : ''}`)
+    .map(w => `• ${w.reading ? `${w.term} (${w.reading})` : w.term} — ${w.ru}${w.formHint ? ` → ${w.formHint}` : ''}${w.example ? `\n   ${w.example}` : ''}`)
     .join('\n')
   return [
     `Что вы сможете после урока: ${unit.goal}.`,
@@ -2002,7 +2062,7 @@ export function courseSummary(spec: LanguageCourseSpec): CourseSummary {
 
 /** Все слова курса — основа словарной колоды и интервальных повторений. */
 export function allVocab(spec: LanguageCourseSpec): VocabItem[] {
-  return spec.units.flatMap(u => u.vocab)
+  return spec.units.flatMap(u => u.vocab).map(splitGloss)
 }
 
 /** Юнит по короткому id. */
@@ -2022,6 +2082,7 @@ export function moduleOfUnit(spec: LanguageCourseSpec, n: number): LangModule | 
  * в БД всё равно выводится от id курса (см. lessonShortIdMap).
  */
 export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string): CourseEdData {
+  spec = splitGlossSpec(spec)
   const palette = getSubject(spec.subject)?.light
   const accent = palette?.accent ?? '#6354CF'
   const accentSoft = palette?.soft ?? 'rgba(99,84,207,0.14)'

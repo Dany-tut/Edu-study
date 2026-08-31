@@ -26,7 +26,37 @@ export function workProgress(scenes: Scene[], done: (id: string) => boolean) {
 
 // ─── Сетка произведений ──────────────────────────────────────────────────────
 
-export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
+/**
+ * Уровень произведения — диапазон уровней его сцен: «A1 · A2» → «A1–A2».
+ *
+ * Уровня у произведения нет и быть не может (см. фильтр «Уровень» в строке), но
+ * плашка на карточке отвечает не «какой это уровень», а «потяну ли я это» — и
+ * без неё витрина сцен была единственной в тренажёре, где первая плашка не
+ * уровень. Порядок — по таксономии языка, а не по алфавиту: «중급» и «고급»
+ * алфавитом встают наоборот.
+ */
+export function workLevel(levels: string[], order: string[]): string | null {
+  const uniq = [...new Set(levels)]
+  if (uniq.length === 0) return null
+  const rank = (v: string) => { const i = order.indexOf(v); return i < 0 ? order.length : i }
+  const sorted = uniq.sort((a, b) => rank(a) - rank(b))
+  const [lo, hi] = [sorted[0], sorted[sorted.length - 1]]
+  if (lo === hi) return lo
+  // «TOPIK 2급–TOPIK 3급» — плашка вдвое шире карточки. Общее у соседних
+  // ступеней выносится за скобки: остаётся «TOPIK 2–3급». Для CEFR общего
+  // ничего нет, и диапазон честно печатается целиком («A2–B1»).
+  let head = 0
+  while (head < lo.length && head < hi.length && lo[head] === hi[head]) head++
+  let tail = 0
+  while (
+    tail < lo.length - head && tail < hi.length - head
+    && lo[lo.length - 1 - tail] === hi[hi.length - 1 - tail]
+  ) tail++
+  const mid = (v: string) => v.slice(head, v.length - tail)
+  return `${lo.slice(0, head)}${mid(lo)}–${mid(hi)}${lo.slice(lo.length - tail)}`
+}
+
+export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen, levelOrder = [] }: {
   /** Полки с произведениями — уже отфильтрованные и в нужном порядке. */
   groups: { title: string; hint: string; works: Work[] }[]
   scenesOf: (workId: string) => Scene[]
@@ -34,6 +64,8 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
   accent: string
   soft: string
   onOpen: (workId: string) => void
+  /** Порядок уровней языка — по нему складывается диапазон на плашке. */
+  levelOrder?: string[]
 }) {
   const t = useT()
 
@@ -76,10 +108,14 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
             {g.works.map(w => {
               const scenes = scenesOf(w.id)
               const p = workProgress(scenes, done)
+              const lv = workLevel(scenes.map(x => x.level), levelOrder)
               return (
                 <Tile key={w.id} accent={accent} onClick={() => onOpen(w.id)}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                    <TileChip tone="accent" accent={accent} soft={soft}>
+                    {/* Уровень первым и акцентом — ряд плашек один на весь
+                        тренажёр: уровень, потом метки серым. */}
+                    {lv && <TileChip tone="accent" accent={accent} soft={soft}>{lv}</TileChip>}
+                    <TileChip tone="mute">
                       {/* inline-flex, а не значок с пробелом: в обычной строке
                           плашка ужималась по ширине и переносила подпись под
                           иконку, превращая её в двухэтажную. */}

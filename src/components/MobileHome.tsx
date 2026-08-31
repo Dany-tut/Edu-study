@@ -19,7 +19,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
-import { useFeedGlance } from '../lib/feedRead'
+import { useFeedGlance, feedReload } from '../lib/feedRead'
 import { pickTrainerSubject } from '../lib/trainerSubject'
 import { dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
 import { FeedPost } from './trainer/FeedPost'
@@ -95,9 +95,23 @@ export default function MobileHome() {
   // «Все» в подсчёт общего префикса не входит: это не курс, и срезать у него
   // нечего — иначе одна чужая подпись отменяла бы срез для всех остальных.
   const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => s.name)), [subjects])
-  const [homeSubjectId, setHomeSubjectId] = useState<string | null>(null)
-  const scopedSubject = multiCourse
-    ? (subjects.find(s => s.id === homeSubjectId) ?? null)
+  // Выбор курса — ОДИН на телефон: тот же activeSubjectId, что и в «Курсах».
+  // Выбрал англ на главной — англ и в курсах, поменял на кор в курсах —
+  // главная тоже кор. Локально живёт только «Все» (в сторе такого курса нет);
+  // как только курс переключили снаружи, «Все» снимается — иначе главная
+  // молча игнорировала бы выбор, сделанный в «Курсах».
+  const activeSubjectId = useDashboard(s => s.activeSubjectId)
+  const setActiveSubject = useDashboard(s => s.setActiveSubject)
+  const [homeAll, setHomeAll] = useState(false)
+  const prevActiveId = useRef(activeSubjectId)
+  useEffect(() => {
+    if (prevActiveId.current !== activeSubjectId) {
+      prevActiveId.current = activeSubjectId
+      setHomeAll(false)
+    }
+  }, [activeSubjectId])
+  const scopedSubject = multiCourse && !homeAll
+    ? (subjects.find(s => s.id === activeSubjectId) ?? null)
     : null
   const scanSubjects = scopedSubject ? [scopedSubject] : subjects
 
@@ -137,6 +151,13 @@ export default function MobileHome() {
     [shownItems, rubric],
   )
   const feedAccent = resolveSubjectPalette(feedGlance.subjectId, dark).accent
+
+  // ТЯГА СВЕРХУ ОБНОВЛЯЕТ ЛЕНТУ. Обновлять на главной больше нечего: и
+  // «Продолжить», и «Сегодня» приходят из стора и живут сами. Нет языка —
+  // нечего и тянуть, жест выключен целиком (MobileScreen без onRefresh).
+  const refreshFeed = feedGlance.lang
+    ? () => feedReload(feedGlance.lang!).then(() => undefined)
+    : undefined
 
   // ГДЕ КОНЧАЕТСЯ ГЛАВНАЯ И НАЧИНАЕТСЯ ЛЕНТА. Шапка меняет содержимое ровно на
   // этом рубеже: пока видно «Продолжить» и «Сегодня», наверху стрик и XP; как
@@ -343,7 +364,7 @@ export default function MobileHome() {
 
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={72} restoreKey="home">
+      <MobileScreen topZone={topZone} topPad={72} restoreKey="home" onRefresh={refreshFeed}>
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* Плитки переходов: все переходы экрана одним рядом. Цветная
@@ -502,7 +523,12 @@ export default function MobileHome() {
           <DockSegment
             options={[{ id: '__all__', label: t('Все') }, ...subjects.map((s, i) => ({ id: s.id, label: dockLabels[i] }))]}
             value={scopedSubject?.id ?? '__all__'}
-            onChange={id => setHomeSubjectId(id === '__all__' ? null : id)}
+            onChange={id => {
+              if (id === '__all__') { setHomeAll(true); return }
+              prevActiveId.current = id
+              setHomeAll(false)
+              setActiveSubject(id)
+            }}
             accent={scopedSubject ? resolveSubjectPalette(scopedSubject.subject, dark).accent : undefined}
           />
         </MobileDock>

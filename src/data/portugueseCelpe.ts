@@ -97,8 +97,8 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
         ['cidade', 'сидáджи'],
       ]),
       dictation('Напечатайте услышанное слово.', 'trabalho'),
-      readAloud('Прочитайте вслух: chave, filho, banho, passar, começar, aqui, cidade, trabalho.',
-        'chave, filho, banho, passar, começar, aqui, cidade, trabalho', 40),
+      readAloud('Прочитайте вслух: chave, filho, banho, começar, trabalho.',
+        'chave, filho, banho, começar, trabalho', 25),
     ],
   },
   {
@@ -143,8 +143,8 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
       ...nestTasks('pt-mao', 1),
       fill('Впишите пропущенное слово: Eu ___ falo português ainda. (не)', 'não'),
       dictation('Напечатайте услышанное слово.', 'irmão'),
-      readAloud('Прочитайте вслух, держа носовое звучание: pão, mão, mãe, irmão, coração, não, bem, sim.',
-        'pão, mão, mãe, irmão, coração, não, bem, sim', 45),
+      readAloud('Прочитайте вслух, держа носовое звучание: pão, mãe, irmão, coração, bem.',
+        'pão, mãe, irmão, coração, bem', 25),
     ],
   },
   {

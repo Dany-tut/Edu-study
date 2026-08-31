@@ -20,12 +20,11 @@ import PhraseDecks, {
 import TrainerShell, {
   useTrainerNarrow, type TrainerNav,
   RailHero, RailCard, RailModes, RailSegment, RailList, RailToggle, RailStat,
-  Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, FilterMenu, ToolCount,
+  Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, FilterMenu, ToolCount, plural,
   Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty, PILL_GLASS,
 } from './trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
-import MultiSelectField from './MultiSelectField'
 import { addCards, collectedCards, deckOwner, dueCount, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 import { fetchCardGroups, appFlag, isShelf, type CardGroup } from '../lib/cardGroups'
@@ -155,8 +154,8 @@ type BlocksView = 'stems' | 'roots' | 'numbers' | 'sounds'
  */
 const LENGTHS: { value: string; label: string; fit: (m: number) => boolean }[] = [
   { value: 's', label: 'до 3 мин', fit: m => m <= 3 },
-  { value: 'm', label: '3–5', fit: m => m > 3 && m <= 5 },
-  { value: 'l', label: '5+', fit: m => m > 5 },
+  { value: 'm', label: '3–5 мин', fit: m => m > 3 && m <= 5 },
+  { value: 'l', label: 'больше 5 мин', fit: m => m > 5 },
 ]
 
 /** Пересечение выбранного списка со значением. Пустой список = «все». */
@@ -354,7 +353,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [fLevel, setFLevel] = useState<string[]>([])
   const [fSkill, setFSkill] = useState<string[]>([])
   const [fTopic, setFTopic] = useState<string[]>([])
-  const [fLen, setFLen] = useState('')
+  const [fLen, setFLen] = useState<string[]>([])
 
   // Общая строка управления — одна на все режимы, поэтому и состояние общее.
   const [query, setQuery] = useState('')
@@ -373,7 +372,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // унесённый из чтения в аудирование, молча прячет половину записей.
   function switchMode(m: Mode) {
     setMode(m)
-    setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
+    setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
     setSceneShelf(''); setSpeakOpen(null)
     setGChapter(''); setGLevels([])
@@ -391,7 +390,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setReadingView(v)
     setOpenWorkId(null); setOpenSceneId(null)
     setQuery(''); setStatus(''); setSceneShelf('')
-    setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
+    setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
   }
 
   // Результаты по материалам — из localStorage, см. lib/trainerProgress.ts.
@@ -419,7 +418,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (!anyOf(fLevel, x.level)) return false
       if (!anyOf(fTopic, x.topic)) return false
       if (mode === 'reading' && !anyOf(fSkill, (x as ReadingText).skill)) return false
-      if (fLen && !LENGTHS.find(l => l.value === fLen)?.fit(x.minutes)) return false
+      if (fLen.length > 0 && !LENGTHS.some(l => fLen.includes(l.value) && l.fit(x.minutes))) return false
       if (status === 'new' && resultFrom(kind, x.id, results)) return false
       if (status === 'done' && !resultFrom(kind, x.id, results)) return false
       if (q && !`${x.title} ${x.topic} ${t(x.topic)}`.toLowerCase().includes(q)) return false
@@ -472,6 +471,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       .map(value => ({ value, label: value, count: n.get(value) ?? 0 }))
   }, [sceneWorks, scenesOf, tax])
 
+  /** Пройдена ли сцена — та же запись результата, что у обычных текстов. */
+  const sceneDone = (id: string) => !!resultFrom('reading', id, results)
+
   // Внутри фильтра значения складываются по ИЛИ (Netflix или HBO), между
   // фильтрами — по И. Иначе «Netflix + комедия» показало бы весь Netflix.
   const visibleWorks = useMemo(() => {
@@ -481,10 +483,23 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (scenePlatforms.length && !(w.platform && scenePlatforms.includes(w.platform))) return false
       if (sceneTags.length && !w.tags.some(tag => sceneTags.includes(tag))) return false
       if (sceneLevels.length && !scenesOf(w.id).some(s => sceneLevels.includes(s.level))) return false
+      // Статус — та же ось, что у текстов и записей: «не начатые» = ни одной
+      // пройденной сцены, «пройдено» = пройдены все. Произведение без сцен
+      // (чанк ещё едет) статусом не отсеивается — иначе витрина мигает пустой.
+      if (status) {
+        const sc = scenesOf(w.id)
+        if (sc.length > 0) {
+          const passed = sc.filter(x => sceneDone(x.id)).length
+          if (status === 'new' && passed > 0) return false
+          if (status === 'wip' && (passed === 0 || passed === sc.length)) return false
+          if (status === 'done' && passed < sc.length) return false
+        }
+      }
       if (q && !`${w.title} ${w.origTitle} ${w.author}`.toLowerCase().includes(q)) return false
       return true
     })
-  }, [sceneWorks, sceneShelf, scenePlatforms, sceneTags, sceneLevels, scenesOf, query])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sceneWorks, sceneShelf, scenePlatforms, sceneTags, sceneLevels, scenesOf, query, status, results])
 
   const sceneGroups = useMemo(
     () => sceneShelves
@@ -492,9 +507,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       .filter(g => g.works.length > 0),
     [sceneShelves, visibleWorks],
   )
-
-  /** Пройдена ли сцена — та же запись результата, что у обычных текстов. */
-  const sceneDone = (id: string) => !!resultFrom('reading', id, results)
 
   // ── Колода карточек ────────────────────────────────────────────────────────
   //
@@ -1454,8 +1466,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : mode === 'grammar' && gram ? `${gram.forms.length} ${t('форм')} · ${gram.forms.reduce((n, f) => n + f.examples.length, 0)} ${t('примеров')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
-  const filtersOn = fLevel.length > 0 || fTopic.length > 0 || fSkill.length > 0 || !!fLen
-  const clearFilters = () => { setFLevel([]); setFTopic([]); setFSkill([]); setFLen('') }
 
   const rail = (
     <>
@@ -1562,35 +1572,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {isLang && (
-        <RailCard
-          title="Фильтры"
-          accent={palette.accent}
-          icon={<SlidersHorizontal size={15} />}
-          action={filtersOn ? { label: t('Сбросить'), onClick: clearFilters } : undefined}
-        >
-          {levelOpts.length > 1 && (
-            <MultiSelectField label={t('Уровень')} options={levelOpts} values={fLevel} onChange={setFLevel}
-              accent={palette.accent} accentBg={palette.soft} lockScroll />
-          )}
-          {topicOpts.length > 1 && (
-            <MultiSelectField label={t('Тема')} options={topicOpts} values={fTopic} onChange={setFTopic}
-              accent={palette.accent} accentBg={palette.soft} lockScroll />
-          )}
-          {mode === 'reading' && skillOpts.length > 1 && (
-            <MultiSelectField label={t('Навык')} options={skillOpts} values={fSkill} onChange={setFSkill}
-              accent={palette.accent} accentBg={palette.soft} lockScroll />
-          )}
-          <RailSegment options={LENGTHS.map(l => ({ value: l.value, label: l.label }))}
-            value={fLen} onChange={setFLen} accent={palette.accent} soft={palette.soft} />
-        </RailCard>
-      )}
+      {/* Фильтры библиотеки живут в строке управления, а не здесь — см.
+          «Одно место для сита» в комментарии к строке. Рейлу остаётся то, что
+          отвечает на вопрос «что показываем»: половина «Чтения» и «Показ». */}
 
       {mode === 'vocab' && (hasBook || nestsOn || packsOn || decksOn) && !openItem && !openNest && !openMyWords && !openPack && !openSet && (
         <>
-          <RailCard title="Фильтры" accent={palette.accent} icon={<SlidersHorizontal size={15} />}
-            action={shelf || packShelf || fLevel.length > 0
-              ? { label: t('Сбросить'), onClick: () => { setShelf(''); setPackShelf(''); setFLevel([]) } }
+          {/* Уровень уехал в строку управления — там же, где он у сцен,
+              грамматики и библиотеки. Здесь остаётся выбор материала и полка:
+              это «что показываем», а не «чем сузили». */}
+          <RailCard title="Материал" accent={palette.accent} icon={<Layers size={15} />}
+            action={shelf || packShelf
+              ? { label: t('Сбросить'), onClick: () => { setShelf(''); setPackShelf('') } }
               : undefined}>
             {!narrow && (
             <RailSegment
@@ -1598,14 +1591,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 // «Наборы» — все стопки языка разом: разговорник, полки
                 // учителя и подборки-сиды. Половина стоит и без разговорника:
                 // группы бывают там, где книги нет.
-                ...(hasBook || decksOn ? [{ value: 'sets', label: 'Наборы' }] : []),
+                ...(hasBook || decksOn ? [{ value: 'sets', label: 'Наборы', icon: <Layers size={15} /> }] : []),
                 // «Слова» отдельной таблеткой от «Наборов»: это разный
                 // материал, а не разный фильтр одного. В наборах — готовые
                 // фразы под ситуацию, здесь — лексика пачкой по смыслу.
                 ...(packsOn ? [{ value: 'packs', label: 'Слова', icon: <Languages size={15} /> }] : []),
-                // Иконкой, а не подписью: «Повторение» рядом с «Наборами» не
-                // влезало в рейл и обрезалось в «Повторе…».
-                { value: 'due', label: 'Повторение', badge: due, icon: <RotateCcw size={15} /> },
+                // Подпись короткая: «Повторение» рядом с соседями не влезало
+                // в рейл и обрезалось в «Повторе…». Неактивные ждут значками
+                // (idleIcon), выбранный забирает освободившееся место.
+                { value: 'due', label: 'Повторы', badge: due, icon: <RotateCcw size={15} /> },
                 // Третья таблетка только там, где гнёзда для языка написаны:
                 // пустая вкладка хуже отсутствующей.
                 ...(nestsOn ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={15} /> }] : []),
@@ -1615,11 +1609,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               accent={palette.accent}
               soft={palette.soft}
               clearable={false}
+              idleIcon
             />
-            )}
-            {vocabView === 'sets' && !openGroup && setLevelOpts.length > 1 && (
-              <MultiSelectField label={t('Уровень')} options={setLevelOpts} values={fLevel} onChange={setFLevel}
-                accent={palette.accent} accentBg={palette.soft} lockScroll />
             )}
             {/* Полки разговорника — сито верхнего этажа. Внутри папки их нет:
                 там лежат наборы одной группы, и «В городе» к ним никак. */}
@@ -1631,10 +1622,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 accent={palette.accent}
                 soft={palette.soft}
               />
-            )}
-            {vocabView === 'packs' && packLevelOpts.length > 1 && (
-              <MultiSelectField label={t('Уровень')} options={packLevelOpts} values={fLevel} onChange={setFLevel}
-                accent={palette.accent} accentBg={palette.soft} lockScroll />
             )}
             {vocabView === 'packs' && packShelvesList.length > 0 && (
               <RailList
@@ -2126,13 +2113,26 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 soft={palette.soft}
               />
             )}
+            {/* Статус — та же ось и в том же месте, что у текстов, записей и
+                наборов: после фильтров, перед счётчиком. */}
+            <StatusTabs
+              options={[
+                { value: '', label: 'Все' },
+                { value: 'new', label: 'Не начатые' },
+                { value: 'wip', label: 'В работе' },
+                { value: 'done', label: 'Пройдено' },
+              ]}
+              value={status}
+              onChange={setStatus}
+              accent={palette.accent}
+            />
           </>
         )}
         <ToolRight>
           <ToolCount>
             {openWork
               ? `${scenesOf(openWork.id).length} ${t(scenesWord(scenesOf(openWork.id).length))}`
-              : `${t('Всего:')} ${visibleWorks.length}`}
+              : `${visibleWorks.length} ${t(plural(visibleWorks.length, ['произведение', 'произведения', 'произведений']))}`}
           </ToolCount>
         </ToolRight>
       </Toolbar>
@@ -2141,10 +2141,62 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = (
       <Toolbar count={library.length}>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Название или тема…')} />
+        {/* ОДНО МЕСТО ДЛЯ СИТА. Раньше уровень и тема стояли у библиотеки в
+            рейле, у сцен и грамматики — таблетками в строке, а у наборов — и
+            там, и там. Человек, перешедший из «Чтения» в «Аудирование», искал
+            «Уровень» глазами заново. Теперь ось сужения ВСЕГДА таблетка строки,
+            а рейл отвечает только на вопрос «что показываем» (половина режима,
+            полка, показ). Порядок таблеток тоже один на весь тренажёр:
+            поиск → уровень → тематика → частные оси → статус → сортировка →
+            счётчик единицами экрана. */}
+        {levelOpts.length > 1 && (
+          <FilterMenu
+            label="Уровень"
+            options={levelOpts.map(v => ({ value: v, label: v, count: pool.filter(x => x.level === v).length }))}
+            value={fLevel}
+            onChange={setFLevel}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        )}
+        {topicOpts.length > 1 && (
+          <FilterMenu
+            label="Тематика"
+            options={topicOpts.map(v => ({ value: v, label: t(v), count: pool.filter(x => x.topic === v).length }))}
+            value={fTopic}
+            onChange={setFTopic}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        )}
+        {mode === 'reading' && skillOpts.length > 1 && (
+          <FilterMenu
+            label="Навык"
+            options={skillOpts.map(v => ({
+              value: v, label: t(v),
+              count: allTexts.filter(x => x.skill === v).length,
+            }))}
+            value={fSkill}
+            onChange={setFSkill}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        )}
+        <FilterMenu
+          label="Длина"
+          options={LENGTHS.map(l => ({
+            value: l.value, label: t(l.label),
+            count: pool.filter(x => l.fit(x.minutes)).length,
+          }))}
+          value={fLen}
+          onChange={setFLen}
+          accent={palette.accent}
+          soft={palette.soft}
+        />
         <StatusTabs
           options={[
             { value: '', label: 'Все' },
-            { value: 'new', label: mode === 'listening' ? 'Не слушал' : 'Не читал' },
+            { value: 'new', label: 'Не начатые' },
             { value: 'done', label: 'Пройдено' },
           ]}
           value={status}
@@ -2152,7 +2204,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           accent={palette.accent}
         />
         <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} accent={palette.accent} soft={palette.soft} />
-        <ToolCount>{t('Всего:')} {library.length}</ToolCount>
+        <ToolCount>
+          {library.length} {t(plural(library.length, mode === 'listening'
+            ? ['запись', 'записи', 'записей']
+            : ['текст', 'текста', 'текстов']))}
+        </ToolCount>
       </Toolbar>
     )
   } else if (mode === 'grammar') {
@@ -2181,7 +2237,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 soft={palette.soft}
               />
             )}
-            <ToolCount>{gramFound} {t('форм')}</ToolCount>
+            <ToolCount>{gramFound} {t(plural(gramFound, ['форма', 'формы', 'форм']))}</ToolCount>
           </>
         )}
       </Toolbar>
@@ -2246,6 +2302,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {openGroup && <BackToSets onBack={() => setOpenGroupId('')} />}
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(openGroup ? 'Найти набор…' : 'Найти тему или слово…')} />
+        {!openGroup && setLevelOpts.length > 1 && (
+          <FilterMenu
+            label="Уровень"
+            options={setLevelOpts.map(l => ({
+              value: l, label: l,
+              count: allThemes.filter(x => themeLevel(x) === l).length,
+            }))}
+            value={fLevel}
+            onChange={setFLevel}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        )}
         <StatusTabs
           options={[
             { value: '', label: 'Все' },
@@ -2271,6 +2340,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = (
       <Toolbar count={packDecks.length}>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или набор…')} />
+        {packLevelOpts.length > 1 && (
+          <FilterMenu
+            label="Уровень"
+            options={packLevelOpts.map(l => ({
+              value: l, label: l,
+              count: packsList.filter(x => survivalLevelLabel(x.level, subject) === l).length,
+            }))}
+            value={fLevel}
+            onChange={setFLevel}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        )}
         <StatusTabs
           options={[
             { value: '', label: 'Все' },
@@ -2352,14 +2434,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <StatusTabs
           options={[
             { value: '', label: 'Все' },
-            { value: 'new', label: 'Не записаны' },
-            { value: 'done', label: 'Записано' },
+            { value: 'new', label: 'Не начатые' },
+            { value: 'done', label: 'Пройдено' },
           ]}
           value={status}
           onChange={setStatus}
           accent={palette.accent}
         />
-        <ToolCount>{t('Всего:')} {speakCounts.shown}</ToolCount>
+        <ToolCount>{speakCounts.shown} {t(plural(speakCounts.shown, ['задание', 'задания', 'заданий']))}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'vocab' && openItem) {
@@ -2431,6 +2513,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <WorkGrid
         groups={sceneGroups}
         scenesOf={scenesOf}
+        levelOrder={sceneLevelOpts.map(o => o.value)}
         done={sceneDone}
         accent={palette.accent}
         soft={palette.soft}
@@ -2463,11 +2546,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               accent={palette.accent}
               onClick={() => (mode === 'listening' ? setOpenAudioId((x as ListeningItem).id) : setOpenTextId((x as ReadingText).id))}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              {/* Ряд плашек один на весь тренажёр: уровень акцентом первым,
+                  дальше метки серым — тематика и размер. Тема была здесь серой
+                  строкой, а у сцен и грамматики то же самое стояло плашкой, и
+                  две соседние витрины выглядели как из разных приложений. */}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                 <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>{x.level}</TileChip>
-                <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-                  {t(x.topic)} · {x.minutes} {t('мин')}
-                </span>
+                <TileChip tone="mute">{t(x.topic)}</TileChip>
+                <TileChip tone="mute">{x.minutes} {t('мин')}</TileChip>
               </span>
               <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                 {x.title}
@@ -3608,8 +3694,10 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               </span>
             )}
 
-            {/* Перевод открывается только после проверки: иначе читать оригинал незачем. */}
-            {text.translation && (
+            {/* Перевод открывается только после проверки: иначе читать оригинал незачем.
+                В разборе его уже переключает рейл партитуры — второй такой же
+                тумблер на титрах только сбивает: два места, одно и то же. */}
+            {text.translation && !(hasScore && scoreView) && (
               <button
                 onClick={() => setShowTranslation(v => !v)}
                 style={{
@@ -3653,7 +3741,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             </button>
           </div>
 
-          {showTranslation && text.translation && (
+          {showTranslation && text.translation && !(hasScore && scoreView) && (
             <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)' }}>
               <div style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 7 }}>
                 {t('Перевод текста')}

@@ -649,7 +649,8 @@ export function BackToSets({ onBack }: { onBack: () => void }) {
       onClick={onBack}
       style={{
         display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: 999,
-        border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.88)',
+        border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.62)',
+        backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)',
         cursor: 'pointer', fontSize: 12.5, fontWeight: 550, color: 'var(--color-text-2)', fontFamily: 'inherit',
       }}
     >

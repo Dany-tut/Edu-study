@@ -931,7 +931,11 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               // ломалась пополам. Высота (9 px сверху и снизу) та же.
               // Иконочный вариант не растягивается: подпись ему не нужна, а
               // равная доля ряда только резала бы соседний текст многоточием.
-              flex: (mute || (o.icon && !idleIcon)) ? '0 0 auto' : 1, minWidth: 0,
+              // Ширина по содержимому, а не равные доли: «до 3 мин» рядом с
+              // «3–5» и «5+» получало ту же треть ряда и жалось в неё, пока у
+              // соседей оставался запас. Базис auto делит между кнопками только
+              // свободное место, длинная подпись сохраняет свои поля.
+              flex: (mute || (o.icon && !idleIcon)) ? '0 0 auto' : '1 1 auto', minWidth: 0,
               padding: (mute || (o.icon && !idleIcon)) ? '9px 11px' : '9px 6px', borderRadius: 13, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
@@ -1617,10 +1621,11 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
         position: 'relative', display: fill ? 'flex' : 'inline-flex', alignItems: 'center',
         width: fill, maxWidth: '100%',
         padding: 3, borderRadius: 999,
-        background: 'rgba(var(--glass-rgb), 0.88)',
+        background: 'rgba(var(--glass-rgb), 0.62)',
         border: '1px solid var(--color-border)',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        backdropFilter: 'blur(8px)',
+        backdropFilter: 'blur(18px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
       }}
     >
       {pill.pillRect && (
@@ -2030,6 +2035,23 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
 }
 
 /** Счётчик, прижатый вправо. */
+/**
+ * Склонение счётчика: «1 текст · 2 текста · 5 текстов».
+ *
+ * Пар таких слов в тренажёре десяток (тексты, записи, формы, произведения,
+ * задания), и до этого каждое место склоняло своё слово своей функцией — из-за
+ * чего половина строк управления писала «Всего: 21», а половина «85 форм».
+ * Правило одно: счётчик называет ЕДИНИЦУ экрана, а не пишет «всего».
+ */
+export function plural(n: number, forms: [string, string, string]): string {
+  const tens = n % 100
+  if (tens >= 11 && tens <= 14) return forms[2]
+  const d = n % 10
+  if (d === 1) return forms[0]
+  if (d >= 2 && d <= 4) return forms[1]
+  return forms[2]
+}
+
 export function ToolCount({ children }: { children: React.ReactNode }) {
   return (
     <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>
