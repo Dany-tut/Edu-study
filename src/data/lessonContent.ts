@@ -1,7 +1,8 @@
 import { type Lesson } from './mockData'
 import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapRow, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
-import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
+import { apLessonContent } from './apLessonChunk'
+import type { ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 import type { LessonFiles } from '../lib/lessonFiles'
 import { isChecklistParagraph } from '../lib/theoryChecklist'
@@ -271,7 +272,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
 
   // Priority: DB-authored content (teacher edits in Конструктор) → code default
   // (AP authored) → generic generator.
-  const ap = (lesson.content && lesson.content.paragraphs?.length ? lesson.content : null) ?? AP_LESSON_CONTENT[lesson.id]
+  const ap = (lesson.content && lesson.content.paragraphs?.length ? lesson.content : null) ?? apLessonContent(lesson.id)
   if (ap) {
     return {
       date: dateStr,

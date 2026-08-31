@@ -42,7 +42,9 @@ import { getSubject, SUBJECTS, BANK_SUBJECT_IDS, type SubjectDef } from './subje
 import { useStudentData, subjectAliases } from '../store/studentDataStore'
 import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
-import { textsForLang } from '../data/readingLibrary'
+// Счётчик, а не библиотека: сюда нужно одно число на язык, а READING_LIBRARY
+// приехала бы во входной чанк вместе с телами текстов (см. readingCounts).
+import { textCount } from '../data/readingCounts'
 import { sceneCount } from '../data/scenes/counts'
 import { hasSurvivalBook } from '../data/survivalBooks'
 import { deckOwner, dueCount } from '../data/reviewDeck'
@@ -233,7 +235,7 @@ export function useTrainerSubject(): TrainerSubjectState {
         // Тексты вместе со сценами — столько же, сколько показывает «Чтение» в
         // самом тренажёре. Разные числа в меню предметов и в меню режимов
         // читаются как ошибка одного из них.
-        ? textsForLang(def.langCode ?? '').length + sceneCount(def.langCode)
+        ? textCount(def.langCode) + sceneCount(def.langCode)
         : tasks.filter(t => t.subject === def.id).length)
     }
 
@@ -279,7 +281,7 @@ export function useTrainerSubject(): TrainerSubjectState {
       if (seen.has(id)) continue
       const def = getSubject(id)
       if (def?.isLanguage) {
-        add(def, 'lang', textsForLang(def.langCode ?? '').length + sceneCount(def.langCode))
+        add(def, 'lang', textCount(def.langCode) + sceneCount(def.langCode))
       }
     }
 

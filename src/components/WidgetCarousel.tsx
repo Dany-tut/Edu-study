@@ -1,17 +1,29 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import QuizWidget from './QuizWidget'
-import StatsWidget from './StatsWidget'
-import ScienceFactsWidget from './ScienceFactsWidget'
-import ReactionsWidget from './ReactionsWidget'
-import PomodoroWidget from './PomodoroWidget'
-import MemesWidget from './MemesWidget'
-import QuestionOfDayWidget from './QuestionOfDayWidget'
-import TrainerProgressWidget from './TrainerProgressWidget'
-import StickersWidget from './StickersWidget'
-import DailyDoseWidget from './DailyDoseWidget'
-import FeedWidget from './FeedWidget'
+// ── Виджеты — по одному чанку на виджет ─────────────────────────────────────
+//
+// ЗАЧЕМ. Одиннадцать виджетов ехали во входном чанке разом, а на экране их
+// стоит один-два: карусель рисует ОДНУ страницу. Причём каждый тянет своё
+// содержимое — «Доза дня» библиотеку текстов, «Лента» реестр изданий, — и в
+// сумме это уезжало каждому ученику до первого кадра, включая те виджеты,
+// которые он спрятал в настройках.
+//
+// ПОЧЕМУ ПОП-АП НЕ ВИДЕН. Место виджета держит стойка (высота стола задана
+// сеткой), и на время загрузки в нём пусто — как в первые кадры кабинета, пока
+// едут курсы. Соседняя страница карусели заказывается по перелистыванию: чанк
+// маленький и приезжает быстрее, чем доигрывает пружина.
+const QuizWidget = lazy(() => import('./QuizWidget'))
+const StatsWidget = lazy(() => import('./StatsWidget'))
+const ScienceFactsWidget = lazy(() => import('./ScienceFactsWidget'))
+const ReactionsWidget = lazy(() => import('./ReactionsWidget'))
+const PomodoroWidget = lazy(() => import('./PomodoroWidget'))
+const MemesWidget = lazy(() => import('./MemesWidget'))
+const QuestionOfDayWidget = lazy(() => import('./QuestionOfDayWidget'))
+const TrainerProgressWidget = lazy(() => import('./TrainerProgressWidget'))
+const StickersWidget = lazy(() => import('./StickersWidget'))
+const DailyDoseWidget = lazy(() => import('./DailyDoseWidget'))
+const FeedWidget = lazy(() => import('./FeedWidget'))
 import { useDashboard } from '../store/dashboardStore'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
@@ -156,7 +168,11 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
                   height: '100%',
                 }}
               >
-                {renderWidget(idx, true)}
+                {/* Пустая стойка на время чанка: своя на каждый виджет,
+                    чтобы приехавший сосед не сбрасывал уже показанный. */}
+                <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
+                  {renderWidget(idx, true)}
+                </Suspense>
               </div>
             ))}
           </motion.div>

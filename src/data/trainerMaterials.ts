@@ -192,7 +192,7 @@ const feedFamily: MaterialFamily = {
   hint: 'Новости и статьи из источников со свободной лицензией. Обновляется сборкой.',
   editable: false,
   async load(lang) {
-    const { loadFeed, outletById } = await import('./feed')
+    const [{ loadFeed }, { outletById }] = await Promise.all([import('./feed'), import('./feed/outlets')])
     const list = await loadFeed(lang)
     return list.map(x => ({
       id: x.id,

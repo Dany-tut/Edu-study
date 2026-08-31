@@ -35,6 +35,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Trash2, ChevronLeft, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
 import { useAllStudents } from '../../lib/useGroups'
 import { SUBJECTS } from '../../lib/subjects'
@@ -463,7 +464,7 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
           icon={<Users size={12} />} minWidth={92}
           onChange={setStudentPick}
         />
-        <ShelfCount>{shown.length} {t('наборов')}</ShelfCount>
+        <ShelfCount>{shown.length} {t(plural(shown.length, ['набор', 'набора', 'наборов']))}</ShelfCount>
       </div>
 
       {/* Полки. Это фильтр, а не отдельная сущность в списке: сами карточки
@@ -734,7 +735,7 @@ function SeedCard({ group, onTake }: { group: CardGroup; onTake: () => void }) {
       badge={<span style={cardChip(MAT_COLOR)}>{t('Готовое')}</span>}
       title={group.title}
       subtitle={group.about || langLabelOf(group.lang)}
-      footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{group.sets.length} {t('наборов')} · {cards} {t('карточек')}</span></>}
+      footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{group.sets.length} {t(plural(group.sets.length, ['набор', 'набора', 'наборов']))} · {cards} {t(plural(cards, ['карточка', 'карточки', 'карточек']))}</span></>}
       footerRight={<>{langLabelOf(group.lang)}</>}
     />
   )

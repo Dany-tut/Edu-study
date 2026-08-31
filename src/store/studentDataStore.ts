@@ -18,6 +18,7 @@ import {
 } from '../lib/db'
 import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
+import { loadApLessons } from '../data/apLessonChunk'
 import { getSubject } from '../lib/subjects'
 import { reconcileLocalHomework, reconcileCourseReset, courseResetRef } from '../lib/homeworkReset'
 import { useDashboard } from './dashboardStore'
@@ -353,7 +354,9 @@ async function ensureLessonsHeavy(lessonIds: string[]) {
 
   for (const id of want) { heavyInflight.add(id); heavyFailed.delete(id) }
   try {
-    const heavy = await fetchLessonsHeavy(want)
+    // Заодно чанк запасных конспектов AP — см. loadApLessons(): он читается
+    // синхронно из рендера, и приехать обязан не позже самих уроков.
+    const [heavy] = await Promise.all([fetchLessonsHeavy(want), loadApLessons()])
     for (const [k, v] of heavy) heavyCache.set(k, v)
   } catch (e) {
     // Снимаем флаг всё равно — см. комментарий выше, — но помечаем на повтор.

@@ -4095,6 +4095,15 @@ export const EN: Record<string, string> = {
   'Под отбор ничего не подошло.': 'Nothing matched the filter.',
   'К материалам': 'Back to materials',
   'Из кода': 'From code',
+
+  // Четвёртый уровень подборок: стопка внутри набора.
+  'Стопки': 'Stacks',
+  'К стопкам': 'Back to stacks',
+  'Название стопки': 'Stack name',
+  'Например: 1. Pilot': 'For example: 1. Pilot',
+  'Удалить стопку': 'Delete stack',
+  'Добавить стопку': 'Add stack',
+  'в работе': 'in progress',
   'У этого материала нет текста — он собирается в тренажёре из своих частей.': 'This material has no text \u2014 the trainer assembles it from its parts.',
   'Пока ни одного набора. Заведите первый «плюсом» на вкладке — он появится у учеников в тренажёре.': 'No sets yet. Add the first one with the \u00ab+\u00bb on the tab \u2014 it will show up in the students\u2019 trainer.',
   'Плитками': 'Tiles',

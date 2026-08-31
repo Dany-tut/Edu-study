@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
-import { loadFeed, feedCount, hasFeed, materialsWord, outletById, dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
+import { loadFeed, feedCount, hasFeed, materialsWord, dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
+import { outletById } from '../data/feed/outlets'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
@@ -2868,9 +2869,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 <Tile key={g.id} accent={palette.accent} stack onClick={() => setOpenGroupId(g.id)}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>
-                      {g.sets.length} {t('наборов')}
+                      {g.sets.length} {t(plural(g.sets.length, ['набор', 'набора', 'наборов']))}
                     </TileChip>
-                    <TileChip>{g.sets.reduce((n, x) => n + allSetCards(x).length, 0)} {t('карточек')}</TileChip>
+                    <TileChip>{(() => { const n = g.sets.reduce((a, x) => a + allSetCards(x).length, 0); return `${n} ${t(plural(n, ['карточка', 'карточки', 'карточек']))}` })()}</TileChip>
                   </span>
                   {/* Значок стоит у ПЕРВОЙ строки заголовка, а не по центру
                       двух: у длинных названий он уезжал в межстрочье и читался

@@ -86,6 +86,23 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // ── Общие данные — своим чанком, а не во входном ────────────────────
+        //
+        // Rollup поднимает модуль, нужный ДВУМ чанкам, в их общего родителя —
+        // то есть во входной. Реестр изданий ленты нужен и виджету главной, и
+        // самой ленте в тренажёре, и из-за этого 25 КБ данных снова оказались
+        // там, откуда их только что убрали: ленивый импорт в этом случае не
+        // помогает, помогает только явное имя чанка.
+        manualChunks: (id) => {
+          if (id.includes('src/data/feed/outlets')) return 'feed-outlets'
+          return undefined
+        },
+      },
+    },
+  },
   server: {
     // Honor the port injected by the preview harness so its proxy can reach us.
     port: process.env.PORT ? Number(process.env.PORT) : undefined,

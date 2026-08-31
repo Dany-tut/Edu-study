@@ -29,6 +29,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const dir = join(root, 'src/data/feed')
 const indexPath = join(dir, 'index.ts')
 const src = readFileSync(indexPath, 'utf8')
+// Реестр изданий переехал из index.ts в outlets.ts (см. шапку того файла).
+const outletsSrc = readFileSync(join(dir, 'outlets.ts'), 'utf8')
 
 const args = process.argv.slice(2)
 const FIX = args.includes('--fix')
@@ -97,7 +99,7 @@ if (FIX && off.length) {
 
 // ─── 2. Реестр источников ────────────────────────────────────────────────────
 
-const outletIds = new Set([...src.matchAll(/^\s{4}id: '([\w-]+)',$/gm)].map(m => m[1]))
+const outletIds = new Set([...outletsSrc.matchAll(/^\s{4}id: '([\w-]+)',$/gm)].map(m => m[1]))
 
 console.log('\nИсточники:')
 for (const [lang, paths] of Object.entries(files)) {

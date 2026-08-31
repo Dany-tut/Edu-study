@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
-import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import {
   Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch, TrendingUp,
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen,
@@ -19,9 +19,8 @@ import { useTeacher } from '../store/teacherStore'
 import { useTheme } from '../store/themeStore'
 import { getSubject, resolveSubjectPalette } from '../lib/subjects'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
-import { formatShort, GOAL_MS, dayKey } from '../lib/trainerDay'
-import { textsForLang } from '../data/readingLibrary'
-import { textOfDay } from './DailyDoseWidget'
+import { formatShort, GOAL_MS } from '../lib/trainerDay'
+import { useTextOfDay } from '../lib/useTextOfDay'
 import { tactile } from '../lib/feedback'
 import { t, useT } from '../lib/i18n'
 
@@ -902,11 +901,9 @@ function DailyDosePreview({ expanded }: { expanded: boolean }) {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
   const def = getSubject(active?.subject)
-  const day = dayKey()
-  const text = useMemo(() => {
-    if (!def?.langCode) return undefined
-    return textOfDay(textsForLang(def.langCode).filter(x => x.minutes <= 3), day)
-  }, [def?.langCode, day])
+  // Библиотека текстов едет отдельным чанком (см. useTextOfDay): пока она в
+  // пути, пилюля стоит со своим общим заголовком.
+  const text = useTextOfDay(def?.langCode)
 
   return (
     <PillContent

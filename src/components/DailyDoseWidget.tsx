@@ -1,12 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Sunrise, ArrowRight, Layers, Check, Flame } from 'lucide-react'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useTheme } from '../store/themeStore'
 import { getSubject, resolveSubjectPalette } from '../lib/subjects'
-import { textsForLang, type ReadingText } from '../data/readingLibrary'
-import { addCards, deckOwner } from '../data/reviewDeck'
-import { streakDays, dayKey } from '../lib/trainerDay'
+import { useTextOfDay } from '../lib/useTextOfDay'
+import { streakDays } from '../lib/trainerDay'
 import { trainerHash } from '../lib/trainerLink'
 import { useT } from '../lib/i18n'
 
@@ -36,20 +35,6 @@ import { useT } from '../lib/i18n'
 const WORDS = 3
 
 /**
- * Текст дня: тот же на весь день, разный у разных языков.
- *
- * Ключ дня превращается в число сложением кодов символов — этого достаточно:
- * от выбора требуется устойчивость в течение суток и подвижность между ними, а
- * не равномерность распределения.
- */
-export function textOfDay(texts: ReadingText[], day: string): ReadingText | undefined {
-  if (texts.length === 0) return undefined
-  let n = 0
-  for (let i = 0; i < day.length; i++) n = (n * 31 + day.charCodeAt(i)) % 100000
-  return texts[n % texts.length]
-}
-
-/**
  * Первая содержательная строка текста.
  *
  * Не просто первая: у письма это «Hi Daniil,», у объявления — заголовок в одно
@@ -72,13 +57,9 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
   const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
   const def = getSubject(active?.subject)
   const palette = resolveSubjectPalette(def?.id ?? active?.subject ?? '', dark)
-  const day = dayKey()
-
-  // До трёх минут — см. шапку файла.
-  const text = useMemo(() => {
-    if (!def?.langCode) return undefined
-    return textOfDay(textsForLang(def.langCode).filter(x => x.minutes <= 3), day)
-  }, [def?.langCode, day])
+  // До трёх минут — см. шапку файла. Библиотека едет отдельным чанком: пока
+  // она в пути, text === undefined, и виджет показывает своё «появится».
+  const text = useTextOfDay(def?.langCode)
 
   const streak = def ? streakDays(def.id) : 0
   const wide = columns >= 2
@@ -105,6 +86,9 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
     if (!text || words.length === 0) return
     setTaking(true)
     try {
+      // Колода повторений — тоже отдельным чанком: в ней таблица картинок к
+      // словам (см. data/vocabImages), а нужна она только по этой кнопке.
+      const { addCards, deckOwner } = await import('../data/reviewDeck')
       const n = await addCards(deckOwner(), words.map(g => ({
         subject: def?.id, source: 'manual' as const, prompt: g.term, answer: g.ru,
       })))

@@ -11,7 +11,24 @@ import { supabase } from '../lib/supabase'
 import type { ReviewGrade } from '../lib/srs'
 import { scheduleReview, newSchedulableCard, type SchedulableCard } from '../lib/reviewScheduler'
 import { getStudentSession } from '../lib/studentSession'
-import { vocabImage } from './vocabImages'
+// ── Картинки к словам — отдельным чанком ────────────────────────────────────
+//
+// Таблица рисунков (data/vocabImages.ts) весит 65 КБ в сборке и нужна ровно
+// одному полю карточки. Статическим импортом она ехала во входной чанк: колоду
+// повторений задевают счётчик «на повторение» и подсказка слова, то есть
+// главная страница, — и картинки приезжали всем ещё до первого кадра.
+//
+// Читается синхронно (rowToCard зовут из map), поэтому чанк заказывается перед
+// разбором строк: все чтения колоды и так async — это запрос в Supabase.
+let images: ((ru: string) => string | undefined) | null = null
+async function loadImages(): Promise<void> {
+  if (images) return
+  try { images = (await import('./vocabImages')).vocabImage }
+  // Карточка без рисунка — штатный вид (у «следовательно» его и нет),
+  // так что не доехавший чанк ничего не ломает.
+  catch (e) { console.error('[reviewDeck.loadImages]', e) }
+}
+const vocabImage = (ru: string) => images?.(ru)
 
 /**
  * Откуда карточка пришла.
@@ -248,6 +265,7 @@ export async function dueCards(
     .order('due_at', { ascending: true })
     .limit(limit)
   if (error) { console.error('dueCards:', error); return [] }
+  await loadImages()
   return (data ?? []).map(rowToCard)
 }
 
@@ -454,6 +472,7 @@ export async function collectedCards(
     .order('created_at', { ascending: false })
     .limit(limit)
   if (error) { console.error('collectedCards:', error); return [] }
+  await loadImages()
   return (data ?? []).map(rowToCard)
 }
 
