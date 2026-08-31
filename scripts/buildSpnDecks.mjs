@@ -413,26 +413,56 @@ const lost = []
 for (const c of cards) {
   const src = byTerm.get(String(c.term ?? '').trim().toLowerCase())
   if (!src) { lost.push(c.term ?? '‹без term›'); continue }
-  rows.push({ ...c, term: src.term, episodes: src.episodes })
+  rows.push({ ...c, term: src.term, episodes: src.episodes, ep: src.ep })
 }
 const missing = take.filter(w => !cards.some(c => String(c.term ?? '').trim().toLowerCase() === w.term))
 if (lost.length) console.warn(`не сошлись по слову (${lost.length}): ${lost.slice(0, 8).join(', ')}`)
 if (missing.length) console.warn(`модель не вернула (${missing.length}): ${missing.slice(0, 8).map(w => w.term).join(', ')}`)
 
+// ── Раскладка по сезонам ─────────────────────────────────────────────────────
+//
+// Набор — сезон, а не серия, и это не компромисс: 327 плиток в витрине не
+// выбираются вовсе. Серия живёт МЕТКОЙ карточки (`ep`) — по ней внутри набора
+// стоит фильтр, и «покажи слова к 1×04» решается без ещё одной сущности.
+// Ровно тот же приём, что в соседнем cardSeeds/supernatural.ts.
+const bySeason = new Map()
+for (const c of rows) {
+  const [se, ep] = c.ep.split('x')
+  const label = `S${String(se).padStart(2, '0')}E${ep}`
+  if (!bySeason.has(se)) bySeason.set(se, [])
+  bySeason.get(se).push({ ...c, label })
+}
+const seasons = [...bySeason].sort((a, b) => +a[0] - +b[0])
+
+const card = c => `      {
+        term: ${JSON.stringify(c.term)},
+        ru: ${JSON.stringify(c.ru)},
+        ep: ${JSON.stringify(c.label)},
+        note: ${JSON.stringify(c.note ?? '')},
+        ex: { term: ${JSON.stringify(c.ex ?? '')}, ru: ${JSON.stringify(c.exRu ?? '')} },
+      },`
+
 const out = `// СГЕНЕРИРОВАНО scripts/buildSpnDecks.mjs — правки руками затрёт следующий прогон.
 //
-// Отобрано по субтитрам ${episodes.length} серий: слово выше B1, звучит минимум
-// в ${MIN_EPISODES} сериях и не разобрано в других наборах. Число в \`ep\` — сколько серий.
+// Отобрано по субтитрам ${episodes.length} серий. В колоду серии попадает слово,
+// которое (а) стоит выше B1, (б) вернётся ещё хотя бы в ${MIN_EPISODES - 1} серии, (в) не
+// разобрано в других наборах и (г) встречается в этой серии ВПЕРВЫЕ — колоду
+// проходят перед просмотром, поэтому слово выдаётся до первой встречи и потом
+// не повторяется. Потолок ${CAP} карточек на серию.
+//
+// Метка \`ep\` — номер серии: по ней внутри набора работает фильтр.
 
-import type { SetCard } from '../../lib/cardGroups'
+import type { CardSet } from '../../lib/cardGroups'
 
-export const SPN_AUTO: SetCard[] = [
-${rows.map(c => `  {
-    term: ${JSON.stringify(c.term)},
-    ru: ${JSON.stringify(c.ru)},
-    ep: ${JSON.stringify(`в ${c.episodes} сериях из ${episodes.length}`)},
-    note: ${JSON.stringify(c.note ?? '')},
-    ex: { term: ${JSON.stringify(c.ex ?? '')}, ru: ${JSON.stringify(c.exRu ?? '')} },
+export const SPN_AUTO_SETS: CardSet[] = [
+${seasons.map(([se, cards]) => `  {
+    id: 'seed:spn-auto:s${String(se).padStart(2, '0')}',
+    title: 'Сезон ${se} · по сериям',
+    about: '${cards.length} слов, разложенных по сериям сезона: перед просмотром берёшь метку своей серии.',
+    level: 'B1',
+    cards: [
+${cards.map(card).join('\n')}
+    ],
   },`).join('\n')}
 ]
 `

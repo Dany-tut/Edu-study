@@ -1969,7 +1969,7 @@ Anna was not on the call and will read these notes.`,
         correct: 1,
         why: 'Вариант A назван более понятным, и всё же взяли B: решает не «красивее», а «помещается».',
       },
-        {
+      {
         q: 'Why is the release late?',
         options: [
           'The team preferred two extra days to shipping a payment bug',
