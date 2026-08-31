@@ -512,14 +512,25 @@ function buildStage(under: Snapshot | null): Stage {
       const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
       const q = (p: number) => Math.min(1, Math.max(0, (p * W - start) / span))
 
-      // Корпус обеих половин идёт по ОДНОЙ коробке — она и есть морф.
+      // Корпус обеих половин идёт по ОДНОЙ коробке — она и есть морф. Но
+      // коробка НЕ ЕЗДИТ: она растёт и сжимается на своём месте, от своего
+      // края. Пока левый и правый края интерполировались к чужим координатам,
+      // таблетка пролетала через полэкрана к кнопке соседнего экрана — на
+      // глаз это читалось как «прилетела откуда-то не пойми что». Края у
+      // шапок общие (те же 16px полей), поэтому корпус и так приходит ровно
+      // в коробку двойника.
+      const rightward = ra.left + ra.w / 2 >= W / 2
+      const anchorX = rightward ? ra.left + ra.w : ra.left
+      const midY = ra.top + ra.h / 2
       const shell = (raw: number) => {
         const p = q(raw)
+        const w = lerp(ra.w, rb.w, p)
+        const h = lerp(ra.h, rb.h, p)
         return {
-          left: `${lerp(ra.left, rb.left, p)}px`,
-          top: `${lerp(ra.top, rb.top, p)}px`,
-          width: `${lerp(ra.w, rb.w, p)}px`,
-          height: `${lerp(ra.h, rb.h, p)}px`,
+          left: `${rightward ? anchorX - w : anchorX}px`,
+          top: `${midY - h / 2}px`,
+          width: `${w}px`,
+          height: `${h}px`,
         }
       }
       morphs.push({ el: a, at: shell }, { el: b, at: shell })
