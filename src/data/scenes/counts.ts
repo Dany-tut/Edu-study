@@ -8,7 +8,7 @@
 // Список языков держится в согласии с LOADERS в index.ts: сторож там же.
 
 export const SCENE_COUNTS: Record<string, number> = {
-  en: 275,
+  en: 279,
   ja: 46,
   ko: 82,
   de: 7,

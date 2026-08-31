@@ -336,13 +336,18 @@ function buildStage(under: Snapshot | null): Stage {
   ].join(';')
   document.body.appendChild(pinLayer)
 
-  type Pin = { live: HTMLElement; vis: string; clone: HTMLElement; under: HTMLElement | null }
+  type Pin = { live: HTMLElement; vis: string }
   /** Кадр морфа: стили элемента при ходе p (0 — уходящий экран, 1 — нижний). */
   type Morph = { el: HTMLElement; at(p: number): Record<string, string> }
   const pins: Pin[] = []
   const morphs: Morph[] = []
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+  /** Сглаживание для содержимого: линейная подмена читается как щелчок. */
+  const smooth = (t: number) => {
+    const c = Math.min(1, Math.max(0, t))
+    return c * c * (3 - 2 * c)
+  }
 
   /** Поставить узел в слой ровно туда, где он сейчас виден на экране. */
   const place = (el: HTMLElement, box: DOMRect, origin: { left: number; top: number }) => {
@@ -420,10 +425,19 @@ function buildStage(under: Snapshot | null): Stage {
     const right = chips(to).filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
     for (let i = 0; i < Math.min(left.length, right.length); i++) pairs.push([left[i], right[i]])
 
-    for (const [a, b] of pairs) {
-      const ra = rel(a)
+    for (const [live, b] of pairs) {
+      const ra = rel(live)
       const rb = rel(b)
       if (!ra.w || !rb.w) continue
+
+      // Копия, а не сам узел: живой принадлежит React и размонтируется
+      // посреди жеста. Оригинал прячем — иначе он уедет со страницей и
+      // таблетка задвоится.
+      const a = live.cloneNode(true) as HTMLElement
+      a.removeAttribute('id')
+      a.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
+      pins.push({ live, vis: live.style.visibility })
+      live.style.visibility = 'hidden'
 
       const ia = wrapKids(a)
       const ib = wrapKids(b)
@@ -458,18 +472,24 @@ function buildStage(under: Snapshot | null): Stage {
       // середине хода в таблетке пусто.
       morphs.push({
         el: ia,
-        at: p => ({
-          opacity: String(Math.max(0, 1 - p * 1.35)),
-          filter: `blur(${MORPH_BLUR * p}px)`,
-          transform: `scale(${lerp(1, MORPH_SCALE, p)})`,
-        }),
+        at: p => {
+          const t = smooth(p * 1.35)
+          return {
+            opacity: String(1 - t),
+            filter: `blur(${MORPH_BLUR * t}px)`,
+            transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
+          }
+        },
       }, {
         el: ib,
-        at: p => ({
-          opacity: String(Math.max(0, p * 1.35 - 0.35)),
-          filter: `blur(${MORPH_BLUR * (1 - p)}px)`,
-          transform: `scale(${lerp(2 - MORPH_SCALE, 1, p)})`,
-        }),
+        at: p => {
+          const t = smooth(p * 1.35 - 0.35)
+          return {
+            opacity: String(t),
+            filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
+            transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
+          }
+        },
       })
     }
   }
@@ -494,54 +514,32 @@ function buildStage(under: Snapshot | null): Stage {
     Array.from(scope.querySelectorAll<HTMLElement>(sel)).find(visible) ?? null
 
   const zero = { left: 0, top: 0 }
-  const underBase = underEl.getBoundingClientRect()
   for (const live of Array.from(document.querySelectorAll<HTMLElement>(`[${PIN_ATTR}]`))) {
     // Копии из снимка и из уже собранного слоя — не исходники.
     if (wrap.contains(live) || pinLayer.contains(live)) continue
-    const kind = live.getAttribute(PIN_ATTR) || ''
     if (!visible(live)) continue
-    const box = live.getBoundingClientRect()
+    const kind = live.getAttribute(PIN_ATTR) || ''
+    const twin = pickVisible(underEl, `[${PIN_ATTR}="${kind}"]`)
 
-    // Копия, а не сам узел: живой узел принадлежит React, и переносить его
-    // в чужой слой нельзя — экран под ним размонтируется прямо посреди жеста.
+    if (kind === 'top') {
+      // Шапку НЕ закрепляем целиком. Закреплённая шапка вставала поперёк
+      // стыка: заголовок урока тянулся сразу через оба экрана, а корпуса
+      // кнопок оставались пустыми. Стоят и перетекают только те таблетки, у
+      // которых нашлась пара; всё остальное едет со страницей, как ехало.
+      pairMorphs(live, twin)
+      continue
+    }
+
+    // Нижний бар — целиком: он один и тот же на всех экранах.
+    const box = live.getBoundingClientRect()
     const clone = live.cloneNode(true) as HTMLElement
     clone.removeAttribute('id')
     clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
     place(clone, box, zero)
-    const vis = live.style.visibility
+    pins.push({ live, vis: live.style.visibility })
     live.style.visibility = 'hidden'
-
-    // Двойник с нижнего экрана. Снимок — инертный DOM, его узел можно
-    // ПЕРЕНЕСТИ: копировать нечего и незачем.
-    let under: HTMLElement | null = null
-    const found = pickVisible(underEl, `[${PIN_ATTR}="${kind}"]`)
-    if (found && kind === 'top') {
-      const ub = found.getBoundingClientRect()
-      under = found
-      place(found, ub, { left: underBase.left, top: underBase.top })
-    } else if (found) {
-      // Нижний бар один на все экраны — второй только двоился бы.
-      found.remove()
-    }
-
-    if (kind === 'top') {
-      pairMorphs(clone, under)
-      // Всё, что осталось без пары (заголовок, дата, колокольчик), просто
-      // расходится по прозрачности на своих местах.
-      morphs.push({ el: clone, at: p => ({ opacity: String(Math.max(0, 1 - p * 1.6)) }) })
-      if (under) {
-        morphs.push({
-          el: under,
-          at: p => ({
-            opacity: String(Math.max(0, p * 1.6 - 0.6)),
-            // Затемнение нижнего экрана лежит слоем НИЖЕ закреплённого —
-            // его копии затемняем сами, иначе кнопка ярче своего экрана.
-            filter: `brightness(${1 - DIM * (1 - p)})`,
-          }),
-        })
-      }
-    }
-    pins.push({ live, vis, clone, under })
+    // Двойник из снимка только двоился бы.
+    twin?.remove()
   }
 
   /** Поставить морф на ход p — и на пальце, и в доводке одним кодом. */

@@ -22333,6 +22333,404 @@ _Разница не в батарее. Разница в проверке._
     ],
   },
 
+  // ── Бункер, 5: выдержка из устава ─────────────────────────────────────────
+  {
+    id: 'sc-silo-5',
+    workId: 'silo',
+    lang: 'en', title: 'Выдержка из устава', level: 'C1', minutes: 4,
+    topic: 'Ведомства и бумаги', skill: 'Чтение',
+    order: 5, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Всем в этом мире управляет один старый свод правил, и его язык — самый древний слой английского в сериале: пункты, подпункты, shall вместо will. Ниже наш такой устав. Юридический shall стоит узнавать в лицо: в договорах и правилах он означает не будущее время, а обязанность.',
+    after: 'Приём, который стоит заметить: пункт 4 запрещает не поступок, а вопрос. Правило, наказывающее за любопытство, всегда пишется через самые общие слова — «tending to», «any matter» — чтобы под него попадало что угодно.',
+    body: `THE PACT — EXTRACT, ARTICLES 3 TO 6
+
+3. Every resident shall hold an occupation entered in the register of their level. No occupation shall be abandoned without the written consent of the office holding it. A resident between occupations shall report daily to Supply until placed.
+
+4. No resident shall make, keep or circulate any account, drawing or device tending to describe the world outside, save such records as are held under seal by the Administration. Enquiry into the said matter shall itself be reported.
+
+5. Where a resident is found to have breached Article 4, the matter shall be referred to a judge, who shall determine it within three days. The judge may hear the resident, but is not obliged to.
+
+6. A resident may at any time request to go out. The request shall be granted. It shall not be withdrawn once made, and it shall not be granted twice.
+
+Nothing in the foregoing shall be construed as limiting the powers of the Administration in a time of unrest.`,
+    translation: `ПАКТ — ВЫДЕРЖКА, СТАТЬИ С 3 ПО 6
+
+3. Каждый житель обязан иметь занятие, внесённое в реестр его этажа. Ни одно занятие не может быть оставлено без письменного согласия ведомства, за которым оно закреплено. Житель, не имеющий занятия, обязан ежедневно являться на Склад до нового назначения.
+
+4. Ни один житель не вправе составлять, хранить или распространять записи, изображения или устройства, направленные на описание внешнего мира, за исключением тех сведений, что хранятся Администрацией за печатью. О самом интересе к указанному предмету надлежит сообщать.
+
+5. Если установлено, что житель нарушил статью 4, дело передаётся судье, который разрешает его в трёхдневный срок. Судья вправе выслушать жителя, но не обязан.
+
+6. Житель вправе в любое время попроситься наружу. Такая просьба удовлетворяется. Она не может быть взята назад после подачи и не может быть удовлетворена дважды.
+
+Ничто в вышеизложенном не должно толковаться как ограничение полномочий Администрации во время беспорядков.`,
+    glossary: [
+      { term: 'shall (legal)', ru: 'обязан, надлежит (не будущее время)' },
+      { term: 'extract', ru: 'выдержка (из документа)' },
+      { term: 'to hold an occupation', ru: 'иметь занятие, состоять в должности' },
+      { term: 'written consent', ru: 'письменное согласие' },
+      { term: 'to circulate', ru: 'распространять' },
+      { term: 'save (= except)', ru: 'за исключением (книжное)' },
+      { term: 'under seal', ru: 'за печатью, в закрытом хранении' },
+      { term: 'the said matter', ru: 'указанный предмет (канцелярская отсылка)' },
+      { term: 'to breach', ru: 'нарушить' },
+      { term: 'to be referred to', ru: 'быть переданным (на рассмотрение)' },
+      { term: 'is not obliged to', ru: 'не обязан' },
+      { term: 'to be construed as', ru: 'толковаться как' },
+      { term: 'the foregoing', ru: 'вышеизложенное' },
+    ],
+    questions: [
+      {
+        q: 'What does "shall" mean in these articles?',
+        options: [
+          'A polite future',
+          'A duty — this is what must happen',
+          'A possibility',
+          'A recommendation',
+        ],
+        correct: 1,
+        why: 'В договорах и уставах shall — обязанность. «The request shall be granted» значит «просьба удовлетворяется», а не «будет удовлетворена когда-нибудь».',
+      },
+      {
+        q: 'According to Article 4, what must also be reported?',
+        options: [
+          'Only drawings',
+          'Only devices',
+          'Asking about the matter at all',
+          'Nothing beyond the objects themselves',
+        ],
+        correct: 2,
+      },
+      {
+        q: 'What makes Article 6 frightening rather than generous?',
+        options: [
+          'The request is always granted, cannot be taken back, and is never available again',
+          'It requires a judge',
+          'It costs money',
+          'It has to be in writing',
+        ],
+        correct: 0,
+        why: 'Три коротких предложения, и каждое звучит как право. Вместе они описывают дверь, которая открывается только в одну сторону.',
+      },
+      {
+        q: 'What does the closing sentence do?',
+        options: [
+          'Explains the articles',
+          'Repeals Article 4',
+          'Reserves unlimited power for the Administration in unrest',
+          'Sets a date for review',
+        ],
+        correct: 2,
+      },
+    ],
+  },
+
+  // ── Бункер, 6: заявка в очередь ───────────────────────────────────────────
+  {
+    id: 'sc-silo-6',
+    workId: 'silo',
+    lang: 'en', title: 'Заявка в очередь', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 6, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В замкнутом мире рождение — не частное дело, а распределение места, и заявку на него подают как на жильё. Ниже наш бланк такой заявки. Это тот самый английский форм, который встречается в визовом центре и в поликлинике: tick the box, delete as appropriate, block capitals.',
+    after: 'Форма нигде не говорит «нет». Она говорит «place is not guaranteed» и «you will be notified» — и по этим двум оборотам сразу видно, что решение принимает не тот, кто выдал бланк.',
+    body: `APPLICATION TO JOIN THE FAMILY REGISTER — FORM 12
+
+Please complete in block capitals and hand in to your level office. Incomplete forms will be returned.
+
+1. Applicants (both): full name, level, occupation.
+2. Length of partnership. Delete as appropriate: under one year / one to three years / over three years.
+3. Have either of you previously held a place in the register? Yes / No. If yes, give the year and the outcome.
+4. Medical clearance: attach the slip from your level nurse, dated within the last two months.
+
+Notes for applicants
+
+A place on the register is held for one year. If the year passes, the application returns to the queue at its original date; you do not lose your place by waiting.
+
+The number of places released each year is set by the Administration and is not published in advance. A completed application does not guarantee a place.
+
+You will be notified by your level office. Please do not call at the Administration in person.
+
+Signed by both applicants: ......................  Date: ..............`,
+    translation: `ЗАЯВЛЕНИЕ О ВНЕСЕНИИ В СЕМЕЙНЫЙ РЕЕСТР — ФОРМА 12
+
+Заполняйте печатными буквами и сдайте в контору своего этажа. Незаполненные формы возвращаются.
+
+1. Заявители (оба): полное имя, этаж, занятие.
+2. Продолжительность союза. Нужное оставить: менее года / от года до трёх лет / более трёх лет.
+3. Состоял ли кто-либо из вас ранее в реестре? Да / Нет. Если да — укажите год и исход.
+4. Медицинское заключение: приложите справку от сестры вашего этажа, выданную не более двух месяцев назад.
+
+Примечания для заявителей
+
+Место в реестре сохраняется за вами один год. Если год прошёл, заявление возвращается в очередь на свою первоначальную дату; ожидание не лишает вас места.
+
+Количество мест, открываемых ежегодно, устанавливает Администрация и заранее не публикует. Заполненное заявление не гарантирует места.
+
+Вас известит контора вашего этажа. Лично в Администрацию являться не следует.
+
+Подписи обоих заявителей: ......................  Дата: ..............`,
+    glossary: [
+      { term: 'in block capitals', ru: 'печатными буквами' },
+      { term: 'to hand in', ru: 'сдать (документ)' },
+      { term: 'delete as appropriate', ru: 'нужное оставить, лишнее вычеркнуть' },
+      { term: 'medical clearance', ru: 'медицинский допуск, справка' },
+      { term: 'slip', ru: 'справка, талон (небольшой бланк)' },
+      { term: 'dated within the last two months', ru: 'выданный не позднее двух месяцев назад' },
+      { term: 'to hold a place', ru: 'занимать, сохранять место' },
+      { term: 'in advance', ru: 'заранее' },
+      { term: 'does not guarantee', ru: 'не гарантирует' },
+      { term: 'you will be notified', ru: 'вас известят' },
+      { term: 'to call at (a place) in person', ru: 'являться куда-либо лично' },
+    ],
+    questions: [
+      {
+        q: 'What happens if the year passes and nothing has been decided?',
+        options: [
+          'The application is cancelled',
+          'It goes back into the queue keeping its original date',
+          'The applicants must start again from today',
+          'It is passed to the Administration',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How many places are released each year?',
+        options: [
+          'Twelve',
+          'One per level',
+          'It is set by the Administration and not published in advance',
+          'As many as there are applications',
+        ],
+        correct: 2,
+      },
+      {
+        q: 'What does "delete as appropriate" ask you to do?',
+        options: [
+          'Cross out the options that do not apply to you',
+          'Erase the whole line',
+          'Sign the form',
+          'Answer in a separate letter',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Which line shows the form is not the one deciding?',
+        options: [
+          'Please complete in block capitals',
+          'Attach the slip from your level nurse',
+          'A completed application does not guarantee a place',
+          'Incomplete forms will be returned',
+        ],
+        correct: 2,
+      },
+    ],
+  },
+
+  // ── Бункер, 7: опись изъятого ─────────────────────────────────────────────
+  {
+    id: 'sc-silo-7',
+    workId: 'silo',
+    lang: 'en', title: 'Опись изъятого', level: 'B2', minutes: 3,
+    topic: 'Ведомства и бумаги', skill: 'Лексика',
+    order: 7, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вещи из прежнего мира в сериале — главная улика и главное сокровище разом. Ниже наша опись изъятого: список предметов, описанных чужими словами. Тут отдельно полезно, как по-английски описывают предмет, которого не понимают: metal, unmarked, purpose unknown.',
+    after: 'Приём описи — не называть вещь. Пока предмет записан как «disc, thin, reflective», он остаётся вещдоком; назови его — и придётся объяснять, откуда в бункере музыка.',
+    body: `SCHEDULE OF ITEMS RECOVERED — LEVEL 118, APARTMENT 4
+
+Recovered under Article 4. Held pending determination. Do not clean, open or operate.
+
+Item 1. Disc, thin, reflective on one face, 12 cm across. Bears printed letters on the dull face; letters not in current use. Purpose unknown. Condition: good.
+Item 2. Case for the above, hinged, cracked at one corner.
+Item 3. Book, bound, 88 pages, water-damaged throughout. Contains images of open ground and a body of water. Text mostly illegible.
+Item 4. Card, folded, handwritten in ink. Reads in part: "back before the rain". No date, no names.
+Item 5. Device, metal, unmarked, one moving part. Does not appear to function. Purpose unknown.
+Item 6. Fragment, blue, glass or similar. Edges worn smooth.
+
+Items 1, 3 and 4 are to be sealed and forwarded to the Administration. Items 2, 5 and 6 may be released to the resident if no determination is made within thirty days.
+
+Recovered by: two deputies, both signing below. Witnessed by the level office.`,
+    translation: `ОПИСЬ ИЗЪЯТОГО — ЭТАЖ 118, КВАРТИРА 4
+
+Изъято на основании статьи 4. Хранится до решения. Не чистить, не вскрывать, не приводить в действие.
+
+Предмет 1. Диск, тонкий, с одной стороны зеркальный, 12 см в поперечнике. На матовой стороне печатные буквы; буквы не из употребляемых ныне. Назначение неизвестно. Состояние: хорошее.
+Предмет 2. Футляр к вышеуказанному, на петле, с трещиной в одном углу.
+Предмет 3. Книга, в переплёте, 88 страниц, повсюду повреждена водой. Содержит изображения открытой местности и большой воды. Текст по большей части неразборчив.
+Предмет 4. Карточка, сложенная вдвое, написана от руки чернилами. Читается частично: «вернусь до дождя». Ни даты, ни имён.
+Предмет 5. Устройство, металлическое, без обозначений, одна подвижная часть. По видимости не работает. Назначение неизвестно.
+Предмет 6. Осколок, синий, стекло или подобное. Края обтёрты до гладкости.
+
+Предметы 1, 3 и 4 подлежат опечатыванию и передаче в Администрацию. Предметы 2, 5 и 6 могут быть возвращены жителю, если решение не принято в тридцатидневный срок.
+
+Изъяли: двое понятых от службы, оба расписались ниже. Засвидетельствовано конторой этажа.`,
+    glossary: [
+      { term: 'schedule of items', ru: 'опись предметов' },
+      { term: 'to recover (an item)', ru: 'изъять, обнаружить и забрать' },
+      { term: 'pending determination', ru: 'до вынесения решения' },
+      { term: 'to operate (a device)', ru: 'приводить в действие' },
+      { term: 'across (12 cm across)', ru: 'в поперечнике' },
+      { term: 'the dull face', ru: 'матовая сторона' },
+      { term: 'purpose unknown', ru: 'назначение неизвестно' },
+      { term: 'water-damaged', ru: 'повреждённый водой' },
+      { term: 'illegible', ru: 'неразборчивый' },
+      { term: 'reads in part', ru: 'читается частично' },
+      { term: 'to be forwarded to', ru: 'подлежать передаче' },
+      { term: 'to be released to', ru: 'быть возвращённым (владельцу)' },
+      { term: 'worn smooth', ru: 'обтёртый до гладкости' },
+    ],
+    questions: [
+      {
+        q: 'What is Item 1, judging by the description?',
+        options: [
+          'A coin',
+          'A mirror',
+          'A window pane',
+          'A disc that plays something — the clerk describes it without naming it',
+        ],
+        correct: 3,
+      },
+      {
+        q: 'Why does the schedule keep saying "purpose unknown"?',
+        options: [
+          'The items are broken',
+          'The clerk records only what can be seen, and does not interpret',
+          'The items came from another level',
+          'The list is unfinished',
+        ],
+        correct: 1,
+        why: 'Опись — жанр без выводов: фиксируется наблюдаемое. Всё остальное решает тот, кому её передадут.',
+      },
+      {
+        q: 'What happens to Items 2, 5 and 6 if nobody decides in thirty days?',
+        options: [
+          'They may be given back to the resident',
+          'They are destroyed',
+          'They go to the Administration',
+          'They stay sealed indefinitely',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Which item is the most dangerous to its owner?',
+        options: [
+          'Item 6, the blue fragment',
+          'Item 2, the case',
+          'Item 3, the book with images of open ground',
+          'Item 5, the metal device',
+        ],
+        correct: 2,
+        why: 'Именно она описывает внешний мир, а это прямо под статьёй 4. Не случайно она попала в список на опечатывание.',
+      },
+    ],
+  },
+
+  // ── Бункер, 8: письмо на сто восемнадцатый ────────────────────────────────
+  {
+    id: 'sc-silo-8',
+    workId: 'silo',
+    lang: 'en', title: 'Письмо на сто восемнадцатый', level: 'B1', minutes: 3,
+    topic: 'Переписка', skill: 'Чтение',
+    order: 8, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'После казённых бумаг стоит прочесть частное письмо того же мира. Ниже наш текст: короткое письмо с верхних этажей на нижние. Английский здесь простой и тёплый — тот самый, каким пишут родным: неполные предложения, «anyway», «love».',
+    after: 'Одна строка написана не так, как весь остальной текст: «I am not asking, I am just saying it happened». Так пишут, когда знают, что письмо могут прочитать посторонние, — и заранее объясняются перед ними, а не перед адресатом.',
+    body: `Level 26, Tuesday
+
+Dear Nan,
+
+Twenty-six is fine. Cold in the mornings, but fine. I have the room by the stair, which everyone warned me about, and they were right — I hear every porter from four o'clock on. You get used to it. I nearly like it now.
+
+Work is steady. They put me on the second shift, so I eat at odd hours and see nobody I know, but the money is the same and the walk is shorter.
+
+I did the sums about coming down. Two days each way if I go slowly, and I would have to go slowly. So it will be after the shift rota changes, in the spring. I know I said the spring last year too.
+
+Something happened on the landing last week and there were deputies on our level for three days. Nothing to do with me. I am not asking, I am just saying it happened, and that we are all fine.
+
+Send me word about your knee. Tell Uncle Row I still have his knife and I still have not lost it.
+
+Anyway. Eat something warm.
+
+Love,
+Ada`,
+    translation: `26-й этаж, вторник
+
+Дорогая бабушка,
+
+На двадцать шестом хорошо. По утрам холодно, но хорошо. Мне досталась комната у лестницы — та самая, про которую все предупреждали, и они были правы: с четырёх утра слышу каждого носильщика. Привыкаешь. Сейчас мне это почти нравится.
+
+С работой ровно. Поставили во вторую смену, так что ем в странное время и не вижу никого из знакомых, зато платят так же и идти ближе.
+
+Я посчитала насчёт спуститься к вам. По два дня в каждую сторону, если идти медленно, а идти пришлось бы медленно. Так что это будет после смены графика, весной. Знаю, я и в прошлом году говорила «весной».
+
+На прошлой неделе на площадке что-то случилось, и три дня у нас на этаже стояли люди из службы. Ко мне это отношения не имеет. Я не спрашиваю, просто говорю, что так было и что у нас всё в порядке.
+
+Напиши мне про колено. Скажи дяде Роу, что нож его у меня и я его до сих пор не потеряла.
+
+Ну вот. Поешь чего-нибудь горячего.
+
+Обнимаю,
+Ада`,
+    glossary: [
+      { term: 'the room by the stair', ru: 'комната у лестницы' },
+      { term: 'from four o’clock on', ru: 'начиная с четырёх' },
+      { term: 'you get used to it', ru: 'к этому привыкаешь' },
+      { term: 'work is steady', ru: 'с работой ровно, стабильно' },
+      { term: 'the second shift', ru: 'вторая смена' },
+      { term: 'at odd hours', ru: 'в неурочное время' },
+      { term: 'to do the sums', ru: 'посчитать, прикинуть' },
+      { term: 'rota', ru: 'график смен' },
+      { term: 'to send word', ru: 'дать знать, написать' },
+      { term: 'anyway', ru: 'ну ладно, в общем (переход к концу письма)' },
+    ],
+    questions: [
+      {
+        q: 'Why does Ada nearly like the noise from the stairwell?',
+        options: [
+          'It is quiet after four',
+          'She has got used to it',
+          'It means she is safe',
+          'The porters are her friends',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the visit put off until spring?',
+        options: [
+          'She has no money',
+          'Her grandmother is ill',
+          'The journey takes two days each way and her shift rota has not changed yet',
+          'The stairwell is closed',
+        ],
+        correct: 2,
+      },
+      {
+        q: 'Why does she write "I am not asking, I am just saying it happened"?',
+        options: [
+          'She has forgotten the details',
+          'She wants an answer',
+          'She is protecting herself in case the letter is read by someone else',
+          'She is annoyed with her grandmother',
+        ],
+        correct: 2,
+        why: 'Фраза обращена не к бабушке. В мире, где интерес к чужому делу сам по себе нарушение, письмо заранее объясняется перед посторонним читателем.',
+      },
+      {
+        q: 'What does "Anyway." do at the end?',
+        options: [
+          'Closes the subject and moves to goodbye',
+          'Introduces a new topic',
+          'Disagrees with something',
+          'Asks a question',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
   // ── Друзья, 3: доска в кофейне ─────────────────────────────────────────────
   {
     id: 'sc-friends-3',
