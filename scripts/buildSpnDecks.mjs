@@ -209,7 +209,13 @@ function alreadyCovered() {
     const src = readFileSync(join(dir, f), 'utf8')
     for (const m of src.matchAll(/(?:term: |c\(\s*)'((?:[^'\\]|\\.)*)'/g)) {
       for (const w of m[1].replace(/\\'/g, "'").toLowerCase().split(/[^a-z'’]+/)) {
-        if (w.length > 2) seen.add(w.replace(/[’']/g, "'"))
+        if (w.length <= 2) continue
+        const norm = w.replace(/[’']/g, "'")
+        seen.add(norm)
+        // И форма БЕЗ апострофа. Иначе friggin’ из готового набора не сходится с
+        // friggin из субтитров (разборщик обрывает слово на апострофе), и слово,
+        // которое уже разобрано, приезжает в колоду серии вторым экземпляром.
+        seen.add(norm.replace(/'/g, ''))
       }
     }
   }

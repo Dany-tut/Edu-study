@@ -5,6 +5,7 @@ import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
 import { recoverFromChunkError } from './lib/chunkError'
+import { guardStylesheet } from './lib/cssGuard'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
 
 // ── PostHog — после первого кадра, отдельным чанком ──────────────────────────
@@ -56,6 +57,10 @@ if (phKey) {
     recover(String(r instanceof Error ? r.message : r ?? ''))
   })
 })()
+
+// Пропавший CSS ошибок не даёт: страница живая, но без единого стиля.
+// Отдельный сторож — см. lib/cssGuard.
+guardStylesheet()
 
 // Global scroll-aware scrollbar: show thumb only while scrolling, hide after idle.
 ;(() => {

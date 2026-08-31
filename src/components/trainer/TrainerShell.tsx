@@ -644,7 +644,7 @@ function ShareCircle({ url, accent }: { url: string; accent?: string }) {
         width: 36, height: 36, borderRadius: 999, flexShrink: 0,
         cursor: 'pointer', fontFamily: 'inherit',
         border: `1px solid ${done ? (accent ?? MENU_ACCENT) : 'var(--color-border-medium)'}`,
-        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
+        background: PILL_BG, ...PILL_GLASS,
         color: on,
       }}
     >
@@ -1278,7 +1278,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
       style={{
         display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
         height: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
-        background: on ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS,
+        background: on ? 'var(--color-purple-soft)' : PILL_BG, ...PILL_GLASS,
         border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
         color: on ? 'var(--color-purple-text)' : 'var(--color-text)',
         fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
@@ -1535,7 +1535,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         // оставил его одного.
         display: 'flex', alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box',
         gap: narrow && !wide ? 0 : 8, minHeight: 36, borderRadius: 999,
-        background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS,
+        background: PILL_BG, ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
         // На телефоне свёрнутый поиск — круг без слова «Поиск» (112 → 36px):
         // эти 76px и есть разница между строкой в одну полосу и в две. А
@@ -1625,7 +1625,7 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
         position: 'relative', display: fill ? 'flex' : 'inline-flex', alignItems: 'center',
         width: fill, maxWidth: '100%',
         padding: 3, borderRadius: 999,
-        background: 'rgba(var(--glass-rgb), 0.62)',
+        background: PILL_BG,
         border: '1px solid var(--color-border)',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
         backdropFilter: 'blur(18px) saturate(180%)',
@@ -1722,7 +1722,7 @@ export function ToolButton({ children, on, onClick, accent, btnRef, icon, label 
         ...(icon ? { width: 40, height: 40, flexShrink: 0 } : null),
         cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
         border: `1px solid ${on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-border-medium)'}`,
-        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
+        background: PILL_BG, ...PILL_GLASS,
         color: on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-text-2)',
         whiteSpace: 'nowrap',
       }}
@@ -1745,9 +1745,18 @@ export function ToolButton({ children, on, onClick, accent, btnRef, icon, label 
  * рябь, и таблетка остаётся стеклом, а не глухой плашкой.
  */
 export const PILL_GLASS = {
-  backdropFilter: 'blur(14px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  backdropFilter: 'blur(18px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(18px) saturate(180%)',
 } as const
+
+/**
+ * Заливка контролов строки управления.
+ *
+ * Одно значение на всю строку: поиск шёл на 0.96, плашки меню на 0.88, а группа
+ * статусов на 0.62 — над плывущими карточками первые читались плотными
+ * заплатками, и только группа выглядела стеклом. Стекло у всей строки одно.
+ */
+export const PILL_BG = 'rgba(var(--glass-rgb), 0.62)'
 
 /**
  * Цвет выбранной строки в меню, когда предмет не задан.
@@ -1952,7 +1961,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
           display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
           cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
           border: `1px solid ${on ? tint : 'var(--color-border-medium)'}`,
-          background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
+          background: PILL_BG, ...PILL_GLASS,
           color: on ? tint : 'var(--color-text-2)', whiteSpace: 'nowrap',
         }}
       >

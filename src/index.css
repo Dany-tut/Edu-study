@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  /* Маячок «стили доехали»: main.tsx читает его после первого кадра. Если
+     переменной нет — таблица стилей не применилась (см. lib/cssGuard.ts). */
+  --css-ok: 1;
   --statusline-height: 56px;
   --radius-card: 24px;
   --radius-large: 32px;
