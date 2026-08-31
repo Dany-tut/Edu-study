@@ -98,6 +98,10 @@ export default function MobileBottomNav() {
   const nav = (
     <motion.div
       className={`${layer ? 'absolute' : 'fixed'} bottom-0 left-0 right-0 z-50`}
+      // Навигация одна и та же на всех экранах, поэтому на свайпе «назад» она
+      // не едет со страницей, а стоит: страница проходит ПОД ней
+      // (lib/useSwipeBack.ts, PIN_ATTR).
+      data-swipe-pin="bottom"
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}

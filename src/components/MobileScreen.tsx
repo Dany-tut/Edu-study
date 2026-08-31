@@ -118,6 +118,9 @@ export default function MobileScreen({
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
       {topZone != null && (
         <div
+          // Верхние кнопки на свайпе «назад» стоят, а не едут: по линии стыка
+          // они сменяются кнопками нижнего экрана (lib/useSwipeBack.ts).
+          data-swipe-pin="top"
           style={{
             position: 'absolute',
             top: TOP_INSET,

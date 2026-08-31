@@ -946,7 +946,7 @@ export default function LessonPage() {
           container's top padding so it sits ON the topbar row (mini topbar
           centred between Back+title on the left and the date on the right).
           Glass pills to match the topbar; fades / slides in on scroll. */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: isDesktop ? 30 : MOBILE_TOP_INSET, left: isDesktop ? 32 : 16, right: isDesktop ? 32 : 16, zIndex: 80, pointerEvents: 'none' }}>
+      <div className="docked-pills-row" data-swipe-pin="top" style={{ position: 'fixed', top: isDesktop ? 30 : MOBILE_TOP_INSET, left: isDesktop ? 32 : 16, right: isDesktop ? 32 : 16, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div

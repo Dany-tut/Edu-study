@@ -85,6 +85,17 @@ const CORNER_RAMP = 26
 /** Домашняя кривая приложения — та же, что у доков и шапок. */
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)'
 
+/**
+ * Метка закреплённого элемента: `data-swipe-pin="top" | "bottom"`.
+ *
+ * Помеченное на время жеста НЕ едет со страницей — оно стоит, а страница
+ * проходит под ним. Нижняя навигация одна и та же на всех экранах, поэтому
+ * она просто стоит («карточка проходит под баром»). Верхние кнопки у каждого
+ * экрана свои, поэтому их две: копия уходящего экрана видна справа от стыка,
+ * копия нижнего — слева, и на линии стыка одна сменяет другую.
+ */
+const PIN_ATTR = 'data-swipe-pin'
+
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'LINK', 'TEMPLATE', 'NOSCRIPT'])
 
 // ─── Память переходов ────────────────────────────────────────────────────────
@@ -292,6 +303,79 @@ function buildStage(under: Snapshot | null): Stage {
     el.style.willChange = 'transform'
   })
 
+  // ── Закреплённые элементы ───────────────────────────────────────────────
+  // Слой создаётся ПОСЛЕ списка movers — значит, сам он никуда не едет.
+  const pinLayer = document.createElement('div')
+  pinLayer.setAttribute(STAGE_ATTR, '')
+  pinLayer.setAttribute('aria-hidden', 'true')
+  pinLayer.style.cssText = [
+    `position:${POS}`, 'left:0', 'right:0', `top:${TOP}px`, `height:${H}px`,
+    'z-index:90', 'pointer-events:none', 'overflow:hidden',
+  ].join(';')
+  document.body.appendChild(pinLayer)
+
+  type Pin = {
+    kind: string
+    live: HTMLElement; vis: string
+    clone: HTMLElement; left: number; width: number
+    under: HTMLElement | null; uLeft: number; uWidth: number
+  }
+  const pins: Pin[] = []
+
+  /** Поставить узел в слой ровно туда, где он сейчас виден на экране. */
+  const place = (el: HTMLElement, box: DOMRect, origin: { left: number; top: number }) => {
+    el.style.position = 'absolute'
+    el.style.margin = '0'
+    el.style.transform = 'none'
+    el.style.left = `${box.left - origin.left}px`
+    el.style.top = `${box.top - origin.top}px`
+    el.style.width = `${box.width}px`
+    el.style.height = `${box.height}px`
+    pinLayer.appendChild(el)
+  }
+
+  const zero = { left: 0, top: 0 }
+  const underBase = underEl.getBoundingClientRect()
+  for (const live of Array.from(document.querySelectorAll<HTMLElement>(`[${PIN_ATTR}]`))) {
+    // Копии из снимка и из уже собранного слоя — не исходники.
+    if (wrap.contains(live) || pinLayer.contains(live)) continue
+    const kind = live.getAttribute(PIN_ATTR) || ''
+    const box = live.getBoundingClientRect()
+    if (!box.width || !box.height) continue
+
+    // Копия, а не сам узел: живой узел принадлежит React, и переносить его
+    // в чужой слой нельзя — экран под ним размонтируется прямо посреди жеста.
+    const clone = live.cloneNode(true) as HTMLElement
+    clone.removeAttribute('id')
+    clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
+    place(clone, box, zero)
+    const vis = live.style.visibility
+    live.style.visibility = 'hidden'
+
+    // Двойник с нижнего экрана. Снимок — инертный DOM, его узел можно
+    // ПЕРЕНЕСТИ: копировать нечего и незачем.
+    let under: HTMLElement | null = null
+    let uLeft = 0
+    let uWidth = 0
+    const found = underEl.querySelector<HTMLElement>(`[${PIN_ATTR}="${kind}"]`)
+    if (found) {
+      if (kind === 'top') {
+        const ub = found.getBoundingClientRect()
+        under = found
+        place(found, ub, { left: underBase.left, top: underBase.top })
+        uLeft = ub.left - underBase.left
+        uWidth = ub.width
+        // До первого движения нижняя кнопка спрятана целиком: копия ложится
+        // ПОВЕРХ живой, и без этого на нуле была бы видна чужая.
+        found.style.clipPath = `inset(0 ${uWidth}px 0 0)`
+      } else {
+        // Нижний бар один на все экраны — второй только двоился бы.
+        found.remove()
+      }
+    }
+    pins.push({ kind, live, vis, clone, left: box.left, width: box.width, under, uLeft, uWidth })
+  }
+
   let x = 0
 
   const apply = (next: number) => {
@@ -302,6 +386,22 @@ function buildStage(under: Snapshot | null): Stage {
     if (root) root.style.borderRadius = `${CORNER * Math.min(1, next / CORNER_RAMP)}px`
     underEl.style.transform = `translate3d(${-PARALLAX * W * (1 - p)}px,0,0)`
     dim.style.opacity = String(DIM * (1 - p))
+
+    // Закреплённое стоит; у верхних кнопок по линии стыка одна половина
+    // сменяет другую. Затемнение нижнего экрана лежит слоем НИЖЕ, поэтому
+    // его копии затемняем сами — иначе кнопка была бы ярче своего экрана.
+    // Геометрия снята один раз, на сборке сцены: замер в каждом кадре жеста
+    // заставлял бы браузер пересчитывать раскладку под пальцем.
+    for (const pin of pins) {
+      if (pin.kind !== 'top') continue
+      const cut = Math.min(pin.width, Math.max(0, next - pin.left))
+      pin.clone.style.clipPath = `inset(0 0 0 ${cut}px)`
+      if (pin.under) {
+        const uCut = Math.min(pin.uWidth, Math.max(0, next - pin.uLeft))
+        pin.under.style.clipPath = `inset(0 ${pin.uWidth - uCut}px 0 0)`
+        pin.under.style.filter = `brightness(${1 - DIM * (1 - p)})`
+      }
+    }
   }
 
   return {
@@ -346,6 +446,8 @@ function buildStage(under: Snapshot | null): Stage {
     destroy(fired) {
       wrap.remove()
       bleed.remove()
+      pinLayer.remove()
+      pins.forEach(pin => { pin.live.style.visibility = pin.vis })
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
