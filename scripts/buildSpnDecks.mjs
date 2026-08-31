@@ -399,6 +399,22 @@ console.log(`на серию: в среднем ${(candidates.length / decks.len
 console.log(`имён отброшено: ${NAMES.size} · уже в наборах: ${COVERED.size} слов`)
 if (!candidates.length) process.exit(0)
 
+// `--terms` — отбор без перевода: список слов по сериям, с живой строкой на
+// каждое. Нужен, когда карточки пишутся руками, а не моделью: тогда от скрипта
+// требуется только та часть, которую человек делать не должен, — счёт.
+if (args.includes('--terms')) {
+  const only = String(flag('--ep', ''))
+  for (const d of decks) {
+    if (only && !d.id.startsWith(only)) continue
+    if (!d.words.length) continue
+    console.log(`\n── ${d.id} · ${d.words.length} слов ──`)
+    for (const w of d.words) {
+      console.log(`${w.term.padEnd(16)} ${String(w.episodes).padStart(3)} серий · ${w.times}× в серии | ${w.context.slice(0, 60)}`)
+    }
+  }
+  process.exit(0)
+}
+
 const take = candidates.slice(0, LIMIT)
 console.log(`беру ${take.length}${FAKE ? ' (режим --fake, без сети)' : ''}`)
 const cards = await translate(take)
