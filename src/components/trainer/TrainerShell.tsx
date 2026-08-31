@@ -1758,7 +1758,7 @@ export const PILL_GLASS = {
  * заливка всё равно выглядит разной там, где снизу едет карточка, а где
  * пусто — фон.
  */
-export const PILL_BG = 'rgba(var(--glass-rgb), 0.9)'
+export const PILL_BG = 'rgba(var(--glass-rgb), 0.8)'
 
 /**
  * Цвет выбранной строки в меню, когда предмет не задан.
@@ -2113,9 +2113,9 @@ export function Tile({ children, onClick, accent, stack, tint }: {
             // Нижние листы стопки красятся вместе с верхним, иначе цветная
             // карточка выглядит наклейкой, положенной на чужую пачку.
             background: tint
-              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
-              : 'var(--color-bg-2)',
-            border: `1px solid ${tint ? tint.border : 'transparent'}`,
+              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-3)`
+              : 'var(--color-bg-3)',
+            border: `1px solid ${tint ? tint.border : 'var(--color-border-glass)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
           }}
@@ -2130,15 +2130,21 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           display: 'flex', flexDirection: 'column', gap: 7,
           padding: '13px 15px', borderRadius: 16, cursor: onClick ? 'pointer' : 'default',
           fontFamily: 'inherit',
-          // Заливка слоем поверх обычной подложки, а не вместо неё: `soft`
-          // палитры полупрозрачен, и без второго слоя сквозь плитку светился
-          // бы фон страницы — в тёмной теме он темнее карточек.
+          // Подложка на ступень контрастнее фона страницы (`bg-3`, не `bg-2`):
+          // без серой рамки край плитки держит только разница с фоном, и на
+          // `bg-2` соседние карточки сливались в одно пятно.
+          //
+          // Заливка «своей» плитки — слоем поверх подложки, а не вместо неё:
+          // `soft` палитры полупрозрачен, и без второго слоя сквозь плитку
+          // светился бы фон страницы.
           background: tint
-            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
-            : 'var(--color-bg-2)',
-          // Рамки в покое нет ни у одной плитки: карточку держит подложка, как
-          // в курсах Конструктора. Рамка — только ответ на наведение.
-          border: `1px solid ${hover && onClick ? accent : 'transparent'}`,
+            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-3)`
+            : 'var(--color-bg-3)',
+          // Серой рамки в покое нет — как у карточек курса в учительской: там
+          // край держат стеклянная обводка (в тёмной теме прозрачная) и мягкая
+          // тень. Акцентная рамка — только ответ на наведение.
+          border: `1px solid ${hover && onClick ? accent : 'var(--color-border-glass)'}`,
+          boxShadow: '0 3px 16px rgba(0,0,0,0.06)',
           transition: 'border-color .16s',
         }}
       >
