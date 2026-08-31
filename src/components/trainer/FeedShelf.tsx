@@ -4,6 +4,8 @@ import { useT } from '../../lib/i18n'
 import { byDay, dayLabel, type FeedFilter, type FeedItem } from '../../data/feed'
 import { RubricChip, type Rubric } from '../FeedRubricChip'
 import { FeedPost } from './FeedPost'
+import PullStamp from '../PullStamp'
+import { usePullRefresh, PULL_THRESHOLD } from '../../lib/usePullRefresh'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Лента: всё происходит В ЛЕНТЕ
@@ -41,22 +43,72 @@ import { FeedPost } from './FeedPost'
  */
 export const FEED_W = 880
 
-export function FeedList({ items, lang, accent, subjectId }: {
+// ─── Тяга сверху ────────────────────────────────────────────────────────────
+//
+// ПОЧЕМУ ИМЕННО ЗДЕСЬ. Лента — единственный экран платформы, содержимое
+// которого меняется само (ночная сборка), и «а что нового?» — вопрос ровно к
+// нему. На главной тянуть было нечего: и «Продолжить», и «Сегодня» приходят
+// из стора и живут своей жизнью.
+//
+// ЧТО ПРОИСХОДИТ ПО ЖЕСТУ. Сама лента приезжает со сборкой, поэтому «дёрнуть
+// список» ничего бы не принесло. Тянем за настоящим: спрашиваем сервер, нет
+// ли новой сборки (lib/appUpdate). Есть — таблетка обновления предложит её
+// забрать, и вместе с ней приедут новые материалы.
+//
+// ЖЕСТ ТОЛЬКО НА ТЕЛЕФОНЕ — слушатели касания. На мониторе ленту обновляют
+// перезагрузкой, и рисовать там печать не за чем.
+
+export function FeedList({ items, lang, accent, subjectId, onRefresh }: {
   items: FeedItem[]
   lang: string
   accent: string
   /** Предмет — чтобы слово из текста уезжало в колоду повторения. */
   subjectId?: string
+  /** Тяга сверху. Не задан — жеста нет. */
+  onRefresh?: () => void | Promise<void>
 }) {
   const t = useT()
   const days = useMemo(() => byDay(items), [items])
+
+  // Панель прокрутки — не своя, а кабинета: ищем её лениво, тем же способом,
+  // что и свёртка ряда рубрик выше (scrollBoxOf).
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [box, setBox] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (box || !onRefresh) return
+    const find = () => { const b = scrollBoxOf(wrapRef.current); if (b) setBox(b) }
+    find()
+    // Содержимое дорастает до прокручиваемого: пока постов мало, предка с
+    // прокруткой не существует вовсе.
+    const tick = window.setInterval(find, 200)
+    const stop = window.setTimeout(() => window.clearInterval(tick), 3000)
+    return () => { window.clearInterval(tick); window.clearTimeout(stop) }
+  }, [box, onRefresh, items.length])
+  const pull = usePullRefresh(box, onRefresh)
 
   if (items.length === 0) {
     return <Empty text={t('Для этого языка ленты пока нет. Она собирается скриптом из свободных источников — см. scripts/buildFeed.mjs.')} />
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: FEED_W }}>
+    <div ref={wrapRef} style={{ position: 'relative', width: '100%', maxWidth: FEED_W }}>
+      {/* Печать стоит в зазоре, который открыла тяга: лента уезжает вниз
+          из-под неё, а сама печать никуда не едет. */}
+      {pull.pull > 0 && (
+        <div style={{
+          position: 'absolute', top: -8, left: 0, right: 0,
+          display: 'flex', justifyContent: 'center', pointerEvents: 'none',
+          transform: `translateY(${Math.min(pull.pull, PULL_THRESHOLD) * 0.55}px)`,
+        }}>
+          <PullStamp progress={pull.pull / PULL_THRESHOLD} locked={pull.locked} busy={pull.busy} />
+        </div>
+      )}
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 18,
+      // Пока палец ведёт — один к одному, без анимации: лента висит на пальце.
+      transform: pull.pull > 0 ? `translateY(${pull.pull}px)` : undefined,
+      transition: pull.busy || pull.pull === 0 ? 'transform 320ms cubic-bezier(.2,.9,.3,1)' : 'none',
+    }}>
       {days.map(day => (
         <section key={day.date} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Дата — единственный разделитель в ленте, как в мессенджере. */}
@@ -75,6 +127,7 @@ export function FeedList({ items, lang, accent, subjectId }: {
           ))}
         </section>
       ))}
+    </div>
     </div>
   )
 }

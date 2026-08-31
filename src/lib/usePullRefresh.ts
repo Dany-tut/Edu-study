@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { haptic, tactile } from './feedback'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,8 +34,13 @@ export type PullState = {
   busy: boolean
 }
 
+/**
+ * `el` — панель прокрутки, на которой ловим жест. Может приехать позже
+ * первого кадра (её ищут по дереву, когда содержимое уже выросло), поэтому
+ * это элемент, а не ref: смена элемента обязана перевесить слушатели.
+ */
 export function usePullRefresh(
-  ref: RefObject<HTMLElement | null>,
+  el: HTMLElement | null,
   onRefresh?: () => void | Promise<void>,
 ): PullState {
   const [state, setState] = useState<PullState>({ pull: 0, locked: false, busy: false })
@@ -43,7 +48,6 @@ export function usePullRefresh(
   cb.current = onRefresh
 
   useEffect(() => {
-    const el = ref.current
     if (!el || !onRefresh) return
 
     let startY = 0
@@ -114,7 +118,7 @@ export function usePullRefresh(
       el.removeEventListener('touchend', up)
       el.removeEventListener('touchcancel', up)
     }
-  }, [ref, !!onRefresh])
+  }, [el, !!onRefresh])
 
   return state
 }

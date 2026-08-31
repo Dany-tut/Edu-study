@@ -283,6 +283,12 @@ function buildStage(under: Snapshot | null): Stage {
     el.style.willChange = 'transform'
   })
 
+  // ── Временный замер (включается вручную) ──────────────────────────────────
+  // localStorage.setItem('swipeDebug','1') — и на время жеста поверх экрана
+  // висит табличка с настоящими координатами слоёв. Снимать её, когда полоса
+  // снизу будет объяснена.
+  const probe = debugProbe(gap, H, scrollY, root, wrap)
+
   let x = 0
 
   const apply = (next: number) => {
@@ -337,6 +343,7 @@ function buildStage(under: Snapshot | null): Stage {
     destroy(fired) {
       wrap.remove()
       bleed.remove()
+      probe?.remove()
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
@@ -351,6 +358,46 @@ function buildStage(under: Snapshot | null): Stage {
       freezeDockLayer(false)
     },
   }
+}
+
+/**
+ * Табличка с замерами на время жеста. Ничего не делает без флага в
+ * localStorage — это отладочный инструмент, а не часть жеста.
+ */
+function debugProbe(
+  gap: number, H: number, scrollY: number,
+  root: HTMLElement | null, wrap: HTMLElement,
+): HTMLElement | null {
+  let on = false
+  try { on = localStorage.getItem('swipeDebug') === '1' } catch { on = false }
+  if (!on) return null
+  const layer = document.getElementById('mobile-dock-layer')
+  const nav = layer?.firstElementChild as HTMLElement | null
+  const r = (el: Element | null | undefined) => {
+    if (!el) return '—'
+    const b = el.getBoundingClientRect()
+    return `${Math.round(b.top)}…${Math.round(b.bottom)}`
+  }
+  const el = document.createElement('div')
+  el.setAttribute(STAGE_ATTR, '')
+  el.style.cssText = [
+    'position:absolute', `top:${scrollY + 60}px`, 'left:8px', 'right:8px',
+    'z-index:99999', 'pointer-events:none',
+    'background:rgba(0,0,0,0.82)', 'color:#fff', 'padding:8px 10px',
+    'border-radius:10px', 'font:600 11px/1.45 ui-monospace,monospace',
+    'white-space:pre',
+  ].join(';')
+  el.textContent = [
+    `inner ${window.innerHeight}  screen ${Math.round(Math.max(screen.height, screen.width))}  gap ${gap}`,
+    `H ${H}  scrollY ${scrollY}→${Math.round(window.scrollY)}`,
+    `root   ${r(root)}`,
+    `wrap   ${r(wrap)}`,
+    `layer  ${r(layer)}  h ${layer?.style.height || '—'}`,
+    `nav    ${r(nav)}`,
+    `body   ${Math.round(document.body.getBoundingClientRect().bottom)}  doc ${document.documentElement.scrollHeight}`,
+  ].join('\n')
+  document.body.appendChild(el)
+  return el
 }
 
 // ─── Жест ────────────────────────────────────────────────────────────────────

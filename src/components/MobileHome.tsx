@@ -19,7 +19,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
-import { useFeedGlance, feedReload } from '../lib/feedRead'
+import { useFeedGlance } from '../lib/feedRead'
 import { pickTrainerSubject } from '../lib/trainerSubject'
 import { dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
 import { FeedPost } from './trainer/FeedPost'
@@ -151,13 +151,6 @@ export default function MobileHome() {
     [shownItems, rubric],
   )
   const feedAccent = resolveSubjectPalette(feedGlance.subjectId, dark).accent
-
-  // ТЯГА СВЕРХУ ОБНОВЛЯЕТ ЛЕНТУ. Обновлять на главной больше нечего: и
-  // «Продолжить», и «Сегодня» приходят из стора и живут сами. Нет языка —
-  // нечего и тянуть, жест выключен целиком (MobileScreen без onRefresh).
-  const refreshFeed = feedGlance.lang
-    ? () => feedReload(feedGlance.lang!).then(() => undefined)
-    : undefined
 
   // ГДЕ КОНЧАЕТСЯ ГЛАВНАЯ И НАЧИНАЕТСЯ ЛЕНТА. Шапка меняет содержимое ровно на
   // этом рубеже: пока видно «Продолжить» и «Сегодня», наверху стрик и XP; как
@@ -364,7 +357,7 @@ export default function MobileHome() {
 
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={72} restoreKey="home" onRefresh={refreshFeed}>
+      <MobileScreen topZone={topZone} topPad={72} restoreKey="home">
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* Плитки переходов: все переходы экрана одним рядом. Цветная

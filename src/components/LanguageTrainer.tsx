@@ -43,6 +43,7 @@ import {
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
 import { FeedList, FeedTabs } from './trainer/FeedShelf'
+import { useAppUpdate } from '../lib/appUpdate'
 import TaskVideo from './TaskVideo'
 import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
 import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
@@ -293,6 +294,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     () => (feed ?? []).filter(x => matchesFilter(x, feedPick)),
     [feed, feedPick],
   )
+
+  // ТЯГА СВЕРХУ. Материалы ленты приезжают со сборкой, поэтому обновлять
+  // список в памяти бессмысленно — спрашиваем сервер, нет ли новой сборки.
+  // Есть — таблетка обновления сама предложит её забрать.
+  const refreshFeed = useCallback(async () => {
+    await useAppUpdate.getState().check(true)
+    const list = await loadFeed(lang)
+    setFeedData({ lang, list })
+  }, [lang])
 
   useEffect(() => {
     if (!feedLib || mode !== 'reading' || readingView !== 'feed' || feed !== undefined) return
@@ -2532,6 +2542,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         lang={lang}
         accent={palette.accent}
         subjectId={subjectId}
+        onRefresh={refreshFeed}
       />
     )
   } else if (isLang) {

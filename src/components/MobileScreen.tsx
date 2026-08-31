@@ -1,7 +1,5 @@
 import { type ReactNode, type CSSProperties, useEffect, useRef } from 'react'
 import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
-import { usePullRefresh, PULL_THRESHOLD } from '../lib/usePullRefresh'
-import PullStamp from './PullStamp'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -35,7 +33,6 @@ export default function MobileScreen({
   children,
   scrollKey,
   restoreKey,
-  onRefresh,
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
@@ -52,12 +49,9 @@ export default function MobileScreen({
   /** Запоминать место прокрутки под этим ключом и возвращать на него при
    *  следующем открытии экрана. */
   restoreKey?: string
-  /** Тяга сверху обновляет экран. Не задан — жеста нет вовсе. */
-  onRefresh?: () => void | Promise<void>
 }) {
   const TOP_ZONE = topPad
   const bodyRef = useRef<HTMLDivElement>(null)
-  const pull = usePullRefresh(bodyRef, onRefresh)
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
@@ -138,28 +132,6 @@ export default function MobileScreen({
         </div>
       )}
 
-      {/* ПЕЧАТЬ ОБНОВЛЕНИЯ. Живёт в зазоре, который открывает тяга: стоит на
-          месте, а лента уезжает вниз из-под неё — так печать читается как
-          то, что было под лентой всегда, а не как приехавший сверху виджет.
-          Ниже шапки по слою: рубрики и колокольчик остаются главными. */}
-      {onRefresh != null && pull.pull > 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 44}px)`,
-            left: 0,
-            right: 0,
-            zIndex: 55,
-            display: 'flex',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-            transform: `translateY(${Math.min(pull.pull, PULL_THRESHOLD) * 0.6}px)`,
-          }}
-        >
-          <PullStamp progress={pull.pull / PULL_THRESHOLD} locked={pull.locked} busy={pull.busy} />
-        </div>
-      )}
-
       {/* MIDDLE — scroll body. scroll-under: paddingTop lifts content below the
           top zone; paddingBottom clears the bottom dock. */}
       <div
@@ -178,12 +150,6 @@ export default function MobileScreen({
           paddingRight: 16,
           // Bottom: home-indicator safe-area + dock/nav clearance.
           paddingBottom: `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92}px)`,
-          // Пока палец ведёт — один к одному, без анимации: лента должна
-          // висеть на пальце. Отпустили — возврат пружиной.
-          transform: pull.pull > 0 ? `translateY(${pull.pull}px)` : undefined,
-          transition: pull.busy || pull.pull === 0
-            ? 'transform 320ms cubic-bezier(.2,.9,.3,1)'
-            : 'none',
         }}
       >
         {children}
