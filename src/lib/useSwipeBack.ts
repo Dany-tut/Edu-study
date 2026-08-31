@@ -114,6 +114,14 @@ const PIN_ATTR = 'data-swipe-pin'
  * Кнопка без пары растворяется на месте.
  */
 const MORPH_ATTR = 'data-swipe-morph'
+/**
+ * Ход стыка, за который таблетка успевает перетечь (px).
+ *
+ * Морф ведёт не общий ход страницы, а край карточки, проходящий под самой
+ * таблеткой. У узкой кнопки собственной ширины на это не хватает — смена
+ * читалась бы как щелчок, поэтому ходу задан минимум.
+ */
+const SEAM_SPAN = 150
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
 const MORPH_BLUR = 7
 const MORPH_SCALE = 0.9
@@ -480,13 +488,29 @@ function buildStage(under: Snapshot | null): Stage {
         pinLayer.appendChild(el)
       }
 
+      // ── Ход СВОЕЙ таблетки ──
+      //
+      // Не общий ход страницы, а стык: пока карточка ещё закрывает таблетку,
+      // на ней стоит кнопка уходящего экрана; морф начинается ровно тогда,
+      // когда край карточки выходит из-под неё, и кончается, когда проходит
+      // насквозь. Поэтому левая кнопка перетекает первой, а правая ждёт
+      // своей очереди — от общего хода они обе летели разом, и правая
+      // менялась задолго до того, как до неё дошёл стык.
+      //
+      // Ширина хода — не меньше SEAM_SPAN: у кружка 38px морф на своей
+      // ширине читался бы как щелчок.
+      const span = Math.max(ra.w, rb.w, SEAM_SPAN)
+      const q = (p: number) => Math.min(1, Math.max(0, (p * W - ra.left) / span))
+
       // Корпус обеих половин идёт по ОДНОЙ коробке — она и есть морф.
-      const shell = (p: number) => ({
+      const shell = (raw: number) => {
+        const p = q(raw)
+        return ({
         left: `${lerp(ra.left, rb.left, p)}px`,
         top: `${lerp(ra.top, rb.top, p)}px`,
         width: `${lerp(ra.w, rb.w, p)}px`,
         height: `${lerp(ra.h, rb.h, p)}px`,
-      })
+      })}
       morphs.push({ el: a, at: shell }, { el: b, at: shell })
       // Содержимое расходится: уходящее уплывает в размытие, приходящее из
       // него выступает. Сумма прозрачностей всегда единица — с перехлёстом
@@ -494,8 +518,8 @@ function buildStage(under: Snapshot | null): Stage {
       // корпус стоял пустым, и морфа было не видно вовсе.
       morphs.push({
         el: ia,
-        at: p => {
-          const t = smooth(p)
+        at: raw => {
+          const t = smooth(q(raw))
           return {
             opacity: String(1 - t),
             filter: `blur(${MORPH_BLUR * t}px)`,
@@ -504,8 +528,8 @@ function buildStage(under: Snapshot | null): Stage {
         },
       }, {
         el: ib,
-        at: p => {
-          const t = smooth(p)
+        at: raw => {
+          const t = smooth(q(raw))
           return {
             opacity: String(t),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
@@ -614,9 +638,12 @@ function buildStage(under: Snapshot | null): Stage {
           opts,
         ),
         dim.animate([{ opacity: DIM * (1 - pFrom) }, { opacity: DIM * (1 - pTo) }], opts),
-        // Морф — линейная интерполяция, поэтому доводка описывается ровно
-        // двумя кадрами: кривую наложит сам WAAPI, как и на страницу.
-        ...morphs.map(m => m.el.animate([m.at(pFrom), m.at(pTo)], opts)),
+        // Морф ведёт стык, а не общий ход, — по ходу страницы он нелинеен, и
+        // двух кадров мало: доводка срезала бы угол. Раскладываем на выборку.
+        ...morphs.map(m => m.el.animate(
+          Array.from({ length: 9 }, (_, i) => m.at(lerp(pFrom, pTo, i / 8))),
+          opts,
+        )),
       ]
       // Гонка со сторожем: если вкладку свернули посреди жеста, анимация встаёт
       // и `finished` не наступает никогда — а страница в это время висит

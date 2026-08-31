@@ -328,9 +328,15 @@ for (const book of [KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENG
 }
 // Подборки-сиды (data/cardSeeds) — такая же поверхность тапа: и слово карточки,
 // и пример под ним разбираются тем же GlossedText в списке набора.
+// ЧЕТВЁРТЫЙ УРОВЕНЬ ОБХОДИТСЯ ТОЖЕ. У набора с сериями `cards` пуст — карточки
+// лежат в `subsets`, и обход только по `set.cards` молча терял их все. Заметно
+// это было лишь по счётчику слов: он УПАЛ после того, как колоды переехали на
+// четыре уровня, хотя карточек стало больше. Сторож, который не видит половину
+// поверхности, отчитывается зелёным ровно так же, как настоящий.
 for (const g of [SUPERNATURAL, SPOKEN_EN, SPN_MEASURED, SPN_EPISODES]) {
   for (const set of g.sets) {
-    for (const c of set.cards) { tapFeed(g.lang, c.term); if (c.ex) tapFeed(g.lang, c.ex.term) }
+    const all = [...set.cards, ...(set.subsets ?? []).flatMap(s => s.cards)]
+    for (const c of all) { tapFeed(g.lang, c.term); if (c.ex) tapFeed(g.lang, c.ex.term) }
   }
 }
 for (const ref of [KOREAN_GRAMMAR, ENGLISH_GRAMMAR, GERMAN_GRAMMAR]) {
