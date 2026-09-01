@@ -54,8 +54,12 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    // resize приходит с target === window, а window — не Node: contains() на нём
+    // бросал «Failed to execute 'contains' on 'Node'». Меню на ресайзе и так
+    // положено закрыть, поэтому не-Node просто считаем «клик мимо».
     const onScroll = (e: Event) => {
-      if (menuRef.current?.contains(e.target as Node)) return
+      const tgt = e.target instanceof Node ? e.target : null
+      if (tgt && menuRef.current?.contains(tgt)) return
       setOpen(false)
     }
     window.addEventListener('mousedown', onDown)

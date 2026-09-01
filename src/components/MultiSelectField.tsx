@@ -104,7 +104,14 @@ export default function MultiSelectField({
       close()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    const onScroll = (e: Event) => { if (menuRef.current?.contains(e.target as Node)) return; close() }
+    // resize приходит с target === window, а window — не Node: contains() на нём
+    // бросал «Failed to execute 'contains' on 'Node'». Меню на ресайзе и так
+    // положено закрыть, поэтому не-Node просто считаем «клик мимо».
+    const onScroll = (e: Event) => {
+      const tgt = e.target instanceof Node ? e.target : null
+      if (tgt && menuRef.current?.contains(tgt)) return
+      close()
+    }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onKey)
     window.addEventListener('scroll', onScroll, true)

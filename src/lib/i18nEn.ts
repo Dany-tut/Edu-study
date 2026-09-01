@@ -130,6 +130,7 @@ export const EN: Record<string, string> = {
   'Установить приложение': 'Install app',
   'Проверить обновление': 'Check for update',
   'Проверяем…': 'Checking…',
+  'Актуальна': 'Up to date',
   'Обновляем…': 'Updating…',
   'Есть обновление': 'Update available',
   'Доступна': 'Available',

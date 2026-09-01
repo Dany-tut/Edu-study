@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useT } from '../lib/i18n'
 import { tactile } from '../lib/feedback'
 import { APP_VERSION, APP_COMMIT } from '../lib/appVersion'
@@ -10,8 +10,10 @@ import ProgressFill from './ProgressFill'
 // 1.0.626, а задеплоено 1.0.627 — обнова не доехала, и тап по строке её
 // дотягивает (сносит воркера с кешами и перезагружает).
 //
-// Когда всё свежее — справа НИЧЕГО: пустота и есть ответ «обновлений нет».
-// Подпись «актуальна» была шумом, который читают ровно один раз.
+// Когда всё свежее — справа НИЧЕГО: для ФОНОВОЙ проверки пустота и есть ответ
+// «обновлений нет», постоянная подпись «актуальна» была бы шумом. А вот на
+// явный тап пустота читается как «кнопка сломана», поэтому ответ на него
+// показывается на пару секунд (см. confirm ниже).
 //
 // variant='row'     — ряд внутри карточки настроек (мобильный профиль)
 // variant='compact' — строчка-подвал в меню (десктоп)
@@ -33,11 +35,25 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
   const stale = phase === 'stale'
   const updating = phase === 'updating'
 
+  // Ответ на громкий тап. Молчание на 'fresh' задумано для ФОНОВОЙ проверки:
+  // тапнувшему оно читается как «ничего не произошло» — надпись «Проверяем…»
+  // просто исчезала, и по строке долбили ещё и ещё (24 rage-клика в логе).
+  // Поэтому на явный тап отвечаем словом и гасим его через пару секунд.
+  const [confirm, setConfirm] = useState(false)
+  const confirmTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(confirmTimer.current), [])
+
   const onTap = () => {
     if (updating) return
     tactile()
     if (stale) { void apply(); return }
-    void check(true)
+    clearTimeout(confirmTimer.current)
+    setConfirm(false)
+    void check(true).then(() => {
+      if (useAppUpdate.getState().phase !== 'fresh') return
+      setConfirm(true)
+      confirmTimer.current = setTimeout(() => setConfirm(false), 2200)
+    })
   }
 
   // Что написано справа. Пусто на 'fresh' и 'idle' — молчание и означает
@@ -45,6 +61,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
   const label =
     updating ? t('Обновляем…') :
     phase === 'checking' ? t('Проверяем…') :
+    confirm ? t('Актуальна') :
     stale ? t('Обновить') :
     phase === 'error' ? t('Ошибка связи') :
     ''

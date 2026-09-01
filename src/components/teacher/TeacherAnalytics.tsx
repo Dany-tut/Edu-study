@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import {
   Activity, Users, CalendarClock, Layers, TrendingUp,
   AlertTriangle, MousePointerClick, Clock, BookOpen, ChevronDown, ChevronUp, Copy, Check,
+  Sparkles, RefreshCw,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
@@ -26,6 +27,10 @@ type RageHot   = { path: string; element: string; cnt: number }
 type ClickPath = { path: string; teacher_clicks: number; student_clicks: number; total: number }
 type ClickCell = { gx: number; gy: number; cnt: number }
 type GeoRow = { code: string; name: string; flag: string; teachers: number; students: number; total: number }
+type DigestReport = {
+  id: string; created_at: string; period_days: number; model: string
+  body: string; stats: unknown; tokens_in: number | null; tokens_out: number | null
+}
 
 // ── constants ──────────────────────────────────────────────────────────────
 const ACCENT   = '#786AD7'
@@ -80,6 +85,67 @@ function Kpi({ icon: Icon, label, value, sub, accent, loading }: {
       {sub && <div style={{ fontSize:11, color:'var(--color-text-3)', marginTop:4 }}>{sub}</div>}
     </Card>
   )
+}
+
+// Разбор приходит markdown-ом. Полноценный парсер сюда тащить незачем: модели
+// заданы заголовки, списки, жирный и таблицы — разбираем ровно это, остальное
+// показываем абзацем как есть.
+function Markdown({ text }: { text: string }) {
+  const bold = (line: string) => line.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((piece, i) => {
+    if (piece.startsWith('**') && piece.endsWith('**'))
+      return <strong key={i} style={{ color:'var(--color-text)' }}>{piece.slice(2,-2)}</strong>
+    if (piece.startsWith('`') && piece.endsWith('`'))
+      return <code key={i} style={{
+        background:'var(--color-bg-3)', borderRadius:5, padding:'1px 5px',
+        fontSize:'0.92em', fontFamily:'ui-monospace, SFMono-Regular, monospace',
+      }}>{piece.slice(1,-1)}</code>
+    return <span key={i}>{piece}</span>
+  })
+
+  const out: React.ReactNode[] = []
+  let list: string[] = []
+  const flushList = () => {
+    if (list.length === 0) return
+    out.push(
+      <ul key={`ul${out.length}`} style={{ margin:'6px 0 12px', paddingLeft:20, lineHeight:1.7 }}>
+        {list.map((li, i) => <li key={i} style={{ marginBottom:3 }}>{bold(li)}</li>)}
+      </ul>,
+    )
+    list = []
+  }
+
+  for (const raw of text.split('\n')) {
+    const line = raw.trimEnd()
+    const li = line.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)$/)
+    if (li) { list.push(li[1]); continue }
+    flushList()
+    if (!line.trim()) continue
+    const h = line.match(/^(#{1,4})\s+(.*)$/)
+    if (h) {
+      const lvl = h[1].length
+      out.push(
+        <div key={out.length} style={{
+          fontSize: lvl <= 2 ? 15 : 13.5, fontWeight:700, color:'var(--color-text)',
+          margin: out.length === 0 ? '0 0 10px' : '20px 0 8px',
+        }}>{bold(h[2])}</div>,
+      )
+      continue
+    }
+    // Строка таблицы-разделителя (|---|---|) смысла не несёт.
+    if (/^\s*\|[\s|:-]+\|\s*$/.test(line)) continue
+    if (/^\s*\|.*\|\s*$/.test(line)) {
+      const cells = line.split('|').slice(1, -1).map(c => c.trim())
+      out.push(
+        <div key={out.length} style={{ display:'flex', gap:12, padding:'4px 0', fontSize:12.5, borderBottom:'1px solid var(--color-border)' }}>
+          {cells.map((c, i) => <div key={i} style={{ flex: i === 0 ? 2 : 1, minWidth:0 }}>{bold(c)}</div>)}
+        </div>,
+      )
+      continue
+    }
+    out.push(<p key={out.length} style={{ margin:'0 0 10px', lineHeight:1.7 }}>{bold(line)}</p>)
+  }
+  flushList()
+  return <div style={{ fontSize:13, color:'var(--color-text-2)' }}>{out}</div>
 }
 
 function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
@@ -264,7 +330,7 @@ export default function TeacherAnalytics() {
   const [days, setDays]                   = useState(30)
   const [loading, setLoading]             = useState(true)
   const [heatRole, setHeatRole]           = useState<'teacher'|'student'>('teacher')
-  const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'>('activity')
+  const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'|'digest'>('activity')
   const [overviewT, setOverviewT]         = useState<Overview|null>(null)
   const [overviewS, setOverviewS]         = useState<Overview|null>(null)
   const [teacherHeat, setTeacherHeat]     = useState<HeatCell[]>([])
@@ -287,6 +353,11 @@ export default function TeacherAnalytics() {
   const [pathQuery, setPathQuery]         = useState('')
   const [pathsOpen, setPathsOpen]         = useState(false)
   const clickDays = Math.min(days, CLICK_RETENTION_DAYS)
+  // разбор моделью
+  const [reports, setReports]             = useState<DigestReport[]>([])
+  const [reportIdx, setReportIdx]         = useState(0)
+  const [digestBusy, setDigestBusy]       = useState(false)
+  const [digestErr, setDigestErr]         = useState<string|null>(null)
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null)
@@ -373,6 +444,37 @@ export default function TeacherAnalytics() {
     })()
     return () => { alive = false }
   }, [activeTab, clickPath, heatRole, clickDays])
+
+  // Список готовых разборов. Сам разбор пишется по кнопке или по расписанию —
+  // здесь только чтение.
+  const loadReports = useCallback(async () => {
+    const { data } = await supabase.rpc('admin_analytics_reports', { p_limit: 12 })
+    setReports((data as DigestReport[]) ?? [])
+    setReportIdx(0)
+  }, [])
+
+  useEffect(() => { if (activeTab === 'digest') void loadReports() }, [activeTab, loadReports])
+
+  // Платный вызов модели: одна кнопка, без автозапуска на открытии вкладки.
+  const runDigest = useCallback(async () => {
+    setDigestBusy(true); setDigestErr(null)
+    try {
+      const { data, error } = await supabase.functions.invoke('analytics-digest', { body: { days } })
+      // Ошибку функция отдаёт телом с полем error — invoke зовёт её FunctionsHttpError
+      // и текста не показывает, поэтому читаем тело сами.
+      if (error) {
+        let msg = error.message
+        try { msg = (await (error as { context?: Response }).context?.json())?.error ?? msg } catch { /**/ }
+        throw new Error(msg)
+      }
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error)
+      await loadReports()
+    } catch (e) {
+      setDigestErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setDigestBusy(false)
+    }
+  }, [days, loadReports])
 
   // ── derived ──────────────────────────────────────────────────────────────
   const dailyMax   = Math.max(1, ...daily.map(d => d.events))
@@ -495,7 +597,7 @@ export default function TeacherAnalytics() {
             when switching. The Учителя/Ученики role split lives in its own
             stable segmented control below (see next row). */}
         <div style={{ display:'flex', gap:4, marginLeft:'auto', background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          {([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')]] as const).map(([id,label]) => (
+          {([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')]] as const).map(([id,label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
               display:'flex', alignItems:'center', gap:7, whiteSpace:'nowrap',
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
@@ -519,7 +621,7 @@ export default function TeacherAnalytics() {
 
       {/* Role split for the activity & heatmap tabs — a stable segmented control
           that never reflows the tab bar above it. */}
-      {activeTab !== 'issues' && (
+      {activeTab !== 'issues' && activeTab !== 'digest' && (
         <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3, width:'fit-content', marginBottom:20 }}>
           {([['teacher', t('Учителя'), ACCENT], ['student', t('Ученики'), ACCENT_S]] as const).map(([id,label,color]) => (
             <button key={id} onClick={() => setHeatRole(id)} style={{
@@ -939,6 +1041,77 @@ export default function TeacherAnalytics() {
           )}
         </>
       )}
+
+      {/* ── TAB: DIGEST (разбор телеметрии моделью) ── */}
+      {activeTab === 'digest' && (() => {
+        const rep = reports[reportIdx]
+        return (
+          <>
+            <SectionTitle action={
+              <button onClick={() => void runDigest()} disabled={digestBusy} style={{
+                display:'flex', alignItems:'center', gap:7, padding:'7px 13px', borderRadius:10,
+                border:'1px solid var(--color-border)', background:'var(--color-bg-2)',
+                color: digestBusy ? 'var(--color-text-3)' : 'var(--color-text)',
+                fontSize:12, fontWeight:600, cursor: digestBusy ? 'default' : 'pointer',
+              }}>
+                {digestBusy
+                  ? <><RefreshCw size={13} className="spin" /> {t('Считаем…')}</>
+                  : <><Sparkles size={13} /> {t('Собрать разбор')}</>}
+              </button>
+            }>{t('Разбор телеметрии')}</SectionTitle>
+
+            <div style={{ fontSize:11.5, color:'var(--color-text-3)', marginTop:-8, marginBottom:14, lineHeight:1.5 }}>
+              {t('Модель читает сводку по экранам, ошибкам и кликам и пишет выводы. Запускается раз в месяц по расписанию; кнопка — внеочередной прогон за выбранный период.')}
+            </div>
+
+            {digestErr && (
+              <Card style={{ marginBottom:16, borderColor:'rgba(224,72,72,0.4)' }}>
+                <div style={{ fontSize:12.5, color:'#c0282a', lineHeight:1.6 }}>
+                  {t('Разбор не собрался:')} {digestErr}
+                </div>
+              </Card>
+            )}
+
+            {reports.length === 0 && !digestBusy && !digestErr && (
+              <Card><div style={{ fontSize:12.5, color:'var(--color-text-3)' }}>
+                {t('Разборов ещё нет. Нажмите «Собрать разбор» — или дождитесь ежемесячного прогона.')}
+              </div></Card>
+            )}
+
+            {reports.length > 1 && (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:14 }}>
+                {reports.map((r, i) => (
+                  <button key={r.id} onClick={() => setReportIdx(i)} style={{
+                    padding:'6px 11px', borderRadius:9, fontSize:11.5, fontWeight:600, cursor:'pointer',
+                    border:'1px solid', borderColor: i === reportIdx ? ACCENT : 'var(--color-border)',
+                    background: i === reportIdx ? withAlpha(ACCENT, 0.12) : 'var(--color-bg-2)',
+                    color: i === reportIdx ? 'var(--color-text)' : 'var(--color-text-3)',
+                  }}>{new Date(r.created_at).toLocaleDateString()}</button>
+                ))}
+              </div>
+            )}
+
+            {rep && (
+              <Card style={{ marginBottom:24 }}>
+                <div style={{
+                  display:'flex', alignItems:'center', justifyContent:'space-between',
+                  gap:12, flexWrap:'wrap', marginBottom:14,
+                  paddingBottom:12, borderBottom:'1px solid var(--color-border)',
+                }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:'var(--color-text)' }}>
+                    {new Date(rep.created_at).toLocaleString()} · {rep.period_days} {t('дней')}
+                  </div>
+                  <div style={{ fontSize:11, color:'var(--color-text-3)' }}>
+                    {rep.model}
+                    {rep.tokens_in != null && ` · ${rep.tokens_in}→${rep.tokens_out} ${t('токенов')}`}
+                  </div>
+                </div>
+                <Markdown text={rep.body} />
+              </Card>
+            )}
+          </>
+        )
+      })()}
     </div>
   )
 }

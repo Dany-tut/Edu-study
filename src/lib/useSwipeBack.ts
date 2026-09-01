@@ -461,10 +461,43 @@ function buildStage(under: Snapshot | null): Stage {
    *   списка как обёртка — на экране остались бы стоять две кнопки без стекла,
    *   а само стекло уехало бы со страницей.
    */
+  /**
+   * Цвет виден: у `rgba(...)` с нулевой альфой красить нечем.
+   *
+   * Сравнивать со строкой `'rgba(0, 0, 0, 0)'` мало: прозрачная рамка стекла
+   * приходит как `rgba(255, 255, 255, 0)` — тот же ноль, другая запись.
+   */
+  const solid = (c: string) => {
+    const n = c.match(/-?\d*\.?\d+/g)
+    return !!n && (n.length < 4 || Number(n[3]) > 0)
+  }
+
+  /**
+   * Рисует ли узел КОРПУС: заливку, видимую рамку или тень.
+   *
+   * Рамку считаем по ШИРИНЕ и цвету, а не по стилю: сброс Tailwind ставит
+   * всем узлам `border-style: solid` при нулевой ширине, и по стилю
+   * «рисующим» выглядит даже пустой span.
+   */
+  const paints = (cs: CSSStyleDeclaration) => {
+    const bw = parseFloat(cs.borderTopWidth)
+    return solid(cs.backgroundColor)
+      || (bw > 0 && solid(cs.borderTopColor))
+      || cs.boxShadow !== 'none'
+  }
+
   const chips = (root: ParentNode, outer = false) => {
     const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
       if (!visible(el)) return false
-      return parseFloat(getComputedStyle(el).borderTopLeftRadius) >= 14
+      const cs = getComputedStyle(el)
+      if (parseFloat(cs.borderTopLeftRadius) < 14) return false
+      // Пустышка — не таблетка. По метке `data-swipe-pin` в шапку попадает и
+      // невидимая область под палец (44px поверх кнопки колокольчика), и
+      // круглые обёртки: скруглены, видимы, но не рисуют НИЧЕГО. Такая
+      // забирала себе пару, а её «вид» — тайлвиндовский серый цвет рамки при
+      // нулевой ширине — доставался корпусу настоящей кнопки. Проверка та же,
+      // что у шапки без разметки (headerChips), — теперь общая.
+      return paints(cs)
     })
     return all
       .filter(el => (outer
@@ -687,7 +720,14 @@ function buildStage(under: Snapshot | null): Stage {
       const skin = {
         background: look.backgroundColor,
         boxShadow: look.boxShadow,
-        borderColor: look.borderColor,
+        // ЦВЕТ РАМКИ БЕРЁМ, ТОЛЬКО ЕСЛИ ЦЕЛЬ ЕЁ РИСУЕТ. У узла с нулевой
+        // шириной рамки цвет всё равно есть — сброс Tailwind оставляет свой
+        // светло-серый, — и корпус, у которого рамка настоящая, перекрашивал
+        // её в этот серый: на тёмной теме вокруг кнопки загорался светлый
+        // ободок на ровном месте. Нет рамки у цели — уводим свою в прозрачную.
+        borderColor: parseFloat(look.borderTopWidth) > 0 && solid(look.borderColor)
+          ? look.borderColor
+          : 'rgba(0, 0, 0, 0)',
       }
       // СНИМАТЬ — ЧЕРЕЗ `!important`, И ЭТО НЕ ПЕРЕСТРАХОВКА.
       //
@@ -906,14 +946,7 @@ function buildStage(under: Snapshot | null): Stage {
       if (parseFloat(cs.borderTopLeftRadius) < 14) return false
       // Пустышка (невидимая область касания, распорка) — не таблетка: она
       // ничего не рисует, а закрепить её значит повесить на экран пустоту.
-      // Рамку считаем по ШИРИНЕ и цвету, а не по стилю: сброс Tailwind ставит
-      // всем узлам `border-style: solid` при нулевой ширине, и по стилю
-      // «рисующим» выглядит даже пустой span.
-      const bw = parseFloat(cs.borderTopWidth)
-      const paints = cs.backgroundColor !== 'rgba(0, 0, 0, 0)'
-        || (bw > 0 && cs.borderTopColor !== 'rgba(0, 0, 0, 0)')
-        || cs.boxShadow !== 'none'
-      return paints && visible(el) && floats(el)
+      return paints(cs) && visible(el) && floats(el)
     })
     return found
       .filter(el => !found.some(other => other !== el && other.contains(el)))

@@ -20,6 +20,19 @@ function safeTop(): number {
   return Math.round(h)
 }
 
+/** Цепочка родителей верхней таблетки: где именно набегает лишний отступ. */
+function chain(el: HTMLElement | null): string[] {
+  const out: string[] = []
+  for (let n = el, i = 0; n && i < 6; n = n.parentElement, i++) {
+    const b = n.getBoundingClientRect()
+    const cs = getComputedStyle(n)
+    out.push(`${n.tagName} ${Math.round(b.top)}/${Math.round(b.height)} pt${cs.paddingTop} mt${cs.marginTop}`)
+  }
+  return out
+}
+
+let firstPill: HTMLElement | null = null
+
 function pills(): string[] {
   const near: HTMLElement[] = []
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('*'))) {
@@ -38,9 +51,11 @@ function pills(): string[] {
       || (bw > 0 && cs.borderTopColor !== 'rgba(0, 0, 0, 0)')
       || cs.boxShadow !== 'none'
   })
-  return chips
+  const top = chips
     .filter(el => !chips.some(o => o !== el && o.contains(el)))
     .sort((l, r) => l.getBoundingClientRect().left - r.getBoundingClientRect().left)
+  firstPill = top[0] ?? null
+  return top
     .slice(0, 5)
     .map(el => {
       const b = el.getBoundingClientRect()
@@ -59,7 +74,13 @@ if (typeof window !== 'undefined') {
     'font:600 10px/1.35 ui-monospace,monospace',
   ].join(';')
   const tick = () => {
-    box.textContent = `safe-top ${safeTop()}\n${pills().join('\n') || 'таблеток не найдено'}`
+    const rows = pills()
+    box.textContent = [
+      `safe-top ${safeTop()}`,
+      ...rows,
+      '—',
+      ...chain(firstPill),
+    ].join('\n')
   }
   const start = () => {
     document.body.appendChild(box)

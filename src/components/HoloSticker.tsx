@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { stickerSettings, stickerBitmap, tierOf, type StickerEmblem } from '../lib/holo/presets'
 import type { StickerSettings } from '../lib/holo/settings'
 import type { HoloRenderer } from '../lib/holo/three-renderer'
+import { retryImport } from '../lib/chunkError'
 import StickerBadge from './StickerBadge'
 
 interface Props {
@@ -145,10 +146,21 @@ export default function HoloSticker({
     if (!webglOk()) return
 
     ;(async () => {
-      const { HoloRenderer: R } = await import('../lib/holo/three-renderer')
+      // Чанк рендера может не доехать (сетевой блип), а свободный WebGL-контекст —
+      // кончиться: на лендинге стикеров много, а контекстов у браузера ~16. Ни то,
+      // ни другое не повод ронять необработанный промис — в логе это выглядело как
+      // «Cannot read properties of undefined (reading 'HoloRenderer')» и
+      // «Cannot read properties of null (reading 'precision')». Тихо остаёмся на
+      // статичном бейдже: стикер выглядит плоским, но страница цела.
       const canvas = canvasRef.current
       if (dead || !canvas) return
-      const renderer = new R(canvas)
+      let renderer: HoloRenderer
+      try {
+        const mod = await retryImport(() => import('../lib/holo/three-renderer'))
+        if (dead) return
+        if (!mod?.HoloRenderer) { setFallbackReady(true); return }
+        renderer = new mod.HoloRenderer(canvas)
+      } catch { setFallbackReady(true); return }
       rendRef.current = renderer
 
       // отсчёт «приклеивания» — от ПЕРВОГО кадра со стикером, а не от

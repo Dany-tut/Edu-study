@@ -136,15 +136,23 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
 // уведомления за кадр и досылает их следующим. Ничего не ломается, но событие
 // приходит на каждый ресайз — за месяц оно дало 3000+ строк и вытеснило со
 // вкладки «Проблемы» все настоящие ошибки. Не пишем его вовсе.
-const IGNORED_ERROR = /^ResizeObserver loop/
+const IGNORED_ERROR = /^ResizeObserver loop|process is not defined/
+
+// Ошибки самого инструментария разработки: оптимизатор зависимостей Vite
+// (`process is not defined` в .vite/deps), HMR-клиент, react-refresh. В проде
+// такого кода нет вовсе, а на вкладке «Проблемы» они дали 130 записей из 185 и
+// закрыли собой настоящие поломки. Не пишем их — ни в лог, ни в счётчики.
+const DEV_SRC = /\/node_modules\/\.vite\/|\/@vite\/client|\/@react-refresh|[?&]t=\d{10,}/
 
 function installErrorTracking() {
   // JS runtime errors
   window.addEventListener('error', (e) => {
     if (IGNORED_ERROR.test(String(e.message ?? ''))) return
+    const src = String(e.filename ?? '').replace(location.origin, '')
+    if (DEV_SRC.test(src)) return
     trackEvent('js_error', {
       msg: String(e.message ?? '').slice(0, 200),
-      src: String(e.filename ?? '').replace(location.origin, '').slice(0, 120),
+      src: src.slice(0, 120),
       line: e.lineno,
       col: e.colno,
     })
