@@ -7,6 +7,10 @@
   },
   "rewrites": [
     {
+      "source": "/((?!.*\\.[^/]+$).*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": {
         "type": "service",
