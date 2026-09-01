@@ -40,6 +40,10 @@ export default function MobileTeacherNav({
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      // Навигация одна и та же на всех экранах кабинета, поэтому на свайпе
+      // «назад» она не едет со страницей, а стоит: страница проходит ПОД ней
+      // (lib/useSwipeBack.ts). У ученической навигации ровно та же метка.
+      data-swipe-pin="bottom"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
     >
       <motion.div
