@@ -586,17 +586,14 @@ function buildStage(under: Snapshot | null): Stage {
 
       const ia = wrapKids(a)
       const ib = wrapKids(b)
-      // Корпус на экране один: у кнопки нижнего экрана снимаем ВСЁ, что его
-      // рисует. Стекло — это ещё и backdrop-filter: пока он оставался, копия
-      // матировала всё под собой, то есть ровно ту кнопку, которая в этот
-      // момент обязана быть видна. На экране это выглядело так, будто стрелка
-      // исчезает в самом начале жеста, а сквозь корпус просвечивает нижний
-      // экран.
-      b.style.background = 'none'
-      b.style.boxShadow = 'none'
-      b.style.border = '0'
-      b.style.backdropFilter = 'none'
-      b.style.setProperty('-webkit-backdrop-filter', 'none')
+      // Корпус у КАЖДОЙ половины свой, и они расходятся по прозрачности.
+      //
+      // Раньше корпус был один — уходящей кнопки, а у нижней он снимался. Но
+      // тень и стекло у соседей разные, и в конце жеста на месте копии
+      // вставала настоящая таблетка с другой тенью: чипсы будто
+      // перерисовывались. Прозрачностью же они сходятся ровно в свой вид, и
+      // подмены не видно. Два стекла в полсилы друг на друге не темнят —
+      // темнило, когда оба стояли в полную.
 
       for (const el of [a, b]) {
         el.style.position = 'absolute'
@@ -655,9 +652,6 @@ function buildStage(under: Snapshot | null): Stage {
           top: `${lerp(srcY, dstY, p) - h / 2}px`,
           width: `${w}px`,
           height: `${h}px`,
-          // Отпочковавшаяся половина проявляется, отходя: на нуле она стоит
-          // ровно под первой, и без этого корпус на старте был бы двойным.
-          ...(nth > 0 ? { opacity: String(smooth(Math.min(1, p * 2))) } : null),
         }
       }
       morphs.push({ el: a, at: shell }, { el: b, at: shell })
@@ -665,14 +659,21 @@ function buildStage(under: Snapshot | null): Stage {
       // него выступает. Сумма прозрачностей всегда единица — с перехлёстом
       // (уходящее гасло раньше, приходящее опаздывало) на середине хода
       // корпус стоял пустым, и морфа было не видно вовсе.
+      // Прозрачность — на КОРПУСАХ (вместе с их тенью и стеклом), размытие и
+      // масштаб — на содержимом. У отпочковавшейся половины уходящего
+      // содержимого нет: оно живёт на первой, иначе стрелка двоилась бы.
+      const solid = (raw: number) => (nth > 0 ? smooth(Math.min(1, q(raw) * 2)) : 1)
       morphs.push({
+        el: a,
+        at: raw => ({ opacity: String((nth > 0 ? 0 : 1 - smooth(q(raw))) * solid(raw)) }),
+      }, {
+        el: b,
+        at: raw => ({ opacity: String(smooth(q(raw)) * solid(raw)) }),
+      }, {
         el: ia,
         at: raw => {
-          // У отпочковавшейся половины уходящего содержимого нет: оно живёт
-          // на первой, иначе стрелка двоилась бы на обеих.
           const t = nth > 0 ? 1 : smooth(q(raw))
           return {
-            opacity: String(1 - t),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -682,7 +683,6 @@ function buildStage(under: Snapshot | null): Stage {
         at: raw => {
           const t = smooth(q(raw))
           return {
-            opacity: String(t),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
             transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
