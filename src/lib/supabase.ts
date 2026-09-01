@@ -14,3 +14,9 @@ if (!url || !key) {
 }
 
 export const supabase = createClient(url, key)
+
+// Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —
+// его fetch умирает вместе со страницей. Телеметрия досылает последнюю пачку
+// сырым fetch с keepalive (см. lib/analytics.ts), и ему нужны те же URL и ключ.
+export const SUPABASE_URL = url
+export const SUPABASE_KEY = key

@@ -1,6 +1,6 @@
 // Lightweight behavioural telemetry beacon. Automatic — no consent gate.
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
-import { supabase } from './supabase'
+import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
 import { getStudentSession } from './studentSession'
 import { getSessionUser } from './owner'
 
@@ -78,7 +78,30 @@ async function resolveIdentity() {
   identity = { user_id: null, student_id: null, role: 'anon' }
 }
 
-async function flush() {
+// Последняя пачка перед закрытием вкладки. Обычный запрос клиента браузер
+// отменяет вместе со страницей, поэтому уходы (page_leave) до сервера почти не
+// доезжали: на #/trainer/en/decks на 23 захода пришлось 2 записи ухода — и
+// среднее время на экране считалось по ним, то есть по шуму. keepalive как раз
+// про этот случай: запрос переживает выгрузку страницы. Ответ читать уже некому,
+// поэтому пачку не возвращаем в очередь — иначе следующий запуск слал бы её
+// заново поверх уже сохранённой (в базе от этого лежат парные дубли).
+function flushFinal(rows: unknown[]) {
+  try {
+    void fetch(`${SUPABASE_URL}/rest/v1/analytics_events`, {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(rows),
+    })
+  } catch { /* уходящей странице уже не помочь */ }
+}
+
+async function flush(final = false) {
   if (buffer.length === 0) return
   const batch = buffer
   buffer = []
@@ -94,6 +117,7 @@ async function flush() {
     meta: e.meta,
     ua,
   }))
+  if (final) { flushFinal(rows); return }
   try {
     const { error } = await supabase.from('analytics_events').insert(rows)
     if (error) buffer.unshift(...batch)
@@ -128,16 +152,28 @@ export async function trackNow(event: string, meta: Record<string, unknown> = {}
   await flush()
 }
 
+// Уход короче секунды — не уход. Так выглядят две вещи, и ни одна из них не
+// «пользователь ушёл»: цепочка редиректов при открытии экрана (адрес меняется
+// дважды за миллисекунды) и мигание видимости на iOS — переключатель приложений
+// шлёт hidden/visible по нескольку раз за анимацию. Их дважды-по-6-мс и давали
+// «0 с на экране» там, где по пульсам человек сидел часами.
+const MIN_DWELL_MS = 1000
+
+/** Записать время на экране, если оно осмысленное. Обнуляет отсчёт. */
+function recordDwell() {
+  if (!dwellPath || !dwellStart) return
+  const ms = Date.now() - dwellStart
+  dwellStart = 0
+  if (ms < MIN_DWELL_MS) return
+  trackEvent('page_leave', { dwell_ms: ms }, dwellPath)
+}
+
 let lastPath = ''
 /** Call on every route change — records dwell time for the previous page. */
 export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   if (path === lastPath) return
 
-  // flush dwell for previous page
-  if (dwellPath && dwellStart) {
-    const ms = Date.now() - dwellStart
-    trackEvent('page_leave', { dwell_ms: ms }, dwellPath)
-  }
+  recordDwell()
 
   lastPath = path
   dwellPath = path
@@ -254,16 +290,13 @@ export function initAnalytics() {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-      if (dwellPath && dwellStart) {
-        trackEvent('page_leave', { dwell_ms: Date.now() - dwellStart }, dwellPath)
-        dwellStart = 0
-      }
-      void flush()
+      recordDwell()
+      void flush(true)
     } else {
       dwellStart = Date.now()
     }
   })
-  window.addEventListener('pagehide', () => { void flush() })
+  window.addEventListener('pagehide', () => { recordDwell(); void flush(true) })
 
   installErrorTracking()
   installRageClickTracking()

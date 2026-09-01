@@ -936,6 +936,11 @@ function buildStage(under: Snapshot | null): Stage {
     return false
   }
   const headerChips = (scope: ParentNode, top0 = 0) => {
+    // Запрет «не брать из снимка» нужен, когда шапку ищут на ЖИВОМ экране:
+    // снимок лежит в том же документе, и без него мы хватали бы его узлы. Но
+    // когда ищем шапку В САМОМ снимке, тот же запрет выбрасывал всё подряд, и
+    // «К полкам» не находила, во что перетекать.
+    const inSnapshot = wrap.contains(scope as Node)
     // Сначала геометрия, и только для выживших — стили: снимать computed style
     // со всего дерева на старте жеста нельзя, это те самые кадры, за которые
     // палец уже уехал.
@@ -944,7 +949,8 @@ function buildStage(under: Snapshot | null): Stage {
       const b = el.getBoundingClientRect()
       if (!b.width || !b.height || b.height > HEADER_MAX_H) continue
       if (b.bottom - top0 < 0 || b.top - top0 >= HEADER_BAND) continue
-      if (wrap.contains(el) || pinLayer.contains(el)) continue
+      if (pinLayer.contains(el)) continue
+      if (!inSnapshot && wrap.contains(el)) continue
       near.push(el)
     }
     const found = near.filter(el => {
@@ -1010,8 +1016,15 @@ function buildStage(under: Snapshot | null): Stage {
   const liveTop = densest(alive.filter(el => el.getAttribute(PIN_ATTR) === 'top'))
   const underTop = pickVisible(underEl, `[${PIN_ATTR}="top"]`)
   const underBase = underEl.getBoundingClientRect()
-  const liveChips = liveTop ? chips(liveTop) : headerChips(document.body)
-  const underChips = underTop ? chips(underTop) : headerChips(underEl, underBase.top)
+  // Метка сильнее автопоиска, но только пока под ней что-то есть: на полках
+  // помеченная шапка экрана пустая (её содержимое уехало в нижний док), и
+  // пустая метка перебивала поиск — «К полкам» не находила, во что перетекать.
+  const pick = (marked: HTMLElement | null, auto: () => HTMLElement[]) => {
+    const found = marked ? chips(marked) : []
+    return found.length ? found : auto()
+  }
+  const liveChips = pick(liveTop, () => headerChips(document.body))
+  const underChips = pick(underTop, () => headerChips(underEl, underBase.top))
   pairMorphs(liveChips, underChips)
 
   // ── Нижний док ───────────────────────────────────────────────────────────
