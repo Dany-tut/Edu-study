@@ -68,8 +68,10 @@ function buildAvatars(name: string): AvatarOption[] {
 // Shared visual box for each popover panel (main grid + the settings panel
 // beside it), so both read as the same floating card.
 const panelBox = {
-  width: 224,
-  padding: 14,
+  // Геометрия как в учительском меню: узкая рамка панели (8), а воздух дают
+  // сами строки своим padding'ом — так содержимое отступает от края на 16.
+  width: 252,
+  padding: 8,
   borderRadius: 18,
   // Frosted-glass recipe like the module buttons / track-click card, but a
   // touch more opaque (0.72) so the label, divider and "Настройки" text keep
@@ -136,7 +138,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
 function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
   const t = useT()
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '2px 8px 0' }}>
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={onBack}
@@ -472,12 +474,13 @@ export default function Sidebar() {
                 >
                   {/* Main panel: avatar grid + the Настройки entry. Always visible. */}
                   <div role="menu" style={panelBox}>
-                    <div style={{ ...labelStyle, marginBottom: 18 }}>{t('Выбери аватар')}</div>
+                    <div style={{ ...labelStyle, marginBottom: 18, padding: '2px 8px 0' }}>{t('Выбери аватар')}</div>
                     <div
                       style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(4, 1fr)',
                         gap: 10,
+                        padding: '0 8px',
                       }}
                     >
                       {AVATARS.map(opt => {
@@ -518,7 +521,7 @@ export default function Sidebar() {
                     </div>
                     {/* Переключатель предметов — для 1:1 учеников с несколькими карточками.
                         Сам решает, показываться ли (скрыт/null при одной карточке, без пустого зазора). */}
-                    <SubjectSwitcher style={{ marginTop: 12 }} />
+                    <SubjectSwitcher style={{ marginTop: 12, padding: '0 8px' }} />
                     <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 8px' }} />
                     <SettingsRow
                       icon={Settings}
@@ -561,8 +564,8 @@ export default function Sidebar() {
                         <MenuHeader title={t('Назад')} onBack={() => setMenuView('root')} />
 
                         {/* Columns picker */}
-                        <div style={{ ...labelStyle, marginBottom: 8 }}>{t('Блоков в строке')}</div>
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                        <div style={{ ...labelStyle, marginBottom: 8, padding: '0 8px' }}>{t('Блоков в строке')}</div>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 4, padding: '0 8px' }}>
                           {([1, 2, 3] as WidgetColumns[]).map(n => {
                             const selected = widgetColumns === n
                             return (
@@ -591,7 +594,7 @@ export default function Sidebar() {
                         </div>
 
                         {/* Divider */}
-                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
+                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 8px' }} />
 
                         {/* Theme toggle */}
                         <motion.button
@@ -659,7 +662,7 @@ export default function Sidebar() {
                         </motion.button>
 
                         {/* Divider */}
-                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
+                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 8px' }} />
 
                         {/* Language — inline RU/EN segment */}
                         <div style={{ width: '100%', padding: '9px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
