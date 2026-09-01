@@ -124,6 +124,16 @@ async function flush(final = false) {
   } catch { buffer.unshift(...batch) }
 }
 
+// Где мы сейчас — так же, как это понимает роутер. Корень без якоря — «#/»,
+// а не «/»: иначе пульсы и ошибки с главной ложились отдельной строкой «/»,
+// где ноль визитов (визит-то записан роутером как «#/»), и на вкладке
+// «Проблемы» она выглядела страницей-призраком.
+function currentPath(): string | null {
+  if (typeof location === 'undefined') return null
+  if (location.hash) return location.hash
+  return location.pathname === '/' ? '#/' : location.pathname
+}
+
 export function trackEvent(event: string, meta: Record<string, unknown> = {}, path?: string) {
   // Единственная дверь для ВСЕХ событий: и автоматических, и бизнесовых
   // (trackNow на входе/выходе), поэтому дев-заслонка стоит здесь, а не только
@@ -131,7 +141,7 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   if (!TELEMETRY_ON) return
   buffer.push({
     event,
-    path: path ?? (typeof location !== 'undefined' ? location.hash || location.pathname : null),
+    path: path ?? currentPath(),
     meta,
     created_at: new Date().toISOString(),
   })
