@@ -375,7 +375,7 @@ export default function MobileHome() {
           {continueInfo ? (
             <HeroContinue lesson={continueInfo.lesson} subjectName={continueInfo.subject.name} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
           ) : (
-            <div className="flex flex-col items-center justify-center text-center" style={{ gap: 6, padding: '26px 16px', borderRadius: 20, background: 'var(--color-bg-3)' }}>
+            <div className="flex flex-col items-center justify-center text-center" style={{ gap: 6, padding: '14px 16px', borderRadius: 20, background: 'var(--color-bg-3)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}>
               <Lock size={22} style={{ color: 'var(--color-muted)' }} />
               <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
               <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель скоро добавит уроки')}</p>
@@ -568,7 +568,7 @@ function HomeSkeleton() {
       </div>
 
       {/* Hero: те же 20px радиуса и padding 14, что у HeroContinue */}
-      <div style={{ borderRadius: 20, padding: 14, background: 'var(--color-bg-3)' }}>
+      <div style={{ borderRadius: 20, padding: 14, background: 'var(--color-bg-3)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}>
         <Skeleton w={120} h={10} radius={999} />
         {/* Заголовок скелета — тоже в две строки: в карточке под него
             зарезервирована постоянная высота, и одна полоска здесь означала бы
@@ -635,6 +635,11 @@ function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value:
   )
 }
 
+// Высота плашки урока — постоянная. Курс переключается лентой под ней, и
+// «Продолжить», заглушка «Курс ещё не открыт» и скелетон — три разных блока на
+// одном месте: без общей высоты главная прыгала на каждом переключении.
+const HERO_MIN_H = 137
+
 function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: Lesson; subjectName: string; progress: number; onContinue: () => void }) {
   const t = useT()
   const status = getDisplayLessonStatus(lesson)
@@ -647,7 +652,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
       // Заливка и ореол — токенами, а не хексом: главная карточка красится в
       // цвет открытого курса (lib/courseTint.ts), и захардкоженный фиолетовый
       // оставлял бы её единственным фиолетовым пятном на перекрашенном экране.
-      style={{ borderRadius: 20, padding: 14, color: '#fff', background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)' }}
+      style={{ borderRadius: 20, padding: 14, color: '#fff', background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}
     >
       <div className="truncate" style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label} · {subjectName}

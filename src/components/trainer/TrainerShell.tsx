@@ -2077,31 +2077,6 @@ export function ToolCount({ children }: { children: React.ReactNode }) {
 
 // ─── Единица содержимого ─────────────────────────────────────────────────────
 
-function tintFlat(surface: string) {
-  // Листы стопки — ровная слабая заливка, без растяжки: у них видны только
-  // краешки, и градиент на трёх миллиметрах читался бы как разнобой в цвете
-  // между листами. Сила зафиксирована слабой независимо от того, насколько
-  // ярким взят угол верхнего листа.
-  const weak = /^#[0-9a-f]{8}$/i.test(surface) ? `${surface.slice(0, 7)}14` : surface
-  return `linear-gradient(${weak}, ${weak})`
-}
-
-/**
- * Заливка «своей» плитки — не ровный слой, а свет из нижнего правого угла.
- *
- * Ровная заливка в 8% на тёмном фоне читается как грязь на стекле: она есть,
- * но не выглядит намеренной. Радиальная — с яркостью у угла и полным нулём к
- * верхнему левому — оставляет заголовок и чипсы стоять на чистой подложке,
- * а цвет предмета показывает там, где текста нет.
- */
-function tintWash(surface: string) {
-  // Цвет гаснет в прозрачность СВОЕГО же тона, а не в `transparent`: в Safari
-  // `transparent` — это прозрачный ЧЁРНЫЙ, и на светлой теме растяжка идёт
-  // через серую грязь. `#rrggbbaa` палитры для этого обнуляется по альфе.
-  const clear = /^#[0-9a-f]{8}$/i.test(surface) ? `${surface.slice(0, 7)}00` : surface
-  return `radial-gradient(125% 115% at 100% 100%, ${surface} 0%, ${clear} 62%)`
-}
-
 /**
  * Карточка сетки — общая геометрия для текста, стопки, записи и задания.
  *
@@ -2134,10 +2109,16 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           aria-hidden
           style={{
             position: 'absolute', inset: 0, left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
-            borderRadius: 16,
+            // Радиус растёт вместе со смещением: лист отодвинут от верхней
+            // карточки на k*4, и при общем радиусе 16 его дуга шла бы не
+            // параллельно её углу, а срезала бы его — три угла читались бы как
+            // три разных скругления. 16 + отступ держит их концентричными.
+            borderRadius: 16 + k * 4,
             // Нижние листы стопки красятся вместе с верхним, иначе цветная
             // карточка выглядит наклейкой, положенной на чужую пачку.
-            background: tint ? `${tintFlat(tint.surface)}, var(--color-bg-2)` : 'var(--color-bg-2)',
+            background: tint
+              ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
+              : 'var(--color-bg-2)',
             border: `1px solid ${tint ? tint.border : 'var(--color-border-glass)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
@@ -2156,7 +2137,9 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           // Заливка «своей» плитки — слоем поверх подложки, а не вместо неё:
           // `soft` палитры полупрозрачен, и без второго слоя сквозь плитку
           // светился бы фон страницы.
-          background: tint ? `${tintWash(tint.surface)}, var(--color-bg-2)` : 'var(--color-bg-2)',
+          background: tint
+            ? `linear-gradient(${tint.surface}, ${tint.surface}), var(--color-bg-2)`
+            : 'var(--color-bg-2)',
           // Серой рамки в покое нет — как у карточек курса в учительской.
           // Акцентная рамка — только ответ на наведение.
           border: `1px solid ${hover && onClick ? accent : 'var(--color-border-glass)'}`,

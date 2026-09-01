@@ -299,13 +299,25 @@ export default function FeedSwipe({
     let seamPrev: HTMLElement | null = null
     let seamNext: HTMLElement | null = null
     let seamLine: HTMLElement | null = null
+    /**
+     * Чем линия была до жеста: её ПОДЛИННЫЙ inline-стиль и цвет на экране.
+     *
+     * Гасим мы длинное свойство (`borderTopColor`), а поставлено оно
+     * СОКРАЩЕНИЕМ — `borderTop: '1px solid var(--color-border-soft)'` в
+     * FeedPost. Присваивание `''` не возвращает прежнее значение, а СНОСИТ
+     * длинное свойство из объявления вместе с сокращением; React пост не
+     * перерисовывает (пропсы те же) и стиль не возвращает — линия падала на
+     * цвет из ресета (#e5e7eb) и в тёмной теме оставалась белой навсегда.
+     * Поэтому цвет возвращаем значением (чтобы доехал переход), а в конце
+     * восстанавливаем объявление целиком.
+     */
+    let lineCss = ''
+    let lineColor = ''
     /** Порог пройден: стык порван, углы больше ни за кем не следуют. */
     let torn = false
     let snapTimer: number | null = null
     /** Номер жеста: по нему уборка после возврата узнаёт «свой» ли он. */
     let seamGen = 0
-    /** Докуда дотянулся стык. Обратно не отматывается — см. paintSeam. */
-    let seamPeak = 0
 
     const neighbour = (el: Element | null | undefined) =>
       (el?.querySelector('[data-feed-card]') as HTMLElement | null) ?? null
@@ -338,7 +350,6 @@ export default function FeedSwipe({
       card.style.transition = `box-shadow .2s ease`
       card.style.boxShadow = '0 6px 22px rgba(0,0,0,0.16)'
       torn = false
-      seamPeak = 0
       seamGen++
       seamPrev = neighbour(host.previousElementSibling)
       seamNext = neighbour(host.nextElementSibling)
@@ -347,6 +358,8 @@ export default function FeedSwipe({
       // отделился с обеих сторон, а не только сверху, где линия уехала вместе
       // с ним.
       seamLine = (seamNext?.firstElementChild as HTMLElement | null) ?? null
+      lineCss = seamLine ? seamLine.style.cssText : ''
+      lineColor = seamLine ? getComputedStyle(seamLine).borderTopColor : ''
       for (const n of [seamPrev, seamNext]) {
         if (!n) continue
         n.style.transition = 'none'
@@ -369,30 +382,53 @@ export default function FeedSwipe({
     }
 
     /**
+     * СКРУГЛЯЕТСЯ ТОЛЬКО ТА СТОРОНА, ГДЕ СТЫК РАСКРЫВАЕТСЯ.
+     *
+     * Карточка уходит от одного края экрана к другому, и разъезжается она
+     * ровно с той стороны, ОТ которой ушла: тянут влево — раскрывается справа.
+     * Противоположные углы всё это время прижаты к краю экрана (а то и
+     * заехали за него), скруглять там нечего — оттуда получался вырез, в
+     * который у самой рамки светило поле действия.
+     *
+     * Соседям достаются только ОБРАЩЁННЫЕ К НАМ углы, и на той же стороне:
+     * верхний пост округляется снизу, нижний — сверху.
+     */
+    const corners = (el: HTMLElement, edge: 'top' | 'bottom' | 'both', v: string) => {
+      const side = dir < 0 ? 'right' : 'left'
+      if (edge !== 'bottom') el.style.setProperty(`border-top-${side}-radius`, v)
+      if (edge !== 'top') el.style.setProperty(`border-bottom-${side}-radius`, v)
+    }
+
+    /** Все четыре разом: сторона у прошлого жеста могла быть другой. */
+    const flatten = (el: HTMLElement, v: string) => {
+      for (const c of ['top-left', 'top-right', 'bottom-left', 'bottom-right']) {
+        el.style.setProperty(`border-${c}-radius`, v)
+      }
+    }
+
+    const seamShape = (v: string) => {
+      corners(card, 'both', v)
+      if (seamPrev) corners(seamPrev, 'bottom', v)
+      if (seamNext) corners(seamNext, 'top', v)
+      for (const l of [leftRef.current, rightRef.current]) if (l) corners(l, 'both', v)
+    }
+
+    /**
      * Стык при ходе `p` (0…1 до порога).
      *
-     * Соседям достаются только ОБРАЩЁННЫЕ К НАМ углы: верхний пост округляется
-     * снизу, нижний — сверху. Их дальние края к нашему жесту отношения не
-     * имеют и должны остаться встык со своими соседями.
+     * РАДИУС ВЕДЁТ РАССТОЯНИЕ ДО КРАЯ ЭКРАНА, в обе стороны: у самого края
+     * углы прямые, дальше от него — круглее. Это не «клей, который схватился»,
+     * а форма щели: пока щель узкая, круглый угол в неё не помещается, и
+     * отматывать её обратно жест обязан так же, как открывал.
      */
     const paintSeam = (p: number) => {
       if (torn) return
-      // До отрыва радиус идёт ЗА ПАЛЬЦЕМ, без перехода: это натяжение, а не
-      // анимация, и любое сглаживание здесь читается как задержка.
+      // Радиус идёт ЗА ПАЛЬЦЕМ, без перехода: это натяжение, а не анимация,
+      // и любое сглаживание здесь читается как задержка.
       card.style.transition = 'box-shadow .2s ease'
-      // Кубическая кривая: клей поддаётся сразу и дальше идёт всё туже.
+      // Кубическая кривая: щель раскрывается охотно, дальше идёт всё туже.
       const r = CORNER * (1 - Math.pow(1 - Math.min(1, p), 3))
-      // ОБРАТНО КЛЕЙ НЕ СХВАТЫВАЕТСЯ. Радиус только растёт: повёл палец
-      // назад — углы остаются такими, какими стали. Иначе стык дышал бы на
-      // каждом покачивании руки, а «оторвал наполовину и передумал» выглядело
-      // бы как отмена того, что уже произошло.
-      if (r <= seamPeak) return
-      seamPeak = r
-      const v = `${r.toFixed(2)}px`
-      card.style.borderRadius = v
-      if (seamPrev) { seamPrev.style.borderBottomLeftRadius = v; seamPrev.style.borderBottomRightRadius = v }
-      if (seamNext) { seamNext.style.borderTopLeftRadius = v; seamNext.style.borderTopRightRadius = v }
-      for (const l of [leftRef.current, rightRef.current]) if (l) l.style.borderRadius = v
+      seamShape(`${r.toFixed(2)}px`)
     }
 
     /** Отрыв: перескок через своё значение — и всё замирает. */
@@ -401,12 +437,7 @@ export default function FeedSwipe({
       torn = true
       const over = `${(CORNER * SNAP).toFixed(1)}px`
       const full = `${CORNER}px`
-      const put = (v: string) => {
-        card.style.borderRadius = v
-        if (seamPrev) { seamPrev.style.borderBottomLeftRadius = v; seamPrev.style.borderBottomRightRadius = v }
-        if (seamNext) { seamNext.style.borderTopLeftRadius = v; seamNext.style.borderTopRightRadius = v }
-        for (const l of [leftRef.current, rightRef.current]) if (l) l.style.borderRadius = v
-      }
+      const put = (v: string) => seamShape(v)
       // Сам перескок — с переходом, а не рывком: до этого момента углы шли за
       // пальцем кадр в кадр, и мгновенная подстановка читалась бы сбоем.
       const jump = `border-radius ${SNAP_MS}ms ease`
@@ -424,11 +455,12 @@ export default function FeedSwipe({
       if (snapTimer) { clearTimeout(snapTimer); snapTimer = null }
       torn = false
       const back = `border-radius .42s ${EASE}`
-      card.style.borderRadius = '0px'
       for (const n of [seamPrev, seamNext]) if (n) n.style.transition = back
-      if (seamPrev) { seamPrev.style.borderBottomLeftRadius = '0px'; seamPrev.style.borderBottomRightRadius = '0px' }
-      if (seamNext) { seamNext.style.borderTopLeftRadius = '0px'; seamNext.style.borderTopRightRadius = '0px' }
-      if (seamLine) seamLine.style.borderTopColor = ''
+      // Распрямляем ВСЕ углы, а не только рабочую сторону: соседа мог держать
+      // предыдущий жест с другой стороны, и его угол остался бы круглым.
+      flatten(card, '0px')
+      for (const n of [seamPrev, seamNext]) if (n) flatten(n, '0px')
+      if (seamLine) seamLine.style.borderTopColor = lineColor
       // Уборка узнаёт свой жест по номеру: следующий свайп мог начаться раньше,
       // чем доехал возврат предыдущего, и обнулять его соседей нельзя — стык
       // остался бы натянутым, а тянуть было бы уже нечего.
@@ -450,7 +482,9 @@ export default function FeedSwipe({
           n.style.borderTopLeftRadius = ''
           n.style.borderTopRightRadius = ''
         }
-        if (seamLine) seamLine.style.transition = ''
+        // Объявление целиком: снимает и переход, и наш длинный цвет — линия
+        // снова живёт своим сокращением с токеном (а значит, и темой).
+        if (seamLine) seamLine.style.cssText = lineCss
         seamPrev = seamNext = seamLine = null
       }, 440)
     }
@@ -815,7 +849,7 @@ export default function FeedSwipe({
         n.style.borderBottomRightRadius = ''
         narrow(n)
       }
-      if (seamLine) { seamLine.style.transition = ''; seamLine.style.borderTopColor = '' }
+      if (seamLine) seamLine.style.cssText = lineCss
       window.removeEventListener('resize', bleed)
       io?.disconnect()
       if (tapTimer) clearTimeout(tapTimer)
