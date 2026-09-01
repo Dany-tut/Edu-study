@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SEED_CARDS } from './courseSeedCards'
+import { retryImport } from '../lib/chunkError'
 import { countTasks, type CourseSummary } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -48,7 +49,10 @@ function lazy(
   pick: (m: any) => (courseId: string) => CourseEdData,
 ): (courseId: string) => Promise<CourseEdData> {
   return async courseId => {
-    const m = await load()
+    // Через retryImport: чанк курса — мегабайты, и сетевой блип на его загрузке
+    // (метро, спящий wifi) означал мёртвую плитку — клик, ожидание, ничего.
+    // Три попытки с отступом лечат блип, не доводя до перезагрузки страницы.
+    const m = await retryImport(load)
     // Пустой модуль вместо курса — не «данные кривые», а недоехавший чанк.
     // Сообщение подобрано под isChunkError: одна перезагрузка вместо крика
     // «Cannot read properties of undefined» где-то ниже по коду.
