@@ -2077,12 +2077,15 @@ export function ToolCount({ children }: { children: React.ReactNode }) {
 
 // ─── Единица содержимого ─────────────────────────────────────────────────────
 
-/**
- * Карточка сетки — общая геометрия для текста, стопки, записи и задания.
- *
- * `stack` дорисовывает две подложки сзади: так плашка читается как пачка
- * карточек, а не как ещё одна кнопка перехода.
- */
+function tintFlat(surface: string) {
+  // Листы стопки — ровная слабая заливка, без растяжки: у них видны только
+  // краешки, и градиент на трёх миллиметрах читался бы как разнобой в цвете
+  // между листами. Сила зафиксирована слабой независимо от того, насколько
+  // ярким взят угол верхнего листа.
+  const weak = /^#[0-9a-f]{8}$/i.test(surface) ? `${surface.slice(0, 7)}14` : surface
+  return `linear-gradient(${weak}, ${weak})`
+}
+
 /**
  * Заливка «своей» плитки — не ровный слой, а свет из нижнего правого угла.
  *
@@ -2099,6 +2102,12 @@ function tintWash(surface: string) {
   return `radial-gradient(125% 115% at 100% 100%, ${surface} 0%, ${clear} 62%)`
 }
 
+/**
+ * Карточка сетки — общая геометрия для текста, стопки, записи и задания.
+ *
+ * `stack` дорисовывает две подложки сзади: так плашка читается как пачка
+ * карточек, а не как ещё одна кнопка перехода.
+ */
 export function Tile({ children, onClick, accent, stack, tint }: {
   children: React.ReactNode
   onClick?: () => void
@@ -2128,7 +2137,7 @@ export function Tile({ children, onClick, accent, stack, tint }: {
             borderRadius: 16,
             // Нижние листы стопки красятся вместе с верхним, иначе цветная
             // карточка выглядит наклейкой, положенной на чужую пачку.
-            background: tint ? `${tintWash(tint.surface)}, var(--color-bg-2)` : 'var(--color-bg-2)',
+            background: tint ? `${tintFlat(tint.surface)}, var(--color-bg-2)` : 'var(--color-bg-2)',
             border: `1px solid ${tint ? tint.border : 'var(--color-border-glass)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
             transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
