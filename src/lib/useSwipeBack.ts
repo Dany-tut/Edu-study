@@ -577,10 +577,35 @@ function buildStage(under: Snapshot | null): Stage {
    * Обрезаем по коробке самого элемента (clip-path считается от неё), поэтому
    * обеим нужны левый край и ширина на текущем ходе.
    */
-  const keepRight = (left: number, w: number, seam: number) =>
-    `inset(0 0 0 ${Math.min(w, Math.max(0, seam - left))}px)`
-  const keepLeft = (left: number, w: number, seam: number) =>
-    `inset(0 ${Math.min(w, Math.max(0, left + w - seam))}px 0 0)`
+  // ГРАНИЦА МЯГКАЯ, А НЕ НОЖ.
+  //
+  // Жёсткий clip-path резал таблетку по-живому: содержимое обрывалось посреди
+  // буквы, и было видно, как край верхнего экрана подрезает нижнюю таблетку.
+  // Растушёвка в палец шириной превращает срез в переход: у самого стыка одно
+  // тает, другое проступает, а по сторонам от него обе половины целые.
+  const FEATHER = 34
+  const edgeMask = (side: 'right' | 'left', left: number, seam: number) => {
+    const at = seam - left
+    const [from, to] = side === 'right' ? ['transparent', '#000'] : ['#000', 'transparent']
+    return `linear-gradient(90deg, ${from} ${at - FEATHER / 2}px, ${to} ${at + FEATHER / 2}px)`
+  }
+  /** Маска в оба написания: вебкит понимает только своё `-webkit-`. */
+  const mask = (v: string) => ({ maskImage: v, WebkitMaskImage: v })
+  /** Своя половина — правее стыка (то, что принадлежит уходящему экрану). */
+  const keepRight = (left: number, seam: number) => mask(edgeMask('right', left, seam))
+  /** Своя половина — левее стыка (то, что принадлежит нижнему экрану). */
+  const keepLeft = (left: number, seam: number) => mask(edgeMask('left', left, seam))
+  /**
+   * БЕЗ ГРАНИЦЫ — ДЛЯ ТОГО, ЧЕЙ КОРПУС ЕЁ ТОЖЕ НЕ ЗНАЕТ.
+   *
+   * Стык делит содержимое, потому что на его месте у второй стороны есть своё.
+   * У отпочковавшейся половины второй стороны нет вовсе: её корпус РОЖДАЕТСЯ
+   * целиком, никакой границы не спрашивая. Начинку же резало стыком — и
+   * «Фильтры» первую треть свайпа стояли пустой таблеткой без воронки, а
+   * значок появлялся, только когда граница доходила до его места. Корпус
+   * виден — значит, видно и то, что в нём.
+   */
+  const noMask = mask('none')
 
   const chips = (root: ParentNode, outer = false) => {
     const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
@@ -762,12 +787,10 @@ function buildStage(under: Snapshot | null): Stage {
       // без стрелки.
       morphs.push({
         el: clone,
-        at: raw => ({
-          opacity: String(1 - fade(raw)),
-          // Своя половина экрана: правее стыка. Левее уже открывшийся экран,
-          // и таблетке уходящего там делать нечего.
-          clipPath: keepRight(ra.left, ra.w, raw * W),
-        }),
+        // Гаснет не сама по себе, а ПОД СТЫКОМ: до него стоит целой, у него
+        // тает. Отдельная прозрачность только торопила бы — таблетка пропадала
+        // раньше, чем граница до неё дошла, и это читалось как «мигнула».
+        at: raw => keepRight(ra.left, raw * W),
       }, {
         el: inner,
         at: raw => {
@@ -812,11 +835,9 @@ function buildStage(under: Snapshot | null): Stage {
       const fade = (raw: number) => smooth(q(raw))
       morphs.push({
         el: clone,
-        at: raw => ({
-          opacity: String(fade(raw)),
-          // Только своя половина — левее стыка. Правее ещё стоит верхний экран.
-          clipPath: keepLeft(rb.left, rb.w, raw * W),
-        }),
+        // Проявляется ровно тем, что граница до неё дошла: своя половина —
+        // левее стыка, правее ещё стоит верхний экран.
+        at: raw => keepLeft(rb.left, raw * W),
       }, {
         el: inner,
         at: raw => {
@@ -1061,7 +1082,7 @@ function buildStage(under: Snapshot | null): Stage {
             opacity: String(nth > 0 ? 1 - t : 1),
             left: `${ra.left - bx.left}px`,
             width: `${ra.w}px`,
-            clipPath: keepRight(ra.left, ra.w, raw * W),
+            ...keepRight(ra.left, raw * W),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -1075,7 +1096,8 @@ function buildStage(under: Snapshot | null): Stage {
             opacity: '1',
             left: `${rb.left - bx.left}px`,
             width: `${rb.w}px`,
-            clipPath: keepLeft(rb.left, rb.w, raw * W),
+            // Отпочковавшаяся половина рождается целиком — см. noMask.
+            ...(nth > 0 ? noMask : keepLeft(rb.left, raw * W)),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
             transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
