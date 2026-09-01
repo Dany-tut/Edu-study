@@ -16,7 +16,7 @@
 // «краткого правила» не заводим, иначе учителю пришлось бы писать текст дважды.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
 import { BookOpen, X } from 'lucide-react'
@@ -161,8 +161,11 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
   }, [open, isDesktop, y])
 
   // Шторку закрыли и открыли снова — начинаем с нуля, иначе она встанет
-  // сдвинутой на остаток прошлого жеста.
-  useEffect(() => { if (!open) y.set(0) }, [open, y])
+  // сдвинутой на остаток прошлого жеста. Сбрасываем именно НА ОТКРЫТИИ: сброс
+  // на закрытии дёргал уезжающую шторку обратно наверх, пока она ещё
+  // догорала прозрачностью, — и это читалось как «щит мигнул и вернулся».
+  // useLayoutEffect, а не useEffect: ноль должен встать до первой отрисовки.
+  useLayoutEffect(() => { if (open) y.set(0) }, [open, y])
 
   // Escape закрывает — шторка перекрывает задания, и выход должен быть без мыши.
   useEffect(() => {
@@ -247,17 +250,22 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   {lessonTitle}
                 </span>
               </span>
-              <button
-                onClick={onClose}
-                aria-label={t('Закрыть')}
-                className="flex items-center justify-center cursor-pointer flex-shrink-0"
-                style={{
-                  width: 32, height: 32, borderRadius: 11, border: '1px solid var(--color-border-soft)',
-                  background: 'transparent', color: 'var(--color-muted)',
-                }}
-              >
-                <X size={16} />
-              </button>
+              {/* Крестик — только на десктопе. На телефоне закрытие уже показано
+                  грабером сверху и жестом вниз; вторая кнопка в углу повторяет
+                  то же действие и съедает место у заголовка урока. */}
+              {isDesktop && (
+                <button
+                  onClick={onClose}
+                  aria-label={t('Закрыть')}
+                  className="flex items-center justify-center cursor-pointer flex-shrink-0"
+                  style={{
+                    width: 32, height: 32, borderRadius: 11, border: '1px solid var(--color-border-soft)',
+                    background: 'transparent', color: 'var(--color-muted)',
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              )}
             </header>
 
             <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>

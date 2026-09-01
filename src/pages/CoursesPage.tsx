@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
-import { glassCircle, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
+import { glassCircle, MOBILE_DOCK_EDGE, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { type Lesson, type LessonStatus } from '../data/mockData'
@@ -15,7 +15,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { useStudentData } from '../store/studentDataStore'
 import MobileSheet from '../components/MobileSheet'
-import HScrollFade from '../components/HScrollFade'
+import HScrollFade, { HSCROLL_PAD_TOP } from '../components/HScrollFade'
 import { useT } from '../lib/i18n'
 
 type StatusFilter = 'all' | 'active' | 'done'
@@ -240,7 +240,21 @@ export default function CoursesPage() {
 
         {/* Subject pills — одна строка со скроллом: курсов много, и перенос
             ронял бы сетку занятий на вторую-третью строку вниз. */}
-        <HScrollFade gap={0} fadeWidth={40} style={{ flex: '1 1 0', minWidth: 0 }} scrollStyle={{ alignItems: 'center' }}>
+        <HScrollFade
+          gap={0}
+          fadeWidth={40}
+          style={{
+            flex: '1 1 0', minWidth: 0,
+            // НА ТЕЛЕФОНЕ ЭТОТ РЯД — ШАПКА ЭКРАНА, и стоять он обязан ровно
+            // там же, где шапки соседних: свайп «назад» перетекает таблетки
+            // друг в друга, и разница в пару пикселей видна как перекос на
+            // стыке (у остальных экранов таблетка стоит на 22, а этот ряд
+            // отдавал сверху ещё 3px запаса под тень бегущего чипса). Запас
+            // забираем полем, а не `padTop={0}`: без него тень срезало бы.
+            ...(isDesktop ? null : { marginTop: -HSCROLL_PAD_TOP }),
+          }}
+          scrollStyle={{ alignItems: 'center' }}
+        >
         <div
           ref={subjectPill.containerRef}
           className="flex items-center gap-2"
@@ -287,6 +301,14 @@ export default function CoursesPage() {
                   maxWidth: 190,
                   textAlign: 'center',
                   lineHeight: 1.2,
+                  // Высота — общая для всех шапок (MOBILE_PILL_H), но минимумом,
+                  // а не жёстко: длинное название курса переносится на вторую
+                  // строку, и там таблетка честно вырастает.
+                  minHeight: MOBILE_PILL_H,
+                  boxSizing: 'border-box',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   padding: '8px 22px',
                   borderRadius: 999,
                   fontSize: 14,

@@ -18,12 +18,20 @@ import { useWheelHScroll } from '../lib/useWheelHScroll'
  * offsets resolve against the scroll content, and measuring against the
  * scrolling box would drift by scrollLeft.
  */
+/**
+ * Запас сверху под тень бегущей таблетки: скроллер режет по своей коробке, и
+ * без запаса тень активного чипса срезало бы. Наружу — чтобы ряд, стоящий
+ * первым на экране, мог забрать этот запас обратно полем и встать вровень с
+ * шапками соседних экранов (см. CoursesPage).
+ */
+export const HSCROLL_PAD_TOP = 3
+
 export default function HScrollFade({
   children,
   gap = 8,
   fade = 'var(--color-bg)',
   padX = 0,
-  padTop = 3,
+  padTop = HSCROLL_PAD_TOP,
   padBottom = 7,
   fadeWidth = 40,
   arrows = false,
