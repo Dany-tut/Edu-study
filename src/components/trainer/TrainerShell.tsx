@@ -2168,7 +2168,13 @@ export function TileGrid({ min = 210, children }: { min?: number; children: Reac
 /** Полоска прогресса внутри карточки. */
 export function TileMeter({ value }: { value: number }) {
   return (
-    <span style={{ display: 'block', height: 3, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+    // Дорожка — не отдельная деталь, а тень самой карточки: `--color-bg-3` на
+    // тёмной плитке светлел в самостоятельную полоску. Текст на 9% даёт оттенок
+    // на волос темнее/светлее подложки — заполненная часть читается, пустая нет.
+    <span style={{
+      display: 'block', height: 3, borderRadius: 999, overflow: 'hidden',
+      background: 'color-mix(in srgb, var(--color-text) 9%, transparent)',
+    }}>
       <span style={{
         display: 'block', height: '100%', width: `${Math.max(0, Math.min(100, value))}%`,
         borderRadius: 999, background: 'var(--color-green-accent)',
