@@ -383,13 +383,28 @@ html[data-tint-shift] body * {
   html[data-tint-shift] body * { transition: none !important; }
 }
 
+/* ── Смена темы — один кадр, а не перетекание ─────────────────────────────
+   Атрибут висит на <html> те миллисекунды, что уходят на подмену палитры
+   (store/themeStore.ts). Тема меняет разом всё: цвета фона, градиенты, тени,
+   стекло. Перетечь умеют только цвета — градиент и тень браузер подменяет
+   кадром, поэтому любой переход здесь означает, что часть экрана уже тёмная,
+   а часть ещё светлая (ровно это и было видно в профиле: карточка настроек
+   чёрная, фон под ней серый). Глушим цветовые переходы у всего документа;
+   transform и opacity оставлены — на них живёт движение и открытые в этот
+   момент шторки. */
+html[data-theme-shift] body,
+html[data-theme-shift] body *,
+html[data-theme-shift] body *::before,
+html[data-theme-shift] body *::after {
+  transition-property: transform, opacity !important;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 a {
@@ -487,7 +502,6 @@ a {
   overflow: hidden;
   position: relative;
   padding-top: 100px;
-  transition: background 0.25s ease;
 }
 
 .topbar-row {

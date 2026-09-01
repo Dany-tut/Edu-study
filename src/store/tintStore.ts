@@ -115,11 +115,18 @@ export function useCourseTint() {
   // Предыдущий акцент — чтобы отличить смену курса (цвет должен перетечь) от
   // первой отрисовки и от смены темы (там перетекать нечему).
   const prev = useRef<string | null | undefined>(undefined)
+  const prevDark = useRef(dark)
   const shiftTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const accent = activeAccent(useTint.getState(), dark)
-    const changed = prev.current !== undefined && prev.current !== accent
+    // У курса свой акцент в каждой теме, поэтому на переключении темы accent
+    // меняется тоже — но перетекать тут нечему: тему подменяют одним кадром
+    // (store/themeStore.ts), и 0.42s на цветах поехали бы вслед за уже
+    // перерисованными градиентами и тенями.
+    const themeSwap = prevDark.current !== dark
+    prevDark.current = dark
+    const changed = !themeSwap && prev.current !== undefined && prev.current !== accent
     prev.current = accent
 
     if (changed) {
