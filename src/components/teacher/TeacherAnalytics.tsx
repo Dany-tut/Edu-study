@@ -1055,7 +1055,7 @@ export default function TeacherAnalytics() {
                 fontSize:12, fontWeight:600, cursor: digestBusy ? 'default' : 'pointer',
               }}>
                 {digestBusy
-                  ? <><RefreshCw size={13} className="spin" /> {t('Считаем…')}</>
+                  ? <><RefreshCw size={13} style={{ animation:'spin 1s linear infinite' }} /> {t('Считаем…')}</>
                   : <><Sparkles size={13} /> {t('Собрать разбор')}</>}
               </button>
             }>{t('Разбор телеметрии')}</SectionTitle>

@@ -27,6 +27,15 @@ let started = false
 let dwellPath = ''
 let dwellStart = 0
 
+// Телеметрия дев-сборки — это разработчик, а не пользователь: свои же заходы
+// раздували визиты («Конструктор», 224 визита), а ошибки инструментария вроде
+// `process is not defined` из .vite/deps заняли 130 строк из 185 на вкладке
+// «Проблемы». Дев-события не пишем вовсе; когда телеметрию нужно проверить
+// локально — `localStorage.analytics_force = '1'` и перезагрузка.
+const TELEMETRY_ON: boolean = !import.meta.env.DEV || (() => {
+  try { return localStorage.getItem('analytics_force') === '1' } catch { return false }
+})()
+
 function uuid(): string {
   try { return crypto.randomUUID() } catch { /**/ }
   return 'sess-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
@@ -92,6 +101,10 @@ async function flush() {
 }
 
 export function trackEvent(event: string, meta: Record<string, unknown> = {}, path?: string) {
+  // Единственная дверь для ВСЕХ событий: и автоматических, и бизнесовых
+  // (trackNow на входе/выходе), поэтому дев-заслонка стоит здесь, а не только
+  // в initAnalytics — иначе роутер и логин продолжали бы писать с localhost.
+  if (!TELEMETRY_ON) return
   buffer.push({
     event,
     path: path ?? (typeof location !== 'undefined' ? location.hash || location.pathname : null),
@@ -218,6 +231,7 @@ function installRageClickTracking() {
 
 export function initAnalytics() {
   if (started || typeof window === 'undefined') return
+  if (!TELEMETRY_ON) return
   started = true
   getSessionId()
 
