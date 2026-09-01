@@ -3,11 +3,12 @@ import Skeleton from '../Skeleton'
 import { motion } from 'framer-motion'
 import {
   Activity, Users, CalendarClock, Layers, TrendingUp,
-  AlertTriangle, MousePointerClick, Clock, BookOpen, ChevronDown, ChevronUp,
+  AlertTriangle, MousePointerClick, Clock, BookOpen, ChevronDown, ChevronUp, Copy, Check,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
 import { tzToCountry } from '../../lib/tzCountry'
+import { copyToClipboard } from '../../lib/clipboard'
 
 // ── types ──────────────────────────────────────────────────────────────────
 type Overview = {
@@ -272,12 +273,15 @@ export default function TeacherAnalytics() {
   const [rageHots, setRageHots]           = useState<RageHot[]>([])
   const [geo, setGeo]                     = useState<GeoRow[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
+  const [copied, setCopied]               = useState(false)
   const [err, setErr]                     = useState<string|null>(null)
   // spatial click heatmaps
   const [clickPaths, setClickPaths]       = useState<ClickPath[]>([])
   const [clickPath, setClickPath]         = useState<string|null>(null)
   const [clickGrid, setClickGrid]         = useState<ClickCell[]>([])
   const [clickLoading, setClickLoading]   = useState(false)
+  const [pathQuery, setPathQuery]         = useState('')
+  const [pathsOpen, setPathsOpen]         = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null)
@@ -376,16 +380,80 @@ export default function TeacherAnalytics() {
   const fMax       = Math.max(1, ...fSteps.map(s => s.v))
   const bdMax      = Math.max(1, ...breakdown.map(b => b.cnt))
 
+  // Screen chips: heaviest first, filtered by the search box, collapsed to a
+  // single row's worth until opened. The selected screen always stays visible.
+  const PATH_CHIP_LIMIT = 8
+  const pathCnt    = (p: ClickPath) => heatRole === 'teacher' ? p.teacher_clicks : p.student_clicks
+  const pathQ      = pathQuery.trim().toLowerCase()
+  const pathsFound = clickPaths
+    .filter(p => !pathQ || p.path.toLowerCase().includes(pathQ) || pLabel(p.path).toLowerCase().includes(pathQ))
+    .sort((a, b) => pathCnt(b) - pathCnt(a))
+  const pathsShown = (pathsOpen || pathQ) ? pathsFound : (() => {
+    const head = pathsFound.slice(0, PATH_CHIP_LIMIT)
+    const sel  = pathsFound.find(p => p.path === clickPath)
+    return (sel && !head.includes(sel)) ? [...head.slice(0, PATH_CHIP_LIMIT - 1), sel] : head
+  })()
+  const pathsHidden = pathsFound.length - pathsShown.length
+
   // issues analysis
   const totalErrors  = recentErrors.filter(e => e.event !== 'rage_click').length
   const totalRage    = recentErrors.filter(e => e.event === 'rage_click').length
-  const problemPages = pageStats.filter(p => (p.errors > 0 || p.rage_clicks > 0)).slice(0,8)
+  const allProblemPages = pageStats.filter(p => (p.errors > 0 || p.rage_clicks > 0))
+  const problemPages = allProblemPages.slice(0,8)
   const slowPages    = [...pageStats]
     .filter(p => p.avg_dwell_sec !== null && p.avg_dwell_sec < 5 && p.visits > 1)
     .sort((a,b) => (a.avg_dwell_sec??99)-(b.avg_dwell_sec??99))
     .slice(0,5)
   const bounceRisk   = slowPages.length
   const issueScore   = totalErrors + totalRage*0.5 + bounceRisk*2
+
+
+  // Plain-text dump of everything on this tab — one paste is enough to debug.
+  function buildIssuesReport(): string {
+    const L: string[] = []
+    L.push(`# Проблемы платформы · последние ${days} дн. · ${new Date().toLocaleString('ru-RU')}`)
+    L.push(`Индекс: ${Math.round(issueScore)} · JS ошибок: ${totalErrors} · rage-кликов: ${totalRage} · bounce-страниц: ${bounceRisk}`)
+
+    L.push('', `## Страницы с проблемами (${allProblemPages.length})`)
+    if (allProblemPages.length === 0) L.push('— нет')
+    for (const p of allProblemPages)
+      L.push(`- ${p.path} [${p.role}] визитов ${p.visits}, dwell ${p.avg_dwell_sec ?? '—'}с, ошибок ${p.errors}, rage ${p.rage_clicks}`)
+
+    L.push('', `## Короткий dwell (bounce-риск) (${slowPages.length})`)
+    if (slowPages.length === 0) L.push('— нет')
+    for (const p of slowPages) L.push(`- ${p.path} [${p.role}] ${p.avg_dwell_sec}с, визитов ${p.visits}`)
+
+    L.push('', `## Rage-click точки (${rageHots.length})`)
+    if (rageHots.length === 0) L.push('— нет')
+    for (const r of rageHots) L.push(`- ${r.cnt}× ${r.element} — ${r.path}`)
+
+    // Group the raw log so 800 copies of one bug read as one line.
+    const groups = new Map<string, { n: number; last: string; ev: string; paths: Set<string> }>()
+    for (const e of recentErrors) {
+      const key = `${e.event}|${e.msg}|${e.src}|${e.line}`
+      const g = groups.get(key) ?? { n: 0, last: e.created_at, ev: e.event, paths: new Set<string>() }
+      g.n++
+      if (e.created_at > g.last) g.last = e.created_at
+      if (e.path) g.paths.add(e.path)
+      groups.set(key, g)
+    }
+    const sorted = [...groups.entries()].sort((a,b) => b[1].n - a[1].n)
+    L.push('', `## Лог ошибок · ${recentErrors.length} записей, ${sorted.length} уникальных`)
+    if (sorted.length === 0) L.push('— нет')
+    for (const [key, g] of sorted) {
+      const [, msg, src, line] = key.split('|')
+      L.push(`- ${g.n}× [${g.ev}] ${msg || '—'}${src ? ` @ ${src}${line && line !== '0' ? `:${line}` : ''}` : ''}`)
+      L.push(`    страницы: ${[...g.paths].join(', ') || '—'} · последняя: ${new Date(g.last).toLocaleString('ru-RU')}`)
+    }
+    return L.join('\n')
+  }
+
+  async function copyIssues() {
+    const ok = await copyToClipboard(buildIssuesReport())
+    if (!ok) return
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // severity badge
   function severity(n: number): { label:string; bg:string; color:string } {
@@ -617,6 +685,20 @@ export default function TeacherAnalytics() {
       {/* ── TAB: ISSUES ── */}
       {activeTab === 'issues' && (
         <>
+          {/* Copy everything on this tab as text — for pasting into a bug report */}
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
+            <button onClick={() => void copyIssues()} style={{
+              display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10,
+              border:'1px solid var(--color-border)', cursor:'pointer', fontSize:12, fontWeight:600,
+              background: copied ? 'rgba(63,168,103,0.15)' : 'var(--color-bg-2)',
+              color: copied ? '#3FA867' : 'var(--color-text-2)',
+              transition:'background 0.15s, color 0.15s',
+            }}>
+              {copied ? <Check size={13}/> : <Copy size={13}/>}
+              {copied ? t('Скопировано') : t('Скопировать все проблемы')}
+            </button>
+          </div>
+
           {/* Health overview */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
             <Kpi icon={AlertTriangle} label={t('JS ошибок')}
@@ -778,31 +860,55 @@ export default function TeacherAnalytics() {
             {(heatRole==='teacher' ? t('Учителя') : t('Ученики'))} · {t('Тепловые карты кликов · по экранам')}
           </SectionTitle>
 
-          {/* Screen selector — auto-built from captured click paths */}
-          <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:16 }}>
-            {clickPaths.length === 0
-              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>
-                  {t('Нет данных о кликах за период. Данные начнут собираться после обновления — каждый клик записывает нормализованные координаты по экрану.')}
-                </div>
-              : clickPaths.map(p => {
-                  const active = p.path === clickPath
-                  const roleCnt = heatRole === 'teacher' ? p.teacher_clicks : p.student_clicks
-                  return (
-                    <button key={p.path} onClick={() => setClickPath(p.path)} style={{
-                      display:'flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10,
-                      border:'1px solid', borderColor: active ? currentColor : 'var(--color-border)',
-                      background: active ? withAlpha(currentColor,0.12) : 'var(--color-bg-2)',
-                      color: active ? 'var(--color-text)' : 'var(--color-text-3)',
-                      fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color .15s, background .15s',
+          {/* Screen selector — search + collapsed chip row (there are dozens of paths) */}
+          {clickPaths.length === 0
+            ? <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:16 }}>
+                {t('Нет данных о кликах за период. Данные начнут собираться после обновления — каждый клик записывает нормализованные координаты по экрану.')}
+              </div>
+            : <div style={{ marginBottom:16 }}>
+                <input
+                  value={pathQuery}
+                  onChange={e => setPathQuery(e.target.value)}
+                  placeholder={t('Поиск экрана…')}
+                  style={{
+                    width:'100%', maxWidth:340, boxSizing:'border-box', marginBottom:10,
+                    padding:'8px 12px', borderRadius:10, fontSize:12.5,
+                    border:'1px solid var(--color-border)', background:'var(--color-bg-2)',
+                    color:'var(--color-text)', outline:'none',
+                  }}
+                />
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                  {pathsShown.map(p => {
+                    const active = p.path === clickPath
+                    return (
+                      <button key={p.path} onClick={() => setClickPath(p.path)} style={{
+                        display:'flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10,
+                        border:'1px solid', borderColor: active ? currentColor : 'var(--color-border)',
+                        background: active ? withAlpha(currentColor,0.12) : 'var(--color-bg-2)',
+                        color: active ? 'var(--color-text)' : 'var(--color-text-3)',
+                        fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color .15s, background .15s',
+                      }}>
+                        {pLabel(p.path)}
+                        <span style={{ fontSize:10.5, fontWeight:500, color:'var(--color-text-3)',
+                          background:'var(--color-bg-3)', borderRadius:7, padding:'1px 6px' }}>{pathCnt(p)}</span>
+                      </button>
+                    )
+                  })}
+                  {pathsFound.length === 0 && (
+                    <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
+                  )}
+                  {!pathQ && (pathsHidden > 0 || pathsOpen) && (
+                    <button onClick={() => setPathsOpen(o => !o)} style={{
+                      padding:'7px 12px', borderRadius:10, border:'1px dashed var(--color-border)',
+                      background:'transparent', color:'var(--color-text-3)',
+                      fontSize:12, fontWeight:600, cursor:'pointer',
                     }}>
-                      {pLabel(p.path)}
-                      <span style={{ fontSize:10.5, fontWeight:500, color:'var(--color-text-3)',
-                        background:'var(--color-bg-3)', borderRadius:7, padding:'1px 6px' }}>{roleCnt}</span>
+                      {pathsOpen ? t('Свернуть') : `+${pathsHidden}`}
                     </button>
-                  )
-                })
-            }
-          </div>
+                  )}
+                </div>
+              </div>
+          }
 
           {clickPath && (
             <Card style={{ marginBottom:24 }}>

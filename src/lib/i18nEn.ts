@@ -313,6 +313,8 @@ export const EN: Record<string, string> = {
   "Активность": "Activity",
   "Проблемы": "Issues",
   "Тепловые карты": "Heatmaps",
+  "Поиск экрана…": "Search screen…",
+  "Скопировать все проблемы": "Copy all issues",
   "активны за сутки": "active in 24h",
   "за 7 дней": "in 7 days",
   "за 30 дней": "in 30 days",
