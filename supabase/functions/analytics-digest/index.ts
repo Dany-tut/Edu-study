@@ -143,8 +143,6 @@ Deno.serve(async (req) => {
   const kieKey     = Deno.env.get('KIE_API_KEY')
   const cronSecret = Deno.env.get('DIGEST_SECRET')
 
-  if (!kieKey) return json({ error: 'KIE_API_KEY не задан в секретах функции' }, 500)
-
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 
   // ── Кто зовёт: cron по секрету или админ по JWT ────────────────────────────
@@ -164,6 +162,10 @@ Deno.serve(async (req) => {
     allowed = profile?.role === 'admin'
     if (!allowed) return json({ error: 'Только для админа' }, 403)
   }
+
+  // Проверка ключа — после авторизации: состав секретов не повод рассказывать
+  // о себе анониму.
+  if (!kieKey) return json({ error: 'KIE_API_KEY не задан в секретах функции' }, 500)
 
   let days = 30
   try {

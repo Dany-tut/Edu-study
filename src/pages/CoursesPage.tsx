@@ -257,8 +257,16 @@ export default function CoursesPage() {
         >
         <div
           ref={subjectPill.containerRef}
-          className="flex items-center gap-2"
-          style={{ position: 'relative', isolation: 'isolate' }}
+          className="flex gap-2"
+          style={{
+            position: 'relative', isolation: 'isolate',
+            // ВЕРХ, а не центр: длинное название курса переносится на вторую
+            // строку, строка от этого становится выше — и по центру все
+            // остальные таблетки уезжали вниз на половину этой разницы. На
+            // телефоне это шапка экрана, и она обязана стоять там же, где
+            // шапки соседних (замер на устройстве: 90 против 84 у урока).
+            alignItems: isDesktop ? 'center' : 'flex-start',
+          }}
         >
         {subjectPill.pillRect && (
           <motion.span
