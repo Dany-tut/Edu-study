@@ -172,6 +172,13 @@ let lastPath = ''
 /** Call on every route change — records dwell time for the previous page. */
 export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   if (path === lastPath) return
+  // Якорь внутри страницы («#modes», «#tariffs» в навигации лендинга) — не
+  // переход: адрес меняется, а экран тот же. Роутер их и так не разбирает —
+  // маршруты все вида «#/…». А телеметрия считала каждый такой клик уходом:
+  // «#/landing» закрывался визитом на пару секунд (до первого клика по меню),
+  // и заводилась страница-призрак «#modes» с нулевым временем — обе как раз
+  // висели в bounce-риске.
+  if (path.startsWith('#') && !path.startsWith('#/')) return
 
   recordDwell()
 
