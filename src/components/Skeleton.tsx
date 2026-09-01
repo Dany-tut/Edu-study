@@ -68,9 +68,40 @@ function SkeletonList({ rows = 4, gap = 12, style }: { rows?: number; gap?: numb
   );
 }
 
+
+/**
+ * Ряды карточек — та же геометрия, что у TrainerSkeleton.
+ *
+ * Витрины тренажёра (сцены, лента, справочник) ждут свой чанк уже ПОСЛЕ того,
+ * как страница показала карточный скелетон: строки текста на их месте читались
+ * третьим по счёту экраном ожидания, и содержимое каждый раз ехало на новое
+ * место. Одна форма на весь путь — один переход вместо трёх.
+ */
+function SkeletonCards({ rows = 3, gap = 12, style }: { rows?: number; gap?: number; style?: React.CSSProperties }) {
+  return (
+    <span style={{ display: 'flex', flexDirection: 'column', gap, ...style }}>
+      {Array.from({ length: rows }).map((_, i) => (
+        <span
+          key={i}
+          style={{
+            display: 'flex', flexDirection: 'column', gap: 9,
+            padding: '16px 18px', borderRadius: 18,
+            background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
+            opacity: i >= rows - 2 ? 1 - (i - (rows - 3)) * 0.26 : 1,
+          }}
+        >
+          <SkeletonBase w={170} h={12} />
+          <SkeletonBase w={`${64 - (i % 3) * 9}%`} h={17} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export const Skeleton = Object.assign(SkeletonBase, {
   Text: SkeletonText,
   List: SkeletonList,
+  Cards: SkeletonCards,
 });
 
 export default Skeleton;

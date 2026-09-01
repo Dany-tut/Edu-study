@@ -2498,7 +2498,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   if (mode === 'grammar') {
     content = gram === undefined ? (
-      <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
+      <Skeleton.Cards rows={3} />
     ) : gram === null ? (
       <ShellEmpty text="Для этого языка справочник пока не написан." />
     ) : openForm ? (
@@ -2526,7 +2526,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (scenesOn) {
     content = scenes === undefined ? (
-      <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
+      <Skeleton.Cards rows={3} />
     ) : openWork ? (
       <WorkPage
         work={openWork}
@@ -2550,7 +2550,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (feedOn) {
     content = feed === undefined ? (
-      <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
+      <Skeleton.Cards rows={3} />
     ) : (
       <FeedList
         items={feedShown}
