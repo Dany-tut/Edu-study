@@ -470,8 +470,8 @@ function buildStage(under: Snapshot | null): Stage {
    * встречи слева направо: первая с первой, вторая со второй. Лишние (у
    * одного экрана чипсов больше) остаются без пары и растворяются.
    */
-  const pairMorphs = (from: HTMLElement, to: HTMLElement | null) => {
-    if (!to) return
+  const pairMorphs = (fromChipsAll: HTMLElement[], toChipsAll: HTMLElement[]) => {
+    if (fromChipsAll.length === 0) return
     const base = pinLayer.getBoundingClientRect()
     const rel = (el: HTMLElement) => {
       const b = el.getBoundingClientRect()
@@ -483,9 +483,11 @@ function buildStage(under: Snapshot | null): Stage {
     // под ней — и уровень, и колокольчик.
     const pairs: [HTMLElement, HTMLElement, number][] = []
     const taken = new Set<HTMLElement>()
-    for (const a of Array.from(from.querySelectorAll<HTMLElement>(`[${MORPH_ATTR}]`))) {
-      if (!visible(a)) continue
-      const b = pickVisible(to, `[${MORPH_ATTR}="${a.getAttribute(MORPH_ATTR)}"]`)
+    // Именованные пары — исключения, разбираются первыми.
+    for (const a of fromChipsAll) {
+      const name = a.getAttribute(MORPH_ATTR)
+      if (!name) continue
+      const b = toChipsAll.find(el => el.getAttribute(MORPH_ATTR) === name && !taken.has(el))
       if (!b) continue
       pairs.push([a, b, 0])
       taken.add(a).add(b)
@@ -506,8 +508,8 @@ function buildStage(under: Snapshot | null): Stage {
       const b = el.getBoundingClientRect()
       return b.left + b.width / 2
     }
-    const fromChips = chips(from).filter(el => !taken.has(el) && !pairs.some(([a]) => a.contains(el)))
-    const toChips = chips(to).filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
+    const fromChips = fromChipsAll.filter(el => !taken.has(el) && !pairs.some(([a]) => a.contains(el)))
+    const toChips = toChipsAll.filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
     const reach = W * DROP_REACH
     const edgeReach = W * EDGE_REACH
     // Край, за который держится корпус: у прижатой вправо — правый.
@@ -796,6 +798,43 @@ function buildStage(under: Snapshot | null): Stage {
    */
   const zeroOrigin = { left: 0, top: 0 }
 
+  /**
+   * Шапка экрана БЕЗ разметки.
+   *
+   * Метку `data-swipe-pin` носят не все экраны, а поведение должно быть
+   * одинаковым везде. Признаки шапки: таблетка стоит в верхней полосе экрана,
+   * невысокая и лежит в поднятом слое (fixed/absolute/sticky где-то по цепочке
+   * родителей) — то есть плавает над содержимым, а не едет с ним. Содержимое
+   * страницы под это не подходит и остаётся при странице.
+   */
+  const HEADER_BAND = 120
+  const HEADER_MAX_H = 64
+  const floats = (el: HTMLElement) => {
+    for (let n: HTMLElement | null = el, i = 0; n && i < 8; n = n.parentElement, i++) {
+      const pos = getComputedStyle(n).position
+      if (pos === 'fixed' || pos === 'absolute' || pos === 'sticky') return true
+    }
+    return false
+  }
+  const headerChips = (scope: ParentNode, top0 = 0) => {
+    // Сначала геометрия, и только для выживших — стили: снимать computed style
+    // со всего дерева на старте жеста нельзя, это те самые кадры, за которые
+    // палец уже уехал.
+    const near: HTMLElement[] = []
+    for (const el of Array.from(scope.querySelectorAll<HTMLElement>('*'))) {
+      const b = el.getBoundingClientRect()
+      if (!b.width || !b.height || b.height > HEADER_MAX_H) continue
+      if (b.bottom - top0 < 0 || b.top - top0 >= HEADER_BAND) continue
+      if (wrap.contains(el) || pinLayer.contains(el)) continue
+      near.push(el)
+    }
+    const found = near.filter(el =>
+      parseFloat(getComputedStyle(el).borderTopLeftRadius) >= 14 && visible(el) && floats(el))
+    return found
+      .filter(el => !found.some(other => other !== el && el.contains(other)))
+      .sort((l, r) => l.getBoundingClientRect().left - r.getBoundingClientRect().left)
+  }
+
   const densest = (found: HTMLElement[]) => {
     if (found.length < 2) return found[0] ?? null
     const rank = (el: HTMLElement) => {
@@ -820,14 +859,7 @@ function buildStage(under: Snapshot | null): Stage {
     if (!live) continue
     const twin = pickVisible(underEl, `[${PIN_ATTR}="${kind}"]`)
 
-    if (kind === 'top') {
-      // Шапку НЕ закрепляем целиком. Закреплённая шапка вставала поперёк
-      // стыка: заголовок урока тянулся сразу через оба экрана, а корпуса
-      // кнопок оставались пустыми. Стоят и перетекают только те таблетки, у
-      // которых нашлась пара; всё остальное едет со страницей, как ехало.
-      pairMorphs(live, twin)
-      continue
-    }
+    if (kind === 'top') continue // шапки разбираются отдельно, ниже
 
     // Нижний бар — целиком: он один и тот же на всех экранах.
     const box = live.getBoundingClientRect()
@@ -842,6 +874,19 @@ function buildStage(under: Snapshot | null): Stage {
     if (twin) hide(twin)
   }
 
+
+  // ── Шапки ────────────────────────────────────────────────────────────────
+  // Шапку НЕ закрепляем целиком: закреплённая вставала поперёк стыка —
+  // заголовок урока тянулся сразу через оба экрана. Стоят и перетекают только
+  // таблетки; всё остальное едет со страницей, как ехало. Список берём по
+  // метке, а где метки нет — по виду (см. headerChips), чтобы жест вёл себя
+  // одинаково на любом экране.
+  const liveTop = densest(alive.filter(el => el.getAttribute(PIN_ATTR) === 'top'))
+  const underTop = pickVisible(underEl, `[${PIN_ATTR}="top"]`)
+  const underBase = underEl.getBoundingClientRect()
+  const liveChips = liveTop ? chips(liveTop) : headerChips(document.body)
+  const underChips = underTop ? chips(underTop) : headerChips(underEl, underBase.top)
+  pairMorphs(liveChips, underChips)
 
   /** Поставить морф на ход p — и на пальце, и в доводке одним кодом. */
   const setMorphs = (p: number) => {
