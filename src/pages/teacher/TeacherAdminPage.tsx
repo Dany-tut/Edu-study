@@ -73,14 +73,21 @@ function pct(used: number, limit: number) {
   return Math.min(100, Math.round((used / limit) * 100))
 }
 
-function MiniBar({ value }: { value: number }) {
-  const color = value >= 85 ? '#E04848' : value >= 60 ? '#D07020' : '#3FA867'
+function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React.ElementType; label: string; value: string; pct: number }) {
+  const color = value_pct >= 85 ? '#E04848' : value_pct >= 60 ? '#D07020' : '#3FA867'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--color-bg-3)' }}>
-        <div style={{ width: `${value}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.4s ease' }} />
+    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-3)', fontSize: 12, fontWeight: 500 }}>
+        <Icon size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       </div>
-      <span style={{ fontSize: 11, color: 'var(--color-text-3)', minWidth: 28, textAlign: 'right' }}>{value}%</span>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '6px 0 8px' }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>· {value_pct}%</span>
+      </div>
+      <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+        <div style={{ width: `${value_pct}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.4s ease' }} />
+      </div>
     </div>
   )
 }
@@ -1170,31 +1177,17 @@ export default function TeacherAdminPage() {
           </div>
         )}
 
-        {/* Storage */}
+        {/* Storage — compact tiles on the same 3-column grid as the stat cards above. */}
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Хранилище')}</div>
-          <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Database size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>{t('База данных')}</div>
-                <MiniBar value={dbPct} />
-              </div>
-              <span style={{ fontSize: 12, color: 'var(--color-text-3)', flexShrink: 0 }}>{storage ? fmtBytes(storage.db_bytes) : '—'}</span>
-            </div>
-            <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <HardDrive size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>{t('Файловое хранилище')}</div>
-                <MiniBar value={storagePct} />
-              </div>
-              <span style={{ fontSize: 12, color: 'var(--color-text-3)', flexShrink: 0 }}>{storage ? fmtBytes(storage.storage_bytes) : '—'}</span>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            <StorageTile icon={Database} label={t('База данных')} value={storage ? fmtBytes(storage.db_bytes) : '—'} pct={dbPct} />
+            <StorageTile icon={HardDrive} label={t('Файловое хранилище')} value={storage ? fmtBytes(storage.storage_bytes) : '—'} pct={storagePct} />
             <div
               onClick={() => setActivePage('storage')}
-              style={{ padding: '10px 18px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
+              style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}
             >
-              {t('Подробная статистика')} <ChevronRight size={13} />
+              {t('Подробная статистика')} <ChevronRight size={15} />
             </div>
           </div>
         </div>
