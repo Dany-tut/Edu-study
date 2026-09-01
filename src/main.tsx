@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
 import { recoverFromChunkError } from './lib/chunkError'
 import { guardStylesheet } from './lib/cssGuard'
+import './lib/pillProbe' // ВРЕМЕННО: замер шапки на устройстве, снять после разбора
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
 
 // ── PostHog — после первого кадра, отдельным чанком ──────────────────────────
