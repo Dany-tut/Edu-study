@@ -284,6 +284,12 @@ function InviteModal({ onClose }: { onClose: () => void }) {
  * экран это показывает (гасит их и подписывает). Так рубильник читается как
  * «выключить всё», а не как «ещё один флаг из списка».
  */
+// Первая фраза описания — название задачи, остальное — что будет, если её
+// выключить. Печатать `about` целиком нельзя: заголовок повторялся бы строкой
+// ниже слово в слово.
+const head = (about: string) => about.split(/(?<=\.)\s+/)[0]?.replace(/\.$/, '') ?? ''
+const tail = (about: string) => about.split(/(?<=\.)\s+/).slice(1).join(' ')
+
 function AiSwitches() {
   const t = useT()
   const [rows, setRows] = useState<Array<{ key: string; enabled: boolean; about: string }>>([])
@@ -340,12 +346,12 @@ function AiSwitches() {
             >
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 13.5, fontWeight: isMaster ? 700 : 600, color: 'var(--color-text)' }}>
-                  {isMaster ? t('Обращения к модели разрешены') : (r.about.split('.')[0] || r.key)}
+                  {isMaster ? t('Обращения к модели разрешены') : (head(r.about) || r.key)}
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 3, lineHeight: 1.45 }}>
                   {isMaster
                     ? t('Пока выключено, ни одна задача ниже не работает — даже поднятая.')
-                    : r.about}
+                    : tail(r.about)}
                 </div>
                 <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 3 }}>{r.key}</div>
               </div>
