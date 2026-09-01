@@ -132,9 +132,16 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   trackPageView(path, meta)
 }
 
+// Браузерное предупреждение, а не ошибка: ResizeObserver не успел разослать
+// уведомления за кадр и досылает их следующим. Ничего не ломается, но событие
+// приходит на каждый ресайз — за месяц оно дало 3000+ строк и вытеснило со
+// вкладки «Проблемы» все настоящие ошибки. Не пишем его вовсе.
+const IGNORED_ERROR = /^ResizeObserver loop/
+
 function installErrorTracking() {
   // JS runtime errors
   window.addEventListener('error', (e) => {
+    if (IGNORED_ERROR.test(String(e.message ?? ''))) return
     trackEvent('js_error', {
       msg: String(e.message ?? '').slice(0, 200),
       src: String(e.filename ?? '').replace(location.origin, '').slice(0, 120),
@@ -164,6 +171,11 @@ function installClickTracking() {
   document.addEventListener('click', (e) => {
     const w = window.innerWidth, h = window.innerHeight
     if (!w || !h) return
+    // Клик ровно в (0,0) — не палец: так приходят программные element.click(),
+    // активация кнопки с клавиатуры и проброс label → input. Координат у них
+    // нет, и все такие события ложились одной клеткой в левый верхний угол —
+    // 36% всех кликов, из-за чего на картах там горело красное пятно.
+    if (e.clientX === 0 && e.clientY === 0) return
     const xr = Math.min(1, Math.max(0, e.clientX / w))
     const yr = Math.min(1, Math.max(0, e.clientY / h))
     trackEvent('click', {
