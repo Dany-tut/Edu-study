@@ -209,6 +209,15 @@
   --shadow-widget-drag: inset 0 1px 0 rgba(255,255,255,0.85), 0 16px 48px rgba(21,18,31,0.18), 0 4px 12px rgba(21,18,31,0.10);
   /* Floating points badge on lesson cards — light contrasting pill */
   --lesson-badge-bg: rgba(255,255,255,0.68);
+
+  /* ── Стеклянная плитка (быстрый ряд и полоса статистики на главной) ──
+     Не заливка цветом, а материал: светлое стекло, освещённая верхняя грань
+     и тень под собой — плитка стоит НАД фоном, а не лежит в нём. Свечение
+     смысла (цвет раздела) подмешивается снизу через --tile-glow-a. */
+  --tile-glass-bg:     linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.60));
+  --tile-glass-border: rgba(255,255,255,0.92);
+  --tile-glass-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 6px 16px -6px rgba(21,18,31,0.22), 0 1px 3px rgba(21,18,31,0.06);
+  --tile-glow-a:       34%;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -333,6 +342,13 @@
   --shadow-widget-drag: inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 60px rgba(0,0,0,0.65), 0 6px 18px rgba(0,0,0,0.35);
   /* Darker translucent pill so the points badge sits on the card, not floats white above it */
   --lesson-badge-bg: rgba(0,0,0,0.28);
+
+  /* Стеклянная плитка в тёмной теме: тонкая плёнка света вместо белой заливки.
+     Свечение снизу берём крепче — на почти чёрном фоне мягкий подмес не виден. */
+  --tile-glass-bg:     linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.028));
+  --tile-glass-border: rgba(255,255,255,0.10);
+  --tile-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 20px -10px rgba(0,0,0,0.95);
+  --tile-glow-a:       55%;
 }
 
 /* Upgrade all backdrop-filter surfaces in dark mode to use saturate —

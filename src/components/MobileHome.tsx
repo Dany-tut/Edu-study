@@ -574,7 +574,7 @@ function HomeSkeleton() {
             зарезервирована постоянная высота, и одна полоска здесь означала бы
             прыжок ровно в момент, когда данные доехали. */}
         <Skeleton w="82%" h={19} style={{ margin: '5px 0 4px' }} />
-        <Skeleton w="56%" h={19} style={{ marginBottom: 13 }} />
+        <Skeleton w="56%" h={19} style={{ marginBottom: 12 }} />
         <Skeleton w="100%" h={5} radius={99} style={{ marginBottom: 10 }} />
         <div className="flex items-center justify-between">
           <Skeleton w={78} h={11} radius={999} />
@@ -625,7 +625,17 @@ function HomeSkeleton() {
 
 function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
   return (
-    <div style={{ flex: 1, minWidth: 0, borderRadius: 12, padding: '7px 8px', background: pair.bg, display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <div style={{
+      flex: 1, minWidth: 0, borderRadius: 12, padding: '7px 8px', boxSizing: 'border-box',
+      // Материал, а не заливка: стекло + освещённая верхняя грань + тень под
+      // собой (--tile-glass-* в index.css). Смысл несёт цвет цифры и подписи,
+      // поэтому цветная плашка больше не нужна — полоса перестала быть
+      // четырьмя разноцветными прямоугольниками и стала четырьмя предметами.
+      background: 'var(--tile-glass-bg)',
+      border: '1px solid var(--tile-glass-border)',
+      boxShadow: 'var(--tile-glass-shadow)',
+      display: 'flex', flexDirection: 'column', gap: 1,
+    }}>
       <div className="flex items-center" style={{ gap: 4 }}>
         <Icon size={13} style={{ color: pair.text, flexShrink: 0 }} />
         <div className="truncate" style={{ fontSize: 15, fontWeight: 800, color: pair.text, lineHeight: 1.1 }}>{value}</div>
@@ -638,7 +648,7 @@ function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value:
 // Высота плашки урока — постоянная. Курс переключается лентой под ней, и
 // «Продолжить», заглушка «Курс ещё не открыт» и скелетон — три разных блока на
 // одном месте: без общей высоты главная прыгала на каждом переключении.
-const HERO_MIN_H = 137
+const HERO_MIN_H = 142
 
 function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: Lesson; subjectName: string; progress: number; onContinue: () => void }) {
   const t = useT()
@@ -646,8 +656,13 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
   const label = status === 'current' ? t('Продолжить') : t('Начать')
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      // ПОЯВЛЯЕТСЯ ТОЛЬКО ПРОЗРАЧНОСТЬЮ, БЕЗ СДВИГА. Любой transform поднимает
+      // карточку в отдельный слой, и пока ехала анимация, её ореол лежал
+      // ПОВЕРХ полосы статистики, а на последнем кадре framer убирал transform
+      // — тень разом ныряла под плитки. Прыжок тени через секунду после входа
+      // на экран заметнее, чем отсутствующий сдвиг на 10 пикселей.
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       // Заливка и ореол — токенами, а не хексом: главная карточка красится в
       // цвет открытого курса (lib/courseTint.ts), и захардкоженный фиолетовый
@@ -665,8 +680,11 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
         // пикселей. Резерв дороже пустой строки: место постоянное, глаз держит
         // и кнопку «Продолжить», и первый пост ленты там, где их оставил.
         // Длинный заголовок по-прежнему обрезается на второй строке.
-        fontSize: 16, fontWeight: 800, margin: '4px 0 10px', lineHeight: 1.2,
-        minHeight: '2.4em',
+        // Высоты — целыми пикселями: карточка обязана совпасть по росту с
+        // заглушкой «Курс ещё не открыт» и со скелетоном (HERO_MIN_H), а
+        // дробные em давали пол-пикселя расхождения.
+        fontSize: 16, fontWeight: 800, margin: '4px 0 10px', lineHeight: '19px',
+        minHeight: 38,
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
       }}>
         {t('Занятие')} #{lesson.number + 1} · {lesson.title}
@@ -685,7 +703,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
           // (он для текста на мягкой ЗАЛИВКЕ), и на белом «Продолжить» блёкло
           // выцветало. control-accent затемнён до читаемого с белым в обеих
           // темах и так же уходит в цвет открытого курса.
-          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 12.5, padding: '7px 15px', borderRadius: 999, border: 'none' }}
+          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 12.5, lineHeight: '18px', padding: '7px 15px', borderRadius: 999, border: 'none' }}
         >
           <Play size={14} fill="var(--color-control-accent)" />
           {label}
@@ -734,12 +752,24 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
       style={{ gap: 5, background: 'none', border: 'none', padding: 0, minWidth: 0, flex: 1 }}
     >
       <span style={{
-        position: 'relative', width: 48, height: 48, borderRadius: 15,
-        background: p ? p.bg : 'var(--color-bg-5)',
+        position: 'relative', width: 48, height: 48, borderRadius: 15, boxSizing: 'border-box',
+        background: 'var(--tile-glass-bg)',
+        border: '1px solid var(--tile-glass-border)',
+        boxShadow: 'var(--tile-glass-shadow)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: p ? p.text : 'var(--color-text-2)',
       }}>
-        {icon}
+        {/* Свечение раздела — снизу, из-под плитки, а не заливкой по всей ней.
+            Плитка остаётся одним материалом на весь ряд (стекло), а «здесь есть
+            дело» читается подсветкой у основания и цветом самой иконки. Центр
+            радиуса ниже плитки (128%), поэтому у иконки фон всегда чистый. */}
+        {p && (
+          <span aria-hidden style={{
+            position: 'absolute', inset: 0, borderRadius: 'inherit', pointerEvents: 'none',
+            background: `radial-gradient(72% 72% at 50% 128%, color-mix(in srgb, ${p.text} var(--tile-glow-a), transparent), transparent 70%)`,
+          }} />
+        )}
+        <span style={{ position: 'relative', display: 'flex' }}>{icon}</span>
         {badge != null && badge > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4,
