@@ -26,8 +26,9 @@ import { useT } from '../lib/i18n'
 // ПОЧЕМУ ПОДСВЕТКА. Одного перекраса мало: «Акцент» и «Подложки» отличаются
 // заливками площадью в пару чипсов, а если курс синий, а бренд фиолетовый, то
 // разница — полтона на 30 пикселях, и переключатель кажется мёртвым. Поэтому
-// при смене уровня то, что этой сменой ЗАДЕТО, на секунду обводится кольцом:
-// видно не «стало чуть иначе», а «поменялось вот это, это и это». Обводятся
+// при смене уровня то, что этой сменой ЗАДЕТО, на секунду подсвечивается мягким
+// свечением (не жёсткой обводкой — она читалась как рамка элемента):
+// видно не «стало чуть иначе», а «поменялось вот это, это и это». Подсвечиваются
 // именно перешедшие ступени — с «Акцента» на «Среду» вспыхнут и подложки, и
 // фон. Ради той же разницы у «Подложек» добавлен ряд бейджей: на одном чипсе
 // ступень не прочитывается, на четырёх — прочитывается.
@@ -37,7 +38,7 @@ const ORDER: TintLevel[] = ['off', 'accent', 'soft', 'ambient']
 /** Ступень, на которой элемент впервые красится: 1 — акцент, 2 — подложки, 3 — среда. */
 type Tier = 1 | 2 | 3
 
-/** Обводка вокруг элемента, который только что перешёл границу уровня. */
+/** Мягкая подсветка элемента, который только что перешёл границу уровня. */
 function Zone({
   tier, flash, radius, children, style,
 }: {
@@ -60,8 +61,9 @@ function Zone({
           animate={{ opacity: [0, 1, 1, 0] }}
           transition={{ duration: 1.15, times: [0, 0.1, 0.55, 1], ease: 'easeOut' }}
           style={{
-            position: 'absolute', inset: -3, borderRadius: radius + 3,
-            border: '2px solid var(--color-accent)', pointerEvents: 'none',
+            position: 'absolute', inset: -4, borderRadius: radius + 4,
+            boxShadow: '0 0 0 1px color-mix(in srgb, var(--color-accent) 24%, transparent), 0 0 12px 2px color-mix(in srgb, var(--color-accent) 22%, transparent)',
+            pointerEvents: 'none',
           }}
         />
       )}
@@ -116,7 +118,8 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
           transition={{ duration: 1.15, times: [0, 0.1, 0.55, 1], ease: 'easeOut' }}
           style={{
             position: 'absolute', inset: 2, borderRadius: 16,
-            border: '2px solid var(--color-accent)', pointerEvents: 'none', zIndex: 3,
+            boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 24%, transparent), inset 0 0 16px 2px color-mix(in srgb, var(--color-accent) 18%, transparent)',
+            pointerEvents: 'none', zIndex: 3,
           }}
         />
       )}
