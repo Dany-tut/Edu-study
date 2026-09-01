@@ -258,6 +258,11 @@ export default function CoursesPage() {
         <div
           ref={subjectPill.containerRef}
           className="flex gap-2"
+          // Шапка этого экрана. Метка нужна явно: строка живёт в потоке
+          // страницы, а не в поднятом слое, и автопоиск шапки (он ищет
+          // плавающие таблетки, чтобы не хватать содержимое) её не берёт —
+          // без метки кружок «назад» не находил, во что перетекать.
+          data-swipe-pin="top"
           style={{
             position: 'relative', isolation: 'isolate',
             // ВЕРХ, а не центр: длинное название курса переносится на вторую
@@ -291,6 +296,9 @@ export default function CoursesPage() {
               <motion.button
                 key={s.id}
                 ref={subjectPill.registerItem(s.id)}
+                // Пара для свайпа «назад»: выбранный курс — та таблетка, в
+                // которую перетекает кружок «назад» с урока.
+                data-swipe-morph={isActive ? 'lead' : undefined}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => {
