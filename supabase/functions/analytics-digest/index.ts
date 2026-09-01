@@ -39,8 +39,15 @@ const KIE_URL = 'https://api.kie.ai/claude/v1/messages'
 // весь разбор. KIE_MODELS в секретах перекрывает список целиком; KIE_MODEL —
 // старое имя под одну модель, оставлено ради совместимости.
 const MODELS = (Deno.env.get('KIE_MODELS') ?? Deno.env.get('KIE_MODEL') ??
-  'claude-opus-4-8,claude-sonnet-4-5,claude-haiku-4-5')
+  'claude-opus-4-8,claude-sonnet-4-5,claude-haiku-4-5,gpt-5-6-sol')
   .split(',').map(m => m.trim()).filter(Boolean)
+
+// Один и тот же адрес обслуживает две разные формы запроса: шлюз kie.ai
+// маршрутизирует ПО ИМЕНИ МОДЕЛИ. Claude-модели ждут Anthropic Messages
+// (messages + max_tokens), остальные — OpenAI Responses (input + instructions +
+// max_output_tokens) и присылают свой набор событий. Отсюда развилка ниже:
+// список моделей смешанный, и формат выбирается по имени, а не по адресу.
+const isClaude = (model: string) => model.startsWith('claude')
 
 const SYSTEM = `Ты аналитик продукта. Тебе дают СВОДКУ телеметрии учебной платформы
 (кабинет ученика и кабинет учителя, SPA на хеш-роутинге) и просят письменный разбор
@@ -81,16 +88,12 @@ const SYSTEM = `Ты аналитик продукта. Тебе дают СВО
 // невнятные 502, а поток честно присылает event: error с причиной
 // («no_available_account», когда у провайдера кончились аккаунты).
 async function askModel(key: string, model: string, stats: unknown, days: number) {
-  const body = {
-    model,
-    max_tokens: 4000,
-    stream: true,
-    system: SYSTEM,
-    messages: [{
-      role: 'user',
-      content: `Сводка телеметрии за ${days} дней:\n\n${JSON.stringify(stats)}`,
-    }],
-  }
+  const prompt = `Сводка телеметрии за ${days} дней:\n\n${JSON.stringify(stats)}`
+
+  const body = isClaude(model)
+    ? { model, max_tokens: 4000, stream: true, system: SYSTEM,
+        messages: [{ role: 'user', content: prompt }] }
+    : { model, max_output_tokens: 4000, stream: true, instructions: SYSTEM, input: prompt }
 
   const res = await fetch(KIE_URL, {
     method: 'POST',
@@ -119,20 +122,37 @@ async function askModel(key: string, model: string, stats: unknown, days: number
       if (!line) continue
       let ev: Record<string, unknown>
       try { ev = JSON.parse(line.slice(5).trim()) } catch { continue }
-      if (ev.type === 'error') {
-        const e = ev.error as { message?: string } | undefined
-        throw new Error(`kie.ai: ${e?.message ?? 'unknown error'}`)
+      const type = String(ev.type ?? '')
+
+      // Отказ приходит одинаково в обеих формах — но у Responses ещё и как
+      // терминальный статус самого ответа.
+      if (type === 'error' || type === 'response.failed') {
+        const e = (ev.error ?? (ev.response as { error?: unknown })?.error) as { message?: string } | undefined
+        throw new Error(`kie.ai: ${e?.message ?? ev.message ?? 'unknown error'}`)
       }
-      if (ev.type === 'content_block_delta') {
+
+      // ── Anthropic Messages ──
+      if (type === 'content_block_delta') {
         const d = ev.delta as { text?: string } | undefined
         if (d?.text) text += d.text
       }
-      if (ev.type === 'message_start') {
+      if (type === 'message_start') {
         const u = (ev.message as { usage?: { input_tokens?: number } })?.usage
         tokensIn = u?.input_tokens ?? 0
       }
-      if (ev.type === 'message_delta') {
+      if (type === 'message_delta') {
         const u = ev.usage as { output_tokens?: number } | undefined
+        tokensOut = u?.output_tokens ?? tokensOut
+      }
+
+      // ── OpenAI Responses ──
+      // Здесь delta — просто строка, а не объект, поэтому проверка типа.
+      if (type === 'response.output_text.delta' && typeof ev.delta === 'string') {
+        text += ev.delta
+      }
+      if (type === 'response.completed' || type === 'response.incomplete') {
+        const u = (ev.response as { usage?: { input_tokens?: number; output_tokens?: number } })?.usage
+        tokensIn  = u?.input_tokens  ?? tokensIn
         tokensOut = u?.output_tokens ?? tokensOut
       }
     }
