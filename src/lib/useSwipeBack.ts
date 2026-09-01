@@ -122,6 +122,14 @@ const MORPH_ATTR = 'data-swipe-morph'
  * ширине кнопки (кружок 38px) смена читалась бы щелчком.
  */
 const SEAM_SPAN = 150
+/**
+ * Где по таблетке проходит начало её хода (доля ширины от левого края).
+ *
+ * Не середина: широкий чип от неё трогался слишком поздно и потом спешил —
+ * до края экрана ему оставалось всего полсотни пикселей. Четверть — край
+ * карточки уже заметно зашёл под таблетку, но она ещё вся на виду.
+ */
+const SEAM_BITE = 0.25
 /** Дальше этой доли ширины экрана таблетки в пару не сводятся. */
 const DROP_REACH = 0.35
 /**
@@ -531,7 +539,7 @@ function buildStage(under: Snapshot | null): Stage {
       place(clone, live.getBoundingClientRect(), zeroOrigin)
       hide(live)
       const inner = wrapKids(clone)
-      const start = ra.left + ra.w / 2
+      const start = ra.left + ra.w * SEAM_BITE
       const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
       const fade = (raw: number) => smooth(Math.min(1, Math.max(0, (raw * W - start) / span)))
       // Гаснет ВЕСЬ корпус, а не только содержимое. Пары нет — значит на месте
@@ -614,7 +622,7 @@ function buildStage(under: Snapshot | null): Stage {
       // Но не длиннее того, что осталось до края экрана: у таблетки, прижатой
       // вправо, карточка выходит из-под неё в самом конце, и полный ход она бы
       // не доиграла — на отпускании кнопка сменилась бы рывком.
-      const start = ra.left + ra.w / 2
+      const start = ra.left + ra.w * SEAM_BITE
       // 0.85 остатка, а не весь: морф обязан ЗАКОНЧИТЬСЯ до того, как карточка
       // уйдёт с экрана. Иначе на отпускании кнопка досменивалась бы рывком уже
       // при снятии слоя.
