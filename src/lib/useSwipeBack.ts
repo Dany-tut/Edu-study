@@ -662,13 +662,22 @@ function buildStage(under: Snapshot | null): Stage {
       // Прозрачность — на КОРПУСАХ (вместе с их тенью и стеклом), размытие и
       // масштаб — на содержимом. У отпочковавшейся половины уходящего
       // содержимого нет: оно живёт на первой, иначе стрелка двоилась бы.
-      const solid = (raw: number) => (nth > 0 ? smooth(Math.min(1, q(raw) * 2)) : 1)
+      //
+      // Отпочковавшаяся половина РОЖДАЕТСЯ, а не выезжает: заливка у неё сразу
+      // полная, а недостающее добирается размытием — пока корпус ещё не набрал
+      // плотность, он размыт, и таблетка словно лепится из первой. Полупрозрачный
+      // корпус на её месте читался как чужая таблетка, проехавшая поверх.
+      const born = (raw: number) => smooth(Math.min(1, q(raw) * 2.4))
       morphs.push({
         el: a,
-        at: raw => ({ opacity: String((nth > 0 ? 0 : 1 - smooth(q(raw))) * solid(raw)) }),
+        at: raw => ({ opacity: String(nth > 0 ? 0 : 1 - smooth(q(raw))) }),
       }, {
         el: b,
-        at: raw => ({ opacity: String(smooth(q(raw)) * solid(raw)) }),
+        at: raw => {
+          if (nth === 0) return { opacity: String(smooth(q(raw))), filter: 'none' }
+          const t = born(raw)
+          return { opacity: String(t), filter: `blur(${MORPH_BLUR * (1 - t)}px)` }
+        },
       }, {
         el: ia,
         at: raw => {
