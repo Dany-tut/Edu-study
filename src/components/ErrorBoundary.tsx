@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { trackEvent } from '../lib/analytics'
+import { recoverFromChunkError } from '../lib/chunkError'
 import { t } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import FeedbackModal from './FeedbackModal'
@@ -39,6 +40,10 @@ export default class ErrorBoundary extends Component<Props, State> {
         component: componentStack,
       })
     } catch { /* never let reporting throw inside the boundary */ }
+    // «Чанк пропал после деплоя» — не крах приложения, а устаревшая вкладка:
+    // забираем свежий index.html одной перезагрузкой (гард внутри), вместо того
+    // чтобы показывать «Что-то пошло не так» тому, кто ни в чём не виноват.
+    try { recoverFromChunkError(String(error?.message ?? error ?? '')) } catch { /**/ }
   }
 
   /**
