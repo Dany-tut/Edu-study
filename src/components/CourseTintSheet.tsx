@@ -77,13 +77,19 @@ export function CourseTintSettings({ surface = 'rgba(var(--glass-rgb), 0.98)' }:
         <div style={labelStyle}>{t('Насколько красить')}</div>
         <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {TINT_LEVELS.map((l, i) => (
-            <div key={l.id} style={{ padding: '12px 15px', borderTop: i ? '1px solid var(--color-border-soft)' : 'none' }}>
+            <div key={l.id} style={{ borderTop: i ? '1px solid var(--color-border-soft)' : 'none' }}>
               <Radio
                 name="tint-level"
                 checked={level === l.id}
                 onChange={() => { tactile(); setLevel(l.id) }}
                 align="start"
-                labelStyle={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}
+                // Отступы ряда живут на самой подписи: тап засчитывается по
+                // всей строке, а не по буквам — палец в ряд шириной с экран
+                // попадает где угодно, кроме как раньше в пустоту справа.
+                labelStyle={{
+                  display: 'flex', width: '100%', padding: '12px 15px',
+                  fontSize: 15, fontWeight: 550, color: 'var(--color-text)',
+                }}
               >
                 <span style={{ display: 'block' }}>{t(l.label)}</span>
                 <span style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>
