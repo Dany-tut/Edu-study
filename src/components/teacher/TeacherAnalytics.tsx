@@ -534,9 +534,11 @@ export default function TeacherAnalytics() {
     if (rageHots.length === 0) L.push('— нет')
     for (const r of rageHots) L.push(`- ${r.cnt}× ${r.element} — ${r.path}`)
 
-    // Group the raw log so 800 copies of one bug read as one line.
+    // Group the raw log so 800 copies of one bug read as one line. Rage-клики
+    // сюда не идут: у них нет ни msg, ни src, и вся пачка сходилась в одну
+    // бессмысленную строку «37× null @ null:null» — своя секция у них выше.
     const groups = new Map<string, { n: number; last: string; ev: string; paths: Set<string> }>()
-    for (const e of recentErrors) {
+    for (const e of recentErrors.filter(e => e.event !== 'rage_click')) {
       const key = `${e.event}|${e.msg}|${e.src}|${e.line}`
       const g = groups.get(key) ?? { n: 0, last: e.created_at, ev: e.event, paths: new Set<string>() }
       g.n++
@@ -545,7 +547,8 @@ export default function TeacherAnalytics() {
       groups.set(key, g)
     }
     const sorted = [...groups.entries()].sort((a,b) => b[1].n - a[1].n)
-    L.push('', `## Лог ошибок · ${recentErrors.length} записей, ${sorted.length} уникальных`)
+    const logged = sorted.reduce((n, [, g]) => n + g.n, 0)
+    L.push('', `## Лог ошибок · ${logged} записей, ${sorted.length} уникальных`)
     if (sorted.length === 0) L.push('— нет')
     for (const [key, g] of sorted) {
       const [, msg, src, line] = key.split('|')

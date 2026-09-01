@@ -221,6 +221,41 @@ function installErrorTracking() {
   })
 }
 
+/**
+ * Слежение за адресом. Обязательно СВОЁ, а не только эффект по хешу в App.tsx.
+ *
+ * Половина экранов переписывает адрес через `history.replaceState` — намеренно:
+ * переход между темами тренажёра или открытие домашки не должны копиться в
+ * «Назад» (см. lib/trainerLink и DashboardPage). Но replaceState и pushState
+ * НЕ поднимают `hashchange`, а useHashRoute в App.tsx слушает только его —
+ * поэтому trackPath на этих экранах не вызывался вовсе. В базе это выглядело
+ * так: у #/homework/seed-kohg-84fe210b-2 двести тридцать один клик и НОЛЬ
+ * page_view, а «кликов на просмотр» доходило до 437.
+ *
+ * Здесь патчатся оба метода истории — но только чтобы разослать событие; сама
+ * навигация не меняется, роутинг по-прежнему живёт на hashchange, и «Назад»
+ * работает как раньше. trackPath сам отбрасывает повтор того же адреса, так что
+ * эффект в App.tsx и этот слушатель друг друга не задваивают.
+ */
+function installRouteTracking() {
+  const EVENT = 'app:locationchange'
+  const notify = () => window.dispatchEvent(new Event(EVENT))
+
+  for (const name of ['pushState', 'replaceState'] as const) {
+    const original = history[name]
+    history[name] = function (this: History, ...args: Parameters<History['pushState']>) {
+      const result = original.apply(this, args)
+      notify()
+      return result
+    }
+  }
+
+  const record = () => trackPath(location.hash || location.pathname || '#/')
+  window.addEventListener(EVENT, record)
+  window.addEventListener('hashchange', record)
+  window.addEventListener('popstate', record)
+}
+
 function installClickTracking() {
   // Normalised click coordinates per screen — feeds the spatial heatmaps.
   // Records only viewport-relative fractions (0..1) + viewport size; no target
@@ -243,6 +278,28 @@ function installClickTracking() {
   }, { passive: true })
 }
 
+// Подпись места, куда долбят пальцем. Три ловушки — все три видны в отчёте:
+//   • у SVG className не строка, а SVGAnimatedString, и в лог падало
+//     «[object SVGAnimatedString]»;
+//   • innerText у SVG вовсе undefined — подпись пустая;
+//   • у крупного контейнера innerText — простыня в несколько строк (условие
+//     задания целиком), и она же становилась «названием элемента».
+// Берём ближайшего интерактивного предка — по нему и кликают, а событие
+// приходит от вложенной иконки или строки текста, — и сжимаем подпись в строку.
+function rageLabel(target: EventTarget | null): Record<string, unknown> {
+  const start = target instanceof Element ? target : null
+  if (!start) return {}
+  const el = start.closest('button, a, [role="button"], input, select, label, summary') ?? start
+  const raw = el.getAttribute('aria-label') || (el as HTMLElement).innerText || el.textContent || ''
+  const text = raw.replace(/\s+/g, ' ').trim().slice(0, 60)
+  const cls = (typeof el.className === 'string' ? el.className : el.getAttribute('class') ?? '').slice(0, 80)
+  return {
+    tag: el.tagName.toLowerCase(),
+    text: text || undefined,
+    cls: cls || undefined,
+  }
+}
+
 function installRageClickTracking() {
   // 4+ clicks on the same element within 800ms = rage click (user frustration signal)
   let clicks: number[] = []
@@ -253,12 +310,7 @@ function installRageClickTracking() {
     clicks = clicks.filter(t => now - t < 800)
     clicks.push(now)
     if (clicks.length >= 4) {
-      const el = e.target as HTMLElement
-      trackEvent('rage_click', {
-        tag: el.tagName?.toLowerCase(),
-        text: el.innerText?.slice(0, 60),
-        cls: el.className?.toString().slice(0, 80),
-      })
+      trackEvent('rage_click', rageLabel(e.target))
       clicks = []
       void flush()
     }
@@ -301,4 +353,5 @@ export function initAnalytics() {
   installErrorTracking()
   installRageClickTracking()
   installClickTracking()
+  installRouteTracking()
 }
