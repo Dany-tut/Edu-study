@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
+import { retryImport } from './lib/chunkError'
 import DashboardPage from './pages/DashboardPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import LandingPage from './pages/LandingPage'
@@ -11,12 +12,12 @@ import LandingPage from './pages/LandingPage'
 // разу их не увидев. Точки входа взаимоисключающие (или #/teacher, или
 // кабинет ученика), так что ленивая загрузка не отнимает ничего у первого
 // кадра ни у той стороны, ни у другой.
-const TeacherDashboardPage = lazy(() => import('./pages/teacher/TeacherDashboardPage'))
-const TeacherLoginPage = lazy(() => import('./pages/teacher/TeacherLoginPage'))
-const JoinPage = lazy(() => import('./pages/JoinPage'))
-const JoinTeacherPage = lazy(() => import('./pages/JoinTeacherPage'))
-const DiagnosticTestPage = lazy(() => import('./pages/DiagnosticTestPage'))
-const ReviewSession = lazy(() => import('./components/ReviewSession'))
+const TeacherDashboardPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherDashboardPage')))
+const TeacherLoginPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherLoginPage')))
+const JoinPage = lazy(() => retryImport(() => import('./pages/JoinPage')))
+const JoinTeacherPage = lazy(() => retryImport(() => import('./pages/JoinTeacherPage')))
+const DiagnosticTestPage = lazy(() => retryImport(() => import('./pages/DiagnosticTestPage')))
+const ReviewSession = lazy(() => retryImport(() => import('./components/ReviewSession')))
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'

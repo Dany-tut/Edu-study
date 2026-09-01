@@ -16,6 +16,7 @@ import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+import { retryImport } from '../lib/chunkError'
 import Skeleton from '../components/Skeleton'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
@@ -35,7 +36,7 @@ import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 // и до неё доходят не все и не сразу. Монтируется страница и так только при
 // activePage === 'trainer', так что ленивый импорт ничего не меняет по
 // поведению — только переносит вес за пределы первой загрузки.
-const TaskBankPage = lazy(() => import('./TaskBankPage'))
+const TaskBankPage = lazy(() => retryImport(() => import('./TaskBankPage')))
 
 // Заглушка ожидания чанка — НЕ lazy и без тяжёлых импортов: её вес целиком
 // уходит в главный чанк, и показать её нужно раньше всего остального.
@@ -45,7 +46,7 @@ import TrainerBootSkeleton from '../components/trainer/TrainerBootSkeleton'
 // activePage === 'homework', то есть после клика по уроку. Шкала самооценки,
 // которую рисуют узлы маршрута, вынесена в homeworkSteps.ts — иначе они тянули
 // бы весь модуль домашки обратно в главный чанк.
-const HomeworkFlow = lazy(() => import('../components/HomeworkFlow'))
+const HomeworkFlow = lazy(() => retryImport(() => import('../components/HomeworkFlow')))
 
 // Пока чанк тренажёра едет — сразу его скелет, а не пустой фон: иначе ожидание
 // шло тремя экранами подряд (белый → скелетон → содержимое). Дальше TaskBankPage

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+import { retryImport } from '../lib/chunkError'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send, X, GraduationCap, User, Check, Sparkles, ArrowRight,
@@ -14,7 +15,7 @@ import ThemeToggleBtn from '../components/ThemeToggleBtn'
 // (внутри Reveal, который и так ждёт прокрутки). Держать его в главном чанке
 // значит задерживать заголовок ради картинки, которую ещё не видно. Место под
 // него зарезервировано коробкой той же пропорции, чтобы страница не прыгнула.
-const ProductMock = lazy(() => import('../components/landing/ProductMock'))
+const ProductMock = lazy(() => retryImport(() => import('../components/landing/ProductMock')))
 
 const ACCENT = '#786AD7'          // фирменный фиолетовый (как в кабинете)
 const ACCENT_2 = '#6F3FBF'        // глубокий фиолет для градиента

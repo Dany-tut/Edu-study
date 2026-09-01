@@ -1,5 +1,6 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
+import { retryImport } from '../lib/chunkError'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 // ── Виджеты — по одному чанку на виджет ─────────────────────────────────────
 //
@@ -13,17 +14,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 // сеткой), и на время загрузки в нём пусто — как в первые кадры кабинета, пока
 // едут курсы. Соседняя страница карусели заказывается по перелистыванию: чанк
 // маленький и приезжает быстрее, чем доигрывает пружина.
-const QuizWidget = lazy(() => import('./QuizWidget'))
-const StatsWidget = lazy(() => import('./StatsWidget'))
-const ScienceFactsWidget = lazy(() => import('./ScienceFactsWidget'))
-const ReactionsWidget = lazy(() => import('./ReactionsWidget'))
-const PomodoroWidget = lazy(() => import('./PomodoroWidget'))
-const MemesWidget = lazy(() => import('./MemesWidget'))
-const QuestionOfDayWidget = lazy(() => import('./QuestionOfDayWidget'))
-const TrainerProgressWidget = lazy(() => import('./TrainerProgressWidget'))
-const StickersWidget = lazy(() => import('./StickersWidget'))
-const DailyDoseWidget = lazy(() => import('./DailyDoseWidget'))
-const FeedWidget = lazy(() => import('./FeedWidget'))
+const QuizWidget = lazy(() => retryImport(() => import('./QuizWidget')))
+const StatsWidget = lazy(() => retryImport(() => import('./StatsWidget')))
+const ScienceFactsWidget = lazy(() => retryImport(() => import('./ScienceFactsWidget')))
+const ReactionsWidget = lazy(() => retryImport(() => import('./ReactionsWidget')))
+const PomodoroWidget = lazy(() => retryImport(() => import('./PomodoroWidget')))
+const MemesWidget = lazy(() => retryImport(() => import('./MemesWidget')))
+const QuestionOfDayWidget = lazy(() => retryImport(() => import('./QuestionOfDayWidget')))
+const TrainerProgressWidget = lazy(() => retryImport(() => import('./TrainerProgressWidget')))
+const StickersWidget = lazy(() => retryImport(() => import('./StickersWidget')))
+const DailyDoseWidget = lazy(() => retryImport(() => import('./DailyDoseWidget')))
+const FeedWidget = lazy(() => retryImport(() => import('./FeedWidget')))
 import { useDashboard } from '../store/dashboardStore'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
