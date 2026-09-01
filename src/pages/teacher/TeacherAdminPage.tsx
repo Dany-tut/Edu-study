@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
@@ -12,6 +12,7 @@ import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsMa
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 import Checkbox from '../../components/Checkbox'
+import Switch from '../../components/Switch'
 import { fetchAppFlags, setAppFlag } from '../../lib/cardGroups'
 import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
@@ -270,6 +271,101 @@ function InviteModal({ onClose }: { onClose: () => void }) {
  * ТОЛЬКО У АДМИНА. Это рубильник на весь продукт: учитель не должен включать
  * фичу чужим ученикам (политика на app_flags так и написана).
  */
+/**
+ * Рубильники платных обращений к модели.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНЫМ БЛОКОМ, А НЕ СТРОКОЙ В «ФУНКЦИЯХ». Остальные флаги отвечают
+ * на вопрос «показывать ли это ученику» и ничего не стоят. Эти — про деньги:
+ * пока они подняты, платформа сама ходит в модель по ночам. Такое нельзя
+ * прятать среди настроек видимости, и форма другая по той же причине —
+ * переключатель («работает или нет»), а не галочка («выбрано из списка»).
+ *
+ * СВЯЗКА. Верхний ряд — стоп-кран: пока он опущен, остальные не работают, и
+ * экран это показывает (гасит их и подписывает). Так рубильник читается как
+ * «выключить всё», а не как «ещё один флаг из списка».
+ */
+function AiSwitches() {
+  const t = useT()
+  const [rows, setRows] = useState<Array<{ key: string; enabled: boolean; about: string }>>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    fetchAppFlags().then(list => {
+      if (!alive) return
+      // Общий рубильник — всегда первой строкой, остальные по алфавиту следом.
+      const ai = list.filter(r => r.key.startsWith('ai_'))
+      setRows([...ai.filter(r => r.key === 'ai_enabled'), ...ai.filter(r => r.key !== 'ai_enabled')])
+      setLoading(false)
+    })
+    return () => { alive = false }
+  }, [])
+
+  async function toggle(key: string, on: boolean) {
+    setBusy(key)
+    // Как и в «Функциях»: показываем сразу, откатываем, если база отказала.
+    setRows(list => list.map(r => (r.key === key ? { ...r, enabled: on } : r)))
+    const ok = await setAppFlag(key, on)
+    if (!ok) setRows(list => list.map(r => (r.key === key ? { ...r, enabled: !on } : r)))
+    setBusy(null)
+  }
+
+  if (loading || rows.length === 0) return null
+  const master = rows.find(r => r.key === 'ai_enabled')?.enabled ?? true
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+        <Sparkles size={13} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          {t('Расход на ИИ')}
+        </div>
+      </div>
+      <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
+        {rows.map((r, i) => {
+          const isMaster = r.key === 'ai_enabled'
+          const muted = !isMaster && !master
+          return (
+            <div
+              key={r.key}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 14,
+                padding: '14px 18px',
+                borderTop: i > 0 ? '1px solid var(--color-border)' : undefined,
+                background: isMaster ? 'var(--color-bg-3)' : undefined,
+                opacity: muted ? 0.45 : 1,
+                transition: 'opacity 0.15s',
+              }}
+            >
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: isMaster ? 700 : 600, color: 'var(--color-text)' }}>
+                  {isMaster ? t('Обращения к модели разрешены') : (r.about.split('.')[0] || r.key)}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 3, lineHeight: 1.45 }}>
+                  {isMaster
+                    ? t('Пока выключено, ни одна задача ниже не работает — даже поднятая.')
+                    : r.about}
+                </div>
+                <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 3 }}>{r.key}</div>
+              </div>
+              <Switch
+                checked={r.enabled}
+                disabled={busy === r.key}
+                onChange={v => toggle(r.key, v)}
+                label={r.about || r.key}
+              />
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
+        {t('Ночная сборка ленты читает эти рубильники перед первым запросом к модели: выключенная задача стоит ноль. Изменение действует со следующего прогона (04:30 UTC).')}
+      </div>
+    </div>
+  )
+}
+
 function FeatureFlags() {
   const t = useT()
   const [rows, setRows] = useState<Array<{ key: string; enabled: boolean; about: string }>>([])
@@ -278,7 +374,9 @@ function FeatureFlags() {
 
   useEffect(() => {
     let alive = true
-    fetchAppFlags().then(list => { if (alive) { setRows(list); setLoading(false) } })
+    // Рубильники ИИ отсюда убраны намеренно: у них свой блок выше. Здесь —
+    // «что показывать ученику», там — «на что тратить деньги».
+    fetchAppFlags().then(list => { if (alive) { setRows(list.filter(r => !r.key.startsWith('ai_'))); setLoading(false) } })
     return () => { alive = false }
   }, [])
 
@@ -1026,6 +1124,8 @@ export default function TeacherAdminPage() {
             loading={firstLoad}
           />
         </div>
+
+        <AiSwitches />
 
         <FeatureFlags />
 

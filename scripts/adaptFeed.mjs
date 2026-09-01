@@ -47,6 +47,7 @@ import { dirname, join } from 'node:path'
 import { z } from 'zod'
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { aiAllowed } from './aiFlag.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const dataDir = join(root, 'src/data')
@@ -63,6 +64,11 @@ const PLAN = has('plan')
 const FAKE = has('fake')
 const ONLY = flag('lang', null)
 const LIMIT = Number(flag('limit', 2))
+
+// Рубильник из админки. Спрашиваем ДО первого запроса к модели и до всякой
+// работы: пропущенный прогон должен стоить ноль, а не «почти ноль». В режиме
+// без сети (--fake) не спрашиваем вовсе — там и тратить нечего.
+if (!FAKE && !(await aiAllowed('ai_feed_adapt'))) process.exit(0)
 
 /**
  * Сколько пересказов держим на язык.

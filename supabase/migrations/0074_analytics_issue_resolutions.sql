@@ -26,3 +26,31 @@ alter table public.analytics_issue_resolutions enable row level security;
 drop policy if exists analytics_issue_resolutions_admin_all on public.analytics_issue_resolutions;
 create policy analytics_issue_resolutions_admin_all on public.analytics_issue_resolutions
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- ── Rage-точки тоже закрываются ──────────────────────────────────────────────
+--
+-- У них своя подпись — `rage|экран|элемент`, потому что «текст кнопки» и есть
+-- то, что чинят. Чтобы закрытие вело себя как у ошибок (вернулось — значит
+-- открыто снова), функции не хватало одного поля: когда точка сработала в
+-- последний раз. Без него «старое закрыто» и «случилось опять» неразличимы.
+create or replace function public.admin_rage_hotspots(p_days integer default 30)
+returns table(path text, element text, cnt bigint, last_at timestamptz)
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  if not public.is_admin() then raise exception 'forbidden'; end if;
+  return query
+    select
+      ae.path,
+      coalesce(ae.meta->>'text', ae.meta->>'cls', ae.meta->>'tag', '—') as element,
+      count(*)::bigint,
+      max(ae.created_at)
+    from analytics_events ae
+    where ae.event = 'rage_click'
+      and ae.created_at > now() - make_interval(days => p_days)
+    group by ae.path, element
+    order by 3 desc
+    limit 20;
+end; $function$;

@@ -938,6 +938,12 @@ export default function LessonPage() {
 
         <div
           className="flex items-center flex-shrink-0"
+          // Пара для свайпа «назад»: дата перетекает в дату экрана под ней.
+          // По именам, а не по геометрии: докнутый чип даты сжимается до
+          // одного числа, и по порогам близости (useSwipeBack.ts, DROP_REACH /
+          // EDGE_REACH) пара переставала собираться — дата нижнего экрана
+          // просто лежала на месте и просвечивала сквозь уходящую.
+          data-swipe-morph="date"
           style={{
             gap: 6, padding: '0 16px', height: MOBILE_PILL_H, boxSizing: 'border-box',
             borderRadius: 999, border: '1px solid var(--color-border-soft)',
@@ -1008,6 +1014,8 @@ export default function LessonPage() {
                 follows its content per-frame, so it glides between the two. */}
             <div
               className="flex items-center flex-shrink-0"
+              // Та же именованная пара, что и у шапки в покое (см. выше).
+              data-swipe-morph="date"
               style={{
                 overflow: 'hidden',
                 padding: '9px 14px', borderRadius: 999,

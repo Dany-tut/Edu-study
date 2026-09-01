@@ -38,6 +38,7 @@ import { dirname, join } from 'node:path'
 import { z } from 'zod'
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { aiAllowed } from './aiFlag.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const dataDir = join(root, 'src/data/feed')
@@ -52,6 +53,11 @@ const WRITE = has('write')
 const FAKE = has('fake')
 const ONLY = flag('lang', null)
 const LIMIT = Number(flag('limit', 12))
+
+// Рубильник из админки. Спрашиваем ДО первого запроса к модели и до всякой
+// работы: пропущенный прогон должен стоить ноль, а не «почти ноль». В режиме
+// без сети (--fake) не спрашиваем вовсе — там и тратить нечего.
+if (!FAKE && !(await aiAllowed('ai_feed_translate'))) process.exit(0)
 
 // `parts` — все списки материалов языка в том же порядке, в каком их склеивает
 // LOADERS в data/feed/index.ts. У португальского пересказов ещё нет.
@@ -125,7 +131,12 @@ async function ask(item) {
     max_tokens: 16000,
     system: SYSTEM,
     thinking: { type: 'adaptive' },
-    output_config: { effort: 'high', format: zodOutputFormat(Translation) },
+    // Усилие НИЗКОЕ намеренно. Перевод — задача без развилок: думать тут не над
+    // чем, а рассуждение составляет большую часть выхода, и выход у Opus стоит
+    // впятеро дороже входа. На `high` материал обходился примерно в $0,05, на
+    // `low` — в разы дешевле при том же тексте. Если перевод начнёт врать на
+    // сложных местах, поднимать сюда, а не в промпт.
+    output_config: { effort: 'low', format: zodOutputFormat(Translation) },
     messages: [{
       role: 'user',
       content: `Переведи материал с ${LANGS[item.lang]?.name ?? item.lang} языка на русский.

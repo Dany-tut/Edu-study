@@ -23,11 +23,15 @@ type BreakdownRow = { event: string; cnt: number }
 type Funnel    = { assigned: number; started: number; submitted: number; completed: number }
 type PageStat  = { path: string; role: string; visits: number; avg_dwell_sec: number | null; errors: number; rage_clicks: number }
 type ErrorRow  = { created_at: string; role: string; path: string; event: string; msg: string; src: string; line: number; session_id: string }
-type RageHot   = { path: string; element: string; cnt: number }
+type RageHot   = { path: string; element: string; cnt: number; last_at: string }
 type Resolution = { signature: string; resolved_at: string; app_version: string | null }
 /** Подпись ошибки: тот же ключ, по которому лог группируется и в отчёте. */
 function errSignature(e: ErrorRow): string {
   return `${e.event}|${e.msg}|${e.src}|${e.line}`
+}
+/** Подпись rage-точки: чинят не отдельный клик, а «этот элемент на этом экране». */
+function rageSignature(r: RageHot): string {
+  return `rage|${r.path}|${r.element}`
 }
 type ClickPath = { path: string; teacher_clicks: number; student_clicks: number; total: number }
 type ClickCell = { gx: number; gy: number; cnt: number }
@@ -348,6 +352,7 @@ export default function TeacherAnalytics() {
   const [rageHots, setRageHots]           = useState<RageHot[]>([])
   const [resolutions, setResolutions]     = useState<Resolution[]>([])
   const [showClosed, setShowClosed]       = useState(false)
+  const [showClosedRage, setShowClosedRage] = useState(false)
   const [geo, setGeo]                     = useState<GeoRow[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
   const [copied, setCopied]               = useState(false)
@@ -527,7 +532,6 @@ export default function TeacherAnalytics() {
   const openErrors   = errorRows.filter(e => !isResolved(e))
   const closedErrors = errorRows.length - openErrors.length
   const totalErrors  = openErrors.length
-  const totalRage    = recentErrors.filter(e => e.event === 'rage_click').length
 
   /** Группировка лога: 800 копий одного бага — одна строка с кнопкой «Закрыть». */
   type ErrGroup = { key: string; sample: ErrorRow; n: number; last: string; paths: string[]; closed: boolean; version: string | null }
@@ -549,6 +553,18 @@ export default function TeacherAnalytics() {
   })()
   const openGroups = errGroups.filter(g => !g.closed)
 
+  // Rage-точки живут по тем же правилам: закрытая уходит из счётчика, но если
+  // на этот же элемент снова накликали ПОСЛЕ закрытия — точка открывается сама.
+  const rageWithState = rageHots.map(r => {
+    const at = resolvedAt.get(rageSignature(r))
+    return { ...r, closed: !!at && r.last_at <= at }
+  })
+  const openRage   = rageWithState.filter(r => !r.closed)
+  const closedRage = rageWithState.length - openRage.length
+  // Считаем по точкам, а не по сырым кликам: закрывается именно точка, и
+  // счётчик обязан уменьшаться ровно на то, что закрыли.
+  const totalRage  = openRage.reduce((n, r) => n + Number(r.cnt), 0)
+
   /** Закрыть/переоткрыть подпись. Пишем время «сейчас» — всё, что было раньше, уходит. */
   const resolveSignature = useCallback(async (signature: string, open: boolean) => {
     if (open) {
@@ -560,6 +576,15 @@ export default function TeacherAnalytics() {
     await supabase.from('analytics_issue_resolutions').upsert(row, { onConflict: 'signature' })
     setResolutions(prev => [...prev.filter(r => r.signature !== signature), row])
   }, [])
+
+  /** То же для rage-точек: одна кнопка на всю секцию. */
+  const resolveAllRage = useCallback(async () => {
+    const at = new Date().toISOString()
+    const rows = openRage.map(r => ({ signature: rageSignature(r), resolved_at: at, app_version: __APP_VERSION__ }))
+    if (rows.length === 0) return
+    await supabase.from('analytics_issue_resolutions').upsert(rows, { onConflict: 'signature' })
+    setResolutions(prev => [...prev.filter(r => !rows.some(x => x.signature === r.signature)), ...rows])
+  }, [openRage])
 
   /** «Всё разобрано» — закрывает разом все открытые подписи текущего окна. */
   const resolveAllOpen = useCallback(async () => {
@@ -594,9 +619,9 @@ export default function TeacherAnalytics() {
     if (slowPages.length === 0) L.push('— нет')
     for (const p of slowPages) L.push(`- ${p.path} [${p.role}] ${p.avg_dwell_sec}с, визитов ${p.visits}`)
 
-    L.push('', `## Rage-click точки (${rageHots.length})`)
-    if (rageHots.length === 0) L.push('— нет')
-    for (const r of rageHots) L.push(`- ${r.cnt}× ${r.element} — ${r.path}`)
+    L.push('', `## Rage-click точки (${openRage.length})`)
+    if (openRage.length === 0) L.push('— нет')
+    for (const r of openRage) L.push(`- ${r.cnt}× ${r.element} — ${r.path}`)
 
     // Group the raw log so 800 copies of one bug read as one line. Rage-клики
     // сюда не идут: у них нет ни msg, ни src, и вся пачка сходилась в одну
@@ -963,24 +988,47 @@ export default function TeacherAnalytics() {
           )}
 
           {/* Rage hotspots */}
-          {rageHots.length > 0 && (
+          {rageWithState.length > 0 && (
             <>
-              <SectionTitle>{t('Rage-click точки (где кликают в злости)')}</SectionTitle>
+              <SectionTitle action={
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  {closedRage > 0 && (
+                    <button onClick={() => setShowClosedRage(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                      {showClosedRage ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedRage}`}
+                    </button>
+                  )}
+                  {openRage.length > 0 && (
+                    <button onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
+                      <CheckCircle2 size={13}/>{t('Всё разобрано')}
+                    </button>
+                  )}
+                </div>
+              }>{t('Rage-click точки (где кликают в злости)')}</SectionTitle>
               <Card style={{ marginBottom:24 }}>
                 <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:10 }}>
                   {t('Многократные быстрые клики — признак нерабочего элемента или непонятного UX.')}
                 </div>
-                {rageHots.slice(0,8).map((r,i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
-                    borderBottom:i<Math.min(7,rageHots.length-1)?'1px solid var(--color-border)':undefined, fontSize:12 }}>
-                    <MousePointerClick size={12} style={{ color:'#D07020', flexShrink:0 }} />
-                    <div style={{ flex:1 }}>
-                      <div style={{ color:'var(--color-text)', fontWeight:500 }}>{r.element}</div>
-                      <div style={{ fontSize:10, color:'var(--color-text-3)' }}>{pLabel(r.path)}</div>
+                {(() => {
+                  const shown = rageWithState.filter(r => showClosedRage || !r.closed).slice(0,8)
+                  if (shown.length === 0) return <div style={{ fontSize:12, color:'#3FA867' }}>{t('Все точки разобраны')}</div>
+                  return shown.map((r,i) => (
+                    <div key={rageSignature(r)} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
+                      borderBottom:i<shown.length-1?'1px solid var(--color-border)':undefined, fontSize:12, opacity: r.closed ? 0.5 : 1 }}>
+                      <MousePointerClick size={12} style={{ color: r.closed ? '#3FA867' : '#D07020', flexShrink:0 }} />
+                      <div style={{ flex:1 }}>
+                        <div style={{ color:'var(--color-text)', fontWeight:500, textDecoration: r.closed?'line-through':undefined }}>{r.element}</div>
+                        <div style={{ fontSize:10, color:'var(--color-text-3)' }}>{pLabel(r.path)}</div>
+                      </div>
+                      <div style={{ fontWeight:700, color: r.closed ? 'var(--color-text-3)' : '#D07020' }}>{r.cnt}×</div>
+                      <button onClick={() => void resolveSignature(rageSignature(r), r.closed)}
+                        title={r.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
+                        style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
+                          color: r.closed ? 'var(--color-text-3)' : '#3FA867', padding:0 }}>
+                        {r.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={13}/>}
+                      </button>
                     </div>
-                    <div style={{ fontWeight:700, color:'#D07020' }}>{r.cnt}×</div>
-                  </div>
-                ))}
+                  ))
+                })()}
               </Card>
             </>
           )}

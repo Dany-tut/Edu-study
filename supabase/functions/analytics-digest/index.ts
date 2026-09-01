@@ -203,6 +203,21 @@ Deno.serve(async (req) => {
   // о себе анониму.
   if (!kieKey) return json({ error: 'KIE_API_KEY не задан в секретах функции' }, 500)
 
+  // ── Рубильник из админки ──────────────────────────────────────────────────
+  //
+  // Разбор — платный запрос, и выключатель ему тот же, что у ночной сборки
+  // ленты: Администрирование → Обзор → «Расход на ИИ». Нужны ОБА флага, общий и
+  // свой. Смотрим здесь, а не в расписании: по кнопке разбор запускают руками,
+  // и рубильник обязан держать оба пути.
+  //
+  // Читаем сервисным клиентом: строки app_flags открыты всем на чтение, но идти
+  // через RLS ради двух булевых значений незачем.
+  const { data: flags } = await admin
+    .from('app_flags').select('key, enabled').in('key', ['ai_enabled', 'ai_analytics_digest'])
+  const off = ['ai_enabled', 'ai_analytics_digest']
+    .filter(k => !flags?.find(f => f.key === k)?.enabled)
+  if (off.length) return json({ error: `Разбор выключен в админке (${off.join(', ')})` }, 409)
+
   let days = 30
   try {
     const b = await req.json()
