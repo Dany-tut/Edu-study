@@ -24,7 +24,7 @@ type Funnel    = { assigned: number; started: number; submitted: number; complet
 type PageStat  = { path: string; role: string; visits: number; avg_dwell_sec: number | null; errors: number; rage_clicks: number }
 type ErrorRow  = { created_at: string; role: string; path: string; event: string; msg: string; src: string; line: number; session_id: string }
 type RageHot   = { path: string; element: string; cnt: number; last_at: string }
-type Resolution = { signature: string; resolved_at: string; app_version: string | null }
+type Resolution = { signature: string; resolved_at: string; app_version: string | null; snapshot?: { visits: number } | null }
 /** Подпись ошибки: тот же ключ, по которому лог группируется и в отчёте. */
 function errSignature(e: ErrorRow): string {
   return `${e.event}|${e.msg}|${e.src}|${e.line}`
@@ -33,6 +33,12 @@ function errSignature(e: ErrorRow): string {
 function rageSignature(r: RageHot): string {
   return `rage|${r.path}|${r.element}`
 }
+/** Подпись bounce-страницы: короткое время — свойство пары «экран + роль». */
+function bounceSignature(p: PageStat): string {
+  return `bounce|${p.path}|${p.role}`
+}
+/** Насколько должна вырасти выборка, чтобы закрытая страница вернулась. */
+const BOUNCE_REOPEN_FACTOR = 1.5
 type ClickPath = { path: string; teacher_clicks: number; student_clicks: number; total: number }
 type ClickCell = { gx: number; gy: number; cnt: number }
 type GeoRow = { code: string; name: string; flag: string; teachers: number; students: number; total: number }
@@ -353,6 +359,7 @@ export default function TeacherAnalytics() {
   const [resolutions, setResolutions]     = useState<Resolution[]>([])
   const [showClosed, setShowClosed]       = useState(false)
   const [showClosedRage, setShowClosedRage] = useState(false)
+  const [showClosedBounce, setShowClosedBounce] = useState(false)
   const [geo, setGeo]                     = useState<GeoRow[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
   const [copied, setCopied]               = useState(false)
@@ -399,7 +406,7 @@ export default function TeacherAnalytics() {
     setRageHots((rh.data as RageHot[]) ?? [])
     const { data: res } = await supabase
       .from('analytics_issue_resolutions')
-      .select('signature, resolved_at, app_version')
+      .select('signature, resolved_at, app_version, snapshot')
     setResolutions((res as Resolution[]) ?? [])
 
     // Geo breakdown by browser timezone. Each session emits one session_start
@@ -577,6 +584,19 @@ export default function TeacherAnalytics() {
     setResolutions(prev => [...prev.filter(r => r.signature !== signature), row])
   }, [])
 
+  /** Закрытие bounce-страницы: вместе с подписью кладём снимок выборки. */
+  const resolveBounce = useCallback(async (p: PageStat & { closed: boolean }) => {
+    const signature = bounceSignature(p)
+    if (p.closed) {
+      await supabase.from('analytics_issue_resolutions').delete().eq('signature', signature)
+      setResolutions(prev => prev.filter(r => r.signature !== signature))
+      return
+    }
+    const row = { signature, resolved_at: new Date().toISOString(), app_version: __APP_VERSION__, snapshot: { visits: p.visits } }
+    await supabase.from('analytics_issue_resolutions').upsert(row, { onConflict: 'signature' })
+    setResolutions(prev => [...prev.filter(r => r.signature !== signature), row])
+  }, [])
+
   /** То же для rage-точек: одна кнопка на всю секцию. */
   const resolveAllRage = useCallback(async () => {
     const at = new Date().toISOString()
@@ -600,7 +620,18 @@ export default function TeacherAnalytics() {
     .filter(p => p.avg_dwell_sec !== null && p.avg_dwell_sec < 5 && p.visits > 1)
     .sort((a,b) => (a.avg_dwell_sec??99)-(b.avg_dwell_sec??99))
     .slice(0,5)
-  const bounceRisk   = slowPages.length
+  // Закрыть короткий dwell сложнее, чем ошибку: у средней по окну нет «времени
+  // последнего случая», она есть всегда. Поэтому при закрытии запоминаем число
+  // визитов, и страница возвращается, когда выборка выросла в полтора раза —
+  // то есть накопились новые люди, и они всё так же уходят сразу.
+  const bounceState = slowPages.map(p => {
+    const r = resolutions.find(x => x.signature === bounceSignature(p))
+    const base = r?.snapshot?.visits ?? 0
+    return { ...p, closed: !!r && p.visits < base * BOUNCE_REOPEN_FACTOR }
+  })
+  const openBounce   = bounceState.filter(p => !p.closed)
+  const closedBounce = bounceState.length - openBounce.length
+  const bounceRisk   = openBounce.length
   const issueScore   = totalErrors + totalRage*0.5 + bounceRisk*2
 
 
@@ -615,9 +646,9 @@ export default function TeacherAnalytics() {
     for (const p of allProblemPages)
       L.push(`- ${p.path} [${p.role}] визитов ${p.visits}, dwell ${p.avg_dwell_sec ?? '—'}с, ошибок ${p.errors}, rage ${p.rage_clicks}`)
 
-    L.push('', `## Короткий dwell (bounce-риск) (${slowPages.length})`)
-    if (slowPages.length === 0) L.push('— нет')
-    for (const p of slowPages) L.push(`- ${p.path} [${p.role}] ${p.avg_dwell_sec}с, визитов ${p.visits}`)
+    L.push('', `## Короткий dwell (bounce-риск) (${openBounce.length})`)
+    if (openBounce.length === 0) L.push('— нет')
+    for (const p of openBounce) L.push(`- ${p.path} [${p.role}] ${p.avg_dwell_sec}с, визитов ${p.visits}`)
 
     L.push('', `## Rage-click точки (${openRage.length})`)
     if (openRage.length === 0) L.push('— нет')
@@ -967,22 +998,38 @@ export default function TeacherAnalytics() {
           </Card>
 
           {/* Bounce / short dwell */}
-          {slowPages.length > 0 && (
+          {bounceState.length > 0 && (
             <>
-              <SectionTitle>{t('Страницы с коротким временем (bounce-риск)')}</SectionTitle>
+              <SectionTitle action={
+                closedBounce > 0 ? (
+                  <button onClick={() => setShowClosedBounce(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                    {showClosedBounce ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedBounce}`}
+                  </button>
+                ) : undefined
+              }>{t('Страницы с коротким временем (bounce-риск)')}</SectionTitle>
               <Card style={{ marginBottom:24 }}>
                 <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:10 }}>
                   {t('Среднее время до ухода <5 с — возможно пользователи не находят нужное или получают ошибку.')}
                 </div>
-                {slowPages.map((p,i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
-                    borderBottom:i<slowPages.length-1?'1px solid var(--color-border)':undefined, fontSize:12 }}>
-                    <Clock size={12} style={{ color:'#D07020', flexShrink:0 }} />
-                    <div style={{ flex:1, color:'var(--color-text)' }}>{pLabel(p.path)}</div>
-                    <div style={{ color:'var(--color-text-3)', fontSize:11 }}>{p.role}</div>
-                    <div style={{ fontWeight:700, color:'#D07020', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}{t('с')}</div>
-                  </div>
-                ))}
+                {(() => {
+                  const shown = bounceState.filter(p => showClosedBounce || !p.closed)
+                  if (shown.length === 0) return <div style={{ fontSize:12, color:'#3FA867' }}>{t('Все страницы разобраны')}</div>
+                  return shown.map((p,i) => (
+                    <div key={bounceSignature(p)} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
+                      borderBottom:i<shown.length-1?'1px solid var(--color-border)':undefined, fontSize:12, opacity: p.closed ? 0.5 : 1 }}>
+                      <Clock size={12} style={{ color: p.closed ? '#3FA867' : '#D07020', flexShrink:0 }} />
+                      <div style={{ flex:1, color:'var(--color-text)', textDecoration: p.closed?'line-through':undefined }}>{pLabel(p.path)}</div>
+                      <div style={{ color:'var(--color-text-3)', fontSize:11 }}>{p.role}</div>
+                      <div style={{ fontWeight:700, color: p.closed ? 'var(--color-text-3)' : '#D07020', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}{t('с')}</div>
+                      <button onClick={() => void resolveBounce(p)}
+                        title={p.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
+                        style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
+                          color: p.closed ? 'var(--color-text-3)' : '#3FA867', padding:0 }}>
+                        {p.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={13}/>}
+                      </button>
+                    </div>
+                  ))
+                })()}
               </Card>
             </>
           )}
