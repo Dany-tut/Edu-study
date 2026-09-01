@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import {
   Activity, Users, CalendarClock, Layers, TrendingUp,
   AlertTriangle, MousePointerClick, Clock, BookOpen, ChevronDown, ChevronUp, Copy, Check,
-  Sparkles, RefreshCw,
+  Sparkles, RefreshCw, CheckCircle2, RotateCcw,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
@@ -24,6 +24,11 @@ type Funnel    = { assigned: number; started: number; submitted: number; complet
 type PageStat  = { path: string; role: string; visits: number; avg_dwell_sec: number | null; errors: number; rage_clicks: number }
 type ErrorRow  = { created_at: string; role: string; path: string; event: string; msg: string; src: string; line: number; session_id: string }
 type RageHot   = { path: string; element: string; cnt: number }
+type Resolution = { signature: string; resolved_at: string; app_version: string | null }
+/** Подпись ошибки: тот же ключ, по которому лог группируется и в отчёте. */
+function errSignature(e: ErrorRow): string {
+  return `${e.event}|${e.msg}|${e.src}|${e.line}`
+}
 type ClickPath = { path: string; teacher_clicks: number; student_clicks: number; total: number }
 type ClickCell = { gx: number; gy: number; cnt: number }
 type GeoRow = { code: string; name: string; flag: string; teachers: number; students: number; total: number }
@@ -341,6 +346,8 @@ export default function TeacherAnalytics() {
   const [pageStats, setPageStats]         = useState<PageStat[]>([])
   const [recentErrors, setRecentErrors]   = useState<ErrorRow[]>([])
   const [rageHots, setRageHots]           = useState<RageHot[]>([])
+  const [resolutions, setResolutions]     = useState<Resolution[]>([])
+  const [showClosed, setShowClosed]       = useState(false)
   const [geo, setGeo]                     = useState<GeoRow[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
   const [copied, setCopied]               = useState(false)
@@ -385,6 +392,10 @@ export default function TeacherAnalytics() {
     setPageStats((ps.data as PageStat[]) ?? [])
     setRecentErrors((re.data as ErrorRow[]) ?? [])
     setRageHots((rh.data as RageHot[]) ?? [])
+    const { data: res } = await supabase
+      .from('analytics_issue_resolutions')
+      .select('signature, resolved_at, app_version')
+    setResolutions((res as Resolution[]) ?? [])
 
     // Geo breakdown by browser timezone. Each session emits one session_start
     // carrying meta.tz — we count distinct sessions per country/role.
@@ -503,8 +514,61 @@ export default function TeacherAnalytics() {
   const pathsHidden = pathsFound.length - pathsShown.length
 
   // issues analysis
-  const totalErrors  = recentErrors.filter(e => e.event !== 'rage_click').length
+  //
+  // Закрытая проблема исчезает из счётчика, но только «до даты закрытия»: если
+  // та же подпись прилетит снова, она вернётся сама — уже как регресс. Поэтому
+  // сравниваем не факт закрытия, а время записи с временем закрытия.
+  const resolvedAt = new Map(resolutions.map(r => [r.signature, r.resolved_at]))
+  const isResolved = (e: ErrorRow) => {
+    const at = resolvedAt.get(errSignature(e))
+    return !!at && e.created_at <= at
+  }
+  const errorRows    = recentErrors.filter(e => e.event !== 'rage_click')
+  const openErrors   = errorRows.filter(e => !isResolved(e))
+  const closedErrors = errorRows.length - openErrors.length
+  const totalErrors  = openErrors.length
   const totalRage    = recentErrors.filter(e => e.event === 'rage_click').length
+
+  /** Группировка лога: 800 копий одного бага — одна строка с кнопкой «Закрыть». */
+  type ErrGroup = { key: string; sample: ErrorRow; n: number; last: string; paths: string[]; closed: boolean; version: string | null }
+  const errGroups: ErrGroup[] = (() => {
+    const m = new Map<string, ErrGroup>()
+    for (const e of errorRows) {
+      const key = errSignature(e)
+      const closed = isResolved(e)
+      const g = m.get(key) ?? { key, sample: e, n: 0, last: e.created_at, paths: [], closed, version: resolutions.find(r => r.signature === key)?.app_version ?? null }
+      g.n++
+      if (e.created_at > g.last) { g.last = e.created_at; g.sample = e }
+      // Группа считается закрытой, только пока закрыты ВСЕ её записи: одна
+      // свежая — и строка снова открыта.
+      if (!closed) g.closed = false
+      if (e.path && !g.paths.includes(e.path)) g.paths.push(e.path)
+      m.set(key, g)
+    }
+    return [...m.values()].sort((a, b) => Number(a.closed) - Number(b.closed) || b.n - a.n)
+  })()
+  const openGroups = errGroups.filter(g => !g.closed)
+
+  /** Закрыть/переоткрыть подпись. Пишем время «сейчас» — всё, что было раньше, уходит. */
+  const resolveSignature = useCallback(async (signature: string, open: boolean) => {
+    if (open) {
+      await supabase.from('analytics_issue_resolutions').delete().eq('signature', signature)
+      setResolutions(prev => prev.filter(r => r.signature !== signature))
+      return
+    }
+    const row = { signature, resolved_at: new Date().toISOString(), app_version: __APP_VERSION__ }
+    await supabase.from('analytics_issue_resolutions').upsert(row, { onConflict: 'signature' })
+    setResolutions(prev => [...prev.filter(r => r.signature !== signature), row])
+  }, [])
+
+  /** «Всё разобрано» — закрывает разом все открытые подписи текущего окна. */
+  const resolveAllOpen = useCallback(async () => {
+    const at = new Date().toISOString()
+    const rows = openGroups.map(g => ({ signature: g.key, resolved_at: at, app_version: __APP_VERSION__ }))
+    if (rows.length === 0) return
+    await supabase.from('analytics_issue_resolutions').upsert(rows, { onConflict: 'signature' })
+    setResolutions(prev => [...prev.filter(r => !rows.some(x => x.signature === r.signature)), ...rows])
+  }, [openGroups])
   const allProblemPages = pageStats.filter(p => (p.errors > 0 || p.rage_clicks > 0))
   const problemPages = allProblemPages.slice(0,8)
   const slowPages    = [...pageStats]
@@ -537,8 +601,9 @@ export default function TeacherAnalytics() {
     // Group the raw log so 800 copies of one bug read as one line. Rage-клики
     // сюда не идут: у них нет ни msg, ни src, и вся пачка сходилась в одну
     // бессмысленную строку «37× null @ null:null» — своя секция у них выше.
+    // Закрытые подписи в отчёт не идут: он для «что чинить сейчас».
     const groups = new Map<string, { n: number; last: string; ev: string; paths: Set<string> }>()
-    for (const e of recentErrors.filter(e => e.event !== 'rage_click')) {
+    for (const e of openErrors) {
       const key = `${e.event}|${e.msg}|${e.src}|${e.line}`
       const g = groups.get(key) ?? { n: 0, last: e.created_at, ev: e.event, paths: new Set<string>() }
       g.n++
@@ -922,42 +987,64 @@ export default function TeacherAnalytics() {
 
           {/* Error log */}
           <SectionTitle action={
-            <button onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
-              {errExpanded ? <ChevronUp size={13}/> : <ChevronDown size={13}/>}
-              {errExpanded ? t('Свернуть') : t('Все ошибки')}
-            </button>
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+              {closedErrors > 0 && (
+                <button onClick={() => setShowClosed(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                  {showClosed ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedErrors}`}
+                </button>
+              )}
+              {openGroups.length > 0 && (
+                <button onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
+                  <CheckCircle2 size={13}/>{t('Всё разобрано')}
+                </button>
+              )}
+              <button onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                {errExpanded ? <ChevronUp size={13}/> : <ChevronDown size={13}/>}
+                {errExpanded ? t('Свернуть') : t('Все ошибки')}
+              </button>
+            </div>
           }>
             {t('Лог ошибок (последние)')}
           </SectionTitle>
           <Card>
-            {recentErrors.length===0
-              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ошибок нет — отлично!')}</div>
-              : (recentErrors.slice(0, errExpanded ? 100 : 8)).map((e,i) => {
-                  const isError = e.event !== 'rage_click'
-                  const color = isError ? '#E04848' : '#D07020'
-                  const evLabel = t(EVENT_LABELS[e.event] ?? e.event)
-                  return (
-                    <div key={i} style={{ padding:'8px 0', borderBottom:i<recentErrors.length-1?'1px solid var(--color-border)':undefined, fontSize:11, lineHeight:1.5 }}>
-                      <div style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
-                        <span style={{ background: isError?'rgba(224,72,72,0.12)':'rgba(208,112,32,0.12)',
-                          color, fontSize:10, fontWeight:600, padding:'2px 6px', borderRadius:5, flexShrink:0, marginTop:1 }}>
-                          {evLabel}
-                        </span>
-                        <div style={{ flex:1 }}>
-                          <span style={{ color:'var(--color-text)', fontWeight:500 }}>{e.msg || '—'}</span>
-                          {e.src && <span style={{ color:'var(--color-text-3)', marginLeft:6 }}>{e.src}{e.line?`:${e.line}`:''}</span>}
-                        </div>
-                        <div style={{ flexShrink:0, color:'var(--color-text-3)', fontSize:10 }}>
-                          {e.role} · {e.path ? pLabel(e.path) : '—'}
-                        </div>
+            {(() => {
+              const shown = errGroups.filter(g => showClosed || !g.closed).slice(0, errExpanded ? 100 : 8)
+              if (errGroups.length === 0) return <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ошибок нет — отлично!')}</div>
+              if (shown.length === 0) return <div style={{ fontSize:12, color:'#3FA867' }}>{t('Все ошибки разобраны')}</div>
+              return shown.map((g,i) => {
+                const e = g.sample
+                const evLabel = t(EVENT_LABELS[e.event] ?? e.event)
+                return (
+                  <div key={g.key} style={{ padding:'8px 0', borderBottom:i<shown.length-1?'1px solid var(--color-border)':undefined,
+                    fontSize:11, lineHeight:1.5, opacity: g.closed ? 0.5 : 1 }}>
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+                      <span style={{ background: g.closed?'rgba(63,168,103,0.12)':'rgba(224,72,72,0.12)',
+                        color: g.closed?'#3FA867':'#E04848', fontSize:10, fontWeight:600, padding:'2px 6px', borderRadius:5, flexShrink:0, marginTop:1 }}>
+                        {g.closed ? t('Разобрано') : evLabel}
+                      </span>
+                      <div style={{ flex:1 }}>
+                        <span style={{ color:'var(--color-text)', fontWeight:500, textDecoration: g.closed?'line-through':undefined }}>{e.msg || '—'}</span>
+                        {g.n > 1 && <span style={{ color:'var(--color-text-3)', marginLeft:6 }}>×{g.n}</span>}
+                        {e.src && <span style={{ color:'var(--color-text-3)', marginLeft:6 }}>{e.src}{e.line?`:${e.line}`:''}</span>}
                       </div>
-                      <div style={{ color:'var(--color-text-3)', marginTop:2, marginLeft:4 }}>
-                        {new Date(e.created_at).toLocaleString('ru-RU')}
+                      <div style={{ flexShrink:0, color:'var(--color-text-3)', fontSize:10 }}>
+                        {e.role} · {e.path ? pLabel(e.path) : '—'}
                       </div>
+                      <button onClick={() => void resolveSignature(g.key, g.closed)} title={g.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
+                        style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer',
+                          color: g.closed ? 'var(--color-text-3)' : '#3FA867', fontSize:10, padding:0 }}>
+                        {g.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={13}/>}
+                      </button>
                     </div>
-                  )
-                })
-            }
+                    <div style={{ color:'var(--color-text-3)', marginTop:2, marginLeft:4 }}>
+                      {new Date(g.last).toLocaleString('ru-RU')}
+                      {g.paths.length > 0 && ' · ' + g.paths.map(pLabel).join(', ')}
+                      {g.closed && g.version && ' · ' + t('закрыто в') + ' ' + g.version}
+                    </div>
+                  </div>
+                )
+              })
+            })()}
           </Card>
         </>
       )}
