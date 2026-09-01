@@ -37,6 +37,10 @@ const withAlpha = (hex: string, a: number) => {
   return `rgba(${r},${g},${b},${a})`
 }
 const GRID_W = 48, GRID_H = 30  // must match admin_click_heatmap() in 0014
+// Поток кликов чистится по расписанию (миграция 0070): всё старше 14 дней
+// удаляется. Периоды 30/90 на вкладке карт показывали бы ровно то же, что 14,
+// поэтому там свой набор кнопок и запросы идут на clickDays.
+const CLICK_RETENTION_DAYS = 14
 const DOW_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 const DOW_PG     = [1,2,3,4,5,6,0] // pg extract(dow): 0=Sun
 const EVENT_LABELS: Record<string,string> = {
@@ -282,6 +286,7 @@ export default function TeacherAnalytics() {
   const [clickLoading, setClickLoading]   = useState(false)
   const [pathQuery, setPathQuery]         = useState('')
   const [pathsOpen, setPathsOpen]         = useState(false)
+  const clickDays = Math.min(days, CLICK_RETENTION_DAYS)
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null)
@@ -346,14 +351,14 @@ export default function TeacherAnalytics() {
     if (activeTab !== 'heatmap') return
     let alive = true
     void (async () => {
-      const { data } = await supabase.rpc('admin_click_paths', { p_days: days })
+      const { data } = await supabase.rpc('admin_click_paths', { p_days: clickDays })
       if (!alive) return
       const paths = (data as ClickPath[]) ?? []
       setClickPaths(paths)
       setClickPath(prev => (prev && paths.some(p => p.path === prev)) ? prev : (paths[0]?.path ?? null))
     })()
     return () => { alive = false }
-  }, [activeTab, days])
+  }, [activeTab, clickDays])
 
   // Density grid for the selected screen + role.
   useEffect(() => {
@@ -361,13 +366,13 @@ export default function TeacherAnalytics() {
     let alive = true
     setClickLoading(true)
     void (async () => {
-      const { data } = await supabase.rpc('admin_click_heatmap', { p_path: clickPath, p_role: heatRole, p_days: days })
+      const { data } = await supabase.rpc('admin_click_heatmap', { p_path: clickPath, p_role: heatRole, p_days: clickDays })
       if (!alive) return
       setClickGrid((data as ClickCell[]) ?? [])
       setClickLoading(false)
     })()
     return () => { alive = false }
-  }, [activeTab, clickPath, heatRole, days])
+  }, [activeTab, clickPath, heatRole, clickDays])
 
   // ── derived ──────────────────────────────────────────────────────────────
   const dailyMax   = Math.max(1, ...daily.map(d => d.events))
@@ -476,12 +481,12 @@ export default function TeacherAnalytics() {
       {/* Period + main tabs */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20, flexWrap:'wrap' }}>
         <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          {[7,30,90].map(d => (
+          {(activeTab === 'heatmap' ? [7, CLICK_RETENTION_DAYS] : [7,30,90]).map(d => (
             <button key={d} onClick={() => setDays(d)} style={{
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
               fontSize:12.5, fontWeight:600,
-              background: days===d ? 'var(--color-purple-soft)' : 'transparent',
-              color: days===d ? 'var(--color-purple)' : 'var(--color-text-3)',
+              background: (activeTab==='heatmap' ? clickDays : days)===d ? 'var(--color-purple-soft)' : 'transparent',
+              color: (activeTab==='heatmap' ? clickDays : days)===d ? 'var(--color-purple)' : 'var(--color-text-3)',
               transition:'background 0.15s, color 0.15s',
             }}>{d} {t('дней')}</button>
           ))}
@@ -860,6 +865,10 @@ export default function TeacherAnalytics() {
             {(heatRole==='teacher' ? t('Учителя') : t('Ученики'))} · {t('Тепловые карты кликов · по экранам')}
           </SectionTitle>
 
+          <div style={{ fontSize:11.5, color:'var(--color-text-3)', marginTop:-8, marginBottom:12, lineHeight:1.5 }}>
+            {t('Клики хранятся 14 дней — за больший период данных нет. Клики без координат (с клавиатуры и программные) не записываются, поэтому угол экрана больше не «горит».')}
+          </div>
+
           {/* Screen selector — search + collapsed chip row (there are dozens of paths) */}
           {clickPaths.length === 0
             ? <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:16 }}>
@@ -915,7 +924,7 @@ export default function TeacherAnalytics() {
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
                 <div style={{ fontSize:13, fontWeight:700, color:'var(--color-text)' }}>{pLabel(clickPath)}</div>
                 <div style={{ fontSize:11, color:'var(--color-text-3)' }}>
-                  {clickLoading ? t('Загрузка…') : `${heatRole==='teacher'?t('Учителя'):t('Ученики')} · ${days} ${t('дней')}`}
+                  {clickLoading ? t('Загрузка…') : `${heatRole==='teacher'?t('Учителя'):t('Ученики')} · ${clickDays} ${t('дней')}`}
                 </div>
               </div>
               <ClickHeatmap

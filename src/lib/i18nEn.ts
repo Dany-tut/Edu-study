@@ -314,6 +314,7 @@ export const EN: Record<string, string> = {
   "Проблемы": "Issues",
   "Тепловые карты": "Heatmaps",
   "Поиск экрана…": "Search screen…",
+  "Клики хранятся 14 дней — за больший период данных нет. Клики без координат (с клавиатуры и программные) не записываются, поэтому угол экрана больше не «горит».": "Clicks are kept for 14 days — there is no data beyond that. Clicks without coordinates (keyboard-driven and programmatic) are not recorded, so the corner of the screen no longer \"burns\".",
   "Скопировать все проблемы": "Copy all issues",
   "активны за сутки": "active in 24h",
   "за 7 дней": "in 7 days",
