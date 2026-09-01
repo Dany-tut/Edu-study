@@ -632,6 +632,17 @@ export default function TeacherAnalytics() {
   const openBounce   = bounceState.filter(p => !p.closed)
   const closedBounce = bounceState.length - openBounce.length
   const bounceRisk   = openBounce.length
+
+  /** То же для bounce: снимок выборки берётся у каждой страницы свой. */
+  const resolveAllBounce = useCallback(async () => {
+    const at = new Date().toISOString()
+    const rows = openBounce.map(p => ({
+      signature: bounceSignature(p), resolved_at: at, app_version: __APP_VERSION__, snapshot: { visits: p.visits },
+    }))
+    if (rows.length === 0) return
+    await supabase.from('analytics_issue_resolutions').upsert(rows, { onConflict: 'signature' })
+    setResolutions(prev => [...prev.filter(r => !rows.some(x => x.signature === r.signature)), ...rows])
+  }, [openBounce])
   const issueScore   = totalErrors + totalRage*0.5 + bounceRisk*2
 
 
@@ -1001,11 +1012,18 @@ export default function TeacherAnalytics() {
           {bounceState.length > 0 && (
             <>
               <SectionTitle action={
-                closedBounce > 0 ? (
-                  <button onClick={() => setShowClosedBounce(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
-                    {showClosedBounce ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedBounce}`}
-                  </button>
-                ) : undefined
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  {closedBounce > 0 && (
+                    <button onClick={() => setShowClosedBounce(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                      {showClosedBounce ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedBounce}`}
+                    </button>
+                  )}
+                  {openBounce.length > 0 && (
+                    <button onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
+                      <CheckCircle2 size={13}/>{t('Всё разобрано')}
+                    </button>
+                  )}
+                </div>
               }>{t('Страницы с коротким временем (bounce-риск)')}</SectionTitle>
               <Card style={{ marginBottom:24 }}>
                 <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:10 }}>
