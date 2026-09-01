@@ -56,6 +56,7 @@ import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, Homework
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t } from '../../lib/i18n'
+import { useStickyLift } from '../../lib/useStickyLift'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
@@ -1418,12 +1419,17 @@ function WidgetFilterPanel({
     padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
     background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-muted)',
   } as React.CSSProperties)
+  // Против подъёма прилипшей колонки в конце прокрутки — см. lib/useStickyLift.
+  const box = useRef<HTMLDivElement>(null)
+  const lift = useStickyLift(box)
 
   return (
     <motion.div
+      ref={box}
       initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
       transition={{ duration: 0.22 }}
       style={{
+        ...lift,
         width: 240, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
         background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,
@@ -2054,6 +2060,12 @@ function CreatorView({
   // base64 blows the sessionStorage quota). Namespace is scoped by the edited
   // task id; a saved draft wins over the DB values inside usePersistentState.
   const tkDraft = `taskctor.${editingTask?.id ?? 'new'}.`
+  // Обе боковые колонки прилипшие: без нижних полей они уезжали вверх на
+  // последних пикселях прокрутки — см. lib/useStickyLift.
+  const leftRef = useRef<HTMLDivElement>(null)
+  const leftLift = useStickyLift(leftRef)
+  const paletteRef = useRef<HTMLDivElement>(null)
+  const paletteLift = useStickyLift(paletteRef)
   // Meta → where the task lives in the bank / how the student finds it.
   // Предмет задания — русское название из реестра, а не пара «Химия|Биология».
   // Ограничение двумя предметами и держало банк закрытым для языков.
@@ -2637,7 +2649,7 @@ function CreatorView({
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
         {/* LEFT: settings panel — sticky glass card */}
-        <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 20 }}>
+        <div ref={leftRef} style={{ ...leftLift, padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 20 }}>
           <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
             {paramsLabel}
@@ -3430,7 +3442,7 @@ function CreatorView({
 
         {/* RIGHT: block palette (trainer mode) */}
         {mode === 'trainer' && (
-          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 20 }}>
+          <div ref={paletteRef} style={{ ...paletteLift, padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 20 }}>
             <GlassCard style={{ width: 248, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <SectionHead>{t('Тип ответа')}</SectionHead>
@@ -5142,6 +5154,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const t = useT()
   const initialMeta = getSubjectMeta(subject)
   const isCustomTest = CUSTOM_META.has(subject)
+  // Прилипшие колонки не должны подниматься в конце прокрутки — lib/useStickyLift.
+  // У левой своё нижнее поле (запас под тень), хвост прибавляется к нему.
+  const assignRef = useRef<HTMLDivElement>(null)
+  const assignLift = useStickyLift(assignRef, true, -24)
+  const listRef = useRef<HTMLDivElement>(null)
+  const listLift = useStickyLift(listRef)
   const [accentState, setAccentState] = useState(initialMeta.accent)
   const accent = accentState
   // Заливка кружка «верный вариант»: акцент подобран как цвет текста и рамок,
@@ -5357,9 +5375,10 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
              колонку ровно на место: тень рисуется в запас и не срезается
              линейкой. Сверху запас меньше — тень уходит вверх всего на ~8px, а
              широкая полоса перехватывала бы клики по кнопкам шапки. */}
-        <div style={{
+        <div ref={assignRef} style={{
           width: 300 + 48, flexShrink: 0, position: 'sticky', top: 20 - 12, alignSelf: 'flex-start',
           margin: '-12px -24px -24px', padding: '12px 24px 24px',
+          ...assignLift,
           maxHeight: 'calc(100vh - 154px)', overflowY: 'auto', overscrollBehavior: 'contain',
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
@@ -5703,7 +5722,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           </div>
 
           {/* Question list — sticky on the right */}
-          <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', height: 'calc(100vh - 190px)' }}>
+          <div ref={listRef} style={{ ...listLift, width: 260, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', height: 'calc(100vh - 190px)' }}>
             <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', gap: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>
                 {questions.length} {t('вопросов')}
@@ -6129,6 +6148,10 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
 
 function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
   const t = useT()
+  // Прилипший список доменов не должен подниматься в конце прокрутки —
+  // см. lib/useStickyLift.
+  const domainRef = useRef<HTMLDivElement>(null)
+  const domainLift = useStickyLift(domainRef)
   const [cfg, setCfg] = useState<ScreeningConfig>(() => loadScreeningConfig())
   const [selectedDomain, setSelectedDomain] = useState<DomainKey | 'meta'>('meta')
   const [dirty, setDirty] = useState(false)
@@ -6221,7 +6244,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
           {/* LEFT: domain list */}
-          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
+          <div ref={domainRef} style={{ ...domainLift, padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
             <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {activeDomains(cfg).length} {t('из')} {cfg.order.length} {t('активных')}
@@ -6389,6 +6412,12 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => Promise<void>
 }) {
   const t = useT()
+  // Обе прилипшие колонки — параметры слева и список вопросов справа —
+  // без нижних полей уезжали вверх в конце прокрутки (lib/useStickyLift).
+  const metaRef = useRef<HTMLDivElement>(null)
+  const metaLift = useStickyLift(metaRef)
+  const qlistRef = useRef<HTMLDivElement>(null)
+  const qlistLift = useStickyLift(qlistRef)
   const [title, setTitle] = useState('')
   const [accent, setAccent] = useState(CREATOR_ACCENTS[0].hex)
   const [iconKey, setIconKey] = useState('FileText')
@@ -6546,7 +6575,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
 
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           {/* LEFT: name + color + assignment */}
-          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
+          <div ref={metaRef} style={{ ...metaLift, padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
             <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               <div>
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t("Физика, Математика…")} autoFocus
@@ -6792,7 +6821,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
           </div>
 
           {/* RIGHT: questions list + type selector */}
-          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
+          <div ref={qlistRef} style={{ ...qlistLift, padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
             <GlassCard style={{ width: 220, boxSizing: 'border-box', padding: 14, display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               {/* Questions list */}
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>

@@ -14,6 +14,7 @@ import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
 import ScrollFade from '../../components/ScrollFade'
 import { useT, t as tGlobal } from '../../lib/i18n'
+import { useStickyLift } from '../../lib/useStickyLift'
 import {
   uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
@@ -955,6 +956,10 @@ export default function TeacherLessonEditorPage() {
    *  и без подстановки «Опубликовать» переносило чужое занятие на сегодня. */
   const [sourceDate, setSourceDate] = useState('')
   const [lessonHw, setLessonHw] = useState<{ basic: number; hard: number } | null>(null)
+  // Левая панель прилипшая, а под рядом лежит нижний отступ страницы: без поля
+  // она уезжала вверх на последних пикселях прокрутки (lib/useStickyLift).
+  const metaRef = useRef<HTMLDivElement>(null)
+  const metaLift = useStickyLift(metaRef)
   useEffect(() => {
     if (!editingScheduleId) { setSource(null); setLessonRowId(null); return }
     supabase
@@ -1313,7 +1318,7 @@ export default function TeacherLessonEditorPage() {
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
           {/* Left meta panel — sticky so its fields stay visible while scrolling. */}
-          <div style={{ position: 'sticky', top: 20, flexShrink: 0 }}>
+          <div ref={metaRef} style={{ ...metaLift, position: 'sticky', top: 20, flexShrink: 0 }}>
             <LeftPanel meta={meta} onChange={updateMeta} />
           </div>
 

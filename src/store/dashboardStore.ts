@@ -15,6 +15,13 @@ import { trackEvent } from '../lib/analytics'
 // статусами. Их нельзя мешать: страж «домашки у урока нет — вернись в урок»
 // отбивал тап по вкладке, и из урока в «ДЗ» было не попасть.
 export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'homeworkList' | 'trainer' | 'profile'
+// Куда «Назад» возвращает из урока. Список уроков живёт на ДВУХ вкладках —
+// «Курсы» и «ДЗ» (обе рисуют CoursesPage), — и схлопывать всё, кроме 'courses',
+// в 'home' нельзя: свайп назад показывает снимок предыдущего экрана, то есть
+// обещает список, а уводило на главную.
+export type LessonReturnPage = Exclude<AppPage, 'lesson' | 'homework'>
+const LESSON_RETURN_PAGES: readonly AppPage[] = ['home', 'courses', 'homeworkList', 'trainer', 'profile']
+const LESSON_LIST_PAGES: readonly LessonReturnPage[] = ['courses', 'homeworkList']
 
 export interface HomeworkWidgetFeedback {
   lessonTitle: string
@@ -43,10 +50,12 @@ interface DashboardState {
   // The lesson currently open on the lesson page (screen 2), or null.
   currentLessonId: string | null
   // Where the lesson page's "Назад" button returns to — the page we came from.
-  lessonReturnPage: 'home' | 'courses'
+  lessonReturnPage: LessonReturnPage
   // Open a lesson on the dedicated lesson page (screen 2). Remembers the current
-  // page so "Назад" can return to it.
-  openLesson: (lessonId: string) => void
+  // page so "Назад" can return to it. `keepReturn` — восстановление из адреса
+  // (F5): страницы «откуда» в этот момент нет вообще, и брать её из activePage
+  // (там дефолтная 'home') значит потерять сохранённую.
+  openLesson: (lessonId: string, opts?: { keepReturn?: boolean }) => void
   // Leave the lesson page, returning to wherever it was opened from.
   closeLesson: () => void
   // True once the lesson page has been scrolled past a small threshold. Drives
@@ -67,7 +76,7 @@ interface DashboardState {
   // Open homework as its own page, preserving the current lesson context so the
   // student can return to the same lesson via the top bar.
   openHomework: () => void
-  openHomeworkForLesson: (lessonId: string, level?: 'basic' | 'hard') => void
+  openHomeworkForLesson: (lessonId: string, level?: 'basic' | 'hard', opts?: { keepReturn?: boolean }) => void
   // Какой уровень домашки открыть при входе (напр. карточка «Сложный уровень ·
   // Возвращён» должна сразу открыть хард, а не базу). Сбрасывается в HomeworkFlow.
   homeworkInitialLevel: 'basic' | 'hard' | null
@@ -205,7 +214,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
 
   currentLessonId: null,
   lessonReturnPage: 'home',
-  openLesson: (lessonId) => set((s) => {
+  openLesson: (lessonId, opts) => set((s) => {
     // Preselect the lesson's subject/module so returning to the catalogue lands
     // on the right tab. Remember the current page for the "Назад" button (a
     // lesson opened from another lesson keeps the original return target).
@@ -217,7 +226,9 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
       activePage: 'lesson',
       currentLessonId: lessonId,
       lessonScrolled: false,
-      lessonReturnPage: s.activePage === 'lesson' ? s.lessonReturnPage : (s.activePage === 'courses' ? 'courses' : 'home'),
+      lessonReturnPage: opts?.keepReturn || s.activePage === 'lesson' || s.activePage === 'homework'
+        ? s.lessonReturnPage
+        : LESSON_RETURN_PAGES.includes(s.activePage) ? (s.activePage as LessonReturnPage) : 'home',
       ...(subj ? { activeSubjectId: subj.id, activeModuleId: mod?.id ?? subj.activeModuleId } : {}),
     }
   }),
@@ -229,18 +240,21 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   setTopBarBox: (v) => set((s) => (
     s.topBarBox?.left === v?.left && s.topBarBox?.right === v?.right ? {} : { topBarBox: v }
   )),
-  closeLesson: () => set((s) =>
-    s.lessonReturnPage === 'courses'
-      ? { activePage: 'courses', coursesFocusLessonId: s.currentLessonId, highlightReactionId: null, homeworkWidgetFeedback: null, lessonScrolled: false }
-      : { activePage: 'home', highlightReactionId: null, homeworkWidgetFeedback: null, lessonScrolled: false },
-  ),
+  closeLesson: () => set((s) => ({
+    activePage: s.lessonReturnPage,
+    // В списке подсвечиваем урок, из которого вышли, — на любой из двух вкладок.
+    ...(LESSON_LIST_PAGES.includes(s.lessonReturnPage) ? { coursesFocusLessonId: s.currentLessonId } : {}),
+    highlightReactionId: null,
+    homeworkWidgetFeedback: null,
+    lessonScrolled: false,
+  })),
   openHomework: () => set((s) => (
     s.currentLessonId
       ? { activePage: 'homework', lessonScrolled: false }
       : { activePage: s.activePage }
   )),
-  openHomeworkForLesson: (lessonId, level) => {
-    useDashboard.getState().openLesson(lessonId)
+  openHomeworkForLesson: (lessonId, level, opts) => {
+    useDashboard.getState().openLesson(lessonId, opts)
     set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null })
   },
   homeworkInitialLevel: null,
@@ -248,7 +262,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   closeHomework: () => set((s) => (
     s.currentLessonId
       ? { activePage: 'lesson', lessonScrolled: false }
-      : { activePage: s.lessonReturnPage === 'courses' ? 'courses' : 'home', lessonScrolled: false }
+      : { activePage: s.lessonReturnPage, lessonScrolled: false }
   )),
   homeworkWidgetFeedback: null,
   setHomeworkWidgetFeedback: (feedback) => set({ homeworkWidgetFeedback: feedback }),
@@ -405,6 +419,10 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     pomoTimerMode: state.pomoTimerMode,
     pomoFocusDuration: state.pomoFocusDuration,
     lessonAssessments: state.lessonAssessments,
+    // Откуда открыт урок. F5 внутри урока восстанавливает сам урок из адреса, но
+    // страницы «откуда» в адресе нет — без этого «Назад» после перезагрузки
+    // всегда уводил на главную, даже если урок открыли из списка.
+    lessonReturnPage: state.lessonReturnPage,
   }),
   merge: (persisted: unknown, current) => {
     const p = persisted as Partial<DashboardState>

@@ -92,13 +92,14 @@ const CORNER_RAMP = 26
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)'
 
 /**
- * Метка закреплённого элемента: `data-swipe-pin="top" | "bottom"`.
+ * Метка закреплённого элемента: `data-swipe-pin="top" | "bottom" | "dock"`.
  *
  * Помеченное на время жеста НЕ едет со страницей — оно стоит, а страница
- * проходит под ним. Нижняя навигация одна и та же на всех экранах, поэтому
- * она просто стоит («карточка проходит под баром»). Верхние кнопки у каждого
- * экрана свои, поэтому их две: копия уходящего экрана видна справа от стыка,
- * копия нижнего — слева, и на линии стыка одна сменяет другую.
+ * проходит под ним. Нижняя навигация (`bottom`) одна и та же на всех экранах,
+ * поэтому она просто стоит («карточка проходит под баром»). Верхние кнопки
+ * (`top`) и ряд управления над навигацией (`dock`) у каждого экрана свои,
+ * поэтому их две: копия уходящего экрана видна справа от стыка, копия
+ * нижнего — слева, и на линии стыка одна сменяет другую.
  */
 const PIN_ATTR = 'data-swipe-pin'
 
@@ -452,14 +453,22 @@ function buildStage(under: Snapshot | null): Stage {
    * Признак таблетки — скруглённый корпус: у шапок приложения это круглая
    * кнопка, стеклянная таблетка или чип. Обёртки отбрасываем: если внутри
    * лежит такая же таблетка, корпус здесь не свой, а групповой.
+   *
+   * @param outer Наоборот — брать САМЫЕ ВНЕШНИЕ корпуса. Так устроен нижний
+   *   док: у переключателя половин («Сцены ↔ Тексты») скруглены и стеклянная
+   *   таблетка, и обе кнопки внутри неё. По правилу шапки корпус выпал бы из
+   *   списка как обёртка — на экране остались бы стоять две кнопки без стекла,
+   *   а само стекло уехало бы со страницей.
    */
-  const chips = (root: ParentNode) => {
+  const chips = (root: ParentNode, outer = false) => {
     const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
       if (!visible(el)) return false
       return parseFloat(getComputedStyle(el).borderTopLeftRadius) >= 14
     })
     return all
-      .filter(el => !all.some(other => other !== el && el.contains(other)))
+      .filter(el => (outer
+        ? !all.some(other => other !== el && other.contains(el))
+        : !all.some(other => other !== el && el.contains(other))))
       .sort((l, r) => l.getBoundingClientRect().left - r.getBoundingClientRect().left)
   }
 
@@ -828,10 +837,22 @@ function buildStage(under: Snapshot | null): Stage {
       if (wrap.contains(el) || pinLayer.contains(el)) continue
       near.push(el)
     }
-    const found = near.filter(el =>
-      parseFloat(getComputedStyle(el).borderTopLeftRadius) >= 14 && visible(el) && floats(el))
+    const found = near.filter(el => {
+      const cs = getComputedStyle(el)
+      if (parseFloat(cs.borderTopLeftRadius) < 14) return false
+      // Пустышка (невидимая область касания, распорка) — не таблетка: она
+      // ничего не рисует, а закрепить её значит повесить на экран пустоту.
+      // Рамку считаем по ШИРИНЕ и цвету, а не по стилю: сброс Tailwind ставит
+      // всем узлам `border-style: solid` при нулевой ширине, и по стилю
+      // «рисующим» выглядит даже пустой span.
+      const bw = parseFloat(cs.borderTopWidth)
+      const paints = cs.backgroundColor !== 'rgba(0, 0, 0, 0)'
+        || (bw > 0 && cs.borderTopColor !== 'rgba(0, 0, 0, 0)')
+        || cs.boxShadow !== 'none'
+      return paints && visible(el) && floats(el)
+    })
     return found
-      .filter(el => !found.some(other => other !== el && el.contains(other)))
+      .filter(el => !found.some(other => other !== el && other.contains(el)))
       .sort((l, r) => l.getBoundingClientRect().left - r.getBoundingClientRect().left)
   }
 
@@ -859,7 +880,9 @@ function buildStage(under: Snapshot | null): Stage {
     if (!live) continue
     const twin = pickVisible(underEl, `[${PIN_ATTR}="${kind}"]`)
 
-    if (kind === 'top') continue // шапки разбираются отдельно, ниже
+    // Шапка и нижний док разбираются отдельно, ниже: там стоят не полосы
+    // целиком, а таблетки — они у каждого экрана свои.
+    if (kind === 'top' || kind === 'dock') continue
 
     // Нижний бар — целиком: он один и тот же на всех экранах.
     const box = live.getBoundingClientRect()
@@ -887,6 +910,26 @@ function buildStage(under: Snapshot | null): Stage {
   const liveChips = liveTop ? chips(liveTop) : headerChips(document.body)
   const underChips = underTop ? chips(underTop) : headerChips(underEl, underBase.top)
   pairMorphs(liveChips, underChips)
+
+  // ── Нижний док ───────────────────────────────────────────────────────────
+  // Ряд управления над навигацией (предмет, половины режима, фильтры) стоит
+  // ровно так же, как сама навигация: страница проходит под ним, а не тащит
+  // его за собой. Пока он ехал со страницей, на экране было ДВА ряда разом —
+  // уезжающий и тот, что на снимке нижнего экрана.
+  //
+  // Но не целиком, как навигацию: она одна на все экраны, а в доке у каждого
+  // экрана свои кнопки. Поэтому здесь то же перетекание таблеток, что в шапке.
+  //
+  // И берём ВСЕ помеченные ряды, а не самый плотный (как у шапки): у шапки
+  // двойник — это она же в другом состоянии, одна из двух лишняя, а внизу
+  // рядов честно бывает несколько разом — над доком управления стоит ещё
+  // плеер, и он такая же стоящая полоса.
+  const dockChips = (rows: HTMLElement[]) => rows.flatMap(el => chips(el, true))
+  const liveDock = dockChips(alive.filter(el => el.getAttribute(PIN_ATTR) === 'dock'))
+  const underDock = dockChips(
+    Array.from(underEl.querySelectorAll<HTMLElement>(`[${PIN_ATTR}="dock"]`)).filter(visible),
+  )
+  pairMorphs(liveDock, underDock)
 
   /** Поставить морф на ход p — и на пальце, и в доводке одним кодом. */
   const setMorphs = (p: number) => {

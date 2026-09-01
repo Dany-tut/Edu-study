@@ -24,6 +24,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
+import { MOBILE_PILL_H } from '../../lib/mobileTokens'
 import { useT } from '../../lib/i18n'
 import { useTheme } from '../../store/themeStore'
 import { useScrollLock } from '../../lib/useScrollLock'
@@ -289,7 +290,10 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           gap: compact ? 0 : 7,
-          height: compact ? 46 : 36, width: compact ? 46 : undefined,
+          // Высота шапки общая на все экраны (MOBILE_PILL_H): таблетка предмета
+          // стоит в той же строке, что и чипсы соседних экранов, и перетекает
+          // в них на свайпе «назад».
+          height: compact ? 46 : MOBILE_PILL_H, width: compact ? 46 : undefined,
           padding: compact ? 0 : '0 14px',
           borderRadius: 999, cursor: many ? 'pointer' : 'default', fontFamily: 'inherit',
           fontSize: 13, fontWeight: 700, color: 'var(--color-text)',

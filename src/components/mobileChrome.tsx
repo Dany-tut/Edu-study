@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { tactile } from '../lib/feedback'
-import { TAP_SCALE, JELLY_EASE } from '../lib/mobileTokens'
+import { TAP_SCALE, JELLY_EASE, MOBILE_PILL_H } from '../lib/mobileTokens'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Floating glass chrome (MOBILE ONLY). Shared top-bar building blocks so every
@@ -40,7 +40,12 @@ export function GlassPill({
     display: 'inline-flex',
     alignItems: 'center',
     gap: 7,
-    padding: '9px 15px',
+    // Высота — общая для всех шапок (MOBILE_PILL_H), а не производная от
+    // кегля: иначе таблетки соседних экранов стоят на разной высоте, и на
+    // свайпе видно, как кнопка прыгает по вертикали.
+    height: MOBILE_PILL_H,
+    boxSizing: 'border-box',
+    padding: '0 15px',
     borderRadius: 999,
     fontSize: 13,
     fontWeight: 700,
@@ -71,7 +76,7 @@ export function GlassIconButton({
   onClick,
   dot = false,
   ariaLabel,
-  size = 38,
+  size = MOBILE_PILL_H,
 }: {
   icon: ReactNode
   onClick?: () => void
@@ -79,8 +84,10 @@ export function GlassIconButton({
   ariaLabel?: string
   size?: number
 }) {
-  // Keep the glass circle at `size` visually, but guarantee a ≥44px tap target
-  // (Apple/Google min) by padding the hit area when the visual is smaller.
+  // Запас под палец (≥44px, минимум Apple/Google) добираем НЕВИДИМОЙ областью
+  // поверх кнопки, а не её собственным размером. Пока кнопка была 44, она была
+  // самой высокой в строке, строка центрировала соседей по ней — и все таблетки
+  // шапки стояли на два пикселя ниже, чем на экранах без круглой кнопки.
   const hit = Math.max(size, 44)
   return (
     <motion.button
@@ -91,13 +98,17 @@ export function GlassIconButton({
       onClick={() => { if (onClick) { tactile(); onClick() } }}
       style={{
         position: 'relative',
-        width: hit, height: hit, flexShrink: 0,
+        width: size, height: size, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         borderRadius: 999, cursor: onClick ? 'pointer' : 'default',
         color: 'var(--color-text-2)',
         background: 'transparent', border: 'none', padding: 0,
       }}
     >
+      {/* Область касания — сверх коробки, на раскладку не влияет. */}
+      <span aria-hidden style={{
+        position: 'absolute', inset: `${(size - hit) / 2}px`, borderRadius: 999,
+      }} />
       <span style={{
         position: 'relative',
         width: size, height: size,
@@ -129,9 +140,10 @@ export function DynamicIsland({ children, onClick }: { children: ReactNode; onCl
       transition={{ type: 'spring', stiffness: 420, damping: 26 }}
       style={{ display: 'flex', justifyContent: 'center' }}
     >
-      {/* Высота задана явно (42) и совпадает с кружками шапки и рядом рубрик:
-          верхний ряд должен читаться как одна линия одинаковых плиток. */}
-      <GlassPill strong onClick={onClick} style={{ height: 42, padding: '0 18px', fontSize: 13 }}>
+      {/* Высота — общая MOBILE_PILL_H (её держит сам GlassPill): верхний ряд
+          читается как одна линия одинаковых плиток, и таблетки соседних
+          экранов перетекают друг в друга без прыжка по вертикали. */}
+      <GlassPill strong onClick={onClick} style={{ padding: '0 18px', fontSize: 13 }}>
         {children}
       </GlassPill>
     </motion.div>

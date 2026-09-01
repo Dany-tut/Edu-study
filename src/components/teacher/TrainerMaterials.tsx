@@ -32,11 +32,12 @@
 // «8 примеров · 2 вопроса», обязана их показать.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Check, ChevronLeft, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { useStickyLift } from '../../lib/useStickyLift'
 import { SUBJECTS } from '../../lib/subjects'
 import {
   MATERIAL_MODES, MATERIAL_FAMILIES,
@@ -391,8 +392,13 @@ function FilterPanel({
   total: number; loading: boolean
 }) {
   const t = useT()
+  // Панель прилипшая, а прокрутка длиннее ряда — без этого поля она уезжала
+  // вверх на последних пикселях листания (см. lib/useStickyLift).
+  const box = useRef<HTMLDivElement>(null)
+  const lift = useStickyLift(box)
   return (
-    <div style={{
+    <div ref={box} style={{
+      ...lift,
       width: 264, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
       background: 'rgba(var(--glass-rgb), 0.9)', ...PILL_GLASS,
       border: '1px solid var(--color-border-glass)', borderRadius: 18,

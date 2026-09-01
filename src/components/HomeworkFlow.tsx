@@ -84,7 +84,7 @@ import {
   type BasicAnswerRow, type BasicAnswerVerdict, type BasicAnswersPayload,
 } from '../lib/basicAnswers'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
-import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 
 /**
@@ -2903,7 +2903,9 @@ export default function HomeworkFlow({
               aria-label={t('Назад')}
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999,
+                gap: 4, padding: isMobile ? 0 : '0 16px 0 12px', borderRadius: 999,
+                // Высота шапки — общая на все экраны (MOBILE_PILL_H).
+                height: MOBILE_PILL_H, width: isMobile ? MOBILE_PILL_H : undefined, boxSizing: 'border-box',
                 ...dockGlass,
                 color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
@@ -2918,7 +2920,8 @@ export default function HomeworkFlow({
               style={{
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax, gap: 8,
-                padding: '9px 10px 9px 16px', borderRadius: 999,
+                padding: '0 10px 0 16px', height: MOBILE_PILL_H, boxSizing: 'border-box',
+                borderRadius: 999,
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >

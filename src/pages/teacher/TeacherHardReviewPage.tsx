@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Star, ClipboardList } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
@@ -11,6 +11,7 @@ import { openHardSubHomework } from '../../lib/teacherNav'
 import { clearDrafts } from '../../lib/useDraft'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 import { useT } from '../../lib/i18n'
+import { useStickyLift } from '../../lib/useStickyLift'
 import { alertDialog } from '../../components/ConfirmHost'
 
 const glass: React.CSSProperties = {
@@ -36,6 +37,11 @@ export default function TeacherHardReviewPage() {
   const [zoom, setZoom] = useState<string | null>(null)
   // Активная вкладка задания. Пустая строка → берём первую в HardConversation.
   const [activeKey, setActiveKey] = useState<string>('')
+  // Колонка ученика прилипшая: без поля она уезжала вверх на хвосте прокрутки
+  // (нижний отступ ряда лежит уже за его содержимым) — см. lib/useStickyLift.
+  // Хуки — до раннего возврата ниже.
+  const sideRef = useRef<HTMLDivElement>(null)
+  const sideLift = useStickyLift(sideRef)
 
   if (!sub) {
     return (
@@ -122,7 +128,7 @@ export default function TeacherHardReviewPage() {
 
       {/* Left column (student) + conversation */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 40px' }}>
-        <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
+        <div ref={sideRef} style={{ ...sideLift, width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
           <div style={{ ...glass, padding: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div style={{ width: 46, height: 46, borderRadius: 14, flexShrink: 0, background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#fff' }}>

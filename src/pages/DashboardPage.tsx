@@ -213,8 +213,11 @@ export default function DashboardPage() {
     const m = bootHash.current.match(LESSON_HASH_RE)
     if (m) {
       const id = decodeURIComponent(m[2])
-      if (m[1] === 'homework') openHomeworkForLesson(id)
-      else openLesson(id)
+      // keepReturn: страницу «откуда» адрес не хранит, а activePage на первом
+      // кадре — дефолтная 'home'. Пересчёт затирал бы сохранённую вкладку
+      // списка, и «Назад» после F5 всегда уводил на главную.
+      if (m[1] === 'homework') openHomeworkForLesson(id, undefined, { keepReturn: true })
+      else openLesson(id, { keepReturn: true })
     } else if (TRAINER_HASH_RE.test(bootHash.current)) {
       if (activePage !== 'trainer') setActivePage('trainer')
     } else {

@@ -26,7 +26,7 @@ import GlossedText from '../components/GlossedText'
 import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { resolveSubjectPalette } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
-import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useSwipeBack } from '../lib/useSwipeBack'
 
 /** «1 файл / 2 файла / 5 файлов». */
@@ -917,7 +917,10 @@ export default function LessonPage() {
           aria-label={t('Назад')}
           className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            gap: 4, padding: isDesktop ? '0 16px 0 12px' : 0, borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            // Высота — общая для шапок (MOBILE_PILL_H): на свайпе таблетка
+            // перетекает в таблетку соседнего экрана, и разница видна.
+            height: MOBILE_PILL_H, width: isDesktop ? undefined : MOBILE_PILL_H, boxSizing: 'border-box',
             background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
@@ -936,7 +939,8 @@ export default function LessonPage() {
         <div
           className="flex items-center flex-shrink-0"
           style={{
-            gap: 6, padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            gap: 6, padding: '0 16px', height: MOBILE_PILL_H, boxSizing: 'border-box',
+            borderRadius: 999, border: '1px solid var(--color-border-soft)',
             background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
           }}
@@ -972,7 +976,8 @@ export default function LessonPage() {
               data-swipe-morph="lead"
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999,
+                gap: 4, padding: isDesktop ? '0 16px 0 12px' : 0, borderRadius: 999,
+                height: MOBILE_PILL_H, width: isDesktop ? undefined : MOBILE_PILL_H, boxSizing: 'border-box',
                 ...dockGlass,
                 color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
@@ -987,7 +992,8 @@ export default function LessonPage() {
               style={{
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax,
-                padding: '9px 16px', borderRadius: 999,
+                padding: '0 16px', height: MOBILE_PILL_H, boxSizing: 'border-box',
+                display: 'flex', alignItems: 'center', borderRadius: 999,
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >

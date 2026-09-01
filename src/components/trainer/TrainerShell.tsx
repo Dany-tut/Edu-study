@@ -53,11 +53,12 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
 import { useFloatingPill } from '../../lib/useFloatingPill'
 import { useScrollLock } from '../../lib/useScrollLock'
+import { useStickyLift, scrollParentOf } from '../../lib/useStickyLift'
 import ScrollFade from '../ScrollFade'
 import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
 import MobileDock, { DockCircle, DockSegment, DockSlot, useSmoothCollapse, COLLAPSE } from '../MobileDock'
-import { MOBILE_TOP_GAP } from '../../lib/mobileTokens'
+import { MOBILE_TOP_GAP, MOBILE_PILL_H } from '../../lib/mobileTokens'
 
 const RAIL_W = 300
 
@@ -251,26 +252,43 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, help, 
    * она прилипшая, и второй ряд отъедает у текста ещё двадцать пикселей.
    */
   const bar = !!toolbar || (!!share && !narrow)
-  const railRef = useRef<HTMLElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const railWrapRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
+
+  // Рейл прилип — и обязан остаться на месте до последнего пикселя прокрутки.
+  // Ниже ряда лежит чужой воздух (нижний отступ панели кабинета), и без этого
+  // поля браузер тащил карточку вверх на его величину в самом конце листания.
+  const railLift = useStickyLift(railWrapRef, !narrow)
 
   // Ушли с телефона на десктоп — шторка обязана закрыться сама, иначе она
   // останется висеть поверх уже нарисованного рейла.
   useEffect(() => { if (!narrow) { setSheet(false); setNavSheet(false) } }, [narrow])
 
-  // Высота рейла считается по факту, а не по формуле: карточка прилипла и
-  // больше не двигается, значит её верх в окне — величина постоянная, и остаток
-  // до низа экрана и есть та высота, после которой начинается свой скролл.
-  // Замер вместо константы — чтобы шапка кабинета могла менять высоту (или
-  // вовсе отсутствовать, если скелет позовут из другого места), а рейл всё
-  // равно доставал ровно до нижнего края окна.
+  // Высота рейла считается по факту, а не по формуле: остаток от его верха до
+  // низа окна и есть та высота, после которой начинается свой скролл. Замер
+  // вместо константы — чтобы шапка кабинета могла менять высоту (или вовсе
+  // отсутствовать, если скелет позовут из другого места), а рейл всё равно
+  // доставал ровно до нижнего края окна.
+  //
+  // ВЕРХ БЕРЁМ У КОРНЯ, А НЕ У САМОЙ КАРТОЧКИ. Прилипшая карточка возвращает
+  // СМЕЩЁННУЮ рамку, и замер, случившийся после прокрутки, давал другую высоту,
+  // чем замер на загрузке: в банке заданий рейл стоит в потоке ниже своей
+  // прилипшей позиции, и первый же ресайз окна удлинял его на 57 px. Корень не
+  // липкий, а прокрутка панели возвращает его рамку к положению «страница
+  // сверху» — величина получается одна и та же в любой момент. Мерим по самому
+  // нижнему положению рейла: выше прилипшего он не встанет, значит и не
+  // вылезет за нижний край окна.
   const [railMax, setRailMax] = useState<number | null>(null)
   useLayoutEffect(() => {
     if (narrow) { setRailMax(null); return }
     const measure = () => {
-      const el = railRef.current
-      if (!el) return
-      setRailMax(Math.max(240, window.innerHeight - el.getBoundingClientRect().top - RAIL_BOTTOM))
+      const root = rootRef.current
+      if (!root) return
+      const pane = scrollParentOf(root)
+      const scrolled = pane ? pane.scrollTop : window.scrollY
+      const top = root.getBoundingClientRect().top + scrolled + (parseFloat(getComputedStyle(root).paddingTop) || 0)
+      setRailMax(Math.max(240, window.innerHeight - top - RAIL_BOTTOM))
     }
     measure()
     window.addEventListener('resize', measure)
@@ -293,7 +311,7 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, help, 
   }, [toolbar, share, narrow])
 
   return (
-    <div style={{
+    <div ref={rootRef} style={{
       // Низ на телефоне длиннее: под содержимым стоят навигация и плавающий
       // док управления, и без запаса последняя карточка уезжает под них.
       //
@@ -367,13 +385,13 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, help, 
       {/* sticky отдельной обёрткой, а не на самой карточке: у карточки есть
           собственный фон и тень, и position на ней ловит их в отдельный слой,
           из-за чего тень начинает мигать при остановке скролла. */}
-      <div style={{
+      <div ref={railWrapRef} style={{
         display: narrow ? 'none' : 'block',
         position: narrow ? 'static' : 'sticky', top: RAIL_TOP,
         flexShrink: 0, width: narrow ? '100%' : RAIL_W,
+        ...railLift,
       }}>
         <aside
-          ref={railRef}
           className="no-scrollbar"
           style={{
             display: 'flex', flexDirection: 'column', gap: 16,
@@ -639,9 +657,8 @@ function ShareCircle({ url, accent }: { url: string; accent?: string }) {
       aria-label={label}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        // 36 — высота таблеток строки (10px padding + 16 строки): кружок обязан
-        // стоять с ними вровень, иначе правый край строки «проваливается».
-        width: 36, height: 36, borderRadius: 999, flexShrink: 0,
+        // Высота таблеток шапки — общая на все экраны (MOBILE_PILL_H).
+        width: MOBILE_PILL_H, height: MOBILE_PILL_H, borderRadius: 999, flexShrink: 0,
         cursor: 'pointer', fontFamily: 'inherit',
         border: `1px solid ${done ? (accent ?? MENU_ACCENT) : 'var(--color-border-medium)'}`,
         background: PILL_BG, ...PILL_GLASS,
@@ -1277,7 +1294,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-        height: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
+        height: MOBILE_PILL_H, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
         background: on ? 'var(--color-purple-soft)' : PILL_BG, ...PILL_GLASS,
         border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
         color: on ? 'var(--color-purple-text)' : 'var(--color-text)',
@@ -1534,7 +1551,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         // пикселей ниже остальных. minHeight — на случай, когда перенос строки
         // оставил его одного.
         display: 'flex', alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box',
-        gap: narrow && !wide ? 0 : 8, minHeight: 36, borderRadius: 999,
+        gap: narrow && !wide ? 0 : 8, minHeight: MOBILE_PILL_H, borderRadius: 999,
         background: PILL_BG, ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
         // На телефоне свёрнутый поиск — круг без слова «Поиск» (112 → 36px):
@@ -1544,7 +1561,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         ...(narrow
           ? wide
             ? { flex: '1 1 0', minWidth: 0, padding: '0 12px' }
-            : { width: 36, padding: 0, justifyContent: 'center', flexShrink: 0 }
+            : { width: MOBILE_PILL_H, padding: 0, justifyContent: 'center', flexShrink: 0 }
           : { width: wide ? 260 : 112, padding: '0 14px', flexShrink: 0 }),
         transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
         overflow: 'hidden', cursor: wide ? 'text' : 'pointer',

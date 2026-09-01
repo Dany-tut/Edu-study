@@ -11,6 +11,7 @@ import {
   SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
   type Task, type Subject, type QuestionType, type ScoreMode, type TaskChoice, type TaskAnswerKey, type TaskCriterion,
 } from '../../data/taskBankData'
+import { useStickyLift } from '../../lib/useStickyLift'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useTeacher } from '../../store/teacherStore'
 import { useTeacherAccess } from '../../lib/teacherAccess'
@@ -817,11 +818,16 @@ export function TrainerBankFilterPanel({
   // заданий эти поля пустые, поэтому вместо них показываем уровень и навык.
   const langTax = languageTaxonomy(filters.subject)
   const isMap = view === 'map'
+  // Прилипшая панель обязана стоять до конца прокрутки — см. lib/useStickyLift.
+  const box = useRef<HTMLDivElement>(null)
+  const lift = useStickyLift(box)
 
   return (
     <motion.div
+      ref={box}
       initial={false}
       style={{
+        ...lift,
         width: 264, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
         background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,

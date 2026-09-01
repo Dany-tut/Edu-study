@@ -9,6 +9,7 @@ import {
   PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon, Link2,
 } from 'lucide-react'
 import ScrollFade from '../../components/ScrollFade'
+import { useStickyLift } from '../../lib/useStickyLift'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT } from '../../lib/i18n'
@@ -2083,6 +2084,13 @@ export default function TeacherHomeworkCreatePage() {
   const bankTasks = useTaskBank(s => s.tasks)
   const loadBank = useTaskBank(s => s.load)
 
+  // Обе прилипшие колонки — левая с параметрами и правая с типами заданий —
+  // без этих полей уезжали вверх на хвосте прокрутки (lib/useStickyLift).
+  const leftRef = useRef<HTMLDivElement>(null)
+  const leftLift = useStickyLift(leftRef)
+  const paletteRef = useRef<HTMLDivElement>(null)
+  const paletteLift = useStickyLift(paletteRef)
+
   // Draft namespace, scoped by the edited homework so drafts don't leak between entities.
   const draftScope = `hwcreate.${editingHomeworkId ?? 'new'}`
   // Snapshot before the persistence effects below write initial values into storage.
@@ -2442,9 +2450,10 @@ export default function TeacherHomeworkCreatePage() {
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
         {/* Left panel */}
-        <div style={{
+        <div ref={leftRef} style={{
           padding: '0 0 20px 24px', flexShrink: 0,
           position: 'sticky', top: 20,
+          ...leftLift,
         }}>
           <LeftPanel meta={meta} onChange={updateMeta} />
         </div>
@@ -2559,9 +2568,19 @@ export default function TeacherHomeworkCreatePage() {
             тень сверху и слева: даём запас и возвращаем колонку отрицательными
             полями. Слева 16px — ровно в паддинг центра, чтобы полоса не легла
             поверх карточек заданий и не перехватывала клики. */}
-        <div style={{
-          flexShrink: 0, position: 'sticky', top: 20 - 12, alignSelf: 'flex-start', overflow: 'hidden',
+        <div ref={paletteRef} className="no-scrollbar" style={{
+          flexShrink: 0, position: 'sticky', top: 20 - 12, alignSelf: 'flex-start',
           margin: '-12px 0 0 -16px', padding: '12px 0 0 16px',
+          // Колонка не длиннее экрана, дальше листается внутри себя — тем же
+          // приёмом, что рейл тренажёра. Полный список типов заданий не влезал
+          // в окно ноутбука: прилипнуть такая колонка не может в принципе (низу
+          // некуда деться), и последние типы доставались только прокруткой всей
+          // страницы — то есть уехав от списка заданий, ради которого их и
+          // выбирают. По горизонтали по-прежнему режем: панель въезжает сдвигом,
+          // и без этого сдвиг давал бы полосу прокрутки.
+          maxHeight: 'calc(100vh - 132px)', overflowY: 'auto', overflowX: 'hidden',
+          overscrollBehavior: 'contain',
+          ...paletteLift,
         }}>
           <AnimatePresence mode="wait">
             {activeTab === 'compose' && (

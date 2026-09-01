@@ -105,6 +105,11 @@ export default function MobileDock({ children, fill }: {
     <motion.div
       // Outer fixed layer: pinned to the safe-area edge, slides down with the
       // nav when the keyboard opens so it never crowds a focused field.
+      //
+      // На свайпе «назад» ряд стоит вместе с навигацией, а не едет со
+      // страницей: его таблетки перетекают в таблетки нижнего экрана по линии
+      // стыка (lib/useSwipeBack.ts, PIN_ATTR).
+      data-swipe-pin="dock"
       initial={false}
       animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
       transition={COLLAPSE}
