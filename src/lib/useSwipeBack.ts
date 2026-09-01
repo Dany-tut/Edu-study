@@ -769,8 +769,10 @@ function buildStage(under: Snapshot | null): Stage {
     clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
     place(clone, box, zeroOrigin)
     hide(live)
-    // Двойник из снимка только двоился бы.
-    twin?.remove()
+    // Двойник из снимка только двоился бы. Прячем, а НЕ удаляем: снимок
+    // раскладывается снова на следующем жесте, и удалённый бар пропал бы из
+    // него навсегда.
+    if (twin) hide(twin)
   }
 
 
