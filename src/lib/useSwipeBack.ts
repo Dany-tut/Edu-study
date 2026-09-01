@@ -356,10 +356,22 @@ function buildStage(under: Snapshot | null): Stage {
   ].join(';')
   document.body.appendChild(pinLayer)
 
-  type Pin = { live: HTMLElement; vis: string }
+  /**
+   * Спрятать живую таблетку, запомнив её ПЕРВОЕ состояние.
+   *
+   * Один и тот же чип прячется несколько раз: при раздвоении у него две
+   * пары. Вторая запись сохраняла как «исходное» уже `hidden`, и на возврате
+   * чип оставался скрытым НАВСЕГДА — а следующий жест клонировал с него
+   * пустышку. На экране это выглядело как пустой корпус и «работает через
+   * раз».
+   */
+  const hidden = new Map<HTMLElement, string>()
+  const hide = (el: HTMLElement) => {
+    if (!hidden.has(el)) hidden.set(el, el.style.visibility)
+    el.style.visibility = 'hidden'
+  }
   /** Кадр морфа: стили элемента при ходе p (0 — уходящий экран, 1 — нижний). */
   type Morph = { el: HTMLElement; at(p: number): Record<string, string> }
-  const pins: Pin[] = []
   const morphs: Morph[] = []
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
@@ -508,11 +520,11 @@ function buildStage(under: Snapshot | null): Stage {
       const ra = rel(live)
       if (!ra.w) continue
       const clone = live.cloneNode(true) as HTMLElement
+      clone.style.visibility = ''
       clone.removeAttribute('id')
       clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
       place(clone, live.getBoundingClientRect(), zeroOrigin)
-      pins.push({ live, vis: live.style.visibility })
-      live.style.visibility = 'hidden'
+      hide(live)
       const inner = wrapKids(clone)
       const start = ra.left + ra.w / 2
       const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
@@ -538,10 +550,12 @@ function buildStage(under: Snapshot | null): Stage {
       // посреди жеста. Оригинал прячем — иначе он уедет со страницей и
       // таблетка задвоится.
       const a = live.cloneNode(true) as HTMLElement
+      // Клон снимаем с уже спрятанного оригинала (при раздвоении — второй
+      // раз), поэтому прячущий стиль с копии снимаем явно.
+      a.style.visibility = ''
       a.removeAttribute('id')
       a.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
-      pins.push({ live, vis: live.style.visibility })
-      live.style.visibility = 'hidden'
+      hide(live)
 
       const ia = wrapKids(a)
       const ib = wrapKids(b)
@@ -735,8 +749,7 @@ function buildStage(under: Snapshot | null): Stage {
     clone.removeAttribute('id')
     clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
     place(clone, box, zeroOrigin)
-    pins.push({ live, vis: live.style.visibility })
-    live.style.visibility = 'hidden'
+    hide(live)
     // Двойник из снимка только двоился бы.
     twin?.remove()
   }
@@ -813,7 +826,7 @@ function buildStage(under: Snapshot | null): Stage {
       wrap.remove()
       bleed.remove()
       pinLayer.remove()
-      pins.forEach(pin => { pin.live.style.visibility = pin.vis })
+      hidden.forEach((vis, el) => { el.style.visibility = vis })
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
       movers.forEach(({ el, css }) => { el.style.cssText = css })
