@@ -1,4 +1,4 @@
-import { type ReactNode, type CSSProperties, useEffect, useRef } from 'react'
+import { type ReactNode, type CSSProperties, useLayoutEffect, useRef } from 'react'
 import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 
@@ -57,7 +57,12 @@ export default function MobileScreen({
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
   // неё, и отпускаем, как только человек тронул прокрутку сам.
-  useEffect(() => {
+  //
+  // Layout, а не обычный эффект: первое присваивание обязано случиться ДО
+  // отрисовки. Иначе экран успевает показаться отмотанным к началу и уже потом
+  // прыгает на место — на возврате свайпом это видно как «шапка переехала и всё
+  // обновилось сразу после жеста» (lib/useSwipeBack.ts ждёт как раз покоя).
+  useLayoutEffect(() => {
     const el = bodyRef.current
     if (!el || !restoreKey) return
     const want = savedScroll.get(restoreKey) ?? 0
