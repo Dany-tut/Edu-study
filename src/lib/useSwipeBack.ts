@@ -124,6 +124,16 @@ const MORPH_ATTR = 'data-swipe-morph'
 const SEAM_SPAN = 150
 /** Дальше этой доли ширины экрана таблетки в пару не сводятся. */
 const DROP_REACH = 0.35
+/**
+ * И насколько далеко может разъехаться их КРАЙ, за который держится корпус.
+ *
+ * Центры у соседних шапок расходятся легко (у одной кнопка «назад», у другой
+ * широкая таблетка), а вот край — общее поле в 16px, и он почти совпадает.
+ * Если край далеко, перетекать некуда: корпус пролетел бы через полшапки к
+ * чужому месту. Такая таблетка просто гаснет, а её сосед снизу открывается
+ * вместе с экраном.
+ */
+const EDGE_REACH = 0.18
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
 const MORPH_BLUR = 7
 const MORPH_SCALE = 0.9
@@ -453,11 +463,20 @@ function buildStage(under: Snapshot | null): Stage {
     const fromChips = chips(from).filter(el => !taken.has(el) && !pairs.some(([a]) => a.contains(el)))
     const toChips = chips(to).filter(el => !taken.has(el) && !pairs.some(([, b]) => b.contains(el)))
     const reach = W * DROP_REACH
+    const edgeReach = W * EDGE_REACH
+    // Край, за который держится корпус: у прижатой вправо — правый.
+    const edge = (el: HTMLElement) => {
+      const b = el.getBoundingClientRect()
+      return mid(el) >= W / 2 ? b.right : b.left
+    }
     const cand: { a: HTMLElement; b: HTMLElement; d: number }[] = []
     for (const a of fromChips) {
+      const ea = edge(a)
       for (const b of toChips) {
         const d = Math.abs(mid(a) - mid(b))
-        if (d <= reach) cand.push({ a, b, d })
+        if (d > reach) continue
+        if (Math.abs(ea - edge(b)) > edgeReach) continue
+        cand.push({ a, b, d })
       }
     }
     cand.sort((l, r) => l.d - r.d)
@@ -639,11 +658,31 @@ function buildStage(under: Snapshot | null): Stage {
    * снята. Без этой проверки в слой попадала невидимая, забирала себе пару
    * для морфа — и видимой кнопке перетекать было уже не во что.
    */
+  /**
+   * Прозрачность СО ВСЕЙ ЦЕПОЧКОЙ предков.
+   *
+   * У гаснущей шапки прозрачность стоит на строке, а не на кнопках внутри: у
+   * самой таблетки `opacity` честная единица. Пока считалась только она,
+   * призрак из уходящей шапки проходил как живой и вешался в слой — пустая
+   * таблетка посреди экрана и «раз через раз работает».
+   */
+  const alpha = (el: HTMLElement) => {
+    let a = 1
+    for (let n: HTMLElement | null = el; n && n !== document.body; n = n.parentElement) {
+      const cs = getComputedStyle(n)
+      if (cs.visibility === 'hidden' || cs.display === 'none') return 0
+      a *= Number(cs.opacity)
+      if (a < 0.01) return 0
+    }
+    return a
+  }
+
   const visible = (el: HTMLElement) => {
     const box = el.getBoundingClientRect()
     if (!box.width || !box.height) return false
-    const cs = getComputedStyle(el)
-    return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05
+    // Порог высокий: то, что наполовину растворилось, — это уходящий двойник,
+    // а не то, на что смотрит человек.
+    return alpha(el) > 0.6
   }
 
   /**
@@ -661,7 +700,7 @@ function buildStage(under: Snapshot | null): Stage {
     if (found.length < 2) return found[0] ?? null
     const rank = (el: HTMLElement) => {
       const b = el.getBoundingClientRect()
-      return Number(getComputedStyle(el).opacity) * 1e6 + b.width * b.height
+      return alpha(el) * 1e6 + b.width * b.height
     }
     return found.reduce((best, el) => (rank(el) > rank(best) ? el : best))
   }
