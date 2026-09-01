@@ -511,6 +511,11 @@ function buildStage(under: Snapshot | null): Stage {
     // краю, а кнопка «морфилась» туда, где на экране ничего нет.
     const boxes = pairs.map(([a, b]) => ({ ra: rel(a), rb: rel(b) }))
 
+    // Узлы снимка ТОЖЕ копируем, а не переносим. Снимок переиспользуется
+    // (его раскладывают на каждом жесте), и вынутая таблетка пропадала из
+    // него навсегда: со второго свайпа под кнопкой уже ничего не было, пара
+    // не собиралась, и кнопка просто гасла пустым кружком.
+
     // Таблетки без пары тоже закрепляются: стоят на месте и гаснут, когда
     // стык проходит их середину. Иначе поведение зависело от того, нашёлся
     // ли двойник: не нашёлся — и кнопки просто уезжали со страницей, как
@@ -528,12 +533,19 @@ function buildStage(under: Snapshot | null): Stage {
       const inner = wrapKids(clone)
       const start = ra.left + ra.w / 2
       const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
+      const fade = (raw: number) => smooth(Math.min(1, Math.max(0, (raw * W - start) / span)))
+      // Гаснет ВЕСЬ корпус, а не только содержимое. Пары нет — значит на месте
+      // этой кнопки у нижнего экрана ничего нет, и пустая таблетка, повисшая
+      // над чужим экраном, читается как мусор: на экране это был белый кружок
+      // без стрелки.
       morphs.push({
+        el: clone,
+        at: raw => ({ opacity: String(1 - fade(raw)) }),
+      }, {
         el: inner,
         at: raw => {
-          const t = smooth(Math.min(1, Math.max(0, (raw * W - start) / span)))
+          const t = fade(raw)
           return {
-            opacity: String(1 - t),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -542,9 +554,16 @@ function buildStage(under: Snapshot | null): Stage {
     }
 
     for (let i = 0; i < pairs.length; i++) {
-      const [live, b, nth] = pairs[i]
+      const [live, twin, nth] = pairs[i]
       const { ra, rb } = boxes[i]
       if (!ra.w || !rb.w) continue
+      // Копия узла снимка, а не он сам: снимок раскладывается на каждом
+      // жесте, и вынутая таблетка пропала бы из него навсегда.
+      const b = twin.cloneNode(true) as HTMLElement
+      b.style.visibility = ''
+      b.removeAttribute('id')
+      b.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
+      hide(twin)
 
       // Копия, а не сам узел: живой принадлежит React и размонтируется
       // посреди жеста. Оригинал прячем — иначе он уедет со страницей и

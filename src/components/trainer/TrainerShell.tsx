@@ -2197,10 +2197,15 @@ export function TileChip({ children, tone, accent, soft }: {
 }) {
   const isAccent = tone === 'accent'
   const solid = tone === 'solid'
+  // Нейтральная плашка живёт НА карточке, а не на фоне страницы: `--color-bg-3`
+  // на тёмной плитке светлел в отдельный серый овал и спорил с цветным чипсом
+  // рядом. Текст на 10% — тот же оттенок, что и дорожка прогресса: форма видна,
+  // пятна нет.
+  const neutral = 'color-mix(in srgb, var(--color-text) 10%, transparent)'
   return (
     <span style={{
       padding: '2px 8px', borderRadius: 999, fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap',
-      background: solid ? (accent ?? 'var(--color-bg-3)') : isAccent ? (soft ?? 'var(--color-bg-3)') : 'var(--color-bg-3)',
+      background: solid ? (accent ?? neutral) : isAccent ? (soft ?? neutral) : neutral,
       color: solid ? '#fff' : isAccent ? (accent ?? 'var(--color-text-2)') : 'var(--color-muted)',
     }}>
       {children}
