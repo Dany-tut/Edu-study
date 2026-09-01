@@ -383,6 +383,32 @@ function buildStage(under: Snapshot | null): Stage {
   const morphs: Morph[] = []
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+  /**
+   * Перелить одно значение стиля в другое ПО ЧИСЛАМ.
+   *
+   * Тень и заливка у соседних таблеток разные, а корпус на экране должен быть
+   * ОДИН и непрозрачный: два полупрозрачных стекла друг на друге дают просвет,
+   * сквозь который виден нижний экран. Поэтому корпус не перекрашивается
+   * подменой и не гасится — у него плавно едут числа: цвет заливки, смещения
+   * и радиус тени. Формы не совпали (разное число слоёв) — переключаем на
+   * половине хода, это редкий случай.
+   */
+  const mixStyle = (from: string, to: string, t: number) => {
+    const fn = from.match(/-?\d*\.?\d+/g)
+    const tn = to.match(/-?\d*\.?\d+/g)
+    // Пустая строка — не значение: у отсоединённого узла вычисленных стилей
+    // нет вовсе, и подмешивать её нельзя, иначе корпус остаётся ни с чем.
+    if (!from) return to
+    if (!to) return from
+    if (!fn || !tn || fn.length !== tn.length) return t < 0.5 ? from : to
+    let i = 0
+    return from.replace(/-?\d*\.?\d+/g, () => {
+      const v = lerp(Number(fn[i]), Number(tn[i]), t)
+      i++
+      return String(Math.round(v * 1000) / 1000)
+    })
+  }
+
   /** Сглаживание для содержимого: линейная подмена читается как щелчок. */
   const smooth = (t: number) => {
     const c = Math.min(1, Math.max(0, t))
@@ -586,14 +612,26 @@ function buildStage(under: Snapshot | null): Stage {
 
       const ia = wrapKids(a)
       const ib = wrapKids(b)
-      // Корпус у КАЖДОЙ половины свой, и они расходятся по прозрачности.
-      //
-      // Раньше корпус был один — уходящей кнопки, а у нижней он снимался. Но
-      // тень и стекло у соседей разные, и в конце жеста на месте копии
-      // вставала настоящая таблетка с другой тенью: чипсы будто
-      // перерисовывались. Прозрачностью же они сходятся ровно в свой вид, и
-      // подмены не видно. Два стекла в полсилы друг на друге не темнят —
-      // темнило, когда оба стояли в полную.
+      // Корпус на экране ОДИН — уходящей кнопки, и он всегда непрозрачен:
+      // расхождение двух стёкол по прозрачности давало просвет, сквозь
+      // который виден нижний экран. У нижней половины корпус снимаем, но
+      // ЗАПОМНИВ его вид: в конце хода корпус обязан выглядеть ровно как
+      // целевая таблетка, иначе на снятии слоя чипсы перерисовываются.
+      // Вид целевой таблетки снимаем с ЖИВОГО узла снимка, а не с копии:
+      // копия ещё не в документе, а у отсоединённого узла getComputedStyle
+      // отдаёт пустые строки — корпус на середине хода терял заливку и
+      // просвечивал.
+      const look = getComputedStyle(twin)
+      const skin = {
+        background: look.backgroundColor,
+        boxShadow: look.boxShadow,
+        borderColor: look.borderColor,
+      }
+      b.style.background = 'none'
+      b.style.boxShadow = 'none'
+      b.style.border = '0'
+      b.style.backdropFilter = 'none'
+      b.style.setProperty('-webkit-backdrop-filter', 'none')
 
       for (const el of [a, b]) {
         el.style.position = 'absolute'
@@ -667,22 +705,33 @@ function buildStage(under: Snapshot | null): Stage {
       // полная, а недостающее добирается размытием — пока корпус ещё не набрал
       // плотность, он размыт, и таблетка словно лепится из первой. Полупрозрачный
       // корпус на её месте читался как чужая таблетка, проехавшая поверх.
+      // Отпочковавшаяся половина РОЖДАЕТСЯ: заливку добирает быстро, а
+      // недостающее держит размытие — иначе она читалась как чужая таблетка,
+      // проехавшая поверх предыдущей.
       const born = (raw: number) => smooth(Math.min(1, q(raw) * 2.4))
+      const skinFrom = {
+        background: getComputedStyle(a).backgroundColor,
+        boxShadow: getComputedStyle(a).boxShadow,
+        borderColor: getComputedStyle(a).borderColor,
+      }
       morphs.push({
         el: a,
-        at: raw => ({ opacity: String(nth > 0 ? 0 : 1 - smooth(q(raw))) }),
-      }, {
-        el: b,
         at: raw => {
-          if (nth === 0) return { opacity: String(smooth(q(raw))), filter: 'none' }
-          const t = born(raw)
-          return { opacity: String(t), filter: `blur(${MORPH_BLUR * (1 - t)}px)` }
+          const t = smooth(q(raw))
+          return {
+            opacity: String(nth > 0 ? born(raw) : 1),
+            filter: nth > 0 ? `blur(${MORPH_BLUR * (1 - born(raw))}px)` : 'none',
+            background: mixStyle(skinFrom.background, skin.background, t),
+            boxShadow: mixStyle(skinFrom.boxShadow, skin.boxShadow, t),
+            borderColor: mixStyle(skinFrom.borderColor, skin.borderColor, t),
+          }
         },
       }, {
         el: ia,
         at: raw => {
           const t = nth > 0 ? 1 : smooth(q(raw))
           return {
+            opacity: String(1 - t),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -692,6 +741,7 @@ function buildStage(under: Snapshot | null): Stage {
         at: raw => {
           const t = smooth(q(raw))
           return {
+            opacity: String(t),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
             transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
