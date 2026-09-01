@@ -146,6 +146,16 @@ const DROP_REACH = 0.35
 const EDGE_REACH = 0.18
 /** И насколько далеко по ВЕРТИКАЛИ: дальше — это уже соседняя строка шапки. */
 const ROW_REACH = 26
+/**
+ * Край ПЕРВОЙ пары должен почти совпадать.
+ *
+ * Свободные 0.18 нужны только отпочковавшейся половине: ей и правда надо
+ * отойти на место своей таблетки. А первой половине ехать некуда — она обязана
+ * перетекать на месте. Пока и ей было позволено 0.18, чип «Текст» в читалке
+ * сходился с «Фильтрами» списка (края врозь на 63px) и переезжал через
+ * полшапки: на глаз — «поиск дёргается и встаёт не туда».
+ */
+const EDGE_SNAP = 0.07
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
 const MORPH_BLUR = 7
 const MORPH_SCALE = 0.9
@@ -620,10 +630,14 @@ function buildStage(under: Snapshot | null): Stage {
     // лежат две таблетки, она делится на две и каждая половина идёт в свою.
     // Раньше лишняя цель просто оставалась без пары, и дата «не превращалась».
     const groups = new Map<HTMLElement, HTMLElement[]>()
+    const snap = W * EDGE_SNAP
     for (const { a, b } of cand) {
       if (taken.has(b)) continue
-      taken.add(b)
       const list = groups.get(a) ?? []
+      // Первая пара — только «на месте»; отойти вправо-влево позволено лишь
+      // следующим за ней, они и есть раздвоение.
+      if (list.length === 0 && Math.abs(edge(a) - edge(b)) > snap) continue
+      taken.add(b)
       list.push(b)
       groups.set(a, list)
     }
@@ -672,6 +686,48 @@ function buildStage(under: Snapshot | null): Stage {
           return {
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
+          }
+        },
+      })
+    }
+
+    // ── И ТО ЖЕ САМОЕ ДЛЯ НИЖНЕГО ЭКРАНА ──
+    //
+    // Симметрия обязательна. Гасился только СПАРЕННЫЙ двойник (`hide(twin)`
+    // ниже), а таблетка нижнего экрана без пары просто лежала в снимке с
+    // первого пикселя жеста: на уроке дата не сходилась в пару по порогам, и
+    // сквозь затухающую верхнюю дату просвечивала уже лежащая нижняя — «во
+    // что превращаемся» было видно раньше, чем начиналось превращение.
+    //
+    // Ход зеркальный: не гаснет, а ПРОЯВЛЯЕТСЯ, когда стык проходит её место.
+    // Геометрию — ЗАРАНЕЕ и всю разом, по той же причине, что и у пар: первый
+    // же `hide` схлопывает ряд снимка, и следующая таблетка мерялась бы уже на
+    // новом месте.
+    const loners = toChips
+      .filter(el => !taken.has(el))
+      .map(el => ({ el, box: el.getBoundingClientRect(), rb: rel(el) }))
+    for (const { el: twin, box, rb } of loners) {
+      if (!rb.w) continue
+      const clone = twin.cloneNode(true) as HTMLElement
+      clone.style.visibility = ''
+      clone.removeAttribute('id')
+      clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
+      place(clone, box, zeroOrigin)
+      hide(twin)
+      const inner = wrapKids(clone)
+      const start = rb.left + rb.w * SEAM_BITE
+      const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
+      const fade = (raw: number) => smooth(Math.min(1, Math.max(0, (raw * W - start) / span)))
+      morphs.push({
+        el: clone,
+        at: raw => ({ opacity: String(fade(raw)) }),
+      }, {
+        el: inner,
+        at: raw => {
+          const t = fade(raw)
+          return {
+            filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
+            transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
         },
       })
