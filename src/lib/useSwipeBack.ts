@@ -361,6 +361,7 @@ function buildStage(under: Snapshot | null): Stage {
   type Morph = { el: HTMLElement; at(p: number): Record<string, string> }
   const pins: Pin[] = []
   const morphs: Morph[] = []
+  const marks: { tag: string; left: number; w: number; start: number; span: number }[] = []
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
   /** Сглаживание для содержимого: линейная подмена читается как щелчок. */
@@ -516,6 +517,7 @@ function buildStage(under: Snapshot | null): Stage {
       const inner = wrapKids(clone)
       const start = ra.left + ra.w / 2
       const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
+      marks.push({ tag: 'одиночка "' + (live.innerText || '').trim().slice(0, 6) + '"', left: ra.left, w: ra.w, start, span })
       morphs.push({
         el: inner,
         at: raw => {
@@ -586,6 +588,7 @@ function buildStage(under: Snapshot | null): Stage {
       // уйдёт с экрана. Иначе на отпускании кнопка досменивалась бы рывком уже
       // при снятии слоя.
       const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
+      marks.push({ tag: `пара${nth} "${(live.innerText || '').trim().slice(0, 6)}"→"${(b.innerText || '').trim().slice(0, 6)}"`, left: ra.left, w: ra.w, start, span })
       const q = (p: number) => Math.min(1, Math.max(0, (p * W - start) / span))
 
       // Корпус обеих половин идёт по ОДНОЙ коробке — она и есть морф. Но
@@ -741,9 +744,27 @@ function buildStage(under: Snapshot | null): Stage {
     twin?.remove()
   }
 
+  // ── ВРЕМЕННЫЙ ЗАМЕР ──────────────────────────────────────────────────────
+  // Табличка на время жеста: где стык и где начало хода у каждой таблетки.
+  // СНЯТЬ, как только «морфится раньше времени» будет объяснено.
+  const probe = document.createElement('div')
+  probe.setAttribute(STAGE_ATTR, '')
+  probe.style.cssText = [
+    `position:${POS}`, 'left:8px', 'right:8px', `top:${TOP + 96}px`,
+    'z-index:99999', 'pointer-events:none', 'background:rgba(0,0,0,0.82)',
+    'color:#fff', 'padding:6px 8px', 'border-radius:10px',
+    'font:600 10px/1.35 ui-monospace,monospace', 'white-space:pre',
+  ].join(';')
+  document.body.appendChild(probe)
+  const probeRows = marks.map(m => m)
+
   /** Поставить морф на ход p — и на пальце, и в доводке одним кодом. */
   const setMorphs = (p: number) => {
     for (const m of morphs) Object.assign(m.el.style, m.at(p))
+    probe.textContent = [
+      `W ${W}  gap ${gap}  seam ${Math.round(p * W)}`,
+      ...probeRows.map(r => `${r.tag} ${Math.round(r.left)}..${Math.round(r.left + r.w)} start ${Math.round(r.start)} span ${Math.round(r.span)} q ${((p * W - r.start) / r.span).toFixed(2)}`),
+    ].join('\n')
   }
   setMorphs(0)
 
@@ -812,6 +833,7 @@ function buildStage(under: Snapshot | null): Stage {
       wrap.remove()
       bleed.remove()
       pinLayer.remove()
+      probe.remove()
       pins.forEach(pin => { pin.live.style.visibility = pin.vis })
       // cssText целиком: разом снимает и transform, и заморозку корня, и
       // z-index — ровно то, что было до жеста.
