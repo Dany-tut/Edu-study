@@ -689,11 +689,24 @@ function buildStage(under: Snapshot | null): Stage {
         boxShadow: look.boxShadow,
         borderColor: look.borderColor,
       }
-      b.style.background = 'none'
-      b.style.boxShadow = 'none'
-      b.style.border = '0'
-      b.style.backdropFilter = 'none'
-      b.style.setProperty('-webkit-backdrop-filter', 'none')
+      // СНИМАТЬ — ЧЕРЕЗ `!important`, И ЭТО НЕ ПЕРЕСТРАХОВКА.
+      //
+      // У стеклянной таблетки размытие объявлено дважды: `backdrop-filter` и
+      // `-webkit-backdrop-filter` (GlassPill в mobileChrome.tsx). Обычное
+      // присваивание правит только первое, а второе остаётся и продолжает
+      // РАБОТАТЬ: замер в браузере — после `style.backdropFilter = 'none'` и
+      // даже после `setProperty('-webkit-backdrop-filter', 'none')`
+      // вычисленное значение всё ещё `blur(20px) saturate(1.8)`; со ставкой
+      // `important` — `none`.
+      //
+      // Цена ошибки видна с первого пикселя жеста: копия цели лежит ПОВЕРХ
+      // уходящей таблетки и своим уцелевшим стеклом матирует её. Кнопка под
+      // ним гаснет, а `saturate` тянет цвет — на тёмной теме таблетка сразу
+      // окрашивается и обзаводится светлым краем, хотя ход ещё не начался.
+      for (const prop of ['background', 'box-shadow', 'backdrop-filter', '-webkit-backdrop-filter']) {
+        b.style.setProperty(prop, 'none', 'important')
+      }
+      b.style.setProperty('border', '0', 'important')
 
       for (const el of [a, b]) {
         el.style.position = 'absolute'
