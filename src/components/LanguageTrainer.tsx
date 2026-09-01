@@ -2271,23 +2271,28 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       </Toolbar>
     )
   } else if (
-    mode === 'blocks' && blocksView !== 'stems' && !openStem && !openRoot && !openNum && !openPron
+    mode === 'blocks' && !openStem && !openRoot && !openNum && !openPron
   ) {
-    // На «Основах» строки поиска нет: основ восемь, они на одном экране, и
-    // поиск по ним — таблетка ради таблетки. Число основ и так стоит на чипсе
-    // дока и в подводке витрины.
+    // Строка есть и на «Основах». Раньше её тут не было (основ восемь, они на
+    // одном экране), но шапка — это ещё и то, во что перетекает кнопка «назад»
+    // на свайпе из дрилла: у пустой шапки превращаться не во что, и кнопка
+    // просто гасла, тогда как у соседних разделов она ужимается в кружок
+    // поиска. Ради одинакового жеста строка вернулась.
     toolbar = (
       <Toolbar>
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(
             blocksView === 'roots' ? 'Найти слово или корень…'
             : blocksView === 'sounds' ? 'Найти правило или слово…'
+            : blocksView === 'stems' ? 'Найти основу или глагол…'
             : 'Найти число или ситуацию…')} />
         <ToolCount>
           {blocksView === 'roots'
             ? `${visibleRoots.length} ${t('корней')}`
             : blocksView === 'sounds'
             ? `${visiblePron.length} ${t('правил')}`
+            : blocksView === 'stems'
+            ? `${visibleStems.length} ${t('основ')}`
             : `${visibleNums.length} ${t('наборов')}`}
         </ToolCount>
       </Toolbar>

@@ -144,6 +144,8 @@ const DROP_REACH = 0.35
  * вместе с экраном.
  */
 const EDGE_REACH = 0.18
+/** И насколько далеко по ВЕРТИКАЛИ: дальше — это уже соседняя строка шапки. */
+const ROW_REACH = 26
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
 const MORPH_BLUR = 7
 const MORPH_SCALE = 0.9
@@ -594,13 +596,22 @@ function buildStage(under: Snapshot | null): Stage {
       const b = el.getBoundingClientRect()
       return mid(el) >= W / 2 ? b.right : b.left
     }
+    // Вертикаль — жёстко: шапка бывает в две строки (у дрилла «назад» сверху,
+    // название разбора под ним), и таблетка нижней строки уводила пару себе,
+    // хотя по горизонтали стоит ровно под верхней.
+    const midY = (el: HTMLElement) => {
+      const b = el.getBoundingClientRect()
+      return b.top + b.height / 2
+    }
     const cand: { a: HTMLElement; b: HTMLElement; d: number }[] = []
     for (const a of fromChips) {
       const ea = edge(a)
+      const ya = midY(a)
       for (const b of toChips) {
         const d = Math.abs(mid(a) - mid(b))
         if (d > reach) continue
         if (Math.abs(ea - edge(b)) > edgeReach) continue
+        if (Math.abs(ya - midY(b)) > ROW_REACH) continue
         cand.push({ a, b, d })
       }
     }
