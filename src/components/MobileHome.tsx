@@ -333,7 +333,7 @@ export default function MobileHome() {
           transition={{ duration: 0.18, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'none' : 'auto' }}
         >
-          <GlassIconButton icon={<Bell size={17} />} size={42} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+          <GlassIconButton icon={<Bell size={17} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
         </motion.div>
         <motion.div
           animate={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
@@ -342,7 +342,6 @@ export default function MobileHome() {
         >
           <GlassIconButton
             icon={<SlidersHorizontal size={17} />}
-            size={42}
             // Точка — не «новое», а «лента показана не целиком»: по ней видно,
             // что пустоватая лента это ваш же отбор, а не поломка.
             dot={prefsTouched(prefs)}

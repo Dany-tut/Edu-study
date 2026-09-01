@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { APP_BUILD, fetchRemoteVersion, applyUpdate } from './appVersion'
+import { APP_BUILD, fetchRemoteVersion, applyUpdate, type RemoteVersion } from './appVersion'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Одно состояние обновления на всё приложение.
@@ -31,7 +31,12 @@ type State = {
   apply: () => Promise<void>
 }
 
-let inflight = false
+// Один запрос на всех. Раньше это был флаг: пока он поднят, чужой вызов просто
+// уходил ни с чем — и тап по строке версии, пришедший поверх фоновой проверки,
+// не делал НИЧЕГО. Теперь общий промис: опоздавший присоединяется к идущему
+// запросу и разбирает его ответ по-своему (громкий покажет ошибку, тихий
+// промолчит). Промис же и снимается сам — залипнуть, как флаг, ему негде.
+let inflight: Promise<RemoteVersion | null> | null = null
 
 export const useAppUpdate = create<State>((set, get) => ({
   phase: 'idle',
@@ -39,12 +44,13 @@ export const useAppUpdate = create<State>((set, get) => ({
   progress: 0,
 
   async check(loud = false) {
-    if (inflight || get().phase === 'updating') return
-    inflight = true
+    if (get().phase === 'updating') return
     if (loud) set({ phase: 'checking' })
-    const r = await fetchRemoteVersion()
-    inflight = false
-    if (!r) { set({ phase: loud ? 'error' : get().phase === 'idle' ? 'idle' : get().phase }); return }
+    const r = await (inflight ??= fetchRemoteVersion().finally(() => { inflight = null }))
+    if (get().phase === 'updating') return
+    // Не достучались. Громкому тапу отвечаем «Ошибка связи» — иначе «Проверяем…»
+    // осталось бы на экране навсегда; тихая проверка молчит, как и раньше.
+    if (!r) { if (loud) set({ phase: 'error' }); return }
     set({ remoteVersion: r.version, phase: r.build > APP_BUILD ? 'stale' : 'fresh' })
   },
 

@@ -299,7 +299,7 @@ export default function TeacherAnalytics() {
       supabase.rpc('admin_event_breakdown',           { p_days: days }),
       supabase.rpc('admin_progress_funnel'),
       supabase.rpc('admin_page_stats',                { p_days: days }),
-      supabase.rpc('admin_recent_errors',             { p_limit: 50 }),
+      supabase.rpc('admin_recent_errors',             { p_limit: 500 }),
       supabase.rpc('admin_rage_hotspots',             { p_days: days }),
     ])
     if (ovT.error && /does not exist|forbidden/i.test(ovT.error.message ?? ''))
@@ -827,7 +827,7 @@ export default function TeacherAnalytics() {
           <Card>
             {recentErrors.length===0
               ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ошибок нет — отлично!')}</div>
-              : (recentErrors.slice(0, errExpanded ? 50 : 8)).map((e,i) => {
+              : (recentErrors.slice(0, errExpanded ? 100 : 8)).map((e,i) => {
                   const isError = e.event !== 'rage_click'
                   const color = isError ? '#E04848' : '#D07020'
                   const evLabel = t(EVENT_LABELS[e.event] ?? e.event)

@@ -25,10 +25,16 @@ const REMOTE_URL: string = (import.meta.env.VITE_VERSION_URL as string | undefin
 // в precache воркера (workbox по умолчанию кеширует js/css/html/ico/png/svg), а
 // `no-store` снимает и http-кеш — иначе проверка обновления сама отвечала бы из
 // кеша, ради обхода которого её и завели.
+//
+// СРОК. Запрос обязан кончаться. Без него зависший fetch (телефон в лифте, точка
+// доступа с порталом — соединение открыто и молчит) оставлял проверку висеть
+// навсегда: строка версии залипала на «Проверяем…», и по ней долбили пальцем.
+const CHECK_TIMEOUT_MS = 8000
+
 export async function fetchRemoteVersion(): Promise<RemoteVersion | null> {
   try {
     const sep = REMOTE_URL.includes('?') ? '&' : '?'
-    const res = await fetch(`${REMOTE_URL}${sep}t=${Date.now()}`, { cache: 'no-store' })
+    const res = await fetch(`${REMOTE_URL}${sep}t=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(CHECK_TIMEOUT_MS) })
     if (!res.ok) return null
     const data = await res.json()
     const build = Number(data?.build)

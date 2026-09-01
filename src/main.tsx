@@ -47,8 +47,14 @@ if (phKey) {
 // гард от цикла живут в lib/chunkError (тот же список читает WidgetBoundary).
 ;(() => {
   const recover = (msg: string) => { void recoverFromChunkError(msg) }
+  // preventDefault() здесь НЕ вызывается, хотя соблазн есть: событие cancelable,
+  // и отмена гасит красную ошибку в консоли. Но у Vite отменённый preloadError
+  // означает «ошибку обработали» — `baseModule().catch(handlePreloadError)`
+  // возвращает undefined, и промис import() РЕЗОЛВИТСЯ пустотой вместо отказа.
+  // Дальше на месте вызова получаем `Cannot read properties of undefined
+  // (reading 'COURSE_SUMMARY')` вместо честного «чанк не доехал», а retryImport
+  // не срабатывает вовсе: его .catch по резолву не зовётся.
   window.addEventListener('vite:preloadError', (e) => {
-    e.preventDefault()
     recover(String((e as unknown as { payload?: { message?: string } }).payload?.message ?? 'dynamically imported module'))
   })
   window.addEventListener('error', (e) => recover(String(e?.message ?? '')))

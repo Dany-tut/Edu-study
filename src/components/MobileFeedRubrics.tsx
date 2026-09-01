@@ -2,6 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { tactile } from '../lib/feedback'
 import { RubricChip, type Rubric } from './FeedRubricChip'
 import type { FeedFilter } from '../data/feed'
+import { MOBILE_PILL_H } from '../lib/mobileTokens'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Рубрики ленты на телефоне: они же шапка экрана
@@ -95,6 +96,9 @@ export function RubricBar({ chips, value, onChange, accent }: {
         width: tight ? undefined : 'fit-content',
         maxWidth: '100%', marginInline: tight ? undefined : 'auto',
         overflowX: 'auto', overscrollBehaviorX: 'contain',
+        // Ряд — таблетка шапки: та же высота, что у соседей (MOBILE_PILL_H),
+        // иначе верхний ряд ступенькой.
+        height: MOBILE_PILL_H, boxSizing: 'border-box',
         padding: 4, borderRadius: 999,
         background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))',
         backdropFilter: 'blur(20px) saturate(180%)',

@@ -49,6 +49,10 @@ function lazy(
 ): (courseId: string) => Promise<CourseEdData> {
   return async courseId => {
     const m = await load()
+    // Пустой модуль вместо курса — не «данные кривые», а недоехавший чанк.
+    // Сообщение подобрано под isChunkError: одна перезагрузка вместо крика
+    // «Cannot read properties of undefined» где-то ниже по коду.
+    if (!m) throw new Error(`Failed to fetch dynamically imported module: seed ${key}`)
     const card = SEED_CARDS[key]
     const real = m.COURSE_SUMMARY
     const built = pick(m)(courseId)
