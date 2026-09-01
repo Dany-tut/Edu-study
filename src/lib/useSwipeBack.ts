@@ -150,6 +150,14 @@ const ROW_REACH = 26
  */
 const EDGE_SNAP = 0.07
 /** Размытие содержимого на полпути морфа (px) и его подсадка по масштабу. */
+/**
+ * Сколько ждём покоя открывшегося экрана перед снятием слоя (шаг × попытки).
+ *
+ * Потолок обязателен: экран с живым временем в шапке меняется каждую секунду и
+ * «покоя» не покажет никогда, а страница всё это время висела бы под снимком.
+ */
+const SETTLE_STEP = 50
+const SETTLE_TRIES = 5
 const MORPH_BLUR = 7
 const MORPH_SCALE = 0.9
 
@@ -462,11 +470,30 @@ function buildStage(under: Snapshot | null): Stage {
    * обёртка обязательна, а не перебор детей, — у кнопки бывает голый текст
    * («12 Lvl»), а текстовому узлу стиль не назначишь.
    */
-  const wrapKids = (el: HTMLElement) => {
+  /**
+   * Обернуть содержимое таблетки, ЧТОБЫ ОНО СТОЯЛО КАК В ОРИГИНАЛЕ.
+   *
+   * Раскладку обёртка берёт с живого узла (`src`), а не назначает свою: у
+   * копии в слое корпусу сбрасываются поля и отступы, и содержимое, собранное
+   * «по-своему», уезжает от места на несколько пикселей. У свёрнутого поиска
+   * это видно глазом: у него `gap: 0` и центрирование, а обёртка ставила
+   * зазор 6px — лупа вставала на 3px левее центра своего кружка и такой и
+   * ехала весь свайп. Отступы нужны по той же причине: у «К списку» они свои,
+   * а корпус их уже не держит.
+   *
+   * Читать стиль можно только с живого узла: у отсоединённой копии
+   * `getComputedStyle` отдаёт пустые строки — тогда остаётся прежнее
+   * поведение (по центру, зазор 6px).
+   */
+  const wrapKids = (el: HTMLElement, src?: HTMLElement) => {
+    const cs = src ? getComputedStyle(src) : null
     const box = document.createElement('div')
     box.style.cssText = [
-      'display:flex', 'align-items:center', 'justify-content:center',
-      'gap:6px', 'width:100%', 'height:100%', 'white-space:nowrap',
+      'display:flex', 'align-items:center', 'white-space:nowrap',
+      `justify-content:${cs?.justifyContent || 'center'}`,
+      `gap:${cs?.columnGap && cs.columnGap !== 'normal' ? cs.columnGap : '6px'}`,
+      `padding:0 ${cs?.paddingRight || '0px'} 0 ${cs?.paddingLeft || '0px'}`,
+      'width:100%', 'height:100%',
       'will-change:opacity,filter,transform',
     ].join(';')
     while (el.firstChild) box.appendChild(el.firstChild)
@@ -726,7 +753,7 @@ function buildStage(under: Snapshot | null): Stage {
       clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
       place(clone, live.getBoundingClientRect(), zeroOrigin)
       hide(live)
-      const inner = wrapKids(clone)
+      const inner = wrapKids(clone, live)
       const q = ramp(ra.left, ra.left + ra.w)
       const fade = (raw: number) => smooth(q(raw))
       // Гаснет ВЕСЬ корпус, а не только содержимое. Пары нет — значит на месте
@@ -777,7 +804,7 @@ function buildStage(under: Snapshot | null): Stage {
       clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
       place(clone, box, zeroOrigin)
       hide(twin)
-      const inner = wrapKids(clone)
+      const inner = wrapKids(clone, twin)
       // Проявляется ПОЗАДИ стыка: она принадлежит нижнему экрану и не имеет
       // права показываться там, где ещё лежит верхний. Ход кончается на её
       // правом крае — прошёл стык, значит она уже вся на месте.
@@ -850,8 +877,26 @@ function buildStage(under: Snapshot | null): Stage {
       a.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
       hide(live)
 
-      const ia = wrapKids(a)
-      const ib = wrapKids(b)
+      const ia = wrapKids(a, live)
+      const ib = wrapKids(b, twin)
+      // ── НАЧИНКА СТОИТ В СВОЕЙ КОРОБКЕ, А НЕ В ТЯНУЩЕЙСЯ ──
+      //
+      // Обёртка занимала корпус целиком (`width:100%`), то есть содержимое
+      // центрировалось по коробке, которая ВЕСЬ ход меняет ширину. Значит,
+      // ехало и оно: на «Текстах» лупа приходящего круга шла центром 52 → 45
+      // → 39 → 33 при своём месте 36 — весь свайп глиф стоял не по центру
+      // своего кружка и вставал ровно только в самом конце. Это и есть «лупа
+      // криво, а после свайпа выравнивается».
+      //
+      // Теперь тянется ТОЛЬКО корпус: у уходящей начинки своя коробка (ra), у
+      // приходящей — своя (rb), обе стоят неподвижно, а их отступ внутри
+      // корпуса пересчитывается каждый кадр (корпус, прижатый вправо, ездит
+      // левым краем).
+      for (const inner of [ia, ib]) {
+        inner.style.position = 'absolute'
+        inner.style.top = '0'
+        inner.style.height = '100%'
+      }
       // Корпус на экране ОДИН — уходящей кнопки, и он всегда непрозрачен:
       // расхождение двух стёкол по прозрачности давало просвет, сквозь
       // который виден нижний экран. У нижней половины корпус снимаем, но
@@ -1014,7 +1059,9 @@ function buildStage(under: Snapshot | null): Stage {
           const bx = box(raw)
           return {
             opacity: String(nth > 0 ? 1 - t : 1),
-            clipPath: keepRight(bx.left, bx.w, raw * W),
+            left: `${ra.left - bx.left}px`,
+            width: `${ra.w}px`,
+            clipPath: keepRight(ra.left, ra.w, raw * W),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -1026,7 +1073,9 @@ function buildStage(under: Snapshot | null): Stage {
           const bx = box(raw)
           return {
             opacity: '1',
-            clipPath: keepLeft(bx.left, bx.w, raw * W),
+            left: `${rb.left - bx.left}px`,
+            width: `${rb.w}px`,
+            clipPath: keepLeft(rb.left, rb.w, raw * W),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
             transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
@@ -1459,10 +1508,48 @@ function install() {
       scheduleCapture(1600)
     }
     if (fired) {
-      if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => requestAnimationFrame(drop))
+      // ── ЖДЁМ, ПОКА ОТКРЫВШИЙСЯ ЭКРАН ВСТАНЕТ ──
+      //
+      // Двух кадров мало. React ставит разметку сразу, но экран после этого
+      // ещё ЕДЕТ сам: MobileScreen возвращает прокрутку на место не одним
+      // присваиванием, а тиками по 80мс (содержимое приезжает не мгновенно), а
+      // от прокрутки зависит, докнута шапка или нет. Слой уходил посреди этой
+      // доводки — и человек видел, как шапка переезжает на своё место и всё
+      // «обновляется» уже после свайпа.
+      //
+      // Поэтому ждём не время, а ПОКОЙ: снимаем подпись экрана (прокрутка
+      // главного контейнера + коробка закреплённой шапки) и уходим, когда два
+      // замера подряд совпали. Ждать не страшно: под слоем всё это время лежит
+      // снимок ТОГО ЖЕ экрана, и на глаз разницы нет. Но и ждать бесконечно
+      // нельзя — экран с живым таймером в шапке не успокоится никогда, поэтому
+      // есть потолок.
+      // ЖИВОЙ узел, а не первый попавшийся: слои жеста вставлены В НАЧАЛО body,
+      // и в снимке лежит такая же шапка с такой же меткой — она нашлась бы
+      // первой и стояла бы неподвижно, сколько ни спрашивай.
+      const liveOne = (sel: string) => Array.from(document.querySelectorAll<HTMLElement>(sel))
+        .find(el => !el.closest(`[${STAGE_ATTR}]`)) ?? null
+      const sign = () => {
+        const top = liveOne(`[${PIN_ATTR}="top"]`)
+        const box = top?.getBoundingClientRect()
+        // Прокрутка живёт во внутреннем контейнере экрана (MobileScreen), а не
+        // в окне, — его и спрашиваем.
+        const scroller = liveOne('[data-mobile-scroll]')
+        return [
+          Math.round(box?.left ?? -1), Math.round(box?.top ?? -1),
+          Math.round(box?.width ?? -1), Math.round(box?.height ?? -1),
+          Math.round(scroller?.scrollTop ?? -1),
+        ].join(',')
       }
-      setTimeout(drop, 220)
+      let last = ''
+      let tries = 0
+      const settle = () => {
+        if (dropped) return
+        const now = sign()
+        if (now === last || tries++ >= SETTLE_TRIES) { drop(); return }
+        last = now
+        setTimeout(settle, SETTLE_STEP)
+      }
+      settle()
     } else drop()
   }
 
