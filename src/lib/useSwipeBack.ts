@@ -422,6 +422,27 @@ function buildStage(under: Snapshot | null): Stage {
     return c * c * (3 - 2 * c)
   }
 
+  /**
+   * СНЯТЬ С КОПИИ ЕЁ СОБСТВЕННЫЕ ПЕРЕХОДЫ.
+   *
+   * Клон уносит с собой инлайновый `transition` оригинала, и дальше жест
+   * спорит с ним за одно и то же свойство. У поиска в тренажёре объявлено
+   * `transition: width .22s` (круг ↔ раскрытая строка, SearchPill): корпус
+   * пары получал от жеста новую ширину каждый кадр, а показывал её с
+   * задержкой в 220 мс — то есть всё перетекание стоял шире или уже своей
+   * коробки и сходился с ней уже после отпускания. На экране это ровно то,
+   * что видно глазом: «лупа встаёт криво, а после свайпа выравнивается».
+   *
+   * Заодно глушим анимации: копия с бегущей keyframes-анимацией жила бы в
+   * слое своей жизнью.
+   */
+  const freeze = (el: HTMLElement) => {
+    for (const node of [el, ...Array.from(el.querySelectorAll<HTMLElement>('*'))]) {
+      node.style.setProperty('transition', 'none', 'important')
+      node.style.setProperty('animation', 'none', 'important')
+    }
+  }
+
   /** Поставить узел в слой ровно туда, где он сейчас виден на экране. */
   const place = (el: HTMLElement, box: DOMRect, origin: { left: number; top: number }) => {
     el.style.position = 'absolute'
@@ -512,6 +533,27 @@ function buildStage(under: Snapshot | null): Stage {
     const span = Math.max(8, end - start)
     return (raw: number) => Math.min(1, Math.max(0, (raw * W - start) / span))
   }
+
+  /**
+   * ЗАКРЕПЛЁННОЕ ТОЖЕ ЗНАЕТ ПРО СТЫК.
+   *
+   * Слой таблеток лежит НАД обоими экранами (z-index 90) и до сих пор жил сам
+   * по себе: клон, снятый с уходящего экрана, рисовался и левее стыка, поверх
+   * уже открывшегося; копия из снимка — правее, поверх ещё не уехавшего. Сколько
+   * ни выверяй тайминги, широкая таблетка курса физически шире того места, куда
+   * дошла граница, и всё равно ложилась на чужой экран.
+   *
+   * Поэтому у слоя теперь та же граница, что у страниц: содержимое верхнего
+   * экрана обрезано ПРАВЕЕ стыка, содержимое нижнего — ЛЕВЕЕ. Пересечения нет
+   * ни на пикселе: по линии стыка одно ровно сменяет другое.
+   *
+   * Обрезаем по коробке самого элемента (clip-path считается от неё), поэтому
+   * обеим нужны левый край и ширина на текущем ходе.
+   */
+  const keepRight = (left: number, w: number, seam: number) =>
+    `inset(0 0 0 ${Math.min(w, Math.max(0, seam - left))}px)`
+  const keepLeft = (left: number, w: number, seam: number) =>
+    `inset(0 ${Math.min(w, Math.max(0, left + w - seam))}px 0 0)`
 
   const chips = (root: ParentNode, outer = false) => {
     const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
@@ -678,6 +720,7 @@ function buildStage(under: Snapshot | null): Stage {
       const ra = rel(live)
       if (!ra.w) continue
       const clone = live.cloneNode(true) as HTMLElement
+      freeze(clone)
       clone.style.visibility = ''
       clone.removeAttribute('id')
       clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
@@ -692,7 +735,12 @@ function buildStage(under: Snapshot | null): Stage {
       // без стрелки.
       morphs.push({
         el: clone,
-        at: raw => ({ opacity: String(1 - fade(raw)) }),
+        at: raw => ({
+          opacity: String(1 - fade(raw)),
+          // Своя половина экрана: правее стыка. Левее уже открывшийся экран,
+          // и таблетке уходящего там делать нечего.
+          clipPath: keepRight(ra.left, ra.w, raw * W),
+        }),
       }, {
         el: inner,
         at: raw => {
@@ -723,6 +771,7 @@ function buildStage(under: Snapshot | null): Stage {
     for (const { el: twin, box, rb } of loners) {
       if (!rb.w) continue
       const clone = twin.cloneNode(true) as HTMLElement
+      freeze(clone)
       clone.style.visibility = ''
       clone.removeAttribute('id')
       clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
@@ -736,7 +785,11 @@ function buildStage(under: Snapshot | null): Stage {
       const fade = (raw: number) => smooth(q(raw))
       morphs.push({
         el: clone,
-        at: raw => ({ opacity: String(fade(raw)) }),
+        at: raw => ({
+          opacity: String(fade(raw)),
+          // Только своя половина — левее стыка. Правее ещё стоит верхний экран.
+          clipPath: keepLeft(rb.left, rb.w, raw * W),
+        }),
       }, {
         el: inner,
         at: raw => {
@@ -766,6 +819,7 @@ function buildStage(under: Snapshot | null): Stage {
       // Одна копия в слой, обе стороны прячем, морфа нет вовсе.
       if (nth === 0 && unchanged(live, twin, ra, rb)) {
         const still = live.cloneNode(true) as HTMLElement
+        freeze(still)
         still.style.visibility = ''
         still.removeAttribute('id')
         still.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
@@ -778,6 +832,7 @@ function buildStage(under: Snapshot | null): Stage {
       // Копия узла снимка, а не он сам: снимок раскладывается на каждом
       // жесте, и вынутая таблетка пропала бы из него навсегда.
       const b = twin.cloneNode(true) as HTMLElement
+      freeze(b)
       b.style.visibility = ''
       b.removeAttribute('id')
       b.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
@@ -787,6 +842,7 @@ function buildStage(under: Snapshot | null): Stage {
       // посреди жеста. Оригинал прячем — иначе он уедет со страницей и
       // таблетка задвоится.
       const a = live.cloneNode(true) as HTMLElement
+      freeze(a)
       // Клон снимаем с уже спрятанного оригинала (при раздвоении — второй
       // раз), поэтому прячущий стиль с копии снимаем явно.
       a.style.visibility = ''
@@ -886,14 +942,19 @@ function buildStage(under: Snapshot | null): Stage {
       // на глаз «лупа съехала сильно левее и после свайпа прыгнула на место».
       // Ход половине не нужен: её и так лепит из первой размытие и заливка
       // (born), а место у неё своё с первого кадра.
-      const shell = (raw: number) => {
+      // Коробка корпуса на ходе raw — числами: по ней же режется содержимое.
+      const box = (raw: number) => {
         const p = nth > 0 ? 1 : q(raw)
         const w = lerp(ra.w, rb.w, p)
         const h = lerp(ra.h, rb.h, p)
         const x = lerp(srcX, dstX, p)
+        return { left: rightward ? x - w : x, top: lerp(srcY, dstY, p) - h / 2, w, h }
+      }
+      const shell = (raw: number) => {
+        const { left, top, w, h } = box(raw)
         return {
-          left: `${rightward ? x - w : x}px`,
-          top: `${lerp(srcY, dstY, p) - h / 2}px`,
+          left: `${left}px`,
+          top: `${top}px`,
           width: `${w}px`,
           height: `${h}px`,
         }
@@ -933,11 +994,27 @@ function buildStage(under: Snapshot | null): Stage {
           }
         },
       }, {
+        // ── СОДЕРЖИМОЕ МЕНЯЕТСЯ ПО СТЫКУ, А НЕ ПРОСВЕЧИВАЕТ ДРУГ СКВОЗЬ ДРУГА ──
+        //
+        // Корпус на экране один — он и есть морф, он тянется через стык, и его
+        // не режем. А вот НАЧИНКА принадлежит своему экрану: старая живёт
+        // правее стыка, новая — левее. Раньше они расходились прозрачностью, и
+        // на середине хода обе были видны разом поверх обоих экранов — ровно то
+        // самое «ложится, а не становится». Теперь их разделяет граница
+        // экранов: справа от неё стрелка «назад», слева — уже название курса.
+        //
+        // Прозрачность больше не нужна (пересечения нет), а размытие с
+        // масштабом остаются: содержимое всё так же выступает из размытия,
+        // просто по свою сторону стыка. У отпочковавшейся половины (nth > 0)
+        // своего уходящего содержимого нет — она только рождается, и гасить ей
+        // нечего, кроме себя самой.
         el: ia,
         at: raw => {
           const t = nth > 0 ? 1 : smooth(q(raw))
+          const bx = box(raw)
           return {
-            opacity: String(1 - t),
+            opacity: String(nth > 0 ? 1 - t : 1),
+            clipPath: keepRight(bx.left, bx.w, raw * W),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -946,8 +1023,10 @@ function buildStage(under: Snapshot | null): Stage {
         el: ib,
         at: raw => {
           const t = smooth(q(raw))
+          const bx = box(raw)
           return {
-            opacity: String(t),
+            opacity: '1',
+            clipPath: keepLeft(bx.left, bx.w, raw * W),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
             transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
@@ -1081,6 +1160,7 @@ function buildStage(under: Snapshot | null): Stage {
     // Нижний бар — целиком: он один и тот же на всех экранах.
     const box = live.getBoundingClientRect()
     const clone = live.cloneNode(true) as HTMLElement
+    freeze(clone)
     clone.removeAttribute('id')
     clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
     place(clone, box, zeroOrigin)
