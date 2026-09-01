@@ -44,6 +44,22 @@ const JUMP = 160
  */
 const lastY = new WeakMap<object, number>()
 
+/** Ключ в карте: у окна это его панель прокрутки, у контейнера — он сам. */
+const scrollKey = (target: Element | Window | null): object =>
+  (target && target !== window ? target : document.scrollingElement) ?? window
+
+/**
+ * «Это не палец»: сдвинуть точку отсчёта перед подстановкой прокрутки.
+ *
+ * Порог JUMP ловит подстановку по размеру прыжка, но доводка места
+ * (MobileScreen.tsx) ставит прокрутку НЕ разом: содержимое приезжает частями,
+ * и место догоняется шагами — каждый сам по себе на палец похож. Тот, кто
+ * прокрутку ставит, знает про себя точно, поэтому просто говорит об этом.
+ */
+export function markScrollSet(target: Element | Window | null, y: number) {
+  lastY.set(scrollKey(target), Math.max(0, Math.round(y)))
+}
+
 export function useNavCollapse(threshold = 6) {
   const [collapsed, setCollapsed] = useState(false)
 
@@ -62,7 +78,7 @@ export function useNavCollapse(threshold = 6) {
       // ещё вёл вниз. Обрезаем позицию рамками контейнера — за краями dy = 0.
       const max = el ? Math.max(0, el.scrollHeight - el.clientHeight) : Infinity
       const y = Math.min(Math.max(raw, 0), max)
-      const key: object = el ?? window
+      const key = scrollKey(el)
       const prev = lastY.get(key)
       lastY.set(key, y)
       if (y <= 4) { setCollapsed(false); return }  // near the top → always expanded

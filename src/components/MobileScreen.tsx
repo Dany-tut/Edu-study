@@ -1,5 +1,6 @@
 import { type ReactNode, type CSSProperties, useEffect, useRef } from 'react'
 import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
+import { markScrollSet } from '../lib/useNavCollapse'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -68,6 +69,9 @@ export default function MobileScreen({
         const box = bodyRef.current
         const max = box.scrollHeight - box.clientHeight
         box.scrollTop = Math.min(want, Math.max(0, max))
+        // Это МЫ, а не палец: без отметки нижняя навигация читала доводку как
+        // «пролистал вниз» и сворачивалась в мини на возврате назад.
+        markScrollSet(box, box.scrollTop)
         if (max >= want) done = true
       }
       apply()

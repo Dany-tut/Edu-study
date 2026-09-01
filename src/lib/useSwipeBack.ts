@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { frictionStart, haptic, type Friction } from './feedback'
 import { captureScreen, paintSnapshot, STAGE_ATTR, type Snapshot } from './screenSnapshot'
 import { freezeDockLayer, viewportGap } from './dockLayer'
+import { markScrollSet } from './useNavCollapse'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useSwipeBack — «свайп назад» жестом от левого края экрана (как в iOS).
@@ -473,6 +474,34 @@ function buildStage(under: Snapshot | null): Stage {
   }
 
   /**
+   * Одна и та же таблетка по обе стороны стыка: то же место, тот же размер,
+   * та же разметка.
+   *
+   * Разметку сверяем строкой, а не «на глаз по тексту»: у переключателя
+   * половин текст один и тот же на обоих экранах, а подсвечена может быть
+   * разная половина — такую пару перетекать НУЖНО.
+   *
+   * Две поправки к строке, обе про снимок:
+   *   • `data-swipe-scroll` навешивает съёмка, чтобы вернуть прокрутку
+   *     внутренним контейнерам (ряд чипсов дока — как раз такой);
+   *   • пустой `style=""` остаётся от прошлого жеста: снятие слоя возвращает
+   *     `visibility` в исходное пустое значение, и атрибут остаётся висеть.
+   *     Без этой поправки приём работал бы ровно один раз — а дальше «через
+   *     раз», самая дорогая порода багов в этом жесте.
+   */
+  const norm = (el: HTMLElement) => el.outerHTML
+    .replace(/ data-swipe-scroll="[^"]*"/g, '')
+    .replace(/ style=""/g, '')
+  const near = (a: number, b: number) => Math.abs(a - b) <= 1
+  const unchanged = (
+    live: HTMLElement, twin: HTMLElement,
+    ra: { left: number; top: number; w: number; h: number },
+    rb: { left: number; top: number; w: number; h: number },
+  ) => near(ra.left, rb.left) && near(ra.top, rb.top)
+    && near(ra.w, rb.w) && near(ra.h, rb.h)
+    && norm(live) === norm(twin)
+
+  /**
    * Развести кнопки двух экранов в перетекающие пары.
    *
    * Сначала — именованные (исключения), потом остальные таблетки по порядку
@@ -602,6 +631,28 @@ function buildStage(under: Snapshot | null): Stage {
       const [live, twin, nth] = pairs[i]
       const { ra, rb } = boxes[i]
       if (!ra.w || !rb.w) continue
+
+      // ── НЕ ИЗМЕНИЛОСЬ — ЗНАЧИТ, НИЧЕГО И НЕ ПРОИСХОДИТ ──
+      //
+      // Морф честно перетекал даже там, где с обеих сторон стоит ОДНА И ТА ЖЕ
+      // таблетка: содержимое расходилось размытием и сходилось обратно. На
+      // экране это читалось как «ряд над навигацией обновился» — мигание на
+      // ровном месте. А ряд у соседних экранов чаще всего один и тот же
+      // (предмет, половины режима, фильтры), и вести себя он должен как нижняя
+      // навигация: просто стоять, пока страница проходит под ним.
+      //
+      // Одна копия в слой, обе стороны прячем, морфа нет вовсе.
+      if (nth === 0 && unchanged(live, twin, ra, rb)) {
+        const still = live.cloneNode(true) as HTMLElement
+        still.style.visibility = ''
+        still.removeAttribute('id')
+        still.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
+        place(still, live.getBoundingClientRect(), base)
+        hide(live)
+        hide(twin)
+        continue
+      }
+
       // Копия узла снимка, а не он сам: снимок раскладывается на каждом
       // жесте, и вынутая таблетка пропала бы из него навсегда.
       const b = twin.cloneNode(true) as HTMLElement
@@ -1011,6 +1062,10 @@ function buildStage(under: Snapshot | null): Stage {
       // Прокрутку возвращаем уже разморозенному документу: ушли — на ту, что
       // была у открывшегося экрана, отменили — на свою.
       const back = fired ? (under?.scrollY ?? 0) : scrollY
+      // Отметка «это не палец»: без неё нижняя навигация принимает возврат
+      // прокрутки за прокрутку вниз и сворачивается в мини ровно на выходе
+      // из экрана — человек не листал ничего (lib/useNavCollapse.ts).
+      markScrollSet(window, back)
       window.scrollTo(0, back)
       // Слой доков размораживаем ПОСЛЕ возврата прокрутки: sync() ставит его
       // top по scrollY, и разморозка до этого посадила бы его по старой.
