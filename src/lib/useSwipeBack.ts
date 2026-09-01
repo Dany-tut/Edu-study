@@ -480,6 +480,36 @@ function buildStage(under: Snapshot | null): Stage {
     // краю, а кнопка «морфилась» туда, где на экране ничего нет.
     const boxes = pairs.map(([a, b]) => ({ ra: rel(a), rb: rel(b) }))
 
+    // Таблетки без пары тоже закрепляются: стоят на месте и гаснут, когда
+    // стык проходит их середину. Иначе поведение зависело от того, нашёлся
+    // ли двойник: не нашёлся — и кнопки просто уезжали со страницей, как
+    // будто жест ничего не делает.
+    for (const live of fromChips) {
+      if (pairs.some(([a]) => a === live)) continue
+      const ra = rel(live)
+      if (!ra.w) continue
+      const clone = live.cloneNode(true) as HTMLElement
+      clone.removeAttribute('id')
+      clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
+      place(clone, live.getBoundingClientRect(), zeroOrigin)
+      pins.push({ live, vis: live.style.visibility })
+      live.style.visibility = 'hidden'
+      const inner = wrapKids(clone)
+      const start = ra.left + ra.w / 2
+      const span = Math.min(SEAM_SPAN, Math.max(8, W - start) * 0.85)
+      morphs.push({
+        el: inner,
+        at: raw => {
+          const t = smooth(Math.min(1, Math.max(0, (raw * W - start) / span)))
+          return {
+            opacity: String(1 - t),
+            filter: `blur(${MORPH_BLUR * t}px)`,
+            transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
+          }
+        },
+      })
+    }
+
     for (let i = 0; i < pairs.length; i++) {
       const [live, b, nth] = pairs[i]
       const { ra, rb } = boxes[i]
@@ -616,16 +646,39 @@ function buildStage(under: Snapshot | null): Stage {
     return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05
   }
 
-  /** Первый ВИДИМЫЙ элемент по селектору (см. `visible`). */
+  /**
+   * САМЫЙ видимый элемент по селектору, а не первый попавшийся.
+   *
+   * У урока две шапки разом — строка в потоке и её докнутый двойник, — и в
+   * момент докования обе живы: одна гаснет, другая проявляется. Пока брался
+   * первый попавшийся, в слой попадали обе: шеврон исчезал ещё до стыка,
+   * вторая таблетка проявлялась сама собой, а на подходе стыка уже ничего не
+   * происходило. Берём ту, что сейчас плотнее, и ровно одну.
+   */
+  const zeroOrigin = { left: 0, top: 0 }
+
+  const densest = (found: HTMLElement[]) => {
+    if (found.length < 2) return found[0] ?? null
+    const rank = (el: HTMLElement) => {
+      const b = el.getBoundingClientRect()
+      return Number(getComputedStyle(el).opacity) * 1e6 + b.width * b.height
+    }
+    return found.reduce((best, el) => (rank(el) > rank(best) ? el : best))
+  }
   const pickVisible = (scope: ParentNode, sel: string) =>
-    Array.from(scope.querySelectorAll<HTMLElement>(sel)).find(visible) ?? null
+    densest(Array.from(scope.querySelectorAll<HTMLElement>(sel)).filter(visible))
 
   const zero = { left: 0, top: 0 }
-  for (const live of Array.from(document.querySelectorAll<HTMLElement>(`[${PIN_ATTR}]`))) {
-    // Копии из снимка и из уже собранного слоя — не исходники.
-    if (wrap.contains(live) || pinLayer.contains(live)) continue
-    if (!visible(live)) continue
-    const kind = live.getAttribute(PIN_ATTR) || ''
+  // По одной живой шапке на вид: `pickVisible` уже отбирает самую плотную, а
+  // прямой перебор всех совпадений вешал в слой ещё и ту, что в этот миг
+  // гаснет.
+  // Копии из снимка и из уже собранного слоя — не исходники.
+  const alive = Array.from(document.querySelectorAll<HTMLElement>(`[${PIN_ATTR}]`))
+    .filter(el => !wrap.contains(el) && !pinLayer.contains(el) && visible(el))
+  const kinds = new Set(alive.map(el => el.getAttribute(PIN_ATTR) || ''))
+  for (const kind of kinds) {
+    const live = densest(alive.filter(el => el.getAttribute(PIN_ATTR) === kind))
+    if (!live) continue
     const twin = pickVisible(underEl, `[${PIN_ATTR}="${kind}"]`)
 
     if (kind === 'top') {
@@ -642,7 +695,7 @@ function buildStage(under: Snapshot | null): Stage {
     const clone = live.cloneNode(true) as HTMLElement
     clone.removeAttribute('id')
     clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
-    place(clone, box, zero)
+    place(clone, box, zeroOrigin)
     pins.push({ live, vis: live.style.visibility })
     live.style.visibility = 'hidden'
     // Двойник из снимка только двоился бы.
