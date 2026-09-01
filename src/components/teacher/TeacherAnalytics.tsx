@@ -814,15 +814,15 @@ export default function TeacherAnalytics() {
             <Kpi icon={AlertTriangle} label={t('JS ошибок')}
               value={totalErrors}
               sub={totalErrors===0 ? t('Всё чисто') : t('за выбранный период')}
-              accent={totalErrors>0 ? '#E04848' : undefined} />
+              accent={totalErrors>0 ? '#E04848' : '#3FA867'} />
             <Kpi icon={MousePointerClick} label={t('Rage-клики')}
               value={totalRage}
               sub={totalRage===0 ? t('Пользователи не злятся') : t('места путаницы')}
-              accent={totalRage>2 ? '#D07020' : undefined} />
+              accent={totalRage>2 ? '#D07020' : totalRage===0 ? '#3FA867' : undefined} />
             <Kpi icon={Clock} label={t('Bounce-риск')}
               value={bounceRisk}
               sub={bounceRisk===0 ? t('Страниц с коротким dwell нет') : t('страниц с dwell<5с')}
-              accent={bounceRisk>0 ? '#D07020' : undefined} />
+              accent={bounceRisk>0 ? '#D07020' : '#3FA867'} />
           </div>
 
           {/* Issue score */}
