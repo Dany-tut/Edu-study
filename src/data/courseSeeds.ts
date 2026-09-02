@@ -108,6 +108,15 @@ export const COURSE_SEEDS: CourseSeed[] = [
     build: lazy('ensv', () => import('./survivalEn'), m => m.buildEnglishSurvivalCourse),
   },
   {
+    // Стоит особняком от остальных английских: те ведут вверх по уровням, а
+    // этот возвращает утраченный. Порядок в списке — после курсов уровня,
+    // потому что берут его не «следующим шагом», а по конкретному поводу.
+    key: 'ensp',
+    subject: 'Английский',
+    summary: SEED_CARDS.ensp,
+    build: lazy('ensp', () => import('./englishSprint'), m => m.buildEnglishSprintCourse),
+  },
+  {
     // Стоит перед TOPIK-курсами: он для человека, который ещё не читает, а те
     // оба начинаются с того, что читать он уже умеет.
     key: 'kohg',
