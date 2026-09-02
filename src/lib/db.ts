@@ -413,14 +413,19 @@ type LessonTuple = [
 ]
 type ModuleTuple = [number, string, LessonTuple[]]
 type CourseTuple = [string, string, string, string, string[] | null, string[] | null, ModuleTuple[]]
+type ProgressTuple = [string, string, LessonStatus, number, string, string | null, boolean]
 type TrackPayload = {
   rows?: Array<[string, string | null]>
+  progress?: ProgressTuple[]
   modes?: Record<string, 'full' | 'custom' | 'by_date'>
   hard?: Array<[string, HardTaskDef[] | null]>
   courses?: CourseTuple[]
 }
 
-export type StudentTrack = { scope: PersonScope; subjects: Subject[] }
+export type StudentTrack = { scope: PersonScope; subjects: Subject[]; progress: ProgressMap }
+
+/** Пустые вложения — их привозит fetchProgressAttachments отдельно. */
+const emptyAtt = (): ProgressMap[string]['reviewAttachments'] => ({ photos: [], board: null, annotation: null })
 
 export async function fetchStudentTrack(
   fallback: { id: string; groupId: string },
@@ -438,9 +443,13 @@ export async function fetchStudentTrack(
   }
 
   if (!payload) {
-    // Старый путь: два запроса вместо одного, но кабинет открывается.
+    // Старый путь: три запроса вместо одного, но кабинет открывается.
     const scope = await fetchPersonScope(fallback)
-    return { scope, subjects: await fetchCourseStructure(scope.rows) }
+    const [subjects, progress] = await Promise.all([
+      fetchCourseStructure(scope.rows),
+      fetchLessonProgress(scope.studentIds).catch(() => ({} as ProgressMap)),
+    ])
+    return { scope, subjects, progress }
   }
 
   const rows: Array<{ id: string; groupId: string }> = []
@@ -464,6 +473,23 @@ export async function fetchStudentTrack(
     const acc = hardByLessonId.get(lessonId) ?? []
     for (const def of defs) if (!acc.some(d => d.key === def.key)) acc.push(def)
     hardByLessonId.set(lessonId, acc)
+  }
+
+  // Прогресс — лёгкой половиной: статусы, оценки, комментарии. Вложения (фото,
+  // доска, поблочные ответы) приезжают отдельно и только добавляются к уже
+  // показанному экрану, см. fetchProgressAttachments.
+  const progress: ProgressMap = {}
+  for (const t of payload.progress ?? []) {
+    const [ref, , status, score, comment, reviewComment, hardSubmitted] = t
+    if (!ref) continue
+    progress[ref] = {
+      status, score, comment: comment ?? '',
+      reviewComment: reviewComment ?? '',
+      reviewAttachments: emptyAtt(),
+      hardTaskBlocks: [],
+      hardReviewBlocks: [],
+      hardSubmitted: !!hardSubmitted,
+    }
   }
 
   const modes = payload.modes ?? {}
@@ -518,7 +544,51 @@ export async function fetchStudentTrack(
     }
   })
 
-  return { scope, subjects }
+  return { scope, subjects, progress }
+}
+
+/**
+ * Вложения к прогрессу: фото, доска, разметка учителя и поблочные ответы по
+ * сложным заданиям.
+ *
+ * Отдельным запросом, потому что это единственное тяжёлое место прогресса:
+ * base64 в jsonb. По базе на 02.09.2026 — 349 КБ на все 818 строк, но ОДНА
+ * строка доходит до 174 КБ. В общем ответе такая строка задержала бы первый
+ * байт для ученика, который просто открыл кабинет. Здесь она не задерживает
+ * ничего: экран уже нарисован, вложения только добавляются.
+ */
+export type ProgressAttachments = Record<string, {
+  reviewAttachments: ReviewAttachments
+  hardTaskBlocks: HardTaskStudentBlock[]
+  hardReviewBlocks: HardTaskReviewBlock[]
+}>
+
+export async function fetchProgressAttachments(studentIds: string[]): Promise<ProgressAttachments> {
+  const out: ProgressAttachments = {}
+  const ids = studentIds.filter(isUuid)
+  if (ids.length === 0) return out
+  const { data, error } = await supabase
+    .from('lesson_progress')
+    .select('lesson_ref, attachments, review_attachments')
+    .in('student_id', ids)
+  if (error) reportDbError('fetchProgressAttachments', error)
+  if (error || !data) return out
+  for (const row of data as DbProgress[]) {
+    // Пустые строки не кладём: у большинства уроков вложений нет вовсе, и класть
+    // на каждый пустой объект значит заставить экран перерисоваться зря.
+    const hasAny = !!row.attachments || !!row.review_attachments
+    if (!hasAny) continue
+    out[row.lesson_ref] = {
+      reviewAttachments: {
+        photos: Array.isArray(row.review_attachments?.photos) ? row.review_attachments!.photos! : [],
+        board: row.review_attachments?.board ?? null,
+        annotation: row.review_attachments?.annotation ?? null,
+      },
+      hardTaskBlocks: Array.isArray(row.attachments?.tasks) ? row.attachments!.tasks! : [],
+      hardReviewBlocks: Array.isArray(row.review_attachments?.tasks) ? row.review_attachments!.tasks! : [],
+    }
+  }
+  return out
 }
 
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {

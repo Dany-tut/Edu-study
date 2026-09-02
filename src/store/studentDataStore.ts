@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import {
   fetchScheduleDays,
-  fetchLessonProgress,
   fetchLessonsHeavy,
   withBankHard,
   type LessonHeavy,
   fetchStudentTrack,
+  fetchProgressAttachments,
   mergeSubjectsWithProgress,
   computeStats,
   fetchQuizQuestions,
@@ -118,7 +118,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // infinite "Загрузка…" spinner (a dead white screen for the student). Each
     // slice falls back to an empty value so the UI renders whatever succeeded.
     const results = await Promise.allSettled([
-      fetchLessonProgress(scope.studentIds),
+      Promise.resolve(track.progress),
       scheduleP,
       Promise.resolve(track.subjects),
       quizP,
@@ -129,7 +129,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     ])
     const val = <T,>(i: number, fallback: T): T =>
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
-    const progress  = val(0, {} as Awaited<ReturnType<typeof fetchLessonProgress>>)
+    const progress  = val(0, {} as ProgressMap)
     const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
     const catalog   = val(2, [] as Subject[])
     const quizQ     = val(3, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
@@ -217,15 +217,16 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // otherwise local-only — set to 'submitted' when the student submits — so
     // the teacher's accept/return (which updates the `${ref}-hard` row) would
     // never reach the student without this sync.
-    {
+    const replayHard = (map: ProgressMap) => {
       const dash = useDashboard.getState()
-      for (const [ref, p] of Object.entries(progress)) {
+      for (const [ref, p] of Object.entries(map)) {
         if (!ref.endsWith('-hard')) continue
         if (p.status === 'submitted' || p.status === 'returned' || p.status === 'completed') {
           dash.setHardStatus(ref.slice(0, -'-hard'.length), p.status, p.reviewComment, p.reviewAttachments, p.hardReviewBlocks, p.score)
         }
       }
     }
+    replayHard(progress)
 
     // Уроки, тяжёлую половину которых уже приносили на этой странице, отдаём
     // сразу собранными. Иначе повторный load() (realtime после проверки ДЗ,
@@ -270,6 +271,27 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const openSubject = useDashboard.getState().activeSubjectId
     const target = withHeavy.find(s => s.id === openSubject) ?? withHeavy[0]
     if (target) void ensureLessonsHeavy(prefetchTargets([target]))
+
+    // ── Вложения прогресса — следом, никого не задерживая ────────────────────
+    //
+    // Фото, доска, разметка учителя и поблочные ответы по сложным заданиям —
+    // единственное тяжёлое место прогресса (base64 в jsonb, одна строка доходит
+    // до 174 КБ). Экран уже нарисован; вложения только ДОБАВЛЯЮТСЯ, поэтому их
+    // опоздание ничего не ломает — в отличие от статусов, без которых трек
+    // рисовать нечем.
+    void fetchProgressAttachments(scope.studentIds)
+      .then(att => {
+        if (Object.keys(att).length === 0) return
+        const merged: ProgressMap = { ...useStudentData.getState().progress }
+        for (const [ref, a] of Object.entries(att)) {
+          const p = merged[ref]
+          if (!p) continue
+          merged[ref] = { ...p, ...a }
+        }
+        useStudentData.setState({ progress: merged })
+        replayHard(merged)
+      })
+      .catch(e => console.error('[studentData.attachments]', e))
   },
 
   ensureLessonHeavy: (lessonId) => { void ensureLessonsHeavy([lessonId]) },
