@@ -65,13 +65,21 @@ function Label({ children }: { children: React.ReactNode }) {
  * внешнего упражнения. Для остальных типов рисует пустоту — вызывать можно
  * безусловно.
  */
-export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUpdate, accent }: {
+export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUpdate, accent, withPassage = false }: {
   // Обобщённый тип, а не TaskPayload: страницы держат задание своими типами
   // (HWTask у редактора курса), и обновление обязано возвращать ровно его —
   // иначе поля, которых нет в TaskPayload, потерялись бы на первой же правке.
   task: T
   onUpdate: (next: T) => void
   accent: EditorAccent
+  /**
+   * Показывать ли поле отрывка прямо здесь.
+   *
+   * В редакторе курса отрывок для чтения — общее поле задания (оно нужно и
+   * вопросам по тексту), и второе такое же было бы дублем. На странице
+   * «Домашки» этого поля нет вовсе, и без него утверждения не с чем сверять.
+   */
+  withPassage?: boolean
 }) {
   const t = useT()
   return (
@@ -90,6 +98,17 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                 ]
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {withPassage && (
+                      <>
+                        <Label>{t('Отрывок для чтения')}</Label>
+                        <AutoTextarea
+                          value={task.passage ?? ''}
+                          onChange={v => onUpdate({ ...task, passage: v })}
+                          placeholder={t('Текст, по которому проверяются утверждения')}
+                          style={{ minHeight: 80 }}
+                        />
+                      </>
+                    )}
                     <Label>{t('Утверждения и верный вердикт каждого')}</Label>
                     {rows.map((row, ri) => {
                       const patch = (next: Partial<typeof row>) =>
@@ -142,7 +161,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                     <div style={{ fontSize: 11, color: (task.passage ?? '').trim() ? 'var(--color-text-3)' : 'var(--color-red-text)' }}>
                       {(task.passage ?? '').trim()
                         ? t('«Не указано» — про то, чего в тексте нет. Пусть хотя бы одно утверждение будет таким: иначе это выбор из двух, то есть монетка.')
-                        : t('Текст не задан — добавьте отрывок для чтения ниже, иначе утверждения не с чем сверять.')}
+                        : t('Текст не задан — добавьте отрывок для чтения, иначе утверждения не с чем сверять.')}
                     </div>
                   </div>
                 )

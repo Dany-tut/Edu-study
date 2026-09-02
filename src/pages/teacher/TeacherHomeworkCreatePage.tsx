@@ -26,7 +26,7 @@ import type { Task as BankTask, Subject } from '../../data/taskBankData'
 import { useCurriculum } from '../../store/curriculumStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { useTeacherAccess } from '../../lib/teacherAccess'
-import { bankSubjectOptionsFor, bankSubjectIdsFor, subjectIcon } from '../../lib/subjects'
+import { bankSubjectOptionsFor, bankSubjectIdsFor, isLanguageSubject, subjectIcon } from '../../lib/subjects'
 import SubjectPicker from '../../components/teacher/SubjectPicker'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import MultiSelectField from '../../components/MultiSelectField'
@@ -168,9 +168,9 @@ function FilterSelect({ label, options, value, onChange }: {
 // Единый реестр (src/data/taskTypes.ts) — подписи, иконки и цвета одни и те же
 // здесь, в редакторе курса и в тренажёре. Раньше цвета были продублированы
 // вручную и успели разойтись с общей палитрой.
-const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.ElementType; color: string; bg: string }[] =
-  taskTypesFor().map(d => ({
-    type: d.id, label: d.label, hint: d.hint, icon: d.Icon, ...d.visual,
+const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.ElementType; color: string; bg: string; languageOnly: boolean }[] =
+  taskTypesFor({ language: true }).map(d => ({
+    type: d.id, label: d.label, hint: d.hint, icon: d.Icon, ...d.visual, languageOnly: d.languageOnly,
   }))
 
 function typeConfig(t: HWTaskType) {
@@ -525,6 +525,7 @@ function TaskCard({
                   task={task}
                   onUpdate={next => onUpdate(next)}
                   accent={{ color: cfg.color, bg: cfg.bg, fill: cfg.color }}
+                  withPassage
                 />
 
                 {/* Answer (for extended/fill) */}
@@ -554,11 +555,14 @@ const TASK_TYPE_DESCS: Record<HWTaskType, string> = Object.fromEntries(
   taskTypesFor({ language: true }).map(d => [d.id, d.hint]),
 ) as Record<HWTaskType, string>
 
-function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
+function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage }: {
   onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void
   onImport: () => void; onImportHard: () => void
+  /** Домашка адресована языковой группе — показываем и языковые типы. */
+  isLanguage: boolean
 }) {
   const t = useT()
+  const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
   const [active, setActive] = useState<HWTaskType | null>(null)
   function flash(type: HWTaskType, cb: (t: HWTaskType) => void) {
     cb(type); setActive(type); setTimeout(() => setActive(null), 280)
@@ -585,7 +589,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
         {t('ТИП ЗАДАНИЯ')}
       </div>
-      {TASK_TYPES.map(tt => (
+      {palette.map(tt => (
         <TaskTypeRow
           key={tt.type}
           type={tt.type}
@@ -1433,7 +1437,9 @@ function HardTaskAccordion({
                     <ComposeTab tasks={tasks} onUpdate={onUpdate} onDelete={onDelete} />
                     <div style={{ marginTop: 10 }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {TASK_TYPES.map(tt => (
+                        {/* Сложное задание собирают руками и проверяют глазами:
+                            языковым тапалкам здесь делать нечего. */}
+                        {TASK_TYPES.filter(tt => !tt.languageOnly).map(tt => (
                           <button key={tt.type} onClick={() => onAdd(tt.type)} style={{
                             display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
                             border: 'none', background: tt.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: tt.color, fontFamily: 'inherit',
@@ -2106,6 +2112,22 @@ export default function TeacherHomeworkCreatePage() {
     clearHwPreset()
   }, [hwPresetStudentId, clearHwPreset, setMeta])
   const { students: groupStudents } = useStudents(meta.groupId || null)
+
+  // ЯЗЫКОВЫЕ ТИПЫ В «ДОМАШКАХ». Палитра здесь собиралась без языкового флага, и
+  // семнадцать типов из двадцати семи жили только внутри редактора курса:
+  // задать диктант или карточки обычной домашкой было нельзя вовсе. Решает
+  // адресат — предмет группы или ученика, которому домашка назначается; пока
+  // адресат не выбран, спрашиваем предметы самого учителя. Ничего не известно —
+  // остаётся прежняя короткая палитра, чтобы предметнику не сыпать хангылем.
+  const allStudentsForSubject = useAllStudents()
+  const teacherSubjects = useTeacherAccess(s => s.subjects)
+  const targetSubjects = meta.assignTo === 'student'
+    ? [allStudentsForSubject.find(x => x.id === meta.studentId)?.subject]
+    : groupStudents.map(x => x.subject)
+  const known = targetSubjects.filter(Boolean) as string[]
+  const isLanguage = known.length
+    ? known.some(isLanguageSubject)
+    : teacherSubjects.length > 0 && teacherSubjects.some(isLanguageSubject)
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
   const [hwTasks, setHwTasks] = useState<HWTask[]>(() => readDraft<HWTask[]>(`${draftScope}.hwTasks`) ?? [])
   const [hardTasks, setHardTasks] = useState<HWTask[]>(() => readDraft<HWTask[]>(`${draftScope}.hardTasks`) ?? [])
@@ -2577,6 +2599,7 @@ export default function TeacherHomeworkCreatePage() {
             {activeTab === 'compose' && (
               <ComposeTypePanel
                 key="compose-types"
+                isLanguage={isLanguage}
                 onAdd={type => addCustomTask(type)}
                 onAddHard={type => addCustomTask(type, true)}
                 onImport={() => setImportTarget('basic')}

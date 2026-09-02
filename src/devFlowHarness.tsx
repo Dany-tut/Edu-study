@@ -74,6 +74,52 @@ const questions: HomeworkQuizQuestion[] = [
     targetText: w,
     responseSeconds: 15,
   })),
+  // ── работа с текстом и системой ──
+  // Четыре типа проверяются здесь же: их экраны собираются из данных задания
+  // так же, как у остальных, и увидеть их иначе можно только через настоящий
+  // курс с настоящим учеником.
+  q({
+    id: 'tf', type: 'trueFalse',
+    prompt: 'Верны ли утверждения по тексту?',
+    passage: 'Anna gets up at seven. She has coffee and toast, then walks to the station. Her train leaves at 8:15.',
+    statements: [
+      { text: 'Anna walks to the station.', verdict: 'T' },
+      { text: 'She drives a car.', verdict: 'F' },
+      { text: 'The train is usually late.', verdict: 'NG' },
+    ],
+  }),
+  q({
+    id: 'dg', type: 'dropdownGap',
+    prompt: 'Выберите верную форму в каждом пропуске',
+    gapText: 'She ____ to school and ____ English every day.',
+    gapChoices: [
+      { options: ['go', 'goes', 'going'], correct: 1 },
+      { options: ['study', 'studies', 'studied'], correct: 1 },
+    ],
+  }),
+  q({
+    id: 'cs', type: 'columnSort',
+    prompt: 'Разложите слова по артиклям',
+    columns: ['der', 'die', 'das'],
+    sortItems: [
+      { text: 'Tisch', column: 0 }, { text: 'Lampe', column: 1 }, { text: 'Buch', column: 2 },
+      { text: 'Stuhl', column: 0 }, { text: 'Tür', column: 1 }, { text: 'Fenster', column: 2 },
+    ],
+  }),
+  q({
+    id: 'mi', type: 'matching',
+    prompt: 'Поставьте слово к своей картинке',
+    pairs: [
+      { left: '고양이', right: 'кот', rightImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><rect width="160" height="120" rx="12" fill="%23DDECFF"/><text x="80" y="84" font-size="64" text-anchor="middle">🐱</text></svg>' },
+      { left: '집', right: 'дом', rightImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><rect width="160" height="120" rx="12" fill="%23FFE6D5"/><text x="80" y="84" font-size="64" text-anchor="middle">🏠</text></svg>' },
+      { left: '물', right: 'вода', rightImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><rect width="160" height="120" rx="12" fill="%23D8F5EA"/><text x="80" y="84" font-size="64" text-anchor="middle">💧</text></svg>' },
+    ],
+  }),
+  q({
+    id: 'em', type: 'embed',
+    prompt: 'Пройдите упражнение и отметьте, что закончили',
+    embedUrl: 'https://wordwall.net/resource/1234567/english/irregular-verbs',
+  }),
   q({
     id: 'sp2', type: 'speaking', lang: 'ko',
     prompt: 'Расскажите о любимом блюде — три предложения.',
