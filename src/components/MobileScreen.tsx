@@ -1,5 +1,6 @@
 import { type ReactNode, type CSSProperties, useLayoutEffect, useRef } from 'react'
-import { MOBILE_TOP_GAP } from '../lib/mobileTokens'
+import { motion } from 'framer-motion'
+import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -140,7 +141,11 @@ export default function MobileScreen({
             pointerEvents: 'none',
           }}
         >
-          <div style={{ pointerEvents: 'auto' }}>{topZone}</div>
+          {/* Вход шапки общий на все экраны (MOBILE_TOP_ENTER): падает сверху.
+              Раньше он был только у «острова» главной и профиля, а «Курсы» и
+              «Тренажёр» показывали шапку без движения — соседние вкладки
+              вели себя по-разному. */}
+          <motion.div {...MOBILE_TOP_ENTER} style={{ pointerEvents: 'auto' }}>{topZone}</motion.div>
         </div>
       )}
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
-import { glassCircle, MOBILE_DOCK_EDGE, MOBILE_PILL_H } from '../lib/mobileTokens'
+import { glassCircle, MOBILE_DOCK_EDGE, MOBILE_PILL_H, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { type Lesson, type LessonStatus } from '../data/mockData'
@@ -185,7 +185,15 @@ export default function CoursesPage() {
   return (
     <div className="flex flex-col" style={{ gap: 18 }}>
       {/* ── Row 1: search (desktop only) + subject pills ── */}
-      <div className="flex items-center gap-3" style={{ minWidth: 0 }}>
+      {/* На телефоне этот ряд — шапка экрана «ДЗ» (он единственный из вкладок
+          рисует верх сам, без MobileScreen), поэтому и входит он так же, как
+          шапки соседних вкладок: общим пресетом сверху. На десктопе входа нет
+          — там страница не перемонтируется от вкладки к вкладке. */}
+      <motion.div
+        {...(isDesktop ? null : MOBILE_TOP_ENTER)}
+        className="flex items-center gap-3"
+        style={{ minWidth: 0 }}
+      >
         {/* Search field — desktop only; on mobile it lives in the bottom dock.
             Свёрнут в кружок: морфится только ШИРИНА (как в доке), поэтому иконка
             не прыгает, а фон с размытием не мигает. */}
@@ -361,7 +369,7 @@ export default function CoursesPage() {
           })}
         </div>
         </HScrollFade>
-      </div>
+      </motion.div>
 
       {/* ── Row 2: module tabs ── */}
       <HScrollFade gap={0} fadeWidth={40} scrollStyle={{ alignItems: 'center' }}>

@@ -130,22 +130,21 @@ export function GlassIconButton({
 
 /**
  * Dynamic-Island-style central pill — the floating status widget at the top.
- * Holds live info (streak, time-to-lesson, …). Animates in with a soft spring.
+ * Holds live info (streak, time-to-lesson, …). Входит вместе со всей шапкой
+ * (MobileScreen + MOBILE_TOP_ENTER), своей анимации не имеет.
  */
 export function DynamicIsland({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 26 }}
-      style={{ display: 'flex', justifyContent: 'center' }}
-    >
+    // Своего входа у острова нет: шапку целиком вводит MobileScreen общим
+    // пресетом (MOBILE_TOP_ENTER). Два входа подряд давали острову двойную
+    // пружину — он падал заметно дольше соседей по ряду.
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
       {/* Высота — общая MOBILE_PILL_H (её держит сам GlassPill): верхний ряд
           читается как одна линия одинаковых плиток, и таблетки соседних
           экранов перетекают друг в друга без прыжка по вертикали. */}
       <GlassPill strong onClick={onClick} style={{ padding: '0 18px', fontSize: 13 }}>
         {children}
       </GlassPill>
-    </motion.div>
+    </div>
   )
 }

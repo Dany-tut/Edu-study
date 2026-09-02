@@ -142,5 +142,17 @@ export const glassCircle: CSSProperties = {
 
 // ── Tactility presets (re-export canon from feedback.ts; never use sound.ts on mobile) ──
 export const JELLY_SPRING = { type: 'spring' as const, stiffness: 420, damping: 26 }
+
+// ── Вход шапки — ОДИН на все экраны ──────────────────────────────────────────
+// Шапка не «появляется», а падает сверху: короткий путь вниз с той же пружиной,
+// что и у нажатий. Держать это в одном месте важнее, чем кажется: экраны
+// нижней навигации размонтируются при переключении, и вход играется каждый раз
+// — разный у соседних вкладок он читается как «разные приложения». Кто рисует
+// шапку не через MobileScreen (ряд предметов в «ДЗ»), берёт пресет отсюда же.
+export const MOBILE_TOP_ENTER = {
+  initial: { opacity: 0, y: -10, scale: 0.9 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  transition: JELLY_SPRING,
+} as const
 export const JELLY_EASE = [0.34, 1.46, 0.64, 1] as const
 export const TAP_SCALE = 0.94
