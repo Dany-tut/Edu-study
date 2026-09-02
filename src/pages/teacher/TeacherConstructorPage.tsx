@@ -1280,11 +1280,26 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
           <span style={cardChip(STATUS_COLOR[course.status])}>{t(STATUS_LABEL[course.status])}</span>
           {course.shared && <span style={cardChip('var(--color-purple-text)')}>{t('Общий')}</span>}
           {seedMovedAhead(course) && (
+            // ТОЧКА, А НЕ ПЛАШКА. Статус курса — постоянное свойство, «сид ушёл
+            // вперёд» — временное дело, которое закрывается одним нажатием
+            // «Из сида». Равный вес читался неверно: ряд одинаковых янтарных
+            // плашек выглядел как ошибка на каждом курсе, а на витрине из пяти
+            // курсов текст «Сид обновился» повторялся пять раз и вытеснял
+            // названия. Точка держит сигнал, а объяснение отдаёт по наведению —
+            // Конструктор живёт только на компьютере (на телефоне о нём прямо
+            // написано «на компьютере»), так что подсказка здесь доступна.
             <span
-              style={cardChip('var(--color-amber)')}
               title={t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
+              aria-label={t('Сид обновился')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 14, height: 18, cursor: 'help',
+              }}
             >
-              {t('Сид обновился')}
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: 'var(--color-amber)',
+              }} />
             </span>
           )}
         </div>
@@ -1350,6 +1365,11 @@ function seedToCourse(seed: CourseSeed, id: string): Course {
     })),
     color: COURSE_COLOR, bg: COURSE_BG, status: 'draft', lastEdited: '',
     createdAt: SEED_SORT_AT,
+    // Плитка сида СТОИТ на текущем отпечатке по определению: она и есть сид,
+    // отставать ей не от чего. Без этого признак «сид обновился» загорался у
+    // всех несохранённых плиток сразу — отпечатка нет, значит «неизвестно»,
+    // значит показать. Для сохранённой копии это верно, для самого сида — нет.
+    seedStamp: seed.summary.stamp,
   }
 }
 

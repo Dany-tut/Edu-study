@@ -63,7 +63,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 14,
     vocabCount: 140,
     taskCount: 1151,
-    stamp: '3bf5c23fc21d',
+    stamp: '0c2ea89bc1a3',
     guidedHours: '21–28',
     lessonMinutes: 100,
     scopeNote:
