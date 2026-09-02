@@ -411,7 +411,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       id, short_id, title, subject, student_ids, group_ids,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, has_hard, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description, materials )
+        lessons ( id, short_id, title, lesson_number, shape, has_hard, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, materials )
       )
     `)
     .eq('status', 'published')
@@ -484,7 +484,6 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               // Едут вместе с уроком, чтобы при догрузке конспекта не спрашивать
               // назначения второй раз.
               bankHard: bankHard?.length ? bankHard : undefined,
-              description: l.description ?? undefined,
               videoUrl: l.youtube_url ?? undefined,
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
               files: parseLessonFiles(l.materials),
@@ -511,6 +510,10 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
 export interface LessonHeavy {
   content?: import('../data/lessonContent').LessonContentData
   homework?: import('../data/lessonContent').AuthoredHomework
+  /** Краткое описание урока. Живёт здесь, а не в скелете: на треке его никто не
+   *  показывает — оно читается только внутри урока (getLessonDetail), — а весило
+   *  оно 277 КБ из 462 КБ всего скелета, то есть шесть десятых. */
+  description?: string
 }
 
 /**
@@ -556,7 +559,7 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
 
   const { data, error } = await supabase
     .from('lessons')
-    .select('short_id, content, homework')
+    .select('short_id, content, homework, description')
     .in('short_id', ids)
   if (error) reportDbError('fetchLessonsHeavy', error)
   if (error || !data) return out
@@ -565,6 +568,7 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
     short_id: string
     content?: { paragraphs?: unknown[] } | null
     homework?: import('../data/lessonContent').AuthoredHomework | null
+    description?: string | null
   }
   for (const l of data as Row[]) {
     const homework = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
@@ -573,7 +577,7 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
     const content = l.content && l.content.paragraphs?.length
       ? (l.content as import('../data/lessonContent').LessonContentData)
       : undefined
-    out.set(l.short_id, { content, homework })
+    out.set(l.short_id, { content, homework, description: l.description ?? undefined })
   }
   return out
 }

@@ -35,7 +35,10 @@ export interface Lesson {
    *  (lessons.homework JSONB). When set with tasks, the student homework page
    *  renders these instead of the generic placeholder homework. */
   homework?: import('./lessonContent').AuthoredHomework
-  /** Short lesson description from the teacher editor (lessons.description). */
+  /** Short lesson description from the teacher editor (lessons.description).
+   *  Приезжает ТЯЖЁЛОЙ половиной, вместе с конспектом: на треке его никто не
+   *  показывает (читается только в getLessonDetail), а в скелете курса оно
+   *  весило 277 КБ из 462 КБ — больше, чем всё остальное вместе. */
   description?: string
   /** "Запись" tab — raw recording URL as pasted by the teacher: RuTube,
    *  YouTube, or the school's own link (teachstream /watch/<id>, direct

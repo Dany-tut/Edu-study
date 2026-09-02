@@ -328,6 +328,9 @@ function applyHeavy(subjects: Subject[]): Subject[] {
           heavyPending: false,
           content: rec ? undefined : found?.content,
           homework: withBankHard(found?.homework, l.bankHard),
+          // Описание тоже едет тяжёлой половиной: на треке его не показывают, а
+          // в скелете оно весило больше всего остального вместе взятого.
+          description: found?.description,
         }
       }),
     })),
