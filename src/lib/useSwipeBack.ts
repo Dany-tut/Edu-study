@@ -615,17 +615,6 @@ function buildStage(under: Snapshot | null): Stage {
   const keepRight = (left: number, seam: number) => mask(edgeMask('right', left, seam))
   /** Своя половина — левее стыка (то, что принадлежит нижнему экрану). */
   const keepLeft = (left: number, seam: number) => mask(edgeMask('left', left, seam))
-  /**
-   * БЕЗ ГРАНИЦЫ — ДЛЯ ТОГО, ЧЕЙ КОРПУС ЕЁ ТОЖЕ НЕ ЗНАЕТ.
-   *
-   * Стык делит содержимое, потому что на его месте у второй стороны есть своё.
-   * У отпочковавшейся половины второй стороны нет вовсе: её корпус РОЖДАЕТСЯ
-   * целиком, никакой границы не спрашивая. Начинку же резало стыком — и
-   * «Фильтры» первую треть свайпа стояли пустой таблеткой без воронки, а
-   * значок появлялся, только когда граница доходила до его места. Корпус
-   * виден — значит, видно и то, что в нём.
-   */
-
   const chips = (root: ParentNode, outer = false) => {
     const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
       if (!visible(el)) return false
