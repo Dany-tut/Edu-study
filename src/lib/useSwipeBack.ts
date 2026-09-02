@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { frictionStart, haptic, type Friction } from './feedback'
+import { blip, haptic } from './feedback'
 import { captureScreen, paintSnapshot, STAGE_ATTR, type Snapshot } from './screenSnapshot'
 import { freezeDockLayer, viewportGap } from './dockLayer'
 import { markScrollSet } from './useNavCollapse'
@@ -9,7 +9,8 @@ import { markScrollSet } from './useNavCollapse'
 //
 // Жест не абстрактный «назад по кнопке», а прямое перетаскивание: страница
 // уезжает ровно за пальцем, под ней открывается предыдущий экран, а пока она
-// едет — под пальцем работает мягкий моторчик (lib/feedback.ts, frictionStart).
+// едет — палец чувствует засечку на пороге, а слышен ОДИН короткий щелчок в
+// момент, когда страница ушла (lib/feedback.ts, blip).
 // Отпустил за порогом — страница доезжает и «назад» срабатывает; не дотянул —
 // возвращается на место, и ничего не произошло.
 //
@@ -1422,14 +1423,12 @@ function install() {
   let speed = 0
   let past = false
   let stage: Stage | null = null
-  let friction: Friction | null = null
   let trigger = MIN_TRIGGER
 
   const reset = () => {
     tracking = false
     captured = false
     stage = null
-    friction = null
     past = false
     stageUp = false
   }
@@ -1469,9 +1468,6 @@ function install() {
       captured = true
       stageUp = true
       stage = buildStage(underSnapshot())
-      // Звук — канал вспомогательный: на iOS контекст бывает «перехвачен»
-      // чужим воспроизведением, и его отказ НЕ должен ронять сам жест.
-      try { friction = frictionStart() } catch { friction = null }
     }
 
     // Жест наш: под пальцем ничего не прокручивается.
@@ -1487,17 +1483,15 @@ function install() {
     // Левее нуля страница не уходит, но и не упирается намертво — вязкий ход.
     const x = Math.max(0, dx >= 0 ? dx : dx * 0.25)
     stage?.set(x)
-    friction?.move(Math.abs(inst), x / trigger)
 
     // Засечка на пороге — в обе стороны: человек должен чувствовать, где
     // «отпущу — уйдёт», не глядя на экран.
     const nowPast = x >= trigger
     if (nowPast !== past) {
       past = nowPast
-      // Отдача — на самом жесте, а не внутри звука: если аудиоконтекст
-      // недоступен, щелчок в палец на пороге всё равно обязан быть.
+      // Порог — отдача в палец и ничего больше: звук приберегаем на сам
+      // переход, иначе на одном жесте их окажется два (см. finish).
       haptic([6, 2, 3])
-      friction?.detent()
     }
   }, { passive: false })
 
@@ -1512,8 +1506,12 @@ function install() {
     const fired = !cancelled && stack.length > 0 && (x >= trigger || (speed > FLING && x > 24))
     const localStage = stage
 
-    friction?.stop(fired)
-    if (fired) haptic(12)
+    // ОДИН ЗВУК НА ЖЕСТ, и только когда страница действительно ушла. Раньше
+    // под пальцем всё это время работал моторчик: на длинном жесте он тянулся
+    // секунду с лишним и переставал читаться отдачей — становился фоном.
+    // Короткий щелчок в момент перехода говорит ровно то, что нужно знать:
+    // «ушли». Не ушли — молчим, это и так видно.
+    if (fired) { blip(430, 0.07); haptic(12) }
 
     await localStage?.settle(fired, Math.abs(speed))
 

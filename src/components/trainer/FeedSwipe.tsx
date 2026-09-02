@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { frictionStart, haptic, tactile, type Friction } from '../../lib/feedback'
+import { haptic, tactile } from '../../lib/feedback'
 import { backArmed, BACK_EDGE } from '../../lib/useSwipeBack'
 import { HeartGlyph, ReplyGlyph, TranslateGlyph, SpeakGlyph } from './feedGlyphs'
 import type { FeedAction, FeedGesture } from '../../store/feedGesturesStore'
@@ -203,7 +203,6 @@ export default function FeedSwipe({
     let hold: number | null = null
     let held = false
     let moved = false
-    let friction: Friction | null = null
     let lastTap = 0
     let tapTimer: number | null = null
 
@@ -693,7 +692,6 @@ export default function FeedSwipe({
         // Пост на мобильной главной прозрачный — без подложки слой действия
         // просвечивал бы сквозь текст, пока карточка едет.
         card.style.background = cfg.current.surface
-        if (cfg.current.sound) friction = frictionStart()
       }
       if (mode !== 'swipe') return
 
@@ -737,9 +735,10 @@ export default function FeedSwipe({
         // посреди жеста (оторванное не тянется), поэтому tear() зовётся один
         // раз, а обратный ход просто возит уже отдельную карточку.
         if (nowArmed) tear()
-        if (cfg.current.sound) { haptic(nowArmed ? [8, 3, 5] : 6); friction?.detent() }
+        // На пороге — отдача в палец, без звука: звук на жест один и звучит
+        // в момент, когда действие засчитано (см. onEnd).
+        if (cfg.current.sound) haptic(nowArmed ? [8, 3, 5] : 6)
       }
-      friction?.move(speed, Math.min(1, Math.abs(x) / th))
     }
 
     const onEnd = (e: TouchEvent) => {
@@ -755,8 +754,6 @@ export default function FeedSwipe({
       if (wasSwipe) {
         const fling = speed >= FLING && Math.abs((t?.clientX ?? startX) - startX) > 36
         const go = armed || fling
-        friction?.stop(go)
-        friction = null
         settle(go)
         if (go) {
           const g: FeedGesture = dir < 0 ? 'swipeLeft' : 'swipeRight'
@@ -816,7 +813,7 @@ export default function FeedSwipe({
 
     const onCancel = () => {
       clearHold()
-      if (mode === 'swipe') { friction?.stop(false); friction = null; settle(false) }
+      if (mode === 'swipe') settle(false)
       mode = 'off'
       id = null
     }
@@ -853,7 +850,6 @@ export default function FeedSwipe({
       window.removeEventListener('resize', bleed)
       io?.disconnect()
       if (tapTimer) clearTimeout(tapTimer)
-      friction?.stop(false)
       host.removeEventListener('touchstart', onStart)
       host.removeEventListener('touchmove', onMove as EventListener)
       host.removeEventListener('touchend', onEnd)

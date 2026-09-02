@@ -230,121 +230,21 @@ export function lockRelease() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Отдача свайпа назад (lib/useSwipeBack.ts).
+// ЗВУК ЖЕСТА — ОДИН ЩЕЛЧОК, А НЕ МОТОРЧИК
 //
-// Не «щелчок в конце» и не шорох: пока страница едет, под пальцем работает
-// мягкий моторчик. Низкая несущая, громкость которой качает LFO ~30 раз в
-// секунду, — ухо слышит это как дрожь, а не как ноту, и звук читается
-// продолжением вибрации, а не отдельным эффектом. Полосовой шум, стоявший тут
-// раньше, звучал шелестом бумаги: слишком «предметно» для жеста.
+// Здесь жил непрерывный «моторчик»: низкая несущая, громкость которой качал
+// LFO, — он работал под пальцем всё время, пока едет страница (свайп назад) или
+// пост ленты. Задумка была честная: фактура движения вместо щелчка в конце.
 //
-// Размах ведёт СКОРОСТЬ пальца, частоту дрожи — пройденный путь: ведёшь
-// медленно — еле ощутимо, у порога моторчик тикает чаще и злее. Остановил
-// палец — тишина, хотя страница всё ещё отодвинута.
+// На живом телефоне вышло иначе. Жест длится от полусекунды до полутора, и
+// звук такой длины перестаёт читаться отдачей: ухо принимает его за фон
+// приложения, а не за ответ на своё же движение. Хуже того, он звучит и тогда,
+// когда жест кончится ничем, — то есть обещает событие, которого не будет.
 //
-// Ниже ~110 Гц телефонный динамик уже не тянет: несущую держим над этой
-// границей, а мягкость добираем срезом верхов, а не понижением тона.
+// Теперь у жеста ровно один звук и ровно в одной точке: действие засчитано.
+// Порог по-прежнему слышен пальцем (haptic), а не ухом. Если снова захочется
+// «фактуры», её место — в отдаче, а не в динамике.
 // ─────────────────────────────────────────────────────────────────────────────
-
-export type Friction = {
-  /** speed — px/мс пальца, progress — 0…1 пути до срабатывания. */
-  move(speed: number, progress: number): void
-  /** Порог пройден (или сдан назад) — глухой толчок засечки. */
-  detent(): void
-  /** Конец жеста: fired — страница ушла, иначе вернулась. */
-  stop(fired: boolean): void
-}
-
-/** Пустышка на случай, когда звука в системе нет: вызывать можно всё то же. */
-const SILENT: Friction = { move() {}, detent() {}, stop() {} }
-
-/** Запустить моторчик. Возвращает ручку — ею жест им и правит. */
-export function frictionStart(): Friction {
-  const ac = audioCtx()
-  if (!ac) return SILENT
-
-  const t0 = ac.currentTime
-
-  const carrier = ac.createOscillator()
-  carrier.type = 'sine'
-  carrier.frequency.setValueAtTime(126, t0)
-
-  // Дрожь. Глубина 0.55 при середине 0.45 — колебание почти до нуля и обратно:
-  // именно провалы до тишины дают ощущение отдельных толчков, а не вибрато.
-  const lfo = ac.createOscillator()
-  lfo.type = 'sine'
-  lfo.frequency.setValueAtTime(29, t0)
-  const depth = ac.createGain()
-  depth.gain.value = 0.55
-  const tremolo = ac.createGain()
-  tremolo.gain.setValueAtTime(0.45, t0)
-  lfo.connect(depth).connect(tremolo.gain)
-
-  // Срез верхов: без него края каждого толчка щёлкают.
-  const soft = ac.createBiquadFilter()
-  soft.type = 'lowpass'
-  soft.frequency.setValueAtTime(420, t0)
-
-  const gain = ac.createGain()
-  gain.gain.setValueAtTime(0, t0)
-
-  carrier.connect(tremolo).connect(soft).connect(gain).connect(ac.destination)
-  carrier.start(t0)
-  lfo.start(t0)
-
-  let dead = false
-
-  return {
-    move(speed, progress) {
-      if (dead) return
-      const t = ac.currentTime
-      const p = Math.min(1, Math.max(0, progress))
-      // Потолок низкий: отдача должна читаться как фактура движения.
-      // 0.4 px/мс — это уже быстрый смах.
-      const level = Math.min(0.055, Math.max(0, speed) * 0.13)
-      // setTargetAtTime сглаживает рывки: кадры тача приходят неровно, и без
-      // сглаживания моторчик дёргался бы ступеньками.
-      gain.gain.setTargetAtTime(level, t, 0.045)
-      // Ближе к порогу — чаще и чуть выше: рука слышит, что жест «набирает».
-      lfo.frequency.setTargetAtTime(29 + p * 17, t, 0.07)
-      carrier.frequency.setTargetAtTime(126 + p * 34, t, 0.07)
-    },
-    detent() {
-      if (dead) return
-      // Засечка: один глухой толчок поверх дрожи (отдача в палец — на жесте).
-      const t = ac.currentTime
-      const osc = ac.createOscillator()
-      const g = ac.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(150, t)
-      osc.frequency.exponentialRampToValueAtTime(96, t + 0.09)
-      g.gain.setValueAtTime(0, t)
-      g.gain.linearRampToValueAtTime(0.05, t + 0.008)
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11)
-      osc.connect(g).connect(ac.destination)
-      osc.start(t); osc.stop(t + 0.12)
-    },
-    stop(fired) {
-      if (dead) return
-      dead = true
-      const t = ac.currentTime
-      const tail = fired ? 0.2 : 0.1
-      gain.gain.cancelScheduledValues(t)
-      if (fired) {
-        // Ушла — моторчик коротко догоняет страницу и затихает.
-        gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.03), t)
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + tail)
-        lfo.frequency.cancelScheduledValues(t)
-        lfo.frequency.setTargetAtTime(22, t, 0.08)
-      } else {
-        // Вернулась — просто обрываем дрожь.
-        gain.gain.setTargetAtTime(0, t, 0.03)
-      }
-      carrier.stop(t + tail + 0.05)
-      lfo.stop(t + tail + 0.05)
-    },
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Канон вердикта урока (docs/MEMORY_STANDARD.md, Р10)
