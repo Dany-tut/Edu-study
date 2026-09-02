@@ -18,6 +18,9 @@ const JoinPage = lazy(() => retryImport(() => import('./pages/JoinPage')))
 const JoinTeacherPage = lazy(() => retryImport(() => import('./pages/JoinTeacherPage')))
 const DiagnosticTestPage = lazy(() => retryImport(() => import('./pages/DiagnosticTestPage')))
 const ReviewSession = lazy(() => retryImport(() => import('./components/ReviewSession')))
+// Гостевой тренажёр тянет за собой весь LanguageTrainer — во входной чанк ему
+// нельзя (см. reference-bundle-weight): гостей единицы, а платят за вес все.
+const GuestTrainerPage = lazy(() => retryImport(() => import('./pages/GuestTrainerPage')))
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
@@ -29,7 +32,8 @@ import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
 import {
-  bootTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink, trainerHash,
+  bootTrainerLink, parseTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink,
+  trainerHash,
 } from './lib/trainerLink'
 
 // ── Присланная ссылка переживает вход ────────────────────────────────────────
@@ -212,6 +216,17 @@ function AppRoutes() {
   const studentSession = getStudentSession()
   if (!studentSession) {
     if (hash.startsWith('#/login')) return <StudentLoginPage />
+    // Гость с присланной ссылкой идёт в тренажёр, а не на лендинг: материал
+    // языка общий, и держать его за турникетом значит, что ссылка работает
+    // только между теми, у кого кабинет уже есть (см. GuestTrainerPage).
+    // Ссылка при этом остаётся отложенной — гость может уйти на вход, и после
+    // него попадёт ровно на этот же экран, уже своим учеником.
+    //
+    // ТОЛЬКО ТЕКУЩИЙ АДРЕС. Запасной `bootTrainerLink()` был бы здесь ловушкой:
+    // ссылку загрузки помнит модуль, и гость, ушедший с материала на лендинг,
+    // получал бы обратно материал вместо лендинга.
+    const guestLink = parseTrainerLink(hash)
+    if (guestLink) return <Chunk><GuestTrainerPage link={guestLink} /></Chunk>
     return <LandingPage />
   }
   // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted

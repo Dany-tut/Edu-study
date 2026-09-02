@@ -278,9 +278,15 @@ export default function MobileHome() {
       {/* ОБЕ ШАПКИ ЖИВУТ В ОДНОМ СЛОЕ И ПЕРЕЛИВАЮТСЯ ДРУГ В ДРУГА. Не
           AnimatePresence: обёртке нужен только вход, а presence на React 19
           теряет сигнал выхода и оставляет пустое место до F5. Обе смонтированы
-          всегда, гасшая не ловит касания. */}
+          всегда, гасшая не ловит касания.
+
+          initial ПОВТОРЯЕТ animate у всех четырёх слоёв: без него framer
+          красит первый кадр «как есть» (opacity 1), и при входе на главную
+          рубрики на миг проступали второй таблеткой под островом, а под
+          колокольчиком стояла вторая кнопка. */}
       <div style={{ position: 'relative', flex: 1, minWidth: 0, height: 44 }}>
         <motion.div
+          initial={{ opacity: barOnFeed ? 0 : 1, y: barOnFeed ? -6 : 0, scale: barOnFeed ? 0.94 : 1 }}
           animate={{ opacity: barOnFeed ? 0 : 1, y: barOnFeed ? -6 : 0, scale: barOnFeed ? 0.94 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           style={{
@@ -311,6 +317,7 @@ export default function MobileHome() {
         </motion.div>
 
         <motion.div
+          initial={{ opacity: barOnFeed ? 1 : 0, y: barOnFeed ? 0 : 6, scale: barOnFeed ? 1 : 0.94 }}
           animate={{ opacity: barOnFeed ? 1 : 0, y: barOnFeed ? 0 : 6, scale: barOnFeed ? 1 : 0.94 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           style={{
@@ -334,6 +341,7 @@ export default function MobileHome() {
           острова и ряда рубрик. */}
       <div ref={bellRef} style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
         <motion.div
+          initial={{ opacity: barOnFeed ? 0 : 1, scale: barOnFeed ? 0.88 : 1 }}
           animate={{ opacity: barOnFeed ? 0 : 1, scale: barOnFeed ? 0.88 : 1 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'none' : 'auto' }}
@@ -341,6 +349,7 @@ export default function MobileHome() {
           <GlassIconButton icon={<Bell size={17} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
         </motion.div>
         <motion.div
+          initial={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
           animate={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'auto' : 'none' }}

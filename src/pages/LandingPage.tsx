@@ -494,7 +494,12 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
 }
 
 // ── Форма заявки ─────────────────────────────────────────────────────────────
-function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () => void }) {
+/**
+ * Форма заявки. Наружу — ради гостевого тренажёра: человек, пришедший по
+ * присланной ссылке, оставляет заявку прямо с материала, не возвращаясь на
+ * лендинг за той же формой (см. GuestTrainerPage).
+ */
+export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () => void }) {
   const { lang } = useLang()
   const t = useT()
   const [name, setName] = useState('')
