@@ -46,9 +46,13 @@ import {
   buildLanguageCourse, courseSummary, allVocab,
   unitByShortId as findUnit, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say,
-  dictation, dictationBank, drill,
+  dictation, dictationBank, minPair, drill,
 } from './languageCourse'
 import { ENSP_THEORY } from './englishSprintTheory'
+import { ENSP_READING } from './englishSprintReading'
+import { ENSP_DIALOGS } from './languageDialogs'
+import { ENSP_VIDEO } from './languageVideosEnsp'
+import { unitFigures } from './unitFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -153,6 +157,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'While I was heating the solution, one of the students knocked over the beaker.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'Halfway through the class the projector stopped working.', ['worked', 'stopping']),
+      minPair('Какое слово прозвучало? «я живу здесь» и «я уезжаю отсюда» различаются только длиной гласного.', 'live', 'leave', 'B'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'I was going to leave, but I could not find my keys anywhere.'),
       say('Расскажите за две минуты о занятии, которое пошло не по плану. Требование: фон обязательно в Past Continuous, а события, которые в него врезались, — в Past Simple. Ни одного глагола состояния в Continuous.', 120),
       write('Напишите 120 слов о том, как изменилась ваша работа за последние годы. Критерии проверки: (1) минимум два used to про то, чего больше нет; (2) минимум один be used to про привыкание; (3) ни одного глагола состояния в форме Continuous.'),
     ],
@@ -226,6 +232,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'I have been teaching chemistry for eleven years and I still enjoy it.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'By the time I got to the till I had lost my place in the queue.', ['have', 'losing']),
+      minPair('Какое слово прозвучало? короткий и долгий /i/ — самая нагруженная пара английского.', 'feel', 'fill', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'I have been meaning to tell you about it for a couple of weeks.'),
       say('Девяносто секунд о своём профессиональном опыте: сколько лет вы этим занимаетесь, что успели сделать, что делаете последнее время. Требование: минимум три перфектные формы и ни одного Present Simple там, где речь о длительности.', 90),
       write('Напишите 120 слов о последних двух неделях подготовки. Критерии проверки: (1) минимум два Present Perfect Continuous про длящееся; (2) минимум один Past Perfect про то, что было раньше другого события; (3) ни одного перфекта рядом с yesterday, last week или ago.'),
     ],
@@ -294,6 +302,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'I will email you as soon as the results come back from the lab.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'The train is due to leave at twenty to seven.', ['dew', 'leaving']),
+      minPair('Какое слово прозвучало? эти два слова путаются в расписании чаще всего.', 'walk', 'work', 'B'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'We are supposed to have finished all of it by the end of the term.'),
       say('Расскажите за 90 секунд про ближайшие две недели. Требование: используйте все четыре способа — will для мнения, going to для намерения, Present Continuous для договорённости, Present Simple для расписания. И ни одного will после when или if.', 90),
       write('Напишите 120 слов о том, что изменится после языковой школы. Критерии проверки: (1) минимум один Future Continuous про процесс в момент будущего; (2) минимум один Future Perfect про завершённое к сроку; (3) минимум два придаточных с when или as soon as, и ни в одном нет will.'),
     ],
@@ -368,6 +378,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'I need some information about the side effects before I take it.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'He gave us a lot of advice on dissection technique.', ['advices', 'many']),
+      minPair('Какое слово прозвучало? единственное и множественное здесь несёт только гласный.', 'man', 'men', 'B'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'There were a lot of them waiting at the checkout for about an hour.'),
       say('Девяносто секунд об устройстве вашей лаборатории или кабинета: что там есть, чего не хватает, что старое. Требование: минимум четыре неисчисляемых существительных с верным квантором и ни одного лишнего -s.', 90),
       write('Напишите 120 слов с описанием любого научного факта из вашей области. Критерии проверки: (1) минимум одно обобщение через the + единственное число; (2) минимум три неисчисляемых существительных; (3) перечитайте текст отдельно ради артиклей — у каждого существительного артикль должен быть выбран, а не пропущен.'),
     ],
@@ -436,6 +448,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'The reagent must have been contaminated, which would account for the colour.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'You should have told me the sample was unstable.', ['must', 'telling']),
+      minPair('Какое слово прозвучало? /æ/ и /e/ — пара, которую русский слух сводит в один звук.', 'bad', 'bed', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'It must have been left out of the fridge for a couple of days.'),
       say('Разберите вслух за 90 секунд любой случай, когда что-то пошло не так на работе. Требование: пять версий разной степени уверенности — must have, might have, can’t have, presumably, it stands to reason.', 90),
       write('Напишите 120 слов с разбором причин неудачи — реальной или выдуманной. Критерии проверки: (1) минимум два предположения о прошлом через have + V3; (2) минимум одно уверенное отрицание через cannot have; (3) ни одного mustn’t в значении «наверное, не».'),
     ],
@@ -515,6 +529,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'Having prepared the sample, we placed it under the microscope.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'She suggested postponing the practical until Thursday.', ['to postpone', 'suggesting']),
+      minPair('Какое слово прозвучало? /θ/ подменяется на /s/ — и слово меняется.', 'thin', 'sin', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'She managed to get through most of it without asking for help.'),
       say('Девяносто секунд: расскажите о решении, которое пришлось принять на работе. Требование: минимум один глагол только с герундием, одно сложное дополнение (want somebody to do) и один причастный оборот в начале предложения.', 90),
       write('Напишите абзац на шесть предложений, три из которых начинаются с оборота. Критерии проверки: (1) один оборот с Having + V3 про более раннее действие; (2) один пассивный оборот на -ed; (3) ни одного висящего оборота — подлежащее оборота должно совпадать с подлежащим главной части.'),
     ],
@@ -583,6 +599,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'If she had read the instructions, the reaction would not have failed.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'I wish I had checked the platform number before boarding.', ['have checked', 'wished']),
+      minPair('Какое слово прозвучало? русский оглушает конец слова, и «had» слышится как «hat».', 'had', 'hat', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'If I had known about it, I would have said something at the time.'),
       say('Девяносто секунд о профессиональном сожалении: что бы вы сделали иначе. Требование: третий тип, смешанный тип и одно I wish в одном рассказе.', 90),
       write('Напишите 120 слов на тему «что бы я изменил в своём преподавании». Критерии проверки: (1) минимум один третий тип; (2) минимум один смешанный; (3) минимум одно I wish + Past Perfect; (4) ни одного would в if-части.'),
     ],
@@ -657,6 +675,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'The samples were sent to the lab and the results are expected on Friday.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'I need to get my prescription renewed before Thursday.', ['renewing', 'have got']),
+      minPair('Какое слово прозвучало? звонкость на конце — то же самое оглушение.', 'bag', 'back', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'The samples were supposed to have been sent off a couple of days ago.'),
       say('Девяносто секунд: опишите, как в вашей лаборатории или кабинете устроен любой регулярный процесс. Требование: деятеля не называть ни разу, минимум пять пассивных форм.', 90),
       write('Напишите 120 слов с описанием процедуры. Критерии проверки: (1) минимум один каузатив have или get something done; (2) минимум один пассив с глаголом сообщения (is said / believed / thought to); (3) все третьи формы неправильных глаголов проверены отдельно.'),
     ],
@@ -725,6 +745,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'It was the temperature, not the catalyst, that ruined the reaction.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'The reagents stored in the fridge must be used within a week.', ['storing', 'which stored']),
+      minPair('Какое слово прозвучало? в русском нет /w/, и оба слова слышатся одинаково.', 'vest', 'west', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'It was the one at the back of the fridge that turned out to be fine.'),
       say('Девяносто секунд: разберите причину любой неудачи в работе. Требование: минимум одна рамка It was … that, одна What-cleft и одно свёрнутое придаточное.', 90),
       write('Напишите 120 слов с разбором причины. Критерии проверки: (1) минимум один it-cleft; (2) минимум одно свёрнутое придаточное вместо полного; (3) минимум одно неограничительное придаточное в запятых, и в нём не стоит that.'),
     ],
@@ -798,6 +820,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'He asked me whether I had attended the lecture the day before.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'Could you tell me what time the pharmacy closes?', ['does close', 'is closing']),
+      minPair('Какое слово прозвучало? косвенная речь держится на этом глаголе — его надо слышать точно.', 'said', 'sad', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'He told me he had not been able to get hold of anybody all morning.'),
       say('Девяносто секунд: перескажите разговор, который у вас недавно был на работе. Требование: минимум пять разных глаголов речи, каждый со своей моделью, и минимум один встроенный вопрос.', 90),
       write('Напишите 120 слов, пересказывая чужой разговор. Критерии проверки: (1) минимум пять разных глаголов речи, а не сплошное said; (2) все указатели времени сдвинуты (не yesterday, а the day before); (3) во встроенных вопросах прямой порядок слов.'),
     ],
@@ -872,6 +896,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'We ran out of reagent halfway through the class and had to improvise.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'I am looking forward to starting the course next month.', ['to start', 'looking for']),
+      minPair('Какое слово прозвучало? служебные слова, которые в потоке речи почти сливаются.', 'off', 'of', 'B'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'We ran out of it about halfway through and had to make do.'),
       say('Девяносто секунд о своём обычном рабочем дне. Требование: минимум восемь фразовых глаголов и ни одного латинизма там, где есть фразовый (put off, а не postpone; put up with, а не tolerate).', 90),
       write('Напишите 120 слов о рабочем дне. Критерии проверки: (1) минимум шесть фразовых глаголов; (2) минимум одно местоимение внутри разделяемого фразового глагола; (3) минимум четыре зависимых предлога, проверенных по словарю, а не по смыслу.'),
     ],
@@ -940,6 +966,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'No sooner had I started the demonstration than the fire alarm went off.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'Given that the batch was old, the result is unsurprising.', ['giving', 'despite']),
+      minPair('Какое слово прозвучало? «no sooner … than» ломается именно здесь.', 'than', 'then', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'No sooner had we got there than it started to rain on us.'),
       say('Девяносто секунд: аргументируйте любое профессиональное мнение. Требование: минимум четыре разные связки разных классов и минимум одно хеджирование (arguably, to some extent, it tends to).', 90),
       write('Напишите аргументированный абзац на 150 слов. Критерии проверки: (1) минимум четыре связки, и среди них союз, предлог и наречие; (2) минимум одна инверсия после отрицательного или ограничительного начала; (3) ни одного however, приклеенного запятой в середине предложения.'),
     ],
@@ -1018,6 +1046,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'He must have been at the conference, so he cannot have written this report.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'It was the storage temperature that caused the whole problem.', ['what', 'which caused']),
+      minPair('Какое слово прозвучало? /θ/ и /f/ — вторая по частоте подмена после /s/.', 'three', 'free', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'There ought to have been a couple of them left over from last year.'),
       say('Две минуты на свободную тему из вашей области. Требование: сознательно вставить шесть систем — перфект, модальное предположение, условное, пассив или каузатив, cleft, инверсию. Записать и прослушать себя.', 120),
       write('Напишите 200 слов на любую профессиональную тему. Критерии проверки: (1) минимум шесть разных систем из двенадцати; (2) ни одного предложения длиннее двадцати пяти слов; (3) отдельно перечитать ради артиклей и отдельно ради предлогов.'),
     ],
@@ -1088,6 +1118,8 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
         'If I have understood correctly, the course starts on the sixteenth.'),
       dictationBank('Прослушайте и соберите предложение из плиток.',
         'It is hard to keep up with native speed at first.', ['keeping', 'to catch']),
+      minPair('Какое слово прозвучало? «думал» и «учил» — обидная пара для преподавателя.', 'thought', 'taught', 'A'),
+      dictation('Диктант на связную речь. Служебные слова здесь безударны и проглатываются — важно записать именно их.', 'I could not quite catch what he said, so I asked him to say it again.'),
       say('Симуляция первого дня. Двадцать минут разговора на темы первой недели: откуда вы, чем занимаетесь, почему этот язык и эта страна, что было сложным в дороге, чего ждёте от курса. Требование: ни одного перехода на русский и ни одной остановки со словами «как это сказать» — вместо них шесть формул из дрилла.', 300),
       write('Финальный замер письмом: 300 слов на отвлечённую тему из вашей области. Критерии проверки: (1) минимум восемь систем из двенадцати; (2) отдельный проход по артиклям; (3) отдельный проход по предлогам; (4) сравните результат с текстом нулевого дня — разница должна быть видна не в объёме, а в разнообразии конструкций.'),
     ],
@@ -1107,11 +1139,23 @@ export const ENGLISH_SPRINT_SPEC: LanguageCourseSpec = {
   scopeNote:
     'Курс восстановления, а не курс уровня. Он для человека, который когда-то имел B2 и после долгого перерыва потерял доступ к знаниям: узнавание держится, производство рассыпалось. Четырнадцать дней нарезаны по системам языка, а не по темам, и порядок задан частотой и ценой ошибки — поэтому артикли стоят четвёртым днём. Внутри дня отработка идёт раньше ввода: чинится доступ, а не запас. Чего здесь нет намеренно: фонетики, бытовой лексики и тематических уроков — они у такого ученика сохранились. Чего здесь нет по границе жанра: нового материала выше B2 (за ним в курс «от B2 к C1») и экзаменационных форматов (за ними в курс IELTS). Вход правильнее определять диагностикой eng-restore: её разбивка по системам прямо называет, какие дни разворачивать полностью, а какие сжимать до прогона на скорость.',
   modules: ENSP_MODULES,
-  // Конспекты живут отдельной картой по shortId: здесь — структура, служебный
-  // словарь и упражнения, там — то, что ученик читает перед работой.
+  dialogs: ENSP_DIALOGS,
+  // Схемы конспекта строятся из grammar юнита: здесь она сама по себе развилка
+  // («will / going to / Present Continuous»), и показать выбор картинкой
+  // полезнее, чем перечислить строкой (см. unitFigures.ts).
+  figures: unitFigures(ENGLISH_SPRINT),
+  // Конспекты и отрывки живут отдельными картами по shortId: здесь — структура,
+  // служебный словарь и упражнения, там — то, что ученик читает.
   units: ENGLISH_SPRINT.map(u => ({
     ...u,
+    // Видео проставляется здесь, а не в юнитах: подборка живёт своей жизнью,
+    // ролики удаляют и каналы закрывают, и держать её рядом с контентом
+    // значило бы править контент из-за чужого канала.
+    videoUrl: ENSP_VIDEO[u.shortId] ?? u.videoUrl,
     theory: ENSP_THEORY[u.shortId] ?? u.theory,
+    // Чтение идёт ПОСЛЕ упражнений: сначала форма ставится в руку, потом
+    // встречается в связном тексте, где её никто не подчёркивал.
+    tasks: [...u.tasks, ...(ENSP_READING[u.shortId] ?? [])],
   })),
 }
 

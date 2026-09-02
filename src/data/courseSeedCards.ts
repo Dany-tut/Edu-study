@@ -62,7 +62,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'B1 → B2 (восстановление после перерыва)',
     units: 14,
     vocabCount: 140,
-    taskCount: 1077,
+    taskCount: 1151,
     stamp: '3bf5c23fc21d',
     guidedHours: '21–28',
     lessonMinutes: 100,

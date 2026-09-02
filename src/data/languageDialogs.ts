@@ -659,6 +659,87 @@ export const ENAC_DIALOGS: Record<string, SeedTask[]> = {
  * Роли: Examiner — экзаменатор, Candidate — сдающий, Tutor — преподаватель
  * курса (в юнитах про критерии и стратегию).
  */
+/**
+ * Английский: возвращение B2 за 14 дней (ensp) — по диалогу на день.
+ *
+ * Обстановка та же, что и во всём курсе: кабинет химии, лаборатория, вокзал,
+ * аптека, касса. Собеседники постоянные — Sam (наш) и коллеги: Tech (лаборант),
+ * Head (завкафедрой), Pharm (в аптеке). Пропуск всегда приходится на
+ * конструкцию дня, а не на случайное слово: диалог здесь не «ещё одно
+ * упражнение на лексику», а место, где форма стоит в ответной позиции.
+ */
+export const ENSP_DIALOGS: Record<string, SeedTask[]> = {
+  'ensp-1': [gapDialog(ASK, [
+    ['Head', 'How did the flames go out in the middle of a practical?'],
+    ['Sam', 'Somebody opened the window while I ____ the equation on the board.'],
+  ], 'was writing', { distractors: ['wrote', 'have written', 'had written'] })],
+
+  'ensp-2': [gapDialog(ASK, [
+    ['Pharm', 'How long have you had the cough?'],
+    ['Sam', 'I ____ badly for about three weeks now.'],
+  ], 'have been sleeping', { distractors: ['sleep', 'slept', 'had slept'] })],
+
+  'ensp-3': [gapDialog(ASK, [
+    ['Tech', 'When do we set up the practical?'],
+    ['Sam', 'As soon as the reagents ____ — they are due on Wednesday.'],
+  ], 'arrive', { distractors: ['will arrive', 'are arriving', 'will have arrived'] })],
+
+  'ensp-4': [gapDialog(ASK, [
+    ['Pharm', 'Is there anything else?'],
+    ['Sam', 'Could I have ____ about the side effects before I take it?'],
+  ], 'some information', { distractors: ['an information', 'a few informations', 'some informations'] })],
+
+  'ensp-5': [gapDialog(ASK, [
+    ['Tech', 'Why do you think it stalled?'],
+    ['Sam', 'The room was cold, so the reagent ____ nothing to do with it.'],
+  ], 'may have had', { distractors: ['may have', 'must have', 'can have'] })],
+
+  'ensp-6': [gapDialog(ASK, [
+    ['Head', 'Did anyone own up about the broken stand?'],
+    ['Sam', 'One of them admitted ____ it, which I did not expect.'],
+  ], 'knocking over', { distractors: ['to knock over', 'knock over', 'to have knock over'] })],
+
+  'ensp-7': [gapDialog(ASK, [
+    ['Head', 'Could the whole thing have been avoided?'],
+    ['Sam', 'If somebody ____ the date on the box, we would still have three weeks of work.'],
+  ], 'had checked', { distractors: ['checked', 'would check', 'has checked'] })],
+
+  'ensp-8': [gapDialog(ASK, [
+    ['Tech', 'The microscope is still out of focus.'],
+    ['Sam', 'I know — I need to ____ before the inspection.'],
+  ], 'get it serviced', { distractors: ['get it service', 'service it done', 'have serviced it'] })],
+
+  'ensp-9': [gapDialog(ASK, [
+    ['Head', 'So the reagent was faulty after all?'],
+    ['Sam', 'No — ____ the storage temperature that ruined it, not the reagent.'],
+  ], 'it was', { distractors: ['that was', 'there was', 'what was'] })],
+
+  'ensp-10': [gapDialog(ASK, [
+    ['Tech', 'What exactly did the inspector say?'],
+    ['Sam', 'She ____ that the labelling was inconsistent, nothing stronger than that.'],
+  ], 'pointed out', { distractors: ['insisted', 'accused', 'refused'] })],
+
+  'ensp-11': [gapDialog(ASK, [
+    ['Tech', 'Why did you stop halfway through?'],
+    ['Sam', 'We ____ reagent and I had to improvise with the older batch.'],
+  ], 'ran out of', { distractors: ['ran out', 'ran off', 'run out of'] })],
+
+  'ensp-12': [gapDialog(ASK, [
+    ['Head', 'Was the lecture worth the two hours?'],
+    ['Sam', '____ it was long, it was genuinely useful — I took four pages of notes.'],
+  ], 'Although', { distractors: ['Despite', 'However', 'In spite of'] })],
+
+  'ensp-13': [gapDialog(ASK, [
+    ['Head', 'How did the re-audit go over half term?'],
+    ['Sam', 'We ____ the older stock re-labelled, but only one person could be spared.'],
+  ], 'got', { distractors: ['have', 'made', 'did'] })],
+
+  'ensp-14': [gapDialog(ASK, [
+    ['Tech', 'Sorry, that was a lot at once.'],
+    ['Sam', 'No problem — could you ____ that? I want to be sure I have it right.'],
+  ], 'rephrase', { distractors: ['repeat again', 'say twice', 'tell again'] })],
+}
+
 export const IELT_DIALOGS: Record<string, SeedTask[]> = {
   'ielt-01': [gapDialog(ASK, [
     ['Tutor', 'You wrote a lot, but you never said whether you agree.'],
