@@ -1261,7 +1261,6 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
 function seedMovedAhead(course: Course): boolean {
   const key = seedKeyOf({ id: course.id, dbCourseId: course.dbCourseId })
   if (!key) return false
-  if (true) return true // TEMP-PREVIEW
   const stamp = SEED_CARDS[key]?.stamp
   // Сид без отпечатка (не штамповали) сравнивать не с чем — молчим, а не
   // показываем признак у всех подряд.
@@ -1310,35 +1309,34 @@ function SeedDot() {
       >
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-amber)' }} />
       </span>
-      <AnimatePresence>
-        {pos && createPortal(
-          // Внешний слой держит центрирование transform'ом, внутренний двигает
-          // motion — иначе анимация затрёт translateX(-50%).
-          <div
-            key="seed-dot-hint"
+      {/* Без AnimatePresence: её ребёнок здесь — портал, а не motion-узел с
+          ключом, и framer-motion 11 в такой связке просто не отрисовывает его.
+          Уход без анимации — подсказка и так исчезает вместе с курсором. */}
+      {pos && createPortal(
+        // Внешний слой держит центрирование transform'ом, внутренний двигает
+        // motion — иначе анимация затрёт translateX(-50%).
+        <div
+          style={{
+            position: 'fixed', top: pos.top, left: pos.left,
+            transform: 'translateX(-50%)', zIndex: 1200, pointerEvents: 'none',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.14, ease: [0.32, 0.72, 0, 1] }}
             style={{
-              position: 'fixed', top: pos.top, left: pos.left,
-              transform: 'translateX(-50%)', zIndex: 1200, pointerEvents: 'none',
+              maxWidth: 260, padding: '9px 12px', borderRadius: 12,
+              background: 'var(--color-bg-input)', border: '1px solid var(--color-border)',
+              boxShadow: 'var(--shadow-lg)',
+              fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: 'var(--color-text)',
             }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4, transition: { duration: 0.1 } }}
-              transition={{ duration: 0.14, ease: [0.32, 0.72, 0, 1] }}
-              style={{
-                maxWidth: 260, padding: '9px 12px', borderRadius: 12,
-                background: 'var(--color-bg-input)', border: '1px solid var(--color-border)',
-                boxShadow: 'var(--shadow-lg)',
-                fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: 'var(--color-text)',
-              }}
-            >
-              {t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
-            </motion.div>
-          </div>,
-          document.body,
-        )}
-      </AnimatePresence>
+            {t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
+          </motion.div>
+        </div>,
+        document.body,
+      )}
     </>
   )
 }
@@ -7630,7 +7628,7 @@ export default function TeacherConstructorPage() {
     const map = new Map<string, CourseSeed>()
     // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
     // состоит из чужих готовых курсов, а настоящие подставляются под них позже.
-    if (editMode || dbLoading) return map // TEMP-PREVIEW
+    if (!accessLoaded || !isAdmin || editMode || dbLoading) return map
     const taken = new Set(courses.map(c => c.id))
     for (const s of COURSE_SEEDS) {
       const id = seedCourseId(s, ownerId)

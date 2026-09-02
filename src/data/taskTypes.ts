@@ -1370,7 +1370,7 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
  * был написан трижды почти одинаково; здесь он один, и новые типы берут его
  * готовым — вместе с правилом «сломанный JSON это пустой ответ, а не падение».
  */
-export function answerMap(a: TaskAnswer): Record<string, string> {
+export function answerMap(a: TaskAnswer | undefined): Record<string, string> {
   if (a && typeof a === 'object' && !Array.isArray(a)) return a as Record<string, string>
   if (typeof a !== 'string' || !a.trim()) return {}
   try {
@@ -1381,13 +1381,19 @@ export function answerMap(a: TaskAnswer): Record<string, string> {
   } catch { return {} }
 }
 
-/** Заполненные утверждения — только они и спрашиваются. */
-export function tfRows(t: TaskPayload): TfStatement[] {
+/**
+ * Заполненные утверждения — только они и спрашиваются.
+ *
+ * Сигнатуры трёх помощников ниже нарочно структурные, а не по TaskPayload: их
+ * зовут и редактор (задание), и экран ученика (вопрос домашки), а общего типа у
+ * этих двух нет — есть одинаковые поля.
+ */
+export function tfRows(t: { statements?: TfStatement[] }): TfStatement[] {
   return (t.statements ?? []).filter(x => !!x.text?.trim())
 }
 
 /** Пропуски, у которых есть хотя бы два варианта и указан верный. */
-export function gapChoiceRows(t: TaskPayload): GapChoice[] {
+export function gapChoiceRows(t: { gapChoices?: GapChoice[] }): GapChoice[] {
   return (t.gapChoices ?? []).filter(g => {
     const opts = (g.options ?? []).filter(o => o.trim())
     return opts.length >= 2 && g.correct >= 0 && g.correct < g.options.length
@@ -1404,7 +1410,7 @@ export function gapTextParts(text: string | undefined): string[] {
 }
 
 /** Заполненные предметы раскладки. */
-export function sortRows(t: TaskPayload): SortItem[] {
+export function sortRows(t: { sortItems?: SortItem[] }): SortItem[] {
   return (t.sortItems ?? []).filter(x => !!x.text?.trim())
 }
 

@@ -2806,6 +2806,14 @@ export const EN: Record<string, string> = {
   'Скопировать ссылку приглашения': 'Copy invite link',
   // Панель переезда на аккаунты (PendingAccountsPanel в TeacherGroupsPage).
   'Ещё без своего аккаунта': 'No account yet',
+  'Завести доступ всем': 'Create accounts for everyone',
+  'Или разослать ссылки, чтобы завели сами': 'Or send invite links and let them sign up',
+  'Не удалось завести доступ': 'Could not create the accounts',
+  'Заведено': 'Created',
+  'Пароли показываются один раз. Скопируйте список — потом их можно только сбросить.':
+    'Passwords are shown once. Copy the list — after that they can only be reset.',
+  'не удалось': 'failed',
+  'Скопировать логины и пароли': 'Copy logins and passwords',
   'Решено всего:': 'Solved in total:',
   'Начать с текста': 'Start with a text',
   // Пустой хвост мобильной главной (MobileHome).

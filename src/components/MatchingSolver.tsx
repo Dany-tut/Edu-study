@@ -25,13 +25,39 @@ import { okChime, missBlip } from '../lib/feedback'
  * тест — картой left→right, как ждёт gradeTask() в data/taskTypes.ts.
  */
 
-export interface MatchPair { left: string; right: string }
+/**
+ * Пара сопоставления. Сторона может быть КАРТИНКОЙ (leftImage/rightImage):
+ * тогда плитка показывает только картинку — подпись под ней была бы ответом,
+ * напечатанным рядом с вопросом. Текст стороны при этом никуда не девается:
+ * он остаётся ключом сверки и попадает в снимок работы для учителя.
+ */
+export interface MatchPair { left: string; right: string; leftImage?: string; rightImage?: string }
 
 /** Стабильная (без Math.random) перестановка — как в WordBankSolver. */
 function hash(s: string): number {
   let h = 0
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
   return h
+}
+
+/**
+ * Сторона-картинка. Alt намеренно НЕ подпись предмета: экранный диктор
+ * прочитал бы ответ вслух — плитка стоит ровно затем, чтобы предмет узнавали
+ * глазами. Название уходит в title, где его увидит только учитель при разборе.
+ */
+function SideImage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <img
+      src={src}
+      alt=""
+      title={alt}
+      loading="lazy"
+      style={{
+        display: 'block', width: '100%', maxHeight: 96, objectFit: 'contain',
+        borderRadius: 8, background: 'var(--color-bg-3)',
+      }}
+    />
+  )
 }
 
 export const emptyMatching = (n: number): number[] => Array<number>(n).fill(-1)
@@ -285,11 +311,17 @@ export default function MatchingSolver({
             >
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                {pair.left}
-                <ScriptHint text={pair.left} lang={lang} />
+                {pair.leftImage
+                  ? <SideImage src={pair.leftImage} alt={pair.left} />
+                  : <>{pair.left}<ScriptHint text={pair.left} lang={lang} /></>}
+                {/* Эталон после сдачи: когда парой была картинка, показываем
+                    саму картинку — «правильный ответ: cat» рядом с чужой
+                    фотографией разобрать невозможно. */}
                 {showAnswer && (
-                  <span style={{ display: 'block', marginTop: 3, fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>
-                    {pair.right}
+                  <span style={{ display: 'block', marginTop: 5 }}>
+                    {pair.rightImage
+                      ? <SideImage src={pair.rightImage} alt={pair.right} />
+                      : <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>{pair.right}</span>}
                   </span>
                 )}
               </span>
@@ -315,8 +347,9 @@ export default function MatchingSolver({
             >
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                {pairs[idx].right}
-                <ScriptHint text={pairs[idx].right} lang={lang} />
+                {pairs[idx].rightImage
+                  ? <SideImage src={pairs[idx].rightImage!} alt={pairs[idx].right} />
+                  : <>{pairs[idx].right}<ScriptHint text={pairs[idx].right} lang={lang} /></>}
               </span>
               {burst?.row === idx && instant && <StarBurst key={`r${burst.n}`} />}
             </button>

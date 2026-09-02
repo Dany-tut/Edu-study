@@ -13,12 +13,11 @@ import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { SUBJECT_ICON_MAP } from '../../lib/subjects'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
-import StudentCourseOrder from '../../components/teacher/StudentCourseOrder'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
-import { useGroups, useStudents, useAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
+import { useGroups, useStudents, useAllStudents, reloadAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
 import { ensureCardFillTask } from '../../lib/cardFillTask'
 import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
@@ -832,6 +831,13 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
   const [open, setOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [copiedAll, setCopiedAll] = useState(false)
+  // Выдача доступа: результат приходит один раз и живёт до перезагрузки —
+  // пароли нигде больше не показываются, поэтому список нельзя терять по
+  // случайному клику.
+  const [issuing, setIssuing] = useState(false)
+  const [issued, setIssued] = useState<{ name: string; email: string; password?: string; status: string }[] | null>(null)
+  const [issueErr, setIssueErr] = useState('')
+  const [copiedIssued, setCopiedIssued] = useState(false)
 
   // Карточек у одного человека бывает несколько (1:1 по предмету), а ссылка
   // нужна одна: claim_student_account сам подтягивает соседние карточки по
@@ -862,6 +868,40 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
     if (!await copyToClipboard(text)) return
     setCopiedAll(true)
     setTimeout(() => setCopiedAll(false), 2500)
+  }
+
+  /**
+   * Завести аккаунты за учеников.
+   *
+   * Ссылка-приглашение требует, чтобы каждый сам её открыл и придумал почту с
+   * паролем; на детях это означает «половина не дойдёт», и переезд встаёт не по
+   * технической причине. Между тем ученику здесь делать нечего: аккаунту нужно
+   * только существовать. Функция на сервере создаёт его под service_role и
+   * привязывает к карточке — вход дальше идёт настоящей сессией, а не анонимом.
+   */
+  async function issueAll() {
+    setIssuing(true); setIssueErr('')
+    try {
+      const { data, error } = await supabase.functions.invoke('provision-student-account', { body: { all: true } })
+      if (error) throw new Error((data as { error?: string } | null)?.error || error.message)
+      setIssued((data as { accounts?: typeof issued }).accounts ?? [])
+      reloadAllStudents()
+    } catch (e) {
+      setIssueErr(e instanceof Error ? e.message : t('Не удалось завести доступ'))
+    } finally {
+      setIssuing(false)
+    }
+  }
+
+  async function copyIssued() {
+    if (!issued) return
+    const text = issued
+      .filter(a => a.status === 'created')
+      .map(a => `${a.name}\n  логин: ${a.email}\n  пароль: ${a.password}`)
+      .join('\n\n')
+    if (!await copyToClipboard(text)) return
+    setCopiedIssued(true)
+    setTimeout(() => setCopiedIssued(false), 2500)
   }
 
   return (
@@ -916,15 +956,67 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
               </button>
             ))}
           </div>
+          {/* Два пути, и главный — первый. Ссылка перекладывает работу на
+              ученика, выдача доступа не требует от него ничего. */}
           <button
-            onClick={copyAll}
+            onClick={issueAll}
+            disabled={issuing}
             style={{
-              padding: '9px 14px', borderRadius: 12, cursor: 'pointer', border: 'none',
+              padding: '9px 14px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
+              border: 'none', opacity: issuing ? 0.7 : 1,
               background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700,
             }}
           >
-            {copiedAll ? t('Скопировано — осталось разослать') : t('Скопировать все ссылки списком')}
+            {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${pending.length}`}
           </button>
+          <button
+            onClick={copyAll}
+            style={{
+              padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
+              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+              color: 'var(--color-text)', fontSize: 12.5, fontWeight: 600,
+            }}
+          >
+            {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
+          </button>
+
+          {issueErr && (
+            <div style={{ fontSize: 12, color: 'var(--color-danger, #e5484d)' }}>{issueErr}</div>
+          )}
+
+          {issued && (
+            <div style={{
+              borderRadius: 12, padding: 12, background: 'var(--color-bg-3)',
+              border: '1px solid var(--color-border-soft)', display: 'flex',
+              flexDirection: 'column', gap: 8,
+            }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>
+                {t('Заведено')}: {issued.filter(a => a.status === 'created').length}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
+                {t('Пароли показываются один раз. Скопируйте список — потом их можно только сбросить.')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 220, overflowY: 'auto' }}>
+                {issued.map(a => (
+                  <div key={a.email} style={{ fontSize: 12, color: 'var(--color-text-2)', fontFamily: 'monospace' }}>
+                    {a.status === 'created'
+                      ? `${a.name} · ${a.email} · ${a.password}`
+                      : `${a.name} · ${t('не удалось')}`}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={copyIssued}
+                style={{
+                  padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                  border: '1px solid var(--color-border-medium)', background: 'var(--color-bg)',
+                  color: 'var(--color-text)', fontSize: 12, fontWeight: 600,
+                }}
+              >
+                {copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}
+              </button>
+            </div>
+          )}
         </>
       )}
     </Card>
@@ -1859,9 +1951,6 @@ function StudentPanel({
             onOpenCard={onOpenCard}
           />
         )}
-
-        {/* Порядок курсов — общий для всех экранов ученика. */}
-        <StudentCourseOrder studentId={student.id} groupId={group.id} />
 
         {/* Contacts */}
         <section>

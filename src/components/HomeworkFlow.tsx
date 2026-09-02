@@ -56,7 +56,13 @@ import { formatClock } from '../lib/videoProgress'
 import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
 import SpeechHeard from './SpeechHeard'
-import { charUnits, sentenceTokens } from '../data/taskTypes'
+import {
+  answerMap, charUnits, gapChoiceRows, sentenceTokens, sortRows, tfRows, EMBED_DONE,
+} from '../data/taskTypes'
+import TrueFalseSolver from './TrueFalseSolver'
+import DropdownGapSolver from './DropdownGapSolver'
+import ColumnSortSolver from './ColumnSortSolver'
+import EmbedTask from './EmbedTask'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
 import JamoTypeSolver from './JamoTypeSolver'
@@ -800,6 +806,17 @@ function dropRows(q: HomeworkQuizQuestion) {
 export function dropRowCorrect(row: { answer: string; alt?: string[] }, given: string | undefined) {
   return matchesAnyAnswer(given, [row.answer, ...(row.alt ?? [])])
 }
+/** Как вердикт выглядит в снимке работы для преподавателя. */
+const TF_CAPTION: Record<string, string> = { T: 'верно', F: 'неверно', NG: 'не указано' }
+
+/**
+ * Названия корзин, у которых есть подпись. Безымянная корзина — это дыра в
+ * задании: ученик не знает, по какому признаку в неё класть.
+ */
+function namedColumns(q: HomeworkQuizQuestion) {
+  return (q.columns ?? []).filter(c => !!c?.trim())
+}
+
 /** Заполненные подсказки кроссворда. */
 function crosswordRows(q: HomeworkQuizQuestion) {
   return (q.clues ?? []).filter(c => !!c.answer?.trim() && !!c.clue?.trim())
@@ -862,6 +879,29 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
     const given = parseDrops(ans)
     return rows.every((_, i) => !!given[String(i)]?.trim())
   }
+  // Задания-пачки: отвечено, когда закрыта каждая строка. Наполовину
+  // размеченный текст и наполовину разложенный банк — это брошенная на
+  // середине работа, а не ответ (то же правило, что у дрилла и пропусков).
+  if (qType(q) === 'trueFalse') {
+    const rows = tfRows(q)
+    if (rows.length === 0) return !!(ans && ans.trim())
+    const given = answerMap(ans)
+    return rows.every((_, i) => !!given[String(i)])
+  }
+  if (qType(q) === 'dropdownGap') {
+    const gaps = gapChoiceRows(q)
+    if (gaps.length === 0) return !!(ans && ans.trim())
+    const given = answerMap(ans)
+    return gaps.every((_, i) => given[String(i)] !== undefined)
+  }
+  if (qType(q) === 'columnSort') {
+    const items = sortRows(q)
+    if (items.length === 0) return !!(ans && ans.trim())
+    const given = answerMap(ans)
+    return items.every((_, i) => given[String(i)] !== undefined)
+  }
+  // Внешнее упражнение: отвечено ровно тогда, когда ученик отметил прохождение.
+  if (qType(q) === 'embed') return ans === EMBED_DONE
   // Кроссворд: отвечено, когда заполнены все клетки сетки.
   if (qType(q) === 'crossword') {
     const clues = crosswordRows(q)
@@ -916,6 +956,13 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'dialogGap') return !!q.referenceAnswer?.trim() && (q.dialog?.length ?? 0) >= 2
   if (langTp === 'wordDrop') return dropRows(q).length > 0
   if (langTp === 'crossword') return crosswordRows(q).length >= 2
+  // Работа с текстом и системой: эталон записан в самом задании — вердикт у
+  // утверждения, верный вариант у пропуска, столбец у предмета.
+  if (langTp === 'trueFalse') return tfRows(q).length > 0
+  if (langTp === 'dropdownGap') return gapChoiceRows(q).length > 0
+  if (langTp === 'columnSort') return sortRows(q).length > 0 && namedColumns(q).length >= 2
+  // Внешнее упражнение: проверяем ровно то, что можем, — отметку о прохождении.
+  if (langTp === 'embed') return !!q.embedUrl?.trim()
   // Устное задание проверяет себя само ТОЛЬКО там, где автор задал эталон
   // («прочитайте вслух»). Свободный устный ответ и описание картинки эталона
   // не имеют — они по-прежнему целиком у преподавателя.
@@ -962,6 +1009,10 @@ function taskBodyMissing(q: HomeworkQuizQuestion): boolean {
     case 'matching': return (q.pairs?.length ?? 0) < 2
     case 'wordDrop': return dropRows(q).length === 0
     case 'crossword': return crosswordRows(q).length < 2
+    case 'trueFalse': return tfRows(q).length === 0
+    case 'dropdownGap': return gapChoiceRows(q).length === 0 || !(q.gapText ?? '').trim()
+    case 'columnSort': return sortRows(q).length === 0 || namedColumns(q).length < 2
+    case 'embed': return !q.embedUrl?.trim()
     case 'dialogGap': return (q.dialog?.length ?? 0) < 2 || !q.referenceAnswer
     case 'pattern': return drillItems(q).length === 0
     case 'videoWatch': return !q.videoUrl
@@ -1074,6 +1125,29 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       // Дрилл верен целиком: одна незакрытая форма — и конструкция не отработана.
       return items.every((item, i) => drillRowCorrect(item, given[String(i)]))
     }
+    // Утверждения к тексту, пропуски со списками и раскладка по столбцам верны
+    // целиком: в каждом из трёх заданий проверяется ОДИН признак на пачке, и
+    // «две строки из пяти» означают, что признак не работает.
+    if (langTp === 'trueFalse') {
+      const rows = tfRows(q)
+      if (rows.length === 0) return false
+      const given = answerMap(ans)
+      return rows.every((row, i) => given[String(i)] === row.verdict)
+    }
+    if (langTp === 'dropdownGap') {
+      const gaps = gapChoiceRows(q)
+      if (gaps.length === 0) return false
+      const given = answerMap(ans)
+      return gaps.every((g, i) => given[String(i)] === String(g.correct))
+    }
+    if (langTp === 'columnSort') {
+      const items = sortRows(q)
+      if (items.length === 0 || namedColumns(q).length < 2) return false
+      const given = answerMap(ans)
+      return items.every((it, i) => given[String(i)] === String(it.column))
+    }
+    // Внешнее упражнение: единственное, что мы знаем, — прошёл или нет.
+    if (langTp === 'embed') return ans === EMBED_DONE
   }
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
@@ -1874,6 +1948,26 @@ export default function HomeworkFlow({
         answer = v.watched > 0
           ? `${formatClock(v.watched)}${need > 0 ? ` ${tStatic('из')} ${formatClock(need)}` : ''}`
           : ''
+      } else if (tp === 'trueFalse') {
+        // Карта «номер утверждения → вердикт» преподавателю нечитаема:
+        // разворачиваем в те же строки, что видел ученик.
+        const given = answerMap(raw)
+        answer = tfRows(question)
+          .map((row, i) => `${i + 1}. ${TF_CAPTION[given[String(i)] ?? ''] ?? '—'}`)
+          .join('; ')
+      } else if (tp === 'dropdownGap') {
+        const given = answerMap(raw)
+        answer = gapChoiceRows(question)
+          .map((g, i) => g.options[Number(given[String(i)])] ?? '—')
+          .join(' · ')
+      } else if (tp === 'columnSort') {
+        const cols = namedColumns(question)
+        const given = answerMap(raw)
+        answer = sortRows(question)
+          .map((it, i) => `${it.text} → ${cols[Number(given[String(i)])] ?? '—'}`)
+          .join('; ')
+      } else if (tp === 'embed') {
+        answer = raw === EMBED_DONE ? tStatic('прошёл') : ''
       } else if (tp === 'pattern') {
         // Дрилл хранится JSON-картой «строка → что вписали»: преподавателю она
         // нечитаема, разворачиваем в те же строки, что видел ученик.
@@ -1899,6 +1993,13 @@ export default function HomeworkFlow({
         correct = (question.sequenceItems ?? []).join(' → ')
       } else if (tp === 'matching') {
         correct = (question.pairs ?? []).map(p => `${p.left} → ${p.right}`).join('; ')
+      } else if (tp === 'trueFalse') {
+        correct = tfRows(question).map((row, i) => `${i + 1}. ${TF_CAPTION[row.verdict]}`).join('; ')
+      } else if (tp === 'dropdownGap') {
+        correct = gapChoiceRows(question).map(g => g.options[g.correct]).join(' · ')
+      } else if (tp === 'columnSort') {
+        const cols = namedColumns(question)
+        correct = sortRows(question).map(it => `${it.text} → ${cols[it.column] ?? '—'}`).join('; ')
       } else if (tp === 'pattern') {
         correct = drillItems(question).map(item => item.answer).join('; ')
       } else if (tp === 'videoWatch') {
@@ -3763,6 +3864,44 @@ export default function HomeworkFlow({
                       value={selectedAnswer}
                       disabled={locked}
                       showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Утверждения к тексту: верно / неверно / не указано. */
+                    ) : qType(question) === 'trueFalse' && tfRows(question).length > 0 ? (
+                    <TrueFalseSolver
+                      rows={tfRows(question)}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Пропуски со списками: форма выбирается прямо в строке. */
+                    ) : qType(question) === 'dropdownGap' && gapChoiceRows(question).length > 0 ? (
+                    <DropdownGapSolver
+                      text={question.gapText ?? ''}
+                      gaps={gapChoiceRows(question)}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Раскладка по столбцам: предмет тапом уходит в корзину. */
+                    ) : qType(question) === 'columnSort' && sortRows(question).length > 0
+                        && namedColumns(question).length >= 2 ? (
+                    <ColumnSortSolver
+                      columns={namedColumns(question)}
+                      items={sortRows(question)}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Чужое упражнение: рамка и отметка о прохождении. */
+                    ) : qType(question) === 'embed' && !!question.embedUrl?.trim() ? (
+                    <EmbedTask
+                      url={question.embedUrl}
+                      value={selectedAnswer}
+                      disabled={locked}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
                     /* Пропуски по банку слов: одна пачка строк, один банк. */

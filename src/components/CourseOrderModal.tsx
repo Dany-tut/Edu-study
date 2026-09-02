@@ -50,7 +50,8 @@ export default function CourseOrderModal({ open, onClose }: Props) {
     const session = getStudentSession()
     if (session?.id) {
       // Писать в course_enrollments напрямую ученику нельзя (RLS — только
-      // учитель), поэтому узкая дверь: RPC трогает лишь порядок, см. миграцию 0080.
+      // учитель), поэтому узкая дверь: RPC трогает лишь порядок и только у
+      // курсов этого человека, см. миграцию 0080.
       const { error } = await supabase.rpc('set_course_order', { p_student: session.id, p_courses: ids })
       if (error) console.error('[CourseOrderModal] set_course_order failed', error)
     }

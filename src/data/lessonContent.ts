@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapRow, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
+import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapChoice, type GapRow, type PatternItem, type SortItem, type StoredTaskType, type TaskPayload, type TfStatement } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { apLessonContent } from './apLessonChunk'
 import type { ApLessonContent } from './apChemistryLessons'
@@ -46,8 +46,8 @@ export interface HomeworkQuizQuestion {
   referenceAnswer?: string
   /** fill — скелет ответа, опора ступени 5 (см. TaskPayload.answerSkeleton). */
   answerSkeleton?: string
-  /** Pairs for a 'match' task (shown read-only as reference). */
-  pairs?: Array<{ left: string; right: string }>
+  /** Пары сопоставления; сторона может быть картинкой (см. MatchingSolver). */
+  pairs?: Array<{ left: string; right: string; leftImage?: string; rightImage?: string }>
   /** Items in the correct order for a 'sequence' task (shown shuffled). */
   sequenceItems?: string[]
   /** Reference table for a 'table' task; emptyCells «r,c» are the cells the
@@ -68,6 +68,16 @@ export interface HomeworkQuizQuestion {
   dialog?: DialogLine[]
   /** wordDrop — строки с пропуском; банк слов общий на всю пачку. */
   gaps?: GapRow[]
+  /** trueFalse — утверждения к тексту из passage. */
+  statements?: TfStatement[]
+  /** dropdownGap — предложение с «____» и список вариантов на каждый пропуск. */
+  gapText?: string
+  gapChoices?: GapChoice[]
+  /** columnSort — названия корзин и что по ним раскладывают. */
+  columns?: string[]
+  sortItems?: SortItem[]
+  /** embed — адрес внешнего упражнения (разбирается lib/embed.ts). */
+  embedUrl?: string
   /** crossword — слова и подсказки; сетка считается по ним. */
   clues?: CrosswordClue[]
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
@@ -359,6 +369,12 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     dialog: t.dialog,
     gaps: t.gaps,
     clues: t.clues,
+    statements: t.statements,
+    gapText: t.gapText,
+    gapChoices: t.gapChoices,
+    columns: t.columns,
+    sortItems: t.sortItems,
+    embedUrl: t.embedUrl,
     sentence: t.sentence,
     distractors: t.distractors,
     audioUrl: t.audioUrl,

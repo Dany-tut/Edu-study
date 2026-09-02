@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
@@ -12,6 +12,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { getSubject } from '../lib/subjects'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
+import { useScrollLock } from '../lib/useScrollLock'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Настройки ученика «Цвет курса»: глубина перекраски + личные цвета предметов.
@@ -138,6 +139,10 @@ export default function CourseTintSheet({ open, onClose }: { open: boolean; onCl
 /** Десктоп — окно из меню настроек в сайдбаре. */
 export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useT()
+  // Колесо над окном крутило страницу под ним: панель короче содержимого, и
+  // докрутив её до края мышь уводила фон. Фон стоит, окно скроллится своё.
+  const panelRef = useRef<HTMLDivElement>(null)
+  useScrollLock(open, panelRef)
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -159,8 +164,9 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.2, ease: EASE }}
+            ref={panelRef}
             style={{
-              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto',
+              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto', overscrollBehavior: 'contain',
               background: 'var(--color-bg)', borderRadius: 24, padding: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
