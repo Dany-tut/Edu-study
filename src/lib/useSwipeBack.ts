@@ -489,18 +489,34 @@ function buildStage(under: Snapshot | null): Stage {
    * `getComputedStyle` отдаёт пустые строки — тогда остаётся прежнее
    * поведение (по центру, зазор 6px).
    */
-  const wrapKids = (el: HTMLElement, src?: HTMLElement) => {
+  const wrapKids = (el: HTMLElement, src?: HTMLElement, pad = false) => {
     const cs = src ? getComputedStyle(src) : null
     const box = document.createElement('div')
     box.style.cssText = [
-      'display:flex', 'align-items:center', 'white-space:nowrap',
+      'display:flex', 'align-items:center', 'white-space:nowrap', 'box-sizing:border-box',
       `justify-content:${cs?.justifyContent || 'center'}`,
       `gap:${cs?.columnGap && cs.columnGap !== 'normal' ? cs.columnGap : '6px'}`,
-      `padding:0 ${cs?.paddingRight || '0px'} 0 ${cs?.paddingLeft || '0px'}`,
+      // ПОЛЯ БЕРЁМ, ТОЛЬКО ЕСЛИ КОРПУС ИХ ОТДАЛ.
+      //
+      // У пары корпус обнулён (его начинка позиционируется числами, а
+      // absolute считается от padding-box), и поля обязана держать обёртка. А
+      // у одиночек корпус — обычная копия со своими полями, и вторые такие же
+      // на обёртке съедали ширину дважды: в English-раскладке у «Filters»
+      // на содержимое оставалось 34px вместо 60, воронка сжималась
+      // flex-shrink'ом ровно в НОЛЬ (текст не сжимается — у него min-content),
+      // и таблетка ехала весь свайп с подписью, но без значка.
+      `padding:0 ${pad && cs ? cs.paddingRight : '0px'} 0 ${pad && cs ? cs.paddingLeft : '0px'}`,
       'width:100%', 'height:100%',
       'will-change:opacity,filter,transform',
     ].join(';')
     while (el.firstChild) box.appendChild(el.firstChild)
+    // ЗНАЧОК НЕ СЖИМАЕТСЯ. У текста min-content — вся строка, у картинки ноль:
+    // не хватило пары пикселей — и flex-раскладка честно ужимает ИМЕННО значок,
+    // до нуля. Пусть лучше вылезет за край на пиксель (корпус всё равно режет
+    // по себе), чем пропадёт совсем.
+    for (const kid of Array.from(box.children)) {
+      if (kid instanceof HTMLElement || kid instanceof SVGElement) kid.style.flexShrink = '0'
+    }
     el.appendChild(box)
     return box
   }
@@ -609,7 +625,6 @@ function buildStage(under: Snapshot | null): Stage {
    * значок появлялся, только когда граница доходила до его места. Корпус
    * виден — значит, видно и то, что в нём.
    */
-  const noMask = mask('none')
 
   const chips = (root: ParentNode, outer = false) => {
     const all = Array.from(root.querySelectorAll<HTMLElement>('*')).filter(el => {
@@ -902,8 +917,8 @@ function buildStage(under: Snapshot | null): Stage {
       a.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'))
       hide(live)
 
-      const ia = wrapKids(a, live)
-      const ib = wrapKids(b, twin)
+      const ia = wrapKids(a, live, true)
+      const ib = wrapKids(b, twin, true)
       // ── НАЧИНКА СТОИТ В СВОЕЙ КОРОБКЕ, А НЕ В ТЯНУЩЕЙСЯ ──
       //
       // Обёртка занимала корпус целиком (`width:100%`), то есть содержимое
@@ -1064,29 +1079,25 @@ function buildStage(under: Snapshot | null): Stage {
           }
         },
       }, {
-        // ── СОДЕРЖИМОЕ МЕНЯЕТСЯ ПО СТЫКУ, А НЕ ПРОСВЕЧИВАЕТ ДРУГ СКВОЗЬ ДРУГА ──
+        // ── У ПАРЫ СОДЕРЖИМОЕ РАСХОДИТСЯ ПРОЗРАЧНОСТЬЮ, А НЕ РЕЖЕТСЯ СТЫКОМ ──
         //
-        // Корпус на экране один — он и есть морф, он тянется через стык, и его
-        // не режем. А вот НАЧИНКА принадлежит своему экрану: старая живёт
-        // правее стыка, новая — левее. Раньше они расходились прозрачностью, и
-        // на середине хода обе были видны разом поверх обоих экранов — ровно то
-        // самое «ложится, а не становится». Теперь их разделяет граница
-        // экранов: справа от неё стрелка «назад», слева — уже название курса.
+        // Стыком режется только то, что стоит НАД ЧУЖИМ экраном, — одиночные
+        // таблетки (см. выше). У пары корпус один, общий, он и есть морф:
+        // накладываться тут не на что, и делить начинку границей нельзя.
         //
-        // Прозрачность больше не нужна (пересечения нет), а размытие с
-        // масштабом остаются: содержимое всё так же выступает из размытия,
-        // просто по свою сторону стыка. У отпочковавшейся половины (nth > 0)
-        // своего уходящего содержимого нет — она только рождается, и гасить ей
-        // нечего, кроме себя самой.
+        // Маска съедала её слева направо, а иконка в таблетке стоит первой —
+        // и посреди жеста на экране висел целый корпус с датой, но без значка
+        // календаря: «у правой таблетки пропала иконка». Уходить содержимое
+        // обязано целиком и вместе со своим корпусом, поэтому здесь честное
+        // расхождение: старое уплывает в размытие, новое из него выступает.
         el: ia,
         at: raw => {
           const t = nth > 0 ? 1 : smooth(q(raw))
           const bx = box(raw)
           return {
-            opacity: String(nth > 0 ? 1 - t : 1),
+            opacity: String(1 - t),
             left: `${ra.left - bx.left}px`,
             width: `${ra.w}px`,
-            ...keepRight(ra.left, raw * W),
             filter: `blur(${MORPH_BLUR * t}px)`,
             transform: `scale(${lerp(1, MORPH_SCALE, t)})`,
           }
@@ -1104,11 +1115,9 @@ function buildStage(under: Snapshot | null): Stage {
           const t = nth > 0 ? born(raw) : smooth(q(raw))
           const bx = box(raw)
           return {
-            opacity: '1',
+            opacity: String(t),
             left: `${rb.left - bx.left}px`,
             width: `${rb.w}px`,
-            // Отпочковавшаяся половина рождается целиком — см. noMask.
-            ...(nth > 0 ? noMask : keepLeft(rb.left, raw * W)),
             filter: `blur(${MORPH_BLUR * (1 - t)}px)`,
             transform: `scale(${lerp(2 - MORPH_SCALE, 1, t)})`,
           }
