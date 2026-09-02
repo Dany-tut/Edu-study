@@ -355,7 +355,7 @@ export const IELTS_UNITS: LangUnit[] = [
     title: 'Listening: формат и цена невнимательности',
     goal: 'Знать структуру всех четырёх частей и не терять баллы на оформлении',
     grammar: 'Форматы вопросов: form completion, multiple choice, matching, map labelling, sentence completion',
-    grammarWhy: 'Запись звучит один раз. Значит, все решения о том, что слушать, принимаются заранее — по вопросам. Плюс механические потери: превышенный лимит слов, неправильно записанное число, ответ не в той строке.',
+    grammarWhy: 'Запись звучит один раз. Значит, все решения о том, что слушать, принимаются заранее — по вопросам. Плюс механические потери: превышенный лимит слов, неправильно записанное число, ответ не в том поле. С середины 2026 экзамен сдаётся на компьютере, и потери сместились: бланка и переноса ответов больше нет, зато появились опечатка в поле ввода и незамеченный счётчик слов.',
     vocabTheme: 'Язык инструкций и формата',
     artifact: 'Заполненная карта формата с личными точками потерь',
     vocab: [
@@ -363,12 +363,12 @@ export const IELTS_UNITS: LangUnit[] = [
       { term: 'form completion', ru: 'заполнение формы' },
       { term: 'matching', ru: 'сопоставление' },
       { term: 'labelling a map', ru: 'подписывание карты' },
-      { term: 'transfer your answers', ru: 'перенести ответы в бланк' },
       { term: 'monologue', ru: 'монолог' },
       { term: 'distractor', ru: 'отвлекающий вариант' },
       { term: 'to spell out', ru: 'произнести по буквам' },
       { term: 'accent', ru: 'акцент' },
-      { term: 'answer sheet', ru: 'бланк ответов' },
+      { term: 'to review your answers', ru: 'проверить ответы перед отправкой' },
+      { term: 'word count', ru: 'счётчик слов (на экране)' },
     ],
     tasks: [
       one('How many parts and questions does the Listening test have?', [
@@ -533,12 +533,15 @@ export const IELTS_UNITS: LangUnit[] = [
       { term: 'to underline', ru: 'подчёркивать' },
     ],
     tasks: [
-      one('How long is the Academic Reading test and how much extra transfer time is given?', [
-        '60 minutes, plus 10 minutes to transfer answers',
-        '60 minutes in total, with no extra transfer time',
+      // Вопрос переписан под компьютерный экзамен: «сколько времени дают на
+      // перенос ответов» перестало быть вопросом вовсе — бланка больше нет,
+      // а обманка «плюс 10 минут» была рассчитана на бумажный Listening.
+      one('How much time do you get for Academic Reading, and how is it divided?', [
+        '60 minutes in total — you decide how to split it between the three passages',
+        '60 minutes plus extra time to check your answers',
+        '20 minutes per passage, timed separately',
         '75 minutes in total',
-        '40 minutes, plus 20 minutes to check',
-      ], 1),
+      ], 0),
       one('How many passages and questions does Academic Reading have?', [
         '3 passages, 40 questions',
         '4 passages, 40 questions',
@@ -1454,8 +1457,8 @@ export const IELTS_UNITS: LangUnit[] = [
     title: 'Пробный экзамен и план на последний месяц',
     goal: 'Пройти все четыре секции в условиях экзамена и составить точный план доработки',
     grammar: 'Повторение всего курса; беглость против точности; язык самооценки по критериям',
-    grammarWhy: 'Финальный юнит — не повторение, а измерение: полный тест в реальном тайминге показывает, что действительно закрепилось, а что работало только на упражнениях. План на последний месяц строится по результатам, а не по ощущениям.',
-    vocabTheme: 'Экзаменационный день и самооценка',
+    grammarWhy: 'Финальный юнит — не повторение, а измерение: полный тест в реальном тайминге показывает, что действительно закрепилось, а что работало только на упражнениях. План на последний месяц строится по результатам, а не по ощущениям — и по тому, как экзамен сдаётся сегодня: с середины 2026 бумажного IELTS нет, всё идёт на компьютере, а слабую секцию можно пересдать отдельно.',
+    vocabTheme: 'Экзаменационный день, формат сдачи и самооценка',
     artifact: 'Пройденный полный тест, оценка по критериям и план на 4 недели',
     vocab: [
       { term: 'mock test', ru: 'пробный экзамен' },
@@ -1464,10 +1467,11 @@ export const IELTS_UNITS: LangUnit[] = [
       { term: 'to identify a weakness', ru: 'выявить слабое место' },
       { term: 'target band', ru: 'целевой балл' },
       { term: 'accuracy versus fluency', ru: 'точность против беглости' },
-      { term: 'a realistic timeline', ru: 'реалистичный план по срокам' },
       { term: 'to prioritise', ru: 'расставить приоритеты' },
-      { term: 'marginal gain', ru: 'небольшой, но реальный прирост' },
       { term: 'test day routine', ru: 'порядок действий в день экзамена' },
+      // Формат сдачи: с середины 2026 бумажного IELTS нет вовсе.
+      { term: 'computer-delivered test', ru: 'экзамен на компьютере' },
+      { term: 'One Skill Retake', ru: 'пересдача одной секции' },
     ],
     tasks: [
       one('Why do a full mock test in one sitting rather than section by section?', [
@@ -1475,6 +1479,20 @@ export const IELTS_UNITS: LangUnit[] = [
         'Fatigue and timing are part of what the exam measures — sections done separately hide both',
         'The scoring is different',
         'Examiners require it',
+      ], 1),
+      // Формат сдачи — часть подготовки, а не мелочь: тренироваться на бумаге
+      // к компьютерному экзамену значит готовить не тот навык.
+      one('How is IELTS delivered now, and what does that change for your practice?', [
+        'On paper — practise transferring answers to the answer sheet',
+        'On computer — practise typing, on-screen highlighting and the built-in word count',
+        'You choose paper or computer at the test centre on the day',
+        'Listening on paper, the rest on computer',
+      ], 1),
+      one('You scored L 7.5, R 7.0, W 6.0, S 7.5 but need 7.0 in every section. What is the cheapest route?', [
+        'Book a full retake of all four sections',
+        'Book a One Skill Retake for Writing within 60 days of the test',
+        'Appeal the Writing score',
+        'Take IELTS General Training instead',
       ], 1),
       one('Your mock results: L 7.0, R 6.0, W 6.0, S 7.0. Where should most of the last month go?', [
         'Speaking, because it is easiest to improve',
