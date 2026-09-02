@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase'
 import type { ReviewGrade } from '../lib/srs'
 import { scheduleReview, newSchedulableCard, type SchedulableCard } from '../lib/reviewScheduler'
 import { getStudentSession } from '../lib/studentSession'
+import { guestId } from '../lib/guestSession'
 // ── Картинки к словам — отдельным чанком ────────────────────────────────────
 //
 // Таблица рисунков (data/vocabImages.ts) весит 65 КБ в сборке и нужна ровно
@@ -52,8 +53,15 @@ export type ReviewSource = 'diagnostic' | 'trainer' | 'manual' | 'homework' | 'v
  * забывает не «в рамках курса». Поэтому ключ один — id сессии ученика, а
  * принадлежность предмету остаётся полем `subject` для фильтров.
  */
-export function deckOwner(): { studentId?: string } {
-  return { studentId: getStudentSession()?.id }
+export function deckOwner(): { studentId?: string; anonName?: string } {
+  const studentId = getStudentSession()?.id
+  if (studentId) return { studentId }
+  // Гость (пришёл по присланной ссылке, аккаунта нет) копит колоду под меткой
+  // своего браузера. Без этого «Взять слова в колоду» у него молча ничего не
+  // делало бы: addCards с пустым владельцем возвращает ноль и уходит — кнопка,
+  // которая врёт, хуже кнопки, которой нет. Метка непрозрачная, см. guestSession.
+  const anonName = guestId() ?? undefined
+  return anonName ? { anonName } : {}
 }
 
 export interface ReviewCard {

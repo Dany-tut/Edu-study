@@ -29,6 +29,23 @@
 //   node scripts/translateFeed.mjs --lang ko      — только один язык
 //   node scripts/translateFeed.mjs --limit 10     — сколько материалов за прогон
 //   node scripts/translateFeed.mjs --fake         — прогон без сети
+//
+// КЛЮЧ. Два пути, и берётся тот, который задан:
+//   ANTHROPIC_API_KEY — свой ключ, прямой доступ к API;
+//   KIE_API_KEY       — купленные кредиты шлюза kie.ai. Тот же диалект Messages,
+//                       но свой адрес и авторизация через «Authorization:
+//                       Bearer» — за неё отвечает authToken, а не apiKey.
+// Заданы оба — выигрывает свой ключ: у него нет посредника и нет пула
+// апстрим-аккаунтов, который может опустеть. Тот же приём, что в
+// scripts/buildSpnDecks.mjs, где шлюз уже работает.
+//
+// ПОЧЕМУ ЧЕРЕЗ ШЛЮЗ ФОРМАТ ОТВЕТА ПРОСИТСЯ СЛОВАМИ, А НЕ СХЕМОЙ. Свой ключ
+// даёт структурный вывод (messages.parse + zod): формат гарантирован API. Шлюз
+// — посредник, и адаптер у него свой; buildSpnDecks.mjs не случайно просит там
+// JSON текстом и разбирает его руками, да ещё держит запасного поставщика «на
+// случай, когда Claude-адаптер шлюза лежит». Здесь то же самое: на шлюзе
+// формат просится в промпте, а ответ разбирается вручную. Заработает у шлюза
+// структурный вывод — эту ветку можно будет выкинуть.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs'
@@ -122,10 +139,72 @@ const SYSTEM = `Ты переводишь на русский язык мате�
 6. Служебный мусор источника (пункты меню, «Читать далее», подписи к фото) переводи так же коротко, как он выглядит в оригинале, — не выдумывай ему связного текста.
 7. Тело пустое — верни пустую строку в body. Заголовок переводи всегда.`
 
-const client = FAKE ? null : new Anthropic()
+const KIE = process.env.KIE_API_KEY
+/** Идём через шлюз: своего ключа нет, а кредиты шлюза есть. */
+const VIA_GATEWAY = !FAKE && !process.env.ANTHROPIC_API_KEY && !!KIE
+
+const client = FAKE ? null
+  : VIA_GATEWAY ? new Anthropic({ baseURL: 'https://api.kie.ai/claude', authToken: KIE })
+    : new Anthropic()
+
+if (VIA_GATEWAY) console.log('Ключа Anthropic нет — идём через шлюз kie.ai.')
+
+/** Достать объект из ответа, который пришёл текстом. */
+function jsonFromText(text) {
+  const a = text.indexOf('{')
+  const b = text.lastIndexOf('}')
+  if (a < 0 || b <= a) throw new Error(`в ответе нет JSON: ${text.slice(0, 120)}`)
+  return JSON.parse(text.slice(a, b + 1))
+}
+
+/**
+ * Модели шлюза по убыванию силы. У kie.ai пул апстрим-аккаунтов свой на каждую
+ * модель и пустеет независимо («no_available_account»), поэтому одна
+ * недоступная не должна отменять весь прогон — тот же список и та же причина,
+ * что у supabase/functions/analytics-digest.
+ */
+const GATEWAY_MODELS = (process.env.KIE_MODELS ?? 'claude-opus-5,claude-sonnet-5,claude-haiku-4-5')
+  .split(',').map(m => m.trim()).filter(Boolean)
+
+/** Формат ответа для шлюза — словами, потому что схемы там нет (см. шапку). */
+const JSON_RULE = `Ответ верни ОДНИМ объектом JSON и ничем, кроме него: {"title": "перевод заголовка", "body": "перевод тела"}. Тела у материала нет — пустая строка в body. Никакого текста до или после объекта.`
+
+async function askViaGateway(prompt) {
+  let last
+  for (const model of GATEWAY_MODELS) {
+    try {
+      // Стримом НАМЕРЕННО: непотоковый вызов шлюза на отказах отдаёт невнятный
+      // 502, а поток честно присылает причину — например «no_available_account»,
+      // когда у провайдера кончились аккаунты этой модели.
+      const res = await client.messages.stream({
+        model,
+        max_tokens: 16000,
+        system: `${SYSTEM}\n\n${JSON_RULE}`,
+        output_config: { effort: 'low' },
+        messages: [{ role: 'user', content: prompt }],
+      }).finalMessage()
+      if (res.stop_reason === 'refusal') return { refused: res.stop_details?.category ?? 'без категории' }
+      const text = res.content.filter(b => b.type === 'text').map(b => b.text).join('')
+      return { data: jsonFromText(text) }
+    } catch (e) {
+      last = e
+      console.log(`  · ${model}: ${String(e.message).slice(0, 90)}`)
+    }
+  }
+  throw last ?? new Error('шлюз не ответил ни одной моделью')
+}
 
 async function ask(item) {
   if (FAKE) return { data: { title: `[пер.] ${item.title}`, body: item.body ? `[пер.] ${item.body}` : '' } }
+
+  const prompt = `Переведи материал с ${LANGS[item.lang]?.name ?? item.lang} языка на русский.
+
+Заголовок: ${item.title}
+
+${item.body || '(тела нет — это ролик, переводи только заголовок)'}`
+
+  if (VIA_GATEWAY) return askViaGateway(prompt)
+
   const res = await client.messages.parse({
     model: 'claude-opus-5',
     max_tokens: 16000,
@@ -137,14 +216,7 @@ async function ask(item) {
     // `low` — в разы дешевле при том же тексте. Если перевод начнёт врать на
     // сложных местах, поднимать сюда, а не в промпт.
     output_config: { effort: 'low', format: zodOutputFormat(Translation) },
-    messages: [{
-      role: 'user',
-      content: `Переведи материал с ${LANGS[item.lang]?.name ?? item.lang} языка на русский.
-
-Заголовок: ${item.title}
-
-${item.body || '(тела нет — это ролик, переводи только заголовок)'}`,
-    }],
+    messages: [{ role: 'user', content: prompt }],
   })
   // Отказ классификатора — не ошибка скрипта: материал просто остаётся без
   // перевода, и кнопка в посте показывает разбор по словам, как раньше.

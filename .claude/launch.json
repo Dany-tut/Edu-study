@@ -4,9 +4,24 @@
     {
       "name": "student-dashboard",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5174,
       "autoPort": true
+    },
+    {
+      "name": "diag-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8791",
+        "--directory",
+        "/private/tmp/claude-501/-Users-dany-Cursor-student-dashboard/e5c9f102-95ae-4151-9da0-779d1ee74992/scratchpad"
+      ],
+      "port": 8791
     }
   ]
 }
