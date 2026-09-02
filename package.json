@@ -25,7 +25,8 @@
     "stamp:seeds": "esbuild scripts/stampSeedCards.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/stampSeedCards.mjs --log-level=error && node node_modules/.cache/stampSeedCards.mjs",
     "check:lesson": "esbuild scripts/checkLesson.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLesson.mjs --log-level=error && node node_modules/.cache/checkLesson.mjs",
     "check:choicepos": "esbuild scripts/checkChoicePos.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkChoicePos.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkChoicePos.mjs",
-    "check:light": "esbuild scripts/checkLightData.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLightData.mjs --log-level=error && node node_modules/.cache/checkLightData.mjs"
+    "check:light": "esbuild scripts/checkLightData.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLightData.mjs --log-level=error && node node_modules/.cache/checkLightData.mjs",
+    "check:exams": "node scripts/checkExamClaims.mjs"
   },
   "dependencies": {
     "@capacitor/cli": "^8.4.1",
