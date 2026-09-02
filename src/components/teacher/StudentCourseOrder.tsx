@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ChevronUp, ChevronDown, GripVertical } from 'lucide-react'
+import { Reorder, useDragControls } from 'framer-motion'
+import { GripVertical } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT } from '../../lib/i18n'
 
@@ -22,7 +23,7 @@ type CourseRow = {
   student_ids: string[] | null
   group_ids: string[] | null
 }
-type Item = { id: string; title: string; owner: string; mode: 'full' | 'custom' | 'by_date' }
+type Item = { id: string; title: string }
 
 export default function StudentCourseOrder({ studentId, groupId }: { studentId: string; groupId: string | null }) {
   const t = useT()
@@ -61,63 +62,41 @@ export default function StudentCourseOrder({ studentId, groupId }: { studentId: 
       const list = (courses ?? []) as CourseRow[]
 
       // Уровень доступа и позиция — из тех же строк, что читает кабинет.
+      // Позиции — из тех же строк, что читает кабинет.
       const { data: enr } = await supabase
         .from('course_enrollments')
-        .select('course_id, student_id, access_mode, position')
+        .select('course_id, position')
         .in('student_id', ids)
         .in('course_id', list.map(c => c.id))
-      const enrByCourse = new Map<string, { student_id: string; access_mode: Item['mode']; position: number | null }>()
-      for (const e of (enr ?? []) as Array<{ course_id: string; student_id: string; access_mode: Item['mode']; position: number | null }>) {
-        enrByCourse.set(e.course_id, e)
+      const posByCourse = new Map<string, number>()
+      for (const e of (enr ?? []) as Array<{ course_id: string; position: number | null }>) {
+        if (typeof e.position === 'number') posByCourse.set(e.course_id, e.position)
       }
 
-      // Чья строка «владеет» курсом — та же, куда пишет прогресс: сначала прямое
-      // назначение, иначе строка внутри назначенной группы.
-      const ownerFor = (c: CourseRow) =>
-        rows.find(r => (c.student_ids ?? []).includes(r.id))?.id
-        ?? rows.find(r => r.groupId && (c.group_ids ?? []).includes(r.groupId))?.id
-        ?? studentId
-
-      const built: Item[] = list.map(c => {
-        const e = enrByCourse.get(c.id)
-        return { id: c.id, title: c.title, owner: e?.student_id ?? ownerFor(c), mode: e?.access_mode ?? 'custom' }
-      })
+      const built: Item[] = list.map(c => ({ id: c.id, title: c.title }))
       // Нерасставленные — после расставленных, в порядке создания (как в кабинете).
-      built.sort((a, b) => {
-        const pa = enrByCourse.get(a.id)?.position
-        const pb = enrByCourse.get(b.id)?.position
-        return (typeof pa === 'number' ? pa : Number.MAX_SAFE_INTEGER) - (typeof pb === 'number' ? pb : Number.MAX_SAFE_INTEGER)
-      })
+      built.sort((a, b) =>
+        (posByCourse.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (posByCourse.get(b.id) ?? Number.MAX_SAFE_INTEGER))
       if (!cancelled) setItems(built)
     })().catch(() => { if (!cancelled) setItems([]) })
     return () => { cancelled = true }
   }, [studentId, groupId])
 
+  // Пишем ВСЕ курсы списком, той же дверью, что и настройки ученика (RPC
+  // set_course_order, миграция 0080): одна логика владения строкой — и порядок
+  // не расходится между кабинетом ученика и панелью учителя.
   async function persist(next: Item[]) {
     setStatus('saving')
-    // Пишем ВСЕ строки, а не только сдвинутые: позиция имеет смысл только целым
-    // списком, а полупроставленный порядок читался бы как «часть курсов не
-    // расставлена» и разъезжался бы с тем, что учитель видит здесь.
-    const payload = next.map((it, i) => ({
-      course_id: it.id,
-      student_id: it.owner,
-      access_mode: it.mode,
-      position: i,
-    }))
-    const { error } = await supabase
-      .from('course_enrollments')
-      .upsert(payload, { onConflict: 'course_id,student_id' })
+    const { error } = await supabase.rpc('set_course_order', {
+      p_student: studentId,
+      p_courses: next.map(it => it.id),
+    })
     if (error) { console.error('[StudentCourseOrder] save failed', error); setStatus('error'); return }
     setStatus('saved')
     setTimeout(() => setStatus(s => (s === 'saved' ? 'idle' : s)), 2000)
   }
 
-  function move(from: number, dir: -1 | 1) {
-    if (!items) return
-    const to = from + dir
-    if (to < 0 || to >= items.length) return
-    const next = [...items]
-    ;[next[from], next[to]] = [next[to], next[from]]
+  function onReorder(next: Item[]) {
     setItems(next)
     void persist(next)
   }
@@ -138,28 +117,17 @@ export default function StudentCourseOrder({ studentId, groupId }: { studentId: 
       {items === null ? (
         <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <Reorder.Group
+          as="div"
+          axis="y"
+          values={items}
+          onReorder={onReorder}
+          style={{ display: 'flex', flexDirection: 'column', gap: 6, listStyle: 'none', padding: 0, margin: 0 }}
+        >
           {items.map((it, i) => (
-            <div
-              key={it.id}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '7px 8px 7px 6px', borderRadius: 10,
-                background: 'var(--color-bg)', border: '1px solid var(--color-border)',
-              }}
-            >
-              <GripVertical size={13} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', width: 12, flexShrink: 0 }}>{i + 1}</span>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {it.title}
-              </span>
-              <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                <ArrowBtn icon={<ChevronUp size={13} />} title={t('Выше')} disabled={i === 0} onClick={() => move(i, -1)} />
-                <ArrowBtn icon={<ChevronDown size={13} />} title={t('Ниже')} disabled={i === items.length - 1} onClick={() => move(i, 1)} />
-              </div>
-            </div>
+            <OrderRow key={it.id} item={it} index={i} />
           ))}
-        </div>
+        </Reorder.Group>
       )}
 
       <div style={{ marginTop: 6, fontSize: 10.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
@@ -169,24 +137,36 @@ export default function StudentCourseOrder({ studentId, groupId }: { studentId: 
   )
 }
 
-function ArrowBtn({ icon, title, disabled, onClick }: { icon: React.ReactNode; title: string; disabled: boolean; onClick: () => void }) {
+// Тянуть можно только за ручку — тапы по строке и прокрутка панели остаются
+// прокруткой (то же решение, что в окне «Виджеты» у ученика).
+function OrderRow({ item, index }: { item: Item; index: number }) {
+  const controls = useDragControls()
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
+    <Reorder.Item
+      as="div"
+      value={item}
+      dragListener={false}
+      dragControls={controls}
+      whileDrag={{ scale: 1.02, boxShadow: '0 10px 24px rgba(0,0,0,0.18)' }}
+      transition={{ type: 'spring', stiffness: 600, damping: 42 }}
       style={{
-        width: 22, height: 22, borderRadius: 7, border: '1px solid var(--color-border)',
-        background: 'transparent', color: 'var(--color-text-3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.3 : 1,
-        transition: 'color 0.15s, border-color 0.15s',
+        position: 'relative',
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '7px 8px 7px 6px', borderRadius: 10,
+        background: 'var(--color-bg)', border: '1px solid var(--color-border)',
+        listStyle: 'none', userSelect: 'none', WebkitUserSelect: 'none',
       }}
-      onMouseEnter={e => { if (!disabled) { e.currentTarget.style.color = 'var(--color-accent)'; e.currentTarget.style.borderColor = 'var(--color-accent)' } }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-3)'; e.currentTarget.style.borderColor = 'var(--color-border)' }}
     >
-      {icon}
-    </button>
+      <span
+        onPointerDown={e => controls.start(e)}
+        style={{ display: 'flex', cursor: 'grab', touchAction: 'none', color: 'var(--color-text-3)', flexShrink: 0 }}
+      >
+        <GripVertical size={13} />
+      </span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', width: 12, flexShrink: 0 }}>{index + 1}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {item.title}
+      </span>
+    </Reorder.Item>
   )
 }

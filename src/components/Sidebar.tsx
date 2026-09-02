@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -15,6 +15,7 @@ import { playTransitionDrop } from '../lib/sound'
 import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
+import CourseOrderModal from './CourseOrderModal'
 import { CourseTintModal, useCurrentTintColor } from './CourseTintSheet'
 import FeedbackModal from './FeedbackModal'
 import AppVersionRow from './AppVersionRow'
@@ -178,6 +179,7 @@ export default function Sidebar() {
   // Which view the avatar popover shows: avatar grid (root) → settings panel.
   const [menuView, setMenuView] = useState<'root' | 'settings'>('root')
   const [orderModalOpen, setOrderModalOpen] = useState(false)
+  const [courseOrderOpen, setCourseOrderOpen] = useState(false)
   const [tintModalOpen, setTintModalOpen] = useState(false)
   const tintColor = useCurrentTintColor()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -203,6 +205,8 @@ export default function Sidebar() {
   const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
+  // Строку «Порядок курсов» показываем только там, где есть что переставлять.
+  const courseCount = useStudentData(s => s.subjects.length)
   const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
   const avatarId = useDashboard(state => state.avatarId)
   const setAvatarId = useDashboard(state => state.setAvatarId)
@@ -638,6 +642,28 @@ export default function Sidebar() {
                           <span style={{ flex: 1, textAlign: 'left' }}>{t('Настроить виджеты')}</span>
                         </motion.button>
 
+                        {/* Порядок курсов — виден только тому, у кого их несколько */}
+                        {courseCount > 1 && (
+                          <motion.button
+                            whileTap={{ scale: 0.985 }}
+                            onClick={() => { setCourseOrderOpen(true); closePicker() }}
+                            aria-label={t('Порядок курсов')}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                            style={{
+                              width: '100%', padding: '9px 8px',
+                              display: 'flex', alignItems: 'center',
+                              gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
+                              background: 'transparent',
+                              color: 'var(--color-text)',
+                              fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            }}
+                          >
+                            <ListOrdered size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            <span style={{ flex: 1, textAlign: 'left' }}>{t('Порядок курсов')}</span>
+                          </motion.button>
+                        )}
+
                         {/* Цвет курса — глубина перекраски и цвета предметов */}
                         <motion.button
                           whileTap={{ scale: 0.985 }}
@@ -855,6 +881,7 @@ export default function Sidebar() {
     </motion.div>
 
     <WidgetOrderModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} />
+    <CourseOrderModal open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
     <CourseTintModal open={tintModalOpen} onClose={() => setTintModalOpen(false)} />
     {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
     </>

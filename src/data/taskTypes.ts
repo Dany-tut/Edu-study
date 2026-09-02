@@ -1361,6 +1361,56 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
 
 // ─── Вспомогательное ─────────────────────────────────────────────────────────
 
+/**
+ * Ответ-карта «номер строки → выбранное».
+ *
+ * ЗАЧЕМ ОДИН РАЗБОРЩИК НА ВСЕХ. Задания, отвечаемые ПАЧКОЙ (дрилл, пропуски по
+ * банку, кроссворд, а теперь утверждения, списки и столбцы), хранят ответ одной
+ * строкой-JSON: хранилище домашки держит на задание ровно одну строку. Разбор
+ * был написан трижды почти одинаково; здесь он один, и новые типы берут его
+ * готовым — вместе с правилом «сломанный JSON это пустой ответ, а не падение».
+ */
+export function answerMap(a: TaskAnswer): Record<string, string> {
+  if (a && typeof a === 'object' && !Array.isArray(a)) return a as Record<string, string>
+  if (typeof a !== 'string' || !a.trim()) return {}
+  try {
+    const v = JSON.parse(a)
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {}
+    // Значения приводим к строке: «1» и 1 приходят из разных мест одинаково.
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, String(x)]))
+  } catch { return {} }
+}
+
+/** Заполненные утверждения — только они и спрашиваются. */
+export function tfRows(t: TaskPayload): TfStatement[] {
+  return (t.statements ?? []).filter(x => !!x.text?.trim())
+}
+
+/** Пропуски, у которых есть хотя бы два варианта и указан верный. */
+export function gapChoiceRows(t: TaskPayload): GapChoice[] {
+  return (t.gapChoices ?? []).filter(g => {
+    const opts = (g.options ?? []).filter(o => o.trim())
+    return opts.length >= 2 && g.correct >= 0 && g.correct < g.options.length
+  })
+}
+
+/**
+ * Куски предложения вокруг пропусков: ['I ', ' to school by ', '.'] для
+ * «I ____ to school by ____.». Кусков всегда на один больше, чем пропусков, —
+ * на этом и держится вёрстка строки у ученика и в редакторе.
+ */
+export function gapTextParts(text: string | undefined): string[] {
+  return (text ?? '').split(GAP_MARK)
+}
+
+/** Заполненные предметы раскладки. */
+export function sortRows(t: TaskPayload): SortItem[] {
+  return (t.sortItems ?? []).filter(x => !!x.text?.trim())
+}
+
+/** Отметка «прошёл» у внешнего упражнения. Ответа с результатом оттуда нет. */
+export const EMBED_DONE = 'done'
+
 /** Ответ на «порядок» приходит массивом чисел либо строкой "2,0,1" (легаси). */
 function toOrder(a: TaskAnswer): number[] | null {
   if (Array.isArray(a) && a.every(v => typeof v === 'number')) return a as number[]

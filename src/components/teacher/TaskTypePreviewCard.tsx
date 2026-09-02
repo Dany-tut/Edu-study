@@ -9,7 +9,7 @@
 // ни этот файл не лежат в чанке редактора.
 
 import { Fragment } from 'react'
-import { CheckCircle2, Eye, Mic, Play, PenLine, Volume2 } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Eye, Mic, Play, PenLine, Volume2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { TASK_TYPES, type TaskTypeId } from '../../data/taskTypes'
 import {
@@ -91,7 +91,7 @@ function GapRun({ parts }: { parts: GapPart[] }) {
 }
 
 /** Заглушка медиа. Рисуем сами: тащить в подсказку настоящие файлы незачем. */
-function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas'; glyph?: string }) {
+function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas' | 'embed'; glyph?: string }) {
   const box: React.CSSProperties = {
     flex: 1, height: 46, borderRadius: 8, display: 'grid', placeItems: 'center',
     background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
@@ -102,6 +102,24 @@ function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas
   }
   if (shape === 'video') {
     return <div style={{ ...box, height: 56 }}><Play size={16} /></div>
+  }
+  // Чужое упражнение: рамка с адресом площадки — по ней и видно, что задание
+  // не наше и результат оттуда не придёт.
+  if (shape === 'embed') {
+    return (
+      <div style={{ border: '1px solid var(--color-border-soft)', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 5, padding: '4px 7px',
+          borderBottom: '1px solid var(--color-border-soft)', background: 'var(--color-bg)',
+          fontSize: 9, color: 'var(--color-text-4)',
+        }}>
+          <ExternalLink size={9} /> wordwall.net
+        </div>
+        <div style={{ ...box, height: 44, borderRadius: 0, border: 'none' }}>
+          <span style={{ fontSize: 9.5 }}>внешнее упражнение</span>
+        </div>
+      </div>
+    )
   }
   if (shape === 'canvas') {
     return (
@@ -178,6 +196,35 @@ function Block({ block }: { block: PreviewBlock }) {
           })}
         </div>
       )
+
+    case 'verdictRows': {
+      // Подписи короткие: в карточке шириной 318 «Не указано» целиком не встаёт
+      // рядом с двумя другими, а смысл третьей кнопки читается и по «Н/У».
+      const CAP: Record<'T' | 'F' | 'NG', string> = { T: 'Верно', F: 'Неверно', NG: 'Н/У' }
+      return (
+        <div style={{ display: 'grid', gap: 5 }}>
+          {block.rows.map((r, i) => (
+            <div key={i} style={{ display: 'grid', gap: 3 }}>
+              <span style={{ fontSize: 10, color: 'var(--color-text-2)' }}>{r.text}</span>
+              <span style={{ display: 'flex', gap: 3 }}>
+                {(['T', 'F', 'NG'] as const).map(k => {
+                  const on = r.pick === k
+                  return (
+                    <span key={k} style={{
+                      padding: '2px 7px', borderRadius: 6, fontSize: 9.5, fontWeight: 700,
+                      border: '1px solid',
+                      ...(on
+                        ? { background: 'var(--color-green-soft)', color: 'var(--color-green-text)', borderColor: 'transparent' }
+                        : { background: 'var(--color-bg)', color: 'var(--color-text-4)', borderColor: 'var(--color-border)' }),
+                    }}>{t(CAP[k])}</span>
+                  )
+                })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )
+    }
 
     case 'tiles':
       return (

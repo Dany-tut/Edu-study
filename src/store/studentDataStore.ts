@@ -58,6 +58,13 @@ interface StudentDataState {
    * на загрузке и при смене курса.
    */
   prefetchCourseHeavy: (subjectId: string | undefined) => void
+  /**
+   * Переставить курсы: порядок ученик задаёт в своих настройках, и он один на
+   * все экраны — трек, «Курсы», домашки, переключатель предметов (весь кабинет
+   * читает `subjects` как есть). Здесь только локальная перестановка; в базу
+   * порядок уходит RPC set_course_order, см. CourseOrderModal.
+   */
+  reorderSubjects: (dbIds: string[]) => void
 }
 
 const defaultStats: StudentStats = {
@@ -81,6 +88,19 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
   scienceFacts: [],
   scienceMemes: [],
   courseReactions: [],
+
+  reorderSubjects: (dbIds) => set(state => {
+    const rank = new Map(dbIds.map((id, i) => [id, i]))
+    // Курс без нового места (приехал, пока крутилось окно настроек) остаётся в
+    // хвосте, в прежнем порядке — как и в базе, где позиции у него нет.
+    const at = (s: Subject) => rank.get(s.dbId ?? '') ?? Number.MAX_SAFE_INTEGER
+    return {
+      subjects: state.subjects
+        .map((s, i) => [s, i] as const)
+        .sort((a, b) => at(a[0]) - at(b[0]) || a[1] - b[1])
+        .map(([s]) => s),
+    }
+  }),
 
   load: async () => {
     const session = getStudentSession()

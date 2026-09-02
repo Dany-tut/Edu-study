@@ -5114,7 +5114,21 @@ export default function TeacherCourseEditorPage() {
     // целиком: кнопка «Из сида · 215» врала бы и предлагала перезалить всё.
     if (course.heavyPending) return
     let alive = true
-    diffAgainstSeed(course).then(d => { if (alive) setSeedDiff(d) })
+    diffAgainstSeed(course).then(d => {
+      if (!alive) return
+      setSeedDiff(d)
+      // РАСХОЖДЕНИЙ НЕТ — ОТПЕЧАТОК СТАВИМ САМИ. Курс, сохранённый до появления
+      // отпечатков, показывает на витрине точку «сид ушёл вперёд»: пусто значит
+      // «неизвестно», а неизвестное показывается. Погасить её было нечем —
+      // кнопка «Из сида» появляется только при расхождениях, а их нет. Сверка
+      // только что доказала, что курс совпадает с сидом; это и записываем,
+      // автосейв донесёт до базы. Один раз на курс: дальше отпечатки равны и
+      // ветка молчит.
+      const stamp = d.seedKey ? SEED_CARDS[d.seedKey]?.stamp : undefined
+      if (stamp && d.changes.length === 0) {
+        setCourse(c => (c.seedStamp === stamp ? c : { ...c, seedStamp: stamp }))
+      }
+    })
     return () => { alive = false }
   }, [course])
   const [seedSyncOpen, setSeedSyncOpen] = useState(false)
@@ -5447,6 +5461,13 @@ export default function TeacherCourseEditorPage() {
           status: c.status, color: c.color, bg: c.bg,
           group_ids: c.groupIds, student_ids: c.studentIds,
           created_by: ownerId,
+          // ОТПЕЧАТОК СИДА ПИШЕМ ОТСЮДА, иначе «Из сида» не закрывает вопрос:
+          // применение ставит штамп только в состояние редактора, а плитка в
+          // списке читает колонку — и точка «сид ушёл вперёд» горела бы вечно,
+          // сколько ни сверяйся. Ключ добавляем только когда штамп есть:
+          // `?? null` затирал бы колонку при сохранении курса, открытого из
+          // старого черновика, где поля ещё нет.
+          ...(c.seedStamp ? { seed_stamp: c.seedStamp } : {}),
         },
         { onConflict: 'short_id' }
       )

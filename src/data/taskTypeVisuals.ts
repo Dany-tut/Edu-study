@@ -75,6 +75,15 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
 
   // Видео — к семье «на слух»: тот же синий, что у диктанта и похожих звуков.
   videoWatch:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
+
+  // ─── работа с текстом и системой ───
+  // Верно/неверно и пропуски со списками — выбор готового: зелёный, как single.
+  trueFalse:     { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
+  dropdownGap:   { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
+  // Раскладка по столбцам — соседка сопоставления: розовый, как matching.
+  columnSort:    { color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)',      fill: 'var(--color-rose-fill)' },
+  // Внешнее упражнение засчитывается прохождением — к видео, тот же синий.
+  embed:         { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
 }
 
 export function typeVisual(t: string): TypeVisual {

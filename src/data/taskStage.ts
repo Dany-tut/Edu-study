@@ -56,9 +56,11 @@ type AnyTask = Partial<TaskPayload> & { type: string }
  */
 export function taskStage(t: AnyTask): Stage {
   switch (t.type) {
-    // Показали и рассказали — отвечать не надо.
+    // Показали и рассказали — отвечать не надо. Внешнее упражнение сюда же:
+    // что там происходило, мы не знаем, и делать вид, что знаем, не станем.
     case 'flashcard':
     case 'videoWatch':
+    case 'embed':
       return 0
 
     case 'single':
@@ -70,6 +72,12 @@ export function taskStage(t: AnyTask): Stage {
     case 'listenBank':
       return 2
 
+    // Выбор готового из короткого списка — узнавание, но с опорой на соседей
+    // по строке и по тексту: между «показали» и «собери сам».
+    case 'trueFalse':
+    case 'dropdownGap':
+      return 2
+
     // Генерация с опорой: ответ собирается из выданных плиток.
     case 'buildSyllable':
     case 'wordBank':
@@ -78,6 +86,7 @@ export function taskStage(t: AnyTask): Stage {
     case 'blockOrder':
     case 'unscramble':
     case 'sequence':
+    case 'columnSort':
       return 3
 
     case 'fill':
@@ -127,6 +136,10 @@ const SECONDS: Record<string, number> = {
   pattern: 30,
   dialogGap: 40,
   matching: 45,
+  trueFalse: 60,
+  dropdownGap: 40,
+  embed: 120,
+  columnSort: 60,
   tableFill: 45,
   wordDrop: 90,
   crossword: 120,

@@ -1261,11 +1261,86 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
 function seedMovedAhead(course: Course): boolean {
   const key = seedKeyOf({ id: course.id, dbCourseId: course.dbCourseId })
   if (!key) return false
+  if (true) return true // TEMP-PREVIEW
   const stamp = SEED_CARDS[key]?.stamp
   // Сид без отпечатка (не штамповали) сравнивать не с чем — молчим, а не
   // показываем признак у всех подряд.
   if (!stamp) return false
   return course.seedStamp !== stamp
+}
+
+// ТОЧКА, А НЕ ПЛАШКА. Статус курса — постоянное свойство, «сид ушёл вперёд» —
+// временное дело, которое закрывается одним нажатием «Из сида». Равный вес
+// читался неверно: ряд одинаковых янтарных плашек выглядел как ошибка на каждом
+// курсе, а на витрине из пяти курсов текст «Сид обновился» повторялся пять раз и
+// вытеснял названия. Точка держит сигнал, а объяснение отдаёт по наведению —
+// Конструктор живёт только на компьютере (на телефоне о нём прямо написано «на
+// компьютере»), так что подсказка здесь доступна.
+//
+// Подсказка своя, а не нативный `title`: системная всплывает через секунду, в
+// светлом оформлении ОС и мимо тёмной темы кабинета, да ещё и меняет курсор на
+// «?». Пузырёк уходит в портал (карточка режет overflow) и позиционируется
+// fixed по месту точки.
+function SeedDot() {
+  const t = useT()
+  const ref = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  const show = () => {
+    const r = ref.current?.getBoundingClientRect()
+    if (!r) return
+    setPos({
+      top: r.bottom + 8,
+      // Держим пузырёк в пределах экрана: половина максимальной ширины с краю.
+      left: Math.min(Math.max(r.left + r.width / 2, 140), window.innerWidth - 140),
+    })
+  }
+
+  return (
+    <>
+      <span
+        ref={ref}
+        onMouseEnter={show}
+        onMouseLeave={() => setPos(null)}
+        aria-label={t('Сид обновился')}
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 14, height: 18,
+        }}
+      >
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-amber)' }} />
+      </span>
+      <AnimatePresence>
+        {pos && createPortal(
+          // Внешний слой держит центрирование transform'ом, внутренний двигает
+          // motion — иначе анимация затрёт translateX(-50%).
+          <div
+            key="seed-dot-hint"
+            style={{
+              position: 'fixed', top: pos.top, left: pos.left,
+              transform: 'translateX(-50%)', zIndex: 1200, pointerEvents: 'none',
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4, transition: { duration: 0.1 } }}
+              transition={{ duration: 0.14, ease: [0.32, 0.72, 0, 1] }}
+              style={{
+                maxWidth: 260, padding: '9px 12px', borderRadius: 12,
+                background: 'var(--color-bg-input)', border: '1px solid var(--color-border)',
+                boxShadow: 'var(--shadow-lg)',
+                fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: 'var(--color-text)',
+              }}
+            >
+              {t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
+            </motion.div>
+          </div>,
+          document.body,
+        )}
+      </AnimatePresence>
+    </>
+  )
 }
 
 function CourseCard({ course, isSelected, onClick, actions, students, access }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions; students?: { id: string; name: string }[]; access?: { id: string; name: string }[] }) {
@@ -1279,29 +1354,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
         <div style={{ display: 'flex', gap: 5 }}>
           <span style={cardChip(STATUS_COLOR[course.status])}>{t(STATUS_LABEL[course.status])}</span>
           {course.shared && <span style={cardChip('var(--color-purple-text)')}>{t('Общий')}</span>}
-          {seedMovedAhead(course) && (
-            // ТОЧКА, А НЕ ПЛАШКА. Статус курса — постоянное свойство, «сид ушёл
-            // вперёд» — временное дело, которое закрывается одним нажатием
-            // «Из сида». Равный вес читался неверно: ряд одинаковых янтарных
-            // плашек выглядел как ошибка на каждом курсе, а на витрине из пяти
-            // курсов текст «Сид обновился» повторялся пять раз и вытеснял
-            // названия. Точка держит сигнал, а объяснение отдаёт по наведению —
-            // Конструктор живёт только на компьютере (на телефоне о нём прямо
-            // написано «на компьютере»), так что подсказка здесь доступна.
-            <span
-              title={t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
-              aria-label={t('Сид обновился')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                width: 14, height: 18, cursor: 'help',
-              }}
-            >
-              <span style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: 'var(--color-amber)',
-              }} />
-            </span>
-          )}
+          {seedMovedAhead(course) && <SeedDot />}
         </div>
       }
       title={course.title}
@@ -7577,7 +7630,7 @@ export default function TeacherConstructorPage() {
     const map = new Map<string, CourseSeed>()
     // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
     // состоит из чужих готовых курсов, а настоящие подставляются под них позже.
-    if (!accessLoaded || !isAdmin || editMode || dbLoading) return map
+    if (editMode || dbLoading) return map // TEMP-PREVIEW
     const taken = new Set(courses.map(c => c.id))
     for (const s of COURSE_SEEDS) {
       const id = seedCourseId(s, ownerId)
@@ -7755,6 +7808,7 @@ export default function TeacherConstructorPage() {
         lessons: Array<{ id: string; title: string; number?: number; videoUrl?: string; description?: string; scheduledDuration?: number; recDuration?: number }>
         modules: Array<{ id: string; label: string; lessonIds: string[] }>
         groupIds?: string[]; studentIds?: string[]
+        seedStamp?: string
       }
       const updated: Course = {
         id: ed.id, title: ed.title, subject: ed.subject, level: ed.level,
@@ -7766,6 +7820,10 @@ export default function TeacherConstructorPage() {
           minutes: l.scheduledDuration ?? l.recDuration,
         })),
         groupIds: ed.groupIds ?? [], studentIds: ed.studentIds ?? [],
+        // Курс вернулся из редактора уже свёренным — переносим отпечаток, иначе
+        // плитка пересобралась бы без него и точка загорелась бы сразу после
+        // «Из сида», ещё до перезагрузки.
+        seedStamp: ed.seedStamp,
       }
       setCourses(prev => {
         const old = prev.find(c => c.id === updated.id)
@@ -7841,6 +7899,10 @@ export default function TeacherConstructorPage() {
       description: course.description ?? '', dbCourseId: course.dbCourseId,
       groupIds, studentIds, modules, lessons,
       heavyPending: !!course.dbCourseId,
+      // Отпечаток едет в редактор вместе с курсом: там он и сравнивается со
+      // свежим сидом, и переписывается применением «Из сида». Без него первое
+      // же сохранение вернуло бы курс в «отпечаток неизвестен».
+      seedStamp: course.seedStamp,
     }
     openCourseEditor(JSON.stringify(edData))
   }

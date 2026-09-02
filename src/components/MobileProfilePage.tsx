@@ -8,6 +8,7 @@ import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
 import FeedbackModal from './FeedbackModal'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
+import CourseOrderModal from './CourseOrderModal'
 import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
 import { useFeedGestures } from '../store/feedGesturesStore'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
@@ -70,6 +71,7 @@ export default function MobileProfilePage() {
   const { dark, toggle } = useTheme()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [tintOpen, setTintOpen] = useState(false)
+  const [courseOrderOpen, setCourseOrderOpen] = useState(false)
   const [feedOpen, setFeedOpen] = useState(false)
   // Карточки человека (разные группы под одним логином) — переход по тапу в
   // шапку. Отдельного блока-переключателя нет: он повторял «Мои курсы».
@@ -317,6 +319,24 @@ export default function MobileProfilePage() {
                 </span>
               </motion.button>
 
+              {/* Порядок курсов — только тому, у кого их несколько */}
+              {subjects.length > 1 && (
+                <motion.button
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => { tactile(); setCourseOrderOpen(true) }}
+                  className="flex items-center justify-between cursor-pointer"
+                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                >
+                  <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                    {t('Порядок курсов')}
+                  </span>
+                  <span className="flex items-center" style={{ gap: 8 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{subjects.length}</span>
+                    <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                  </span>
+                </motion.button>
+              )}
+
               {/* Лента и жесты — раскладка свайпов по посту */}
               <motion.button
                 whileTap={{ scale: 0.99 }}
@@ -394,6 +414,7 @@ export default function MobileProfilePage() {
       <MobileBottomNav />
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
       <CourseTintSheet open={tintOpen} onClose={() => setTintOpen(false)} />
+      <CourseOrderModal open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
       <FeedGesturesSheet open={feedOpen} onClose={() => setFeedOpen(false)} />
 
       {/* Смена карточки: тот же список, что в выпадашке сайдбара, только

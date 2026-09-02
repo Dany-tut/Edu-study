@@ -45,6 +45,8 @@ export type PreviewBlock =
   | { kind: 'prompt'; text: string; muted?: boolean }
   /** Варианты ответа: кружки (один) или квадраты (несколько). */
   | { kind: 'choices'; options: PreviewChip[]; multi?: boolean }
+  /** Утверждения с тремя вердиктами в строку (верно / неверно / не указано). */
+  | { kind: 'verdictRows'; rows: Array<{ text: string; pick?: 'T' | 'F' | 'NG' }> }
   /** Банк плиток, из которого берут. */
   | { kind: 'tiles'; items: PreviewChip[]; label?: string }
   /** Строка-конструктор: что уже собрано. */
@@ -66,7 +68,7 @@ export type PreviewBlock =
   /** Словарная карточка (обратная сторона — если её уже перевернули). */
   | { kind: 'card'; front: string; back?: string }
   /** Медиа-заглушка: картинка, пара картинок, видео, поле для рисования. */
-  | { kind: 'media'; shape: 'image' | 'images' | 'video' | 'canvas'; glyph?: string }
+  | { kind: 'media'; shape: 'image' | 'images' | 'video' | 'canvas' | 'embed'; glyph?: string }
   /** Экранная клавиатура; pressed — подсвеченная клавиша. */
   | { kind: 'keys'; rows: string[][]; pressed?: string }
   /** Сетка кроссворда; null — клетка вне слова, '' — пустая под ответ. */
@@ -352,6 +354,49 @@ export const TASK_TYPE_PREVIEWS: Record<TaskTypeId, TaskTypePreview> = {
       { kind: 'tiles', label: 'Банк слов', items: [
         { text: 'have', state: 'ghost' }, { text: 'goes' }, { text: 'takes' }, { text: 'is' },
       ] },
+    ],
+  },
+
+  // ── работа с текстом и системой ──
+
+  trueFalse: {
+    teaches: 'Отличать сказанное в тексте от додуманного: третья кнопка ловит то, чего в тексте нет.',
+    blocks: [
+      { kind: 'prompt', text: 'Anna gets up at seven. She walks to the station.', muted: true },
+      { kind: 'verdictRows', rows: [
+        { text: 'Anna walks to the station.', pick: 'T' },
+        { text: 'She drives a car.', pick: 'F' },
+        { text: 'The train is late.', pick: 'NG' },
+      ] },
+    ],
+  },
+
+  dropdownGap: {
+    teaches: 'Узнавание в контексте: ступень между выбором из четырёх и пустым полем.',
+    blocks: [
+      { kind: 'prompt', text: 'Выберите верную форму в каждом пропуске' },
+      { kind: 'gap', parts: ['She ', { select: 'goes' }, ' to school and ', { select: '' }, ' English.'] },
+      { kind: 'verdict', text: '1 из 2 · второй пропуск пуст', ok: false },
+    ],
+  },
+
+  columnSort: {
+    teaches: 'Признак, а не отдельное слово: десять предметов в три корзины показывают, работает ли правило.',
+    blocks: [
+      { kind: 'tiles', items: [{ text: 'Tisch', state: 'ghost' }, { text: 'Lampe' }, { text: 'Buch' }] },
+      { kind: 'columns', cols: [
+        { title: 'der', items: [{ text: 'Tisch', state: 'correct' }] },
+        { title: 'die', items: [] },
+        { title: 'das', items: [] },
+      ] },
+    ],
+  },
+
+  embed: {
+    teaches: 'Чужое упражнение внутри домашки. Результат оттуда не приходит — засчитывается прохождение.',
+    blocks: [
+      { kind: 'media', shape: 'embed' },
+      { kind: 'verdict', text: 'Отмечено выполненным', ok: true },
     ],
   },
 
