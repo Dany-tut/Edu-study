@@ -174,10 +174,11 @@ const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: strin
   'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: 'AP Химия',        sublabel: 'Диагностика · RU'   },
   'ap-chem-en': { accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)',   label: 'AP Chemistry',    sublabel: 'Diagnostic · EN'    },
   'eng-placement': { accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)', label: 'Английский',   sublabel: 'Определение уровня' },
+  'eng-restore':   { accent: '#0f766e', soft: 'rgba(15,118,110,0.12)', label: 'Английский',   sublabel: 'Восстановление B2' },
   'kor-placement': { accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)',  label: 'Корейский',    sublabel: 'Определение уровня' },
 }
 
-const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement'])
+const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement', 'eng-restore'])
 
 function metaFromRow(row: CustomTestMeta): { label: string; accent: string; soft: string } {
   return { label: row.label, accent: row.accent, soft: row.accent + '22' }

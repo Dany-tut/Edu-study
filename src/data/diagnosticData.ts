@@ -3,8 +3,9 @@
 
 import { supabase } from '../lib/supabase'
 import { ENGLISH_PLACEMENT_QUESTIONS, KOREAN_PLACEMENT_QUESTIONS } from './placementTests'
+import { ENGLISH_RESTORE_QUESTIONS } from './englishRestore'
 
-export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en' | 'eng-placement' | 'kor-placement'
+export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en' | 'eng-placement' | 'kor-placement' | 'eng-restore'
 
 export interface DiagQuestion {
   id: string
@@ -774,11 +775,12 @@ export const DEFAULT_QUESTIONS: Record<DiagSubject, DiagQuestion[]> = {
   'ap-chem-en': AP_CHEM_EN_QUESTIONS,
   'eng-placement': ENGLISH_PLACEMENT_QUESTIONS,
   'kor-placement': KOREAN_PLACEMENT_QUESTIONS,
+  'eng-restore': ENGLISH_RESTORE_QUESTIONS,
 }
 
 // In-memory cache pre-seeded with compiled defaults so sync reads always work.
 const questionsCache = new Map<DiagSubject, DiagQuestion[]>(
-  (['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
+  (['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement', 'eng-restore'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
 )
 
 // Sync read from cache (instant, no flicker). Call fetchDiagQuestions in useEffect to hydrate.

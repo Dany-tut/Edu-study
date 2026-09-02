@@ -3545,8 +3545,9 @@ const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: s
   'ap-chem-en': { label: 'AP Chemistry (EN)', accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)'   },
   'eng-placement': { label: 'Английский — уровень', accent: '#0ea5e9', soft: 'rgba(14,165,233,0.12)' },
   'kor-placement': { label: 'Корейский — уровень',  accent: '#f43f5e', soft: 'rgba(244,63,94,0.12)'  },
+  'eng-restore':   { label: 'Английский — восстановление B2', accent: '#0f766e', soft: 'rgba(15,118,110,0.12)' },
 }
-const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement']
+const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement', 'eng-restore']
 const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
   biology: Dna,
   chemistry: FlaskConical,
@@ -3555,6 +3556,7 @@ const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
   'ap-chem-en': Globe,
   'eng-placement': LucideIcons.Languages,
   'kor-placement': LucideIcons.Languages,
+  'eng-restore': LucideIcons.Gauge,
 }
 
 // Runtime meta for custom user-created tests

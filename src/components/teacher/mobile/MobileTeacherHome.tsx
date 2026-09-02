@@ -31,6 +31,7 @@ const DIAG_SUBJECTS: { id: string; label: string }[] = [
   { id: 'ap-chem-ru', label: 'AP Химия RU' },
   { id: 'ap-chem-en', label: 'AP Chemistry EN' },
   { id: 'eng-placement', label: 'Английский — уровень' },
+  { id: 'eng-restore', label: 'Английский — восстановление B2' },
   { id: 'kor-placement', label: 'Корейский — уровень' },
 ]
 const diagLink = (subject: string, assignmentId?: string) =>

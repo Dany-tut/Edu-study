@@ -6,6 +6,7 @@
 // уровне, а вердикт (getPlacementVerdict) считает лесенку по этим префиксам.
 
 import type { DiagQuestion, DiagResults } from './diagnosticData'
+import { englishRestoreVerdict } from './englishRestore'
 
 // ── Английский: определение уровня A2 / B1 / B2 / C1 ─────────────────────────
 // Лесенка от простого к сложному. Формулировки на английском (как на реальном
@@ -189,5 +190,6 @@ export function getPlacementVerdict(subject: string, results: DiagResults | null
   if (!results || Object.keys(results).length === 0) return null
   if (subject === 'eng-placement') return englishVerdict(results)
   if (subject === 'kor-placement') return koreanVerdict(results)
+  if (subject === 'eng-restore') return englishRestoreVerdict(results)
   return null
 }
