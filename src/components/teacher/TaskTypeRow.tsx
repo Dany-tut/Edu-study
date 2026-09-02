@@ -127,8 +127,8 @@ export function TaskTypeRow({ type, onClick, active = false }: {
           <def.Icon size={15} style={{ color }} />
         </span>
         <span style={{ minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(def.label)}</span>
-          <span style={{ display: 'block', fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t(def.hint)}</span>
+          <span style={{ display: 'block', fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>{t(def.label)}</span>
+          <span style={{ display: 'block', fontSize: 10, lineHeight: 1.25, color: 'var(--color-muted)', marginTop: 2 }}>{t(def.hint)}</span>
         </span>
       </button>
 
@@ -147,7 +147,9 @@ export function TaskTypeRow({ type, onClick, active = false }: {
           width: 20, height: 20, borderRadius: '50%', border: 'none', padding: 0,
           display: 'grid', placeItems: 'center', cursor: 'help',
           background: open ? bg : 'transparent',
-          color: open ? color : 'var(--color-text-4)',
+          // Тусклый серый на тонированном фоне строки не читался — «i» берёт
+          // цвет самого типа, он контрастен своей же подложке по построению.
+          color,
           opacity: hover || open ? 1 : 0,
           transition: 'opacity 0.12s',
         }}

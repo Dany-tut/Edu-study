@@ -3014,6 +3014,7 @@ export const EN: Record<string, string> = {
   'Банк пуст': 'The bank is empty',
   'Дата сдачи': 'Due date',
   'ТИП ЗАДАНИЯ': 'TASK TYPE',
+  'Заданий добавлено': 'Tasks added',
   'СЛОЖНОЕ ЗАДАНИЕ': 'HARD TASK',
   'Выберите тип задания слева': 'Pick a task type on the left',
   'Например: Контрольная по модулю 1': 'For example: Module 1 test',

@@ -38,6 +38,7 @@ import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
+import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
 import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId } from '../../data/taskTypes'
 
@@ -517,6 +518,14 @@ function TaskCard({
                     <WhiteboardCanvas readOnly />
                   </div>
                 )}
+
+                {/* Верно/неверно, пропуски со списками, столбцы и внешнее
+                    упражнение — общий редактор с редактором курса. */}
+                <ExtraTaskEditors
+                  task={task}
+                  onUpdate={next => onUpdate(next)}
+                  accent={{ color: cfg.color, bg: cfg.bg, fill: cfg.color }}
+                />
 
                 {/* Answer (for extended/fill) */}
                 {(task.type === 'extended' || task.type === 'fill') && (

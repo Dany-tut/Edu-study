@@ -4,12 +4,19 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
-import { charUnits, crosswordClues, gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
+import {
+  charUnits, crosswordClues, gapChoiceRows, gradeTask, isAutoGradable, sentenceTokens, sortRows,
+  tfRows, type TaskAnswer,
+} from '../data/taskTypes'
 import WordBankSolver from './WordBankSolver'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
 import JamoTypeSolver from './JamoTypeSolver'
 import WordDropSolver from './WordDropSolver'
+import TrueFalseSolver from './TrueFalseSolver'
+import DropdownGapSolver from './DropdownGapSolver'
+import ColumnSortSolver from './ColumnSortSolver'
+import EmbedTask from './EmbedTask'
 import CrosswordSolver from './CrosswordSolver'
 import DialogGapSolver from './DialogGapSolver'
 import { keysOf } from '../data/hangul'
@@ -235,7 +242,10 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   || (tp === 'jamoType' && charUnits(task.answer ?? '').flatMap(keysOf).length < 2)
                   || (tp === 'dialogGap' && (!task.answer?.trim() || (task.dialog?.length ?? 0) < 2))
                   || (tp === 'wordDrop' && !(task.gaps ?? []).some(g => !!g.answer?.trim()))
-                  || (tp === 'crossword' && crosswordClues(task).length < 2)) && (
+                  || (tp === 'crossword' && crosswordClues(task).length < 2)
+                  || (tp === 'trueFalse' && tfRows(task).length === 0)
+                  || (tp === 'dropdownGap' && gapChoiceRows(task).length === 0)
+                  || (tp === 'columnSort' && sortRows(task).length === 0)) && (
                   <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
@@ -347,6 +357,53 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     <WordDropSolver
                       rows={(task.gaps ?? []).filter(g => !!g.answer?.trim())}
                       distractors={task.distractors}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* trueFalse — утверждения к тексту: верно / неверно / не указано */}
+                {tp === 'trueFalse' && tfRows(task).length > 0 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <TrueFalseSolver
+                      rows={tfRows(task)}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* dropdownGap — форма выбирается прямо в строке */}
+                {tp === 'dropdownGap' && gapChoiceRows(task).length > 0 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <DropdownGapSolver
+                      text={task.gapText ?? ''}
+                      gaps={gapChoiceRows(task)}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* columnSort — разложить предметы по именованным корзинам */}
+                {tp === 'columnSort' && sortRows(task).length > 0
+                  && (task.columns ?? []).filter(c => c.trim()).length >= 2 && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <ColumnSortSolver
+                      columns={(task.columns ?? []).filter(c => c.trim())}
+                      items={sortRows(task)}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* embed — чужое упражнение; засчитывается прохождение */}
+                {tp === 'embed' && !!task.embedUrl?.trim() && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <EmbedTask
+                      url={task.embedUrl}
                       value={(answers[task.id] as string) ?? undefined}
                       onChange={v => setAnswer(task.id, v)}
                     />

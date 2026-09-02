@@ -31,7 +31,11 @@ import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload, type PatternItem } from '../../data/taskTypes'
+import {
+  taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID,
+  type TaskTypeId, type TaskPayload, type PatternItem,
+} from '../../data/taskTypes'
+import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import { supabase } from '../../lib/supabase'
 import { courseResetRef, isCourseResetRef } from '../../lib/homeworkReset'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
@@ -2576,6 +2580,54 @@ function ChamoPicker({ value, onChange, accent, accentBg }: {
   )
 }
 
+/**
+ * Картинка на стороне пары сопоставления.
+ *
+ * ЗАЧЕМ ОНА ЗДЕСЬ. Пока пара была «текст ↔ текст», словарное задание проверяло
+ * связь иностранного слова с РУССКИМ — то есть с посредником. Картинка убирает
+ * посредника: слово соединяется с предметом. Текст стороны при этом остаётся —
+ * он ключ сверки и то, что учитель видит при разборе (см. MatchingSolver).
+ */
+function PairSideImage({ image, onPick }: { image?: string; onPick: (url: string | undefined) => void }) {
+  const t = useT()
+  const ref = useRef<HTMLInputElement | null>(null)
+  return (
+    <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+      <input
+        ref={ref} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (!file) return
+          optimizePhoto(file)
+            .then(url => onPick(url))
+            .catch(err => { if (err instanceof ImageTooLargeError) void alertDialog({ title: err.message, tone: 'danger' }); else throw err })
+          e.target.value = ''
+        }}
+      />
+      {image ? (
+        <>
+          <img src={image} alt="" style={{ width: 34, height: 34, objectFit: 'cover', borderRadius: 7, border: '1px solid var(--color-border-medium)' }} />
+          <button
+            onClick={() => onPick(undefined)}
+            title={t('Убрать картинку')}
+            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}
+          >
+            <X size={11} />
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => ref.current?.click()}
+          title={t('Картинка вместо текста')}
+          style={{ width: 30, height: 30, borderRadius: 8, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-4)' }}
+        >
+          <Camera size={13} />
+        </button>
+      )}
+    </div>
+  )
+}
+
 function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   task: HWTask; index: number
   onUpdate: (t: HWTask) => void
@@ -2762,12 +2814,20 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           placeholder={`${t('Левая')} ${pi + 1}`}
                           style={{ ...taskTextSt, flex: 1 }}
                         />
+                        <PairSideImage
+                          image={pair.leftImage}
+                          onPick={url => { const next = [...pairs]; next[pi] = { ...pair, leftImage: url }; onUpdate({ ...task, pairs: next }) }}
+                        />
                         <div style={{ color: 'var(--color-text-4)', fontSize: 16, flexShrink: 0 }}>↔</div>
                         <AutoTextarea
                           value={pair.right}
                           onChange={v => { const next = [...pairs]; next[pi] = { ...pair, right: v }; onUpdate({ ...task, pairs: next }) }}
                           placeholder={`${t('Правая')} ${pi + 1}`}
                           style={{ ...taskTextSt, flex: 1 }}
+                        />
+                        <PairSideImage
+                          image={pair.rightImage}
+                          onPick={url => { const next = [...pairs]; next[pi] = { ...pair, rightImage: url }; onUpdate({ ...task, pairs: next }) }}
                         />
                         {pairs.length > 2 && (
                           <button
@@ -2785,6 +2845,9 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     >
                       <Plus size={12} /> {t('Добавить пару')}
                     </button>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                      {t('Картинка у стороны пары заменяет её текст на экране ученика: слово соединяется с предметом, а не с переводом. Текст остаётся — по нему идёт сверка и он виден вам при разборе.')}
+                    </div>
                   </div>
                 </div>
               )}
@@ -3203,6 +3266,11 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   </div>
                 )
               })()}
+
+              {/* Четыре типа, редактор которых общий с «Домашками», — он один
+                  на две страницы, чтобы поля не разъезжались (компонент
+                  components/teacher/ExtraTaskEditors). */}
+              <ExtraTaskEditors task={task} onUpdate={onUpdate} accent={cfg} />
 
               {/* wordDrop — строки с пропуском и общий банк слов. */}
               {task.type === 'wordDrop' && (() => {
@@ -3680,6 +3748,7 @@ function AccordionSection({ title, count, open, onToggle, accent, children }: {
   accent?: string
   children: React.ReactNode
 }) {
+  const t = useT()
   return (
     <div>
       <button
@@ -3697,7 +3766,10 @@ function AccordionSection({ title, count, open, onToggle, accent, children }: {
           {title}
         </span>
         {count > 0 && (
-          <span style={{
+          // Счётчик — это УЖЕ ДОБАВЛЕННЫЕ задания, а не длина палитры под
+          // заголовком. Рядом со словом «ТИП ЗАДАНИЯ» цифра читается как
+          // «столько типов», поэтому она подписана.
+          <span title={t('Заданий добавлено')} style={{
             fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 999,
             background: accent ? 'rgba(245,158,11,0.15)' : 'var(--color-bg-3)',
             color: accent ?? 'var(--color-muted)',

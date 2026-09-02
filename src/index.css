@@ -418,6 +418,12 @@ html[data-theme-shift] body *::after {
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
+  /* Межстрочный интерфейса: 1.35, а не preflight-овские 1.5 от Tailwind.
+     Подписи карточек и кнопок почти всегда в 2–3 строки, и на 1.5 строки
+     расползаются так, что подпись читается как два отдельных куска текста.
+     Проза (конспект, чтение, ленты) свой line-height ставит сама — этот
+     дефолт достаётся именно коротким интерфейсным подписям. */
+  line-height: 1.35;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -489,21 +495,18 @@ a {
 }
 
 /* Focus visible */
+/* Кольцо фокуса носит цвет самой кнопки, а не общий фиолетовый акцент. Общий
+   ринг вокруг зелёных «Курсов», персиковых «Материалов», оранжевого «СЛОЖНОГО
+   ЗАДАНИЯ» читался как чужая обводка — будто у кнопки две принадлежности
+   сразу. currentColor к тому же контрастен по построению: это цвет, которым
+   элемент уже пишет свою подпись на своём же фоне.
+   Ринг рисуется ВНУТРЬ (offset -2px), а не наружу: у сплошной кнопки
+   currentColor — это белый текст на заливке, и наружное кольцо легло бы белым
+   по светлому фону страницы, то есть исчезло. Внутри же оно всегда лежит на
+   той поверхности, для которой этот цвет и подобран. Побочно это чинит строки
+   уроков: наружное кольцо срезал overflow скролл-списка. */
 *:focus-visible {
-  outline: 2px solid rgba(var(--accent-rgb), 0.7);
-  outline-offset: 3px;
-}
-/* Цветная таблетка носит свой цвет и в фокусе. Общий фиолетовый ринг вокруг
-   зелёных «Курсов», персиковых «Материалов» или бирюзовых «Тестов» читается как
-   чужая обводка — будто у кнопки две разные принадлежности сразу. currentColor
-   у активной таблетки — её собственный цвет, у погашенной — тот же серый, что
-   и подпись. */
-.tab-pill:focus-visible {
-  outline-color: currentColor;
-}
-/* Lesson rows live inside an overflow-clipped scroll list, so the default
-   outward focus ring gets sliced. Draw it inside the row instead. */
-.lesson-row:focus-visible {
+  outline: 2px solid currentColor;
   outline-offset: -2px;
 }
 
