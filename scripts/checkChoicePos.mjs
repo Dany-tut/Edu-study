@@ -365,7 +365,9 @@ const COVERED = new Set([
   'src/data/readingLibrary.ts', 'src/data/readingEn.ts', 'src/data/readingKo.ts', 'src/data/readingJa.ts',
   // Немецкая и русская полки доезжают до замера через READING_LIBRARY («тексты · de», «тексты · ru»).
   'src/data/readingDe.ts', 'src/data/readingRu.ts',
+  // Русская полка аудирования доезжает до замера через LISTENING_LIBRARY («аудио · ru»).
   'src/data/listeningLibrary.ts', 'src/data/listeningLibraryExtra.ts',
+  'src/data/listeningRu.ts', 'src/data/listeningDe.ts',
   'src/data/scenes/scenesEn.ts', 'src/data/scenes/scenesKo.ts', 'src/data/scenes/scenesJa.ts',
   'src/data/scenes/scenesPt.ts', 'src/data/scenes/scenesDe.ts', 'src/data/scenes/scenesRu.ts',
   'src/data/feed/feedEn.ts', 'src/data/feed/feedKo.ts', 'src/data/feed/feedJa.ts', 'src/data/feed/feedPt.ts',

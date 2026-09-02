@@ -37,6 +37,7 @@ import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
+import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
 import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId } from '../../data/taskTypes'
 
@@ -576,31 +577,12 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
         {t('ТИП ЗАДАНИЯ')}
       </div>
       {TASK_TYPES.map(tt => (
-        <button
+        <TaskTypeRow
           key={tt.type}
+          type={tt.type}
+          active={active === tt.type}
           onClick={() => flash(tt.type, onAdd)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '10px 12px', borderRadius: 13,
-            border: `1.5px solid ${active === tt.type ? tt.color : 'transparent'}`,
-            background: active === tt.type ? tt.bg : 'var(--color-bg-2)',
-            cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-            transition: 'all 0.13s',
-          }}
-          onMouseEnter={e => { if (active !== tt.type) (e.currentTarget as HTMLButtonElement).style.background = tt.bg }}
-          onMouseLeave={e => { if (active !== tt.type) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
-        >
-          <div style={{
-            width: 32, height: 32, borderRadius: 9, background: tt.bg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            <tt.icon size={15} style={{ color: tt.color }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(tt.label)}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{t(tt.hint)}</div>
-          </div>
-        </button>
+        />
       ))}
       <button
         onClick={onImport}

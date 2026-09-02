@@ -15,7 +15,7 @@ import NotificationToastContainer from '../components/NotificationToast'
 import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
 import Skeleton from '../components/Skeleton'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
@@ -262,6 +262,54 @@ export default function DashboardPage() {
     }
   }, [activePage, currentLessonId, restored])
 
+  // КАКОЙ ЭКРАН КАБИНЕТА ПОКАЗАН СЕЙЧАС.
+  //
+  // Раньше это была цепочка тернарников прямо в разметке. Каталог курсов из неё
+  // вынесен отдельным слоем (см. ниже, «Каталог не размонтируется»), а условия
+  // нужны обеим сторонам — поэтому считаем их один раз здесь.
+  const lessonWaiting = (!lesson && !dataLoaded) || lessonPending
+  const showLesson = activePage === 'lesson'
+  const showHomeworkWaiting = activePage === 'homework' && lessonWaiting
+  const showHomework = activePage === 'homework' && !!lesson && !!homework
+  const showTrainer = activePage === 'trainer'
+  // Тот же «остальное» из старой цепочки: 'courses', 'homeworkList', 'profile'
+  // (десктопного профиля нет) и домашка, у которой не нашлось ни данных, ни
+  // ожидания. На телефоне профиль и «Курсы» рисуют свои экраны.
+  const showCatalogue = activePage !== 'home' && !showLesson && !showHomeworkWaiting && !showHomework && !showTrainer
+  const showMobileCatalogue = showCatalogue && activePage !== 'courses' && activePage !== 'profile'
+
+  // КАТАЛОГ НЕ РАЗМОНТИРУЕТСЯ, КОГДА ОТКРЫТ УРОК.
+  //
+  // Вход в урок убивал <CoursesPage /> целиком, и «Назад» строил её заново: раздел
+  // брался из стора (то есть из урока, а не из того, что выбрал человек), поиск,
+  // фильтр, сортировка и прокрутка терялись, а плавающая плашка заново приезжала
+  // пружиной к выбранной таблетке — это и читалось как «таблетки обновились».
+  // Теперь страница просто прячется. Первый монтаж откладываем до первого захода:
+  // с главной каталог может не понадобиться вовсе.
+  const [catalogueSeen, setCatalogueSeen] = useState(false)
+  useEffect(() => { if (showCatalogue) setCatalogueSeen(true) }, [showCatalogue])
+  const [mobileCatalogueSeen, setMobileCatalogueSeen] = useState(false)
+  useEffect(() => { if (showMobileCatalogue) setMobileCatalogueSeen(true) }, [showMobileCatalogue])
+
+  // display:none снимает у панели прокрутку, поэтому её позицию ведём сами:
+  // пишем на каждый скролл, возвращаем на показе.
+  const catalogueRef = useRef<HTMLElement>(null)
+  const catalogueScroll = useRef(0)
+  useLayoutEffect(() => {
+    if (showCatalogue && catalogueRef.current) catalogueRef.current.scrollTop = catalogueScroll.current
+  }, [showCatalogue])
+  // На телефоне каталог прокручивает сам документ — там ведём оконную позицию.
+  const mCatalogueScroll = useRef(0)
+  useEffect(() => {
+    if (!showMobileCatalogue) return
+    const onScroll = () => { mCatalogueScroll.current = window.scrollY }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [showMobileCatalogue])
+  useLayoutEffect(() => {
+    if (showMobileCatalogue && mCatalogueScroll.current) window.scrollTo(0, mCatalogueScroll.current)
+  }, [showMobileCatalogue])
+
   // Sidebar is centered in the topbar via flex; the mini widget pill is
   // overlaid absolutely beside it so its presence never shifts the sidebar.
   // We rAF-poll the sidebar's right edge and write directly to the pill
@@ -375,7 +423,7 @@ export default function DashboardPage() {
               </section>
             </main>
           </>
-        ) : activePage === 'lesson' ? (
+        ) : showLesson ? (
           /* Single lesson — player + materials (screen 2). The page
              extends past the viewport (homework levels, transcript, etc.),
              so we override the dashboard's no-scroll layout and let this
@@ -400,11 +448,11 @@ export default function DashboardPage() {
                 ? <TestFlow lesson={lesson} onBack={closeLesson} />
                 : <LessonPage />}
           </main>
-        ) : activePage === 'homework' && ((!lesson && !dataLoaded) || lessonPending) ? (
+        ) : showHomeworkWaiting ? (
           <main className="dashboard-main" style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
             <LessonLoading />
           </main>
-        ) : activePage === 'homework' && lesson && homework ? (
+        ) : showHomework && lesson && homework ? (
           /* Homework — mirrors the lesson pane: the page scrolls up under the
              floating topbar + progressive-blur strip, and its Back/title row
              docks onto the topbar line on scroll. */
@@ -424,7 +472,7 @@ export default function DashboardPage() {
               />
             </Suspense>
           </main>
-        ) : activePage === 'trainer' ? (
+        ) : showTrainer ? (
           <main
             className="dashboard-main"
             onScroll={e => setLessonScrolled((e.currentTarget as HTMLElement).scrollTop > 64)}
@@ -432,11 +480,19 @@ export default function DashboardPage() {
           >
             <TrainerChunk />
           </main>
-        ) : (
-          /* Courses catalogue (screen 3) */
+        ) : null}
+
+        {/* Courses catalogue (screen 3) — живёт отдельным слоем и на время урока
+            только прячется: см. «Каталог не размонтируется» выше. */}
+        {(showCatalogue || catalogueSeen) && (
           <main
+            ref={catalogueRef}
             className="dashboard-main"
-            style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}
+            onScroll={e => { catalogueScroll.current = (e.currentTarget as HTMLElement).scrollTop }}
+            style={{
+              display: showCatalogue ? undefined : 'none',
+              overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100,
+            }}
           >
             <CoursesPage />
           </main>
@@ -457,10 +513,7 @@ export default function DashboardPage() {
           <MobileProfilePage />
         ) : activePage === 'trainer' ? (
           <TrainerChunk />
-        ) : activePage === 'homeworkList' ? (
-          /* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
-             сортировка в нижнем доке). Отдельная страница, а не 'homework':
-             та открывает домашку текущего урока и без неё отбивает назад. */
+        ) : showMobileCatalogue ? null : (
           <div style={{
             minHeight: '100dvh', background: 'var(--color-bg)',
             paddingTop: MOBILE_TOP_INSET,
@@ -468,26 +521,15 @@ export default function DashboardPage() {
             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
             overflowX: 'clip', overscrollBehavior: 'contain',
           }}>
-            <CoursesPage />
-            <MobileBottomNav />
-          </div>
-        ) : (
-          <div style={{
-            minHeight: '100dvh', background: 'var(--color-bg)',
-            paddingTop: MOBILE_TOP_INSET,
-            paddingLeft: 16, paddingRight: 16,
-            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
-            overflowX: 'clip', overscrollBehavior: 'contain',
-          }}>
-            {activePage === 'lesson' ? (
-              (!lesson && !dataLoaded) || lessonPending
+            {showLesson ? (
+              lessonWaiting
                 ? <LessonLoading />
                 : lesson?.kind === 'test'
                   ? <TestFlow lesson={lesson} onBack={closeLesson} />
                   : <LessonPage />
-            ) : activePage === 'homework' && ((!lesson && !dataLoaded) || lessonPending) ? (
+            ) : showHomeworkWaiting ? (
               <LessonLoading />
-            ) : activePage === 'homework' && lesson && homework ? (
+            ) : showHomework && lesson && homework ? (
               <Suspense fallback={<LessonLoading />}>
                 <HomeworkFlow
                   lessonId={lesson.id}
@@ -497,10 +539,28 @@ export default function DashboardPage() {
                   onBack={closeHomework}
                 />
               </Suspense>
-            ) : (
-              <CoursesPage />
-            )}
+            ) : null}
             <MobileBottomNav />
+          </div>
+        )}
+
+        {/* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
+            сортировка в нижнем доке). Отдельная страница, а не 'homework': та
+            открывает домашку текущего урока и без неё отбивает назад. Как и на
+            десктопе, на время урока она прячется, а не размонтируется. Нижнюю
+            навигацию держим по условию — второй живой таб-бар под спрятанным
+            экраном никому не нужен. */}
+        {(showMobileCatalogue || mobileCatalogueSeen) && (
+          <div style={{
+            display: showMobileCatalogue ? 'block' : 'none',
+            minHeight: '100dvh', background: 'var(--color-bg)',
+            paddingTop: MOBILE_TOP_INSET,
+            paddingLeft: 16, paddingRight: 16,
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
+            overflowX: 'clip', overscrollBehavior: 'contain',
+          }}>
+            <CoursesPage />
+            {showMobileCatalogue && <MobileBottomNav />}
           </div>
         )}
       </div>

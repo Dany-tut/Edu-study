@@ -418,6 +418,7 @@ type TrackPayload = {
   rows?: Array<[string, string | null]>
   progress?: ProgressTuple[]
   modes?: Record<string, 'full' | 'custom' | 'by_date'>
+  pos?: Record<string, number | null>
   hard?: Array<[string, HardTaskDef[] | null]>
   courses?: CourseTuple[]
 }
@@ -493,6 +494,7 @@ export async function fetchStudentTrack(
   }
 
   const modes = payload.modes ?? {}
+  const positions = payload.pos ?? {}
   const ownerFor = (studentIds: string[] | null, groupIds: string[] | null): string | undefined =>
     rows.find(r => (studentIds ?? []).includes(r.id))?.id
     ?? rows.find(r => (groupIds ?? []).includes(r.groupId))?.id
@@ -544,7 +546,7 @@ export async function fetchStudentTrack(
     }
   })
 
-  return { scope, subjects, progress }
+  return { scope, subjects: orderCourses(subjects, positions), progress }
 }
 
 /**
@@ -591,6 +593,30 @@ export async function fetchProgressAttachments(studentIds: string[]): Promise<Pr
   return out
 }
 
+/**
+ * Порядок курсов ученика — как расставил учитель (course_enrollments.position).
+ *
+ * Одно место на оба пути загрузки: и на RPC student_track, и на запасную пару
+ * запросов. Дальше порядок никто не пересобирает — треки, «Курсы», домашки,
+ * переключатель предметов и мобильный кабинет читают массив subjects как есть,
+ * поэтому сортировка здесь и есть «везде».
+ *
+ * Нерасставленные курсы (позиции нет) идут ПОСЛЕ расставленных, сохраняя
+ * прежний порядок создания: новый курс не влезает в середину чужой программы.
+ */
+function orderCourses(subjects: Subject[], positions: Record<string, number | null>): Subject[] {
+  if (Object.keys(positions).length === 0) return subjects
+  const key = (s: Subject) => {
+    const p = s.dbId ? positions[s.dbId] : null
+    return typeof p === 'number' ? p : Number.MAX_SAFE_INTEGER
+  }
+  // Стабильная сортировка: у равных ключей порядок исходного массива (created_at).
+  return subjects
+    .map((s, i) => [s, i] as const)
+    .sort((a, b) => key(a[0]) - key(b[0]) || a[1] - b[1])
+    .map(([s]) => s)
+}
+
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
   // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
   const studentIds = [...new Set(rows.map(r => r.id))].filter(isUuid)
@@ -630,15 +656,17 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
   // (only teacher-unlocked lessons open), preserving legacy behaviour.
   const courseIds = (data as unknown as DbCourse[]).map(c => c.id)
   const modeByCourse: Record<string, 'full' | 'custom' | 'by_date'> = {}
+  const posByCourse: Record<string, number> = {}
   if (courseIds.length > 0 && studentIds.length > 0) {
     const { data: enr, error: enrErr } = await supabase
       .from('course_enrollments')
-      .select('course_id, access_mode')
+      .select('course_id, access_mode, position')
       .in('student_id', studentIds)
       .in('course_id', courseIds)
     if (enrErr) reportDbError('fetchCourseStructure.enrollments', enrErr)
-    for (const row of (enr ?? []) as Array<{ course_id: string; access_mode: 'full' | 'custom' | 'by_date' }>) {
+    for (const row of (enr ?? []) as Array<{ course_id: string; access_mode: 'full' | 'custom' | 'by_date'; position: number | null }>) {
       modeByCourse[row.course_id] = row.access_mode
+      if (typeof row.position === 'number') posByCourse[row.course_id] = row.position
     }
   }
 
@@ -653,7 +681,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       ?? rows.find(r => gids.includes(r.groupId))?.id
   }
 
-  return (data as unknown as DbCourse[]).map(course => ({
+  return orderCourses((data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
     dbId: course.id,
     name: course.title,
@@ -706,7 +734,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
             return [{ ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle' }]
           }),
       })),
-  }))
+  })), posByCourse)
 }
 
 /** Конспект и домашка урока — то, что не нужно треку и приезжает вторым заходом. */

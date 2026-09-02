@@ -1,17 +1,18 @@
 import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, BookOpen, ListChecks } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import HScrollFade from './HScrollFade'
 import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
-import SubjectSwitcher from './SubjectSwitcher'
 import FeedbackModal from './FeedbackModal'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
 import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
 import { useFeedGestures } from '../store/feedGesturesStore'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
+import MobileSheet from './MobileSheet'
+import { useSubjectCards, subjectCardLabel } from './SubjectSwitcher'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
 import { useStudentData } from '../store/studentDataStore'
@@ -70,6 +71,10 @@ export default function MobileProfilePage() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [tintOpen, setTintOpen] = useState(false)
   const [feedOpen, setFeedOpen] = useState(false)
+  // Карточки человека (разные группы под одним логином) — переход по тапу в
+  // шапку. Отдельного блока-переключателя нет: он повторял «Мои курсы».
+  const { cards, current: currentCard, switchTo, hasChoice } = useSubjectCards()
+  const [cardsOpen, setCardsOpen] = useState(false)
   // Что стоит на самом ходовом жесте — прямо в ряду настроек: строка
   // «Лента и жесты → Нравится» отвечает на вопрос, ради которого её открыли бы.
   const swipeLeftAction = useFeedGestures(s => s.map.swipeLeft)
@@ -147,8 +152,21 @@ export default function MobileProfilePage() {
               <div className="min-w-0" style={{ flex: 1 }}>
                 <div style={{ fontSize: 21, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.15 }}>{name}</div>
                 <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 7 }}>
-                  <span className="flex items-center" style={{ gap: 4, background: PAIR.focus.bg, color: PAIR.focus.text, fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 999 }}>
+                  {/* Строка уровня — она же вход в смену карточки, когда их
+                      несколько: стрелка появляется только тогда, иначе это
+                      обычная подпись без обещания тапа. */}
+                  <span
+                    className="flex items-center"
+                    onClick={hasChoice ? () => { tactile(); setCardsOpen(true) } : undefined}
+                    role={hasChoice ? 'button' : undefined}
+                    style={{
+                      gap: 4, background: PAIR.focus.bg, color: PAIR.focus.text, fontSize: 11.5,
+                      fontWeight: 700, padding: '4px 10px', borderRadius: 999,
+                      cursor: hasChoice ? 'pointer' : undefined,
+                    }}
+                  >
                     <Zap size={11} />{t('Уровень')} {level} · {rank}
+                    {hasChoice && <ChevronDown size={12} style={{ marginLeft: 1, opacity: 0.75 }} />}
                   </span>
                   {subjects.length > 0 && (
                     <span className="flex items-center" style={{ gap: 4, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 999 }}>
@@ -168,9 +186,6 @@ export default function MobileProfilePage() {
               </div>
             </div>
           </div>
-
-          {/* Переключатель предметов (для учеников 1:1 с несколькими карточками) */}
-          <SubjectSwitcher />
 
           {/* Курсы — ОДНА строка с прокруткой вместо облака чипсов на шесть рядов
               (при восьми курсах оно съедало пол-экрана). Тап по карточке заодно
@@ -380,6 +395,36 @@ export default function MobileProfilePage() {
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
       <CourseTintSheet open={tintOpen} onClose={() => setTintOpen(false)} />
       <FeedGesturesSheet open={feedOpen} onClose={() => setFeedOpen(false)} />
+
+      {/* Смена карточки: тот же список, что в выпадашке сайдбара, только
+          шторкой. Переход перезагружает приложение — закрывать нечего. */}
+      <MobileSheet open={cardsOpen} onClose={() => setCardsOpen(false)} title={t('Мой доступ')}>
+        <div className="flex flex-col" style={{ gap: 6, padding: '0 0 8px' }}>
+          {cards.map(c => {
+            const active = c.groupId === currentCard?.groupId
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => { tactile(); if (!switchTo(c)) setCardsOpen(false) }}
+                className="flex items-center justify-between"
+                style={{
+                  gap: 10, width: '100%', minHeight: ROW_H, padding: '10px 14px', borderRadius: 16,
+                  textAlign: 'left', cursor: 'pointer', fontSize: 14, fontWeight: active ? 700 : 500,
+                  color: 'var(--color-text)',
+                  background: active ? c.color + '18' : 'var(--color-bg-3)',
+                  border: `1px solid ${active ? c.color + '44' : 'var(--color-border-soft)'}`,
+                }}
+              >
+                <span className="min-w-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {subjectCardLabel(c)}
+                </span>
+                {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
+              </button>
+            )
+          })}
+        </div>
+      </MobileSheet>
     </>
   )
 }

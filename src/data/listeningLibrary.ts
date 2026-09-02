@@ -28,6 +28,19 @@ import type { ReadingQuestion, Gloss } from './readingLibrary'
 export interface ListeningItem {
   id: string
   lang: string
+  /**
+   * Предмет, если материал годится не всякому, кто учит этот язык.
+   *
+   * На одном языке предметов бывает два: «Русский» и «Литература» оба идут с
+   * `langCode: 'ru'`, но материал у них разный — у первого речь и её устройство,
+   * у второго чтение вслух и приём. Без этого поля ученик литературы получал бы
+   * в свою вкладку разбор «ну» и «как бы», а ученик русского — вопросы про
+   * подтекст. Так же разведены тексты (см. `subject` в readingLibrary.ts).
+   *
+   * Не задан — материал показывается всем, кто учит язык. Для чужих языков это
+   * норма: у английского предмет один.
+   */
+  subject?: string
   title: string
   /** Уровень по шкале своего языка. */
   level: string
@@ -640,9 +653,17 @@ const DE_LISTEN: ListeningItem[] = [
 // файл читался как список материалов, а не как список зависимостей.
 import { LISTENING_EXTRA } from './listeningLibraryExtra'
 
-export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...DE_LISTEN, ...MORE, ...LISTENING_EXTRA]
+import { LISTENING_DE } from './listeningDe'
+import { LISTENING_RU } from './listeningRu'
 
-/** Материалы нужного языка. */
-export function listeningForLang(lang: string): ListeningItem[] {
-  return LISTENING_LIBRARY.filter(x => x.lang === lang)
+export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...DE_LISTEN, ...MORE, ...LISTENING_EXTRA, ...LISTENING_DE, ...LISTENING_RU]
+
+/**
+ * Материалы нужного языка. `subject` отсекает чужое там, где на языке два
+ * предмета: материал без предмета годится всем, материал с предметом — только
+ * своему.
+ */
+export function listeningForLang(lang: string, subject?: string): ListeningItem[] {
+  return LISTENING_LIBRARY.filter(x =>
+    x.lang === lang && (!subject || !x.subject || x.subject === subject))
 }

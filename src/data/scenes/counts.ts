@@ -12,7 +12,7 @@ export const SCENE_COUNTS: Record<string, number> = {
   ja: 46,
   ko: 82,
   de: 7,
-  ru: 5,
+  ru: 10,
   pt: 4,
 }
 

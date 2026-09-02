@@ -13,6 +13,7 @@ import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { SUBJECT_ICON_MAP } from '../../lib/subjects'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
+import StudentCourseOrder from '../../components/teacher/StudentCourseOrder'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
@@ -1858,6 +1859,9 @@ function StudentPanel({
             onOpenCard={onOpenCard}
           />
         )}
+
+        {/* Порядок курсов — общий для всех экранов ученика. */}
+        <StudentCourseOrder studentId={student.id} groupId={group.id} />
 
         {/* Contacts */}
         <section>

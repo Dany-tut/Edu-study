@@ -10,13 +10,16 @@ import { getSessionUser } from '../lib/owner'
 // lists those cards and lets the student jump between subjects with one login.
 // Renders nothing when the student has only one card (the common case).
 
-type Card = { id: string; groupId: string; subject: string; level: string; icon: string; color: string }
+export type Card = { id: string; groupId: string; subject: string; level: string; icon: string; color: string }
 
-export default function SubjectSwitcher({ compact = false, style }: { compact?: boolean; style?: React.CSSProperties }) {
+export const subjectCardLabel = (c: Card) => `${c.icon} ${c.subject}${c.level ? ` · ${c.level}` : ''}`
+
+// Карточки человека + переход между ними. Хук, а не только компонент: оболочек
+// две — выпадашка в сайдбаре (десктоп) и шторка из шапки профиля (телефон), а
+// список карточек и перезагрузка при переходе у них одни.
+export function useSubjectCards() {
   const session = getStudentSession()
   const [cards, setCards] = useState<Card[]>([])
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -51,6 +54,31 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
     return () => { cancelled = true }
   }, [session?.id])
 
+  const current = session ? cards.find(c => c.groupId === session.groupId) ?? cards[0] ?? null : null
+
+  // Возврат false = перехода не было (та же карточка), вызвавшему остаётся
+  // просто закрыть свою оболочку.
+  function switchTo(card: Card) {
+    if (!session) return false
+    if (card.groupId === session.groupId) return false
+    setStudentSession({ id: card.id, name: session.name, groupId: card.groupId })
+    // Full reload so App's data-load effect re-runs against the new card
+    // (same reasoning as JoinPage / StudentLoginPage — a bare hash change
+    // wouldn't re-fire load()).
+    window.location.hash = '#/'
+    window.location.reload()
+    return true
+  }
+
+  // Переключать нечего, пока карточка одна.
+  return { cards, current, switchTo, hasChoice: !!session && cards.length > 1 }
+}
+
+export default function SubjectSwitcher({ compact = false, style }: { compact?: boolean; style?: React.CSSProperties }) {
+  const { cards, current, switchTo, hasChoice } = useSubjectCards()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
   // Close on outside click.
   useEffect(() => {
     if (!open) return
@@ -59,22 +87,9 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
-  if (!session || cards.length <= 1) return null
+  if (!hasChoice || !current) return null
 
-  const current = cards.find(c => c.groupId === session.groupId) ?? cards[0]
-
-  function switchTo(card: Card) {
-    if (!session) return
-    if (card.groupId === session.groupId) { setOpen(false); return }
-    setStudentSession({ id: card.id, name: session.name, groupId: card.groupId })
-    // Full reload so App's data-load effect re-runs against the new card
-    // (same reasoning as JoinPage / StudentLoginPage — a bare hash change
-    // wouldn't re-fire load()).
-    window.location.hash = '#/'
-    window.location.reload()
-  }
-
-  const label = (c: Card) => `${c.icon} ${c.subject}${c.level ? ` · ${c.level}` : ''}`
+  const label = subjectCardLabel
 
   return (
     <div ref={ref} style={{ position: 'relative', width: compact ? 'auto' : '100%', ...style }}>
@@ -102,12 +117,12 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
           <ScrollFade maxHeight={264} bg="var(--color-bg-input)" overlayScrollbar
             scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {cards.map(c => {
-            const active = c.groupId === session.groupId
+            const active = c.groupId === current.groupId
             return (
               <button
                 key={c.id}
                 type="button"
-                onClick={() => switchTo(c)}
+                onClick={() => { switchTo(c); setOpen(false) }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   padding: '9px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',

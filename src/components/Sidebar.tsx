@@ -661,30 +661,28 @@ export default function Sidebar() {
                           )}
                         </motion.button>
 
-                        {/* Divider */}
-                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 8px' }} />
-
-                        {/* Language — inline RU/EN segment */}
-                        <div style={{ width: '100%', padding: '9px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {/* Язык — тот же ряд, что тема и цвет: один клик переключает */}
+                        <motion.button
+                          whileTap={{ scale: 0.985 }}
+                          onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
+                          aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                          style={{
+                            width: '100%', padding: '9px 8px',
+                            display: 'flex', alignItems: 'center',
+                            gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
+                            background: 'transparent',
+                            color: 'var(--color-text)',
+                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                          }}
+                        >
                           <Globe size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                          <span style={{ flex: 1, textAlign: 'left', fontSize: 14, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
-                          <div role="radiogroup" aria-label={t('Язык')} style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)' }}>
-                            {(['ru', 'en'] as const).map(l => {
-                              const active = lang === l
-                              return (
-                                <button
-                                  key={l}
-                                  role="radio"
-                                  aria-checked={active}
-                                  onClick={() => setLang(l as Lang)}
-                                  style={{ height: 26, padding: '0 12px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}
-                                >
-                                  {l === 'ru' ? 'RU' : 'EN'}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
+                          <span style={{ flex: 1, textAlign: 'left' }}>{t('Язык')}</span>
+                          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
+                            {lang === 'ru' ? 'Русский' : 'English'}
+                          </span>
+                        </motion.button>
                       </motion.div>
                     )}
                   </AnimatePresence>

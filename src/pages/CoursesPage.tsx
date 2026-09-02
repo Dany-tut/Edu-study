@@ -53,6 +53,7 @@ export default function CoursesPage() {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
   const activeModuleId = useDashboard(s => s.activeModuleId)
+  const moduleFocusNonce = useDashboard(s => s.moduleFocusNonce)
   const setActiveModule = useDashboard(s => s.setActiveModule)
   const focusLessonId = useDashboard(s => s.coursesFocusLessonId)
   const openLesson = useDashboard(s => s.openLesson)
@@ -94,9 +95,14 @@ export default function CoursesPage() {
 
   const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
 
-  // Keep the module tab in sync when the active module changes from outside
-  // (e.g. opening Courses focused on a specific lesson, or switching subject).
-  useEffect(() => { setModuleTab(activeModuleId) }, [activeModuleId, activeSubjectId])
+  // Раздел переставляется ИЗВНЕ только по двум поводам: сменился курс или
+  // каталог попросили открыть на конкретном уроке (moduleFocusNonce).
+  //
+  // Следить за самим activeModuleId нельзя: его по дороге пишет openLesson, а
+  // страница на время урока больше не размонтируется — выбранное человеком
+  // «Все» на возврате молча превращалось бы в раздел открытого урока.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setModuleTab(activeModuleId) }, [moduleFocusNonce, activeSubjectId])
 
   // The lessons to show: a single module, or every lesson in the subject when
   // "Все" is selected. Search narrows by title or lesson number.
@@ -289,6 +295,10 @@ export default function CoursesPage() {
         >
         {subjectPill.pillRect && (
           <motion.span
+            // Первое появление — сразу на месте: без initial плашка приезжала
+            // пружиной из 0,0 нулевой ширины (в style позиции нет), и каждый
+            // новый монтаж ряда выглядел как «таблетки обновились».
+            initial={false}
             animate={subjectPill.pillRect}
             transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
             style={{
@@ -386,6 +396,10 @@ export default function CoursesPage() {
       >
         {modulePill.pillRect && (
           <motion.span
+            // Первое появление — сразу на месте: без initial плашка приезжала
+            // пружиной из 0,0 нулевой ширины (в style позиции нет), и каждый
+            // новый монтаж ряда выглядел как «таблетки обновились».
+            initial={false}
             animate={modulePill.pillRect}
             transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
             style={{

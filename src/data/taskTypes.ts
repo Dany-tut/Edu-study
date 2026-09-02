@@ -13,15 +13,17 @@
 //   2. добавь запись в TASK_TYPES
 //   3. добавь цвет в TYPE_VISUALS (src/data/taskTypeVisuals.ts)
 //   4. добавь Editor/Solver в соответствующие компоненты по ключу типа
+//   5. добавь превью в TASK_TYPE_PREVIEWS (src/data/taskTypePreviews.ts) —
+//      карта полная по TaskTypeId, без записи сборка не пройдёт
 //
 // Всё остальное — палитра выбора типа у учителя, фабрика значений по умолчанию,
 // автопроверка, признак «нужна проверка учителем» — подтянется само.
 
 import type { ElementType } from 'react'
 import {
-  AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Keyboard, Layers, LayoutGrid,
-  Grid3x3, ListOrdered, MessagesSquare, Mic, PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck,
-  Table as TableIcon, Type, Volume2,
+  AlignLeft, ArrowUpDown, CheckSquare, ChevronDown, Columns3, ExternalLink, Image as ImageIcon,
+  Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic,
+  PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
@@ -67,6 +69,11 @@ export type TaskTypeId =
   | 'dialogGap'     // озвученный диалог с пропуском — вставь недостающую реплику
   | 'wordDrop'      // пропуски в предложениях, один банк слов на всю пачку
   | 'crossword'     // кроссворд по слогам: слово вспоминается по значению
+  // — работа с текстом и системой (не только языки) —
+  | 'trueFalse'     // верно / неверно / не указано — пачка утверждений к тексту
+  | 'dropdownGap'   // пропуски в предложении с выпадающими списками
+  | 'columnSort'    // разложить предметы по именованным столбцам
+  | 'embed'         // внешнее упражнение (Wordwall, Quizlet) в рамке
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -152,6 +159,49 @@ export interface CrosswordClue {
   clue: string
 }
 
+/** Вердикт утверждения (trueFalse): верно / неверно / не указано. */
+export type TfVerdict = 'T' | 'F' | 'NG'
+
+/**
+ * Одно утверждение к тексту (trueFalse).
+ *
+ * ЗАЧЕМ ТРЕТИЙ ВЕРДИКТ. «Не указано» и есть весь смысл типа: он отделяет
+ * сказанное в тексте от того, что ученик знает про жизнь. Без него это обычный
+ * выбор из двух, и проверяется догадка, а не чтение.
+ */
+export interface TfStatement {
+  text: string
+  verdict: TfVerdict
+}
+
+/**
+ * Один пропуск с выпадающим списком (dropdownGap).
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ «ВПИСАТЬ ОТВЕТ» И «ПРОПУСКОВ ПО БАНКУ». Ответ здесь виден
+ * целиком, но только рядом со своим местом: это узнавание В КОНТЕКСТЕ —
+ * ступень между выбором из четырёх и пустым полем. У банка слов список общий на
+ * всю пачку, здесь свой на каждый пропуск, и обманки подбираются к нему.
+ */
+export interface GapChoice {
+  /** Варианты для этого пропуска; первый не обязан быть верным. */
+  options: string[]
+  /** Индекс верного варианта в options. */
+  correct: number
+}
+
+/**
+ * Предмет для раскладки по столбцам (columnSort).
+ *
+ * ЗАЧЕМ ЭТО НЕ «СОПОСТАВЛЕНИЕ». Там пары один-к-одному, здесь много к одному:
+ * десять слов в три корзины. Именно это и делает задание проверкой ПРАВИЛА —
+ * ученик показывает признак, а не помнит десять отдельных ответов.
+ */
+export interface SortItem {
+  text: string
+  /** Индекс столбца из columns, куда предмет относится. */
+  column: number
+}
+
 export interface TaskTable {
   headers: string[]
   rows: string[][]
@@ -202,7 +252,13 @@ export interface TaskPayload {
   answerSkeleton?: string
 
   // пары / порядок / таблица
-  pairs?: Array<{ left: string; right: string }>
+  /**
+   * Пары сопоставления. Сторона пары может быть КАРТИНКОЙ: тогда рядом с
+   * текстом лежит leftImage/rightImage, и ученик соединяет слово с предметом,
+   * а не с переводом — между иностранным словом и памятью не встаёт русский
+   * посредник. Текст стороны при этом остаётся: он и есть ключ сверки.
+   */
+  pairs?: Array<{ left: string; right: string; leftImage?: string; rightImage?: string }>
   sequenceItems?: string[]
   table?: TaskTable
 
@@ -344,6 +400,25 @@ export interface TaskPayload {
   lang?: string
 
   /** id исходного задания в банке. */
+  // — верно/неверно/не указано (trueFalse); текст берётся из passage —
+  statements?: TfStatement[]
+
+  // — пропуски с выпадающими списками (dropdownGap) —
+  /** Предложение целиком, места пропусков отмечены «____». */
+  gapText?: string
+  /** По одному списку вариантов на каждый «____», в том же порядке. */
+  gapChoices?: GapChoice[]
+
+  // — раскладка по столбцам (columnSort) —
+  /** Названия корзин: «der», «die», «das». */
+  columns?: string[]
+  /** Что раскладываем и куда это относится. */
+  sortItems?: SortItem[]
+
+  // — внешнее упражнение (embed) —
+  /** Адрес встраивания. Открывается только с разрешённых площадок (lib/embed). */
+  embedUrl?: string
+
   bankId?: number
 }
 
@@ -1182,6 +1257,103 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       if (!TASK_TYPES.videoWatch.isGradable(t)) return NOT_AUTO
       if (typeof a !== 'string') return { auto: true, correct: false }
       return { auto: true, correct: videoAnswerDone(a, t.videoWatchSeconds) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  // ── работа с текстом и системой ──
+  //
+  // Три типа, которых не хватало и языкам, и предметникам: они не про форму
+  // слова, а про то, ЧТО в тексте сказано, КАКАЯ форма подходит по соседям и
+  // ПО КАКОМУ ПРИЗНАКУ вещи делятся. Ни один не languageOnly.
+
+  /**
+   * Верно / Неверно / Не указано — пачка утверждений к одному тексту.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНЫЙ ТИП, КОГДА ЕСТЬ «ОДИН ОТВЕТ». Через выбор это три разных
+   * вопроса с тремя одинаковыми списками вариантов — и текст перечитывается
+   * трижды с нуля. Здесь утверждения стоят пачкой к одному отрывку, а третья
+   * кнопка ловит то, чего в тексте нет: «не указано» отделяет прочитанное от
+   * додуманного, и без неё это выбор из двух, то есть монетка.
+   */
+  trueFalse: def({
+    id: 'trueFalse', family: 'choice',
+    label: 'Верно / Неверно', hint: 'Утверждения к тексту, третий ответ — «не указано»',
+    Icon: ListChecks,
+    makeDefault: () => ({ passage: '', statements: [{ text: '', verdict: 'T' as TfVerdict }, { text: '', verdict: 'F' as TfVerdict }] }),
+    isGradable: t => tfRows(t).length > 0,
+    grade: (t, a) => {
+      const rows = tfRows(t)
+      if (rows.length === 0) return NOT_AUTO
+      const given = answerMap(a)
+      return { auto: true, correct: rows.every((r, i) => given[String(i)] === r.verdict) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: true, languageOnly: false,
+  }),
+
+  /**
+   * Пропуски с выпадающими списками — узнавание в контексте.
+   *
+   * ЭТО ПЯТАЯ СТУПЕНЬ ЛЕСТНИЦЫ (docs/MEMORY_STANDARD.md, Р7), которой у нас не
+   * было: между «узнал среди четырёх» и «написал в пустое поле» стоит
+   * «узнал среди четырёх ПРЯМО В СТРОКЕ, где соседи подсказывают». Без неё
+   * курс прыгал с выбора сразу на ввод, и скелет ответа «а · · ·» подменял
+   * собой целую ступень.
+   */
+  dropdownGap: def({
+    id: 'dropdownGap', family: 'choice',
+    label: 'Пропуски со списками', hint: 'Выбрать форму прямо в предложении',
+    Icon: ChevronDown,
+    makeDefault: () => ({ gapText: '', gapChoices: [] }),
+    isGradable: t => gapChoiceRows(t).length > 0,
+    grade: (t, a) => {
+      const rows = gapChoiceRows(t)
+      if (rows.length === 0) return NOT_AUTO
+      const given = answerMap(a)
+      return { auto: true, correct: rows.every((g, i) => given[String(i)] === String(g.correct)) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  /**
+   * Разложить по столбцам — много к одному.
+   *
+   * ЗАЧЕМ ЭТО НЕ «СОПОСТАВЛЕНИЕ». Там пары один-к-одному и каждый ответ живёт
+   * сам по себе; здесь десять предметов в три корзины, и ученик показывает
+   * ПРИЗНАК: der/die/das, правильные и неправильные глаголы, счётное и
+   * несчётное. Одну пару можно вызубрить, признак — нет.
+   */
+  columnSort: def({
+    id: 'columnSort', family: 'order',
+    label: 'Разложить по столбцам', hint: 'Предметы по именованным корзинам',
+    Icon: Columns3,
+    makeDefault: () => ({ columns: ['', ''], sortItems: [{ text: '', column: 0 }, { text: '', column: 1 }] }),
+    isGradable: t => sortRows(t).length > 0 && (t.columns ?? []).filter(c => c.trim()).length >= 2,
+    grade: (t, a) => {
+      if (!TASK_TYPES.columnSort.isGradable(t)) return NOT_AUTO
+      const rows = sortRows(t)
+      const given = answerMap(a)
+      return { auto: true, correct: rows.every((it, i) => given[String(i)] === String(it.column)) }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  /**
+   * Внешнее упражнение в рамке (Wordwall, Quizlet, Genially, Miro).
+   *
+   * ЧЕСТНАЯ ОГОВОРКА: результат оттуда к нам не приходит. Поэтому проверка тут
+   * ровно та же, что у видео, — «прошёл», по отметке ученика. Тип нужен не для
+   * оценки, а чтобы учителю не приходилось бросать уже сделанное на стороне.
+   */
+  embed: def({
+    id: 'embed', family: 'audio',
+    label: 'Внешнее упражнение', hint: 'Wordwall, Quizlet, Genially — в рамке',
+    Icon: ExternalLink,
+    makeDefault: () => ({ embedUrl: '' }),
+    isGradable: t => !!t.embedUrl?.trim(),
+    grade: (t, a) => {
+      if (!TASK_TYPES.embed.isGradable(t)) return NOT_AUTO
+      return { auto: true, correct: a === EMBED_DONE }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
   }),

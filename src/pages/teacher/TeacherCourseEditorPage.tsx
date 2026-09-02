@@ -23,6 +23,7 @@ import { ensureCardFillTask } from '../../lib/cardFillTask'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import ScrollFade from '../../components/ScrollFade'
 import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
@@ -3633,24 +3634,7 @@ function HomeworkLeftPanel({
         onToggle={() => setOpenSection(s => s === 'basic' ? 'hard' : 'basic')}
       >
         {palette.map(tt => (
-          <button key={tt.type} onClick={() => addTask(tt.type, false)} title={t(tt.hint)} style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '10px 10px', borderRadius: 13,
-            border: 'none', background: 'var(--color-bg-2)',
-            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-            transition: 'opacity 0.12s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-          >
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: tt.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <tt.Icon size={15} style={{ color: tt.color }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(tt.label)}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t(tt.hint)}</div>
-            </div>
-          </button>
+          <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type, false)} />
         ))}
         <BankPicker onPick={bt => addFromBank(bt, false)} />
       </AccordionSection>
@@ -3895,22 +3879,7 @@ function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
     >
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>{t('СОСТАВИТЬ ВОПРОС')}</div>
       {palette.map(tt => (
-        <button key={tt.type} onClick={() => addTask(tt.type)} title={t(tt.hint)} style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 13,
-          border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-          transition: 'opacity 0.12s',
-        }}
-          onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-        >
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: tt.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <tt.Icon size={15} style={{ color: tt.color }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(tt.label)}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t(tt.hint)}</div>
-          </div>
-        </button>
+        <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type)} />
       ))}
       <BankPicker onPick={addFromBank} />
     </OverlayScrollArea>

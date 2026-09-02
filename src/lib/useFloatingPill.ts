@@ -23,6 +23,15 @@ export function useFloatingPill<T extends string | number>(activeId: T) {
     const containerRect = container.getBoundingClientRect()
     const activeRect = activeEl.getBoundingClientRect()
 
+    // СПРЯТАННЫЙ ЭКРАН НЕ ПЕРЕСЧИТЫВАЕТ ПЛАШКУ.
+    //
+    // Страница каталога на время урока прячется через display:none, а не
+    // размонтируется (см. DashboardPage). ResizeObserver честно сообщает про
+    // нулевой размер, и замер записал бы плашке 0×0 — на возврате она поехала
+    // бы пружиной из левого верхнего угла к выбранной таблетке. Пока размера
+    // нет, держим последний известный.
+    if (!activeRect.width && !activeRect.height) return
+
     // getBoundingClientRect is measured from the container's border-box (outer
     // edge), but an absolutely-positioned child resolves top/left against the
     // padding-box (inside the border). Subtract the border (clientTop/clientLeft)

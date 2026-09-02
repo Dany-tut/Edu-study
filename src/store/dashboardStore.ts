@@ -111,6 +111,12 @@ interface DashboardState {
   setActiveSubject: (id: string) => void
   activeModuleId: number
   setActiveModule: (id: number) => void
+  // Счётчик «каталог просили открыть НА КОНКРЕТНОМ уроке» (см. openCourses).
+  // Раздел в каталоге выбирает человек, и просто так его никто не двигает:
+  // страница больше не размонтируется на время урока, а openLesson по дороге
+  // всё равно пишет activeModuleId — следить за ним значило бы отнимать выбор.
+  // Прыжок на раздел урока делается только по этому сигналу.
+  moduleFocusNonce: number
   avatarId: string
   setAvatarId: (id: string) => void
   scheduleIndex: number
@@ -195,6 +201,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   activePage: 'home',
   setActivePage: (p) => set({ activePage: p }),
   coursesFocusLessonId: null,
+  moduleFocusNonce: 0,
   openCourses: (lessonId) => {
     if (!lessonId) {
       set({ activePage: 'courses', coursesFocusLessonId: null })
@@ -205,11 +212,12 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     const liveSubjects = useStudentData.getState().subjects
     const subj = liveSubjects.find(s => s.modules.some(m => m.lessons.some(l => l.id === lessonId)))
     const mod = subj?.modules.find(m => m.lessons.some(l => l.id === lessonId))
-    set({
+    set(s => ({
       activePage: 'courses',
       coursesFocusLessonId: lessonId,
+      moduleFocusNonce: s.moduleFocusNonce + 1,
       ...(subj ? { activeSubjectId: subj.id, activeModuleId: mod?.id ?? subj.activeModuleId } : {}),
-    })
+    }))
   },
 
   currentLessonId: null,

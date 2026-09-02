@@ -538,8 +538,8 @@ export default function TeacherTopBar() {
               </motion.button>
             ))}
 
-            {/* Language — whole row toggles between RU/EN; the pill just shows
-                the current language. */}
+            {/* Язык — такой же ряд, как остальные пункты: подпись снизу
+                показывает текущий язык, клик по ряду переключает. */}
             <motion.button whileTap={{ scale: 0.98 }}
               onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
               aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
@@ -550,10 +550,10 @@ export default function TeacherTopBar() {
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Globe size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
-              <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('Язык')}</div>
-              <span style={{ flexShrink: 0, height: 28, display: 'inline-flex', alignItems: 'center', padding: '0 13px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}>
-                {lang === 'ru' ? 'Русский' : 'English'}
-              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('Язык')}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
+              </div>
             </motion.button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />

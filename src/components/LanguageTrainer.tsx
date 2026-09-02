@@ -217,7 +217,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // (см. textsForLang в data/readingLibrary).
   const allTexts = useMemo(() => textsForLang(lang, subjectId), [lang, subjectId])
 
-  const audio = useMemo(() => listeningForLang(lang), [lang])
+  // Предмет, а не только язык: у «Русского» и «Литературы» он общий (ru), а
+  // материал разный — см. `subject` в ListeningItem.
+  const audio = useMemo(() => listeningForLang(lang, subjectId), [lang, subjectId])
 
   // ── Сцены: библиотека отрывков внутри «Чтения» ─────────────────────────────
   //
@@ -760,9 +762,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // описаний книг весят единицы килобайт, и мигание пустой полки ради них было
   // бы платой ни за что.
   const storyOn = useMemo(() => hasStory(lang), [lang])
-  const booksOn = useMemo(() => hasTextbooks(lang), [lang])
+  // Предмет, а не только язык: у «Русского» и «Литературы» он общий (ru), а
+  // полки разные — см. `subject` в Textbook.
+  const booksOn = useMemo(() => hasTextbooks(lang, subjectId), [lang, subjectId])
   const guideOn = storyOn || booksOn
-  const books = useMemo(() => textbooksForLang(lang), [lang])
+  const books = useMemo(() => textbooksForLang(lang, subjectId), [lang, subjectId])
   const [story, setStory] = useState<LanguageStory | null | undefined>(undefined)
   useEffect(() => {
     if (!storyOn) { setStory(null); return }
