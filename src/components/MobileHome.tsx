@@ -265,7 +265,12 @@ export default function MobileHome() {
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
       {/* Место под колокольчиком слева — оно центрует остров. Рубрикам центр не
           нужен, они панель во всю ширину, и распорка уезжает вместе с ними. */}
+      {/* Ширина задана и на входе (initial), а не только целью анимации: без
+          неё распорка в первом кадре нулевая и разъезжается до 44 уже пружиной
+          — остров при этом уезжает от левого края к центру, и вход читается как
+          «прилетел слева по диагонали», а не как у профиля — сверху. */}
       <motion.div
+        initial={{ width: barOnFeed ? 0 : 44 }}
         animate={{ width: barOnFeed ? 0 : 44 }}
         transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         style={{ flexShrink: 0 }}
