@@ -30,7 +30,7 @@
 
 import { numberedTitle } from '../lib/lessonKey'
 import { GAP_MARK, TASK_TYPES, answerSide, placeCorrect, spreadMulti } from './taskTypes'
-import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
+import type { PatternItem, TaskPayload, TaskTypeId, TfVerdict } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { nestById } from './soundNests'
 import { pronRuleById } from './koreanPronRules'
@@ -446,6 +446,63 @@ export const grid = (
   rows: string[][],
   emptyCells: Record<string, boolean>,
 ): SeedTask => ({ type: 'tableFill', question, table: { headers, rows, emptyCells } })
+
+/**
+ * Верно / Неверно / Не указано — пачка утверждений к отрывку.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ ОБЫЧНОГО ВЫБОРА. Третий вариант и есть весь смысл: «не
+ * указано» отличает то, что текст ОТРИЦАЕТ, от того, о чём он просто молчит.
+ * На выборе из четырёх это неразличимо — правдоподобный дистрактор там просто
+ * неверен, и ученик отсеивает его догадкой. Здесь догадка не работает.
+ *
+ * Текст берётся из `passage`, поэтому задание кладётся в набор вопросов
+ * `reading()` — тот проставит отрывок сам.
+ */
+export const trueFalse = (
+  question: string,
+  statements: Array<[text: string, verdict: TfVerdict]>,
+): SeedTask => ({
+  type: 'trueFalse', question,
+  statements: statements.map(([text, verdict]) => ({ text, verdict })),
+})
+
+/**
+ * Разложить предметы по именованным столбцам.
+ *
+ * ЗАЧЕМ. Сопоставление парами проверяет связь «одно к одному», а здесь
+ * проверяется КЛАСС: какие глаголы берут только герундий, какие
+ * существительные неисчисляемы, к какой части речи относится связка. Это
+ * ровно та операция, которой собирают систему обратно, — и одним заданием
+ * вместо восьми однотипных «выберите верное».
+ */
+export const sortCols = (
+  question: string,
+  columns: string[],
+  items: Array<[text: string, column: number]>,
+): SeedTask => ({
+  type: 'columnSort', question, columns,
+  sortItems: items.map(([text, column]) => ({ text, column })),
+})
+
+/**
+ * Пропуски в одном предложении, у каждого свой список.
+ *
+ * ЗАЧЕМ, ЕСЛИ ЕСТЬ `one`. Выбор из четырёх проверяет одно решение в
+ * стерильном окружении. Здесь решений несколько и они в одном предложении,
+ * то есть влияют друг на друга: выбрал время — обязан согласовать предлог.
+ * Это ближе к производству, чем изолированный вопрос, и дешевле, чем перевод.
+ *
+ * Места пропусков отмечаются «____» прямо в тексте; списки идут в том же
+ * порядке, что и пропуски.
+ */
+export const dropGaps = (
+  question: string,
+  gapText: string,
+  gaps: Array<[options: string[], correct: number]>,
+): SeedTask => ({
+  type: 'dropdownGap', question, gapText,
+  gapChoices: gaps.map(([options, correct]) => ({ options, correct })),
+})
 
 /** Свободный письменный ответ — идёт учителю. */
 export const write = (question: string): SeedTask => ({ type: 'extended', question })

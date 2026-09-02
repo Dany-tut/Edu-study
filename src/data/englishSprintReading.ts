@@ -20,7 +20,7 @@
 // встречается в тексте, где её никто не выделял.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { reading, one } from './languageCourse'
+import { reading, one, trueFalse } from './languageCourse'
 import type { SeedTask } from './languageCourse'
 
 export const ENSP_READING: Record<string, SeedTask[]> = {
@@ -58,6 +58,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'The risk sits where your attention is not, while you are competently doing something else.',
         'Safety rules are useless if nobody listens to them.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The teacher was writing on the board when the flames went out.', 'T'],
+        ['The students at bench six noticed at once that their burners had gone out.', 'F'],
+        ['The gas taps had been inspected earlier that term.', 'NG'],
+      ]),
     ],
     { title: 'День 1 · чтение' },
   ),
@@ -97,6 +102,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'The students, who are harder to teach and better at checking things.',
         'The reading on the board from the back row.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The skeleton was in the cupboard before the writer started teaching there.', 'T'],
+        ['The fume cupboard was repaired after the eleventh request.', 'F'],
+        ['The writer teaches more groups now than in 2019.', 'NG'],
+      ]),
     ],
     { title: 'День 2 · чтение' },
   ),
@@ -137,6 +147,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'The supplier gives a discount for annual orders.',
         'The person who signs the forms would not need to work so hard.',
       ], 1),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The reagents have not arrived yet.', 'T'],
+        ['The supplier is to blame for the delay.', 'F'],
+        ['The head of department has already rejected the proposal.', 'NG'],
+      ]),
     ],
     { title: 'День 3 · чтение' },
   ),
@@ -177,6 +192,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'Check how many people have actually measured what you are quoting.',
         'Avoid the subject of the brain until later in the course.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The 86 billion figure came from counting nuclei in a sample.', 'T'],
+        ['The earlier figure of 100 billion rested on careful measurement.', 'F'],
+        ['Students on the course have to read the original paper.', 'NG'],
+      ]),
     ],
     { title: 'День 4 · чтение' },
   ),
@@ -217,6 +237,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'Students should record them, but teachers do not need to.',
         'Recording conditions saves time during the practical itself.',
       ], 1),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['Every bench was slow, not only one.', 'T'],
+        ['The concentration turned out to be the cause.', 'F'],
+        ['The heating has since been repaired.', 'NG'],
+      ]),
     ],
     { title: 'День 5 · чтение' },
   ),
@@ -259,6 +284,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'Write it long first, then pack it.',
         'Avoid participle clauses entirely in student work.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The writer advises writing at length first and packing afterwards.', 'T'],
+        ['Students tend to pack their sentences too tightly.', 'F'],
+        ['The writer runs a course on academic writing.', 'NG'],
+      ]),
     ],
     { title: 'День 6 · чтение' },
   ),
@@ -299,6 +329,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'A step that belongs to everybody belongs to nobody.',
         'Students should not handle reagents at all.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['Four people handled the box before it reached the bench.', 'T'],
+        ['The technician accepted that checking dates was her own step.', 'F'],
+        ['The supplier was asked to replace the batch.', 'NG'],
+      ]),
     ],
     { title: 'День 7 · чтение' },
   ),
@@ -339,6 +374,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'It makes procedures impossible to update.',
         'It confuses the order in which events happened.',
       ], 1),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['Adding a name column cut missed checks by about two thirds.', 'T'],
+        ['The passive is used in procedures mainly out of scientific modesty.', 'F'],
+        ['Other departments have copied the redesigned log.', 'NG'],
+      ]),
     ],
     { title: 'День 8 · чтение' },
   ),
@@ -379,6 +419,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'By accident, from a log the student kept for an unrelated reason.',
         'By repeating the whole experiment from the beginning.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The two batches came from the same delivery.', 'T'],
+        ['The student set out to investigate the fridge temperature.', 'F'],
+        ['The fridge has since been replaced.', 'NG'],
+      ]),
     ],
     { title: 'День 9 · чтение' },
   ),
@@ -419,6 +464,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'Reporting the words rather than the act when something matters.',
         'Refusing to sign for damaged deliveries.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The word “note” had disappeared from the account by Thursday.', 'T'],
+        ['Somebody in the chain lied deliberately.', 'F'],
+        ['The supplier refused to take the delivery back.', 'NG'],
+      ]),
     ],
     { title: 'День 10 · чтение' },
   ),
@@ -461,6 +511,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'A pronoun object must go inside the verb: look it up, not look up it.',
         'They change meaning depending on the speaker’s accent.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['A pronoun object has to go inside a separable phrasal verb.', 'T'],
+        ['The colleague says her students most often run out of nouns.', 'F'],
+        ['The colleague teaches in Thailand.', 'NG'],
+      ]),
     ],
     { title: 'День 11 · чтение' },
   ),
@@ -502,6 +557,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'It makes the argument shorter, because structure no longer has to be explained.',
         'It removes the need for evidence.',
       ], 2),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['Most of the weak paragraphs were grammatically correct.', 'T'],
+        ['The although/despite mistake catches weak students more often than strong ones.', 'F'],
+        ['The essays were written under exam conditions.', 'NG'],
+      ]),
     ],
     { title: 'День 12 · чтение' },
   ),
@@ -541,6 +601,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'Demonstrating that inspections are unnecessary.',
         'Establishing who was to blame for the labelling.',
       ], 1),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The older stock was moved across in September and never re-labelled.', 'T'],
+        ['The inspector ordered a re-audit of all the stock.', 'F'],
+        ['The inspection result was reported to the head teacher.', 'NG'],
+      ]),
     ],
     { title: 'День 13 · чтение' },
   ),
@@ -582,6 +647,11 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'That classroom courses rarely help returning learners.',
         'That you should avoid speaking until your grammar is secure.',
       ], 1),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['Recognition and production decay at different rates.', 'T'],
+        ['Reading more is the fastest way to rebuild production.', 'F'],
+        ['The writer has taught in a language school abroad.', 'NG'],
+      ]),
     ],
     { title: 'День 14 · чтение' },
   ),
