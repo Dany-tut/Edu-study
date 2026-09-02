@@ -2,11 +2,10 @@ import { create } from 'zustand'
 import {
   fetchScheduleDays,
   fetchLessonProgress,
-  fetchCourseStructure,
   fetchLessonsHeavy,
   withBankHard,
   type LessonHeavy,
-  fetchPersonScope,
+  fetchStudentTrack,
   mergeSubjectsWithProgress,
   computeStats,
   fetchQuizQuestions,
@@ -91,12 +90,16 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
     const firstLoad = !get().loaded
 
-    // Шесть из восьми запросов кабинета охвата НЕ ждут: расписание и внекурсовое
-    // ДЗ знают группу из сессии, а викторина, факты, мемы и реакции вообще ничьи.
-    // Раньше они всё равно стояли за `await fetchPersonScope` — в таймингах это
-    // было видно двумя волнами, 395 мс и 700 мс. Запускаем их СРАЗУ, а охвата
-    // ждут только те двое, кому он правда нужен.
-    const scopeP = fetchPersonScope({ id: session.id, groupId: session.groupId })
+    // Всё, что не зависит от охвата, уходит СРАЗУ: расписание и внекурсовое ДЗ
+    // знают группу из сессии, а викторина, факты, мемы и реакции вообще ничьи.
+    // Раньше они стояли за `await fetchPersonScope`, и в таймингах это было
+    // видно отдельной волной.
+    //
+    // Скелет трека — один запрос вместо трёх подряд (охват → курсы → режимы
+    // доступа), см. fetchStudentTrack. Круг до базы стоит 320–400 мс независимо
+    // от содержимого, так что два лишних круга — это две трети секунды пустого
+    // ожидания.
+    const trackP = fetchStudentTrack({ id: session.id, groupId: session.groupId })
     const scheduleP = fetchScheduleDays(session.groupId, session.id)
     const quizP = fetchQuizQuestions()
     const factsP = fetchScienceFacts()
@@ -106,8 +109,9 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
 
     // Охват — все строки ученика и его группы: трек должен показать ВСЕ его
     // курсы, включая назначенные группе, в которую его записали позже, а не
-    // только курс активной сессии.
-    const scope = await scopeP
+    // только курс активной сессии. Приезжает вместе с самими курсами.
+    const track = await trackP
+    const scope = track.scope
 
     // allSettled (not Promise.all): one failing request must NOT reject the whole
     // load and leave `loaded:false` forever — that strands the dashboard on an
@@ -116,7 +120,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const results = await Promise.allSettled([
       fetchLessonProgress(scope.studentIds),
       scheduleP,
-      fetchCourseStructure(scope.rows),
+      Promise.resolve(track.subjects),
       quizP,
       factsP,
       memesP,
@@ -127,7 +131,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
     const progress  = val(0, {} as Awaited<ReturnType<typeof fetchLessonProgress>>)
     const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
-    const catalog   = val(2, [] as Awaited<ReturnType<typeof fetchCourseStructure>>)
+    const catalog   = val(2, [] as Subject[])
     const quizQ     = val(3, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
     const facts     = val(4, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
     const memes     = val(5, [] as Awaited<ReturnType<typeof fetchScienceMemes>>)

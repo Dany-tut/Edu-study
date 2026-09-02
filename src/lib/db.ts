@@ -388,6 +388,139 @@ function hardDefsToTasks(defs: HardTaskDef[]): import('../data/lessonContent').A
  * значит, что её нет (см. открытие урока в DashboardPage и lessonHasHardLevel
  * в data/lessonContent.ts).
  */
+/**
+ * СКЕЛЕТ ТРЕКА ОДНИМ ЗАПРОСОМ — охват человека, его курсы, режимы доступа и
+ * назначенный из банка хард (RPC student_track, миграция 0071).
+ *
+ * Раньше это были три круга ПОДРЯД: охват → курсы → course_enrollments. Замер на
+ * проде: круг до нашего региона стоит 320–400 мс независимо от содержимого
+ * (пустой запрос к тому же эндпоинту — 320 мс), то есть секунда уходила на
+ * ожидание, а не на работу; сам Postgres собирает весь ответ за 49 мс.
+ *
+ * Ответ приходит массивами, а не объектами: имена полей повторялись по разу на
+ * урок и составляли большую часть веса. Порядок полей задан в самой функции —
+ * менять только вместе с ней. На этом ученике: 253 КБ на 9 курсов и 1106 уроков
+ * против 455 КБ на 5 курсов и 644 урока у прежнего вложенного JSON.
+ *
+ * При отказе RPC (не раскатана, сеть) откатываемся на прежнюю пару запросов —
+ * кабинет должен открываться и на старой базе.
+ */
+type LessonTuple = [
+  string, string, string, number, string, boolean | null,
+  string | null, unknown, string | null, unknown,
+  string | null, string | null, string | null, string | null,
+  boolean | null, unknown,
+]
+type ModuleTuple = [number, string, LessonTuple[]]
+type CourseTuple = [string, string, string, string, string[] | null, string[] | null, ModuleTuple[]]
+type TrackPayload = {
+  rows?: Array<[string, string | null]>
+  modes?: Record<string, 'full' | 'custom' | 'by_date'>
+  hard?: Array<[string, HardTaskDef[] | null]>
+  courses?: CourseTuple[]
+}
+
+export type StudentTrack = { scope: PersonScope; subjects: Subject[] }
+
+export async function fetchStudentTrack(
+  fallback: { id: string; groupId: string },
+): Promise<StudentTrack> {
+  let payload: TrackPayload | null = null
+  try {
+    const { data, error } = await supabase.rpc('student_track', {
+      p_student: isUuid(fallback.id) ? fallback.id : null,
+      p_group: isUuid(fallback.groupId) ? fallback.groupId : null,
+    })
+    if (error) reportDbError('fetchStudentTrack', error)
+    else payload = data as TrackPayload
+  } catch (e) {
+    reportDbError('fetchStudentTrack', { message: String((e as Error)?.message ?? e) })
+  }
+
+  if (!payload) {
+    // Старый путь: два запроса вместо одного, но кабинет открывается.
+    const scope = await fetchPersonScope(fallback)
+    return { scope, subjects: await fetchCourseStructure(scope.rows) }
+  }
+
+  const rows: Array<{ id: string; groupId: string }> = []
+  for (const [id, gid] of payload.rows ?? []) {
+    if (!id || rows.some(r => r.id === id)) continue
+    rows.push({ id, groupId: gid ?? '' })
+  }
+  if (rows.length === 0) rows.push({ id: fallback.id, groupId: fallback.groupId })
+  const scope: PersonScope = {
+    rows,
+    studentIds: [...new Set(rows.map(r => r.id))].filter(isUuid),
+    groupIds: [...new Set(rows.map(r => r.groupId))].filter(isUuid),
+  }
+
+  // Хард из банка: несколько назначений на один урок объединяются, дедуп по key,
+  // порядок — по времени назначения (его задаёт сама RPC).
+  const hardByLessonId = new Map<string, HardTaskDef[]>()
+  for (const [lessonId, defsRaw] of payload.hard ?? []) {
+    const defs = Array.isArray(defsRaw) ? defsRaw.filter(d => d?.key) : []
+    if (!lessonId || defs.length === 0) continue
+    const acc = hardByLessonId.get(lessonId) ?? []
+    for (const def of defs) if (!acc.some(d => d.key === def.key)) acc.push(def)
+    hardByLessonId.set(lessonId, acc)
+  }
+
+  const modes = payload.modes ?? {}
+  const ownerFor = (studentIds: string[] | null, groupIds: string[] | null): string | undefined =>
+    rows.find(r => (studentIds ?? []).includes(r.id))?.id
+    ?? rows.find(r => (groupIds ?? []).includes(r.groupId))?.id
+
+  const subjects: Subject[] = (payload.courses ?? []).map(c => {
+    const [cid, shortId, title, subject, studentIds, groupIds, mods] = c
+    return {
+      id: shortId,
+      dbId: cid,
+      name: title,
+      subject,
+      progress: 0,
+      activeModuleId: 1,
+      accessMode: modes[cid] ?? 'custom',
+      ownerStudentId: ownerFor(studentIds, groupIds),
+      modules: (mods ?? []).map(([position, label, lessons]) => ({
+        id: position,
+        label,
+        lessons: (lessons ?? []).flatMap(t => {
+          const [lid, lShort, lTitle, num, shape, hasHard, youtube, timecodes, kind, testTasks,
+                 schedDate, schedTime, recDate, recTime, schedManual, materials] = t
+          const bankHard = hardByLessonId.get(lid)
+          const base = {
+            title: lTitle,
+            number: num,
+            status: 'locked' as LessonStatus,
+            kind: kind === 'test' ? 'test' as const : 'lesson' as const,
+            testTasks: Array.isArray(testTasks) ? testTasks as Lesson['testTasks'] : undefined,
+            subject: shortId,
+            heavyPending: true,
+            hasHard: hasHard !== false || !!bankHard?.length,
+            bankHard: bankHard?.length ? bankHard : undefined,
+            videoUrl: youtube ?? undefined,
+            timecodes: Array.isArray(timecodes) && timecodes.length
+              ? timecodes as Lesson['timecodes'] : undefined,
+            files: parseLessonFiles(materials),
+            scheduledDate: schedDate ?? undefined,
+          }
+          const diverged = !!schedManual && !!recDate && (recDate !== schedDate || recTime !== schedTime)
+          if (diverged) {
+            return [
+              { ...base, id: `${lShort}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, scheduledDate: recDate ?? undefined },
+              { ...base, id: lShort, shape: (shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoUrl: undefined },
+            ]
+          }
+          return [{ ...base, id: lShort, shape: (shape as LessonShape) ?? 'circle' }]
+        }),
+      })),
+    }
+  })
+
+  return { scope, subjects }
+}
+
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
   // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
   const studentIds = [...new Set(rows.map(r => r.id))].filter(isUuid)
