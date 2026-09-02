@@ -13,6 +13,8 @@ import PartyPopperLottie from '../components/PartyPopperLottie'
 import { captureMistake } from '../data/reviewDeck'
 import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
+import { useTheme } from '../store/themeStore'
+import { lighten } from '../lib/subjects'
 import { t, useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { displayOrder } from '../data/taskTypes'
@@ -93,7 +95,12 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 // ── Done screen ───────────────────────────────────────────────────────────────
 function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null }) {
   const t = useT()
+  const dark = useTheme(s => s.dark)
   const bannerRef = useRef<HTMLDivElement>(null)
+  // Акцент предмета подобран под белую карточку: тёмно-зелёный eng-restore
+  // (#0f766e) на тёмном фоне почти сливается. В тёмной теме осветляем — и
+  // таблетку уровня, и название курса, иначе читается только одно из двух.
+  const accent = dark ? lighten(accentColor, 0.45) : accentColor
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--color-bg)',
@@ -112,7 +119,10 @@ function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string;
         style={{
           width: '100%', maxWidth: 420,
           borderRadius: 32,
-          background: '#ffffff',
+          // Карточка была жёстко белой, а весь текст внутри — на переменных
+          // темы: в тёмной теме светлые буквы ложились на белое и исчезали.
+          background: 'var(--color-bg-2)',
+          border: '1px solid var(--color-border)',
           padding: '36px 32px 32px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           textAlign: 'center', gap: 0,
@@ -138,22 +148,22 @@ function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string;
           <div style={{
             width: '100%', boxSizing: 'border-box', textAlign: 'left',
             padding: '16px 18px', borderRadius: 18,
-            background: `${accentColor}10`, border: `1px solid ${accentColor}33`,
+            background: dark ? `${accent}14` : `${accentColor}10`, border: `1px solid ${accent}33`,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ padding: '3px 12px', borderRadius: 999, background: accentColor, color: '#fff', fontSize: 13, fontWeight: 800 }}>{verdict.level}</span>
+              <span style={{ padding: '3px 12px', borderRadius: 999, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 800 }}>{verdict.level}</span>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: 'var(--color-text-3)' }}>{t('ТВОЙ УРОВЕНЬ')}</span>
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55, marginBottom: 10 }}>{verdict.note}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-              {t('Рекомендуем курс:')} <span style={{ color: accentColor }}>{verdict.courseTitle}</span>
+              {t('Рекомендуем курс:')} <span style={{ color: accent }}>{verdict.courseTitle}</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
               {verdict.ladder.map(step => (
                 <span key={step.level} style={{
                   padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700,
-                  background: step.passed ? 'rgba(34,197,94,0.12)' : 'var(--color-bg-5)',
-                  color: step.passed ? '#22c55e' : 'var(--color-text-3)',
+                  background: step.passed ? 'rgba(34,197,94,0.14)' : 'var(--color-bg-5)',
+                  color: step.passed ? (dark ? '#4ade80' : '#16a34a') : 'var(--color-text-2)',
                 }}>
                   {step.level} · {step.correct}/{step.total}
                 </span>
@@ -233,12 +243,27 @@ export default function DiagnosticTestPage() {
     ? { accent: customMeta.accent, soft: customMeta.soft, label: customMeta.label, sublabel: t('Тест') }
     : (THEME[subject as Exclude<DiagSubject, 'logic'>] ?? { accent: '#786AD7', soft: '#786AD722', label: t('Тест'), sublabel: t('Тест') })
 
-  // If opened via assignment, skip name entry and use student's name
-  const [step, setStep] = useState<'name' | 'test' | 'done'>(assignedStudentName ? 'test' : 'name')
-  const [studentName, setStudentName] = useState(assignedStudentName ?? '')
-  const [current, setCurrent] = useState(0)
-  const [chosen, setChosen] = useState<Record<string, number>>({})  // questionId → option index
-  const [results, setResults] = useState<DiagResults>({})
+  // ── Прогресс переживает перезагрузку страницы ──────────────────────────────
+  //
+  // ЗАЧЕМ. Воркер обновляется в режиме autoUpdate: выкатили сборку, пока человек
+  // проходит тест — страница перезагружается сама, и весь стейт обнуляется. На
+  // деле это выглядело так: результат мелькнул и экран отбросил на ввод имени,
+  // будто ничего не сдавалось (сдавалось: строка в diag_results уже лежала).
+  // Тест из трёх десятков вопросов — не та вещь, которую переигрывают.
+  //
+  // sessionStorage, а не localStorage: ссылка на тест общая, и на одном
+  // устройстве по очереди проходят разные люди. Вкладка закрылась — снимок
+  // умер вместе с ней, чужие ответы следующему не подставятся.
+  const snapKey = `diag-progress:${subject}:${assignmentId ?? 'link'}`
+  const snap = useMemo(() => {
+    try { return JSON.parse(sessionStorage.getItem(snapKey) || 'null') } catch { return null }
+  }, [snapKey])
+
+  const [step, setStep] = useState<'name' | 'test' | 'done'>(snap?.step ?? (assignedStudentName ? 'test' : 'name'))
+  const [studentName, setStudentName] = useState(snap?.studentName ?? assignedStudentName ?? '')
+  const [current, setCurrent] = useState<number>(snap?.current ?? 0)
+  const [chosen, setChosen] = useState<Record<string, number>>(snap?.chosen ?? {})  // questionId → option index
+  const [results, setResults] = useState<DiagResults>(snap?.results ?? {})
   const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
 
   const isLinkMode = !assignmentId  // shared link: no feedback shown
@@ -292,7 +317,17 @@ export default function DiagnosticTestPage() {
     setStep('done')
   }
 
+  // Снимок пишется на каждое изменение: перезагрузка может случиться в любой
+  // момент, и «сохраним на выходе» здесь не работает — выхода не будет.
+  useEffect(() => {
+    if (step === 'name' && !Object.keys(chosen).length) return
+    try {
+      sessionStorage.setItem(snapKey, JSON.stringify({ step, studentName, current, chosen, results }))
+    } catch { /* приватный режим — просто не переживём перезагрузку */ }
+  }, [snapKey, step, studentName, current, chosen, results])
+
   function goBack() {
+    try { sessionStorage.removeItem(snapKey) } catch { /* всё равно уходим */ }
     window.location.hash = '#/'
   }
 
@@ -513,7 +548,12 @@ export default function DiagnosticTestPage() {
                 const isCorrect = q.correct === canon
                 const showResult = picked !== undefined && !isLinkMode
 
-                const PICK_COLOR = '#786AD7'
+                // Цвет выбора берётся из темы теста, а не фиксирован фиолетовым:
+                // у каждой диагностики свой акцент (у английского восстановления
+                // тёмно-бирюзовый), и шапка с прогрессом красились им, а варианты
+                // — нет. Верно/неверно остаются зелёным и красным: это семантика,
+                // она не тематизируется.
+                const PICK_COLOR = theme.accent
                 let borderColor = 'var(--color-border-medium)'
                 if (showResult) {
                   if (isCorrect) borderColor = '#22c55e'
