@@ -9,7 +9,7 @@
 # ЧТО ИМЕННО ГОНЯЕМ И ПОЧЕМУ ИМЕННО ТАК:
 #   1. tsc --noEmit — типы. Первым, потому что дешевле всего отсеивает
 #      опечатку в имени поля, до которой остальные проверки просто не дойдут.
-#   2. Десять check:* — содержание. Каждый сторож ловит то, что НЕ ловит
+#   2. Одиннадцать check:* — содержание. Каждый сторож ловит то, что НЕ ловит
 #      сборка: слово без перевода, урок мимо стандарта, ответ, стоящий чаще
 #      других на одной и той же позиции. Именно поэтому они и написаны — такие
 #      поломки зелёной сборке не мешают.
@@ -132,6 +132,14 @@ jobs:
         continue-on-error: true
         run: npm run check:choicepos
 
+      # Лёгкие таблицы (язык старых ссылок тренажёра) собираются скриптом из
+      # данных. Разойтись они могут молча: присланная ссылка перестаёт открывать
+      # материал, а сборка при этом зелёная.
+      - name: Лёгкие таблицы (check:light)
+        id: light
+        continue-on-error: true
+        run: npm run check:light
+
       - name: Сборка
         id: build
         continue-on-error: true
@@ -163,5 +171,6 @@ jobs:
           check "check:logic"           "${{ steps.logic.outcome }}"
           check "check:lesson"          "${{ steps.lesson.outcome }}"
           check "check:choicepos"       "${{ steps.choicepos.outcome }}"
+          check "check:light"           "${{ steps.light.outcome }}"
           check "сборка"                "${{ steps.build.outcome }}"
           exit $fail
