@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
 import { glassCircle, MOBILE_DOCK_EDGE, MOBILE_PILL_H, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
+import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
@@ -163,6 +164,9 @@ export default function CoursesPage() {
     }
   }, [deskSearchOpen])
 
+  // Вход шапки — как у остальных вкладок, с первого нарисованного кадра.
+  const topEntered = useEnterAfterPaint()
+
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject ? [
     { id: ALL, label: t('Все') },
     ...subject.modules.map(m => ({ id: m.id, label: m.label })),
@@ -190,7 +194,9 @@ export default function CoursesPage() {
           шапки соседних вкладок: общим пресетом сверху. На десктопе входа нет
           — там страница не перемонтируется от вкладки к вкладке. */}
       <motion.div
-        {...(isDesktop ? null : MOBILE_TOP_ENTER)}
+        initial={isDesktop ? false : MOBILE_TOP_ENTER.initial}
+        animate={isDesktop ? undefined : topEntered ? MOBILE_TOP_ENTER.animate : MOBILE_TOP_ENTER.initial}
+        transition={MOBILE_TOP_ENTER.transition}
         className="flex items-center gap-3"
         style={{ minWidth: 0 }}
       >

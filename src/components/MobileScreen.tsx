@@ -2,6 +2,7 @@ import { type ReactNode, type CSSProperties, useLayoutEffect, useRef } from 'rea
 import { motion } from 'framer-motion'
 import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
+import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -54,6 +55,9 @@ export default function MobileScreen({
 }) {
   const TOP_ZONE = topPad
   const bodyRef = useRef<HTMLDivElement>(null)
+  // Вход шапки ждёт первого нарисованного кадра — иначе его съедает сборка
+  // экрана (lib/useEnterAfterPaint.ts).
+  const entered = useEnterAfterPaint()
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
@@ -145,7 +149,14 @@ export default function MobileScreen({
               Раньше он был только у «острова» главной и профиля, а «Курсы» и
               «Тренажёр» показывали шапку без движения — соседние вкладки
               вели себя по-разному. */}
-          <motion.div {...MOBILE_TOP_ENTER} style={{ pointerEvents: 'auto' }}>{topZone}</motion.div>
+          <motion.div
+            initial={MOBILE_TOP_ENTER.initial}
+            animate={entered ? MOBILE_TOP_ENTER.animate : MOBILE_TOP_ENTER.initial}
+            transition={MOBILE_TOP_ENTER.transition}
+            style={{ pointerEvents: 'auto' }}
+          >
+            {topZone}
+          </motion.div>
         </div>
       )}
 
