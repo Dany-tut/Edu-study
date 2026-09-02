@@ -37,6 +37,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 28,
     vocabCount: 285,
     taskCount: 2116,
+    stamp: 'a190661f2030',
     guidedHours: '180–200',
     lessonMinutes: 90,
     scopeNote:
@@ -48,6 +49,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 24,
     vocabCount: 240,
     taskCount: 1935,
+    stamp: '5b56cdc75ab9',
     guidedHours: '150–180',
     lessonMinutes: 90,
     scopeNote:
@@ -61,6 +63,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 14,
     vocabCount: 140,
     taskCount: 1077,
+    stamp: '3bf5c23fc21d',
     guidedHours: '21–28',
     lessonMinutes: 100,
     scopeNote:
@@ -72,6 +75,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 21,
     vocabCount: 210,
     taskCount: 1607,
+    stamp: '726e281d0b21',
     guidedHours: '120–160',
     lessonMinutes: 90,
     scopeNote:
@@ -83,6 +87,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 54,
     vocabCount: 838,
     taskCount: 6265,
+    stamp: '4cc405927b26',
     guidedHours: '108',
     lessonMinutes: 60,
     scopeNote:
@@ -94,6 +99,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 9,
     vocabCount: 86,
     taskCount: 825,
+    stamp: '67ef5f3af63e',
     guidedHours: '18–24 часа',
     lessonMinutes: 60,
     scopeNote:
@@ -105,6 +111,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 32,
     vocabCount: 322,
     taskCount: 2643,
+    stamp: 'b654b0e9d671',
     guidedHours: '70–90',
     lessonMinutes: 90,
     scopeNote:
@@ -116,6 +123,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 28,
     vocabCount: 280,
     taskCount: 2233,
+    stamp: '01e8488ae66a',
     guidedHours: '80–108',
     lessonMinutes: 90,
     scopeNote:
@@ -127,6 +135,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 48,
     vocabCount: 623,
     taskCount: 4919,
+    stamp: '7013e2ba50b6',
     guidedHours: '96',
     lessonMinutes: 60,
     scopeNote:
@@ -138,6 +147,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 26,
     vocabCount: 260,
     taskCount: 2068,
+    stamp: 'dc8e2b629978',
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:
@@ -149,6 +159,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 20,
     vocabCount: 200,
     taskCount: 1520,
+    stamp: 'fc2ed6f6261a',
     guidedHours: '300–360',
     lessonMinutes: 90,
     scopeNote:
@@ -160,6 +171,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 47,
     vocabCount: 695,
     taskCount: 5293,
+    stamp: '931eeaf1dd9c',
     guidedHours: '94',
     lessonMinutes: 60,
     scopeNote:
@@ -171,6 +183,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 22,
     vocabCount: 220,
     taskCount: 1654,
+    stamp: 'a932d197c459',
     guidedHours: '180–220',
     lessonMinutes: 90,
     scopeNote:
@@ -182,6 +195,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 18,
     vocabCount: 180,
     taskCount: 1321,
+    stamp: '83b68acc7860',
     guidedHours: '200–250',
     lessonMinutes: 90,
     scopeNote:
@@ -193,6 +207,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 47,
     vocabCount: 694,
     taskCount: 5212,
+    stamp: '7baf055b8c6d',
     guidedHours: '94',
     lessonMinutes: 60,
     scopeNote:
@@ -204,6 +219,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 44,
     vocabCount: 528,
     taskCount: 4011,
+    stamp: '52d5afd2e83f',
     guidedHours: '88',
     lessonMinutes: 60,
     scopeNote:
@@ -215,6 +231,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 24,
     vocabCount: 288,
     taskCount: 2060,
+    stamp: '485a7db38765',
     guidedHours: '160–200',
     lessonMinutes: 90,
     scopeNote:
@@ -226,6 +243,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 20,
     vocabCount: 200,
     taskCount: 1057,
+    stamp: '4c91103e82ba',
     guidedHours: '60–80',
     lessonMinutes: 60,
     scopeNote:
@@ -237,6 +255,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 12,
     vocabCount: 120,
     taskCount: 613,
+    stamp: '7b2aa15ca753',
     guidedHours: '40–50',
     lessonMinutes: 60,
     scopeNote:
@@ -248,6 +267,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 16,
     vocabCount: 160,
     taskCount: 822,
+    stamp: '4193f8876a52',
     guidedHours: '50–60',
     lessonMinutes: 60,
     scopeNote:

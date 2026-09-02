@@ -54,6 +54,7 @@ import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonConte
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
 import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
+import { SEED_CARDS } from '../../data/courseSeedCards'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -164,6 +165,12 @@ export interface CourseEdData {
   description?: string
   dbCourseId?: string
   lastEdited?: string
+  /**
+   * Отпечаток сида на момент последней синхронизации — см. Course.seedStamp
+   * в TeacherConstructorPage. Ставится при сборке курса из сида и при
+   * применении «Из сида»; собственные правки учителя его не меняют.
+   */
+  seedStamp?: string
   /**
    * Курс открыт «лёгким»: уроки приехали без конспектов, домашек и файлов —
    * это мегабайты, из-за которых открытие ждало по 2–6 секунд. Пока флаг
@@ -6063,7 +6070,12 @@ export default function TeacherCourseEditorPage() {
             // но применение всё равно ждёт промиса, а не собирает курс в
             // сеттере: setCourse обязан получить объект, а не обещание.
             const applied = await applySeedChanges(course, keys)
-            setCourse(applied)
+            // Применили сверку — значит курс встал на текущий отпечаток сида, и
+            // плитка в списке перестаёт предлагать свериться. Штампуем ДАЖЕ при
+            // частичном применении: учитель увидел весь список расхождений и
+            // сам решил, что берёт, а что нет. Продолжать напоминать после
+            // осознанного отказа — это не забота, а надоедание.
+            setCourse({ ...applied, seedStamp: seedDiff.seedKey ? SEED_CARDS[seedDiff.seedKey]?.stamp : undefined })
             setSeedSyncOpen(false)
           }}
         />

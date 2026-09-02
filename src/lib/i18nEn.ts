@@ -1165,6 +1165,8 @@ export const EN: Record<string, string> = {
   // — Сверка курса с готовым (сидом) —
   "Подтянуть из сида": "Pull from template",
   "Из сида": "From template",
+  "Сид обновился": "Template updated",
+  "Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.": "The template has changed since you saved this course. Open it and press \u201cFrom template\u201d to see exactly what was added.",
   "Показать, что изменилось в готовом курсе с момента добавления": "Show what changed in the template since you added it",
   "Что изменилось в готовом курсе": "What changed in the template",
   "Применится к курсу в редакторе — в базу уйдёт после «Сохранить»": "Applies to the course in the editor — saved to the database on “Save”",

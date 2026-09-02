@@ -51,6 +51,8 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
+import { SEED_CARDS } from '../../data/courseSeedCards'
+import { seedKeyOf } from '../../lib/seedSync'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
@@ -254,6 +256,15 @@ export interface Course {
    *  («Новые»/«Старые»), чтобы правка курса не переставляла его в списке. */
   createdAt?: string
   publishedAt?: string
+  /**
+   * Отпечаток сида на момент последней синхронизации.
+   *
+   * Ставится в двух местах и только в них: когда курс собран из сида и когда
+   * учитель применил «Из сида». Собственные правки учителя его НЕ трогают —
+   * иначе признак означал бы «твой курс отличается от готового», а он должен
+   * означать «готовый курс с тех пор изменился».
+   */
+  seedStamp?: string
 }
 
 interface BankQuestion {
@@ -453,6 +464,7 @@ function dbCourseToLocal(c: any, uid?: string | null): Course {
     groupIds: c.group_ids ?? [], studentIds: c.student_ids ?? [],
     shared: uid != null && c.created_by != null && c.created_by !== uid,
     createdAt: c.created_at ?? undefined, publishedAt: c.published_at ?? undefined,
+    seedStamp: c.seed_stamp ?? undefined,
   }
 }
 function dbTrainerToLocal(t: any): Trainer {
@@ -1227,6 +1239,35 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
   )
 }
 
+/**
+ * Ушёл ли готовый курс вперёд относительно этой сохранённой копии.
+ *
+ * ЗАЧЕМ ПРИЗНАК НА ПЛИТКЕ. Готовый курс дописывают: за один месяц в него
+ * добавили сложные задания во все девятнадцать курсов — а восемь сохранённых
+ * копий остались без сложного уровня, и узнать об этом учителю было неоткуда.
+ * Сверка «Из сида» лежит ВНУТРИ курса, то есть видна только тому, кто и так
+ * зашёл; признак снаружи показывает, к кому заходить.
+ *
+ * ПОЧЕМУ СРАВНЕНИЕ ОТПЕЧАТКОВ, А НЕ НАСТОЯЩАЯ СВЕРКА. Настоящая требует
+ * собрать сид целиком — сотни килобайт на курс, а на списке их полтора
+ * десятка. Отпечаток — короткая строка в карточке сида (`stamp:seeds`) и в
+ * колонке курса; сравнение стоит ничего.
+ *
+ * NULL У СТАРЫХ КУРСОВ ЗНАЧИТ «НЕИЗВЕСТНО» — и признак показывается. Это
+ * верно: курс, сохранённый до появления отпечатков, вполне мог отстать, и
+ * честнее предложить свериться, чем промолчать. Одно нажатие «Из сида»
+ * закрывает вопрос навсегда — даже если расхождений не нашлось.
+ */
+function seedMovedAhead(course: Course): boolean {
+  const key = seedKeyOf({ id: course.id, dbCourseId: course.dbCourseId })
+  if (!key) return false
+  const stamp = SEED_CARDS[key]?.stamp
+  // Сид без отпечатка (не штамповали) сравнивать не с чем — молчим, а не
+  // показываем признак у всех подряд.
+  if (!stamp) return false
+  return course.seedStamp !== stamp
+}
+
 function CourseCard({ course, isSelected, onClick, actions, students, access }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions; students?: { id: string; name: string }[]; access?: { id: string; name: string }[] }) {
   const t = useT()
   return (
@@ -1238,6 +1279,14 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
         <div style={{ display: 'flex', gap: 5 }}>
           <span style={cardChip(STATUS_COLOR[course.status])}>{t(STATUS_LABEL[course.status])}</span>
           {course.shared && <span style={cardChip('var(--color-purple-text)')}>{t('Общий')}</span>}
+          {seedMovedAhead(course) && (
+            <span
+              style={cardChip('var(--color-amber)')}
+              title={t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
+            >
+              {t('Сид обновился')}
+            </span>
+          )}
         </div>
       }
       title={course.title}
@@ -7781,7 +7830,12 @@ export default function TeacherConstructorPage() {
   async function goToSeedCourseEditor(seed: CourseSeed) {
     // build асинхронный: контент курса приезжает своим чанком по клику, а не
     // лежит в главном бандле у всех (см. courseSeeds.ts).
-    openCourseEditor(JSON.stringify(await seed.build(seedCourseId(seed, ownerId ?? await getOwnerId()))))
+    // Курс, только что собранный из сида, по определению стоит на его текущем
+    // отпечатке — отсюда и штамп: дальше он меняется только применением «Из сида».
+    openCourseEditor(JSON.stringify({
+      ...await seed.build(seedCourseId(seed, ownerId ?? await getOwnerId())),
+      seedStamp: seed.summary.stamp,
+    }))
   }
 
   function goToNewCourseEditor() {
@@ -7981,7 +8035,7 @@ export default function TeacherConstructorPage() {
       const { data: dbCourse, error } = await supabase
         .from('courses')
         .upsert(
-          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg, created_by: uid },
+          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg, created_by: uid, seed_stamp: c.seedStamp ?? null },
           { onConflict: 'short_id' }
         )
         .select('id, short_id, created_at, published_at')
