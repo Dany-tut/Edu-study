@@ -7811,7 +7811,8 @@ export default function TeacherConstructorPage() {
       const updated: Course = {
         id: ed.id, title: ed.title, subject: ed.subject, level: ed.level,
         description: ed.description ?? '', status: ed.status,
-        color: ed.color, bg: ed.bg, dbCourseId: ed.dbCourseId,
+        color: ed.color, bg: ed.bg,
+        dbCourseId: ed.dbCourseId,
         lastEdited: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
         lessons: ed.lessons.map(l => ({
           id: l.id, title: l.title, trainerId: null, widgetId: null,
@@ -7825,7 +7826,12 @@ export default function TeacherConstructorPage() {
       }
       setCourses(prev => {
         const old = prev.find(c => c.id === updated.id)
-        const next = withSortTimes(updated, old)
+        // Пустой dbCourseId из редактора НЕ стирает уже известный. Плитка,
+        // забывшая, что курс лежит в базе, открывается «лёгким» путём: без
+        // конспектов и домашек, без автосейва и без сверки с сидом. Ищем в
+        // ПРЕДЫДУЩЕМ состоянии, а не в замыкании: эффект висит на одном
+        // courseEditedJson и держал бы список на кадр устаревшим.
+        const next = withSortTimes({ ...updated, dbCourseId: updated.dbCourseId ?? old?.dbCourseId }, old)
         return old ? prev.map(c => c.id === updated.id ? next : c) : [next, ...prev]
       })
     } catch {}

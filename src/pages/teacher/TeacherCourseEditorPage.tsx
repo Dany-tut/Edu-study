@@ -5550,6 +5550,17 @@ export default function TeacherCourseEditorPage() {
     const courseDbId = courseUpsert?.id
     if (!courseDbId) return false
 
+    // КУРС ТЕПЕРЬ В БАЗЕ — ЗАПОМИНАЕМ ЭТО. Курс, открытый из плитки готового,
+    // приходит без dbCourseId: в базе его ещё нет. После этой записи есть, но
+    // состояние об этом не узнавало — и признак «не сохранён» жил до конца
+    // вкладки, а через setCourseEdited уезжал в плитку конструктора. Дальше
+    // ломалось всё, что стоит на dbCourseId: уроки не догружались (heavyPending
+    // ставится по нему), автосейв молчал, сверка с сидом считалась по составу
+    // без конспектов и домашек и давала ноль — кнопки «Из сида» не было даже
+    // там, где расхождений сотня, — а отпечаток сида было некому записать, и
+    // точка на плитке горела вечно.
+    if (!c.dbCourseId) setCourse(prev => (prev.dbCourseId ? prev : { ...prev, dbCourseId: shortId }))
+
     // ── Persist modules + lessons so the student track renders ──────────────
     // The student reader (fetchCourseStructure) reads lessons through
     // course_modules → lessons, so every lesson must live under a module.
