@@ -5091,7 +5091,7 @@ function DiagResultStudentPanel({
           </div>
 
           {/* Delete */}
-          <button onClick={handleDelete} style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
+          <button onClick={handleDelete} style={{ width: '100%', height: 46, minHeight: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
             <Trash2 size={13} /> {t('Удалить результат')}
           </button>
         </div>
