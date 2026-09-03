@@ -163,6 +163,29 @@ export default function AdminStudentsManager() {
   const expandAll = searching || forceAll
   const allOpen = expandAll || (byOwner.length > 0 && byOwner.every(([id]) => openOwners.has(id)))
 
+  /**
+   * Клик по шапке секции ЗАКРЫВАЕТ её, даже если только что нажали
+   * «Развернуть все».
+   *
+   * `forceAll` был режимом ПОВЕРХ списка открытых: клик по шапке честно убирал
+   * секцию из `openOwners`, но `open` брался из флага — и секция оставалась
+   * раскрытой. На экране это «по тексту свернуть не могу, только кнопкой».
+   * Поэтому «развернуть все» здесь же превращается в обычное состояние: все
+   * секции открыты поимённо, кроме той, по которой кликнули.
+   */
+  const toggleOwner = (ownerId: string) => {
+    if (forceAll) {
+      setForceAll(false)
+      setOpenOwners(new Set(byOwner.map(([id]) => id).filter(id => id !== ownerId)))
+      return
+    }
+    setOpenOwners(prev => {
+      const next = new Set(prev)
+      next.has(ownerId) ? next.delete(ownerId) : next.add(ownerId)
+      return next
+    })
+  }
+
   const teacherOptions = teachers.map(tc => ({
     value: tc.id,
     label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}`,
@@ -202,7 +225,22 @@ export default function AdminStudentsManager() {
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
           >
             <ChevronRight size={13} strokeWidth={2} style={{ transform: allOpen ? 'rotate(90deg)' : 'none', transition: 'transform 140ms ease' }} />
-            {allOpen ? t('Свернуть все') : t('Развернуть все')}
+            {/* Ширина кнопки — по САМОЙ ДЛИННОЙ подписи, а не по текущей.
+                «Развернуть все» длиннее «Свернуть все», и на переключении ряд
+                дёргался целиком: поиск в нём тянущийся (flex), и он ловил
+                разницу шириной поля. Обе подписи лежат в одной клетке грида,
+                лишняя — скрыта. */}
+            <span style={{ display: 'grid' }}>
+              {[t('Развернуть все'), t('Свернуть все')].map((label, i) => (
+                <span
+                  key={label}
+                  aria-hidden={(i === 1) !== allOpen}
+                  style={{ gridArea: '1 / 1', visibility: (i === 1) === allOpen ? 'visible' : 'hidden' }}
+                >
+                  {label}
+                </span>
+              ))}
+            </span>
           </button>
         )}
         <button onClick={load} title={t('Обновить')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -236,11 +274,7 @@ export default function AdminStudentsManager() {
             return (
             <div key={ownerId}>
               <button
-                onClick={() => setOpenOwners(prev => {
-                  const next = new Set(prev)
-                  next.has(ownerId) ? next.delete(ownerId) : next.add(ownerId)
-                  return next
-                })}
+                onClick={() => toggleOwner(ownerId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                   marginBottom: open ? 8 : 0, padding: '7px 8px',
