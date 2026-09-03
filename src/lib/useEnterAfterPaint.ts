@@ -18,18 +18,58 @@ import { useEffect, useState } from 'react'
 // не тикает вовсе, и без него шапка осталась бы прозрачной навсегда.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Сколько пружина (JELLY_SPRING) доигрывает после отпускания, мс. */
+const SETTLE = 600
+
+// ── ПОКА ШАПКА ПАДАЕТ, ЭКРАН СНИМАТЬ НЕЛЬЗЯ ─────────────────────────────────
+//
+// Снимок экрана (lib/screenSnapshot.ts) — клон DOM вместе с инлайновыми
+// стилями, которые пишет framer-motion. Пойманная на входе шапка застывает в
+// снимке НАВСЕГДА: `opacity: 0; transform: translateY(-10px) scale(0.9)`.
+// Дальше свайп «назад» показывает под уезжающей страницей экран вообще без
+// таблеток шапки — и они же не находятся как цели перетекания (проверка
+// видимости считает прозрачность всей цепочки предков). Симптом ровно тот,
+// что описывали: «на заднем фоне таблеток нет вовсе, а если свайпать часто,
+// иногда один раз проскакивает как надо» — проскакивает, когда после входа
+// экран ещё раз мутировал и снимок успел пересняться.
+//
+// Счётчик, а не флаг: экранов с шапкой на странице бывает два разом (свой вход
+// у MobileScreen и у ряда курсов в «Курсах»).
+let entering = 0
+
+/** Играется ли прямо сейчас вход шапки хоть у одного экрана. */
+export function headerEntering(): boolean {
+  return entering > 0
+}
+
 export function useEnterAfterPaint(): boolean {
   const [ready, setReady] = useState(false)
   useEffect(() => {
     let inner = 0
+    let done = false
+    entering++
+    // Отпускаем счётчик один раз: и по нормальному пути, и на размонтировании
+    // посреди входа.
+    const free = () => { if (!done) { done = true; entering-- } }
+    let settle = 0
+    let started = false
+    const go = () => {
+      // Оба пути ведут сюда (кадр и страховочный таймер) — пускаем один раз.
+      if (started) return
+      started = true
+      setReady(true)
+      settle = window.setTimeout(free, SETTLE)
+    }
     const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => setReady(true))
+      inner = requestAnimationFrame(go)
     })
-    const fallback = window.setTimeout(() => setReady(true), 400)
+    const fallback = window.setTimeout(go, 400)
     return () => {
       cancelAnimationFrame(outer)
       cancelAnimationFrame(inner)
       window.clearTimeout(fallback)
+      window.clearTimeout(settle)
+      free()
     }
   }, [])
   return ready

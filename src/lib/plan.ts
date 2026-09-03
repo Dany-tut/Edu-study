@@ -134,6 +134,7 @@ export interface UserActivityRow {
   actor_kind: string        // teacher | admin | student | anon
   actor_id: string
   name: string
+  email: string | null   // настоящая из auth.users, иначе ученический логин
   sessions: number
   active_min: number        // ≈ heartbeat-минуты (вкладка открыта)
   events: number
@@ -145,6 +146,7 @@ export interface UserActivityRow {
 export interface TeacherUsageRow {
   teacher_id: string
   name: string
+  email: string | null
   plan_code: string | null
   total_students: number
   active_students: number

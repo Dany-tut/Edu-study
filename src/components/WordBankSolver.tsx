@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useOwnAnswer } from '../lib/useOwnAnswer'
+import { sameAnswer } from '../lib/answerForms'
 import { useT } from '../lib/i18n'
 
 // «Собрать предложение из плиток» (wordBank / listenBank). Ученик тапает слова из
@@ -34,6 +35,7 @@ export default function WordBankSolver({
   value,
   onChange,
   disabled = false,
+  showVerdict = false,
 }: {
   /** Слова эталонного предложения (правильный порядок). */
   tokens: string[]
@@ -43,6 +45,12 @@ export default function WordBankSolver({
   value: string[]
   onChange: (words: string[]) => void
   disabled?: boolean
+  /**
+   * Разбор: каждое слово в строке ответа красится по своему месту — зелёное
+   * стоит там же, где в эталоне, красное нет. Сверка та же, что в gradeTask
+   * (позиционная, через sameAnswer), поэтому цвет никогда не спорит с баллом.
+   */
+  showVerdict?: boolean
 }) {
   const t = useT()
 
@@ -74,13 +82,24 @@ export default function WordBankSolver({
   const pick = (word: string) => { if (!disabled) emit(prev => [...prev, word]) }
   const removeAt = (i: number) => { if (!disabled) emit(prev => prev.filter((_, idx) => idx !== i)) }
 
-  const tileStyle = (accent: boolean): React.CSSProperties => ({
+  const tileStyle = (accent: boolean, ok: boolean | null = null): React.CSSProperties => ({
     padding: '8px 13px', borderRadius: 10, cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
     fontSize: 14, fontWeight: 600, lineHeight: 1.2,
-    border: `1.5px solid ${accent ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
-    background: accent ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
-    color: accent ? 'var(--color-accent)' : 'var(--color-text)',
+    border: `1.5px solid ${
+      ok === null ? (accent ? 'var(--color-accent)' : 'var(--color-border-soft)') : ok ? '#6EE7A0' : '#F48B91'
+    }`,
+    background: ok === null
+      ? (accent ? 'var(--color-purple-soft)' : 'var(--color-bg-2)')
+      : ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
+    color: ok === null
+      ? (accent ? 'var(--color-accent)' : 'var(--color-text)')
+      : ok ? 'var(--color-green-text)' : 'var(--color-red-text)',
   })
+
+  // Слово верно, если стоит на своём месте эталона. Лишний хвост (слов больше,
+  // чем в предложении) сверять не с чем — он красный целиком.
+  const verdictAt = (word: string, i: number): boolean | null =>
+    showVerdict ? i < tokens.length && sameAnswer(word, tokens[i]) : null
 
   // Обе стопки — реальная и «призрак» — лежат в одной клетке сетки: высота
   // коробки берётся по самой высокой, а призрак с полным предложением всегда
@@ -105,7 +124,7 @@ export default function WordBankSolver({
           {answerNow.length === 0
             ? <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Нажимай на слова, чтобы собрать предложение')}</span>
             : answerNow.map((word, i) => (
-                <button key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true)}>{word}</button>
+                <button key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true, verdictAt(word, i))}>{word}</button>
               ))}
         </div>
       </div>

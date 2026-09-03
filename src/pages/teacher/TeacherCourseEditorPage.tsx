@@ -5209,9 +5209,13 @@ export default function TeacherCourseEditorPage() {
       const stamp = d.seedKey ? SEED_CARDS[d.seedKey]?.stamp : undefined
       if (stamp && d.changes.length === 0 && course.seedStamp !== stamp) {
         setCourse(c => (c.seedStamp === stamp ? c : { ...c, seedStamp: stamp }))
-        const shortId = course.dbCourseId ?? course.id
-        // Курса ещё нет в базе (собран из сида, ни разу не сохранён) — писать
-        // некуда: UPDATE не найдёт строки, отпечаток уедет первым сохранением.
+        // ТОЛЬКО ПО dbCourseId, А НЕ ПО `?? id`. Он есть у курса, приехавшего
+        // из базы, — то есть у того, чьи уроки мы и сверили. У курса, собранного
+        // из сида, его нет, а id при этом равен short_id сохранённой строки:
+        // писали бы по нему — заштамповали бы «совпадает с сидом» ту запись,
+        // которую в глаза не видели (сверяли-то свежую сборку). Отпечаток
+        // такому курсу поставит первое же «Сохранить», вместе с содержимым.
+        const shortId = course.dbCourseId
         if (shortId && !stampWritten.current) {
           stampWritten.current = true
           // Билдер PostgREST ленивый: без .then запрос не уходит вовсе.

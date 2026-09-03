@@ -16,14 +16,14 @@
 // «краткого правила» не заводим, иначе учителю пришлось бы писать текст дважды.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
 import { BookOpen, X } from 'lucide-react'
 import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
-import { tidyProse, proseWrap } from '../lib/typography'
+import { tidyProse, proseWrap, proseLines } from '../lib/typography'
 import Prose from './Prose'
 import GlossedText from './GlossedText'
 
@@ -296,18 +296,24 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   )}
                 </figure>
               ) : lang ? (
-                <GlossedText
-                  key={p.id}
-                  text={tidyProse(p.text)}
-                  lang={lang}
-                  accent={accent}
-                  subject={glossSubject}
-                  style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450 }}
-                />
+                // Строка списка — свой блок с полем слева: перенос примера
+                // остаётся на отступе (proseLines в lib/typography.ts).
+                <Fragment key={p.id}>{proseLines(p.text).map(line => (
+                  <GlossedText
+                    key={`${p.id}-${line.key}`}
+                    text={tidyProse(line.text)}
+                    lang={lang}
+                    accent={accent}
+                    subject={glossSubject}
+                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, ...line.style }}
+                  />
+                ))}</Fragment>
               ) : (
-                <p key={p.id} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, whiteSpace: 'pre-wrap', ...proseWrap }}>
-                  <Prose text={p.text} />
-                </p>
+                <Fragment key={p.id}>{proseLines(p.text).map(line => (
+                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, ...proseWrap, ...line.style }}>
+                    <Prose text={line.text} />
+                  </p>
+                ))}</Fragment>
               ))}
             </div>
               <div

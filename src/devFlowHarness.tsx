@@ -7,6 +7,7 @@
 // Живёт, пока дорабатывается сам режим (docs/LANGUAGE_DRILL_SPEC.md, этапы 2–3).
 import { createRoot } from 'react-dom/client'
 import HomeworkFlow from './components/HomeworkFlow'
+import AnswerFlightLayer from './components/AnswerFlightLayer'
 import { authoredTaskToQuestion } from './data/lessonContent'
 import type { AuthoredHomeworkTask, LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
 import { buildKoreanHangulCourse } from './data/koreanHangul'
@@ -40,6 +41,18 @@ const questions: HomeworkQuizQuestion[] = [
     ],
     correctOptionId: 'a',
     explanation: '김치 — квашеная капуста, самое известное корейское блюдо.',
+  }),
+  // Множественный выбор: вердикт у него приходит только по «Проверить», и
+  // проверять это надо на живом экране — на тапе по варианту кружок с
+  // крестиком уже улетал, судя по недособранному ответу.
+  q({
+    id: 'qm', type: 'multi', prompt: 'Какие слова — еда? Выберите все подходящие.',
+    options: [
+      { id: 'a', text: '김치' }, { id: 'b', text: '물' },
+      { id: 'c', text: '두부' }, { id: 'd', text: '이름' },
+    ],
+    correctOptionIds: ['a', 'c'],
+    explanation: '김치 и 두부 — блюда; 물 — вода, 이름 — имя.',
   }),
   q({
     id: 'q2', type: 'fill', prompt: 'Впишите перевод: 두부',
@@ -188,6 +201,10 @@ if (Number.isFinite(step) && step >= 0) {
 
 createRoot(document.getElementById('root')!).render(
   <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
+    {/* Кружок вердикта живёт в портале и целится в пилюлю сводки: без слоя и
+        мишени стенд молчал ровно о том, что здесь и проверяют. */}
+    <div id="widget-pill-target" style={{ position: 'fixed', top: 8, right: 8, width: 60, height: 24 }} />
+    <AnswerFlightLayer />
     <HomeworkFlow
       lessonId="stand-ko-1"
       lessonTitle={useHangul ? courseLesson.title : 'Еда'}

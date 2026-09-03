@@ -20,7 +20,7 @@ import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/homeworkSteps'
 import { useT } from '../lib/i18n'
-import { tidyProse, proseWrap, balancedWrap } from '../lib/typography'
+import { tidyProse, proseWrap, proseLines, balancedWrap } from '../lib/typography'
 import Prose from '../components/Prose'
 import GlossedText from '../components/GlossedText'
 import { setVoiceScene, clearVoiceScene } from '../lib/speech'
@@ -1247,9 +1247,13 @@ export default function LessonPage() {
                   reflows the text and visibly jerks the line. The equation gets
                   its own background highlight via renderHighlightedParagraph,
                   which is the actual emphasis cue. */}
-              {glossLang && !p.reactionId ? (
+              {/* Строка списка — свой блок: отступ примера держит поле, а не
+                  ведущие пробелы, иначе перенос возвращает хвост к левому краю
+                  (см. proseLines в lib/typography.ts). */}
+              {proseLines(p.text).map(line => glossLang && !p.reactionId ? (
                 <GlossedText
-                  text={tidyProse(p.text)}
+                  key={line.key}
+                  text={tidyProse(line.text)}
                   lang={glossLang}
                   accent={glossAccent}
                   subject={subjectDef?.id}
@@ -1258,21 +1262,24 @@ export default function LessonPage() {
                     lineHeight: 1.6,
                     color: 'var(--color-text)',
                     fontWeight: 450,
+                    ...line.style,
                   }}
                 />
               ) : (
                 <p
+                  key={line.key}
                   style={{
                     fontSize: 15 * scale,
                     lineHeight: 1.6,
                     color: 'var(--color-text)',
                     fontWeight: 450,
                     ...proseWrap,
+                    ...line.style,
                   }}
                 >
-                  {renderHighlightedParagraph(p.text, p.reactionId, pendingHighlight, courseReactions)}
+                  {renderHighlightedParagraph(line.text, p.reactionId, pendingHighlight, courseReactions)}
                 </p>
-              )}
+              ))}
             </div>
           ))}
         </section>

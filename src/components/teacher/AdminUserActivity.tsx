@@ -164,6 +164,27 @@ function TableShell({ children }: { children: React.ReactNode }) {
   )
 }
 
+/**
+ * Имя с почтой под ним.
+ *
+ * Одного имени мало: «Даниил Макаренко» — это и учительский аккаунт с 24
+ * учениками, и отдельная тестовая карточка ученика. Почта — единственное, что
+ * здесь различает строки, поэтому она идёт второй строкой, а не отдельной
+ * колонкой: таблица и так широкая.
+ */
+function NameCell({ name, email }: { name: string; email: string | null }) {
+  return (
+    <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600, lineHeight: 1.25 }}>
+      {name}
+      {email && (
+        <div style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.2 }}>
+          {email}
+        </div>
+      )}
+    </td>
+  )
+}
+
 function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
   const t = useT()
   if (rows.length === 0) return <Empty />
@@ -184,7 +205,7 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
           const k = KIND_LABEL[r.actor_kind] ?? KIND_LABEL.anon
           return (
             <tr key={r.actor_id}>
-              <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600 }}>{r.name}</td>
+              <NameCell name={r.name} email={r.email} />
               <td style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 12.5 }}>{t(k.label)}</span></td>
               <td style={numTd}>{fmtMin(r.active_min)}</td>
               <td style={numTd}>{r.sessions}</td>
@@ -217,7 +238,7 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
       <tbody>
         {rows.map(r => (
           <tr key={r.teacher_id}>
-            <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600 }}>{r.name}</td>
+            <NameCell name={r.name} email={r.email} />
             <td style={tdStyle}>
               <AssignPlanButton
                 teacherId={r.teacher_id}

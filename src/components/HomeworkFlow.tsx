@@ -661,6 +661,20 @@ interface PersistedHomeworkState {
    */
   basicHints: Record<string, true>
   /**
+   * Подсказки, ОТКРЫТЫЕ на экране прямо сейчас.
+   *
+   * Отдельно от `basicHints`, потому что у отметки две разные жизни. Для балла
+   * и колоды повторения «подсмотрел» — навсегда: балл не вернуть, слово уже
+   * увидено. А на экране ответ должен исчезнуть, когда очередь возвращает
+   * задание после промаха (Р8): повтор с открытым ответом — не вопрос, а
+   * страница с ответом, и вспоминать на нём нечего.
+   *
+   * Ключи те же, что в `basicHints`: id задания и `id#строка` у дрилла.
+   * У старых черновиков поля нет — тогда открытым считается всё, что
+   * подсмотрено (прежнее поведение).
+   */
+  basicHintsOpen?: Record<string, true>
+  /**
    * Шаг языковой домашки, где на экране ровно одно задание.
    *
    * 0 — знакомство со словами, дальше по одному номеру на задание, последний
@@ -1464,8 +1478,22 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
   onReveal: (index: number) => void
 }) {
   const t = useT()
+  const isDesktop = useIsDesktop()
   const given = parseDrillAnswer(value)
   const put = (i: number, v: string) => onChange(JSON.stringify({ ...given, [String(i)]: v }))
+
+  // СТРОКА В ОДНУ ЛИНИЮ ИЛИ В ДВЕ. Подсказка слева бывает и словом («вчера»), и
+  // целой фразой на перевод («пока я нагревал раствор, студент опрокинул
+  // стакан»). Слово рядом с полем читается как одна мысль — в линию хорошо. Но
+  // линия держалась на flexShrink: 0 у подсказки: с длинной фразой строка
+  // переставала помещаться, поле ввода уезжало за правый край, и на телефоне
+  // печатать было буквально некуда. Длинная подсказка встаёт отдельной строкой
+  // НАД полем; на телефоне так всегда — 360 точек ширины не делятся на две
+  // колонки ни при какой длине подсказки.
+  const stacked = !isDesktop || items.some(item => item.cue.length > 24)
+  // Отступ под строкой (эталон, перевод) держит колонку полей: в линию он
+  // равен ширине подсказки, в две строки поле начинается от края.
+  const bodyIndent = stacked ? 0 : 88
 
   return (
     <div className="flex flex-col" style={{ gap: 12 }}>
@@ -1489,60 +1517,65 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
           const ok = drillRowCorrect(item, mine)
           const shown = !!revealed[String(i)]
           return (
-            <div key={i} className="flex flex-col" style={{ gap: 4 }}>
-              <div className="flex items-center" style={{ gap: 10 }}>
-                <span style={{
-                  flexShrink: 0, minWidth: 78, padding: '7px 12px', borderRadius: 12,
-                  background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-                  fontSize: 14, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center',
-                }}>
-                  {item.cue}
-                </span>
-                <span style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>
-                <input
-                  value={mine}
-                  onChange={e => put(i, e.target.value)}
-                  disabled={disabled}
-                  placeholder={t('Всё предложение целиком…')}
-                  style={{
-                    flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 14px',
-                    borderRadius: 14, fontFamily: 'inherit', fontSize: 15,
-                    color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
-                    border: `1px solid ${
-                      showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
-                        : shown ? 'rgba(248,201,145,0.55)'
-                        : 'var(--color-border)'
-                    }`,
-                    opacity: disabled ? 0.85 : 1,
-                  }}
-                />
-                {/* Глазок строки. Место под него держится, пока дрилл живой:
-                    иначе открытая строка становится шире соседних и колонка
-                    полей едет. После проверки эталоны открыты и так — колонка
-                    смыкается целиком, ровно. */}
-                {!disabled && !showVerdict && (
-                  <span style={{ flexShrink: 0, width: 34, height: 34 }}>
-                    {!shown && (
-                      <button
-                        onClick={() => onReveal(i)}
-                        title={t('Показать ответ')}
-                        aria-label={t('Показать ответ')}
-                        className="flex items-center justify-center cursor-pointer"
-                        style={{
-                          width: '100%', height: '100%', borderRadius: 12,
-                          border: '1px solid var(--color-border)', background: 'transparent',
-                          color: 'var(--color-muted)', padding: 0,
-                        }}
-                      >
-                        <Eye size={15} />
-                      </button>
-                    )}
+            <div key={i} className="flex flex-col" style={{ gap: stacked ? 6 : 4 }}>
+              <div className={stacked ? 'flex flex-col' : 'flex items-center'} style={{ gap: stacked ? 6 : 10 }}>
+                <div className="flex items-center" style={{ gap: 10, flexShrink: 0, maxWidth: '100%' }}>
+                  <span style={{
+                    minWidth: stacked ? 0 : 78, padding: '7px 12px', borderRadius: 12,
+                    background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+                    fontSize: 14, fontWeight: 700, color: 'var(--color-text)',
+                    textAlign: stacked ? 'left' : 'center', lineHeight: 1.35,
+                  }}>
+                    {item.cue}
                   </span>
-                )}
+                  {!stacked && <span style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>}
+                </div>
+                <div className="flex items-center" style={{ gap: 10, flex: 1, minWidth: 0, width: stacked ? '100%' : undefined }}>
+                  <input
+                    value={mine}
+                    onChange={e => put(i, e.target.value)}
+                    disabled={disabled}
+                    placeholder={t('Всё предложение целиком…')}
+                    style={{
+                      flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 14px',
+                      borderRadius: 14, fontFamily: 'inherit', fontSize: 15,
+                      color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
+                      border: `1px solid ${
+                        showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
+                          : shown ? 'rgba(248,201,145,0.55)'
+                          : 'var(--color-border)'
+                      }`,
+                      opacity: disabled ? 0.85 : 1,
+                    }}
+                  />
+                  {/* Глазок строки. Место под него держится, пока дрилл живой:
+                      иначе открытая строка становится шире соседних и колонка
+                      полей едет. После проверки эталоны открыты и так — колонка
+                      смыкается целиком, ровно. */}
+                  {!disabled && !showVerdict && (
+                    <span style={{ flexShrink: 0, width: 34, height: 34 }}>
+                      {!shown && (
+                        <button
+                          onClick={() => onReveal(i)}
+                          title={t('Показать ответ')}
+                          aria-label={t('Показать ответ')}
+                          className="flex items-center justify-center cursor-pointer"
+                          style={{
+                            width: '100%', height: '100%', borderRadius: 12,
+                            border: '1px solid var(--color-border)', background: 'transparent',
+                            color: 'var(--color-muted)', padding: 0,
+                          }}
+                        >
+                          <Eye size={15} />
+                        </button>
+                      )}
+                    </span>
+                  )}
+                </div>
               </div>
               {/* Открытая строка: эталон с переводом и цена подсказки. */}
               {shown && !showVerdict && (
-                <div className="flex items-start" style={{ gap: 7, paddingLeft: 88, paddingRight: 44 }}>
+                <div className="flex items-start" style={{ gap: 7, paddingLeft: bodyIndent, paddingRight: 44 }}>
                   <Eye size={14} style={{ color: 'var(--color-yellow-text)', flexShrink: 0, marginTop: 2 }} />
                   <span style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-text-2)' }}>
                     <b style={{ color: 'var(--color-text)' }}>{item.answer}</b>
@@ -1553,7 +1586,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
               )}
               {/* Эталон и перевод — только после проверки: до неё они и есть ответ. */}
               {showVerdict && !ok && (
-                <div style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600, paddingLeft: 88 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600, paddingLeft: bodyIndent }}>
                   {item.answer}{item.gloss ? ` — ${item.gloss}` : ''}
                 </div>
               )}
@@ -1588,6 +1621,7 @@ function getInitialState(): PersistedHomeworkState {
     selfAssessmentValue: null,
     basicChecked: {},
     basicHints: {},
+    basicHintsOpen: {},
     flowStep: 0,
     reviewAnswers: {},
   }
@@ -2271,8 +2305,6 @@ export default function HomeworkFlow({
     const value = multi ? toggleId(state.basicAnswers[questionId], optionId) : optionId
     const nextAnswers = { ...state.basicAnswers, [questionId]: value }
     const correct = questionCorrect(question, value)
-    const nextAnswered = basicQuestions.filter(item => questionAnswered(item, nextAnswers[item.id])).length
-    const nextCorrect = basicQuestions.filter(item => questionCorrect(item, nextAnswers[item.id])).length
 
     // Множественный выбор вердикта ещё не имеет (он придёт по «Проверить»),
     // поэтому звучит нейтрально: канонический звук здесь сообщал бы ответ.
@@ -2283,11 +2315,32 @@ export default function HomeworkFlow({
       ...current,
       basicAnswers: nextAnswers,
     }))
+    // Множественный выбор вердикта здесь ещё не имеет: сводка и летящий кружок
+    // ждут «Проверить» (см. announceVerdict в checkQuestion). Иначе первый же
+    // тап по варианту выдавал красный крестик по недособранному ответу — и
+    // сообщал, что выбранного мало, раньше самого ученика.
+    if (!multi) announceVerdict(questionIndex, question, correct, nextAnswers)
+  }
+
+  /**
+   * Вердикт наружу: плитка сводки на главной и кружок, летящий в виджет-пилюлю.
+   *
+   * Кружок с галочкой/крестиком летит в пилюлю сводки. Если пилюли на экране
+   * нет (телефон, режим одного задания), лететь ему некуда: он вспыхивал на
+   * месте и гас за полсекунды — прочитать нельзя, а вердикт он перекрывал.
+   * Вместо него на телефоне работают цвет, звук и звёздочки (Р10).
+   */
+  const announceVerdict = (
+    questionIndex: number,
+    question: HomeworkQuizQuestion,
+    correct: boolean,
+    answers: Record<string, string>,
+  ) => {
     setHomeworkWidgetFeedback({
       lessonTitle,
-      answered: nextAnswered,
+      answered: basicQuestions.filter(item => questionAnswered(item, answers[item.id])).length,
       total: basicQuestions.length,
-      correct: nextCorrect,
+      correct: basicQuestions.filter(item => questionCorrect(item, answers[item.id])).length,
       lastQuestionIndex: questionIndex,
       lastCorrect: correct,
       lastTitle: correct ? t('Справился') : t('Пока мимо'),
@@ -2296,12 +2349,8 @@ export default function HomeworkFlow({
         : question.explanation,
     })
 
-    // Кружок с галочкой/крестиком летит в виджет-пилюлю сводки. Если пилюли на
-    // экране нет (телефон, режим одного задания), лететь ему некуда: он вспыхивал
-    // на месте и гас за полсекунды — прочитать нельзя, а вердикт он перекрывал.
-    // Вместо него на телефоне работают цвет, звук и звёздочки (Р10).
     const el = document.getElementById('widget-pill-target')
-      ? questionSectionRefs.current[questionId]
+      ? questionSectionRefs.current[question.id]
       : null
     if (el) {
       const rect = el.getBoundingClientRect()
@@ -2363,7 +2412,22 @@ export default function HomeworkFlow({
       ...current,
       basicChecked: { ...current.basicChecked, [questionId]: true },
     }))
+    // Множественный выбор дождался проверки — вот теперь вердикт можно показать.
+    if (questionIsMulti(question)) {
+      announceVerdict(
+        basicQuestions.findIndex(item => item.id === questionId),
+        question,
+        correct,
+        state.basicAnswers,
+      )
+    }
   }
+
+  /**
+   * Открыта ли подсказка на экране сейчас (в отличие от «подсмотрел когда-то»).
+   * См. basicHintsOpen: повтор задания приходит с закрытым ответом.
+   */
+  const hintOpen = (key: string) => !!(state.basicHintsOpen ?? state.basicHints)[key]
 
   /**
    * Подсказка по заданию — ответ открывается прямо здесь, а не в словаре наверху.
@@ -2374,11 +2438,12 @@ export default function HomeworkFlow({
    * отправляет слово в колоду повторения.
    */
   const revealHint = (questionId: string) => {
-    if (state.basicSubmitted || state.basicHints[questionId]) return
+    if (state.basicSubmitted || hintOpen(questionId)) return
     vibrate(14)
     setState(current => ({
       ...current,
       basicHints: { ...current.basicHints, [questionId]: true },
+      basicHintsOpen: { ...(current.basicHintsOpen ?? current.basicHints), [questionId]: true },
     }))
   }
 
@@ -2534,20 +2599,26 @@ export default function HomeworkFlow({
    *
    * Задание, вернувшееся после промаха, иначе открылось бы с прошлым (неверным)
    * ответом и уже показанным разбором — то есть не как вопрос, а как страница
-   * с ответом. Стираем ровно ответ и отметку проверки; подсказка остаётся
-   * открытой (её уже видели, и балла за это задание всё равно нет).
+   * с ответом. Стираем ответ, отметку проверки И открытую подсказку: ответ,
+   * оставленный на экране, превращал повтор в чтение готового — вспоминать
+   * нечего, «Далее» доступно сразу. Что подсмотрели, помнит `basicHints`:
+   * балл за задание не вернётся и слово всё равно уйдёт в колоду.
    */
   useEffect(() => {
     if (!queueOn || !flowMode || !flowQuestion) return
     if (!isRepeatAt(queue, flowPosition)) return
     const id = flowQuestion.id
-    if (state.basicAnswers[id] === undefined && !state.basicChecked[id]) return
+    const open = state.basicHintsOpen ?? state.basicHints
+    const openKeys = Object.keys(open).filter(k => k === id || k.startsWith(`${id}#`))
+    if (state.basicAnswers[id] === undefined && !state.basicChecked[id] && !openKeys.length) return
     setState(current => {
       const answers = { ...current.basicAnswers }
       const checked = { ...current.basicChecked }
+      const hintsOpen = { ...(current.basicHintsOpen ?? current.basicHints) }
       delete answers[id]
       delete checked[id]
-      return { ...current, basicAnswers: answers, basicChecked: checked }
+      for (const key of openKeys) delete hintsOpen[key]
+      return { ...current, basicAnswers: answers, basicChecked: checked, basicHintsOpen: hintsOpen }
     })
     // Сброс привязан к позиции в очереди, а не к ответу: иначе он сработал бы
     // ещё раз сразу после нового ответа на том же экране.
@@ -2557,7 +2628,7 @@ export default function HomeworkFlow({
   const flowGiven = flowQuestion ? state.basicAnswers[flowQuestion.id] : undefined
   const flowAnswered = !!flowQuestion && questionAnswered(flowQuestion, flowGiven)
   const flowAuto = !!flowQuestion && questionAutoGradable(flowQuestion)
-  const flowHinted = !!flowQuestion && !!state.basicHints[flowQuestion.id]
+  const flowHinted = !!flowQuestion && hintOpen(flowQuestion.id)
   // Задания, проверяющие себя сами (одиночный выбор, сопоставление), считаются
   // проверенными в момент ответа — кнопка сразу говорит «Далее».
   const flowChecked = !!flowQuestion && (
@@ -2623,7 +2694,7 @@ export default function HomeworkFlow({
     if (taskBodyMissing(q)) return true
     const given = state.basicAnswers[q.id]
     return !!state.basicChecked[q.id]
-      || !!state.basicHints[q.id]
+      || hintOpen(q.id)
       || (questionSelfChecks(q) && questionAnswered(q, given))
       || (!questionAutoGradable(q) && questionAnswered(q, given))
   }
@@ -2702,12 +2773,17 @@ export default function HomeworkFlow({
    */
   const drillHintKey = (questionId: string, index: number) => `${questionId}#${index}`
   const revealDrillRow = (questionId: string, index: number) => {
-    if (state.basicSubmitted || state.basicHints[drillHintKey(questionId, index)]) return
+    if (state.basicSubmitted || hintOpen(drillHintKey(questionId, index))) return
     vibrate(14)
     setState(current => ({
       ...current,
       basicHints: {
         ...current.basicHints,
+        [questionId]: true,
+        [drillHintKey(questionId, index)]: true,
+      },
+      basicHintsOpen: {
+        ...(current.basicHintsOpen ?? current.basicHints),
         [questionId]: true,
         [drillHintKey(questionId, index)]: true,
       },
@@ -2717,7 +2793,7 @@ export default function HomeworkFlow({
   const drillRevealed = (question: HomeworkQuizQuestion): Record<string, true> => {
     const out: Record<string, true> = {}
     drillItems(question).forEach((_, i) => {
-      if (state.basicHints[drillHintKey(question.id, i)]) out[String(i)] = true
+      if (hintOpen(drillHintKey(question.id, i))) out[String(i)] = true
     })
     return out
   }
@@ -3481,7 +3557,7 @@ export default function HomeworkFlow({
                 // (ответ фиксируется сразу), всё остальное — кнопкой «Проверить»
                 // или сдачей домашки.
                 const selfChecks = questionSelfChecks(question)
-                const hinted = !!state.basicHints[question.id]
+                const hinted = hintOpen(question.id)
                 const checked = !!state.basicChecked[question.id]
                   || (selfChecks && answered)
                   || state.basicSubmitted
@@ -3489,13 +3565,19 @@ export default function HomeworkFlow({
                 const locked = checked
                 const graded = answered && checked
                 const isCorrect = !hinted && questionCorrect(question, selectedAnswer)
-                const showVerdict = graded && autoGradable && !hinted
+                // Разбор не снимается подсказкой. Подсказка открывается только
+                // ПОСЛЕ неверной проверки — то есть вердикт уже стоял на экране,
+                // и `!hinted` его гасил ровно в тот момент, когда ученик сел
+                // разбираться: эталон открыт, а что именно он написал не так —
+                // больше не видно. Балл при этом всё равно потерян (isCorrect
+                // держит `!hinted`), так что подобрать «до зелёной рамки» тут
+                // нечего — как и в дрилле, который так и работал с самого начала.
+                const showVerdict = graded && autoGradable
                 const showReview = graded && !autoGradable
                 // Дрилл — задание из пяти строк, и подсказка по одной из них не
-                // должна закрывать разбор остальных четырёх. Балл за задание уже
-                // потерян, так что подбирать «до зелёной рамки» тут нечего.
+                // должна закрывать разбор остальных четырёх, поэтому у него одного
+                // «Проверить» остаётся живым и после подсказки.
                 const isDrill = qType(question) === 'pattern'
-                const drillVerdict = graded && autoGradable && isDrill
                 // «Проверить» появляется, когда есть что проверять: ответ введён,
                 // машина умеет его сверить, разбор ещё не открыт.
                 // После подсказки проверять нечего — ответ уже открыт; поле при
@@ -3947,7 +4029,7 @@ export default function HomeworkFlow({
                       items={drillItems(question)}
                       value={selectedAnswer}
                       disabled={locked}
-                      showVerdict={drillVerdict}
+                      showVerdict={showVerdict}
                       revealed={drillRevealed(question)}
                       accent={palette.accent}
                       soft={palette.soft}
@@ -4000,6 +4082,7 @@ export default function HomeworkFlow({
                         distractors={question.distractors ?? []}
                         value={parseWords(selectedAnswer)}
                         disabled={locked}
+                        showVerdict={showVerdict}
                         onChange={words => setFreeAnswer(question.id, joinWords(words))}
                       />
                     </div>

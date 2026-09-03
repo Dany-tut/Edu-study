@@ -266,3 +266,49 @@ export function keepsTogether(chunk: string): boolean {
 export function tidyProse(text: string): string {
   return glueHangingPunct(bindShortWords(text))
 }
+
+/**
+ * Строки абзаца конспекта с ВИСЯЧИМ отступом.
+ *
+ * Список слов приходит из генератора одной строкой на слово, а пример к слову —
+ * следующей строкой с ведущими пробелами (`languageCourse.ts`, portionTheory).
+ * Пока абзац рисовался одним блоком с `pre-wrap`, отступ держала только ПЕРВАЯ
+ * строка: перенос возвращал текст к левому полю, и хвост примера («course.»)
+ * оказывался левее самого примера и вровень с маркером соседнего слова —
+ * список читался как рваный. Отступ обязан быть свойством СТРОКИ, а не
+ * пробелами в её начале.
+ *
+ * Каждая строка становится своим блоком: ведущие пробелы снимаются и
+ * возвращаются полем слева (шаг PROSE_STEP), а строка с маркером получает
+ * вдобавок отрицательный `text-indent` — маркер стоит на своём поле, перенос
+ * выравнивается по тексту за ним. Пустых строк внутри абзаца не бывает:
+ * `theoryToParagraphs` режет конспект как раз по ним.
+ */
+const PROSE_STEP = 1.15
+
+export type ProseLine = { key: string; text: string; style: CSSProperties }
+
+/** Маркер списка в начале строки — за ним перенос и выравнивается. */
+const PROSE_BULLET = /^[•▪‣·—–-]\s/
+
+export function proseLines(text: string): ProseLine[] {
+  const out: ProseLine[] = []
+  text.split('\n').forEach((raw, i) => {
+    const lead = /^[ \t]*/.exec(raw)![0].length
+    const body = raw.slice(lead).trimEnd()
+    if (!body) return
+    // Уровень, а не число пробелов: в исходнике их то два, то три, то четыре, а
+    // на экране отступ должен быть один и тот же.
+    const level = Math.min(3, Math.ceil(lead / 3))
+    const hang = PROSE_BULLET.test(body) ? PROSE_STEP : 0
+    const pad = level * PROSE_STEP + hang
+    out.push({
+      key: `l${i}`,
+      text: body,
+      style: pad
+        ? { paddingLeft: `${pad}em`, textIndent: `${-hang}em` }
+        : {},
+    })
+  })
+  return out
+}

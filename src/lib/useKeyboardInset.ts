@@ -7,17 +7,24 @@
 // надо поднимать. Но iOS вдобавок СДВИГАЕТ видимую область вверх, чтобы поле
 // ввода не пряталось под клавиатуру, и в этот момент vv.offsetTop > 0.
 //
-// Раньше высота считалась как innerHeight - vv.height - vv.offsetTop, то есть
-// сдвиг вычитался из подъёма. Это верно только если fixed-элементы едут вместе
-// с layout viewport; на деле Safari держит их у видимой области, и вычитание
-// опускало кнопку ровно на величину сдвига — клавиатура наезжала на «Проверить»
-// (и тем сильнее, чем ниже на экране поле ввода). Поэтому подъём = чистая
-// высота клавиатуры, без offsetTop.
+// СКОЛЬКО ПОДНИМАТЬ — НЕ СЧИТАЕТСЯ, А ЗАМЕРЯЕТСЯ. Формулу приходилось менять
+// дважды в разные стороны, и оба раза она была права ровно наполовину. Дело в
+// том, что fixed-элемент ведёт себя по-разному: в обычной вкладке Safari он
+// остаётся у layout viewport (то есть под клавиатурой — поднимать надо на всю
+// её высоту), а в установленном на экран PWA едет вместе с видимой областью
+// (то есть уже стоит над клавиатурой — поднимать не надо вовсе). Считая
+// вслепую, мы либо прятали «Проверить» под клавиатуру, либо выбрасывали кнопку
+// на середину задания.
 //
-// А ещё из-за offsetTop «открыта» гасло само собой: сдвинули экран пальцем —
-// разность ушла под порог, клавиатура «закрылась», и из-под неё вылезала нижняя
-// навигация (её прячут именно по этому признаку). Признак открытости тоже
-// считается без offsetTop и потому не зависит от прокрутки.
+// Поэтому в документе живёт невидимая метка, прижатая к низу ровно так же, как
+// док и кнопка. Подъём — это её собственный «нахлёст»: насколько низ метки
+// оказался ниже видимой области. Метка отвечает за обе среды сразу и не
+// зависит от того, что именно Safari решит сделать в следующей версии.
+//
+// Признак «открыта» при этом считается по чистой разности высот, без offsetTop:
+// иначе он гас сам собой от сдвига видимой области (тронули страницу пальцем —
+// разность ушла под порог), и из-под клавиатуры выезжала нижняя навигация,
+// которую прячут именно по этому признаку.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react'
 
@@ -37,11 +44,35 @@ const CLOSED: KeyboardState = { inset: 0, open: false }
 let state: KeyboardState = CLOSED
 const listeners = new Set<(s: KeyboardState) => void>()
 
+// Невидимая метка у нижнего края — эталон для всего, что прижато к низу.
+// Ставится один раз и живёт до конца сессии: создавать её на каждый замер
+// нельзя, браузер отдаёт положение только после укладки.
+let mark: HTMLElement | null = null
+
+function overlap(vv: VisualViewport): number {
+  if (typeof document === 'undefined' || !document.body) return 0
+  if (!mark || !mark.isConnected) {
+    mark = document.createElement('div')
+    mark.setAttribute('aria-hidden', 'true')
+    mark.style.cssText =
+      'position:fixed;left:0;bottom:0;width:1px;height:1px;padding:0;margin:0;'
+      + 'visibility:hidden;pointer-events:none;z-index:-1'
+    document.body.appendChild(mark)
+  }
+  // Низ метки — в координатах layout viewport; видимая область занимает в них
+  // полосу [offsetTop, offsetTop + height]. Разность и есть то, что съедено.
+  return Math.round(mark.getBoundingClientRect().bottom - (vv.offsetTop + vv.height))
+}
+
 function read(): KeyboardState {
   const vv = typeof window === 'undefined' ? null : window.visualViewport
   if (!vv) return CLOSED
   const height = Math.round(window.innerHeight - vv.height)
-  return height >= MIN_KEYBOARD ? { inset: height, open: true } : CLOSED
+  if (height < MIN_KEYBOARD) return CLOSED
+  // Нахлёст не бывает больше клавиатуры и меньше нуля: за пределами этого
+  // отрезка замер поймал промежуточный кадр анимации, а не положение.
+  const lift = Math.max(0, Math.min(height, overlap(vv)))
+  return { inset: lift, open: true }
 }
 
 function publish() {

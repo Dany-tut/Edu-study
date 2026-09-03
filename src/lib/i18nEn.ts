@@ -1167,6 +1167,8 @@ export const EN: Record<string, string> = {
   "Из сида": "From template",
   "Сид обновился": "Template updated",
   "Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.": "The template has changed since you saved this course. Open it and press \u201cFrom template\u201d to see exactly what was added.",
+  "Курс не сверялся с готовым": "Course never checked against the template",
+  "Этот курс сохранён до того, как появилась сверка с готовым, — совпадают они или нет, пока неизвестно. Просто откройте курс: он сверится сам. Расхождения покажет кнопка «Из сида», а если их нет — точка погаснет.": "This course was saved before template checking existed, so whether it matches the template is unknown. Just open it: it checks itself. Differences show up under \u201cFrom template\u201d, and if there are none the dot goes away.",
   "Показать, что изменилось в готовом курсе с момента добавления": "Show what changed in the template since you added it",
   "Что изменилось в готовом курсе": "What changed in the template",
   "Применится к курсу в редакторе — в базу уйдёт после «Сохранить»": "Applies to the course in the editor — saved to the database on “Save”",

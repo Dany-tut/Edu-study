@@ -906,7 +906,17 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 
   return (
     <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: open ? 12 : 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* Раскрывается вся шапка, а не только кнопка справа: палец метит в
+          заголовок, а не в мелкий прямоугольник у края. */}
+      <div
+        onClick={() => setOpen(v => !v)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v) }
+        }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+      >
         <div style={{
           width: 34, height: 34, borderRadius: 12, flexShrink: 0,
           background: 'var(--color-bg-4)', display: 'grid', placeItems: 'center',
@@ -922,7 +932,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           </div>
         </div>
         <button
-          onClick={() => setOpen(v => !v)}
+          onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
           style={{
             padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
             border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',

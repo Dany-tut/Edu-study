@@ -3,6 +3,7 @@ import { blip, haptic } from './feedback'
 import { captureScreen, paintSnapshot, STAGE_ATTR, type Snapshot } from './screenSnapshot'
 import { freezeDockLayer, viewportGap } from './dockLayer'
 import { markScrollSet } from './useNavCollapse'
+import { headerEntering } from './useEnterAfterPaint'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useSwipeBack — «свайп назад» жестом от левого края экрана (как в iOS).
@@ -202,7 +203,17 @@ function scheduleCapture(delay = 400) {
   captureTimer = setTimeout(() => {
     captureTimer = null
     // Пока сцена наверху, экран заморожен и сдвинут — снимать его нельзя.
-    const run = () => { if (!stageUp) current = captureScreen() }
+    //
+    // И пока падает шапка — тоже: снимок копирует инлайновые стили framer, и
+    // пойманный на входе заголовок застывает в нём прозрачным навсегда
+    // (lib/useEnterAfterPaint.ts). Не пропускаем съёмку, а откладываем: после
+    // входа экран чаще всего больше не мутирует, и пропущенный снимок стал бы
+    // последним — свайп показывал бы нижний экран без шапки.
+    const run = () => {
+      if (stageUp) return
+      if (headerEntering()) { scheduleCapture(240); return }
+      current = captureScreen()
+    }
     const idle = (window as unknown as {
       requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number
     }).requestIdleCallback
@@ -1272,6 +1283,38 @@ function buildStage(under: Snapshot | null): Stage {
   const liveChips = pick(liveTop, () => headerChips(document.body))
   const underChips = pick(underTop, () => headerChips(underEl, underBase.top))
   pairMorphs(liveChips, underChips)
+
+  // ── ЗАГОЛОВОК В ШАПКЕ ТОЖЕ СТОИТ, А НЕ ЕДЕТ ──
+  //
+  // Всё, что не таблетка, ехало со страницей — и название урока проезжало
+  // ПОД закреплённой датой: на середине жеста на экране «Занятие #3 кусок» и
+  // поверх него чип «03.07», буквы по обе стороны от него (замер: заголовок
+  // 72 → 258 при чипе на 272). Читается как наложение, а не как переход.
+  //
+  // Заголовок ведёт себя как таблетка без пары: стоит на месте и гаснет под
+  // стыком (а на нижнем экране — проявляется из-под него). Пары ему хватает
+  // той же машинерии: pairMorphs со списком из одного элемента, где парой
+  // станет заголовок соседнего экрана, если он там есть.
+  const headerText = (row: HTMLElement | null, rowChips: HTMLElement[]) => {
+    if (!row) return []
+    const found: HTMLElement[] = []
+    const scan = (el: HTMLElement) => {
+      for (const kid of Array.from(el.children) as HTMLElement[]) {
+        // Сама таблетка и её начинка уже разобраны выше.
+        if (rowChips.some(c => c === kid || c.contains(kid))) continue
+        // Обёртка над таблеткой — не заголовок: спускаемся внутрь.
+        if (rowChips.some(c => kid.contains(c))) { scan(kid); continue }
+        const b = kid.getBoundingClientRect()
+        if (!b.width || !b.height) continue
+        if (!kid.textContent?.trim()) continue
+        if (!visible(kid)) continue
+        found.push(kid)
+      }
+    }
+    scan(row)
+    return found
+  }
+  pairMorphs(headerText(liveTop, liveChips), headerText(underTop, underChips))
 
   // ── Нижний док ───────────────────────────────────────────────────────────
   // Ряд управления над навигацией (предмет, половины режима, фильтры) стоит
