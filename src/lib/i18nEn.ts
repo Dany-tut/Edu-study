@@ -4167,6 +4167,14 @@ export const EN: Record<string, string> = {
   'Свайп начинается от края экрана — узкой полосой слева или справа. Смах по середине поста листает рубрики, как раньше.': 'A swipe starts at the screen edge — a narrow strip on the left or right. A swipe across the middle of the post flips through sections as before.',
   'Раскладка своя на каждом устройстве — на планшете она может быть другой.': 'The layout is per device — it can differ on a tablet.',
 
+  // ── админ смотрит чужой кабинет ──
+  'Кабинет': 'Cabinet',
+  'К себе': 'Back to mine',
+  'Вернуться к себе': 'Back to my own cabinet',
+  'смотрите сейчас': 'viewing now',
+  'только просмотр — правки отклонит база': 'read-only — the database rejects edits',
+  'Открыть кабинет этого преподавателя': "Open this teacher's cabinet",
+
   // ── тариф учителя: срок выдачи ──
   'на сколько?': 'for how long?',
   '1 месяц': '1 month',

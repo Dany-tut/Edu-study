@@ -61,6 +61,11 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
     setOpen(null)
   }
 
+  /** Слой внутри пустой таблетки: и призраки вариантов, и само «Выбрать». */
+  const pillContent: React.CSSProperties = {
+    gridArea: '1 / 1', display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
+  }
+
   return (
     <div ref={hostRef} style={{ fontSize: 16, lineHeight: 2.2, color: 'var(--color-text)' }}>
       {parts.map((chunk, i) => {
@@ -85,8 +90,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                     // заданиях. Заданной ширины тут не было смысла держать:
                     // содержимое прижималось влево, и весь запас уходил в одну
                     // дыру справа от шеврона — короткий вариант («goes») висел
-                    // в таблетке боком. Ширина строки от выбора меняется, и это
-                    // правильно: пропуск ровно такой, сколько в нём написано.
+                    // в таблетке боком.
                     display: 'inline-flex', alignItems: 'center', gap: 5,
                     padding: '3px 9px', borderRadius: 10,
                     fontFamily: 'inherit', fontSize: 15, fontWeight: 650, lineHeight: 1.5,
@@ -102,8 +106,37 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                     color: chosenText ? 'var(--color-text)' : 'var(--color-text-4)',
                   }}
                 >
-                  {chosenText ?? t('Выбрать')}
-                  <ChevronDown size={13} style={{ opacity: 0.5, flexShrink: 0 }} />
+                  {/* ПУСТОЙ ПРОПУСК ШИРИНОЙ В САМЫЙ ДЛИННЫЙ ВАРИАНТ, ВЫБРАННЫЙ
+                      — В СВОЁ СЛОВО. Пока не выбрано, под «Выбрать» лежат
+                      невидимые призраки всех вариантов: ширину задаёт самый
+                      широкий из них, и таблетка не дёргает строку в момент
+                      выбора — слово встаёт в уже готовое место. После выбора
+                      призраки уходят, и пропуск обнимает ровно то, что в нём
+                      написано. Мерим настоящим рендером, а не длиной строки:
+                      в пропорциональном шрифте «lll» уже́ «WW». */}
+                  {chosenText ? (
+                    <>
+                      {chosenText}
+                      <ChevronDown size={13} style={{ opacity: 0.5, flexShrink: 0 }} />
+                    </>
+                  ) : (
+                    <span style={{ display: 'grid', alignItems: 'center', justifyItems: 'center' }}>
+                      {gap.options.map((option, oi) => (
+                        <span
+                          key={oi}
+                          aria-hidden
+                          style={{ ...pillContent, visibility: 'hidden', pointerEvents: 'none' }}
+                        >
+                          {option}
+                          <ChevronDown size={13} style={{ flexShrink: 0 }} />
+                        </span>
+                      ))}
+                      <span style={pillContent}>
+                        {t('Выбрать')}
+                        <ChevronDown size={13} style={{ opacity: 0.5, flexShrink: 0 }} />
+                      </span>
+                    </span>
+                  )}
                 </button>
 
                 {/* Эталон дописывается рядом, а не вместо ответа: ученик должен

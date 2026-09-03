@@ -13,6 +13,7 @@ import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
+import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
@@ -267,6 +268,7 @@ export default function TeacherTopBar() {
 
   return (
     <>
+    <ViewAsBanner />
     <motion.div
       ref={teacherBarRef}
       style={{

@@ -32,6 +32,50 @@ import type { User } from '@supabase/supabase-js'
 //
 // Оба кеша сбрасываются на любую смену auth-состояния (вход/выход/обновление).
 
+// ── ПРОСМОТР ЧУЖОГО КАБИНЕТА (только админ) ───────────────────────────────
+//
+// Админу нужно видеть кабинет любого преподавателя целиком — Группы, ДЗ,
+// Журнал, Финансы, — а не по кусочку в реестре. Поскольку весь кабинет
+// спрашивает владельца ЗДЕСЬ, подмена одного этого id переключает все экраны
+// разом, без правок в 37 местах вызова.
+//
+// ПОЧЕМУ ЭТО НЕ ДЫРА. Подмена работает только на чтение, и держится она не на
+// честности клиента, а на RLS: политики `groups_read_auth` и
+// `teacher_read_students` содержат `is_admin()` — читать чужое админу
+// разрешено. А запись — `write_own_groups` с условием
+// `created_by = auth.uid()`, БЕЗ исключения для админа: попытка создать что-то
+// в чужом кабинете будет отклонена базой. То есть «только просмотр» здесь
+// обеспечивает сервер, а не спрятанная кнопка.
+//
+// Хранится в localStorage, чтобы переживать перезагрузку: админ уходит в чужой
+// кабинет надолго и F5 не должен возвращать его к себе молча.
+
+const VIEW_AS_KEY = 'iskra:viewAsTeacher'
+
+export interface ViewAsTeacher { id: string; name: string }
+
+export function getViewAs(): ViewAsTeacher | null {
+  try {
+    const raw = localStorage.getItem(VIEW_AS_KEY)
+    if (!raw) return null
+    const v = JSON.parse(raw) as ViewAsTeacher
+    return v?.id ? v : null
+  } catch { return null }
+}
+
+/**
+ * Переключить кабинет. Страница перезагружается намеренно: владельца успели
+ * прочитать десятки хуков и сторов со своими кешами, и выборочно их сбрасывать
+ * — значит однажды забыть один и показать смесь двух кабинетов.
+ */
+export function setViewAs(teacher: ViewAsTeacher | null) {
+  try {
+    if (teacher) localStorage.setItem(VIEW_AS_KEY, JSON.stringify(teacher))
+    else localStorage.removeItem(VIEW_AS_KEY)
+  } catch { /* приватный режим — просто не запомним */ }
+  window.location.reload()
+}
+
 let cachedSession: User | null | undefined
 let sessionInflight: Promise<User | null> | null = null
 
@@ -52,8 +96,11 @@ export async function getSessionUser(): Promise<User | null> {
   return sessionInflight
 }
 
-/** id владельца из локально сохранённой сессии. Без сети. */
+/** id владельца из локально сохранённой сессии. Без сети.
+ *  Если админ смотрит чужой кабинет — id того преподавателя. */
 export async function getOwnerId(): Promise<string | null> {
+  const view = getViewAs()
+  if (view) return view.id
   return (await getSessionUser())?.id ?? null
 }
 
@@ -71,7 +118,12 @@ export async function getAuthUser(): Promise<User | null> {
   return userInflight
 }
 
-supabase.auth.onAuthStateChange(() => {
+supabase.auth.onAuthStateChange(evt => {
   cachedSession = undefined
   cachedUser = undefined
+  // Выход из аккаунта снимает и просмотр: иначе следующий вошедший увидел бы
+  // чужой кабинет, выбранный не им.
+  if (evt === 'SIGNED_OUT') {
+    try { localStorage.removeItem(VIEW_AS_KEY) } catch { /* не важно */ }
+  }
 })

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Users, GraduationCap, Clock, RefreshCw } from 'lucide-react'
+import { Users, GraduationCap, Clock, RefreshCw, Eye } from 'lucide-react'
 import {
   fetchUserActivity, fetchTeacherUsage,
   type UserActivityRow, type TeacherUsageRow,
@@ -8,6 +8,7 @@ import {
 import { t, useT } from '../../lib/i18n'
 import AssignPlanButton from './AssignPlanButton'
 import AdminStudentsManager from './AdminStudentsManager'
+import { setViewAs, getViewAs } from '../../lib/owner'
 
 // Админский экран «По пользователям»: активное время, last seen, сессии по
 // каждому пользователю + per-teacher usage (активные ученики = будущий счётчик
@@ -305,6 +306,7 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
           <HintTh align="right" label={t('Время')} hint={t(TIME_HINT)} />
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Сессий')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Был(а)')}</th>
+          <th style={thStyle} />
         </tr>
       </thead>
       <tbody>
@@ -327,6 +329,25 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
             <td style={numTd}>{fmtMin(r.active_min)}</td>
             <td style={numTd}>{r.sessions}</td>
             <td style={numTd}>{fmtWhen(r.last_seen)}</td>
+            <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
+              {getViewAs()?.id === r.teacher_id ? (
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#D07020' }}>{t('смотрите сейчас')}</span>
+              ) : (
+                <button
+                  onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
+                  title={t('Открыть кабинет этого преподавателя')}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
+                    background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
+                    color: 'var(--color-text-2)', fontSize: 11.5, fontWeight: 600, fontFamily: 'inherit',
+                  }}
+                >
+                  <Eye size={12.5} strokeWidth={2.2} />
+                  {t('Кабинет')}
+                </button>
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
