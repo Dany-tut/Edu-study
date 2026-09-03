@@ -505,7 +505,18 @@ function buildStage(under: Snapshot | null): Stage {
     const cs = src ? getComputedStyle(src) : null
     const box = document.createElement('div')
     box.style.cssText = [
-      'display:flex', 'align-items:center', 'white-space:nowrap', 'box-sizing:border-box',
+      'display:flex', 'align-items:center', 'box-sizing:border-box',
+      // ПЕРЕНОС СТРОК — ТОЖЕ РАСКЛАДКА ОРИГИНАЛА.
+      //
+      // Жёсткий `nowrap` разгибал в одну строку то, что на экране стоит в две:
+      // таблетка курса («Английский: возвращение B2 за 14 дней») весь свайп
+      // ехала одной строкой, обрезанной с обеих сторон, и вставала в две уже
+      // после жеста. Ширина у обёртки та же, что у оригинала (у пары — ra.w с
+      // полями источника, у одиночки — 100% корпуса-копии), поэтому строки
+      // ложатся ровно так же, как на экране. `nowrap` остаётся запасным: у
+      // отсоединённой копии computed style пуст.
+      `white-space:${cs?.whiteSpace || 'nowrap'}`,
+      `text-align:${cs?.textAlign || 'center'}`,
       `justify-content:${cs?.justifyContent || 'center'}`,
       `gap:${cs?.columnGap && cs.columnGap !== 'normal' ? cs.columnGap : '6px'}`,
       // ПОЛЯ БЕРЁМ, ТОЛЬКО ЕСЛИ КОРПУС ИХ ОТДАЛ.
@@ -522,12 +533,24 @@ function buildStage(under: Snapshot | null): Stage {
       'will-change:opacity,filter,transform',
     ].join(';')
     while (el.firstChild) box.appendChild(el.firstChild)
-    // ЗНАЧОК НЕ СЖИМАЕТСЯ. У текста min-content — вся строка, у картинки ноль:
+    // ЗНАЧОК НЕ СЖИМАЕТСЯ, А ТЕКСТ — СЖИМАЕТСЯ. У картинки min-content ноль:
     // не хватило пары пикселей — и flex-раскладка честно ужимает ИМЕННО значок,
     // до нуля. Пусть лучше вылезет за край на пиксель (корпус всё равно режет
     // по себе), чем пропадёт совсем.
+    //
+    // А вот тексту `flex-shrink: 0` запрещать нельзя: неразжимаемый flex-элемент
+    // берёт max-content — то есть ВСЮ строку, — и подпись, стоящая на экране в
+    // две строки, в копии разгибалась в одну и обрезалась с обеих сторон.
+    // Сжимается он до min-content (самого длинного слова), а значок при этом
+    // всё равно защищён своим нулём.
+    // Сжимаем ТОЛЬКО там, где перенос вообще возможен: у таблетки с `nowrap`
+    // разжатый текст всё равно стоит одной строкой, и менять ей раскладку
+    // незачем — пусть остаётся ровно как была.
+    const wraps = (cs?.whiteSpace || 'nowrap') !== 'nowrap'
     for (const kid of Array.from(box.children)) {
-      if (kid instanceof HTMLElement || kid instanceof SVGElement) kid.style.flexShrink = '0'
+      if (!(kid instanceof HTMLElement || kid instanceof SVGElement)) continue
+      if (wraps && kid.textContent?.trim()) continue
+      kid.style.flexShrink = '0'
     }
     el.appendChild(box)
     return box
