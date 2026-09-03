@@ -68,7 +68,7 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
   ),
 
   // ── День 2: перфект, длительность и связь с настоящим ──
-  'ensp-2': reading(
+  'ensp-15': reading(
     'ELEVEN YEARS IN THE SAME ROOM\n\n'
     + 'I have been teaching chemistry in the same room for eleven years, and I have watched it change in ways that nobody planned.\n\n'
     + 'When I started, the room had been a biology lab for two decades, and it still had the skeleton in the corner cupboard. '
@@ -108,7 +108,7 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         ['The writer teaches more groups now than in 2019.', 'NG'],
       ]),
     ],
-    { title: 'День 2 · чтение' },
+    { title: 'День 1 · чтение' },
   ),
 
   // ── День 3: будущее и придаточные времени ──
@@ -151,6 +151,50 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         ['The reagents have not arrived yet.', 'T'],
         ['The supplier is to blame for the delay.', 'F'],
         ['The head of department has already rejected the proposal.', 'NG'],
+      ]),
+    ],
+    { title: 'День 3 · чтение' },
+  ),
+
+  // ── День 3: будущая точка отсчёта и нереальное прошлое ──
+  'ensp-16': reading(
+    'WHAT THE TERM WILL LOOK LIKE FROM ITS END\n\n'
+    + 'By the time the inspection comes round in November, this department will have run three practicals it was not ready for, '
+    + 'and everybody will have agreed, again, that the ordering system needs changing.\n\n'
+    + 'I can write that sentence in September because it has happened four years running. The order goes in late, the reagents arrive in the '
+    + 'middle of a topic, and by the time they arrive we will have taught the theory twice and the practical once, in the wrong order. '
+    + 'By December we will have forgotten how annoying it was, and by the following September nobody will have written any of it down.\n\n'
+    + 'If somebody had put the whole year on one form in September, the problem would have disappeared years ago. '
+    + 'The objection has always been that we cannot predict what we will need in June. That is true, and it misses the point: '
+    + 'the cost of ordering two boxes too many is one shelf; the cost of teaching equilibrium before rates is a group that has built '
+    + 'the wrong model and has to take it apart.\n\n'
+    + 'I wish I had made this argument properly the first year, when I still had the energy for meetings. '
+    + 'If only somebody had asked the technician, who has known the answer since before I arrived and has never been asked for it.\n\n'
+    + 'By the end of this term I will have taught here for twelve years. That is long enough to notice that the systems which survive '
+    + 'are not the sensible ones. They are the ones somebody wrote down.',
+    [
+      one('What does the writer predict about November?', [
+        'The inspection will be cancelled.',
+        'The department will have run three practicals it was not ready for.',
+        'The ordering system will have been changed.',
+        'The reagents will arrive on time for once.',
+      ], 1),
+      one('Why "we will have taught the theory twice" rather than "we will teach"?', [
+        'Because the teaching is happening right now.',
+        'Because it will already be finished by the future moment the writer names.',
+        'Because it is a habit that repeats every year.',
+        'Because the writer is not certain it will happen.',
+      ], 1),
+      one('What does "I wish I had made this argument properly the first year" mean?', [
+        'The writer made the argument and regrets how it was received.',
+        'The writer did not make the argument then and regrets it now.',
+        'The writer intends to make the argument next year.',
+        'The writer made the argument every year without success.',
+      ], 1),
+      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
+        ['The late ordering has repeated for four years running.', 'T'],
+        ['The technician has been asked for the answer many times.', 'F'],
+        ['The inspection in November is expected to fail the department.', 'NG'],
       ]),
     ],
     { title: 'День 3 · чтение' },
@@ -384,7 +428,7 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
   ),
 
   // ── День 9: придаточные, свёртка, cleft ──
-  'ensp-9': reading(
+  'ensp-2': reading(
     'WHAT ACTUALLY RUINED IT\n\n'
     + 'It was the storage temperature, not the reagent itself, that ruined three weeks of work. '
     + 'That sentence took a month to be able to write.\n\n'
@@ -407,10 +451,10 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         'The student’s method of measuring.',
         'The January delivery, which arrived late.',
       ], 1),
-      one('Why does the writer begin "It was the storage temperature, not the reagent itself, that…"?', [
-        'To make the sentence longer and more formal.',
-        'To single out one element as the cause, which normal word order cannot do in English.',
-        'Because the subject of the sentence is unknown.',
+      one('Why "had been through six hundred warming cycles" rather than "went through"?', [
+        'Because the cycles are still going on now.',
+        'Because the cycles happened before the point in the past the writer is describing.',
+        'Because the number is an estimate rather than a measurement.',
         'Because the sentence reports somebody else’s words.',
       ], 1),
       one('How was the cause discovered?', [
@@ -425,7 +469,7 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
         ['The fridge has since been replaced.', 'NG'],
       ]),
     ],
-    { title: 'День 9 · чтение' },
+    { title: 'День 2 · чтение' },
   ),
 
   // ── День 10: косвенная речь и глаголы речи ──
@@ -521,52 +565,6 @@ export const ENSP_READING: Record<string, SeedTask[]> = {
   ),
 
   // ── День 12: связки и инверсия ──
-  'ensp-12': reading(
-    'WHAT HOLDS A PARAGRAPH TOGETHER\n\n'
-    + 'No sooner had I started marking the essays than I noticed the pattern. Almost every weak paragraph was grammatically correct.\n\n'
-    + 'This is not the problem people expect. The sentences were fine; the joins were missing. A student would write four true statements '
-    + 'in a row and connect them with and, and, but — and the reader, who cannot see inside the writer’s head, has no way of knowing '
-    + 'which statement is the claim, which is the evidence and which is the concession.\n\n'
-    + 'Although the fix is small, it is not obvious, and it is almost never taught explicitly. Connectors are not decoration; '
-    + 'they are the only instructions the reader gets. Whereas and are neutral, however signals a turn, given that signals that '
-    + 'what follows rests on what came before, and that said tells the reader you are about to argue against yourself.\n\n'
-    + 'There is a grammatical trap in the middle of this, and it catches strong students more often than weak ones, '
-    + 'because weak students avoid the words entirely. Although is a conjunction and takes a clause. '
-    + 'Despite is a preposition and takes a noun. However is an adverb and needs a full stop or a semicolon before it. '
-    + 'Three words with almost the same meaning and three different grammars, and getting it wrong produces the single most common '
-    + 'error in advanced student writing.\n\n'
-    + 'Not only does the right connector make the argument visible, it also makes it shorter. '
-    + 'A paragraph that signals its structure does not need to explain its structure, and the sentences that were doing that work '
-    + 'can be deleted.',
-    [
-      one('What was wrong with the weak paragraphs?', [
-        'They contained grammatical mistakes.',
-        'They were too short to make an argument.',
-        'The sentences were correct but the connections between them were missing.',
-        'They used too many advanced connectors.',
-      ], 2),
-      one('Why does "Although" not work in the place of "Despite"?', [
-        'Although is informal and Despite is formal.',
-        'Although is a conjunction and needs a clause; Despite is a preposition and needs a noun.',
-        'Although can only be used at the start of a sentence.',
-        'They are interchangeable and the writer is mistaken.',
-      ], 1),
-      one('What does the writer say the right connector also achieves?', [
-        'It makes the paragraph longer and more detailed.',
-        'It makes the writing sound more academic.',
-        'It makes the argument shorter, because structure no longer has to be explained.',
-        'It removes the need for evidence.',
-      ], 2),
-      trueFalse('Верно, неверно или не указано? «Не указано» — это когда текст об этом молчит, а не отрицает.', [
-        ['Most of the weak paragraphs were grammatically correct.', 'T'],
-        ['The although/despite mistake catches weak students more often than strong ones.', 'F'],
-        ['The essays were written under exam conditions.', 'NG'],
-      ]),
-    ],
-    { title: 'День 12 · чтение' },
-  ),
-
-  // ── День 13: интеграция, всё сразу ──
   'ensp-13': reading(
     'A WEEK THAT USED EVERYTHING\n\n'
     + 'By the time the inspection was announced, we had been running the new storage system for a term, '

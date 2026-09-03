@@ -669,6 +669,16 @@ export const ENAC_DIALOGS: Record<string, SeedTask[]> = {
  * упражнение на лексику», а место, где форма стоит в ответной позиции.
  */
 export const ENSP_DIALOGS: Record<string, SeedTask[]> = {
+  'ensp-15': [gapDialog(ASK, [
+    ['Head', 'How long have you been in this room?'],
+    ['Sam', 'I ____ chemistry here for eleven years — since the biology lab moved out.'],
+  ], 'have been teaching', { distractors: ['teach', 'taught', 'had taught'] })],
+
+  'ensp-16': [gapDialog(ASK, [
+    ['Tech', 'Will the stock list be ready for the inspection?'],
+    ['Sam', 'By Friday we ____ the whole shelf, so yes.'],
+  ], 'will have re-labelled', { distractors: ['will re-label', 'are re-labelling', 'have re-labelled'] })],
+
   'ensp-1': [gapDialog(ASK, [
     ['Head', 'How did the flames go out in the middle of a practical?'],
     ['Sam', 'Somebody opened the window while I ____ the equation on the board.'],
@@ -709,11 +719,6 @@ export const ENSP_DIALOGS: Record<string, SeedTask[]> = {
     ['Sam', 'I know — I need to ____ before the inspection.'],
   ], 'get it serviced', { distractors: ['get it service', 'service it done', 'have serviced it'] })],
 
-  'ensp-9': [gapDialog(ASK, [
-    ['Head', 'So the reagent was faulty after all?'],
-    ['Sam', 'No — ____ the storage temperature that ruined it, not the reagent.'],
-  ], 'it was', { distractors: ['that was', 'there was', 'what was'] })],
-
   'ensp-10': [gapDialog(ASK, [
     ['Tech', 'What exactly did the inspector say?'],
     ['Sam', 'She ____ that the labelling was inconsistent, nothing stronger than that.'],
@@ -723,11 +728,6 @@ export const ENSP_DIALOGS: Record<string, SeedTask[]> = {
     ['Tech', 'Why did you stop halfway through?'],
     ['Sam', 'We ____ reagent and I had to improvise with the older batch.'],
   ], 'ran out of', { distractors: ['ran out', 'ran off', 'run out of'] })],
-
-  'ensp-12': [gapDialog(ASK, [
-    ['Head', 'Was the lecture worth the two hours?'],
-    ['Sam', '____ it was long, it was genuinely useful — I took four pages of notes.'],
-  ], 'Although', { distractors: ['Despite', 'However', 'In spite of'] })],
 
   'ensp-13': [gapDialog(ASK, [
     ['Head', 'How did the re-audit go over half term?'],

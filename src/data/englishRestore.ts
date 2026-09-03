@@ -33,19 +33,25 @@ import type { DiagQuestion, DiagResults } from './diagnosticData'
 import type { PlacementVerdict } from './placementTests'
 
 // Система → день программы. Порядок = порядок дней.
-export const SYSTEM_DAY: Record<string, { day: number; name: string }> = {
-  TNS: { day: 1,  name: 'Времена и вид' },
-  PRF: { day: 2,  name: 'Перфект' },
-  FUT: { day: 3,  name: 'Будущее' },
-  ART: { day: 4,  name: 'Артикли и исчисляемость' },
-  MOD: { day: 5,  name: 'Модальность' },
-  NFN: { day: 6,  name: 'Неличные формы' },
-  CND: { day: 7,  name: 'Условные и wish' },
-  PAS: { day: 8,  name: 'Пассив и каузатив' },
-  REL: { day: 9,  name: 'Придаточные и cleft' },
-  REP: { day: 10, name: 'Косвенная речь и вопросы' },
-  PRP: { day: 11, name: 'Предлоги и фразовые' },
-  DSC: { day: 12, name: 'Дискурс и порядок слов' },
+// Система → день программы восстановления. После пересборки курса под реальную
+// диагностику порядок другой: первые три дня целиком заняты перфектом (одна
+// конструкция, три точки отсчёта), а придаточные с выделением и инверсия со
+// связками из спринта убраны — это надстройка над кирпичом, которого у ученика
+// с такой картиной ещё нет. День null значит «тест это меряет, но в четырнадцать
+// дней не входит»; вердикт такие системы в «расширить день» не записывает.
+export const SYSTEM_DAY: Record<string, { day: number | null; name: string }> = {
+  PRF: { day: 2,    name: 'Перфект' },
+  TNS: { day: 4,    name: 'Времена и вид' },
+  ART: { day: 5,    name: 'Артикли и исчисляемость' },
+  PAS: { day: 6,    name: 'Пассив и каузатив' },
+  CND: { day: 7,    name: 'Условные и wish' },
+  FUT: { day: 8,    name: 'Будущее' },
+  PRP: { day: 9,    name: 'Предлоги и фразовые' },
+  MOD: { day: 10,   name: 'Модальность' },
+  REP: { day: 11,   name: 'Косвенная речь и вопросы' },
+  NFN: { day: 12,   name: 'Неличные формы' },
+  REL: { day: null, name: 'Придаточные и cleft' },
+  DSC: { day: null, name: 'Дискурс и порядок слов' },
 }
 
 export const SYSTEM_ORDER = Object.keys(SYSTEM_DAY)
@@ -126,7 +132,7 @@ export function englishRestoreVerdict(results: DiagResults): PlacementVerdict {
     .sort((a, b) => a.correct / a.total - b.correct / b.total)
     .slice(0, 3)
   const brokenNote = broken.length
-    ? ` Слабее всего: ${broken.map(s => `${SYSTEM_DAY[s.level].name.toLowerCase()} (день ${SYSTEM_DAY[s.level].day})`).join(', ')} — эти дни программы разворачиваем полностью.`
+    ? ` Слабее всего: ${broken.map(s => { const d = SYSTEM_DAY[s.level]; return d.day ? `${d.name.toLowerCase()} (день ${d.day})` : `${d.name.toLowerCase()} (вне спринта)` }).join(', ')} — дни программы разворачиваем полностью, а то, что вне спринта, оставляем на потом.`
     : ' Провалившихся систем нет — программу можно вести в ускоренном темпе, упирая на скорость извлечения, а не на разбор правил.'
 
   // Курс рекомендуется по результату, а не один на всех: тест ведёт в спринт
