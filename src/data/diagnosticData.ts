@@ -928,6 +928,11 @@ export interface AnonDiagResult {
   results: DiagResults
   answers: Record<string, number>
   linkedStudentId?: string
+  /** Сколько вопросов отвечено и сколько всего — у брошенных на середине. */
+  answered?: number
+  total?: number
+  /** false — прогон брошен на середине; строка есть, но результат неполный. */
+  completed: boolean
 }
 
 function rowToResult(row: Record<string, unknown>): AnonDiagResult {
@@ -939,6 +944,10 @@ function rowToResult(row: Record<string, unknown>): AnonDiagResult {
     results: row.results as DiagResults,
     answers: row.answers as Record<string, number>,
     linkedStudentId: (row.linked_student_id as string | null) ?? undefined,
+    answered: (row.answered as number | null) ?? undefined,
+    total: (row.total as number | null) ?? undefined,
+    // Строки, лежавшие до миграции 0082, — законченные прогоны (default true).
+    completed: (row.completed as boolean | null) ?? true,
   }
 }
 
@@ -969,8 +978,59 @@ export async function loadAnonResults(): Promise<AnonDiagResult[]> {
  *
  * Возвращаемая строка здесь никому не нужна — оба вызывающих её игнорируют.
  */
+/**
+ * Промежуточное сохранение прохождения: ответил — сохранилось.
+ *
+ * ЗАЧЕМ. Результат уходил в базу ОДИН раз, после последнего вопроса; закрыл
+ * вкладку на предпоследнем — не осталось ничего, даже факта, что человек
+ * начинал. Учитель при этом не отличал «не проходил» от «бросил на середине».
+ *
+ * ВЛАДЕНИЕ ПО ТОКЕНУ. Дописывать строку должен уметь аноним — диагностику
+ * проходят по общей ссылке, без аккаунта, — а прямой UPDATE ему открыть
+ * нельзя: политике нечем спросить «твоя ли это строка». Поэтому клиент
+ * придумывает секрет (uuid), держит его у себя и присылает при каждой записи,
+ * а запись идёт через одну узкую дверь — RPC `save_diag_progress`
+ * (миграция 0082, security definer). Завершённый прогон функция больше не
+ * переписывает.
+ *
+ * Ошибку глотаем намеренно: это фоновая дозапись после каждого ответа, и
+ * ронять на ней прохождение нельзя. Итоговый вызов (`completed: true`) свою
+ * неудачу показывает — там есть экран с повтором.
+ */
+export async function saveDiagProgress(p: {
+  token: string
+  name: string
+  subject: DiagSubject | string
+  results: DiagResults
+  answers: Record<string, number>
+  answered: number
+  total: number
+  completed: boolean
+  studentId?: string
+  assignmentId?: string
+  scorePct?: number
+}): Promise<boolean> {
+  const { error } = await supabase.rpc('save_diag_progress', {
+    p_token: p.token,
+    p_name: p.name,
+    p_subject: p.subject,
+    p_results: p.results,
+    p_answers: p.answers,
+    p_student_id: p.studentId ?? null,
+    p_assignment_id: p.assignmentId ?? null,
+    p_score_pct: p.scorePct ?? null,
+    p_answered: p.answered,
+    p_total: p.total,
+    p_completed: p.completed,
+  })
+  if (error) { console.error('saveDiagProgress:', error); return false }
+  return true
+}
+
 export async function appendAnonResult(
-  r: Omit<AnonDiagResult, 'id' | 'timestamp'>,
+  // completed/answered/total сюда не передают: эта дверь пишет только
+  // законченный прогон целиком (скрининг). Промежуточное — saveDiagProgress.
+  r: Omit<AnonDiagResult, 'id' | 'timestamp' | 'completed' | 'answered' | 'total'>,
   opts?: { studentId?: string; assignmentId?: string; scorePct?: number },
 ): Promise<boolean> {
   const { error } = await supabase
@@ -995,7 +1055,7 @@ export async function appendAnonResult(
   return true
 }
 
-async function updateStudentScoreFromAssignment(studentId: string, assignmentId: string, scorePct: number) {
+export async function updateStudentScoreFromAssignment(studentId: string, assignmentId: string, scorePct: number) {
   const { data: asgn } = await supabase
     .from('test_assignments')
     .select('assign_type')

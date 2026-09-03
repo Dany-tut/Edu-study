@@ -3,7 +3,7 @@ import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
-  loadDiagQuestions, fetchDiagQuestions, appendAnonResult,
+  loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
   type DiagSubject, type DiagQuestion, type DiagResults,
   type CustomTestMeta,
 } from '../data/diagnosticData'
@@ -281,6 +281,11 @@ export default function DiagnosticTestPage() {
   const [results, setResults] = useState<DiagResults>(snap?.results ?? {})
   const [saveFailed, setSaveFailed] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  // Секрет владения строкой: по нему аноним дописывает СВОЙ прогон и ничей
+  // больше (см. save_diag_progress, миграция 0082). Живёт в том же снимке, что
+  // и прогресс, поэтому перезагрузка продолжает ту же строку, а не заводит
+  // вторую. Новая вкладка — новый токен и, честно, новый прогон.
+  const [ownerToken] = useState<string>(() => snap?.ownerToken ?? crypto.randomUUID())
   const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
 
   const isLinkMode = !assignmentId  // shared link: no feedback shown
@@ -304,19 +309,48 @@ export default function DiagnosticTestPage() {
     if (askConfidence && confident !== null) {
       logConfidence({ anonName: studentName.trim() || 'Аноним', subject, source: 'diagnostic', confident, correct: idx === q!.correct })
     }
+    const next = { ...chosen, [q!.id]: idx }
+    // Дозапись после КАЖДОГО ответа, не дожидаясь конца: строка появляется на
+    // первом же ответе и дальше только дополняется. Не ждём её — прохождение
+    // не должно зависеть от сети; итоговая запись свою неудачу покажет сама.
+    if (current < total - 1) {
+      const { res, answered, scorePct } = tally(next)
+      void saveDiagProgress({
+        token: ownerToken, name: studentName.trim() || 'Аноним', subject: fetchSubject,
+        results: res, answers: next, answered, total, completed: false,
+        studentId: assignedStudentId, assignmentId, scorePct,
+      })
+    }
     setTimeout(() => {
       setConfident(null)
       if (current < total - 1) {
         setCurrent(c => c + 1)
       } else {
-        finishTest({ ...chosen, [q!.id]: idx })
+        finishTest(next)
       }
     }, 600)
   }
 
+  // Разбивка по системам считается ТОЛЬКО по отвеченным вопросам: у брошенного
+  // на середине прогона иначе получилось бы 3/36 вместо 3/3 по первой системе,
+  // и учитель прочитал бы это как провал вместо «дошёл до третьего вопроса».
+  function tally(answers: Record<string, number>) {
+    const res: DiagResults = {}
+    let answered = 0, correct = 0
+    for (const dq of questions) {
+      const a = answers[dq.id]
+      if (a === undefined) continue
+      answered++
+      if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
+      res[dq.section].total++
+      if (a === dq.correct) { res[dq.section].correct++; correct++ }
+    }
+    return { res, answered, scorePct: answered > 0 ? Math.round((correct / answered) * 100) : 0 }
+  }
+
   // Что именно уходило в базу — чтобы повтор отправлял ровно это, не пересчитывая
   // и не записывая ошибки в колоду повторений второй раз.
-  const payload = useRef<Parameters<typeof appendAnonResult> | null>(null)
+  const payload = useRef<Parameters<typeof saveDiagProgress>[0] | null>(null)
 
   async function finishTest(answers: Record<string, number>) {
     const res: DiagResults = {}
@@ -327,14 +361,16 @@ export default function DiagnosticTestPage() {
       if (answers[dq.id] === dq.correct) res[dq.section].correct++
       else captureMistake({ anonName: name, subject: fetchSubject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
     }
-    const totalQ = Object.values(res).reduce((a, s) => a + s.total, 0)
-    const correctQ = Object.values(res).reduce((a, s) => a + s.correct, 0)
-    const scorePct = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0
-    payload.current = [
-      { name, subject: fetchSubject, results: res, answers },
-      { studentId: assignedStudentId, assignmentId, scorePct },
-    ]
-    const ok = await appendAnonResult(...payload.current)
+    const { scorePct } = tally(answers)
+    payload.current = {
+      token: ownerToken, name, subject: fetchSubject, results: res, answers,
+      answered: questions.length, total: questions.length, completed: true,
+      studentId: assignedStudentId, assignmentId, scorePct,
+    }
+    const ok = await saveDiagProgress(payload.current)
+    if (ok && assignedStudentId && assignmentId) {
+      await updateStudentScoreFromAssignment(assignedStudentId, assignmentId, scorePct)
+    }
     setSaveFailed(!ok)
     setResults(res)
     setStep('done')
@@ -345,7 +381,7 @@ export default function DiagnosticTestPage() {
   async function retrySave() {
     if (!payload.current || retrying) return
     setRetrying(true)
-    const ok = await appendAnonResult(...payload.current)
+    const ok = await saveDiagProgress(payload.current)
     setSaveFailed(!ok)
     setRetrying(false)
   }
@@ -355,9 +391,9 @@ export default function DiagnosticTestPage() {
   useEffect(() => {
     if (step === 'name' && !Object.keys(chosen).length) return
     try {
-      sessionStorage.setItem(snapKey, JSON.stringify({ step, studentName, current, chosen, results }))
+      sessionStorage.setItem(snapKey, JSON.stringify({ step, studentName, current, chosen, results, ownerToken }))
     } catch { /* приватный режим — просто не переживём перезагрузку */ }
-  }, [snapKey, step, studentName, current, chosen, results])
+  }, [snapKey, step, studentName, current, chosen, results, ownerToken])
 
   function goBack() {
     try { sessionStorage.removeItem(snapKey) } catch { /* всё равно уходим */ }

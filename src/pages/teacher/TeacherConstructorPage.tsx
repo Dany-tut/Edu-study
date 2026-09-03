@@ -4479,6 +4479,17 @@ function DiagnosticStudentCard({
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
             <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{t(subjectLabel)}</span>
             <span>{date} · {time}</span>
+            {!result.completed && (
+              // Брошенный на середине прогон — отдельная вещь, а не низкий балл.
+              // Процент у него считается по ОТВЕЧЕННЫМ, поэтому без этой метки
+              // «40%» на трёх вопросах читалось бы как результат теста.
+              <span style={{
+                padding: '1px 7px', borderRadius: 6, fontSize: 10, fontWeight: 700,
+                background: 'var(--color-amber-soft, rgba(245,158,11,0.14))', color: '#b45309',
+              }}>
+                {t('не закончил')}{result.answered != null && result.total != null ? ` · ${result.answered}/${result.total}` : ''}
+              </span>
+            )}
             {linkedStudent && (
               <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Check size={10} strokeWidth={2.5} /> {linkedStudent.name.split(' ')[0]}
@@ -7110,7 +7121,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
   const { color: chipColor, bg: chipBg } = getChipStyle(chip, undefined, dark)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
   useEffect(() => {
-    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject).length))
+    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject && r.completed).length))
   }, [subject])
   return (
     <ContentCard
@@ -7134,7 +7145,7 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
   const [anonCount, setAnonCount] = useState(0)
   useEffect(() => {
     fetchDiagQuestions(test.id as DiagSubject).then(qs => setQCount(qs.length))
-    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === test.id).length))
+    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === test.id && r.completed).length))
   }, [test.id])
   const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
   const chip = test.chip ?? t('Диагностика')
