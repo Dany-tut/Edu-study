@@ -266,9 +266,34 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
   )
 }
 
+/**
+ * Срок тарифа под кнопкой.
+ *
+ * Пустой expires_at — это «бессрочно», а не «неизвестно»: так тариф выдаётся
+ * своим и на время беты. Поэтому прочерк не рисуем, пишем словом, иначе
+ * бессрочный и месячный выглядят одинаково.
+ *
+ * Просроченный подсвечивается: строка, по которой давно пора было выставить
+ * счёт, не должна выглядеть как действующая.
+ */
+function PlanExpiry({ iso, hasPlan }: { iso: string | null; hasPlan: boolean }) {
+  const t = useT()
+  if (!hasPlan) return null
+  if (!iso) return <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 3 }}>{t('бессрочно')}</div>
+  const end = new Date(iso)
+  const days = Math.ceil((end.getTime() - Date.now()) / 86_400_000)
+  const over = days < 0
+  return (
+    <div style={{ fontSize: 11, marginTop: 3, color: over ? '#E86A6A' : 'var(--color-text-3)', lineHeight: 1.2 }}>
+      {over ? t('истёк') : t('до')} {end.toLocaleDateString('ru-RU')}
+      {!over && days <= 14 && <> · {days} {t('дн')}</>}
+    </div>
+  )
+}
+
 function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
   const t = useT()
-  const [plans, setPlans] = useState<Record<string, string | null>>({})
+  const [plans, setPlans] = useState<Record<string, { code: string | null; expires: string | null }>>({})
   if (rows.length === 0) return <Empty />
   return (
     <TableShell>
@@ -289,9 +314,13 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
             <td style={tdStyle}>
               <AssignPlanButton
                 teacherId={r.teacher_id}
-                currentCode={plans[r.teacher_id] !== undefined ? plans[r.teacher_id] : r.plan_code}
-                onChanged={code => setPlans(p => ({ ...p, [r.teacher_id]: code }))}
+                currentCode={plans[r.teacher_id]?.code ?? (plans[r.teacher_id] ? null : r.plan_code)}
+                onChanged={(code, expires) => setPlans(p => ({ ...p, [r.teacher_id]: { code, expires } }))}
                 size="sm"
+              />
+              <PlanExpiry
+                iso={plans[r.teacher_id] ? plans[r.teacher_id].expires : r.expires_at}
+                hasPlan={!!(plans[r.teacher_id] ? plans[r.teacher_id].code : r.plan_code)}
               />
             </td>
             <td style={numTd}><b style={{ color: 'var(--color-text)' }}>{r.active_students}</b> / {r.total_students}</td>

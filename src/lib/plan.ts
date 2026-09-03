@@ -148,6 +148,7 @@ export interface TeacherUsageRow {
   name: string
   email: string | null
   plan_code: string | null
+  expires_at: string | null
   total_students: number
   active_students: number
   active_min: number

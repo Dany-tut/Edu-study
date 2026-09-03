@@ -4167,6 +4167,15 @@ export const EN: Record<string, string> = {
   'Свайп начинается от края экрана — узкой полосой слева или справа. Смах по середине поста листает рубрики, как раньше.': 'A swipe starts at the screen edge — a narrow strip on the left or right. A swipe across the middle of the post flips through sections as before.',
   'Раскладка своя на каждом устройстве — на планшете она может быть другой.': 'The layout is per device — it can differ on a tablet.',
 
+  // ── тариф учителя: срок выдачи ──
+  'на сколько?': 'for how long?',
+  '1 месяц': '1 month',
+  '3 месяца': '3 months',
+  'Год': 'A year',
+  'Бессрочно': 'No expiry',
+  'бессрочно': 'no expiry',
+  'истёк': 'expired',
+
   'Развернуть все': 'Expand all',
   'Свернуть все': 'Collapse all',
 

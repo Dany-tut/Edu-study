@@ -81,8 +81,14 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                   onClick={() => !disabled && setOpen(open === i ? null : i)}
                   disabled={disabled}
                   style={{
+                    // Таблетка обнимает свой вариант, как и все поля ответа в
+                    // заданиях. Заданной ширины тут не было смысла держать:
+                    // содержимое прижималось влево, и весь запас уходил в одну
+                    // дыру справа от шеврона — короткий вариант («goes») висел
+                    // в таблетке боком. Ширина строки от выбора меняется, и это
+                    // правильно: пропуск ровно такой, сколько в нём написано.
                     display: 'inline-flex', alignItems: 'center', gap: 5,
-                    minWidth: 92, padding: '3px 9px', borderRadius: 10,
+                    padding: '3px 9px', borderRadius: 10,
                     fontFamily: 'inherit', fontSize: 15, fontWeight: 650, lineHeight: 1.5,
                     cursor: disabled ? 'default' : 'pointer', verticalAlign: 'middle',
                     border: `1.5px solid ${

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronDown, Loader2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, Loader2 } from 'lucide-react'
 import { PLAN_TIERS, adminSetTeacherPlan, planPrice } from '../../lib/plan'
 import { dropdownSurface } from '../../lib/dropdownStyle'
 import { useT, useLang } from '../../lib/i18n'
@@ -15,10 +15,29 @@ import { useT, useLang } from '../../lib/i18n'
 // а длинная подпись не должна переноситься на вторую строку и растить строку.
 const TRIGGER_W = { sm: 122, md: 142 }
 
+// Сроки выдачи. `months: null` — бессрочно (expires_at остаётся пустым): так
+// выдаётся тариф своим и на время беты, и это не то же самое, что «год».
+const PERIODS: { months: number | null; label: string }[] = [
+  { months: 1, label: '1 месяц' },
+  { months: 3, label: '3 месяца' },
+  { months: 12, label: 'Год' },
+  { months: null, label: 'Бессрочно' },
+]
+
+/** Дата окончания через N месяцев. Полночь по местному — время дня здесь роли
+ *  не играет, а ровная дата читается в таблице лучше, чем «до 14:37». */
+function expiryFromNow(months: number | null): string | null {
+  if (months == null) return null
+  const d = new Date()
+  d.setMonth(d.getMonth() + months)
+  d.setHours(0, 0, 0, 0)
+  return d.toISOString()
+}
+
 export default function AssignPlanButton({ teacherId, currentCode, onChanged, size = 'md' }: {
   teacherId: string
   currentCode?: string | null
-  onChanged?: (code: string | null) => void
+  onChanged?: (code: string | null, expiresAt: string | null) => void
   size?: 'sm' | 'md'
 }) {
   const t = useT()
@@ -27,6 +46,10 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
   const [busy, setBusy] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
   const [err, setErr] = useState('')
+  // Второй шаг меню: тариф выбран, осталось назначить срок. Разводить их по
+  // шагам, а не спрашивать срок кнопкой рядом, — потому что тариф без срока
+  // выдать нельзя, а забыть про отдельный контрол легко.
+  const [pendingPlan, setPendingPlan] = useState<string | null>(null)
   const [pos, setPos] = useState<{ top: number; bottom: number; left: number; up: boolean } | null>(null)
   const btnRef = useRef<HTMLButtonElement | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
@@ -76,14 +99,15 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
 
   const current = PLAN_TIERS.find(p => p.code === currentCode)
 
-  async function apply(code: string | null) {
+  async function apply(code: string | null, months: number | null = null) {
     setBusy(code ?? '—'); setErr('')
-    const error = await adminSetTeacherPlan(teacherId, code)
+    const expires = expiryFromNow(months)
+    const error = await adminSetTeacherPlan(teacherId, code, expires)
     setBusy(null)
     if (error) { setErr(t('Ошибка')); return }
-    setOpen(false)
+    setOpen(false); setPendingPlan(null)
     setOk(true); setTimeout(() => setOk(false), 1600)
-    onChanged?.(code)
+    onChanged?.(code, expires)
   }
 
   const pad = size === 'sm' ? '5px 9px' : '7px 11px'
@@ -91,7 +115,7 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
 
   return (
     <>
-      <button ref={btnRef} onClick={() => (open ? setOpen(false) : openMenu())} style={{
+      <button ref={btnRef} onClick={() => (open ? (setOpen(false), setPendingPlan(null)) : openMenu())} style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
         width: TRIGGER_W[size], boxSizing: 'border-box', padding: pad, borderRadius: 9,
         border: '1px solid var(--color-border)', cursor: 'pointer', fontSize: fs, fontWeight: 600,
@@ -127,10 +151,43 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
                 ...dropdownSurface,
               }}
             >
+              {pendingPlan !== null ? (
+                <>
+                  <button
+                    onClick={() => setPendingPlan(null)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5, width: '100%', textAlign: 'left',
+                      padding: '6px 8px', marginBottom: 2, borderRadius: 8, border: 'none', cursor: 'pointer',
+                      background: 'transparent', color: 'var(--color-text-3)',
+                      fontSize: 11.5, fontWeight: 600, fontFamily: 'inherit',
+                    }}
+                  >
+                    <ChevronLeft size={13} />
+                    {t(PLAN_TIERS.find(p => p.code === pendingPlan)?.name ?? '')} · {t('на сколько?')}
+                  </button>
+                  {PERIODS.map(per => (
+                    <button
+                      key={per.label}
+                      onClick={() => apply(pendingPlan, per.months)}
+                      disabled={busy !== null}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
+                        padding: '9px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                        fontFamily: 'inherit', background: 'transparent', color: 'var(--color-text)',
+                        fontSize: 13, fontWeight: 700,
+                      }}
+                    >
+                      <span style={{ flex: 1 }}>{t(per.label)}</span>
+                      {busy !== null && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+                    </button>
+                  ))}
+                </>
+              ) : (
+              <>
               {PLAN_TIERS.map(p => {
                 const sel = p.code === currentCode
                 return (
-                  <button key={p.code} onClick={() => apply(p.code)} disabled={busy !== null} style={{
+                  <button key={p.code} onClick={() => setPendingPlan(p.code)} disabled={busy !== null} style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
                     padding: '9px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontFamily: 'inherit',
@@ -155,6 +212,8 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
               }}>
                 {t('Снять тариф (бета)')}
               </button>
+              </>
+              )}
               {err && <div style={{ fontSize: 11.5, color: '#E86A6A', padding: '4px 10px' }}>{err}</div>}
             </motion.div>
           )}

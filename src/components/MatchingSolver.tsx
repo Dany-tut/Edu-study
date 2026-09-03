@@ -322,7 +322,12 @@ export default function MatchingSolver({
               }}
             >
               {num > 0 && <Badge num={num} ok={ok} />}
-              <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
+              {/* Картинке отдаём всю ширину плитки и снимаем строчный бокс:
+                  обёртка-inline меряется по своему содержимому и не дотягивается
+                  до правого поля, а её межстрочный интервал добавляет сверху и
+                  снизу по десятку точек — картинка стоит в рамке со сдвигом
+                  влево, и поля вокруг неё разные. */}
+              <span style={{ minWidth: 0, wordBreak: 'break-word', ...(pair.leftImage ? { flex: 1, display: 'block' } : null) }}>
                 {pair.leftImage
                   ? <SideImage src={pair.leftImage} alt={pair.left} />
                   : <>{pair.left}<ScriptHint text={pair.left} lang={lang} /></>}
@@ -362,7 +367,7 @@ export default function MatchingSolver({
               }}
             >
               {num > 0 && <Badge num={num} ok={ok} />}
-              <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
+              <span style={{ minWidth: 0, wordBreak: 'break-word', ...(pairs[idx].rightImage ? { flex: 1, display: 'block' } : null) }}>
                 {pairs[idx].rightImage
                   ? <SideImage src={pairs[idx].rightImage!} alt={pairs[idx].right} />
                   : <>{pairs[idx].right}<ScriptHint text={pairs[idx].right} lang={lang} /></>}
