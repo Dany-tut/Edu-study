@@ -24,7 +24,8 @@ export default function ScrollFade({
   overlayScrollbar = false,
 }: {
   children: React.ReactNode
-  maxHeight: number
+  /** Число — предел в px; '100%' — растянуться внутри flex-колонки. */
+  maxHeight: number | string
   bg?: string
   fadeHeight?: number
   scrollClassName?: string

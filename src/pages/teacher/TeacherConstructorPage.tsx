@@ -5005,7 +5005,12 @@ function DiagResultStudentPanel({
         style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={result.name} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
-        <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <ScrollFade
+          maxHeight="100%"
+          bg="rgba(var(--glass-rgb), 0.97)"
+          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+          scrollStyle={{ flex: 1, scrollbarGutter: 'stable', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
 
           {/* Score ring */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, background: `${pctColor}10`, border: `1px solid ${pctColor}22` }}>
@@ -5094,7 +5099,7 @@ function DiagResultStudentPanel({
           <button onClick={handleDelete} style={{ width: '100%', height: 46, minHeight: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
             <Trash2 size={13} /> {t('Удалить результат')}
           </button>
-        </div>
+        </ScrollFade>
       </motion.div>
     </>
   )
