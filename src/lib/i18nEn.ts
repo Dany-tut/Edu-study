@@ -599,6 +599,7 @@ export const EN: Record<string, string> = {
   "день": "day",
   "дня": "days",
   "только что": "just now",
+  "сейчас": "now",
   "мин": "min",
   "ч": "h",
   "д": "d",

@@ -75,23 +75,16 @@ export default function StudentLoginPage() {
       return
     }
 
-    // 2) Fallback — legacy temp_password login for students not yet migrated.
-    const { data, error: rpcError } = await supabase.rpc('student_login', {
-      p_email: emailNorm,
-      p_password: passwordNorm,
-    })
+    // Раньше здесь стоял запасной путь — RPC student_login со сравнением
+    // temp_password прямым равенством, для учеников без аккаунта. Таких больше
+    // нет (03.09.2026), и сама функция удалена вместе с legacy-политиками:
+    // перебор пароля через неё не стоил ничего, ни хеша, ни лимита попыток.
+    //
+    // «Неверный пароль» на любую беду — враньё: чаще всего это пропавшая сеть
+    // или упёршийся лимит попыток, и человек чинит не то. Причину знает
+    // authErrorRu; когда она и правда в паре логин/пароль — текст тот же.
     setLoading(false)
-    if (rpcError || !data || data.length === 0) {
-      // «Неверный пароль» на любую беду — враньё: чаще всего это пропавшая сеть
-      // или упёршийся лимит попыток, и человек чинит не то. Причину знает
-      // authErrorRu; когда она и правда в паре логин/пароль — текст тот же.
-      setError(t(authErrorRu(rpcError ?? authErr, 'Неверный email или пароль')))
-      return
-    }
-    const s = data[0] as { id: string; name: string; group_id: string }
-    setStudentSession({ id: s.id, name: s.name, groupId: s.group_id })
-    void trackNow('login', { role: 'student', method: 'legacy' })
-    window.location.reload()
+    setError(t(authErrorRu(authErr, 'Неверный email или пароль')))
   }
 
   return (

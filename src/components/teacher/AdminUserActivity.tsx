@@ -30,11 +30,11 @@ function fmtWhen(iso: string | null): string {
   const d = new Date(iso)
   const now = Date.now()
   const diffH = (now - d.getTime()) / 3_600_000
-  if (diffH < 1) return t('только что')
-  if (diffH < 24) return `${Math.floor(diffH)} ${t('ч назад')}`
+  if (diffH < 1) return t('сейчас')
+  if (diffH < 24) return `${Math.floor(diffH)} ${t('ч')}`
   const diffD = Math.floor(diffH / 24)
-  if (diffD < 30) return `${diffD} ${t('дн назад')}`
-  return d.toLocaleDateString('ru-RU')
+  if (diffD < 30) return `${diffD} ${t('д')}`
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
 }
 
 const KIND_LABEL: Record<string, { label: string; color: string }> = {
