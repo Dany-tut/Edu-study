@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RefreshCw, Search, Pencil, X, ShieldAlert, KeyRound, User, ArrowRightLeft } from 'lucide-react'
+import { RefreshCw, Search, Pencil, X, ShieldAlert, KeyRound, User, ArrowRightLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Skeleton from '../Skeleton'
 import GrowTextarea from '../GrowTextarea'
@@ -62,6 +62,11 @@ export default function AdminStudentsManager() {
   const [confirmDel, setConfirmDel] = useState<StudentRow | null>(null)
   const [confirmMove, setConfirmMove] = useState<{ row: StudentRow; owner: string } | null>(null)
   const [notice, setNotice] = useState('')
+  // Свёрнутые учителя. Держим именно РАЗВЁРНУТЫХ, а не свёрнутых: учителей
+  // становится больше со временем, и новый должен приходить закрытым сам, без
+  // нашего участия.
+  const [openOwners, setOpenOwners] = useState<Set<string>>(new Set())
+  const [forceAll, setForceAll] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -152,6 +157,12 @@ export default function AdminStudentsManager() {
     return [...map.entries()]
   }, [shown, t])
 
+  // Поиск раскрывает всё сам: искать по свёрнутым спискам — значит смотреть
+  // на «Никого не нашлось» при живом совпадении внутри закрытой секции.
+  const searching = query.trim().length > 0
+  const expandAll = searching || forceAll
+  const allOpen = expandAll || (byOwner.length > 0 && byOwner.every(([id]) => openOwners.has(id)))
+
   const teacherOptions = teachers.map(tc => ({
     value: tc.id,
     label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}`,
@@ -185,6 +196,15 @@ export default function AdminStudentsManager() {
             options={[...teacherOptions, ...(orphans ? [{ value: NO_OWNER, label: t('Без учителя') }] : [])]}
           />
         </div>
+        {byOwner.length > 1 && !searching && (
+          <button
+            onClick={() => { setForceAll(!allOpen); if (allOpen) setOpenOwners(new Set()) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            <ChevronRight size={13} strokeWidth={2} style={{ transform: allOpen ? 'rotate(90deg)' : 'none', transition: 'transform 140ms ease' }} />
+            {allOpen ? t('Свернуть все') : t('Развернуть все')}
+          </button>
+        )}
         <button onClick={load} title={t('Обновить')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
@@ -211,9 +231,31 @@ export default function AdminStudentsManager() {
         <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>{t('Никого не нашлось.')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {byOwner.map(([ownerId, grp]) => (
+          {byOwner.map(([ownerId, grp]) => {
+            const open = expandAll || openOwners.has(ownerId)
+            return (
             <div key={ownerId}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8, padding: '0 2px' }}>
+              <button
+                onClick={() => setOpenOwners(prev => {
+                  const next = new Set(prev)
+                  next.has(ownerId) ? next.delete(ownerId) : next.add(ownerId)
+                  return next
+                })}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  marginBottom: open ? 8 : 0, padding: '7px 8px',
+                  background: 'transparent', border: 'none', borderRadius: 10,
+                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+                }}
+              >
+                <ChevronRight
+                  size={14}
+                  style={{
+                    color: 'var(--color-text-3)', flexShrink: 0,
+                    transform: open ? 'rotate(90deg)' : 'none',
+                    transition: 'transform 140ms ease',
+                  }}
+                />
                 <span style={{
                   fontSize: 13, fontWeight: 700,
                   color: ownerId === NO_OWNER ? '#D07020' : 'var(--color-text)',
@@ -221,7 +263,8 @@ export default function AdminStudentsManager() {
                 <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
                   {grp.items.length} {t('учеников')}
                 </span>
-              </div>
+              </button>
+              {open && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {grp.items.map(row => (
                   <div key={row.id} style={{
@@ -285,8 +328,9 @@ export default function AdminStudentsManager() {
                   </div>
                 ))}
               </div>
+              )}
             </div>
-          ))}
+          )})}
         </div>
       )}
 

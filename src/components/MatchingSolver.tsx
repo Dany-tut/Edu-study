@@ -245,6 +245,14 @@ export default function MatchingSolver({
     cursor: disabled ? 'default' : 'pointer', transition: 'background .12s, border-color .12s',
   }
 
+  /**
+   * У плитки-картинки поля со всех сторон одинаковые. Текстовой плитке боковые
+   * поля шире вертикальных нужны — буквы иначе упираются в рамку; но вокруг
+   * картинки та же пара 10/13 читается как перекос: цветной квадрат стоит в
+   * рамке не по центру, а прижатым сверху и снизу.
+   */
+  const imageTile: React.CSSProperties = { padding: 10 }
+
   /** Плитка: обычная / выбранная / связанная / с вердиктом (зелёная, красная). */
   const skin = (state: { active: boolean; num: number; ok: boolean | null }): React.CSSProperties => {
     if (state.ok !== null) return {
@@ -307,7 +315,11 @@ export default function MatchingSolver({
             <button
               key={i}
               onClick={() => tapLeft(i)}
-              style={{ ...tileBase, ...skin({ active: selected?.side === 'left' && selected.idx === i, num, ok }) }}
+              style={{
+                ...tileBase,
+                ...(pair.leftImage ? imageTile : null),
+                ...skin({ active: selected?.side === 'left' && selected.idx === i, num, ok }),
+              }}
             >
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
@@ -343,7 +355,11 @@ export default function MatchingSolver({
             <button
               key={idx}
               onClick={() => tapRight(idx)}
-              style={{ ...tileBase, ...skin({ active: selected?.side === 'right' && selected.idx === idx, num, ok }) }}
+              style={{
+                ...tileBase,
+                ...(pairs[idx].rightImage ? imageTile : null),
+                ...skin({ active: selected?.side === 'right' && selected.idx === idx, num, ok }),
+              }}
             >
               {num > 0 && <Badge num={num} ok={ok} />}
               <span style={{ minWidth: 0, wordBreak: 'break-word' }}>

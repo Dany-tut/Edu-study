@@ -50,6 +50,12 @@ import { okChime } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import AudioPlayer from './AudioPlayer'
 
+/** Толщина черты в единицах квадрата: ею же рисуется и подложка, и чернила. */
+const INK_WIDTH = 9
+
+/** Радиус шарика на кончике пера: заметно шире черты, чтобы читался пером. */
+const NIB_R = 6.5
+
 /** Насколько далеко от линии можно вести палец (в единицах квадрата 0..100). */
 const TOLERANCE = 16
 
@@ -107,11 +113,16 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   /** Ведём прямо сейчас: пока true, движение и отпускание слушает окно. */
   const [drawing, setDrawing] = useState(false)
   /**
-   * Доля текущей черты, которую уже прошли: по ней буква наливается, и из неё
-   * же считается, откуда продолжать. Отпускание её НЕ обнуляет — руку можно
-   * снять посреди длинной черты и дописать со второго захода.
+   * Сколько точек сгущения текущей черты уже пройдено: по ним буква наливается,
+   * и из них же считается, откуда продолжать. Отпускание НЕ обнуляет — руку
+   * можно снять посреди длинной черты и дописать со второго захода.
+   *
+   * Считаем именно точки, а не долю: доля `taken / длина` промахивается на шаг
+   * (первая точка — это ноль пройденного пути, а не один шаг из N), и чернила
+   * от этого уезжают вперёд пальца. Долю для заливки считает `ink` — по
+   * настоящей длине черты.
    */
-  const [progress, setProgress] = useState(0)
+  const [takenCount, setTakenCount] = useState(0)
   /** Толчок стартовой точке, когда начали не с неё: анимация проигрывается заново. */
   const [nudge, setNudge] = useState(0)
   /**
@@ -153,7 +164,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
    * несколько шагов вперёд: у соседней на скруглении дрожит угол, и стрелка
    * вертелась бы вместо того, чтобы показывать «вниз» или «влево».
    */
-  const takenIdx = denseCurrent ? Math.max(0, Math.round(progress * denseCurrent.length) - 1) : 0
+  const takenIdx = denseCurrent ? Math.min(denseCurrent.length - 1, Math.max(0, takenCount - 1)) : 0
   const resumeAt: Point = denseCurrent ? denseCurrent[takenIdx] : [50, 50]
   const aheadAt: Point = denseCurrent ? denseCurrent[Math.min(denseCurrent.length - 1, takenIdx + 8)] : resumeAt
   const heading = (Math.atan2(aheadAt[1] - resumeAt[1], aheadAt[0] - resumeAt[0]) * 180) / Math.PI
@@ -193,11 +204,58 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     }
   }, [denseCurrent, takenIdx])
 
+  /**
+   * ЧЕРНИЛА КОНЧАЮТСЯ РОВНО ПОД ПАЛЬЦЕМ, А НЕ НА ПОЛТОЛЩИНЫ ДАЛЬШЕ.
+   *
+   * Линия «бежала быстрее пальца» по двум причинам сразу, и обе — про рисование,
+   * а не про сверку. Во-первых, доля считалась по числу точек сгущения
+   * (`taken / длина`), а pathLength=1 меряет долю ПУТИ: у скруглённых черт
+   * (Q-кривые в strokePath) это разные шкалы, да и первая точка — ноль
+   * пройденного, а не один шаг из N. Во-вторых, у штриха круглый торец: он
+   * выступает вперёд на половину толщины, то есть на 4.5 из 100 — при квадрате
+   * в 300px это заметные ~14px впереди руки.
+   *
+   * Поэтому доля берётся по накопленной длине ломаной, а из неё вычитается
+   * радиус торца: видимый край чернил приходится ровно на пройденную точку.
+   */
+  const cum = useMemo(() => {
+    if (!denseCurrent) return null
+    const out = [0]
+    for (let i = 1; i < denseCurrent.length; i++) {
+      out.push(out[i - 1] + Math.hypot(
+        denseCurrent[i][0] - denseCurrent[i - 1][0],
+        denseCurrent[i][1] - denseCurrent[i - 1][1],
+      ))
+    }
+    return out
+  }, [denseCurrent])
+
+  const strokeLen = cum ? cum[cum.length - 1] : 0
+  const ink = cum && strokeLen > 0
+    ? Math.max(0, (cum[takenIdx] - INK_WIDTH / 2) / strokeLen)
+    : 0
+
+  /**
+   * Центр шарика на кончике пера. Он шире черты, поэтому сидит не в пройденной
+   * точке, а позади неё на разницу радиусов: передний край шарика приходится
+   * ровно туда же, куда край чернил, — на палец.
+   */
+  const nib: Point = (() => {
+    if (!denseCurrent) return resumeAt
+    const back = denseCurrent[Math.max(0, takenIdx - 3)]
+    const dx = resumeAt[0] - back[0]
+    const dy = resumeAt[1] - back[1]
+    const len = Math.hypot(dx, dy)
+    if (len === 0) return resumeAt
+    const shift = NIB_R - INK_WIDTH / 2
+    return [resumeAt[0] - (dx / len) * shift, resumeAt[1] - (dy / len) * shift]
+  })()
+
   const reset = () => {
     setStrokeIndex(0)
     taken.current = 0
     setDrawing(false)
-    setProgress(0)
+    setTakenCount(0)
     onChange('')
   }
 
@@ -247,20 +305,33 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
         // Иначе чернила убегают вперёд руки на весь допуск: отпустил на середине
         // перекладины, а залито уже на треть дальше — и непонятно, где ты
         // остановился и откуда продолжать.
+        //
+        // ОКНО СМОТРИТ И НАЗАД — ИНАЧЕ ЧЕРНИЛА ЕДУТ БЫСТРЕЕ ПАЛЬЦА. Раньше поиск
+        // начинался с уже пройденной точки, и позади пальца смотреть было
+        // некуда: точка `next` лежит впереди руки, но в пределах допуска — и
+        // потому оказывалась «ближайшей в окне». Каждое движение сдвигало
+        // заливку на шаг сгущения независимо от того, сколько прошла рука, так
+        // что при плавном ведении линия убегала ровно на весь допуск (замер:
+        // палец на 50, край чернил на 65 из 100) и там ехала впереди пальца.
+        // Со взглядом назад ближайшая точка — настоящая проекция руки на черту.
         let best = -1
         let bestDist = TOLERANCE
+        const from = Math.max(0, next - LOOKAHEAD)
         const limit = Math.min(denseCurrent.length, next + LOOKAHEAD)
-        for (let i = next; i < limit; i++) {
+        for (let i = from; i < limit; i++) {
           const d = Math.hypot(p[0] - denseCurrent[i][0], p[1] - denseCurrent[i][1])
           if (d < bestDist) { bestDist = d; best = i }
         }
-        if (best >= 0) next = best + 1
+        // Назад заливка не отматывается: провёл — написано. Вперёд её двигает
+        // только сам палец, и не дальше окна, чтобы нельзя было перепрыгнуть
+        // середину черты.
+        if (best >= 0) next = Math.max(next, best + 1)
       }
       if (!seen) return
 
       if (next !== taken.current) {
         taken.current = next
-        setProgress(next / denseCurrent.length)
+        setTakenCount(next)
         // Точки частые, и отклик на каждую превратился бы в непрерывный зуд:
         // отмечаем заметный кусок пути, а не каждый шаг сгущения.
         if (next - buzzed.current >= 10) {
@@ -276,7 +347,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
       // кружок со стрелкой ждёт на кончике. Сбрасывает только «Заново».
       if (taken.current < denseCurrent.length) return
       taken.current = 0
-      setProgress(0)
+      setTakenCount(0)
       const next = strokeIndex + 1
       setStrokeIndex(next)
       // Дописанная буква — это уже верный ответ, а не просто «закрылась ещё
@@ -322,7 +393,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           </div>
         </div>
         <div style={{ flex: 1 }} />
-        {!disabled && (strokeIndex > 0 || progress > 0) && strokeIndex < strokes.length && (
+        {!disabled && (strokeIndex > 0 || takenCount > 0) && strokeIndex < strokes.length && (
           <button
             onClick={reset}
             className="flex items-center cursor-pointer"
@@ -380,7 +451,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             // Пройденная черта — в полную силу, текущая — заметная тень,
             // будущие — намёк, по которому видно, что буква ещё не кончилась.
             strokeOpacity={i < strokeIndex ? 1 : i === strokeIndex ? 0.28 : 0.13}
-            strokeWidth={9}
+            strokeWidth={INK_WIDTH}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -391,22 +462,26 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             даже когда точки указателя приходят редкими пачками. Рисуется по
             самой черте, поэтому дрогнувшая рука не оставляет кляксу поперёк
             квадрата — она просто останавливает заливку. */}
-        {current && !done && progress > 0 && (
+        {current && !done && ink > 0 && (
           <path
             d={paths[strokeIndex]}
             fill="none"
             stroke="var(--color-blue-fill)"
-            strokeWidth={9}
+            strokeWidth={INK_WIDTH}
             strokeLinecap="round"
             strokeLinejoin="round"
             pathLength={1}
-            strokeDasharray={`${progress} 1`}
+            strokeDasharray={`${ink} 1`}
           />
         )}
 
-        {/* Кончик пера: видно, где сейчас «рука» и докуда дописано. */}
+        {/* Кончик пера: видно, где сейчас «рука» и докуда дописано. Шарик шире
+            черты — вровень с ней он читался просто её обрезанным концом, — но
+            посажен НАЗАД на разницу радиусов: центр в пройденной точке вынес бы
+            передний край на два лишних деления вперёд пальца, ради чего вся
+            арифметика с торцом и затевалась. */}
         {current && !done && drawing && (
-          <circle cx={resumeAt[0]} cy={resumeAt[1]} r={6.5} fill="var(--color-blue-fill)" />
+          <circle cx={nib[0]} cy={nib[1]} r={NIB_R} fill="var(--color-blue-fill)" />
         )}
 
         {/* Точка старта текущей черты — с неё и только с неё начинают вести.

@@ -128,11 +128,10 @@ const questions: HomeworkQuizQuestion[] = [
       { left: '물', right: 'вода', rightImage: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><rect width="160" height="120" rx="12" fill="%23D8F5EA"/><text x="80" y="84" font-size="64" text-anchor="middle">💧</text></svg>' },
     ],
   }),
-  q({
-    id: 'em', type: 'embed',
-    prompt: 'Пройдите упражнение и отметьте, что закончили',
-    embedUrl: 'https://wordwall.net/resource/1234567/english/irregular-verbs',
-  }),
+  // Внешнее упражнение (embed) со стенда снято: выдуманный адрес Wordwall
+  // отдаёт 404 и баннер про cookies на пол-экрана, а проверять на нём нечего —
+  // результат с чужой площадки к нам всё равно не приходит. Сам тип задания
+  // жив и лежит в палитре конструктора: вернуть его сюда — одна запись.
   q({
     id: 'sp2', type: 'speaking', lang: 'ko',
     prompt: 'Расскажите о любимом блюде — три предложения.',

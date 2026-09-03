@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Users, GraduationCap, Clock, RefreshCw } from 'lucide-react'
 import {
   fetchUserActivity, fetchTeacherUsage,
@@ -41,6 +42,9 @@ const KIND_LABEL: Record<string, { label: string; color: string }> = {
   student: { label: 'Ученик', color: '#2E8F76' },
   anon: { label: 'Гость', color: 'var(--color-text-3)' },
 }
+
+/** Расшифровка колонки «Время»: цифра не про действия, а про открытую вкладку. */
+const TIME_HINT = 'Минуты с открытой вкладкой: раз в минуту страница отмечается heartbeat-ом. Это не строго активные действия — вкладка могла просто висеть открытой.'
 
 const DAYS = [7, 30, 90] as const
 
@@ -127,10 +131,6 @@ export default function AdminUserActivity() {
           ) : (
             <TeachersTable rows={teachers} />
           )}
-
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 12, lineHeight: 1.5 }}>
-            {t('«Активное время» ≈ минуты с открытой вкладкой (heartbeat раз в минуту), а не строго активные действия. «Активные ученики» — те, кто заходил за период; это будущий счётчик тарифного лимита.')}
-          </div>
         </>
       )}
     </div>
@@ -165,6 +165,53 @@ function TableShell({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * Заголовок колонки с пояснением по наведению.
+ *
+ * Шапка таблицы должна читаться одним словом («Ученики»), а расшифровка
+ * «активные за период / всего» — длиннее самой колонки и ломала ряд на три
+ * строки. Поэтому расшифровка ушла в подсказку: пунктир под заголовком
+ * подсказывает, что здесь есть что посмотреть.
+ *
+ * Подсказка рисуется в портале с position: fixed — внутри таблицы её съедал бы
+ * overflow-x: auto у TableShell.
+ */
+function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; align?: 'left' | 'right' }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const show = () => {
+    const r = ref.current?.getBoundingClientRect()
+    if (r) setPos({ x: r.left + r.width / 2, y: r.bottom + 8 })
+  }
+  return (
+    <th style={{ ...thStyle, textAlign: align }}>
+      <span
+        ref={ref}
+        onMouseEnter={show}
+        onMouseLeave={() => setPos(null)}
+        style={{ borderBottom: '1px dotted var(--color-text-3)', cursor: 'help' }}
+      >
+        {label}
+      </span>
+      {pos && createPortal(
+        <div
+          style={{
+            position: 'fixed', left: pos.x, top: pos.y, transform: 'translateX(-50%)',
+            zIndex: 4000, pointerEvents: 'none', maxWidth: 260,
+            background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
+            borderRadius: 10, padding: '8px 11px', boxShadow: '0 10px 28px rgba(0,0,0,0.28)',
+            fontSize: 12.5, lineHeight: 1.35, fontWeight: 500, letterSpacing: 0,
+            textTransform: 'none', textAlign: 'left', color: 'var(--color-text-2)',
+          }}
+        >
+          {hint}
+        </div>,
+        document.body,
+      )}
+    </th>
+  )
+}
+
+/**
  * Имя с почтой под ним.
  *
  * Одного имени мало: «Даниил Макаренко» — это и учительский аккаунт с 24
@@ -194,7 +241,7 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
         <tr>
           <th style={thStyle}>{t('Пользователь')}</th>
           <th style={thStyle}>{t('Роль')}</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>{t('Время')}</th>
+          <HintTh align="right" label={t('Время')} hint={t(TIME_HINT)} />
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Сессий')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Входов')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Был(а)')}</th>
@@ -229,8 +276,8 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
         <tr>
           <th style={thStyle}>{t('Учитель')}</th>
           <th style={thStyle}>{t('Тариф')}</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>{t('Ученики (актив/всего)')}</th>
-          <th style={{ ...thStyle, textAlign: 'right' }}>{t('Время')}</th>
+          <HintTh align="right" label={t('Ученики')} hint={t('Активные за период / всего у учителя. Активный — тот, кто заходил в кабинет за выбранный период.')} />
+          <HintTh align="right" label={t('Время')} hint={t(TIME_HINT)} />
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Сессий')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Был(а)')}</th>
         </tr>

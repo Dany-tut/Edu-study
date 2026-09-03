@@ -1033,7 +1033,7 @@ export const EN: Record<string, string> = {
   "Пользователей": "Users",
   "Учеников активно": "Students active",
   "Активное время": "Active time",
-  "«Активное время» ≈ минуты с открытой вкладкой (heartbeat раз в минуту), а не строго активные действия. «Активные ученики» — те, кто заходил за период; это будущий счётчик тарифного лимита.": "\"Active time\" ≈ minutes with the tab open (heartbeat once per minute), not strictly active actions. \"Active students\" are those who logged in during the period; this is the future plan-limit counter.",
+  "Минуты с открытой вкладкой: раз в минуту страница отмечается heartbeat-ом. Это не строго активные действия — вкладка могла просто висеть открытой.": "Minutes with the tab open: the page sends a heartbeat once per minute. This is not strictly active work — the tab may have just been left open.",
   // — Админка → Пользователи → Ученики —
   "Без учителя": "No teacher",
   "Все учителя": "All teachers",
@@ -1061,7 +1061,7 @@ export const EN: Record<string, string> = {
   "Сессий": "Sessions",
   "Входов": "Logins",
   "Был(а)": "Last seen",
-  "Ученики (актив/всего)": "Students (active/total)",
+  "Активные за период / всего у учителя. Активный — тот, кто заходил в кабинет за выбранный период.": "Active in the period / total for this teacher. Active means they signed in during the selected period.",
   "без тарифа": "no plan",
   "Нет данных за выбранный период.": "No data for the selected period.",
   "Ошибка при регистрации. Попробуйте ещё раз.": "Registration error. Please try again.",
@@ -4166,6 +4166,9 @@ export const EN: Record<string, string> = {
   'Пока палец ведёт карточку и в момент, когда действие засчитано': 'While the finger drags the card and the moment the action counts',
   'Свайп начинается от края экрана — узкой полосой слева или справа. Смах по середине поста листает рубрики, как раньше.': 'A swipe starts at the screen edge — a narrow strip on the left or right. A swipe across the middle of the post flips through sections as before.',
   'Раскладка своя на каждом устройстве — на планшете она может быть другой.': 'The layout is per device — it can differ on a tablet.',
+
+  'Развернуть все': 'Expand all',
+  'Свернуть все': 'Collapse all',
 
   // ── работа с текстом и системой: типы, редакторы и превью ──
   'Верно / Неверно': 'True / False',
