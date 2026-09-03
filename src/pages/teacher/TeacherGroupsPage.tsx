@@ -852,7 +852,41 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
     return [...seen.values()]
   }, [students])
 
-  if (pending.length === 0) return null
+  // Сколько аккаунтов заведёт кнопка — СЧИТАЕТСЯ ОТДЕЛЬНЫМ ЗАПРОСОМ, а не по
+  // `pending`, потому что они расходятся дважды.
+  //
+  // 1. `students` — это группы, загруженные в кабинет. У админа функция на
+  //    сервере снимает фильтр по владельцу и обрабатывает всех; кнопка обещала
+  //    2 и завела 25 (03.09.2026).
+  // 2. `pending` требует inviteToken — он нужен ССЫЛКЕ, но не выдаче доступа:
+  //    ученик без токена в счёт не попадал, а аккаунт ему заводился.
+  //
+  // Запрос один и тот же для обеих ролей: RLS сама решает, что показать —
+  // админу всех, учителю своих. Схлопывание по person_id повторяет то, что
+  // делает функция: у 1:1-ученика несколько карточек, а человек один.
+  const [issuable, setIssuable] = useState<{ id: string; name: string }[] | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const { data } = await supabase
+        .from('students')
+        .select('id, name, person_id')
+        .is('auth_user_id', null)
+      if (!alive) return
+      const seen = new Map<string, { id: string; name: string }>()
+      for (const r of (data ?? []) as { id: string; name: string; person_id: string | null }[]) {
+        const key = r.person_id ?? r.id
+        if (!seen.has(key)) seen.set(key, { id: r.id, name: r.name })
+      }
+      setIssuable([...seen.values()])
+    })()
+    return () => { alive = false }
+  }, [students])
+
+  const issuableCount = issuable?.length ?? pending.length
+
+  if (pending.length === 0 && !issuableCount) return null
 
   const linkFor = (s: Student) =>
     `${window.location.origin}${window.location.pathname}#/join?token=${s.inviteToken}`
@@ -925,7 +959,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-            {t('Ещё без своего аккаунта')} · {pending.length}
+            {t('Ещё без своего аккаунта')} · {issuableCount}
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
             {t('Пока ученик не завёл аккаунт, его домашка видна всем, у кого есть адрес сайта')}
@@ -945,6 +979,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 
       {open && (
         <>
+          {pending.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {pending.map(s => (
               <button
@@ -966,6 +1001,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
               </button>
             ))}
           </div>
+          )}
           {/* Два пути, и главный — первый. Ссылка перекладывает работу на
               ученика, выдача доступа не требует от него ничего. */}
           <button
@@ -977,8 +1013,9 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
               background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700,
             }}
           >
-            {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${pending.length}`}
+            {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}
           </button>
+          {pending.length > 0 && (
           <button
             onClick={copyAll}
             style={{
@@ -989,6 +1026,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           >
             {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
           </button>
+          )}
 
           {issueErr && (
             <div style={{ fontSize: 12, color: 'var(--color-danger, #e5484d)' }}>{issueErr}</div>
