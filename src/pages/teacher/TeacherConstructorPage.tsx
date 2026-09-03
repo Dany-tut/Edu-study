@@ -1255,17 +1255,27 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
  *
  * NULL У СТАРЫХ КУРСОВ ЗНАЧИТ «НЕИЗВЕСТНО» — и признак показывается. Это
  * верно: курс, сохранённый до появления отпечатков, вполне мог отстать, и
- * честнее предложить свериться, чем промолчать. Одно нажатие «Из сида»
- * закрывает вопрос навсегда — даже если расхождений не нашлось.
+ * честнее предложить свериться, чем промолчать.
+ *
+ * НО «НЕИЗВЕСТНО» И «ОТСТАЛ» — РАЗНЫЕ ВЕЩИ, И ГОВОРИТЬ О НИХ НАДО РАЗНОЕ.
+ * Обе показывались одной подсказкой «нажмите „Из сида“», а кнопка появляется
+ * только при найденных расхождениях. Курс с пустым отпечатком, который на
+ * самом деле совпадает с готовым, посылал учителя к кнопке, которой там нет:
+ * он заходил, ничего не находил и выходил с той же точкой. Поэтому у
+ * «неизвестно» свой текст — заход в курс и есть всё нужное действие: редактор
+ * сверяется сам и штампует курс (см. TeacherCourseEditorPage).
  */
-function seedMovedAhead(course: Course): boolean {
+type SeedState = 'behind' | 'unknown' | null
+
+function seedMovedAhead(course: Course): SeedState {
   const key = seedKeyOf({ id: course.id, dbCourseId: course.dbCourseId })
-  if (!key) return false
+  if (!key) return null
   const stamp = SEED_CARDS[key]?.stamp
   // Сид без отпечатка (не штамповали) сравнивать не с чем — молчим, а не
   // показываем признак у всех подряд.
-  if (!stamp) return false
-  return course.seedStamp !== stamp
+  if (!stamp) return null
+  if (!course.seedStamp) return 'unknown'
+  return course.seedStamp === stamp ? null : 'behind'
 }
 
 // ТОЧКА, А НЕ ПЛАШКА. Статус курса — постоянное свойство, «сид ушёл вперёд» —
@@ -1280,7 +1290,7 @@ function seedMovedAhead(course: Course): boolean {
 // светлом оформлении ОС и мимо тёмной темы кабинета, да ещё и меняет курсор на
 // «?». Пузырёк уходит в портал (карточка режет overflow) и позиционируется
 // fixed по месту точки.
-function SeedDot() {
+function SeedDot({ state }: { state: Exclude<SeedState, null> }) {
   const t = useT()
   const ref = useRef<HTMLSpanElement>(null)
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
@@ -1301,7 +1311,7 @@ function SeedDot() {
         ref={ref}
         onMouseEnter={show}
         onMouseLeave={() => setPos(null)}
-        aria-label={t('Сид обновился')}
+        aria-label={state === 'behind' ? t('Сид обновился') : t('Курс не сверялся с готовым')}
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 14, height: 18,
@@ -1332,7 +1342,9 @@ function SeedDot() {
               fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: 'var(--color-text)',
             }}
           >
-            {t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')}
+            {state === 'behind'
+              ? t('Готовый курс изменился с тех пор, как вы его сохранили. Откройте курс и нажмите «Из сида» — там видно, что именно добавилось.')
+              : t('Этот курс сохранён до того, как появилась сверка с готовым, — совпадают они или нет, пока неизвестно. Просто откройте курс: он сверится сам. Расхождения покажет кнопка «Из сида», а если их нет — точка погаснет.')}
           </motion.div>
         </div>,
         document.body,
@@ -1352,7 +1364,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
         <div style={{ display: 'flex', gap: 5 }}>
           <span style={cardChip(STATUS_COLOR[course.status])}>{t(STATUS_LABEL[course.status])}</span>
           {course.shared && <span style={cardChip('var(--color-purple-text)')}>{t('Общий')}</span>}
-          {seedMovedAhead(course) && <SeedDot />}
+          {(() => { const st = seedMovedAhead(course); return st && <SeedDot state={st} /> })()}
         </div>
       }
       title={course.title}
@@ -7629,10 +7641,22 @@ export default function TeacherConstructorPage() {
     // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
     // состоит из чужих готовых курсов, а настоящие подставляются под них позже.
     if (!accessLoaded || !isAdmin || editMode || dbLoading) return map
-    const taken = new Set(courses.map(c => c.id))
+    // ЗАНЯТО — ЭТО ПО КЛЮЧУ СИДА, А НЕ ПО ПОЛНОМУ id. id несёт хвост владельца
+    // (`seed-ensp-84fe210b`), а он берётся из ownerId, который приезжает своим
+    // запросом. Пока его нет, id выходил коротким (`seed-ensp`), совпадения с
+    // сохранённым курсом не находилось — и плитка сида вставала рядом с ним
+    // дублем, ведущим на свежую сборку поверх живого курса. Ключ сида в id
+    // сохранённого курса есть всегда, чей бы ни был хвост.
+    //
+    // Чужие (расшаренные) курсы в счёт не идут: у них свой владелец, свой id, и
+    // «этот сид у меня уже сохранён» они не доказывают.
+    const taken = new Set(
+      courses.filter(c => !c.shared)
+        .map(c => seedKeyOf({ id: c.id, dbCourseId: c.dbCourseId }))
+        .filter(Boolean),
+    )
     for (const s of COURSE_SEEDS) {
-      const id = seedCourseId(s, ownerId)
-      if (!taken.has(id)) map.set(id, s)
+      if (!taken.has(s.key)) map.set(seedCourseId(s, ownerId), s)
     }
     return map
   }, [courses, ownerId, isAdmin, accessLoaded, editMode, dbLoading])
@@ -7914,12 +7938,27 @@ export default function TeacherConstructorPage() {
   // Готовый курс из сида. Id курса стабилен (`seed-<ключ>`), а не случайный:
   // повторное открытие того же сида ведёт в тот же курс, а не плодит копии.
   async function goToSeedCourseEditor(seed: CourseSeed) {
+    const id = seedCourseId(seed, ownerId ?? await getOwnerId())
+
+    // СОХРАНЁННЫЙ КУРС ГЛАВНЕЕ КАРТОЧКИ СИДА. Id у собранного из сида курса
+    // стабилен и равен short_id сохранённой строки — то есть карточка сида и
+    // сохранённый курс метят в одну и ту же запись. Обычно плитки сида уже нет
+    // (см. seedById), но пока свой id считался по ещё не приехавшему ownerId,
+    // он выходил без хвоста владельца, совпадения не находилось, и плитка
+    // висела рядом с настоящим курсом. Клик по ней открывал СВЕЖУЮ сборку
+    // поверх сохранённой: без dbCourseId (нет «Выдать группе»), с нулевой
+    // сверкой (кнопка «Из сида» не появлялась никогда, хотя копия в базе
+    // отставала на сотню заданий), а «Сохранить» затирало бы живой курс
+    // содержимым сида. Нашли сохранённый — открываем его обычным путём.
+    const saved = courses.find(c => (c.dbCourseId ?? c.id) === id)
+    if (saved) { await goToCourseEditor(saved); return }
+
     // build асинхронный: контент курса приезжает своим чанком по клику, а не
     // лежит в главном бандле у всех (см. courseSeeds.ts).
     // Курс, только что собранный из сида, по определению стоит на его текущем
     // отпечатке — отсюда и штамп: дальше он меняется только применением «Из сида».
     openCourseEditor(JSON.stringify({
-      ...await seed.build(seedCourseId(seed, ownerId ?? await getOwnerId())),
+      ...await seed.build(id),
       seedStamp: seed.summary.stamp,
     }))
   }
