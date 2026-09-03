@@ -93,7 +93,10 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 }
 
 // ── Done screen ───────────────────────────────────────────────────────────────
-function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null }) {
+function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, onRetry }: {
+  accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null
+  saveFailed?: boolean; retrying?: boolean; onRetry?: () => void
+}) {
   const t = useT()
   const dark = useTheme(s => s.dark)
   const bannerRef = useRef<HTMLDivElement>(null)
@@ -140,8 +143,20 @@ function DiagDoneScreen({ accentColor, onBack, verdict }: { accentColor: string;
           {t('Молодец! Ты справился 🎉')}
         </div>
         <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: verdict ? 20 : 28, maxWidth: 300 }}>
-          {t('Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)')}
+          {saveFailed
+            ? t('Ответы посчитаны, но отправить их преподавателю не удалось. Проверьте связь и нажмите «Отправить ещё раз» — с этого экрана уходить нельзя, иначе результат потеряется.')
+            : t('Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)')}
         </div>
+        {saveFailed && (
+          <button onClick={onRetry} disabled={retrying}
+            style={{
+              width: '100%', padding: '12px 0', marginBottom: verdict ? 16 : 24, borderRadius: 14,
+              border: 'none', cursor: retrying ? 'default' : 'pointer', fontFamily: 'inherit',
+              fontSize: 14, fontWeight: 700, background: '#ef4444', color: '#fff', opacity: retrying ? 0.6 : 1,
+            }}>
+            {retrying ? t('Отправляю…') : t('Отправить ещё раз')}
+          </button>
+        )}
 
         {/* Placement-вердикт: уровень + рекомендация курса */}
         {verdict && (
@@ -264,6 +279,8 @@ export default function DiagnosticTestPage() {
   const [current, setCurrent] = useState<number>(snap?.current ?? 0)
   const [chosen, setChosen] = useState<Record<string, number>>(snap?.chosen ?? {})  // questionId → option index
   const [results, setResults] = useState<DiagResults>(snap?.results ?? {})
+  const [saveFailed, setSaveFailed] = useState(false)
+  const [retrying, setRetrying] = useState(false)
   const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
 
   const isLinkMode = !assignmentId  // shared link: no feedback shown
@@ -297,6 +314,10 @@ export default function DiagnosticTestPage() {
     }, 600)
   }
 
+  // Что именно уходило в базу — чтобы повтор отправлял ровно это, не пересчитывая
+  // и не записывая ошибки в колоду повторений второй раз.
+  const payload = useRef<Parameters<typeof appendAnonResult> | null>(null)
+
   async function finishTest(answers: Record<string, number>) {
     const res: DiagResults = {}
     const name = studentName.trim() || 'Аноним'
@@ -309,12 +330,24 @@ export default function DiagnosticTestPage() {
     const totalQ = Object.values(res).reduce((a, s) => a + s.total, 0)
     const correctQ = Object.values(res).reduce((a, s) => a + s.correct, 0)
     const scorePct = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0
-    await appendAnonResult(
+    payload.current = [
       { name, subject: fetchSubject, results: res, answers },
       { studentId: assignedStudentId, assignmentId, scorePct },
-    )
+    ]
+    const ok = await appendAnonResult(...payload.current)
+    setSaveFailed(!ok)
     setResults(res)
     setStep('done')
+  }
+
+  // Отправка могла не дойти: сеть в метро, отвалившаяся сессия. Раньше экран в
+  // любом случае показывал «готово», и человек уходил уверенный, что сдал.
+  async function retrySave() {
+    if (!payload.current || retrying) return
+    setRetrying(true)
+    const ok = await appendAnonResult(...payload.current)
+    setSaveFailed(!ok)
+    setRetrying(false)
   }
 
   // Снимок пишется на каждое изменение: перезагрузка может случиться в любой
@@ -429,7 +462,8 @@ export default function DiagnosticTestPage() {
 
   // ── Results view ──
   if (done) {
-    return <DiagDoneScreen accentColor={theme.accent} onBack={goBack} verdict={getPlacementVerdict(fetchSubject, results)} />
+    return <DiagDoneScreen accentColor={theme.accent} onBack={goBack} verdict={getPlacementVerdict(fetchSubject, results)}
+      saveFailed={saveFailed} retrying={retrying} onRetry={retrySave} />
   }
 
   // ── Test view ──

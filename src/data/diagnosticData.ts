@@ -951,11 +951,29 @@ export async function loadAnonResults(): Promise<AnonDiagResult[]> {
   return (data ?? []).map(rowToResult)
 }
 
+/**
+ * Сдать результат. Возвращает `true`, если строка легла в базу.
+ *
+ * БЕЗ `.select()` — И ЭТО НЕ ЭКОНОМИЯ, А ЕДИНСТВЕННЫЙ РАБОЧИЙ ВАРИАНТ.
+ * Раньше здесь стояло `.insert(...).select().single()`, то есть
+ * `INSERT ... RETURNING`. Postgres требует, чтобы возвращаемая строка прошла
+ * ещё и SELECT-политику, а у анонима она — `student_id is not null`. При
+ * прохождении по общей ссылке student_id пустой, проверка не проходит, и
+ * отклоняется ВСЯ вставка: «new row violates row-level security policy».
+ *
+ * Итог был такой: любой, кто проходил диагностику по ссылке не залогиненным,
+ * терял результат целиком — а экран показывал «готово», потому что ошибка
+ * уходила в console.error. Учителя это не задевало: у staff SELECT-политика
+ * проходит, и его собственные прогоны сохранялись. Отсюда и ощущение, что
+ * тесты работают.
+ *
+ * Возвращаемая строка здесь никому не нужна — оба вызывающих её игнорируют.
+ */
 export async function appendAnonResult(
   r: Omit<AnonDiagResult, 'id' | 'timestamp'>,
   opts?: { studentId?: string; assignmentId?: string; scorePct?: number },
-): Promise<AnonDiagResult | null> {
-  const { data, error } = await supabase
+): Promise<boolean> {
+  const { error } = await supabase
     .from('diag_results')
     .insert({
       name: r.name,
@@ -967,16 +985,14 @@ export async function appendAnonResult(
       assignment_id: opts?.assignmentId ?? null,
       score_pct: opts?.scorePct ?? null,
     })
-    .select()
-    .single()
-  if (error) { console.error('appendAnonResult:', error); return null }
+  if (error) { console.error('appendAnonResult:', error); return false }
 
   // Auto-update student score field when submitted under an assignment
   if (opts?.studentId && opts?.assignmentId && opts.scorePct != null) {
     await updateStudentScoreFromAssignment(opts.studentId, opts.assignmentId, opts.scorePct)
   }
 
-  return rowToResult(data)
+  return true
 }
 
 async function updateStudentScoreFromAssignment(studentId: string, assignmentId: string, scorePct: number) {
