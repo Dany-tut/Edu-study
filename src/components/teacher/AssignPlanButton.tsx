@@ -13,7 +13,11 @@ import { useT, useLang } from '../../lib/i18n'
 // Ширина поля фиксирована и не зависит от подписи: в таблице кнопки стоят
 // столбцом, и «Бесплатный» рядом с «Тариф» не должны разъезжаться по ширине,
 // а длинная подпись не должна переноситься на вторую строку и растить строку.
-const TRIGGER_W = { sm: 122, md: 142 }
+//
+// Считана по самому длинному варианту — «Бесплатный · до 03.12.26»: срок
+// переехал внутрь кнопки, и обрезать его многоточием значило бы прятать ровно
+// то, ради чего он тут появился.
+const TRIGGER_W = { sm: 196, md: 216 }
 
 // Сроки выдачи. `months: null` — бессрочно (expires_at остаётся пустым): так
 // выдаётся тариф своим и на время беты, и это не то же самое, что «год».
@@ -34,9 +38,10 @@ function expiryFromNow(months: number | null): string | null {
   return d.toISOString()
 }
 
-export default function AssignPlanButton({ teacherId, currentCode, onChanged, size = 'md' }: {
+export default function AssignPlanButton({ teacherId, currentCode, expiresAt, onChanged, size = 'md' }: {
   teacherId: string
   currentCode?: string | null
+  expiresAt?: string | null
   onChanged?: (code: string | null, expiresAt: string | null) => void
   size?: 'sm' | 'md'
 }) {
@@ -99,6 +104,22 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
 
   const current = PLAN_TIERS.find(p => p.code === currentCode)
 
+  // Срок — в той же строке, что и название: отдельной подписью снизу он
+  // растил высоту строки таблицы и читался как чужой комментарий.
+  //
+  // Показываем ДАТУ, а не «3 месяца». Срок выдачи — это то, что выбрали
+  // однажды; со временем оно перестаёт быть правдой, а дата верна всегда.
+  const term = (() => {
+    if (!current) return null
+    if (!expiresAt) return { text: t('бессрочно'), over: false }
+    const end = new Date(expiresAt)
+    if (end.getTime() < Date.now()) return { text: t('истёк'), over: true }
+    return {
+      text: `${t('до')} ${end.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`,
+      over: false,
+    }
+  })()
+
   async function apply(code: string | null, months: number | null = null) {
     setBusy(code ?? '—'); setErr('')
     const expires = expiryFromNow(months)
@@ -124,7 +145,16 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
         color: current ? 'var(--color-purple)' : 'var(--color-text-2)',
       }}>
         <span style={{ flex: 1, minWidth: 0, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {ok ? <Check size={14} /> : current ? t(current.name) : t('Тариф')}
+          {ok ? <Check size={14} /> : current ? (
+            <>
+              {t(current.name)}
+              {term && (
+                <span style={{ fontWeight: 500, opacity: term.over ? 1 : 0.75, color: term.over ? '#E86A6A' : undefined }}>
+                  {' · '}{term.text}
+                </span>
+              )}
+            </>
+          ) : t('Тариф')}
         </span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}

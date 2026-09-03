@@ -85,6 +85,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                 <button
                   onClick={() => !disabled && setOpen(open === i ? null : i)}
                   disabled={disabled}
+                  aria-label={chosenText ?? t('Выбрать')}
                   style={{
                     // Таблетка обнимает свой вариант, как и все поля ответа в
                     // заданиях. Заданной ширины тут не было смысла держать:
@@ -131,8 +132,14 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                           <ChevronDown size={13} style={{ flexShrink: 0 }} />
                         </span>
                       ))}
-                      <span style={pillContent}>
-                        {t('Выбрать')}
+                      {/* В пустом пропуске стоит многоточие, а не слово
+                          «Выбрать»: слово шире любого из вариантов и распирало
+                          бы таблетку сверх самого длинного из них — то есть
+                          ровно то, от чего ширина по призракам и спасает.
+                          Что это список, говорит шеврон; для экранного диктора
+                          подпись осталась в aria-label кнопки. */}
+                      <span style={{ ...pillContent, opacity: 0.75 }}>
+                        …
                         <ChevronDown size={13} style={{ opacity: 0.5, flexShrink: 0 }} />
                       </span>
                     </span>
