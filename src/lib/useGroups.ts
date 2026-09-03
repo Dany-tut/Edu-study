@@ -797,6 +797,7 @@ export function useAttendance(groupId: string | null) {
     }
 
     await load()
+    bumpJournalPending()
   }
 
   return { records, loading, saveLesson, reload: load }
@@ -817,8 +818,24 @@ export type PendingJournal = {
 // groups (drives the nav badge). Lessons become eligible HOURS_AFTER hours after
 // their start, so the teacher is nudged a bit after the lesson, not during it.
 const JOURNAL_GRACE_HOURS = 2
+
+// Отметил урок — красная точка в шапке должна погаснуть сразу. Бейдж живёт в
+// TeacherTopBar, журнал сохраняется страницей ниже по дереву; общего состояния у
+// них нет, поэтому запись в журнал дёргает всех подписчиков хука напрямую.
+const journalSubs = new Set<() => void>()
+export function bumpJournalPending() {
+  for (const fn of journalSubs) fn()
+}
+
 export function useJournalPending(groupId: string | null, reloadKey = 0) {
   const [pending, setPending] = useState<PendingJournal[]>([])
+  const [saveTick, setSaveTick] = useState(0)
+
+  useEffect(() => {
+    const fn = () => setSaveTick(v => v + 1)
+    journalSubs.add(fn)
+    return () => { journalSubs.delete(fn) }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -891,7 +908,7 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
       setPending(out)
     })()
     return () => { cancelled = true }
-  }, [groupId, reloadKey])
+  }, [groupId, reloadKey, saveTick])
 
   return pending
 }
