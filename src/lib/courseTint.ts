@@ -93,11 +93,15 @@ function luminance(hex: string): number {
 }
 
 /** Цвет под белым текстом: тот же порог 4.5:1, что и в subjectFill. */
-function onWhiteText(hex: string): string {
+function onWhiteText(hex: string, maxLum = 0.183): string {
   let c = hex
-  for (let i = 0; i < 20 && luminance(c) > 0.183; i++) c = darken(c, 0.06)
+  for (let i = 0; i < 20 && luminance(c) > maxLum; i++) c = darken(c, 0.06)
   return c
 }
+
+// Порог яркости текста для 4.5:1 на светлой серой подложке #EBEBEF (яркость
+// ≈0.83): (0.83 + 0.05) / 4.5 − 0.05.
+const LUM_ON_BG5 = 0.145
 
 // Нейтрали светлой и тёмной темы — из index.css. Держим копию здесь, потому что
 // уровень «среда» уводит их в оттенок курса и должен знать, от чего считать.
@@ -147,13 +151,22 @@ export function tintVars(hex: string, level: TintLevel, dark: boolean): Record<s
     // что у --color-purple-soft ниже.
     '--color-accent-soft': dark ? hexToRgba(accent, 0.22) : hexToRgba(hex, 0.13),
   }
-  if (level === 'accent') return vars
+  const n = dark ? NEUTRAL.dark : NEUTRAL.light
+  vars['--color-purple-text'] = dark ? lighten(accent, 0.45) : onWhiteText(hex, LUM_ON_BG5)
+  if (level === 'accent') {
+    // Подложки на этом уровне не в цвете курса — но и не брендово-фиолетовые:
+    // фиолетовая плита рядом с коралловым героем читалась как недокрашенный
+    // экран (плашка уровня, активная карточка «Все курсы», звёзды в профиле).
+    // Поэтому серые, как соседние нейтральные таблетки, а текст на них — уже
+    // в цвете курса, с порогом контраста от серого, а не от белого.
+    vars['--color-purple-soft'] = n.bg5
+    return vars
+  }
 
   vars['--color-purple-soft'] = dark ? hexToRgba(accent, 0.22) : hexToRgba(hex, 0.13)
   vars['--color-purple-text'] = dark ? lighten(accent, 0.45) : onWhiteText(hex)
   if (level === 'soft') return vars
 
-  const n = dark ? NEUTRAL.dark : NEUTRAL.light
   const t = dark ? AMBIENT_MIX.dark : AMBIENT_MIX.light
   vars['--color-bg'] = mixHex(n.bg, hex, t)
   vars['--color-bg-2'] = mixHex(n.bg2, hex, t)
