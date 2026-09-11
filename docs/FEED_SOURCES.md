@@ -151,6 +151,7 @@ EDS02 общество, EDS03 культура. **EDS04 — политика и 
 |---|---|
 | PLOS Biology | `https://journals.plos.org/plosbiology/feed/atom` |
 | eLife | `https://elifesciences.org/rss/recent.xml` |
+| eLife, иммунология | `https://elifesciences.org/rss/subject/immunology-inflammation.xml` — отдельно, чтобы иммунология доходила до пересказа (11.09.2026) |
 
 ---
 
@@ -235,7 +236,9 @@ MIT Open Learning.
 | Nature, Science, Cell, Scientific American | all rights reserved, только серая дорожка |
 | Quanta Magazine | синдикация по договору, открытой лицензии нет |
 | KISTI 과학향기 (`scent.kisti.re.kr`) | 공공누리 **제4유형**: некоммерческое, а платформа платная |
-| NIH, NIAID, USDA | 403, Cloudflare |
+| NIH, NIAID, USDA | 403, Cloudflare (NIAID — 405); перепроверено 11.09.2026 |
+| Фиды институтов NIH | NIBIB (`/rss.xml`) — повестки заседаний; NIMH (`/site-info/index-rss.atom`) — объявления о грантах; NCATS (`/rss.xml`) — стоит с 2017-го. Статей нет ни в одном |
+| NIH News in Health | 403, Cloudflare |
 | MedlinePlus, NCI, NHTSA, EPA | 404 / 405 на всех известных адресах фида |
 | 사이언스타임즈, IBS, KAIST, 국립과천과학관 | страницы на JS, метки лицензии в разметке нет |
 | korea.kr `deptCode=` (фильтр по ведомству) | через GET не работает, только `srchWord=` |

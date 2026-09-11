@@ -474,6 +474,15 @@ const SOURCES = {
     lang: 'en', name: 'PLOS Biology', kind: 'atom', facts: true,
     topic: 'Биология', url: 'https://journals.plos.org/plosbiology/feed/atom',
   },
+  // Иммунология отдельным фидом, а не «уже есть в общем»: пересказы берут по
+  // одному материалу С ИСТОЧНИКА за круг (adaptFeed.mjs), и в общем фиде eLife
+  // иммунология — одна статья из десяти, до пересказа она почти не доходит.
+  // Стоит ПЕРЕД общим фидом: статья, пришедшая из обоих, остаётся за этим id.
+  // Замена NIH/NIAID, которые закрыты (см. docs/FEED_SOURCES.md).
+  'elife-immunology': {
+    lang: 'en', name: 'eLife', kind: 'rss', facts: true,
+    topic: 'Медицина и здоровье', url: 'https://elifesciences.org/rss/subject/immunology-inflammation.xml',
+  },
   elife: {
     lang: 'en', name: 'eLife', kind: 'rss', facts: true,
     topic: 'Биология', url: 'https://elifesciences.org/rss/recent.xml',
@@ -1411,6 +1420,10 @@ for (const id of ids) {
       // по-русски годится в сырьё для пересказа на корейском ровно так же, как
       // релиз NASA по-английски.
       if (src.facts) {
+        // Один журнал бывает подключён двумя фидами (раздел и «всё свежее»), а
+        // id пересказа строится из outletId — без этой строки статья из обоих
+        // пересказалась бы дважды.
+        if (facts.some(f => f.url === it.url)) continue
         facts.push({
           outletId: id, outletName: src.name, lang: it.lang,
           title: it.title, url: it.url,
