@@ -12,7 +12,7 @@ import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import CourseNode from './CourseNode'
 import HScrollFade from './HScrollFade'
-import { useFloatingPill } from '../lib/useFloatingPill'
+import { useFloatingPill, PILL_ANCHOR } from '../lib/useFloatingPill'
 import { playTransitionDrop } from '../lib/sound'
 import { EMOJI_STEPS } from './homeworkSteps'
 import HardStarLottie from './HardStarLottie'
@@ -60,7 +60,18 @@ const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeTex
  * Держит активную вкладку в поле зрения: ряды курсов и модулей теперь одна
  * строка со скроллом, и выбранная пилюля запросто может оказаться за фейдом —
  * при переключении подматываем ряд к ней.
+ *
+ * ПОДМАТЫВАЕМ ТОЛЬКО ТО, ЧТО НЕ ВИДНО. Раньше здесь безусловно вызывался
+ * `scrollIntoView({inline:'center'})`: ряд центрировал вкладку ВСЕГДА, даже
+ * когда по ней только что кликнули и она стояла у всех на виду. При семи
+ * курсах ряд шире экрана, поэтому почти каждый клик уводил строку рывком
+ * из-под курсора — это и читалось как «переключение дёргается».
+ *
+ * Заодно ушли от `scrollIntoView`: он мотает ВСЕ прокручиваемые предки, то
+ * есть мог утянуть и саму страницу. Крутим только собственный скроллер ряда.
  */
+const TAB_EDGE_PAD = 24
+
 function useScrollTabIntoView(
   rowRef: React.RefObject<HTMLDivElement | null>,
   attr: string,
@@ -68,11 +79,28 @@ function useScrollTabIntoView(
 ) {
   useEffect(() => {
     if (!activeId) return
-    const nodes = rowRef.current?.querySelectorAll<HTMLElement>(`[${attr}]`)
+    const row = rowRef.current
+    const nodes = row?.querySelectorAll<HTMLElement>(`[${attr}]`)
     const el = nodes && Array.from(nodes).find(n => n.getAttribute(attr) === activeId)
+    if (!el || !row) return
+
+    // Скроллер — ближайший предок ряда, которому есть что прятать. Скрытая
+    // ветка вёрстки (display:none) даёт нули: мерить нечего, выходим.
+    let scroller: HTMLElement | null = el.parentElement
+    while (scroller && scroller !== row.parentElement && scroller.scrollWidth <= scroller.clientWidth + 1) {
+      scroller = scroller.parentElement
+    }
+    if (!scroller || scroller.clientWidth === 0) return
+
+    const tab = el.getBoundingClientRect()
+    const box = scroller.getBoundingClientRect()
+    // Вкладка целиком на виду (с запасом под фейд у края) — ряд не трогаем.
+    if (tab.left >= box.left + TAB_EDGE_PAD && tab.right <= box.right - TAB_EDGE_PAD) return
+
     // Мгновенно, без behavior: 'smooth' — плавный скролл едет на rAF, а в
     // превью-песочнице кадры не идут, и ряд просто остаётся на месте.
-    el?.scrollIntoView({ inline: 'center', block: 'nearest' })
+    const delta = (tab.left + tab.width / 2) - (box.left + box.width / 2)
+    scroller.scrollLeft = Math.max(0, Math.min(scroller.scrollWidth - scroller.clientWidth, scroller.scrollLeft + delta))
   }, [rowRef, attr, activeId])
 }
 
@@ -188,12 +216,15 @@ function TrackForSubject({ subject }: { subject: Subject }) {
           className="flex items-center gap-2"
           style={{ position: 'relative', flexShrink: 0 }}
         >
-          {modulePill.pillRect && (
+          {modulePill.pillMotion && (
             <motion.span
-              animate={modulePill.pillRect}
+              // initial={false} — первое появление сразу на месте: иначе плашка
+              // приезжала бы пружиной из нуля контейнера.
+              initial={false}
+              animate={modulePill.pillMotion}
               transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
               style={{
-                position: 'absolute',
+                ...PILL_ANCHOR,
                 borderRadius: 999,
                 background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
                 backdropFilter: 'blur(16px) saturate(180%)',
@@ -761,12 +792,13 @@ export default function CourseTrack() {
         className="inline-flex items-stretch gap-2"
         style={{ justifyContent: 'flex-start', position: 'relative', flexShrink: 0 }}
       >
-        {showPill && subjectPill.pillRect && (
+        {showPill && subjectPill.pillMotion && (
           <motion.span
-            animate={subjectPill.pillRect}
+            initial={false}
+            animate={subjectPill.pillMotion}
             transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
             style={{
-              position: 'absolute',
+              ...PILL_ANCHOR,
               borderRadius: 999,
               background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',

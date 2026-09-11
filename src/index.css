@@ -379,7 +379,7 @@ html {
 }
 
 /* ── Перетекание цвета при смене курса ────────────────────────────────────
-   Атрибут вешается на <html> на 420 мс в момент, когда акцент курса реально
+   Атрибут вешается на <html> на 220 мс в момент, когда акцент курса реально
    сменился (store/tintStore.ts), и снимается сам. Постоянно такого правила
    быть не может: переход на КАЖДОМ элементе — это перерасчёт краски на весь
    экран, и наведение на строку начало бы «догонять» курсор. А на смене курса
@@ -390,9 +390,9 @@ html {
 html[data-tint-shift] body,
 html[data-tint-shift] body * {
   transition:
-    background-color 0.42s cubic-bezier(0.32, 0.72, 0, 1),
-    border-color 0.42s cubic-bezier(0.32, 0.72, 0, 1),
-    color 0.42s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    background-color 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    color 0.22s cubic-bezier(0.32, 0.72, 0, 1) !important;
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-tint-shift] body,

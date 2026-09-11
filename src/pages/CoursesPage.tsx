@@ -13,7 +13,7 @@ import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useDashboard } from '../store/dashboardStore'
-import { useFloatingPill } from '../lib/useFloatingPill'
+import { useFloatingPill, PILL_ANCHOR } from '../lib/useFloatingPill'
 import { useStudentData } from '../store/studentDataStore'
 import MobileSheet from '../components/MobileSheet'
 import HScrollFade, { HSCROLL_PAD_TOP } from '../components/HScrollFade'
@@ -293,16 +293,16 @@ export default function CoursesPage() {
             alignItems: isDesktop ? 'center' : 'flex-start',
           }}
         >
-        {subjectPill.pillRect && (
+        {subjectPill.pillMotion && (
           <motion.span
             // Первое появление — сразу на месте: без initial плашка приезжала
             // пружиной из 0,0 нулевой ширины (в style позиции нет), и каждый
             // новый монтаж ряда выглядел как «таблетки обновились».
             initial={false}
-            animate={subjectPill.pillRect}
+            animate={subjectPill.pillMotion}
             transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
             style={{
-              position: 'absolute',
+              ...PILL_ANCHOR,
               borderRadius: 999,
               background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
@@ -394,16 +394,16 @@ export default function CoursesPage() {
         className="flex items-center gap-1"
         style={{ position: 'relative', isolation: 'isolate' }}
       >
-        {modulePill.pillRect && (
+        {modulePill.pillMotion && (
           <motion.span
             // Первое появление — сразу на месте: без initial плашка приезжала
             // пружиной из 0,0 нулевой ширины (в style позиции нет), и каждый
             // новый монтаж ряда выглядел как «таблетки обновились».
             initial={false}
-            animate={modulePill.pillRect}
+            animate={modulePill.pillMotion}
             transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
             style={{
-              position: 'absolute',
+              ...PILL_ANCHOR,
               borderRadius: 999,
               background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',

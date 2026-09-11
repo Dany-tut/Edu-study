@@ -347,9 +347,16 @@ export default function DashboardPage() {
       {/* Desktop live notifications surface inside CompactWidgetPill (beside the
           topbar); the standalone toast is only kept for mobile where there's no pill. */}
       {!isDesktop && <NotificationToastContainer />}
-      {/* Desktop no-scroll layout */}
+      {/* Desktop no-scroll layout.
+          РАЗМЕТКА НЕ ПРОСТО ПРЯЧЕТСЯ, А НЕ МОНТИРУЕТСЯ ВОВСЕ. Обе ветки стояли
+          в DOM одновременно, невидимая — под display:none, и честно
+          перерисовывались на каждое изменение стора: клик по курсу считал
+          главную дважды, второй раз в никуда. Порог у useIsDesktop один и тот
+          же (1024), значение известно уже на первом рендере, так что подмены
+          «сначала не та вёрстка» не будет. */}
+      {isDesktop && (
       <LayoutGroup>
-      <div className="dashboard-root" style={{ display: isDesktop ? 'flex' : 'none' }}>
+      <div className="dashboard-root" style={{ display: 'flex' }}>
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
             floating topbar pill — content scrolls up under a soft blurred band so
             it never bleeds through the gaps around the pills. */}
@@ -499,12 +506,14 @@ export default function DashboardPage() {
         )}
       </div>
       </LayoutGroup>
+      )}
 
       {/* Mobile layout (separate). Screens that own a MobileScreen shell
           (Home/Courses/Profile/Trainer) render standalone — they bring their own
           safe-area, top chrome and bottom nav. Lesson/ДЗ flows keep a padded
           scroll wrapper with safe-area top + bottom-nav clearance. */}
-      <div style={{ display: isDesktop ? 'none' : 'block' }}>
+      {!isDesktop && (
+      <div>
         {activePage === 'home' ? (
           <MobileHome />
         ) : activePage === 'courses' ? (
@@ -564,6 +573,7 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      )}
     </>
   )
 }

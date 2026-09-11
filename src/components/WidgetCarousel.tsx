@@ -68,12 +68,25 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
     if (hideTimer.current) clearTimeout(hideTimer.current)
   }, [])
 
-  // Jump back to the first page whenever the column count or the set of visible
-  // widgets changes, so the user always lands on a valid full row (never a stale
-  // page index that now points past the end after hiding a widget).
+  // Смена числа колонок пересобирает страницы целиком — тут возврат в начало
+  // честен. А вот СМЕНА НАБОРА виджетов возврата не заслуживает: набор зависит
+  // от предмета открытого курса (lib/widgetVisibility.ts), то есть менялся на
+  // каждом переключении курса — и карусель послушно прыгала на первую страницу,
+  // размонтируя показанные виджеты и монтируя вместо них другие (они ленивые,
+  // с Suspense и своими запросами). Клик по курсу оплачивал эту пересборку
+  // кадром. Теперь страница только ПОДРЕЗАЕТСЯ до существующей, если уехала за
+  // край, а иначе остаётся на месте: тот же ряд, те же смонтированные виджеты.
+  const prevPerPage = useRef(perPage)
   useEffect(() => {
-    setPage([0, 0])
-  }, [perPage, widgetOrder.length])
+    if (prevPerPage.current !== perPage) {
+      prevPerPage.current = perPage
+      setPage([0, 0])
+      return
+    }
+    // Тот же кортеж возвращаем намеренно: React на неизменной ссылке
+    // перерисовку не запускает, и «набор не поменял страницу» стоит ноль.
+    setPage(prev => (prev[0] < pageCount ? prev : [Math.max(0, pageCount - 1), prev[1]]))
+  }, [perPage, pageCount])
 
   // Keep the dots on screen while the user is flipping, hide them again once idle.
   const revealDots = useCallback(() => {

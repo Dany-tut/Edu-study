@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 type PillRect = {
   left: number
@@ -6,6 +6,19 @@ type PillRect = {
   width: number
   height: number
 }
+
+/**
+ * ПЛАШКА ЕДЕТ ТРАНСФОРМОМ, А НЕ left/top.
+ *
+ * Спред `pillRect` в `animate` анимировал `left`/`top`: браузер на каждый кадр
+ * пружины заново раскладывает и перекрашивает ряд, а ряд курсов — это семь
+ * длинных названий с переносами. Переключение курса из-за этого дёргалось.
+ * `pillMotion` отдаёт ту же геометрию сдвигом (`x`/`y` — это transform, кадр
+ * уходит на композитор). Плашка при этом обязана стоять в нуле контейнера —
+ * иначе трансформ считался бы от места, куда её положил флекс: для этого
+ * `PILL_ANCHOR`.
+ */
+export const PILL_ANCHOR = { position: 'absolute', left: 0, top: 0 } as const
 
 export function useFloatingPill<T extends string | number>(activeId: T) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -73,5 +86,13 @@ export function useFloatingPill<T extends string | number>(activeId: T) {
     }
   }, [measure, activeId])
 
-  return { containerRef, registerItem, pillRect, measure }
+  // Ширина и высота остаются собой: у таблеток она разная, и подменить её
+  // масштабом нельзя — растянулись бы и скругление, и рамка. Но меняются они
+  // на одном элементе с position:absolute, соседей не двигают.
+  const pillMotion = useMemo(
+    () => pillRect && { x: pillRect.left, y: pillRect.top, width: pillRect.width, height: pillRect.height },
+    [pillRect],
+  )
+
+  return { containerRef, registerItem, pillRect, pillMotion, measure }
 }

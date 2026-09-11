@@ -133,9 +133,14 @@ export function useCourseTint() {
       const root = document.documentElement
       root.setAttribute('data-tint-shift', '')
       if (shiftTimer.current) clearTimeout(shiftTimer.current)
-      // Снять чуть позже конца перехода (0.42s): правило висит на каждом
+      // Снять чуть позже конца перехода (0.22s): правило висит на каждом
       // элементе и в покое стоить ничего не должно.
-      shiftTimer.current = setTimeout(() => root.removeAttribute('data-tint-shift'), 470)
+      //
+      // Длительность подрезана с 0.42s: пилюля вкладок доезжает пружиной
+      // примерно за 0.2s, трек перерисовывается кадром — а цвет всего экрана
+      // доползал ещё двести миллисекунд после того, как всё остальное встало.
+      // Разнобой скоростей и читался как «клик подтормаживает».
+      shiftTimer.current = setTimeout(() => root.removeAttribute('data-tint-shift'), 270)
     }
     applyCourseTint(accent, level, dark)
   }, [dark, level, activeSubject, version])
