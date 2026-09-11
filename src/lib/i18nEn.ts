@@ -28,6 +28,9 @@ export const EN: Record<string, string> = {
   'Как в приложении': 'App default',
   'свой': 'custom',
   'Свой цвет виден только вам — у преподавателя останется его.': 'Your colour is yours alone — the teacher keeps theirs.',
+  // — Порядок курсов —
+  'Порядок курсов': 'Course order',
+  'Перетащите за ручку. Этот порядок будет везде: на треке, в «Курсах» и в домашках.': 'Drag the handle. This order applies everywhere: on the track, in Courses and in homework.',
   'Интерфейс подстраивается под открытый курс.': 'The interface follows the course you have open.',
   'Этим цветом предмет видите вы и ваши ученики. Ученик может выбрать свой — у вас останется этот.': 'You and your students see the subject in this colour. A student may pick their own — yours stays.',
   'Ученик': 'Student',

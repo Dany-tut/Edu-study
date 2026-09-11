@@ -91,6 +91,7 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
             неё прокрутку. `touchAction: none` обязателен — без него браузер
             заберёт жест себе на первом же движении. */}
         <span
+          data-sheet-nodrag
           onPointerDown={e => { haptic(8); controls.start(e) }}
           style={{
             display: 'flex', alignItems: 'center', flexShrink: 0,

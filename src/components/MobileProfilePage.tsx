@@ -8,7 +8,7 @@ import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
 import FeedbackModal from './FeedbackModal'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
-import CourseOrderModal from './CourseOrderModal'
+import { CourseOrderSheet } from './CourseOrderModal'
 import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
 import { useFeedGestures } from '../store/feedGesturesStore'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
@@ -414,7 +414,7 @@ export default function MobileProfilePage() {
       <MobileBottomNav />
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
       <CourseTintSheet open={tintOpen} onClose={() => setTintOpen(false)} />
-      <CourseOrderModal open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
+      <CourseOrderSheet open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
       <FeedGesturesSheet open={feedOpen} onClose={() => setFeedOpen(false)} />
 
       {/* Смена карточки: тот же список, что в выпадашке сайдбара, только

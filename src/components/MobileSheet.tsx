@@ -77,6 +77,9 @@ export default function MobileSheet({
       const t = e.touches[0]
       // Второй палец посреди жеста (щипок, случайное касание) — не наш случай.
       if (e.touches.length !== 1 || !sheetRef.current?.contains(t.target as Node)) { id = null; return }
+      // Ручка перетаскивания строки (порядок курсов, ленты) — жест её, а не
+      // шторки: иначе строку тянешь вниз, а уезжает вся шторка.
+      if ((t.target as Element).closest?.('[data-sheet-nodrag]')) { id = null; return }
       id = t.identifier
       startY = lastY = t.clientY
       startX = t.clientX

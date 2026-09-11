@@ -1,11 +1,13 @@
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { GripVertical, X } from 'lucide-react'
 import { useStudentData } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
 import { useT } from '../lib/i18n'
+import { useScrollLock } from '../lib/useScrollLock'
+import MobileSheet from './MobileSheet'
 
 const EASE = [0.32, 0.72, 0, 1] as const
 
@@ -20,8 +22,10 @@ type Row = { dbId: string; name: string }
 //
 // Правки применяются по «Готово», как и в окне виджетов: «Отмена», Esc и клик
 // по фону выбрасывают их.
-export default function CourseOrderModal({ open, onClose }: Props) {
-  const t = useT()
+//
+// Оболочек две, как у «Цвета курса»: окно на десктопе (CourseOrderModal) и
+// шторка снизу на телефоне (CourseOrderSheet). Состояние и список общие.
+function useCourseOrder(open: boolean, onClose: () => void) {
   const subjects = useStudentData(s => s.subjects)
   const reorderSubjects = useStudentData(s => s.reorderSubjects)
 
@@ -33,13 +37,6 @@ export default function CourseOrderModal({ open, onClose }: Props) {
 
   // Открытие — точка отсчёта: список берётся из стора один раз.
   useEffect(() => { if (open) setRows(saved) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
 
   async function apply() {
     const ids = rows.map(r => r.dbId)
@@ -58,6 +55,94 @@ export default function CourseOrderModal({ open, onClose }: Props) {
     setSaving(false)
     onClose()
   }
+
+  return { rows, setRows, saving, apply }
+}
+
+function CourseOrderList({ rows, setRows }: { rows: Row[]; setRows: (rows: Row[]) => void }) {
+  return (
+    <Reorder.Group
+      as="div"
+      axis="y"
+      values={rows}
+      onReorder={setRows}
+      style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: 0, listStyle: 'none', padding: 0 }}
+    >
+      {rows.map((row, i) => (
+        <CourseRow key={row.dbId} row={row} index={i} />
+      ))}
+    </Reorder.Group>
+  )
+}
+
+function CourseOrderActions({ saving, onCancel, onApply, stretch }: {
+  saving: boolean; onCancel: () => void; onApply: () => void; stretch?: boolean
+}) {
+  const t = useT()
+  // На телефоне кнопки делят ширину пополам — палец попадает в любую.
+  const grow = stretch ? { flex: 1 } : {}
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        onClick={onCancel}
+        style={{
+          ...grow,
+          padding: '0 18px', height: stretch ? 48 : 42, borderRadius: stretch ? 14 : 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
+          background: 'transparent', color: 'var(--color-text-2)', fontSize: stretch ? 15 : 14, fontWeight: 600,
+        }}
+      >
+        {t('Отмена')}
+      </motion.button>
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        onClick={onApply}
+        disabled={saving}
+        style={{
+          ...grow,
+          padding: '0 22px', height: stretch ? 48 : 42, borderRadius: stretch ? 14 : 12, border: 'none', cursor: saving ? 'default' : 'pointer',
+          background: 'var(--grad-purple)', color: '#fff', fontSize: stretch ? 15 : 14, fontWeight: 650, opacity: saving ? 0.7 : 1,
+        }}
+      >
+        {saving ? t('Сохраняем…') : t('Готово')}
+      </motion.button>
+    </div>
+  )
+}
+
+/** Телефон — шторка снизу, как «Цвет курса». */
+export function CourseOrderSheet({ open, onClose }: Props) {
+  const t = useT()
+  const { rows, setRows, saving, apply } = useCourseOrder(open, onClose)
+  return (
+    <MobileSheet
+      open={open}
+      onClose={onClose}
+      title={t('Порядок курсов')}
+      footer={<CourseOrderActions saving={saving} onCancel={onClose} onApply={apply} stretch />}
+    >
+      <p style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--color-muted)', margin: '0 2px 14px' }}>
+        {t('Перетащите за ручку. Этот порядок будет везде: на треке, в «Курсах» и в домашках.')}
+      </p>
+      <CourseOrderList rows={rows} setRows={setRows} />
+    </MobileSheet>
+  )
+}
+
+/** Десктоп — окно из меню настроек в сайдбаре. */
+export default function CourseOrderModal({ open, onClose }: Props) {
+  const t = useT()
+  const { rows, setRows, saving, apply } = useCourseOrder(open, onClose)
+  // Фон под окном стоит: колесо и палец крутят только само окно.
+  const panelRef = useRef<HTMLDivElement>(null)
+  useScrollLock(open, panelRef)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
   if (!open) return null
 
@@ -80,8 +165,9 @@ export default function CourseOrderModal({ open, onClose }: Props) {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.2, ease: EASE }}
+            ref={panelRef}
             style={{
-              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto',
+              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto', overscrollBehavior: 'contain',
               background: 'var(--color-bg)', borderRadius: 24, padding: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
@@ -106,40 +192,11 @@ export default function CourseOrderModal({ open, onClose }: Props) {
               </motion.button>
             </div>
 
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={rows}
-              onReorder={setRows}
-              style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '20px 0 0', listStyle: 'none', padding: 0 }}
-            >
-              {rows.map((row, i) => (
-                <CourseRow key={row.dbId} row={row} index={i} />
-              ))}
-            </Reorder.Group>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={onClose}
-                style={{
-                  padding: '0 18px', height: 42, borderRadius: 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
-                  background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
-                }}
-              >
-                {t('Отмена')}
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={apply}
-                disabled={saving}
-                style={{
-                  padding: '0 22px', height: 42, borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer',
-                  background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 650, opacity: saving ? 0.7 : 1,
-                }}
-              >
-                {saving ? t('Сохраняем…') : t('Готово')}
-              </motion.button>
+            <div style={{ marginTop: 20 }}>
+              <CourseOrderList rows={rows} setRows={setRows} />
+            </div>
+            <div style={{ marginTop: 24 }}>
+              <CourseOrderActions saving={saving} onCancel={onClose} onApply={apply} />
             </div>
           </motion.div>
         </motion.div>
@@ -173,6 +230,7 @@ function CourseRow({ row, index }: { row: Row; index: number }) {
       }}
     >
       <span
+        data-sheet-nodrag
         onPointerDown={e => controls.start(e)}
         style={{ display: 'flex', cursor: 'grab', touchAction: 'none', color: 'var(--color-text-4)', flexShrink: 0 }}
       >
