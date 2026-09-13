@@ -2884,10 +2884,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                   </span>
                   {/* Значок стоит у ПЕРВОЙ строки заголовка, а не по центру
                       двух: у длинных названий он уезжал в межстрочье и читался
-                      как значок пустоты. marginTop — до центра первой строки. */}
+                      как значок пустоты. marginTop — до центра первой строки.
+                      Шрифт и отступы — как у заголовка набора (PhraseDecks):
+                      строки полки и соседних плиток стоят по одной сетке. */}
                   <div style={{
                     display: 'flex', alignItems: 'flex-start', gap: 7,
-                    fontSize: 15, lineHeight: 1.3, fontWeight: 700, color: 'var(--color-text)', marginTop: 8,
+                    fontSize: 14.5, lineHeight: 1.3, fontWeight: 750, color: 'var(--color-text)',
                   }}>
                     <Layers size={15} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
                     {g.title}
@@ -2897,7 +2899,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                       соседних. */}
                   {!!g.about && (
                     <div style={{
-                      fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45,
+                      fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
                       display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
                       {g.about}

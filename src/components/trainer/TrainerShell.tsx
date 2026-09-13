@@ -2220,7 +2220,11 @@ export function TileChip({ children, tone, accent, soft }: {
   // пятна нет.
   const neutral = 'color-mix(in srgb, var(--color-text) 10%, transparent)'
   return (
+    // Высота строки задана явно и чипс — inline-flex: иначе чипс со значком
+    // внутри («Словарь») вырастал на 2px и сдвигал заголовок своей плитки
+    // ниже соседних в том же ряду.
     <span style={{
+      display: 'inline-flex', alignItems: 'center', lineHeight: '14px',
       padding: '2px 8px', borderRadius: 999, fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap',
       background: solid ? (accent ?? neutral) : isAccent ? (soft ?? neutral) : neutral,
       color: solid ? '#fff' : isAccent ? (accent ?? 'var(--color-text-2)') : 'var(--color-muted)',
