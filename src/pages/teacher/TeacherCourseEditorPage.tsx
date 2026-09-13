@@ -3618,6 +3618,26 @@ function HomeworkLeftPanel({
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
 
+  // Переключатель ДЗ урока / записи: если обе подписи не влезают (английский),
+  // неактивная вкладка сворачивается в иконку. Меряем скрытым рядом с полными подписями.
+  const hwTabs = [
+    { id: 'lesson', label: t('ДЗ урока'), n: (lesson.hwTasks ?? []).length, Icon: BookOpen },
+    { id: 'rec',    label: t('ДЗ записи'), n: (lesson.recHwTasks ?? []).length, Icon: Video },
+  ] as const
+  const toggleRef = useRef<HTMLDivElement>(null)
+  const measureRef = useRef<HTMLDivElement>(null)
+  const [toggleCompact, setToggleCompact] = useState(false)
+  const toggleKey = hwTabs.map(tt => `${tt.label}:${tt.n}`).join('|')
+  useLayoutEffect(() => {
+    const box = toggleRef.current, probe = measureRef.current
+    if (!box || !probe) return
+    const check = () => setToggleCompact(probe.scrollWidth > box.clientWidth)
+    check()
+    const ro = new ResizeObserver(check)
+    ro.observe(box)
+    return () => ro.disconnect()
+  }, [toggleKey])
+
   function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
 
   function addTask(type: HWTaskType, isHard: boolean) {
@@ -3647,29 +3667,45 @@ function HomeworkLeftPanel({
     }}>
       <ScrollOverlays thumb={hwThumb} />
       <div ref={hwScrollRef} onScroll={onHwScroll} className="no-scrollbar" style={{
-        flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain',
+        // overflowX hidden: с overflowY auto браузер делает auto и по X — любой
+        // слишком широкий ряд (английские подписи) давал боковую прокрутку.
+        flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain',
         padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
         ...fadeMask(hwFade),
       }}>
       {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
-      <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
-        {([
-          { id: 'lesson', label: t('ДЗ урока'), n: (lesson.hwTasks ?? []).length },
-          { id: 'rec',    label: t('ДЗ записи'), n: (lesson.recHwTasks ?? []).length },
-        ] as const).map(tt => (
-          <button key={tt.id} onClick={() => setHwTab(tt.id)} style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
+      <div ref={toggleRef} style={{ position: 'relative', overflow: 'hidden', display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+        {/* Скрытый замер: обе вкладки с полными подписями, без сжатия. */}
+        <div ref={measureRef} aria-hidden style={{
+          position: 'absolute', left: 0, top: 0, width: 'max-content', display: 'flex', gap: 4, padding: 3,
+          visibility: 'hidden', pointerEvents: 'none', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+        }}>
+          {hwTabs.map(tt => (
+            <span key={tt.id} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 8px' }}>
+              {tt.label}
+              {tt.n > 0 && <span style={{ fontSize: 10, padding: '1px 6px' }}>{tt.n}</span>}
+            </span>
+          ))}
+        </div>
+        {hwTabs.map(tt => {
+          const iconOnly = toggleCompact && hwTab !== tt.id
+          return (
+          <button key={tt.id} onClick={() => setHwTab(tt.id)} title={iconOnly ? tt.label : undefined} aria-label={iconOnly ? tt.label : undefined} style={{
+            flex: iconOnly ? '0 0 auto' : 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
             border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
             background: hwTab === tt.id ? 'var(--color-green-soft)' : 'transparent',
             color: hwTab === tt.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
             transition: 'background 0.13s',
           }}>
-            {t(tt.label)}
-            {tt.n > 0 && (
+            {iconOnly
+              ? <tt.Icon size={15} strokeWidth={2} />
+              : <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{tt.label}</span>}
+            {tt.n > 0 && !iconOnly && (
               <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === tt.id ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: hwTab === tt.id ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
             )}
           </button>
-        ))}
+          )
+        })}
       </div>
 
       <div>
@@ -6140,14 +6176,18 @@ export default function TeacherCourseEditorPage() {
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
           )}
+          {/* Черновик и публикация — одного размера: две равные колонки грида берут
+              ширину более широкой кнопки; поля черновика уменьшены на его рамку,
+              чтобы по высоте он совпадал с безрамочной кнопкой публикации. */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flexShrink: 0 }}>
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
-              style={{ padding: '9px 18px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
+              style={{ padding: '7.5px 16.5px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> {t('Черновик')}
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
-              style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              style={{ padding: '8px 17px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap' }}>
               {t('В черновик')}
             </motion.button>
           )}
@@ -6158,7 +6198,8 @@ export default function TeacherCourseEditorPage() {
             saved={savedFlash}
             saving={saving}
             onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-            style={{}} />
+            style={{ width: '100%' }} />
+          </div>
         </div>
       </motion.div>
 
