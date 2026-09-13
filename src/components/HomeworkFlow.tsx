@@ -37,7 +37,7 @@ import { useTint } from '../store/tintStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
-import { useT, t as tStatic } from '../lib/i18n'
+import { useT, t as tStatic, tc as tcStatic } from '../lib/i18n'
 import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
@@ -1634,7 +1634,7 @@ function getInitialState(): PersistedHomeworkState {
  */
 function hwTitle(title: string, tr: (s: string) => string): string {
   const m = title.match(/^Домашка по теме\s*«(.+)»$/)
-  return m ? `${tr('Домашка по теме')} «${m[1]}»` : title
+  return m ? `${tr('Домашка по теме')} «${tcStatic(m[1])}»` : tcStatic(title)
 }
 
 export default function HomeworkFlow({
@@ -3112,7 +3112,7 @@ export default function HomeworkFlow({
                   {t('Домашка по теме')}&nbsp;«
                 </motion.span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1')}
+                  {tcStatic(homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
                 </span>
                 <motion.span
                   initial={false}

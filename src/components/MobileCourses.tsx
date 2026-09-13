@@ -19,7 +19,7 @@ import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
-import { useT } from '../lib/i18n'
+import { useT, useTc } from '../lib/i18n'
 import { subjectIcon, subjectRank, resolveSubjectPalette } from '../lib/subjects'
 import { stripCommonPrefix } from '../lib/courseLabels'
 import type { SubjectPalette } from '../lib/theme'
@@ -45,6 +45,7 @@ const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
 
 export default function MobileCourses() {
   const t = useT()
+  const { tc } = useTc()
   const { dark } = useTheme()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
@@ -71,7 +72,7 @@ export default function MobileCourses() {
 
   // Подписи чипс дока: у курсов одного языка общее первое слово съедает
   // всю ширину, и рядом стоят две одинаковые на вид чипсы (см. courseLabels).
-  const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => s.name)), [subjects])
+  const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => tc(s.name))), [subjects, tc])
 
   const lessons = useMemo<Lesson[]>(() => {
     if (!subject) return []
@@ -92,7 +93,7 @@ export default function MobileCourses() {
   }, [subject])
 
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject
-    ? [{ id: ALL, label: t('Все') }, ...subject.modules.map(m => ({ id: m.id, label: m.label }))]
+    ? [{ id: ALL, label: t('Все') }, ...subject.modules.map(m => ({ id: m.id, label: tc(m.label) }))]
     : []
 
   // Level / XP from points.
@@ -122,7 +123,7 @@ export default function MobileCourses() {
           живой» иначе выдавливал уровень и колокольчик за край экрана. */}
       <GlassPill morph="lead" style={{ minWidth: 0, overflow: 'hidden' }}>
         <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>{subject ? subjectIcon(subject.subject) : '📚'}</span>
-        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{subject?.name ?? t('Курс')}</span>
+        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{subject ? tc(subject.name) : t('Курс')}</span>
       </GlassPill>
       <div className="flex items-center" style={{ gap: 8 }}>
         <GlassPill>
@@ -235,7 +236,7 @@ export default function MobileCourses() {
             const total = m.lessons.length
             const done = m.lessons.filter(l => l.status === 'completed').length
             return (
-              <ModuleRow key={m.id} pal={pal} label={m.label} total={total} done={done}
+              <ModuleRow key={m.id} pal={pal} label={tc(m.label)}total={total} done={done}
                 active={moduleTab === m.id}
                 onClick={() => { setModuleTab(m.id); setActiveModule(m.id); setModuleSheet(false) }} />
             )
@@ -326,6 +327,7 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
 
 function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: Lesson; status: LessonStatus; index: number; focused: boolean; onOpen: () => void; pal: SubjectPalette }) {
   const t = useT()
+  const { tc } = useTc()
   const v: StatusVisual = status === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[status]
   const Icon = v.icon
   const isLocked = status === 'locked'
@@ -353,7 +355,7 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
       <div className="flex-1 min-w-0">
         <div className="flex items-start" style={{ gap: 6, marginBottom: 4 }}>
           <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {lesson.title}
+            {tc(lesson.title)}
           </span>
           {status === 'completed' && lesson.points != null && (
             <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: '#B07A00', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>

@@ -17,7 +17,7 @@ import { useFloatingPill, PILL_ANCHOR } from '../lib/useFloatingPill'
 import { useStudentData } from '../store/studentDataStore'
 import MobileSheet from '../components/MobileSheet'
 import HScrollFade, { HSCROLL_PAD_TOP } from '../components/HScrollFade'
-import { useT } from '../lib/i18n'
+import { useT, useTc } from '../lib/i18n'
 
 type StatusFilter = 'all' | 'active' | 'done'
 const FILTER_OPTIONS: Array<{ id: StatusFilter; label: string }> = [
@@ -50,6 +50,7 @@ const DOCK_COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
 
 export default function CoursesPage() {
   const t = useT()
+  const { tc } = useTc()
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
   const activeModuleId = useDashboard(s => s.activeModuleId)
@@ -175,7 +176,7 @@ export default function CoursesPage() {
 
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject ? [
     { id: ALL, label: t('Все') },
-    ...subject.modules.map(m => ({ id: m.id, label: m.label })),
+    ...subject.modules.map(m => ({ id: m.id, label: tc(m.label) })),
   ] : []
 
   if (!subject) {
@@ -378,7 +379,7 @@ export default function CoursesPage() {
                     overflowWrap: 'anywhere',
                   }}
                 >
-                  {s.name}
+                  {tc(s.name)}
                 </span>
               </motion.button>
             )
@@ -562,7 +563,7 @@ export default function CoursesPage() {
                   className="line-clamp-2"
                   style={{ fontSize: 12.5, fontWeight: 500, color: st.subText, lineHeight: 1.25 }}
                 >
-                  {lesson.title}
+                  {tc(lesson.title)}
                 </span>
               </motion.button>
             )

@@ -26,7 +26,7 @@ import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
-import { useT, useLang, type Lang } from '../../lib/i18n'
+import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
 import { getAuthUser } from '../../lib/owner'
 
@@ -70,6 +70,7 @@ const quickActions: QuickItem[] = [
 
 export default function TeacherTopBar() {
   const t = useT()
+  const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -88,7 +89,7 @@ export default function TeacherTopBar() {
     syncJournalNotifs(pendingJournals.map(p => ({
       id: p.scheduleId,
       title: `${t('Журнал')} — ${p.scopeName}`,
-      body: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
+      body: `${p.date.slice(5).replace('-', '.')} · ${tc(p.title)}`,
     })))
   }, [pendingJournals, syncJournalNotifs])
 
@@ -417,7 +418,7 @@ export default function TeacherTopBar() {
           transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
         }}>
           <div style={{ paddingLeft: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(teacherName)}</div>
             <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? t('Админ') : t('Учитель')}</div>
           </div>
         </div>

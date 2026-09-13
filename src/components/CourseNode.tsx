@@ -12,7 +12,7 @@ import { TRACK_STATUS } from '../lib/theme'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import { useTheme } from '../store/themeStore'
-import { t, useT } from '../lib/i18n'
+import { t, useT, useTc } from '../lib/i18n'
 import { EMOJI_STEPS } from './homeworkSteps'
 import HardSatelliteLottie from './HardSatelliteLottie'
 
@@ -71,6 +71,7 @@ interface Props {
 export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
+  const { tc } = useTc()
   const now = useNow()
   const dark = useTheme(s => s.dark)
   const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
@@ -182,7 +183,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           borderRadius: isDiamond ? 12 : isSquare ? 16 : 999,
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`${tr('Урок')} ${lesson.number + 1}: ${lesson.title}`}
+        aria-label={`${tr('Урок')} ${lesson.number + 1}: ${tc(lesson.title)}`}
       >
         <div style={{ rotate: isDiamond ? '-45deg' : '0deg', filter: 'brightness(1.9) saturate(1.1)' }}>
           {isCustom || isMissedCurrentLesson

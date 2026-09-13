@@ -4,7 +4,7 @@ import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
 import { useStudents } from '../../lib/useGroups'
 import { mergeIndividuals, type PersonGroup } from '../../lib/personGroups'
-import { t, useT } from '../../lib/i18n'
+import { t, useT, tc, tn } from '../../lib/i18n'
 
 export type TabConfig = {
   tabs: { id: string; label: string }[]
@@ -371,7 +371,7 @@ function packSubjects(subjects: PersonGroup['subjects']) {
 function PersonCard({
   person, isActive, onClick,
 }: { person: PersonGroup; isActive: boolean; onClick: () => void }) {
-  const initials = person.name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+  const initials = tn(person.name).split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
   const { visible: visibleSubjects, hiddenCount } = packSubjects(person.subjects)
   return (
     <motion.div
@@ -414,7 +414,7 @@ function PersonCard({
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {person.name}
+            {tn(person.name)}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3 }}>
             {person.subjects.length} {pluralSubjects(person.subjects.length)}
@@ -432,7 +432,7 @@ function PersonCard({
             background: s.color + '1E', border: `1px solid ${s.color}3A`,
           }}>
             <span style={{ fontSize: 10, lineHeight: 1 }}>{s.icon}</span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.subject}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(s.subject)}</span>
           </span>
         ))}
         {hiddenCount > 0 && (

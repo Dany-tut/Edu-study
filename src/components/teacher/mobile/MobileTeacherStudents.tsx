@@ -10,7 +10,7 @@ import { useGroups, useStudents, useAllStudents } from '../../../lib/useGroups'
 import { useSwipeBack } from '../../../lib/useSwipeBack'
 import { useHomework } from '../../../lib/useHomework'
 import { contactLabel } from '../../../lib/contactLink'
-import { useT } from '../../../lib/i18n'
+import { useT, useTc } from '../../../lib/i18n'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
 
@@ -46,6 +46,7 @@ function SignalChip({ signal }: { signal: Signal }) {
 // name, subject + ДЗ + посещаемость, and the smart-mix signal on the right.
 function PersonRow({ student, subject, onClick }: { student: Student; subject?: string; onClick: () => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const signal = studentSignal(student, t)
   return (
     <motion.button
@@ -54,11 +55,11 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
       className="cursor-pointer"
       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
     >
-      <div style={{ width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials(student.name)}</div>
+      <div style={{ width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials(tn(student.name))}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
+        <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {subject ? `${subject} · ` : ''}{t('ДЗ')} {student.hwScore}% · {t('посещ.')} {student.attendance}%
+          {subject ? `${tc(subject)} · ` : ''}{t('ДЗ')} {student.hwScore}% · {t('посещ.')} {student.attendance}%
         </div>
       </div>
       {signal && <SignalChip signal={signal} />}
@@ -123,8 +124,9 @@ function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; labe
 
 export function StudentSheet({ student, group, open, loading, onClose }: { student: Student | null; group: Group; open: boolean; loading?: boolean; onClose: () => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   return (
-    <MobileSheet open={open} onClose={onClose} title={student?.name ?? group.name}>
+    <MobileSheet open={open} onClose={onClose} title={student ? tn(student.name) : group.name}>
       {!student && (
         loading ? (
           <div style={{ padding: '20px 0' }} aria-busy="true"><Skeleton.List rows={3} /></div>
@@ -150,7 +152,7 @@ export function StudentSheet({ student, group, open, loading, onClose }: { stude
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.review.text, opacity: 0.85 }}>{t('посещ.')}</div>
             </div>
           </div>
-          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label={t('Предмет')} value={`${group.subject} · ${group.name}`} />
+          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label={t('Предмет')} value={`${tc(group.subject)} · ${group.name}`} />
           {student.phone && <MetricRow icon={<Phone size={16} />} label={t('Телефон')} value={student.phone} />}
           {student.telegramLink && <MetricRow icon={<Send size={16} />} label={contactLabel(student.telegramLink) === 'VK' ? 'VK' : 'Telegram'} value={contactLabel(student.telegramLink)} />}
           <MetricRow icon={<CalendarCheck size={16} />} label={t('Последний визит')} value={student.lastVisit} />

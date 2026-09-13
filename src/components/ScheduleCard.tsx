@@ -10,7 +10,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
 import ScrollFade from './ScrollFade'
-import { useT } from '../lib/i18n'
+import { useT, useTc } from '../lib/i18n'
 
 interface Props {
   day: ScheduleDay
@@ -26,6 +26,7 @@ interface Props {
 
 export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth }: Props) {
   const t = useT()
+  const { tc } = useTc()
   const subjects = useStudentData(s => s.subjects)
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
@@ -178,7 +179,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {lesson.subject}
+                        {tc(lesson.subject)}
                       </span>
                       {isMissed && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }}>
@@ -198,7 +199,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {t('Занятие')} #{lesson.lessonNumber + 1} {lesson.lessonTitle}
+                      {t('Занятие')} #{lesson.lessonNumber + 1} {tc(lesson.lessonTitle)}
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
@@ -261,10 +262,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               day.lessons.slice(0, 2).map(lesson => (
                 <div key={lesson.id}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {lesson.subject}
+                    {tc(lesson.subject)}
                   </p>
                   <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
-                    {lesson.lessonTitle}
+                    {tc(lesson.lessonTitle)}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--color-muted)' }}>{lesson.time}</p>
                 </div>

@@ -32,7 +32,7 @@ import { writeDraft } from '../lib/useDraft'
 import { resolveSubjectPalette, getSubject } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { useTint } from '../store/tintStore'
-import { useT, t as tt, useLang } from '../lib/i18n'
+import { useT, useTc, t as tt, useLang } from '../lib/i18n'
 import type { LucideIcon } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
 
@@ -64,6 +64,7 @@ function fmtUntil(mins: number) {
 
 export default function MobileHome() {
   const t = useT()
+  const { tc } = useTc()
   const loaded = useStudentData(s => s.loaded)
   const subjects = useStudentData(s => s.subjects)
   const scheduleDays = useStudentData(s => s.scheduleDays)
@@ -94,7 +95,7 @@ export default function MobileHome() {
   useEffect(() => { watchForUpdates() }, [])
   // «Все» в подсчёт общего префикса не входит: это не курс, и срезать у него
   // нечего — иначе одна чужая подпись отменяла бы срез для всех остальных.
-  const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => s.name)), [subjects])
+  const dockLabels = useMemo(() => stripCommonPrefix(subjects.map(s => tc(s.name))), [subjects, tc])
   // Выбор курса — ОДИН на телефон: тот же activeSubjectId, что и в «Курсах».
   // Выбрал англ на главной — англ и в курсах, поменял на кор в курсах —
   // главная тоже кор. Локально живёт только «Все» (в сторе такого курса нет);
@@ -386,7 +387,7 @@ export default function MobileHome() {
 
           {/* Hero — Продолжить */}
           {continueInfo ? (
-            <HeroContinue lesson={continueInfo.lesson} subjectName={continueInfo.subject.name} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
+            <HeroContinue lesson={continueInfo.lesson} subjectName={tc(continueInfo.subject.name)} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
           ) : (
             <div className="flex flex-col items-center justify-center text-center" style={{ gap: 6, padding: '14px 16px', borderRadius: 20, background: 'var(--color-bg-3)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}>
               <Lock size={22} style={{ color: 'var(--color-muted)' }} />
@@ -418,7 +419,7 @@ export default function MobileHome() {
                     style={{ gap: 10, padding: '7px 0', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}
                   >
                     <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-accent)', minWidth: 44 }}>{l.time}</span>
-                    <span className="flex-1 min-w-0 truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{l.lessonTitle}</span>
+                    <span className="flex-1 min-w-0 truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>
                     <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
                   </button>
                 ))}
@@ -665,6 +666,7 @@ const HERO_MIN_H = 142
 
 function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: Lesson; subjectName: string; progress: number; onContinue: () => void }) {
   const t = useT()
+  const { tc } = useTc()
   const status = getDisplayLessonStatus(lesson)
   const label = status === 'current' ? t('Продолжить') : t('Начать')
   return (
@@ -700,7 +702,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
         minHeight: 38,
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
       }}>
-        {t('Занятие')} #{lesson.number + 1} · {lesson.title}
+        {t('Занятие')} #{lesson.number + 1} · {tc(lesson.title)}
       </div>
       <div style={{ height: 5, background: 'rgba(255,255,255,0.25)', borderRadius: 99, overflow: 'hidden', marginBottom: 10 }}>
         <div style={{ width: `${Math.max(4, progress)}%`, height: '100%', background: '#fff', borderRadius: 99 }} />

@@ -13,7 +13,7 @@ import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
-import { useT, t } from '../../lib/i18n'
+import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import { alertDialog } from '../../components/ConfirmHost'
 
@@ -46,6 +46,7 @@ function formatSubmittedAt(iso?: string): string | null {
 // ─── Student summary card (left rail) ───────────────────────────────────────
 function StudentSummary({ student, group }: { student: Student; group: Group }) {
   const t = useT()
+  const { tn } = useTc()
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
       {/* Identity */}
@@ -63,10 +64,10 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 18, fontWeight: 700,
           }}>
-            {initials(student.name)}
+            {initials(tn(student.name))}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.2 }}>{student.name}</div>
+            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(student.name)}</div>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5,
               background: group.color + '33', borderRadius: 7, padding: '2px 8px',
@@ -165,6 +166,7 @@ function ReviewBottomBar({
   color: string
 }) {
   const t = useT()
+  const { tn } = useTc()
   const reviewedCount = submitters.filter(s => reviews[s.id]).length
   const remaining = submitters.length - reviewedCount
 
@@ -203,7 +205,7 @@ function ReviewBottomBar({
               )
             }
             return (
-              <button key={s.id} onClick={() => onJump(i)} title={s.name} style={{
+              <button key={s.id} onClick={() => onJump(i)} title={tn(s.name)} style={{
                 flex: 1, height: i < activeIdx ? 6 : 4, minWidth: 2, borderRadius: 3, border: 'none', cursor: 'pointer',
                 background: bg, padding: 0, transition: 'height 0.2s ease',
               }} />
@@ -359,6 +361,7 @@ function ReviewAttachEditor({
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function TeacherHomeworkReviewPage() {
   const t = useT()
+  const { tc } = useTc()
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
   const setActivePage = useTeacher(s => s.setActivePage)
   const reviewIdx = useTeacher(s => s.reviewIdx)
@@ -544,7 +547,7 @@ export default function TeacherHomeworkReviewPage() {
           maxWidth: '44%', pointerEvents: 'none',
           textAlign: 'center', fontSize: 18, fontWeight: 750, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-          {hw.title}
+          {tc(hw.title)}
         </span>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
@@ -586,7 +589,7 @@ export default function TeacherHomeworkReviewPage() {
               padding: '9px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
-              {hw.title}
+              {tc(hw.title)}
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />

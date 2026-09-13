@@ -3,7 +3,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import StarStickerLottie from './StarStickerLottie'
 import Skeleton from './Skeleton'
-import { useT } from '../lib/i18n'
+import { useT, tc } from '../lib/i18n'
 
 const STAT_ICONS: Record<string, string> = {
   'Успеваемость': '📈',
@@ -81,7 +81,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   // карточки (цифра в ней центрирована), чтобы карточки остались той же высоты,
   // что и соседние виджеты в ряду. В плотной раскладке 2×2 места нет — там
   // карточка вдвое ниже и подпись налезла бы на цифру.
-  const scopeLabel = course && subjects.length > 1 && columns < 3 ? course.name : null
+  const scopeLabel = course && subjects.length > 1 && columns < 3 ? tc(course.name) : null
 
   return (
     <div className="relative h-full w-full">

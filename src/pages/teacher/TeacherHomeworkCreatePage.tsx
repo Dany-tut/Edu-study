@@ -12,7 +12,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
-import { useT } from '../../lib/i18n'
+import { useT, useTc, tc } from '../../lib/i18n'
 import { supabase } from '../../lib/supabase'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
@@ -1279,6 +1279,7 @@ function HardTaskAccordion({
   onAdd: (type: HWTaskType) => void
 }) {
   const t = useT()
+  const { tn } = useTc()
   const [open, setOpen] = useState(false)
   const [assignTo, setAssignTo] = useState<'all' | 'selected'>('all')
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
@@ -1399,11 +1400,11 @@ function HardTaskAccordion({
                             {sel
                               ? <Check size={12} style={{ color: '#fff' }} />
                               : <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-muted)' }}>
-                                  {s.name.split(' ').map(p => p[0]).join('').slice(0, 2)}
+                                  {tn(s.name).split(' ').map(p => p[0]).join('').slice(0, 2)}
                                 </span>
                             }
                           </div>
-                          <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{s.name}</span>
+                          <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{tn(s.name)}</span>
                         </button>
                       )
                     })}
@@ -1741,6 +1742,7 @@ function LessonPicker({
   onChange: (id: string) => void
 }) {
   const t = useT()
+  const { tc } = useTc()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [fade, setFade] = useState({ top: 0, bottom: 0 })
@@ -1799,8 +1801,8 @@ function LessonPicker({
         <div style={{ flex: 1, minWidth: 0 }}>
           {selected ? (
             <>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.lessonTitle}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.courseTitle}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(selected.lessonTitle)}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(selected.courseTitle)}</div>
             </>
           ) : (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Без привязки')}</div>
@@ -1934,8 +1936,8 @@ function LessonOption({ lesson, active, suggested, onClick }: {
         <BookOpen size={13} style={{ color: 'var(--color-accent)' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lesson.lessonTitle}</div>
-        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lesson.courseTitle}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(lesson.lessonTitle)}</div>
+        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(lesson.courseTitle)}</div>
       </div>
       {suggested && <Sparkles size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
       {active && <Check size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
@@ -1957,6 +1959,7 @@ type Meta = {
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const allStudents = useAllStudents()
   const [subjectFilter, setSubjectFilter] = useState('')
 
@@ -2001,7 +2004,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <>
             {subjects.length > 1 && (
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {[{ v: '', label: 'Все' }, ...subjects.map(s => ({ v: s, label: s }))].map(opt => (
+                {[{ v: '', label: 'Все' }, ...subjects.map(s => ({ v: s, label: tc(s) }))].map(opt => (
                   <button
                     key={opt.v || 'all'}
                     onClick={() => { setSubjectFilter(opt.v); onChange({ studentId: '' }) }}
@@ -2023,7 +2026,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
               placeholder={t('Студент')}
               options={scopedStudents.map(s => ({
                 value: s.id,
-                label: s.subject ? `${s.name} · ${s.subject}` : s.name,
+                label: s.subject ? `${tn(s.name)} · ${tc(s.subject)}` : tn(s.name),
               }))}
             />
           </>
@@ -2070,6 +2073,7 @@ function stripHeavyFields(tasks: HWTask[]) {
 
 export default function TeacherHomeworkCreatePage() {
   const t = useT()
+  const { tc } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
   const editingHomeworkId = useTeacher(s => s.editingHomeworkId)
@@ -2379,7 +2383,7 @@ export default function TeacherHomeworkCreatePage() {
               padding: '9px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
-              {meta.title || (isEditing ? t('Редактировать домашку') : t('Создать домашнее задание'))}
+              {tc(meta.title) || (isEditing ? t('Редактировать домашку') : t('Создать домашнее задание'))}
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2435,7 +2439,7 @@ export default function TeacherHomeworkCreatePage() {
             fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
           }}>
             {isEditing ? t('Редактировать домашку') : t('Создать домашнее задание')}
-            {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {meta.title}</span>}
+            {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {tc(meta.title)}</span>}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
@@ -2662,8 +2666,8 @@ export default function TeacherHomeworkCreatePage() {
                   {t('Домашнее задание будет привязано к уроку:')}
                 </div>
                 <div style={{ background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 14px', marginBottom: 20 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{lesson?.lessonTitle}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{lesson?.courseTitle}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{tc(lesson?.lessonTitle)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{tc(lesson?.courseTitle)}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button

@@ -21,7 +21,7 @@ import {
   fetchStudentActivity,
   fetchStudentSessionDays,
 } from '../../lib/db'
-import { useT, t } from '../../lib/i18n'
+import { useT, t, useTc, tn } from '../../lib/i18n'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -43,7 +43,7 @@ function Avatar({ student, group, size = 56 }: { student: Student; group: Group;
       fontSize: size * 0.32, fontWeight: 700, color: '#fff',
       boxShadow: `0 0 0 3px ${group.color}44`,
     }}>
-      {nameInitials(student.name)}
+      {nameInitials(tn(student.name))}
     </div>
   )
 }
@@ -300,6 +300,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherStudentDashboardPage() {
   const t = useT()
+  const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedStudentId = useTeacher(s => s.selectedStudentId)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
@@ -417,14 +418,14 @@ export default function TeacherStudentDashboardPage() {
                 padding: '9px 16px', borderRadius: 999, ...dockGlass,
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
               }}>
-                {student.name}
+                {tn(student.name)}
               </div>
 
               <div style={{ flexGrow: 1 }} />
 
               <motion.button
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-                onClick={() => printStudentCard(student.name)}
+                onClick={() => printStudentCard(tn(student.name))}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
                   padding: '9px 18px 9px 14px', borderRadius: 999, ...dockGlass,
@@ -449,8 +450,8 @@ export default function TeacherStudentDashboardPage() {
       >
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
-        <h1 style={{ fontSize: 22, marginBottom: 4 }}>{student.name}</h1>
-        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon} {group.subject} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
+        <h1 style={{ fontSize: 22, marginBottom: 4 }}>{tn(student.name)}</h1>
+        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon} {tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
             {[
@@ -482,7 +483,7 @@ export default function TeacherStudentDashboardPage() {
         <h2 style={{ fontSize: 15, marginBottom: 8, marginTop: 16 }}>{t('История домашних работ')}</h2>
         {hwHistory.map((h, i) => (
           <div key={i} style={{ marginBottom: 4 }}>
-            {h.title} · {h.date} — {h.returned ? t('Возвращено') : `${h.score}/${h.maxScore}`}
+            {tc(h.title)} · {h.date} — {h.returned ? t('Возвращено') : `${h.score}/${h.maxScore}`}
           </div>
         ))}
         <p style={{ color: '#999', fontSize: 11, marginTop: 24 }}>{t('Сформировано автоматически')} · {new Date().toLocaleDateString('ru-RU')}</p>
@@ -506,7 +507,7 @@ export default function TeacherStudentDashboardPage() {
             {t('Назад к группам')}
           </button>
           <button
-            onClick={() => printStudentCard(student.name)}
+            onClick={() => printStudentCard(tn(student.name))}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'all 0.15s', fontFamily: 'inherit' }}
           >
             <Download size={14} />
@@ -524,7 +525,7 @@ export default function TeacherStudentDashboardPage() {
         }}>
           <Avatar student={student} group={group} size={68} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{student.name}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -533,7 +534,7 @@ export default function TeacherStudentDashboardPage() {
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.name}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {group.subject}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {tc(group.subject)}</span>
               </div>
               {student.startedAt && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('c')} {student.startedAt}</span>}
               <span style={{
@@ -550,7 +551,7 @@ export default function TeacherStudentDashboardPage() {
                   background: group.color + '18', border: `1px solid ${group.color}30`,
                 }}>
                   <BookOpen size={11} />
-                  {c.title}
+                  {tc(c.title)}
                   <span style={{ fontSize: 11, opacity: 0.7 }}>{c.completedLessons}/{c.totalLessons}</span>
                 </span>
               ))}
@@ -732,7 +733,7 @@ export default function TeacherStudentDashboardPage() {
                         {hw.returned ? <AlertCircle size={12} style={{ color: '#F48B91' }} /> : pct === 100 ? <CheckCheck size={12} style={{ color: '#34C877' }} /> : <CheckCircle2 size={12} style={{ color: 'var(--color-muted)' }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hw.title}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(hw.title)}</div>
                         <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{hw.date}</div>
                       </div>
                       <span style={{ padding: '3px 8px', borderRadius: 8, background: hw.returned ? 'var(--color-red-soft)' : pct >= 80 ? '#E8F7EF' : '#FFF3D6', color, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
@@ -826,8 +827,8 @@ export default function TeacherStudentDashboardPage() {
                       <div key={c.id} style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', border: `1px solid ${group.color}20` }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{c.title}</div>
-                            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{c.subject}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{tc(c.title)}</div>
+                            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{tc(c.subject)}</div>
                           </div>
                           <span style={{ fontSize: 14, fontWeight: 800, color: pctColor, flexShrink: 0 }}>
                             {Math.round(pct * 100)}%

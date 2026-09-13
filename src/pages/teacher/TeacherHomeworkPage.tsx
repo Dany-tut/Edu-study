@@ -16,7 +16,7 @@ import { expandToPerson } from '../../lib/personGroups'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
-import { useT, t as tGlobal } from '../../lib/i18n'
+import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -92,6 +92,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 // ─── Assign form panel ─────────────────────────────────────────────────────────
 function AssignForm({ onClose }: { onClose: () => void }) {
   const t = useT()
+  const { tn } = useTc()
   const { groups } = useGroups()
   const [selectedGroup, setSelectedGroup] = useState<string>('')
   const [selectedStudent, setSelectedStudent] = useState<string>('')
@@ -192,7 +193,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
             <div>
               <TeacherSelect value={selectedStudent} onChange={setSelectedStudent}
                 placeholder={t('Студент')}
-                options={groupStudents.map(s => ({ value: s.id, label: s.name }))} />
+                options={groupStudents.map(s => ({ value: s.id, label: tn(s.name) }))} />
             </div>
           )}
 
@@ -274,6 +275,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
   subject?: { label: string; icon: string; color: string } | null
 }) {
   const t = useT()
+  const { tc } = useTc()
   const status = hwStatus(hw)
   const submittedPct = hw.totalCount > 0 ? Math.round((hw.submittedCount / hw.totalCount) * 100) : 0
   const reviewedPct = hw.submittedCount > 0 ? Math.round((hw.reviewedCount / hw.submittedCount) * 100) : 0
@@ -306,7 +308,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
             background: subject.color + '1E', border: `1px solid ${subject.color}3A`,
             borderRadius: 6, padding: '2px 7px',
           }}>
-            <span>{subject.icon}</span>{subject.label}
+            <span>{subject.icon}</span>{tc(subject.label)}
           </span>
         )}
       </td>
@@ -314,7 +316,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
       {/* Title + two inline segments: основное / сложное */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 280 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>
-          {hw.title || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без названия')}</span>}
+          {tc(hw.title) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без названия')}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{
@@ -388,6 +390,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
 // ─── Homework detail panel ─────────────────────────────────────────────────────
 function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onClose: () => void }) {
   const t = useT()
+  const { tc } = useTc()
   const status = hwStatus(hw)
   const { students: dbStudents } = useStudents(hw.groupId)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -422,7 +425,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
       <div style={{ padding: '18px 18px 14px', background: group.color + '1A', borderBottom: `1px solid ${group.color}33`, flexShrink: 0, borderTopLeftRadius: 19, borderTopRightRadius: 19 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>{hw.title}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>{tc(hw.title)}</div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: group.color + '28', borderRadius: 7, padding: '2px 8px' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: group.color }}>{hw.groupName}</span>
@@ -591,6 +594,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
 // ─── Hard submissions section ──────────────────────────────────────────────────
 function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: boolean; onClick: () => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''
   const initials = sub.studentName.split(' ').map((p: string) => p[0]).join('').slice(0, 2)
   const isPending = sub.status === 'submitted'
@@ -617,10 +621,10 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {sub.studentName}
+          {tn(sub.studentName)}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {sub.lessonTitle || sub.baseRef}
+          {tc(sub.lessonTitle) || sub.baseRef}
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -640,6 +644,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherHomeworkPage() {
   const t = useT()
+  const { tc, tn } = useTc()
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -696,7 +701,7 @@ export default function TeacherHomeworkPage() {
         const ts = parseDdMm(hw.dueDate)
         return {
           key: `hw-${hw.id}`, kind: 'basic' as const, who: hw.groupName, color: hw.color,
-          title: hw.title || t('Без названия'),
+          title: tc(hw.title) || t('Без названия'),
           meta: `${pending} ${t(pluralRu(pending, 'работа', 'работы', 'работ'))} ${t('на проверке')}`
             + (hw.lastSubmittedAt ? ` · ${t('сдано')} ${timeAgo(hw.lastSubmittedAt)}` : ''),
           due: hw.dueDate ? `${t('дедлайн')} ${hw.dueDate}` : '', ts,
@@ -709,8 +714,8 @@ export default function TeacherHomeworkPage() {
       .map(sub => {
         const steps = hardSubTimeline(sub.taskBlocks, sub.reviewBlocks)
         return {
-          key: `hard-${sub.id}`, kind: 'hard' as const, who: sub.studentName, color: 'var(--color-accent)',
-          title: sub.lessonTitle || t('Хард-задание'), meta: `${t('сдано')} ${timeAgo(sub.updatedAt)}`,
+          key: `hard-${sub.id}`, kind: 'hard' as const, who: tn(sub.studentName), color: 'var(--color-accent)',
+          title: tc(sub.lessonTitle) || t('Хард-задание'), meta: `${t('сдано')} ${timeAgo(sub.updatedAt)}`,
           // Лента событий показываем только когда была доработка (>1 шага);
           // одиночная сдача остаётся коротким «сдано N назад».
           steps: steps.length > 1 ? steps : undefined,

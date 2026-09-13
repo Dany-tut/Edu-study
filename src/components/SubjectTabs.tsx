@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { playTransitionDrop } from '../lib/sound'
-import { useT } from '../lib/i18n'
+import { useT, tc } from '../lib/i18n'
 
 export default function SubjectTabs() {
   const t = useT()
@@ -10,7 +10,7 @@ export default function SubjectTabs() {
   const subjects = useStudentData(s => s.subjects)
 
   const tabs = [
-    ...subjects.map(s => ({ id: s.id, label: s.name })),
+    ...subjects.map(s => ({ id: s.id, label: tc(s.name) })),
     { id: 'all', label: t('Все') },
   ]
 

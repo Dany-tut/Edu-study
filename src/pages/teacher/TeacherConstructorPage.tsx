@@ -57,7 +57,7 @@ import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
-import { useT, t } from '../../lib/i18n'
+import { useT, t, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -589,6 +589,7 @@ function CourseEditor({
   const [subject, setSubject] = useState(course.subject)
   const [level, setLevel] = useState(course.level)
   const [description, setDescription] = useState(course.description)
+  const descField = useContentField(description)
   const [status, setStatus] = useState<CourseStatus>(course.status)
   const [lessons, setLessons] = useState<Lesson[]>(course.lessons)
   const [newLessonTitle, setNewLessonTitle] = useState('')
@@ -638,7 +639,7 @@ function CourseEditor({
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title */}
         <div><Label>{t('Название')}</Label>
-          <input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} />
+          <ContentInput value={title} onChange={e => setTitle(e.target.value)} style={inputSt} />
         </div>
 
         {/* Subject + Level */}
@@ -658,7 +659,7 @@ function CourseEditor({
 
         {/* Description */}
         <div><Label>{t('Описание')}</Label>
-          <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} value={description} onChange={e => { setDescription(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+          <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} {...descField} onChange={e => { setDescription(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
             style={{ ...inputSt, resize: 'none', minHeight: 56, overflow: 'hidden' }} />
         </div>
 
@@ -677,7 +678,7 @@ function CourseEditor({
             {lessons.map((lesson, idx) => (
               <div key={lesson.id} style={{ background: 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{lesson.title}</div>
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{tc(lesson.title)}</div>
                   <button onClick={() => moveLesson(idx, -1)} disabled={idx === 0}
                     style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
                     <ArrowUp size={11} />
@@ -1225,7 +1226,7 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
                   {enrolledIds.has(s.id)
                     ? <CheckCircle size={11} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                     : <Circle size={11} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(s.name)}</span>
                 </div>
               ))}
             </ScrollFade>
@@ -1367,8 +1368,8 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
           {(() => { const st = seedMovedAhead(course); return st && <SeedDot state={st} /> })()}
         </div>
       }
-      title={course.title}
-      subtitle={`${course.subject} · ${course.level}`}
+      title={tc(course.title)}
+      subtitle={`${tc(course.subject)} · ${tc(course.level)}`}
       footerLeft={
         <>
           <GraduationCap size={13} strokeWidth={1.8} /><span>{course.lessons.length} {t('уроков')}</span>
@@ -1416,6 +1417,19 @@ function withSortTimes(c: Course, prev?: Course | null): Course {
  *  порядок держится на одном времени создания и правка его не трогает. */
 function withCreatedAt<T extends { createdAt?: string }>(item: T, prev?: T | null): T {
   return { ...item, createdAt: prev?.createdAt ?? item.createdAt ?? new Date().toISOString() }
+}
+
+/** Поле с сохранённым названием/описанием: без фокуса в английском режиме
+ *  показывает перевод (tc), в фокусе — исходник, так что правится оригинал.
+ *  Перевод никогда не пишется в состояние. */
+function useContentField(raw: string) {
+  const [focused, setFocused] = useState(false)
+  useT()
+  return { value: focused ? raw : tc(raw), onFocus: () => setFocused(true), onBlur: () => setFocused(false) }
+}
+function ContentInput({ value, onFocus, onBlur, ...rest }: React.InputHTMLAttributes<HTMLInputElement> & { value: string }) {
+  const f = useContentField(value)
+  return <input {...rest} value={f.value} onFocus={e => { f.onFocus(); onFocus?.(e) }} onBlur={e => { f.onBlur(); onBlur?.(e) }} />
 }
 
 function seedToCourse(seed: CourseSeed, id: string): Course {
@@ -2147,7 +2161,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
               style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 background: i === lessonIndex ? 'var(--color-purple-soft)' : 'transparent' }}>
               <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-bg-3)', color: i === lessonIndex ? '#fff' : 'var(--color-muted)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.title}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(l.title)}</span>
             </button>
           ))}
         </div>
@@ -2315,6 +2329,7 @@ function CreatorView({
   const [cSubject, setCSubject] = useState(editCourse?.subject ?? 'Химия')
   const [cLevel, setCLevel] = useState(editCourse?.level ?? 'ЕГЭ')
   const [cDesc, setCDesc] = useState(editCourse?.description ?? '')
+  const cDescField = useContentField(cDesc)
   const [cStatus, setCStatus] = useState<CourseStatus>(editCourse?.status ?? 'draft')
   const [cLessons, setCLessons] = useState<Lesson[]>(editCourse?.lessons ?? [])
   const [newLessonTitle, setNewLessonTitle] = useState('')
@@ -2797,7 +2812,7 @@ function CreatorView({
                 value={tkSubject}
                 onChange={v => { setTkSubject(v); setTkSection(''); setTkTopic('') }}
                 placeholder={t('Предмет')}
-                options={SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${s.name}` }))}
+                options={SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${tc(s.name)}` }))}
               />
             </div>
             {/* Разметка. У языкового предмета своя: уровень / навык / тема —
@@ -2881,7 +2896,7 @@ function CreatorView({
           {/* ─ Course left ─ */}
           {mode === 'course' && <>
             <div><Label>{t('Название')}</Label>
-              <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
+              <ContentInput value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
             </div>
             <div><Label>{t('Предмет')}</Label>
               <input value={cSubject} onChange={e => setCSubject(e.target.value)} style={inputSt} placeholder={t("Например, Химия")} />
@@ -2895,7 +2910,7 @@ function CreatorView({
                 options={levelOptionsForSubject(cSubject).map(o => ({ value: o, label: t(o) }))} />
             </div>
             <div><Label>{t('Описание')}</Label>
-              <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} value={cDesc} onChange={e => { setCDesc(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+              <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} {...cDescField} onChange={e => { setCDesc(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                 style={{ ...inputSt, resize: 'none', overflow: 'hidden' }} placeholder={t("Краткое описание курса…")} />
             </div>
             <div><Label>{t('Статус')}</Label>
@@ -2934,7 +2949,7 @@ function CreatorView({
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         {enrolledList.map(s => (
                           <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', borderRadius: 7, padding: '4px 8px' }}>
-                            {s.name}
+                            {tn(s.name)}
                           </div>
                         ))}
                       </div>
@@ -3423,7 +3438,7 @@ function CreatorView({
                 {cLessons.map((lesson, idx) => (
                   <div key={lesson.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--color-bg-input)', borderRadius: 12, border: '1px solid var(--color-border)' }}>
                     <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text)', flexShrink: 0 }}>{idx + 1}</div>
-                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{lesson.title}</div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{tc(lesson.title)}</div>
                     {enrollDbId && (
                       <button onClick={() => setEditingLessonIdx(idx)} title={t("Редактировать контент урока (конспект + ДЗ)")}
                         style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-purple-text)' }}>
@@ -4415,10 +4430,10 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', flexShrink: 0 }}>
-                {s.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
+                {tn(s.name).split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
               </div>
             </button>
           ))}
@@ -4474,7 +4489,7 @@ function DiagnosticStudentCard({
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {result.name}
+            {tn(result.name)}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
             <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{t(subjectLabel)}</span>
@@ -4915,7 +4930,7 @@ function DiagResultsTable({
                         {initials || '?'}
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{r.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(r.name)}</div>
                         {r.linkedStudentId && <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={9} /> {t('привязан')}</div>}
                       </div>
                     </div>
@@ -5004,7 +5019,7 @@ function DiagResultStudentPanel({
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
         style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
-        <PanelHeader title={result.name} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
+        <PanelHeader title={tn(result.name)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         <ScrollFade
           maxHeight="100%"
           bg="rgba(var(--glass-rgb), 0.97)"
@@ -5080,7 +5095,7 @@ function DiagResultStudentPanel({
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: 'var(--color-green-soft)', border: '1px solid rgba(34,197,94,0.25)' }}>
                 <Check size={16} style={{ color: '#22c55e', flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{linkedStudent.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(linkedStudent.name)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-green-text)' }}>{t('Привязан к профилю')}</div>
                 </div>
                 <button onClick={handleUnlink} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: '#ef4444', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
@@ -5709,7 +5724,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
                         <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           {aGroups.map(g => <span key={g.id} style={{ color: g.color }}>● {g.name}</span>)}
-                          {aStudents.map(s => <span key={s.id}>{s.name}</span>)}
+                          {aStudents.map(s => <span key={s.id}>{tn(s.name)}</span>)}
                           {a.dueDate && <span>{t('до')} {a.dueDate}</span>}
                         </div>
                       </div>
@@ -5727,7 +5742,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                           const col = pct >= 70 ? '#34C877' : pct >= 40 ? '#F5A623' : '#F48B91'
                           return (
                             <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg)' }}>
-                              <span style={{ fontSize: 11, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                              <span style={{ fontSize: 11, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(r.name)}</span>
                               <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{pct}%</span>
                             </div>
                           )
@@ -8983,7 +8998,7 @@ function AssignmentsPanel({
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 3 }}>{a.title}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {assignedGroups.map(g => <span key={g.id} style={{ color: g.color }}>● {g.name}</span>)}
-                    {assignedStudents.map(s => <span key={s.id}>{s.name}</span>)}
+                    {assignedStudents.map(s => <span key={s.id}>{tn(s.name)}</span>)}
                     {a.dueDate && <span>{t('до')} {a.dueDate}</span>}
                   </div>
                 </div>
@@ -9006,7 +9021,7 @@ function AssignmentsPanel({
                     const col = pct >= 70 ? '#34C877' : pct >= 40 ? '#F5A623' : '#F48B91'
                     return (
                       <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg)' }}>
-                        <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{r.name}</span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{tn(r.name)}</span>
                         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: col, minWidth: 36, textAlign: 'right' }}>{pct}%</span>
                       </div>

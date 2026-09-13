@@ -10,7 +10,7 @@ import { tactile } from '../../../lib/feedback'
 import { useGroups, useGroupLessons, useLessonRoster, useAttendance, type GroupLesson } from '../../../lib/useGroups'
 import { DEMO_GROUPS, demoLessonsFor, demoRosterFor, isDemoId } from '../../../data/teacherDevDemo'
 import { useTheme } from '../../../store/themeStore'
-import { useT } from '../../../lib/i18n'
+import { useT, useTc } from '../../../lib/i18n'
 
 // MOBILE ONLY journal: pick group → pick lesson → mark present/absent with a
 // "все присутствовали" shortcut, then save (useAttendance.saveLesson).
@@ -24,6 +24,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
   lesson: GroupLesson | null; groupId: string | null; onClose: () => void; onSaved: () => void
 }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const realRoster = useLessonRoster(lesson)
   // DEV-only: demo lesson has no DB roster → derive it from the demo group.
   const roster = import.meta.env.DEV && realRoster.length === 0 && isDemoId(lesson?.id)
@@ -70,7 +71,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
     <MobileSheet
       open={!!lesson}
       onClose={onClose}
-      title={lesson ? `${lesson.title || t('Урок')} · ${fmtDate(lesson.date)}` : ''}
+      title={lesson ? `${tc(lesson.title) || t('Урок')} · ${fmtDate(lesson.date)}` : ''}
       footer={lesson ? (
         <>
           {saveError && (
@@ -104,7 +105,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
             const isPresent = !!present[r.id]
             return (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px' }}>
-                <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{r.name}</span>
+                <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{tn(r.name)}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
@@ -136,6 +137,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
 
 export default function MobileTeacherGradebook() {
   const t = useT()
+  const { tc } = useTc()
   const { dark } = useTheme()
   const { groups: realGroups } = useGroups()
   const groups = import.meta.env.DEV && realGroups.length === 0 ? DEMO_GROUPS : realGroups
@@ -229,7 +231,7 @@ export default function MobileTeacherGradebook() {
                   <CalendarCheck size={18} style={{ color: first ? '#fff' : 'var(--color-muted)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14.5, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? (dark ? 'rgba(255,220,120,1)' : '#a34e00') : 'var(--color-text)' }}>{l.title || t('Урок')}</div>
+                  <div style={{ fontSize: 14.5, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? (dark ? 'rgba(255,220,120,1)' : '#a34e00') : 'var(--color-text)' }}>{tc(l.title) || t('Урок')}</div>
                   <div style={{ fontSize: 12, fontWeight: 500, color: first ? (dark ? 'rgba(255,200,80,0.8)' : 'rgba(163,78,0,0.72)') : 'var(--color-muted)' }}>{fmtDate(l.date)}{l.timeStart ? ` · ${l.timeStart}` : ''}</div>
                 </div>
                 {first && (

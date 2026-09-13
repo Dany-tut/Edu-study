@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { SUBJECTS } from '../../lib/subjects'
 import { WIDGET_REGISTRY } from './widgets/registry'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 
 // Shared admin control for "what a teacher sees and owns". Works in SELECTED
 // (allowed) terms in the UI; callers convert tabs/widgets to the hidden
@@ -75,6 +75,7 @@ export default function AccessConfigurator({
   showContent?: boolean
 }) {
   const tr = useT()
+  const { tc, tn } = useTc()
   const [courses, setCourses] = useState<ContentOpt[]>([])
   const [groups, setGroups] = useState<ContentOpt[]>([])
 
@@ -119,7 +120,7 @@ export default function AccessConfigurator({
     }),
     ...groupIds.map(id => {
       const g = groups.find(x => x.id === id)
-      return { key: `g-${id}`, label: g?.title ?? tr('Группа'), icon: <Users size={13} /> }
+      return { key: `g-${id}`, label: g?.title != null ? tc(g.title) : tr('Группа'), icon: <Users size={13} /> }
     }),
   ]
 
@@ -174,8 +175,8 @@ export default function AccessConfigurator({
                       <div style={{ width: 18, height: 18, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1.5px solid ${a ? 'var(--color-purple)' : 'var(--color-border-medium)'}`, background: a ? 'var(--color-purple)' : 'transparent', color: '#fff' }}>
                         {a && <Check size={12} strokeWidth={3} />}
                       </div>
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title || '—'}</span>
-                      <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>· {c.owner_name}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(c.title) || '—'}</span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>· {tn(c.owner_name)}</span>
                     </button>
                     {a && (
                       <div style={{ display: 'flex', gap: 3, background: 'var(--color-bg-3)', borderRadius: 8, padding: 2, flexShrink: 0 }}>
@@ -202,7 +203,7 @@ export default function AccessConfigurator({
             {groups.length === 0
               ? <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{tr('Нет групп.')}</div>
               : groups.map(g => (
-                <Chip key={g.id} label={`${g.title} · ${g.detail}`} on={groupIds.includes(g.id)} onToggle={() => toggleGroup(g.id)} />
+                <Chip key={g.id} label={`${tc(g.title)} · ${g.detail}`} on={groupIds.includes(g.id)} onToggle={() => toggleGroup(g.id)} />
               ))}
           </div>
         </>

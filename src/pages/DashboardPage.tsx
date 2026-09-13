@@ -25,7 +25,7 @@ import { useCourseTint, useTint } from '../store/tintStore'
 import { getStudentSession } from '../lib/studentSession'
 import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment } from '../data/diagnosticData'
 import { ClipboardList, ChevronRight } from 'lucide-react'
-import { useT } from '../lib/i18n'
+import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
@@ -667,7 +667,7 @@ function AssignedTestsBlock() {
             style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, background: 'var(--color-bg-card)', border: '1.5px solid var(--color-accent)', cursor: 'pointer', boxShadow: '0 2px 12px rgba(99,84,207,0.08)' }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{a.title}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tc(a.title)}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>
                 {t(SUBJECT_LABEL[a.subject] ?? a.subject)}
                 {a.dueDate && <span style={{ marginLeft: 8, color: 'var(--color-peach-text)' }}>{t('до')} {a.dueDate}</span>}

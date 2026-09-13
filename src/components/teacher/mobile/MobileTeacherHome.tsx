@@ -21,7 +21,7 @@ import type { ScheduleItem, Student, Group } from '../../../data/teacherMockData
 import type { MTab } from './MobileTeacherNav'
 import { StudentSheet } from './MobileTeacherStudents'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP } from '../../../data/teacherDevDemo'
-import { useT, t } from '../../../lib/i18n'
+import { useT, t, useTc } from '../../../lib/i18n'
 
 const BASE_URL = window.location.origin + window.location.pathname
 const DIAG_SUBJECTS: { id: string; label: string }[] = [
@@ -268,12 +268,13 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
 }) {
   const c = TAG_COLORS[item.tagKind]
   const t = useT()
+  const { tn } = useTc()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.avBg, color: c.avText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 700, flexShrink: 0 }}>{item.initials}</div>
       <button onClick={() => { tactile(); onOpen() }} className="cursor-pointer text-left" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 650, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          {item.name}
+          {tn(item.name)}
           <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.bg, color: c.text }}>{item.tag}</span>
         </div>
         <div style={{ fontSize: 10.5, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
@@ -310,6 +311,7 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
 
 export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MTab) => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const home = useHomeData()
   const { submissions } = useHardSubmissions()
   const finance = useFinanceSummary()
@@ -379,7 +381,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   const topZone = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
       <GlassPill>
-        <span style={{ fontWeight: 750 }}>{model.name ? `${t('Привет')}, ${model.name}` : t('Кабинет учителя')}</span>
+        <span style={{ fontWeight: 750 }}>{model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя')}</span>
       </GlassPill>
       <GlassPill>
         <Users size={15} style={{ color: 'var(--color-accent)' }} /> {model.studentTotal}
@@ -494,7 +496,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Активные назначения')}</div>
               {activeAssignments.map(a => (
-                <LinkRow key={a.id} label={a.title} sub={`${a.assignType === 'trial' ? t('Пробник') : t('Тест')}${a.dueDate ? ` · ${t('до')} ${a.dueDate}` : ''}`} url={diagLink(a.subject, a.id)} />
+                <LinkRow key={a.id} label={tc(a.title)} sub={`${a.assignType === 'trial' ? t('Пробник') : t('Тест')}${a.dueDate ? ` · ${t('до')} ${a.dueDate}` : ''}`} url={diagLink(a.subject, a.id)} />
               ))}
             </div>
           )}

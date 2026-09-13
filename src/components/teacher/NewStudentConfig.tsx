@@ -3,7 +3,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { WIDGET_META } from '../../data/widgets'
 import { fetchTeacherCourses, configureNewStudent, type TeacherCourseOption } from '../../lib/useGroups'
 import TeacherSelect from './TeacherSelect'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 
 // Config step shown between "student created" and the invite link: pick which
 // dashboard widgets the student sees (teacher-enforced hard-hide) and optionally
@@ -17,6 +17,7 @@ export default function NewStudentConfig({
   onDone: () => void
 }) {
   const t = useT()
+  const { tc } = useTc()
   // Widgets are shown-by-default; the set holds ids the teacher chose to hide.
   const [hidden, setHidden] = useState<Set<number>>(new Set())
   const [courseId, setCourseId] = useState<string>('')
@@ -61,7 +62,7 @@ export default function NewStudentConfig({
 
   const courseOptions = [
     { value: '', label: t('Без курса') },
-    ...courses.map(c => ({ value: c.id, label: c.title })),
+    ...courses.map(c => ({ value: c.id, label: tc(c.title) })),
   ]
 
   return (

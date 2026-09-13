@@ -4,7 +4,7 @@ import { scienceFactInterval } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { subjectTheme } from '../lib/theme'
-import { useT } from '../lib/i18n'
+import { useT, tc } from '../lib/i18n'
 
 type Props = {
   /** true while this widget is the visible one — pauses rotation otherwise */
@@ -104,7 +104,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
               background: subjectTheme(fact.subject).soft,
             }}
           >
-            {fact.subject} · {t('научный факт')}
+            {tc(fact.subject)} · {t('научный факт')}
           </span>
         </div>
 

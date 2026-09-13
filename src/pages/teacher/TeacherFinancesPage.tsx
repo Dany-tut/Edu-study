@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -54,6 +54,7 @@ function AddPaymentModal({
   onSaved: () => void
 }) {
   const t = useT()
+  const { tn } = useTc()
   const [amount, setAmount] = useState(student.paymentAmount ? String(student.paymentAmount) : '')
   const [lessons, setLessons] = useState('4')
   const [note, setNote] = useState('')
@@ -115,7 +116,7 @@ function AddPaymentModal({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Отметить оплату')}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{student.name}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{tn(student.name)}</div>
           </div>
           <button onClick={onClose} style={{
             width: 30, height: 30, borderRadius: 9,
@@ -206,6 +207,7 @@ function StudentRow({
   onToggle: () => void
 }) {
   const t = useT()
+  const { tn } = useTc()
   const status = getStatus(student)
   const { payments, reload } = usePayments(student.id)
 
@@ -244,13 +246,13 @@ function StudentRow({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, color: statusColor,
         }}>
-          {initials(student.name)}
+          {initials(tn(student.name))}
         </div>
 
         {/* Name + status */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)' }}>
-            {student.name.split(' ').slice(0, 2).join(' ')}
+            {tn(student.name).split(' ').slice(0, 2).join(' ')}
             <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 400, marginLeft: 6 }}>{groupName}</span>
           </div>
           <div style={{ fontSize: 11, color: statusColor, marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>

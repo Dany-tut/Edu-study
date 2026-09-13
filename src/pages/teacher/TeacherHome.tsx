@@ -16,7 +16,7 @@ import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
 import { mskToVietnam } from '../../lib/utils'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
-import { useLang, useT, t } from '../../lib/i18n'
+import { useLang, useT, t, useTc } from '../../lib/i18n'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -278,6 +278,7 @@ function formatDue(iso: string): string {
 
 function PaymentBlock({ students, groups }: { students: Student[]; groups: Group[] }) {
   const t = useT()
+  const { tn } = useTc()
   const TODAY = new Date().toISOString().split('T')[0]
   const withPayment = students.filter(s => s.paymentDue)
   if (!withPayment.length) return null
@@ -307,11 +308,11 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 10, fontWeight: 700, color,
                 }}>
-                  {s.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+                  {tn(s.name).split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {s.name.split(' ')[0]} {s.name.split(' ')[1]?.[0]}.
+                    {tn(s.name).split(' ')[0]} {tn(s.name).split(' ')[1]?.[0]}.
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{group?.name ?? ''}</div>
                 </div>
@@ -933,6 +934,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
 // ─── Main component ─────────────────────────────────────────────────────────
 export default function TeacherHome() {
   const t = useT()
+  const { tc, tn } = useTc()
   const { setActivePage, openGradebook } = useTeacher()
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -1006,14 +1008,14 @@ export default function TeacherHome() {
     ...pendingHard.map(s => ({
       id: `hard-${s.id}`,
       type: 'check-hw' as Reminder['type'],
-      text: `${t('Сложное ДЗ')} — ${s.studentName.split(' ')[0]}`,
-      detail: s.lessonTitle,
+      text: `${t('Сложное ДЗ')} — ${tn(s.studentName).split(' ')[0]}`,
+      detail: tc(s.lessonTitle),
       urgency: 'high' as Reminder['urgency'],
     })),
     ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({
       id: `pay-${s.id}`,
       type: 'payment-debt' as Reminder['type'],
-      text: `${t('Оплата')} — ${s.name.split(' ')[0]}`,
+      text: `${t('Оплата')} — ${tn(s.name).split(' ')[0]}`,
       detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
       urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
     })),
@@ -1021,7 +1023,7 @@ export default function TeacherHome() {
       id: `journal-${p.scheduleId}`,
       type: 'fill-journal' as Reminder['type'],
       text: `${t('Журнал')} — ${p.scopeName}`,
-      detail: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
+      detail: `${p.date.slice(5).replace('-', '.')} · ${tc(p.title)}`,
       urgency: 'medium' as Reminder['urgency'],
     })),
   ]

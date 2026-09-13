@@ -19,7 +19,7 @@ import {
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/homeworkSteps'
-import { useT } from '../lib/i18n'
+import { useT, useTc } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines, balancedWrap } from '../lib/typography'
 import Prose from '../components/Prose'
 import GlossedText from '../components/GlossedText'
@@ -675,6 +675,8 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
 
 export default function LessonPage() {
   const t = useT()
+  // tContent, а не tc: ниже `tc` — переменная таймкода в map.
+  const { tc: tContent } = useTc()
   const isDesktop = useIsDesktop()
   const courseReactions = useStudentData(s => s.courseReactions)
   // Курсы ученика — по ним урок узнаёт свой предмет (lesson.subject хранит
@@ -933,7 +935,7 @@ export default function LessonPage() {
           className="flex-1 min-w-0 truncate text-center"
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
-          {t('Занятие')} #{lesson.number + 1} {lesson.title}
+          {t('Занятие')} #{lesson.number + 1} {tContent(lesson.title)}
         </h1>
 
         <div
@@ -1003,7 +1005,7 @@ export default function LessonPage() {
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >
-              {lesson.title}
+              {tContent(lesson.title)}
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -1068,7 +1070,7 @@ export default function LessonPage() {
               key={lesson.id}
               ref={playerRef}
               source={videoSource}
-              title={lesson.title}
+              title={tContent(lesson.title)}
               badge={videoBadge}
               durationLabel={detail.duration}
               timecodes={timecodes}

@@ -3,7 +3,7 @@ import { AlertCircle, Clock, Check } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import { addPayment } from '../../../lib/useFinances'
-import { t, useT } from '../../../lib/i18n'
+import { t, useT, useTc } from '../../../lib/i18n'
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -27,6 +27,7 @@ function getStatusMeta(paymentDue?: string): StatusMeta {
 
 export default function WidgetFinanceOverdue() {
   const t = useT()
+  const { tn } = useTc()
   const students = useAllStudents()
   const { groups } = useGroups()
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -152,13 +153,13 @@ export default function WidgetFinanceOverdue() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700, color: meta.color,
               }}>
-                {initials(s.name)}
+                {initials(tn(s.name))}
               </div>
 
               {/* Name + group */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.name.split(' ').slice(0, 2).join(' ')}
+                  {tn(s.name).split(' ').slice(0, 2).join(' ')}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                   {group?.name ?? ''}

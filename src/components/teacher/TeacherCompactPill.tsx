@@ -12,7 +12,7 @@ import { useJournalPending } from '../../lib/useGroups'
 import { tactile } from '../../lib/feedback'
 import { mskToVietnam, getContrastColor } from '../../lib/utils'
 import { useNotificationsStore, type Notification } from '../../store/notificationsStore'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 
 const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
@@ -233,6 +233,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
 // ── Widget 2: Lessons awaiting grades + attendance ─────────────────────────
 function PendingGradesPreview({ expanded }: { expanded: boolean }) {
   const t = useT()
+  const { tc } = useTc()
   const pendingJournals = useJournalPending(null)
   const openGradebook = useTeacher(s => s.openGradebook)
   const next = pendingJournals[0]
@@ -252,7 +253,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
         </div>
       }
       kicker={pendingJournals.length > 0 ? `${t('Журнал')} · ${pendingJournals.length} ${t('не заполнено')}` : t('Журнал · за урок')}
-      title={next ? `${next.title} · ${next.scopeName}` : t('Все уроки заполнены')}
+      title={next ? `${tc(next.title)} · ${next.scopeName}` : t('Все уроки заполнены')}
       expanded={expanded}
       detail={
         pendingJournals.length > 0 ? (

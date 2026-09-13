@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import Skeleton from '../Skeleton'
 import GrowTextarea from '../GrowTextarea'
 import TeacherSelect from './TeacherSelect'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 
 // Админский реестр учеников: кто к какому учителю привязан, перевод другому
 // учителю / в другую группу, правка карточки и удаление. Владельца ученик не
@@ -51,6 +51,7 @@ const NO_OWNER = '__no_owner__'
 
 export default function AdminStudentsManager() {
   const t = useT()
+  const { tc, tn } = useTc()
   const [rows, setRows] = useState<StudentRow[]>([])
   const [groups, setGroups] = useState<GroupOption[]>([])
   const [teachers, setTeachers] = useState<TeacherOption[]>([])
@@ -108,8 +109,8 @@ export default function AdminStudentsManager() {
     const { data, error } = await supabase.rpc('admin_student_reassign', { p_student: row.id, p_owner: newOwner })
     const teacher = teachers.find(x => x.id === newOwner)?.name ?? ''
     if (error) setNotice(error.message)
-    else if (data === 'new_group') setNotice(`${row.name} → ${teacher}: ${t('создана личная группа, групповое ДЗ старой группы не перенесено')}`)
-    else if (data === 'group_moved') setNotice(`${row.name} → ${teacher}`)
+    else if (data === 'new_group') setNotice(`${tn(row.name)} → ${teacher}: ${t('создана личная группа, групповое ДЗ старой группы не перенесено')}`)
+    else if (data === 'group_moved') setNotice(`${tn(row.name)} → ${teacher}`)
     await load()
     setBusyId(null)
   }
@@ -186,9 +187,9 @@ export default function AdminStudentsManager() {
     })
   }
 
-  const teacherOptions = teachers.map(tc => ({
-    value: tc.id,
-    label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}`,
+  const teacherOptions = teachers.map(o => ({
+    value: o.id,
+    label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}`,
   }))
   const orphans = rows.filter(r => !r.owner_id).length
 
@@ -293,7 +294,7 @@ export default function AdminStudentsManager() {
                 <span style={{
                   fontSize: 13, fontWeight: 700,
                   color: ownerId === NO_OWNER ? '#D07020' : 'var(--color-text)',
-                }}>{grp.name}</span>
+                }}>{tn(grp.name)}</span>
                 <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
                   {grp.items.length} {t('учеников')}
                 </span>
@@ -317,13 +318,13 @@ export default function AdminStudentsManager() {
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {row.name || '—'}
+                          {tn(row.name) || '—'}
                         </span>
                         {row.has_account && <KeyRound size={11} strokeWidth={2.2} style={{ color: '#2E8F76', flexShrink: 0 }} />}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {row.is_individual ? t('1:1') : row.group_name || t('без группы')}
-                        {row.subject ? ` · ${row.subject}` : ''}
+                        {row.subject ? ` · ${tc(row.subject)}` : ''}
                         {row.progress_rows ? ` · ${row.progress_rows} ${t('уроков в прогрессе')}` : ''}
                         {row.siblings ? ` · ${t('ещё карточек:')} ${row.siblings}` : ''}
                       </div>
@@ -390,7 +391,7 @@ export default function AdminStudentsManager() {
               <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Передать ученика?')}</div>
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
-              <b>{confirmMove.row.name}</b> {t('сейчас в общей группе')} «{confirmMove.row.group_name}». {t('Он переедет в новую личную группу учителя')} <b>{teachers.find(x => x.id === confirmMove.owner)?.name}</b> {t('— личный прогресс, журнал и расписание переедут вместе с ним, а групповое ДЗ старой группы останется у прежнего учителя.')}
+              <b>{tn(confirmMove.row.name)}</b> {t('сейчас в общей группе')} «{confirmMove.row.group_name}». {t('Он переедет в новую личную группу учителя')} <b>{teachers.find(x => x.id === confirmMove.owner)?.name}</b> {t('— личный прогресс, журнал и расписание переедут вместе с ним, а групповое ДЗ старой группы останется у прежнего учителя.')}
             </div>
             <Actions
               cancel={t('Отмена')}
@@ -412,7 +413,7 @@ export default function AdminStudentsManager() {
               <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Удалить безвозвратно?')}</div>
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
-              {t('Ученик')} <b>«{confirmDel.name}»</b> {t('и весь его прогресс, посещаемость, расписание и платежи будут удалены навсегда.')}
+              {t('Ученик')} <b>«{tn(confirmDel.name)}»</b> {t('и весь его прогресс, посещаемость, расписание и платежи будут удалены навсегда.')}
               {confirmDel.has_account && <> {t('Аккаунт входа останется в системе — сбросить его можно на карточке ученика у учителя.')}</>}
             </div>
             <Actions
@@ -490,6 +491,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
   onSave: (patch: Record<string, string>, groupId: string) => void
 }) {
   const t = useT()
+  const { tn } = useTc()
   const [name, setName] = useState(row.name ?? '')
   const [email, setEmail] = useState(row.email ?? '')
   const [phone, setPhone] = useState(row.phone ?? '')
@@ -500,7 +502,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
 
   const groupOptions = groups.map(g => ({
     value: g.id,
-    label: `${g.owner_name} · ${g.name}${g.is_individual ? ` (${t('1:1')})` : ''}`,
+    label: `${tn(g.owner_name)} · ${g.name}${g.is_individual ? ` (${t('1:1')})` : ''}`,
   }))
 
   return createPortal(
@@ -508,7 +510,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Карточка ученика')}</div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{row.owner_name}</div>
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{tn(row.owner_name)}</div>
         </div>
         <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
           <X size={13} />

@@ -17,7 +17,7 @@ import { fetchAppFlags, setAppFlag } from '../../lib/cardGroups'
 import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
-import { useT, t as tGlobal } from '../../lib/i18n'
+import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
 
@@ -426,6 +426,7 @@ function FeatureFlags() {
 
 function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[], subjects: string[]) => void }) {
   const t = useT()
+  const { tc } = useTc()
   const [selectedTabs, setSelectedTabs] = useState<string[]>(selectedTabsFrom(teacher.hiddenTabs))
   const [selectedWidgets, setSelectedWidgets] = useState<string[]>(selectedWidgetsFrom(teacher.hiddenWidgets))
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(teacher.subjects) // empty = all
@@ -541,7 +542,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
             {current.map(r => (
               <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 9px' }}>
                 {r.kind === 'course' ? <BookOpen size={12} strokeWidth={2} /> : <Users size={12} strokeWidth={2} />}
-                {r.title}
+                {tc(r.title)}
                 <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>
                   · {r.kind === 'course' ? `${r.detail} ${t('ур.')}` : `${r.detail} ${t('уч.')}`}{r.via === 'shared' ? ' · share' : ''}
                 </span>
@@ -668,6 +669,7 @@ type ContentRow = {
 // that would otherwise leak into new teachers' cabinets.
 function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const [rows, setRows] = useState<ContentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -748,7 +750,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {row.title || '—'}
+                  {tc(row.title) || '—'}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                   {row.kind === 'course'
@@ -764,7 +766,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                   placeholder={t('— без владельца —')}
                   value={row.owner_id ?? ''}
                   onChange={v => reassign(row, v)}
-                  options={teachers.map(tc => ({ value: tc.id, label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
+                  options={teachers.map(o => ({ value: o.id, label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                   triggerStyle={{
                     padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                     background: 'var(--color-bg-3)',
@@ -808,8 +810,8 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
                 {confirmDel.kind === 'course'
-                  ? <>{t('Курс')} <b>«{confirmDel.title}»</b> {t('и все его уроки/модули будут удалены навсегда.')}</>
-                  : <>{t('Группа')} <b>«{confirmDel.title}»</b> {t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}</>}
+                  ? <>{t('Курс')} <b>«{tc(confirmDel.title)}»</b> {t('и все его уроки/модули будут удалены навсегда.')}</>
+                  : <>{t('Группа')} <b>«{tc(confirmDel.title)}»</b> {t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}</>}
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
@@ -841,6 +843,7 @@ type AdminTaskRow = {
 // RPCs (RLS-bypassing but is_admin()-gated).
 function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
   const t = useT()
+  const { tn } = useTc()
   const [rows, setRows] = useState<AdminTaskRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -892,7 +895,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
         <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>{t('Ни у кого нет задач.')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {[...groups.map(g => ({ label: g.teacher.name, ownerId: g.teacher.id, tasks: g.tasks })),
+          {[...groups.map(g => ({ label: tn(g.teacher.name), ownerId: g.teacher.id, tasks: g.tasks })),
             ...(orphans.length ? [{ label: t('Без владельца'), ownerId: null as string | null, tasks: orphans }] : [])]
             .map(group => (
             <div key={group.ownerId ?? 'orphan'}>
@@ -922,7 +925,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         placeholder={t('— без владельца —')}
                         value={row.owner_id ?? ''}
                         onChange={v => reassign(row, v)}
-                        options={teachers.map(tc => ({ value: tc.id, label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
+                        options={teachers.map(o => ({ value: o.id, label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                         triggerStyle={{
                           padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
@@ -955,6 +958,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
 
 export default function TeacherAdminPage() {
   const t = useT()
+  const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
@@ -1171,7 +1175,7 @@ export default function TeacherAdminPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {tr.name}
+                        {tn(tr.name)}
                         {tr.role === 'admin' && (
                           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.3 }}>admin</span>
                         )}
@@ -1188,7 +1192,7 @@ export default function TeacherAdminPage() {
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         {tr.username && <span>@{tr.username}</span>}
-                        {tr.subject && <><span>·</span><span>{tr.subject}</span></>}
+                        {tr.subject && <><span>·</span><span>{tc(tr.subject)}</span></>}
                         <span>·</span>
                         <span>{tr.groupCount} {t('групп')} · {tr.studentCount} {t('учеников')}</span>
                       </div>

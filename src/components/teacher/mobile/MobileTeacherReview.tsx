@@ -10,7 +10,7 @@ import { useHardSubmissions, useHomework, type HardSub } from '../../../lib/useH
 import { optimizePhoto, ImageTooLargeError } from '../../../lib/imageOptim'
 import WhiteboardCanvas from '../WhiteboardCanvas'
 import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
-import { useT } from '../../../lib/i18n'
+import { useT, useTc } from '../../../lib/i18n'
 import { alertDialog } from '../../ConfirmHost'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
@@ -24,6 +24,7 @@ type ReviewAttachments = { photos: string[]; board: string | null }
 
 function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => Promise<void> }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const [comment, setComment] = useState('')
   const [busy, setBusy] = useState<null | 'completed' | 'returned'>(null)
   const [photos, setPhotos] = useState<string[]>([])
@@ -61,8 +62,8 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub.studentName || t('Ученик')}</div>
-          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub.lessonTitle}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(sub.studentName) || t('Ученик')}</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(sub.lessonTitle)}</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 9px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, flexShrink: 0 }}>{t('сложное')}</span>
       </div>
@@ -142,6 +143,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
 
 export default function MobileTeacherReview() {
   const t = useT()
+  const { tc } = useTc()
   const { submissions, reviewHard } = useHardSubmissions()
   const { homework } = useHomework()
 
@@ -191,7 +193,7 @@ export default function MobileTeacherReview() {
               <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
                 <ImageIcon size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.title}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(h.title)}</div>
                   <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{h.groupName} · {h.submittedCount - h.reviewedCount} {t('ждут')}</div>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', flexShrink: 0 }}>{t('на ПК')}</span>

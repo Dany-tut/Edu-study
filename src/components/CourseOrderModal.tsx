@@ -5,7 +5,7 @@ import { GripVertical, X } from 'lucide-react'
 import { useStudentData } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
-import { useT } from '../lib/i18n'
+import { useT, tc } from '../lib/i18n'
 import { useScrollLock } from '../lib/useScrollLock'
 import MobileSheet from './MobileSheet'
 
@@ -245,7 +245,7 @@ function CourseRow({ row, index }: { row: Row; index: number }) {
         {index + 1}
       </span>
       <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {row.name}
+        {tc(row.name)}
       </span>
     </Reorder.Item>
   )

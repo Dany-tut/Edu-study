@@ -12,7 +12,7 @@ import { fetchMyPlan } from '../../../lib/plan'
 import { useFinanceSummary } from '../../../lib/useFinances'
 import { useHomeData } from '../../../lib/useHomeData'
 import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/teacherProfileDemo'
-import { useT, useLang, type Lang } from '../../../lib/i18n'
+import { useT, useLang, type Lang, useTc } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 import AppVersionRow from '../../AppVersionRow'
 import { getSessionUser } from '../../../lib/owner'
@@ -43,6 +43,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 
 export default function MobileTeacherProfile() {
   const t = useT()
+  const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
   const [email, setEmail] = useState('')
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
@@ -108,8 +109,8 @@ export default function MobileTeacherProfile() {
         <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 13, padding: '14px 15px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
           <div style={{ width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 23, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>{initial}</div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1, textTransform: 'capitalize' }}>{m.name}</div>
-            <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.subject}</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1, textTransform: 'capitalize' }}>{tn(m.name)}</div>
+            <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(m.subject)}</div>
           </div>
         </div>
 

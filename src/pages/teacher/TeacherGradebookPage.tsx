@@ -9,7 +9,7 @@ import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -102,6 +102,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 // ─── Attendance tab ────────────────────────────────────────────────────────────
 function AttendanceTab({ groupId }: { groupId: string | null }) {
   const t = useT()
+  const { tn } = useTc()
   const { students: groupStudents } = useStudents(groupId)
   const { records } = useAttendance(groupId)
 
@@ -151,7 +152,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
             </thead>
             <tbody>
               {groupStudents.map((student) => {
-                const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+                const initials = tn(student.name).split(' ').map(p => p[0]).join('').slice(0, 2)
                 const studentRecords = records.filter(r => r.studentId === student.id)
                 const presentCount = studentRecords.filter(r => r.present).length
                 const pct = dates.length ? Math.round((presentCount / dates.length) * 100) : null
@@ -175,7 +176,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                           {initials}
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                          {student.name}
+                          {tn(student.name)}
                         </span>
                       </div>
                     </td>
@@ -230,6 +231,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
 // ─── Scores tab ────────────────────────────────────────────────────────────────
 function ScoresTab({ groupId }: { groupId: string | null }) {
   const t = useT()
+  const { tn } = useTc()
   const { students: groupStudents } = useStudents(groupId)
 
   const avgHw = Math.round(groupStudents.reduce((a, s) => a + s.hwScore, 0) / groupStudents.length)
@@ -262,7 +264,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
           </thead>
           <tbody>
             {groupStudents.map((student) => {
-              const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+              const initials = tn(student.name).split(' ').map(p => p[0]).join('').slice(0, 2)
               return (
                 <tr
                   key={student.id}
@@ -282,7 +284,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                         {initials}
                       </div>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                        {student.name}
+                        {tn(student.name)}
                       </span>
                     </div>
                   </td>
@@ -374,6 +376,7 @@ function GradeButton({ value, selected, onMouseDown, onMouseEnter }: {
 
 function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: string | null; onClose: () => void; initialLessonId?: string }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const { groups } = useGroups()
   const { saveLesson, records } = useAttendance(groupId)
   const lessons = useGroupLessons(groupId)
@@ -533,7 +536,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
               placeholder={t('Выберите урок')}
               options={lessons.map(l => {
                 const [, m, d] = l.date.split('-')
-                const titlePart = l.title && l.title !== String(l.lessonNumber) ? ` — ${l.title}` : ''
+                const titlePart = l.title && l.title !== String(l.lessonNumber) ? ` — ${tc(l.title)}` : ''
                 const scopePart = l.scopeName ? ` · ${l.scopeName}` : ''
                 return { value: l.id, label: `${d}.${m} · ${t('Урок')} ${l.lessonNumber}${titlePart}${scopePart}` }
               })}
@@ -561,7 +564,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           onMouseMove={handleDragMove}
         >
           {groupStudents.map((student, si) => {
-            const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+            const initials = tn(student.name).split(' ').map(p => p[0]).join('').slice(0, 2)
             const studentPresent = isPresent(student.id)
 
             return (
@@ -596,7 +599,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                     color: studentPresent ? 'var(--color-text)' : '#A0A0A8',
                     transition: 'color 0.2s',
                   }}>
-                    {student.name}
+                    {tn(student.name)}
                   </span>
                 </div>
 
@@ -679,6 +682,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherGradebookPage() {
   const t = useT()
+  const { tc } = useTc()
   const [activeTab, setActiveTab] = useState<'attendance' | 'scores'>('attendance')
   const activeGroupId = useTeacher(s => s.selectedGroupId)
   const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
@@ -778,10 +782,10 @@ export default function TeacherGradebookPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.scopeName || p.title || t('Урок')}
+                        {p.scopeName || tc(p.title) || t('Урок')}
                       </div>
                       <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
-                        {dd}.{mm}{p.timeStart ? ` · ${p.timeStart}` : ''}{p.title && p.scopeName ? ` · ${p.title}` : ''}
+                        {dd}.{mm}{p.timeStart ? ` · ${p.timeStart}` : ''}{p.title && p.scopeName ? ` · ${tc(p.title)}` : ''}
                       </div>
                     </div>
                     <motion.button
@@ -823,7 +827,7 @@ export default function TeacherGradebookPage() {
                   transition: 'background 0.15s, color 0.15s',
                 }}
               >
-                <span>{s.icon}</span>{s.subject}
+                <span>{s.icon}</span>{tc(s.subject)}
               </button>
             )
           })}

@@ -10,7 +10,7 @@ import {
 import { openHardSubHomework } from '../../lib/teacherNav'
 import { clearDrafts } from '../../lib/useDraft'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { alertDialog } from '../../components/ConfirmHost'
 
@@ -25,6 +25,7 @@ const glass: React.CSSProperties = {
 
 export default function TeacherHardReviewPage() {
   const t = useT()
+  const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
   const reviewingHardId = useTeacher(s => s.reviewingHardId)
@@ -118,7 +119,7 @@ export default function TeacherHardReviewPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <Star size={16} style={{ color: 'var(--color-accent)' }} fill="currentColor" />
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {t('Хард-уровень')} · {sub.lessonTitle || sub.baseRef}
+            {t('Хард-уровень')} · {tc(sub.lessonTitle) || sub.baseRef}
           </span>
           <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '3px 9px', borderRadius: 8 }}>
             {statusLabel}
@@ -135,7 +136,7 @@ export default function TeacherHardReviewPage() {
                 {initials}
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{sub.studentName}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{tn(sub.studentName)}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>{t('Сдано')} {date}</div>
               </div>
             </div>

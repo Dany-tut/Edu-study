@@ -26,7 +26,7 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { OverlayScrollArea } from '../../components/teacher/OverlayScroll'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
 import { useTeacher } from '../../store/teacherStore'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 import { confirmDialog } from '../../components/ConfirmHost'
 import {
   fetchStudentActiveCourses, type StudentCourseInfo,
@@ -51,6 +51,7 @@ function AddGroupModal({ onClose, onSave }: {
   onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>, courseId: string | null) => Promise<void>
 }) {
   const t = useT()
+  const { tc } = useTc()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [name, setName] = usePersistentState('groups.addGroup.name', '')
   const [subject, setSubject] = usePersistentState('groups.addGroup.subject', '')
@@ -148,7 +149,7 @@ function AddGroupModal({ onClose, onSave }: {
               setCourseId(c ? c.id : '')
             }}
             placeholder={t('Курс (необязательно)')}
-            options={[{ value: 'Без курса', label: t('Без курса') }, ...courses.map(c => c.title)]}
+            options={[{ value: 'Без курса', label: t('Без курса') }, ...courses.map(c => ({ value: c.title, label: tc(c.title) }))]}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -828,6 +829,7 @@ function Card({
  */
 function PendingAccountsPanel({ students }: { students: Student[] }) {
   const t = useT()
+  const { tn } = useTc()
   const [open, setOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [copiedAll, setCopiedAll] = useState(false)
@@ -1048,8 +1050,8 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
                 {issued.map(a => (
                   <div key={a.email} style={{ fontSize: 12, color: 'var(--color-text-2)', fontFamily: 'monospace' }}>
                     {a.status === 'created'
-                      ? `${a.name} · ${a.email} · ${a.password}`
-                      : `${a.name} · ${t('не удалось')}`}
+                      ? `${tn(a.name)} · ${a.email} · ${a.password}`
+                      : `${tn(a.name)} · ${t('не удалось')}`}
                   </div>
                 ))}
               </div>
@@ -1477,6 +1479,7 @@ function StudentAvatar({
 // ─── Full-screen student card ─────────────────────────────────────────────────
 function StudentFullCard({ student, group, onClose }: { student: Student; group: Group; onClose: () => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const [tab, setTab] = useState<'main' | 'trainer'>('main')
   const [trainerSections, setTrainerSections] = useState<TrainerSection[]>([])
   const [wrongTasks, setWrongTasks] = useState<WrongTask[]>([])
@@ -1518,11 +1521,11 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <StudentAvatar student={student} group={group} />
               <div>
-                <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{student.name}</div>
+                <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{tn(student.name)}</div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {t(group.subject)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {tc(group.subject)}</span>
                 </div>
               </div>
             </div>
@@ -1676,6 +1679,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
 
 function StudentCoursesSection({ student, group }: { student: Student; group: Group }) {
   const t = useT()
+  const { tc } = useTc()
   const [courses, setCourses] = useState<StudentCourseInfo[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -1699,7 +1703,7 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
             return (
               <div key={c.id} style={{ background: 'var(--color-bg)', borderRadius: 12, padding: '10px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, flex: 1 }}>{c.title}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, flex: 1 }}>{tc(c.title)}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: group.color, flexShrink: 0 }}>
                     {c.completedLessons}/{c.totalLessons}
                   </span>
@@ -1742,6 +1746,7 @@ function TracksSection({
   onOpenCard: (groupId: string) => void
 }) {
   const t = useT()
+  const { tc } = useTc()
   const [adding, setAdding] = useState(false)
   const [subject, setSubject] = useState('')
   const [level, setLevel] = useState('')
@@ -1776,14 +1781,14 @@ function TracksSection({
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <div style={{ ...chip(group.icon, group.subject, group.level, group.color), flex: 1 }}>
             <span>{group.icon}</span>
-            <span>{t(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
+            <span>{tc(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
           {siblings.length > 0 && (
             <button
               type="button"
               onClick={async () => {
                 const ok = await confirmDialog({
-                  title: `${t('Убрать направление')} «${t(group.subject)}»?`,
+                  title: `${t('Убрать направление')} «${tc(group.subject)}»?`,
                   message: t('Карточка этого предмета удалится вместе с её посещаемостью и домашкой. Аккаунт ученика и остальные направления останутся.'),
                   confirmLabel: t('Убрать'),
                   tone: 'danger',
@@ -1806,7 +1811,7 @@ function TracksSection({
               style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
             >
               <span>{sc.icon}</span>
-              <span>{t(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
+              <span>{tc(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
             <button
               type="button" onClick={() => onRemoveCard(sc.id)} title={t('Удалить карточку')}
@@ -1873,6 +1878,7 @@ function StudentPanel({
   siblingCards, onAddCard, onRemoveCard, onOpenCard, onAddToGroup,
 }: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -1923,7 +1929,7 @@ function StudentPanel({
             <StudentAvatar student={student} group={group} />
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {student.name}
+                {tn(student.name)}
               </div>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 4, marginTop: 5, maxWidth: '100%',
@@ -1931,7 +1937,7 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {t(group.subject)}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {tc(group.subject)}</span>
               </div>
             </div>
           </div>
@@ -2156,7 +2162,7 @@ function StudentPanel({
           disabled={deleting}
           onClick={async () => {
             const ok = await confirmDialog({
-              title: `${t('Удалить')} «${student.name}»?`,
+              title: `${t('Удалить')} «${tn(student.name)}»?`,
               message: t('Ученик и его данные по этой карточке исчезнут. Это действие нельзя отменить.'),
               confirmLabel: t('Удалить'),
               tone: 'danger',
@@ -2259,6 +2265,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherGroupsPage() {
   const t = useT()
+  const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
@@ -2686,7 +2693,7 @@ export default function TeacherGroupsPage() {
                                   {initials}
                                 </div>
                                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                                  {student.name}
+                                  {tn(student.name)}
                                 </span>
                               </div>
                             </td>
@@ -2881,7 +2888,7 @@ export default function TeacherGroupsPage() {
         )}
         {addToGroupForStudent && activeStudent && (
           <PickGroupModal
-            studentName={activeStudent.name}
+            studentName={tn(activeStudent.name)}
             groups={regularGroups}
             memberGroupIds={activeStudentMemberGroupIds}
             busy={enrolling}

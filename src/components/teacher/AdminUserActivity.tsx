@@ -5,7 +5,7 @@ import {
   fetchUserActivity, fetchTeacherUsage,
   type UserActivityRow, type TeacherUsageRow,
 } from '../../lib/plan'
-import { t, useT } from '../../lib/i18n'
+import { t, useT, tn } from '../../lib/i18n'
 import AssignPlanButton from './AssignPlanButton'
 import AdminStudentsManager from './AdminStudentsManager'
 import { setViewAs, getViewAs } from '../../lib/owner'
@@ -223,7 +223,7 @@ function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; 
 function NameCell({ name, email }: { name: string; email: string | null }) {
   return (
     <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600, lineHeight: 1.25 }}>
-      {name}
+      {tn(name)}
       {email && (
         <div style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.2 }}>
           {email}

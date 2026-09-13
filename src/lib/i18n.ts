@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { translateContent, transliterateName } from './i18nContent'
 
 // Dictionary-based i18n. The app was authored entirely in Russian, so the
 // translation KEY is the original Russian string and the value is its English
@@ -27,8 +28,10 @@ let enLoading: Promise<void> | null = null
  *  интерфейс остался бы русским до следующего рендера по другой причине. */
 function ensureEn(): void {
   if (enLoading) return
-  enLoading = import('./i18nEn')
-    .then(m => { EN = m.EN; useLang.setState(s => ({ rev: s.rev + 1 })) })
+  // Названия сид-курсов (i18nContentEn) едут тем же заходом: интерфейсу они
+  // не мешают, а искать подпись в двух картах незачем.
+  enLoading = Promise.all([import('./i18nEn'), import('./i18nContentEn')])
+    .then(([m, c]) => { EN = { ...c.CONTENT_EN, ...m.EN }; useLang.setState(s => ({ rev: s.rev + 1 })) })
     .catch(() => { /* без переводов, но живой */ })
 }
 
@@ -75,6 +78,28 @@ if (_initial === 'en') ensureEn()
 export function t(ru: string): string {
   const { lang } = useLang.getState()
   return DICTS[lang]()[ru] ?? ru
+}
+
+// Контентные подписи (названия курсов/модулей/уроков, описание курса) и имена
+// людей — см. lib/i18nContent.ts. Внутренности урока не переводятся.
+export function tc(ru: string | null | undefined): string {
+  const { lang } = useLang.getState()
+  if (lang === 'ru') return ru ?? ''
+  return translateContent(ru, k => DICTS[lang]()[k])
+}
+export function tn(ru: string | null | undefined): string {
+  return useLang.getState().lang === 'ru' ? (ru ?? '') : transliterateName(ru)
+}
+/** Реактивная пара к tc/tn: `const { tc, tn } = useTc()`. */
+export function useTc() {
+  const lang = useLang(s => s.lang)
+  useLang(s => s.rev)
+  return {
+    tc: (ru: string | null | undefined): string =>
+      lang === 'ru' ? (ru ?? '') : translateContent(ru, k => DICTS[lang]()[k]),
+    tn: (ru: string | null | undefined): string =>
+      lang === 'ru' ? (ru ?? '') : transliterateName(ru),
+  }
 }
 
 // Reactive translator hook — subscribes to the current language.

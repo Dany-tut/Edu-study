@@ -16,7 +16,7 @@ import { useFloatingPill, PILL_ANCHOR } from '../lib/useFloatingPill'
 import { playTransitionDrop } from '../lib/sound'
 import { EMOJI_STEPS } from './homeworkSteps'
 import HardStarLottie from './HardStarLottie'
-import { useT } from '../lib/i18n'
+import { useT, useTc } from '../lib/i18n'
 
 const NODE_SIZE = 56
 const DETAIL_CARD_WIDTH = 340
@@ -106,6 +106,7 @@ function useScrollTabIntoView(
 
 function TrackForSubject({ subject }: { subject: Subject }) {
   const t = useT()
+  const { tc } = useTc()
   const { activeModuleId, setActiveModule, setTrackPopoverOpen, openLesson, openHomeworkForLesson, highlightLessonId, lessonAssessments } = useDashboard()
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [selectedHardLessonId, setSelectedHardLessonId] = useState<string | null>(null)
@@ -285,7 +286,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                 }}
               >
                 {isLocked && <Lock size={11} style={{ position: 'relative', zIndex: 1 }} />}
-                <span style={{ position: 'relative', zIndex: 1 }}>{mod.label}</span>
+                <span style={{ position: 'relative', zIndex: 1 }}>{tc(mod.label)}</span>
                 {pct > 0 && !isLocked && (
                   <span
                     style={{
@@ -470,7 +471,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                               lineHeight: 1.25,
                             }}
                           >
-                            {selectedLesson.title}
+                            {tc(selectedLesson.title)}
                           </span>
                         </div>
                         {lessonAssessments[selectedLesson.id] && EMOJI_STEPS[lessonAssessments[selectedLesson.id].emojiIndex] && (() => {
@@ -653,7 +654,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         lineHeight: 1.25,
                       }}
                     >
-                      {t('Сложный уровень')} · {selectedHardLesson.title}
+                      {t('Сложный уровень')} · {tc(selectedHardLesson.title)}
                     </span>
 
                     {/* Score row — оценка 1–5, которую учитель выставил при приёмке хард-задания.
@@ -749,6 +750,7 @@ function balanceTitle(name: string): string[] {
 
 export default function CourseTrack() {
   const t = useT()
+  const { tc } = useTc()
   const { activeSubjectId, setActiveSubject } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
@@ -868,7 +870,7 @@ export default function CourseTrack() {
                   lineHeight: 1.25,
                 }}
               >
-                {balanceTitle(s.name).map((line, i, lines) => (
+                {balanceTitle(tc(s.name)).map((line, i, lines) => (
                   <span
                     key={i}
                     style={{ whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}

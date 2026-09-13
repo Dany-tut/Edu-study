@@ -13,7 +13,7 @@ import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
 import ScrollFade from '../../components/ScrollFade'
-import { useT, t as tGlobal } from '../../lib/i18n'
+import { useT, t as tGlobal, useTc, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import {
   uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
@@ -561,17 +561,17 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
     const g = groups.find(x => x.id === r.id)
     return {
       name: g?.name ?? tGlobal('Группа'),
-      sub: g ? `${g.level} · ${g.subject}` : '',
+      sub: g ? `${g.level} · ${tc(g.subject)}` : '',
       icon: g?.icon ?? '👥',
       initials: '',
       color: 'var(--color-green-text)',
     }
   }
   const s = students.find(x => x.id === r.id)
-  const initials = (s?.name ?? '?').split(' ').map(p => p[0]).join('').slice(0, 2)
+  const initials = (s ? tn(s.name) : '?').split(' ').map(p => p[0]).join('').slice(0, 2)
   const g = s ? groups.find(x => x.id === s.groupId) : undefined
   return {
-    name: s?.name ?? tGlobal('Студент'),
+    name: s ? tn(s.name) : tGlobal('Студент'),
     sub: g?.name ?? '',
     icon: '',
     initials,
@@ -585,6 +585,7 @@ function AudiencePicker({
   recipients, onChange,
 }: { recipients: Recipient[]; onChange: (r: Recipient[]) => void }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const { groups } = useGroups()
   const students = useAllStudents()
   const [open, setOpen] = useState(false)
@@ -740,7 +741,7 @@ function AudiencePicker({
                         </div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                           <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
-                          <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g.level} · {g.subject}</div>
+                          <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g.level} · {tc(g.subject)}</div>
                         </div>
                         <Plus size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                       </button>
@@ -767,7 +768,7 @@ function AudiencePicker({
                             {initials}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
                             <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g?.name ?? ''}</div>
                           </div>
                           <Plus size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
@@ -943,6 +944,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
 export default function TeacherLessonEditorPage() {
   const t = useT()
+  const { tc } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const editingScheduleId = useTeacher(s => s.editingScheduleId)
 
@@ -1211,7 +1213,7 @@ export default function TeacherLessonEditorPage() {
             fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
           }}>
             {isNew ? t('Создать урок') : t('Урок')}
-            {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {meta.title}</span>}
+            {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {tc(meta.title)}</span>}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
@@ -1268,7 +1270,7 @@ export default function TeacherLessonEditorPage() {
                   fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
                 }}
               >
-                {meta.title || (isNew ? t('Создать урок') : t('Урок'))}
+                {tc(meta.title) || (isNew ? t('Создать урок') : t('Урок'))}
               </div>
 
               <div style={{ flexGrow: 1, flexBasis: 0 }} />

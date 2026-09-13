@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { X, Search, Users, Check, User, ChevronLeft } from 'lucide-react'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSelect from './TeacherSelect'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 
 // Identity a group-enrollment reuses. Any object carrying these fields works.
@@ -45,6 +45,7 @@ export function PickStudentModal({
   onClose: () => void
 }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
   const list = useMemo(
@@ -97,13 +98,13 @@ export function PickStudentModal({
                 background: `linear-gradient(135deg, ${targetGroup.color}, ${targetGroup.color}cc)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 800, color: '#fff',
-              }}>{initials(person.name)}</div>
+              }}>{initials(tn(person.name))}</div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {person.name}
+                  {tn(person.name)}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {subjects.length ? subjects.join(' · ') : t('Без предметов')}
+                  {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}
                   {registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                 </div>
               </div>
@@ -127,6 +128,7 @@ export function PickGroupModal({
   onClose: () => void
 }) {
   const t = useT()
+  const { tn } = useTc()
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
   const list = useMemo(
@@ -145,7 +147,7 @@ export function PickGroupModal({
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          <b>{studentName}</b> {t('сохранит свой логин и увидит курс группы')}
+          <b>{tn(studentName)}</b> {t('сохранит свой логин и увидит курс группы')}
         </div>
 
         <div style={searchBox}>
@@ -217,6 +219,7 @@ export function AddExistingIndividualModal({
   onClose: () => void
 }) {
   const t = useT()
+  const { tc, tn } = useTc()
   const [step, setStep] = useState<'pick' | 'subject' | 'result'>('pick')
   const [picked, setPicked] = useState<{ person: PersonLike; registered: boolean } | null>(null)
   const [subject, setSubject] = useState('')
@@ -294,11 +297,11 @@ export function AddExistingIndividualModal({
                     width: 38, height: 38, borderRadius: 11, flexShrink: 0,
                     background: 'linear-gradient(135deg, var(--color-accent), var(--color-purple))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff',
-                  }}>{initials(person.name)}</div>
+                  }}>{initials(tn(person.name))}</div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(person.name)}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {subjects.length ? subjects.join(' · ') : t('Без предметов')}{registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
+                      {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}{registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                     </div>
                   </div>
                 </button>
@@ -312,7 +315,7 @@ export function AddExistingIndividualModal({
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--color-bg-4)', borderRadius: 12 }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'linear-gradient(135deg, var(--color-accent), var(--color-purple))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>{initials(picked.person.name)}</div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{picked.person.name}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tn(picked.person.name)}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{picked.registered ? t('есть аккаунт — логин сохранится') : t('не зарегистрирован — дадим ссылку')}</div>
               </div>
             </div>

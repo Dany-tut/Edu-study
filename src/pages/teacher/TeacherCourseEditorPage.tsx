@@ -13,7 +13,7 @@ import {
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
-import { useT, t } from '../../lib/i18n'
+import { useT, t, tc, tn } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
@@ -188,6 +188,19 @@ export interface CourseEdData {
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
 
+/** Поле с сохранённым названием/описанием: без фокуса в английском режиме
+ *  показывает перевод (tc), в фокусе — исходник, так что правится оригинал.
+ *  Перевод никогда не пишется в состояние. */
+function useContentField(raw: string) {
+  const [focused, setFocused] = useState(false)
+  useT()
+  return { value: focused ? raw : tc(raw), onFocus: () => setFocused(true), onBlur: () => setFocused(false) }
+}
+function ContentInput({ value, onFocus, onBlur, ...rest }: React.InputHTMLAttributes<HTMLInputElement> & { value: string }) {
+  const f = useContentField(value)
+  return <input {...rest} value={f.value} onFocus={e => { f.onFocus(); onFocus?.(e) }} onBlur={e => { f.onBlur(); onBlur?.(e) }} />
+}
+
 /** Функцией, а не константой: t() на уровне модуля замерзает на языке загрузки. */
 const HEAVY_WAIT_MSG = () => t('Уроки ещё догружаются — секунду, и можно сохранять.')
 
@@ -334,6 +347,8 @@ function LeftCourseMeta({
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
 }) {
   const t = useT()
+  const titleField = useContentField(course.title)
+  const descField = useContentField(course.description ?? '')
   // Title is a textarea so long names wrap onto a 2nd line instead of clipping;
   // auto-grow it to fit its content (1–2+ lines) on mount and on edit.
   const titleRef = useRef<HTMLTextAreaElement>(null)
@@ -342,14 +357,14 @@ function LeftCourseMeta({
     if (!el) return
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
-  }, [course.title])
+  }, [course.title, titleField.value])
   return (
     <OverlayScrollArea style={{ flex: 1 }} padding={16} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Title */}
       <textarea
         ref={titleRef}
         rows={1}
-        value={course.title}
+        {...titleField}
         onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
         style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden' }}
         placeholder={t('Название курса')}
@@ -402,7 +417,7 @@ function LeftCourseMeta({
 
       {/* Description */}
       <textarea
-        value={course.description ?? ''}
+        {...descField}
         onChange={e => setCourse(c => ({ ...c, description: e.target.value }))}
         style={{ ...inputSt, resize: 'none', minHeight: 160, lineHeight: 1.6 }}
         placeholder={t('Описание курса — что разберём, для кого курс, что получит ученик…')}
@@ -592,9 +607,9 @@ function AssignPicker({
           const chips = subjectChips(item, selected)
           // Подпись: у выбранного — карточка, которая получила курс; у остальных
           // — все его предметы, чтобы человека можно было опознать.
-          const subtitle = chips.length > 0
+          const subtitle = tc(chips.length > 0
             ? (on ? chips.find(c => c.id === selected)?.subject ?? '' : chips.map(c => c.subject).join(' · '))
-            : item.subject ?? ''
+            : item.subject ?? '')
           const needsPick = pickHintId === item.id && !on
           // Есть ли у человека карточка ровно по предмету курса — от этого
           // зависит, о чём подсказка: «выбери из своих» или «такой карточки нет».
@@ -622,11 +637,11 @@ function AssignPicker({
                   fontSize: 11, fontWeight: 700,
                   color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
                 }}>
-                  {kind === 'group' ? <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : item.name.slice(0, 1).toUpperCase()}
+                  {kind === 'group' ? <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : tn(item.name).slice(0, 1).toUpperCase()}
                 </div>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0, textAlign: 'left' }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', ...oneLine }} title={item.name}>
-                    {item.name}
+                  <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', ...oneLine }} title={tn(item.name)}>
+                    {tn(item.name)}
                   </span>
                   {subtitle && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-muted)', opacity: on ? 0.75 : 1, ...oneLine }} title={subtitle}>
@@ -657,7 +672,7 @@ function AssignPicker({
                         color: active ? 'var(--color-green-text)' : 'var(--color-text-2)',
                         transition: 'all 0.14s',
                       }}>
-                        {c.subject || t('Без предмета')}
+                        {tc(c.subject) || t('Без предмета')}
                       </button>
                     )
                   })}
@@ -1149,11 +1164,11 @@ function CenterCourseAccess({
                     padding: '7px 7px 7px 12px', borderRadius: 18, background: 'var(--color-bg-3)',
                   }}>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', ...oneLine }} title={s.name}>
-                        {s.name}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', ...oneLine }} title={tn(s.name)}>
+                        {tn(s.name)}
                       </span>
                       <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
-                        {s.subject ? `${s.subject} · ` : ''}{progressLine(s.id, personIdsOf(s.id))}
+                        {s.subject ? `${tc(s.subject)} · ` : ''}{progressLine(s.id, personIdsOf(s.id))}
                       </span>
                     </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
@@ -1590,7 +1605,7 @@ function CenterRecording({
                 key={lesson.videoUrl}
                 ref={playerRef}
                 source={source}
-                title={lesson.title}
+                title={tc(lesson.title)}
                 timecodes={codes}
                 initialWatch={startWatch}
                 onPersist={() => {}}
@@ -2032,7 +2047,7 @@ function CenterLesson({
       <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <Label>{t('Название урока')}</Label>
-          <input
+          <ContentInput
             value={lesson.title}
             onChange={e => onUpdate({ ...lesson, title: e.target.value })}
             style={{ ...inputSt, fontSize: 15, fontWeight: 600 }}
@@ -3674,7 +3689,9 @@ function HomeworkLeftPanel({
         ...fadeMask(hwFade),
       }}>
       {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
-      <div ref={toggleRef} style={{ position: 'relative', overflow: 'hidden', display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+      {/* flexShrink 0: колонка — flex-столбец с прокруткой, а ряд с overflow:hidden
+          теряет min-height:auto — когда заданий много, его сплющивало в полоску. */}
+      <div ref={toggleRef} style={{ position: 'relative', overflow: 'hidden', flexShrink: 0, display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
         {/* Скрытый замер: обе вкладки с полными подписями, без сжатия. */}
         <div ref={measureRef} aria-hidden style={{
           position: 'absolute', left: 0, top: 0, width: 'max-content', display: 'flex', gap: 4, padding: 3,
@@ -3943,7 +3960,7 @@ function CenterTestView({
           </div>
         </div>
         <Label>{t('Название теста')}</Label>
-        <input value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 11px', fontSize: 13 }} placeholder={t('Например: Контрольная по модулю 1')} />
+        <ContentInput value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 11px', fontSize: 13 }} placeholder={t('Например: Контрольная по модулю 1')} />
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
           <Unlock size={11} /> {t('Откроется у студента автоматически после прохождения предыдущего модуля')}
         </div>
@@ -4115,10 +4132,10 @@ function StudentsLeftPanel({
                 fontSize: 11, fontWeight: 700,
                 color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
               }}>
-                {s.name.slice(0, 1).toUpperCase()}
+                {tn(s.name).slice(0, 1).toUpperCase()}
               </div>
               <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
-                {s.name}
+                {tn(s.name)}
               </span>
               {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
             </button>
@@ -4271,7 +4288,7 @@ function CenterLessonStudents({
                   padding: '4px 11px', borderRadius: 999,
                   background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
                 }}>
-                  {s.name}
+                  {tn(s.name)}
                 </div>
               ))}
             </div>
@@ -4316,9 +4333,9 @@ function CenterLessonStudents({
                   padding: '7px 10px 7px 8px', borderRadius: 12, background: 'var(--color-bg-3)',
                 }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-                    {s.name.slice(0, 1).toUpperCase()}
+                    {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(s.name)}</span>
                   <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                 </div>
               ))}
@@ -4383,9 +4400,9 @@ function CenterLessonStudents({
                   background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
                 }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-                    {s.name.slice(0, 1).toUpperCase()}
+                    {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{s.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{tn(s.name)}</span>
                   <button onClick={() => removeExtraStudent(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
                     <X size={13} />
                   </button>
@@ -4444,7 +4461,7 @@ function LessonRow({
         color: selected ? 'var(--color-green-text)' : 'var(--color-text)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        {lesson.title || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
+        {tc(lesson.title) || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
       </span>
       {/* Open-for-students badge */}
       {isOpen && (
@@ -4745,7 +4762,7 @@ function RightPanelLessons({
                           onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          {m.label}
+                          {tc(m.label)}
                         </button>
                       ))}
                       </ScrollFade>
@@ -4878,7 +4895,7 @@ function RightPanelLessons({
                       textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}
                   >
-                    {mod.label}
+                    {tc(mod.label)}
                   </span>
                   {editingModuleId === mod.id && (
                     <input
@@ -6069,7 +6086,7 @@ export default function TeacherCourseEditorPage() {
   // Clear a shown error once the teacher fixes what was missing.
   useEffect(() => { if (!liveBlocker) setPublishErr(null) }, [liveBlocker])
 
-  const courseTitle = course.title || t('Создать курс')
+  const courseTitle = tc(course.title) || t('Создать курс')
 
   // Заголовок шапки стоит абсолютом по центру СТРАНИЦЫ, а не по остатку строки:
   // иначе он ездил туда-сюда, когда менялась ширина групп кнопок («Курс» у урока
@@ -6498,7 +6515,7 @@ export default function TeacherCourseEditorPage() {
                 <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                      {selectedLesson.title || t('Урок без названия')}
+                      {tc(selectedLesson.title) || t('Урок без названия')}
                     </span>
                     {course.dbCourseId && (() => {
                       const isOpened = openLessonShortIds.has(lessonShortIdById[selectedLesson.id])

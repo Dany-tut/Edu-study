@@ -1,7 +1,7 @@
 import { AlertCircle, ChevronRight, Clock } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
-import { t, useT } from '../../../lib/i18n'
+import { t, useT, useTc } from '../../../lib/i18n'
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -31,6 +31,7 @@ function getReason(s: ReturnType<typeof useAllStudents>[number]): Reason {
 
 export default function WidgetAttentionStudents() {
   const t = useT()
+  const { tn } = useTc()
   const students = useAllStudents()
   const { groups } = useGroups()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
@@ -123,13 +124,13 @@ export default function WidgetAttentionStudents() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 11, fontWeight: 700, color: reason.color,
                 }}>
-                  {initials(s.name)}
+                  {initials(tn(s.name))}
                 </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {s.name.split(' ').slice(0, 2).join(' ')}
+                    {tn(s.name).split(' ').slice(0, 2).join(' ')}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                     {group?.name ?? ''}

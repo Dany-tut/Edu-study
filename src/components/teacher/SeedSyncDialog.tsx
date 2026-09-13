@@ -17,7 +17,7 @@ import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Check, Plus, RefreshCw, Trash2, X } from 'lucide-react'
 import type { SeedChange, SeedDiff } from '../../lib/seedSync'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 import Checkbox from '../Checkbox'
 
 const KIND_LABEL: Record<SeedChange['kind'], string> = {
@@ -36,6 +36,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
   onApply: (keys: Set<string>) => void
 }) {
   const t = useT()
+  const { tc } = useTc()
   // Добавления отмечены сразу, перезаписи — нет. Это и есть всё правило.
   const [picked, setPicked] = useState<Set<string>>(
     () => new Set(diff.changes.filter(c => !c.overwrites).map(c => c.key)),
@@ -75,7 +76,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           style={{ border: 'none', background: 'none', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
         >
           <span style={{ display: 'block', fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>
-            {c.lessonTitle}
+            {tc(c.lessonTitle)}
           </span>
           <span style={{ display: 'block', fontSize: 12.5, color: 'var(--color-muted)', marginTop: 1 }}>
             {t(KIND_LABEL[c.kind])} · {c.summary}

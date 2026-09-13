@@ -2,7 +2,7 @@ import { CheckCircle2, Wallet } from 'lucide-react'
 import { usePayments } from '../../../lib/useFinances'
 import { useAllStudents } from '../../../lib/useGroups'
 import Skeleton from '../../Skeleton'
-import { t, useT } from '../../../lib/i18n'
+import { t, useT, useTc } from '../../../lib/i18n'
 
 function fmtDate(iso: string) {
   const d = new Date(iso)
@@ -21,6 +21,7 @@ function initials(name: string) {
 
 export default function WidgetFinanceActivity() {
   const t = useT()
+  const { tn } = useTc()
   const { payments, loading } = usePayments()
   const students = useAllStudents()
 
@@ -93,13 +94,13 @@ export default function WidgetFinanceActivity() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)',
                 }}>
-                  {student ? initials(student.name) : <CheckCircle2 size={14} strokeWidth={2.2} />}
+                  {student ? initials(tn(student.name)) : <CheckCircle2 size={14} strokeWidth={2.2} />}
                 </div>
 
                 {/* Name + note */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {student?.name.split(' ').slice(0, 2).join(' ') ?? t('Ученик')}
+                    {student ? tn(student.name).split(' ').slice(0, 2).join(' ') : t('Ученик')}
                   </div>
                   {(p.note || p.lessonsPaid > 0) && (
                     <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>

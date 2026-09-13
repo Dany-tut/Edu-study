@@ -4,6 +4,7 @@ import ScrollFade from './ScrollFade'
 import { supabase } from '../lib/supabase'
 import { getStudentSession, setStudentSession } from '../lib/studentSession'
 import { getSessionUser } from '../lib/owner'
+import { tc } from '../lib/i18n'
 
 // A 1:1 student can own several subject cards — each a separate individual group
 // + student row for the same person, all sharing one auth account. This switcher
@@ -12,7 +13,7 @@ import { getSessionUser } from '../lib/owner'
 
 export type Card = { id: string; groupId: string; subject: string; level: string; icon: string; color: string }
 
-export const subjectCardLabel = (c: Card) => `${c.icon} ${c.subject}${c.level ? ` · ${c.level}` : ''}`
+export const subjectCardLabel = (c: Card) => `${c.icon} ${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}`
 
 // Карточки человека + переход между ними. Хук, а не только компонент: оболочек
 // две — выпадашка в сайдбаре (десктоп) и шторка из шапки профиля (телефон), а

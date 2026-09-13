@@ -43,6 +43,7 @@ const DATA = new Set([
   'src/lib/translit.ts',     // таблицы транслитерации ru↔ko/ja
   'src/lib/answerMatch.ts',  // служебные слова для сверки ответа по смыслу
   'src/lib/pairing.ts',      // стоп-слова для подбора пар
+  'src/lib/i18nContentEn.ts', // ключи — русские подписи сид-курсов
 ])
 
 const CYR = /[А-Яа-яЁё]/

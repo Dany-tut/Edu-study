@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { Check, Sparkles } from 'lucide-react'
 import { useStudentData } from '../store/studentDataStore'
-import { useT } from '../lib/i18n'
+import { useT, tc } from '../lib/i18n'
 
 type Props = {
   /** carousel passes this; unused here (no timer/rotation) */
@@ -51,7 +51,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
           <Sparkles size={12 * scale} strokeWidth={2.2} />
           {t('Вопрос дня')}
         </span>
-        <span style={{ fontSize: 12 * scale, fontWeight: 500, color: 'var(--color-muted)' }}>{q.subject}</span>
+        <span style={{ fontSize: 12 * scale, fontWeight: 500, color: 'var(--color-muted)' }}>{tc(q.subject)}</span>
       </div>
 
       {/* Question */}

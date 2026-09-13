@@ -1,10 +1,11 @@
 import { Users, ChevronRight } from 'lucide-react'
 import { useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
-import { useT } from '../../../lib/i18n'
+import { useT, useTc } from '../../../lib/i18n'
 
 export default function WidgetGroupsList() {
   const t = useT()
+  const { tc } = useTc()
   const { groups } = useGroups()
   const setActivePage = useTeacher(s => s.setActivePage)
 
@@ -95,7 +96,7 @@ export default function WidgetGroupsList() {
                   {g.name}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
-                  {g.subject ?? ''}
+                  {tc(g.subject)}
                 </div>
               </div>
 

@@ -20,7 +20,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { subjectRank, subjectIcon, resolveSubjectPalette } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
-import { useT, useLang, type Lang } from '../lib/i18n'
+import { useT, useLang, tc, tn, type Lang } from '../lib/i18n'
 import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
@@ -63,7 +63,7 @@ function computeSubjectStats(subject: Subject) {
 export default function MobileProfilePage() {
   const t = useT()
   const { lang, setLang } = useLang()
-  const name = getStudentSession()?.name?.trim() || t('Ученик')
+  const name = tn(getStudentSession()?.name?.trim()) || t('Ученик')
   const initial = name.charAt(0).toUpperCase()
   const stats = useStudentData(s => s.stats)
   const subjects = useStudentData(s => s.subjects)
@@ -88,7 +88,7 @@ export default function MobileProfilePage() {
   const canInstall = !isStandalone()
 
   const scopeSubject = statScope === 'all' ? null : subjects.find(s => s.id === statScope) ?? null
-  const scopeLabel = scopeSubject ? scopeSubject.name : t('Все предметы')
+  const scopeLabel = scopeSubject ? tc(scopeSubject.name) : t('Все предметы')
   const subjectStats = useMemo(() => scopeSubject ? computeSubjectStats(scopeSubject) : null, [scopeSubject])
 
   // Recent graded scores → sparkline trend. In-order proxy for a time series
@@ -212,7 +212,7 @@ export default function MobileProfilePage() {
                 {subjects.map((s, i) => (
                   <CourseCard
                     key={s.id}
-                    title={s.name}
+                    title={tc(s.name)}
                     icon={subjectIcon(s.subject)}
                     pair={CHIP_PALETTE[i % CHIP_PALETTE.length]}
                     progress={s.progress}

@@ -22,7 +22,7 @@ import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { formatShort, GOAL_MS } from '../lib/trainerDay'
 import { useTextOfDay } from '../lib/useTextOfDay'
 import { tactile } from '../lib/feedback'
-import { t, useT } from '../lib/i18n'
+import { t, tc, useT } from '../lib/i18n'
 
 /**
  * The minimalist "pill" the WidgetCarousel morphs into when the user leaves the
@@ -250,7 +250,7 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
           {fact.emoji}
         </div>
       }
-      kicker={`${fact.subject} · ${t('факт')}`}
+      kicker={`${tc(fact.subject)} · ${t('факт')}`}
       title={fact.text.split('—')[0].trim().replace(/[.,]$/, '')}
       expanded={expanded}
       detail={fact.text}
@@ -475,7 +475,7 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
           {m.emoji}
         </div>
       }
-      kicker={`${m.subject} · ${t('мем')}`}
+      kicker={`${tc(m.subject)} · ${t('мем')}`}
       title={m.setup}
       expanded={expanded}
       detail={m.punchline}
@@ -618,7 +618,7 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
           ✨
         </div>
       }
-      kicker={`${q.subject} · ${t('вопрос')}`}
+      kicker={`${tc(q.subject)} · ${t('вопрос')}`}
       title={q.title}
       expanded={expanded}
       detail={correct ? <AnswerSpoiler text={correct.text} expanded={expanded} /> : t('Открой виджет, чтобы посмотреть ответ.')}

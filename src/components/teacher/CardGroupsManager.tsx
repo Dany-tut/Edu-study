@@ -34,7 +34,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Trash2, ChevronLeft, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
 import { useAllStudents } from '../../lib/useGroups'
@@ -164,6 +164,7 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
   lang?: string
 }) {
   const t = useT()
+  const { tn } = useTc()
   const students = useAllStudents()
 
   const [ownerId, setOwnerId] = useState<string | null>(null)
@@ -250,7 +251,7 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
   }, [createNonce])
 
   const studentOptions = useMemo(
-    () => students.map(s => ({ value: s.id, label: s.name })),
+    () => students.map(s => ({ value: s.id, label: tn(s.name) })),
     [students],
   )
 

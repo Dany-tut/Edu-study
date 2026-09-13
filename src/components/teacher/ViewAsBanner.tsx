@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
 import { Eye, X } from 'lucide-react'
 import { getViewAs, setViewAs } from '../../lib/owner'
-import { useT } from '../../lib/i18n'
+import { useT, useTc } from '../../lib/i18n'
 
 /**
  * Полоса «вы смотрите чужой кабинет».
@@ -21,6 +21,7 @@ import { useT } from '../../lib/i18n'
  */
 export default function ViewAsBanner() {
   const t = useT()
+  const { tn } = useTc()
   const view = getViewAs()
   if (!view) return null
 
@@ -42,7 +43,7 @@ export default function ViewAsBanner() {
           fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
-          {t('Кабинет')}: {view.name}
+          {t('Кабинет')}: {tn(view.name)}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
           {t('только просмотр — правки отклонит база')}

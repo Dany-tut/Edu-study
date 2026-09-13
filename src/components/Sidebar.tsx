@@ -23,7 +23,7 @@ import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
 import NotificationPopup from './NotificationPopup'
-import { useT, useLang, type Lang } from '../lib/i18n'
+import { useT, useLang, tn, type Lang } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 
 const navItems = [
@@ -745,7 +745,7 @@ export default function Sidebar() {
               textOverflow: 'ellipsis',
             }}
           >
-            {displayName}
+            {tn(displayName)}
           </span>
         </motion.div>
       </div>

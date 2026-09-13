@@ -15,7 +15,7 @@ import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
 import { lighten } from '../lib/subjects'
-import { t, useT } from '../lib/i18n'
+import { t, tc, useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { displayOrder } from '../data/taskTypes'
 
@@ -173,7 +173,7 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55, marginBottom: 10 }}>{verdict.note}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-              {t('Рекомендуем курс:')} <span style={{ color: accent }}>{verdict.courseTitle}</span>
+              {t('Рекомендуем курс:')} <span style={{ color: accent }}>{tc(verdict.courseTitle)}</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
               {verdict.ladder.map(step => (
