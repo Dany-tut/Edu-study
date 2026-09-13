@@ -4419,7 +4419,8 @@ function LessonRow({
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: checked || selected ? 'color-mix(in srgb, var(--color-green-soft) 55%, transparent)' : 'transparent',
+        // Тот же зелёный, что у вкладок «ДЗ урока» / «Домашка»: green-soft + green-text.
+        background: checked || selected ? 'var(--color-green-soft)' : 'transparent',
         boxShadow: checked ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--color-green-text) 55%, transparent)' : undefined,
         transition: 'background 0.13s, box-shadow 0.13s', fontFamily: 'inherit', textAlign: 'left',
         marginBottom: 2,
@@ -4428,8 +4429,8 @@ function LessonRow({
       <div style={{
         width: 24, height: 24, borderRadius: 7, flexShrink: 0,
         background: lesson.kind === 'test'
-          ? (selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 62%, var(--color-green-text)) 72%, #000)' : 'var(--color-green-soft)')
-          : (selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 62%, var(--color-green-text)) 72%, #000)' : 'var(--color-bg-3)'),
+          ? (selected ? 'var(--btn-green-bg)' : 'var(--color-green-soft)')
+          : (selected ? 'var(--btn-green-bg)' : 'var(--color-bg-3)'),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 10, fontWeight: 700,
         color: lesson.kind === 'test'
@@ -4440,7 +4441,7 @@ function LessonRow({
       </div>
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
-        color: selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 55%, var(--color-green-text)) 78%, #000)' : 'var(--color-text)',
+        color: selected ? 'var(--color-green-text)' : 'var(--color-text)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
         {lesson.title || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
