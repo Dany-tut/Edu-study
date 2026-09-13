@@ -1166,13 +1166,14 @@ export default function TeacherLessonEditorPage() {
   )
   const draftLabel = t('Черновик')
   // Highlighted "Черновик" look — the lesson is a draft until published.
+  // Сплошной жёлтый с тёмно-оливковым текстом, как в редакторе курса.
   const draftActiveStyle = {
-    border: '1.5px solid var(--color-yellow-text)',
-    background: 'var(--color-yellow-soft)',
-    color: 'var(--color-yellow-text)',
+    border: '1.5px solid transparent',
+    background: '#DCC66E',
+    color: '#3D3720',
     fontWeight: 700,
   } as const
-  const draftDot = <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} />
+  const draftDot = <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar

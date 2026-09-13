@@ -6079,11 +6079,13 @@ export default function TeacherCourseEditorPage() {
   useEffect(() => { setDocked(false); return () => setDocked(false) }, [])
 
   // Highlighted "Черновик" look — shown while the course IS a draft, so it reads
-  // as the current state rather than a muted secondary action.
+  // as the current state rather than a muted secondary action. Сплошной жёлтый с
+  // тёмно-оливковым текстом — одинаково читается в светлой и тёмной теме; рамка
+  // прозрачная, чтобы высота совпадала с кнопкой публикации.
   const draftActiveStyle = {
-    border: '1.5px solid var(--color-yellow-text)',
-    background: 'var(--color-yellow-soft)',
-    color: 'var(--color-yellow-text)',
+    border: '1.5px solid transparent',
+    background: '#DCC66E',
+    color: '#3D3720',
     fontWeight: 700,
   } as const
 
@@ -6207,7 +6209,7 @@ export default function TeacherCourseEditorPage() {
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
               style={{ padding: '7.5px 16.5px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> {t('Черновик')}
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} /> {t('Черновик')}
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
