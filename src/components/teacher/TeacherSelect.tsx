@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2 } from 'lucide-react'
 import ScrollFade from '../ScrollFade'
-import { useT } from '../../lib/i18n'
+import { useT, tc } from '../../lib/i18n'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 
 export type TeacherSelectOption = string | { value: string; label: string }
@@ -187,7 +187,7 @@ export default function TeacherSelect({
             fontWeight: 500,
             cursor: 'pointer',
           }}>
-            {isEmpty ? (placeholder ?? '') : t(current!.label)}
+            {isEmpty ? (placeholder ?? '') : tc(t(current!.label))}
           </span>
         )}
 
@@ -294,7 +294,7 @@ export default function TeacherSelect({
                         onMouseLeave={e => { dropdownRowHover(selected).onMouseLeave(e); setHoverDel(p => p === o.value ? null : p) }}
                       >
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                          {t(o.label)}
+                          {tc(t(o.label))}
                         </span>
                         {selected && !showDel && <Check size={small ? 11 : 13} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
                         {editable && onDeleteOption && (

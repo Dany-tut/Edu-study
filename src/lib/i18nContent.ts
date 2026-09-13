@@ -24,8 +24,12 @@ function part(ru: string, look: Lookup): string {
   const hit = look(s)
   if (hit !== undefined) return hit
 
+  // «🇬🇧 Английский» — значок предмета перед подписью.
+  let m = s.match(/^([^\p{L}\p{N}«"(]+\s)(.+)$/u)
+  if (m) { const inner = part(m[2], look); if (inner !== m[2]) return `${m[1]}${inner}` }
+
   // «12. Тема» — сквозной номер урока.
-  let m = s.match(/^(\d+)\.\s+(.+)$/)
+  m = s.match(/^(\d+)\.\s+(.+)$/)
   if (m) { const inner = part(m[2], look); if (inner !== m[2]) return `${m[1]}. ${inner}` }
 
   // «Юнит 4. Тема»

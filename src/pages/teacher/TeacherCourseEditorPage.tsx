@@ -280,6 +280,12 @@ const taskTextSt: React.CSSProperties = { ...inputSt, lineHeight: TASK_TEXT_LH }
 function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextarea>) {
   return <GrowTextarea {...rest} style={{ ...inputSt, ...style }} />
 }
+/** AutoTextarea с сохранённой подписью — см. useContentField. Фокус ловится
+ *  обёрткой: в React onFocus/onBlur всплывают. */
+function ContentAutoTextarea({ value, ...rest }: React.ComponentProps<typeof GrowTextarea> & { value: string }) {
+  const f = useContentField(value)
+  return <div onFocus={f.onFocus} onBlur={f.onBlur}><AutoTextarea {...rest} value={f.value} /></div>
+}
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -3728,7 +3734,7 @@ function HomeworkLeftPanel({
       <div>
         {/* Названия юнитов длинные («Юнит 1. Хангыль: гласные и первые слова») —
             в одну строку они обрезались, поэтому поле растёт по тексту. */}
-        <AutoTextarea
+        <ContentAutoTextarea
           value={(lesson[F.title] as string | undefined) ?? ''}
           onChange={v => patch({ [F.title]: v })}
           style={{ padding: '7px 10px', fontSize: 12, lineHeight: 1.35 }}
