@@ -4937,7 +4937,7 @@ function RightPanelLessons({
                     {t('в конец')}
                   </span>
                 )}
-                <span style={{ fontSize: 10, color: 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
+                <span style={{ fontSize: 10, color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
               </button>
               <AnimatePresence>
                 {mod.expanded && (
@@ -6204,7 +6204,9 @@ export default function TeacherCourseEditorPage() {
             published={course.status === 'published'}
             onPublish={handlePublish}
             onDraft={handleUnpublish}
-            saving={saving} />
+            saving={saving}
+            // Ширина = карточка «Уроки» под ним (288): край в край с колонкой.
+            style={{ width: 288 }} />
         </div>
       </motion.div>
 
