@@ -2,16 +2,16 @@ import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Plus, Send, Video, Link2, Upload,
+  ArrowLeft, Plus, Video, Link2, Upload,
   BookOpen, AlignLeft, CheckSquare, Type, Shuffle,
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw, Loader2, Pencil,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
-import DraftDashes from '../../components/teacher/DraftDashes'
+import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
@@ -6079,18 +6079,6 @@ export default function TeacherCourseEditorPage() {
   const setDocked = useTeacher(s => s.setHeaderDocked)
   useEffect(() => { setDocked(false); return () => setDocked(false) }, [])
 
-  // Highlighted "Черновик" look — shown while the course IS a draft, so it reads
-  // as the current state rather than a muted secondary action. Пунктир без
-  // заливки — «ещё не готово», и не спорит с кнопкой публикации.
-  const draftActiveStyle = {
-    position: 'relative',
-    border: '1.5px solid transparent',
-    background: 'transparent',
-    boxShadow: 'none',
-    color: 'var(--color-yellow-text)',
-    fontWeight: 600,
-  } as const
-
   // Live publish gate — drives the disabled state of the Опубликовать button.
   const liveBlocker = course.status === 'published' ? null : publishBlocker(course)
   // Clear a shown error once the teacher fixes what was missing.
@@ -6204,30 +6192,19 @@ export default function TeacherCourseEditorPage() {
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
           )}
-          {/* Черновик и публикация — одного размера: две равные колонки грида берут
-              ширину более широкой кнопки; поля черновика уменьшены на его рамку,
-              чтобы по высоте он совпадал с безрамочной кнопкой публикации. */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flexShrink: 0 }}>
-          {course.status !== 'published' ? (
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
-              style={{ padding: '7.5px 16.5px', borderRadius: 999, ...draftActiveStyle, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' }}>
-              <DraftDashes /><Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} /> {t('Черновик')}
-            </motion.button>
-          ) : (
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
-              style={{ padding: '8px 17px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap' }}>
-              {t('В черновик')}
-            </motion.button>
+          {/* Черновик ⇄ опубликован одной деталью. Отдельная «Сохранить» не нужна:
+              сохранённый курс пишется автосохранением при любой правке; отклик
+              сохранения — тихая подпись слева, её раньше показывала кнопка. */}
+          {savedFlash && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, fontSize: 12.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+              <Check size={13} strokeWidth={2.4} /> {t('Сохранено!')}
+            </span>
           )}
-          <TeacherSaveButton
-            label={course.status === 'published' ? t('Сохранить') : t('Опубликовать')}
-            savedLabel={course.status === 'published' ? t('Сохранено!') : t('Опубликовано!')}
-            icon={<Send size={14} />}
-            saved={savedFlash}
-            saving={saving}
-            onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-            style={{ width: '100%' }} />
-          </div>
+          <DraftPublishToggle
+            published={course.status === 'published'}
+            onPublish={handlePublish}
+            onDraft={handleUnpublish}
+            saving={saving} />
         </div>
       </motion.div>
 

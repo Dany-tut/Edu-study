@@ -2,14 +2,13 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Send, ChevronDown, Plus, X, Trash2,
+  ArrowLeft, ChevronDown, Plus, X, Trash2,
   Video, Link2, ListVideo, NotebookPen, FileText, FolderOpen,
   GraduationCap, Upload, Calendar, Clock, Search,
-  ChevronLeft, ChevronRight, Pencil,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
-import DraftDashes from '../../components/teacher/DraftDashes'
-import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
+import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
@@ -1165,19 +1164,6 @@ export default function TeacherLessonEditorPage() {
       <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
     </>
   )
-  const draftLabel = t('Черновик')
-  // Highlighted "Черновик" look — the lesson is a draft until published.
-  // Пунктирная рамка без заливки — «ещё не готово», и не спорит с кнопкой
-  // публикации. Как в редакторе курса.
-  const draftActiveStyle = {
-    position: 'relative',
-    border: '1.5px solid transparent',
-    background: 'transparent',
-    boxShadow: 'none',
-    color: 'var(--color-yellow-text)',
-    fontWeight: 600,
-  } as const
-  const draftDot = <><DraftDashes /><Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} /></>
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar
@@ -1222,20 +1208,7 @@ export default function TeacherLessonEditorPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            <button
-              style={{
-                padding: '9px 18px', borderRadius: 999, cursor: 'pointer',
-                fontSize: 13.5, fontFamily: 'inherit', ...(published ? { boxShadow: '0 2px 12px rgba(0,0,0,0.05)', border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-muted)', fontWeight: 600 } : draftActiveStyle),
-                display: 'flex', alignItems: 'center', gap: 7,
-              }}
-            >
-              {!published && draftDot} {draftLabel}
-            </button>
-            <TeacherSaveButton
-              label={t('Опубликовать урок')} savedLabel={t('Опубликовано!')}
-              icon={<Send size={14} />}
-              saved={published} onClick={handlePublish}
-            />
+            <DraftPublishToggle published={published} onPublish={handlePublish} />
           </div>
         </motion.div>
 
@@ -1280,22 +1253,8 @@ export default function TeacherLessonEditorPage() {
 
               <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
-              <button
-                style={{
-                  flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass,
-                  ...(published ? { color: 'var(--color-muted)', fontWeight: 600 } : { ...draftActiveStyle, background: dockGlass.background, boxShadow: dockGlass.boxShadow }),
-                  cursor: 'pointer', fontSize: 13.5,
-                  fontFamily: 'inherit', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 7,
-                }}
-              >
-                {!published && draftDot} {draftLabel}
-              </button>
-              <TeacherSaveButton
-                label={t('Опубликовать урок')} savedLabel={t('Опубликовано!')}
-                icon={<Send size={14} />}
-                saved={published} onClick={handlePublish}
-                style={{ boxShadow: '0 6px 20px rgba(74,222,128,0.25)', pointerEvents: 'auto' }}
-              />
+              <DraftPublishToggle published={published} onPublish={handlePublish}
+                style={{ ...dockGlass, pointerEvents: 'auto' }} />
             </motion.div>
           )}
         </AnimatePresence>
