@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, Pencil,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
+import DraftDashes from '../../components/teacher/DraftDashes'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
@@ -1169,13 +1170,14 @@ export default function TeacherLessonEditorPage() {
   // Пунктирная рамка без заливки — «ещё не готово», и не спорит с кнопкой
   // публикации. Как в редакторе курса.
   const draftActiveStyle = {
-    border: '1.5px dashed color-mix(in srgb, var(--color-yellow-text) 45%, #D9AE2A)',
+    position: 'relative',
+    border: '1.5px solid transparent',
     background: 'transparent',
     boxShadow: 'none',
     color: 'var(--color-yellow-text)',
     fontWeight: 600,
   } as const
-  const draftDot = <Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+  const draftDot = <><DraftDashes /><Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} /></>
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar

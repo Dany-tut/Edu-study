@@ -11,6 +11,7 @@ import {
   ListVideo, Play, ListPlus, RotateCcw, Loader2, Pencil,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
+import DraftDashes from '../../components/teacher/DraftDashes'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
@@ -6082,7 +6083,8 @@ export default function TeacherCourseEditorPage() {
   // as the current state rather than a muted secondary action. Пунктир без
   // заливки — «ещё не готово», и не спорит с кнопкой публикации.
   const draftActiveStyle = {
-    border: '1.5px dashed color-mix(in srgb, var(--color-yellow-text) 45%, #D9AE2A)',
+    position: 'relative',
+    border: '1.5px solid transparent',
     background: 'transparent',
     boxShadow: 'none',
     color: 'var(--color-yellow-text)',
@@ -6209,7 +6211,7 @@ export default function TeacherCourseEditorPage() {
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
               style={{ padding: '7.5px 16.5px', borderRadius: 999, ...draftActiveStyle, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' }}>
-              <Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} /> {t('Черновик')}
+              <DraftDashes /><Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} /> {t('Черновик')}
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
