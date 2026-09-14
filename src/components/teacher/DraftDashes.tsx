@@ -27,7 +27,7 @@ export default function DraftDashes() {
     >
       <rect
         x="0" y="0" width="100%" height="100%" rx={h / 2} ry={h / 2}
-        fill="none" strokeWidth={1.5} strokeDasharray="3 6" strokeLinecap="round"
+        fill="none" strokeWidth={1.75} strokeDasharray="2 11" strokeLinecap="round"
         style={{ stroke: 'color-mix(in srgb, var(--color-yellow-text) 45%, #D9AE2A)' }}
       />
     </svg>
