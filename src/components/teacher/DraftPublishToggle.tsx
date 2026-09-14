@@ -20,6 +20,9 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
   const t = useT()
 
   const seg = (active: boolean, activeBg: string, activeColor: string, clickable: boolean): CSSProperties => ({
+    // flex: 1 — при заданной ширине (редактор курса ровняет по колонке уроков)
+    // половины делят её поровну; без ширины переключатель по-прежнему по тексту.
+    flex: 1, justifyContent: 'center',
     display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 999, border: 'none',
     background: active ? activeBg : 'transparent',
     color: active ? activeColor : 'var(--color-text-3)',
