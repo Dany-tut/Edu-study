@@ -8,7 +8,7 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw, Loader2,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2, Pencil,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
@@ -6079,14 +6079,14 @@ export default function TeacherCourseEditorPage() {
   useEffect(() => { setDocked(false); return () => setDocked(false) }, [])
 
   // Highlighted "Черновик" look — shown while the course IS a draft, so it reads
-  // as the current state rather than a muted secondary action. Сплошной жёлтый с
-  // тёмно-оливковым текстом — одинаково читается в светлой и тёмной теме; рамка
-  // прозрачная, чтобы высота совпадала с кнопкой публикации.
+  // as the current state rather than a muted secondary action. Пунктир без
+  // заливки — «ещё не готово», и не спорит с кнопкой публикации.
   const draftActiveStyle = {
-    border: '1.5px solid transparent',
-    background: '#DCC66E',
-    color: '#3D3720',
-    fontWeight: 700,
+    border: '1.5px dashed color-mix(in srgb, var(--color-yellow-text) 45%, #D9AE2A)',
+    background: 'transparent',
+    boxShadow: 'none',
+    color: 'var(--color-yellow-text)',
+    fontWeight: 600,
   } as const
 
   // Live publish gate — drives the disabled state of the Опубликовать button.
@@ -6208,8 +6208,8 @@ export default function TeacherCourseEditorPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flexShrink: 0 }}>
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
-              style={{ padding: '7.5px 16.5px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} /> {t('Черновик')}
+              style={{ padding: '7.5px 16.5px', borderRadius: 999, ...draftActiveStyle, fontSize: 13.5, cursor: 'pointer', fontFamily: 'inherit', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' }}>
+              <Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} /> {t('Черновик')}
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}

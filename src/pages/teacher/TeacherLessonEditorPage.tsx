@@ -5,7 +5,7 @@ import {
   ArrowLeft, Send, ChevronDown, Plus, X, Trash2,
   Video, Link2, ListVideo, NotebookPen, FileText, FolderOpen,
   GraduationCap, Upload, Calendar, Clock, Search,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Pencil,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
@@ -1166,14 +1166,16 @@ export default function TeacherLessonEditorPage() {
   )
   const draftLabel = t('Черновик')
   // Highlighted "Черновик" look — the lesson is a draft until published.
-  // Сплошной жёлтый с тёмно-оливковым текстом, как в редакторе курса.
+  // Пунктирная рамка без заливки — «ещё не готово», и не спорит с кнопкой
+  // публикации. Как в редакторе курса.
   const draftActiveStyle = {
-    border: '1.5px solid transparent',
-    background: '#DCC66E',
-    color: '#3D3720',
-    fontWeight: 700,
+    border: '1.5px dashed color-mix(in srgb, var(--color-yellow-text) 45%, #D9AE2A)',
+    background: 'transparent',
+    boxShadow: 'none',
+    color: 'var(--color-yellow-text)',
+    fontWeight: 600,
   } as const
-  const draftDot = <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+  const draftDot = <Pencil size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar
@@ -1220,8 +1222,8 @@ export default function TeacherLessonEditorPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <button
               style={{
-                padding: '9px 18px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
-                fontSize: 13.5, fontFamily: 'inherit', ...(published ? { border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-muted)', fontWeight: 600 } : draftActiveStyle),
+                padding: '9px 18px', borderRadius: 999, cursor: 'pointer',
+                fontSize: 13.5, fontFamily: 'inherit', ...(published ? { boxShadow: '0 2px 12px rgba(0,0,0,0.05)', border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-muted)', fontWeight: 600 } : draftActiveStyle),
                 display: 'flex', alignItems: 'center', gap: 7,
               }}
             >
@@ -1279,7 +1281,7 @@ export default function TeacherLessonEditorPage() {
               <button
                 style={{
                   flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass,
-                  ...(published ? { color: 'var(--color-muted)', fontWeight: 600 } : draftActiveStyle),
+                  ...(published ? { color: 'var(--color-muted)', fontWeight: 600 } : { ...draftActiveStyle, background: dockGlass.background, boxShadow: dockGlass.boxShadow }),
                   cursor: 'pointer', fontSize: 13.5,
                   fontFamily: 'inherit', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 7,
                 }}
