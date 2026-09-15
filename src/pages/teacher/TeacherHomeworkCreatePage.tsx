@@ -34,7 +34,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
+import GrowTextarea, { growMinHeight, TEXT_LIFT } from '../../components/GrowTextarea'
 import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
@@ -1556,7 +1556,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
         }}
       >
         <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
-        <div style={{ flex: 1, fontSize: 13, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        <div style={{ flex: 1, fontSize: 13, ...TEXT_LIFT, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || t('Выберите дату')}
         </div>
         {value && (

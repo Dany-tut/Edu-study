@@ -30,7 +30,7 @@ import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
+import GrowTextarea, { growMinHeight, TASK_TEXT_LH, TEXT_LIFT } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import {
   taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID,
@@ -2444,7 +2444,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
         }}
       >
         <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
-        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        <span style={{ flex: 1, ...TEXT_LIFT, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || ph}
         </span>
         {value ? (
