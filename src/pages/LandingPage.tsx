@@ -412,7 +412,7 @@ export default function LandingPage() {
         @media (max-width: 560px)  { .lp-tariffs { grid-template-columns: 1fr; } }
         .lp-tariff { transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
         .lp-tariff:hover { transform: translateY(-4px); border-color: color-mix(in srgb, ${ACCENT} 45%, var(--color-border)); }
-        @media (max-width: 700px) { .lp-tariff-wide { flex-direction: column; align-items: stretch; } .lp-tariff-wide > button { width: 100%; } }
+        @media (max-width: 700px) { .lp-tariff-wide { flex-direction: column; align-items: stretch !important; gap: 18px !important; padding: 22px !important; } .lp-tariff-wide > button { width: 100%; } .lp-tariff-wide > ul { min-width: 0 !important; grid-template-columns: 1fr !important; } }
       `}</style>
 
       {/* ── Modals ── */}

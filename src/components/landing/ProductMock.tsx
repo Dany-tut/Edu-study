@@ -38,6 +38,18 @@ const SECTIONS = [
 
 type BrowserTab = 'teacher' | 'student'
 
+function useNarrow(query = '(max-width: 640px)') {
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const on = () => setNarrow(mq.matches)
+    on()
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [query])
+  return narrow
+}
+
 export default function ProductMock() {
   const t = useT()
   const [tab, setTab] = useState<BrowserTab>('teacher')
@@ -48,6 +60,8 @@ export default function ProductMock() {
   const [spinning, setSpinning] = useState(false)
   const [query, setQuery] = useState('')
   const [bellOpen, setBellOpen] = useState(false)
+  // на телефоне поле поиска узкое: «Поиск ученика» обрезалось на полуслове
+  const narrow = useNarrow()
   // «принятые» работы — общий счётчик очереди для Обзора и Домашек
   const [accepted, setAccepted] = useState<string[]>([])
 
@@ -165,7 +179,7 @@ export default function ProductMock() {
             </div>
 
             {/* контент */}
-            <div ref={pageRef} className="lp-scroll" style={{ flex: 1, padding: 18, minWidth: 0, position: 'relative' }}>
+            <div ref={pageRef} className="lp-scroll lp-pad" style={{ flex: 1, padding: 18, minWidth: 0, position: 'relative' }}>
               {/* мобильные вкладки разделов */}
               <div className="lp-mock-tabs" style={{ display: 'none', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
                 {SECTIONS.map((s, i) => (
@@ -189,7 +203,7 @@ export default function ProductMock() {
                   borderRadius: 9, background: 'var(--color-bg)', border: '1px solid var(--color-border)', width: 150,
                 }}>
                   <Search size={13} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Поиск ученика')}
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder={narrow ? t('Поиск') : t('Поиск ученика')}
                     style={{ border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 12, width: '100%', minWidth: 0 }} />
                   {query && <button onClick={() => setQuery('')} style={{ ...iconBtnBase, width: 16, height: 16 }}><X size={11} /></button>}
                 </div>
@@ -235,7 +249,7 @@ export default function ProductMock() {
             </div>
           </div>
         ) : (
-          <div key={`student-${nonce}`} ref={pageRef} className="lp-mock-panel lp-page lp-scroll" style={{ padding: 18 }}>
+          <div key={`student-${nonce}`} ref={pageRef} className="lp-mock-panel lp-page lp-scroll lp-pad" style={{ padding: 18 }}>
             <MockStudent />
           </div>
         )}
@@ -279,7 +293,13 @@ export default function ProductMock() {
           .lp-mock-side{ display:none !important; }
           .lp-mock-tabs{ display:flex !important; }
           .lp-nav-btns, .lp-tool-right{ display:none !important; }
-          .lp-mock-search{ width: 110px !important; }
+          .lp-mock-search{ width: 104px !important; flex-shrink: 0; }
+          .lp-pad{ padding: 14px 12px !important; }
+          .lp-mock-stats{ gap: 8px !important; }
+          .lp-mock-stats > div{ padding: 10px 10px !important; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+          .lp-mock-stats svg{ display: none; }
+          .lp-stack{ display: none !important; }
+          .lp-mock-journal{ grid-template-columns: max-content repeat(5, minmax(0, 1fr)) 26px !important; gap: 4px !important; min-width: 0 !important; }
         }
         @media (max-width: 460px){ .lp-tab-title{ display:none !important; } }
       `}</style>
@@ -376,7 +396,7 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
   return (
     <>
       {/* плитки — точки входа в разделы, как в живом кабинете */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 14 }}>
+      <div className="lp-mock-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 14 }}>
         {[
           { k: 'Учеников', v: '24', c: ACCENT, to: 'Группы' },
           { k: 'На проверку', v: String(pending), c: pending ? ACCENT_L : OK, to: 'Домашки' },
@@ -461,8 +481,8 @@ function MockGroups({ query }: { query: string }) {
             <div className="lp-clickrow" onClick={() => setOpen(on ? null : g.n)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px' }}>
               <span style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 15, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>{t(g.n)[0]}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700 }}>{t(g.n)}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{t(g.s)}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(g.n)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(g.s)}</div>
               </div>
               <div className="lp-stack" style={{ display: 'flex' }}>
                 {Array.from({ length: Math.min(g.cnt, 4) }).map((_, i) => (
@@ -470,7 +490,7 @@ function MockGroups({ query }: { query: string }) {
                 ))}
                 {g.cnt > 4 && <span style={{ width: 22, height: 22, borderRadius: 999, marginLeft: -7, border: '2px solid var(--color-surface)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: 'var(--color-text-2)', background: 'var(--color-bg)' }}>+{g.cnt - 4}</span>}
               </div>
-              <span style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 9px', borderRadius: 999, color: WARN, background: `color-mix(in srgb, ${WARN} 15%, transparent)` }}>★ {g.avg}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 9px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0, color: WARN, background: `color-mix(in srgb, ${WARN} 15%, transparent)` }}>★ {g.avg}</span>
               <ChevronRight size={15} style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: on ? 'rotate(90deg)' : 'none', transition: 'transform .18s' }} />
             </div>
             {on && (
@@ -558,7 +578,7 @@ function MockSchedule({ query }: { query: string }) {
         {ofDay.map(s => {
           const on = held.includes(s.id)
           return (
-            <div key={s.id} className="lp-row" style={{ ...mockRow, alignItems: 'stretch', gap: 12, padding: '11px 13px' }}>
+            <div key={s.id} className="lp-row lp-slot" style={{ ...mockRow, alignItems: 'stretch', gap: 12, padding: '11px 13px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: 46, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 800, color: on ? OK : ACCENT }}>{s.time}</span>
                 <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{s.solo ? '1:1' : t('группа')}</span>
@@ -578,7 +598,7 @@ function MockSchedule({ query }: { query: string }) {
                   fontSize: 11.5, fontWeight: 700, border: '1px solid transparent', color: '#fff',
                   background: on ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, transition: 'background .2s',
                 }}>
-                  {on ? <><Check size={12} /> {t('Проведено')}</> : <><Play size={11} /> {t('Провести')}</>}
+                  {on ? <><Check size={12} /> {t('Проведено')}</> : <><Play size={11} className="lp-slot-play" /> {t('Провести')}</>}
                 </button>
               </div>
             </div>
@@ -600,7 +620,7 @@ function MockSchedule({ query }: { query: string }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10.5, color: 'var(--color-text-3)' }}>
         <Clock size={12} /> {t('Проведённые занятия сразу попадают в журнал — отмечать дважды не нужно.')}
       </div>
-      <style>{`@media (max-width: 560px){ .lp-slot-btns{ flex-direction: column; align-items: stretch !important; } }`}</style>
+      <style>{`@media (max-width: 460px){ .lp-slot{ gap: 8px !important; padding: 10px !important; } .lp-slot-play{ display: none; } } @media (max-width: 360px){ .lp-slot-btns{ flex-direction: column; align-items: stretch !important; } }`}</style>
     </div>
   )
 }
@@ -807,7 +827,7 @@ function MockJournal({ query }: { query: string }) {
 
   return (
     <div style={{ ...mockCard, overflowX: 'auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `96px repeat(${DATES.length}, 1fr) 44px`, gap: 6, minWidth: 380 }}>
+      <div className="lp-mock-journal" style={{ display: 'grid', gridTemplateColumns: `96px repeat(${DATES.length}, 1fr) 44px`, gap: 6, minWidth: 380 }}>
         <div />
         {DATES.map((d, i) => (
           <button key={d} className="lp-chip" onClick={() => markColumn(i)} title={t('Отметить всех присутствующими')}
@@ -1192,6 +1212,8 @@ function StickerShelf() {
   const cur = COLLECTION[sel]
   const tier = tierOf(cur.score)
   const got = COLLECTION.filter(c => c.got).length
+  // на телефоне 46px × 6 не влезали в ряд, и последний стикер падал один на вторую строку
+  const narrow = useNarrow('(max-width: 460px)')
 
   return (
     <div style={mockCard}>
@@ -1210,10 +1232,10 @@ function StickerShelf() {
           <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{cur.got ? t(tier.hint) : t('Сдайте задание на 5 — и стикер откроется')}</div>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: narrow ? 'nowrap' : 'wrap', justifyContent: narrow ? 'space-between' : undefined, padding: narrow ? '0 5px' : undefined }}>
         {COLLECTION.map((c, i) => (
           <StickerBadge key={c.label} score={c.score} label={t(c.label)} stickerId={c.label}
-            emblem={SHELF_EMBLEMS[c.label]} size={46} locked={!c.got} onClick={() => setSel(i)}
+            emblem={SHELF_EMBLEMS[c.label]} size={narrow ? 38 : 46} locked={!c.got} onClick={() => setSel(i)}
             // Стикер круглый, поэтому и рамка выделения круглая: с borderRadius 10
             // outline обводил квадрат, и на клике вылезали его углы.
             style={{ cursor: 'pointer', outline: sel === i ? `2px solid ${ACCENT}` : 'none', outlineOffset: 3, borderRadius: '50%' }} />
