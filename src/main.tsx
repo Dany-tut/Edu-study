@@ -8,6 +8,21 @@ import { recoverFromChunkError } from './lib/chunkError'
 import { guardStylesheet } from './lib/cssGuard'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
 
+// ── Адрес без решётки ────────────────────────────────────────────────────────
+//
+// Маршруты живут в hash (#/teacher), а руками набирают /teacher — Vercel отдаёт
+// тот же index.html, и открывался кабинет ученика. Путь переносим в hash до
+// того, как его кто-то прочтёт.
+{
+  const { pathname, search, hash } = window.location
+  const route = pathname.replace(/\/+$/, '')
+  if (route && route !== '/index.html') {
+    const rest = hash.replace(/^#\/?/, '')
+    const target = `#${route}${rest ? '/' + rest : ''}`
+    window.history.replaceState(null, '', `/${search}${target}`)
+  }
+}
+
 // ── PostHog — после первого кадра, отдельным чанком ──────────────────────────
 //
 // Библиотека весит ~200 КБ и в главном чанке стояла впереди приложения: её
