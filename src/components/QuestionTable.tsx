@@ -34,7 +34,7 @@ const MORPH = { type: 'spring', stiffness: 420, damping: 40, mass: 0.7 } as cons
 
 export default function QuestionTable({
   table, mobile = false, interactive = false, value, onChange, disabled = false,
-  cellValue, onCellChange, blankAsInput = false,
+  cellValue, onCellChange, blankAsInput = false, accent,
 }: {
   table: QTable
   mobile?: boolean
@@ -45,6 +45,8 @@ export default function QuestionTable({
   onCellChange?: (key: string, v: string) => void
   blankAsInput?: boolean
   disabled?: boolean
+  /** Цвет вписанного ответа и каретки — акцент теста/предмета; по умолчанию акцент кабинета. */
+  accent?: string
 }) {
   const t = useT()
   // Mobile only: false = scroll (natural), true = shrink-to-fit (scaled down).
@@ -137,7 +139,7 @@ export default function QuestionTable({
           onChange={e => putVal(key, e.target.value)}
           disabled={disabled}
           placeholder={t('Впиши…')}
-          style={{ width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: cellPad, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, color: 'var(--color-accent)', fontWeight: 600 }}
+          style={{ width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: cellPad, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, color: accent ?? 'var(--color-accent)', caretColor: accent ?? 'var(--color-accent)', fontWeight: 600 }}
         />
       )
     }

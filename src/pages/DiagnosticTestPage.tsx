@@ -632,7 +632,7 @@ export default function DiagnosticTestPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
                   onKeyDown={e => { if (e.key === 'Enter' && !locked) { e.preventDefault(); submit() } }}>
                   {q.table && (
-                    <QuestionTable table={q.table} mobile={!isDesktop} interactive disabled={locked}
+                    <QuestionTable table={q.table} mobile={!isDesktop} interactive disabled={locked} accent={theme.accent}
                       cellValue={key => key === blank ? value : ''}
                       onCellChange={(key, v) => { if (key === blank) setTermDraft(v) }} />
                   )}
