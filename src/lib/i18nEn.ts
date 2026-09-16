@@ -1672,6 +1672,8 @@ export const EN: Record<string, string> = {
   "Заголовок": "Header",
   "вписать": "fill in",
   "Убрать поле ответа": "Remove answer field",
+  "пусто": "blank",
+  "Убрать отметку «Пусто»": "Remove blank mark",
   "Текст": "Text",
   "Вписать": "Fill in",
   "Пусто": "Empty",

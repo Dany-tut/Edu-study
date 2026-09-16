@@ -274,8 +274,14 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                         ><X size={9} /></button>
                       </div>
                     ) : isExplicitlyBlank ? (
-                      <div style={{ padding: '8px 10px', minHeight: 34, display: 'flex', alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, color: 'var(--color-text-4)' }}>—</span>
+                      // Ячейка без ответа — та же раскладка, что у «вписать»: подпись + X, чтобы тип можно было сменить
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 700, letterSpacing: 0.2 }}>{t('пусто')}</span>
+                        <button
+                          onMouseDown={e => { e.stopPropagation(); setBlank(key, false) }}
+                          style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                          title={t('Убрать отметку «Пусто»')}
+                        ><X size={9} /></button>
                       </div>
                     ) : showChoice ? (
                       <div

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Check, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Check, Plus, Trash2, X } from 'lucide-react'
 import ScrollFade from '../ScrollFade'
 import { useT, tc } from '../../lib/i18n'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
@@ -195,8 +195,9 @@ export default function TeacherSelect({
           <button
             type="button"
             onMouseDown={handleClear}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
-          >×</button>
+            // Иконка, а не глиф «×»: символ сидит на линии шрифта и уезжает ниже середины поля.
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: 2, margin: -2, flexShrink: 0 }}
+          ><X size={small ? 11 : 13} strokeWidth={2.2} /></button>
         ) : (
           <motion.span
             animate={{ rotate: open ? 180 : 0 }}
