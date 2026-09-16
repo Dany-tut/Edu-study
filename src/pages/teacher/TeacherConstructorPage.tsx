@@ -4439,11 +4439,11 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
         onClick={e => e.stopPropagation()}
         style={{ width: '100%', maxWidth: 400, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.22)' }}
       >
-        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выбрать ученика')}</div>
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}><X size={14} /></button>
         </div>
-        <div style={{ padding: '12px 16px 8px' }}>
+        <div style={{ padding: '16px 16px 8px' }}>
           <input
             autoFocus
             value={search}
@@ -4452,7 +4452,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
             style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
           />
         </div>
-        <div style={{ maxHeight: 300, overflowY: 'auto', padding: '4px 10px 14px' }}>
+        <div style={{ maxHeight: 300, overflowY: 'auto', padding: '0 16px 16px' }}>
           {filtered.length === 0 && (
             <div style={{ textAlign: 'center', padding: '20px 0', fontSize: 13, color: 'var(--color-muted)' }}>{t('Ученики не найдены')}</div>
           )}
@@ -5016,13 +5016,15 @@ function DiagResultStudentPanel({
   const { accent, soft } = getSubjectMeta(result.subject)
   const Icon = getSubjectIcon(result.subject)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [questions, setQuestions] = useState(() => loadDiagQuestions(result.subject))
+  useEffect(() => { fetchDiagQuestions(result.subject).then(setQuestions) }, [result.subject])
+  const [showAll, setShowAll] = useState(false)
 
   const sections = Object.entries(result.results)
   const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
   const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
   const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
   const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
-  const initials = result.name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
   const linkedStudent = result.linkedStudentId ? allStudents.find(s => s.id === result.linkedStudentId) : null
   const date = new Date(result.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
   const time = new Date(result.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
@@ -5122,6 +5124,87 @@ function DiagResultStudentPanel({
               })}
             </div>
           </div>
+
+          {/* Разбор по вопросам: по умолчанию только ошибки — ради них панель и открывают.
+              У брошенного прогона неотвеченные — не ошибки, а просто не дошёл. */}
+          {(() => {
+            const rows = questions.map((q, i) => {
+              const chosen = result.answers?.[q.id]
+              return { q, i, chosen, hasAnswer: chosen !== undefined, ok: isDiagAnswerCorrect(q, chosen) }
+            })
+            const wrong = rows.filter(r => !r.ok && (r.hasAnswer || result.completed))
+            const skipped = result.completed ? 0 : rows.filter(r => !r.hasAnswer).length
+            const shown = showAll ? rows : wrong
+            if (!rows.length) return null
+            return (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                  <SectionHead>{t('Ошибки')} · {wrong.length}</SectionHead>
+                  <button
+                    onClick={() => setShowAll(v => !v)}
+                    style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: accent, fontFamily: 'inherit' }}
+                  >
+                    {showAll ? t('Только ошибки') : t('Все вопросы')}
+                  </button>
+                </div>
+                {!showAll && wrong.length === 0 ? (
+                  <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 600 }}>
+                    {t('Ошибок нет')}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {shown.map(({ q, i, chosen, hasAnswer, ok }) => {
+                      const col = ok ? '#22c55e' : hasAnswer ? '#ef4444' : 'var(--color-text-3)'
+                      return (
+                        <div key={q.id} style={{
+                          borderRadius: 11, padding: '9px 12px',
+                          border: `1px solid ${ok ? '#22c55e33' : hasAnswer ? '#ef444433' : 'var(--color-border-soft)'}`,
+                          background: ok ? 'rgba(34,197,94,0.05)' : hasAnswer ? 'rgba(239,68,68,0.05)' : 'var(--color-bg-2)',
+                          display: 'flex', alignItems: 'flex-start', gap: 8,
+                        }}>
+                          <div style={{
+                            minWidth: 22, height: 20, padding: '0 4px', borderRadius: 6, flexShrink: 0, marginTop: 1,
+                            background: ok ? '#22c55e22' : hasAnswer ? '#ef444422' : 'var(--color-bg-5)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 10, fontWeight: 800, color: col,
+                          }}>{i + 1}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35, marginBottom: 4 }}>{diagListLabel(q)}</div>
+                            {hasAnswer ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11, lineHeight: 1.35 }}>
+                                <div style={{ color: col, fontWeight: 600 }}>
+                                  {ok ? '✓ ' : '✗ '}{diagAnswerLabel(q, chosen!) || t('— нет ответа')}
+                                </div>
+                                {!ok && (
+                                  <div>
+                                    <span style={{ color: 'var(--color-muted)' }}>{t('Верно:')} </span>
+                                    <span style={{ fontWeight: 600, color: 'var(--color-green-text)' }}>{diagCorrectLabel(q) || t('ответ не задан')}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: 11, lineHeight: 1.35, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <span style={{ color: 'var(--color-text-3)' }}>{t('— нет ответа')}</span>
+                                <span>
+                                  <span style={{ color: 'var(--color-muted)' }}>{t('Верно:')} </span>
+                                  <span style={{ fontWeight: 600, color: 'var(--color-green-text)' }}>{diagCorrectLabel(q) || t('ответ не задан')}</span>
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {!showAll && skipped > 0 && (
+                  <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-muted)' }}>
+                    {t('Не дошёл до вопросов:')} {skipped}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Link to student */}
           <div>
