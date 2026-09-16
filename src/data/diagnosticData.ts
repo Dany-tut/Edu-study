@@ -841,6 +841,20 @@ export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
   return questionsCache.get(subject) ?? DEFAULT_QUESTIONS[subject] ?? []
 }
 
+/**
+ * У термина ячейка для ответа должна быть отмечена в emptyCells. Если пометки нет
+ * (так пришёл bio-l1-54140: пустая клетка без отметки), ученик видел таблицу без
+ * поля и не мог ответить вовсе — полем становится первая пустая клетка.
+ */
+function withTermBlank(q: DiagQuestion): DiagQuestion {
+  if (q.kind !== 'term' || !q.table || Object.keys(q.table.emptyCells ?? {}).length) return q
+  for (let r = 0; r < q.table.rows.length; r++) {
+    const c = q.table.rows[r].findIndex(cell => !String(cell ?? '').trim())
+    if (c >= 0 && !q.table.cellImages?.[`${r},${c}`]) return { ...q, table: { ...q.table, emptyCells: { [`${r},${c}`]: true } } }
+  }
+  return q
+}
+
 // Async fetch from Supabase — updates cache and returns fresh questions.
 export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQuestion[]> {
   const { data, error } = await supabase
@@ -849,7 +863,7 @@ export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQues
     .eq('subject', subject)
     .order('position')
   if (error || !data?.length) return loadDiagQuestions(subject)
-  const qs: DiagQuestion[] = data.map(r => ({
+  const qs: DiagQuestion[] = data.map(r => withTermBlank({
     id: r.id as string,
     section: r.section as string,
     text: r.text as string,
