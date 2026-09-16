@@ -139,13 +139,10 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
           <PartyPopperLottie size={80} />
         </div>
 
-        {/* Подпись тоже идёт акцентом теста: она оставалась фиолетовой рядом с
-            бирюзовым вердиктом — тот же случай, что был у вариантов ответа. */}
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: accent, marginBottom: 10 }}>
-          {t('Диагностика завершена')}
-        </div>
-        <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 12 }}>
-          {t('Молодец! Ты справился 🎉')}
+        {/* Одно слово крупно: подпись «Диагностика завершена» и «Ты справился»
+            повторяли то, что и так ясно по экрану. */}
+        <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.15, marginBottom: 12 }}>
+          {t('Молодец!')}
         </div>
         <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: verdict ? 20 : 28, maxWidth: 300 }}>
           {saveFailed
