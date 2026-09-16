@@ -31,10 +31,12 @@ export default defineConfig({
       injectRegister: 'auto',
       manifest: false,                 // we ship our own hand-tuned manifest.webmanifest
       workbox: {
-        // Network-first navigation so a fresh deploy is served immediately and the
-        // cached shell is only used offline — avoids the classic stale-SPA trap.
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api/, /supabase\.co/],
+        // navigateFallback НЕ задаём. С ним workbox регистрирует NavigationRoute
+        // раньше runtimeCaching, и любой переход получал index.html из precache —
+        // правило NetworkFirst ниже было мёртвым. После деплоя старый index
+        // просил чанки со старыми хешами, Vercel отвечал 404, и «Обновить» не
+        // помогало: перезагрузку снова обслуживал старый воркер (16.09.2026).
+        navigateFallback: null,
         // ── Precache = только оболочка ──────────────────────────────────────
         //
         // По умолчанию сюда попадали ВСЕ файлы из dist — 115 штук на 17 МБ.
