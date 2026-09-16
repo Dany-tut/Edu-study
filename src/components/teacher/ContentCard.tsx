@@ -94,7 +94,10 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
     >
       {actions && <CardActionBar actions={actions} visible={hovered} accentColor={accentColor} />}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {/* Выбранная плитка залита оттенком акцента — серый квадрат иконки на ней
+            выпадал пятном, поэтому он тоже подмешивает акцент. color-mix, а не
+            accent+'22': accentColor бывает CSS-переменной. */}
+        <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? (isSelected ? `color-mix(in srgb, ${accentColor} 20%, var(--color-bg-5))` : 'var(--color-bg-5)'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.18s' }}>
           {icon}
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</div>
