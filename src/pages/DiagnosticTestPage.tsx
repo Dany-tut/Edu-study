@@ -395,6 +395,16 @@ export default function DiagnosticTestPage() {
   // Поэтому меняется только показ, а `pick()` ниже получает исходный номер.
   const optionOrder = useMemo(() => (q ? displayOrder(q.options, q.text) : []), [q])
   const total = questions.length
+
+  // Вопрос «термин в таблицу»: курсор сразу в ячейке ответа — ученик печатает,
+  // не кликая в поле на каждом вопросе. Ждём ворота уверенности, если они есть.
+  const termBoxRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (step !== 'test' || q?.kind !== 'term' || chosen[q.id] !== undefined) return
+    if (askConfidence && confident === null) return
+    termBoxRef.current?.querySelector<HTMLTextAreaElement>('textarea:not(:disabled)')?.focus({ preventScroll: true })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, q?.id, confident, askConfidence])
   const progress = Object.keys(chosen).length / total
   const done = step === 'done'
 
@@ -771,7 +781,7 @@ export default function DiagnosticTestPage() {
               const value = locked ? String(picked) : termDraft
               const submit = () => { if (termDraft.trim()) pick(termDraft.trim()) }
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
+                <div ref={termBoxRef} style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
                   onKeyDown={e => { if (e.key === 'Enter' && !locked) { e.preventDefault(); submit() } }}>
                   {q.table && (
                     <QuestionTable table={q.table} mobile={!isDesktop} interactive disabled={locked} accent={theme.accent}
