@@ -614,7 +614,13 @@ export default function DiagnosticTestPage() {
               </div>
               <div style={{ position: 'relative' }}>
                 {/* Иконка поверх поля: на iOS фокус поднимает input в свой слой, и лежащая «под» ним иконка пропадала */}
-                <User size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none', zIndex: 1 }} />
+                {/* Начал печатать — иконка уезжает влево и гаснет, текст сдвигается на её место */}
+                <User size={16} style={{
+                  position: 'absolute', left: 14, top: '50%',
+                  transform: `translate(${studentName ? -10 : 0}px, -50%)`, opacity: studentName ? 0 : 1,
+                  transition: 'transform 0.22s ease, opacity 0.18s ease',
+                  color: 'var(--color-text-3)', pointerEvents: 'none', zIndex: 1,
+                }} />
                 <input
                   autoFocus
                   value={studentName}
@@ -625,11 +631,13 @@ export default function DiagnosticTestPage() {
                     width: '100%', boxSizing: 'border-box',
                     position: 'relative',
                     // 16px: меньше — iOS приближает страницу при фокусе, и поле съезжает
-                    padding: 'calc(12px - 0.12em) 14px calc(12px + 0.12em) 40px', borderRadius: 13,
+                    // Паддинг симметричный: подъём на 0.12em здесь перебирал — заглавные «Ваше ФИ»
+                    // вставали на 1.6px выше иконки и середины поля (замер 16.09.2026)
+                    padding: '12px 14px', paddingLeft: studentName ? 14 : 40, borderRadius: 13,
                     border: `1.5px solid ${studentName.trim().length >= 2 ? theme.accent : 'var(--color-border-medium)'}`,
                     background: 'var(--color-bg-input)', color: 'var(--color-text)',
                     fontSize: 16, fontFamily: 'inherit', outline: 'none',
-                    transition: 'border-color 0.15s',
+                    transition: 'border-color 0.15s, padding-left 0.22s ease',
                   }}
                 />
               </div>
