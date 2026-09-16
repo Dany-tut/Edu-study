@@ -3768,13 +3768,13 @@ function testSubjectName(id: string, label?: string, iconKey?: string): string {
   if (bySlug) return bySlug.name
   return (iconKey && ICON_SUBJECT[iconKey]) || ''
 }
-// Галочка «Диагностика завершена» живёт отдельно: CUSTOM_META перезаписывается
-// целиком при смене цвета и названия и потеряла бы флаг.
-const DONE_LABEL = new Map<string, boolean>()
+// Подпись финального экрана живёт отдельно: CUSTOM_META перезаписывается
+// целиком при смене цвета и названия и потеряла бы её.
+const DONE_LABEL = new Map<string, string>()
 function hydrateCustomMeta(tests: CustomTest[]) {
   tests.forEach(t => {
     CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22', iconKey: t.iconKey })
-    DONE_LABEL.set(t.id, !!t.showDoneLabel)
+    DONE_LABEL.set(t.id, t.doneLabel ?? '')
   })
 }
 
@@ -5480,11 +5480,13 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
     onSubjectChange?.(next)
   }
 
-  const [doneLabelState, setDoneLabelState] = useState(() => DONE_LABEL.get(subject) ?? false)
-  function handleDoneLabelChange(show: boolean) {
-    setDoneLabelState(show)
-    DONE_LABEL.set(subject, show)
-    updateCustomTestDoneLabel(subject, show)
+  const [doneLabelState, setDoneLabelState] = useState(() => DONE_LABEL.get(subject) ?? '')
+  function handleDoneLabelBlur() {
+    const next = doneLabelState.trim()
+    setDoneLabelState(next)
+    if (next === (DONE_LABEL.get(subject) ?? '')) return
+    DONE_LABEL.set(subject, next)
+    updateCustomTestDoneLabel(subject, next)
   }
 
   function handleChipChange(chip: string) {
@@ -5764,10 +5766,17 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               </div>
             )}
             {isCustomTest && (
-              <Checkbox checked={doneLabelState} onChange={handleDoneLabelChange} accent={accentFill}
-                labelStyle={{ fontSize: 12, color: 'var(--color-text-2)' }}>
-                {t('Подпись «Диагностика завершена» в конце')}
-              </Checkbox>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Подпись в конце теста')}</div>
+                <input
+                  value={doneLabelState}
+                  onChange={e => setDoneLabelState(e.target.value)}
+                  onBlur={handleDoneLabelBlur}
+                  onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                  placeholder={t('Пусто — без подписи')}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+                />
+              </div>
             )}
 
             {/* Mode tabs */}

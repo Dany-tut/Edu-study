@@ -888,17 +888,17 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
 
 // ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
 
-export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string; subject?: string; showDoneLabel?: boolean }
+export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string; subject?: string; doneLabel?: string }
 
 export async function fetchCustomTestsMeta(): Promise<CustomTestMeta[]> {
   const { data, error } = await supabase
     .from('custom_diag_tests')
-    .select('id, label, accent, icon_key, chip, subject, show_done_label')
+    .select('id, label, accent, icon_key, chip, subject, done_label')
     .order('created_at', { ascending: false })
   if (error) { console.error('fetchCustomTestsMeta:', error); return [] }
-  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string; subject?: string | null; show_done_label?: boolean | null }) => ({
+  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string; subject?: string | null; done_label?: string | null }) => ({
     id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined, chip: r.chip ?? 'Диагностика', subject: r.subject || undefined,
-    showDoneLabel: !!r.show_done_label,
+    doneLabel: r.done_label || undefined,
   }))
 }
 
@@ -914,9 +914,9 @@ export async function updateCustomTestSubject(id: string, subject: string): Prom
   if (error) console.error('updateCustomTestSubject:', error)
 }
 
-// Показывать ли «Диагностика завершена» над «Молодец!» на финальном экране.
-export async function updateCustomTestDoneLabel(id: string, show: boolean): Promise<void> {
-  const { error } = await supabase.from('custom_diag_tests').update({ show_done_label: show }).eq('id', id)
+// Подпись над «Молодец!» на финальном экране. Пусто — подписи нет.
+export async function updateCustomTestDoneLabel(id: string, label: string): Promise<void> {
+  const { error } = await supabase.from('custom_diag_tests').update({ done_label: label.trim() || null }).eq('id', id)
   if (error) console.error('updateCustomTestDoneLabel:', error)
 }
 

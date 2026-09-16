@@ -96,8 +96,8 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 }
 
 // ── Done screen ───────────────────────────────────────────────────────────────
-function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, onRetry, showDoneLabel }: {
-  accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null; showDoneLabel?: boolean
+function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, onRetry, doneLabel }: {
+  accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null; doneLabel?: string
   saveFailed?: boolean; retrying?: boolean; onRetry?: () => void
 }) {
   const t = useT()
@@ -140,11 +140,11 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
         </div>
 
         {/* Одно слово крупно. Подпись над ним — по галочке в настройках теста
-            (custom_diag_tests.show_done_label), по умолчанию её нет. Цвет —
+            (custom_diag_tests.done_label) — свой текст учителя, по умолчанию её нет. Цвет —
             акцент теста, чтобы не спорить с вердиктом ниже. */}
-        {showDoneLabel && (
+        {doneLabel && (
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: accent, marginBottom: 10 }}>
-            {t('Диагностика завершена')}
+            {doneLabel}
           </div>
         )}
         <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.15, marginBottom: 12 }}>
@@ -213,8 +213,8 @@ const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: strin
 
 const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement', 'eng-restore'])
 
-function metaFromRow(row: CustomTestMeta): { label: string; accent: string; soft: string; showDoneLabel?: boolean } {
-  return { label: row.label, accent: row.accent, soft: row.accent + '22', showDoneLabel: row.showDoneLabel }
+function metaFromRow(row: CustomTestMeta): { label: string; accent: string; soft: string; doneLabel?: string } {
+  return { label: row.label, accent: row.accent, soft: row.accent + '22', doneLabel: row.doneLabel }
 }
 function inferMeta(id: string): { label: string; accent: string; soft: string } {
   const label = id.replace(/^custom-/, '').replace(/--\d+$/, '').replace(/-+/g, ' ').trim()
@@ -245,7 +245,7 @@ export default function DiagnosticTestPage() {
 
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => isKnown ? loadDiagQuestions(subject) : [])
   // For custom tests load metadata + questions from Supabase
-  const [customMeta, setCustomMeta] = useState<{ label: string; accent: string; soft: string; showDoneLabel?: boolean } | null>(
+  const [customMeta, setCustomMeta] = useState<{ label: string; accent: string; soft: string; doneLabel?: string } | null>(
     !isKnown ? inferMeta(rawSubject) : null  // show inferred name immediately while loading
   )
   const [questionsLoading, setQuestionsLoading] = useState(!isKnown)
@@ -513,7 +513,7 @@ export default function DiagnosticTestPage() {
   // ── Results view ──
   if (done) {
     return <DiagDoneScreen accentColor={theme.accent} onBack={goBack} verdict={getPlacementVerdict(fetchSubject, results)}
-      saveFailed={saveFailed} retrying={retrying} onRetry={retrySave} showDoneLabel={customMeta?.showDoneLabel} />
+      saveFailed={saveFailed} retrying={retrying} onRetry={retrySave} doneLabel={customMeta?.doneLabel} />
   }
 
   // ── Test view ──
