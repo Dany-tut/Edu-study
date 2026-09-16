@@ -639,7 +639,7 @@ function CourseEditor({
     >
       <PanelHeader title={t("Редактор курса")} accent="var(--color-accent)" accentBg="var(--color-purple-soft)" Icon={BookOpen} onClose={onClose} onExpand={onExpand} />
 
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title */}
         <div><Label>{t('Название')}</Label>
           <ContentInput value={title} onChange={e => setTitle(e.target.value)} style={inputSt} />
@@ -784,7 +784,7 @@ function TrainerEditor({
     >
       <PanelHeader title={t("Редактор тренажёра")} accent="#8B4900" accentBg="var(--color-peach-soft)" Icon={Zap} onClose={onClose} />
 
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title + topic */}
         <div><Label>{t('Название')}</Label><input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} /></div>
         <div>
@@ -948,7 +948,7 @@ function WidgetEditor({
     >
       <PanelHeader title={t("Редактор виджета")} accent="#1a7a3f" accentBg="var(--color-green-soft)" Icon={Layers} onClose={onClose} />
 
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div><Label>{t('Название')}</Label><input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} /></div>
 
         {/* Type selector */}
@@ -5058,7 +5058,7 @@ function DiagResultStudentPanel({
           maxHeight="100%"
           bg="rgba(var(--glass-rgb), 0.97)"
           style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-          scrollStyle={{ flex: 1, scrollbarGutter: 'stable', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}
+          scrollStyle={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}
         >
 
           {/* Score ring */}
