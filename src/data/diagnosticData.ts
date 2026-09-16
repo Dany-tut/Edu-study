@@ -1000,6 +1000,10 @@ export interface AnonDiagResult {
   total?: number
   /** false — прогон брошен на середине; строка есть, но результат неполный. */
   completed: boolean
+  /** Секрет владения строкой (0082): по нему ссылка «Продолжить» открывает этот прогон. */
+  ownerToken?: string
+  assignmentId?: string
+  studentId?: string
 }
 
 function rowToResult(row: Record<string, unknown>): AnonDiagResult {
@@ -1015,6 +1019,9 @@ function rowToResult(row: Record<string, unknown>): AnonDiagResult {
     total: (row.total as number | null) ?? undefined,
     // Строки, лежавшие до миграции 0082, — законченные прогоны (default true).
     completed: (row.completed as boolean | null) ?? true,
+    ownerToken: (row.owner_token as string | null) ?? undefined,
+    assignmentId: (row.assignment_id as string | null) ?? undefined,
+    studentId: (row.student_id as string | null) ?? undefined,
   }
 }
 
@@ -1092,6 +1099,47 @@ export async function saveDiagProgress(p: {
   })
   if (error) { console.error('saveDiagProgress:', error); return false }
   return true
+}
+
+// ── Продолжить брошенный прогон (0094) ──────────────────────────────────────
+// Строка дописывается после каждого ответа, но раньше прочитать её обратно
+// аноним не мог — закрыл вкладку, и тест начинался с нуля отдельной строкой.
+
+export interface DiagProgress {
+  name: string
+  subject: string
+  answers: Record<string, DiagAnswer>
+  completed: boolean
+  studentId?: string
+  assignmentId?: string
+}
+
+/** Прогон по токену владения; `null` — не нашёлся (удалён или токен чужой). */
+export async function loadDiagProgress(token: string): Promise<DiagProgress | null> {
+  const { data, error } = await supabase.rpc('load_diag_progress', { p_token: token })
+  if (error) { console.error('loadDiagProgress:', error); return null }
+  const row = (data as Record<string, unknown>[] | null)?.[0]
+  if (!row) return null
+  return {
+    name: row.name as string,
+    subject: row.subject as string,
+    answers: (row.answers as Record<string, DiagAnswer> | null) ?? {},
+    completed: !!row.completed,
+    studentId: (row.student_id as string | null) ?? undefined,
+    assignmentId: (row.assignment_id as string | null) ?? undefined,
+  }
+}
+
+/** «Начать заново»: брошенный прогон удаляется, чтобы в таблице не было двух строк. Сданный — нет. */
+export async function discardDiagProgress(token: string): Promise<void> {
+  const { error } = await supabase.rpc('discard_diag_progress', { p_token: token })
+  if (error) console.error('discardDiagProgress:', error)
+}
+
+/** Личная ссылка ученику: открывает его же прогон со следующего вопроса. */
+export function diagResumeHash(r: Pick<AnonDiagResult, 'subject' | 'ownerToken'>): string | null {
+  if (!r.ownerToken) return null
+  return `#/diagnostic?subject=${encodeURIComponent(r.subject)}&resume=${encodeURIComponent(r.ownerToken)}`
 }
 
 export async function appendAnonResult(

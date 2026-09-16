@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
+  loadDiagProgress, discardDiagProgress, type DiagProgress,
   isDiagAnswerCorrect, diagCorrectLabel,
   type DiagSubject, type DiagQuestion, type DiagResults, type DiagAnswer,
   type CustomTestMeta,
@@ -236,8 +237,10 @@ export default function DiagnosticTestPage() {
   const askConfidence = params.get('confidence') === '1'  // teacher enables via share link
 
   // Assignment context: set when opened from student dashboard assigned test
-  const assignmentId = params.get('assignment') ?? undefined
-  const assignedStudentId = params.get('sid') ?? undefined
+  const urlAssignmentId = params.get('assignment') ?? undefined
+  const urlStudentId = params.get('sid') ?? undefined
+  // Ссылка «Продолжить» из таблицы учителя: токен владения брошенным прогоном.
+  const resumeToken = params.get('resume') ?? undefined
   const assignedStudentName = params.get('sname') ? decodeURIComponent(params.get('sname')!) : undefined
 
   // Use rawSubject for data ops so custom test IDs are fetched correctly
@@ -277,10 +280,25 @@ export default function DiagnosticTestPage() {
   // sessionStorage, а не localStorage: ссылка на тест общая, и на одном
   // устройстве по очереди проходят разные люди. Вкладка закрылась — снимок
   // умер вместе с ней, чужие ответы следующему не подставятся.
-  const snapKey = `diag-progress:${subject}:${assignmentId ?? 'link'}`
+  // rawSubject, а не subject: у всех своих тестов subject — заглушка 'biology',
+  // и снимки разных тестов в одной вкладке делили бы один ключ.
+  const snapKey = `diag-progress:${rawSubject}:${urlAssignmentId ?? 'link'}`
   const snap = useMemo(() => {
-    try { return JSON.parse(sessionStorage.getItem(snapKey) || 'null') } catch { return null }
-  }, [snapKey])
+    try {
+      const s = JSON.parse(sessionStorage.getItem(snapKey) || 'null')
+      // Ссылка «Продолжить» на другой прогон важнее снимка вкладки.
+      return resumeToken && s?.ownerToken !== resumeToken ? null : s
+    } catch { return null }
+  }, [snapKey, resumeToken])
+
+  // Брошенный прогон на ЭТОМ устройстве — переживает закрытую вкладку.
+  // localStorage, но без молчаливой подстановки: устройство бывает общим,
+  // поэтому на экране имени спрашиваем «Продолжить как …» или «Начать заново».
+  const localKey = `diag-resume:${rawSubject}:${urlAssignmentId ?? 'link'}`
+  function readLocal(): { token: string; name: string } | null {
+    try { return JSON.parse(localStorage.getItem(localKey) || 'null') } catch { return null }
+  }
+  function clearLocal() { try { localStorage.removeItem(localKey) } catch { /* нет хранилища — и нечего чистить */ } }
 
   const [step, setStep] = useState<'name' | 'test' | 'done'>(snap?.step ?? (assignedStudentName ? 'test' : 'name'))
   const [studentName, setStudentName] = useState(snap?.studentName ?? assignedStudentName ?? '')
@@ -296,7 +314,74 @@ export default function DiagnosticTestPage() {
   // больше (см. save_diag_progress, миграция 0082). Живёт в том же снимке, что
   // и прогресс, поэтому перезагрузка продолжает ту же строку, а не заводит
   // вторую. Новая вкладка — новый токен и, честно, новый прогон.
-  const [ownerToken] = useState<string>(() => snap?.ownerToken ?? crypto.randomUUID())
+  const [ownerToken, setOwnerToken] = useState<string>(() => snap?.ownerToken ?? crypto.randomUUID())
+  // Назначение и ученик прогона: из ссылки, а у продолженного — из самой строки.
+  const [resumed, setResumed] = useState<DiagProgress | null>(null)
+  const assignmentId = urlAssignmentId ?? resumed?.assignmentId
+  const assignedStudentId = urlStudentId ?? resumed?.studentId
+  // Что нашлось в базе по ссылке «Продолжить» или по токену устройства.
+  // pending — ждём вопросов, чтобы встать на первый неотвеченный;
+  // offer — спрашиваем на экране имени; alreadyDone — прогон уже сдан.
+  const [resumeState, setResumeState] = useState<
+    { kind: 'checking' } | { kind: 'pending'; token: string; p: DiagProgress } | { kind: 'offer'; token: string; p: DiagProgress } | { kind: 'alreadyDone' } | null
+  >(() => (!snap && (resumeToken || readLocal()?.token)) ? { kind: 'checking' } : null)
+
+  useEffect(() => {
+    if (resumeState?.kind !== 'checking') return
+    const token = resumeToken ?? readLocal()?.token
+    if (!token) { setResumeState(null); return }
+    let alive = true
+    void loadDiagProgress(token).then(p => {
+      if (!alive) return
+      if (!p || p.subject !== rawSubject) { if (!resumeToken) clearLocal(); setResumeState(null); return }
+      if (p.completed) {
+        if (!resumeToken) { clearLocal(); setResumeState(null) }
+        else setResumeState({ kind: 'alreadyDone' })
+        return
+      }
+      if (!Object.keys(p.answers).length) { setResumeState(null); return }
+      // Личная ссылка (или назначение конкретному ученику) — сразу в тест;
+      // найденное на общем устройстве по общей ссылке — сначала спросить.
+      setResumeState(resumeToken || urlStudentId ? { kind: 'pending', token, p } : { kind: 'offer', token, p })
+    })
+    return () => { alive = false }
+  }, [resumeState?.kind])
+
+  function applyResume(token: string, p: DiagProgress) {
+    const firstOpen = questions.findIndex(dq => p.answers[dq.id] === undefined)
+    setOwnerToken(token)
+    setResumed(p)
+    setStudentName(p.name)
+    setChosen(p.answers)
+    setCurrent(firstOpen < 0 ? Math.max(0, questions.length - 1) : firstOpen)
+    setResumeState(null)
+    setStep('test')
+  }
+  useEffect(() => {
+    if (resumeState?.kind === 'pending' && questions.length) applyResume(resumeState.token, resumeState.p)
+  }, [resumeState, questions.length])
+
+  // «Начать заново» старую строку сразу не удаляет: за общим компьютером это
+  // может быть другой человек, и его ответы пропали бы. Удаляем, только если
+  // новый прогон начат под тем же именем — это тот же ученик, и без удаления
+  // в таблице учителя встали бы две строки.
+  const discardCandidate = useRef<{ token: string; name: string } | null>(null)
+  function startOver() {
+    if (resumeState?.kind !== 'offer') return
+    discardCandidate.current = { token: resumeState.token, name: resumeState.p.name }
+    clearLocal()
+    setResumeState(null)
+    setStudentName('')
+  }
+  function startTest() {
+    const name = studentName.trim()
+    if (name.length < 2) return
+    const old = discardCandidate.current
+    const norm = (v: string) => v.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim()
+    if (old && norm(old.name) === norm(name)) void discardDiagProgress(old.token)
+    discardCandidate.current = null
+    setStep('test')
+  }
   const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
 
   const isLinkMode = !assignmentId  // shared link: no feedback shown
@@ -386,6 +471,7 @@ export default function DiagnosticTestPage() {
       await updateStudentScoreFromAssignment(assignedStudentId, assignmentId, scorePct)
     }
     setSaveFailed(!ok)
+    if (ok) clearLocal()
     setResults(res)
     setStep('done')
   }
@@ -397,6 +483,7 @@ export default function DiagnosticTestPage() {
     setRetrying(true)
     const ok = await saveDiagProgress(payload.current)
     setSaveFailed(!ok)
+    if (ok) clearLocal()
     setRetrying(false)
   }
 
@@ -409,13 +496,18 @@ export default function DiagnosticTestPage() {
     } catch { /* приватный режим — просто не переживём перезагрузку */ }
   }, [snapKey, step, studentName, current, chosen, results, ownerToken])
 
+  useEffect(() => {
+    if (step !== 'test' || !Object.keys(chosen).length) return
+    try { localStorage.setItem(localKey, JSON.stringify({ token: ownerToken, name: studentName.trim() })) } catch { /* приватный режим */ }
+  }, [step, chosen, ownerToken, studentName, localKey])
+
   function goBack() {
     try { sessionStorage.removeItem(snapKey) } catch { /* всё равно уходим */ }
     window.location.hash = '#/'
   }
 
   // ── Loading / not found ──
-  if (questionsLoading) {
+  if (questionsLoading || resumeState?.kind === 'checking' || resumeState?.kind === 'pending') {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Skeleton.Text lines={4} style={{ maxWidth: 360 }} />
@@ -436,8 +528,25 @@ export default function DiagnosticTestPage() {
     )
   }
 
+  // Ссылка «Продолжить» на уже сданный прогон: второй раз не проходим.
+  if (resumeState?.kind === 'alreadyDone') {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '0 20px' }}>
+        <CheckCircle size={40} style={{ color: theme.accent }} />
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Тест уже сдан')}</div>
+        <div style={{ fontSize: 14, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 320 }}>
+          {t('Все ответы сохранены у преподавателя.')}
+        </div>
+        <button onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: theme.accent, color: getContrastColor(theme.accent), fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {t('На главную')}
+        </button>
+      </div>
+    )
+  }
+
   // ── Name entry view ──
   if (step === 'name') {
+    const offer = resumeState?.kind === 'offer' ? resumeState : null
     return (
       <div style={{
         minHeight: '100vh', background: 'var(--color-bg)',
@@ -464,25 +573,52 @@ export default function DiagnosticTestPage() {
             background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-glass)',
             borderRadius: 22, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18,
           }}>
+            {offer ? (
+              <>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Тест не закончен')}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45 }}>
+                    {offer.p.name} · {t('отвечено')} {Object.keys(offer.p.answers).length} {t('из')} {total}.<br />
+                    {t('Ответы сохранены — можно продолжить с того же места.')}
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => applyResume(offer.token, offer.p)}
+                  style={{ width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer', background: theme.accent, color: '#fff', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                >
+                  {t('Продолжить как')} {offer.p.name} <ChevronRight size={16} />
+                </motion.button>
+                <button
+                  onClick={startOver}
+                  style={{ width: '100%', padding: '12px', borderRadius: 14, border: '1px solid var(--color-border-soft)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit' }}
+                >
+                  {t('Начать заново')}
+                </button>
+              </>
+            ) : (<>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Введи своё ФИО')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12 }}>
                 {t('Результаты сохранятся у твоего преподавателя.')}<br />{t('Логин и пароль не нужны.')}
               </div>
               <div style={{ position: 'relative' }}>
-                <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
+                {/* Иконка поверх поля: на iOS фокус поднимает input в свой слой, и лежащая «под» ним иконка пропадала */}
+                <User size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none', zIndex: 1 }} />
                 <input
                   autoFocus
                   value={studentName}
                   onChange={e => setStudentName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && studentName.trim().length >= 2) setStep('test') }}
-                  placeholder={t('Например: Иванов Иван Иванович')}
+                  onKeyDown={e => { if (e.key === 'Enter') startTest() }}
+                  placeholder={t('Ваше ФИ')}
                   style={{
                     width: '100%', boxSizing: 'border-box',
-                    padding: '12px 14px 12px 36px', borderRadius: 13,
+                    position: 'relative',
+                    // 16px: меньше — iOS приближает страницу при фокусе, и поле съезжает
+                    padding: 'calc(12px - 0.12em) 14px calc(12px + 0.12em) 40px', borderRadius: 13,
                     border: `1.5px solid ${studentName.trim().length >= 2 ? theme.accent : 'var(--color-border-medium)'}`,
                     background: 'var(--color-bg-input)', color: 'var(--color-text)',
-                    fontSize: 14, fontFamily: 'inherit', outline: 'none',
+                    fontSize: 16, fontFamily: 'inherit', outline: 'none',
                     transition: 'border-color 0.15s',
                   }}
                 />
@@ -492,7 +628,7 @@ export default function DiagnosticTestPage() {
             <motion.button
               whileHover={{ scale: studentName.trim().length >= 2 ? 1.02 : 1 }}
               whileTap={{ scale: studentName.trim().length >= 2 ? 0.98 : 1 }}
-              onClick={() => { if (studentName.trim().length >= 2) setStep('test') }}
+              onClick={startTest}
               disabled={studentName.trim().length < 2}
               style={{
                 width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: studentName.trim().length >= 2 ? 'pointer' : 'not-allowed',
@@ -504,6 +640,7 @@ export default function DiagnosticTestPage() {
             >
               {t('Начать тест')} <ChevronRight size={16} />
             </motion.button>
+            </>)}
           </div>
         </motion.div>
       </div>
@@ -601,7 +738,7 @@ export default function DiagnosticTestPage() {
 
             {/* Question text */}
             <div style={{
-              fontSize: 16, fontWeight: 700, lineHeight: 1.35,
+              fontSize: 16, fontWeight: 700, lineHeight: 1.22,
               color: 'var(--color-text)', marginBottom: 20,
               ...proseWrap,
             }}>

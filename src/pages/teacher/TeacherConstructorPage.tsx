@@ -34,7 +34,7 @@ import { levelOptions, matchesLevel, levelOptionsForSubject } from '../../lib/co
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   isDiagAnswerCorrect, diagAnswerLabel, diagCorrectLabel, diagListLabel,
-  loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
+  loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult, diagResumeHash,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
   fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject, updateCustomTestDoneLabel,
   loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
@@ -89,7 +89,7 @@ import {
 } from '../../data/screeningConfig'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
-import { alertMissingAnswers, isDiagMissingAnswer } from '../../lib/answerCheck'
+import { alertMissingAnswers, breakAtDash, isDiagMissingAnswer } from '../../lib/answerCheck'
 import QuestionTable, { type QTable } from '../../components/QuestionTable'
 
 type NewBankTask = Omit<BankTask, 'id'>
@@ -2631,7 +2631,7 @@ function CreatorView({
       const task = buildTask()
       if (!task) {
         // Кнопка уже серая, но клик по ней не должен быть тишиной — говорим, чего не хватает.
-        if (!stripHtml(tkQuestion)) void alertDialog({ title: t('Не получится сохранить — нет условия'), message: t('Напишите условие задания и сохраните ещё раз.'), tone: 'danger' })
+        if (!stripHtml(tkQuestion)) void alertDialog({ title: breakAtDash(t('Не получится сохранить — нет условия')), message: t('Напишите условие задания и сохраните ещё раз.'), tone: 'danger' })
         else alertMissingAnswers(null, taskFormAnswerHint())
         return
       }
@@ -4928,6 +4928,28 @@ function regradeDiagResults(result: AnonDiagResult, questions: DiagQuestion[]): 
     [sec, sec in correct ? { ...v, correct: Math.min(v.total, correct[sec]) } : v]))
 }
 
+// Личная ссылка на брошенный прогон: ученик откроет свои ответы и продолжит
+// со следующего вопроса, дописывая ту же строку, а не заводя новую.
+function ResumeLinkButton({ result, accent, wide }: { result: AnonDiagResult; accent: string; wide?: boolean }) {
+  const t = useT()
+  const [copied, setCopied] = useState(false)
+  const hash = diagResumeHash(result)
+  if (result.completed || !hash) return null
+  function copy(e: React.MouseEvent) {
+    e.stopPropagation()
+    void copyToClipboard(`${window.location.origin}${window.location.pathname}${hash}`)
+      .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+  return (
+    <button onClick={copy} title={t('Ссылка, по которой ученик продолжит с того же места')} style={wide
+      ? { width: '100%', height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 14, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }
+      : { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 10, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+      {copied ? <Check size={wide ? 14 : 10} /> : <Link2 size={wide ? 14 : 10} />}
+      {copied ? t('Скопировано!') : wide ? t('Ссылка «Продолжить»') : t('Продолжить')}
+    </button>
+  )
+}
+
 // ─── DiagResultsTable — inline table below cards ──────────────────────────────
 function DiagResultsTable({
   subject, results, selectedResultId, onSelectResult, onOpenEditor, onRefresh,
@@ -5034,7 +5056,12 @@ function DiagResultsTable({
                     </div>
                   </td>
                   <td style={{ padding: '11px 16px', textAlign: 'center' }}>
-                    {r.linkedStudentId
+                    {!r.completed ? (
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'rgba(245,158,11,0.14)', color: '#f59e0b', fontWeight: 700, whiteSpace: 'nowrap' }}>{t('Не закончил')}</span>
+                        <ResumeLinkButton result={r} accent={accent} />
+                      </div>
+                    ) : r.linkedStudentId
                       ? <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontWeight: 700 }}>{t('Привязан')}</span>
                       : <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontWeight: 600 }}>{t('Аноним')}</span>
                     }
@@ -5258,6 +5285,11 @@ function DiagResultStudentPanel({
           {/* Link to student */}
           <div>
             <SectionHead>{t('Ученик')}</SectionHead>
+            {!result.completed && (
+              <div style={{ marginBottom: 8 }}>
+                <ResumeLinkButton result={result} accent={accent} wide />
+              </div>
+            )}
             {linkedStudent ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: 'var(--color-green-soft)', border: '1px solid rgba(34,197,94,0.25)' }}>
                 <Check size={16} style={{ color: '#22c55e', flexShrink: 0 }} />

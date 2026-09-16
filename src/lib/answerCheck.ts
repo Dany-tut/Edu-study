@@ -48,6 +48,17 @@ export function missingAnswerLabels(tasks: TaskPayload[], prefix = t('Задан
 }
 
 /**
+ * Заголовок «что не вышло — почему» переносится только по тире: тире остаётся
+ * в конце первой строки, причина целиком уходит на вторую. Иначе выходило
+ * «…сохранить — не / проставлен ответ» с висящим «не».
+ */
+export function breakAtDash(title: string): string {
+  const i = title.indexOf(' — ')
+  if (i < 0) return title
+  return `${title.slice(0, i)}\u00A0— ${title.slice(i + 3).replace(/ /g, '\u00A0')}`
+}
+
+/**
  * Алерт «не получится сохранить». `where` — что именно без ответа
  * («Задание 3», «Урок 2 · Задание 1»); `null` — речь об одном открытом задании,
  * перечислять нечего. Возвращает true, если алерт показан — вызывающий в этом
@@ -58,7 +69,7 @@ export function alertMissingAnswers(where: string[] | null, hint?: string): bool
   const tail = hint ?? t('Отметьте правильный ответ и сохраните ещё раз.')
   const list = !where ? '' : where.length > 6 ? `${where.slice(0, 6).join(', ')} ${t('и ещё')} ${where.length - 6}` : where.join(', ')
   void alertDialog({
-    title: t('Не получится сохранить — не проставлен ответ'),
+    title: breakAtDash(t('Не получится сохранить — не проставлен ответ')),
     message: where ? `${t('Без ответа:')} ${list}. ${tail}` : tail,
     tone: 'danger',
   })
