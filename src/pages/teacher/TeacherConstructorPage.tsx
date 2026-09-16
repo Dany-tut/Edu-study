@@ -4912,6 +4912,22 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
   )
 }
 
+// Счёт по разделам сохраняется снимком на момент сдачи. Если учитель потом
+// поправил ответ в вопросе (добавил «Этология» к «Антропология»), снимок
+// показывал 35/36, а разбор ошибок по текущим ответам — «Ошибок нет». Верные
+// пересчитываем по сохранённым ответам и текущему ключу; всего по разделу —
+// из снимка: сколько вопросов было в прогоне, знает только он.
+function regradeDiagResults(result: AnonDiagResult, questions: DiagQuestion[]): AnonDiagResult['results'] {
+  if (!result.answers || !questions.length) return result.results ?? {}
+  const correct: Record<string, number> = {}
+  for (const q of questions) {
+    correct[q.section] ??= 0
+    if (isDiagAnswerCorrect(q, result.answers[q.id])) correct[q.section]++
+  }
+  return Object.fromEntries(Object.entries(result.results ?? {}).map(([sec, v]) =>
+    [sec, sec in correct ? { ...v, correct: Math.min(v.total, correct[sec]) } : v]))
+}
+
 // ─── DiagResultsTable — inline table below cards ──────────────────────────────
 function DiagResultsTable({
   subject, results, selectedResultId, onSelectResult, onOpenEditor, onRefresh,
@@ -4928,6 +4944,8 @@ function DiagResultsTable({
   const { label: rawSubjectLabel, accent, soft } = getSubjectMeta(subject)
   const label = t(rawSubjectLabel)
   const [copied, setCopied] = useState(false)
+  const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function copyLink() {
     void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
@@ -4946,7 +4964,7 @@ function DiagResultsTable({
           </div>
         </div>
         <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
-        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : accent, color: copied ? 'var(--color-green-text)' : getContrastColor(accent), fontSize: 12, fontWeight: 700 }}>
+        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={13} /> : <Link2 size={13} />}
           {copied ? t('Скопировано!') : t('Ссылка')}
         </button>
@@ -4970,7 +4988,7 @@ function DiagResultsTable({
           </thead>
           <tbody>
             {results.map((r, i) => {
-              const sections = Object.entries(r.results ?? {})
+              const sections = Object.entries(regradeDiagResults(r, questions))
               const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
               const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
               const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
@@ -5048,7 +5066,7 @@ function DiagResultStudentPanel({
   useEffect(() => { fetchDiagQuestions(result.subject).then(setQuestions) }, [result.subject])
   const [showAll, setShowAll] = useState(false)
 
-  const sections = Object.entries(result.results)
+  const sections = Object.entries(regradeDiagResults(result, questions))
   const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
   const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
   const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
@@ -5082,12 +5100,15 @@ function DiagResultStudentPanel({
       <motion.div
         initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(24px) saturate(1.4)', WebkitBackdropFilter: 'blur(24px) saturate(1.4)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={tn(result.name)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
+        {/* Полоса прокрутки поверх, а не своей колонкой: «Все вопросы» удлиняет
+            список, и системная полоса отъедала бы ширину — блоки прыгали. */}
         <ScrollFade
           maxHeight="100%"
           bg="rgba(var(--glass-rgb), 0.97)"
+          overlayScrollbar
           style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
           scrollStyle={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}
         >
@@ -5249,7 +5270,7 @@ function DiagResultStudentPanel({
             ) : (
               <button
                 onClick={() => setPickerOpen(true)}
-                style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '0 12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 700 }}
+                style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: fillUnderWhite(accent), color: '#fff', fontSize: 13, fontWeight: 700 }}
               >
                 <GraduationCap size={15} /> {t('Назначить ученика')}
               </button>
