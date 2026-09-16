@@ -888,24 +888,29 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
 
 // ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
 
-export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string }
+export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string; subject?: string }
 
 export async function fetchCustomTestsMeta(): Promise<CustomTestMeta[]> {
   const { data, error } = await supabase
     .from('custom_diag_tests')
-    .select('id, label, accent, icon_key, chip')
+    .select('id, label, accent, icon_key, chip, subject')
     .order('created_at', { ascending: false })
   if (error) { console.error('fetchCustomTestsMeta:', error); return [] }
-  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string }) => ({
-    id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined, chip: r.chip ?? 'Диагностика',
+  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string; subject?: string | null }) => ({
+    id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined, chip: r.chip ?? 'Диагностика', subject: r.subject || undefined,
   }))
 }
 
-export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string, chip?: string): Promise<void> {
+export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string, chip?: string, subject?: string): Promise<void> {
   const { error } = await supabase
     .from('custom_diag_tests')
-    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}), ...(chip ? { chip } : {}) }, { onConflict: 'id' })
+    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}), ...(chip ? { chip } : {}), ...(subject ? { subject } : {}) }, { onConflict: 'id' })
   if (error) { console.error('saveCustomTestMeta:', error); throw new Error(error.message) }
+}
+
+export async function updateCustomTestSubject(id: string, subject: string): Promise<void> {
+  const { error } = await supabase.from('custom_diag_tests').update({ subject: subject || null }).eq('id', id)
+  if (error) console.error('updateCustomTestSubject:', error)
 }
 
 export async function updateCustomTestChip(id: string, chip: string): Promise<void> {

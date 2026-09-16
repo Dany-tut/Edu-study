@@ -29,6 +29,7 @@ import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
 import { getAuthUser } from '../../lib/owner'
+import { useDashboard } from '../../store/dashboardStore'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -163,6 +164,25 @@ export default function TeacherTopBar() {
 
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
   const AvatarIcon = selectedAvatar.Icon
+
+  // Края центрованного бара — закреплённое название страницы (редактор теста)
+  // обрезается у левого края, а не заезжает под бар. Бар при сворачивании
+  // меняет ширину и съезжает — ловим кадры анимации ResizeObserver'ом.
+  const setTopBarBox = useDashboard(s => s.setTopBarBox)
+  useLayoutEffect(() => {
+    const apply = () => {
+      const bar = teacherBarRef.current
+      if (!bar) return
+      const r = bar.getBoundingClientRect()
+      setTopBarBox({ left: r.left, right: r.right })
+    }
+    apply()
+    const settle = setTimeout(apply, 360)
+    const ro = new ResizeObserver(apply)
+    if (teacherBarRef.current) ro.observe(teacherBarRef.current)
+    window.addEventListener('resize', apply)
+    return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', apply) }
+  }, [setTopBarBox, collapsed])
 
   useLayoutEffect(() => {
     if (!addOpen) return

@@ -4303,6 +4303,7 @@ export const EN: Record<string, string> = {
   'ответ не задан': 'no answer set',
   'Ответ не задан': 'No answer set',
   'Принимаемые ответы': 'Accepted answers',
+  '— «Вписать» = ячейка «?», куда ученик пишет термин': '— “Fill in” = the “?” cell where the student types the term',
   '— через «;», регистр и ё не важны': '— separated by “;”, case-insensitive',
   'Например: экология; синэкология': 'E.g.: ecology; synecology',
   'Принять ответ': 'Submit answer',

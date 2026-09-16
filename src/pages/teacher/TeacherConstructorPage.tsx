@@ -25,7 +25,7 @@ import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
+import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy } from '../../data/languageTaxonomy'
 import { levelOptions, matchesLevel, levelOptionsForSubject } from '../../lib/courseLevels'
@@ -34,7 +34,7 @@ import {
   isDiagAnswerCorrect, diagAnswerLabel, diagCorrectLabel, diagListLabel,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
-  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip,
+  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject,
   loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   type CustomTestMeta,
@@ -51,6 +51,7 @@ import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
+import { useDashboard } from '../../store/dashboardStore'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 import { seedKeyOf } from '../../lib/seedSync'
@@ -86,7 +87,7 @@ import {
 } from '../../data/screeningConfig'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
-import QuestionTable from '../../components/QuestionTable'
+import QuestionTable, { type QTable } from '../../components/QuestionTable'
 
 type NewBankTask = Omit<BankTask, 'id'>
 // Высота таблеток верхней строки Конструктора (вкладки, крестик режима
@@ -3736,10 +3737,11 @@ function getSubjectIcon(subject: string): React.ElementType {
 
 export type CustomTest = CustomTestMeta
 
-// У теста нет поля «предмет» — его выводим. Встроенные знаем поимённо (скрининг
-// мышления ни к какому предмету не относится), свои — по названию («Линия 1.
-// Биологические науки», «Химия ЕГЭ»), затем по кусочку id (custom-bio-…) и
-// последним — по иконке. Не нашли — тест виден только под «Все предметы».
+// Предмет теста. У своего теста он задаётся в редакторе (custom_diag_tests.subject);
+// тестам, где поле пустое, и встроенным предмет выводим. Встроенные знаем поимённо
+// (скрининг мышления ни к какому предмету не относится), свои — по названию
+// («Линия 1. Биологические науки», «Химия ЕГЭ»), затем по кусочку id (custom-bio-…)
+// и последним — по иконке. Не нашли — тест виден только под «Все предметы».
 // «1 курс · 2 курса · 5 курсов»: форма по последним цифрам, 11–14 — всегда «много».
 function ruPlural(n: number, one: string, few: string, many: string): string {
   const d = n % 10, dd = n % 100
@@ -5337,16 +5339,18 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   onDeleteAssignment: (id: string) => void
   initialChip?: string
   initialLabel?: string
+  initialSubject?: string
   onColorChange?: (hex: string) => void
   onIconChange?: (iconKey: string) => void
   onLabelChange?: (newLabel: string) => void
   onChipChange?: (chip: string) => void
+  onSubjectChange?: (subject: string) => void
 }>(function DiagnosticEditorFullPage({
   subject, onClose,
   groups, allStudents,
   assignments, onAssign, onDeleteAssignment,
-  initialChip, initialLabel,
-  onColorChange, onIconChange, onLabelChange, onChipChange,
+  initialChip, initialLabel, initialSubject,
+  onColorChange, onIconChange, onLabelChange, onChipChange, onSubjectChange,
 }, ref) {
   const t = useT()
   const initialMeta = getSubjectMeta(subject)
@@ -5357,6 +5361,10 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const assignLift = useStickyLift(assignRef, true, -24)
   const listRef = useRef<HTMLDivElement>(null)
   const listLift = useStickyLift(listRef)
+  // Закреплённое название не заходит под верхний бар: ширина до его левого края.
+  const topBarBox = useDashboard(s => s.topBarBox)
+  const dockTitleRef = useRef<HTMLDivElement>(null)
+  const [dockTitleMax, setDockTitleMax] = useState<number | undefined>(undefined)
   const [accentState, setAccentState] = useState(initialMeta.accent)
   const accent = accentState
   // Заливка кружка «верный вариант»: акцент подобран как цвет текста и рамок,
@@ -5372,6 +5380,15 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const [chipState, setChipState] = useState(() =>
     initialChip ?? (isCustomTest ? t('Свой тест') : loadBuiltinChip(subject))
   )
+
+  // Пустое поле показывает выведенный предмет — учитель видит, куда тест
+  // попадает в отборе, и правит, только если вывод промахнулся.
+  const [subjectState, setSubjectState] = useState(() => initialSubject || testSubjectName(subject, label, iconKeyState))
+  function handleSubjectChange(next: string) {
+    setSubjectState(next)
+    updateCustomTestSubject(subject, next)
+    onSubjectChange?.(next)
+  }
 
   function handleChipChange(chip: string) {
     setChipState(chip)
@@ -5424,8 +5441,15 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const [editCorrect, setEditCorrect] = useState(0)
   // Принимаемые ответы вопроса-термина одной строкой, через «;» или перенос.
   const [editAccepts, setEditAccepts] = useState('')
+  const [editTable, setEditTable] = useState<QTable | undefined>(undefined)
   const [dirty, setDirty] = useState(false)
   const docked = useTeacher(s => s.headerDocked)
+  useLayoutEffect(() => {
+    if (!docked || !topBarBox) { setDockTitleMax(undefined); return }
+    const el = dockTitleRef.current
+    if (!el) return
+    setDockTitleMax(Math.max(0, Math.min(280, topBarBox.left - 12 - el.getBoundingClientRect().left)))
+  }, [docked, topBarBox])
   const setDocked = useTeacher(s => s.setHeaderDocked)
   useEffect(() => () => setDocked(false), [])
 
@@ -5484,9 +5508,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs); setDirty(false) }
-  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct); setEditAccepts((q.accepts ?? []).join('; ')); setDirty(false) }
+  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct); setEditAccepts((q.accepts ?? []).join('; ')); setEditTable(q.table); setDirty(false) }
   function applyEdit(q: DiagQuestion): DiagQuestion {
-    if (q.kind === 'term') return { ...q, text: editText, accepts: editAccepts.split(/[;\n]/).map(x => x.trim()).filter(Boolean) }
+    if (q.kind === 'term') return { ...q, text: editText, table: editTable, accepts: editAccepts.split(/[;\n]/).map(x => x.trim()).filter(Boolean) }
     return { ...q, text: editText, options: editOpts, correct: editCorrect }
   }
   function commitEdit() {
@@ -5539,7 +5563,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto' }}>
                 <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
               </motion.button>
-              <div style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div ref={dockTitleRef} style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {label}
               </div>
             </motion.div>
@@ -5632,6 +5656,14 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Тип теста')}</div>
                 <ChipPicker value={chipState} onChange={handleChipChange} fallbackAccent={accent} />
+              </div>
+            )}
+            {isCustomTest && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
+                <TeacherSelect value={subjectState} onChange={handleSubjectChange} placeholder={t('Предмет')}
+                  accent={accent} accentBg={accent + '1f'}
+                  options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
               </div>
             )}
 
@@ -5839,7 +5871,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </div>
                     {questions[editIdx]?.kind === 'term' ? (
                       <>
-                        {questions[editIdx].table && <QuestionTable table={questions[editIdx].table!} />}
+                        {editTable && (
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Таблица')} <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>{t('— «Вписать» = ячейка «?», куда ученик пишет термин')}</span></div>
+                            <TableEditor value={editTable} onChange={tb => { setEditTable(tb); setDirty(true) }} accent={accent} accentBg={soft} allowCellImages hint={false} />
+                          </div>
+                        )}
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Принимаемые ответы')} <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>{t('— через «;», регистр и ё не важны')}</span></div>
                           <input value={editAccepts} onChange={e => { setEditAccepts(e.target.value); setDirty(true) }}
@@ -6629,7 +6666,7 @@ const DOMAIN_ICONS: Record<DomainKey, React.ElementType> = {
 
 // ─── Diagnostic Test Creator ─────────────────────────────────────────────────
 function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign }: {
-  onSave: (id: string, label: string, accent: string, iconKey: string) => void
+  onSave: (id: string, label: string, accent: string, iconKey: string, subject: string) => void
   onCancel: () => void
   groups: import('../../data/teacherMockData').Group[]
   allStudents: import('../../data/teacherMockData').Student[]
@@ -6645,6 +6682,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   const [title, setTitle] = useState('')
   const [accent, setAccent] = useState(CREATOR_ACCENTS[0].hex)
   const [iconKey, setIconKey] = useState('FileText')
+  const [testSubject, setTestSubject] = useState('')
   const [showPicker2, setShowPicker2] = useState(false)
   const pickerBtn2Ref = useRef<HTMLButtonElement>(null)
   const [questions, setQuestions] = useState<DiagQuestion[]>([])
@@ -6719,7 +6757,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
       : questions
     try {
       await saveDiagQuestions(id as DiagSubject, saved)
-      await saveCustomTestMeta(id, title.trim(), accent, iconKey)
+      await saveCustomTestMeta(id, title.trim(), accent, iconKey, undefined, testSubject)
     } catch (e) {
       setSaving(false)
       setSaveError(t('Не удалось сохранить тест на сервер. Проверьте соединение и попробуйте снова.'))
@@ -6737,7 +6775,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
       })
     }
     setSaving(false)
-    onSave(id, title.trim(), accent, iconKey)
+    onSave(id, title.trim(), accent, iconKey, testSubject)
   }
 
   const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: !canSave || saving })
@@ -6826,6 +6864,12 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 </div>
               </div>
               <IconPickerField iconKey={iconKey} onChange={setIconKey} accent={accent} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
+                <TeacherSelect value={testSubject} onChange={setTestSubject} placeholder={t('Предмет')}
+                  accent={accent} accentBg={accent + '1f'}
+                  options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+              </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
               {/* Mode tabs */}
               <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
@@ -7768,7 +7812,7 @@ export default function TeacherConstructorPage() {
   const testSubjectOf = useMemo(() => {
     const m = new Map<string, string>()
     DIAG_SUBJECTS.forEach(id => m.set(id, testSubjectName(id)))
-    customTests.forEach(ct => m.set(ct.id, testSubjectName(ct.id, ct.label, ct.iconKey)))
+    customTests.forEach(ct => m.set(ct.id, ct.subject || testSubjectName(ct.id, ct.label, ct.iconKey)))
     return m
   }, [customTests])
   const testSubjectOpts = useMemo(() => {
@@ -8175,7 +8219,7 @@ export default function TeacherConstructorPage() {
       for (const ct of customTests.filter(ct => checkedIds.has(ct.id))) {
         const copy: typeof ct = { ...ct, id: uid(), label: (ct.label) + t(' (копия)') }
         CUSTOM_META.set(copy.id, { label: copy.label, accent: copy.accent, soft: copy.accent + '22' })
-        await saveCustomTestMeta(copy.id, copy.label, copy.accent)
+        await saveCustomTestMeta(copy.id, copy.label, copy.accent, copy.iconKey, copy.chip, copy.subject)
         setCustomTests(prev => [copy, ...prev])
       }
     }
@@ -8430,8 +8474,8 @@ export default function TeacherConstructorPage() {
               if (created) setAssignments(prev => [created, ...prev])
               else void alertDialog({ title: t('Не удалось назначить тест — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
             }}
-            onSave={(id, label, accent, iconKey) => {
-              const newTest: CustomTest = { id, label, accent, iconKey }
+            onSave={(id, label, accent, iconKey, subject) => {
+              const newTest: CustomTest = { id, label, accent, iconKey, subject: subject || undefined }
               CUSTOM_META.set(id, { label, accent, soft: accent + '22', iconKey })
               setCustomTests(prev => [newTest, ...prev])
               setDiagCreating(false)
@@ -8448,6 +8492,7 @@ export default function TeacherConstructorPage() {
             subject={diagEditing as DiagSubject}
             initialChip={customTests.find(ct => ct.id === diagEditing)?.chip ?? builtinChips[diagEditing] ?? undefined}
             initialLabel={customTests.find(ct => ct.id === diagEditing)?.label ?? undefined}
+            initialSubject={customTests.find(ct => ct.id === diagEditing)?.subject}
             onClose={() => setDiagEditing(null)}
             groups={diagGroups}
             allStudents={diagAllStudents}
@@ -8473,6 +8518,9 @@ export default function TeacherConstructorPage() {
             }}
             onLabelChange={(newLabel) => {
               setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, label: newLabel } : ct))
+            }}
+            onSubjectChange={(subject) => {
+              setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, subject: subject || undefined } : ct))
             }}
             onChipChange={(chip) => {
               if (diagEditing && CUSTOM_META.has(diagEditing)) {

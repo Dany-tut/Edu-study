@@ -153,7 +153,7 @@ export default function TeacherDashboardPage() {
       )}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible', pointerEvents: editMode ? 'none' : 'auto' }}>
+      <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
         <div />
 
