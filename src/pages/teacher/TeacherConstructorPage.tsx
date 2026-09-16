@@ -29,6 +29,7 @@ import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy } from '../../data/languageTaxonomy'
+import { diagShareUrl } from '../../lib/diagShareUrl'
 import { levelOptions, matchesLevel, levelOptionsForSubject } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
@@ -3708,7 +3709,6 @@ function CreatorView({
 }
 
 // ─── Diagnostic management ─────────────────────────────────────────────────────
-const BASE_URL = window.location.origin + window.location.pathname
 
 const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: string }> = {
   biology:      { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
@@ -4307,7 +4307,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   }
 
   function copyLink() {
-    const url = `${BASE_URL}#/diagnostic?subject=${subject}`
+    const url = diagShareUrl(subject)
     void copyToClipboard(url).then(ok => {
       if (!ok) return
       setCopied(true)
@@ -4948,7 +4948,7 @@ function DiagResultsTable({
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function copyLink() {
-    void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
+    void copyToClipboard(diagShareUrl(subject))
       .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
@@ -5643,7 +5643,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   }
 
   function copyLink() {
-    void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
+    void copyToClipboard(diagShareUrl(subject))
       .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
@@ -7503,7 +7503,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
   useEffect(() => { refreshResults() }, [subject])
 
   function copyLink() {
-    void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
+    void copyToClipboard(diagShareUrl(subject))
       .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
   async function handleLink(resultId: string, studentId: string) { await linkAnonResult(resultId, studentId); await refreshResults(); setPickerFor(null) }

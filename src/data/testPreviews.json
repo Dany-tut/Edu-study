@@ -1,0 +1,17 @@
+[
+  { "id": "custom-bio-line1-1",    "title": "Биологические науки, часть 1",                  "count": 36 },
+  { "id": "custom-bio-line1-1-p2", "title": "Биологические науки, часть 2",                  "count": 36 },
+  { "id": "custom-bio-line1-1-p3", "title": "Биологические науки, часть 3",                  "count": 36 },
+  { "id": "custom-bio-line1-1-p4", "title": "Биологические науки, часть 4",                  "count": 35 },
+  { "id": "custom-bio-line1-2",    "title": "Свойства живого, часть 1",                      "count": 32 },
+  { "id": "custom-bio-line1-2-p2", "title": "Свойства живого, часть 2",                      "count": 32 },
+  { "id": "custom-bio-line1-2-p3", "title": "Свойства живого, часть 3",                      "count": 31 },
+  { "id": "custom-bio-line1-3",    "title": "Уровни организации жизни, часть 1",             "count": 39 },
+  { "id": "custom-bio-line1-3-p2", "title": "Уровни организации жизни, часть 2",             "count": 39 },
+  { "id": "custom-bio-line1-3-p3", "title": "Уровни организации жизни, часть 3",             "count": 38 },
+  { "id": "custom-bio-line1-4",    "title": "Общенаучные методы исследования",               "count": 28 },
+  { "id": "custom-bio-line1-5",    "title": "Методы цитологии, генетики и селекции, часть 1", "count": 33 },
+  { "id": "custom-bio-line1-5-p2", "title": "Методы цитологии, генетики и селекции, часть 2", "count": 33 },
+  { "id": "custom-bio-line1-5-p3", "title": "Методы цитологии, генетики и селекции, часть 3", "count": 33 },
+  { "id": "custom-bio-line1-5-p4", "title": "Методы цитологии, генетики и селекции, часть 4", "count": 33 }
+]
