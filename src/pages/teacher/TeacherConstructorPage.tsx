@@ -35,7 +35,7 @@ import {
   isDiagAnswerCorrect, diagAnswerLabel, diagCorrectLabel, diagListLabel,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
-  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject,
+  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject, updateCustomTestDoneLabel,
   loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   type CustomTestMeta,
@@ -3768,8 +3768,14 @@ function testSubjectName(id: string, label?: string, iconKey?: string): string {
   if (bySlug) return bySlug.name
   return (iconKey && ICON_SUBJECT[iconKey]) || ''
 }
+// Галочка «Диагностика завершена» живёт отдельно: CUSTOM_META перезаписывается
+// целиком при смене цвета и названия и потеряла бы флаг.
+const DONE_LABEL = new Map<string, boolean>()
 function hydrateCustomMeta(tests: CustomTest[]) {
-  tests.forEach(t => CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22', iconKey: t.iconKey }))
+  tests.forEach(t => {
+    CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22', iconKey: t.iconKey })
+    DONE_LABEL.set(t.id, !!t.showDoneLabel)
+  })
 }
 
 const CREATOR_ACCENTS = [
@@ -5474,6 +5480,13 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
     onSubjectChange?.(next)
   }
 
+  const [doneLabelState, setDoneLabelState] = useState(() => DONE_LABEL.get(subject) ?? false)
+  function handleDoneLabelChange(show: boolean) {
+    setDoneLabelState(show)
+    DONE_LABEL.set(subject, show)
+    updateCustomTestDoneLabel(subject, show)
+  }
+
   function handleChipChange(chip: string) {
     setChipState(chip)
     if (isCustomTest) {
@@ -5749,6 +5762,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   accent={accent} accentBg={accent + '1f'}
                   options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
               </div>
+            )}
+            {isCustomTest && (
+              <Checkbox checked={doneLabelState} onChange={handleDoneLabelChange} accent={accentFill}
+                labelStyle={{ fontSize: 12, color: 'var(--color-text-2)' }}>
+                {t('Подпись «Диагностика завершена» в конце')}
+              </Checkbox>
             )}
 
             {/* Mode tabs */}

@@ -1164,6 +1164,8 @@ export const EN: Record<string, string> = {
   "AP Химия": "AP Chemistry",
   "Диагностика · RU": "Diagnostic · RU",
   "Молодец!": "Well done!",
+  "Диагностика завершена": "Diagnostic complete",
+  "Подпись «Диагностика завершена» в конце": "Show \"Diagnostic complete\" at the end",
   "Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)": "Your results are saved and sent to your teacher — they'll review them and get in touch with you :)",
   "Тест не найден": "Test not found",
   "Вопросы этого теста не удалось загрузить. Возможно, тест был создан на другом устройстве и не сохранился на сервер.": "The questions for this test could not be loaded. It may have been created on another device and not saved to the server.",
