@@ -40,7 +40,8 @@ import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModa
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
-import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId } from '../../data/taskTypes'
+import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
+import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -2285,6 +2286,8 @@ export default function TeacherHomeworkCreatePage() {
   }
 
   function handlePublish() {
+    const noAnswer = hwTasks.flatMap((task, i) => isMissingAnswer(task as unknown as TaskPayload) ? [`${t('Задание')} ${i + 1}`] : [])
+    if (alertMissingAnswers(noAnswer)) return
     const modifiedBankTasks = hwTasks.filter(t => t.source === 'bank' && t.modified && !t.savedToTrainer)
     if (modifiedBankTasks.length > 0) {
       setTrainerDialogTaskId(modifiedBankTasks[0].id)

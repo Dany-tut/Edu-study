@@ -88,6 +88,7 @@ import {
 } from '../../data/screeningConfig'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
+import { alertMissingAnswers, isDiagMissingAnswer } from '../../lib/answerCheck'
 import QuestionTable, { type QTable } from '../../components/QuestionTable'
 
 type NewBankTask = Omit<BankTask, 'id'>
@@ -2000,6 +2001,9 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   }, [shortId])
 
   async function save() {
+    // Пустой вопрос-заготовка не мешает, а вопрос с текстом без отмеченного варианта — мешает.
+    const noAnswer = quiz.flatMap((q, i) => (q.prompt.trim() || q.options.some(o => o.text.trim())) && !q.options.find(o => o.id === q.correctOptionId)?.text.trim() ? [`${t('Вопрос')} ${i + 1}`] : [])
+    if (alertMissingAnswers(noAnswer, t('Впишите вариант и отметьте его правильным.'))) return
     setSaving(true); setMsg('')
     const content: LessonContentData = { paragraphs: paras.filter(p => p.text.trim()), quiz, hardTask }
     const patch = {
@@ -2607,11 +2611,29 @@ function CreatorView({
   }
   const builtTask = mode === 'trainer' ? buildTask() : null
 
+  // Что именно не дало собрать задание — подпись к алерту «не проставлен ответ».
+  function taskFormAnswerHint(): string {
+    if (tkAnswerType === 'single' || tkAnswerType === 'multi') {
+      const filled = tkChoices.filter(c => c.trim()).length
+      if (filled < 2) return t('Нужно минимум два варианта ответа.')
+      return t('Отметьте правильный вариант и сохраните ещё раз.')
+    }
+    if (tkAnswerType === 'matching') return t('Заполните обе колонки сопоставления.')
+    if (tkAnswerType === 'sequence') return t('Заполните все шаги последовательности.')
+    if (tkAnswerType === 'tableFill' && !tkHasTable) return t('Добавьте таблицу и впишите ответ.')
+    return t('Впишите правильный ответ и сохраните ещё раз.')
+  }
+
   async function handleSave() {
     const dateStr = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
     if (mode === 'trainer') {
       const task = buildTask()
-      if (!task) return
+      if (!task) {
+        // Кнопка уже серая, но клик по ней не должен быть тишиной — говорим, чего не хватает.
+        if (!stripHtml(tkQuestion)) void alertDialog({ title: t('Не получится сохранить — нет условия'), message: t('Напишите условие задания и сохраните ещё раз.'), tone: 'danger' })
+        else alertMissingAnswers(null, taskFormAnswerHint())
+        return
+      }
 
       if (editingTask) {
         // Update existing task in the bank, then close without creating a new trainer card.
@@ -5614,7 +5636,16 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   }
   function commitEdit() {
     if (editIdx === null) return
-    save(questions.map((q, i) => i === editIdx ? applyEdit(q) : q))
+    // Проверяем только открытый вопрос: в перенесённых банках есть старые
+    // вопросы без ответа, и из-за них не должна вставать правка соседних.
+    const edited = applyEdit(questions[editIdx])
+    if (isDiagMissingAnswer(edited)) {
+      alertMissingAnswers(null, edited.kind === 'term'
+        ? t('Впишите принимаемые ответы через точку с запятой.')
+        : t('Впишите хотя бы два варианта и отметьте правильный.'))
+      return
+    }
+    save(questions.map((q, i) => i === editIdx ? edited : q))
     setEditIdx(null)
   }
   useImperativeHandle(ref, () => ({
@@ -6846,6 +6877,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   }
   function commitEdit() {
     if (editIdx === null) return
+    if (editType !== 'screening' && isDiagMissingAnswer({ ...questions[editIdx], kind: undefined, options: editOpts, correct: editCorrect })) {
+      alertMissingAnswers(null, t('Впишите хотя бы два варианта и отметьте правильный.'))
+      return
+    }
     setQuestions(prev => prev.map((q, i) => {
       if (i !== editIdx) return q
       const base = { ...q, section: editSection || q.section }
@@ -6867,6 +6902,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
     const saved = editIdx !== null
       ? questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect, section: editSection || q.section } : q)
       : questions
+    if (alertMissingAnswers(saved.flatMap((q, i) => isDiagMissingAnswer(q) ? [`${t('Вопрос')} ${i + 1}`] : []), t('Впишите варианты и отметьте правильный.'))) {
+      setSaving(false)
+      return
+    }
     try {
       await saveDiagQuestions(id as DiagSubject, saved)
       await saveCustomTestMeta(id, title.trim(), accent, iconKey, undefined, testSubject)

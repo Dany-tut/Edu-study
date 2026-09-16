@@ -155,7 +155,7 @@ export const ENGLISH_SPRINT: EnglishSprintUnit[] = [
       grid('Третья форма: поставьте недостающее.', ['инфинитив', 'V2', 'V3'], [
         ['leave', 'left', 'left'], ['see', 'saw', 'seen'], ['take', 'took', 'taken'],
         ['go', 'went', 'gone'], ['write', 'wrote', 'written'], ['send', 'sent', 'sent'],
-      ], { '0-2': true, '1-2': true, '2-2': true, '3-2': true, '4-2': true, '5-2': true }),
+      ], { '0,2': true, '1,2': true, '2,2': true, '3,2': true, '4,2': true, '5,2': true }),
       dictation('Диктант.', 'I have been teaching chemistry for eleven years now.'),
       dictationBank('Соберите услышанное из слов.', 'The reagents have not arrived yet.'),
       minPair('Какое слово прозвучало? Оглушение конца слова: русский слух сводит их в одно.', 'had', 'hat', 'A'),

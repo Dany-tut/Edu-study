@@ -60,6 +60,7 @@ import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonConte
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
 import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
+import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -6042,6 +6043,21 @@ export default function TeacherCourseEditorPage() {
     return null
   }
 
+  // «Урок 3 · ДЗ · задание 2» — где в курсе задания без ответа.
+  function courseMissingAnswers(c: CourseEdData): string[] {
+    const out: string[] = []
+    for (const l of c.lessons) {
+      const where = l.kind === 'test' ? `«${l.title}»` : `${t('Урок')} ${l.number}`
+      const scan = (tasks: HWTask[] | undefined, part: string) => (tasks ?? []).forEach((task, i) => {
+        if (isMissingAnswer(task as TaskPayload)) out.push(`${where}${part} · ${t('задание')} ${i + 1}`)
+      })
+      scan(l.testTasks, '')
+      scan(l.hwTasks, ` · ${t('ДЗ')}`)
+      scan(l.recHwTasks, ` · ${t('ДЗ записи')}`)
+    }
+    return out
+  }
+
   function handlePublish() {
     if (course.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
     const blocker = publishBlocker(course)
@@ -6049,6 +6065,7 @@ export default function TeacherCourseEditorPage() {
       setPublishErr(blocker)
       return
     }
+    if (alertMissingAnswers(courseMissingAnswers(course))) return
     setPublishErr(null)
     const updated = { ...course, status: 'published' as const }
     setCourse(updated)
