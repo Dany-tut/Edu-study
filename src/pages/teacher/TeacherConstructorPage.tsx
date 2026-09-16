@@ -3735,6 +3735,36 @@ function getSubjectIcon(subject: string): React.ElementType {
 }
 
 export type CustomTest = CustomTestMeta
+
+// У теста нет поля «предмет» — его выводим. Встроенные знаем поимённо (скрининг
+// мышления ни к какому предмету не относится), свои — по названию («Линия 1.
+// Биологические науки», «Химия ЕГЭ»), затем по кусочку id (custom-bio-…) и
+// последним — по иконке. Не нашли — тест виден только под «Все предметы».
+// «1 курс · 2 курса · 5 курсов»: форма по последним цифрам, 11–14 — всегда «много».
+function ruPlural(n: number, one: string, few: string, many: string): string {
+  const d = n % 10, dd = n % 100
+  if (dd >= 11 && dd <= 14) return many
+  if (d === 1) return one
+  if (d >= 2 && d <= 4) return few
+  return many
+}
+
+const DIAG_BUILTIN_SUBJECT: Record<DiagSubject, string> = {
+  biology: 'Биология', chemistry: 'Химия', 'ap-chem-ru': 'Химия', 'ap-chem-en': 'Химия',
+  'eng-placement': 'Английский', 'eng-restore': 'Английский', 'kor-placement': 'Корейский', logic: '',
+}
+const ICON_SUBJECT: Record<string, string> = { Dna: 'Биология', Atom: 'Химия', FlaskConical: 'Химия', Microscope: 'Биология' }
+function testSubjectName(id: string, label?: string, iconKey?: string): string {
+  if (id in DIAG_BUILTIN_SUBJECT) return DIAG_BUILTIN_SUBJECT[id as DiagSubject]
+  const low = (label ?? '').toLowerCase()
+  const byLabel = SUBJECTS.find(s => low.includes(s.name.toLowerCase().slice(0, -1)))
+  if (byLabel) return byLabel.name
+  const bySlug = id.toLowerCase().split('-').filter(seg => seg.length >= 3 && seg !== 'custom')
+    .map(seg => getSubject(seg) ?? SUBJECTS.find(s => s.id.startsWith(seg)))
+    .find(Boolean)
+  if (bySlug) return bySlug.name
+  return (iconKey && ICON_SUBJECT[iconKey]) || ''
+}
 function hydrateCustomMeta(tests: CustomTest[]) {
   tests.forEach(t => CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22', iconKey: t.iconKey }))
 }
@@ -7680,6 +7710,7 @@ export default function TeacherConstructorPage() {
   const [courseStatus, setCourseStatus] = usePersistentState<'' | CourseStatus>('ctor.courseStatus', '')
   const [courseSubject, setCourseSubject] = usePersistentState('ctor.courseSubject', '')
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
+  const [testSubject, setTestSubject] = usePersistentState('ctor.testSubject', '')
   // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
   // 1:1-ученик живёт отдельной записью на каждый предмет, и по одной из них
   // нашлась бы только часть его курсов.
@@ -7734,6 +7765,23 @@ export default function TeacherConstructorPage() {
     const rest = all.filter(s => !isLanguageSubject(s))
     return langs.length && rest.length ? [...langs, FACET_SEP, ...rest] : all
   }, [allCourses])
+  const testSubjectOf = useMemo(() => {
+    const m = new Map<string, string>()
+    DIAG_SUBJECTS.forEach(id => m.set(id, testSubjectName(id)))
+    customTests.forEach(ct => m.set(ct.id, testSubjectName(ct.id, ct.label, ct.iconKey)))
+    return m
+  }, [customTests])
+  const testSubjectOpts = useMemo(() => {
+    const all = [...new Set([...testSubjectOf.values()].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'))
+    const langs = all.filter(s => isLanguageSubject(s))
+    const rest = all.filter(s => !isLanguageSubject(s))
+    return langs.length && rest.length ? [...langs, FACET_SEP, ...rest] : all
+  }, [testSubjectOf])
+  // Сохранённый отбор мог указывать на предмет, тестов которого больше нет.
+  const activeTestSubject = testSubjectOpts.includes(testSubject) ? testSubject : ''
+  const testVisible = (id: string) => !activeTestSubject || testSubjectOf.get(id) === activeTestSubject
+  const visibleDiagSubjects = DIAG_SUBJECTS.filter(testVisible)
+  const visibleCustomTests = customTests.filter(ct => testVisible(ct.id))
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(
@@ -8608,7 +8656,19 @@ export default function TeacherConstructorPage() {
                   />
                   <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
-                    {filteredCourses.length} {t('курсов')}
+                    {filteredCourses.length} {t(ruPlural(filteredCourses.length, 'курс', 'курса', 'курсов'))}
+                  </span>
+                </div>
+              )}
+              {activeTab === 'testing' && testSubjectOpts.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
+                  <CourseFacetDropdown
+                    value={activeTestSubject} options={testSubjectOpts} allLabel={t('Все предметы')}
+                    icon={<span style={{ fontSize: 12 }}>{activeTestSubject ? subjectIcon(activeTestSubject) : '📚'}</span>}
+                    onChange={setTestSubject}
+                  />
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
+                    {visibleDiagSubjects.length + visibleCustomTests.length} {t(ruPlural(visibleDiagSubjects.length + visibleCustomTests.length, 'тест', 'теста', 'тестов'))}
                   </span>
                 </div>
               )}
@@ -8787,7 +8847,7 @@ export default function TeacherConstructorPage() {
                     )}
                   </div>
                 ))}
-                {activeTab === 'testing' && DIAG_SUBJECTS.map(subject => (
+                {activeTab === 'testing' && visibleDiagSubjects.map(subject => (
                   <div key={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <DiagnosticCard
                       subject={subject}
@@ -8808,7 +8868,7 @@ export default function TeacherConstructorPage() {
                     )}
                   </div>
                 ))}
-                {activeTab === 'testing' && customTests.map(ct => (
+                {activeTab === 'testing' && visibleCustomTests.map(ct => (
                   <div key={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <CustomTestCard
                       test={ct}
