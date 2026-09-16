@@ -94,7 +94,7 @@ export default function QuestionTable({
           onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
           disabled={disabled}
           placeholder={t('Впиши…')}
-          style={{ display: 'block', width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', paddingTop: `calc(${padY}px)`, paddingBottom: `calc(${padY}px)`, paddingLeft: padX, paddingRight: padX, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, lineHeight: 'inherit', color: accent ?? 'var(--color-accent)', caretColor: accent ?? 'var(--color-accent)', fontWeight: 600 }}
+          style={{ display: 'block', width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', paddingTop: `calc(${padY}px)`, paddingBottom: `calc(${padY}px)`, paddingLeft: padX, paddingRight: padX, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, lineHeight: 'inherit', color: accent ?? 'var(--color-accent)', caretColor: accent ?? 'var(--color-accent)', fontWeight: mobile ? 500 : 600 }}
         />
       )
     }
@@ -117,7 +117,8 @@ export default function QuestionTable({
         onScroll={onScroll}
         style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 16, border, maxWidth: '100%' }}
       >
-        <table ref={tableRef} style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+        {/* На телефоне 15px: поле ответа там 16px (меньше — iOS зумит страницу при фокусе), и при 13px в ячейках ответ выглядел вдвое крупнее соседей */}
+        <table ref={tableRef} style={{ borderCollapse: 'collapse', fontSize: mobile ? 15 : 13 }}>
           <thead>
             <tr>{table.headers.map((h, c) => (
               <th key={c} style={{ borderBottom: border, borderRight: c < table.headers.length - 1 ? border : undefined, padding: cellPad, fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', verticalAlign: 'top', overflowWrap: 'break-word' }}>{h}</th>

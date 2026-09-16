@@ -529,11 +529,12 @@ export default function DiagnosticTestPage() {
       <div style={{ width: '100%', maxWidth: 560 }}>
 
         {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        {/* Узкий экран: название теста режется многоточием, кнопка и счётчик не переносятся */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 24 }}>
           <button
             onClick={goBack}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap',
               padding: '8px 14px 8px 10px', borderRadius: 999,
               border: '1px solid var(--color-border-soft)',
               background: 'rgba(var(--glass-rgb), 0.9)',
@@ -543,21 +544,22 @@ export default function DiagnosticTestPage() {
             <ArrowLeft size={14} /> {t('Выйти')}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             <div style={{
-              width: 28, height: 28, borderRadius: 8,
+              width: 28, height: 28, borderRadius: 8, flexShrink: 0,
               background: `${theme.accent}22`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Target size={14} style={{ color: theme.accent }} />
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-              {t('Диагностика')} · {t(theme.label)}
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {/* Во время прохождения — только тема: «Линия 1.» уже не нужна, на телефоне из-за неё резалось название */}
+              {t(theme.label).replace(/^Линия\s+\d+\.\s*/, '')}
             </span>
           </div>
 
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>
-            {current + 1} / {total}
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', flexShrink: 0, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+            {current + 1}{'\u2009'}/{'\u2009'}{total}
           </div>
         </div>
 
@@ -596,7 +598,7 @@ export default function DiagnosticTestPage() {
 
             {/* Question text */}
             <div style={{
-              fontSize: 16, fontWeight: 700, lineHeight: 1.5,
+              fontSize: 16, fontWeight: 700, lineHeight: 1.35,
               color: 'var(--color-text)', marginBottom: 20,
               ...proseWrap,
             }}>
