@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
-  type DiagSubject, type DiagQuestion, type DiagResults,
+  isDiagAnswerCorrect, diagCorrectLabel,
+  type DiagSubject, type DiagQuestion, type DiagResults, type DiagAnswer,
   type CustomTestMeta,
 } from '../data/diagnosticData'
 import { getPlacementVerdict, type PlacementVerdict } from '../data/placementTests'
@@ -18,6 +19,8 @@ import { lighten } from '../lib/subjects'
 import { t, tc, useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { displayOrder } from '../data/taskTypes'
+import QuestionTable from '../components/QuestionTable'
+import { useIsDesktop } from '../lib/useIsDesktop'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
 function playVictorySound() {
@@ -279,7 +282,10 @@ export default function DiagnosticTestPage() {
   const [step, setStep] = useState<'name' | 'test' | 'done'>(snap?.step ?? (assignedStudentName ? 'test' : 'name'))
   const [studentName, setStudentName] = useState(snap?.studentName ?? assignedStudentName ?? '')
   const [current, setCurrent] = useState<number>(snap?.current ?? 0)
-  const [chosen, setChosen] = useState<Record<string, number>>(snap?.chosen ?? {})  // questionId → option index
+  const [chosen, setChosen] = useState<Record<string, DiagAnswer>>(snap?.chosen ?? {})  // questionId → option index | вписанный термин
+  // Черновик термина у вопроса 'term' — до нажатия «Ответить».
+  const [termDraft, setTermDraft] = useState('')
+  const isDesktop = useIsDesktop()
   const [results, setResults] = useState<DiagResults>(snap?.results ?? {})
   const [saveFailed, setSaveFailed] = useState(false)
   const [retrying, setRetrying] = useState(false)
@@ -304,12 +310,12 @@ export default function DiagnosticTestPage() {
   const progress = Object.keys(chosen).length / total
   const done = step === 'done'
 
-  function pick(idx: number) {
+  function pick(idx: DiagAnswer) {
     if (!q || chosen[q.id] !== undefined) return
     if (askConfidence && confident === null) return  // must rate confidence first
     setChosen(prev => ({ ...prev, [q!.id]: idx }))
     if (askConfidence && confident !== null) {
-      logConfidence({ anonName: studentName.trim() || 'Аноним', subject, source: 'diagnostic', confident, correct: idx === q!.correct })
+      logConfidence({ anonName: studentName.trim() || 'Аноним', subject, source: 'diagnostic', confident, correct: isDiagAnswerCorrect(q!, idx) })
     }
     const next = { ...chosen, [q!.id]: idx }
     // Дозапись после КАЖДОГО ответа, не дожидаясь конца: строка появляется на
@@ -325,6 +331,7 @@ export default function DiagnosticTestPage() {
     }
     setTimeout(() => {
       setConfident(null)
+      setTermDraft('')
       if (current < total - 1) {
         setCurrent(c => c + 1)
       } else {
@@ -336,7 +343,7 @@ export default function DiagnosticTestPage() {
   // Разбивка по системам считается ТОЛЬКО по отвеченным вопросам: у брошенного
   // на середине прогона иначе получилось бы 3/36 вместо 3/3 по первой системе,
   // и учитель прочитал бы это как провал вместо «дошёл до третьего вопроса».
-  function tally(answers: Record<string, number>) {
+  function tally(answers: Record<string, DiagAnswer>) {
     const res: DiagResults = {}
     let answered = 0, correct = 0
     for (const dq of questions) {
@@ -345,7 +352,7 @@ export default function DiagnosticTestPage() {
       answered++
       if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
       res[dq.section].total++
-      if (a === dq.correct) { res[dq.section].correct++; correct++ }
+      if (isDiagAnswerCorrect(dq, a)) { res[dq.section].correct++; correct++ }
     }
     return { res, answered, scorePct: answered > 0 ? Math.round((correct / answered) * 100) : 0 }
   }
@@ -354,14 +361,16 @@ export default function DiagnosticTestPage() {
   // и не записывая ошибки в колоду повторений второй раз.
   const payload = useRef<Parameters<typeof saveDiagProgress>[0] | null>(null)
 
-  async function finishTest(answers: Record<string, number>) {
+  async function finishTest(answers: Record<string, DiagAnswer>) {
     const res: DiagResults = {}
     const name = studentName.trim() || 'Аноним'
     for (const dq of questions) {
       if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
       res[dq.section].total++
-      if (answers[dq.id] === dq.correct) res[dq.section].correct++
-      else captureMistake({ anonName: name, subject: fetchSubject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
+      if (isDiagAnswerCorrect(dq, answers[dq.id])) res[dq.section].correct++
+      // Термины в колоду не идут: текст задания у них общий на весь тест
+      // («Запишите пропущенный термин…»), без таблицы карточка бессмысленна.
+      else if (dq.kind !== 'term') captureMistake({ anonName: name, subject: fetchSubject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
     }
     const { scorePct } = tally(answers)
     payload.current = {
@@ -612,8 +621,43 @@ export default function DiagnosticTestPage() {
               </div>
             )}
 
+            {/* Термин в таблицу: ячейка «?» — поле ввода, ответ уходит кнопкой или Enter */}
+            {q.kind === 'term' && (() => {
+              const blank = Object.keys(q.table?.emptyCells ?? {})[0]
+              const locked = picked !== undefined
+              const gated = askConfidence && !locked && confident === null
+              const value = locked ? String(picked) : termDraft
+              const submit = () => { if (termDraft.trim()) pick(termDraft.trim()) }
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
+                  onKeyDown={e => { if (e.key === 'Enter' && !locked) { e.preventDefault(); submit() } }}>
+                  {q.table && (
+                    <QuestionTable table={q.table} mobile={!isDesktop} interactive disabled={locked}
+                      cellValue={key => key === blank ? value : ''}
+                      onCellChange={(key, v) => { if (key === blank) setTermDraft(v) }} />
+                  )}
+                  {!locked && (
+                    <motion.button
+                      whileHover={termDraft.trim() ? { scale: 1.01 } : {}}
+                      whileTap={termDraft.trim() ? { scale: 0.99 } : {}}
+                      onClick={submit} disabled={!termDraft.trim()}
+                      style={{
+                        width: '100%', padding: '13px', borderRadius: 14, border: 'none',
+                        cursor: termDraft.trim() ? 'pointer' : 'not-allowed',
+                        background: termDraft.trim() ? theme.accent : 'var(--color-bg-5)',
+                        color: termDraft.trim() ? getContrastColor(theme.accent) : 'var(--color-text-3)',
+                        fontSize: 14, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.15s',
+                      }}
+                    >
+                      {t('Принять ответ')}
+                    </motion.button>
+                  )}
+                </div>
+              )
+            })()}
+
             {/* Options */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, opacity: askConfidence && picked === undefined && confident === null ? 0.45 : 1, pointerEvents: askConfidence && picked === undefined && confident === null ? 'none' : 'auto', transition: 'opacity 0.15s' }}>
+            {q.kind !== 'term' && <div style={{ display: 'flex', flexDirection: 'column', gap: 10, opacity: askConfidence && picked === undefined && confident === null ? 0.45 : 1, pointerEvents: askConfidence && picked === undefined && confident === null ? 'none' : 'auto', transition: 'opacity 0.15s' }}>
               {optionOrder.map((canon, place) => {
                 const opt = q.options[canon]
                 const isChosen = picked === canon
@@ -676,12 +720,14 @@ export default function DiagnosticTestPage() {
                   </motion.button>
                 )
               })}
-            </div>
+            </div>}
 
             {/* Result feedback card — shown below options, not inside them */}
             <AnimatePresence>
               {picked !== undefined && !isLinkMode && (() => {
-                const isRight = picked === q.correct
+                const isRight = isDiagAnswerCorrect(q, picked)
+                // Термин без расставленных ответов проверить нечем — не пишем «Неверно».
+                if (q.kind === 'term' && !q.accepts?.length) return null
                 return (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -707,7 +753,7 @@ export default function DiagnosticTestPage() {
                       </div>
                       {!isRight && (
                         <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 2 }}>
-                          {t('Правильный ответ:')} <span style={{ fontWeight: 600, color: '#22c55e' }}>{q.options[q.correct]}</span>
+                          {t('Правильный ответ:')} <span style={{ fontWeight: 600, color: '#22c55e' }}>{diagCorrectLabel(q)}</span>
                         </div>
                       )}
                     </div>

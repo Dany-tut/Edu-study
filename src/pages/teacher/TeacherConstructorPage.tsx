@@ -31,6 +31,7 @@ import { languageTaxonomy } from '../../data/languageTaxonomy'
 import { levelOptions, matchesLevel, levelOptionsForSubject } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
+  isDiagAnswerCorrect, diagAnswerLabel, diagCorrectLabel, diagListLabel,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
   fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip,
@@ -85,6 +86,7 @@ import {
 } from '../../data/screeningConfig'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
+import QuestionTable from '../../components/QuestionTable'
 
 type NewBankTask = Omit<BankTask, 'id'>
 // Высота таблеток верхней строки Конструктора (вкладки, крестик режима
@@ -4616,7 +4618,7 @@ function DiagnosticStudentCard({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {questions.map((q, i) => {
                     const chosen = result.answers?.[q.id]
-                    const isCorrect = chosen === q.correct
+                    const isCorrect = isDiagAnswerCorrect(q, chosen)
                     const hasAnswer = chosen !== undefined
                     return (
                       <div key={q.id} style={{
@@ -4641,14 +4643,14 @@ function DiagnosticStudentCard({
                                     ? <CheckCircle size={11} style={{ color: '#22c55e', flexShrink: 0 }} />
                                     : <Circle size={11} style={{ color: '#ef4444', flexShrink: 0 }} />}
                                   <span style={{ color: isCorrect ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
-                                    {q.options[chosen]}
+                                    {diagAnswerLabel(q, chosen)}
                                   </span>
                                 </div>
                                 {!isCorrect && (
                                   <div style={{ fontSize: 11, color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
                                     <CheckCircle size={11} style={{ color: '#22c55e', flexShrink: 0 }} />
                                     <span style={{ color: 'var(--color-muted)' }}>{t('Верно:')}</span>
-                                    <span style={{ fontWeight: 600, color: 'var(--color-text-2)' }}>{q.options[q.correct]}</span>
+                                    <span style={{ fontWeight: 600, color: 'var(--color-text-2)' }}>{diagCorrectLabel(q) || t('ответ не задан')}</span>
                                   </div>
                                 )}
                               </div>
@@ -5390,6 +5392,8 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const [editText, setEditText] = useState('')
   const [editOpts, setEditOpts] = useState<string[]>([])
   const [editCorrect, setEditCorrect] = useState(0)
+  // Принимаемые ответы вопроса-термина одной строкой, через «;» или перенос.
+  const [editAccepts, setEditAccepts] = useState('')
   const [dirty, setDirty] = useState(false)
   const docked = useTeacher(s => s.headerDocked)
   const setDocked = useTeacher(s => s.setHeaderDocked)
@@ -5450,16 +5454,20 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs); setDirty(false) }
-  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct); setDirty(false) }
+  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct); setEditAccepts((q.accepts ?? []).join('; ')); setDirty(false) }
+  function applyEdit(q: DiagQuestion): DiagQuestion {
+    if (q.kind === 'term') return { ...q, text: editText, accepts: editAccepts.split(/[;\n]/).map(x => x.trim()).filter(Boolean) }
+    return { ...q, text: editText, options: editOpts, correct: editCorrect }
+  }
   function commitEdit() {
     if (editIdx === null) return
-    save(questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect } : q))
+    save(questions.map((q, i) => i === editIdx ? applyEdit(q) : q))
     setEditIdx(null)
   }
   useImperativeHandle(ref, () => ({
     saveDraft() {
       if (editIdx !== null && dirty) {
-        save(questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect } : q))
+        save(questions.map((q, i) => i === editIdx ? applyEdit(q) : q))
         setEditIdx(null)
       } else {
         saveDiagQuestions(subject, questions)
@@ -5799,6 +5807,17 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         }}
                       />
                     </div>
+                    {questions[editIdx]?.kind === 'term' ? (
+                      <>
+                        {questions[editIdx].table && <QuestionTable table={questions[editIdx].table!} />}
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Принимаемые ответы')} <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>{t('— через «;», регистр и ё не важны')}</span></div>
+                          <input value={editAccepts} onChange={e => { setEditAccepts(e.target.value); setDirty(true) }}
+                            placeholder={t('Например: экология; синэкология')}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
+                        </div>
+                      </>
+                    ) : (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Варианты ответов')} <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>{t('— нажми кружок чтобы отметить правильный')}</span></div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -5829,6 +5848,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         )}
                       </div>
                     </div>
+                    )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
                       <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
@@ -5864,6 +5884,14 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                           <div style={{ width: 28, height: 28, borderRadius: 8, background: `${accent}22`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</div>
                           <div style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, paddingTop: 3 }}>{q.text || t('Без текста')}</div>
                         </div>
+                        {q.kind === 'term' ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 40 }}>
+                            {q.table && <QuestionTable table={q.table} />}
+                            <div style={{ fontSize: 13, color: q.accepts?.length ? 'var(--color-text-2)' : 'var(--color-amber-text)' }}>
+                              {q.accepts?.length ? <>{t('Ответ:')} <b style={{ color: 'var(--color-text)' }}>{q.accepts.join(' / ')}</b></> : t('Ответ не задан')}
+                            </div>
+                          </div>
+                        ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 40 }}>
                           {q.options.map((opt, oi) => {
                             const isCorrect = q.correct === oi
@@ -5878,6 +5906,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                             )
                           })}
                         </div>
+                        )}
                       </GlassCard>
                     ))
                   )}
@@ -5905,7 +5934,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
                       <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text || t('Без текста')}</div>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{diagListLabel(q) || t('Без текста')}</div>
                     </button>
                   ))}
                 </div>

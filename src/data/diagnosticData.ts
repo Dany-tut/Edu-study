@@ -4,6 +4,7 @@
 import { supabase } from '../lib/supabase'
 import { ENGLISH_PLACEMENT_QUESTIONS, KOREAN_PLACEMENT_QUESTIONS } from './placementTests'
 import { ENGLISH_RESTORE_QUESTIONS } from './englishRestore'
+import type { QTable } from '../components/QuestionTable'
 
 export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en' | 'eng-placement' | 'kor-placement' | 'eng-restore'
 
@@ -13,6 +14,58 @@ export interface DiagQuestion {
   text: string
   options: string[]   // exactly 4
   correct: number     // 0-indexed
+  /**
+   * Вид вопроса. Нет поля — выбор из вариантов (options/correct).
+   * 'term' — таблица с ячейкой «?», в неё вписывается термин; options пустой,
+   * ответ сверяется со списком `accepts`. Хранится в diag_questions.payload.
+   */
+  kind?: 'term'
+  table?: QTable
+  /** Принимаемые ответы для 'term'. Пустой — ответ ещё не расставлен. */
+  accepts?: string[]
+  /** Откуда вопрос (для перенесённых банков), напр. «stepenin.ru · ID 54140». */
+  source?: string
+}
+
+/** Ответ ученика: номер варианта у выбора, введённая строка у 'term'. */
+export type DiagAnswer = number | string
+
+/** Термин сравнивается без регистра, ё/е, лишних пробелов, точек и кавычек. */
+export function normalizeTerm(s: string): string {
+  return s.toLowerCase().replace(/ё/g, 'е').replace(/[«»"'.,;:!?()]/g, ' ').replace(/[‐-―-]/g, '-').replace(/\s+/g, ' ').trim()
+}
+
+export function isDiagAnswerCorrect(q: DiagQuestion, a: DiagAnswer | undefined): boolean {
+  if (a === undefined) return false
+  if (q.kind === 'term') {
+    const given = normalizeTerm(String(a))
+    return !!given && (q.accepts ?? []).some(x => normalizeTerm(x) === given)
+  }
+  return a === q.correct
+}
+
+/** Правильный ответ строкой — для «Верно: …» в разборе. */
+export function diagCorrectLabel(q: DiagQuestion): string {
+  if (q.kind === 'term') return (q.accepts ?? []).join(' / ')
+  return q.options[q.correct] ?? ''
+}
+
+/**
+ * Подпись вопроса в списке редактора. У терминов текст задания почти всегда
+ * один и тот же («Рассмотрите таблицу…»), и 143 одинаковых строки не
+ * различить — поэтому показываем строку таблицы с «?»: «? — Цитология».
+ */
+export function diagListLabel(q: DiagQuestion): string {
+  if (q.kind !== 'term' || !q.table) return q.text
+  const blank = Object.keys(q.table.emptyCells ?? {})[0]
+  const r = blank ? Number(blank.split(',')[0]) : -1
+  const rest = (q.table.rows[r] ?? []).filter(Boolean).join(' · ')
+  return rest ? `? — ${rest}` : q.text
+}
+
+/** Ответ ученика строкой. */
+export function diagAnswerLabel(q: DiagQuestion, a: DiagAnswer): string {
+  return q.kind === 'term' ? String(a) : (q.options[a as number] ?? '')
 }
 
 export type DiagResults = Record<string, { correct: number; total: number }>
@@ -792,7 +845,7 @@ export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
 export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQuestion[]> {
   const { data, error } = await supabase
     .from('diag_questions')
-    .select('id, section, text, options, correct')
+    .select('id, section, text, options, correct, payload')
     .eq('subject', subject)
     .order('position')
   if (error || !data?.length) return loadDiagQuestions(subject)
@@ -802,6 +855,7 @@ export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQues
     text: r.text as string,
     options: r.options as string[],
     correct: r.correct as number,
+    ...((r.payload as Partial<DiagQuestion> | null) ?? {}),
   }))
   questionsCache.set(subject, qs)
   return qs
@@ -814,6 +868,7 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
   const rows = qs.map((q, pos) => ({
     id: q.id, subject, section: q.section, text: q.text,
     options: q.options, correct: q.correct, position: pos,
+    payload: q.kind ? { kind: q.kind, table: q.table, accepts: q.accepts ?? [], source: q.source } : null,
   }))
   const { error } = await supabase
     .from('diag_questions')
@@ -926,7 +981,7 @@ export interface AnonDiagResult {
   subject: DiagSubject
   timestamp: string     // ISO date (mapped from created_at)
   results: DiagResults
-  answers: Record<string, number>
+  answers: Record<string, DiagAnswer>
   linkedStudentId?: string
   /** Сколько вопросов отвечено и сколько всего — у брошенных на середине. */
   answered?: number
@@ -942,7 +997,7 @@ function rowToResult(row: Record<string, unknown>): AnonDiagResult {
     subject: row.subject as DiagSubject,
     timestamp: row.created_at as string,
     results: row.results as DiagResults,
-    answers: row.answers as Record<string, number>,
+    answers: row.answers as Record<string, DiagAnswer>,
     linkedStudentId: (row.linked_student_id as string | null) ?? undefined,
     answered: (row.answered as number | null) ?? undefined,
     total: (row.total as number | null) ?? undefined,
@@ -1002,7 +1057,7 @@ export async function saveDiagProgress(p: {
   name: string
   subject: DiagSubject | string
   results: DiagResults
-  answers: Record<string, number>
+  answers: Record<string, DiagAnswer>
   answered: number
   total: number
   completed: boolean

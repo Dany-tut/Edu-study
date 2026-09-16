@@ -4296,4 +4296,10 @@ export const EN: Record<string, string> = {
   'Отрывок для чтения': 'Reading passage',
   'Текст, по которому проверяются утверждения': 'The text the statements are checked against',
   'Текст не задан — добавьте отрывок для чтения, иначе утверждения не с чем сверять.': 'No text yet — add a reading passage, or there is nothing to check the statements against.',
+  'ответ не задан': 'no answer set',
+  'Ответ не задан': 'No answer set',
+  'Принимаемые ответы': 'Accepted answers',
+  '— через «;», регистр и ё не важны': '— separated by “;”, case-insensitive',
+  'Например: экология; синэкология': 'E.g.: ecology; synecology',
+  'Принять ответ': 'Submit answer',
 }
