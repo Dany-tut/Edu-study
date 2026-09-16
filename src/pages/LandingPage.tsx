@@ -118,7 +118,7 @@ export default function LandingPage() {
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         borderBottom: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 800, fontSize: 20, letterSpacing: -0.3 }}>
+        <div className="lp-brand" style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 800, fontSize: 20, letterSpacing: -0.3, flexShrink: 0 }}>
           <img src="/icon.svg" alt="" width={30} height={30} style={{ borderRadius: 8 }} />
           Искра
         </div>
@@ -128,10 +128,15 @@ export default function LandingPage() {
           <a href="#modes" style={navLink}>{t('Задания')}</a>
           <a href="#tariffs" style={navLink}>{t('Тарифы')}</a>
         </nav>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="lp-actions" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <ThemeToggleBtn />
-          <button onClick={() => setChooserOpen(true)} style={ghostBtn}>{t('Личный кабинет')}</button>
-          <button onClick={() => openLead()} style={primaryBtn}>{t('Оставить заявку')}</button>
+          {/* на телефоне шапка не вмещает две кнопки: остаётся короткое «Войти»,
+              заявка — большой кнопкой в первом экране */}
+          <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, whiteSpace: 'nowrap' }}>
+            <span className="lp-wide">{t('Личный кабинет')}</span>
+            <span className="lp-narrow">{t('Войти')}</span>
+          </button>
+          <button onClick={() => openLead()} className="lp-wide" style={{ ...primaryBtn, whiteSpace: 'nowrap' }}>{t('Оставить заявку')}</button>
         </div>
       </header>
       {/* спейсер под фиксированную шапку */}
@@ -149,8 +154,8 @@ export default function LandingPage() {
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 940, margin: '0 auto', textAlign: 'center' }}>
           <Reveal>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 999,
+            <div className="lp-badge" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 999, maxWidth: '100%', boxSizing: 'border-box',
               background: `color-mix(in srgb, ${ACCENT} 14%, var(--color-surface))`, color: ACCENT,
               fontSize: 13, fontWeight: 600, marginBottom: 24,
               border: `1px solid color-mix(in srgb, ${ACCENT} 30%, transparent)`,
@@ -159,25 +164,25 @@ export default function LandingPage() {
             </div>
           </Reveal>
           <Reveal delay={0.05}>
-            <h1 style={{ fontSize: 'clamp(34px, 6.4vw, 64px)', lineHeight: 1.04, fontWeight: 800, letterSpacing: -1.4, margin: 0 }}>
+            <h1 className="lp-h1" style={{ fontSize: 'clamp(34px, 6.4vw, 64px)', lineHeight: 1.04, fontWeight: 800, letterSpacing: -1.4, margin: 0 }}>
               {t('Вся преподавательская')}<br />
               {t('операционка —')}{' '}
-              <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${ACCENT_L})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+              <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${ACCENT_L})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', whiteSpace: 'nowrap' }}>
                 {t('в одном окне')}
               </span>
             </h1>
           </Reveal>
           <Reveal delay={0.1}>
-            <p style={{ fontSize: 'clamp(16px, 2.4vw, 20px)', color: 'var(--color-text-2)', maxWidth: 640, margin: '24px auto 0', lineHeight: 1.55 }}>
+            <p style={{ fontSize: 'clamp(16px, 2.4vw, 20px)', color: 'var(--color-text-2)', maxWidth: 640, margin: '24px auto 0', lineHeight: 1.55, textWrap: 'pretty' }}>
               {t('Курсы, домашки с проверкой части 2, журнал, аналитика и уведомления. Ученики занимаются, вы — управляете, а не тонете в чатах и таблицах.')}
             </p>
           </Reveal>
           <Reveal delay={0.15}>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 34 }}>
-              <button onClick={() => openLead()} style={{ ...primaryBtn, padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${ACCENT}` }}>
+            <div className="lp-hero-cta" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 34 }}>
+              <button onClick={() => openLead()} style={{ ...primaryBtn, justifyContent: 'center', padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${ACCENT}` }}>
                 <Send size={17} /> {t('Оставить заявку')}
               </button>
-              <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, padding: '15px 28px', fontSize: 16 }}>
+              <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, justifyContent: 'center', padding: '15px 28px', fontSize: 16 }}>
                 {t('Войти в кабинет')} <ArrowRight size={17} />
               </button>
             </div>
@@ -388,6 +393,19 @@ export default function LandingPage() {
         #how, #features, #tariffs { scroll-margin-top: ${headerH + 16}px; }
         .lp-feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, ${ACCENT} 45%, var(--color-border)); }
         @media (max-width: 760px) { .lp-nav { display: none !important; } }
+        .lp-narrow { display: none; }
+        @media (max-width: 560px) {
+          .lp-wide { display: none !important; }
+          .lp-narrow { display: inline; }
+          .lp-badge { font-size: 12.5px !important; padding: 6px 13px !important; text-wrap: balance; }
+          .lp-badge svg { flex-shrink: 0; }
+          .lp-h1 { font-size: 29px !important; letter-spacing: -0.8px !important; line-height: 1.1 !important; }
+          .lp-hero-cta { flex-direction: column; align-items: stretch; max-width: 340px; margin-left: auto; margin-right: auto; }
+        }
+        @media (max-width: 380px) {
+          .lp-badge svg { display: none; }
+          .lp-h1 { font-size: 26px !important; }
+        }
 
         .lp-tariffs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
         @media (max-width: 1020px) { .lp-tariffs { grid-template-columns: repeat(2, 1fr); } }
