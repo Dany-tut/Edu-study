@@ -53,14 +53,14 @@ export function diagCorrectLabel(q: DiagQuestion): string {
 /**
  * Подпись вопроса в списке редактора. У терминов текст задания почти всегда
  * один и тот же («Рассмотрите таблицу…»), и 143 одинаковых строки не
- * различить — поэтому показываем строку таблицы с «?»: «? — Цитология».
+ * различить — поэтому показываем остальные ячейки строки с пропуском: «Цитология».
  */
 export function diagListLabel(q: DiagQuestion): string {
   if (q.kind !== 'term' || !q.table) return q.text
   const blank = Object.keys(q.table.emptyCells ?? {})[0]
   const r = blank ? Number(blank.split(',')[0]) : -1
   const rest = (q.table.rows[r] ?? []).filter(Boolean).join(' · ')
-  return rest ? `? — ${rest}` : q.text
+  return rest || q.text
 }
 
 /** Ответ ученика строкой. */
