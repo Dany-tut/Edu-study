@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useT } from '../../lib/i18n'
 import type { CSSProperties } from 'react'
 import HoloSticker from '../HoloSticker'
+import HScrollFade from '../HScrollFade'
 import StickerBadge from '../StickerBadge'
 import { tierOf, assignEmblems } from '../../lib/holo/presets'
 import {
@@ -72,6 +73,18 @@ export default function ProductMock() {
   // скроллится внутри страницы — ровно как в настоящем браузере.
   const pageRef = useRef<HTMLDivElement>(null)
   useEffect(() => { pageRef.current?.scrollTo({ top: 0 }) }, [section, tab, nonce])
+  // активная вкладка разделов не должна прятаться под фейдом: подкручиваем ряд
+  // только по горизонтали (scrollIntoView дёрнул бы и страницу лендинга)
+  const tabsRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const btn = tabsRef.current?.querySelector<HTMLElement>('[data-on]')
+    const row = btn?.parentElement
+    if (!btn || !row || !row.clientWidth) return
+    const pad = 36
+    if (btn.offsetLeft - pad < row.scrollLeft) row.scrollTo({ left: Math.max(0, btn.offsetLeft - pad), behavior: 'smooth' })
+    else if (btn.offsetLeft + btn.offsetWidth + pad > row.scrollLeft + row.clientWidth)
+      row.scrollTo({ left: btn.offsetLeft + btn.offsetWidth + pad - row.clientWidth, behavior: 'smooth' })
+  }, [section])
 
   const go = (i: number) => {
     if (i === section) return
@@ -181,15 +194,18 @@ export default function ProductMock() {
             {/* контент */}
             <div ref={pageRef} className="lp-scroll lp-pad" style={{ flex: 1, padding: 18, minWidth: 0, position: 'relative' }}>
               {/* мобильные вкладки разделов */}
-              <div className="lp-mock-tabs" style={{ display: 'none', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
+              {/* фейды у краёв — видно, что ряд листается; фон = поверхность окна */}
+              <div ref={tabsRef} className="lp-mock-tabs" style={{ display: 'none', marginBottom: 12 }}>
+                <HScrollFade gap={6} fade="var(--color-surface)" fadeWidth={32} style={{ flex: 1, minWidth: 0 }}>
                 {SECTIONS.map((s, i) => (
-                  <button key={s.key} onClick={() => go(i)} style={{
+                  <button key={s.key} data-on={section === i || undefined} onClick={() => go(i)} style={{
                     flexShrink: 0, padding: '6px 11px', borderRadius: 999, cursor: 'pointer', fontSize: 12, fontWeight: section === i ? 700 : 500,
                     border: `1px solid ${section === i ? ACCENT : 'var(--color-border)'}`,
                     color: section === i ? '#fff' : 'var(--color-text-2)',
                     background: section === i ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'transparent',
                   }}>{t(s.key)}</button>
                 ))}
+                </HScrollFade>
               </div>
 
               {/* шапка раздела: заголовок, поиск, колокольчик */}
@@ -234,7 +250,7 @@ export default function ProductMock() {
                 ].map((panel, i) => {
                   const on = section === i
                   return (
-                    <div key={SECTIONS[i].key} aria-hidden={!on} style={{
+                    <div key={SECTIONS[i].key} aria-hidden={!on} className={on ? undefined : 'lp-panel-off'} style={{
                       gridArea: '1 / 1', minWidth: 0,
                       visibility: on ? 'visible' : 'hidden',
                       pointerEvents: on ? undefined : 'none',
@@ -289,7 +305,13 @@ export default function ProductMock() {
         .lp-chip { cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
         @media (max-width: 900px){ .lp-page{ height: 600px; } }
         @media (max-width: 640px){
-          .lp-page{ height: 640px; }
+          /* на телефоне окно без своей прокрутки: скролл внутри скролла на
+             тач-экране ловит палец и мешает листать страницу. Разделы учителя
+             показываются по одному: окно по высоте раздела, как настоящая страница. */
+          .lp-page{ height: auto; }
+          .lp-scroll{ overflow: visible; scrollbar-gutter: auto; }
+          /* и под коротким разделом не висит пустота высотой в самый длинный */
+          .lp-panel-off{ display: none; }
           .lp-mock-side{ display:none !important; }
           .lp-mock-tabs{ display:flex !important; }
           .lp-nav-btns, .lp-tool-right{ display:none !important; }
