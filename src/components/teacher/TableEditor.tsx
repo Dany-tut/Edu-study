@@ -296,7 +296,9 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                         } : undefined}
                       >
                         <button
-                          onMouseDown={e => { e.stopPropagation(); setActiveCell(key) }}
+                          // preventDefault: иначе фокус после mousedown уходит с только что смонтированного поля
+                          // (кнопка исчезает → body), onBlur пустого поля тут же возвращает выбор — клик «не срабатывал».
+                          onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setActiveCell(key) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Текст')}</button>
@@ -319,7 +321,9 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       </div>
                     ) : (
                       <input
-                        ref={el => { activeCellRef.current = el; if (el && isActive) el.focus() }}
+                        // Ссылку берёт только активная ячейка: раньше её перезаписывало каждое поле,
+                        // и фокус после «Текст» уходил в последнюю ячейку таблицы.
+                        ref={el => { if (el && isActive) { activeCellRef.current = el; el.focus() } }}
                         value={cell}
                         onChange={e => setCell(r, c, e.target.value)}
                         onFocus={() => setActiveCellState(key)}
