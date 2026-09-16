@@ -19,6 +19,7 @@ import {
   Calculator, Star, Lightbulb, Microscope, Music, Sigma,
   Lock, Loader2, Library,} from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
+import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
@@ -7547,6 +7548,10 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+/** Зазор сетки карточек и поле окна, в которое она сжимается при выбранном тесте. */
+const DIAG_GRID_GAP = 14
+const DIAG_CLAMP_PAD = 8
+
 export default function TeacherConstructorPage() {
   const t = useT()
   const [activeTab, setActiveTab] = useState<Tab>(() => {
@@ -8137,6 +8142,36 @@ export default function TeacherConstructorPage() {
     setSelectedId(subject)
     loadAnonResults().then(setDiagAnonResults)
   }
+  // Выбран тест — сетка сжимается до двух рядов и листается внутри себя (с
+  // растворением краёв), чтобы таблица результатов встала сразу под ними, а не
+  // уезжала под все карточки.
+  const diagScroll = useOverlayScroll()
+  const diagClamp = activeTab === 'testing' && !!selectedId && !editMode
+  const [diagClampH, setDiagClampH] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const box = diagScroll.ref.current
+    const grid = box?.firstElementChild as HTMLElement | null
+    if (!diagClamp || !box || !grid) { setDiagClampH(null); return }
+    const measure = () => {
+      const tops = [...new Set([...grid.children].map(c => (c as HTMLElement).offsetTop))].sort((a, b) => a - b)
+      // Третий ряд есть — обрезаем по его верху минус зазор; иначе зажим не нужен.
+      setDiagClampH(tops.length > 2 ? tops[2] - DIAG_GRID_GAP + DIAG_CLAMP_PAD * 2 : null)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(grid)
+    return () => ro.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diagClamp, visibleDiagSubjects.length, visibleCustomTests.length])
+  useEffect(() => {
+    const box = diagScroll.ref.current
+    if (!diagClamp || !box || diagClampH == null) return
+    // Выбранная карточка — первым рядом окна, а само окно — под шапкой страницы.
+    const card = box.querySelector<HTMLElement>(`[data-diag-id="${CSS.escape(selectedId!)}"]`)
+    if (card) box.scrollTop = card.offsetTop
+    box.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, diagClampH != null])
   function openDiagCard(subject: DiagSubject) {
     setDiagEditing(subject)
     setSelectedId(null)
@@ -8833,8 +8868,18 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
+              <div style={{ position: 'relative' }}>
+              {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
+              <div ref={diagScroll.ref} onScroll={diagScroll.onScroll}
+                className={diagClampH != null ? 'no-scrollbar' : undefined}
+                style={diagClampH != null ? {
+                  maxHeight: diagClampH, overflowY: 'auto', overscrollBehavior: 'contain',
+                  // Поле, чтобы обводка выбранной карточки не резалась краем окна.
+                  padding: DIAG_CLAMP_PAD, margin: -DIAG_CLAMP_PAD, scrollMarginTop: 110,
+                  ...diagScroll.maskStyle,
+                } : undefined}>
               <div
-                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: DIAG_GRID_GAP }}>
                 {activeTab === 'course' && dbLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
                 {activeTab === 'course' && filteredCourses.map(c => (
@@ -8896,7 +8941,7 @@ export default function TeacherConstructorPage() {
                   </div>
                 ))}
                 {activeTab === 'testing' && visibleDiagSubjects.map(subject => (
-                  <div key={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
+                  <div key={subject} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <DiagnosticCard
                       subject={subject}
                       isSelected={selectedId === subject}
@@ -8917,7 +8962,7 @@ export default function TeacherConstructorPage() {
                   </div>
                 ))}
                 {activeTab === 'testing' && visibleCustomTests.map(ct => (
-                  <div key={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
+                  <div key={ct.id} data-diag-id={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <CustomTestCard
                       test={ct}
                       isSelected={selectedId === ct.id}
@@ -8936,6 +8981,9 @@ export default function TeacherConstructorPage() {
                     )}
                   </div>
                 ))}
+              </div>
+
+              </div>
               </div>
 
               {dbLoading && activeTab !== 'course' && (
