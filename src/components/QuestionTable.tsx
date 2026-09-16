@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Minimize2, Maximize2 } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
+import GrowTextarea from './GrowTextarea'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // QuestionTable — ONE table renderer for every surface (trainer, homework,
@@ -123,7 +124,9 @@ export default function QuestionTable({
     onCellChange ? onCellChange(key, v) : onChange?.(JSON.stringify({ ...vals, [key]: v }))
 
   const border = '1px solid var(--color-border-medium)'
-  const cellPad = mobile ? '7px 10px' : '9px 14px'
+  const padY = mobile ? 7 : 9
+  const padX = mobile ? 10 : 14
+  const cellPad = `${padY}px ${padX}px`
 
   function renderCell(cell: string, r: number, c: number) {
     const key = `${r},${c}`
@@ -134,12 +137,16 @@ export default function QuestionTable({
     const fillable = interactive && (isEmpty || (blankAsInput && isBlank))
     if (fillable) {
       return (
-        <input
+        // Длинный ответ переносится и раздвигает строку, а не уезжает за край ячейки.
+        // Паддинг в calc(): так GrowTextarea не поднимает текст на 0.12em — в строке
+        // таблицы важнее ровная линия с соседней ячейкой, чем оптический центр поля.
+        <GrowTextarea
           value={getVal(key)}
-          onChange={e => putVal(key, e.target.value)}
+          onChange={v => putVal(key, v.replace(/\n/g, ' '))}
+          onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
           disabled={disabled}
           placeholder={t('Впиши…')}
-          style={{ width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: cellPad, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, color: accent ?? 'var(--color-accent)', caretColor: accent ?? 'var(--color-accent)', fontWeight: 600 }}
+          style={{ display: 'block', width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', paddingTop: `calc(${padY}px)`, paddingBottom: `calc(${padY}px)`, paddingLeft: padX, paddingRight: padX, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, lineHeight: 'inherit', color: accent ?? 'var(--color-accent)', caretColor: accent ?? 'var(--color-accent)', fontWeight: 600 }}
         />
       )
     }
