@@ -8350,6 +8350,11 @@ export default function TeacherConstructorPage() {
   // уезжала под все карточки.
   const diagScroll = useOverlayScroll()
   const diagClamp = activeTab === 'testing' && !!selectedId && !editMode
+  // Открыта панель ученика — вся колонка тестов (фильтр, карточки, таблица)
+  // уступает ей место: сетка перестраивается в меньше столбцов и листается
+  // по-прежнему вертикально, а не уезжает под панель.
+  const diagShift = activeTab === 'testing' && selectedResultId ? 368 : 0
+  const diagShiftStyle = { marginRight: diagShift, transition: 'margin-right 0.15s' } as const
   const [diagClampH, setDiagClampH] = useState<number | null>(null)
   useLayoutEffect(() => {
     const box = diagScroll.ref.current
@@ -8375,6 +8380,18 @@ export default function TeacherConstructorPage() {
     box.scrollIntoView({ block: 'start', behavior: 'smooth' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, diagClampH != null])
+  useEffect(() => {
+    const box = diagScroll.ref.current
+    if (!diagClamp || !box || !selectedId) return
+    // Столбцов стало меньше/больше — выбранная карточка съехала в другой ряд;
+    // возвращаем её в окно, когда сдвиг доиграл.
+    const id = setTimeout(() => {
+      const card = box.querySelector<HTMLElement>(`[data-diag-id="${CSS.escape(selectedId)}"]`)
+      if (card) box.scrollTo({ top: card.offsetTop, behavior: 'smooth' })
+    }, 180)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diagShift])
   function openDiagCard(subject: DiagSubject) {
     setDiagEditing(subject)
     setSelectedId(null)
@@ -8947,7 +8964,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               {activeTab === 'testing' && testSubjectOpts.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
                   <CourseFacetDropdown
                     value={activeTestSubject} options={testSubjectOpts} allLabel={t('Все предметы')}
                     icon={<span style={{ fontSize: 12 }}>{activeTestSubject ? subjectIcon(activeTestSubject) : '📚'}</span>}
@@ -9071,7 +9088,7 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', ...diagShiftStyle }}>
               {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
               <div ref={diagScroll.ref} onScroll={diagScroll.onScroll}
                 className={diagClampH != null ? 'no-scrollbar' : undefined}
@@ -9202,8 +9219,9 @@ export default function TeacherConstructorPage() {
                   <motion.div
                     key={`table-${selectedId}`}
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, marginRight: selectedResultId ? 368 : 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ duration: 0.15 }}
+                    style={diagShiftStyle}
                   >
                     <DiagResultsTable
                       subject={selectedId as DiagSubject}
