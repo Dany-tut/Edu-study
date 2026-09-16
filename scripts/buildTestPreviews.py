@@ -12,6 +12,7 @@ og-тегами и сразу уводит в тест.
     python3 scripts/buildTestPreviews.py
 """
 import html
+import re
 import json
 from pathlib import Path
 
@@ -40,16 +41,35 @@ def plural_tasks(n):
 
 
 def wrap(draw, text, fnt, width):
-    lines, cur = [], ''
-    for word in text.split():
-        probe = f'{cur} {word}'.strip()
-        if draw.textlength(probe, font=fnt) <= width:
-            cur = probe
+    # «часть 2» — одно слово: номер не должен повиснуть на отдельной строке.
+    # Короткий союз/предлог тоже едет со следующим словом («и селекции»).
+    glued = re.sub(r'часть (\d+)', 'часть\u00a0\\1', text)
+    glued = re.sub(r'(?<=\s)(и|в|во|на|по|с|о|к|у|а) ', '\\1\u00a0', glued)
+    words = glued.split(' ')
+
+    def greedy(w):
+        lines, cur = [], ''
+        for word in words:
+            probe = f'{cur} {word}'.strip()
+            if not cur or draw.textlength(probe, font=fnt) <= w:
+                cur = probe
+            else:
+                lines.append(cur)
+                cur = word
+        lines.append(cur)
+        return lines
+
+    # Выравниваем строки: самая узкая ширина при том же числе строк,
+    # чтобы последняя строка не была огрызком.
+    lines = greedy(width)
+    lo, hi = 0, width
+    while hi - lo > 4:
+        mid = (lo + hi) / 2
+        if len(greedy(mid)) <= len(lines):
+            hi = mid
         else:
-            lines.append(cur)
-            cur = word
-    lines.append(cur)
-    return lines
+            lo = mid
+    return greedy(hi)
 
 
 def render(test, out):
@@ -70,10 +90,12 @@ def render(test, out):
 
     # Заголовок: подбираем кегль, чтобы влезть в 3 строки
     title_w = W - 2 * pad - 40
-    for size in (78, 70, 62, 56):
+    # Сначала пробуем уложиться в 2 строки, иначе 3 строки мельче —
+    # чтобы заголовок не подпирал подпись внизу.
+    for size, max_lines in ((78, 2), (70, 2), (64, 2), (60, 3)):
         tf = font(size, bold=True)
         lines = wrap(d, test['title'], tf, title_w)
-        if len(lines) <= 3:
+        if len(lines) <= max_lines:
             break
     y = 200
     for line in lines:
@@ -133,10 +155,10 @@ def main():
         render(t, ROOT / f"public/og/{t['id']}.png")
         page = PAGE.format(
             id=t['id'],
-            title=html.escape(f"{t['title']} — тест по биологии"),
+            title=html.escape(re.sub(r'часть (\d+)', 'часть\u00a0\\1', t['title']) + ' — тест по\u00a0биологии'),
             desc=html.escape(f"Линия 1 ЕГЭ · {plural_tasks(t['count'])}: впиши пропущенный термин в таблицу"),
             url=f"{ORIGIN}/t/{t['id']}",
-            image=f"{ORIGIN}/og/{t['id']}.png",
+            image=f"{ORIGIN}/og/{t['id']}.png?v=3",
         )
         (ROOT / f"public/t/{t['id']}.html").write_text(page)
     print(f'{len(tests)} превью')
