@@ -649,6 +649,8 @@ export const EN: Record<string, string> = {
   "Ваше ФИ": "Your full name",
   "Как тебя зовут?": "What's your name?",
   "Имя и фамилия": "First and last name",
+  "По имени преподаватель найдёт твои результаты.": "Your teacher will find your results by your name.",
+  "Регистрироваться не нужно.": "No sign-up needed.",
   "По имени преподаватель найдёт твои результаты. Регистрироваться не нужно.": "Your teacher will find your results by your name. No sign-up needed.",
   "Проверено": "Reviewed",
   "На проверке": "In review",

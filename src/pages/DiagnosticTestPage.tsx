@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target } from 'lucide-react'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
   loadDiagProgress, discardDiagProgress, type DiagProgress,
@@ -22,6 +22,7 @@ import { bindShortWords, proseWrap } from '../lib/typography'
 import { displayOrder } from '../data/taskTypes'
 import QuestionTable from '../components/QuestionTable'
 import GrowTextarea from '../components/GrowTextarea'
+import NameEntryField from '../components/NameEntryField'
 import { useIsDesktop } from '../lib/useIsDesktop'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
@@ -570,25 +571,26 @@ export default function DiagnosticTestPage() {
           transition={{ duration: 0.35 }}
           style={{ width: '100%', maxWidth: 440 }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: `${theme.accent}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Target size={26} style={{ color: theme.accent }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{t('Диагностика')}</div>
-              <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t(theme.label)} · {total} {t('вопросов')}</div>
-            </div>
-          </div>
-
           <div style={{
             background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-glass)',
-            borderRadius: 22, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18,
+            borderRadius: 22, padding: '22px 22px 24px', display: 'flex', flexDirection: 'column', gap: 16,
           }}>
+            {/* Что за тест — меткой сверху, а заголовок карточки отдан вопросу */}
+            <div style={{
+              alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 11px 5px 9px', borderRadius: 999, background: `${theme.accent}1f`,
+              color: theme.accent, fontSize: 12, fontWeight: 600,
+            }}>
+              <Target size={13} style={{ flexShrink: 0 }} />
+              <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {t(theme.label).replace(/^Линия\s+\d+\.\s*/, '')} · {total} {t('вопросов')}
+              </span>
+            </div>
             {offer ? (
               <>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Тест не закончен')}</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Тест не закончен')}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>
                     {offer.p.name} · {t('отвечено')} {Object.keys(offer.p.answers).length} {t('из')} {total}.<br />
                     {t('Ответы сохранены — можно продолжить с того же места.')}
                   </div>
@@ -609,57 +611,11 @@ export default function DiagnosticTestPage() {
               </>
             ) : (<>
             <div>
-              {/* Один голос на всю карточку: на «ты», без «ФИО/ФИ» — заголовок спрашивает, поле подсказывает формат */}
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12, lineHeight: 1.45 }}>
-                {t('По имени преподаватель найдёт твои результаты. Регистрироваться не нужно.')}
-              </div>
-              <div style={{ position: 'relative' }}>
-                {/* Иконка поверх поля: на iOS фокус поднимает input в свой слой, и лежащая «под» ним иконка пропадала */}
-                {/* Начал печатать — иконка уезжает влево и гаснет, текст сдвигается на её место */}
-                <User size={16} style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: `translate(${studentName ? -10 : 0}px, -50%)`, opacity: studentName ? 0 : 1,
-                  transition: 'transform 0.22s ease, opacity 0.18s ease',
-                  color: 'var(--color-text-3)', pointerEvents: 'none', zIndex: 1,
-                }} />
-                <input
-                  autoFocus
-                  value={studentName}
-                  onChange={e => setStudentName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') startTest() }}
-                  placeholder={t('Имя и фамилия')}
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    position: 'relative',
-                    // 16px: меньше — iOS приближает страницу при фокусе, и поле съезжает
-                    // Паддинг симметричный: подъём на 0.12em здесь перебирал — заглавные подсказки
-                    // вставали на 1.6px выше иконки и середины поля (замер 16.09.2026)
-                    padding: '12px 14px', paddingLeft: studentName ? 14 : 40, borderRadius: 13,
-                    border: `1.5px solid ${studentName.trim().length >= 2 ? theme.accent : 'var(--color-border-medium)'}`,
-                    background: 'var(--color-bg-input)', color: 'var(--color-text)',
-                    fontSize: 16, fontFamily: 'inherit', outline: 'none',
-                    transition: 'border-color 0.15s, padding-left 0.22s ease',
-                  }}
-                />
-              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('По имени преподаватель найдёт твои результаты.')}</div>
             </div>
-
-            <motion.button
-              whileHover={{ scale: studentName.trim().length >= 2 ? 1.02 : 1 }}
-              whileTap={{ scale: studentName.trim().length >= 2 ? 0.98 : 1 }}
-              onClick={startTest}
-              disabled={studentName.trim().length < 2}
-              style={{
-                width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: studentName.trim().length >= 2 ? 'pointer' : 'not-allowed',
-                background: studentName.trim().length >= 2 ? theme.accent : 'var(--color-bg-5)',
-                color: studentName.trim().length >= 2 ? '#fff' : 'var(--color-text-3)',
-                fontSize: 15, fontWeight: 700, transition: 'all 0.15s',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
-              {t('Начать тест')} <ChevronRight size={16} />
-            </motion.button>
+            <NameEntryField value={studentName} onChange={setStudentName} onSubmit={startTest} accent={theme.accent} />
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: -4 }}>{t('Регистрироваться не нужно.')}</div>
             </>)}
           </div>
         </motion.div>

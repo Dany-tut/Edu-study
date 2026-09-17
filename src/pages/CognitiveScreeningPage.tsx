@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, ChevronRight, User, Lightbulb, Info, X } from 'lucide-react'
+import { Brain, ChevronRight, Lightbulb, Info, X } from 'lucide-react'
 import { appendAnonResult } from '../data/diagnosticData'
 import {
   loadScreeningConfig, fetchScreeningConfig, activeDomains,
@@ -15,6 +15,7 @@ import {
 } from '../lib/screening/generators'
 
 import { useT } from '../lib/i18n'
+import NameEntryField from '../components/NameEntryField'
 
 const ACC = '#f59e0b'
 
@@ -978,30 +979,20 @@ export default function CognitiveScreeningPage() {
   if (mode === 'name') return (
     <Wrap>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 16, background: `${ACC}22`, border: `1px solid ${ACC}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Brain size={26} style={{ color: ACC }} />
+        <Card style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '22px 22px 24px' }}>
+          {/* Что за тест — меткой сверху, заголовок карточки отдан вопросу (как во входе в диагностику) */}
+          <div style={{ alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px 5px 9px', borderRadius: 999, background: `${ACC}1f`, color: ACC, fontSize: 12, fontWeight: 600 }}>
+            <Brain size={13} style={{ flexShrink: 0 }} />
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {cfg.title} · {seq.length} {t('разделов')} · ~{Math.max(6, seq.length * 2)} {t('минут')}
+            </span>
           </div>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>{cfg.title}</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{seq.length} {t('разделов')} · ~{Math.max(6, seq.length * 2)} {t('минут')}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('По имени преподаватель найдёт твои результаты.')}</div>
           </div>
-        </div>
-        <Card>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.45 }}>{t('По имени преподаватель найдёт твои результаты. Регистрироваться не нужно.')}</div>
-          <div style={{ position: 'relative', marginBottom: 18 }}>
-            <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
-            <input
-              autoFocus value={name} onChange={e => setName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && name.trim().length >= 2) { setStepIdx(0); setMode('intro') } }}
-              placeholder={t('Имя и фамилия')}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px 12px 36px', borderRadius: 13, border: `1.5px solid ${name.trim().length >= 2 ? ACC : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.15s' }}
-            />
-          </div>
-          <Btn onClick={() => { setStepIdx(0); setMode('intro') }} disabled={name.trim().length < 2}>
-            {t('Начать')} <ChevronRight size={15} />
-          </Btn>
+          <NameEntryField value={name} onChange={setName} onSubmit={() => { setStepIdx(0); setMode('intro') }} accent={ACC} />
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: -4 }}>{t('Регистрироваться не нужно.')}</div>
         </Card>
       </motion.div>
     </Wrap>
