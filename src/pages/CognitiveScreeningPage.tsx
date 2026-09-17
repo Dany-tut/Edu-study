@@ -988,14 +988,14 @@ export default function CognitiveScreeningPage() {
           </div>
         </div>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Введи своё ФИО')}</div>
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>{t('Результаты передаются преподавателю. Логин не нужен.')}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.45 }}>{t('По имени преподаватель найдёт твои результаты. Регистрироваться не нужно.')}</div>
           <div style={{ position: 'relative', marginBottom: 18 }}>
             <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
             <input
               autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && name.trim().length >= 2) { setStepIdx(0); setMode('intro') } }}
-              placeholder={t('Например: Иванов Иван Иванович')}
+              placeholder={t('Имя и фамилия')}
               style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px 12px 36px', borderRadius: 13, border: `1.5px solid ${name.trim().length >= 2 ? ACC : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.15s' }}
             />
           </div>
