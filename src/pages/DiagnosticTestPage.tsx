@@ -21,6 +21,7 @@ import { t, tc, useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { displayOrder } from '../data/taskTypes'
 import QuestionTable from '../components/QuestionTable'
+import GrowTextarea from '../components/GrowTextarea'
 import { useIsDesktop } from '../lib/useIsDesktop'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
@@ -763,6 +764,15 @@ export default function DiagnosticTestPage() {
               {bindShortWords(q.text)}
             </div>
 
+            {q.image && (
+              <img src={q.image} alt="" style={{
+                display: 'block', maxWidth: '100%', maxHeight: isDesktop ? 380 : 300, objectFit: 'contain',
+                // Сканы на белом: в тёмной теме — белая подложка со скруглением, а не дыра в карточке
+                background: '#fff', borderRadius: 12, padding: 8, boxSizing: 'border-box',
+                margin: '-6px auto 20px',
+              }} />
+            )}
+
             {/* Confidence gate — shown when teacher enabled it; must pick before answering */}
             {askConfidence && picked === undefined && (
               <div style={{ marginBottom: 16 }}>
@@ -791,10 +801,20 @@ export default function DiagnosticTestPage() {
               return (
                 <div ref={termBoxRef} style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
                   onKeyDown={e => { if (e.key === 'Enter' && !locked) { e.preventDefault(); submit() } }}>
-                  {q.table && (
+                  {q.table ? (
                     <QuestionTable table={q.table} mobile={!isDesktop} interactive disabled={locked} accent={theme.accent}
                       cellValue={key => key === blank ? value : ''}
                       onCellChange={(key, v) => { if (key === blank) setTermDraft(v) }} />
+                  ) : (
+                    <GrowTextarea rows={1} value={value} onChange={v => setTermDraft(v.replace(/\n/g, ' '))}
+                      disabled={locked} placeholder={t('Впиши ответ…')}
+                      style={{
+                        width: '100%', boxSizing: 'border-box', resize: 'none', outline: 'none',
+                        padding: '12px 14px', borderRadius: 13, fontSize: 16, fontFamily: 'inherit', lineHeight: 1.3,
+                        border: `1.5px solid ${termDraft.trim() || locked ? theme.accent : 'var(--color-border-medium)'}`,
+                        background: 'var(--color-bg-input)', color: locked ? theme.accent : 'var(--color-text)',
+                        caretColor: theme.accent, fontWeight: 600, transition: 'border-color 0.15s',
+                      }} />
                   )}
                   {!locked && (
                     <motion.button

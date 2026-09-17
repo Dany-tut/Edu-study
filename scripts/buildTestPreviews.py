@@ -82,7 +82,7 @@ def render(test, out):
     d.rounded_rectangle((72, 96, 84, H - 96), radius=6, fill=ACCENT)
 
     # Чип
-    chip = 'ЕГЭ · Биология · Линия 1'
+    chip = f"{test.get('exam', 'ЕГЭ')} · Биология · Линия 1"
     cf = font(30, bold=True)
     cw = d.textlength(chip, font=cf)
     d.rounded_rectangle((pad + 20, 96, pad + 20 + cw + 44, 150), radius=27, fill=(220, 252, 231))
@@ -103,7 +103,7 @@ def render(test, out):
         y += int(size * 1.18)
 
     # Низ: что внутри + бренд
-    d.text((pad + 20, H - 110), f"{plural_tasks(test['count'])} · впиши термин в таблицу",
+    d.text((pad + 20, H - 110), f"{plural_tasks(test['count'])} · {test.get('short', 'впиши термин в таблицу')}",
            font=font(32), fill=MUTED, anchor='lm')
     icon = Image.open(ROOT / 'public/apple-touch-icon.png').convert('RGBA').resize((56, 56))
     mask = Image.new('L', (56, 56), 0)
@@ -156,7 +156,7 @@ def main():
         page = PAGE.format(
             id=t['id'],
             title=html.escape(re.sub(r'часть (\d+)', 'часть\u00a0\\1', t['title']) + ' — тест по\u00a0биологии'),
-            desc=html.escape(f"Линия 1 ЕГЭ · {plural_tasks(t['count'])}: впиши пропущенный термин в таблицу"),
+            desc=html.escape(f"Линия 1 {t.get('exam', 'ЕГЭ')} · {plural_tasks(t['count'])}: {t.get('task', 'впиши пропущенный термин в таблицу')}"),
             url=f"{ORIGIN}/t/{t['id']}",
             image=f"{ORIGIN}/og/{t['id']}.png?v=3",
         )
