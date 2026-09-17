@@ -4940,7 +4940,9 @@ function RightPanelLessons({
                 )}
                 <span style={{ fontSize: 10, color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
               </button>
-              <AnimatePresence>
+              {/* initial={false}: при входе в курс модули уже развёрнуты — без него
+                  каждый вырастал с нуля, и правая колонка дёргалась на входе. */}
+              <AnimatePresence initial={false}>
                 {mod.expanded && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
@@ -6140,6 +6142,9 @@ export default function TeacherCourseEditorPage() {
     return () => ro.disconnect()
   }, [courseTitle, seedDiff.changes.length])
 
+  const railFx = useRef(false)
+  useEffect(() => { railFx.current = true }, [])
+
   // Страница сама НЕ скроллится: три колонки прокручиваются каждая своим
   // внутренним скроллом и не тянут за собой соседей. Раньше общим скроллером
   // была страница — правая колонка дотягивала прокрутку до неё (chaining) и
@@ -6414,7 +6419,9 @@ export default function TeacherCourseEditorPage() {
             зависнуть тут больше нечему. */}
         <motion.div
           key={railVariant}
-          initial={{ opacity: 0 }}
+          // Проявление — только при смене карточки рельсы, не на входе в курс:
+          // иначе левая колонка мигала вместе с открытием страницы.
+          initial={railFx.current ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           style={{ ...railWrapSt, width: RAIL_BOX }}
@@ -6497,7 +6504,7 @@ export default function TeacherCourseEditorPage() {
               React-ключом на самих панелях ниже. */}
           <motion.div
             key={selectedLesson ? 'lesson' : 'course-meta'}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.16 }}
+            initial={railFx.current ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.16 }}
             style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
             {!selectedLesson ? (

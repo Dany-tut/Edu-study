@@ -7548,11 +7548,13 @@ const TEST_CELL_EASE = [0.22, 1, 0.36, 1] as const
 // иначе при смене ширины сетки (панель ученика) чипсы и текст сплющивались и
 // дёргались. Размер доигрывает сама плитка (ContentCard morph) с поправкой
 // содержимого.
+// Без AnimatePresence и exit: во framer-motion 11.18 она теряет сигнал «выход
+// завершён» (см. память про mode="wait"), уходящие плитки зависали невидимыми,
+// и первое раскрытие стопки не доходило до экрана — только второй клик.
+// Уходящая плитка исчезает сразу, остальные доезжают layout-переездом.
 const TEST_CELL_MOTION = {
   layout: 'position',
-  initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.96, transition: { duration: 0.16, ease: TEST_CELL_EASE } },
   transition: {
     layout: { duration: 0.38, ease: TEST_CELL_EASE },
     opacity: { duration: 0.22, ease: TEST_CELL_EASE },
@@ -8170,6 +8172,11 @@ export default function TeacherConstructorPage() {
   // короткой задержкой: при переходе мыши через промежуток между частями
   // сетка иначе мигала бы «всё ярко → снова приглушено».
   const testGridRef = useRef<HTMLDivElement>(null)
+  // Проявление — только у плиток, появившихся на уже показанной витрине
+  // (раскрыли серию, сменили фильтр). При входе на вкладку всё стоит сразу.
+  const testGridShown = useRef(false)
+  useEffect(() => { testGridShown.current = activeTab === 'testing' && !diagEditing && !diagCreating }, [activeTab, diagEditing, diagCreating])
+  const testCellInitial = testGridShown.current && activeTab === 'testing' ? { opacity: 0, scale: 0.96 } : false
   const seriesHoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const hoverSeries = (key: string | null, now = false) => {
     clearTimeout(seriesHoverTimer.current)
@@ -9591,17 +9598,17 @@ export default function TeacherConstructorPage() {
                 ))}
                 {/* layout у каждой клетки: раскрытая серия раздвигает соседей, а не
                     перескакивает — плитки доезжают до новых мест. */}
-                {activeTab === 'testing' && <AnimatePresence initial={false} mode="popLayout">{testCells.map(cell => cell.kind === 'stack' ? (
+                {activeTab === 'testing' && testCells.map(cell => cell.kind === 'stack' ? (
                   // Ключ стопки — id первой части: при раскрытии и «Подряд» стопка
                   // не исчезает, а сама становится первой частью и доезжает до
                   // её места; остальные части проявляются рядом.
-                  <motion.div key={cell.parts[0].id} {...TEST_CELL_MOTION} data-diag-keep>
+                  <motion.div key={cell.parts[0].id} {...TEST_CELL_MOTION} initial={testCellInitial} data-diag-keep>
                     <CustomTestStackCard base={cell.base} parts={cell.parts}
                       done={cell.parts.reduce((s, p) => s + (testStats.get(p.id)?.done ?? 0), 0)}
                       onClick={() => setSeriesOpen(cell.key, true)} />
                   </motion.div>
                 ) : (() => { const { item, series } = cell; return item.kind === 'builtin' ? (() => { const subject = item.id; return (
-                  <motion.div key={subject} {...TEST_CELL_MOTION} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
+                  <motion.div key={subject} {...TEST_CELL_MOTION} initial={testCellInitial} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <DiagnosticCard
                       subject={subject}
                       isSelected={selectedId === subject}
@@ -9621,7 +9628,7 @@ export default function TeacherConstructorPage() {
                     )}
                   </motion.div>
                 ) })() : (() => { const ct = item.ct; return (
-                  <motion.div key={ct.id} {...TEST_CELL_MOTION}
+                  <motion.div key={ct.id} {...TEST_CELL_MOTION} initial={testCellInitial}
                     data-series={series?.key}
                     onMouseEnter={series ? () => hoverSeries(series.key) : undefined}
                     onMouseLeave={series ? () => hoverSeries(null) : undefined}
@@ -9644,7 +9651,7 @@ export default function TeacherConstructorPage() {
                       </div>
                     )}
                   </motion.div>
-                ) })() })())}</AnimatePresence>}
+                ) })() })())}
               </div>
 
               </motion.div>
