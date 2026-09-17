@@ -64,7 +64,6 @@ const rowStyle = (on: boolean, soft: string): CSSProperties => ({
   background: on ? soft : 'transparent',
   fontSize: 13, fontWeight: on ? 700 : 400, color: 'var(--color-text)',
   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-  // Жирный выбранный пункт шире обычного — перенос ломал бы высоту меню.
   whiteSpace: 'nowrap',
 })
 
@@ -79,6 +78,21 @@ const Tick = ({ accent }: { accent: string }) => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
     <path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
+)
+
+/**
+ * Содержимое пункта меню. Меню всегда шириной под свой самый широкий пункт в
+ * жирном и с галочкой: подпись лежит поверх невидимой жирной копии, а место под
+ * галочку занято и у невыбранных — иначе выбор другого пункта менял ширину меню.
+ */
+const MenuRowLabel = ({ label, on, accent }: { label: ReactNode; on: boolean; accent: string }) => (
+  <>
+    <span style={{ display: 'grid' }}>
+      <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{label}</span>
+      <span style={{ gridArea: '1 / 1' }}>{label}</span>
+    </span>
+    <span style={{ display: 'flex', width: 12, flexShrink: 0, visibility: on ? 'visible' : 'hidden' }}><Tick accent={accent} /></span>
+  </>
 )
 
 const softOf = (accent: string) => `color-mix(in srgb, ${accent} 11%, transparent)`
@@ -105,14 +119,13 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
-            style={{ ...menuStyle, minWidth: 160 }}>
+            style={{ ...menuStyle, minWidth: 'max(160px, 100%)', boxSizing: 'border-box' }}>
             {options.map(([val, lbl]) => (
               <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
                 style={rowStyle(value === val, soft)}
                 onMouseEnter={e => { e.currentTarget.style.background = soft }}
                 onMouseLeave={e => { e.currentTarget.style.background = value === val ? soft : 'transparent' }}>
-                {t(lbl)}
-                {value === val && <Tick accent={accent} />}
+                <MenuRowLabel label={t(lbl)} on={value === val} accent={accent} />
               </button>
             ))}
           </motion.div>
@@ -205,8 +218,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
                   style={rowStyle(value === val, soft)}
                   onMouseEnter={e => { e.currentTarget.style.background = soft }}
                   onMouseLeave={e => { e.currentTarget.style.background = value === val ? soft : 'transparent' }}>
-                  {val ? label(val) : allLabel}
-                  {value === val && <Tick accent={accent} />}
+                  <MenuRowLabel label={val ? label(val) : allLabel} on={value === val} accent={accent} />
                 </button>
               ))}
             </ScrollFade>
