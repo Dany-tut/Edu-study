@@ -4992,7 +4992,6 @@ function DiagResultsTable({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
           <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 1 }}>
             {results.length > 0 ? (results.length) + t(' прохождени') + (results.length === 1 ? t('е') : t('й')) : t('Ещё никто не прошёл')}
-            &nbsp;·&nbsp;<span style={{ color: accent, fontWeight: 600 }}>{t('Второй клик = редактор')}</span>
           </div>
         </div>
         <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
@@ -7634,8 +7633,7 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
             onClick={e => { e.stopPropagation(); series.onCollapse() }}
             style={cardChipTone('purple', { display: 'inline-flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}>
             <Layers size={10} strokeWidth={2.4} />
-            <span className="series-chip-n">{series.n}/{series.total}</span>
-            <span className="series-chip-collapse">{t('свернуть')}</span>
+            {series.n}/{series.total}
           </button>
         )}
         {/* Уровень отдельным чипом: у ЕГЭ и ОГЭ бывают одинаковые названия и «Линия 1». */}
@@ -8667,6 +8665,33 @@ export default function TeacherConstructorPage() {
   // по-прежнему вертикально, а не уезжает под панель.
   const diagShift = activeTab === 'testing' && selectedResultId ? 368 : 0
   const diagShiftStyle = { marginRight: diagShift, transition: 'margin-right 0.15s' } as const
+  // Панель ученика отнимает у ряда фильтров место: поиск сворачивается в
+  // кружок, сегменты поджимаются, а если и так не лезет — «Все / Проходят /
+  // Без сдач» уходит совсем. Меряем по естественным ширинам (сегмент — по
+  // внутренней обёртке), поэтому скрытие не раскачивает решение туда-обратно.
+  const testRowCompact = activeTab === 'testing' && !!selectedResultId
+  const testRowRef = useRef<HTMLDivElement>(null)
+  const testPassBoxRef = useRef<HTMLDivElement>(null)
+  const testPassInnerRef = useRef<HTMLDivElement>(null)
+  const [testPassHidden, setTestPassHidden] = useState(false)
+  useLayoutEffect(() => {
+    const row = testRowRef.current
+    if (!row) { setTestPassHidden(false); return }
+    const GAP = 8
+    const check = () => {
+      const box = testPassBoxRef.current
+      const kids = [...row.children].filter(c => c !== box) as HTMLElement[]
+      const others = kids.reduce((w, c) => w + c.offsetWidth, 0) + GAP * (kids.length - 1)
+      const pass = (testPassInnerRef.current?.offsetWidth ?? 0) + GAP
+      setTestPassHidden(others + pass > row.clientWidth)
+    }
+    check()
+    const ro = new ResizeObserver(check)
+    ro.observe(row)
+    for (const c of row.children) ro.observe(c)
+    if (testPassInnerRef.current) ro.observe(testPassInnerRef.current)
+    return () => ro.disconnect()
+  }, [activeTab, testRowCompact, editMode, seriesTotal, seriesOpenCount, testSubjectOpts.length])
   const [diagClampH, setDiagClampH] = useState<number | null>(null)
   useLayoutEffect(() => {
     const box = diagScroll.ref.current
@@ -9287,7 +9312,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               {activeTab === 'testing' && testSubjectOpts.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
+                <div ref={testRowRef} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
                   <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={136} onChange={setTestSort} />
                   <CourseFacetDropdown
                     value={activeTestSubject} options={testSubjectOpts} allLabel={t('Все предметы')}
@@ -9299,15 +9324,23 @@ export default function TeacherConstructorPage() {
                     icon={<TrendingUp size={12} />}
                     onChange={setTestLevel}
                   />
-                  <SegmentFilter<TestPassFilter>
-                    value={testPass}
-                    options={[
-                      ['', t('Все')],
-                      ['taken', t('Проходят'), 'var(--color-green-text)'],
-                      ['untaken', t('Без сдач'), 'var(--color-peach-text)'],
-                    ]}
-                    onChange={setTestPass}
-                  />
+                  <div ref={testPassBoxRef} aria-hidden={testPassHidden || undefined}
+                    style={{ flexShrink: 0, overflow: 'hidden', padding: 2, marginTop: -2, marginBottom: -2, marginRight: -2,
+                      maxWidth: testPassHidden ? 0 : 400, opacity: testPassHidden ? 0 : 1,
+                      marginLeft: testPassHidden ? -10 : -2, visibility: testPassHidden ? 'hidden' : 'visible',
+                      transition: 'max-width 0.2s ease, opacity 0.16s ease, margin-left 0.2s ease, visibility 0.2s' }}>
+                    <div ref={testPassInnerRef} style={{ width: 'max-content' }}>
+                      <SegmentFilter<TestPassFilter>
+                        value={testPass} compact={testRowCompact}
+                        options={[
+                          ['', t('Все')],
+                          ['taken', t('Проходят'), 'var(--color-green-text)'],
+                          ['untaken', t('Без сдач'), 'var(--color-peach-text)'],
+                        ]}
+                        onChange={setTestPass}
+                      />
+                    </div>
+                  </div>
                   {!editMode && seriesTotal > 0 && (
                     // Горит то, что правда на витрине: все свёрнуты — «Стопками»,
                     // все раскрыты — «Подряд». Вперемешку не горит ничего, а рядом
@@ -9315,6 +9348,7 @@ export default function TeacherConstructorPage() {
                     <SegmentFilter<'stack' | 'flat' | ''>
                       value={seriesOpenCount === 0 ? 'stack' : seriesOpenCount === seriesTotal ? 'flat' : ''}
                       options={[['stack', t('Стопками')], ['flat', t('Подряд')]]}
+                      compact={testRowCompact}
                       onChange={v => { if (v) setAllSeries(v) }}
                     />
                   )}
@@ -9331,8 +9365,8 @@ export default function TeacherConstructorPage() {
                       </button>
                     </div>
                   )}
-                  <ShelfSearch value={testQuery} onChange={setTestQuery} style={{ marginLeft: 'auto' }} />
-                  <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                  <ShelfSearch value={testQuery} onChange={setTestQuery} collapsed={testRowCompact} style={{ marginLeft: 'auto', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
                     {visibleDiagSubjects.length + visibleCustomTests.length} {t(ruPlural(visibleDiagSubjects.length + visibleCustomTests.length, 'тест', 'теста', 'тестов'))}
                   </span>
                 </div>

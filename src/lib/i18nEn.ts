@@ -3453,7 +3453,6 @@ export const EN: Record<string, string> = {
   'е': '',
   'й': 's',
   'Ещё никто не прошёл': 'Nobody has taken it yet',
-  'Второй клик = редактор': 'A second click opens the editor',
   'Редактор': 'Editor',
   'Ещё никто не прошёл. Отправь ссылку ученику.': 'Nobody has taken it yet. Send a student the link.',
   'Разделы (слабые)': 'Sections (weak)',

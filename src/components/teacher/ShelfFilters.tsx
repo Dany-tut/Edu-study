@@ -237,10 +237,12 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
  * Подпись рисуется поверх невидимой жирной копии себя: без этого выбор опции
  * менял ширину кнопки и ряд дёргался.
  */
-export function SegmentFilter<V extends string>({ value, options, onChange }: {
+export function SegmentFilter<V extends string>({ value, options, onChange, compact }: {
   value: V
   options: [V, string, string?][]
   onChange: (v: V) => void
+  /** Ряд поджат (например, открыта панель справа): поля кнопок уже. */
+  compact?: boolean
 }) {
   return (
     <div style={{ display: 'flex', padding: 2, borderRadius: 999, background: 'var(--color-bg-3)', ...PILL_GLASS, gap: 2 }}>
@@ -248,11 +250,11 @@ export function SegmentFilter<V extends string>({ value, options, onChange }: {
         const active = value === val
         return (
           <button key={val || 'all'} onClick={() => onChange(val)}
-            style={{ padding: '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 12, fontWeight: active ? 700 : 500,
+            style={{ padding: compact ? '5px 8px' : '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 12, whiteSpace: 'nowrap', fontWeight: active ? 700 : 500,
               background: active ? 'var(--color-surface)' : 'transparent',
               color: active ? (color ?? 'var(--color-text)') : 'var(--color-text-3)',
-              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
+              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.18s ease' }}>
             <span style={{ display: 'grid', justifyItems: 'center' }}>
               <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{lbl}</span>
               <span style={{ gridArea: '1 / 1' }}>{lbl}</span>
@@ -272,25 +274,31 @@ export const normSearch = (x: string) => x.toLowerCase().replace(/ё/g, 'е').re
  * и раздаётся при фокусе или с текстом: ряд фильтров и так длинный, а место
  * под запрос нужно только когда его вводят. Esc очищает и снимает фокус.
  */
-export function ShelfSearch({ value, onChange, placeholder, style }: {
+export function ShelfSearch({ value, onChange, placeholder, style, collapsed }: {
   value: string
   onChange: (v: string) => void
   placeholder?: string
   style?: CSSProperties
+  /** Места мало: пустой поиск сворачивается в кружок с лупой, клик раскрывает. */
+  collapsed?: boolean
 }) {
   const t = useT()
   const ref = useRef<HTMLInputElement>(null)
   const [focus, setFocus] = useState(false)
   const wide = focus || !!value
+  const round = collapsed && !wide
   return (
-    <label style={pillStyle(focus, { cursor: 'text', ...style })}>
+    <label title={round ? t('Поиск') : undefined} style={pillStyle(focus, {
+      cursor: round ? 'pointer' : 'text', gap: round ? 0 : 6, padding: round ? '7px 8.5px' : '7px 12px',
+      transition: 'padding 0.18s ease, gap 0.18s ease', ...style,
+    })}>
       <Search size={12} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
       <input ref={ref} value={value} placeholder={placeholder ?? t('Поиск')}
         onChange={e => onChange(e.target.value)}
         onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
         onKeyDown={e => { if (e.key === 'Escape') { onChange(''); ref.current?.blur() } }}
         style={{
-          width: wide ? 180 : 64, transition: 'width 0.18s ease',
+          width: wide ? 180 : round ? 0 : 64, transition: 'width 0.18s ease',
           border: 'none', outline: 'none', background: 'transparent', padding: 0,
           font: 'inherit', fontWeight: 500, color: 'var(--color-text)', lineHeight: '15px',
         }} />
@@ -299,7 +307,7 @@ export function ShelfSearch({ value, onChange, placeholder, style }: {
             style={{ display: 'flex', padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-3)' }}>
             <X size={12} />
           </button>
-        : <span style={{ width: 12, flexShrink: 0 }} />}
+        : <span style={{ width: round ? 0 : 12, flexShrink: 0, transition: 'width 0.18s ease' }} />}
     </label>
   )
 }
