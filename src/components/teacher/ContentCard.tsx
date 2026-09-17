@@ -61,7 +61,7 @@ function CardActionBar({ actions, visible, accentColor }: { actions: CardActions
   )
 }
 
-export function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra, actions }: {
+export function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra, actions, morph }: {
   accentColor: string
   accentBg: string
   borderColor?: string
@@ -76,10 +76,20 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
   footerRight: React.ReactNode
   extra?: React.ReactNode
   actions?: CardActions
+  /**
+   * Плитка меняет ширину анимацией (сетка тестов под панелью ученика). Фон
+   * тянется framer-layout'ом, а содержимое — чипсы, заголовок, подвал —
+   * только переезжает: иначе scale сплющивает текст и он дёргается.
+   */
+  morph?: boolean
 }) {
   const [hovered, setHovered] = useState(false)
+  // Кусок содержимого, который при морфе не тянется, а переезжает на место.
+  const pos = morph ? 'position' as const : undefined
   return (
     <motion.div
+      layout={morph || undefined}
+      transition={morph ? { layout: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } } : undefined}
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={onClick}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
@@ -89,33 +99,37 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
         border: isSelected ? `1.5px solid ${borderColor ?? accentColor}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: '18px 18px 12px', cursor: 'pointer',
         boxShadow: isSelected ? `0 0 0 3px ${(borderColor ?? accentColor)}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
-        display: 'flex', flexDirection: 'column', gap: 10, transition: 'all 0.18s', height: '100%',
+        // Не 'all': transform ведёт framer (наведение, морф), CSS-переход поверх
+        // него запаздывает и плитка вздрагивает.
+        display: 'flex', flexDirection: 'column', gap: 10, height: '100%',
+        transition: 'background 0.18s, border-color 0.18s, box-shadow 0.18s',
       }}
     >
       {actions && <CardActionBar actions={actions} visible={hovered} accentColor={accentColor} />}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+      <motion.div layout={pos} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         {/* Выбранная плитка залита оттенком акцента — серый квадрат иконки на ней
             выпадал пятном, поэтому он тоже подмешивает акцент. color-mix, а не
             accent+'22': accentColor бывает CSS-переменной. */}
-        <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? (isSelected ? `color-mix(in srgb, ${accentColor} 20%, var(--color-bg-5))` : 'var(--color-bg-5)'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.18s' }}>
+        <motion.div layout={pos} style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? (isSelected ? `color-mix(in srgb, ${accentColor} 20%, var(--color-bg-5))` : 'var(--color-bg-5)'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.18s' }}>
           {icon}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</div>
-      </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
+        </motion.div>
+        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</motion.div>
+      </motion.div>
+      <motion.div layout={pos} style={{ flex: 1, minHeight: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>{title}</div>
         {/* Подзаголовок обрезается на трёх строках: у курса это «предмет · уровень»
             в одну строку, а у набора карточек — описание абзацем, и без обрезки
             одна плитка вытягивала бы весь ряд сетки. */}
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.45, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>{subtitle}</div>
         {extra}
-      </div>
+      </motion.div>
       {/* gap 10 обязателен: левая половина обрезается многоточием, и без зазора
           обрезанное слово вплотную упиралось в правую подпись — «2 вопрСвязка». */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-3)', fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap' }}>{footerRight}</div>
-      </div>
+      {/* Линия подвала тянется вместе с фоном (layout), подписи — переезжают. */}
+      <motion.div layout={morph || undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
+        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</motion.div>
+        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-3)', fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap' }}>{footerRight}</motion.div>
+      </motion.div>
     </motion.div>
   )
 }

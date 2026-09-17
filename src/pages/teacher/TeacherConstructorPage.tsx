@@ -441,6 +441,14 @@ const STATUS_BG:   Record<CourseStatus, string> = { published: 'var(--color-gree
 let _cachedCourses: Course[] | null = null
 let _cachedTrainers: Trainer[] | null = null
 let _cachedWidgets: Widget[] | null = null
+// Всё, что витрина показывает на карточках, тоже переживает ремоунт. Страница
+// монтируется заново при каждом возврате из редактора курса, и с пустых
+// значений чипы учеников, плитки готовых курсов (их id несёт хвост владельца)
+// и сетка тестов доезжали каждый своим запросом — экран мигал волнами.
+let _cachedOwnerId: string | null = null
+let _cachedEnrollment: Record<string, { id: string; name: string }[]> = {}
+let _cachedCustomTests: CustomTest[] | null = null
+let _cachedAssignments: TestAssignment[] = []
 
 // ─── DB → local mappers ───────────────────────────────────────────────────────
 function fmtDate(iso: string | null | undefined) {
@@ -2728,8 +2736,10 @@ function CreatorView({
     // Single scroll container — same pattern as TeacherHomeworkCreatePage.
     // The page root is already lifted by -100, so paddingTop:100 alone lets
     // content scroll under the floating topbar.
+    // Без проявления из нуля: список уже убран, и затухший экран на тёмном
+    // фоне читался как мерцание — так же, как у редактора теста.
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      initial={false}
       onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
       style={{ flex: 1, height: '100vh', overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
     >
@@ -7516,7 +7526,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
   return (
     <ContentCard
       accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
-      isSelected={isSelected} onClick={onClick}
+      isSelected={isSelected} onClick={onClick} morph
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={cardChip(chipColor)}>{t(chip)}</span>}
       title={label}
@@ -7534,8 +7544,12 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
 // соседей — layout-переездом одной и той же пружиной; уходящая плитка сразу
 // освобождает место (popLayout у AnimatePresence), и ряды не дёргаются.
 const TEST_CELL_EASE = [0.22, 1, 0.36, 1] as const
+// layout="position": клетка переезжает, но НЕ растягивается через scale —
+// иначе при смене ширины сетки (панель ученика) чипсы и текст сплющивались и
+// дёргались. Размер доигрывает сама плитка (ContentCard morph) с поправкой
+// содержимого.
 const TEST_CELL_MOTION = {
-  layout: true,
+  layout: 'position',
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1 },
   exit: { opacity: 0, scale: 0.96, transition: { duration: 0.16, ease: TEST_CELL_EASE } },
@@ -7577,18 +7591,23 @@ function CustomTestStackCard({ base, parts, done, onClick }: {
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{ position: 'relative', height: '100%', boxSizing: 'border-box', paddingTop: 8, paddingRight: 8 }}>
       {[2, 1].map(k => (
-        <div key={k} aria-hidden style={{
-          position: 'absolute', left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
-          // Радиус растёт со смещением — дуги листов концентричны углу карточки.
-          borderRadius: 20 + k * 4,
-          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)',
-          opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
-          transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
-        }} />
+        // Листы — motion с layout: при смене ширины сетки тянутся вместе с
+        // верхней плиткой, а не прыгают. Сдвиг на наведении тоже ведёт framer —
+        // CSS-transform поверх layout-анимации дёргался бы.
+        <motion.div key={k} aria-hidden layout
+          animate={{ x: hover ? k * 2 : 0, y: hover ? -k * 2 : 0 }}
+          transition={{ layout: { duration: 0.38, ease: TEST_CELL_EASE }, default: { duration: 0.16 } }}
+          style={{
+            position: 'absolute', left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
+            // Радиус растёт со смещением — дуги листов концентричны углу карточки.
+            borderRadius: 20 + k * 4,
+            background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)',
+            opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
+          }} />
       ))}
       <ContentCard
         accentColor={head.accent} accentBg={head.accent + '22'} borderColor='var(--color-border-glass)'
-        isSelected={false} onClick={onClick}
+        isSelected={false} onClick={onClick} morph
         icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: head.accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: head.accent }} />}
         badge={<>
           <span style={cardChipTone('purple')}>×{parts.length}</span>
@@ -7625,7 +7644,7 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
   return (
     <ContentCard
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
-      isSelected={isSelected} onClick={onClick}
+      isSelected={isSelected} onClick={onClick} morph
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<>
         {series && (
@@ -7942,15 +7961,17 @@ export default function TeacherConstructorPage() {
   }, [selectedId])
   const [diagEditing, setDiagEditing] = useState<string | null>(null)
   const [diagCreating, setDiagCreating] = useState(false)
-  const [customTests, setCustomTests] = useState<CustomTest[]>([])
+  const [customTests, setCustomTests] = useState<CustomTest[]>(() => _cachedCustomTests ?? [])
+  useEffect(() => { _cachedCustomTests = customTests }, [customTests])
   const [builtinChips, setBuiltinChips] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem('diagBuiltinChips') ?? '{}') } catch { return {} }
   })
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
-  const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>([])
+  const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>(peekAnonResults)
   const diagAllStudents = useAllStudents()
   const { groups: diagGroups } = useGroups()
-  const [assignments, setAssignments] = useState<TestAssignment[]>([])
+  const [assignments, setAssignments] = useState<TestAssignment[]>(_cachedAssignments)
+  useEffect(() => { _cachedAssignments = assignments }, [assignments])
   const [assignModal, setAssignModal] = useState<{ subject: string; title: string } | null>(null)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
   const [assignmentResults, setAssignmentResults] = useState<AnonDiagResult[]>([])
@@ -7994,7 +8015,7 @@ export default function TeacherConstructorPage() {
   const [trainers, setTrainers] = useState<Trainer[]>(_cachedTrainers ?? [])
   const [widgets, setWidgets] = useState<Widget[]>(_cachedWidgets ?? [])
   const [dbLoading, setDbLoading] = useState(_cachedCourses === null)
-  const [ownerId, setOwnerId] = useState<string | null>(null)
+  const [ownerId, setOwnerId] = useState<string | null>(_cachedOwnerId)
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
   // «Плюс» на «Материалах». Счётчик едет вниз пропом, потому что создаёт не
@@ -8014,6 +8035,7 @@ export default function TeacherConstructorPage() {
       // Courses are per-teacher: only load the ones this teacher owns, so a new
       // teacher doesn't inherit every course ever created (multi-tenant isolation).
       const uid = await getOwnerId()
+      _cachedOwnerId = uid
       setOwnerId(uid)
       const sharedIds = await fetchSharedCourseIds(uid)
       const courseQuery = sharedIds.length
@@ -8047,7 +8069,7 @@ export default function TeacherConstructorPage() {
   }, [])
 
   // Enrolled students per course (subject = course.dbCourseId in lesson_progress).
-  const [enrollmentByCourse, setEnrollmentByCourse] = useState<Record<string, { id: string; name: string }[]>>({})
+  const [enrollmentByCourse, setEnrollmentByCourse] = useState<Record<string, { id: string; name: string }[]>>(_cachedEnrollment)
   useEffect(() => {
     if (!courses.length || !diagAllStudents.length) return
     let cancelled = false
@@ -8067,7 +8089,12 @@ export default function TeacherConstructorPage() {
         if (!ids) continue
         map[c.id] = [...ids].filter(id => nameById.has(id)).map(id => ({ id, name: nameById.get(id)! }))
       }
-      if (!cancelled) setEnrollmentByCourse(map)
+      if (cancelled) return
+      // Состав не поменялся — прежний объект: иначе все карточки курсов
+      // перерисовывались бы ответом, который ничего не меняет.
+      if (JSON.stringify(map) === JSON.stringify(_cachedEnrollment)) return
+      _cachedEnrollment = map
+      setEnrollmentByCourse(map)
     })()
     return () => { cancelled = true }
   }, [courses, diagAllStudents.length])
@@ -8664,7 +8691,9 @@ export default function TeacherConstructorPage() {
   // уступает ей место: сетка перестраивается в меньше столбцов и листается
   // по-прежнему вертикально, а не уезжает под панель.
   const diagShift = activeTab === 'testing' && selectedResultId ? 368 : 0
-  const diagShiftStyle = { marginRight: diagShift, transition: 'margin-right 0.15s' } as const
+  // Ряд фильтров и таблица сжимаются CSS-переходом той же длины и кривой, что
+  // и переезд плиток (TEST_CELL_MOTION), — всё едет одним движением.
+  const diagShiftStyle = { marginRight: diagShift, transition: 'margin-right 0.38s cubic-bezier(0.22, 1, 0.36, 1)' } as const
   // Панель ученика отнимает у ряда фильтров место: поиск сворачивается в
   // кружок, сегменты поджимаются, а если и так не лезет — «Все / Проходят /
   // Без сдач» уходит совсем. Меряем по естественным ширинам (сегмент — по
@@ -9484,7 +9513,10 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
-              <div style={{ position: 'relative', ...diagShiftStyle }}>
+              {/* Сетка сжимается мгновенно, а плавность даёт framer: один замер до и
+                  после. CSS-переход здесь менял столбцы посреди кадров, и плитки
+                  перескакивали мимо layout-анимации. */}
+              <div style={{ position: 'relative', marginRight: diagShift }}>
               {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
               {/* layoutScroll: переезды плиток меряются с учётом прокрутки окна. */}
               <motion.div layoutScroll ref={diagScroll.ref} onScroll={diagScroll.onScroll}

@@ -6181,14 +6181,16 @@ export default function TeacherCourseEditorPage() {
         <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <span ref={headTitleRef} className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
-        <div ref={headRightRef} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
               сида, и только когда расхождения реально нашлись: «Подтянуть»,
               которая каждый раз отвечает «всё совпадает», — это шум в шапке. */}
           {/* Тяжёлая половина едет — говорим об этом прямо: кнопки сохранения в
               это время не работают, и молчащая шапка выглядела бы поломкой. */}
+          {/* Вне потока, слева от группы: плашка живёт секунду, и пока она была в
+              ряду, её уход менял ширину группы — название по центру съезжало. */}
           {course.heavyPending && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
+            <div style={{ position: 'absolute', right: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
               {heavyErr
                 ? <>{t('Не удалось догрузить уроки — перезагрузите страницу')}</>
                 : <><Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} /> {t('Догружаем уроки…')}</>}
