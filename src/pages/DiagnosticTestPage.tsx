@@ -609,9 +609,10 @@ export default function DiagnosticTestPage() {
               </>
             ) : (<>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Введи своё ФИО')}</div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12 }}>
-                {t('Результаты сохранятся у твоего преподавателя.')}<br />{t('Логин и пароль не нужны.')}
+              {/* Один голос на всю карточку: на «ты», без «ФИО/ФИ» — заголовок спрашивает, поле подсказывает формат */}
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12, lineHeight: 1.45 }}>
+                {t('По имени преподаватель найдёт твои результаты. Регистрироваться не нужно.')}
               </div>
               <div style={{ position: 'relative' }}>
                 {/* Иконка поверх поля: на iOS фокус поднимает input в свой слой, и лежащая «под» ним иконка пропадала */}
@@ -627,12 +628,12 @@ export default function DiagnosticTestPage() {
                   value={studentName}
                   onChange={e => setStudentName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') startTest() }}
-                  placeholder={t('Ваше ФИ')}
+                  placeholder={t('Имя и фамилия')}
                   style={{
                     width: '100%', boxSizing: 'border-box',
                     position: 'relative',
                     // 16px: меньше — iOS приближает страницу при фокусе, и поле съезжает
-                    // Паддинг симметричный: подъём на 0.12em здесь перебирал — заглавные «Ваше ФИ»
+                    // Паддинг симметричный: подъём на 0.12em здесь перебирал — заглавные подсказки
                     // вставали на 1.6px выше иконки и середины поля (замер 16.09.2026)
                     padding: '12px 14px', paddingLeft: studentName ? 14 : 40, borderRadius: 13,
                     border: `1.5px solid ${studentName.trim().length >= 2 ? theme.accent : 'var(--color-border-medium)'}`,
