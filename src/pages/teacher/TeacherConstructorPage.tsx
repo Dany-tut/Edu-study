@@ -7633,7 +7633,9 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
           <button type="button" title={t('Собрать серию в стопку')}
             onClick={e => { e.stopPropagation(); series.onCollapse() }}
             style={cardChipTone('purple', { display: 'inline-flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}>
-            <Layers size={10} strokeWidth={2.4} />{series.n}/{series.total}
+            <Layers size={10} strokeWidth={2.4} />
+            <span className="series-chip-n">{series.n}/{series.total}</span>
+            <span className="series-chip-collapse">{t('свернуть')}</span>
           </button>
         )}
         {/* Уровень отдельным чипом: у ЕГЭ и ОГЭ бывают одинаковые названия и «Линия 1». */}
@@ -8126,10 +8128,38 @@ export default function TeacherConstructorPage() {
   const [testQuery, setTestQuery] = useState('')
   const [testSort, setTestSort] = usePersistentState<TestSortMode>('ctor.testSort', 'newest')
   const [testPass, setTestPass] = usePersistentState<TestPassFilter>('ctor.testPass', '')
-  // Части серии («…, часть 2») — стопкой или подряд. Раскрыта одна серия за раз:
-  // вторая раскрытая сворачивает первую, иначе сетка расползается.
+  // Части серии («…, часть 2») — стопкой или подряд. Тумблер задаёт режим для
+  // всех серий разом (и запоминается), а клик по стопке или «свернуть» у части
+  // переворачивает одну серию — такие исключения лежат в seriesFlip до
+  // следующего нажатия тумблера.
   const [testGroup, setTestGroup] = usePersistentState<'stack' | 'flat'>('ctor.testGroup', 'stack')
-  const [openSeries, setOpenSeries] = useState<string | null>(null)
+  const [seriesFlip, setSeriesFlip] = useState<ReadonlySet<string>>(() => new Set())
+  const seriesOpen = (k: string) => (testGroup === 'flat') !== seriesFlip.has(k)
+  const setSeriesOpen = (k: string, open: boolean) => setSeriesFlip(prev => {
+    const next = new Set(prev)
+    if (open === (testGroup === 'flat')) next.delete(k); else next.add(k)
+    return next
+  })
+  const setAllSeries = (mode: 'stack' | 'flat') => { setTestGroup(mode); setSeriesFlip(new Set()) }
+  // Подсветка серии под курсором (см. .tests-grid в index.css). Снятие — с
+  // короткой задержкой: при переходе мыши через промежуток между частями
+  // сетка иначе мигала бы «всё ярко → снова приглушено».
+  const testGridRef = useRef<HTMLDivElement>(null)
+  const seriesHoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const hoverSeries = (key: string | null, now = false) => {
+    clearTimeout(seriesHoverTimer.current)
+    const apply = () => {
+      const g = testGridRef.current
+      if (!g) return
+      if (key) g.setAttribute('data-series-hover', '')
+      else g.removeAttribute('data-series-hover')
+      for (const el of Array.from(g.children)) {
+        el.toggleAttribute('data-series-lit', !!key && (el as HTMLElement).dataset.series === key)
+      }
+    }
+    if (key || now) apply()
+    else seriesHoverTimer.current = setTimeout(apply, 90)
+  }
   // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
   // 1:1-ученик живёт отдельной записью на каждый предмет, и по одной из них
   // нашлась бы только часть его курсов.
@@ -8270,7 +8300,7 @@ export default function TeacherConstructorPage() {
     | { kind: 'item'; item: TestItem; series?: { key: string; n: number; total: number } }
     | { kind: 'stack'; key: string; base: string; parts: CustomTest[] }
   const testCells = useMemo<TestCell[]>(() => {
-    if (editMode || testGroup === 'flat') return visibleTests.map(item => ({ kind: 'item', item }))
+    if (editMode) return visibleTests.map(item => ({ kind: 'item', item }))
     const seriesKey = (ct: CustomTest) => {
       const s = testSeriesOf(ct.label)
       return s ? `${testSubjectOf.get(ct.id) ?? ''}|${ct.level ?? ''}|${s.base.toLowerCase()}` : null
@@ -8290,14 +8320,18 @@ export default function TeacherConstructorPage() {
       if (placed.has(k)) continue
       placed.add(k)
       const ordered = [...parts].sort((a, b) => testSeriesOf(a.label)!.part - testSeriesOf(b.label)!.part)
-      if (openSeries === k) {
+      if (seriesOpen(k)) {
         ordered.forEach((ct, i) => cells.push({ kind: 'item', item: { kind: 'custom', id: ct.id, ct }, series: { key: k, n: i + 1, total: ordered.length } }))
       } else {
         cells.push({ kind: 'stack', key: k, base: testSeriesOf(ordered[0].label)!.base, parts: ordered })
       }
     }
     return cells
-  }, [visibleTests, editMode, testGroup, openSeries, testSubjectOf])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleTests, editMode, testGroup, seriesFlip, testSubjectOf])
+  // Сколько серий на витрине и сколько из них раскрыто — для тумблера.
+  const seriesTotal = useMemo(() => new Set(testCells.flatMap(c => c.kind === 'stack' ? [c.key] : c.series ? [c.series.key] : [])).size, [testCells])
+  const seriesOpenCount = useMemo(() => new Set(testCells.flatMap(c => c.kind === 'item' && c.series ? [c.series.key] : [])).size, [testCells])
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(
@@ -9274,12 +9308,28 @@ export default function TeacherConstructorPage() {
                     ]}
                     onChange={setTestPass}
                   />
-                  {!editMode && (
-                    <SegmentFilter<'stack' | 'flat'>
-                      value={testGroup}
+                  {!editMode && seriesTotal > 0 && (
+                    // Горит то, что правда на витрине: все свёрнуты — «Стопками»,
+                    // все раскрыты — «Подряд». Вперемешку не горит ничего, а рядом
+                    // таблетка со счётом и «Свернуть все».
+                    <SegmentFilter<'stack' | 'flat' | ''>
+                      value={seriesOpenCount === 0 ? 'stack' : seriesOpenCount === seriesTotal ? 'flat' : ''}
                       options={[['stack', t('Стопками')], ['flat', t('Подряд')]]}
-                      onChange={v => { setTestGroup(v); setOpenSeries(null) }}
+                      onChange={v => { if (v) setAllSeries(v) }}
                     />
+                  )}
+                  {!editMode && seriesOpenCount > 0 && seriesOpenCount < seriesTotal && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 2px 2px 11px', borderRadius: 999,
+                      background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      <Layers size={12} strokeWidth={2.2} />
+                      {t('Раскрыто')} {seriesOpenCount} {t('из')} {seriesTotal}
+                      <button type="button" onClick={() => setAllSeries('stack')}
+                        style={{ padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                          fontSize: 12, fontWeight: 700, background: 'var(--color-surface)', color: 'var(--color-purple-text)',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                        {t('Свернуть все')}
+                      </button>
+                    </div>
                   )}
                   <ShelfSearch value={testQuery} onChange={setTestQuery} style={{ marginLeft: 'auto' }} />
                   <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -9411,7 +9461,7 @@ export default function TeacherConstructorPage() {
                   padding: DIAG_CLAMP_PAD, margin: -DIAG_CLAMP_PAD, scrollMarginTop: 110,
                   ...diagScroll.maskStyle,
                 } : undefined}>
-              <div
+              <div ref={testGridRef} className={activeTab === 'testing' ? 'tests-grid' : undefined}
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: DIAG_GRID_GAP, position: 'relative' }}>
                 {activeTab === 'course' && dbLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
@@ -9482,7 +9532,7 @@ export default function TeacherConstructorPage() {
                   <motion.div key={cell.parts[0].id} {...TEST_CELL_MOTION} data-diag-keep>
                     <CustomTestStackCard base={cell.base} parts={cell.parts}
                       done={cell.parts.reduce((s, p) => s + (testStats.get(p.id)?.done ?? 0), 0)}
-                      onClick={() => setOpenSeries(cell.key)} />
+                      onClick={() => setSeriesOpen(cell.key, true)} />
                   </motion.div>
                 ) : (() => { const { item, series } = cell; return item.kind === 'builtin' ? (() => { const subject = item.id; return (
                   <motion.div key={subject} {...TEST_CELL_MOTION} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
@@ -9506,12 +9556,15 @@ export default function TeacherConstructorPage() {
                   </motion.div>
                 ) })() : (() => { const ct = item.ct; return (
                   <motion.div key={ct.id} {...TEST_CELL_MOTION}
+                    data-series={series?.key}
+                    onMouseEnter={series ? () => hoverSeries(series.key) : undefined}
+                    onMouseLeave={series ? () => hoverSeries(null) : undefined}
                     data-diag-id={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <CustomTestCard
                       test={ct}
                       isSelected={selectedId === ct.id}
                       onClick={() => editMode ? toggleCheck(ct.id) : selectedId === ct.id ? openDiagCard(ct.id as DiagSubject) : selectDiagCard(ct.id)}
-                      series={series && { n: series.n, total: series.total, onCollapse: () => setOpenSeries(null) }}
+                      series={series && { n: series.n, total: series.total, onCollapse: () => { hoverSeries(null, true); setSeriesOpen(series.key, false) } }}
                     />
                     {editMode && (
                       <div onClick={() => toggleCheck(ct.id)} style={{

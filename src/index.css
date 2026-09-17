@@ -938,6 +938,16 @@ input[type=number]::-webkit-outer-spin-button {
   animation: constructorCardFlashAnim 1.8s ease-out forwards;
 }
 
+/* ── Витрина тестов: наведение на часть раскрытой серии ───────────────────
+   Всё, что не из этой серии, приглушается, а чип «n/N» у её частей становится
+   «свернуть». Атрибуты ставит hoverSeries прямо в DOM — без перерисовки
+   страницы на каждое движение мыши. */
+.tests-grid > * > :first-child { transition: opacity .2s ease; }
+.tests-grid[data-series-hover] > :not([data-series-lit]) > :first-child { opacity: .42; }
+.series-chip-collapse { display: none; }
+[data-series-lit] .series-chip-n { display: none; }
+[data-series-lit] .series-chip-collapse { display: inline; }
+
 /* ── Desk canvas drag handle — pseudo-element overlay in edit mode ─ */
 .rgl-drag-handle {
   cursor: grab !important;
