@@ -64,6 +64,8 @@ const rowStyle = (on: boolean, soft: string): CSSProperties => ({
   background: on ? soft : 'transparent',
   fontSize: 13, fontWeight: on ? 700 : 400, color: 'var(--color-text)',
   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+  // Жирный выбранный пункт шире обычного — перенос ломал бы высоту меню.
+  whiteSpace: 'nowrap',
 })
 
 const Caret = ({ open }: { open: boolean }) => (
@@ -97,7 +99,7 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)} style={pillStyle(open)}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ minWidth, textAlign: 'left' }}>{label}</span>
+        <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{label}</span>
         <Caret open={open} />
       </button>
       <AnimatePresence>

@@ -9059,7 +9059,7 @@ export default function TeacherConstructorPage() {
               )}
               {activeTab === 'testing' && testSubjectOpts.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
-                  <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={testSort === 'recent' ? 124 : 88} onChange={setTestSort} />
+                  <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={136} onChange={setTestSort} />
                   <CourseFacetDropdown
                     value={activeTestSubject} options={testSubjectOpts} allLabel={t('Все предметы')}
                     icon={<span style={{ fontSize: 12 }}>{activeTestSubject ? subjectIcon(activeTestSubject) : '📚'}</span>}
