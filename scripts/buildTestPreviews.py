@@ -155,10 +155,11 @@ def main():
         render(t, ROOT / f"public/og/{t['id']}.png")
         page = PAGE.format(
             id=t['id'],
-            title=html.escape(re.sub(r'часть (\d+)', 'часть\u00a0\\1', t['title']) + ' — тест по\u00a0биологии'),
+            # Уровень в заголовке: у ЕГЭ и ОГЭ есть тесты с одинаковым названием.
+            title=html.escape(re.sub(r'часть (\d+)', 'часть\u00a0\\1', t['title']) + f" — {t.get('exam', 'ЕГЭ')} по\u00a0биологии"),
             desc=html.escape(f"Линия 1 {t.get('exam', 'ЕГЭ')} · {plural_tasks(t['count'])}: {t.get('task', 'впиши пропущенный термин в таблицу')}"),
             url=f"{ORIGIN}/t/{t['id']}",
-            image=f"{ORIGIN}/og/{t['id']}.png?v=3",
+            image=f"{ORIGIN}/og/{t['id']}.png?v=4",
         )
         (ROOT / f"public/t/{t['id']}.html").write_text(page)
     print(f'{len(tests)} превью')

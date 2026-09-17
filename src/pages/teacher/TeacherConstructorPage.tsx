@@ -7513,7 +7513,11 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={cardChip(chipColor)}>{t(chip)}</span>}
+      badge={<>
+        {/* Уровень отдельным чипом: у ЕГЭ и ОГЭ бывают одинаковые названия и «Линия 1». */}
+        {test.level && <span style={cardChipTone(test.level === 'ОГЭ' ? 'peach' : test.level === 'ЕГЭ' ? 'blue' : 'purple')}>{t(test.level)}</span>}
+        <span style={cardChip(chipColor)}>{t(chip)}</span>
+      </>}
       title={label}
       subtitle={qCount > 0 ? (qCount) + t(' вопросов') : t('Нет вопросов')}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? (anonCount) + t(' прошли тест') : t('Нет сдач')}</span></>}
