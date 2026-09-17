@@ -34,7 +34,7 @@ import { levelOptions, matchesLevel, levelOptionsForSubject, levelBuckets, sortL
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   isDiagAnswerCorrect, diagAnswerLabel, diagCorrectLabel, diagListLabel,
-  loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult, diagResumeHash,
+  loadAnonResults, peekAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult, diagResumeHash,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
   fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject, updateCustomTestLevel, updateCustomTestDoneLabel,
   loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
@@ -5789,12 +5789,16 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   }
 
   const canAssign = !!assignGroupId || !!assignStudentId
+  const previewFx = useRef(false)
+  useEffect(() => { previewFx.current = true }, [])
   const [distMode, setDistMode] = useState<'assign' | 'link'>('assign')
 
   return (
     <motion.div
       key={`diag-editor-${subject}`}
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      // Без проявления: список уже убран, и затухший в ноль экран с тяжёлой
+      // лентой вопросов читался как мерцание. Экран встаёт сразу.
+      initial={false}
       onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
       style={{ flex: 1, height: '100vh', overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
     >
@@ -6109,7 +6113,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 до F5. Анимация только входа — ждать выхода незачем. */}
             <motion.div
               key={editIdx !== null ? `edit-${editIdx}` : 'preview'}
-              initial={{ opacity: 0, y: editIdx !== null ? 8 : 0 }} animate={{ opacity: 1, y: 0 }}
+              // Проявление — только при смене вопроса/возврате к превью, не при
+              // открытии редактора: иначе колонка мигала второй раз поверх экрана.
+              initial={editIdx !== null ? { opacity: 0, y: 8 } : previewFx.current ? { opacity: 0, y: 0 } : false} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.18 }}
               style={editIdx !== null ? undefined : { display: 'flex', flexDirection: 'column', gap: 14 }}
             >
@@ -7486,6 +7492,13 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
 }
 
 // ─── Diagnostic Card ─────────────────────────────────────────────────────────
+// Счётчик сдач на карточке стартует с последних загруженных результатов: с нуля
+// он при каждом возврате из редактора показывал «Нет сдач» и через миг менялся
+// на «N прошли тест» — по всей сетке разом, как мерцание.
+function countDone(all: AnonDiagResult[], subject: string) {
+  return all.filter(r => r.subject === subject && r.completed).length
+}
+
 function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subject: DiagSubject; isSelected: boolean; onClick: () => void; chipOverride?: string }) {
   const t = useT()
   // Встроенные предметы держат русский ключ; свои названия учителя проходят мимо словаря.
@@ -7493,13 +7506,13 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
   const label = t(rawSubjectLabel)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
-  const [anonCount, setAnonCount] = useState(0)
+  const [anonCount, setAnonCount] = useState(() => countDone(peekAnonResults(), subject))
   const chip = chipOverride ?? loadBuiltinChip(subject)
   const dark = useTheme(s => s.dark)
   const { color: chipColor, bg: chipBg } = getChipStyle(chip, undefined, dark)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
   useEffect(() => {
-    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject && r.completed).length))
+    loadAnonResults().then(all => setAnonCount(countDone(all, subject)))
   }, [subject])
   return (
     <ContentCard
@@ -7518,7 +7531,21 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
 // «Свойства живого, часть 2» → серия «Свойства живого», часть 2. Серии на
 // витрине тестов лежат стопкой (CustomTestStackCard), а не десятком плиток
 // с одинаковым началом названия.
-const TEST_CELL_T = { layout: { type: 'spring', stiffness: 520, damping: 44 } } as const
+// Клетка витрины тестов. Появление и уход — проявлением на месте, сдвиг
+// соседей — layout-переездом одной и той же пружиной; уходящая плитка сразу
+// освобождает место (popLayout у AnimatePresence), и ряды не дёргаются.
+const TEST_CELL_EASE = [0.22, 1, 0.36, 1] as const
+const TEST_CELL_MOTION = {
+  layout: true,
+  initial: { opacity: 0, scale: 0.96 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.96, transition: { duration: 0.16, ease: TEST_CELL_EASE } },
+  transition: {
+    layout: { duration: 0.38, ease: TEST_CELL_EASE },
+    opacity: { duration: 0.22, ease: TEST_CELL_EASE },
+    scale: { duration: 0.28, ease: TEST_CELL_EASE },
+  },
+} as const
 const TEST_PART_RE =/^(.*?)[\s,.:—–-]+часть\s+(\d+)\s*$/i
 function testSeriesOf(label: string): { base: string; part: number } | null {
   const m = TEST_PART_RE.exec(label.trim())
@@ -7587,10 +7614,10 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
   const { label, accent } = test
   const soft = accent + '22'
   const [qCount, setQCount] = useState(() => loadDiagQuestions(test.id as DiagSubject).length)
-  const [anonCount, setAnonCount] = useState(0)
+  const [anonCount, setAnonCount] = useState(() => countDone(peekAnonResults(), test.id))
   useEffect(() => {
     fetchDiagQuestions(test.id as DiagSubject).then(qs => setQCount(qs.length))
-    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === test.id && r.completed).length))
+    loadAnonResults().then(all => setAnonCount(countDone(all, test.id)))
   }, [test.id])
   const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
   const chip = test.chip ?? t('Диагностика')
@@ -8103,9 +8130,6 @@ export default function TeacherConstructorPage() {
   // вторая раскрытая сворачивает первую, иначе сетка расползается.
   const [testGroup, setTestGroup] = usePersistentState<'stack' | 'flat'>('ctor.testGroup', 'stack')
   const [openSeries, setOpenSeries] = useState<string | null>(null)
-  // Серия, которую только что раскрыли или собрали: её плитки въезжают с
-  // проявлением. Остальные при первом показе витрины не анимируются.
-  const [seriesFx, setSeriesFx] = useState<string | null>(null)
   // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
   // 1:1-ученик живёт отдельной записью на каждый предмет, и по одной из них
   // нашлась бы только часть его курсов.
@@ -8590,6 +8614,19 @@ export default function TeacherConstructorPage() {
   // растворением краёв), чтобы таблица результатов встала сразу под ними, а не
   // уезжала под все карточки.
   const diagScroll = useOverlayScroll()
+  // Клик мимо плиток и таблицы снимает выбор теста — таблица результатов
+  // уходит. Кнопки, поля, меню и диалоги не в счёт: сортировка или фильтр не
+  // должны сбрасывать выбранный тест. Открытая карточка ученика тоже держит выбор.
+  useEffect(() => {
+    if (activeTab !== 'testing' || !selectedId || editMode || diagEditing || diagCreating || assignModal || selectedResultId) return
+    const onDown = (e: PointerEvent) => {
+      const el = e.target as Element | null
+      if (!el?.isConnected || el.closest('[data-diag-id], [data-diag-keep], button, a, input, textarea, select, label, [role="menu"], [role="listbox"], [role="dialog"]')) return
+      setSelectedId(null)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [activeTab, selectedId, editMode, diagEditing, diagCreating, assignModal, selectedResultId])
   const diagClamp = activeTab === 'testing' && !!selectedId && !editMode
   // Открыта панель ученика — вся колонка тестов (фильтр, карточки, таблица)
   // уступает ей место: сетка перестраивается в меньше столбцов и листается
@@ -9039,7 +9076,7 @@ export default function TeacherConstructorPage() {
         ) : (
           <motion.div
             key="list"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={false}
             style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
           >
             <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -9365,7 +9402,8 @@ export default function TeacherConstructorPage() {
               )}
               <div style={{ position: 'relative', ...diagShiftStyle }}>
               {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
-              <div ref={diagScroll.ref} onScroll={diagScroll.onScroll}
+              {/* layoutScroll: переезды плиток меряются с учётом прокрутки окна. */}
+              <motion.div layoutScroll ref={diagScroll.ref} onScroll={diagScroll.onScroll}
                 className={diagClampH != null ? 'no-scrollbar' : undefined}
                 style={diagClampH != null ? {
                   maxHeight: diagClampH, overflowY: 'auto', overscrollBehavior: 'contain',
@@ -9374,7 +9412,7 @@ export default function TeacherConstructorPage() {
                   ...diagScroll.maskStyle,
                 } : undefined}>
               <div
-                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: DIAG_GRID_GAP }}>
+                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: DIAG_GRID_GAP, position: 'relative' }}>
                 {activeTab === 'course' && dbLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
                 {activeTab === 'course' && filteredCourses.map(c => (
@@ -9437,15 +9475,17 @@ export default function TeacherConstructorPage() {
                 ))}
                 {/* layout у каждой клетки: раскрытая серия раздвигает соседей, а не
                     перескакивает — плитки доезжают до новых мест. */}
-                {activeTab === 'testing' && testCells.map(cell => cell.kind === 'stack' ? (
-                  <motion.div key={`series:${cell.key}`} layout transition={TEST_CELL_T}
-                    initial={seriesFx === cell.key ? { opacity: 0, scale: 0.96 } : false} animate={{ opacity: 1, scale: 1 }}>
+                {activeTab === 'testing' && <AnimatePresence initial={false} mode="popLayout">{testCells.map(cell => cell.kind === 'stack' ? (
+                  // Ключ стопки — id первой части: при раскрытии и «Подряд» стопка
+                  // не исчезает, а сама становится первой частью и доезжает до
+                  // её места; остальные части проявляются рядом.
+                  <motion.div key={cell.parts[0].id} {...TEST_CELL_MOTION} data-diag-keep>
                     <CustomTestStackCard base={cell.base} parts={cell.parts}
                       done={cell.parts.reduce((s, p) => s + (testStats.get(p.id)?.done ?? 0), 0)}
-                      onClick={() => { setSeriesFx(cell.key); setOpenSeries(cell.key) }} />
+                      onClick={() => setOpenSeries(cell.key)} />
                   </motion.div>
                 ) : (() => { const { item, series } = cell; return item.kind === 'builtin' ? (() => { const subject = item.id; return (
-                  <motion.div key={subject} layout transition={TEST_CELL_T} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
+                  <motion.div key={subject} {...TEST_CELL_MOTION} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <DiagnosticCard
                       subject={subject}
                       isSelected={selectedId === subject}
@@ -9465,14 +9505,13 @@ export default function TeacherConstructorPage() {
                     )}
                   </motion.div>
                 ) })() : (() => { const ct = item.ct; return (
-                  <motion.div key={ct.id} layout transition={TEST_CELL_T}
-                    initial={series && seriesFx === series.key ? { opacity: 0, scale: 0.96 } : false} animate={{ opacity: 1, scale: 1 }}
+                  <motion.div key={ct.id} {...TEST_CELL_MOTION}
                     data-diag-id={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <CustomTestCard
                       test={ct}
                       isSelected={selectedId === ct.id}
                       onClick={() => editMode ? toggleCheck(ct.id) : selectedId === ct.id ? openDiagCard(ct.id as DiagSubject) : selectDiagCard(ct.id)}
-                      series={series && { n: series.n, total: series.total, onCollapse: () => { setSeriesFx(series.key); setOpenSeries(null) } }}
+                      series={series && { n: series.n, total: series.total, onCollapse: () => setOpenSeries(null) }}
                     />
                     {editMode && (
                       <div onClick={() => toggleCheck(ct.id)} style={{
@@ -9486,10 +9525,10 @@ export default function TeacherConstructorPage() {
                       </div>
                     )}
                   </motion.div>
-                ) })() })())}
+                ) })() })())}</AnimatePresence>}
               </div>
 
-              </div>
+              </motion.div>
               </div>
 
               {dbLoading && activeTab !== 'course' && (
@@ -9504,6 +9543,7 @@ export default function TeacherConstructorPage() {
                 {activeTab === 'testing' && selectedId && (
                   <motion.div
                     key={`table-${selectedId}`}
+                    data-diag-keep
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.15 }}

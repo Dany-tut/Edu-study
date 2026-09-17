@@ -1078,10 +1078,15 @@ function rowToResult(row: Record<string, unknown>): AnonDiagResult {
 // пока запрос в полёте, они получают один и тот же, и ответ ложится одним
 // рендером, а не десятком вразнобой.
 let anonResultsInFlight: Promise<AnonDiagResult[]> | null = null
+let anonResultsLast: AnonDiagResult[] = []
 export function loadAnonResults(): Promise<AnonDiagResult[]> {
-  if (!anonResultsInFlight) anonResultsInFlight = loadAnonResultsNow().finally(() => { anonResultsInFlight = null })
+  if (!anonResultsInFlight) anonResultsInFlight = loadAnonResultsNow()
+    .then(rs => { anonResultsLast = rs; return rs })
+    .finally(() => { anonResultsInFlight = null })
   return anonResultsInFlight
 }
+/** Последние загруженные результаты — чтобы карточка сразу встала с верным счётчиком. */
+export function peekAnonResults(): AnonDiagResult[] { return anonResultsLast }
 
 async function loadAnonResultsNow(): Promise<AnonDiagResult[]> {
   const { data, error } = await supabase
