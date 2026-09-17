@@ -575,15 +575,16 @@ export default function DiagnosticTestPage() {
             background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-glass)',
             borderRadius: 22, padding: '22px 22px 24px', display: 'flex', flexDirection: 'column', gap: 16,
           }}>
-            {/* Что за тест — меткой сверху, а заголовок карточки отдан вопросу */}
+            {/* Что за тест — меткой сверху, а заголовок карточки отдан вопросу.
+                Длинное название переносится, а не режется многоточием: хвост пропадал на телефоне */}
             <div style={{
-              alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '5px 11px 5px 9px', borderRadius: 999, background: `${theme.accent}1f`,
+              alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'flex-start', gap: 6,
+              padding: '5px 11px 5px 9px', borderRadius: 12, lineHeight: 1.3, background: `${theme.accent}1f`,
               color: theme.accent, fontSize: 12, fontWeight: 600,
             }}>
-              <Target size={13} style={{ flexShrink: 0 }} />
-              <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {t(theme.label).replace(/^Линия\s+\d+\.\s*/, '')} · {total} {t('вопросов')}
+              <Target size={13} style={{ flexShrink: 0, marginTop: 1.5 }} />
+              <span style={{ minWidth: 0 }}>
+                {t(theme.label).replace(/^Линия\s+\d+\.\s*/, '')} · {total}{'\u00A0'}{t('вопросов')}
               </span>
             </div>
             {offer ? (

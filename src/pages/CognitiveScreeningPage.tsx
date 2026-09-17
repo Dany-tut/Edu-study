@@ -980,11 +980,12 @@ export default function CognitiveScreeningPage() {
     <Wrap>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <Card style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '22px 22px 24px' }}>
-          {/* Что за тест — меткой сверху, заголовок карточки отдан вопросу (как во входе в диагностику) */}
-          <div style={{ alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px 5px 9px', borderRadius: 999, background: `${ACC}1f`, color: ACC, fontSize: 12, fontWeight: 600 }}>
-            <Brain size={13} style={{ flexShrink: 0 }} />
-            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {cfg.title} · {seq.length} {t('разделов')} · ~{Math.max(6, seq.length * 2)} {t('минут')}
+          {/* Что за тест — меткой сверху, заголовок карточки отдан вопросу (как во входе в диагностику).
+              Длинная строка переносится, а не режется: «~16 минут» уходил в многоточие на телефоне */}
+          <div style={{ alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'flex-start', gap: 6, padding: '5px 11px 5px 9px', borderRadius: 12, lineHeight: 1.3, background: `${ACC}1f`, color: ACC, fontSize: 12, fontWeight: 600 }}>
+            <Brain size={13} style={{ flexShrink: 0, marginTop: 1.5 }} />
+            <span style={{ minWidth: 0 }}>
+              {cfg.title} · {seq.length}{'\u00A0'}{t('разделов')} · ~{Math.max(6, seq.length * 2)}{'\u00A0'}{t('мин')}
             </span>
           </div>
           <div>
