@@ -252,6 +252,9 @@ export function SegmentFilter<V extends string>({ value, options, onChange }: {
   )
 }
 
+/** Запрос и текст для поиска приводятся к одному виду: регистр, ё = е, пробелы. */
+export const normSearch = (x: string) => x.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim()
+
 /**
  * Поиск по названию — таблетка того же стекла, что фасеты. Узкая, пока пустая,
  * и раздаётся при фокусе или с текстом: ряд фильтров и так длинный, а место
@@ -290,6 +293,6 @@ export function ShelfSearch({ value, onChange, placeholder, style }: {
 }
 
 /** Счётчик в конце ряда фильтров: сколько карточек осталось после отбора. */
-export function ShelfCount({ children }: { children: ReactNode }) {
-  return <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{children}</span>
+export function ShelfCount({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+  return <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)', ...style }}>{children}</span>
 }

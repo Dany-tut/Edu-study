@@ -53,7 +53,7 @@ import MultiSelectField from '../MultiSelectField'
 import TeacherSaveButton from './TeacherSaveButton'
 import { confirmDialog } from '../ConfirmHost'
 import { ContentCard, CardSkeleton } from './ContentCard'
-import { SortDropdown, FacetDropdown, ShelfCount } from './ShelfFilters'
+import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, normSearch } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 
 /** Языки, на которых вообще бывает тренажёр, — по реестру предметов. */
@@ -151,8 +151,14 @@ export function parseBulk(text: string): SetCard[] {
     .filter((x): x is SetCard => !!x)
 }
 
-export default function CardGroupsManager({ createNonce = 0, lang }: {
+export default function CardGroupsManager({ createNonce = 0, lang, query: outerQuery, onQuery }: {
   createNonce?: number
+  /**
+   * Поиск держит вкладка «Материалы»: запрос не теряется при переходе между
+   * подборками и остальными полками. Без пропа — свой.
+   */
+  query?: string
+  onQuery?: (v: string) => void
   /**
    * Язык, выбранный вкладкой «Материалы».
    *
@@ -168,6 +174,10 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
   const students = useAllStudents()
 
   const [ownerId, setOwnerId] = useState<string | null>(null)
+  const [ownQuery, setOwnQuery] = useState('')
+  const query = outerQuery ?? ownQuery
+  const setQuery = onQuery ?? setOwnQuery
+  const needle = normSearch(query)
   const [groups, setGroups] = useState<CardGroup[]>([])
   const [seeds, setSeeds] = useState<CardGroup[]>([])
   const [loading, setLoading] = useState(true)
@@ -430,8 +440,10 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
   )
 
   const seedsShown = useMemo(
-    () => (langFilter ? seeds.filter(g => g.lang === langFilter) : seeds),
-    [seeds, langFilter],
+    () => (langFilter ? seeds.filter(g => g.lang === langFilter) : seeds).filter(g => !needle
+      || normSearch(g.title + ' ' + g.about).includes(needle)
+      || g.sets.some(x => normSearch(x.title + ' ' + x.about).includes(needle))),
+    [seeds, langFilter, needle],
   )
 
   const shown = useMemo(() => {
@@ -440,13 +452,14 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
     // Пустой student_ids значит «всем», поэтому такой набор попадает в выборку
     // любого ученика: он его и правда видит.
     if (studentPick) list = list.filter(x => x.group.studentIds.length === 0 || x.group.studentIds.includes(studentPick))
+    if (needle) list = list.filter(x => normSearch(`${x.set.title} ${x.set.about} ${x.group.title}`).includes(needle))
     const at = (x: { set: CardSet }) => x.set.createdAt ?? ''
     const sorted = [...list]
     if (sort === 'az') sorted.sort((a, b) => (a.set.title || '').localeCompare(b.set.title || ''))
     else if (sort === 'cards') sorted.sort((a, b) => b.set.cards.length - a.set.cards.length)
     else sorted.sort((a, b) => sort === 'oldest' ? at(a).localeCompare(at(b)) : at(b).localeCompare(at(a)))
     return sorted
-  }, [items, shelfPick, langFilter, studentPick, sort])
+  }, [items, shelfPick, langFilter, studentPick, needle, sort])
 
 
   return (
@@ -465,7 +478,8 @@ export default function CardGroupsManager({ createNonce = 0, lang }: {
           icon={<Users size={12} />} minWidth={92}
           onChange={setStudentPick}
         />
-        <ShelfCount>{shown.length} {t(plural(shown.length, ['набор', 'набора', 'наборов']))}</ShelfCount>
+        <ShelfSearch value={query} onChange={setQuery} style={{ marginLeft: 'auto' }} />
+        <ShelfCount style={{ marginLeft: 0 }}>{shown.length} {t(plural(shown.length, ['набор', 'набора', 'наборов']))}</ShelfCount>
       </div>
 
       {/* Полки. Это фильтр, а не отдельная сущность в списке: сами карточки

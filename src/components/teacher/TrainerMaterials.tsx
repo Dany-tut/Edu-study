@@ -44,7 +44,8 @@ import {
   type MaterialMode, type MaterialFamily, type MaterialItem, type MaterialBlock,
 } from '../../data/trainerMaterials'
 import { ContentCard, CardSkeleton } from './ContentCard'
-import { SortDropdown, ShelfCount, PILL_GLASS } from './ShelfFilters'
+import { plural } from '../trainer/TrainerShell'
+import { SortDropdown, ShelfCount, ShelfSearch, normSearch, PILL_GLASS } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import SubjectPicker from './SubjectPicker'
 import TeacherSelect from './TeacherSelect'
@@ -182,11 +183,11 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
   useEffect(() => { setLevel(''); setTopic('') }, [familyId, mode])
 
   const shown = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = normSearch(query)
     let list = scoped
     if (level) list = list.filter(x => x.level === level)
     if (topic) list = list.filter(x => x.topic === topic)
-    if (q) list = list.filter(x => (x.title + ' ' + x.about).toLowerCase().includes(q))
+    if (q) list = list.filter(x => normSearch(x.title + ' ' + x.about).includes(q))
     const out = [...list]
     if (sort === 'az') out.sort((a, b) => a.title.localeCompare(b.title))
     else if (sort === 'za') out.sort((a, b) => b.title.localeCompare(a.title))
@@ -203,7 +204,7 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
     <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {onDecks ? (
-          <CardGroupsManager createNonce={createNonce} lang={lang || undefined} />
+          <CardGroupsManager createNonce={createNonce} lang={lang || undefined} query={query} onQuery={setQuery} />
         ) : open ? (
           <MaterialReader item={open} onBack={() => setOpen(null)} />
         ) : (
@@ -211,7 +212,8 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <SortDropdown value={sort} options={SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
               <ViewSwitch value={view} onChange={setView} />
-              <ShelfCount>{shown.length} {t('материалов')}</ShelfCount>
+              <ShelfSearch value={query} onChange={setQuery} style={{ marginLeft: 'auto' }} />
+              <ShelfCount style={{ marginLeft: 0 }}>{shown.length} {t(plural(shown.length, ['материал', 'материала', 'материалов']))}</ShelfCount>
             </div>
 
             {loading ? (
@@ -263,7 +265,6 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
       </div>
 
       <FilterPanel
-        query={query} onQuery={setQuery}
         lang={lang} onLang={v => { setLang(v); setOpen(null) }}
         mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : ''); setOpen(null) }}
         familyId={familyId} onFamily={id => { setFamilyId(id); setOpen(null) }}
@@ -377,10 +378,9 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
  * одним деревом: полка — это уточнение режима, а не отдельная ось.
  */
 function FilterPanel({
-  query, onQuery, lang, onLang, mode, onMode, familyId, onFamily, families, modeCount,
+  lang, onLang, mode, onMode, familyId, onFamily, families, modeCount,
   level, onLevel, levelOpts, topic, onTopic, topicOpts, dirty, onReset, total, loading,
 }: {
-  query: string; onQuery: (v: string) => void
   lang: string; onLang: (v: string) => void
   mode: MaterialMode | ''; onMode: (v: MaterialMode | '') => void
   familyId: string; onFamily: (v: string) => void
@@ -408,24 +408,6 @@ function FilterPanel({
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Search size={15} style={{ color: MAT_COLOR }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
-      </div>
-
-      <div style={{ position: 'relative' }}>
-        <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)' }} />
-        <input
-          value={query} onChange={e => onQuery(e.target.value)} placeholder={t('Поиск по названию…')}
-          style={{
-            width: '100%', boxSizing: 'border-box', padding: '9px 12px 9px 30px', borderRadius: 11,
-            border: 'none', fontSize: 13, color: 'var(--color-text)',
-            background: 'var(--color-bg-2)', outline: 'none', fontFamily: 'inherit',
-          }}
-        />
-        {query && (
-          <button onClick={() => onQuery('')}
-            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex' }}>
-            <X size={14} />
-          </button>
-        )}
       </div>
 
       {/* Язык — тот же адаптивный контрол, что «Предмет» в банке заданий:

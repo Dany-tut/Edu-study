@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
-import { SortDropdown, FacetDropdown, SegmentFilter, ShelfSearch, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
+import { SortDropdown, FacetDropdown, SegmentFilter, ShelfSearch, normSearch, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -7994,6 +7994,8 @@ export default function TeacherConstructorPage() {
   // когда учитель заглянул в курс и вернулся.
   const [courseSort, setCourseSort] = usePersistentState<CourseSortMode>('ctor.courseSort', 'newest')
   const [courseStatus, setCourseStatus] = usePersistentState<'' | CourseStatus>('ctor.courseStatus', '')
+  const [courseQuery, setCourseQuery] = useState('')
+  const courseNeedle = normSearch(courseQuery)
   const [courseSubject, setCourseSubject] = usePersistentState('ctor.courseSubject', '')
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
   const [testSubject, setTestSubject] = usePersistentState('ctor.testSubject', '')
@@ -8099,14 +8101,13 @@ export default function TeacherConstructorPage() {
     [customTests, testLevelsOf, activeTestSubject, testSubjectOf],
   )
   const activeTestLevel = testLevelOpts.includes(testLevel) ? testLevel : ''
-  const normTitle = (x: string) => x.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim()
-  const testNeedle = normTitle(testQuery)
+  const testNeedle = normSearch(testQuery)
   const testTitleOf = (id: string) => customTests.find(ct => ct.id === id)?.label ?? getSubjectMeta(id as DiagSubject).label
   const testVisible = (id: string) => {
     if (!testSubjectVisible(id)) return false
     if (activeTestLevel && !testLevelsOf.get(id)?.includes(activeTestLevel)) return false
     if (testPass && !!testStats.get(id)?.last !== (testPass === 'taken')) return false
-    if (testNeedle && !normTitle(testTitleOf(id)).includes(testNeedle)) return false
+    if (testNeedle && !normSearch(testTitleOf(id)).includes(testNeedle)) return false
     return true
   }
   // Встроенные и свои тесты — одним списком: иначе сортировка «по прохождениям»
@@ -8184,6 +8185,7 @@ export default function TeacherConstructorPage() {
     if (courseSubject) cs = cs.filter(c => c.subject.trim() === courseSubject)
     if (courseLevel) cs = cs.filter(c => matchesLevel(c, courseLevel))
     if (courseStudent) cs = cs.filter(c => personsByCourse[c.id]?.has(courseStudent))
+    if (courseNeedle) cs = cs.filter(c => normSearch(c.title).includes(courseNeedle))
     const sorted = [...cs]
     if (courseSort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
     // По времени, а не по позиции в массиве: сохранение курса переставляет его
@@ -8191,7 +8193,7 @@ export default function TeacherConstructorPage() {
     // (publishedAt) поднимает курс наверх, обычная правка не двигает вообще.
     const dir = courseSort === 'newest' ? -1 : 1
     return sorted.sort((a, b) => dir * courseSortAt(a).localeCompare(courseSortAt(b)))
-  }, [allCourses, courseSort, courseStatus, courseSubject, courseLevel, courseStudent, personsByCourse])
+  }, [allCourses, courseSort, courseStatus, courseSubject, courseLevel, courseStudent, courseNeedle, personsByCourse])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -9062,7 +9064,8 @@ export default function TeacherConstructorPage() {
                     onChange={setCourseStudent}
                   />
                   <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
+                  <ShelfSearch value={courseQuery} onChange={setCourseQuery} style={{ marginLeft: 'auto' }} />
+                  <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                     {filteredCourses.length} {t(ruPlural(filteredCourses.length, 'курс', 'курса', 'курсов'))}
                   </span>
                 </div>
@@ -9089,7 +9092,7 @@ export default function TeacherConstructorPage() {
                     ]}
                     onChange={setTestPass}
                   />
-                  <ShelfSearch value={testQuery} onChange={setTestQuery} placeholder={t('Поиск')} style={{ marginLeft: 'auto' }} />
+                  <ShelfSearch value={testQuery} onChange={setTestQuery} style={{ marginLeft: 'auto' }} />
                   <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                     {visibleDiagSubjects.length + visibleCustomTests.length} {t(ruPlural(visibleDiagSubjects.length + visibleCustomTests.length, 'тест', 'теста', 'тестов'))}
                   </span>
