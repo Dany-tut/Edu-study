@@ -8945,7 +8945,11 @@ export default function TeacherConstructorPage() {
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', marginTop: -100 }}>
-      <AnimatePresence mode="wait" initial={false}>
+      {/* Без AnimatePresence: `mode="wait"` терял сигнал «выход завершён»
+          (onExit в AnimatePresence/index.mjs), и при входе в тест экран
+          оставался пустым до F5. Экраны меняются ремоунтом по key, анимация
+          только входа — ждать выхода незачем. */}
+      <>
         {creatorMode ? (
           <CreatorView
             key={editCourse ? `edit-${editCourse.id}` : editTrainer ? `edit-tr-${editTrainer.id}` : editingTask ? `edit-task-${editingTask.id}` : editWidget ? `edit-w-${editWidget.id}` : 'creator'}
@@ -9533,7 +9537,7 @@ export default function TeacherConstructorPage() {
             </AnimatePresence>
           </motion.div>
         )}
-      </AnimatePresence>
+      </>
 
     </div>
   )
