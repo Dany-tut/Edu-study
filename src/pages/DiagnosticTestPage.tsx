@@ -592,7 +592,7 @@ export default function DiagnosticTestPage() {
                 <div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Тест не закончен')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>
-                    {offer.p.name} · {t('отвечено')} {Object.keys(offer.p.answers).length} {t('из')} {total}.<br />
+                    <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{offer.p.name}</span> · {t('отвечено')} {Object.keys(offer.p.answers).length} {t('из')} {total}.<br />
                     {t('Ответы сохранены — можно продолжить с того же места.')}
                   </div>
                 </div>
@@ -601,7 +601,8 @@ export default function DiagnosticTestPage() {
                   onClick={() => applyResume(offer.token, offer.p)}
                   style={{ width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer', background: theme.accent, color: '#fff', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
-                  {t('Продолжить как')} {offer.p.name} <ChevronRight size={16} />
+                  {/* Имя уже стоит строкой выше: в кнопке «как Аня Смирнова» переносилось на две строки */}
+                  {t('Продолжить')} <ChevronRight size={16} />
                 </motion.button>
                 <button
                   onClick={startOver}
