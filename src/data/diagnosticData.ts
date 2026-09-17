@@ -21,6 +21,12 @@ export interface DiagQuestion {
    */
   kind?: 'term'
   table?: QTable
+  /**
+   * Картинка к вопросу (путь от корня сайта) — под текстом, над полем ответа.
+   * У 'term' без таблицы ответ вписывается в отдельное поле (Линия 1 ОГЭ:
+   * «рисунок → какое свойство живого»).
+   */
+  image?: string
   /** Принимаемые ответы для 'term'. Пустой — ответ ещё не расставлен. */
   accepts?: string[]
   /** Откуда вопрос (для перенесённых банков), напр. «stepenin.ru · ID 54140». */
@@ -882,7 +888,7 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
   const rows = qs.map((q, pos) => ({
     id: q.id, subject, section: q.section, text: q.text,
     options: q.options, correct: q.correct, position: pos,
-    payload: q.kind ? { kind: q.kind, table: q.table, accepts: q.accepts ?? [], source: q.source } : null,
+    payload: q.kind || q.image ? { kind: q.kind, table: q.table, image: q.image, accepts: q.kind ? q.accepts ?? [] : undefined, source: q.source } : null,
   }))
   const { error } = await supabase
     .from('diag_questions')
@@ -902,30 +908,35 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
 
 // ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
 
-export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string; subject?: string; doneLabel?: string }
+export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string; subject?: string; doneLabel?: string; level?: string; createdAt?: string }
 
 export async function fetchCustomTestsMeta(): Promise<CustomTestMeta[]> {
   const { data, error } = await supabase
     .from('custom_diag_tests')
-    .select('id, label, accent, icon_key, chip, subject, done_label')
+    .select('id, label, accent, icon_key, chip, subject, done_label, level, created_at')
     .order('created_at', { ascending: false })
   if (error) { console.error('fetchCustomTestsMeta:', error); return [] }
-  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string; subject?: string | null; done_label?: string | null }) => ({
+  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string; subject?: string | null; done_label?: string | null; level?: string | null; created_at?: string | null }) => ({
     id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined, chip: r.chip ?? 'Диагностика', subject: r.subject || undefined,
-    doneLabel: r.done_label || undefined,
+    doneLabel: r.done_label || undefined, level: r.level || undefined, createdAt: r.created_at || undefined,
   }))
 }
 
-export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string, chip?: string, subject?: string): Promise<void> {
+export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string, chip?: string, subject?: string, level?: string): Promise<void> {
   const { error } = await supabase
     .from('custom_diag_tests')
-    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}), ...(chip ? { chip } : {}), ...(subject ? { subject } : {}) }, { onConflict: 'id' })
+    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}), ...(chip ? { chip } : {}), ...(subject ? { subject } : {}), ...(level ? { level } : {}) }, { onConflict: 'id' })
   if (error) { console.error('saveCustomTestMeta:', error); throw new Error(error.message) }
 }
 
 export async function updateCustomTestSubject(id: string, subject: string): Promise<void> {
   const { error } = await supabase.from('custom_diag_tests').update({ subject: subject || null }).eq('id', id)
   if (error) console.error('updateCustomTestSubject:', error)
+}
+
+export async function updateCustomTestLevel(id: string, level: string): Promise<void> {
+  const { error } = await supabase.from('custom_diag_tests').update({ level: level || null }).eq('id', id)
+  if (error) console.error('updateCustomTestLevel:', error)
 }
 
 // Подпись над «Молодец!» на финальном экране. Пусто — подписи нет.

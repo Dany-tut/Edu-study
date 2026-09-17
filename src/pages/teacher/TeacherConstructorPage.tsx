@@ -30,13 +30,13 @@ import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLa
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
-import { levelOptions, matchesLevel, levelOptionsForSubject } from '../../lib/courseLevels'
+import { levelOptions, matchesLevel, levelOptionsForSubject, levelBuckets, sortLevels } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   isDiagAnswerCorrect, diagAnswerLabel, diagCorrectLabel, diagListLabel,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult, diagResumeHash,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
-  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject, updateCustomTestDoneLabel,
+  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip, updateCustomTestSubject, updateCustomTestLevel, updateCustomTestDoneLabel,
   loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   type CustomTestMeta,
@@ -1531,6 +1531,14 @@ type CourseSortMode = 'newest' | 'oldest' | 'az'
 const COURSE_SORT_OPTS: [CourseSortMode, string][] = [
   ['newest', 'Новые'], ['oldest', 'Старые'], ['az', 'А → Я'],
 ]
+
+// Тесты: к порядку курсов добавлены «по прохождениям» — учителю важно, что
+// уже раздано и проходится, а не только что создано последним.
+type TestSortMode = CourseSortMode | 'recent' | 'popular'
+const TEST_SORT_OPTS: [TestSortMode, string][] = [
+  ['newest', 'Новые'], ['oldest', 'Старые'], ['recent', 'Недавно проходили'], ['popular', 'Популярные'], ['az', 'А → Я'],
+]
+type TestPassFilter = '' | 'taken' | 'untaken'
 
 function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
   return <SortDropdown value={value} options={COURSE_SORT_OPTS} accent="var(--color-green-text)" onChange={onChange} />
@@ -3778,6 +3786,8 @@ const DIAG_BUILTIN_SUBJECT: Record<DiagSubject, string> = {
   biology: 'Биология', chemistry: 'Химия', 'ap-chem-ru': 'Химия', 'ap-chem-en': 'Химия',
   'eng-placement': 'Английский', 'eng-restore': 'Английский', 'kor-placement': 'Корейский', logic: '',
 }
+// Уровень встроенных тестов — в коде, у них нет строки в custom_diag_tests.
+const DIAG_BUILTIN_LEVEL: Partial<Record<DiagSubject, string[]>> = { 'ap-chem-ru': ['AP'], 'ap-chem-en': ['AP'] }
 const ICON_SUBJECT: Record<string, string> = { Dna: 'Биология', Atom: 'Химия', FlaskConical: 'Химия', Microscope: 'Биология' }
 function testSubjectName(id: string, label?: string, iconKey?: string): string {
   if (id in DIAG_BUILTIN_SUBJECT) return DIAG_BUILTIN_SUBJECT[id as DiagSubject]
@@ -5505,17 +5515,19 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   initialChip?: string
   initialLabel?: string
   initialSubject?: string
+  initialLevel?: string
   onColorChange?: (hex: string) => void
   onIconChange?: (iconKey: string) => void
   onLabelChange?: (newLabel: string) => void
   onChipChange?: (chip: string) => void
   onSubjectChange?: (subject: string) => void
+  onLevelChange?: (level: string) => void
 }>(function DiagnosticEditorFullPage({
   subject, onClose,
   groups, allStudents,
   assignments, onAssign, onDeleteAssignment,
-  initialChip, initialLabel, initialSubject,
-  onColorChange, onIconChange, onLabelChange, onChipChange, onSubjectChange,
+  initialChip, initialLabel, initialSubject, initialLevel,
+  onColorChange, onIconChange, onLabelChange, onChipChange, onSubjectChange, onLevelChange,
 }, ref) {
   const t = useT()
   const initialMeta = getSubjectMeta(subject)
@@ -5553,6 +5565,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
     setSubjectState(next)
     updateCustomTestSubject(subject, next)
     onSubjectChange?.(next)
+  }
+  const [levelState, setLevelState] = useState(initialLevel ?? '')
+  function handleLevelChange(next: string) {
+    setLevelState(next)
+    updateCustomTestLevel(subject, next)
+    onLevelChange?.(next)
   }
 
   const [doneLabelState, setDoneLabelState] = useState(() => DONE_LABEL.get(subject) ?? '')
@@ -5851,6 +5869,14 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
             )}
             {isCustomTest && (
               <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Уровень')}</div>
+                <TeacherSelect value={levelState} onChange={handleLevelChange} placeholder={t('Не указан')}
+                  accent={accent} accentBg={accent + '1f'}
+                  options={[...new Set([...levelOptionsForSubject(subjectState), ...(levelState ? [levelState] : [])])].map(l => ({ value: l, label: t(l) }))} />
+              </div>
+            )}
+            {isCustomTest && (
+              <div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Подпись в конце теста')}</div>
                 <input
                   value={doneLabelState}
@@ -6067,6 +6093,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </div>
                     {questions[editIdx]?.kind === 'term' ? (
                       <>
+                        {questions[editIdx]?.image && (
+                          <img src={questions[editIdx].image} alt="" style={{ display: 'block', maxWidth: '100%', maxHeight: 260, objectFit: 'contain', alignSelf: 'flex-start', background: '#fff', borderRadius: 10, padding: 6 }} />
+                        )}
                         {editTable && (
                           <div>
                             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Таблица')} <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>{t('— «Вписать» = ячейка «?», куда ученик пишет термин')}</span></div>
@@ -6150,6 +6179,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         {q.kind === 'term' ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 40 }}>
                             {q.table && <QuestionTable table={q.table} />}
+                            {q.image && <img src={q.image} alt="" style={{ display: 'block', maxWidth: '100%', maxHeight: 260, objectFit: 'contain', alignSelf: 'flex-start', background: '#fff', borderRadius: 10, padding: 6 }} />}
                             <div style={{ fontSize: 13, color: q.accepts?.length ? 'var(--color-text-2)' : 'var(--color-amber-text)' }}>
                               {q.accepts?.length ? <>{t('Ответ:')} <b style={{ color: 'var(--color-text)' }}>{q.accepts.join(' / ')}</b></> : t('Ответ не задан')}
                             </div>
@@ -7963,6 +7993,9 @@ export default function TeacherConstructorPage() {
   const [courseSubject, setCourseSubject] = usePersistentState('ctor.courseSubject', '')
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
   const [testSubject, setTestSubject] = usePersistentState('ctor.testSubject', '')
+  const [testLevel, setTestLevel] = usePersistentState('ctor.testLevel', '')
+  const [testSort, setTestSort] = usePersistentState<TestSortMode>('ctor.testSort', 'newest')
+  const [testPass, setTestPass] = usePersistentState<TestPassFilter>('ctor.testPass', '')
   // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
   // 1:1-ученик живёт отдельной записью на каждый предмет, и по одной из них
   // нашлась бы только часть его курсов.
@@ -8031,9 +8064,66 @@ export default function TeacherConstructorPage() {
   }, [testSubjectOf])
   // Сохранённый отбор мог указывать на предмет, тестов которого больше нет.
   const activeTestSubject = testSubjectOpts.includes(testSubject) ? testSubject : ''
-  const testVisible = (id: string) => !activeTestSubject || testSubjectOf.get(id) === activeTestSubject
-  const visibleDiagSubjects = DIAG_SUBJECTS.filter(testVisible)
-  const visibleCustomTests = customTests.filter(ct => testVisible(ct.id))
+  // Уровни теста — те же корзины, что у курсов. Явный уровень главнее; без
+  // него пробуем название и чип («Химия ЕГЭ»), но только по известным корзинам —
+  // само название уровнем не становится.
+  const testLevelsOf = useMemo(() => {
+    const known = (raw: string) => { const b = levelBuckets(raw); return b.length === 1 && b[0] === raw.trim() ? [] : b }
+    const m = new Map<string, string[]>()
+    DIAG_SUBJECTS.forEach(id => m.set(id, DIAG_BUILTIN_LEVEL[id] ?? []))
+    customTests.forEach(ct => m.set(ct.id, ct.level ? levelBuckets(ct.level) : known(`${ct.label} ${ct.chip ?? ''}`)))
+    return m
+  }, [customTests])
+  // Прохождения по тесту: сколько завершено и когда последний раз кто-то
+  // проходил (брошенные на середине тоже считаются — тест уже в ходу).
+  const testStats = useMemo(() => {
+    const m = new Map<string, { done: number; last: string }>()
+    for (const r of diagAnonResults) {
+      const st = m.get(r.subject) ?? { done: 0, last: '' }
+      if (r.completed) st.done++
+      if (r.timestamp > st.last) st.last = r.timestamp
+      m.set(r.subject, st)
+    }
+    return m
+  }, [diagAnonResults])
+  const testSubjectVisible = (id: string) => !activeTestSubject || testSubjectOf.get(id) === activeTestSubject
+  const testLevelOpts = useMemo(
+    () => sortLevels([...new Set([...DIAG_SUBJECTS, ...customTests.map(ct => ct.id)].filter(testSubjectVisible).flatMap(id => testLevelsOf.get(id) ?? []))]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [customTests, testLevelsOf, activeTestSubject, testSubjectOf],
+  )
+  const activeTestLevel = testLevelOpts.includes(testLevel) ? testLevel : ''
+  const testVisible = (id: string) => {
+    if (!testSubjectVisible(id)) return false
+    if (activeTestLevel && !testLevelsOf.get(id)?.includes(activeTestLevel)) return false
+    if (testPass && !!testStats.get(id)?.last !== (testPass === 'taken')) return false
+    return true
+  }
+  // Встроенные и свои тесты — одним списком: иначе сортировка «по прохождениям»
+  // не могла бы поднять свой тест выше встроенного.
+  const visibleTests = useMemo(() => {
+    const created = new Map(customTests.map(ct => [ct.id, ct.createdAt ?? ''] as const))
+    const titleOf = (id: string) => customTests.find(ct => ct.id === id)?.label ?? getSubjectMeta(id as DiagSubject).label
+    const items: ({ kind: 'builtin'; id: DiagSubject } | { kind: 'custom'; id: string; ct: CustomTest })[] = [
+      ...DIAG_SUBJECTS.filter(testVisible).map(id => ({ kind: 'builtin' as const, id })),
+      ...customTests.filter(ct => testVisible(ct.id)).map(ct => ({ kind: 'custom' as const, id: ct.id, ct })),
+    ]
+    if (testSort === 'newest' || testSort === 'oldest') {
+      // У встроенных даты нет — они старше любого своего; между собой порядок исходный.
+      const dir = testSort === 'newest' ? -1 : 1
+      return items.map((it, i) => ({ it, i })).sort((a, b) =>
+        dir * (created.get(a.it.id) ?? '').localeCompare(created.get(b.it.id) ?? '') || a.i - b.i,
+      ).map(x => x.it)
+    }
+    const sorted = [...items]
+    if (testSort === 'az') return sorted.sort((a, b) => titleOf(a.id).localeCompare(titleOf(b.id), 'ru'))
+    if (testSort === 'recent') return sorted.sort((a, b) => (testStats.get(b.id)?.last ?? '').localeCompare(testStats.get(a.id)?.last ?? ''))
+    return sorted.sort((a, b) => (testStats.get(b.id)?.done ?? 0) - (testStats.get(a.id)?.done ?? 0)
+      || (testStats.get(b.id)?.last ?? '').localeCompare(testStats.get(a.id)?.last ?? ''))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customTests, testSort, testStats, activeTestSubject, activeTestLevel, testPass, testLevelsOf, testSubjectOf])
+  const visibleDiagSubjects = visibleTests.filter(x => x.kind === 'builtin').map(x => x.id as DiagSubject)
+  const visibleCustomTests = visibleTests.flatMap(x => x.kind === 'custom' ? [x.ct] : [])
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(
@@ -8474,7 +8564,7 @@ export default function TeacherConstructorPage() {
       for (const ct of customTests.filter(ct => checkedIds.has(ct.id))) {
         const copy: typeof ct = { ...ct, id: uid(), label: (ct.label) + t(' (копия)') }
         CUSTOM_META.set(copy.id, { label: copy.label, accent: copy.accent, soft: copy.accent + '22' })
-        await saveCustomTestMeta(copy.id, copy.label, copy.accent, copy.iconKey, copy.chip, copy.subject)
+        await saveCustomTestMeta(copy.id, copy.label, copy.accent, copy.iconKey, copy.chip, copy.subject, copy.level)
         setCustomTests(prev => [copy, ...prev])
       }
     }
@@ -8748,6 +8838,7 @@ export default function TeacherConstructorPage() {
             initialChip={customTests.find(ct => ct.id === diagEditing)?.chip ?? builtinChips[diagEditing] ?? undefined}
             initialLabel={customTests.find(ct => ct.id === diagEditing)?.label ?? undefined}
             initialSubject={customTests.find(ct => ct.id === diagEditing)?.subject}
+            initialLevel={customTests.find(ct => ct.id === diagEditing)?.level}
             onClose={() => setDiagEditing(null)}
             groups={diagGroups}
             allStudents={diagAllStudents}
@@ -8776,6 +8867,9 @@ export default function TeacherConstructorPage() {
             }}
             onSubjectChange={(subject) => {
               setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, subject: subject || undefined } : ct))
+            }}
+            onLevelChange={(level) => {
+              setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, level: level || undefined } : ct))
             }}
             onChipChange={(chip) => {
               if (diagEditing && CUSTOM_META.has(diagEditing)) {
@@ -8965,10 +9059,25 @@ export default function TeacherConstructorPage() {
               )}
               {activeTab === 'testing' && testSubjectOpts.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
+                  <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={testSort === 'recent' ? 124 : 88} onChange={setTestSort} />
                   <CourseFacetDropdown
                     value={activeTestSubject} options={testSubjectOpts} allLabel={t('Все предметы')}
                     icon={<span style={{ fontSize: 12 }}>{activeTestSubject ? subjectIcon(activeTestSubject) : '📚'}</span>}
                     onChange={setTestSubject}
+                  />
+                  <CourseFacetDropdown
+                    value={activeTestLevel} options={testLevelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
+                    icon={<TrendingUp size={12} />}
+                    onChange={setTestLevel}
+                  />
+                  <SegmentFilter<TestPassFilter>
+                    value={testPass}
+                    options={[
+                      ['', t('Все')],
+                      ['taken', t('Проходят'), 'var(--color-green-text)'],
+                      ['untaken', t('Без сдач'), 'var(--color-peach-text)'],
+                    ]}
+                    onChange={setTestPass}
                   />
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
                     {visibleDiagSubjects.length + visibleCustomTests.length} {t(ruPlural(visibleDiagSubjects.length + visibleCustomTests.length, 'тест', 'теста', 'тестов'))}
@@ -9160,7 +9269,7 @@ export default function TeacherConstructorPage() {
                     )}
                   </div>
                 ))}
-                {activeTab === 'testing' && visibleDiagSubjects.map(subject => (
+                {activeTab === 'testing' && visibleTests.map(item => item.kind === 'builtin' ? (() => { const subject = item.id; return (
                   <div key={subject} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <DiagnosticCard
                       subject={subject}
@@ -9180,8 +9289,7 @@ export default function TeacherConstructorPage() {
                       </div>
                     )}
                   </div>
-                ))}
-                {activeTab === 'testing' && visibleCustomTests.map(ct => (
+                ) })() : (() => { const ct = item.ct; return (
                   <div key={ct.id} data-diag-id={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <CustomTestCard
                       test={ct}
@@ -9200,7 +9308,7 @@ export default function TeacherConstructorPage() {
                       </div>
                     )}
                   </div>
-                ))}
+                ) })())}
               </div>
 
               </div>
