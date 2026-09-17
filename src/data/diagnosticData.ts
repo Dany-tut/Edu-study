@@ -862,7 +862,28 @@ function withTermBlank(q: DiagQuestion): DiagQuestion {
 }
 
 // Async fetch from Supabase — updates cache and returns fresh questions.
-export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQuestion[]> {
+//
+// Запрос на тест ОДИН, сколько бы его ни ждало. Сетка «Тестов» монтирует
+// десятки карточек, и каждая спрашивала свои вопросы сама; вернувшись из
+// редактора, учитель ловил те же запросы заново, а ответы, приходя вразнобой,
+// перерисовывали сетку волнами — экран дёргался два-три раза. Поэтому: общий
+// запрос на время полёта, свежий кэш не ходит в сеть вовсе, а совпавший с кэшем
+// ответ отдаёт прежний массив — setState с тем же массивом ничего не рисует.
+const QUESTIONS_FRESH_MS = 30_000
+const questionsFetchedAt = new Map<DiagSubject, number>()
+const questionsInFlight = new Map<DiagSubject, Promise<DiagQuestion[]>>()
+
+export function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQuestion[]> {
+  const at = questionsFetchedAt.get(subject)
+  if (at != null && Date.now() - at < QUESTIONS_FRESH_MS) return Promise.resolve(loadDiagQuestions(subject))
+  const pending = questionsInFlight.get(subject)
+  if (pending) return pending
+  const p = fetchDiagQuestionsNow(subject).finally(() => questionsInFlight.delete(subject))
+  questionsInFlight.set(subject, p)
+  return p
+}
+
+async function fetchDiagQuestionsNow(subject: DiagSubject): Promise<DiagQuestion[]> {
   const { data, error } = await supabase
     .from('diag_questions')
     .select('id, section, text, options, correct, payload')
@@ -877,6 +898,9 @@ export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQues
     correct: r.correct as number,
     ...((r.payload as Partial<DiagQuestion> | null) ?? {}),
   }))
+  questionsFetchedAt.set(subject, Date.now())
+  const cached = questionsCache.get(subject)
+  if (cached && JSON.stringify(cached) === JSON.stringify(qs)) return cached
   questionsCache.set(subject, qs)
   return qs
 }
@@ -1050,7 +1074,16 @@ function rowToResult(row: Record<string, unknown>): AnonDiagResult {
   }
 }
 
-export async function loadAnonResults(): Promise<AnonDiagResult[]> {
+// Все карточки сетки тестов монтируются разом и каждая просит результаты —
+// пока запрос в полёте, они получают один и тот же, и ответ ложится одним
+// рендером, а не десятком вразнобой.
+let anonResultsInFlight: Promise<AnonDiagResult[]> | null = null
+export function loadAnonResults(): Promise<AnonDiagResult[]> {
+  if (!anonResultsInFlight) anonResultsInFlight = loadAnonResultsNow().finally(() => { anonResultsInFlight = null })
+  return anonResultsInFlight
+}
+
+async function loadAnonResultsNow(): Promise<AnonDiagResult[]> {
   const { data, error } = await supabase
     .from('diag_results')
     .select('*')

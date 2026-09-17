@@ -378,6 +378,7 @@ function BellPopup({ onClose }: { onClose: () => void }) {
     <div className="lp-pop" style={{
       position: 'absolute', top: 36, right: 0, width: 260, zIndex: 5, padding: 8,
       borderRadius: 12, background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+      backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       boxShadow: '0 18px 40px -14px rgba(20,12,50,.45)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '2px 6px 8px' }}>

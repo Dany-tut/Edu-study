@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle, type ReactNode } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
 import { SortDropdown, FacetDropdown, SegmentFilter, ShelfSearch, normSearch, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
@@ -5503,6 +5503,56 @@ function useAnchoredPos(anchorRef: React.RefObject<HTMLElement | null> | undefin
   return pos
 }
 
+// Карточка вопроса в превью редактора теста. Без стеклянного размытия: их
+// в ленте десятки, и backdrop-filter на каждой внутри затухающей страницы
+// пересчитывался кадр за кадром — вход и выход из редактора шли рывками.
+// Фон под ними ровный, так что без размытия карточка выглядит так же. В memo —
+// чтобы перерисовки редактора и родителя (докинг шапки, результаты, назначения)
+// не проходили заново по всем вопросам с таблицами.
+const PREVIEW_CARD: React.CSSProperties = {
+  background: 'rgba(var(--glass-rgb), 0.88)',
+  border: '1px solid var(--color-border-glass)',
+  borderRadius: 18,
+  boxShadow: 'var(--shadow-sm-page)',
+}
+const DiagPreviewQuestion = memo(function DiagPreviewQuestion({ q, idx, accent, accentFill, soft }: {
+  q: DiagQuestion; idx: number; accent: string; accentFill: string; soft: string
+}) {
+  const t = useT()
+  return (
+    <div style={{ ...PREVIEW_CARD, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: `${accent}22`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</div>
+        <div style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, paddingTop: 3 }}>{q.text || t('Без текста')}</div>
+      </div>
+      {q.kind === 'term' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 40 }}>
+          {q.table && <QuestionTable table={q.table} />}
+          {q.image && <img src={q.image} alt="" style={{ display: 'block', maxWidth: '100%', maxHeight: 260, objectFit: 'contain', alignSelf: 'flex-start', background: '#fff', borderRadius: 10, padding: 6 }} />}
+          <div style={{ fontSize: 13, color: q.accepts?.length ? 'var(--color-text-2)' : 'var(--color-amber-text)' }}>
+            {q.accepts?.length ? <>{t('Ответ:')} <b style={{ color: 'var(--color-text)' }}>{q.accepts.join(' / ')}</b></> : t('Ответ не задан')}
+          </div>
+        </div>
+      ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 40 }}>
+        {q.options.map((opt, oi) => {
+          const isCorrect = q.correct === oi
+          return (
+            <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: 'none', background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accentFill : 'var(--color-border-medium)'}`, background: isCorrect ? accentFill : 'transparent', position: 'relative', boxShadow: isCorrect ? accentCircleShadow(accentFill) : 'none' }}>
+                {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
+              <div style={{ flex: 1, fontSize: 13.5, color: 'var(--color-text)' }}>{opt || <span style={{ color: 'var(--color-text-4)' }}>—</span>}</div>
+            </div>
+          )
+        })}
+      </div>
+      )}
+    </div>
+  )
+})
+
 // ─── DiagnosticEditorFullPage — 2-column: left=assignment, right=questions ────
 type DiagEditorHandle = { saveDraft: () => void }
 const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
@@ -6171,36 +6221,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </GlassCard>
                   ) : (
                     questions.map((q, idx) => (
-                      <GlassCard key={q.id} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${accent}22`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</div>
-                          <div style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, paddingTop: 3 }}>{q.text || t('Без текста')}</div>
-                        </div>
-                        {q.kind === 'term' ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 40 }}>
-                            {q.table && <QuestionTable table={q.table} />}
-                            {q.image && <img src={q.image} alt="" style={{ display: 'block', maxWidth: '100%', maxHeight: 260, objectFit: 'contain', alignSelf: 'flex-start', background: '#fff', borderRadius: 10, padding: 6 }} />}
-                            <div style={{ fontSize: 13, color: q.accepts?.length ? 'var(--color-text-2)' : 'var(--color-amber-text)' }}>
-                              {q.accepts?.length ? <>{t('Ответ:')} <b style={{ color: 'var(--color-text)' }}>{q.accepts.join(' / ')}</b></> : t('Ответ не задан')}
-                            </div>
-                          </div>
-                        ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 40 }}>
-                          {q.options.map((opt, oi) => {
-                            const isCorrect = q.correct === oi
-                            return (
-                              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: 'none', background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
-                                <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accentFill : 'var(--color-border-medium)'}`, background: isCorrect ? accentFill : 'transparent', position: 'relative', boxShadow: isCorrect ? accentCircleShadow(accentFill) : 'none' }}>
-                                  {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
-                                </div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
-                                <div style={{ flex: 1, fontSize: 13.5, color: 'var(--color-text)' }}>{opt || <span style={{ color: 'var(--color-text-4)' }}>—</span>}</div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                        )}
-                      </GlassCard>
+                      <DiagPreviewQuestion key={q.id} q={q} idx={idx} accent={accent} accentFill={accentFill} soft={soft} />
                     ))
                   )}
                 </>
@@ -7494,7 +7515,74 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
   )
 }
 
-function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSelected: boolean; onClick: () => void }) {
+// «Свойства живого, часть 2» → серия «Свойства живого», часть 2. Серии на
+// витрине тестов лежат стопкой (CustomTestStackCard), а не десятком плиток
+// с одинаковым началом названия.
+const TEST_CELL_T = { layout: { type: 'spring', stiffness: 520, damping: 44 } } as const
+const TEST_PART_RE =/^(.*?)[\s,.:—–-]+часть\s+(\d+)\s*$/i
+function testSeriesOf(label: string): { base: string; part: number } | null {
+  const m = TEST_PART_RE.exec(label.trim())
+  return m && m[1] ? { base: m[1], part: Number(m[2]) } : null
+}
+
+/**
+ * Серия частей одной плиткой — та же пачка, что у стопки в тренажёре (Tile
+ * со `stack`): два листа сзади выглядывают сверху-справа ВНУТРИ клетки сетки,
+ * поэтому стопка не вылезает на соседей и не ломает ровные ряды.
+ */
+function CustomTestStackCard({ base, parts, done, onClick }: {
+  base: string; parts: CustomTest[]; done: number; onClick: () => void
+}) {
+  const t = useT()
+  const head = parts[0]
+  const ids = parts.map(p => p.id).join('|')
+  const [qCount, setQCount] = useState(() => parts.reduce((s, p) => s + loadDiagQuestions(p.id as DiagSubject).length, 0))
+  useEffect(() => {
+    Promise.all(parts.map(p => fetchDiagQuestions(p.id as DiagSubject)))
+      .then(all => setQCount(all.reduce((s, qs) => s + qs.length, 0)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ids])
+  const [hover, setHover] = useState(false)
+  const CardIcon = (head.iconKey ? getIconByKey(head.iconKey) : null) as React.ElementType | null
+  const chip = head.chip ?? t('Диагностика')
+  const dark = useTheme(s => s.dark)
+  const { color: chipColor } = getChipStyle(chip, head.accent, dark)
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ position: 'relative', height: '100%', boxSizing: 'border-box', paddingTop: 8, paddingRight: 8 }}>
+      {[2, 1].map(k => (
+        <div key={k} aria-hidden style={{
+          position: 'absolute', left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
+          // Радиус растёт со смещением — дуги листов концентричны углу карточки.
+          borderRadius: 20 + k * 4,
+          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)',
+          opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
+          transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
+        }} />
+      ))}
+      <ContentCard
+        accentColor={head.accent} accentBg={head.accent + '22'} borderColor='var(--color-border-glass)'
+        isSelected={false} onClick={onClick}
+        icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: head.accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: head.accent }} />}
+        badge={<>
+          <span style={cardChipTone('purple')}>×{parts.length}</span>
+          {head.level && <span style={cardChipTone(head.level === 'ОГЭ' ? 'peach' : head.level === 'ЕГЭ' ? 'blue' : 'purple')}>{t(head.level)}</span>}
+          <span style={cardChip(chipColor)}>{t(chip)}</span>
+        </>}
+        title={base}
+        subtitle={`${parts.length} ${t(ruPlural(parts.length, 'часть', 'части', 'частей'))}${qCount > 0 ? ` · ${qCount}${t(' вопросов')}` : ''}`}
+        footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{done > 0 ? done + t(' прошли тест') : t('Нет сдач')}</span></>}
+        footerRight={<><Layers size={11} strokeWidth={2} />{t('Серия')}</>}
+      />
+    </div>
+  )
+}
+
+function CustomTestCard({ test, isSelected, onClick, series }: {
+  test: CustomTest; isSelected: boolean; onClick: () => void
+  /** Часть раскрытой серии: чип «n/N» собирает серию обратно в стопку. */
+  series?: { n: number; total: number; onCollapse: () => void }
+}) {
   const t = useT()
   const { label, accent } = test
   const soft = accent + '22'
@@ -7514,6 +7602,13 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
       isSelected={isSelected} onClick={onClick}
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<>
+        {series && (
+          <button type="button" title={t('Собрать серию в стопку')}
+            onClick={e => { e.stopPropagation(); series.onCollapse() }}
+            style={cardChipTone('purple', { display: 'inline-flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}>
+            <Layers size={10} strokeWidth={2.4} />{series.n}/{series.total}
+          </button>
+        )}
         {/* Уровень отдельным чипом: у ЕГЭ и ОГЭ бывают одинаковые названия и «Линия 1». */}
         {test.level && <span style={cardChipTone(test.level === 'ОГЭ' ? 'peach' : test.level === 'ЕГЭ' ? 'blue' : 'purple')}>{t(test.level)}</span>}
         <span style={cardChip(chipColor)}>{t(chip)}</span>
@@ -8004,6 +8099,13 @@ export default function TeacherConstructorPage() {
   const [testQuery, setTestQuery] = useState('')
   const [testSort, setTestSort] = usePersistentState<TestSortMode>('ctor.testSort', 'newest')
   const [testPass, setTestPass] = usePersistentState<TestPassFilter>('ctor.testPass', '')
+  // Части серии («…, часть 2») — стопкой или подряд. Раскрыта одна серия за раз:
+  // вторая раскрытая сворачивает первую, иначе сетка расползается.
+  const [testGroup, setTestGroup] = usePersistentState<'stack' | 'flat'>('ctor.testGroup', 'stack')
+  const [openSeries, setOpenSeries] = useState<string | null>(null)
+  // Серия, которую только что раскрыли или собрали: её плитки въезжают с
+  // проявлением. Остальные при первом показе витрины не анимируются.
+  const [seriesFx, setSeriesFx] = useState<string | null>(null)
   // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
   // 1:1-ученик живёт отдельной записью на каждый предмет, и по одной из них
   // нашлась бы только часть его курсов.
@@ -8135,6 +8237,43 @@ export default function TeacherConstructorPage() {
   }, [customTests, testSort, testStats, activeTestSubject, activeTestLevel, testPass, testNeedle, testLevelsOf, testSubjectOf])
   const visibleDiagSubjects = visibleTests.filter(x => x.kind === 'builtin').map(x => x.id as DiagSubject)
   const visibleCustomTests = visibleTests.flatMap(x => x.kind === 'custom' ? [x.ct] : [])
+  // Клетки сетки: серия встаёт на место своей первой части в текущей сортировке
+  // (при «Недавно проходили» — самой свежей), внутри — по номеру части.
+  // Одна оставшаяся под фильтром часть — обычная плитка. В режиме правки всё
+  // подряд: галочки ставятся на тесты, а не на стопки.
+  type TestItem = (typeof visibleTests)[number]
+  type TestCell =
+    | { kind: 'item'; item: TestItem; series?: { key: string; n: number; total: number } }
+    | { kind: 'stack'; key: string; base: string; parts: CustomTest[] }
+  const testCells = useMemo<TestCell[]>(() => {
+    if (editMode || testGroup === 'flat') return visibleTests.map(item => ({ kind: 'item', item }))
+    const seriesKey = (ct: CustomTest) => {
+      const s = testSeriesOf(ct.label)
+      return s ? `${testSubjectOf.get(ct.id) ?? ''}|${ct.level ?? ''}|${s.base.toLowerCase()}` : null
+    }
+    const groups = new Map<string, CustomTest[]>()
+    for (const it of visibleTests) {
+      if (it.kind !== 'custom') continue
+      const k = seriesKey(it.ct)
+      if (k) groups.set(k, [...(groups.get(k) ?? []), it.ct])
+    }
+    const cells: TestCell[] = []
+    const placed = new Set<string>()
+    for (const it of visibleTests) {
+      const k = it.kind === 'custom' ? seriesKey(it.ct) : null
+      const parts = k ? groups.get(k)! : []
+      if (!k || parts.length < 2) { cells.push({ kind: 'item', item: it }); continue }
+      if (placed.has(k)) continue
+      placed.add(k)
+      const ordered = [...parts].sort((a, b) => testSeriesOf(a.label)!.part - testSeriesOf(b.label)!.part)
+      if (openSeries === k) {
+        ordered.forEach((ct, i) => cells.push({ kind: 'item', item: { kind: 'custom', id: ct.id, ct }, series: { key: k, n: i + 1, total: ordered.length } }))
+      } else {
+        cells.push({ kind: 'stack', key: k, base: testSeriesOf(ordered[0].label)!.base, parts: ordered })
+      }
+    }
+    return cells
+  }, [visibleTests, editMode, testGroup, openSeries, testSubjectOf])
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(
@@ -8494,11 +8633,13 @@ export default function TeacherConstructorPage() {
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diagShift])
+  // Выделение снимаем не здесь, а на закрытии редактора. Сброс в момент
+  // открытия разжимал сетку и убирал таблицу результатов прямо во время
+  // затухания списка — экран дёргался. Результаты уже загружены выбором
+  // карточки, повторный запрос лишь перерисовывал родителя поверх монтирования
+  // редактора.
   function openDiagCard(subject: DiagSubject) {
     setDiagEditing(subject)
-    setSelectedId(null)
-    setSelectedResultId(null)
-    loadAnonResults().then(setDiagAnonResults)
   }
   function closeEditor() { setSelectedId(null); setDiagEditing(null); setSelectedResultId(null) }
 
@@ -8851,7 +8992,7 @@ export default function TeacherConstructorPage() {
             initialLabel={customTests.find(ct => ct.id === diagEditing)?.label ?? undefined}
             initialSubject={customTests.find(ct => ct.id === diagEditing)?.subject}
             initialLevel={customTests.find(ct => ct.id === diagEditing)?.level}
-            onClose={() => setDiagEditing(null)}
+            onClose={closeEditor}
             groups={diagGroups}
             allStudents={diagAllStudents}
             assignments={assignments}
@@ -9092,6 +9233,13 @@ export default function TeacherConstructorPage() {
                     ]}
                     onChange={setTestPass}
                   />
+                  {!editMode && (
+                    <SegmentFilter<'stack' | 'flat'>
+                      value={testGroup}
+                      options={[['stack', t('Стопками')], ['flat', t('Подряд')]]}
+                      onChange={v => { setTestGroup(v); setOpenSeries(null) }}
+                    />
+                  )}
                   <ShelfSearch value={testQuery} onChange={setTestQuery} style={{ marginLeft: 'auto' }} />
                   <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                     {visibleDiagSubjects.length + visibleCustomTests.length} {t(ruPlural(visibleDiagSubjects.length + visibleCustomTests.length, 'тест', 'теста', 'тестов'))}
@@ -9283,8 +9431,17 @@ export default function TeacherConstructorPage() {
                     )}
                   </div>
                 ))}
-                {activeTab === 'testing' && visibleTests.map(item => item.kind === 'builtin' ? (() => { const subject = item.id; return (
-                  <div key={subject} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
+                {/* layout у каждой клетки: раскрытая серия раздвигает соседей, а не
+                    перескакивает — плитки доезжают до новых мест. */}
+                {activeTab === 'testing' && testCells.map(cell => cell.kind === 'stack' ? (
+                  <motion.div key={`series:${cell.key}`} layout transition={TEST_CELL_T}
+                    initial={seriesFx === cell.key ? { opacity: 0, scale: 0.96 } : false} animate={{ opacity: 1, scale: 1 }}>
+                    <CustomTestStackCard base={cell.base} parts={cell.parts}
+                      done={cell.parts.reduce((s, p) => s + (testStats.get(p.id)?.done ?? 0), 0)}
+                      onClick={() => { setSeriesFx(cell.key); setOpenSeries(cell.key) }} />
+                  </motion.div>
+                ) : (() => { const { item, series } = cell; return item.kind === 'builtin' ? (() => { const subject = item.id; return (
+                  <motion.div key={subject} layout transition={TEST_CELL_T} data-diag-id={subject} className={flashId === subject ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <DiagnosticCard
                       subject={subject}
                       isSelected={selectedId === subject}
@@ -9302,13 +9459,16 @@ export default function TeacherConstructorPage() {
                         {checkedIds.has(subject) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 ) })() : (() => { const ct = item.ct; return (
-                  <div key={ct.id} data-diag-id={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
+                  <motion.div key={ct.id} layout transition={TEST_CELL_T}
+                    initial={series && seriesFx === series.key ? { opacity: 0, scale: 0.96 } : false} animate={{ opacity: 1, scale: 1 }}
+                    data-diag-id={ct.id} className={flashId === ct.id ? 'constructor-card-flash' : undefined} style={{ position: 'relative' }}>
                     <CustomTestCard
                       test={ct}
                       isSelected={selectedId === ct.id}
                       onClick={() => editMode ? toggleCheck(ct.id) : selectedId === ct.id ? openDiagCard(ct.id as DiagSubject) : selectDiagCard(ct.id)}
+                      series={series && { n: series.n, total: series.total, onCollapse: () => { setSeriesFx(series.key); setOpenSeries(null) } }}
                     />
                     {editMode && (
                       <div onClick={() => toggleCheck(ct.id)} style={{
@@ -9321,8 +9481,8 @@ export default function TeacherConstructorPage() {
                         {checkedIds.has(ct.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
                       </div>
                     )}
-                  </div>
-                ) })())}
+                  </motion.div>
+                ) })() })())}
               </div>
 
               </div>
