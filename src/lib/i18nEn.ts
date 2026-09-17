@@ -261,6 +261,7 @@ export const EN: Record<string, string> = {
   "Подряд": "Expanded",
   "Раскрыто": "Open",
   "Собрать серию в стопку": "Stack the series",
+  "Собрать все серии в стопки": "Stack all series",
   "часть": "part",
   "части": "parts",
   "частей": "parts",

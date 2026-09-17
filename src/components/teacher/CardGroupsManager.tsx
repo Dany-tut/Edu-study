@@ -151,6 +151,10 @@ export function parseBulk(text: string): SetCard[] {
     .filter((x): x is SetCard => !!x)
 }
 
+// Витрина подборок переживает ремоунт вкладки: без этого каждый заход на
+// «Материалы» начинался со скелетонов, которые сменялись теми же наборами.
+let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup[] } | null = null
+
 export default function CardGroupsManager({ createNonce = 0, lang, query: outerQuery, onQuery }: {
   createNonce?: number
   /**
@@ -173,14 +177,19 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
   const { tn } = useTc()
   const students = useAllStudents()
 
-  const [ownerId, setOwnerId] = useState<string | null>(null)
+  const [ownerId, setOwnerId] = useState<string | null>(() => groupsCache?.ownerId ?? null)
   const [ownQuery, setOwnQuery] = useState('')
   const query = outerQuery ?? ownQuery
   const setQuery = onQuery ?? setOwnQuery
   const needle = normSearch(query)
-  const [groups, setGroups] = useState<CardGroup[]>([])
-  const [seeds, setSeeds] = useState<CardGroup[]>([])
-  const [loading, setLoading] = useState(true)
+  const [groups, setGroups] = useState<CardGroup[]>(() => groupsCache?.groups ?? [])
+  const [seeds, setSeeds] = useState<CardGroup[]>(() => groupsCache?.seeds ?? [])
+  const [loading, setLoading] = useState(() => !groupsCache)
+  // Свежие данные уходят в кэш — следующий монтаж встанет с ними, а запрос
+  // лишь сверит их с базой.
+  useEffect(() => {
+    if (!loading) groupsCache = { ownerId, groups, seeds }
+  }, [loading, ownerId, groups, seeds])
 
   // Правится всегда ГРУППА-документ (сохранение считает diff по ней целиком), а
   // `focus` говорит, чем именно занят человек: набором внутри неё или самой

@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
-import { SortDropdown, FacetDropdown, SegmentFilter, ShelfSearch, normSearch, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
+import { SortDropdown, FacetDropdown, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -1674,6 +1674,11 @@ function WidgetGroupsView({
   onDuplicateWidget: (w: Widget) => void; onDeleteWidget: (w: Widget) => void
 }) {
   const t = useT()
+  // Каскад появления — только у плиток, добавленных на уже показанной витрине.
+  // Список монтируется заново при каждом возврате из редактора виджета, и все
+  // плитки выпрыгивали лесенкой — экран дёргался на выходе.
+  const gridShown = useRef(false)
+  useEffect(() => { gridShown.current = true }, [])
   const groups = useMemo(() =>
     (Object.keys(WTYPE_LABEL) as WidgetType[])
       .map(wt => ({ wt, ws: widgets.filter(w => w.type === wt) }))
@@ -1700,9 +1705,9 @@ function WidgetGroupsView({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
               {ws.map((w, i) => (
                 <motion.div key={w.id} style={{ position: 'relative' }}
-                  initial={{ opacity: 0, y: 14, scale: 0.94 }}
+                  initial={gridShown.current ? { opacity: 0, y: 14, scale: 0.94 } : false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: i * 0.03, type: 'spring', stiffness: 380, damping: 28 }}>
+                  transition={{ delay: gridShown.current ? 0 : i * 0.03, type: 'spring', stiffness: 380, damping: 28 }}>
                   <WidgetCard widget={w} isSelected={false}
                     onClick={() => editMode ? onToggleCheck(w.id) : onOpenWidget(w)}
                     actions={undefined} />
@@ -7525,7 +7530,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
   }, [subject])
   return (
     <ContentCard
-      accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
+      accentColor={accent} accentBg={accent + '0d'} borderColor={`color-mix(in srgb, ${accent} 38%, transparent)`}
       isSelected={isSelected} onClick={onClick} morph
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={cardChip(chipColor)}>{t(chip)}</span>}
@@ -7632,7 +7637,6 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
 }) {
   const t = useT()
   const { label, accent } = test
-  const soft = accent + '22'
   const [qCount, setQCount] = useState(() => loadDiagQuestions(test.id as DiagSubject).length)
   const [anonCount, setAnonCount] = useState(() => countDone(peekAnonResults(), test.id))
   useEffect(() => {
@@ -7645,7 +7649,7 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
   const { color: chipColor, bg: chipBg } = getChipStyle(chip, accent, dark)
   return (
     <ContentCard
-      accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
+      accentColor={accent} accentBg={accent + '0d'} borderColor={`color-mix(in srgb, ${accent} 38%, transparent)`}
       isSelected={isSelected} onClick={onClick} morph
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<>
@@ -9389,17 +9393,19 @@ export default function TeacherConstructorPage() {
                     />
                   )}
                   {!editMode && seriesOpenCount > 0 && seriesOpenCount < seriesTotal && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 2px 2px 11px', borderRadius: 999,
-                      background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                    // Вся таблетка — одна кнопка: «Свернуть» внутри только подсказывает действие.
+                    <button type="button" onClick={() => setAllSeries('stack')} title={t('Собрать все серии в стопки')}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 2px 2px 11px', borderRadius: 999,
+                        border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                        background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
                       <Layers size={12} strokeWidth={2.2} />
                       {t('Раскрыто')} {seriesOpenCount} {t('из')} {seriesTotal}
-                      <button type="button" onClick={() => setAllSeries('stack')}
-                        style={{ padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                          fontSize: 12, fontWeight: 700, background: 'var(--color-surface)', color: 'var(--color-purple-text)',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-                        {t('Свернуть все')}
-                      </button>
-                    </div>
+                      {/* Поля как у кнопок SegmentFilter (обёртка 2px + 5px) — таблетка ровно по высоте соседей. */}
+                      <span style={{ padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                        background: 'var(--color-surface)', color: 'var(--color-purple-text)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                        {t('Свернуть')}
+                      </span>
+                    </button>
                   )}
                   <ShelfSearch value={testQuery} onChange={setTestQuery} collapsed={testRowCompact} style={{ marginLeft: 'auto', flexShrink: 0 }} />
                   <span style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
@@ -9446,24 +9452,9 @@ export default function TeacherConstructorPage() {
                     {/* Controls bar */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <WidgetSortDropdown value={widgetFilters.sort} onChange={v => setWidgetFilters(prev => ({ ...prev, sort: v }))} />
-                      <div style={{ display: 'flex', padding: 2, borderRadius: 9, background: 'var(--color-bg-3)', gap: 2 }}>
-                        <button onClick={() => setWidgetFilters(prev => ({ ...prev, viewMode: 'cards', activeGroup: '' }))}
-                          title={t("Карточками")}
-                          style={{ padding: '5px 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                            background: widgetFilters.viewMode === 'cards' ? 'var(--color-surface)' : 'transparent',
-                            color: widgetFilters.viewMode === 'cards' ? 'var(--color-text)' : 'var(--color-text-3)',
-                            boxShadow: widgetFilters.viewMode === 'cards' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
-                          <LayoutGrid size={13} />
-                        </button>
-                        <button onClick={() => setWidgetFilters(prev => ({ ...prev, viewMode: 'groups' }))}
-                          title={t("Группами")}
-                          style={{ padding: '5px 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                            background: widgetFilters.viewMode === 'groups' ? 'var(--color-surface)' : 'transparent',
-                            color: widgetFilters.viewMode === 'groups' ? 'var(--color-text)' : 'var(--color-text-3)',
-                            boxShadow: widgetFilters.viewMode === 'groups' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
-                          <Layers size={13} />
-                        </button>
-                      </div>
+                      <ViewSwitch value={widgetFilters.viewMode}
+                        onChange={v => setWidgetFilters(prev => v === 'cards' ? { ...prev, viewMode: v, activeGroup: '' } : { ...prev, viewMode: v })}
+                        options={[['cards', 'Карточками', LayoutGrid], ['groups', 'Группами', Layers]]} />
                       <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filteredWidgets.length} {t('виджетов')}</span>
                     </div>
 

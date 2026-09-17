@@ -14,9 +14,16 @@
 //
 // АКЦЕНТ — ПАРАМЕТР. Цвет отмеченной строки берётся из вкладки: у курсов
 // зелёный, у виджетов синий, у материалов персиковый. Всё остальное — общее.
+//
+// ПЕРЕКЛЮЧАТЕЛЬ ВИДА — ТОЛЬКО ViewSwitch. «Плитками / списком» (и любой другой
+// выбор вида иконками) стоит на Заданиях, Материалах и Виджетах; пока у каждой
+// вкладки был свой сегмент, поля кнопок разошлись на пиксель-другой, и при
+// переходе между вкладками контрол прыгал по ширине. Размеры зашиты в
+// компонент (кнопка 30×23, иконка 13, обёртка 2px), снаружи — только значения
+// и акцент. Своих сегментов из иконок рядом с сортировкой не пишем.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useRef, type ReactNode, type CSSProperties } from 'react'
+import { useState, useRef, type ReactNode, type CSSProperties, type ComponentType } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUpDown, Search, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
@@ -41,6 +48,37 @@ export const PILL_GLASS: CSSProperties = {
  * остальные, не заводя второй тип данных для опций.
  */
 export const FACET_SEP = '\u0000sep'
+
+/**
+ * Переключатель вида витрины: сегмент из иконок сразу за сортировкой.
+ * Геометрия одна на все вкладки — см. шапку файла; меняется только акцент.
+ */
+export function ViewSwitch<V extends string>({ value, options, accent = 'var(--color-text)', onChange }: {
+  value: V
+  /** [значение, подсказка, иконка lucide] */
+  options: [V, string, ComponentType<{ size?: number }>][]
+  accent?: string
+  onChange: (v: V) => void
+}) {
+  const t = useT()
+  return (
+    <div style={{ display: 'flex', flexShrink: 0, padding: 2, gap: 2, borderRadius: 9, background: 'var(--color-bg-3)', ...PILL_GLASS }}>
+      {options.map(([val, title, Icon]) => {
+        const active = value === val
+        return (
+          <button key={val} type="button" onClick={() => onChange(val)} title={t(title)} aria-label={t(title)} aria-pressed={active}
+            style={{ width: 30, height: 23, padding: 0, flexShrink: 0, borderRadius: 7, border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: active ? 'var(--color-surface)' : 'transparent',
+              color: active ? accent : 'var(--color-text-3)',
+              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
+            <Icon size={13} />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 const pillStyle = (open: boolean, extra?: CSSProperties): CSSProperties => ({
   display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,

@@ -98,7 +98,7 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isSelected ? `1.5px solid ${borderColor ?? accentColor}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: '18px 18px 12px', cursor: 'pointer',
-        boxShadow: isSelected ? `0 0 0 3px ${(borderColor ?? accentColor)}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
+        boxShadow: isSelected ? `0 0 0 3px color-mix(in srgb, ${borderColor ?? accentColor} 14%, transparent), 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
         // Не 'all': transform ведёт framer (наведение, морф), CSS-переход поверх
         // него запаздывает и плитка вздрагивает.
         display: 'flex', flexDirection: 'column', gap: 10, height: '100%',

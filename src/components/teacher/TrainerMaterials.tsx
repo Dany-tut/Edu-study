@@ -45,7 +45,7 @@ import {
 } from '../../data/trainerMaterials'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { plural } from '../trainer/TrainerShell'
-import { SortDropdown, ShelfCount, ShelfSearch, normSearch, PILL_GLASS } from './ShelfFilters'
+import { SortDropdown, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import SubjectPicker from './SubjectPicker'
 import TeacherSelect from './TeacherSelect'
@@ -88,6 +88,11 @@ const DECKS_ID = '__decks'
 /** Материал витрины со своим происхождением: язык и полка, откуда он приехал. */
 type Row = MaterialItem & { lang: string; family: MaterialFamily }
 
+// Витрина по языку переживает ремоунт вкладки: без кэша каждый заход на
+// «Материалы» и каждый возврат из соседнего редактора показывал скелетоны,
+// которые через миг сменялись теми же карточками, — экран мигал.
+const rowsCache = new Map<string, Row[]>()
+
 export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: number }) {
   const t = useT()
 
@@ -99,8 +104,8 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
   const [view, setView] = useState<'cards' | 'rows'>(() =>
     localStorage.getItem('materials-view') === 'rows' ? 'rows' : 'cards')
 
-  const [rows, setRows] = useState<Row[]>([])
-  const [loading, setLoading] = useState(true)
+  const [rows, setRows] = useState<Row[]>(() => rowsCache.get(lang) ?? [])
+  const [loading, setLoading] = useState(() => !rowsCache.has(lang))
   const [open, setOpen] = useState<Row | null>(null)
 
   const [sort, setSort] = useState<SortMode>('az')
@@ -117,6 +122,8 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
   // список и не роняет соседние — витрина без одной полки лучше пустой вкладки.
   useEffect(() => {
     let alive = true
+    const cached = rowsCache.get(lang)
+    if (cached) { setRows(cached); setLoading(false); return }
     setLoading(true)
     setRows([])
     const langs = lang ? [lang] : LANG_OPTIONS.map(o => o.value)
@@ -132,6 +139,7 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
       })),
     ).then(chunks => {
       if (!alive) return
+      rowsCache.set(lang, chunks.flat())
       setRows(chunks.flat())
       setLoading(false)
     })
@@ -211,7 +219,8 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <SortDropdown value={sort} options={SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
-              <ViewSwitch value={view} onChange={setView} />
+              <ViewSwitch value={view} accent={MAT_COLOR} onChange={setView}
+                options={[['cards', 'Плитками', LayoutGrid], ['rows', 'Строками', List]]} />
               <ShelfSearch value={query} onChange={setQuery} style={{ marginLeft: 'auto' }} />
               <ShelfCount style={{ marginLeft: 0 }}>{shown.length} {t(plural(shown.length, ['материал', 'материала', 'материалов']))}</ShelfCount>
             </div>
@@ -291,32 +300,6 @@ const ROWS_BOX: React.CSSProperties = {
 const ROW: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 12,
   background: 'rgba(var(--glass-rgb), 0.88)', padding: '10px 14px',
-}
-
-/**
- * Переключатель вида. Тот же жест и та же геометрия, что у «Виджетов»:
- * сегмент из двух иконок сразу за сортировкой.
- */
-function ViewSwitch({ value, onChange }: { value: 'cards' | 'rows'; onChange: (v: 'cards' | 'rows') => void }) {
-  const t = useT()
-  const btn = (v: 'cards' | 'rows', title: string, icon: React.ReactNode) => (
-    <button
-      onClick={() => onChange(v)} title={title}
-      style={{
-        padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center',
-        background: value === v ? 'var(--color-surface)' : 'transparent',
-        color: value === v ? MAT_COLOR : 'var(--color-text-3)',
-        boxShadow: value === v ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s',
-      }}
-    >{icon}</button>
-  )
-  return (
-    <div style={{ display: 'flex', padding: 2, borderRadius: 9, background: 'var(--color-bg-3)', ...PILL_GLASS, gap: 2 }}>
-      {btn('cards', t('Плитками'), <LayoutGrid size={13} />)}
-      {btn('rows', t('Строками'), <List size={13} />)}
-    </div>
-  )
 }
 
 /**

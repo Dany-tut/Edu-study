@@ -7,6 +7,7 @@ import {
   LayoutGrid, List, ArrowUpDown, Pencil, Zap, Clock, Database,
 } from 'lucide-react'
 import TeacherSelect from './TeacherSelect'
+import { ViewSwitch } from './ShelfFilters'
 import {
   SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
   type Task, type Subject, type QuestionType, type ScoreMode, type TaskChoice, type TaskAnswerKey, type TaskCriterion,
@@ -720,15 +721,8 @@ export function TrainerBankBrowser({
       {/* Controls bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <BankSortDropdown value={sortMode} onChange={setSortMode} />
-        <div style={{ display: 'flex', padding: 2, borderRadius: 9, background: 'var(--color-bg-3)', gap: 2 }}>
-          {([['grid', <LayoutGrid size={13} />], ['list', <List size={13} />]] as const).map(([mode, icon]) => (
-            <button key={mode} onClick={() => setViewMode(mode as ViewMode)} style={{
-              padding: '5px 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
-              background: viewMode === mode ? 'var(--color-surface)' : 'transparent', color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-3)',
-              boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s',
-            }}>{icon}</button>
-          ))}
-        </div>
+        <ViewSwitch value={viewMode} onChange={setViewMode}
+          options={[['grid', 'Карточками', LayoutGrid], ['list', 'Списком', List]]} />
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filtered.length} {t('заданий')}</span>
       </div>
 
