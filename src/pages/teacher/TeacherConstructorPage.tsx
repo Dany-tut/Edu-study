@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
-import { SortDropdown, FacetDropdown, SegmentFilter, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
+import { SortDropdown, FacetDropdown, SegmentFilter, ShelfSearch, PILL_GLASS, FACET_SEP } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -7994,6 +7994,8 @@ export default function TeacherConstructorPage() {
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
   const [testSubject, setTestSubject] = usePersistentState('ctor.testSubject', '')
   const [testLevel, setTestLevel] = usePersistentState('ctor.testLevel', '')
+  // Поиск не переживает перезагрузку: забытый запрос прятал бы тесты без видимой причины.
+  const [testQuery, setTestQuery] = useState('')
   const [testSort, setTestSort] = usePersistentState<TestSortMode>('ctor.testSort', 'newest')
   const [testPass, setTestPass] = usePersistentState<TestPassFilter>('ctor.testPass', '')
   // Отбор «чьи это курсы»: значение — ключ человека, а не строка students.
@@ -8093,10 +8095,14 @@ export default function TeacherConstructorPage() {
     [customTests, testLevelsOf, activeTestSubject, testSubjectOf],
   )
   const activeTestLevel = testLevelOpts.includes(testLevel) ? testLevel : ''
+  const normTitle = (x: string) => x.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim()
+  const testNeedle = normTitle(testQuery)
+  const testTitleOf = (id: string) => customTests.find(ct => ct.id === id)?.label ?? getSubjectMeta(id as DiagSubject).label
   const testVisible = (id: string) => {
     if (!testSubjectVisible(id)) return false
     if (activeTestLevel && !testLevelsOf.get(id)?.includes(activeTestLevel)) return false
     if (testPass && !!testStats.get(id)?.last !== (testPass === 'taken')) return false
+    if (testNeedle && !normTitle(testTitleOf(id)).includes(testNeedle)) return false
     return true
   }
   // Встроенные и свои тесты — одним списком: иначе сортировка «по прохождениям»
@@ -8121,7 +8127,7 @@ export default function TeacherConstructorPage() {
     return sorted.sort((a, b) => (testStats.get(b.id)?.done ?? 0) - (testStats.get(a.id)?.done ?? 0)
       || (testStats.get(b.id)?.last ?? '').localeCompare(testStats.get(a.id)?.last ?? ''))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customTests, testSort, testStats, activeTestSubject, activeTestLevel, testPass, testLevelsOf, testSubjectOf])
+  }, [customTests, testSort, testStats, activeTestSubject, activeTestLevel, testPass, testNeedle, testLevelsOf, testSubjectOf])
   const visibleDiagSubjects = visibleTests.filter(x => x.kind === 'builtin').map(x => x.id as DiagSubject)
   const visibleCustomTests = visibleTests.flatMap(x => x.kind === 'custom' ? [x.ct] : [])
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
@@ -9079,7 +9085,8 @@ export default function TeacherConstructorPage() {
                     ]}
                     onChange={setTestPass}
                   />
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
+                  <ShelfSearch value={testQuery} onChange={setTestQuery} placeholder={t('Поиск')} style={{ marginLeft: 'auto' }} />
+                  <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                     {visibleDiagSubjects.length + visibleCustomTests.length} {t(ruPlural(visibleDiagSubjects.length + visibleCustomTests.length, 'тест', 'теста', 'тестов'))}
                   </span>
                 </div>

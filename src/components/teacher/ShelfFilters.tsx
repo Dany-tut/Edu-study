@@ -16,9 +16,9 @@
 // зелёный, у виджетов синий, у материалов персиковый. Всё остальное — общее.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, type ReactNode, type CSSProperties } from 'react'
+import { useState, useRef, type ReactNode, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, Search, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import ScrollFade from '../ScrollFade'
 
@@ -249,6 +249,43 @@ export function SegmentFilter<V extends string>({ value, options, onChange }: {
         )
       })}
     </div>
+  )
+}
+
+/**
+ * Поиск по названию — таблетка того же стекла, что фасеты. Узкая, пока пустая,
+ * и раздаётся при фокусе или с текстом: ряд фильтров и так длинный, а место
+ * под запрос нужно только когда его вводят. Esc очищает и снимает фокус.
+ */
+export function ShelfSearch({ value, onChange, placeholder, style }: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  style?: CSSProperties
+}) {
+  const t = useT()
+  const ref = useRef<HTMLInputElement>(null)
+  const [focus, setFocus] = useState(false)
+  const wide = focus || !!value
+  return (
+    <label style={pillStyle(focus, { cursor: 'text', ...style })}>
+      <Search size={12} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+      <input ref={ref} value={value} placeholder={placeholder ?? t('Поиск')}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
+        onKeyDown={e => { if (e.key === 'Escape') { onChange(''); ref.current?.blur() } }}
+        style={{
+          width: wide ? 180 : 64, transition: 'width 0.18s ease',
+          border: 'none', outline: 'none', background: 'transparent', padding: 0,
+          font: 'inherit', fontWeight: 500, color: 'var(--color-text)', lineHeight: '15px',
+        }} />
+      {value
+        ? <button type="button" aria-label={t('Очистить')} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(''); ref.current?.focus() }}
+            style={{ display: 'flex', padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-3)' }}>
+            <X size={12} />
+          </button>
+        : <span style={{ width: 12, flexShrink: 0 }} />}
+    </label>
   )
 }
 
