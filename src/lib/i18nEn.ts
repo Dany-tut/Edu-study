@@ -4244,6 +4244,10 @@ export const EN: Record<string, string> = {
   'материалов в базе': 'materials in the base',
   'Скопировать путь к файлу': 'Copy the file path',
   'Путь скопирован': 'Path copied',
+  'Полка': 'Shelf',
+  'Объём': 'Size',
+  'Материала с таким адресом нет — возможно, его убрали или переименовали в коде.': 'No material at this address — it may have been removed or renamed in code.',
+  'Без темы': 'No topic',
 
   // «Лента и жесты» — раскладка свайпов по посту
   'Лента и жесты': 'Feed and gestures',

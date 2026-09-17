@@ -69,7 +69,7 @@ import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type T
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { questionToBankTask, type ImportedQuestion } from '../../lib/googleFormsImport'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
-import TrainerMaterials from '../../components/teacher/TrainerMaterials'
+import TrainerMaterials, { MaterialPage, type MaterialRef } from '../../components/teacher/TrainerMaterials'
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useTaskMeta, mergeOptions, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
@@ -7966,6 +7966,23 @@ export default function TeacherConstructorPage() {
     else localStorage.removeItem('constructor-selected-id')
   }, [selectedId])
   const [diagEditing, setDiagEditing] = useState<string | null>(null)
+  /**
+   * Открытый материал «Материалов» — отдельной страницей вместо вкладок.
+   *
+   * В sessionStorage, как открытое задание: F5 возвращает на ту же страницу.
+   * Прокрутка витрины запоминается перед входом и ставится обратно на выходе —
+   * витрина размонтируется, и без этого «Назад» бросал бы наверх сетки.
+   */
+  const [openMaterial, setOpenMaterial] = usePersistentState<MaterialRef | null>('constructor.material', null)
+  const listScrollRef = useRef<HTMLDivElement>(null)
+  const listScrollTop = useRef(0)
+  const openMaterialPage = useCallback((ref: MaterialRef) => {
+    listScrollTop.current = listScrollRef.current?.scrollTop ?? 0
+    setOpenMaterial(ref)
+  }, [setOpenMaterial])
+  useLayoutEffect(() => {
+    if (!openMaterial && listScrollRef.current) listScrollRef.current.scrollTop = listScrollTop.current
+  }, [openMaterial])
   const [diagCreating, setDiagCreating] = useState(false)
   const [customTests, setCustomTests] = useState<CustomTest[]>(() => _cachedCustomTests ?? [])
   useEffect(() => { _cachedCustomTests = customTests }, [customTests])
@@ -9172,13 +9189,20 @@ export default function TeacherConstructorPage() {
               }
             }}
           />
+        ) : openMaterial ? (
+          <MaterialPage
+            key="material"
+            target={openMaterial}
+            onSwitch={setOpenMaterial}
+            onClose={() => setOpenMaterial(null)}
+          />
         ) : (
           <motion.div
             key="list"
             initial={false}
             style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
           >
-            <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div ref={listScrollRef} style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* ЛИПКАЯ ШАПКА В РЕЖИМЕ РЕДАКТИРОВАНИЯ.
                   Крестик, «Дублировать» и «Удалить» нужны на любой строке
                   списка — отматывать сотню карточек наверх ради кнопки нельзя.
@@ -9445,7 +9469,7 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
-              {activeTab === 'decks' && <TrainerMaterials createNonce={deckNonce} />}
+              {activeTab === 'decks' && <TrainerMaterials createNonce={deckNonce} onOpen={openMaterialPage} />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>

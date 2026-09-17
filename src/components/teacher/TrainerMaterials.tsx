@@ -32,12 +32,15 @@
 // «8 примеров · 2 вопроса», обязана их показать.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Check, ChevronLeft, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X,
+  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
+import { usePersistentState } from '../../lib/useDraft'
+import { useTeacher } from '../../store/teacherStore'
 import { SUBJECTS } from '../../lib/subjects'
 import {
   MATERIAL_MODES, MATERIAL_FAMILIES,
@@ -88,30 +91,41 @@ const DECKS_ID = '__decks'
 /** Материал витрины со своим происхождением: язык и полка, откуда он приехал. */
 type Row = MaterialItem & { lang: string; family: MaterialFamily }
 
+const refOf = (x: Row): MaterialRef => ({ lang: x.lang, familyId: x.family.id, id: x.id })
+
 // Витрина по языку переживает ремоунт вкладки: без кэша каждый заход на
 // «Материалы» и каждый возврат из соседнего редактора показывал скелетоны,
 // которые через миг сменялись теми же карточками, — экран мигал.
 const rowsCache = new Map<string, Row[]>()
 
-export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: number }) {
+/** Адрес материала: по нему страница находит его сама, и он переживает F5. */
+export type MaterialRef = { lang: string; familyId: string; id: string }
+
+export default function TrainerMaterials({ createNonce = 0, onOpen }: {
+  createNonce?: number
+  /** Материал открывается отдельной страницей — её рисует Конструктор вместо вкладок. */
+  onOpen: (ref: MaterialRef) => void
+}) {
   const t = useT()
 
   // Пустая строка — «все языки», как пустой предмет в «Курсах».
   const [lang, setLang] = useState(() => localStorage.getItem('materials-lang') ?? 'ko')
   const [mode, setMode] = useState<MaterialMode | ''>(() =>
     (localStorage.getItem('materials-mode') as MaterialMode | null) ?? 'vocab')
-  const [familyId, setFamilyId] = useState<string>(DECKS_ID)
   const [view, setView] = useState<'cards' | 'rows'>(() =>
     localStorage.getItem('materials-view') === 'rows' ? 'rows' : 'cards')
 
   const [rows, setRows] = useState<Row[]>(() => rowsCache.get(lang) ?? [])
   const [loading, setLoading] = useState(() => !rowsCache.has(lang))
-  const [open, setOpen] = useState<Row | null>(null)
 
-  const [sort, setSort] = useState<SortMode>('az')
-  const [level, setLevel] = useState('')
-  const [topic, setTopic] = useState('')
-  const [query, setQuery] = useState('')
+  // Отбор переживает поход в материал и обратно. Страница материала встаёт
+  // вместо вкладок, витрина при этом размонтируется — и в useState уровень,
+  // раздел и поиск сбрасывались бы: вернулся — ищи заново.
+  const [familyId, setFamilyId] = usePersistentState<string>('materials.family', DECKS_ID)
+  const [sort, setSort] = usePersistentState<SortMode>('materials.sort', 'az')
+  const [level, setLevel] = usePersistentState('materials.level', '')
+  const [topic, setTopic] = usePersistentState('materials.topic', '')
+  const [query, setQuery] = usePersistentState('materials.query', '')
 
   useEffect(() => { localStorage.setItem('materials-lang', lang) }, [lang])
   useEffect(() => { localStorage.setItem('materials-mode', mode) }, [mode])
@@ -160,15 +174,18 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
   // Выбранная полка могла исчезнуть вместе со сменой режима или языка. Пустой
   // режим (у русского нет аудирования) оставляем БЕЗ полки: откат к первой из
   // списка приводил в «Подборки» — редактор карточек под вывеской «Аудирование».
+  //
+  // Пока витрина грузится, полок нет ни одной — и сохранённая «Формы» считалась
+  // бы исчезнувшей: после F5 на незакэшированном языке отбор слетал бы в «Все».
   useEffect(() => {
+    if (loading) return
     const ids = [
       '',
       ...(mode === 'vocab' ? [DECKS_ID] : []),
       ...families.map(f => f.family.id),
     ]
     if (!ids.includes(familyId)) setFamilyId(mode === 'vocab' ? DECKS_ID : '')
-    setOpen(null)
-  }, [families, familyId, mode])
+  }, [families, familyId, mode, loading, setFamilyId])
 
   const onDecks = familyId === DECKS_ID && mode === 'vocab'
 
@@ -188,7 +205,15 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
 
   // Отбор сбрасывается при смене полки: уровень «TOPIK 2» в списке учебников
   // не значит ничего, и витрина молча оказалась бы пустой.
-  useEffect(() => { setLevel(''); setTopic('') }, [familyId, mode])
+  // Только при СМЕНЕ: на монтировании это возврат из материала, и сохранённый
+  // отбор надо показать, а не стереть.
+  const shelfKey = `${mode}/${familyId}`
+  const prevShelf = useRef(shelfKey)
+  useEffect(() => {
+    if (prevShelf.current === shelfKey) return
+    prevShelf.current = shelfKey
+    setLevel(''); setTopic('')
+  }, [shelfKey, setLevel, setTopic])
 
   const shown = useMemo(() => {
     const q = normSearch(query)
@@ -213,8 +238,6 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {onDecks ? (
           <CardGroupsManager createNonce={createNonce} lang={lang || undefined} query={query} onQuery={setQuery} />
-        ) : open ? (
-          <MaterialReader item={open} onBack={() => setOpen(null)} />
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -250,7 +273,7 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
                   <ContentCard
                     key={`${x.lang}-${x.family.id}-${x.id}`}
                     accentColor={MAT_COLOR} accentBg={MAT_BG}
-                    isSelected={false} onClick={() => setOpen(x)}
+                    isSelected={false} onClick={() => onOpen(refOf(x))}
                     icon={<FileCode2 size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
                     iconBg={MAT_BG}
                     badge={
@@ -267,16 +290,16 @@ export default function TrainerMaterials({ createNonce = 0 }: { createNonce?: nu
                 ))}
               </div>
             ) : (
-              <MaterialRows items={shown} grouped={!familyId} showLang={showLangChip} onOpen={setOpen} />
+              <MaterialRows items={shown} grouped={!familyId} showLang={showLangChip} onOpen={x => onOpen(refOf(x))} />
             )}
           </>
         )}
       </div>
 
       <FilterPanel
-        lang={lang} onLang={v => { setLang(v); setOpen(null) }}
-        mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : ''); setOpen(null) }}
-        familyId={familyId} onFamily={id => { setFamilyId(id); setOpen(null) }}
+        lang={lang} onLang={setLang}
+        mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : '') }}
+        familyId={familyId} onFamily={setFamilyId}
         families={families} modeCount={modeCount}
         level={level} onLevel={setLevel} levelOpts={levelOpts}
         topic={topic} onTopic={setTopic} topicOpts={topicOpts}
@@ -531,30 +554,159 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
 }
 
 /**
- * Просмотрщик материала.
+ * Страница материала — отдельный экран вместо вкладок, как урок курса.
  *
- * ЧИТАТЬ, А НЕ ПРАВИТЬ. Поле ввода над константой сохраняло бы в никуда, поэтому
- * вместо кнопки «Сохранить» — путь к файлу, по которому материал действительно
- * меняется, и он копируется по клику: адрес нужен не глазам, а редактору.
- * У справочника грамматики путь ещё и уточняется по языку (`sourceOf`) —
- * «src/data/grammar/» называет папку, а правка делается в файле языка.
+ * ПОЧЕМУ СТРАНИЦА, А НЕ ПРОСМОТРЩИК В КОЛОНКЕ. Раньше материал открывался на
+ * месте сетки: вкладки Конструктора висели сверху, панель фильтров справа
+ * продолжала отбирать то, чего на экране уже не было (и молча закрывала
+ * материал), а посмотреть соседнюю форму можно было только через «назад →
+ * найти → открыть». Урок курса, тест и задание открываются своим экраном —
+ * материал теперь тоже: «Назад», имя полки по центру, слева паспорт, справа
+ * вся полка списком.
  *
- * ЦЕЛИКОМ, А НЕ ОДНИМ АБЗАЦЕМ. Раньше просмотрщик показывал только `body`:
- * карточка формы обещала «8 примеров · 2 вопроса», открывалась — и там три
- * абзаца объяснения, полстраницы пустоты и ни одного примера. Теперь материал
- * отдаёт блоки (см. MaterialBlock), и видно всё, что у него есть.
+ * СЕГМЕНТЫ ПО БЛОКАМ. Текст с сорока словами словаря и шестью вопросами одной
+ * лентой — это три экрана прокрутки до вопросов. Крупные блоки (перевод,
+ * словарь, таблица, вопросы) встают сегментами, как «Урок / Запись /
+ * Домашки» у урока. Короткие справки («К чему клеится», «Ловушка») отдельного
+ * сегмента не стоят — они дописываются к объяснению. Выбранный сегмент
+ * переживает переход к соседу: читал примеры — листаешь примеры.
  *
- * ШИРИНА ПО СОДЕРЖИМОМУ. Проза держит читаемую строку в 68 знаков, а пары,
- * таблицы и вопросы разложены колонками во всю ширину: сорок пар «слово —
- * перевод» столбиком в треть экрана — это четыре экрана прокрутки там, где
- * хватает одного.
+ * СПРАВА — ПОЛКА, А НЕ ОТБОР ВИТРИНЫ. Полка грузится по адресу материала сама,
+ * поэтому страница встаёт и после F5, и без витрины за спиной. Темы — группы,
+ * как модули у уроков; тема открытого материала раскрыта.
  */
-function MaterialReader({ item, onBack }: { item: Row; onBack: () => void }) {
-  const t = useT()
-  const path = item.family.sourceOf?.(item.lang) ?? item.family.source
-  const [copied, setCopied] = useState(false)
-  const blocks = item.blocks ?? []
+const shelfCache = new Map<string, Row[]>()
 
+/** Полка из уже загруженной витрины — чтобы не ждать чанк второй раз. */
+function shelfFromRows(lang: string, familyId: string): Row[] | undefined {
+  for (const key of [lang, '']) {
+    const list = rowsCache.get(key)?.filter(x => x.lang === lang && x.family.id === familyId)
+    if (list?.length) return list
+  }
+  return undefined
+}
+
+type Segment = { label: string; count?: number; body?: string; blocks: MaterialBlock[] }
+
+/** Справка короче этого дописывается к объяснению, а не встаёт сегментом. */
+const SHORT_TEXT = 420
+
+function countOf(b: MaterialBlock): number | undefined {
+  if (b.kind === 'pairs') return b.rows.length
+  if (b.kind === 'table') return b.rows.length
+  if (b.kind === 'quiz') return b.items.length
+  return undefined
+}
+
+function segmentsOf(item: Row): Segment[] {
+  const lead = item.family.mode === 'reading' || item.family.mode === 'listening' ? 'Текст' : 'Объяснение'
+  const segs: Segment[] = []
+  if (item.body) segs.push({ label: lead, body: item.body, blocks: [] })
+  for (const b of item.blocks ?? []) {
+    if (b.kind === 'text' && b.text.length <= SHORT_TEXT && segs[0] && (segs[0].body || segs[0].blocks[0]?.kind === 'text')) {
+      segs[0].blocks.push(b)
+      continue
+    }
+    segs.push({ label: b.title ?? lead, count: countOf(b), blocks: [b] })
+  }
+  return segs
+}
+
+const pageGlass = {
+  border: '1px solid var(--color-border-glass)',
+  background: 'rgba(var(--glass-rgb), 0.86)',
+  backdropFilter: 'blur(14px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  boxShadow: 'var(--shadow-lg)',
+} as const
+
+const RAIL_CARD: React.CSSProperties = {
+  background: 'rgba(var(--glass-rgb), 0.9)', ...PILL_GLASS,
+  border: '1px solid var(--color-border-glass)', borderRadius: 18,
+  boxShadow: 'var(--shadow-sm-page)',
+}
+
+export function MaterialPage({ target, onSwitch, onClose }: {
+  target: MaterialRef
+  onSwitch: (ref: MaterialRef) => void
+  onClose: () => void
+}) {
+  const t = useT()
+  const family = MATERIAL_FAMILIES.find(f => f.id === target.familyId)
+  const shelfKey = `${target.lang}/${target.familyId}`
+
+  const [shelf, setShelf] = useState<Row[] | null>(
+    () => shelfCache.get(shelfKey) ?? shelfFromRows(target.lang, target.familyId) ?? null,
+  )
+  useEffect(() => {
+    if (!family) { setShelf([]); return }
+    const cached = shelfCache.get(shelfKey) ?? shelfFromRows(target.lang, target.familyId)
+    if (cached) { shelfCache.set(shelfKey, cached); setShelf(cached); return }
+    let alive = true
+    setShelf(null)
+    family.load(target.lang)
+      .then(items => {
+        const list = items.map(x => ({ ...x, lang: target.lang, family }))
+        shelfCache.set(shelfKey, list)
+        if (alive) setShelf(list)
+      })
+      .catch(e => {
+        console.error(`material page: ${shelfKey}`, e)
+        if (alive) setShelf([])
+      })
+    return () => { alive = false }
+  }, [shelfKey, family, target.lang, target.familyId])
+
+  /** Группы по теме; одна безымянная, если темы у полки нет или она одна. */
+  const groups = useMemo(() => {
+    if (!shelf) return []
+    const by = new Map<string, Row[]>()
+    for (const x of shelf) {
+      const k = x.topic ?? ''
+      const list = by.get(k)
+      if (list) list.push(x)
+      else by.set(k, [x])
+    }
+    if (by.size <= 1) return [{ name: '', items: shelf }]
+    return [...by].map(([name, items]) => ({ name, items }))
+  }, [shelf])
+  // Номера и стрелки идут по списку в том порядке, в каком он нарисован.
+  const flat = useMemo(() => groups.flatMap(g => g.items), [groups])
+  const idx = flat.findIndex(x => x.id === target.id)
+  const item = idx >= 0 ? flat[idx] : null
+
+  const go = useCallback((x: Row | undefined) => {
+    if (x) onSwitch({ lang: x.lang, familyId: x.family.id, id: x.id })
+  }, [onSwitch])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      const el = e.target as HTMLElement | null
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return
+      if (e.key === 'ArrowLeft' && idx > 0) { e.preventDefault(); go(flat[idx - 1]) }
+      if (e.key === 'ArrowRight' && idx >= 0 && idx < flat.length - 1) { e.preventDefault(); go(flat[idx + 1]) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [flat, idx, go])
+
+  const segments = useMemo(() => (item ? segmentsOf(item) : []), [item])
+  const [segLabel, setSegLabel] = usePersistentState('materials.segment', '')
+  const seg = segments.find(s => s.label === segLabel) ?? segments[0]
+
+  const docked = useTeacher(s => s.headerDocked)
+  const setDocked = useTeacher(s => s.setHeaderDocked)
+  useEffect(() => () => setDocked(false), [setDocked])
+
+  // Сосед открывается с начала, а не с той высоты, где дочитан предыдущий.
+  const scroller = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = 0
+  }, [target.id])
+
+  const path = family ? (family.sourceOf?.(target.lang) ?? family.source) : ''
+  const [copied, setCopied] = useState(false)
   const copyPath = () => {
     void navigator.clipboard?.writeText(path).then(() => {
       setCopied(true)
@@ -562,59 +714,334 @@ function MaterialReader({ item, onBack }: { item: Row; onBack: () => void }) {
     }).catch(() => {})
   }
 
+  const shelfTitle = family ? `${t(family.label)} · ${t(langLabel(target.lang))}` : t('Материалы')
+
+  const backBtn = (glass: boolean) => (
+    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999,
+        ...(glass ? pageGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)' }),
+        color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', pointerEvents: 'auto',
+      }}>
+      <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
+    </motion.button>
+  )
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
-            borderRadius: 12, border: '1px solid var(--color-border-soft)', cursor: 'pointer',
-            background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit',
-            fontSize: 12.5, fontWeight: 600,
-          }}
-        >
-          <ChevronLeft size={14} /> {t('К материалам')}
-        </button>
-        <span style={cardChip(MAT_COLOR)}>{t('Из кода')}</span>
-        <button
-          onClick={copyPath}
-          title={t('Скопировать путь к файлу')}
-          style={{
-            ...cardChip('var(--color-text-3)', { fontFamily: 'ui-monospace, monospace' }),
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            border: 'none', cursor: 'pointer', fontSize: 11.5,
-          }}
-        >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? t('Путь скопирован') : path}
-        </button>
+    <motion.div
+      initial={false}
+      ref={scroller}
+      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+      style={{ flex: 1, height: '100vh', overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
+    >
+      {/* ── Шапка, прилипшая к линии топбара ── */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+        <AnimatePresence>
+          {docked && (
+            <motion.div
+              key="material-dock"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
+            >
+              {backBtn(true)}
+              <div style={{
+                padding: '9px 16px', borderRadius: 999, ...pageGlass, fontSize: 14, fontWeight: 700,
+                color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: 280,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {item?.title ?? shelfTitle}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div style={{
-        borderRadius: 18, padding: 20,
-        background: 'rgba(var(--glass-rgb), 0.88)', ...PILL_GLASS,
-        border: '1px solid var(--color-border-glass)',
-        display: 'flex', flexDirection: 'column', gap: 14,
-      }}>
-        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
-          {item.title}
+      {/* ── Шапка в потоке: назад · полка · источник ── */}
+      <motion.div
+        animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12, padding: '10px 24px 20px' }}
+      >
+        <div>{backBtn(false)}</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center', whiteSpace: 'nowrap' }}>
+          {shelfTitle}
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span style={cardChip('var(--color-text-3)')}>{langLabel(item.lang)}</span>
-          {item.level && <span style={cardChip(MAT_COLOR)}>{item.level}</span>}
-          {item.topic && <span style={cardChip('var(--color-text-3)')}>{item.topic}</span>}
-          <span style={cardChip('var(--color-text-3)')}>{item.meta}</span>
-        </div>
-        {item.body ? (
-          <div style={PROSE}>{item.body}</div>
-        ) : blocks.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>
-            {item.about || t('У этого материала нет текста — он собирается в тренажёре из своих частей.')}
-          </div>
-        ) : null}
+        {/* Вместо «Сохранить» — честное «Из кода» и путь к файлу, по которому
+            материал правится; копируется по клику. */}
+        {family && (
+          <button
+            onClick={copyPath}
+            title={t('Скопировать путь к файлу')}
+            style={{
+              justifySelf: 'end', display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0,
+              padding: '8px 14px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+              background: 'rgba(var(--glass-rgb), 0.96)', cursor: 'pointer', fontFamily: 'inherit',
+              color: 'var(--color-text-2)',
+            }}
+          >
+            <span style={cardChip(MAT_COLOR)}>{t('Из кода')}</span>
+            <span style={{
+              fontFamily: 'ui-monospace, monospace', fontSize: 12, whiteSpace: 'nowrap',
+              overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260,
+            }}>
+              {copied ? t('Путь скопирован') : path}
+            </span>
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+          </button>
+        )}
+      </motion.div>
 
-        {blocks.map((b, i) => <BlockView key={i} block={b} />)}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 48px' }}>
+        {/* ── Слева: паспорт ── */}
+        <div style={{ ...RAIL_CARD, width: 300, flexShrink: 0, position: 'sticky', top: 20, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {item ? (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                <PassportRow label={t('Язык')} value={t(langLabel(item.lang))} />
+                <PassportRow label={t('Полка')} value={t(item.family.label)} />
+                {item.level && <PassportRow label={t('Уровень')} value={item.level} accent />}
+                {item.topic && <PassportRow label={t('Тема')} value={item.topic} />}
+                <PassportRow label={t('Объём')} value={item.meta} />
+              </div>
+              {item.body && item.about && item.about !== item.body.slice(0, item.about.length) && (
+                <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{item.about}</div>
+              )}
+              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, borderTop: '1px solid var(--color-border-soft)', paddingTop: 12 }}>
+                {t(item.family.hint)}
+              </div>
+              {flat.length > 1 && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <StepBtn disabled={idx <= 0} onClick={() => go(flat[idx - 1])}>
+                    <ChevronLeft size={14} /> {t('Предыдущий')}
+                  </StepBtn>
+                  <StepBtn disabled={idx >= flat.length - 1} onClick={() => go(flat[idx + 1])}>
+                    {t('Следующий')} <ChevronRight size={14} />
+                  </StepBtn>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <Skeleton w="60%" h={12} />
+              <Skeleton w="80%" h={12} />
+              <Skeleton w="45%" h={12} />
+            </>
+          )}
+        </div>
+
+        {/* ── По центру: материал сегментами ── */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {shelf === null ? (
+            <div style={{ ...RAIL_CARD, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Skeleton w="50%" h={16} />
+              <Skeleton w="90%" h={12} />
+              <Skeleton w="85%" h={12} />
+              <Skeleton w="70%" h={12} />
+            </div>
+          ) : !item ? (
+            <div style={{ ...RAIL_CARD, padding: 24, fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>
+              {t('Материала с таким адресом нет — возможно, его убрали или переименовали в коде.')}
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.35, padding: '0 4px' }}>
+                {idx + 1}. {item.title}
+              </div>
+
+              {segments.length > 1 && (
+                <div style={{ ...RAIL_CARD, borderRadius: 14, padding: 4, display: 'flex', gap: 2 }}>
+                  {segments.map(s => {
+                    const active = s === seg
+                    return (
+                      <button key={s.label} onClick={() => setSegLabel(s.label)} onMouseDown={e => e.preventDefault()}
+                        style={{
+                          position: 'relative', flex: 1, padding: '7px 10px', borderRadius: 10,
+                          border: 'none', cursor: 'pointer', background: 'transparent',
+                          color: active ? MAT_COLOR : 'var(--color-text)',
+                          fontSize: 13, fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.2s',
+                          outlineColor: MAT_COLOR,
+                        }}>
+                        {active && (
+                          <motion.span
+                            layoutId="materialSegmentPill"
+                            transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                            style={{ position: 'absolute', inset: 0, borderRadius: 10, background: MAT_BG, border: `1.5px solid ${MAT_COLOR}` }}
+                          />
+                        )}
+                        <span style={{ position: 'relative', zIndex: 1, whiteSpace: 'nowrap' }}>
+                          {t(s.label)}
+                          {s.count !== undefined && (
+                            <span style={{ marginLeft: 6, fontSize: 11.5, color: active ? MAT_COLOR : 'var(--color-text-3)' }}>{s.count}</span>
+                          )}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {seg ? (
+                <div key={`${item.id}-${seg.label}`} style={{ ...RAIL_CARD, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {seg.body && <div style={PROSE}>{seg.body}</div>}
+                  {seg.blocks.map((b, i) => (
+                    // Заголовок блока уже написан на сегменте — второй раз его не повторяем.
+                    <BlockView key={i} block={i === 0 && !seg.body && segments.length > 1 ? { ...b, title: undefined } : b} />
+                  ))}
+                </div>
+              ) : (
+                <div style={{ ...RAIL_CARD, padding: 20, fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>
+                  {item.about || t('У этого материала нет текста — он собирается в тренажёре из своих частей.')}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* ── Справа: вся полка ── */}
+        <ShelfRail groups={groups} flat={flat} loading={shelf === null} current={item} onPick={go} />
+      </div>
+    </motion.div>
+  )
+}
+
+function PassportRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontSize: 12.5 }}>
+      <span style={{ width: 70, flexShrink: 0, color: 'var(--color-text-3)' }}>{label}</span>
+      <span style={{ minWidth: 0, fontWeight: 600, color: accent ? MAT_COLOR : 'var(--color-text)', lineHeight: 1.35 }}>{value}</span>
+    </div>
+  )
+}
+
+function StepBtn({ disabled, onClick, children }: { disabled: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+        padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-soft)',
+        background: 'var(--color-bg-2)', color: disabled ? 'var(--color-text-3)' : 'var(--color-text-2)',
+        opacity: disabled ? 0.5 : 1, cursor: disabled ? 'default' : 'pointer',
+        fontSize: 12, fontWeight: 600, fontFamily: 'inherit', outlineColor: MAT_COLOR,
+      }}>
+      {children}
+    </button>
+  )
+}
+
+/** Список полки: группы по теме раскрываются, открытый материал подсвечен и виден. */
+function ShelfRail({ groups, flat, loading, current, onPick }: {
+  groups: { name: string; items: Row[] }[]
+  flat: Row[]
+  loading: boolean
+  current: Row | null
+  onPick: (x: Row) => void
+}) {
+  const t = useT()
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(current ? [current.topic ?? ''] : []))
+  // Сосед из другой темы раскрывает свою группу — иначе подсветка пряталась бы в свёрнутой.
+  const curTopic = current ? current.topic ?? '' : null
+  useEffect(() => {
+    if (curTopic === null) return
+    setOpenGroups(prev => (prev.has(curTopic) ? prev : new Set(prev).add(curTopic)))
+  }, [curTopic])
+
+  const list = useRef<HTMLDivElement>(null)
+  // Открытый материал держим в поле зрения списка, не трогая прокрутку страницы.
+  useEffect(() => {
+    const box = list.current
+    const row = box?.querySelector<HTMLElement>('[data-current="1"]')
+    if (!box || !row) return
+    const top = row.offsetTop - box.offsetTop
+    if (top < box.scrollTop) box.scrollTop = top - 8
+    else if (top + row.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = top + row.offsetHeight - box.clientHeight + 8
+  }, [current?.id, openGroups])
+
+  let n = 0
+  const numberOf = new Map(flat.map(x => [x.id, ++n]))
+
+  return (
+    <div style={{
+      ...RAIL_CARD, width: 300, flexShrink: 0, position: 'sticky', top: 20,
+      maxHeight: 'calc(100vh - 154px)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '16px 18px 10px', borderBottom: '1px solid var(--color-border-soft)' }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Полка')}</span>
+        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{loading ? '' : `${flat.length} ${t('шт.')}`}</span>
+      </div>
+      <div ref={list} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: 8, position: 'relative' }}>
+        {loading ? (
+          Array.from({ length: 8 }, (_, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 10px' }}>
+              <Skeleton w={22} h={22} radius={6} />
+              <Skeleton w={`${50 + (i % 3) * 15}%`} h={11} />
+            </div>
+          ))
+        ) : groups.map(g => {
+          const named = groups.length > 1
+          const open = !named || openGroups.has(g.name)
+          return (
+            <div key={g.name || '_'}>
+              {named && (
+                <button
+                  onClick={() => setOpenGroups(prev => {
+                    const next = new Set(prev)
+                    if (next.has(g.name)) next.delete(g.name)
+                    else next.add(g.name)
+                    return next
+                  })}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 10px',
+                    border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+                    fontSize: 13, fontWeight: 700, color: 'var(--color-text)', borderRadius: 9, outlineColor: MAT_COLOR,
+                  }}
+                >
+                  {open ? <ChevronDown size={14} style={{ color: 'var(--color-text-3)' }} /> : <ChevronRight size={14} style={{ color: 'var(--color-text-3)' }} />}
+                  <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name || t('Без темы')}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{g.items.length}</span>
+                </button>
+              )}
+              {open && g.items.map(x => {
+                const on = x.id === current?.id
+                return (
+                  <button
+                    key={x.id}
+                    data-current={on ? '1' : undefined}
+                    onClick={() => onPick(x)}
+                    title={x.title}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                      padding: '7px 10px', marginLeft: named ? 6 : 0, maxWidth: named ? 'calc(100% - 6px)' : '100%',
+                      borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                      background: on ? MAT_BG : 'transparent', outlineColor: MAT_COLOR,
+                    }}
+                    onMouseEnter={e => { if (!on) e.currentTarget.style.background = 'var(--color-bg-3)' }}
+                    onMouseLeave={e => { if (!on) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <span style={{
+                      minWidth: 22, height: 22, padding: '0 4px', borderRadius: 6, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 700,
+                      background: on ? 'transparent' : 'var(--color-bg-3)',
+                      border: on ? `1.5px solid ${MAT_COLOR}` : '1.5px solid transparent',
+                      color: on ? MAT_COLOR : 'var(--color-text-3)',
+                    }}>
+                      {numberOf.get(x.id)}
+                    </span>
+                    <span style={{
+                      flex: 1, minWidth: 0, textAlign: 'left', fontSize: 13, fontWeight: 600,
+                      color: on ? MAT_COLOR : 'var(--color-text)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {x.title}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
