@@ -57,9 +57,7 @@ import { useDashboard } from '../../store/dashboardStore'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 import { seedKeyOf } from '../../lib/seedSync'
-import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
-import { BIO_CELL_LESSON_CONTENT } from '../../data/bioCellLessons'
-import { BIO_PREU_LESSON_CONTENT } from '../../data/bioPreULessons'
+import { authoredLesson } from '../../data/authoredLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
@@ -2012,13 +2010,8 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     supabase.from('lessons').select('content, youtube_url, description, timecodes').eq('short_id', shortId).single().then(({ data }) => {
       if (!alive) return
       const dbc = (data?.content ?? undefined) as LessonContentData | undefined
-      // Запасной конспект из кода — по short_id урока. Курсов с ним три:
-      // AP Chemistry, «Биология клетки», «Биология: подготовка к университету».
-      // Ключи не пересекаются (apchem-*, biocell-*, bioprep-*).
-      const authored = AP_LESSON_CONTENT[shortId]
-        ?? BIO_CELL_LESSON_CONTENT[shortId]
-        ?? BIO_PREU_LESSON_CONTENT[shortId]
-      const src = (dbc && dbc.paragraphs?.length) ? dbc : authored
+      // Запасной конспект из кода — по short_id урока (см. authoredLessons.ts).
+      const src = (dbc && dbc.paragraphs?.length) ? dbc : authoredLesson(shortId)
       setParas((src?.paragraphs ?? [{ id: uid(), text: '' }]).map(p => ({ ...p })))
       setQuiz((src?.quiz ?? []).map(q => ({ ...q, options: q.options.map(o => ({ ...o })) })))
       setHardTask(src?.hardTask ? { ...src.hardTask } : emptyTask)

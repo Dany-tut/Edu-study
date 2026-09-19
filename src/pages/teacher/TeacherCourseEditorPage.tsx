@@ -48,6 +48,7 @@ import {
   cutTheoryAtFigures, joinTheoryAtFigures, setFigureCaption, moveTheoryFigure,
   type TheoryImage,
 } from '../../lib/theoryImages'
+import { authoredLesson } from '../../data/authoredLessons'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
 import { parseVideoSource } from '../../lib/videoSource'
@@ -5156,8 +5157,14 @@ export default function TeacherCourseEditorPage() {
           lessons: c.lessons.map(l => {
             const row = byId.get(l.id)
             if (!row) return l
+            // Конспект берём из БД, а пока его там нет — из кода: у предметных
+            // курсов он написан в коде и попадает в lessons.content только
+            // после первой правки руками (см. authoredLessons.ts). Без этого
+            // редактор курса открывал биологию с пустым «Конспектом», хотя
+            // ученик тот же текст видел.
+            const dbParas = Array.isArray(row.content?.paragraphs) ? row.content.paragraphs : []
             const theory = paragraphsToTheory(
-              Array.isArray(row.content?.paragraphs) ? row.content.paragraphs : [],
+              dbParas.length > 0 ? dbParas : (authoredLesson(l.id)?.paragraphs ?? []),
             )
             const hw = row.homework ?? {}
             return {
