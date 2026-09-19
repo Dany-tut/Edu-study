@@ -22,85 +22,18 @@
 // растягиваются на фиксированную сетку.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { toDataUri, esc, sheet, PAPER, INK, MUTED, GRID, TILE, ACCENT, ACCENT_SOFT } from './svgSheet'
+import {
+  toDataUri, esc, sheet, textW, fitFs, wrapLines, noteH as noteHeight, noteAt as noteBlock,
+  PAPER, INK, MUTED, GRID, TILE, ACCENT, ACCENT_SOFT,
+} from './svgSheet'
 
 const W = 640
 
-/**
- * Ширина строки в пикселях.
- *
- * Считать длину в символах нельзя: хангыль, кана и иероглифы рисуются почти
- * квадратными (ширина ≈ кегль), а латиница с кириллицей — вдвое уже. Колонка,
- * посчитанная «по числу знаков», в корейской таблице переполнялась, а в
- * русской пустовала.
- */
-const WIDE_CHAR = /[\u1100-\u11FF\u2E80-\uA4CF\uA960-\uA97F\uAC00-\uD7FF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60]/
-/**
- * Кегль, при котором строка помещается в отведённую ширину.
- *
- * Ужать текст лучше, чем выпустить его за рамку: в таблице форм длинная
- * английская фраза и короткая корейская стоят в одной колонке.
- */
-function fitFs(text: string, maxW: number, base: number, min = 9): number {
-  const need = textW(text, base)
-  if (need <= maxW || !text) return base
-  return Math.max(min, Math.round((base * maxW / need) * 10) / 10)
-}
-
-function textW(text: string, fs: number): number {
-  let w = 0
-  for (const ch of text) w += WIDE_CHAR.test(ch) ? fs : fs * 0.55
-  return w
-}
-
-/**
- * Сноска под схемой — то, что в таблицу не влезает.
- *
- * Переносится по словам: длинная сноска в одну строку просто уезжала за край
- * листа и обрезалась, а обрезается там как раз оговорка, ради которой сноска
- * и написана.
- */
-const NOTE_FS = 11.5
-const NOTE_LH = 16
-
-/**
- * Разбивка строки по ширине листа.
- *
- * Кегль передаётся снаружи: тем же переносом живут и сноска (11.5), и строка
- * примера под схемой (13.5). Пример раньше рисовался одной строкой без
- * переноса — предложение с переводом уезжало за край листа и обрезалось.
- */
-function wrapLines(text: string, w: number, fs = NOTE_FS): string[] {
-  const max = w - 36
-  const lines: string[] = []
-  let line = ''
-  for (const word of text.split(' ')) {
-    const next = line ? `${line} ${word}` : word
-    if (line && textW(next, fs) > max) { lines.push(line); line = word }
-    else line = next
-  }
-  if (line) lines.push(line)
-  return lines
-}
-
-const noteLines = (note: string, w: number): string[] => wrapLines(note, w)
-
-const noteH = (note?: string, w = W) => (note ? 10 + noteLines(note, w).length * NOTE_LH : 8)
-
-/**
- * Сноска, прижатая к нижнему краю листа.
- *
- * Позицию считаем от высоты листа, а не от конца содержимого: сноска в две
- * строки, поставленная по фиксированному отступу, вылезала за нижний край и
- * обрезалась вместе со второй строкой.
- */
-function noteAt(w: number, h: number, note?: string): string {
-  if (!note) return ''
-  const first = h - noteH(note, w) + 18
-  return noteLines(note, w)
-    .map((line, i) => `<text x="${w / 2}" y="${first + i * NOTE_LH}" text-anchor="middle" font-size="${NOTE_FS}" fill="${MUTED}">${esc(line)}</text>`)
-    .join('')
-}
+// Общие примитивы листа (ширина строки, подгонка кегля, перенос, сноска) живут
+// в svgSheet.ts — их делят три набора картинок. Здесь только обёртки,
+// знающие ширину листа этого набора.
+const noteH = (note?: string, w = W) => noteHeight(note, w)
+const noteAt = (w: number, h: number, note?: string) => noteBlock(w, h, note)
 
 // ─── Таблица письма ──────────────────────────────────────────────────────────
 

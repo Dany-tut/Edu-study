@@ -12,6 +12,8 @@ import { authoredTaskToQuestion } from './data/lessonContent'
 import type { AuthoredHomeworkTask, LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
 import { buildKoreanHangulCourse } from './data/koreanHangul'
 import { buildJapaneseJlptCourse } from './data/japaneseJlpt'
+import { BIO_CELL_LESSON_CONTENT } from './data/bioCellLessons'
+import { BIO_PREU_LESSON_CONTENT } from './data/bioPreULessons'
 import './index.css'
 
 // ?kohg / ?jajl — урок настоящего курса вместо рукодельной домашки. Номер
@@ -172,8 +174,16 @@ const homework: LessonHomework = {
 // ?kohg — вместо рукодельной домашки берётся первый урок курса хангыля целиком:
 // проверять лестницу «знакомство → узнавание → письмо» надо на настоящих данных,
 // а не на пяти строках, написанных под ожидаемый результат.
+// ?bio=<short_id> — домашка предметного урока целиком (?bio=bioprep-ru-19,
+// ?bio=biocell-ru-4). Эти курсы написаны в коде, и задания в них не выборные:
+// сопоставление, порядок стадий, раскладка по столбцам, таблица. Увидеть, как
+// они РИСУЮТСЯ, иначе можно только через настоящего ученика, записанного на
+// курс, — то есть никак, пока курс в черновике.
+const bioId = params.get('bio') ?? ''
+const bio = BIO_PREU_LESSON_CONTENT[bioId] ?? BIO_CELL_LESSON_CONTENT[bioId]
+
 const useHangul = params.has('kohg') || params.has('jajl')
-const shown: LessonHomework = useHangul
+const shownBase: LessonHomework = useHangul
   ? {
     ...homework,
     title: courseLesson.title,
@@ -186,6 +196,17 @@ const shown: LessonHomework = useHangul
         : l),
   }
   : homework
+
+const shown: LessonHomework = bio
+  ? {
+    ...shownBase,
+    title: bioId,
+    subtitle: 'Предметный курс: конспект и домашка написаны в коде',
+    levels: shownBase.levels.map(l =>
+      l.id === 'basic' ? { ...l, questions: bio.quiz }
+        : { ...l, teacherTask: bio.hardTask }),
+  }
+  : shownBase
 
 // ?step=N — открыть сразу нужное задание. Без этого до сборки слога в первом
 // уроке двадцать кликов, и проверять её так никто не станет. Пишем прямо в тот
@@ -206,8 +227,8 @@ createRoot(document.getElementById('root')!).render(
     <AnswerFlightLayer />
     <HomeworkFlow
       lessonId="stand-ko-1"
-      lessonTitle={useHangul ? courseLesson.title : 'Еда'}
-      subject={params.has('jajl') ? 'Японский' : 'Корейский'}
+      lessonTitle={bio ? bioId : useHangul ? courseLesson.title : 'Еда'}
+      subject={bio ? 'Биология' : params.has('jajl') ? 'Японский' : 'Корейский'}
       homework={shown}
       onBack={() => {}}
     />

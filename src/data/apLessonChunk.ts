@@ -1,5 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Конспекты AP-химии — отдельным чанком
+// Авторские конспекты предметных курсов — отдельным чанком
+//
+// Сейчас их три: AP Chemistry, «Биология клетки» и «Биология: подготовка к
+// университету». Все грузятся одним заказом и ложатся в одну карту по short_id
+// урока — ключи не пересекаются (apchem-*, biocell-*, bioprep-*), поэтому
+// разводить их по разным чанкам незачем: урок всё равно открывается по одному
+// ключу.
 //
 // ЗАЧЕМ. Это ЗАПАСНОЙ конспект для уроков, которым его не написали в
 // Конструкторе: девяносто три килобайта текста про моль и стехиометрию, нужные
@@ -19,13 +25,22 @@ import type { ApLessonContent } from './apChemistryLessons'
 let CONTENT: Record<string, ApLessonContent> = {}
 let promise: Promise<unknown> | null = null
 
-/** Запасной конспект урока. undefined — чанк ещё не доехал или урок не из AP. */
+/** Запасной конспект урока. undefined — чанк ещё не доехал или урок не из
+ *  курсов с авторским конспектом. */
 export const apLessonContent = (id: string): ApLessonContent | undefined => CONTENT[id]
 
 /** Заказать чанк. Повторные вызовы бесплатны, ошибка не роняет урок. */
 export function loadApLessons(): Promise<unknown> {
-  promise ??= import('./apChemistryLessons')
-    .then(m => { CONTENT = m.AP_LESSON_CONTENT })
+  promise ??= Promise.all([
+    import('./apChemistryLessons'), import('./bioCellLessons'), import('./bioPreULessons'),
+  ])
+    .then(([chem, cell, prep]) => {
+      CONTENT = {
+        ...chem.AP_LESSON_CONTENT,
+        ...cell.BIO_CELL_LESSON_CONTENT,
+        ...prep.BIO_PREU_LESSON_CONTENT,
+      }
+    })
     // Без запасного конспекта урок покажет описание из БД, как любой другой:
     // ронять из-за не доехавшего чанка нечего.
     .catch(e => { console.error('[apLessonChunk]', e); promise = null })
