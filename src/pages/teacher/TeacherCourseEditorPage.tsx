@@ -1856,6 +1856,31 @@ function TheoryEditor({
     }
   }, [theory])
 
+  /**
+   * Конспект предметного курса, написанный в коде, — в состояние редактора.
+   *
+   * ПОЧЕМУ ИМЕННО ЗДЕСЬ, А НЕ В ТЯЖЁЛОЙ ДОГРУЗКЕ. Та выполняется только при
+   * `heavyPending`, а редактор открывается из черновика localStorage, где этот
+   * флаг уже снят. Курс, открытый хоть раз до появления запасного конспекта,
+   * оставался с пустым «Конспектом» навсегда — черновик переживает и
+   * перезагрузку, и деплой.
+   *
+   * Текст сразу поднимаем наверх, а не просто показываем: иначе учитель видит
+   * конспект, нажимает «Сохранить» — и в БД уезжает пустота.
+   */
+  useEffect(() => {
+    if (theory.trim()) return
+    const authored = authoredLesson(lesson.id)
+    if (!authored?.paragraphs.length) return
+    const built = paragraphsToTheory(authored.paragraphs)
+    if (!built.theory.trim()) return
+    pushed.current = built.theory
+    setSegments(cutTheoryAtFigures(built.theory).segments)
+    onUpdate({ ...lesson, theory: built.theory, theoryImages: [...images, ...built.images] })
+    // Один раз на урок: дальше текст живёт как обычная правка учителя.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id])
+
   function pushTheory(next: string) {
     pushed.current = next
     onUpdate({ ...lesson, theory: next })
