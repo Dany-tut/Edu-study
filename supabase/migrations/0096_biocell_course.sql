@@ -43,18 +43,18 @@ begin
   insert into lessons (course_id, module_id, short_id, title, lesson_number, position, kind, shape)
   select v_course_id, v_module_id, d.short_id, d.title, d.n, d.n, 'lesson', d.shape
   from (values
-    ('biocell-ru-0',  '0. Введение: клетка как система',              0,  'diamond'),
-    ('biocell-ru-1',  '1. Химия жизни: вода и макромолекулы',         1,  'circle'),
-    ('biocell-ru-2',  '2. Белки: от последовательности к функции',    2,  'circle'),
-    ('biocell-ru-3',  '3. Ферменты и энергетика клетки',              3,  'circle'),
-    ('biocell-ru-4',  '4. Мембраны и транспорт',                      4,  'circle'),
-    ('biocell-ru-5',  '5. Компартменты и трафик белков',              5,  'circle'),
-    ('biocell-ru-6',  '6. ДНК, хромосомы, репликация',                6,  'circle'),
-    ('biocell-ru-7',  '7. Транскрипция и трансляция',                 7,  'circle'),
-    ('biocell-ru-8',  '8. Регуляция экспрессии генов',                8,  'circle'),
-    ('biocell-ru-9',  '9. Сигнальные пути',                           9,  'circle'),
-    ('biocell-ru-10', '10. Клеточный цикл, митоз, апоптоз',           10, 'circle'),
-    ('biocell-ru-11', '11. Методы: как это узнали',                   11, 'diamond')
+    ('biocell-ru-0',  'Введение: клетка как система',              0,  'diamond'),
+    ('biocell-ru-1',  'Химия жизни: вода и макромолекулы',         1,  'circle'),
+    ('biocell-ru-2',  'Белки: от последовательности к функции',    2,  'circle'),
+    ('biocell-ru-3',  'Ферменты и энергетика клетки',              3,  'circle'),
+    ('biocell-ru-4',  'Мембраны и транспорт',                      4,  'circle'),
+    ('biocell-ru-5',  'Компартменты и трафик белков',              5,  'circle'),
+    ('biocell-ru-6',  'ДНК, хромосомы, репликация',                6,  'circle'),
+    ('biocell-ru-7',  'Транскрипция и трансляция',                 7,  'circle'),
+    ('biocell-ru-8',  'Регуляция экспрессии генов',                8,  'circle'),
+    ('biocell-ru-9',  'Сигнальные пути',                           9,  'circle'),
+    ('biocell-ru-10', 'Клеточный цикл, митоз, апоптоз',           10, 'circle'),
+    ('biocell-ru-11', 'Методы: как это узнали',                   11, 'diamond')
   ) as d(short_id, title, n, shape)
   where not exists (select 1 from lessons l where l.short_id = d.short_id);
 end $$;
