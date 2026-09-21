@@ -31,7 +31,7 @@ export default function ViewAsBanner() {
         position: 'fixed', left: 14, bottom: 14, zIndex: 1500,
         display: 'flex', alignItems: 'center', gap: 10,
         maxWidth: 'calc(100vw - 28px)', boxSizing: 'border-box',
-        padding: '9px 10px 9px 12px', borderRadius: 13,
+        padding: '9px 9px 9px 12px', borderRadius: 18,
         background: 'var(--color-bg-2)',
         border: '1px solid #D07020',
         boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
