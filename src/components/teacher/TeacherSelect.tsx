@@ -50,6 +50,8 @@ export default function TeacherSelect({
   const [query, setQuery] = useState('')
   const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
   const btnRef = useRef<HTMLDivElement>(null)
+  /** Когда список открылся: по нему отличают новый щелчок от того же самого. */
+  const openedAt = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -79,6 +81,7 @@ export default function TeacherSelect({
     const left = Math.min(r.left, window.innerWidth - r.width - 8)
     setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
     setOpen(true)
+    openedAt.current = Date.now()
     setQuery('')
     setTimeout(() => inputRef.current?.focus(), 30)
   }
@@ -106,10 +109,17 @@ export default function TeacherSelect({
     setAdding(false); setDraft(''); closeDropdown()
   }
 
-  const handleTriggerClick = () => {
+  const handleTriggerClick = (e: React.MouseEvent) => {
     // Plain toggle — never wipes the current selection. Clearing is the × button's job.
-    if (open) closeDropdown()
-    else openDropdown()
+    if (!open) { openDropdown(); return }
+    // ОДИН ЩЕЛЧОК — ОДНО ДЕЙСТВИЕ. Открытый список подменяет подпись полем
+    // поиска, и поле это рождается ПОД курсором: браузер досылает второй click
+    // уже по нему, той же физической кнопкой мыши. Пока он считался закрытием,
+    // список мигал и пропадал — поле выглядело неработающим, и чинить это
+    // повторными щелчками было нельзя, потому что каждый вёл себя так же.
+    // Щелчок внутри поиска и по смыслу не закрытие: там ставят курсор.
+    if (e.target === inputRef.current) return
+    closeDropdown()
   }
 
   const handleClear = (e: React.MouseEvent) => {
@@ -126,13 +136,23 @@ export default function TeacherSelect({
       closeDropdown()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeDropdown() }
+    // ПРОКРУТКА НЕ ЗАКРЫВАЕТ, А ДВИГАЕТ. Список открывается полем поиска, и
+    // фокус в нём заставляет прокручиваемого родителя подтянуть триггер к себе —
+    // то есть открытие САМО рождает событие прокрутки. Пока оно закрывало меню,
+    // поле выглядело сломанным: щелчок есть, список мелькает и пропадает, и так
+    // каждый раз. Теперь меню переставляется следом за триггером и закрывается
+    // только тогда, когда триггер уехал за край экрана.
+    //
     // resize приходит с target === window, а window — не Node: contains() на нём
-    // бросал «Failed to execute 'contains' on 'Node'». Меню на ресайзе и так
-    // положено закрыть, поэтому не-Node просто считаем «клик мимо».
+    // бросал «Failed to execute 'contains' on 'Node'», поэтому не-Node просто не
+    // считаем прокруткой внутри меню.
     const onScroll = (e: Event) => {
       const tgt = e.target instanceof Node ? e.target : null
       if (tgt && menuRef.current?.contains(tgt)) return
-      closeDropdown()
+      const r = btnRef.current?.getBoundingClientRect()
+      if (!r || r.bottom < 0 || r.top > window.innerHeight) { closeDropdown(); return }
+      const left = Math.min(r.left, window.innerWidth - r.width - 8)
+      setPos(p => (p ? { ...p, top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width } : p))
     }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onKey)
@@ -169,7 +189,17 @@ export default function TeacherSelect({
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={placeholder ?? ''}
-            onClick={e => { if (!query) { e.stopPropagation(); closeDropdown() } }}
+            // Щелчок по пустому полю поиска закрывает список — но только НОВЫЙ.
+            // Тот же самый щелчок, которым список открыли, долетает и сюда:
+            // поле рождается ровно под курсором, и браузер досылает по нему
+            // второй click той же кнопкой мыши. Пока он считался закрытием,
+            // поле выглядело неработающим — список мигал и пропадал, сколько по
+            // нему ни щёлкай.
+            onClick={e => {
+              if (query || Date.now() - openedAt.current < 400) return
+              e.stopPropagation()
+              closeDropdown()
+            }}
             style={{
               // width:0 — у input есть своя ширина по атрибуту size, и на открытии
               // она раздувала триггер (соседнее поле уезжало за край панели, а

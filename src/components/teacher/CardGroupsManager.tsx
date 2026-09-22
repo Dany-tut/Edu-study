@@ -1749,19 +1749,23 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
     </div>
   )
 
+  // Свойства слева, карточки справа. Читают сверху вниз и слева направо: сперва
+  // ЧТО это за набор — имя, язык, кому, — потом уже его содержимое. Колонка
+  // стояла справа, и получалось, что имя набора ищут после пятидесяти строк.
+  // В узком блоке порядок тот же, просто столбиком.
   return (
     <div
       ref={ref}
       style={{
         display: 'grid', gap: 12, alignItems: 'start',
-        gridTemplateColumns: narrow ? '1fr' : 'minmax(0,1fr) 280px',
+        gridTemplateColumns: narrow ? '1fr' : '280px minmax(0,1fr)',
       }}
     >
+      {side}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
         <div style={labelStyle}>{t('Карточки')} · {cards.length}</div>
         {sheet}
       </div>
-      {side}
     </div>
   )
 }
