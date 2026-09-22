@@ -4383,6 +4383,11 @@ export const EN: Record<string, string> = {
   'Нашлось карточек:': 'Cards found:',
   'Отменить импорт': 'Cancel import',
   'Добавить в набор': 'Add to the set',
+  // Импорт прямо с витрины подборок: там набора ещё нет — он заводится.
+  'Новый набор из ссылки или снимка': 'A new set from a link or a photo',
+  'Завести набор': 'Create the set',
+  'Разделы источника станут стопками внутри нового набора.': 'The source’s sections become stacks inside the new set.',
+  'Новый набор': 'New set',
   'Снято:': 'Unticked:',
   'Не получилось разобрать источник': 'Could not parse the source',
   'Не выбрано ни одного снимка': 'No photo selected',

@@ -39,7 +39,7 @@ import {
 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
-import { usePersistentState } from '../../lib/useDraft'
+import { usePersistentState, clearDraft } from '../../lib/useDraft'
 import { useTeacher } from '../../store/teacherStore'
 import { SUBJECTS } from '../../lib/subjects'
 import {
@@ -98,6 +98,20 @@ const refOf = (x: Row): MaterialRef => ({ lang: x.lang, familyId: x.family.id, i
 // которые через миг сменялись теми же карточками, — экран мигал.
 const rowsCache = new Map<string, Row[]>()
 
+// ОБНОВЛЕНИЕ СТРАНИЦЫ ОТКРЫВАЕТ БАЗУ ЦЕЛИКОМ. Отбор обязан пережить поход
+// внутрь материала и обратно, но не F5: после перезагрузки человек ждёт всю
+// базу, а не вчерашний срез — «корейский · карточки» прятал полторы тысячи
+// материалов за одним языком, и это читалось как «остальное пропало». Тело
+// модуля выполняется один раз за загрузку страницы — ровно то место, где
+// «после F5» отличается от «вернулся на вкладку».
+// Сортировка и вид — не отбор: они ничего не прячут, и сбрасывать их значило бы
+// каждый раз заново выбирать список вместо плиток.
+;['materials.family', 'materials.level', 'materials.topic', 'materials.query'].forEach(clearDraft)
+try {
+  localStorage.removeItem('materials-lang')
+  localStorage.removeItem('materials-mode')
+} catch { /* приватный режим без хранилища не должен ронять вкладку */ }
+
 /** Адрес материала: по нему страница находит его сама, и он переживает F5. */
 export type MaterialRef = { lang: string; familyId: string; id: string }
 
@@ -109,9 +123,9 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
   const t = useT()
 
   // Пустая строка — «все языки», как пустой предмет в «Курсах».
-  const [lang, setLang] = useState(() => localStorage.getItem('materials-lang') ?? 'ko')
+  const [lang, setLang] = useState(() => localStorage.getItem('materials-lang') ?? '')
   const [mode, setMode] = useState<MaterialMode | ''>(() =>
-    (localStorage.getItem('materials-mode') as MaterialMode | null) ?? 'vocab')
+    (localStorage.getItem('materials-mode') as MaterialMode | null) ?? '')
   const [view, setView] = useState<'cards' | 'rows'>(() =>
     localStorage.getItem('materials-view') === 'rows' ? 'rows' : 'cards')
 
