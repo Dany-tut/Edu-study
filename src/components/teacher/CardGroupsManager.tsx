@@ -48,6 +48,7 @@ import { hasCardSeeds, loadCardSeeds } from '../../data/cardGroupSeeds'
 import { SURVIVAL_LEVELS, type SurvivalLevel } from '../../data/survivalPhrases'
 import GrowTextarea from '../GrowTextarea'
 import Checkbox from '../Checkbox'
+import CardImportPanel from '../CardImportPanel'
 import TeacherSelect from './TeacherSelect'
 import MultiSelectField from '../MultiSelectField'
 import TeacherSaveButton from './TeacherSaveButton'
@@ -1019,8 +1020,8 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
       </div>
 
       {set.subsets?.length
-        ? <SubsetsEditor set={set} onChange={onChange} />
-        : <CardsEditor cards={set.cards} onCards={cards => patch({ cards })} />}
+        ? <SubsetsEditor set={set} onChange={onChange} lang={group.lang} />
+        : <CardsEditor cards={set.cards} onCards={cards => patch({ cards })} lang={group.lang} />}
     </div>
   )
 }
@@ -1037,7 +1038,7 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
  * глубже четырёх запрещено и типом (CardSubset без своих подстопок), и
  * триггером в базе (миграция 0071).
  */
-function SubsetsEditor({ set, onChange }: { set: CardSet; onChange: (s: CardSet) => void }) {
+function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: CardSet) => void; lang: string }) {
   const t = useT()
   const [openId, setOpenId] = useState<string | null>(null)
   const subsets = set.subsets ?? []
@@ -1064,6 +1065,7 @@ function SubsetsEditor({ set, onChange }: { set: CardSet; onChange: (s: CardSet)
         <CardsEditor
           cards={open.cards}
           onCards={cards => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, cards } : x)))}
+          lang={lang}
         />
       </div>
     )
@@ -1110,7 +1112,12 @@ function SubsetsEditor({ set, onChange }: { set: CardSet; onChange: (s: CardSet)
  * пришлось бы писать вторую копию редактора под стопку, и они разошлись бы на первой
  * же правке формата карточки.
  */
-function CardsEditor({ cards, onCards }: { cards: SetCard[]; onCards: (c: SetCard[]) => void }) {
+function CardsEditor({ cards, onCards, lang }: {
+  cards: SetCard[]
+  onCards: (c: SetCard[]) => void
+  /** Код языка набора — импорту надо знать, что здесь слово, а что перевод. */
+  lang: string
+}) {
   const t = useT()
   const [bulk, setBulk] = useState('')
   const [row, setRow] = useState<SetCard>({ term: '', ru: '', note: '', ep: '' })
@@ -1214,6 +1221,14 @@ function CardsEditor({ cards, onCards }: { cards: SetCard[]; onCards: (c: SetCar
         onChange={e => setRow({ ...row, note: e.target.value })}
         placeholder={t('Пояснение к карточке — необязательно')}
         style={inputStyle}
+      />
+
+      {/* Снимок или ссылка: разбор на стороне сервера, превью — здесь. Метка
+          серии берётся из строки ручного ввода: её и так заполняют перед пачкой. */}
+      <CardImportPanel
+        lang={lang}
+        ep={row.ep?.trim() || undefined}
+        onAdd={imported => setCards([...set.cards, ...imported])}
       />
 
       {/* Пачкой: вставка из буфера. */}

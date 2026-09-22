@@ -22,6 +22,7 @@ import { Plus, Trash2, ChevronLeft } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { saveCardGroup, type CardGroup, type CardSet, type SetCard } from '../../lib/cardGroups'
 import GrowTextarea from '../GrowTextarea'
+import CardImportPanel from '../CardImportPanel'
 
 const input = (accent: string): React.CSSProperties => ({
   width: '100%', boxSizing: 'border-box', borderRadius: 12,
@@ -115,6 +116,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
           set={set}
           n={i + 1}
           accent={accent}
+          lang={draft.lang}
           onChange={next => setSets(draft.sets.map((x, j) => (j === i ? next : x)))}
           onRemove={() => setSets(draft.sets.filter((_, j) => j !== i))}
         />
@@ -135,8 +137,10 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
   )
 }
 
-function MySet({ set, n, accent, onChange, onRemove }: {
+function MySet({ set, n, accent, lang, onChange, onRemove }: {
   set: CardSet; n: number; accent: string
+  /** Язык подборки — импорту надо знать, что здесь слово, а что перевод. */
+  lang: string
   onChange: (s: CardSet) => void
   onRemove: () => void
 }) {
@@ -244,6 +248,14 @@ function MySet({ set, n, accent, onChange, onRemove }: {
           {t('Добавить')}
         </button>
       </div>
+
+      {/* Снимок тетради или ссылка на чужой набор — вместо двадцати пар полей. */}
+      <CardImportPanel
+        lang={lang}
+        ep={row.ep?.trim() || undefined}
+        accent={accent}
+        onAdd={imported => patch({ cards: [...set.cards, ...imported] })}
+      />
 
       <GrowTextarea
         value={set.about}
