@@ -189,6 +189,30 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
 
   const onDecks = familyId === DECKS_ID && mode === 'vocab'
 
+  // «+» на вкладке заводит НАБОР карточек, а набор живёт только на полке
+  // «Подборки». Пока плюс просто уходил вниз, с любой другой полки (и с режима
+  // «Все», который стоит по умолчанию) нажатие не делало ничего — кнопка
+  // выглядела сломанной. Теперь плюс сам переводит витрину на «Подборки» и уже
+  // там просит новый набор: счётчик, а не флаг, — второе нажатие подряд должно
+  // открыть чистый набор поверх недописанного.
+  const [deckCreate, setDeckCreate] = useState(0)
+  const [pendingCreate, setPendingCreate] = useState(false)
+  const seenCreate = useRef(createNonce)
+  useEffect(() => {
+    if (createNonce === seenCreate.current) return
+    seenCreate.current = createNonce
+    if (onDecks) { setDeckCreate(n => n + 1); return }
+    setMode('vocab'); setFamilyId(DECKS_ID)
+    setPendingCreate(true)
+  }, [createNonce, onDecks, setFamilyId])
+  // Полка переключилась — CardGroupsManager уже смонтирован и ловит следующий
+  // номер (на монтировании он запоминает текущий и не срабатывает).
+  useEffect(() => {
+    if (!pendingCreate || !onDecks) return
+    setPendingCreate(false)
+    setDeckCreate(n => n + 1)
+  }, [pendingCreate, onDecks])
+
   /** Материал под выбранным режимом и полкой — до фасетов и поиска. */
   const scoped = useMemo(() => rows.filter(r =>
     (!mode || r.family.mode === mode) && (!familyId || familyId === DECKS_ID || r.family.id === familyId),
@@ -237,7 +261,7 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
     <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {onDecks ? (
-          <CardGroupsManager createNonce={createNonce} lang={lang || undefined} query={query} onQuery={setQuery} />
+          <CardGroupsManager createNonce={deckCreate} lang={lang || undefined} query={query} onQuery={setQuery} />
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
