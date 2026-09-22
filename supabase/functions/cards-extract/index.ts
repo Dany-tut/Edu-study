@@ -129,6 +129,9 @@ function parseDelimited(text: string): Card[] {
   return cards
 }
 
+/** Адрес с Quizlet — сам сайт или любой его поддомен. */
+const isQuizlet = (u: URL) => u.hostname === 'quizlet.com' || u.hostname.endsWith('.quizlet.com')
+
 /**
  * Набор Quizlet. Страница отдаёт свои карточки встроенным JSON; формат чужой и
  * незадокументированный, поэтому находкой считаем только то, что похоже на
@@ -381,7 +384,18 @@ async function handle(req: Request): Promise<Response> {
     try {
       page = await fetchPage(src)
     } catch (e) {
-      return json({ error: `Страница не открылась: ${e instanceof Error ? e.message : e}` }, 400)
+      const said = e instanceof Error ? e.message : String(e)
+      // Quizlet закрылся от любых запросов без браузера: отдаёт 403 и живому
+      // Mac'у с домашнего адреса, и функции. Чинить это нечем, поэтому вместо
+      // безличного «страница ответила 403» называем обходной путь — у самого
+      // Quizlet есть выгрузка списком, и она вставляется соседней кнопкой.
+      if (isQuizlet(u) && /\b403\b/.test(said)) {
+        return json({
+          error: 'Quizlet не отдаёт страницы никому, кроме браузера. Откройте набор → «Экспорт», '
+            + 'скопируйте список и вставьте его через «Вставить списком».',
+        }, 400)
+      }
+      return json({ error: `Страница не открылась: ${said}` }, 400)
     }
 
     const looksTabular = /text\/(csv|tab-separated-values)/i.test(page.type) || /\.(csv|tsv)(\?|$)/i.test(u.pathname + u.search)
@@ -390,7 +404,7 @@ async function handle(req: Request): Promise<Response> {
       if (cards.length) return finish(cards, { source: 'csv' })
     }
 
-    if (/quizlet\.com$/.test(u.hostname) || u.hostname.endsWith('.quizlet.com')) {
+    if (isQuizlet(u)) {
       const cards = parseQuizlet(page.body)
       if (cards.length >= 3) return finish(cards, { source: 'quizlet', title: pageTitle(page.body) })
     }
