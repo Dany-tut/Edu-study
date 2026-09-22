@@ -399,39 +399,12 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     await reload()
   }
 
-  // ── Экраны ─────────────────────────────────────────────────────────────────
-
-  if (draft && editedSet) {
-    return (
-      <SetPage
-        group={draft}
-        set={editedSet}
-        onChange={next => setDraft(d => (d ? { ...d, sets: d.sets.map(s => (s.id === editedSet.id ? next : s)) } : d))}
-        onGroupChange={p => setDraft(d => (d ? { ...d, ...p } : d))}
-        onBack={() => { setDraft(null); setFocus(null); void reload() }}
-        onSave={save}
-        saving={saving}
-        saved={saved}
-        studentOptions={studentOptions}
-      />
-    )
-  }
-
-  if (draft) {
-    return (
-      <ShelfPage
-        group={draft}
-        onChange={setDraft}
-        onOpenSet={id => setFocus(id)}
-        onBack={() => { setDraft(null); void reload() }}
-        onSave={save}
-        saving={saving}
-        saved={saved}
-        studentOptions={studentOptions}
-      />
-    )
-  }
-
+  // Считаются ДО экранов-ранних-возвратов ниже. Хуки нельзя прятать за
+  // `if (draft) return …`: как только черновик открывался, вызовов useMemo
+  // становилось меньше, чем в прошлый раз, и React ронял всю вкладку
+  // («Rendered fewer hooks than expected») — редактор набора не открывался
+  // вовсе. Порядок хуков в компоненте обязан быть одинаковым на каждом
+  // рендере, поэтому все они стоят выше любого return.
   // Опции фасетов считаются ПО ДАННЫМ: фильтр, у которого одно значение,
   // FacetDropdown не рисует вовсе — мёртвый контрол занимает ряд и обещает
   // отбор, которого нет.
@@ -469,6 +442,40 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     else sorted.sort((a, b) => sort === 'oldest' ? at(a).localeCompare(at(b)) : at(b).localeCompare(at(a)))
     return sorted
   }, [items, shelfPick, langFilter, studentPick, needle, sort])
+
+  // ── Экраны ─────────────────────────────────────────────────────────────────
+
+  if (draft && editedSet) {
+    return (
+      <SetPage
+        group={draft}
+        set={editedSet}
+        onChange={next => setDraft(d => (d ? { ...d, sets: d.sets.map(s => (s.id === editedSet.id ? next : s)) } : d))}
+        onGroupChange={p => setDraft(d => (d ? { ...d, ...p } : d))}
+        onBack={() => { setDraft(null); setFocus(null); void reload() }}
+        onSave={save}
+        saving={saving}
+        saved={saved}
+        studentOptions={studentOptions}
+      />
+    )
+  }
+
+  if (draft) {
+    return (
+      <ShelfPage
+        group={draft}
+        onChange={setDraft}
+        onOpenSet={id => setFocus(id)}
+        onBack={() => { setDraft(null); void reload() }}
+        onSave={save}
+        saving={saving}
+        saved={saved}
+        studentOptions={studentOptions}
+      />
+    )
+  }
+
 
 
   return (
