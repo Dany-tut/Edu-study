@@ -32,15 +32,26 @@ export interface CardImportResult {
   title?: string
   /** Имя модели — пусто, когда разобрал парсер, а не она. */
   model?: string
+  /** Сколько снимков из пачки прочитать не удалось. Пусто — прочитались все. */
+  failed?: number
 }
 
 /**
- * Больше четырёх снимков за раз не отправляем: это уже не список слов, а книга.
- * Число названо словом в подписи панели (CardImportPanel) — ключ словаря
- * английского собирается из целой фразы, подставить в него значение нечем.
- * Меняешь здесь — правь и там.
+ * Сколько снимков уезжает В ОДНОМ запросе. Больше четырёх картинок в одном
+ * теле — это мегабайты base64 и минуты ожидания одного ответа, после которых
+ * шлюз отваливается по таймауту целиком, вместе с уже разобранными страницами.
  */
-export const MAX_PHOTOS = 4
+export const PHOTOS_PER_CALL = 4
+
+/**
+ * Сколько снимков берём за один заход. Пачка режется на партии по
+ * PHOTOS_PER_CALL и уезжает последовательно: список слов на сотню карточек —
+ * это десяток страниц тетради, и заставлять человека делать десять заходов по
+ * четыре значило бы, что импорт не годится ровно для той работы, ради которой
+ * он и написан. Потолок всё же есть: за двумя десятками страниц начинается не
+ * список слов, а учебник, и разбор его стоит денег молча.
+ */
+export const MAX_PHOTOS = 24
 
 /**
  * Показывать ли кнопки импорта.
@@ -83,17 +94,64 @@ async function call(body: Record<string, unknown>): Promise<CardImportResult> {
   return { cards, source: (data?.source ?? 'link') as CardImportSource, title: data?.title, model: data?.model }
 }
 
-/** Карточки со снимков. `ep` проставляется всем сразу — снимают обычно одну серию/урок. */
+/**
+ * Карточки со снимков.
+ *
+ * ПАРТИЯМИ И ПОСЛЕДОВАТЕЛЬНО. Партии идут одна за другой, а не параллельно: у
+ * шлюза лимит по запросам в минуту, и десять одновременных обращений он
+ * встречает отказом, из которого не видно, что виновата спешка, а не снимок.
+ *
+ * РАЗОБРАННОЕ НЕ ПРОПАДАЕТ. Упавшая партия не роняет заход целиком: карточки
+ * с прочитанных страниц возвращаются, а о непрочитанных панель говорит
+ * отдельной строкой. Иначе двенадцатая страница, снятая против света, стирала
+ * бы работу над одиннадцатью предыдущими.
+ *
+ * `ep` — запасная метка: раздел, найденный в самом источнике, сильнее (её
+ * подставляет функция `cards-extract`).
+ */
 export async function importCardsFromPhotos(
   files: File[],
-  opts: { lang: string; ep?: string },
+  opts: { lang: string; ep?: string; onProgress?: (done: number, total: number) => void },
 ): Promise<CardImportResult> {
+  const take = files.slice(0, MAX_PHOTOS)
+  if (take.length === 0) throw new Error(t('Не выбрано ни одного снимка'))
+
   const images: string[] = []
-  for (const f of files.slice(0, MAX_PHOTOS)) {
-    images.push(await optimizePhoto(f, { maxDim: 1600, quality: 0.82 }))
+  for (const f of take) images.push(await optimizePhoto(f, { maxDim: 1600, quality: 0.82 }))
+
+  const batches: string[][] = []
+  for (let i = 0; i < images.length; i += PHOTOS_PER_CALL) {
+    batches.push(images.slice(i, i + PHOTOS_PER_CALL))
   }
-  if (images.length === 0) throw new Error(t('Не выбрано ни одного снимка'))
-  return call({ lang: opts.lang, ep: opts.ep, images })
+
+  const cards: SetCard[] = []
+  const failures: string[] = []
+  let model: string | undefined
+  let done = 0
+  opts.onProgress?.(0, images.length)
+
+  for (const batch of batches) {
+    try {
+      const res = await call({ lang: opts.lang, ep: opts.ep, images: batch })
+      cards.push(...res.cards)
+      model = model ?? res.model
+    } catch (e) {
+      failures.push(e instanceof Error ? e.message : String(e))
+    }
+    done += batch.length
+    opts.onProgress?.(done, images.length)
+  }
+
+  // Сбой на всех партиях — это не «нашлось ноль карточек», а отказ: причину
+  // надо показать словами первой из них, а не пустым списком.
+  if (cards.length === 0 && failures.length > 0) throw new Error(failures[0])
+
+  return {
+    cards: dedupe(cards),
+    source: 'photo',
+    model,
+    failed: failures.length || undefined,
+  }
 }
 
 /** Карточки по ссылке: таблица и CSV разбираются парсером, остальное — моделью. */
@@ -105,6 +163,36 @@ export async function importCardsFromLink(
   if (!clean) throw new Error(t('Вставьте ссылку'))
   const withScheme = /^https?:\/\//i.test(clean) ? clean : `https://${clean}`
   return call({ lang: opts.lang, ep: opts.ep, url: withScheme })
+}
+
+/**
+ * Дубли по слову. Одно и то же слово попадается на развороте дважды, а страницы
+ * пачки перекрываются краями — первое вхождение выигрывает, как и на сервере.
+ */
+function dedupe(cards: SetCard[]): SetCard[] {
+  const seen = new Set<string>()
+  return cards.filter(c => {
+    const k = c.term.toLowerCase()
+    return seen.has(k) ? false : (seen.add(k), true)
+  })
+}
+
+/**
+ * Карточки → стопки по метке раздела, в порядке первого появления.
+ *
+ * Карточки без метки собираются в отдельную стопку с пустым заголовком: как её
+ * назвать, решает уже тот, кто раскладывает, — здесь придумывать ей имя значило
+ * бы прятать решение в утилите.
+ */
+export function groupByEp(cards: SetCard[]): Array<{ title: string; cards: SetCard[] }> {
+  const out: Array<{ title: string; cards: SetCard[] }> = []
+  for (const c of cards) {
+    const title = c.ep?.trim() ?? ''
+    const bucket = out.find(g => g.title === title)
+    if (bucket) bucket.cards.push(c)
+    else out.push({ title, cards: [c] })
+  }
+  return out
 }
 
 /** Подпись источника для превью. */

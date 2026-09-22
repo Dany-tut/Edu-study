@@ -33,7 +33,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, Trash2, ChevronLeft, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
+import { Plus, Trash2, ChevronLeft, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
 import { useT, useTc } from '../../lib/i18n'
 import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
@@ -48,7 +48,7 @@ import { hasCardSeeds, loadCardSeeds } from '../../data/cardGroupSeeds'
 import { SURVIVAL_LEVELS, type SurvivalLevel } from '../../data/survivalPhrases'
 import GrowTextarea from '../GrowTextarea'
 import Checkbox from '../Checkbox'
-import CardImportPanel from '../CardImportPanel'
+import CardImportPanel, { type ImportedGroup, type ImportMeta } from '../CardImportPanel'
 import TeacherSelect from './TeacherSelect'
 import MultiSelectField from '../MultiSelectField'
 import TeacherSaveButton from './TeacherSaveButton'
@@ -80,15 +80,24 @@ const SET_SORT_OPTS: [SetSortMode, string][] = [
 const MAT_COLOR = 'var(--color-peach-text)'
 const MAT_BG = 'var(--color-peach-soft)'
 
+// Блок формы — то же стекло, что у Конструктора и редактора урока. Своя
+// «карточка на --color-bg-2 с рамкой» выглядела чужой рядом с соседними
+// экранами той же вкладки.
 const cardStyle: React.CSSProperties = {
-  borderRadius: 16, border: '1px solid var(--color-border-soft)',
-  background: 'var(--color-bg-2)', padding: 14,
+  borderRadius: 18, border: '1px solid var(--color-border-glass)',
+  background: 'rgba(var(--glass-rgb), 0.88)',
+  backdropFilter: 'blur(16px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  boxShadow: 'var(--shadow-sm-page)',
+  padding: 16,
 }
 
+// Поле без рамки на --color-bg-input: общий вид полей во всём кабинете.
+// Рамка вокруг каждого поля собирала форму в стену коробок.
 const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', borderRadius: 12,
-  border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-1)',
-  color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 13.5,
+  width: '100%', boxSizing: 'border-box', borderRadius: 11,
+  border: 'none', background: 'var(--color-bg-input)',
+  color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 13,
   padding: '9px 12px', outline: 'none',
 }
 
@@ -101,8 +110,8 @@ const ghostBtn: React.CSSProperties = {
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 11, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase',
-  color: 'var(--color-muted)', marginBottom: 5,
+  fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+  color: 'var(--color-text-3)', marginBottom: 8,
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -255,6 +264,34 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
   function startNewSet() {
     const set = emptySet(0)
     setDraft(wrapperFor(lastLang, set))
+    setFocus(set.id)
+    setPicked(new Set())
+  }
+
+  /**
+   * Набор, собранный импортом прямо с витрины.
+   *
+   * ПОЧЕМУ НЕ ЧЕРЕЗ ПУСТОЙ НАБОР. Раньше путь к ссылке был один: заведи набор,
+   * провались в него, придумай имя — и только там вставляй. Но набор с чужой
+   * страницы не начинается с имени: имя у него уже есть (заголовок источника),
+   * и придумывать его до того, как видно, что нашлось, — работа впустую.
+   * Поэтому витрина сама заводит набор из того, что принёс импорт.
+   *
+   * СОХРАНЕНИЯ ЗДЕСЬ НЕТ. Открывается тот же редактор набора: язык, адресность
+   * и имя человек видит и правит до «Сохранить» — импорт в базу ничего не
+   * кладёт молча (см. шапку lib/cardImport).
+   */
+  function startImported(part: Partial<CardSet>, meta?: ImportMeta) {
+    const set: CardSet = {
+      ...emptySet(0),
+      // Имя обязательно: без него «Сохранить» выключена, и набор, который
+      // только что нашёлся, упёрся бы в серую кнопку без объяснения.
+      title: meta?.title?.trim() || t('Новый набор'),
+      ...part,
+    }
+    // Язык — тот, под которым учитель сейчас смотрит витрину: импорт разбирал
+    // источник ровно этим языком.
+    setDraft(wrapperFor(langFilter || lastLang, set))
     setFocus(set.id)
     setPicked(new Set())
   }
@@ -521,6 +558,23 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
           ))}
         </div>
       )}
+
+      {/* Набор по ссылке — прямо с витрины, не заходя внутрь пустого набора.
+          Ссылку на чужой набор (Quizlet, таблица, страница со словами) учитель
+          приносит целиком: имя, слова и разделы уже есть в источнике, и
+          единственное, чего ему не хватало, — места, куда её вставить. */}
+      <CardImportPanel
+        lang={langFilter || lastLang}
+        accent={MAT_COLOR}
+        caption={t('Новый набор из ссылки или снимка')}
+        addLabel={t('Завести набор')}
+        groupedNote={t('Разделы источника станут стопками внутри нового набора.')}
+        onAdd={(cards, meta) => startImported({ cards }, meta)}
+        onAddGrouped={(groups, meta) => startImported(
+          { subsets: groupsToSubsets(groups, [], t('Без раздела')) },
+          meta,
+        )}
+      />
 
       {picked.size > 0 && (
         <div
@@ -850,7 +904,7 @@ function ShelfPage({ group, onChange, onOpenSet, onBack, onSave, saving, saved, 
             key={set.id}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-              borderRadius: 12, background: 'var(--color-bg-1)', border: '1px solid var(--color-border-soft)',
+              borderRadius: 12, background: 'var(--color-bg-input)',
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -911,16 +965,56 @@ function ShelfPage({ group, onChange, onOpenSet, onBack, onSave, saving, saved, 
   )
 }
 
-/** Язык, уровень и адресность — общие поля группы, где бы её ни правили. */
-function ScopeFields({ group, patch, studentOptions }: {
+/**
+ * Адресность набора. Пусто = всем: типовой случай «выложил и забыл», и
+ * заставлять отмечать всех поимённо ради него значило бы, что набором не
+ * воспользуются.
+ */
+function AudienceField({ group, patch, studentOptions }: {
   group: CardGroup
   patch: (p: Partial<CardGroup>) => void
   studentOptions: Array<{ value: string; label: string }>
 }) {
   const t = useT()
   return (
+    <div style={{ minWidth: 0 }}>
+      <div style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <Users size={12} /> {t('Кому показать')}
+      </div>
+      <MultiSelectField
+        label=""
+        options={studentOptions.map(o => o.label)}
+        values={studentOptions.filter(o => group.studentIds.includes(o.value)).map(o => o.label)}
+        onChange={labels => patch({
+          studentIds: studentOptions.filter(o => labels.includes(o.label)).map(o => o.value),
+        })}
+      />
+      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 5 }}>
+        {group.studentIds.length === 0
+          ? t('Никто не отмечен — значит, это увидят все ваши ученики этого языка.')
+          : `${t('Видят только отмеченные:')} ${group.studentIds.length}`}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Язык, уровень и адресность — общие поля группы, где бы её ни правили.
+ * `stacked` — для узкой колонки листа: два поля в ряд там не помещаются.
+ */
+function ScopeFields({ group, patch, studentOptions, stacked = false }: {
+  group: CardGroup
+  patch: (p: Partial<CardGroup>) => void
+  studentOptions: Array<{ value: string; label: string }>
+  stacked?: boolean
+}) {
+  const t = useT()
+  return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{
+        display: 'grid', gap: 12,
+        gridTemplateColumns: stacked ? '1fr' : 'minmax(0,1fr) minmax(0,1fr)',
+      }}>
         <Field label={t('Язык')}>
           <TeacherSelect
             value={group.lang}
@@ -938,37 +1032,196 @@ function ScopeFields({ group, patch, studentOptions }: {
           />
         </Field>
       </div>
-      {/* Назначение. Пусто = всем: типовой случай «выложил и забыл», и
-          заставлять отмечать всех поимённо ради него значило бы, что набором
-          не воспользуются. */}
-      <div>
-        <div style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 5 }}>
-          <Users size={12} /> {t('Кому показать')}
-        </div>
-        <MultiSelectField
-          label=""
-          options={studentOptions.map(o => o.label)}
-          values={studentOptions.filter(o => group.studentIds.includes(o.value)).map(o => o.label)}
-          onChange={labels => patch({
-            studentIds: studentOptions.filter(o => labels.includes(o.label)).map(o => o.value),
-          })}
-        />
-        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 5 }}>
-          {group.studentIds.length === 0
-            ? t('Никто не отмечен — значит, это увидят все ваши ученики этого языка.')
-            : `${t('Видят только отмеченные:')} ${group.studentIds.length}`}
-        </div>
-      </div>
+      <AudienceField group={group} patch={patch} studentOptions={studentOptions} />
     </>
   )
 }
 
 /**
- * Набор — главный экран вкладки: имя, подпись и карточки.
+ * Узкий контейнер: лист карточек и колонка свойств рядом не помещаются.
+ * Мерим САМ блок, а не окно: у вкладки справа рейл фильтров, и по ширине окна
+ * колонка «влезала» там, где на деле оставалось 500 пикселей.
+ */
+function useNarrow(px: number) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [narrow, setNarrow] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < px))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [px])
+  return [ref, narrow] as const
+}
+
+/**
+ * Свойства набора: имя, подпись, язык, уровень, адресность.
  *
- * Язык и адресность показываются здесь ТОЛЬКО у одиночного набора: у набора на
- * полке это свойства полки, и вторая копия тех же полей поехала бы вразрез с
+ * Две раскладки одним компонентом. `head` — шапка пустого набора: на виду
+ * только имя и язык, потому что импорту нужен язык, а всё остальное правят
+ * один раз и позже. `aside` — узкая колонка листа: там места мало и поля идут
+ * столбиком. Две копии полей разошлись бы на первой же правке модели набора.
+ *
+ * Язык и адресность показываются ТОЛЬКО у одиночного набора: у набора на полке
+ * это свойства полки, и вторая копия тех же полей поехала бы вразрез с
  * соседними наборами той же группы. Вместо них — строка «лежит на полке».
+ */
+function SetProps({ group, set, patch, onGroupChange, studentOptions, layout }: {
+  group: CardGroup
+  set: CardSet
+  patch: (p: Partial<CardSet>) => void
+  onGroupChange: (p: Partial<CardGroup>) => void
+  studentOptions: Array<{ value: string; label: string }>
+  layout: 'head' | 'aside'
+}) {
+  const t = useT()
+  const [more, setMore] = useState(false)
+  const onShelf = isShelf(group)
+
+  const shelfLine = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--color-muted)' }}>
+      <Layers size={13} />
+      {t('Лежит на полке')} «{group.title}» · {langLabelOf(group.lang)}
+      <span style={{ color: 'var(--color-text-3)' }}>
+        {t('— язык и адресность у полки общие.')}
+      </span>
+    </div>
+  )
+
+  const about = (
+    <Field label={t('Подпись')}>
+      <input
+        value={set.about}
+        onChange={e => patch({ about: e.target.value })}
+        placeholder={t('О чём этот сезон, глава, часть — необязательно')}
+        style={inputStyle}
+      />
+    </Field>
+  )
+
+  if (layout === 'aside') {
+    return (
+      <>
+        <Field label={t('Название набора')}>
+          <input
+            value={set.title}
+            onChange={e => patch({ title: e.target.value })}
+            placeholder={t('Например: Сезон 1')}
+            style={{ ...inputStyle, fontWeight: 700 }}
+          />
+        </Field>
+        {about}
+        {onShelf ? shelfLine : <ScopeFields group={group} patch={onGroupChange} studentOptions={studentOptions} stacked />}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: onShelf ? '1fr' : 'minmax(0,1fr) 200px', gap: 12 }}>
+        <Field label={t('Название набора')}>
+          <input
+            value={set.title}
+            onChange={e => patch({ title: e.target.value })}
+            placeholder={t('Например: Сезон 1')}
+            style={{ ...inputStyle, fontWeight: 700 }}
+            autoFocus={!set.title.trim()}
+          />
+        </Field>
+        {!onShelf && (
+          <Field label={t('Язык')}>
+            <TeacherSelect
+              value={group.lang}
+              options={LANG_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+              onChange={v => onGroupChange({ lang: v, subject: subjectOf(v) })}
+              clearable={false}
+            />
+          </Field>
+        )}
+      </div>
+      {onShelf && shelfLine}
+      {more ? (
+        <>
+          {about}
+          {!onShelf && (
+            <>
+              <Field label={t('Уровень')}>
+                <TeacherSelect
+                  value={group.level ?? ''}
+                  options={SURVIVAL_LEVELS.map(l => ({ value: l, label: l }))}
+                  onChange={v => onGroupChange({ level: (v || null) as SurvivalLevel | null })}
+                  placeholder={t('Без уровня')}
+                />
+              </Field>
+              <AudienceField group={group} patch={onGroupChange} studentOptions={studentOptions} />
+            </>
+          )}
+        </>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setMore(v => !v)}
+        style={{ ...ghostBtn, alignSelf: 'flex-start', padding: 0 }}
+      >
+        <ChevronDown size={13} style={{ transform: more ? 'rotate(180deg)' : 'none' }} />
+        {more ? t('Свернуть') : t('Подпись, уровень, кому показать')}
+      </button>
+    </>
+  )
+}
+
+/**
+ * Пустой набор: выбор источника, а не форма.
+ *
+ * ЗАЧЕМ. Импорт стоял последним пунктом длинной формы — то есть самый быстрый
+ * путь показывался после самого медленного, и его просто не находили. Здесь он
+ * первым и крупно, а ручной ввод остаётся соседней кнопкой: он никуда не делся,
+ * он перестал быть умолчанием.
+ *
+ * ПЛИТКИ ЕСТЬ НЕ ВСЕГДА. Разбор платный и висит на рубильнике (`ai_card_import`):
+ * когда он выключен, CardImportPanel не рисует ничего, и экран честно
+ * превращается в два тихих пункта — руками и списком.
+ */
+function SetStart({ lang, onAdd, onAddGrouped, onManual, onBulk }: {
+  lang: string
+  onAdd: (cards: SetCard[]) => void
+  onAddGrouped: (groups: ImportedGroup[]) => void
+  onManual: () => void
+  onBulk: () => void
+}) {
+  const t = useT()
+  return (
+    <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={labelStyle}>{t('Откуда берём слова')}</div>
+      <CardImportPanel lang={lang} variant="tiles" onAdd={onAdd} onAddGrouped={onAddGrouped} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <button type="button" onClick={onManual} style={startBtn}>
+          <Pencil size={14} /> {t('Вписать руками')}
+        </button>
+        <button type="button" onClick={onBulk} style={startBtn}>
+          <Plus size={14} /> {t('Вставить списком')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const startBtn: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  height: 40, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+  border: '1px solid var(--color-border-soft)', background: 'transparent',
+  color: 'var(--color-text-2)', fontSize: 12.5, fontWeight: 700,
+}
+
+/**
+ * Набор — главный экран вкладки.
+ *
+ * ДВА СОСТОЯНИЯ, А НЕ ОДНА ФОРМА. Пустой набор и набор на полсотни карточек —
+ * разные задачи, и одна вёрстка обслуживала обе плохо. Пустой открывается
+ * вопросом «откуда берём слова». Заполненный открывается листом: карточки
+ * занимают всю высоту и правятся на месте, а свойства набора уходят в колонку
+ * справа, где видны всегда, а не уезжают вверх на тридцатой строке.
  */
 function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, saved, studentOptions }: {
   group: CardGroup
@@ -983,47 +1236,101 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
 }) {
   const t = useT()
   const patch = (p: Partial<CardSet>) => onChange({ ...set, ...p })
-  const onShelf = isShelf(group)
+  // «Вписать руками» и «Вставить списком» переводят пустой набор в лист, не
+  // дожидаясь первой карточки: иначе кнопка выбора источника ничего не делала бы.
+  const [started, setStarted] = useState(false)
+  const [openBulk, setOpenBulk] = useState(false)
+
+  const bar = (
+    <EditorBar back={t('К наборам')} onBack={onBack} onSave={onSave} saving={saving} saved={saved} disabled={!set.title.trim()} />
+  )
+
+  if (set.subsets?.length) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
+        {bar}
+        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="head" />
+        </div>
+        <SubsetsEditor set={set} onChange={onChange} lang={group.lang} />
+      </div>
+    )
+  }
+
+  if (set.cards.length === 0 && !started) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
+        {bar}
+        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="head" />
+        </div>
+        <SetStart
+          lang={group.lang}
+          onAdd={cards => patch({ cards })}
+          // Пустой набор раскладка открывает сразу стопками: терять здесь
+          // нечего, и уровень появляется ровно тогда, когда в нём есть смысл.
+          onAddGrouped={groups => patch({ cards: [], subsets: groupsToSubsets(groups, [], t('Без раздела')) })}
+          onManual={() => setStarted(true)}
+          onBulk={() => { setStarted(true); setOpenBulk(true) }}
+        />
+      </div>
+    )
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
-      <EditorBar back={t('К наборам')} onBack={onBack} onSave={onSave} saving={saving} saved={saved} disabled={!set.title.trim()} />
-
-      <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <Field label={t('Название набора')}>
-          <input
-            value={set.title}
-            onChange={e => patch({ title: e.target.value })}
-            placeholder={t('Например: Сезон 1')}
-            style={{ ...inputStyle, fontWeight: 700 }}
-          />
-        </Field>
-        <Field label={t('Подпись')}>
-          <input
-            value={set.about}
-            onChange={e => patch({ about: e.target.value })}
-            placeholder={t('О чём этот сезон, глава, часть — необязательно')}
-            style={inputStyle}
-          />
-        </Field>
-        {onShelf ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--color-muted)' }}>
-            <Layers size={13} />
-            {t('Лежит на полке')} «{group.title}» · {langLabelOf(group.lang)}
-            <span style={{ color: 'var(--color-text-3)' }}>
-              {t('— язык и адресность у полки общие.')}
-            </span>
-          </div>
-        ) : (
-          <ScopeFields group={group} patch={onGroupChange} studentOptions={studentOptions} />
-        )}
-      </div>
-
-      {set.subsets?.length
-        ? <SubsetsEditor set={set} onChange={onChange} lang={group.lang} />
-        : <CardsEditor cards={set.cards} onCards={cards => patch({ cards })} lang={group.lang} />}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1080 }}>
+      {bar}
+      <CardsEditor
+        cards={set.cards}
+        onCards={cards => patch({ cards })}
+        lang={group.lang}
+        openBulk={openBulk}
+        // Карточки набора и стопки в одном наборе не живут: экран показывает
+        // либо лист, либо стопки. Поэтому раскладка уводит уже набранное в
+        // свою стопку — иначе оно осталось бы в данных, но пропало бы с глаз.
+        onImportGroups={groups => patch({
+          cards: [],
+          subsets: groupsToSubsets(
+            groups,
+            set.cards.length ? [{ id: newSubsetId(0), title: t('Набранное руками'), about: '', cards: set.cards }] : [],
+            t('Без раздела'),
+          ),
+        })}
+        importNote={set.cards.length
+          ? `${t('Карточки, уже лежащие в наборе, уедут в стопку «Набранное руками»:')} ${set.cards.length}`
+          : undefined}
+        aside={
+          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="aside" />
+        }
+      />
     </div>
   )
+}
+
+/**
+ * Временный id новой стопки — как у нового набора: до сохранения он нужен
+ * ключам React и тому, чтобы diff в saveCardGroup отличил новое от удалённого.
+ */
+const newSubsetId = (n: number) => `new-sub-${n}-${Math.random().toString(36).slice(2, 8)}`
+
+/**
+ * Разложенный импорт → стопки набора.
+ *
+ * СЛИВАЕТСЯ ПО НАЗВАНИЮ. Вторая пачка той же серии должна лечь в ту же стопку,
+ * а не завести рядом вторую «S01E04»: сравниваем заголовки без регистра и
+ * пробелов по краям. Новые стопки идут в хвост, порядок старых не трогаем —
+ * его выставили руками.
+ */
+function groupsToSubsets(groups: ImportedGroup[], base: CardSubset[], fallback: string): CardSubset[] {
+  const next = base.map(x => ({ ...x, cards: [...x.cards] }))
+  const key = (title: string) => title.trim().toLowerCase()
+  for (const g of groups) {
+    const title = g.title.trim() || fallback
+    const hit = next.find(x => key(x.title) === key(title))
+    if (hit) hit.cards.push(...g.cards)
+    else next.push({ id: newSubsetId(next.length), title, about: '', cards: [...g.cards] })
+  }
+  return next
 }
 
 /**
@@ -1052,20 +1359,20 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
         <button type="button" onClick={() => setOpenId(null)} style={ghostBtn}>
           <ChevronLeft size={14} /> {t('К стопкам')}
         </button>
-        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Field label={t('Название стопки')}>
-            <input
-              value={open.title}
-              onChange={e => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, title: e.target.value } : x)))}
-              placeholder={t('Например: 1. Pilot')}
-              style={{ ...inputStyle, fontWeight: 700 }}
-            />
-          </Field>
-        </div>
         <CardsEditor
           cards={open.cards}
           onCards={cards => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, cards } : x)))}
           lang={lang}
+          aside={
+            <Field label={t('Название стопки')}>
+              <input
+                value={open.title}
+                onChange={e => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, title: e.target.value } : x)))}
+                placeholder={t('Например: 1. Pilot')}
+                style={{ ...inputStyle, fontWeight: 700 }}
+              />
+            </Field>
+          }
         />
       </div>
     )
@@ -1074,6 +1381,18 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={labelStyle}>{t('Стопки')} · {subsets.length}</div>
+
+      {/* Импорт стоит и здесь, на списке: у набора, уже разбитого на серии,
+          следующая пачка слов — это, как правило, следующая серия, и
+          проваливаться ради неё внутрь стопки незачем. Разложенное сливается
+          по названию, новое заводит стопку в хвосте. */}
+      <CardImportPanel
+        lang={lang}
+        onAdd={cards => patchSubsets(groupsToSubsets([{ title: '', cards }], subsets, t('Без раздела')))}
+        onAddGrouped={groups => patchSubsets(groupsToSubsets(groups, subsets, t('Без раздела')))}
+        groupedNote={t('Стопки с теми же названиями пополнятся, остальные заведутся новыми.')}
+      />
+
       {subsets.map(sub => (
         <div key={sub.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
           <button type="button" onClick={() => setOpenId(sub.id)} style={{ ...ghostBtn, flex: 1, justifyContent: 'flex-start' }}>
@@ -1092,12 +1411,7 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
       ))}
       <button
         type="button"
-        onClick={() => patchSubsets([...subsets, {
-          // Временный id — как у нового набора: до сохранения он нужен ключам
-          // React и тому, чтобы diff в saveCardGroup отличил новое от удалённого.
-          id: `new-sub-${subsets.length}-${Math.random().toString(36).slice(2, 8)}`,
-          title: '', about: '', cards: [],
-        }])}
+        onClick={() => patchSubsets([...subsets, { id: newSubsetId(subsets.length), title: '', about: '', cards: [] }])}
         style={ghostBtn}
       >
         + {t('Добавить стопку')}
@@ -1107,27 +1421,53 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
 }
 
 /**
- * Редактор карточек. Берёт СПИСОК, а не набор: карточки лежат и у набора, и у
- * стопки внутри него, а форма для них одна и та же. Передавали бы набор —
- * пришлось бы писать вторую копию редактора под стопку, и они разошлись бы на первой
- * же правке формата карточки.
+ * Редактор карточек — лист.
+ *
+ * БЕРЁТ СПИСОК, А НЕ НАБОР: карточки лежат и у набора, и у стопки внутри него,
+ * а форма для них одна и та же. Передавали бы набор — пришлось бы писать вторую
+ * копию редактора под стопку, и они разошлись бы на первой же правке формата.
+ *
+ * ПРАВКА НА МЕСТЕ. Раньше готовые карточки были нередактируемыми строками: чтобы
+ * исправить опечатку в переводе, карточку удаляли и набивали заново. Теперь
+ * ячейка — это поле без рамки, подчёркивание появляется под тем, в котором
+ * стоит курсор (общее правило правки-на-месте). Полсотни полей в рамках были бы
+ * стеной коробок.
+ *
+ * ПОСЛЕДНЯЯ СТРОКА — ПУСТАЯ. Отдельной формы «добавить карточку» больше нет:
+ * пишут прямо в хвост листа, Enter переводит на следующую. Форма над списком
+ * заставляла глаз прыгать между местом ввода и местом, где появляется результат.
  */
-function CardsEditor({ cards, onCards, lang }: {
+function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGroups, importNote }: {
   cards: SetCard[]
   onCards: (c: SetCard[]) => void
   /** Код языка набора — импорту надо знать, что здесь слово, а что перевод. */
   lang: string
+  /** Колонка справа: свойства набора или стопки. Без неё лист идёт во всю ширину. */
+  aside?: React.ReactNode
+  /** Пришли сюда по «Вставить списком» — раскрыть вставку сразу. */
+  openBulk?: boolean
+  /**
+   * Разложить импорт по стопкам. Передаёт ТОЛЬКО набор: внутри стопки класть
+   * подстопки некуда (глубже четырёх запрещено и типом, и триггером 0071), и
+   * предлагать там раскладку значило бы обещать несуществующее.
+   */
+  onImportGroups?: (groups: ImportedGroup[]) => void
+  /** Что раскладка сделает с тем, что уже лежит в наборе. */
+  importNote?: string
 }) {
   const t = useT()
   const [bulk, setBulk] = useState('')
+  const [bulkOpen, setBulkOpen] = useState(openBulk)
   const [row, setRow] = useState<SetCard>({ term: '', ru: '', note: '', ep: '' })
+  const [ref, narrow] = useNarrow(760)
+  const termRef = useRef<HTMLInputElement>(null)
 
-  const set = { cards }
-  const setCards = onCards
+  const patchCard = (i: number, p: Partial<SetCard>) =>
+    onCards(cards.map((c, j) => (j === i ? { ...c, ...p } : c)))
 
   function addRow() {
     if (!row.term.trim() || !row.ru.trim()) return
-    setCards([...set.cards, {
+    onCards([...cards, {
       term: row.term.trim(),
       ru: row.ru.trim(),
       note: row.note?.trim() || undefined,
@@ -1136,115 +1476,160 @@ function CardsEditor({ cards, onCards, lang }: {
     // Метка серии НЕ чистится: карточки одной серии добавляют подряд, и стирать
     // её после каждой значило бы вбивать «S05E04» двенадцать раз.
     setRow(r => ({ term: '', ru: '', note: '', ep: r.ep }))
+    termRef.current?.focus()
   }
 
   function addBulk() {
     const parsed = parseBulk(bulk)
     if (parsed.length === 0) return
-    setCards([...set.cards, ...parsed.map(c => ({ ...c, ep: row.ep?.trim() || undefined }))])
+    onCards([...cards, ...parsed.map(c => ({ ...c, ep: row.ep?.trim() || undefined }))])
     setBulk('')
   }
 
-  return (
-    <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={labelStyle}>{t('Карточки')} · {set.cards.length}</div>
+  const ready = Boolean(row.term.trim() && row.ru.trim())
 
-      {set.cards.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {set.cards.map((c, i) => (
-            <div
-              key={`${c.term}-${i}`}
-              style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px',
-                borderRadius: 12, background: 'var(--color-bg-1)',
-                border: '1px solid var(--color-border-soft)',
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--color-text)' }}>{c.term}</div>
-                {c.note && <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 2 }}>{c.note}</div>}
-              </div>
-              {c.ep && (
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{c.ep}</div>
-              )}
-              <div style={{ fontSize: 13, color: 'var(--color-text-2)', width: '38%', textAlign: 'right' }}>{c.ru}</div>
-              <button
-                onClick={() => setCards(set.cards.filter((_, j) => j !== i))}
-                style={{ ...ghost, color: 'var(--color-muted)' }}
-                title={t('Убрать карточку')}
-              >
-                <Trash2 size={13} />
-              </button>
-            </div>
-          ))}
+  const sheet = (
+    <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+      <div style={{ ...gridCols, padding: '9px 14px', borderBottom: '1px solid var(--color-border-soft)' }}>
+        <div style={labelStyle0}>{t('Слово')}</div>
+        <div style={labelStyle0}>{t('Перевод')}</div>
+        <div style={labelStyle0}>{t('Серия')}</div>
+        <div />
+      </div>
+
+      {cards.map((c, i) => (
+        <div key={i} style={{ ...gridCols, padding: '7px 14px', borderBottom: '1px solid var(--color-border-soft)' }}>
+          <div style={{ minWidth: 0 }}>
+            <input
+              value={c.term}
+              onChange={e => patchCard(i, { term: e.target.value })}
+              onFocus={underline(true)}
+              onBlur={underline(false)}
+              placeholder={t('Слово или фраза')}
+              style={cellStyle({ fontWeight: 650 })}
+            />
+            <input
+              value={c.note ?? ''}
+              onChange={e => patchCard(i, { note: e.target.value || undefined })}
+              onFocus={underline(true)}
+              onBlur={underline(false)}
+              placeholder={t('Пояснение — необязательно')}
+              style={cellStyle({ fontSize: 11.5, color: 'var(--color-muted)' })}
+            />
+          </div>
+          <input
+            value={c.ru}
+            onChange={e => patchCard(i, { ru: e.target.value })}
+            onFocus={underline(true)}
+            onBlur={underline(false)}
+            placeholder={t('Перевод')}
+            style={cellStyle({ color: 'var(--color-text-2)' })}
+          />
+          <input
+            value={c.ep ?? ''}
+            onChange={e => patchCard(i, { ep: e.target.value || undefined })}
+            onFocus={underline(true)}
+            onBlur={underline(false)}
+            placeholder="—"
+            style={cellStyle({ fontSize: 11.5, color: 'var(--color-text-3)' })}
+          />
+          <button
+            onClick={() => onCards(cards.filter((_, j) => j !== i))}
+            style={{ ...ghost, width: 26, height: 26, border: 'none', color: 'var(--color-muted)' }}
+            title={t('Убрать карточку')}
+          >
+            <Trash2 size={13} />
+          </button>
         </div>
-      )}
+      ))}
 
-      {/* Построчный ввод: одна карточка за раз. */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 0.8fr auto', gap: 8, alignItems: 'center' }}>
-        <input
-          value={row.term}
-          onChange={e => setRow({ ...row, term: e.target.value })}
-          onKeyDown={e => { if (e.key === 'Enter') addRow() }}
-          placeholder={t('Слово или фраза')}
-          style={inputStyle}
-        />
+      {/* Хвост листа: сюда пишут новую карточку. */}
+      <div style={{ ...gridCols, padding: '7px 14px', background: 'var(--color-bg-input)' }}>
+        <div style={{ minWidth: 0 }}>
+          <input
+            ref={termRef}
+            value={row.term}
+            onChange={e => setRow({ ...row, term: e.target.value })}
+            onKeyDown={e => { if (e.key === 'Enter') addRow() }}
+            onFocus={underline(true)}
+            onBlur={underline(false)}
+            placeholder={t('Слово или фраза')}
+            style={cellStyle({ fontWeight: 650 })}
+          />
+          <input
+            value={row.note ?? ''}
+            onChange={e => setRow({ ...row, note: e.target.value })}
+            onKeyDown={e => { if (e.key === 'Enter') addRow() }}
+            onFocus={underline(true)}
+            onBlur={underline(false)}
+            placeholder={t('Пояснение — необязательно')}
+            style={cellStyle({ fontSize: 11.5, color: 'var(--color-muted)' })}
+          />
+        </div>
         <input
           value={row.ru}
           onChange={e => setRow({ ...row, ru: e.target.value })}
           onKeyDown={e => { if (e.key === 'Enter') addRow() }}
+          onFocus={underline(true)}
+          onBlur={underline(false)}
           placeholder={t('Перевод')}
-          style={inputStyle}
+          style={cellStyle({ color: 'var(--color-text-2)' })}
         />
         <input
           value={row.ep ?? ''}
           onChange={e => setRow({ ...row, ep: e.target.value })}
-          placeholder={t('Серия, напр. S01E04')}
-          style={inputStyle}
+          onKeyDown={e => { if (e.key === 'Enter') addRow() }}
+          onFocus={underline(true)}
+          onBlur={underline(false)}
+          placeholder={t('S01E04')}
+          style={cellStyle({ fontSize: 11.5, color: 'var(--color-text-3)' })}
         />
         <button
           onClick={addRow}
-          disabled={!row.term.trim() || !row.ru.trim()}
+          disabled={!ready}
+          title={t('Добавить')}
           style={{
-            height: 36, padding: '0 14px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
-            cursor: row.term.trim() && row.ru.trim() ? 'pointer' : 'default',
-            background: row.term.trim() && row.ru.trim() ? 'var(--color-purple-soft)' : 'var(--color-bg-1)',
-            color: row.term.trim() && row.ru.trim() ? 'var(--color-purple-text)' : 'var(--color-text-3)',
-            fontSize: 12.5, fontWeight: 700,
+            ...ghost, width: 26, height: 26, border: 'none',
+            cursor: ready ? 'pointer' : 'default',
+            color: ready ? 'var(--color-purple-text)' : 'var(--color-text-3)',
           }}
         >
-          {t('Добавить')}
+          <Plus size={15} />
         </button>
       </div>
-      <input
-        value={row.note ?? ''}
-        onChange={e => setRow({ ...row, note: e.target.value })}
-        placeholder={t('Пояснение к карточке — необязательно')}
-        style={inputStyle}
-      />
+    </div>
+  )
+
+  const side = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+      {aside && (
+        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>{aside}</div>
+      )}
 
       {/* Снимок или ссылка: разбор на стороне сервера, превью — здесь. Метка
-          серии берётся из строки ручного ввода: её и так заполняют перед пачкой. */}
+          серии берётся из хвостовой строки: её и так заполняют перед пачкой. */}
       <CardImportPanel
         lang={lang}
         ep={row.ep?.trim() || undefined}
-        onAdd={imported => setCards([...set.cards, ...imported])}
+        onAdd={imported => onCards([...cards, ...imported])}
+        onAddGrouped={onImportGroups}
+        groupedNote={importNote}
       />
 
-      {/* Пачкой: вставка из буфера. */}
-      <details>
-        <summary style={{ fontSize: 12, color: 'var(--color-muted)', cursor: 'pointer' }}>
+      <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button type="button" onClick={() => setBulkOpen(v => !v)} style={{ ...ghostBtn, padding: 0 }}>
+          <ChevronDown size={13} style={{ transform: bulkOpen ? 'rotate(180deg)' : 'none' }} />
           {t('Вставить списком')}
-        </summary>
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <GrowTextarea
-            value={bulk}
-            onChange={setBulk}
-            minHeight={90}
-            placeholder={'hunter — охотник\nsalt and burn — засыпать солью и сжечь'}
-            style={{ ...inputStyle, resize: 'none' }}
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        </button>
+        {bulkOpen && (
+          <>
+            <GrowTextarea
+              value={bulk}
+              onChange={setBulk}
+              minHeight={90}
+              placeholder={'hunter — охотник\nsalt and burn — засыпать солью и сжечь'}
+              style={{ ...inputStyle, resize: 'none' }}
+            />
             <button
               onClick={addBulk}
               disabled={parseBulk(bulk).length === 0}
@@ -1258,16 +1643,57 @@ function CardsEditor({ cards, onCards, lang }: {
             >
               {t('Разобрать и добавить')}
             </button>
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
+            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.35 }}>
               {parseBulk(bulk).length > 0
                 ? `${t('Распознано карточек:')} ${parseBulk(bulk).length}`
                 : t('По строке на карточку: слово, тире, перевод.')}
             </div>
-          </div>
-        </div>
-      </details>
+          </>
+        )}
+      </div>
     </div>
   )
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        display: 'grid', gap: 12, alignItems: 'start',
+        gridTemplateColumns: narrow ? '1fr' : 'minmax(0,1fr) 280px',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+        <div style={labelStyle}>{t('Карточки')} · {cards.length}</div>
+        {sheet}
+      </div>
+      {side}
+    </div>
+  )
+}
+
+/** Колонки листа: слово · перевод · серия · корзина. */
+const gridCols: React.CSSProperties = {
+  display: 'grid', gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,1fr) 78px 26px',
+  gap: 10, alignItems: 'center',
+}
+
+const labelStyle0: React.CSSProperties = { ...labelStyle, marginBottom: 0 }
+
+/**
+ * Ячейка листа: поле без рамки. Нижняя граница стоит всегда, но прозрачная —
+ * иначе строка подпрыгивала бы на полтора пикселя при первом клике в поле.
+ */
+const cellStyle = (extra: React.CSSProperties): React.CSSProperties => ({
+  width: '100%', minWidth: 0, boxSizing: 'border-box',
+  border: 'none', borderBottom: '1.5px solid transparent', borderRadius: 0,
+  padding: '2px 0', background: 'transparent', outline: 'none',
+  color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 13,
+  caretColor: 'var(--color-accent)',
+  ...extra,
+})
+
+const underline = (on: boolean) => (e: React.FocusEvent<HTMLInputElement>) => {
+  e.currentTarget.style.borderBottomColor = on ? 'var(--color-accent)' : 'transparent'
 }
 
 const ghost: React.CSSProperties = {
