@@ -34,8 +34,14 @@ export async function importGoogleForm(url: string): Promise<ImportedForm> {
   if (error) {
     // On a non-2xx response supabase-js sets `data` to null and stashes the raw
     // Response on error.context — read it ourselves to surface our JSON { error } body.
-    const context = (error as { context?: Response }).context
-    const bodyError = context ? await context.clone().json().then(b => b?.error as string | undefined).catch(() => undefined) : undefined
+    // Response там лежит только у FunctionsHttpError (функция ответила не-2xx). Если до
+    // функции не достучались вовсе (не задеплоена, оборвалась сеть — FunctionsFetchError),
+    // в context произвольный объект без .clone(), и попытка его клонировать сама бросит
+    // TypeError вместо настоящей причины — поэтому сверяем тип и падаем на error.message.
+    const context = (error as { context?: unknown }).context
+    const bodyError = context instanceof Response
+      ? await context.clone().json().then(b => b?.error as string | undefined).catch(() => undefined)
+      : undefined
     throw new Error(bodyError || error.message || t('Не удалось импортировать форму'))
   }
   if (data?.error) throw new Error(data.error as string)
