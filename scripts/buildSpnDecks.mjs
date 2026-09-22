@@ -52,6 +52,13 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
+
+// Корень шлюза: тот же секрет AI_BASE_URL, что у функций Supabase; путь
+// дописывается по месту. У kie.ai диалекты разведены по адресам
+// (/claude и /codex), поэтому GPT-ветке — свой корень AI_GPT_BASE_URL.
+const GATEWAY_URL = process.env.AI_BASE_URL ?? 'https://api.kie.ai/claude'
+const GATEWAY_GPT_URL = process.env.AI_GPT_BASE_URL ?? process.env.AI_BASE_URL ?? 'https://api.kie.ai/codex'
+
 const flag = (name, def = null) => {
   const i = args.indexOf(name)
   return i >= 0 ? (args[i + 1] ?? true) : def
@@ -276,7 +283,7 @@ function textFromSSE(body) {
  * взаимозаменяем — важно, чтобы что-то из двух было живо.
  */
 async function viaCodex(prompt, key, model) {
-  const res = await fetch('https://api.kie.ai/codex/v1/responses', {
+  const res = await fetch(`${GATEWAY_GPT_URL}/v1/responses`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model, input: prompt }),
@@ -288,7 +295,7 @@ async function viaCodex(prompt, key, model) {
 async function translate(words) {
   if (FAKE) return words.map(w => ({ term: w.term, ru: `‹перевод: ${w.term}›`, note: '‹пояснение›', ex: `‹пример с ${w.term}›`, exRu: '‹перевод примера›' }))
 
-  const kie = process.env.KIE_API_KEY
+  const kie = process.env.AI_API_KEY ?? process.env.KIE_API_KEY
   const key = kie ?? process.env.ANTHROPIC_API_KEY
   if (!key) throw new Error('нет ключа: задай ANTHROPIC_API_KEY или KIE_API_KEY (или гоняй с --fake)')
 
@@ -321,7 +328,7 @@ async function translate(words) {
   // Шлюз kie.ai говорит на диалекте Anthropic, но авторизуется через
   // «Authorization: Bearer», а не «x-api-key» — за это отвечает authToken.
   const client = kie
-    ? new Anthropic({ baseURL: 'https://api.kie.ai/claude', authToken: kie })
+    ? new Anthropic({ baseURL: GATEWAY_URL, authToken: kie })
     : new Anthropic({ apiKey: key })
 
   const list = words.map(w => `${w.term} — встречается в ${w.episodes} сериях; в реплике: "${w.context}"`).join('\n')

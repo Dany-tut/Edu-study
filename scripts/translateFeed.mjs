@@ -139,12 +139,15 @@ const SYSTEM = `Ты переводишь на русский язык мате�
 6. Служебный мусор источника (пункты меню, «Читать далее», подписи к фото) переводи так же коротко, как он выглядит в оригинале, — не выдумывай ему связного текста.
 7. Тело пустое — верни пустую строку в body. Заголовок переводи всегда.`
 
-const KIE = process.env.KIE_API_KEY
+const KIE = process.env.AI_API_KEY ?? process.env.KIE_API_KEY
+// Корень шлюза: тот же секрет AI_BASE_URL, что у функций Supabase. Путь
+// /v1/messages дописывает сам SDK.
+const GATEWAY_URL = process.env.AI_BASE_URL ?? 'https://api.kie.ai/claude'
 /** Идём через шлюз: своего ключа нет, а кредиты шлюза есть. */
 const VIA_GATEWAY = !FAKE && !process.env.ANTHROPIC_API_KEY && !!KIE
 
 const client = FAKE ? null
-  : VIA_GATEWAY ? new Anthropic({ baseURL: 'https://api.kie.ai/claude', authToken: KIE })
+  : VIA_GATEWAY ? new Anthropic({ baseURL: GATEWAY_URL, authToken: KIE })
     : new Anthropic()
 
 if (VIA_GATEWAY) console.log('Ключа Anthropic нет — идём через шлюз kie.ai.')

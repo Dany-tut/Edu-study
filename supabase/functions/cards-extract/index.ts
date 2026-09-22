@@ -7,7 +7,7 @@
 // снимком или одной ссылкой, а человеку остаётся вычитать и поправить.
 //
 // ПОЧЕМУ СЕРВЕР, А НЕ БРАУЗЕР. Две причины, и обе несъёмные:
-//   • ключ kie.ai лежит в секретах функции — в SPA он виден любому, кто открыл
+//   • ключ шлюза лежит в секретах функции — в SPA он виден любому, кто открыл
 //     DevTools (та же причина, что у analytics-digest);
 //   • чужие страницы не отдают CORS-заголовков, и fetch из браузера к ним не
 //     проходит в принципе (та же причина, что у import-google-form).
@@ -46,13 +46,16 @@ function json(body: unknown, status = 200) {
 
 interface Card { term: string; ru: string; note?: string; ep?: string }
 
-const KIE_URL = 'https://api.kie.ai/claude/v1/messages'
+// Корень шлюза — из секретов (AI_BASE_URL), как у разбора аналитики; по
+// умолчанию старый kie.ai. LinaliAPI: https://api.linaliapi.com.
+const API_URL = (Deno.env.get('AI_BASE_URL') ?? 'https://api.kie.ai/claude') + '/v1/messages'
 
 // Порядок перебора — как у разбора аналитики: пул апстрим-аккаунтов у kie.ai
 // свой на каждую модель и пустеет независимо, поэтому одна недоступная модель
 // не должна отменять импорт. Здесь список начинается с середины: разбор списка
 // слов — задача без развилок, и самая сильная модель ей не нужна.
-const MODELS = (Deno.env.get('KIE_CARD_MODELS') ?? Deno.env.get('KIE_MODELS') ??
+const MODELS = (Deno.env.get('AI_CARD_MODELS') ?? Deno.env.get('KIE_CARD_MODELS') ??
+  Deno.env.get('AI_MODELS') ?? Deno.env.get('KIE_MODELS') ??
   'claude-sonnet-4-5,claude-opus-4-8,claude-haiku-4-5')
   .split(',').map(m => m.trim()).filter(Boolean)
 
@@ -222,7 +225,7 @@ type Content = Array<
 >
 
 async function askModel(key: string, model: string, langName: string, content: Content) {
-  const res = await fetch(KIE_URL, {
+  const res = await fetch(API_URL, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${key}`,
@@ -237,14 +240,14 @@ async function askModel(key: string, model: string, langName: string, content: C
     }),
   })
   const raw = await res.text()
-  if (!res.ok) throw new Error(`kie.ai HTTP ${res.status}: ${raw.slice(0, 200)}`)
+  if (!res.ok) throw new Error(`шлюз ИИ HTTP ${res.status}: ${raw.slice(0, 200)}`)
 
   let body: { content?: Array<{ text?: string }>; error?: { message?: string } }
-  try { body = JSON.parse(raw) } catch { throw new Error(`kie.ai вернул не JSON: ${raw.slice(0, 200)}`) }
-  if (body.error) throw new Error(`kie.ai: ${body.error.message ?? 'unknown error'}`)
+  try { body = JSON.parse(raw) } catch { throw new Error(`шлюз ИИ вернул не JSON: ${raw.slice(0, 200)}`) }
+  if (body.error) throw new Error(`шлюз ИИ: ${body.error.message ?? 'unknown error'}`)
 
   const text = (body.content ?? []).map(c => c.text ?? '').join('').trim()
-  if (!text) throw new Error('kie.ai вернул пустой ответ')
+  if (!text) throw new Error('шлюз ИИ вернул пустой ответ')
   return parseCards(text)
 }
 
@@ -293,7 +296,7 @@ async function handle(req: Request): Promise<Response> {
   const url        = Deno.env.get('SUPABASE_URL')!
   const anonKey    = Deno.env.get('SUPABASE_ANON_KEY')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const kieKey     = Deno.env.get('KIE_API_KEY')
+  const kieKey     = Deno.env.get('AI_API_KEY') ?? Deno.env.get('KIE_API_KEY')
 
   // ── Кто зовёт ─────────────────────────────────────────────────────────────
   // Роль не проверяем: карточки собирают и учитель, и ученик (флаг
@@ -377,7 +380,7 @@ async function handle(req: Request): Promise<Response> {
 
     // ── Дальше платит модель ────────────────────────────────────────────────
     if (off.length) return json({ error: `Разбор моделью выключен в админке (${off.join(', ')})` }, 409)
-    if (!kieKey) return json({ error: 'KIE_API_KEY не задан в секретах функции' }, 500)
+    if (!kieKey) return json({ error: 'AI_API_KEY не задан в секретах функции' }, 500)
 
     const text = htmlToText(page.body)
     if (text.length < 20) return json({ error: 'На странице не нашлось текста — возможно, она собирается скриптами' }, 422)
@@ -391,7 +394,7 @@ async function handle(req: Request): Promise<Response> {
 
   // ── Фото ──────────────────────────────────────────────────────────────────
   if (off.length) return json({ error: `Разбор моделью выключен в админке (${off.join(', ')})` }, 409)
-  if (!kieKey) return json({ error: 'KIE_API_KEY не задан в секретах функции' }, 500)
+  if (!kieKey) return json({ error: 'AI_API_KEY не задан в секретах функции' }, 500)
 
   const content: Content = []
   for (const dataUrl of images) {
