@@ -134,6 +134,7 @@ export const EN: Record<string, string> = {
   'Разобрать и добавить': 'Parse and add',
   'Распознано карточек:': 'Cards recognised:',
   'По строке на карточку: слово, тире, перевод.': 'One line per card: word, dash, translation.',
+  'По строке на карточку: слово, тире, перевод. Или парами строк: слово, следом перевод.': 'One line per card: word, dash, translation. Or in pairs of lines: the word, then its translation.',
   'Не получилось сохранить. Попробуй ещё раз.': 'Could not save. Try again.',
   'К подборкам': 'Back to collections',
   'Название подборки': 'Collection name',

@@ -139,26 +139,50 @@ const wrapperFor = (lang: string, set: CardSet): CardGroup => ({
   title: '', about: '', level: null, sort: 0, studentIds: [], sets: [set],
 })
 
+/** Разделитель пары в строке: табуляция, тире в окружении пробелов, палка. */
+const PAIR = /^(.+?)\s*(?:\t|—|–|\s-\s|\|)\s*(.+)$/
+
 /**
  * Разбор вставленной пачки.
  *
- * Формат — по строке на карточку, слева слово, справа перевод. Разделителем
- * считается табуляция, длинное тире или дефис в окружении пробелов: дефис
- * ВНУТРИ слова (well-known, salt-and-burn) разделителем быть не должен, иначе
- * половина английских карточек развалится посередине.
+ * ОСНОВНОЙ ФОРМАТ — по строке на карточку, слева слово, справа перевод.
+ * Разделителем считается табуляция, длинное тире или дефис в окружении
+ * пробелов: дефис ВНУТРИ слова (well-known, salt-and-burn) разделителем быть не
+ * должен, иначе половина английских карточек развалится посередине.
+ *
+ * ВТОРОЙ ФОРМАТ — ПАРЫ СТРОК. Список, скопированный прямо со страницы чужого
+ * набора (Quizlet и подобные), приходит без разделителей вовсе: слово на одной
+ * строке, перевод на следующей. Раньше такая вставка молча давала ноль карточек
+ * — человек видел пустой счётчик и не понимал, что не так с его текстом.
+ * Поэтому: если разделитель нашёлся меньше чем у трети строк, считаем, что
+ * перед нами пары, и склеиваем строки по две. Порог, а не «хоть одна строка без
+ * разделителя»: в обычной пачке попадается строка-заголовок, и ломать из-за неё
+ * весь разбор нельзя.
  */
 export function parseBulk(text: string): SetCard[] {
-  return text.split('\n')
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map(line => {
-      const m = line.match(/^(.+?)\s*(?:\t|—|–|\s-\s|\|)\s*(.+)$/)
-      if (!m) return null
-      const term = m[1].trim()
-      const ru = m[2].trim()
-      return term && ru ? { term, ru } : null
-    })
-    .filter((x): x is SetCard => !!x)
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  if (lines.length === 0) return []
+
+  const withSep = lines.filter(l => PAIR.test(l)).length
+  if (withSep >= lines.length / 3) {
+    return lines
+      .map(line => {
+        const m = line.match(PAIR)
+        if (!m) return null
+        const term = m[1].trim()
+        const ru = m[2].trim()
+        return term && ru ? { term, ru } : null
+      })
+      .filter((x): x is SetCard => !!x)
+  }
+
+  const out: SetCard[] = []
+  for (let i = 0; i + 1 < lines.length; i += 2) {
+    // Нечётный хвост отбрасывается: одинокая строка — это слово без перевода,
+    // и карточка из него всё равно не выйдет.
+    out.push({ term: lines[i], ru: lines[i + 1] })
+  }
+  return out
 }
 
 // Витрина подборок переживает ремоунт вкладки: без этого каждый заход на
@@ -1646,7 +1670,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.35 }}>
               {parseBulk(bulk).length > 0
                 ? `${t('Распознано карточек:')} ${parseBulk(bulk).length}`
-                : t('По строке на карточку: слово, тире, перевод.')}
+                : t('По строке на карточку: слово, тире, перевод. Или парами строк: слово, следом перевод.')}
             </div>
           </>
         )}
