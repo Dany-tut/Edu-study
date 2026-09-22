@@ -700,14 +700,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     let alive = true
     setGroups(undefined)
     Promise.all([
-      fetchCardGroups(lang, owner.studentId),
+      // Ключ витрины — предмет: см. fetchCardGroups. Язык остаётся у сидов —
+      // они лежат в коде и разложены по языкам, а не по предметам.
+      fetchCardGroups(subjectId, owner.studentId),
       hasCardSeeds(lang) ? loadCardSeeds(lang) : Promise.resolve([] as CardGroup[]),
     ]).then(([db, seeds]) => {
       if (!alive) return
       setGroups([...seeds, ...db].sort((a, b) => a.sort - b.sort))
     })
     return () => { alive = false }
-  }, [lang, owner.studentId, groupsKey])
+  }, [lang, subjectId, owner.studentId, groupsKey])
 
   /**
    * Может ли ученик собирать свои подборки.

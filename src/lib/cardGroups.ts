@@ -206,17 +206,24 @@ async function fillSets(groups: CardGroup[]): Promise<CardGroup[]> {
 }
 
 /**
- * Группы, которые видит ученик на этом языке.
+ * Группы, которые видит ученик по этому предмету.
+ *
+ * КЛЮЧ — ПРЕДМЕТ, А НЕ ЯЗЫК. Карточки бывают не только языковые: разделы
+ * биологии, термины по химии, даты по истории — это такие же пары «слово —
+ * значение», и держать их отдельно от корейских слов незачем. Язык у группы
+ * остаётся (на нём написаны сами карточки — он нужен озвучке), но витрину
+ * ученика ведёт предмет: в кабинете биологии должны быть карточки биологии, а
+ * не всё, что написано по-русски.
  *
  * Отсев «моё/не моё» делается ЗДЕСЬ, а не политикой: чтение материала открыто
  * (легаси-ученик ходит под anon, см. миграцию), и адресность — это витрина, а
  * не безопасность. Пустой student_ids значит «всем», непустой — только своим.
  */
-export async function fetchCardGroups(lang: string, studentId?: string): Promise<CardGroup[]> {
+export async function fetchCardGroups(subject: string, studentId?: string): Promise<CardGroup[]> {
   const { data, error } = await supabase
     .from('card_groups')
     .select('id, created_by, author_student_id, lang, subject, title, about, level, sort, student_ids')
-    .eq('lang', lang)
+    .eq('subject', subject)
     .order('sort')
   if (error) { console.error('cardGroups: groups', error); return [] }
 
