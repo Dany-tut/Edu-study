@@ -16,6 +16,7 @@ import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
 import ReviewNavPill from '../../components/teacher/ReviewNavPill'
 import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
 import TeacherCourseEditorPage from './TeacherCourseEditorPage'
+import TeacherCardSetEditorPage from './TeacherCardSetEditorPage'
 import TeacherStoragePage from './TeacherStoragePage'
 import TeacherAdminPage from './TeacherAdminPage'
 import TeacherProfileSettingsPage from './TeacherProfileSettingsPage'
@@ -165,7 +166,7 @@ export default function TeacherDashboardPage() {
         {/* Right column — widget appears/disappears independently */}
         <div style={{ display: 'flex', alignItems: 'center', alignSelf: 'center', paddingLeft: 10, pointerEvents: 'none' }}>
           <AnimatePresence>
-            {activePage !== 'lesson-editor' && activePage !== 'constructor' && activePage !== 'course-editor' && activePage !== 'student' && !headerDocked && (
+            {activePage !== 'lesson-editor' && activePage !== 'constructor' && activePage !== 'course-editor' && activePage !== 'cards-editor' && activePage !== 'student' && !headerDocked && (
               <motion.div
                 key="top-right-slot"
                 initial={{ opacity: 0, y: -8 }}
@@ -198,7 +199,7 @@ export default function TeacherDashboardPage() {
         // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
         // paddingTop:100 — the progressive-blur recipe) must not be clipped
         // by this wrapper, so their overflow stays visible.
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
       >
         {activePage === 'home' && (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
@@ -220,6 +221,7 @@ export default function TeacherDashboardPage() {
         {activePage === 'gradebook'       && <TeacherGradebookPage />}
         {activePage === 'constructor'     && <TeacherConstructorPage />}
         {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
+        {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
         {activePage === 'student'         && <TeacherStudentDashboardPage />}
         {activePage === 'storage'          && <TeacherStoragePage />}
         {activePage === 'admin'            && <TeacherAdminPage />}

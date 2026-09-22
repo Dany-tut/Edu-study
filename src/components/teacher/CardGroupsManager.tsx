@@ -37,10 +37,11 @@ import { Plus, Trash2, ChevronLeft, ChevronDown, Layers, Copy, Users, Pencil, Fo
 import { useT, useTc } from '../../lib/i18n'
 import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
+import { useTeacher } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
 import { SUBJECTS } from '../../lib/subjects'
 import {
-  fetchOwnCardGroups, saveCardGroup, deleteCardGroup, deleteCardSet,
+  fetchOwnCardGroups, deleteCardGroup, deleteCardSet,
   groupSets, moveSetsToGroup, ungroupSets, isShelf,
   type CardGroup, type CardSet, type CardSubset, type SetCard,
 } from '../../lib/cardGroups'
@@ -51,7 +52,6 @@ import Checkbox from '../Checkbox'
 import CardImportPanel, { type ImportedGroup, type ImportMeta } from '../CardImportPanel'
 import TeacherSelect from './TeacherSelect'
 import MultiSelectField from '../MultiSelectField'
-import TeacherSaveButton from './TeacherSaveButton'
 import { confirmDialog } from '../ConfirmHost'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, normSearch } from './ShelfFilters'
@@ -67,6 +67,25 @@ const LANG_OPTIONS = SUBJECTS
   // от последней. Первый выигрывает — это сам язык.
   .filter((s, i, all) => all.findIndex(x => x.langCode === s.langCode) === i)
   .map(s => ({ value: s.langCode!, label: `${s.icon} ${s.name}`, subject: s.id }))
+
+/**
+ * Предметы для поля набора — ВСЕ, а не только языковые.
+ *
+ * Карточка — это пара «слово и значение», и такая пара бывает не только
+ * языковой: разделы биологии, термины по химии, даты по истории. Ученик видит
+ * наборы по предмету своего кабинета (см. fetchCardGroups), поэтому здесь
+ * выбирается именно предмет, а язык из него выводится.
+ */
+const SUBJECT_OPTIONS = SUBJECTS.map(s => ({ value: s.id, label: `${s.icon} ${s.name}` }))
+
+/**
+ * Язык группы по выбранному предмету.
+ *
+ * У языкового предмета это язык, который учат. У остальных — русский: язык
+ * группы нужен озвучке и разбору импорта, и для «Разделов биологии» верный
+ * ответ именно русский, а не «никакой» (колонка в базе не пустеет).
+ */
+const langOfSubject = (id: string) => SUBJECTS.find(s => s.id === id)?.langCode ?? 'ru'
 
 /**
  * Порядок витрины. «Новые» — по времени создания набора, а не полки: полку
@@ -254,14 +273,19 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     if (!loading) groupsCache = { ownerId, groups, seeds }
   }, [loading, ownerId, groups, seeds])
 
+  // Правка уехала на СВОЮ СТРАНИЦУ (TeacherCardSetEditorPage) — так же, как у
+  // курса и урока. Витрина её больше не рисует: редактор, открытый внутри
+  // вкладки, сидел рядом с рейлом фильтров и полосой вкладок, то есть посреди
+  // навигации по чужому содержимому, и места набору оставалось вполовину
+  // меньше, чем ему нужно. Отсюда — только дорога туда.
+  //
   // Правится всегда ГРУППА-документ (сохранение считает diff по ней целиком), а
   // `focus` говорит, чем именно занят человек: набором внутри неё или самой
-  // полкой. Две сущности в одном состоянии — потому что и в базе они одна
-  // строка с детьми, и «сохранить» у них общее.
-  const [draft, setDraft] = useState<CardGroup | null>(null)
-  const [focus, setFocus] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  // полкой. Две сущности в одной посылке — потому что и в базе они одна строка
+  // с детьми, и «Сохранить» у них общее.
+  const openCardsEditor = useTeacher(s => s.openCardsEditor)
+  const openEditor = (group: CardGroup, focus: string | null) =>
+    openCardsEditor(JSON.stringify({ group, focus }))
 
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [shelfPick, setShelfPick] = useState('')
@@ -316,9 +340,8 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
 
   function startNewSet() {
     const set = emptySet(0)
-    setDraft(wrapperFor(lastLang, set))
-    setFocus(set.id)
     setPicked(new Set())
+    openEditor(wrapperFor(lastLang, set), set.id)
   }
 
   /**
@@ -344,9 +367,8 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     }
     // Язык — тот, под которым учитель сейчас смотрит витрину: импорт разбирал
     // источник ровно этим языком.
-    setDraft(wrapperFor(langFilter || lastLang, set))
-    setFocus(set.id)
     setPicked(new Set())
+    openEditor(wrapperFor(langFilter || lastLang, set), set.id)
   }
 
   // «Плюс» на вкладке «Материалы» заводит НАБОР — тем же жестом, что курс и
@@ -364,30 +386,6 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     () => students.map(s => ({ value: s.id, label: tn(s.name) })),
     [students],
   )
-
-  const editedSet = draft && focus ? draft.sets.find(s => s.id === focus) ?? null : null
-  const canSave = editedSet ? !!editedSet.title.trim() : !!draft?.title.trim()
-
-  async function save() {
-    if (!draft || !canSave) return
-    setSaving(true)
-    const id = await saveCardGroup(draft, { createdBy: ownerId })
-    setSaving(false)
-    if (!id) return
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1600)
-
-    // Перечитываем и ПЕРЕСАЖИВАЕМ редактор на строки из базы. Новая группа и
-    // её наборы получили настоящие id; останься редактор на временных, второе
-    // «Сохранить» посчитало бы их удалёнными и перезалило набор копией.
-    const rows = ownerId ? await fetchOwnCardGroups(ownerId) : []
-    setGroups(rows)
-    const fresh = rows.find(g => g.id === id)
-    if (!fresh) { setDraft(d => (d ? { ...d, id, seed: false } : d)); return }
-    const idx = draft.sets.findIndex(s => s.id === focus)
-    setDraft(fresh)
-    if (focus) setFocus(fresh.sets[idx]?.id ?? null)
-  }
 
   async function removeSet(x: { set: CardSet; group: CardGroup }) {
     const ok = await confirmDialog({
@@ -413,14 +411,13 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     if (!ok) return
     if (await deleteCardGroup(g.id)) {
       if (shelfPick === g.id) setShelfPick('')
-      setDraft(d => (d?.id === g.id ? null : d))
       await reload()
     }
   }
 
   /** Копия сида под учителя: та же полка, но своя и правимая. */
   function takeSeed(seed: CardGroup) {
-    setDraft({
+    openEditor({
       ...seed,
       id: '',
       seed: false,
@@ -428,8 +425,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
       // которых нет в базе, и попытался бы обновить несуществующее.
       sets: seed.sets.map((s, i) => ({ ...s, id: `new-${i}-${s.id}` })),
       title: seed.title,
-    })
-    setFocus(null)
+    }, null)
   }
 
   // ── Групповые операции над отмеченными наборами ────────────────────────────
@@ -490,12 +486,6 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     await reload()
   }
 
-  // Считаются ДО экранов-ранних-возвратов ниже. Хуки нельзя прятать за
-  // `if (draft) return …`: как только черновик открывался, вызовов useMemo
-  // становилось меньше, чем в прошлый раз, и React ронял всю вкладку
-  // («Rendered fewer hooks than expected») — редактор набора не открывался
-  // вовсе. Порядок хуков в компоненте обязан быть одинаковым на каждом
-  // рендере, поэтому все они стоят выше любого return.
   // Опции фасетов считаются ПО ДАННЫМ: фильтр, у которого одно значение,
   // FacetDropdown не рисует вовсе — мёртвый контрол занимает ряд и обещает
   // отбор, которого нет.
@@ -534,41 +524,6 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     return sorted
   }, [items, shelfPick, langFilter, studentPick, needle, sort])
 
-  // ── Экраны ─────────────────────────────────────────────────────────────────
-
-  if (draft && editedSet) {
-    return (
-      <SetPage
-        group={draft}
-        set={editedSet}
-        onChange={next => setDraft(d => (d ? { ...d, sets: d.sets.map(s => (s.id === editedSet.id ? next : s)) } : d))}
-        onGroupChange={p => setDraft(d => (d ? { ...d, ...p } : d))}
-        onBack={() => { setDraft(null); setFocus(null); void reload() }}
-        onSave={save}
-        saving={saving}
-        saved={saved}
-        studentOptions={studentOptions}
-      />
-    )
-  }
-
-  if (draft) {
-    return (
-      <ShelfPage
-        group={draft}
-        onChange={setDraft}
-        onOpenSet={id => setFocus(id)}
-        onBack={() => { setDraft(null); void reload() }}
-        onSave={save}
-        saving={saving}
-        saved={saved}
-        studentOptions={studentOptions}
-      />
-    )
-  }
-
-
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -606,7 +561,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
               hint={`${g.sets.length}`}
               active={shelfPick === g.id}
               onClick={() => setShelfPick(shelfPick === g.id ? '' : g.id)}
-              onEdit={() => { setDraft(g); setFocus(null) }}
+              onEdit={() => openEditor(g, null)}
             />
           ))}
         </div>
@@ -727,9 +682,9 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
                   if (v) n.add(x.set.id); else n.delete(x.set.id)
                   return n
                 })}
-                onOpen={() => { setDraft(x.group); setFocus(x.set.id) }}
+                onOpen={() => openEditor(x.group, x.set.id)}
                 onDelete={() => void removeSet(x)}
-                onShelf={() => { setDraft(x.group); setFocus(null) }}
+                onShelf={() => openEditor(x.group, null)}
               />
             ))}
             {/* Про «наборов нет вовсе» витрина молчит: под ней сразу лежат
@@ -744,7 +699,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
           {shelfPick && shelves.some(g => g.id === shelfPick) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button
-                onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) { setDraft(g); setFocus(null) } }}
+                onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) openEditor(g, null) }}
                 style={ghostWide}
               >
                 <Pencil size={13} /> {t('Настройки полки')}
@@ -880,31 +835,6 @@ function SeedCard({ group, onTake }: { group: CardGroup; onTake: () => void }) {
   )
 }
 
-/** Шапка редактора: «назад» слева, «сохранить» справа. Общая на оба экрана. */
-function EditorBar({ back, onBack, onSave, saving, saved, disabled }: {
-  back: string; onBack: () => void; onSave: () => void
-  saving: boolean; saved: boolean; disabled: boolean
-}) {
-  const t = useT()
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
-          borderRadius: 12, border: '1px solid var(--color-border-soft)', cursor: 'pointer',
-          background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
-        }}
-      >
-        <ChevronLeft size={14} /> {back}
-      </button>
-      <div style={{ marginLeft: 'auto' }}>
-        <TeacherSaveButton label={t('Сохранить')} onClick={onSave} saving={saving} saved={saved} disabled={disabled} />
-      </div>
-    </div>
-  )
-}
-
 /**
  * Полка: имя, язык, адресность и порядок наборов внутри.
  *
@@ -912,14 +842,10 @@ function EditorBar({ back, onBack, onSave, saving, saved, disabled }: {
  * «где лежит и кому видно», набор — «что внутри»; смешать их в один экран
  * значило бы прокручивать двести карточек, чтобы переименовать полку.
  */
-function ShelfPage({ group, onChange, onOpenSet, onBack, onSave, saving, saved, studentOptions }: {
+export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
   group: CardGroup
   onChange: (g: CardGroup) => void
   onOpenSet: (id: string) => void
-  onBack: () => void
-  onSave: () => void
-  saving: boolean
-  saved: boolean
   studentOptions: Array<{ value: string; label: string }>
 }) {
   const t = useT()
@@ -927,9 +853,8 @@ function ShelfPage({ group, onChange, onOpenSet, onBack, onSave, saving, saved, 
   const setSets = (sets: CardSet[]) => patch({ sets })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
-      <EditorBar back={t('К наборам')} onBack={onBack} onSave={onSave} saving={saving} saved={saved} disabled={!group.title.trim()} />
-
+    <EditorColumns
+      aside={
       <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <Field label={t('Название полки')}>
           <input
@@ -947,9 +872,12 @@ function ShelfPage({ group, onChange, onOpenSet, onBack, onSave, saving, saved, 
             style={{ ...inputStyle, resize: 'none' }}
           />
         </Field>
-        <ScopeFields group={group} patch={patch} studentOptions={studentOptions} />
+        {/* Столбиком: колонка узкая, и «Предмет» рядом с «Уровнем» сжимался
+            до нечитаемой щели. */}
+        <ScopeFields group={group} patch={patch} studentOptions={studentOptions} stacked />
       </div>
-
+      }
+    >
       <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={labelStyle}>{t('Наборы внутри')}</div>
         {group.sets.map((set, i) => (
@@ -1014,7 +942,7 @@ function ShelfPage({ group, onChange, onOpenSet, onBack, onSave, saving, saved, 
           <Plus size={15} /> {t('Добавить набор')}
         </button>
       </div>
-    </div>
+    </EditorColumns>
   )
 }
 
@@ -1044,7 +972,7 @@ function AudienceField({ group, patch, studentOptions }: {
       />
       <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 5 }}>
         {group.studentIds.length === 0
-          ? t('Никто не отмечен — значит, это увидят все ваши ученики этого языка.')
+          ? t('Никто не отмечен — значит, это увидят все ваши ученики этого предмета.')
           : `${t('Видят только отмеченные:')} ${group.studentIds.length}`}
       </div>
     </div>
@@ -1068,11 +996,11 @@ function ScopeFields({ group, patch, studentOptions, stacked = false }: {
         display: 'grid', gap: 12,
         gridTemplateColumns: stacked ? '1fr' : 'minmax(0,1fr) minmax(0,1fr)',
       }}>
-        <Field label={t('Язык')}>
+        <Field label={t('Предмет')}>
           <TeacherSelect
-            value={group.lang}
-            options={LANG_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
-            onChange={v => patch({ lang: v, subject: subjectOf(v) })}
+            value={group.subject ?? ''}
+            options={SUBJECT_OPTIONS}
+            onChange={v => patch({ subject: v, lang: langOfSubject(v) })}
             clearable={false}
           />
         </Field>
@@ -1109,33 +1037,65 @@ function useNarrow(px: number) {
 }
 
 /**
+ * Ширина левой колонки редактора — свойства набора или полки. Та же цифра во
+ * всех трёх экранах: колонка не должна дышать при переходе «пустой набор →
+ * лист карточек → стопки», иначе кажется, что переехал сам редактор.
+ */
+const SIDE_W = 300
+
+/**
+ * Скелет редактора: карточка свойств слева, содержимое по центру.
+ *
+ * ПОЧЕМУ ТАК. Раньше свойства лежали шапкой над содержимым, и у набора на
+ * полсотни карточек имя уезжало вверх вместе с прокруткой. Слева они видны
+ * всегда — тот же приём, что у редактора курса и урока (левая рельса с метой),
+ * и один и тот же экран читается одинаково во всех трёх местах кабинета.
+ */
+function EditorColumns({ aside, children }: { aside: React.ReactNode; children: React.ReactNode }) {
+  const [ref, narrow] = useNarrow(720)
+  return (
+    <div
+      ref={ref}
+      style={{
+        display: 'grid', gap: 14, alignItems: 'start',
+        gridTemplateColumns: narrow ? '1fr' : `${SIDE_W}px minmax(0,1fr)`,
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>{aside}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>{children}</div>
+    </div>
+  )
+}
+
+/**
  * Свойства набора: имя, подпись, язык, уровень, адресность.
  *
- * Две раскладки одним компонентом. `head` — шапка пустого набора: на виду
- * только имя и язык, потому что импорту нужен язык, а всё остальное правят
- * один раз и позже. `aside` — узкая колонка листа: там места мало и поля идут
- * столбиком. Две копии полей разошлись бы на первой же правке модели набора.
+ * ВСЕГДА СЛЕВА, ВСЕГДА ЦЕЛИКОМ. Раньше их было две раскладки: шапка пустого
+ * набора (имя и предмет на виду, остальное под «Подпись, уровень, кому
+ * показать») и узкая колонка листа. Колонка выиграла: поля одинаково видны в
+ * любом состоянии набора, и свёрнутая половина формы больше не прячет
+ * адресность — самое дорогое из того, что здесь забывают проставить.
  *
  * Язык и адресность показываются ТОЛЬКО у одиночного набора: у набора на полке
  * это свойства полки, и вторая копия тех же полей поехала бы вразрез с
  * соседними наборами той же группы. Вместо них — строка «лежит на полке».
  */
-function SetProps({ group, set, patch, onGroupChange, studentOptions, layout }: {
+function SetProps({ group, set, patch, onGroupChange, studentOptions }: {
   group: CardGroup
   set: CardSet
   patch: (p: Partial<CardSet>) => void
   onGroupChange: (p: Partial<CardGroup>) => void
   studentOptions: Array<{ value: string; label: string }>
-  layout: 'head' | 'aside'
 }) {
   const t = useT()
-  const [more, setMore] = useState(false)
   const onShelf = isShelf(group)
 
+  // Строкой, а не рядом: колонка узкая, и flex-ряд рвал фразу на три столбика
+  // по три слова. Иконка сидит в тексте как буква.
   const shelfLine = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--color-muted)' }}>
-      <Layers size={13} />
-      {t('Лежит на полке')} «{group.title}» · {langLabelOf(group.lang)}
+    <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-muted)' }}>
+      <Layers size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
+      {t('Лежит на полке')} «{group.title}» · {langLabelOf(group.lang)}{' '}
       <span style={{ color: 'var(--color-text-3)' }}>
         {t('— язык и адресность у полки общие.')}
       </span>
@@ -1153,73 +1113,19 @@ function SetProps({ group, set, patch, onGroupChange, studentOptions, layout }: 
     </Field>
   )
 
-  if (layout === 'aside') {
-    return (
-      <>
-        <Field label={t('Название набора')}>
-          <input
-            value={set.title}
-            onChange={e => patch({ title: e.target.value })}
-            placeholder={t('Например: Сезон 1')}
-            style={{ ...inputStyle, fontWeight: 700 }}
-          />
-        </Field>
-        {about}
-        {onShelf ? shelfLine : <ScopeFields group={group} patch={onGroupChange} studentOptions={studentOptions} stacked />}
-      </>
-    )
-  }
-
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: onShelf ? '1fr' : 'minmax(0,1fr) 200px', gap: 12 }}>
-        <Field label={t('Название набора')}>
-          <input
-            value={set.title}
-            onChange={e => patch({ title: e.target.value })}
-            placeholder={t('Например: Сезон 1')}
-            style={{ ...inputStyle, fontWeight: 700 }}
-            autoFocus={!set.title.trim()}
-          />
-        </Field>
-        {!onShelf && (
-          <Field label={t('Язык')}>
-            <TeacherSelect
-              value={group.lang}
-              options={LANG_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
-              onChange={v => onGroupChange({ lang: v, subject: subjectOf(v) })}
-              clearable={false}
-            />
-          </Field>
-        )}
-      </div>
-      {onShelf && shelfLine}
-      {more ? (
-        <>
-          {about}
-          {!onShelf && (
-            <>
-              <Field label={t('Уровень')}>
-                <TeacherSelect
-                  value={group.level ?? ''}
-                  options={SURVIVAL_LEVELS.map(l => ({ value: l, label: l }))}
-                  onChange={v => onGroupChange({ level: (v || null) as SurvivalLevel | null })}
-                  placeholder={t('Без уровня')}
-                />
-              </Field>
-              <AudienceField group={group} patch={onGroupChange} studentOptions={studentOptions} />
-            </>
-          )}
-        </>
-      ) : null}
-      <button
-        type="button"
-        onClick={() => setMore(v => !v)}
-        style={{ ...ghostBtn, alignSelf: 'flex-start', padding: 0 }}
-      >
-        <ChevronDown size={13} style={{ transform: more ? 'rotate(180deg)' : 'none' }} />
-        {more ? t('Свернуть') : t('Подпись, уровень, кому показать')}
-      </button>
+      <Field label={t('Название набора')}>
+        <input
+          value={set.title}
+          onChange={e => patch({ title: e.target.value })}
+          placeholder={t('Например: Сезон 1')}
+          style={{ ...inputStyle, fontWeight: 700 }}
+          autoFocus={!set.title.trim()}
+        />
+      </Field>
+      {about}
+      {onShelf ? shelfLine : <ScopeFields group={group} patch={onGroupChange} studentOptions={studentOptions} stacked />}
     </>
   )
 }
@@ -1281,15 +1187,11 @@ const startBtn: React.CSSProperties = {
  * занимают всю высоту и правятся на месте, а свойства набора уходят в колонку
  * справа, где видны всегда, а не уезжают вверх на тридцатой строке.
  */
-function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, saved, studentOptions }: {
+export function SetPage({ group, set, onChange, onGroupChange, studentOptions }: {
   group: CardGroup
   set: CardSet
   onChange: (s: CardSet) => void
   onGroupChange: (p: Partial<CardGroup>) => void
-  onBack: () => void
-  onSave: () => void
-  saving: boolean
-  saved: boolean
   studentOptions: Array<{ value: string; label: string }>
 }) {
   const t = useT()
@@ -1300,8 +1202,10 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
   const [started, setStarted] = useState(false)
   const [openBulk, setOpenBulk] = useState(false)
 
-  const bar = (
-    <EditorBar back={t('К наборам')} onBack={onBack} onSave={onSave} saving={saving} saved={saved} disabled={!set.title.trim()} />
+  const props = (
+    <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} />
+    </div>
   )
 
   /**
@@ -1330,51 +1234,50 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
     patch({ cards: [...set.cards, ...cards], title: set.title.trim() || title || '' })
     setStarted(true)
 
-    // Язык — по написанию слов, и только у первой вставки в пустой набор:
-    // выбранный руками язык менять нельзя, а у набора НА ПОЛКЕ язык вообще не
-    // свой — он общий на всю полку, и одна вставка перевела бы на другой язык
-    // соседние наборы (см. SetProps: поле языка там и не показывается).
+    // Предмет — по написанию слов, и только у первой вставки в пустой набор:
+    // выбранный руками предмет менять нельзя, а у набора НА ПОЛКЕ он вообще не
+    // свой — он общий на всю полку, и одна вставка увела бы за собой соседние
+    // наборы (см. SetProps: поле там и не показывается).
+    //
+    // Угадывается ИМЕННО ЯЗЫК — письменность слов больше ни о чём не говорит:
+    // «Систематика» и «Гистология» написаны по-русски, а предмет у них
+    // биология. Поэтому подставляем языковой предмет как заготовку, а если
+    // набор на самом деле предметный, учитель поправит поле одним щелчком.
     if (set.cards.length === 0 && !onShelf) {
       const guessed = guessLang(cards.map(c => c.term))
-      if (guessed && guessed !== group.lang) onGroupChange({ lang: guessed, subject: subjectOf(guessed) })
+      const subj = guessed ? subjectOf(guessed) : null
+      if (subj && subj !== group.subject) onGroupChange({ subject: subj, lang: guessed! })
     }
   }
 
   if (set.subsets?.length) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
-        {bar}
-        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="head" />
-        </div>
+      <EditorColumns aside={props}>
         <SubsetsEditor set={set} onChange={onChange} lang={group.lang} />
-      </div>
+      </EditorColumns>
     )
   }
 
   if (set.cards.length === 0 && !started) {
     return (
-      <div onPaste={onPasteHere} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
-        {bar}
-        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="head" />
-        </div>
-        <SetStart
-          lang={group.lang}
-          onAdd={cards => patch({ cards })}
-          // Пустой набор раскладка открывает сразу стопками: терять здесь
-          // нечего, и уровень появляется ровно тогда, когда в нём есть смысл.
-          onAddGrouped={groups => patch({ cards: [], subsets: groupsToSubsets(groups, [], t('Без раздела')) })}
-          onManual={() => setStarted(true)}
-          onBulk={() => { setStarted(true); setOpenBulk(true) }}
-        />
+      <div onPaste={onPasteHere}>
+        <EditorColumns aside={props}>
+          <SetStart
+            lang={group.lang}
+            onAdd={cards => patch({ cards })}
+            // Пустой набор раскладка открывает сразу стопками: терять здесь
+            // нечего, и уровень появляется ровно тогда, когда в нём есть смысл.
+            onAddGrouped={groups => patch({ cards: [], subsets: groupsToSubsets(groups, [], t('Без раздела')) })}
+            onManual={() => setStarted(true)}
+            onBulk={() => { setStarted(true); setOpenBulk(true) }}
+          />
+        </EditorColumns>
       </div>
     )
   }
 
   return (
-    <div onPaste={onPasteHere} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1080 }}>
-      {bar}
+    <div onPaste={onPasteHere}>
       <CardsEditor
         cards={set.cards}
         onCards={cards => patch({ cards })}
@@ -1395,7 +1298,7 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
           ? `${t('Карточки, уже лежащие в наборе, уедут в стопку «Набранное руками»:')} ${set.cards.length}`
           : undefined}
         aside={
-          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="aside" />
+          <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} />
         }
       />
     </div>
@@ -1758,7 +1661,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
       ref={ref}
       style={{
         display: 'grid', gap: 12, alignItems: 'start',
-        gridTemplateColumns: narrow ? '1fr' : '280px minmax(0,1fr)',
+        gridTemplateColumns: narrow ? '1fr' : `${SIDE_W}px minmax(0,1fr)`,
       }}
     >
       {side}

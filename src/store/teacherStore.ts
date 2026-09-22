@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
-export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
+export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
 
 export type StudentTrainerStats = {
   doneCount: number
@@ -94,6 +94,11 @@ type TeacherStore = {
   openCourseEditor: (courseJson: string) => void
   courseEditedJson: string | null
   setCourseEdited: (json: string | null) => void
+  // Редактор набора карточек — своя страница, как у курса. Между витриной
+  // «Материалов» и ею едет JSON {group, focus}: та же дорога, что у курса.
+  editingCardsJson: string | null
+  openCardsEditor: (payloadJson: string) => void
+  setCardsEdited: (json: string | null) => void
   // True while a page's fixed "docked twin" header occupies the topbar line —
   // the top-right widget slot hides so the docked controls aren't covered.
   headerDocked: boolean
@@ -172,6 +177,17 @@ function clearEditorSession() {
   try { sessionStorage.removeItem(EDITOR_SESSION_KEY) } catch { /* unavailable — non-fatal */ }
 }
 
+// То же самое для редактора набора карточек: пока он открыт, его черновик
+// лежит в sessionStorage, и F5 возвращает учителя в тот же набор, а не на
+// витрину с потерянной правкой.
+const CARDS_SESSION_KEY = 'cards-session'
+function readCardsSession(): string | null {
+  try { return sessionStorage.getItem(CARDS_SESSION_KEY) } catch { return null }
+}
+function clearCardsSession() {
+  try { sessionStorage.removeItem(CARDS_SESSION_KEY) } catch { /* unavailable — non-fatal */ }
+}
+
 // Per-tab navigation snapshot. Context-heavy sub-pages (student dashboard, HW
 // review, HW composer, hard review, lesson editor) have no URL hash of their own,
 // so on refresh we restore both the page AND the ids those pages need to re-fetch.
@@ -210,22 +226,37 @@ const _nav = readNav()
 
 function initialPage(): TeacherPage {
   if (readEditorSession()) return 'course-editor'
+  if (readCardsSession()) return 'cards-editor'
   // The per-tab snapshot is the freshest record of where this tab was.
   // (course-editor is owned by the editor session above, so ignore it here.)
-  if (_nav?.page && _nav.page !== 'course-editor') return _nav.page
+  if (_nav?.page && _nav.page !== 'course-editor' && _nav.page !== 'cards-editor') return _nav.page
   return HASH_TO_PAGE[window.location.hash] ?? 'home'
 }
 
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
-  setActivePage: page => { clearEditorSession(); set({ activePage: page, headerDocked: false }) },
+  setActivePage: page => { clearEditorSession(); clearCardsSession(); set({ activePage: page, headerDocked: false }) },
   pendingGradebookLessonId: null,
-  openGradebook: scheduleId => { clearEditorSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) },
+  openGradebook: scheduleId => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) },
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
   editingCourseJson: readEditorSession(),
   openCourseEditor: courseJson => {
+    clearCardsSession()
     try { sessionStorage.setItem(EDITOR_SESSION_KEY, courseJson) } catch { /* non-fatal */ }
     set({ editingCourseJson: courseJson, activePage: 'course-editor', headerDocked: false })
+  },
+  editingCardsJson: readCardsSession(),
+  openCardsEditor: payloadJson => {
+    clearEditorSession()
+    try { sessionStorage.setItem(CARDS_SESSION_KEY, payloadJson) } catch { /* non-fatal */ }
+    set({ editingCardsJson: payloadJson, activePage: 'cards-editor', headerDocked: false })
+  },
+  setCardsEdited: json => {
+    // Черновик живёт в сессии, пока редактор открыт: F5 не должен стирать
+    // набранные карточки. `null` — выход из редактора.
+    if (json === null) clearCardsSession()
+    else { try { sessionStorage.setItem(CARDS_SESSION_KEY, json) } catch { /* non-fatal */ } }
+    set({ editingCardsJson: json })
   },
   courseEditedJson: null,
   setCourseEdited: json => set({ courseEditedJson: json }),

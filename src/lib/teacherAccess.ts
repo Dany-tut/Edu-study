@@ -29,6 +29,7 @@ const PAGE_TAB: Record<TeacherPage, TeacherTabId | null> = {
   gradebook: 'gradebook',
   constructor: 'constructor',
   'course-editor': 'constructor',
+  'cards-editor': 'constructor',
   'lesson-editor': 'constructor',
   finances: 'finances',
   payment: 'finances',
