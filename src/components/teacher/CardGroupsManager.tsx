@@ -185,6 +185,34 @@ export function parseBulk(text: string): SetCard[] {
   return out
 }
 
+/**
+ * Вставленный кусок целиком: заголовок набора и карточки.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ parseBulk. Человек копирует список из чужого набора вместе
+ * с его названием — первой строкой, без разделителя. parseBulk такую строку
+ * просто выбрасывает, и название, которое уже лежит в буфере, всё равно
+ * приходится вбивать руками. Здесь оно достаётся из того же текста.
+ *
+ * КАК ОТЛИЧИТЬ ЗАГОЛОВОК ОТ КАРТОЧКИ. Двумя способами, по формату пачки:
+ *   • пары в строку («слово — перевод») — заголовок тот, в ком нет разделителя;
+ *   • пары строками (слово, следом перевод) — заголовок появляется тогда, когда
+ *     строк НЕЧЁТНОЕ число: парам нужна чётность, и лишняя первая строка и есть
+ *     название.
+ * Оба признака врут молча в одном случае — когда название само похоже на
+ * карточку, — поэтому в имя набора оно подставляется, только если имя пустое.
+ */
+export function readPasted(text: string): { title?: string; cards: SetCard[] } {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  if (lines.length < 2) return { cards: parseBulk(text) }
+
+  const withSep = lines.filter(l => PAIR.test(l)).length
+  const pairsInLine = withSep >= lines.length / 3
+  const headed = pairsInLine ? !PAIR.test(lines[0]) : lines.length % 2 === 1
+
+  if (!headed) return { cards: parseBulk(lines.join('\n')) }
+  return { title: lines[0], cards: parseBulk(lines.slice(1).join('\n')) }
+}
+
 // Витрина подборок переживает ремоунт вкладки: без этого каждый заход на
 // «Материалы» начинался со скелетонов, которые сменялись теми же наборами.
 let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup[] } | null = null
@@ -1227,6 +1255,11 @@ function SetStart({ lang, onAdd, onAddGrouped, onManual, onBulk }: {
           <Plus size={14} /> {t('Вставить списком')}
         </button>
       </div>
+      {/* Про вставку сразу в набор надо сказать словами: невидимая возможность
+          никого не выручает, а кнопки рядом выглядят как весь выбор. */}
+      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.35 }}>
+        {t('Список уже в буфере? Вставьте его прямо сюда — карточки разберутся сами, а первая строка станет названием набора.')}
+      </div>
     </div>
   )
 }
@@ -1269,6 +1302,33 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
     <EditorBar back={t('К наборам')} onBack={onBack} onSave={onSave} saving={saving} saved={saved} disabled={!set.title.trim()} />
   )
 
+  /**
+   * Cmd+V прямо в наборе — и список разобран.
+   *
+   * ЗАЧЕМ. Путь «раскрыть „Вставить списком“ → вставить → нажать „Разобрать и
+   * добавить“» состоит из трёх шагов там, где человек уже сделал главное:
+   * положил список в буфер. Вставка в набор — однозначное действие, и гадать,
+   * чего он хотел, не нужно.
+   *
+   * ЧЕГО ОН НЕ ТРОГАЕТ. Вставку в многострочные поля (та же «Вставить списком»,
+   * подпись набора) и вставку одной строки: там человек правит текст, а не
+   * заводит карточки. И пачку меньше двух карточек: одна пара с тире — это,
+   * скорее всего, просто текст, который несут в поле.
+   */
+  function onPasteHere(e: React.ClipboardEvent) {
+    if ((e.target as HTMLElement | null)?.tagName === 'TEXTAREA') return
+    const text = e.clipboardData.getData('text')
+    if (!text.includes('\n')) return
+
+    const { title, cards } = readPasted(text)
+    if (cards.length < 2) return
+    e.preventDefault()
+    // Название подставляется только в пустое: своё, уже введённое, чужой
+    // заголовок из буфера перетирать не должен.
+    patch({ cards: [...set.cards, ...cards], title: set.title.trim() || title || '' })
+    setStarted(true)
+  }
+
   if (set.subsets?.length) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
@@ -1283,7 +1343,7 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
 
   if (set.cards.length === 0 && !started) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
+      <div onPaste={onPasteHere} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
         {bar}
         <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <SetProps group={group} set={set} patch={patch} onGroupChange={onGroupChange} studentOptions={studentOptions} layout="head" />
@@ -1302,7 +1362,7 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1080 }}>
+    <div onPaste={onPasteHere} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1080 }}>
       {bar}
       <CardsEditor
         cards={set.cards}
