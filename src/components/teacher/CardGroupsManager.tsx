@@ -56,6 +56,7 @@ import { confirmDialog } from '../ConfirmHost'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, normSearch } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
+import { guessLang } from '../../lib/guessLang'
 
 /** Языки, на которых вообще бывает тренажёр, — по реестру предметов. */
 const LANG_OPTIONS = SUBJECTS
@@ -1293,6 +1294,7 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
 }) {
   const t = useT()
   const patch = (p: Partial<CardSet>) => onChange({ ...set, ...p })
+  const onShelf = isShelf(group)
   // «Вписать руками» и «Вставить списком» переводят пустой набор в лист, не
   // дожидаясь первой карточки: иначе кнопка выбора источника ничего не делала бы.
   const [started, setStarted] = useState(false)
@@ -1327,6 +1329,15 @@ function SetPage({ group, set, onChange, onGroupChange, onBack, onSave, saving, 
     // заголовок из буфера перетирать не должен.
     patch({ cards: [...set.cards, ...cards], title: set.title.trim() || title || '' })
     setStarted(true)
+
+    // Язык — по написанию слов, и только у первой вставки в пустой набор:
+    // выбранный руками язык менять нельзя, а у набора НА ПОЛКЕ язык вообще не
+    // свой — он общий на всю полку, и одна вставка перевела бы на другой язык
+    // соседние наборы (см. SetProps: поле языка там и не показывается).
+    if (set.cards.length === 0 && !onShelf) {
+      const guessed = guessLang(cards.map(c => c.term))
+      if (guessed && guessed !== group.lang) onGroupChange({ lang: guessed, subject: subjectOf(guessed) })
+    }
   }
 
   if (set.subsets?.length) {
