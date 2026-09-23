@@ -23,12 +23,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, Layers, Search } from 'lucide-react'
 import CardDeck, { type DeckSource } from '../CardDeck'
+import { Tile, TileGrid, TileChip, TileMeter, plural } from './TrainerShell'
 import { fetchCardGroups, setCards as allSetCards, isShelf, type CardGroup, type CardSet } from '../../lib/cardGroups'
 import { deckOwner, deckStates, gradePrompt, isDue, type CardState, type ReviewCard } from '../../data/reviewDeck'
 import { INITIAL_SRS } from '../../lib/srs'
 import { useT } from '../../lib/i18n'
 import Skeleton from '../Skeleton'
-import { plural } from './TrainerShell'
 
 /** Набор витрины: сам набор и полка, на которой он лежит (если лежит). */
 interface ShelfItem { set: CardSet; shelf?: string }
@@ -137,7 +137,7 @@ export default function SubjectCards({ subjectId, accent, soft }: {
         </div>
       )}
 
-      <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))' }}>
+      <TileGrid>
       {found.map(({ set, shelf }) => {
         const cards = allSetCards(set)
         const n = cards.length
@@ -147,45 +147,42 @@ export default function SubjectCards({ subjectId, accent, soft }: {
         const learned = cards.filter(c => !isDue(states.get(c.term))).length
         const due = n - learned
         return (
-          <button
-            key={set.id}
-            type="button"
-            onClick={() => setOpenId(set.id)}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
-              padding: 14, borderRadius: 16, cursor: 'pointer', textAlign: 'left',
-              border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.94)',
-              fontFamily: 'inherit',
-            }}
-          >
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 9px',
-              borderRadius: 999, background: soft, color: accent, fontSize: 11.5, fontWeight: 700,
-            }}>
-              <Layers size={12} /> {n} {t(plural(n, ['карточка', 'карточки', 'карточек']))}
+          <Tile key={set.id} accent={accent} onClick={() => setOpenId(set.id)}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <TileChip tone="accent" accent={accent} soft={soft}>
+                {n} {t(plural(n, ['карточка', 'карточки', 'карточек']))}
+              </TileChip>
+              {/* «На сегодня» — вторым чипсом и только когда есть что повторять:
+                  у пройденного набора он был бы нулём, который нечего делать. */}
+              {due > 0 && learned > 0 && <TileChip>{due} {t('на сегодня')}</TileChip>}
+              {shelf && <TileChip tone="mute">{shelf}</TileChip>}
             </span>
-            {learned > 0 && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
-                <span style={{ flex: 1, height: 4, borderRadius: 999, background: 'var(--color-bg-2)', overflow: 'hidden' }}>
-                  <span style={{ display: 'block', height: '100%', width: `${Math.round((learned / n) * 100)}%`, background: accent }} />
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
-                  {due > 0 ? `${due} ${t('на сегодня')}` : t('всё выучено')}
-                </span>
-              </span>
-            )}
-            <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.25 }}>
+
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {set.title || t('Без названия')}
             </span>
-            {(shelf || set.about) && (
-              <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.3 }}>
-                {shelf ? `${shelf}${set.about ? ' · ' : ''}` : ''}{set.about}
-              </span>
-            )}
-          </button>
+
+            {/* ПЕРВЫЕ СЛОВА НАБОРА, а не только подпись. По ним набор узнают, не
+                открывая: «Систематика · Гистология · Микология» говорит о нём
+                больше, чем любое описание, и это же делает языковая плитка. */}
+            <span style={{
+              fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
+              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            }}>
+              {cards.slice(0, 4).map(c => c.term).join(' · ') || set.about}
+            </span>
+
+            <TileMeter value={n ? Math.round((learned / n) * 100) : 0} />
+            <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
+              <span>{learned === 0 ? t('не начат') : `${t('выучено')} ${learned} ${t('из')} ${n}`}</span>
+              {learned === n && n > 0 && (
+                <span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>{t('всё выучено')}</span>
+              )}
+            </span>
+          </Tile>
         )
       })}
-      </div>
+      </TileGrid>
     </div>
   )
 }

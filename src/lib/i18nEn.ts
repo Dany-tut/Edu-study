@@ -138,6 +138,7 @@ export const EN: Record<string, string> = {
   'Карточек по этому предмету пока нет — их собирает учитель.': 'No cards for this subject yet — your teacher puts them together.',
   'набор карточек': 'card set',
   'Найти набор': 'Find a set',
+  'не начат': 'not started',
   'Ничего не нашлось — попробуйте другое слово.': 'Nothing found — try another word.',
   'всё выучено': 'all learned',
   'Весь набор': 'Whole set',
