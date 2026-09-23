@@ -30,13 +30,13 @@ import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
 //
-// TaskBankPage тянет за собой весь каталог тренажёра: LanguageTrainer, папку
+// TrainerPage тянет за собой весь каталог тренажёра: оба тренажёра, папку
 // components/trainer и словарь формулировок questionRu.ts — вместе около
 // мегабайта. Всё это ехало в главном чанке, хотя вкладка открывается по клику
 // и до неё доходят не все и не сразу. Монтируется страница и так только при
 // activePage === 'trainer', так что ленивый импорт ничего не меняет по
 // поведению — только переносит вес за пределы первой загрузки.
-const TaskBankPage = lazy(() => retryImport(() => import('./TaskBankPage')))
+const TrainerPage = lazy(() => retryImport(() => import('./TrainerPage')))
 
 // Заглушка ожидания чанка — НЕ lazy и без тяжёлых импортов: её вес целиком
 // уходит в главный чанк, и показать её нужно раньше всего остального.
@@ -49,7 +49,7 @@ import TrainerBootSkeleton from '../components/trainer/TrainerBootSkeleton'
 const HomeworkFlow = lazy(() => retryImport(() => import('../components/HomeworkFlow')))
 
 // Пока чанк тренажёра едет — сразу его скелет, а не пустой фон: иначе ожидание
-// шло тремя экранами подряд (белый → скелетон → содержимое). Дальше TaskBankPage
+// шло тремя экранами подряд (белый → скелетон → содержимое). Дальше тренажёр
 // показывает свой, той же геометрии, — переход между ними незаметен.
 function TrainerChunk() {
   const isDesktop = useIsDesktop()
@@ -62,7 +62,7 @@ function TrainerChunk() {
         {!isDesktop && <MobileBottomNav />}
       </>
     }>
-      <TaskBankPage />
+      <TrainerPage />
     </Suspense>
   )
 }

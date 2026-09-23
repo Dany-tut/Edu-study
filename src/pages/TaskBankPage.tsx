@@ -25,10 +25,9 @@ import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
-import { useTrainerProgress, useTrainerClock, useTrainerEngaged } from '../store/trainerProgressStore'
+import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
-import LanguageTrainer from '../components/LanguageTrainer'
 import TrainerSkeleton from '../components/trainer/TrainerSkeleton'
 import CardDeck, { type DeckSource } from '../components/CardDeck'
 import { captureMistake, deckOwner, type ReviewCard } from '../data/reviewDeck'
@@ -43,8 +42,7 @@ import MobileScreen from '../components/MobileScreen'
 import SubjectCards from '../components/trainer/SubjectCards'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
-import { useTrainerSubject } from '../lib/trainerSubject'
-import { useTint } from '../store/tintStore'
+import type { TrainerSubjectState } from '../lib/trainerSubject'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
@@ -1415,7 +1413,15 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function TaskBankPage() {
+export default function TaskBankPage({ subjectState }: {
+  /**
+   * Предмет приезжает СВЕРХУ, от TrainerPage, а не читается своим хуком.
+   * Раньше эта страница сама выбирала, кому показаться — себе или языковому
+   * тренажёру, — и была одновременно экраном и маршрутизатором. Теперь она
+   * только экран: предмет ей дают, а языки сюда просто не доходят.
+   */
+  subjectState: TrainerSubjectState
+}) {
   const t = useT()
   const { dark } = useTheme()
   const isDesktop = useIsDesktop()
@@ -1448,23 +1454,10 @@ export default function TaskBankPage() {
   // — см. trainer/SubjectSwitch.tsx и lib/trainerSubject.ts). Без этого ученик,
   // не выбравший курс на главной, попадал в банк ЕГЭ независимо от того, что он
   // учит, и вернуться к своему языку было нечем.
-  const subjectState = useTrainerSubject()
   const langSubject = subjectState.current?.def
-  const isLangTrainer = !!langSubject?.isLanguage
 
-  // Оттенок кабинета на этом экране ведёт предмет ТРЕНАЖЁРА, а не открытый курс.
-  // Выбор языка переводит и курс (lib/trainerSubject.ts), так что обычно это
-  // одно и то же; расходятся они там, где курса нет — язык из присланной ссылки
-  // и запасной банк заданий. Раньше в этом случае тренажёр читал корейский, а
-  // шапка и таблетки оставались в цвете английского курса.
-  const setTintSubject = useTint(s => s.setActiveSubject)
-  useEffect(() => {
-    if (langSubject) setTintSubject(langSubject.id)
-  }, [langSubject, setTintSubject])
-
-  // Часы захода — общие на оба тренажёра, поэтому стоят ДО развилки: время в
-  // корейских карточках считается ровно так же, как время в банке ЕГЭ.
-  useTrainerClock(langSubject?.id ?? '', isLangTrainer ? 'lang' : 'bank')
+  // Оттенок кабинета и часы захода общие на оба тренажёра — они стоят в
+  // TrainerPage, над развилкой.
 
   // Пока курсы не приехали, развилка «язык или банк» не решена: subjects пуст, а
   // activeSubjectId ещё стоит на стартовом 'chemistry' — то есть ЛЮБОЙ ученик на
@@ -1486,7 +1479,7 @@ export default function TaskBankPage() {
   // языкового тренажёра список — витрина (наборы, полки, фильтры), и сигнал
   // шлёт он сам, изнутри открытого материала (см. LanguageTrainer). Скелетон
   // занятием не считается: там ещё не видно ни одного задания.
-  useTrainerEngaged(!isLangTrainer && (dataLoaded || waitedTooLong))
+  useTrainerEngaged(dataLoaded || waitedTooLong)
 
   // Dual-layout (desktop+mobile оба в DOM) монтирует страницу дважды → дедуп по
   // короткому окну, чтобы одно открытие тренажёра давало одно событие.
@@ -1750,7 +1743,6 @@ export default function TaskBankPage() {
   const openModal = useTrainerProgress(s => s.openModal)
   const setOpenModal = useTrainerProgress(s => s.setOpenModal)
   useEffect(() => {
-    if (isLangTrainer) return  // языковые числа шлёт LanguageTrainer, у него свой материал
     // Пока курсы не приехали, `subject` — не предмет ученика, а заглушка для
     // расчётов (первый предмет банка). Отправлять её в стор нельзя: сама
     // страница в этот момент показывает скелетон, а пилюля в шапке успевала
@@ -1759,7 +1751,7 @@ export default function TaskBankPage() {
     // подвела, но пилюля не должна остаться серой навсегда.)
     if (!dataLoaded && !waitedTooLong) return
     updateProgress({ doneCount, wrongCount, totalCount, favCount: favorites.size, todayCorrect, todayWrong, subject, subjectId: subject, kind: 'bank' })
-  }, [dataLoaded, waitedTooLong, doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject, isLangTrainer])
+  }, [dataLoaded, waitedTooLong, doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject])
   useEffect(() => {
     if (openModal) { setShowProgressModal(true); setOpenModal(false) }
   }, [openModal])
@@ -1795,25 +1787,6 @@ export default function TaskBankPage() {
         }}>
           <TrainerSkeleton />
         </div>
-        {!isDesktop && <MobileBottomNav />}
-      </>
-    )
-  }
-
-  // ── Языковой тренажёр ───────────────────────────────────────────────────────
-  // Ставится ПОСЛЕ всех хуков (иначе нарушится порядок вызова) и ДО обеих вёрсток:
-  // у языка своя, общая для телефона и десктопа. Банк ЕГЭ здесь не показывается
-  // вовсе — его для языков просто не существует.
-  if (isLangTrainer) {
-    return (
-      <>
-        <LanguageTrainer
-          lang={langSubject!.langCode ?? 'en'}
-          subject={langSubject!.name}
-          subjectId={langSubject!.id}
-          dark={dark}
-          subjectState={subjectState}
-        />
         {!isDesktop && <MobileBottomNav />}
       </>
     )
