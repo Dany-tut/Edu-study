@@ -38,6 +38,7 @@ import { hasWordPacks, loadWordPacks } from '../data/wordPackBooks'
 import { hasStory, loadStory } from '../data/languageGuides'
 import { hasTextbooks, textbooksForLang } from '../data/textbooks'
 import { useGuideMode } from './trainer/modes/useGuideMode'
+import { useGrammarMode } from './trainer/modes/useGrammarMode'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import {
@@ -48,8 +49,6 @@ import { WorkGrid, WorkPage } from './trainer/SceneShelf'
 import { FeedList, FeedTabs } from './trainer/FeedShelf'
 import { useAppUpdate } from '../lib/appUpdate'
 import TaskVideo from './TaskVideo'
-import { GrammarGrid, GrammarPage } from './trainer/GrammarShelf'
-import { GRAMMAR_COUNTS, hasGrammarRef, loadGrammarRef, type GrammarRef } from '../data/grammar'
 import {
   bootTrainerLink, sameLang, takeBootTrainerLink, trainerShareUrl, writeTrainerHash,
   type TrainerLink,
@@ -403,7 +402,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
     setSceneShelf(''); setSpeakOpen(null)
-    setGChapter(''); setGLevels([])
   }
 
   /** Переключение половин «Конструктора». Открытое при этом закрывается. */
@@ -579,7 +577,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // моргать вкладкой на каждом открытии.
   const hasBook = useMemo(() => hasSurvivalBook(lang), [lang])
   /** Есть ли для языка справочник грамматики. Синхронно — по нему рисуется пункт меню. */
-  const grammarOn = useMemo(() => hasGrammarRef(lang), [lang])
   // Выбранная половина переживает F5, как и остальное во вкладке: ученик,
   // разбиравший гнездо, после перезагрузки должен вернуться в гнездо, а не в
   // наборы фраз. Ключ по языку — у каждого предмета свой набор половин.
@@ -864,31 +861,23 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return () => { alive = false }
   }, [hasBook, lang])
 
-  // ── Справочник грамматики ──────────────────────────────────────────────────
-  //
-  // Ленивый по той же причине, что и разговорник: восемьсот примеров одного
-  // языка не должны приезжать тому, кто открыл тренажёр на «Чтении». Счётчик
-  // для пункта меню при этом синхронный (GRAMMAR_COUNTS).
-  const [gram, setGram] = useState<GrammarRef | null | undefined>(undefined)
-  // Открытая форма переживает F5 — как открытый текст и открытая тема.
-  const [openFormId, setOpenFormId] = usePersistentState<string | null>(`trainer.${lang}.form`, null)
-  const [gChapter, setGChapter] = useState('')
-  /** Ступени справочника — многовыбор, как «Уровень» у сцен. */
-  const [gLevels, setGLevels] = useState<string[]>([])
-
-  useEffect(() => {
-    if (!grammarOn) { setGram(null); return }
-    let alive = true
-    setGram(undefined)
-    loadGrammarRef(lang).then(r => { if (alive) setGram(r ?? null) })
-    return () => { alive = false }
-  }, [grammarOn, lang])
+  // Режим «Грамматика» целиком — справочник, его фильтры и куски экрана
+  // (components/trainer/modes/useGrammarMode). Второй режим, уехавший из этого
+  // файла; поиск остаётся общим на весь тренажёр и приходит к нему пропом.
+  const grammar = useGrammarMode({
+    lang, subjectId, accent: palette.accent, soft: palette.soft,
+    active: mode === 'grammar',
+    query, onQuery: setQuery,
+    result: id => resultFrom('grammar', id, results),
+    onQuizDone: (id, score, total) => { saveResult('grammar', id, score, total); setResultsKey(k => k + 1) },
+  })
 
   // Язык сменился на тот, где справочника нет, — режим обязан уступить, иначе
-  // экран остаётся на пустой вкладке, которой в меню уже нет.
+  // экран остаётся на пустой вкладке, которой в меню уже нет. Остаётся здесь:
+  // переключение режимов — свойство тренажёра, а не режима.
   useEffect(() => {
-    if (mode === 'grammar' && !grammarOn) setMode('reading')
-  }, [mode, grammarOn, setMode])
+    if (mode === 'grammar' && !grammar.on) setMode('reading')
+  }, [mode, grammar.on, setMode])
 
   // Что колода помнит про фразы — по одному запросу на экран, а не на тему.
   useEffect(() => {
@@ -1248,10 +1237,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Три сита: раздел, уровень и строка поиска. Поиск идёт и по самой форме, и по
   // русскому названию, и по объяснению: человек помнит либо «는데», либо «то,
   // что ставят перед просьбой», и справочник обязан находиться по обоим.
-  const openForm = useMemo(
-    () => (gram && openFormId ? gram.forms.find(f => f.id === openFormId) ?? null : null),
-    [gram, openFormId],
-  )
 
   // ── Адрес экрана ───────────────────────────────────────────────────────────
   //
@@ -1306,14 +1291,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (blocksView === 'sounds') return { lang, screen: 'sounds', id: openPronId ?? undefined }
       return { lang, screen: 'stems', id: openStemDict ?? undefined }
     }
-    if (mode === 'grammar') return { lang, screen: 'grammar', id: openFormId ?? undefined }
+    if (mode === 'grammar') return { lang, screen: 'grammar', id: grammar.openId ?? undefined }
     if (guide.view === 'books') return { lang, screen: 'books' }
     return { lang, screen: 'story', id: guide.openId ?? undefined }
   }, [
     lang, mode, readingView, vocabView, blocksView, guide.view, openMyWords,
     openTextId, openWorkId, openSceneId, openAudioId, openTheme,
     openNestId, openPackId, openSetId, openGroupId, openStemDict, openRootKo, openNumId, openPronId,
-    guide.openId, openFormId,
+    guide.openId, grammar.openId,
   ])
   // Предмет дописывается здесь, а не в двенадцати ветках выше: он один на весь
   // экран. Нужен там, где по языку предмет не угадать («Русский» и
@@ -1339,7 +1324,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setOpenTextId(null); setOpenWorkId(null); setOpenSceneId(null); setOpenAudioId(null)
     setOpenTheme(null); setOpenNestId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
     setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null); setOpenPronId(null)
-    setOpenFormId(null); guide.setOpenId(null); setSpeakOpen(null)
+    grammar.setOpenId(null); guide.setOpenId(null); setSpeakOpen(null)
 
     const id = link.id ?? null
     switch (link.screen) {
@@ -1363,7 +1348,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'roots':    setMode('blocks'); setBlocksView('roots'); setOpenRootKo(id); break
       case 'numbers':  setMode('blocks'); setBlocksView('numbers'); setOpenNumId(id); break
       case 'sounds':   setMode('blocks'); setBlocksView('sounds'); setOpenPronId(id); break
-      case 'grammar':  setMode('grammar'); setOpenFormId(id); break
+      case 'grammar':  setMode('grammar'); grammar.setOpenId(id); break
       case 'story':    setMode('guide'); guide.setView('story'); guide.setOpenId(id); break
       case 'books':    setMode('guide'); guide.setView('books'); break
     }
@@ -1371,7 +1356,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     lang, setMode, setReadingView, setVocabView, setBlocksView, guide.setView,
     setOpenTextId, setOpenWorkId, setOpenSceneId, setOpenAudioId, setOpenTheme,
     setOpenNestId, setOpenPackId, setOpenGroupId, setOpenStemDict, setOpenRootKo, setOpenNumId,
-    setOpenPronId, setOpenFormId, guide.setOpenId,
+    setOpenPronId, grammar.setOpenId, guide.setOpenId,
   ])
 
   // ── Смена экрана — вид сверху ──────────────────────────────────────────────
@@ -1389,39 +1374,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     lang, mode, readingView, vocabView, blocksView, guide.view,
     openTextId, openAudioId, openWorkId, openSceneId, openTheme,
     openNestId, openPackId, openSetId, openStemDict, openRootKo, openNumId, openPronId,
-    guide.openId, openFormId, speakOpen ? '1' : '',
+    guide.openId, grammar.openId, speakOpen ? '1' : '',
     kindFilter, fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     sceneShelf, scenePlatforms.join(','), sceneTags.join(','), sceneLevels.join(','),
-    shelf, packShelf, openGroupId, rootGroup, gChapter, gLevels.join(','),
+    shelf, packShelf, openGroupId, rootGroup, grammar.draftKey,
   ].join('|'))
 
-  const gramGroups = useMemo(() => {
-    if (!gram) return []
-    const q = query.trim().toLowerCase()
-    const hit = gram.forms.filter(f => {
-      if (gChapter && f.chapter !== gChapter) return false
-      if (!anyOf(gLevels, f.level)) return false
-      if (!q) return true
-      const hay = `${f.form} ${f.title} ${f.short} ${f.attach} ${f.rule} ${f.examples.map(e => `${e.text} ${e.ru}`).join(' ')}`
-      return hay.toLowerCase().includes(q)
-    })
-    // Порядок разделов задаёт сам справочник, а не порядок находок: витрина
-    // должна выглядеть одинаково при любом фильтре.
-    return gram.chapters
-      .map(chapter => ({ chapter, forms: hit.filter(f => f.chapter === chapter) }))
-      .filter(g => g.forms.length > 0)
-  }, [gram, gChapter, gLevels, query])
-
-  const gramFound = useMemo(() => gramGroups.reduce((n, g) => n + g.forms.length, 0), [gramGroups])
-
-  /** Ступени, которые вообще встречаются в справочнике, — для фильтра. */
-  const gramLevels = useMemo(() => {
-    if (!gram) return []
-    const seen: string[] = []
-    for (const f of gram.forms) if (!seen.includes(f.level)) seen.push(f.level)
-    return seen.sort()
-  }, [gram])
 
   const modeCounts: Record<Mode, number | undefined> = {
     // «Чтение» — ВСЁ, что в этом режиме можно открыть: учебные тексты ПЛЮС
@@ -1444,7 +1403,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     blocks: (stemsOn ? KO_VERBS.length : 0) + (rootsOn ? rootsForLang(lang).length : 0)
       + (numbersOn ? KO_NUMBER_SETS.length : 0) + (soundsOn ? KO_PRON_RULES.length : 0),
     // Из синхронного реестра — чтобы бейдж стоял до того, как чанк поехал.
-    grammar: grammarOn ? (GRAMMAR_COUNTS[lang] ?? GRAMMAR_COUNTS[lang.split('-')[0]]) : undefined,
+    grammar: grammar.count,
     // Главы рассказа плюс книги на полке. Книги известны синхронно, главы — нет
     // (рассказ едет чанком), поэтому до загрузки в бейдже стоят только книги, а
     // не ноль: ноль читался бы как «раздел пустой».
@@ -1466,7 +1425,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         numbersOn ? `${KO_NUMBER_SETS.length} ${t('наборов чисел')}` : '',
         soundsOn ? `${KO_PRON_RULES.length} ${t('правил чтения')}` : '',
       ].filter(Boolean).join(' · ')
-    : mode === 'grammar' && gram ? `${gram.forms.length} ${t('форм')} · ${gram.forms.reduce((n, f) => n + f.examples.length, 0)} ${t('примеров')}`
+    : mode === 'grammar' ? grammar.subtitle
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
 
@@ -1478,7 +1437,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
-            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guide.on))
+            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on))
             .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
@@ -1490,24 +1449,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {/* Разделы справочника. Раздел — главное деление, а не уровень: человек
           помнит, что искал «что-то про частицы», а не что это было 1급. */}
-      {mode === 'grammar' && gram && !openForm && (
-        <RailCard title="Раздел" accent={palette.accent} icon={<BookMarked size={15} />}>
-          <RailList
-            items={[
-              { id: '', label: t('Все разделы'), hint: String(gram.forms.length) },
-              ...gram.chapters.map(c => ({
-                id: c,
-                label: t(c),
-                hint: String(gram.forms.filter(f => f.chapter === c).length),
-              })),
-            ]}
-            value={gChapter}
-            onChange={setGChapter}
-            accent={palette.accent}
-            soft={palette.soft}
-          />
-        </RailCard>
-      )}
+      {mode === 'grammar' && grammar.rail}
 
       {/* Две половины «Чтения». Показываем переключатель только там, где сцены
           для языка вообще написаны: пустая вкладка хуже отсутствующей. */}
@@ -1994,7 +1936,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // справочник, тексты, разбор слов. Первое сито отвечает на вопрос «бывает
       // ли у этого предмета говорение», второе — «написано ли оно уже».
       .filter(m => allowed.includes(MODE_CAP[m.id]))
-      .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guide.on))
+      .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on))
       .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon })),
     mode,
     onMode: m => switchMode(m as Mode),
@@ -2185,36 +2127,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       </Toolbar>
     )
   } else if (mode === 'grammar') {
-    toolbar = (
-      <Toolbar count={openForm ? undefined : gramFound}>
-        {openForm ? (
-          <ToolButton onClick={() => setOpenFormId(null)}>
-            <ChevronLeft size={14} /> {t('К справочнику')}
-          </ToolButton>
-        ) : (
-          <>
-            <SearchPill value={query} onChange={setQuery} placeholder={t('Форма, название или пример…')} />
-            {/* Ступень стоит в строке фильтров, а не в рейле: то же место, что у
-                «Уровня» на сценах, и один экземпляр переключателя на экран. */}
-            {gramLevels.length > 1 && (
-              <FilterMenu
-                label="Уровень"
-                options={gramLevels.map(l => ({
-                  value: l,
-                  label: l,
-                  count: gram ? gram.forms.filter(f => f.level === l).length : 0,
-                }))}
-                value={gLevels}
-                onChange={setGLevels}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
-            <ToolCount>{gramFound} {t(plural(gramFound, ['форма', 'формы', 'форм']))}</ToolCount>
-          </>
-        )}
-      </Toolbar>
-    )
+    toolbar = grammar.toolbar
   } else if (
     mode === 'blocks' && !openStem && !openRoot && !openNum && !openPron
   ) {
@@ -2426,33 +2339,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   let content: React.ReactNode = null
 
   if (mode === 'grammar') {
-    content = gram === undefined ? (
-      <Skeleton.Cards rows={3} />
-    ) : gram === null ? (
-      <ShellEmpty text="Для этого языка справочник пока не написан." />
-    ) : openForm ? (
-      <GrammarPage
-        form={openForm}
-        all={gram}
-        lang={lang}
-        subject={subjectId}
-        accent={palette.accent}
-        soft={palette.soft}
-        onOpenForm={id => setOpenFormId(id)}
-        onQuizDone={(id, score, total) => {
-          saveResult('grammar', id, score, total)
-          setResultsKey(k => k + 1)
-        }}
-      />
-    ) : (
-      <GrammarGrid
-        groups={gramGroups}
-        result={id => resultFrom('grammar', id, results)}
-        accent={palette.accent}
-        soft={palette.soft}
-        onOpen={id => setOpenFormId(id)}
-      />
-    )
+    content = grammar.content
   } else if (scenesOn) {
     content = scenes === undefined ? (
       <Skeleton.Cards rows={3} />
@@ -3040,7 +2927,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const materialOpen = Boolean(openScene || openText || openAudio)
   const toolbarBack =
     scenesOn && openWork ? () => setOpenWorkId(null)
-    : mode === 'grammar' && openForm ? () => setOpenFormId(null)
+    : mode === 'grammar' && grammar.back ? grammar.back
     : mode === 'guide' && guide.back ? guide.back
     : mode === 'speaking' && speakOpen ? () => setSpeakOpen(null)
     : null
