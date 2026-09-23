@@ -47,6 +47,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { textCount } from '../data/readingCounts'
 import { sceneCount } from '../data/scenes/counts'
 import { hasSurvivalBook } from '../data/survivalBooks'
+import { fetchCardSubjects } from './cardGroups'
 import { deckOwner, dueCount } from '../data/reviewDeck'
 import { bootTrainerLink, linkSubjectId } from './trainerLink'
 
@@ -158,9 +159,12 @@ export function pickTrainerSubject(id: string): void {
 
 export interface TrainerSubjectOption {
   def: SubjectDef
-  /** Каким тренажёром открывается предмет. */
-  kind: 'lang' | 'bank'
-  /** Материалов у предмета: текстов у языка, заданий в банке. */
+  /**
+   * Чем предмет наполнен: язык со своей библиотекой, банк заданий или только
+   * карточки, которые завёл учитель. Подпись пункта в меню читается отсюда.
+   */
+  kind: 'lang' | 'bank' | 'cards'
+  /** Материалов у предмета: текстов у языка, заданий в банке, наборов у карточек. */
   count: number
   /** У языка есть разговорник — в подписи это отдельный аргумент открыть предмет. */
   hasBook: boolean
@@ -191,6 +195,19 @@ export function useTrainerSubject(): TrainerSubjectState {
   const coursesLoaded = useStudentData(s => s.loaded)
 
   /**
+   * Предметы, по которым учитель завёл карточки. Нужны, чтобы пустить в
+   * тренажёр физику или историю: своей библиотеки и банка у них нет, но набор
+   * карточек — уже повод открыть предмет. Один запрос на заход; пока он не
+   * приехал, меню ведёт себя как раньше.
+   */
+  const [cardSubjects, setCardSubjects] = useState<Map<string, number>>(() => new Map())
+  useEffect(() => {
+    let alive = true
+    fetchCardSubjects(deckOwner().studentId).then(m => { if (alive) setCardSubjects(m) })
+    return () => { alive = false }
+  }, [])
+
+  /**
    * Предмет из присланной ссылки. Он СИЛЬНЕЕ и памяти, и курса главной: человек
    * открыл конкретный экран, и показать ему вместо него прошлый предмет —
    * значит потерять то единственное, зачем он пришёл по этой ссылке.
@@ -210,7 +227,7 @@ export function useTrainerSubject(): TrainerSubjectState {
     const seen = new Set<string>()
     const out: TrainerSubjectOption[] = []
 
-    const add = (def: SubjectDef, kind: 'lang' | 'bank', count: number) => {
+    const add = (def: SubjectDef, kind: TrainerSubjectOption['kind'], count: number) => {
       if (seen.has(def.id)) return
       seen.add(def.id)
       out.push({ def, kind, count, hasBook: !!def.langCode && hasSurvivalBook(def.langCode) })
@@ -228,14 +245,19 @@ export function useTrainerSubject(): TrainerSubjectState {
     for (const def of SUBJECTS) {
       if (!mine.has(def.id)) continue
       // Предмет попадает в меню, только если тренажёру есть что по нему
-      // открыть: язык (своя библиотека) или предмет с банком заданий. У физики
-      // с историей нет ни того, ни другого — пункт вёл бы на чужой экран.
-      if (!def.isLanguage && !def.hasBank) continue
-      add(def, def.isLanguage ? 'lang' : 'bank', def.isLanguage
+      // открыть. Раньше это значило «язык или банк», и физика с историей не
+      // попадали никогда. Теперь третий повод — карточки: предмет объявил их в
+      // реестре возможностей (SubjectDef.trainer), и учитель хотя бы один набор
+      // завёл. Объявления без наборов мало: пункт вёл бы на пустой экран.
+      const decks = cardSubjects.get(def.id) ?? 0
+      const cardsOnly = !def.isLanguage && !def.hasBank
+      if (cardsOnly && !(def.trainer?.includes('cards') && decks > 0)) continue
+      add(def, def.isLanguage ? 'lang' : cardsOnly ? 'cards' : 'bank', def.isLanguage
         // Тексты вместе со сценами — столько же, сколько показывает «Чтение» в
         // самом тренажёре. Разные числа в меню предметов и в меню режимов
         // читаются как ошибка одного из них.
         ? textCount(def.langCode) + sceneCount(def.langCode)
+        : cardsOnly ? decks
         : tasks.filter(t => t.subject === def.id).length)
     }
 
@@ -286,7 +308,7 @@ export function useTrainerSubject(): TrainerSubjectState {
     }
 
     return out
-  }, [courses, tasks, coursesLoaded, linkedSubject])
+  }, [courses, tasks, coursesLoaded, linkedSubject, cardSubjects])
 
   const [picked, setPicked] = useState(() => {
     if (linkedSubject) { write(KEY, linkedSubject); return linkedSubject }

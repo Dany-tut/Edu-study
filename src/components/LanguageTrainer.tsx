@@ -11,6 +11,7 @@ import TrackPlayer from './trainer/TrackPlayer'
 import VoicePicker, { useVoiceChoice } from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
+import { getSubject, type TrainerMode } from '../lib/subjects'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import CardDeck, { DECK_CTA } from './CardDeck'
@@ -109,6 +110,19 @@ type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar
  * материал — фильтром, по обложке или по дате.
  */
 type ReadingView = 'texts' | 'scenes' | 'feed'
+
+/**
+ * Режим экрана → возможность предмета в реестре.
+ *
+ * Имена разошлись по возрасту: здесь колода карточек с самого начала зовётся
+ * `vocab`, а в реестре — `cards`, потому что там она общая с банком заданий,
+ * где никакого «вокабуляра» нет. Переименовывать местный `vocab` по всему
+ * файлу ради одной строчки дороже, чем держать перевод в одном месте.
+ */
+const MODE_CAP: Record<Mode, TrainerMode> = {
+  reading: 'reading', vocab: 'cards', listening: 'listening',
+  speaking: 'speaking', blocks: 'blocks', grammar: 'grammar', guide: 'guide',
+}
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
   { id: 'reading',   label: 'Чтение',     hint: 'Тексты с вопросами',       Icon: BookOpen },
@@ -2053,8 +2067,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : mode === 'guide' ? guideView
     : undefined
 
+  // Возможности предмета из реестра. Запасной список — полный языковой: у
+  // языка, которому возможности ещё не проставили, ничего пропадать не должно.
+  const allowed = getSubject(subjectId)?.trainer ?? MODES.map(m => MODE_CAP[m.id])
+
   const nav: TrainerNav = {
     modes: MODES
+      // Два сита. Первое — реестр возможностей предмета (SubjectDef.trainer):
+      // он говорит, что предмету вообще положено. Второе — наличие материала:
+      // справочник, тексты, разбор слов. Первое сито отвечает на вопрос «бывает
+      // ли у этого предмета говорение», второе — «написано ли оно уже».
+      .filter(m => allowed.includes(MODE_CAP[m.id]))
       .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guideOn))
       .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon })),
     mode,

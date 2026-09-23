@@ -137,6 +137,7 @@ export const EN: Record<string, string> = {
   // — Карточки предмета в банке заданий (components/trainer/SubjectCards.tsx) —
   'Карточек по этому предмету пока нет — их собирает учитель.': 'No cards for this subject yet — your teacher puts them together.',
   'набор карточек': 'card set',
+  'Карточки предмета': 'Subject cards',
   'В наборе нет карточек': 'This set has no cards',
   'Набор завели, но карточки в него ещё не сложили.': 'The set exists, but nothing has been put in it yet.',
   'Стопка': 'Deck',

@@ -239,6 +239,37 @@ export async function fetchCardGroups(subject: string, studentId?: string): Prom
   return fillSets(mine)
 }
 
+/**
+ * Предметы, по которым у ученика есть хотя бы один набор карточек, и сколько
+ * этих наборов.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНЫЙ ЗАПРОС. Меню предметов тренажёра решает, пускать ли предмет
+ * внутрь: у физики и истории нет ни своей библиотеки, ни банка заданий, и
+ * пункт вёл бы на пустой экран. Но как только учитель завёл по ним карточки,
+ * открывать уже есть что. Читаем ОДНУ колонку без наборов и карточек: меню
+ * спрашивает «есть ли что-нибудь», а не «что именно».
+ */
+export async function fetchCardSubjects(studentId?: string): Promise<Map<string, number>> {
+  const { data, error } = await supabase
+    .from('card_groups')
+    .select('subject, student_ids, author_student_id')
+  if (error) { console.error('cardGroups: subjects', error); return new Map() }
+
+  const out = new Map<string, number>()
+  for (const r of data ?? []) {
+    const subject = (r.subject as string | null)?.trim()
+    if (!subject) continue
+    // Та же адресность, что и в fetchCardGroups: чужая личная подборка и набор,
+    // выданный другим ученикам, в меню считаться не должны.
+    const author = r.author_student_id as string | null
+    const ids = (r.student_ids as string[] | null) ?? []
+    const mine = author ? (!!studentId && author === studentId) : (ids.length === 0 || (!!studentId && ids.includes(studentId)))
+    if (!mine) continue
+    out.set(subject, (out.get(subject) ?? 0) + 1)
+  }
+  return out
+}
+
 /** Группы, которыми владеет текущий учитель, — для Конструктора. */
 export async function fetchOwnCardGroups(ownerId: string): Promise<CardGroup[]> {
   const { data, error } = await supabase

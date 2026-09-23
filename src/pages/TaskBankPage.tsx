@@ -4,7 +4,7 @@ import QuestionTable from '../components/QuestionTable'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
+  Search, BookOpen, CheckCircle2, XCircle,
   Star, Share2, AlertTriangle, Eye, EyeOff, Sparkles, Target, Filter,
   LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, Bell, Database, ZoomIn, ZoomOut, Layers,
 } from 'lucide-react'
@@ -836,16 +836,14 @@ function MobileStatusTabs({ value, onChange, accent }: {
 // Вид одной и той же выборки, а не отдельный раздел: фильтры, поиск и предмет
 // продолжают работать, меняется только подача. Десктопный переключатель — общий
 // StatusTabs скелета с иконками; здесь остался мобильный, в ряд с фильтрами.
-function MobileViewTabs({ value, onChange, accent }: {
+function MobileViewTabs({ value, onChange, accent, items }: {
   value: 'list' | 'cards' | 'decks'; onChange: (v: 'list' | 'cards' | 'decks') => void; accent?: string
+  /** Сегменты по возможностям предмета: у истории «Списка» и «Стопки» нет. */
+  items: ['list' | 'cards' | 'decks', string, typeof List][]
 }) {
   const t = useT()
   const acc = accent ?? 'var(--color-accent)'
-  const options: ['list' | 'cards' | 'decks', string, typeof List][] = [
-    ['list', 'Список', List],
-    ['cards', 'Стопка', Layers],
-    ['decks', 'Карточки', BookOpen],
-  ]
+  const options = items
   return (
     <div style={{ display: 'flex', gap: 8, flex: '1 1 0' }}>
       {options.map(([val, label, Icon]) => {
@@ -1431,8 +1429,6 @@ export default function TaskBankPage() {
   // Тот же нижний отступ, что у навигации (lib/mobileTokens.ts): сырой
   // env() врёт вверх, и док стоял выше, чем на соседних экранах.
   const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
-  const setActivePage = useDashboard(s => s.setActivePage)
-  const docked        = useDashboard(s => s.lessonScrolled)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const tasks         = useTaskBank(s => s.tasks)
   const loadTasks     = useTaskBank(s => s.load)
@@ -1505,6 +1501,18 @@ export default function TaskBankPage() {
   // предметов с заданиями: языковая ветка сюда не доходит (возвращается выше),
   // поэтому запасное значение нужно лишь как заглушка для расчётов до развилки.
   const subject: Subject = langSubject?.hasBank ? langSubject.id : (BANK_SUBJECT_IDS[0] ?? 'biology')
+
+  // ЧТО ЭТОТ ПРЕДМЕТ УМЕЕТ — из реестра возможностей (SubjectDef.trainer), а не
+  // из типа экрана. У биологии это банк и карточки, у истории — одни карточки,
+  // и вкладок «Список» со «Стопкой» у неё быть не должно: заданий нет.
+  const caps = langSubject?.trainer ?? ['bank', 'cards']
+  const bankOn = caps.includes('bank')
+  const cardsOn = caps.includes('cards')
+
+  // Предмет КАРТОЧЕК — настоящий выбранный, а не суженный до банка: `subject`
+  // выше падает на биологию, когда банка у предмета нет, и история открывала бы
+  // чужие наборы.
+  const cardsSubject = langSubject?.id ?? subject
   const setSubjectPersist = (s: Subject) => subjectState.pick(s)
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
@@ -1685,7 +1693,22 @@ export default function TaskBankPage() {
   // (одни и те же задания списком или колодой), а «Карточки» — другой материал:
   // наборы «термин — значение», которые учитель собрал по этому предмету.
   // Поэтому сегмент третий, а не вместо: стопка заданий никуда не делась.
-  const [view, setView] = useState<'list' | 'cards' | 'decks'>('list')
+  const [view, setView] = useState<'list' | 'cards' | 'decks'>(bankOn ? 'list' : 'decks')
+
+  // Сегменты собираются из возможностей: «Список» и «Стопка» — два взгляда на
+  // задания банка, «Карточки» — другой материал. Предмет без банка получает
+  // один сегмент, и переключать ему нечего.
+  const viewTabItems = useMemo(() => {
+    const out: ['list' | 'cards' | 'decks', string, typeof List][] = []
+    if (bankOn) { out.push(['list', 'Список', List], ['cards', 'Стопка', Layers]) }
+    if (cardsOn) out.push(['decks', 'Карточки', BookOpen])
+    return out
+  }, [bankOn, cardsOn])
+
+  const viewOptions = useMemo(
+    () => viewTabItems.map(([value, label, Icon]) => ({ value, label, Icon })),
+    [viewTabItems],
+  )
   const cardTasks = useMemo(() => filtered.filter(fitsCard).slice(0, CARD_SESSION_LIMIT), [filtered])
   const cardSkipped = filtered.length - filtered.filter(fitsCard).length
 
@@ -1756,14 +1779,6 @@ export default function TaskBankPage() {
     prevSubject.current = subject
     resetOnSubject()
   }, [subject])
-
-  const dockGlass = {
-    border: '1px solid var(--color-border-glass)',
-    background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'var(--shadow-lg)',
-  } as const
 
   // ── Скелетон ────────────────────────────────────────────────────────────────
   // Строго ПЕРЕД развилкой и после всех хуков. Общая геометрия обоих тренажёров,
@@ -1868,12 +1883,14 @@ export default function TaskBankPage() {
         >
           {/* Переключатель вида — в потоке контента, а не в доке: док собран из
               трёх кружков с рассчитанной анимацией, четвёртый её ломает. */}
-          <div style={{ display: 'flex', marginBottom: 14 }}>
-            <MobileViewTabs value={view} onChange={setView} accent={palette.accent} />
-          </div>
+          {viewTabItems.length > 1 && (
+            <div style={{ display: 'flex', marginBottom: 14 }}>
+              <MobileViewTabs value={view} onChange={setView} accent={palette.accent} items={viewTabItems} />
+            </div>
+          )}
 
           {view === 'decks' ? (
-            <SubjectCards subjectId={subject} accent={palette.accent} soft={palette.soft} />
+            <SubjectCards subjectId={cardsSubject} accent={palette.accent} soft={palette.soft} />
           ) : view === 'cards' ? (
             <div>
               <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
@@ -2166,74 +2183,19 @@ export default function TaskBankPage() {
         )}
       </AnimatePresence>
 
-      {/* Rest-state Back / title row — fades out when docked */}
-      <motion.div
-        className="flex items-center"
-        style={{ gap: 16 }}
-        animate={{ opacity: docked ? 0 : 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-      >
-        <motion.button
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-          onClick={() => setActivePage('home')}
-          className="flex items-center cursor-pointer flex-shrink-0"
-          style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600 }}
-        >
-          <ChevronLeft size={18} />{t('Назад')}
-        </motion.button>
-
-        <h1
-          className="flex-1 min-w-0 text-center"
-          style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}
-        >
-          {t('Банк заданий ЕГЭ‑2026')}
-        </h1>
-
-        <div className="flex-shrink-0" style={{ width: 92 }} />
-      </motion.div>
-
-      {/* Docked twin — fixed on the topbar line, matches HomeworkFlow exactly */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
-      <AnimatePresence>
-        {docked && (
-          <motion.div
-            key="trainer-dock"
-            className="flex items-center"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ gap: 12, pointerEvents: 'none' }}
-          >
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={() => setActivePage('home')}
-              className="flex items-center cursor-pointer flex-shrink-0"
-              style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto' }}
-            >
-              <ChevronLeft size={18} />{t('Назад')}
-            </motion.button>
-
-            <div
-              className="min-w-0 flex items-center"
-              style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1, padding: '9px 16px', borderRadius: 999, ...dockGlass, pointerEvents: 'auto' }}
-            >
-              <span className="truncate">{t('Банк заданий')} · {t(getSubject(subject)?.name ?? subject)}</span>
-            </div>
-
-            <div style={{ flexGrow: 1, flexBasis: 0 }} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      </div>
+      {/* ШАПКИ У ЭКРАНА НЕТ — ни «Назад», ни заголовка.
+          Языковой тренажёр живёт без них: выход — общая шапка кабинета, а что
+          сейчас открыто, говорит карточка предмета в рейле. У банка была своя
+          пара, и один и тот же тренажёр выглядел двумя разными экранами —
+          с кнопкой возврата у биолога и без неё у языковика. Заголовок к тому
+          же врал: «Банк заданий» стоял и над карточками. */}
 
       {/* ── Separated layout: sticky left card + independent scrolling center ── */}
       {/* ── Скелет тренажёра: рейл, строка управления, сетка ────────────── */}
       {/* Общий компонент вместо собственной раскладки: sticky-рейл, его высота,
           поведение на узком экране и отступы теперь описаны в одном месте
           (components/trainer/TrainerShell.tsx) и одинаковы у банка и языкового
-          тренажёра. Шапка страницы и док-таблетки выше остались своими —
-          скелет их не моделирует и не должен. */}
+          тренажёра. */}
       <TrainerShell
         rail={<>
 
@@ -2244,10 +2206,17 @@ export default function TaskBankPage() {
         <SubjectHero
           state={subjectState}
           palette={palette}
-          subtitle={`${totalCount} ${t('заданий')} · ${doneCount} ${t('решено')}`}
+          subtitle={bankOn
+            ? `${totalCount} ${t('заданий')} · ${doneCount} ${t('решено')}`
+            // У предмета без банка счёт заданий — ноль из нуля, и строка
+            // «0 заданий · 0 решено» читалась бы как поломка, а не как «здесь
+            // карточки».
+            : t('Карточки предмета')}
         />
 
-        {/* Filters card */}
+        {/* Фильтры — это фильтры ЗАДАНИЙ: раздел, линия, часть. На карточках они
+            не сужают ничего, а занимают весь рейл и врут, что сужают. */}
+        {bankOn && view !== 'decks' && (
         <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
           <div className="flex items-center" style={{ gap: 7 }}>
             <Filter size={15} style={{ color: palette.text }} />
@@ -2293,10 +2262,16 @@ export default function TaskBankPage() {
             </button>
           )}
         </div>
+        )}
 
         </>}
         toolbar={<>
         <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
+          {/* ПОИСК, СТАТУС, СОРТИРОВКА И ИЗБРАННОЕ — ПРО ЗАДАНИЯ. На карточках
+              они ничего не делают: искать в них нечего (набор открывается
+              целиком), «решённых» у карточек не бывает, а «Всего: 9» считает
+              задания и на экране карточек прямо врёт. */}
+          {view !== 'decks' && (<>
           <div
             onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS, border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
@@ -2319,18 +2294,20 @@ export default function TaskBankPage() {
             value={statusFilter}
             onChange={v => setStatusFilter(v as StatusFilter)}
           />
+          </>)}
 
-          <ShellStatusTabs
-            options={[
-              { value: 'list', label: 'Список', Icon: List },
-              { value: 'cards', label: 'Стопка', Icon: Layers },
-              { value: 'decks', label: 'Карточки', Icon: BookOpen },
-            ]}
-            value={view}
-            onChange={v => setView(v as 'list' | 'cards' | 'decks')}
-            accent={palette.accent}
-          />
+          {/* Один сегмент — не выбор: у предмета с одними карточками переключать
+              нечего, и таблетка стояла бы как подпись, притворяющаяся кнопкой. */}
+          {viewOptions.length > 1 && (
+            <ShellStatusTabs
+              options={viewOptions}
+              value={view}
+              onChange={v => setView(v as 'list' | 'cards' | 'decks')}
+              accent={palette.accent}
+            />
+          )}
 
+          {view !== 'decks' && (<>
           <SortMenu
             options={SORT_OPTIONS.map(([value, label]) => ({ value, label }))}
             value={sortMode}
@@ -2349,6 +2326,7 @@ export default function TaskBankPage() {
           <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
             {t('Всего:')} {filtered.length}
           </span>
+          </>)}
 
         </div>
         </>}
@@ -2357,7 +2335,7 @@ export default function TaskBankPage() {
       {/* Tasks */}
       {view === 'decks' ? (
         <div style={{ paddingTop: 8 }}>
-          <SubjectCards subjectId={subject} accent={palette.accent} soft={palette.soft} />
+          <SubjectCards subjectId={cardsSubject} accent={palette.accent} soft={palette.soft} />
         </div>
       ) : view === 'cards' ? (
         <div style={{ paddingTop: 8 }}>

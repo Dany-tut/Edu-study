@@ -29,6 +29,7 @@ import { useT } from '../../lib/i18n'
 import { useTheme } from '../../store/themeStore'
 import { useScrollLock } from '../../lib/useScrollLock'
 import { useTrainerSubject, type TrainerSubjectOption, type TrainerSubjectState } from '../../lib/trainerSubject'
+import { plural } from './TrainerShell'
 
 type Palette = { accent: string; text: string; ring: string; soft?: string }
 
@@ -41,6 +42,11 @@ function useMeta() {
       if (o.count) parts.push(`${o.count} ${t('текстов')}`)
       if (o.hasBook) parts.push(t('разговорник'))
       return parts.join(' · ')
+    }
+    // Предмет без банка и без библиотеки держится на одних карточках — и
+    // подпись «Банк ЕГЭ» у истории с физикой была бы прямой неправдой.
+    if (o.kind === 'cards') {
+      return o.count ? `${t('Карточки')} · ${o.count} ${t(plural(o.count, ['набор', 'набора', 'наборов']))}` : t('Карточки')
     }
     return o.count ? `${t('Банк ЕГЭ')} · ${o.count} ${t('заданий')}` : t('Банк ЕГЭ')
   }

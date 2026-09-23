@@ -53,9 +53,56 @@ export interface SubjectDef {
    * Реакции» ученику корейского не говорят ни о чём.
    */
   ranks?: string[]
+  /**
+   * Что тренажёр МОЖЕТ открыть по этому предмету.
+   *
+   * ЗАЧЕМ СПИСОК, А НЕ ФЛАГИ. Раньше возможности выводились из двух флагов:
+   * `isLanguage` открывал семь языковых режимов разом, `hasBank` — банк
+   * заданий. Ось «язык или не язык» проходила не там, где надо: карточки —
+   * это пара «термин и значение», и она одинаково работает для 물 и для
+   * «Гистологии», а говорение и «О языке» биологии не нужны никогда. Из-за
+   * флагов карточки биологу приходилось пристраивать вторым экраном.
+   *
+   * СПИСОК — ЭТО ПОТОЛОК, А НЕ ГАРАНТИЯ. Режим показывается, когда предмет его
+   * объявил И для него есть материал: справочник грамматики, тексты, наборы
+   * карточек. Пустых вкладок этот список не создаёт.
+   */
+  trainer?: TrainerMode[]
   light: SubjectPalette
   dark: SubjectPalette
 }
+
+/**
+ * Режимы тренажёра. Идентификаторы совпадают с теми, что уже ходят по коду:
+ * языковые — MODES в LanguageTrainer, `bank` — банк заданий.
+ */
+export type TrainerMode =
+  | 'bank'       // задания банка: список, стопка
+  | 'cards'      // карточки «термин — значение»
+  | 'reading'    // тексты с вопросами
+  | 'listening'  // аудирование
+  | 'speaking'   // говорение
+  | 'blocks'     // конструктор: из чего собраны слова
+  | 'grammar'    // справочник форм
+  | 'guide'      // о языке
+
+/** Полный набор языкового предмета — у всех языков он один. */
+const LANG_MODES: TrainerMode[] = ['reading', 'cards', 'listening', 'speaking', 'blocks', 'grammar', 'guide']
+
+/**
+ * Предмет с банком заданий. Карточки здесь не «в довесок»: термины и даты
+ * учатся той же парой, что и слова чужого языка, и своей машины для этого
+ * заводить незачем.
+ */
+const BANK_MODES: TrainerMode[] = ['bank', 'cards']
+
+/**
+ * Предмет без своего материала в тренажёре. Карточки ему всё равно доступны:
+ * учитель заводит набор — предмет появляется в тренажёре, не заводит — нет.
+ * Это единственная возможность, которая не требует от нас ни библиотеки, ни
+ * банка, а только чужой работы.
+ */
+const CARDS_ONLY: TrainerMode[] = ['cards']
 
 /** Звания, когда у предмета нет своих (или предмет вообще неизвестен). */
 export const DEFAULT_RANKS = ['Старт', 'Новичок', 'Ученик', 'Практик', 'Знаток', 'Эксперт', 'Мастер']
@@ -191,18 +238,18 @@ const CHEMISTRY_DARK: SubjectPalette = { text: '#C08AFF', soft: '#201336', accen
 // ── The registry ─────────────────────────────────────────────────────────────
 // Order here is the order used in dropdowns/option lists.
 export const SUBJECTS: SubjectDef[] = [
-  { id: 'chemistry', name: 'Химия', icon: '🧪', hasBank: true, ranks: ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер'], light: CHEMISTRY_LIGHT, dark: CHEMISTRY_DARK },
-  { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, ranks: ['Старт', 'Клетка', 'Ткани', 'Организм', 'Экосистема', 'Эксперт', 'Мастер'], light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
-  { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ranks: ['Старт', 'Механика', 'Энергия', 'Поля', 'Кванты', 'Эксперт', 'Мастер'], ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
-  { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ranks: ['Старт', 'Числа', 'Уравнения', 'Функции', 'Пределы', 'Эксперт', 'Мастер'], ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
-  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: NATIVE_RANKS, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
-  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
-  { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ranks: ['Старт', 'Даты', 'Эпохи', 'Реформы', 'Хроника', 'Эксперт', 'Мастер'], ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
-  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
-  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ranks: LANG_RANKS, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
-  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ranks: LANG_RANKS, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
-  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ranks: LANG_RANKS, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
-  { id: 'german', name: 'Немецкий', icon: '🇩🇪', hasBank: false, isLanguage: true, langCode: 'de', ranks: LANG_RANKS, ...palettePair('#3E6B92', '#6E9BC4', '#2C5273', '#9CBEDC') },
+  { id: 'chemistry', name: 'Химия', icon: '🧪', hasBank: true, ranks: ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер'], trainer: BANK_MODES, light: CHEMISTRY_LIGHT, dark: CHEMISTRY_DARK },
+  { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, ranks: ['Старт', 'Клетка', 'Ткани', 'Организм', 'Экосистема', 'Эксперт', 'Мастер'], trainer: BANK_MODES, light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
+  { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ranks: ['Старт', 'Механика', 'Энергия', 'Поля', 'Кванты', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
+  { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ranks: ['Старт', 'Числа', 'Уравнения', 'Функции', 'Пределы', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
+  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: NATIVE_RANKS, trainer: LANG_MODES, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
+  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], trainer: LANG_MODES, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
+  { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ranks: ['Старт', 'Даты', 'Эпохи', 'Реформы', 'Хроника', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
+  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
+  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
+  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
+  { id: 'german', name: 'Немецкий', icon: '🇩🇪', hasBank: false, isLanguage: true, langCode: 'de', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#3E6B92', '#6E9BC4', '#2C5273', '#9CBEDC') },
 ]
 
 // Lookup by either the English id or the Russian name, case-insensitive.
