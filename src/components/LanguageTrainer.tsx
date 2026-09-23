@@ -42,13 +42,10 @@ import { useGrammarMode } from './trainer/modes/useGrammarMode'
 import { useSpeakingMode } from './trainer/modes/useSpeakingMode'
 import { useBlocksMode } from './trainer/modes/useBlocksMode'
 import { useFeedShelf } from './trainer/modes/useFeedShelf'
+import { useScenesShelf } from './trainer/modes/useScenesShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
-import {
-  hasScenes, loadScenes, sceneCount, scenesWord, shelvesForLang, worksForLang, workById,
-  type Scene, type Work,
-} from '../data/scenes'
-import { WorkGrid, WorkPage } from './trainer/SceneShelf'
+import { hasScenes, scenesWord, workById, type Scene, type Work } from '../data/scenes'
 import TaskVideo from './TaskVideo'
 import {
   bootTrainerLink, sameLang, takeBootTrainerLink, trainerShareUrl, writeTrainerHash,
@@ -228,13 +225,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // и ту же запись результата. Отдельный режим означал бы вторую копию фильтров
   // и вторую читалку, которая разойдётся с первой на первой же правке.
   const [readingViewSaved, setReadingView] = usePersistentState<ReadingView>(`trainer.${lang}.readingView`, 'feed')
-  const [openWorkId, setOpenWorkId] = usePersistentState<string | null>(`trainer.${lang}.work`, null)
-  const [openSceneId, setOpenSceneId] = usePersistentState<string | null>(`trainer.${lang}.scene`, null)
-  const [hideSpoilers, setHideSpoilers] = usePersistentState<boolean>(`trainer.${lang}.spoilers`, true)
-  const [sceneShelf, setSceneShelf] = useState('')
-  const [scenePlatforms, setScenePlatforms] = useState<string[]>([])
-  const [sceneTags, setSceneTags] = useState<string[]>([])
-  const [sceneLevels, setSceneLevels] = useState<string[]>([])
 
   const sceneLib = hasScenes(lang)
 
@@ -252,28 +242,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const feedLib = hasFeed(lang) && !narrow
   const readingView: ReadingView =
     readingViewSaved === 'feed' && !feedLib ? (sceneLib ? 'scenes' : 'texts') : readingViewSaved
-  const sceneWorks = useMemo(() => worksForLang(lang), [lang])
-  const sceneShelves = useMemo(() => shelvesForLang(lang), [lang])
-
-  // Тексты сцен приезжают отдельным чанком и только когда вкладку открыли:
-  // у того, кто читает учебные тексты, нет причин возить с собой Достоевского,
-  // Акутагаву и Машаду разом. Язык хранится рядом со списком — при смене
-  // предмета старый список сам перестаёт считаться загруженным.
-  const [sceneData, setSceneData] = useState<{ lang: string; list: Scene[] } | null>(null)
-  const scenes = sceneData?.lang === lang ? sceneData.list : undefined
-
-  // Сколько сцен у языка — независимо от того, приехал чанк или нет: до
-  // загрузки берём число из реестра, после — длину самого списка (реестр может
-  // отстать от файла, список — никогда).
-  const scenesTotal = scenes?.length ?? sceneCount(lang)
-
-  useEffect(() => {
-    if (!sceneLib || mode !== 'reading' || readingView !== 'scenes' || scenes !== undefined) return
-    let alive = true
-    loadScenes(lang).then(list => { if (alive) setSceneData({ lang, list }) })
-    return () => { alive = false }
-  }, [sceneLib, mode, readingView, scenes, lang])
-
   // ── Лента: третья половина «Чтения» ────────────────────────────────────────
   //
   // Устроена как сцены и по той же причине: материал приезжает отдельным
@@ -294,27 +262,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     enabled: feedLib,
   })
 
-
-  const scenesOf = useMemo(() => {
-    const byWork = new Map<string, Scene[]>()
-    for (const s of scenes ?? []) {
-      const list = byWork.get(s.workId)
-      if (list) list.push(s)
-      else byWork.set(s.workId, [s])
-    }
-    for (const list of byWork.values()) list.sort((a, b) => a.order - b.order)
-    return (workId: string) => byWork.get(workId) ?? []
-  }, [scenes])
-
-  // Произведение ищется СРЕДИ ПРОИЗВЕДЕНИЙ ЯЗЫКА, а не по всему реестру: id из
-  // чужой ссылки (или из памяти другого предмета) иначе открывал бы корейский
-  // рассказ в английском — с пустым списком сцен, потому что сцены приезжают
-  // английские. Не нашли — просто витрина полок.
-  const openWork: Work | null = openWorkId ? sceneWorks.find(w => w.id === openWorkId) ?? null : null
-  const openScene: Scene | null = useMemo(
-    () => (openSceneId ? (scenes ?? []).find(s => s.id === openSceneId) ?? null : null),
-    [scenes, openSceneId],
-  )
 
   // Материал мог исчезнуть из библиотеки — тогда просто открывается список.
   const openText = useMemo(
@@ -366,7 +313,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
     setQuery(''); setStatus(''); setSort('order')
     // Вид задания говорения сбрасывается вместе с открытым — оба внутри режима.
-    setSceneShelf(''); speaking.reset()
+    scenesShelf.reset(); speaking.reset()
   }
 
   /** Переключение половин «Конструктора». Открытое при этом закрывается. */
@@ -374,8 +321,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   /** Переключение половин «Чтения». Открытое произведение при этом закрывается. */
   function switchReadingView(v: ReadingView) {
     setReadingView(v)
-    setOpenWorkId(null); setOpenSceneId(null)
-    setQuery(''); setStatus(''); setSceneShelf('')
+    scenesShelf.setOpenWorkId(null); scenesShelf.setOpenSceneId(null)
+    setQuery(''); setStatus(''); scenesShelf.reset()
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
   }
 
@@ -383,6 +330,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Читаются один раз на отрисовку списка, а не на каждую карточку.
   const [resultsKey, setResultsKey] = useState(0)
   const results = useMemo(() => allResults(), [resultsKey])
+
+  // Половина «Сцены» целиком — полки, фильтры, витрина произведений и страница
+  // произведения (components/trainer/modes/useScenesShelf). Читалка осталась
+  // здесь: она одна на сцены, тексты и ленту, и делить её между половинами
+  // значило бы завести вторую.
+  const scenesShelf = useScenesShelf({
+    lang, accent: palette.accent, soft: palette.soft,
+    active: mode === 'reading' && readingView === 'scenes',
+    query, onQuery: setQuery, status, onStatus: setStatus,
+    levels: tax?.levels ?? [],
+    done: id => !!resultFrom('reading', id, results),
+  })
 
   /** Открыта ли вторая половина «Чтения» — витрина сцен. */
   const scenesOn = mode === 'reading' && readingView === 'scenes' && sceneLib
@@ -428,72 +387,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   //
   // Порядок по числу произведений, а не по алфавиту: наверху меню оказывается
   // то, что реально что-то покажет, а не «абсурд · 1».
-  const platformOpts = useMemo(() => {
-    const n = new Map<string, number>()
-    for (const w of sceneWorks) if (w.platform) n.set(w.platform, (n.get(w.platform) ?? 0) + 1)
-    return [...n].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([value, count]) => ({ value, label: value, count }))
-  }, [sceneWorks])
-
-  const tagOpts = useMemo(() => {
-    const n = new Map<string, number>()
-    for (const w of sceneWorks) for (const tag of w.tags) n.set(tag, (n.get(tag) ?? 0) + 1)
-    return [...n].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([value, count]) => ({ value, label: value, count }))
-  }, [sceneWorks])
-
-  // Уровень стоит у СЦЕНЫ, а не у произведения, поэтому фильтр отвечает на
-  // вопрос «есть ли здесь что почитать на моём уровне»: книга остаётся в сетке,
-  // если подходит хотя бы одна её сцена. Так «Идиот» не пропадает из-за одного
-  // трудного отрывка (см. соображение выше) — и при этом «A2» больше не значит
-  // «ищи сам». Порядок — по таксономии языка (A1…C1), счётчик — сколько
-  // произведений попадает. До загрузки чанка сцен список пуст, и таблетки нет.
-  const sceneLevelOpts = useMemo(() => {
-    const n = new Map<string, number>()
-    for (const w of sceneWorks) {
-      for (const lv of new Set(scenesOf(w.id).map(s => s.level))) n.set(lv, (n.get(lv) ?? 0) + 1)
-    }
-    return present([...n.keys()], tax?.levels ?? [])
-      .map(value => ({ value, label: value, count: n.get(value) ?? 0 }))
-  }, [sceneWorks, scenesOf, tax])
-
-  /** Пройдена ли сцена — та же запись результата, что у обычных текстов. */
-  const sceneDone = (id: string) => !!resultFrom('reading', id, results)
-
-  // Внутри фильтра значения складываются по ИЛИ (Netflix или HBO), между
-  // фильтрами — по И. Иначе «Netflix + комедия» показало бы весь Netflix.
-  const visibleWorks = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return sceneWorks.filter(w => {
-      if (sceneShelf && w.shelf !== sceneShelf) return false
-      if (scenePlatforms.length && !(w.platform && scenePlatforms.includes(w.platform))) return false
-      if (sceneTags.length && !w.tags.some(tag => sceneTags.includes(tag))) return false
-      if (sceneLevels.length && !scenesOf(w.id).some(s => sceneLevels.includes(s.level))) return false
-      // Статус — та же ось, что у текстов и записей: «не начатые» = ни одной
-      // пройденной сцены, «пройдено» = пройдены все. Произведение без сцен
-      // (чанк ещё едет) статусом не отсеивается — иначе витрина мигает пустой.
-      if (status) {
-        const sc = scenesOf(w.id)
-        if (sc.length > 0) {
-          const passed = sc.filter(x => sceneDone(x.id)).length
-          if (status === 'new' && passed > 0) return false
-          if (status === 'wip' && (passed === 0 || passed === sc.length)) return false
-          if (status === 'done' && passed < sc.length) return false
-        }
-      }
-      if (q && !`${w.title} ${w.origTitle} ${w.author}`.toLowerCase().includes(q)) return false
-      return true
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sceneWorks, sceneShelf, scenePlatforms, sceneTags, sceneLevels, scenesOf, query, status, results])
-
-  const sceneGroups = useMemo(
-    () => sceneShelves
-      .map(s => ({ title: s.title, hint: s.hint, works: visibleWorks.filter(w => w.shelf === s.id) }))
-      .filter(g => g.works.length > 0),
-    [sceneShelves, visibleWorks],
-  )
-
   // ── Колода карточек ────────────────────────────────────────────────────────
   //
   // Пустая колода у новичка — нормальное состояние: карточки набираются из
@@ -1142,7 +1035,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
+  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -1191,7 +1084,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     if (mode === 'reading') {
       if (readingView === 'feed') return { lang, screen: 'feed' }
       if (readingView === 'scenes') {
-        return { lang, screen: 'scenes', id: openWorkId ?? undefined, sub: openSceneId ?? undefined }
+        return { lang, screen: 'scenes', id: scenesShelf.openWorkId ?? undefined, sub: scenesShelf.openScene?.id ?? undefined }
       }
       return { lang, screen: 'texts', id: openTextId ?? undefined }
     }
@@ -1224,7 +1117,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return { lang, screen: 'story', id: guide.openId ?? undefined }
   }, [
     lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
-    openTextId, openWorkId, openSceneId, openAudioId, openTheme,
+    openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, openTheme,
     openNestId, openPackId, openSetId, openGroupId,
     guide.openId, grammar.openId,
   ])
@@ -1249,7 +1142,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     bootDone.current = true
 
     // Гасим всё открытое — см. «открытое перебивает половину» выше.
-    setOpenTextId(null); setOpenWorkId(null); setOpenSceneId(null); setOpenAudioId(null)
+    setOpenTextId(null); scenesShelf.setOpenWorkId(null); scenesShelf.setOpenSceneId(null); setOpenAudioId(null)
     setOpenTheme(null); setOpenNestId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
     blocks.reset(); grammar.setOpenId(null); guide.setOpenId(null); speaking.close()
 
@@ -1259,7 +1152,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // своей памятью. Так выглядит ссылка на предмет целиком.
       case undefined: break
       case 'feed':     setMode('reading'); setReadingView('feed'); break
-      case 'scenes':   setMode('reading'); setReadingView('scenes'); setOpenWorkId(id); setOpenSceneId(link.sub ?? null); break
+      case 'scenes':   setMode('reading'); setReadingView('scenes'); scenesShelf.setOpenWorkId(id); scenesShelf.setOpenSceneId(link.sub ?? null); break
       case 'texts':    setMode('reading'); setReadingView('texts'); setOpenTextId(id); break
       case 'sets':     setMode('vocab'); setVocabView('sets'); setOpenTheme(id); break
       case 'words':    setMode('vocab'); setVocabView('sets'); setOpenTheme(MY_WORDS_ID); break
@@ -1281,7 +1174,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
   }, [
     lang, setMode, setReadingView, setVocabView, guide.setView,
-    setOpenTextId, setOpenWorkId, setOpenSceneId, setOpenAudioId, setOpenTheme,
+    setOpenTextId, scenesShelf.setOpenWorkId, scenesShelf.setOpenSceneId, setOpenAudioId, setOpenTheme,
     setOpenNestId, setOpenPackId, setOpenGroupId,
     blocks.reset, blocks.openFromLink, grammar.setOpenId, guide.setOpenId,
   ])
@@ -1299,12 +1192,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // сидят в том же ключе, что и режимы.
   useScreenTop([
     lang, mode, readingView, vocabView, guide.view,
-    openTextId, openAudioId, openWorkId, openSceneId, openTheme,
+    openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openTheme,
     openNestId, openPackId, openSetId,
     guide.openId, grammar.openId, speaking.openId ?? '', blocks.open?.id ?? '',
     speaking.draftKey, blocks.draftKey, grammar.draftKey, fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
-    sceneShelf, scenePlatforms.join(','), sceneTags.join(','), sceneLevels.join(','),
+    scenesShelf.draftKey,
     shelf, packShelf, openGroupId,
   ].join('|'))
 
@@ -1321,7 +1214,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Сумма при этом известна сразу: сцены едут отдельным чанком (у английского
     // это 340 КБ), но их количество лежит в синхронном реестре (SCENE_COUNTS),
     // так что бейдж не прыгает и весь Диккенс ради цифры не грузится.
-    reading: allTexts.length + (sceneLib ? scenesTotal : 0) + (feedLib ? feedShelf.total : 0),
+    reading: allTexts.length + (sceneLib ? scenesShelf.total : 0) + (feedLib ? feedShelf.total : 0),
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speaking.count,
@@ -1339,7 +1232,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
-    : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
+    : scenesOn ? `${scenesShelf.works} ${t('произведений')} · ${scenesShelf.total} ${t(scenesWord(scenesShelf.total))}`
     : feedOn ? feedShelf.subtitle
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
@@ -1385,7 +1278,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               // хоть один материал: пустая вкладка хуже отсутствующей.
               ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedShelf.total, icon: <Rows3 size={15} /> }] : []),
               { value: 'texts', label: 'Тексты', badge: allTexts.length, icon: <AlignLeft size={15} /> },
-              { value: 'scenes', label: 'Сцены', badge: scenesTotal, icon: <Quote size={15} /> },
+              { value: 'scenes', label: 'Сцены', badge: scenesShelf.total, icon: <Quote size={15} /> },
             ]}
             value={readingView}
             onChange={v => v && switchReadingView(v as ReadingView)}
@@ -1404,40 +1297,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {scenesOn && !openWork && (
-        <RailCard
-          title="Полки"
-          accent={palette.accent}
-          icon={<SlidersHorizontal size={15} />}
-          action={sceneShelf ? { label: t('Все полки'), onClick: () => setSceneShelf('') } : undefined}
-        >
-          <RailList
-            items={sceneShelves.map(s => ({
-              id: s.id,
-              label: t(s.title),
-              hint: String(sceneWorks.filter(w => w.shelf === s.id).length),
-            }))}
-            value={sceneShelf}
-            onChange={v => setSceneShelf(v === sceneShelf ? '' : v)}
-            accent={palette.accent}
-            soft={palette.soft}
-          />
-        </RailCard>
-      )}
-
-      {scenesOn && (
-        <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
-          <RailToggle
-            label="Прятать спойлеры"
-            on={hideSpoilers}
-            onChange={setHideSpoilers}
-            accent={palette.accent}
-          />
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-            {t('Скрывает сцены, которые раскрывают середину или финал. Первые сцены книги видно всегда.')}
-          </div>
-        </RailCard>
-      )}
+      {scenesOn && scenesShelf.rail}
 
       {/* Фильтры библиотеки живут в строке управления, а не здесь — см.
           «Одно место для сита» в комментарии к строке. Рейлу остаётся то, что
@@ -1665,10 +1525,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           // На телефоне лента отключена (см. feedLib), и первой половиной идут
           // сцены: чипс, на который попадаешь без выбора, должен вести в
           // материал, которого больше нигде нет.
-          ...(sceneLib && narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
+          ...(sceneLib && narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesShelf.total }] : []),
           ...(feedLib ? [{ id: 'feed', label: 'Лента', badge: feedShelf.total }] : []),
           { id: 'texts', label: 'Тексты', badge: allTexts.length },
-          ...(sceneLib && !narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
+          ...(sceneLib && !narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesShelf.total }] : []),
         ]
     : mode === 'vocab'
       ? [
@@ -1735,71 +1595,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   if (feedOn) {
     toolbar = feedShelf.toolbar
   } else if (scenesOn) {
-    toolbar = (
-      <Toolbar count={openWork ? undefined : visibleWorks.length}>
-        {openWork ? (
-          <ToolButton onClick={() => setOpenWorkId(null)}>
-            <ChevronLeft size={14} /> {t('К полкам')}
-          </ToolButton>
-        ) : (
-          <>
-            <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
-            {/* Платформы показываем, только если они у языка есть: на корейской
-                полке из одних рассказов фильтр «где смотрел» — пустая таблетка. */}
-            {sceneLevelOpts.length > 1 && (
-              <FilterMenu
-                label="Уровень"
-                options={sceneLevelOpts}
-                value={sceneLevels}
-                onChange={setSceneLevels}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
-            {platformOpts.length > 1 && (
-              <FilterMenu
-                label="Платформа"
-                options={platformOpts}
-                value={scenePlatforms}
-                onChange={setScenePlatforms}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
-            {tagOpts.length > 1 && (
-              <FilterMenu
-                label="Тематика"
-                options={tagOpts}
-                value={sceneTags}
-                onChange={setSceneTags}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
-            {/* Статус — та же ось и в том же месте, что у текстов, записей и
-                наборов: после фильтров, перед счётчиком. */}
-            <StatusTabs
-              options={[
-                { value: '', label: 'Все' },
-                { value: 'new', label: 'Не начатые' },
-                { value: 'wip', label: 'В работе' },
-                { value: 'done', label: 'Пройдено' },
-              ]}
-              value={status}
-              onChange={setStatus}
-              accent={palette.accent}
-            />
-          </>
-        )}
-        <ToolRight>
-          <ToolCount>
-            {openWork
-              ? `${scenesOf(openWork.id).length} ${t(scenesWord(scenesOf(openWork.id).length))}`
-              : `${visibleWorks.length} ${t(plural(visibleWorks.length, ['произведение', 'произведения', 'произведений']))}`}
-          </ToolCount>
-        </ToolRight>
-      </Toolbar>
-    )
+    toolbar = scenesShelf.toolbar
   } else if (isLang) {
     toolbar = (
       <Toolbar count={library.length}>
@@ -2040,29 +1836,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   if (mode === 'grammar') {
     content = grammar.content
   } else if (scenesOn) {
-    content = scenes === undefined ? (
-      <Skeleton.Cards rows={3} />
-    ) : openWork ? (
-      <WorkPage
-        work={openWork}
-        scenes={scenesOf(openWork.id)}
-        done={sceneDone}
-        accent={palette.accent}
-        soft={palette.soft}
-        hideSpoilers={hideSpoilers}
-        onOpenScene={setOpenSceneId}
-      />
-    ) : (
-      <WorkGrid
-        groups={sceneGroups}
-        scenesOf={scenesOf}
-        levelOrder={sceneLevelOpts.map(o => o.value)}
-        done={sceneDone}
-        accent={palette.accent}
-        soft={palette.soft}
-        onOpen={setOpenWorkId}
-      />
-    )
+    content = scenesShelf.content
   } else if (feedOn) {
     content = feedShelf.content
   } else if (isLang) {
@@ -2472,9 +2246,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // материалы (читалка/аудирование) регистрируют свой «назад» сами, поэтому
   // здесь жест выключен, пока показан материал, — иначе после F5 с открытой
   // сценой свайп закрывал бы полку ПОД ней.
-  const materialOpen = Boolean(openScene || openText || openAudio)
+  const materialOpen = Boolean(scenesShelf.openScene || openText || openAudio)
   const toolbarBack =
-    scenesOn && openWork ? () => setOpenWorkId(null)
+    scenesOn && scenesShelf.back ? scenesShelf.back
     : mode === 'grammar' && grammar.back ? grammar.back
     : mode === 'guide' && guide.back ? guide.back
     : mode === 'speaking' && speaking.back ? speaking.back
@@ -2490,19 +2264,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // рассказ открывает её сразу на монтировании — и правило стало обязательным.
   // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
   // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
-  if (openScene) {
+  if (scenesShelf.openScene) {
     return (
       <Reader
-        text={openScene}
-        scene={openScene}
-        work={workById(openScene.workId)}
+        text={scenesShelf.openScene}
+        scene={scenesShelf.openScene}
+        work={workById(scenesShelf.openScene.workId)}
         share={shareUrl}
         accent={palette.accent}
         palette={palette}
         lang={lang}
         owner={owner}
         subjectId={subjectId}
-        onBack={() => { setOpenSceneId(null); setResultsKey(k => k + 1) }}
+        onBack={() => { scenesShelf.setOpenSceneId(null); setResultsKey(k => k + 1) }}
       />
     )
   }
