@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
-import { loadFeed, feedCount, hasFeed, materialsWord, dayLabel, feedFilters, matchesFilter, type FeedFilter, type FeedItem } from '../data/feed'
+import { hasFeed, dayLabel, type FeedItem } from '../data/feed'
 import { outletById } from '../data/feed/outlets'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -41,6 +41,7 @@ import { useGuideMode } from './trainer/modes/useGuideMode'
 import { useGrammarMode } from './trainer/modes/useGrammarMode'
 import { useSpeakingMode } from './trainer/modes/useSpeakingMode'
 import { useBlocksMode } from './trainer/modes/useBlocksMode'
+import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import {
@@ -48,8 +49,6 @@ import {
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
-import { FeedList, FeedTabs } from './trainer/FeedShelf'
-import { useAppUpdate } from '../lib/appUpdate'
 import TaskVideo from './TaskVideo'
 import {
   bootTrainerLink, sameLang, takeBootTrainerLink, trainerShareUrl, writeTrainerHash,
@@ -247,6 +246,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Поэтому с телефона первой половиной идут сцены, а сохранённая «Лента»
   // (её мог выбрать тот же ученик с ноутбука) молча читается как «Сцены» —
   // переписывать хранимое нельзя, иначе выбор потеряется и на десктопе.
+  // Признак считается ЗДЕСЬ, а не берётся у ленты: от него зависит выбор
+  // половины, а половина — то, по чему лента понимает, открыта ли она. Спросить
+  // её раньше, чем она собрана, нельзя, а правило короткое и одно.
   const feedLib = hasFeed(lang) && !narrow
   const readingView: ReadingView =
     readingViewSaved === 'feed' && !feedLib ? (sceneLib ? 'scenes' : 'texts') : readingViewSaved
@@ -282,40 +284,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // проигрывается и обсуждается на месте. Поэтому здесь нет ни openFeedId, ни
   // «чем открыли» — состояния, которое пришлось бы восстанавливать после F5.
 
-  const [feedData, setFeedData] = useState<{ lang: string; list: FeedItem[] } | null>(null)
-  const feed = feedData?.lang === lang ? feedData.list : undefined
-  const feedTotal = feed?.length ?? feedCount(lang)
+  // Лента целиком — поворот рубрик, тяга сверху и сам список
+  // (components/trainer/modes/useFeedShelf). Первая из трёх половин «Чтения»,
+  // уехавшая из этого файла: у неё нет ни открытого материала, ни статусов, ни
+  // поиска, то есть почти нет связей с остальным чтением.
+  const feedShelf = useFeedShelf({
+    lang, subjectId, accent: palette.accent,
+    active: mode === 'reading' && readingView === 'feed',
+    enabled: feedLib,
+  })
 
-  // ПОВОРОТ ЛЕНТЫ — «Видео», «Наука», «Новости». Не выбор материала: выбранное
-  // остаётся лентой по дням, просто уже одного рода. Ряд собирается по тому,
-  // что реально приехало (feedFilters), и живёт per-язык: у корейской ленты
-  // свои темы, и чипс «Здоровье», выбранный в ней, ничего не значит в
-  // португальской — там его в ряду нет вовсе.
-  const [feedFilter, setFeedFilter] = usePersistentState<FeedFilter>(`trainer.${lang}.feedFilter`, 'all')
-  const feedChips = useMemo(() => feedFilters(feed ?? []), [feed])
-  // Чипс мог исчезнуть из ряда: язык сменился, ночная сборка унесла последний
-  // ролик. Выборка по кнопке, которой на экране нет, читается как пустая лента.
-  const feedPick: FeedFilter = feedChips.some(c => c.id === feedFilter) ? feedFilter : 'all'
-  const feedShown = useMemo(
-    () => (feed ?? []).filter(x => matchesFilter(x, feedPick)),
-    [feed, feedPick],
-  )
-
-  // ТЯГА СВЕРХУ. Материалы ленты приезжают со сборкой, поэтому обновлять
-  // список в памяти бессмысленно — спрашиваем сервер, нет ли новой сборки.
-  // Есть — таблетка обновления сама предложит её забрать.
-  const refreshFeed = useCallback(async () => {
-    await useAppUpdate.getState().check(true)
-    const list = await loadFeed(lang)
-    setFeedData({ lang, list })
-  }, [lang])
-
-  useEffect(() => {
-    if (!feedLib || mode !== 'reading' || readingView !== 'feed' || feed !== undefined) return
-    let alive = true
-    loadFeed(lang).then(list => { if (alive) setFeedData({ lang, list }) })
-    return () => { alive = false }
-  }, [feedLib, mode, readingView, feed, lang])
 
   const scenesOf = useMemo(() => {
     const byWork = new Map<string, Scene[]>()
@@ -1343,7 +1321,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Сумма при этом известна сразу: сцены едут отдельным чанком (у английского
     // это 340 КБ), но их количество лежит в синхронном реестре (SCENE_COUNTS),
     // так что бейдж не прыгает и весь Диккенс ради цифры не грузится.
-    reading: allTexts.length + (sceneLib ? scenesTotal : 0) + (feedLib ? feedTotal : 0),
+    reading: allTexts.length + (sceneLib ? scenesTotal : 0) + (feedLib ? feedShelf.total : 0),
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speaking.count,
@@ -1362,7 +1340,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
     : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
-    : feedOn ? `${feedTotal} ${t(materialsWord(feedTotal))} ${t('из свободных источников')}`
+    : feedOn ? feedShelf.subtitle
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
     // Подпись собирается из того, что у ЯЗЫКА реально есть: у японского из
@@ -1405,7 +1383,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               // как «Шэдоуинг» в «Говорении»: свежее чтение важнее архива
               // текстов/сцен. Появляется только там, где для языка собран
               // хоть один материал: пустая вкладка хуже отсутствующей.
-              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedTotal, icon: <Rows3 size={15} /> }] : []),
+              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedShelf.total, icon: <Rows3 size={15} /> }] : []),
               { value: 'texts', label: 'Тексты', badge: allTexts.length, icon: <AlignLeft size={15} /> },
               { value: 'scenes', label: 'Сцены', badge: scenesTotal, icon: <Quote size={15} /> },
             ]}
@@ -1688,7 +1666,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           // сцены: чипс, на который попадаешь без выбора, должен вести в
           // материал, которого больше нигде нет.
           ...(sceneLib && narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
-          ...(feedLib ? [{ id: 'feed', label: 'Лента', badge: feedTotal }] : []),
+          ...(feedLib ? [{ id: 'feed', label: 'Лента', badge: feedShelf.total }] : []),
           { id: 'texts', label: 'Тексты', badge: allTexts.length },
           ...(sceneLib && !narrow ? [{ id: 'scenes', label: 'Сцены', badge: scenesTotal }] : []),
         ]
@@ -1755,25 +1733,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   let toolbar: React.ReactNode = null
   if (feedOn) {
-    // У ленты в строке только поворот: ни поиска, ни сортировки, ни статусов.
-    // Искать в ленте нечего (её листают, а не подбирают материал), а «сначала
-    // старое» ленте противопоказано — датой она и держится.
-    toolbar = (
-      <Toolbar count={feedShown.length}>
-        {/* Ряд ровно по колонке постов: он тут один и работает шапкой ленты.
-            Свой, а не общий StatusTabs: он сворачивается при прокрутке до
-            текущей рубрики словом и значков соседей — см. FeedTabs. */}
-        <FeedTabs
-          chips={feedChips}
-          value={feedPick}
-          onChange={setFeedFilter}
-          accent={palette.accent}
-        />
-        <ToolCount>
-          {feedShown.length} {t(materialsWord(feedShown.length))}
-        </ToolCount>
-      </Toolbar>
-    )
+    toolbar = feedShelf.toolbar
   } else if (scenesOn) {
     toolbar = (
       <Toolbar count={openWork ? undefined : visibleWorks.length}>
@@ -2104,17 +2064,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       />
     )
   } else if (feedOn) {
-    content = feed === undefined ? (
-      <Skeleton.Cards rows={3} />
-    ) : (
-      <FeedList
-        items={feedShown}
-        lang={lang}
-        accent={palette.accent}
-        subjectId={subjectId}
-        onRefresh={refreshFeed}
-      />
-    )
+    content = feedShelf.content
   } else if (isLang) {
     content = library.length === 0 ? (
       <ShellEmpty text={pool.length === 0
