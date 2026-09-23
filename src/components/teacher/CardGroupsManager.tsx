@@ -237,7 +237,7 @@ export function readPasted(text: string): { title?: string; cards: SetCard[] } {
 // «Материалы» начинался со скелетонов, которые сменялись теми же наборами.
 let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup[] } | null = null
 
-export default function CardGroupsManager({ createNonce = 0, lang, query: outerQuery, onQuery }: {
+export default function CardGroupsManager({ createNonce = 0, lang, subject, query: outerQuery, onQuery }: {
   createNonce?: number
   /**
    * Поиск держит вкладка «Материалы»: запрос не теряется при переходе между
@@ -254,6 +254,15 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
    * оставляем свой фасет языка.
    */
   lang?: string
+  /**
+   * Предмет, выбранный вкладкой «Материалы», — ГЛАВНЫЙ отбор витрины.
+   *
+   * Подборки отбирались по языку, и набор по биологии лежал под вывеской
+   * «Русский»: язык у него есть (карточки написаны по-русски), а предмет —
+   * биология, и искать его среди языков было негде. Задан предмет — язык в
+   * отборе не участвует вовсе.
+   */
+  subject?: string
 }) {
   const t = useT()
   const { tn } = useTc()
@@ -296,6 +305,9 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
   // одного и того же в одном экране расходятся на первом же клике.
   const [langPick, setLangPick] = useState('')
   const langFilter = lang ?? langPick
+  // Предмет сильнее языка: он и есть ключ, по которому набор находит ученик
+  // (см. fetchCardGroups). Язык остаётся подсказкой импорту, какой речи ждать.
+  const subjectFilter = subject ?? ''
   const [studentPick, setStudentPick] = useState('')
   const [shelfName, setShelfName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -503,15 +515,18 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
   )
 
   const seedsShown = useMemo(
-    () => (langFilter ? seeds.filter(g => g.lang === langFilter) : seeds).filter(g => !needle
+    () => (subjectFilter
+      ? seeds.filter(g => g.subject === subjectFilter)
+      : langFilter ? seeds.filter(g => g.lang === langFilter) : seeds).filter(g => !needle
       || normSearch(g.title + ' ' + g.about).includes(needle)
       || g.sets.some(x => normSearch(x.title + ' ' + x.about).includes(needle))),
-    [seeds, langFilter, needle],
+    [seeds, langFilter, subjectFilter, needle],
   )
 
   const shown = useMemo(() => {
     let list = shelfPick ? items.filter(x => x.group.id === shelfPick) : items
-    if (langFilter) list = list.filter(x => x.group.lang === langFilter)
+    if (subjectFilter) list = list.filter(x => x.group.subject === subjectFilter)
+    else if (langFilter) list = list.filter(x => x.group.lang === langFilter)
     // Пустой student_ids значит «всем», поэтому такой набор попадает в выборку
     // любого ученика: он его и правда видит.
     if (studentPick) list = list.filter(x => x.group.studentIds.length === 0 || x.group.studentIds.includes(studentPick))
@@ -522,7 +537,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, query: outerQ
     else if (sort === 'cards') sorted.sort((a, b) => b.set.cards.length - a.set.cards.length)
     else sorted.sort((a, b) => sort === 'oldest' ? at(a).localeCompare(at(b)) : at(b).localeCompare(at(a)))
     return sorted
-  }, [items, shelfPick, langFilter, studentPick, needle, sort])
+  }, [items, shelfPick, langFilter, subjectFilter, studentPick, needle, sort])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

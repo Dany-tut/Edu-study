@@ -136,7 +136,19 @@ export default function TeacherCardSetEditorPage() {
         <div style={{ position: 'absolute', left: 240, right: 240, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <span className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{title}</span>
         </div>
-        <TeacherSaveButton label={t('Сохранить')} onClick={save} saving={saving} saved={saved} disabled={!canSave} />
+        {/* ПОЧЕМУ КНОПКА НЕ ЖМЁТСЯ — СТРОКОЙ РЯДОМ, а не подсказкой при наведении.
+            Набор на полсотни карточек, собранный вставкой, упирался в серую
+            кнопку без единого слова и уходил вместе с закрытой вкладкой:
+            человек видел готовый список и не догадывался, что не хватает имени.
+            На телефоне наведения нет вовсе, так что подсказка там не спасала бы. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {!canSave && (
+            <span style={{ fontSize: 11.5, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+              {editedSet ? t('Дайте набору название') : t('Дайте полке название')}
+            </span>
+          )}
+          <TeacherSaveButton label={t('Сохранить')} onClick={save} saving={saving} saved={saved} disabled={!canSave} />
+        </div>
       </div>
 
       <div className="no-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 24px 32px' }}>

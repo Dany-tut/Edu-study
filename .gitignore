@@ -32,3 +32,6 @@ scripts/_*.mjs
 # источника, то есть шумит в истории, ничего в ней не сохраняя.
 scripts/feed-staging/
 supabase-cli
+
+# Кэш версии CLI: пишет сам npx supabase, в гите ему делать нечего.
+supabase/.temp/

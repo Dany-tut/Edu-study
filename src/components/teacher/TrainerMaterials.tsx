@@ -124,6 +124,20 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
 
   // Пустая строка — «все языки», как пустой предмет в «Курсах».
   const [lang, setLang] = useState(() => localStorage.getItem('materials-lang') ?? '')
+  /**
+   * Предмет — отбор ПОДБОРОК, отдельный от языка остальных материалов.
+   *
+   * У готовых материалов (тексты, аудио, грамматика) предмет и язык — одно и то
+   * же: они написаны на изучаемом языке и только для него. У подборок это
+   * разошлось: набор по биологии написан по-русски, но принадлежит биологии, и
+   * под языковым чипсом его не найти. Своё состояние, а не общее с языком:
+   * человек переключает режимы туда-сюда, и сбрасывать один отбор другим —
+   * терять то, что он только что выбрал.
+   */
+  const [deckSubject, setDeckSubject] = useState(() => localStorage.getItem('materials-subject') ?? '')
+  useEffect(() => {
+    try { localStorage.setItem('materials-subject', deckSubject) } catch { /* приватный режим */ }
+  }, [deckSubject])
   const [mode, setMode] = useState<MaterialMode | ''>(() =>
     (localStorage.getItem('materials-mode') as MaterialMode | null) ?? '')
   const [view, setView] = useState<'cards' | 'rows'>(() =>
@@ -275,7 +289,13 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
     <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {onDecks ? (
-          <CardGroupsManager createNonce={deckCreate} lang={lang || undefined} query={query} onQuery={setQuery} />
+          <CardGroupsManager
+            createNonce={deckCreate}
+            lang={lang || undefined}
+            subject={deckSubject || undefined}
+            query={query}
+            onQuery={setQuery}
+          />
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -336,6 +356,7 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
 
       <FilterPanel
         lang={lang} onLang={setLang}
+        onDecks={onDecks} subject={deckSubject} onSubject={setDeckSubject}
         mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : '') }}
         familyId={familyId} onFamily={setFamilyId}
         families={families} modeCount={modeCount}
@@ -422,10 +443,13 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
  * одним деревом: полка — это уточнение режима, а не отдельная ось.
  */
 function FilterPanel({
-  lang, onLang, mode, onMode, familyId, onFamily, families, modeCount,
+  lang, onLang, onDecks, subject, onSubject, mode, onMode, familyId, onFamily, families, modeCount,
   level, onLevel, levelOpts, topic, onTopic, topicOpts, dirty, onReset, total, loading,
 }: {
   lang: string; onLang: (v: string) => void
+  /** Открыты подборки — там отбирают по предмету, а не по языку. */
+  onDecks: boolean
+  subject: string; onSubject: (v: string) => void
   mode: MaterialMode | ''; onMode: (v: MaterialMode | '') => void
   familyId: string; onFamily: (v: string) => void
   families: { family: MaterialFamily; count: number }[]
@@ -455,17 +479,34 @@ function FilterPanel({
       </div>
 
       {/* Язык — тот же адаптивный контрол, что «Предмет» в банке заданий:
-          «Все» первым пунктом, форма меняется от числа опций. */}
-      <SubjectPicker
-        options={[
-          { value: '', label: t('Все языки') },
-          ...LANG_OPTIONS.map(o => ({ value: o.value, label: t(o.label), icon: o.icon })),
-        ]}
-        value={lang}
-        onChange={onLang}
-        accent={MAT_COLOR} accentBg={MAT_BG} activeColor={MAT_COLOR}
-        ariaLabel={t('Язык')}
-      />
+          «Все» первым пунктом, форма меняется от числа опций.
+
+          НА ПОДБОРКАХ ОН СТАНОВИТСЯ ПРЕДМЕТОМ. Карточки бывают не только
+          языковые, и набор по биологии под чипсом «Русский» не ищет никто:
+          ученику он достаётся по предмету, и учителю его надо искать так же. */}
+      {onDecks ? (
+        <SubjectPicker
+          options={[
+            { value: '', label: t('Все предметы') },
+            ...SUBJECTS.map(sub => ({ value: sub.id, label: t(sub.name), icon: sub.icon })),
+          ]}
+          value={subject}
+          onChange={onSubject}
+          accent={MAT_COLOR} accentBg={MAT_BG} activeColor={MAT_COLOR}
+          ariaLabel={t('Предмет')}
+        />
+      ) : (
+        <SubjectPicker
+          options={[
+            { value: '', label: t('Все языки') },
+            ...LANG_OPTIONS.map(o => ({ value: o.value, label: t(o.label), icon: o.icon })),
+          ]}
+          value={lang}
+          onChange={onLang}
+          accent={MAT_COLOR} accentBg={MAT_BG} activeColor={MAT_COLOR}
+          ariaLabel={t('Язык')}
+        />
+      )}
 
       <div>
         <PanelLabel>{t('Режим')}</PanelLabel>

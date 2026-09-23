@@ -139,6 +139,8 @@ export const EN: Record<string, string> = {
   'набор карточек': 'card set',
   'Найти набор': 'Find a set',
   'не начат': 'not started',
+  'Дайте набору название': 'Name the set first',
+  'Дайте полке название': 'Name the shelf first',
   'Ничего не нашлось — попробуйте другое слово.': 'Nothing found — try another word.',
   'всё выучено': 'all learned',
   'Весь набор': 'Whole set',

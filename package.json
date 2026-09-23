@@ -16,6 +16,7 @@
     "build:examples": "node scripts/buildExamples.mjs",
     "check:scenes": "node scripts/checkScenes.mjs",
     "check:i18n": "node scripts/checkI18n.mjs",
+    "check:cards": "node scripts/checkCardParsing.mjs",
     "preview": "vite preview",
     "build:feed": "node scripts/buildFeed.mjs",
     "check:feed": "node scripts/checkFeed.mjs",
