@@ -37,8 +37,7 @@ import MySetEditor, { emptyMyGroup } from './trainer/MySetEditor'
 import { hasWordPacks, loadWordPacks } from '../data/wordPackBooks'
 import { hasStory, loadStory } from '../data/languageGuides'
 import { hasTextbooks, textbooksForLang } from '../data/textbooks'
-import { StoryGrid, StoryChapterPage } from './trainer/StoryReader'
-import { BookShelf } from './trainer/BookShelf'
+import { useGuideMode } from './trainer/modes/useGuideMode'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import {
@@ -774,49 +773,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   // ── О языке: рассказ и полка учебников ────────────────────────────────────
   //
-  // Рассказ ленивый (текст плюс векторные схемы), полка учебников — нет: восемь
-  // описаний книг весят единицы килобайт, и мигание пустой полки ради них было
-  // бы платой ни за что.
-  const storyOn = useMemo(() => hasStory(lang), [lang])
-  // Предмет, а не только язык: у «Русского» и «Литературы» он общий (ru), а
-  // полки разные — см. `subject` в Textbook.
-  const booksOn = useMemo(() => hasTextbooks(lang, subjectId), [lang, subjectId])
-  const guideOn = storyOn || booksOn
-  const books = useMemo(() => textbooksForLang(lang, subjectId), [lang, subjectId])
-  const [story, setStory] = useState<LanguageStory | null | undefined>(undefined)
-  useEffect(() => {
-    if (!storyOn) { setStory(null); return }
-    let alive = true
-    setStory(undefined)
-    loadStory(lang).then(x => { if (alive) setStory(x ?? null) })
-    return () => { alive = false }
-  }, [storyOn, lang])
-
-  const [guideView, setGuideView] = usePersistentState<GuideView>(
-    `trainer.${lang}.guideView`, storyOn ? 'story' : 'books',
-  )
-  const [openChapterId, setOpenChapterId] = usePersistentState<string | null>(`trainer.${lang}.chapter`, null)
-  const openChapter = useMemo(
-    () => story?.chapters.find(c => c.id === openChapterId) ?? null,
-    [story, openChapterId],
-  )
-  /**
-   * Докуда дочитана каждая глава.
-   *
-   * Живёт ЗДЕСЬ, а не внутри читалки: ту же цифру показывает витрина полоской
-   * «дочитано», и держи её страница у себя — витрине пришлось бы лезть в чужое
-   * хранилище по угаданному ключу.
-   */
-  const [storyRead, setStoryRead] = usePersistentState<Record<string, number>>(`trainer.${lang}.storyRead`, {})
-  /**
-   * Где палец сейчас, а не докуда дочитано.
-   *
-   * Отдельно от storyRead намеренно: тот хранит МАКСИМУМ (полоска на витрине не
-   * должна ехать назад от того, что человек вернулся перечитать), и пока
-   * позиция читалки бралась оттуда же, кнопка «Назад» ничего не делала —
-   * максимум от шага назад не менялся.
-   */
-  const [storyAt, setStoryAt] = usePersistentState<Record<string, number>>(`trainer.${lang}.storyAt`, {})
+  // Режим «О языке» целиком — рассказ, полка учебников, их состояние и куски
+  // экрана (components/trainer/modes/useGuideMode). Первый режим, уехавший из
+  // этого файла: семь режимов в одной области видимости — это четыре с
+  // половиной тысячи строк, в которых правка одного перечитывается вместе с
+  // шестью соседями.
+  const guide = useGuideMode({
+    lang, subjectId, accent: palette.accent, soft: palette.soft, narrow, active: mode === 'guide',
+  })
 
   // Восстановленная половина может оказаться несуществующей: разговорник для
   // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
@@ -835,12 +799,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // То же для «О языке»: восстановленная половина могла исчезнуть вместе с
   // языком, а режим целиком — вместе с рассказом и полкой.
   useEffect(() => {
-    if (mode === 'guide' && !guideOn) setMode('reading')
-  }, [mode, guideOn, setMode])
-  useEffect(() => {
-    if (guideView === 'story' && !storyOn) setGuideView('books')
-    else if (guideView === 'books' && !booksOn) setGuideView('story')
-  }, [guideView, storyOn, booksOn, setGuideView])
+    if (mode === 'guide' && !guide.on) setMode('reading')
+  }, [mode, guide.on, setMode])
 
   // Та же защита для конструктора: восстановленная из sessionStorage половина
   // может оказаться ненаписанной для этого языка, а сам режим — отсутствующим.
@@ -1273,7 +1233,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openSet || openStem || openRoot || openPron || openChapter))
+  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openSet || openStem || openRoot || openPron || (mode === 'guide' && guide.openId)))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -1347,13 +1307,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       return { lang, screen: 'stems', id: openStemDict ?? undefined }
     }
     if (mode === 'grammar') return { lang, screen: 'grammar', id: openFormId ?? undefined }
-    if (guideView === 'books') return { lang, screen: 'books' }
-    return { lang, screen: 'story', id: openChapterId ?? undefined }
+    if (guide.view === 'books') return { lang, screen: 'books' }
+    return { lang, screen: 'story', id: guide.openId ?? undefined }
   }, [
-    lang, mode, readingView, vocabView, blocksView, guideView, openMyWords,
+    lang, mode, readingView, vocabView, blocksView, guide.view, openMyWords,
     openTextId, openWorkId, openSceneId, openAudioId, openTheme,
     openNestId, openPackId, openSetId, openGroupId, openStemDict, openRootKo, openNumId, openPronId,
-    openChapterId, openFormId,
+    guide.openId, openFormId,
   ])
   // Предмет дописывается здесь, а не в двенадцати ветках выше: он один на весь
   // экран. Нужен там, где по языку предмет не угадать («Русский» и
@@ -1379,7 +1339,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setOpenTextId(null); setOpenWorkId(null); setOpenSceneId(null); setOpenAudioId(null)
     setOpenTheme(null); setOpenNestId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
     setOpenStemDict(null); setOpenRootKo(null); setOpenNumId(null); setOpenPronId(null)
-    setOpenFormId(null); setOpenChapterId(null); setSpeakOpen(null)
+    setOpenFormId(null); guide.setOpenId(null); setSpeakOpen(null)
 
     const id = link.id ?? null
     switch (link.screen) {
@@ -1404,14 +1364,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'numbers':  setMode('blocks'); setBlocksView('numbers'); setOpenNumId(id); break
       case 'sounds':   setMode('blocks'); setBlocksView('sounds'); setOpenPronId(id); break
       case 'grammar':  setMode('grammar'); setOpenFormId(id); break
-      case 'story':    setMode('guide'); setGuideView('story'); setOpenChapterId(id); break
-      case 'books':    setMode('guide'); setGuideView('books'); break
+      case 'story':    setMode('guide'); guide.setView('story'); guide.setOpenId(id); break
+      case 'books':    setMode('guide'); guide.setView('books'); break
     }
   }, [
-    lang, setMode, setReadingView, setVocabView, setBlocksView, setGuideView,
+    lang, setMode, setReadingView, setVocabView, setBlocksView, guide.setView,
     setOpenTextId, setOpenWorkId, setOpenSceneId, setOpenAudioId, setOpenTheme,
     setOpenNestId, setOpenPackId, setOpenGroupId, setOpenStemDict, setOpenRootKo, setOpenNumId,
-    setOpenPronId, setOpenFormId, setOpenChapterId,
+    setOpenPronId, setOpenFormId, guide.setOpenId,
   ])
 
   // ── Смена экрана — вид сверху ──────────────────────────────────────────────
@@ -1426,10 +1386,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // где человек стоял, ни на что в новом списке не указывает. Поэтому сита
   // сидят в том же ключе, что и режимы.
   useScreenTop([
-    lang, mode, readingView, vocabView, blocksView, guideView,
+    lang, mode, readingView, vocabView, blocksView, guide.view,
     openTextId, openAudioId, openWorkId, openSceneId, openTheme,
     openNestId, openPackId, openSetId, openStemDict, openRootKo, openNumId, openPronId,
-    openChapterId, openFormId, speakOpen ? '1' : '',
+    guide.openId, openFormId, speakOpen ? '1' : '',
     kindFilter, fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     sceneShelf, scenePlatforms.join(','), sceneTags.join(','), sceneLevels.join(','),
@@ -1488,7 +1448,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Главы рассказа плюс книги на полке. Книги известны синхронно, главы — нет
     // (рассказ едет чанком), поэтому до загрузки в бейдже стоят только книги, а
     // не ноль: ноль читался бы как «раздел пустой».
-    guide: guideOn ? (story ? story.chapters.length : 0) + books.length : undefined,
+    guide: guide.count,
   }
 
   const heroSubtitle =
@@ -1518,7 +1478,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
-            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guideOn))
+            .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guide.on))
             .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
@@ -1918,50 +1878,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {mode === 'guide' && (
-        <>
-          <RailCard title="Раздел" accent={palette.accent} icon={<Compass size={15} />}>
-            {!narrow && (
-            <RailSegment
-              options={[
-                ...(storyOn ? [{ value: 'story', label: 'Как устроен' }] : []),
-                // Без значка: с иконкой кнопка теряла подпись совсем и в ряду
-                // стояла безымянной плиткой рядом с «Как устроен». Двум
-                // подписям ширины рейла хватает, счётчик остаётся на неактивной.
-                ...(booksOn ? [{ value: 'books', label: 'Учебники', badge: books.length }] : []),
-              ]}
-              value={guideView}
-              onChange={v => v && setGuideView(v as GuideView)}
-              accent={palette.accent}
-              soft={palette.soft}
-              clearable={false}
-            />
-            )}
-            {/* Главы списком в рейле: из читалки видно, что идёт дальше, и
-                можно перескочить, не возвращаясь на витрину. */}
-            {guideView === 'story' && story && story.chapters.length > 0 && (
-              <RailList
-                items={story.chapters.map(c => ({
-                  id: c.id,
-                  label: t(c.title),
-                  hint: `${Math.min(storyRead[c.id] ?? 0, c.cards.length)}/${c.cards.length}`,
-                }))}
-                value={openChapterId ?? ''}
-                onChange={v => setOpenChapterId(v === openChapterId ? null : v)}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
-          </RailCard>
-          {guideView === 'books' && (
-            <RailCard title="Про полку" accent={palette.accent} icon={<Library size={15} />}>
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
-                {bindShortWords(t('Здесь ссылки на официальные страницы издательств, а не файлы. Главное на карточке — строка «когда браться»: половина брошенных учебников взята не вовремя, а не выбрана неправильно.'))}
-              </div>
-            </RailCard>
-          )}
-        </>
-      )}
+      {mode === 'guide' && guide.rail}
 
       {mode === 'speaking' && (
         <RailCard
@@ -2055,8 +1972,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         ]
     : mode === 'guide'
       ? [
-          ...(storyOn ? [{ id: 'story', label: 'Как устроен' }] : []),
-          ...(booksOn ? [{ id: 'books', label: 'Учебники', badge: books.length }] : []),
+          ...guide.views,
         ]
     : undefined
 
@@ -2064,7 +1980,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     mode === 'reading' ? readingView
     : mode === 'vocab' ? vocabView
     : mode === 'blocks' ? blocksView
-    : mode === 'guide' ? guideView
+    : mode === 'guide' ? guide.view
     : undefined
 
   // Возможности предмета из реестра. Запасной список — полный языковой: у
@@ -2078,7 +1994,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // справочник, тексты, разбор слов. Первое сито отвечает на вопрос «бывает
       // ли у этого предмета говорение», второе — «написано ли оно уже».
       .filter(m => allowed.includes(MODE_CAP[m.id]))
-      .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guideOn))
+      .filter(m => (m.id !== 'blocks' || blocksOn) && (m.id !== 'grammar' || grammarOn) && (m.id !== 'guide' || guide.on))
       .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon })),
     mode,
     onMode: m => switchMode(m as Mode),
@@ -2088,7 +2004,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       if (mode === 'reading') switchReadingView(v as ReadingView)
       else if (mode === 'vocab') setVocabView(v as VocabView)
       else if (mode === 'blocks') switchBlocksView(v as BlocksView)
-      else if (mode === 'guide') setGuideView(v as GuideView)
+      else if (mode === 'guide') guide.setView(v as GuideView)
     },
     accent: palette.accent,
   }
@@ -2457,29 +2373,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <ToolCount>{t(openPack.title)}</ToolCount>
       </Toolbar>
     )
-  } else if (mode === 'guide' && openChapter) {
-    toolbar = (
-      <Toolbar>
-        <ToolButton onClick={() => setOpenChapterId(null)}>
-          <ChevronLeft size={14} /> {t('К главам')}
-        </ToolButton>
-        <ToolCount>{t(openChapter.title)}</ToolCount>
-      </Toolbar>
-    )
-  } else if (mode === 'guide' && guideView === 'books') {
-    toolbar = (
-      <Toolbar>
-        <ToolCount>{books.length} {t('книг и ресурсов')}</ToolCount>
-      </Toolbar>
-    )
   } else if (mode === 'guide') {
-    toolbar = (
-      <Toolbar>
-        <ToolCount>
-          {story ? `${story.chapters.length} ${t('глав')}` : t('Загружаем…')}
-        </ToolCount>
-      </Toolbar>
-    )
+    toolbar = guide.toolbar
   } else if (mode === 'speaking' && speakOpen) {
     toolbar = (
       <Toolbar>
@@ -2717,43 +2612,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {run === 'swipe' && <DeckHint />}
       </div>
     )
-  } else if (mode === 'guide' && guideView === 'books') {
-    content = <BookShelf books={books} lang={lang} accent={palette.accent} soft={palette.soft} />
-  } else if (mode === 'guide' && openChapter) {
-    content = (
-      <StoryChapterPage
-        chapter={openChapter}
-        // Закладка: своя позиция, а если главу открыли впервые за сессию —
-        // первая непрочитанная карточка (читалка сама зажмёт в границы главы).
-        at={storyAt[openChapter.id] ?? storyRead[openChapter.id] ?? 0}
-        onAt={n => {
-          setStoryAt(prev => ({ ...prev, [openChapter.id]: n }))
-          // Прочитанное — максимум: полоска на витрине показывает «сколько
-          // прочитано», а не «где сейчас палец».
-          setStoryRead(prev => ({
-            ...prev,
-            [openChapter.id]: Math.max(prev[openChapter.id] ?? 0, n + 1),
-          }))
-        }}
-        accent={palette.accent}
-        soft={palette.soft}
-        onDone={() => setOpenChapterId(null)}
-      />
-    )
   } else if (mode === 'guide') {
-    content = story === undefined
-      ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
-      : story
-        ? (
-          <StoryGrid
-            story={story}
-            read={id => storyRead[id] ?? 0}
-            accent={palette.accent}
-            soft={palette.soft}
-            onOpen={id => setOpenChapterId(id)}
-          />
-        )
-        : <ShellEmpty text="Рассказа об этом языке пока нет." />
+    content = guide.content
   } else if (mode === 'vocab' && editGroup) {
     content = (
       <MySetEditor
@@ -3181,7 +3041,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const toolbarBack =
     scenesOn && openWork ? () => setOpenWorkId(null)
     : mode === 'grammar' && openForm ? () => setOpenFormId(null)
-    : mode === 'guide' && openChapter ? () => setOpenChapterId(null)
+    : mode === 'guide' && guide.back ? guide.back
     : mode === 'speaking' && speakOpen ? () => setSpeakOpen(null)
     : null
   useSwipeBack(toolbarBack, !materialOpen)
