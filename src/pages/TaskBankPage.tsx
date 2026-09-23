@@ -40,6 +40,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import MobileScreen from '../components/MobileScreen'
+import SubjectCards from '../components/trainer/SubjectCards'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
 import { useTrainerSubject } from '../lib/trainerSubject'
@@ -836,13 +837,14 @@ function MobileStatusTabs({ value, onChange, accent }: {
 // продолжают работать, меняется только подача. Десктопный переключатель — общий
 // StatusTabs скелета с иконками; здесь остался мобильный, в ряд с фильтрами.
 function MobileViewTabs({ value, onChange, accent }: {
-  value: 'list' | 'cards'; onChange: (v: 'list' | 'cards') => void; accent?: string
+  value: 'list' | 'cards' | 'decks'; onChange: (v: 'list' | 'cards' | 'decks') => void; accent?: string
 }) {
   const t = useT()
   const acc = accent ?? 'var(--color-accent)'
-  const options: ['list' | 'cards', string, typeof List][] = [
+  const options: ['list' | 'cards' | 'decks', string, typeof List][] = [
     ['list', 'Список', List],
-    ['cards', 'Карточки', Layers],
+    ['cards', 'Стопка', Layers],
+    ['decks', 'Карточки', BookOpen],
   ]
   return (
     <div style={{ display: 'flex', gap: 8, flex: '1 1 0' }}>
@@ -1679,7 +1681,11 @@ export default function TaskBankPage() {
   // «знаю / не знаю». Расписания у задания банка нет (его статистика — решено
   // или нет), поэтому вердикт бинарный, а незнакомое уезжает в колоду
   // повторений и возвращается уже по SM-2 вместе со словами и ошибками.
-  const [view, setView] = useState<'list' | 'cards'>('list')
+  // ТРЕТИЙ РЕЖИМ — КАРТОЧКИ ПРЕДМЕТА. «Список» и «Стопка» — это задания банка
+  // (одни и те же задания списком или колодой), а «Карточки» — другой материал:
+  // наборы «термин — значение», которые учитель собрал по этому предмету.
+  // Поэтому сегмент третий, а не вместо: стопка заданий никуда не делась.
+  const [view, setView] = useState<'list' | 'cards' | 'decks'>('list')
   const cardTasks = useMemo(() => filtered.filter(fitsCard).slice(0, CARD_SESSION_LIMIT), [filtered])
   const cardSkipped = filtered.length - filtered.filter(fitsCard).length
 
@@ -1866,7 +1872,9 @@ export default function TaskBankPage() {
             <MobileViewTabs value={view} onChange={setView} accent={palette.accent} />
           </div>
 
-          {view === 'cards' ? (
+          {view === 'decks' ? (
+            <SubjectCards subjectId={subject} accent={palette.accent} soft={palette.soft} />
+          ) : view === 'cards' ? (
             <div>
               <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
               <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
@@ -2315,10 +2323,11 @@ export default function TaskBankPage() {
           <ShellStatusTabs
             options={[
               { value: 'list', label: 'Список', Icon: List },
-              { value: 'cards', label: 'Карточки', Icon: Layers },
+              { value: 'cards', label: 'Стопка', Icon: Layers },
+              { value: 'decks', label: 'Карточки', Icon: BookOpen },
             ]}
             value={view}
-            onChange={v => setView(v as 'list' | 'cards')}
+            onChange={v => setView(v as 'list' | 'cards' | 'decks')}
             accent={palette.accent}
           />
 
@@ -2346,7 +2355,11 @@ export default function TaskBankPage() {
       >
 
       {/* Tasks */}
-      {view === 'cards' ? (
+      {view === 'decks' ? (
+        <div style={{ paddingTop: 8 }}>
+          <SubjectCards subjectId={subject} accent={palette.accent} soft={palette.soft} />
+        </div>
+      ) : view === 'cards' ? (
         <div style={{ paddingTop: 8 }}>
           <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
           <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />

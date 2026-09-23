@@ -134,6 +134,12 @@ export const EN: Record<string, string> = {
   'Разобрать и добавить': 'Parse and add',
   'Распознано карточек:': 'Cards recognised:',
   'По строке на карточку: слово, тире, перевод.': 'One line per card: word, dash, translation.',
+  // — Карточки предмета в банке заданий (components/trainer/SubjectCards.tsx) —
+  'Карточек по этому предмету пока нет — их собирает учитель.': 'No cards for this subject yet — your teacher puts them together.',
+  'набор карточек': 'card set',
+  'В наборе нет карточек': 'This set has no cards',
+  'Набор завели, но карточки в него ещё не сложили.': 'The set exists, but nothing has been put in it yet.',
+  'Стопка': 'Deck',
   'Дайте набору название — иначе его не сохранить': 'Name the set — it cannot be saved without one',
   'Список уже в буфере? Вставьте его прямо сюда — карточки разберутся сами, а первая строка станет названием набора.': 'Already have the list copied? Paste it right here — the cards are parsed for you, and the first line becomes the set name.',
   'По строке на карточку: слово, тире, перевод. Или парами строк: слово, следом перевод.': 'One line per card: word, dash, translation. Or in pairs of lines: the word, then its translation.',
