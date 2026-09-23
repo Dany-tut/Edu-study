@@ -149,7 +149,7 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   )
 }
 
-// ─── Filter select (styled like student TaskBankPage filter fields) ────────────
+// ─── Filter select (styled like the student BankTrainer filter fields) ───────
 
 function FilterSelect({ label, options, value, onChange }: {
   label: string; options: string[]; value: string; onChange: (v: string) => void

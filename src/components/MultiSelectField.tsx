@@ -11,7 +11,7 @@ import { useScrollLock } from '../lib/useScrollLock'
 // Telegram-style trigger: selected chips live INSIDE the field, and the search
 // box is the inline text input at the end of the chips. While open the field
 // expands and wraps all chips; collapsed it shrinks to one line (first chip +N).
-// Shared by the student trainer (TaskBankPage) and the teacher trainers
+// Shared by the student trainer (BankTrainer) and the teacher trainers
 // (TrainerBank / homework).
 //
 // ПОДПИСЬ ПЕРЕВОДИТСЯ, ЗНАЧЕНИЕ — НЕТ. `options` и `values` это ключи данных:

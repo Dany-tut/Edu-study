@@ -19,7 +19,7 @@
 
 import { useEffect } from 'react'
 import LanguageTrainer from '../components/LanguageTrainer'
-import TaskBankPage from './TaskBankPage'
+import BankTrainer from '../components/trainer/BankTrainer'
 import MobileBottomNav from '../components/MobileBottomNav'
 import { useTrainerSubject } from '../lib/trainerSubject'
 import { useTrainerClock } from '../store/trainerProgressStore'
@@ -64,5 +64,5 @@ export default function TrainerPage() {
     )
   }
 
-  return <TaskBankPage subjectState={subjectState} />
+  return <BankTrainer subjectState={subjectState} />
 }

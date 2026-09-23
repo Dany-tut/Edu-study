@@ -1611,7 +1611,7 @@ export function SearchPill({ value, onChange, placeholder }: {
  * МОБИЛЬНОГО ВАРИАНТА ЗДЕСЬ НЕТ намеренно. На телефоне банк рисует те же
  * статусы тремя равными серыми сегментами под соседние поля фильтров — это
  * другой дизайн для другой раскладки, а не вариация этого. Он остался в
- * TaskBankPage, рядом со своей вёрсткой.
+ * BankTrainer, рядом со своей вёрсткой.
  */
 export function StatusTabs({ options, value, onChange, accent, fill }: {
   options: { value: string; label: string; Icon?: React.ComponentType<{ size?: number }> }[]

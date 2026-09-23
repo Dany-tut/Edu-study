@@ -80,7 +80,7 @@ export const useTrainerProgress = create<TrainerProgressState>((set, get) => ({
       weekMs: weekStat(subjectId).ms,
       streak: streakDays(subjectId),
       // У банка «сегодня» считается по его собственному журналу ответов
-      // (TaskBankPage), и подменять его дневником нельзя — задание, решённое
+      // (BankTrainer), и подменять его дневником нельзя — задание, решённое
       // на другом устройстве, там тоже учтено. У языка другого источника нет.
       ...(kind === 'lang' ? { todayCorrect: day.right, todayWrong: day.wrong } : null),
     }))

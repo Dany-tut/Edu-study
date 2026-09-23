@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
-import ScrollFade from '../components/ScrollFade'
-import QuestionTable from '../components/QuestionTable'
-import { useFloatingPill } from '../lib/useFloatingPill'
+import ScrollFade from '../ScrollFade'
+import QuestionTable from '../QuestionTable'
+import { useFloatingPill } from '../../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, BookOpen, CheckCircle2, XCircle,
@@ -13,44 +13,44 @@ import {
   BIOLOGY_SECTION_LINE_MAP, BIOLOGY_DIAGNOSTIC_SAMPLE_LINES, BIOLOGY_ROUTE,
   linesForSelection, lineNamesForSubject,
   sectionsForSubject, topicsForSelection, sectionsForParts, partsForSections,
-} from '../data/taskBankData'
-import MultiSelectField from '../components/MultiSelectField'
-import { copyToClipboard } from '../lib/clipboard'
-import { useScrollLock } from '../lib/useScrollLock'
-import { trackEvent } from '../lib/analytics'
-// Дедуп trainer_open: dual-layout монтирует TaskBankPage дважды.
+} from '../../data/taskBankData'
+import MultiSelectField from '../MultiSelectField'
+import { copyToClipboard } from '../../lib/clipboard'
+import { useScrollLock } from '../../lib/useScrollLock'
+import { trackEvent } from '../../lib/analytics'
+// Дедуп trainer_open: dual-layout монтирует банк дважды.
 let lastTrainerOpen = 0
-import { useCurriculum } from '../store/curriculumStore'
-import { useTaskBank } from '../store/taskBankStore'
-import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
-import { useDashboard } from '../store/dashboardStore'
-import { useStudentData } from '../store/studentDataStore'
-import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
-import { subjectTheme, PURPLE } from '../lib/theme'
-import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
-import TrainerSkeleton from '../components/trainer/TrainerSkeleton'
-import CardDeck, { type DeckSource } from '../components/CardDeck'
-import { captureMistake, deckOwner, type ReviewCard } from '../data/reviewDeck'
-import { getContrastColor } from '../lib/utils'
-import { bindShortWords, bindShortWordsHtml, balancedWrap } from '../lib/typography'
-import { sanitizeHtml } from '../lib/sanitizeHtml'
-import { useTheme } from '../store/themeStore'
-import { useIsDesktop } from '../lib/useIsDesktop'
-import { useNavCollapse } from '../lib/useNavCollapse'
-import { useKeyboardInset } from '../lib/useKeyboardInset'
-import MobileScreen from '../components/MobileScreen'
-import SubjectCards from '../components/trainer/SubjectCards'
-import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from '../components/trainer/TrainerShell'
-import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
-import type { TrainerSubjectState } from '../lib/trainerSubject'
-import MobileBottomNav from '../components/MobileBottomNav'
-import MobileSheet from '../components/MobileSheet'
-import { GlassPill, GlassIconButton } from '../components/mobileChrome'
-import MobileBell from '../components/MobileBell'
-import { glassCircle, MOBILE_TOP_GAP, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
-import { tactile } from '../lib/feedback'
-import { useT } from '../lib/i18n'
-import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
+import { useCurriculum } from '../../store/curriculumStore'
+import { useTaskBank } from '../../store/taskBankStore'
+import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
+import { useDashboard } from '../../store/dashboardStore'
+import { useStudentData } from '../../store/studentDataStore'
+import { useTrainerProgress, useTrainerEngaged } from '../../store/trainerProgressStore'
+import { subjectTheme, PURPLE } from '../../lib/theme'
+import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../../lib/subjects'
+import TrainerSkeleton from './TrainerSkeleton'
+import CardDeck, { type DeckSource } from '../CardDeck'
+import { captureMistake, deckOwner, type ReviewCard } from '../../data/reviewDeck'
+import { getContrastColor } from '../../lib/utils'
+import { bindShortWords, bindShortWordsHtml, balancedWrap } from '../../lib/typography'
+import { sanitizeHtml } from '../../lib/sanitizeHtml'
+import { useTheme } from '../../store/themeStore'
+import { useIsDesktop } from '../../lib/useIsDesktop'
+import { useNavCollapse } from '../../lib/useNavCollapse'
+import { useKeyboardInset } from '../../lib/useKeyboardInset'
+import MobileScreen from '../MobileScreen'
+import SubjectCards from './SubjectCards'
+import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from './TrainerShell'
+import { SubjectHero, SubjectPill } from './SubjectSwitch'
+import type { TrainerSubjectState } from '../../lib/trainerSubject'
+import MobileBottomNav from '../MobileBottomNav'
+import MobileSheet from '../MobileSheet'
+import { GlassPill, GlassIconButton } from '../mobileChrome'
+import MobileBell from '../MobileBell'
+import { glassCircle, MOBILE_TOP_GAP, MOBILE_DOCK_EDGE } from '../../lib/mobileTokens'
+import { tactile } from '../../lib/feedback'
+import { useT } from '../../lib/i18n'
+import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
@@ -1413,7 +1413,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function TaskBankPage({ subjectState }: {
+export default function BankTrainer({ subjectState }: {
   /**
    * Предмет приезжает СВЕРХУ, от TrainerPage, а не читается своим хуком.
    * Раньше эта страница сама выбирала, кому показаться — себе или языковому
