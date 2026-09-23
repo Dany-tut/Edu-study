@@ -1893,7 +1893,14 @@ export default function BankTrainer({ subjectState }: {
         {/* Control dock — glass circles, drops + shrinks with the nav on scroll.
             Outer fixed layer sits at the safe-area edge; the inner motion layer
             animates its marginBottom (numeric, so it tweens cleanly) to ride up
-            over the nav when expanded and settle lower when the nav collapses. */}
+            over the nav when expanded and settle lower when the nav collapses.
+
+            НА КАРТОЧКАХ ДОКА НЕТ. Поиск, фильтры, сортировка и избранное — всё
+            это про задания: у набора карточек нет ни линий ЕГЭ, ни «решённых»,
+            и четыре круга над ним обещали отбор, которого не существует. На
+            большом экране эти же кнопки уже спрятаны — док был последним
+            местом, где они оставались. */}
+        {view !== 'decks' && (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             ref={dockRef}
@@ -2011,6 +2018,7 @@ export default function BankTrainer({ subjectState }: {
             </motion.div>
           </motion.div>
         </div>
+        )}
 
         {/* Filters sheet */}
         <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title={t('Фильтры')}>
