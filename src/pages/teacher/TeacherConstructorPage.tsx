@@ -28,7 +28,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
-import { languageTaxonomy } from '../../data/languageTaxonomy'
+import { languageTaxonomy, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
 import { levelOptions, matchesLevel, levelOptionsForSubject, levelBuckets, sortLevels } from '../../lib/courseLevels'
 import {
@@ -65,7 +65,7 @@ import { useT, t, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useTaskBank } from '../../store/taskBankStore'
-import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
+import { TrainerBankBrowser, BankFilterFields, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { questionToBankTask, type ImportedQuestion } from '../../lib/googleFormsImport'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
@@ -224,6 +224,13 @@ function GoogleFormBankCategoryModal({
 // загрузку страницы, ровно там, где «после F5» отличается от «вернулся».
 clearDraft('ctor.subject')
 
+/**
+ * 'decks' — вкладка «База»: материалы и банк заданий одной витриной.
+ *
+ * 'trainer' вкладкой больше не бывает — банк стал полкой «Базы», — но остаётся
+ * в типе как РЕЖИМ РЕДАКТОРА (`creatorMode`): создание задания живёт в том же
+ * компоненте, что создание курса и виджета, и различает их этим ключом.
+ */
 type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'decks'
 export type CourseStatus = 'published' | 'draft'
 export type Difficulty = 'easy' | 'medium' | 'hard'
@@ -7948,11 +7955,10 @@ export default function TeacherConstructorPage() {
   const t = useT()
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const s = localStorage.getItem('constructor-active-tab')
-    // Легаси-значение 'bank': вкладки с таким ключом больше нет, но человек,
-    // закрывший Конструктор на разметке, должен вернуться на разметку — она
-    // теперь половина внутри «Заданий» (см. taskView ниже).
-    if (s === 'bank') return 'trainer'
-    return (s && ['course','trainer','widget','testing','decks'].includes(s)) ? (s as Tab) : 'course'
+    // Легаси-значения 'bank' и 'trainer': отдельной вкладки заданий больше нет,
+    // банк стал полкой внутри «Базы» — туда и возвращаем.
+    if (s === 'bank' || s === 'trainer') return 'decks'
+    return (s && ['course','widget','testing','decks'].includes(s)) ? (s as Tab) : 'course'
   })
   /**
    * Половина внутри «Заданий»: сами задания или разметка банка.
@@ -8151,6 +8157,15 @@ export default function TeacherConstructorPage() {
   useEffect(() => { _cachedWidgets = widgets }, [widgets])
 
   const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
+  /**
+   * Открытая полка «Базы»: банк заданий или материалы.
+   *
+   * Дерево полок живёт в витрине, но правка, удаление отмеченного и импорт из
+   * Google Forms касаются только заданий — странице нужно знать, что сейчас
+   * под руками. Приходит из витрины, а не дублируется здесь.
+   */
+  const [baseShelf, setBaseShelf] = useState<'tasks' | 'materials'>('materials')
+  const onTasksShelf = activeTab === 'decks' && baseShelf === 'tasks'
   const [formImportOpen, setFormImportOpen] = useState(false)
   const [pendingFormQuestions, setPendingFormQuestions] = useState<ImportedQuestion[] | null>(null)
   const [widgetFilters, setWidgetFilters] = useState<WidgetFilters>(emptyWidgetFilters)
@@ -8494,13 +8509,41 @@ export default function TeacherConstructorPage() {
   const editTaskIntent = useTeacher(s => s.editTaskIntent)
   const clearEditTaskIntent = useTeacher(s => s.clearEditTaskIntent)
   const allTasks = useTaskBank(s => s.tasks)
+  // Счёт в строке «Задания» — по предмету витрины: дерево обещает ровно то,
+  // что откроется, а не весь банк.
+  /** Условие задания без разметки — для карточки в общей сетке. */
+  const plainText = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+  const bankTasksOfSubject = useMemo(
+    () => shelfSubject ? allTasks.filter(x => x.subject === shelfSubject) : allTasks,
+    [allTasks, shelfSubject],
+  )
+  const bankTaskCount = bankTasksOfSubject.length
+  /**
+   * Задания для полки «Всё» — ровно то, что видно на карточке.
+   *
+   * Сюда идёт весь банк предмета, а не отобранный разметкой: «Всё» показывает,
+   * что у предмета есть, а раздел с линией уточняют уже на полке «Задания».
+   */
+  const bankTaskCards = useMemo(
+    () => bankTasksOfSubject.map(x => ({
+      id: x.id,
+      title: plainText(x.question) || t('Без текста'),
+      about: [x.section, x.topic].filter(Boolean).join('. '),
+      // Языковое задание размечено уровнем в payload, ЕГЭ-шное — нет.
+      level: (x.payload?.language as TaskLanguageTags | undefined)?.level ?? '',
+      meta: x.part === 2 ? t('II часть') : t('I часть'),
+      chip: `${x.line} ${t('лин.')} · №${x.id}`,
+    })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bankTasksOfSubject],
+  )
   // Persist only the id — the task object itself may hold base64 images; it is
   // re-resolved from the bank once tasks load after a reload.
   const [editingTaskId, setEditingTaskId] = usePersistentState<number | null>('taskctor.editingTaskId', null)
   const editingTask = editingTaskId == null ? null : allTasks.find(t => t.id === editingTaskId) ?? null
   useEffect(() => {
     if (editTaskIntent == null) return
-    setActiveTab('trainer')
+    setActiveTab('decks')
     setEditCourse(null)
     setCreatorMode('trainer')
     setSelectedId(null)
@@ -8828,10 +8871,10 @@ export default function TeacherConstructorPage() {
 
   function handlePlus() {
     // Разметка правится на месте — там создавать нечего.
-    if (activeTab === 'trainer' && taskView === 'map') return
-    // «Материалы» заводят НАБОР карточек — та же единица, что курс и задание на
-    // соседних вкладках. Счётчик, а не флаг: второе нажатие подряд должно
-    // открыть чистый набор поверх недописанного, а не молча ничего не сделать.
+    if (onTasksShelf && taskView === 'map') return
+    // «База» заводит то, что лежит на открытой полке: задание или набор
+    // карточек. Что именно — решает витрина, здесь только счётчик: второе
+    // нажатие подряд должно открыть чистое поверх недописанного.
     if (activeTab === 'decks') { setDeckNonce(n => n + 1); return }
     if (activeTab === 'testing') { setDiagCreating(true); return }
     if (activeTab === 'course') { goToNewCourseEditor(); return }
@@ -8863,7 +8906,7 @@ export default function TeacherConstructorPage() {
         const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
         return shortId ? supabase.from('courses').delete().eq('short_id', shortId) : Promise.resolve()
       }))
-    } else if (activeTab === 'trainer') {
+    } else if (onTasksShelf) {
       checkedIds.forEach(id => removeTask(Number(id)))
       const uuids = [...checkedIds].filter(id => isUUID(id))
       if (uuids.length) await supabase.from('trainers').delete().in('id', uuids)
@@ -8885,7 +8928,7 @@ export default function TeacherConstructorPage() {
       courses.filter(c => checkedIds.has(c.id)).forEach(c => duplicateCourse(c))
     } else if (activeTab === 'widget') {
       widgets.filter(w => checkedIds.has(w.id)).forEach(w => duplicateWidget(w))
-    } else if (activeTab === 'trainer') {
+    } else if (onTasksShelf) {
       allTasks.filter(t => checkedIds.has(String(t.id))).forEach(tk => {
         const { id: _drop, ...copy } = tk as any
         addBankTask({ ...copy, text: copy.text ? (copy.text) + t(' (копия)') : copy.text })
@@ -9109,15 +9152,16 @@ export default function TeacherConstructorPage() {
   // «Материалы») в ряду не различались.
   const tabCfg = {
     course:   { label: t('Курсы'),      Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
-    trainer:  { label: t('Задания'),    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
-    decks:    { label: t('Материалы'),  Icon: Library,  color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
+    decks:    { label: t('База'),       Icon: Library,  color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
     testing:  { label: t('Тесты'),      Icon: Target,   color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
     widget:   { label: t('Виджеты'),    Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
   }
 
-  // Где режим выделения имеет смысл. Кнопка рисуется всегда — на «Разметке» и
-  // «Материалах» она погашена (см. ряд вкладок ниже).
-  const editToggleShown = !(activeTab === 'decks' || (activeTab === 'trainer' && taskView === 'map'))
+  // Где режим выделения имеет смысл. Кнопка рисуется всегда — на материалах и
+  // разметке она погашена: там нечего отмечать (см. ряд вкладок ниже).
+  const editToggleShown = activeTab === 'decks'
+    ? onTasksShelf && taskView === 'tasks'
+    : true
 
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
@@ -9284,15 +9328,15 @@ export default function TeacherConstructorPage() {
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
 
-                {(['course', 'trainer', 'decks', 'testing', 'widget'] as const).map(t => {
+                {(['course', 'decks', 'testing', 'widget'] as const).map(t => {
                   const cfg = tabCfg[t]
-                  const canCreate = !(t === 'trainer' && taskView === 'map')
+                  const canCreate = !(t === 'decks' && onTasksShelf && taskView === 'map')
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     plus={canCreate}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
-                {activeTab === 'trainer' && taskView === 'tasks' && !editMode && (
+                {onTasksShelf && taskView === 'tasks' && !editMode && (
                   <button
                     onClick={() => setFormImportOpen(true)}
                     style={{
@@ -9462,13 +9506,22 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               </div>
-              {/* Задания ↔ Разметка переехали в панель справа: это тот же отбор
-                  банка, что раздел или линия, а отдельным рядом над списком
-                  переключатель съедал высоту первого экрана. */}
-              {activeTab === 'trainer' && (
-                <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {taskView === 'tasks' ? (
+              {/* БАНК — ПОЛКА «БАЗЫ», а не своя вкладка: витрину и поля отбора
+                  собираем здесь и отдаём дереву витрины (см. TrainerMaterials).
+                  «Задания ↔ Разметка» стоят под своей полкой: разметка — это
+                  настройка заданий, тот же отбор, что раздел или линия. */}
+              {activeTab === 'decks' && (
+                <TrainerMaterials
+                  createNonce={deckNonce}
+                  subject={shelfSubject} onSubject={setShelfSubject}
+                  onShelfChange={setBaseShelf}
+                  onOpen={openMaterialPage}
+                  tasks={{
+                    count: bankTaskCount,
+                    cards: bankTaskCards,
+                    onOpenCard: id => { setCreatorMode('trainer'); setSelectedId(null); setEditingTaskId(id) },
+                    onCreate: () => { setCreatorMode('trainer'); setSelectedId(null); setEditMode(false); setCheckedIds(new Set()) },
+                    view: taskView === 'tasks' ? (
                       <TrainerBankBrowser
                         filters={bankFilters}
                         facet={
@@ -9488,19 +9541,36 @@ export default function TeacherConstructorPage() {
                         accent="var(--color-purple-text)"
                         accentBg="var(--color-purple-soft)"
                       />
-                    ) : <CurriculumManager />}
-                  </div>
-                  <TrainerBankFilterPanel
-                    filters={bankFilters}
-                    onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
-                    accent="var(--color-purple-text)"
-                    accentBg="rgba(120,106,215,0.13)"
-                    view={taskView}
-                    onViewChange={v => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
-                  />
-                </div>
+                    ) : <CurriculumManager />,
+                    fields: (
+                      <>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {([['tasks', t('Задания'), Zap], ['map', t('Разметка'), Database]] as const).map(([v, label, Icon]) => {
+                            const on = taskView === v
+                            return (
+                              <button key={v} onClick={() => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
+                                style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                  background: on ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                                  color: on ? 'var(--color-purple-text)' : 'var(--color-muted)', transition: 'all 0.15s' }}>
+                                <Icon size={13} strokeWidth={2.2} /> {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        {taskView === 'tasks' && (
+                          <BankFilterFields
+                            filters={bankFilters}
+                            onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
+                            accent="var(--color-purple-text)"
+                            accentBg="rgba(120,106,215,0.13)"
+                          />
+                        )}
+                      </>
+                    ),
+                  }}
+                />
               )}
-              {activeTab === 'decks' && <TrainerMaterials createNonce={deckNonce} subject={shelfSubject} onSubject={setShelfSubject} onOpen={openMaterialPage} />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>

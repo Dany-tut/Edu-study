@@ -35,7 +35,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X,
+  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X, Zap,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -55,6 +55,9 @@ import CardGroupsManager from './CardGroupsManager'
 import Skeleton from '../Skeleton'
 
 const MAT_COLOR = 'var(--color-peach-text)'
+// Задания в общей сетке держат свой фиолетовый: тип видно до чтения подписи.
+const TASK_COLOR = 'var(--color-purple-text)'
+const TASK_BG = 'var(--color-purple-soft)'
 const MAT_BG = 'var(--color-peach-soft)'
 
 /**
@@ -141,11 +144,47 @@ try {
   localStorage.removeItem('materials-mode')
 } catch { /* приватный режим без хранилища не должен ронять вкладку */ }
 
+/**
+ * Полка «Задания» — банк, стоящий в одном дереве с чтением и карточками.
+ *
+ * Банк живёт в базе, у него своя разметка (раздел → тема → часть → линия) и
+ * свои действия (выдать в ДЗ, вставить в урок), поэтому его витрину и поля
+ * отбора рисует страница и передаёт сюда готовыми. Витрине «Базы» он —
+ * такая же полка, как «Грамматика»: строка в дереве и содержимое справа.
+ */
+const TASKS_ID = 'tasks'
+
+/** Задание в общей сетке: ровно то, что видно на карточке. */
+export type TaskCard = { id: number; title: string; about: string; level: string; meta: string; chip: string }
+
+/** Полка витрины: банк заданий, режим материалов или «всё». */
+type Shelf = MaterialMode | '' | typeof TASKS_ID
+
 /** Адрес материала: по нему страница находит его сама, и он переживает F5. */
 export type MaterialRef = { lang: string; familyId: string; id: string }
 
-export default function TrainerMaterials({ createNonce = 0, subject, onSubject, onOpen }: {
+export default function TrainerMaterials({ createNonce = 0, subject, onSubject, tasks, onShelfChange, onOpen }: {
   createNonce?: number
+  /**
+   * Банк заданий как полка «Базы». Страница отдаёт готовыми: `count` для
+   * строки дерева, `view` — витрину (со своим рядом сортировки, как у
+   * подборок), `fields` — разметку под строкой, `onCreate` — что делает «+»,
+   * пока открыта эта полка.
+   */
+  tasks?: {
+    count: number
+    view: React.ReactNode
+    fields: React.ReactNode
+    onCreate?: () => void
+    /**
+     * Задания для полки «Всё» — плоскими карточками, наравне с материалами.
+     * Здесь они не решаются и не отмечаются: это витрина базы, и задание на ней
+     * такая же строка, как текст или колода. Полноценная работа с банком (выбор,
+     * правка, удаление) живёт на своей полке, в `view`.
+     */
+    cards?: TaskCard[]
+    onOpenCard?: (id: number) => void
+  }
   /**
    * Предмет витрины — ОДИН на все вкладки Конструктора, поэтому живёт в
    * странице, а не здесь. Готовые материалы (тексты, аудио, грамматика)
@@ -155,14 +194,19 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
    */
   subject: string
   onSubject: (v: string) => void
+  /**
+   * Какая полка открыта — наружу, странице: правка, удаление отмеченного и
+   * импорт из Google Forms касаются только заданий, и шапка обязана это знать.
+   */
+  onShelfChange?: (shelf: 'tasks' | 'materials') => void
   /** Материал открывается отдельной страницей — её рисует Конструктор вместо вкладок. */
   onOpen: (ref: MaterialRef) => void
 }) {
   const t = useT()
 
   const lang = langOf(subject)
-  const [mode, setMode] = useState<MaterialMode | ''>(() =>
-    (localStorage.getItem('materials-mode') as MaterialMode | null) ?? '')
+  const [mode, setMode] = useState<Shelf>(() =>
+    (localStorage.getItem('materials-mode') as Shelf | null) ?? '')
   const [view, setView] = useState<'cards' | 'rows'>(() =>
     localStorage.getItem('materials-view') === 'rows' ? 'rows' : 'cards')
 
@@ -236,10 +280,13 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
       ...(mode === 'vocab' ? [DECKS_ID] : []),
       ...families.map(f => f.family.id),
     ]
+    if (mode === TASKS_ID) return
     if (!ids.includes(familyId)) setFamilyId(mode === 'vocab' ? DECKS_ID : '')
   }, [families, familyId, mode, loading, setFamilyId])
 
   const onDecks = familyId === DECKS_ID && mode === 'vocab'
+  const onTasks = mode === TASKS_ID && !!tasks
+  useEffect(() => { onShelfChange?.(onTasks ? 'tasks' : 'materials') }, [onTasks, onShelfChange])
 
   // «+» на вкладке заводит НАБОР карточек, а набор живёт только на полке
   // «Подборки». Пока плюс просто уходил вниз, с любой другой полки (и с режима
@@ -253,10 +300,14 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
   useEffect(() => {
     if (createNonce === seenCreate.current) return
     seenCreate.current = createNonce
+    // «+» заводит то, что лежит на открытой полке: на заданиях — задание, на
+    // подборках — набор. Полка сама знает, что она создаёт.
+    if (onTasks) { tasks?.onCreate?.(); return }
     if (onDecks) { setDeckCreate(n => n + 1); return }
     setMode('vocab'); setFamilyId(DECKS_ID)
     setPendingCreate(true)
-  }, [createNonce, onDecks, setFamilyId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createNonce, onDecks, onTasks, setFamilyId])
   // Полка переключилась — CardGroupsManager уже смонтирован и ловит следующий
   // номер (на монтировании он запоминает текущий и не срабатывает).
   useEffect(() => {
@@ -305,6 +356,27 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
     return out
   }, [scoped, level, topic, query, sort])
 
+  /**
+   * «Всё» — ОДИН СПИСОК НА ПРЕДМЕТ: задания вперемешку с материалами.
+   *
+   * Учитель ищет не «задание» и не «материал», а то, что даст ученику по
+   * предмету; полки — это уточнение, а не первый вопрос. Задания попадают сюда
+   * только когда не выбрана полка: внутри «Чтения» им делать нечего.
+   */
+  const shownTasks = useMemo(() => {
+    if (mode || familyId || !tasks?.cards) return []
+    const q = normSearch(query)
+    let list = tasks.cards
+    if (level) list = list.filter(x => x.level === level)
+    if (q) list = list.filter(x => normSearch(x.title + ' ' + x.about).includes(q))
+    const out = [...list]
+    if (sort === 'az') out.sort((a, b) => a.title.localeCompare(b.title))
+    else if (sort === 'za') out.sort((a, b) => b.title.localeCompare(a.title))
+    return out
+  }, [tasks?.cards, mode, familyId, level, query, sort])
+
+  const totalShown = shown.length + shownTasks.length
+
   const dirty = !!(level || topic || query)
   const showLangChip = !lang
   const showFamilyChip = !familyId
@@ -312,7 +384,9 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
   return (
     <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {onDecks ? (
+        {onTasks ? (
+          tasks.view
+        ) : onDecks ? (
           <CardGroupsManager
             createNonce={deckCreate}
             lang={lang || undefined}
@@ -329,7 +403,7 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
               <ViewSwitch value={view} accent={MAT_COLOR} onChange={setView}
                 options={[['cards', 'Плитками', LayoutGrid], ['rows', 'Строками', List]]} />
               <ShelfSearch value={query} onChange={setQuery} style={{ marginLeft: 'auto' }} />
-              <ShelfCount style={{ marginLeft: 0 }}>{shown.length} {t(plural(shown.length, ['материал', 'материала', 'материалов']))}</ShelfCount>
+              <ShelfCount style={{ marginLeft: 0 }}>{totalShown} {t(plural(totalShown, ['единица', 'единицы', 'единиц']))}</ShelfCount>
             </div>
 
             {loading ? (
@@ -345,7 +419,7 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
                   ))}
                 </div>
               )
-            ) : shown.length === 0 ? (
+            ) : totalShown === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6, maxWidth: 520 }}>
                 {scoped.length > 0
                   ? t('Под отбор ничего не подошло.')
@@ -358,6 +432,25 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
               </div>
             ) : view === 'cards' ? (
               <div style={GRID}>
+                {shownTasks.map(x => (
+                  <ContentCard
+                    key={`task-${x.id}`}
+                    accentColor={TASK_COLOR} accentBg={TASK_BG}
+                    isSelected={false} onClick={() => tasks?.onOpenCard?.(x.id)}
+                    icon={<Zap size={17} strokeWidth={2} style={{ color: TASK_COLOR }} />}
+                    iconBg={TASK_BG}
+                    badge={
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
+                        {x.level && <span style={cardChip('var(--color-text-3)')}>{x.level}</span>}
+                      </div>
+                    }
+                    title={x.title}
+                    subtitle={x.about}
+                    footerLeft={<span>{x.meta}</span>}
+                    footerRight={<>{x.chip}</>}
+                  />
+                ))}
                 {shown.map(x => (
                   <ContentCard
                     key={`${x.lang}-${x.family.id}-${x.id}`}
@@ -379,20 +472,35 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
                 ))}
               </div>
             ) : (
-              <MaterialRows items={shown} grouped={!familyId} showLang={showLangChip} onOpen={x => onOpen(refOf(x))} />
+              <>
+                {shownTasks.length > 0 && (
+                  <div style={ROWS_BOX}>
+                    {shownTasks.map(x => (
+                      <button key={`task-${x.id}`} onClick={() => tasks?.onOpenCard?.(x.id)}
+                        style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
+                        <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
+                        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.chip}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <MaterialRows items={shown} grouped={!familyId} showLang={showLangChip} onOpen={x => onOpen(refOf(x))} />
+              </>
             )}
           </>
         )}
       </div>
 
       <FilterPanel
+        tasks={tasks && { count: tasks.count, fields: tasks.fields }}
         mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : '') }}
         familyId={familyId} onFamily={setFamilyId}
         families={families} modeCount={modeCount}
         level={level} onLevel={setLevel} levelOpts={levelOpts}
         topic={topic} onTopic={setTopic} topicOpts={topicOpts}
         dirty={dirty} onReset={() => { setLevel(''); setTopic(''); setQuery('') }}
-        total={rows.length} loading={loading}
+        total={rows.length + (tasks?.count ?? 0)} loading={loading}
       />
     </div>
   )
@@ -473,10 +581,12 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
  * идут одним деревом: полка — это уточнение режима, а не отдельная ось.
  */
 function FilterPanel({
-  mode, onMode, familyId, onFamily, families, modeCount,
+  mode, onMode, familyId, onFamily, families, modeCount, tasks,
   level, onLevel, levelOpts, topic, onTopic, topicOpts, dirty, onReset, total, loading,
 }: {
-  mode: MaterialMode | ''; onMode: (v: MaterialMode | '') => void
+  mode: Shelf; onMode: (v: Shelf) => void
+  /** Банк как полка дерева: счёт в строке, разметка — под ней. */
+  tasks?: { count: number; fields: React.ReactNode }
   familyId: string; onFamily: (v: string) => void
   families: { family: MaterialFamily; count: number }[]
   modeCount: (m: MaterialMode) => number
@@ -505,11 +615,35 @@ function FilterPanel({
       </div>
 
       <div>
-        <PanelLabel>{t('Режим')}</PanelLabel>
-        <NavRow label={t('Все')} on={!mode} onClick={() => onMode('')} />
+        {/* ОДНО ДЕРЕВО НА ВСЁ, ЧТО ЕСТЬ У ПРЕДМЕТА. Задания стоят полкой рядом
+            с чтением и карточками, а не на соседней вкладке: учитель ищет не
+            «задание» и не «материал», а то, что даст ученику по предмету. */}
+        <PanelLabel>{t('Что это')}</PanelLabel>
+        <NavRow label={t('Всё')} on={!mode} onClick={() => onMode('')} />
+        {tasks && (
+          <div>
+            <NavRow
+              label={t('Задания')} title={t('Банк: то, что ученик решает и сдаёт')}
+              on={mode === TASKS_ID} count={tasks.count || undefined}
+              onClick={() => onMode(TASKS_ID)}
+            />
+            {mode === TASKS_ID && (
+              <div style={{
+                display: 'flex', flexDirection: 'column', gap: 8,
+                margin: '4px 0 6px 10px', paddingLeft: 9,
+                borderLeft: '1px solid var(--color-border-soft)',
+              }}>
+                {tasks.fields}
+              </div>
+            )}
+          </div>
+        )}
         {MATERIAL_MODES.map(m => {
           const on = m.id === mode
           const n = modeCount(m.id)
+          // Полка предмета, у которого её не бывает (тексты у биологии), не
+          // исчезает: прочерк говорит «такого тут не бывает», пустота — «всё
+          // пропало».
           return (
             <div key={m.id}>
               <NavRow
@@ -575,7 +709,7 @@ function FilterPanel({
       )}
 
       <div style={{ fontSize: 11, color: 'var(--color-text-3)', textAlign: 'center', paddingTop: 2 }}>
-        {loading ? t('Считаем…') : <>{total} {t('материалов в базе')}</>}
+        {loading ? t('Считаем…') : <>{total} {t(plural(total, ['единица', 'единицы', 'единиц']))} {t('в базе')}</>}
       </div>
     </div>
   )

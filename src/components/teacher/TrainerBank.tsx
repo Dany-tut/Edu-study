@@ -765,6 +765,78 @@ export function TrainerBankBrowser({
   )
 }
 
+/**
+ * Поля отбора банка — БЕЗ своей панели и без предмета.
+ *
+ * Отдельным компонентом они нужны «Базе»: там задания стоят полкой рядом с
+ * чтением и карточками, и разметка банка (раздел → тема → часть → линия)
+ * раскрывается прямо под этой полкой, внутри общего дерева. Липкая обёртка,
+ * переключатель «Задания ↔ Разметка» и счётчик остаются у витрины, которая эти
+ * поля показывает.
+ */
+export function BankFilterFields({ filters, onChange, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)' }: {
+  filters: TrainerFilters
+  onChange: (f: Partial<TrainerFilters>) => void
+  accent?: string
+  accentBg?: string
+}) {
+  const t = useT()
+  const tasks = useTaskBank(s => s.tasks)
+  const merge = useOptionMerger()
+  useCurriculum(s => s.version)
+  const allowedSubjects = useTeacherAccess(s => s.subjects)
+  const bankIds = bankSubjectIdsFor(allowedSubjects)
+  const defaultBankId = bankIds[0] || 'biology'
+  const subjScopes = filters.subject ? [filters.subject] : bankIds
+  const sectionOptions = merge(
+    sectionsForSubject((filters.subject || defaultBankId) as Subject),
+    subjScopes.map(s => sectionScope(s)),
+  )
+  const topicsMap = topicsForSubject((filters.subject || defaultBankId) as Subject)
+  const baseTopicOptions = filters.sections.length
+    ? [...new Set(filters.sections.flatMap(s => topicsMap[s] ?? []))]
+    : Object.values(topicsMap).flat()
+  const topicOptions = merge(baseTopicOptions, filters.sections.length ? filters.sections.map(s => topicScope(filters.subject, s)) : subjScopes.map(s => topicScope(s, '')))
+  const allLines = useMemo(() => {
+    const nums = [...new Set(tasks.filter(t => !filters.subject || t.subject === filters.subject).map(t => t.line))].sort((a, b) => a - b)
+    if (filters.subject && (filters.sections.length || filters.parts.length)) {
+      const set = new Set(linesForSelection(filters.subject as Subject, filters.sections, filters.parts))
+      return nums.filter(n => set.has(n)).map(String)
+    }
+    return nums.map(String)
+  }, [tasks, filters.subject, filters.sections, filters.parts])
+  // Разметка ЕГЭ (раздел → тема → часть → линия) у языка отсутствует: у его
+  // заданий эти поля пустые, поэтому вместо них показываем уровень и навык.
+  const langTax = languageTaxonomy(filters.subject)
+  return langTax ? (
+    <>
+      <MultiSelectField label={t('Уровень')} values={filters.levels ?? []} options={langTax.levels} onChange={v => onChange({ levels: v })} accent={accent} accentBg={accentBg} />
+      <MultiSelectField label={t('Навык')} values={filters.skills ?? []} options={langTax.skills} onChange={v => onChange({ skills: v })} accent={accent} accentBg={accentBg} />
+      <MultiSelectField label={t('Тема')} values={filters.topics} options={langTax.topics} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
+    </>
+  ) : (
+    <>
+      <MultiSelectField label={t('Раздел')} values={filters.sections} options={sectionOptions} onChange={v => onChange({ sections: v })} accent={accent} accentBg={accentBg} />
+      <MultiSelectField label={t('Тема')} values={filters.topics} options={topicOptions} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
+      <div style={{ display: 'flex', gap: 6 }}>
+        {(['1', '2'] as string[]).map(p => {
+          const active = filters.parts.includes(p)
+          return (
+            <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+              style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                background: active ? (accentBg ?? 'rgba(139,92,246,0.15)') : 'var(--color-bg-3)',
+                color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
+              {p === '1' ? t('I часть') : t('II часть')}
+            </button>
+          )
+        })}
+      </div>
+      <MultiSelectField label={t('Линия')} values={filters.lines} options={allLines} onChange={v => onChange({ lines: v })} accent={accent} accentBg={accentBg} />
+      <FilterField label={t('Источник')} value={filters.source} options={merge(SOURCES, SOURCE_SCOPE)} onChange={v => onChange({ source: v })} />
+    </>
+  )
+}
+
 // ─── Filter panel (right rail) ──────────────────────────────────────────────────
 export function TrainerBankFilterPanel({
   filters, onChange, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
