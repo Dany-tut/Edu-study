@@ -48,7 +48,7 @@ import {
 } from '../../data/trainerMaterials'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { plural } from '../trainer/TrainerShell'
-import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
+import { SortDropdown, SubjectFacet, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import TeacherSelect from './TeacherSelect'
 import CardGroupsManager from './CardGroupsManager'
@@ -58,56 +58,45 @@ const MAT_COLOR = 'var(--color-peach-text)'
 const MAT_BG = 'var(--color-peach-soft)'
 
 /**
- * Языки, на которых бывает тренажёр, — по реестру предметов.
+ * Опции фасета — ПРЕДМЕТЫ, а не языки.
  *
- * Дедуп по коду языка обязателен: «Русский» и «Литература» — разные ПРЕДМЕТЫ с
- * одним `langCode: 'ru'`, и без него в списке стояли две одинаковые строки, а
- * подпись у обеих бралась от последней. Первый выигрывает — это сам язык.
+ * Языковые схлопнуты по коду языка: «Русский» и «Литература» — разные предметы
+ * с одним `langCode: 'ru'`, и материалы у них общие; двумя строками они дают
+ * одну и ту же витрину. Первый выигрывает — это сам язык.
+ *
+ * Неязыковые (биология, химия) стоят отдельными строками за разделителем.
+ * Готовых материалов у них нет — есть подборки карточек, и до этой правки их
+ * нельзя было найти ниоткуда, кроме самой полки «Подборки»: фасет знал только
+ * языки, и набор по биологии оставался вне любого отбора.
  */
-const LANG_OPTIONS = SUBJECTS
+const LANG_SUBJECTS = SUBJECTS
   .filter(s => s.isLanguage && s.langCode)
   .filter((s, i, all) => all.findIndex(x => x.langCode === s.langCode) === i)
-  .map(s => ({ value: s.langCode!, label: s.name, icon: s.icon }))
 
-const langLabel = (code: string) => LANG_OPTIONS.find(o => o.value === code)?.label ?? code
+const OTHER_SUBJECTS = SUBJECTS.filter(s => !s.isLanguage || !s.langCode)
 
-/**
- * Язык витрины — таблеткой в РЯДУ ФИЛЬТРОВ, а не в боковой панели.
- *
- * Это тот же выбор, что «Все предметы» на «Тестах» и «Курсах»: первым делом
- * сужают витрину по предмету, и искать этот выбор человек идёт в начало ряда,
- * а не в колонку справа. В панели он стоял отдельно от остальных вкладок — и
- * при переходе между ними главный фильтр прыгал через весь экран.
- */
-function LangFacet({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const t = useT()
-  return (
-    <FacetDropdown
-      value={value} options={LANG_OPTIONS.map(o => o.value)} allLabel={t('Все языки')}
-      labels={Object.fromEntries(LANG_OPTIONS.map(o => [o.value, t(o.label)]))}
-      accent={MAT_COLOR} minWidth={104}
-      icon={<span style={{ fontSize: 12 }}>{LANG_OPTIONS.find(o => o.value === value)?.icon ?? '🌐'}</span>}
-      onChange={onChange}
-    />
-  )
-}
+const SUBJECT_OPTIONS = [...LANG_SUBJECTS, ...OTHER_SUBJECTS]
+
+/** Код языка выбранного предмета. У биологии его нет — готовых полок тоже. */
+const langOf = (subject: string) => SUBJECTS.find(s => s.id === subject)?.langCode ?? ''
+
+const ALL_LANGS = LANG_SUBJECTS.map(s => s.langCode!)
+
+const langLabel = (code: string) => LANG_SUBJECTS.find(s => s.langCode === code)?.name ?? code
 
 /**
- * НА ПОДБОРКАХ ТОТ ЖЕ ФАСЕТ СТАНОВИТСЯ ПРЕДМЕТОМ. Карточки бывают не только
- * языковые, и набор по биологии под чипсом «Русский» не ищет никто: ученику он
- * достаётся по предмету, и учителю его надо искать так же. У остальных
- * материалов (тексты, аудио, грамматика) выбора нет — они написаны на
- * изучаемом языке и только для него, поэтому там список языковой.
+ * Предмет витрины — общий фасет Конструктора, суженный до того, что у
+ * материалов правда есть: языковые предметы схлопнуты по `langCode`
+ * («Литература» и «Русский» дают одну и ту же витрину), неязыковые стоят за
+ * чертой ради подборок карточек — готовых материалов у них нет.
  */
-function SubjectFacet({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function MaterialsFacet({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const t = useT()
   return (
-    <FacetDropdown
-      value={value} options={SUBJECTS.map(sub => sub.id)} allLabel={t('Все предметы')}
-      labels={Object.fromEntries(SUBJECTS.map(sub => [sub.id, t(sub.name)]))}
-      accent={MAT_COLOR} minWidth={104} searchable
-      icon={<span style={{ fontSize: 12 }}>{SUBJECTS.find(sub => sub.id === value)?.icon ?? '📚'}</span>}
-      onChange={onChange}
+    <SubjectFacet
+      value={value} onChange={onChange}
+      only={SUBJECT_OPTIONS.map(s => s.id)}
+      accent={MAT_COLOR} allLabel={t('Все предметы')}
     />
   )
 }
@@ -155,36 +144,30 @@ try {
 /** Адрес материала: по нему страница находит его сама, и он переживает F5. */
 export type MaterialRef = { lang: string; familyId: string; id: string }
 
-export default function TrainerMaterials({ createNonce = 0, onOpen }: {
+export default function TrainerMaterials({ createNonce = 0, subject, onSubject, onOpen }: {
   createNonce?: number
+  /**
+   * Предмет витрины — ОДИН на все вкладки Конструктора, поэтому живёт в
+   * странице, а не здесь. Готовые материалы (тексты, аудио, грамматика)
+   * написаны на изучаемом языке и грузятся по коду языка предмета; у подборок
+   * язык и предмет разошлись — набор по биологии написан по-русски, но
+   * принадлежит биологии.
+   */
+  subject: string
+  onSubject: (v: string) => void
   /** Материал открывается отдельной страницей — её рисует Конструктор вместо вкладок. */
   onOpen: (ref: MaterialRef) => void
 }) {
   const t = useT()
 
-  // Пустая строка — «все языки», как пустой предмет в «Курсах».
-  const [lang, setLang] = useState(() => localStorage.getItem('materials-lang') ?? '')
-  /**
-   * Предмет — отбор ПОДБОРОК, отдельный от языка остальных материалов.
-   *
-   * У готовых материалов (тексты, аудио, грамматика) предмет и язык — одно и то
-   * же: они написаны на изучаемом языке и только для него. У подборок это
-   * разошлось: набор по биологии написан по-русски, но принадлежит биологии, и
-   * под языковым чипсом его не найти. Своё состояние, а не общее с языком:
-   * человек переключает режимы туда-сюда, и сбрасывать один отбор другим —
-   * терять то, что он только что выбрал.
-   */
-  const [deckSubject, setDeckSubject] = useState(() => localStorage.getItem('materials-subject') ?? '')
-  useEffect(() => {
-    try { localStorage.setItem('materials-subject', deckSubject) } catch { /* приватный режим */ }
-  }, [deckSubject])
+  const lang = langOf(subject)
   const [mode, setMode] = useState<MaterialMode | ''>(() =>
     (localStorage.getItem('materials-mode') as MaterialMode | null) ?? '')
   const [view, setView] = useState<'cards' | 'rows'>(() =>
     localStorage.getItem('materials-view') === 'rows' ? 'rows' : 'cards')
 
-  const [rows, setRows] = useState<Row[]>(() => rowsCache.get(lang) ?? [])
-  const [loading, setLoading] = useState(() => !rowsCache.has(lang))
+  const [rows, setRows] = useState<Row[]>(() => rowsCache.get(subject) ?? [])
+  const [loading, setLoading] = useState(() => !rowsCache.has(subject))
 
   // Отбор переживает поход в материал и обратно. Страница материала встаёт
   // вместо вкладок, витрина при этом размонтируется — и в useState уровень,
@@ -195,7 +178,6 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
   const [topic, setTopic] = usePersistentState('materials.topic', '')
   const [query, setQuery] = usePersistentState('materials.query', '')
 
-  useEffect(() => { localStorage.setItem('materials-lang', lang) }, [lang])
   useEffect(() => { localStorage.setItem('materials-mode', mode) }, [mode])
   useEffect(() => { localStorage.setItem('materials-view', view) }, [view])
 
@@ -204,11 +186,13 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
   // список и не роняет соседние — витрина без одной полки лучше пустой вкладки.
   useEffect(() => {
     let alive = true
-    const cached = rowsCache.get(lang)
+    const cached = rowsCache.get(subject)
     if (cached) { setRows(cached); setLoading(false); return }
     setLoading(true)
     setRows([])
-    const langs = lang ? [lang] : LANG_OPTIONS.map(o => o.value)
+    // Предмет без языка (биология, химия) — готовых полок у него нет вовсе:
+    // грузить нечего, и режимы честно показывают ноль вместо вечной загрузки.
+    const langs = subject ? (lang ? [lang] : []) : ALL_LANGS
     void Promise.all(
       langs.flatMap(l => MATERIAL_FAMILIES.map(async f => {
         try {
@@ -221,12 +205,12 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
       })),
     ).then(chunks => {
       if (!alive) return
-      rowsCache.set(lang, chunks.flat())
+      rowsCache.set(subject, chunks.flat())
       setRows(chunks.flat())
       setLoading(false)
     })
     return () => { alive = false }
-  }, [lang])
+  }, [subject, lang])
 
   const modeCount = (m: MaterialMode) => rows.reduce((n, r) => n + (r.family.mode === m ? 1 : 0), 0)
 
@@ -332,8 +316,8 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
           <CardGroupsManager
             createNonce={deckCreate}
             lang={lang || undefined}
-            subject={deckSubject || undefined}
-            facet={<SubjectFacet value={deckSubject} onChange={setDeckSubject} />}
+            subject={subject || undefined}
+            facet={<MaterialsFacet value={subject} onChange={onSubject} />}
             query={query}
             onQuery={setQuery}
           />
@@ -341,7 +325,7 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <SortDropdown value={sort} options={SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
-              <LangFacet value={lang} onChange={setLang} />
+              <MaterialsFacet value={subject} onChange={onSubject} />
               <ViewSwitch value={view} accent={MAT_COLOR} onChange={setView}
                 options={[['cards', 'Плитками', LayoutGrid], ['rows', 'Строками', List]]} />
               <ShelfSearch value={query} onChange={setQuery} style={{ marginLeft: 'auto' }} />
@@ -363,9 +347,14 @@ export default function TrainerMaterials({ createNonce = 0, onOpen }: {
               )
             ) : shown.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6, maxWidth: 520 }}>
-                {scoped.length === 0
-                  ? t('У этого языка такого материала нет. Режим виден в списке, чтобы было понятно, чего не хватает, — а не потому, что за ним что-то есть.')
-                  : t('Под отбор ничего не подошло.')}
+                {scoped.length > 0
+                  ? t('Под отбор ничего не подошло.')
+                  // У предмета без языка (биология, химия) готовых материалов не
+                  // бывает вовсе — это не пробел в полке, а другой разговор:
+                  // такому предмету достаются подборки карточек.
+                  : subject && !lang
+                    ? t('Готовых материалов у этого предмета нет — они пишутся на изучаемом языке. Что ему достаётся, лежит в «Карточках» → «Подборки».')
+                    : t('У этого языка такого материала нет. Режим виден в списке, чтобы было понятно, чего не хватает, — а не потому, что за ним что-то есть.')}
               </div>
             ) : view === 'cards' ? (
               <div style={GRID}>

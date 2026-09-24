@@ -27,6 +27,7 @@ import { useState, useRef, type ReactNode, type CSSProperties, type ComponentTyp
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUpDown, Search, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { SUBJECTS, getSubject } from '../../lib/subjects'
 import ScrollFade from '../ScrollFade'
 
 /**
@@ -354,3 +355,54 @@ export function ShelfSearch({ value, onChange, placeholder, style, collapsed }: 
 export function ShelfCount({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)', ...style }}>{children}</span>
 }
+
+/**
+ * Предмет витрины — ОДНА таблетка на все вкладки Конструктора.
+ *
+ * До неё каждая витрина спрашивала предмет по-своему: курсы и тесты — фасетом
+ * в ряду, задания и материалы — контролом в боковой панели, да ещё и в разных
+ * словарях (там русское имя предмета, тут английский id). Человек переключал
+ * предмет заново на каждой вкладке и находил его каждый раз в новом месте.
+ *
+ * ЗНАЧЕНИЕ — КАНОНИЧЕСКИЙ id предмета (`biology`, `korean`). Вкладка, которая
+ * хранит предмет строкой («Биология» в courses.subject), переводит его на
+ * границе через canonSubject/subjectNameOf, а не заводит второй словарь.
+ *
+ * `only` сужает список до предметов, по которым на витрине правда что-то есть:
+ * фасет не должен обещать отбор, дающий пустой экран. Порядок — языки, черта,
+ * остальные: языковых предметов больше всего, и мешать их с биологией в один
+ * столбик значит каждый раз вычитывать список целиком.
+ */
+export function SubjectFacet({ value, onChange, accent, allLabel, only, minWidth = 116, searchable }: {
+  value: string
+  onChange: (v: string) => void
+  accent: string
+  allLabel: string
+  /** Канонические id, которые показывать. Без него — весь реестр. */
+  only?: string[]
+  minWidth?: number
+  searchable?: boolean
+}) {
+  const t = useT()
+  const defs = only ? SUBJECTS.filter(s => only.includes(s.id)) : SUBJECTS
+  const langs = defs.filter(s => s.isLanguage)
+  const rest = defs.filter(s => !s.isLanguage)
+  const ids = langs.length && rest.length
+    ? [...langs.map(s => s.id), FACET_SEP, ...rest.map(s => s.id)]
+    : defs.map(s => s.id)
+  return (
+    <FacetDropdown
+      value={value} options={ids} allLabel={allLabel}
+      labels={Object.fromEntries(defs.map(s => [s.id, t(s.name)]))}
+      accent={accent} minWidth={minWidth} searchable={searchable}
+      icon={<span style={{ fontSize: 12 }}>{getSubject(value)?.icon ?? '📚'}</span>}
+      onChange={onChange}
+    />
+  )
+}
+
+/** Предмет в канонической форме: реестровый — его id, чужой тег — как есть. */
+export const canonSubject = (s: string) => getSubject(s)?.id ?? s
+
+/** Обратно: имя, которым предмет записан в курсах и тестах. */
+export const subjectNameOf = (s: string) => getSubject(s)?.name ?? s

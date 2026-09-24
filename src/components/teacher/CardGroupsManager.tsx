@@ -521,19 +521,30 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
     [students],
   )
 
+  /**
+   * Отбор витрины: предмет совпал ИЛИ совпал его язык.
+   *
+   * Вкладка присылает и предмет, и его код языка, потому что у полок два
+   * происхождения: набор, заведённый учителем, помечен предметом, а сид и всё
+   * старьё — только языком. Строгое сравнение по предмету прятало сиды
+   * «Английского», строгое по языку — наборы по биологии.
+   */
+  const matchesScope = (g: { lang: string; subject?: string | null }) =>
+    subjectFilter
+      ? g.subject === subjectFilter || (!!langFilter && g.lang === langFilter)
+      : !langFilter || g.lang === langFilter
+
   const seedsShown = useMemo(
-    () => (subjectFilter
-      ? seeds.filter(g => g.subject === subjectFilter)
-      : langFilter ? seeds.filter(g => g.lang === langFilter) : seeds).filter(g => !needle
+    () => seeds.filter(matchesScope).filter(g => !needle
       || normSearch(g.title + ' ' + g.about).includes(needle)
       || g.sets.some(x => normSearch(x.title + ' ' + x.about).includes(needle))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [seeds, langFilter, subjectFilter, needle],
   )
 
   const shown = useMemo(() => {
     let list = shelfPick ? items.filter(x => x.group.id === shelfPick) : items
-    if (subjectFilter) list = list.filter(x => x.group.subject === subjectFilter)
-    else if (langFilter) list = list.filter(x => x.group.lang === langFilter)
+    list = list.filter(x => matchesScope(x.group))
     // Пустой student_ids значит «всем», поэтому такой набор попадает в выборку
     // любого ученика: он его и правда видит.
     if (studentPick) list = list.filter(x => x.group.studentIds.length === 0 || x.group.studentIds.includes(studentPick))
@@ -544,6 +555,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
     else if (sort === 'cards') sorted.sort((a, b) => b.set.cards.length - a.set.cards.length)
     else sorted.sort((a, b) => sort === 'oldest' ? at(a).localeCompare(at(b)) : at(b).localeCompare(at(a)))
     return sorted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, shelfPick, langFilter, subjectFilter, studentPick, needle, sort])
 
   return (

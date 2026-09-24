@@ -634,7 +634,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
 
 // ─── Browser (filtered list of cards) ───────────────────────────────────────────
 export function TrainerBankBrowser({
-  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)', editMode = false,
+  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)', editMode = false, facet,
 }: {
   filters: TrainerFilters
   selectedIds: Set<number>
@@ -646,6 +646,13 @@ export function TrainerBankBrowser({
   accent?: string
   accentBg?: string
   editMode?: boolean
+  /**
+   * Фасет предмета — таблеткой в ряду фильтров, как на «Тестах», «Курсах» и
+   * «Материалах». Предмет стоял в панели справа, среди раздела и линии, хотя
+   * он им не ровня: это ГЛАВНАЯ ось витрины, от неё зависит, какие разделы и
+   * линии вообще бывают. Рисует его вкладка — здесь только место в ряду.
+   */
+  facet?: React.ReactNode
 }) {
   const t = useT()
   const tasks = useTaskBank(s => s.tasks)
@@ -721,6 +728,7 @@ export function TrainerBankBrowser({
       {/* Controls bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <BankSortDropdown value={sortMode} onChange={setSortMode} />
+        {facet}
         <ViewSwitch value={viewMode} onChange={setViewMode}
           options={[['grid', 'Карточками', LayoutGrid], ['list', 'Списком', List]]} />
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filtered.length} {t('заданий')}</span>
@@ -861,15 +869,6 @@ export function TrainerBankFilterPanel({
           </button>
         )}
       </div>
-
-      {/* Subject picker — adaptive (segments ≤3, dropdown 4+), scoped to teacher's bank subjects */}
-      <SubjectPicker
-        options={subjectOptions.map(o => ({ value: o.value, label: t(o.label), icon: o.value ? subjectIcon(o.value) : undefined }))}
-        value={filters.subject}
-        onChange={v => onChange({ subject: v, sections: [], topics: [], lines: [], parts: [], levels: [], skills: [] })}
-        accent={accent} accentBg={accentBg ?? 'var(--color-purple-soft)'}
-        ariaLabel={t('Предмет')}
-      />
 
       {langTax ? (
         <>
