@@ -43,6 +43,7 @@ import { useSpeakingMode } from './trainer/modes/useSpeakingMode'
 import { useBlocksMode } from './trainer/modes/useBlocksMode'
 import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import { useScenesShelf } from './trainer/modes/useScenesShelf'
+import { useLibraryShelf } from './trainer/modes/useLibraryShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import { hasScenes, scenesWord, workById, type Scene, type Work } from '../data/scenes'
@@ -153,12 +154,6 @@ type BlocksView = 'stems' | 'roots' | 'numbers' | 'sounds'
  * тема отвечают на вопрос «потяну ли», длительность — на «влезет ли сейчас», и
  * без неё библиотека фильтруется только по первому.
  */
-const LENGTHS: { value: string; label: string; fit: (m: number) => boolean }[] = [
-  { value: 's', label: 'до 3 мин', fit: m => m <= 3 },
-  { value: 'm', label: '3–5 мин', fit: m => m > 3 && m <= 5 },
-  { value: 'l', label: 'больше 5 мин', fit: m => m > 5 },
-]
-
 /** Пересечение выбранного списка со значением. Пустой список = «все». */
 const anyOf = (picked: string[], value: string) => picked.length === 0 || picked.includes(value)
 
@@ -310,8 +305,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // унесённый из чтения в аудирование, молча прячет половину записей.
   function switchMode(m: Mode) {
     setMode(m)
+    // Сито наборов и сито библиотеки — разные состояния с одинаковым смыслом:
+    // первое осталось здесь (им пользуются «Карточки»), второе уехало в
+    // библиотеку. Сбрасываются оба, иначе «Уровень B1», выбранный в чтении,
+    // молча прячет половину наборов.
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
     setQuery(''); setStatus(''); setSort('order')
+    libraryShelf.reset()
     // Вид задания говорения сбрасывается вместе с открытым — оба внутри режима.
     scenesShelf.reset(); speaking.reset()
   }
@@ -349,30 +349,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const feedOn = mode === 'reading' && readingView === 'feed' && feedLib
 
   const isLang = (mode === 'reading' && !scenesOn && !feedOn) || mode === 'listening'
-  const pool = mode === 'listening' ? audio : allTexts
-  const kind: MaterialKind = mode === 'listening' ? 'listening' : 'reading'
 
-  const levelOpts = useMemo(() => present(pool.map(x => x.level), tax?.levels ?? []), [pool, tax])
-  const topicOpts = useMemo(() => present(pool.map(x => x.topic), tax?.topics ?? []), [pool, tax])
-  const skillOpts = useMemo(() => present(allTexts.map(x => x.skill), tax?.skills ?? []), [allTexts, tax])
-
-  /** Отфильтрованная и отсортированная библиотека текущего режима. */
-  const library = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    const out = pool.filter(x => {
-      if (!anyOf(fLevel, x.level)) return false
-      if (!anyOf(fTopic, x.topic)) return false
-      if (mode === 'reading' && !anyOf(fSkill, (x as ReadingText).skill)) return false
-      if (fLen.length > 0 && !LENGTHS.some(l => fLen.includes(l.value) && l.fit(x.minutes))) return false
-      if (status === 'new' && resultFrom(kind, x.id, results)) return false
-      if (status === 'done' && !resultFrom(kind, x.id, results)) return false
-      if (q && !`${x.title} ${x.topic} ${t(x.topic)}`.toLowerCase().includes(q)) return false
-      return true
-    })
-    if (sort === 'level') out.sort((a, b) => levelOpts.indexOf(a.level) - levelOpts.indexOf(b.level))
-    if (sort === 'short') out.sort((a, b) => a.minutes - b.minutes)
-    return out
-  }, [pool, fLevel, fTopic, fSkill, fLen, status, query, sort, kind, results, levelOpts, mode, t])
+  // Библиотека целиком — сито, сортировка и витрина плиток, одна на тексты и
+  // записи (components/trainer/modes/useLibraryShelf). Читалка и плеер
+  // остались здесь: открытый материал — это уже не витрина.
+  const libraryShelf = useLibraryShelf({
+    texts: allTexts, audio, accent: palette.accent, soft: palette.soft,
+    mode: mode === 'listening' ? 'listening' : 'reading',
+    active: isLang,
+    query, onQuery: setQuery, status, onStatus: setStatus,
+    levels: tax?.levels ?? [], topics: tax?.topics ?? [], skills: tax?.skills ?? [],
+    result: (k, id) => resultFrom(k, id, results),
+    onOpenText: setOpenTextId,
+    onOpenAudio: setOpenAudioId,
+  })
+  const kind: MaterialKind = libraryShelf.kind
 
   // ── Витрина сцен ───────────────────────────────────────────────────────────
   //
@@ -1195,7 +1186,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openTheme,
     openNestId, openPackId, openSetId,
     guide.openId, grammar.openId, speaking.openId ?? '', blocks.open?.id ?? '',
-    speaking.draftKey, blocks.draftKey, grammar.draftKey, fLen, status, query, sort,
+    speaking.draftKey, blocks.draftKey, grammar.draftKey, libraryShelf.draftKey,
+    fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     scenesShelf.draftKey,
     shelf, packShelf, openGroupId,
@@ -1597,79 +1589,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (scenesOn) {
     toolbar = scenesShelf.toolbar
   } else if (isLang) {
-    toolbar = (
-      <Toolbar count={library.length}>
-        <SearchPill value={query} onChange={setQuery} placeholder={t('Название или тема…')} />
-        {/* ОДНО МЕСТО ДЛЯ СИТА. Раньше уровень и тема стояли у библиотеки в
-            рейле, у сцен и грамматики — таблетками в строке, а у наборов — и
-            там, и там. Человек, перешедший из «Чтения» в «Аудирование», искал
-            «Уровень» глазами заново. Теперь ось сужения ВСЕГДА таблетка строки,
-            а рейл отвечает только на вопрос «что показываем» (половина режима,
-            полка, показ). Порядок таблеток тоже один на весь тренажёр:
-            поиск → уровень → тематика → частные оси → статус → сортировка →
-            счётчик единицами экрана. */}
-        {levelOpts.length > 1 && (
-          <FilterMenu
-            label="Уровень"
-            options={levelOpts.map(v => ({ value: v, label: v, count: pool.filter(x => x.level === v).length }))}
-            value={fLevel}
-            onChange={setFLevel}
-            accent={palette.accent}
-            soft={palette.soft}
-          />
-        )}
-        {topicOpts.length > 1 && (
-          <FilterMenu
-            label="Тематика"
-            options={topicOpts.map(v => ({ value: v, label: t(v), count: pool.filter(x => x.topic === v).length }))}
-            value={fTopic}
-            onChange={setFTopic}
-            accent={palette.accent}
-            soft={palette.soft}
-          />
-        )}
-        {mode === 'reading' && skillOpts.length > 1 && (
-          <FilterMenu
-            label="Навык"
-            options={skillOpts.map(v => ({
-              value: v, label: t(v),
-              count: allTexts.filter(x => x.skill === v).length,
-            }))}
-            value={fSkill}
-            onChange={setFSkill}
-            accent={palette.accent}
-            soft={palette.soft}
-          />
-        )}
-        <FilterMenu
-          label="Длина"
-          options={LENGTHS.map(l => ({
-            value: l.value, label: t(l.label),
-            count: pool.filter(x => l.fit(x.minutes)).length,
-          }))}
-          value={fLen}
-          onChange={setFLen}
-          accent={palette.accent}
-          soft={palette.soft}
-        />
-        <StatusTabs
-          options={[
-            { value: '', label: 'Все' },
-            { value: 'new', label: 'Не начатые' },
-            { value: 'done', label: 'Пройдено' },
-          ]}
-          value={status}
-          onChange={setStatus}
-          accent={palette.accent}
-        />
-        <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} accent={palette.accent} soft={palette.soft} />
-        <ToolCount>
-          {library.length} {t(plural(library.length, mode === 'listening'
-            ? ['запись', 'записи', 'записей']
-            : ['текст', 'текста', 'текстов']))}
-        </ToolCount>
-      </Toolbar>
-    )
+    toolbar = libraryShelf.toolbar
   } else if (mode === 'grammar') {
     toolbar = grammar.toolbar
   } else if (mode === 'blocks') {
@@ -1840,46 +1760,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (feedOn) {
     content = feedShelf.content
   } else if (isLang) {
-    content = library.length === 0 ? (
-      <ShellEmpty text={pool.length === 0
-        ? 'Для этого языка материалов пока нет. Учитель может добавить свои.'
-        : 'Под выбранные фильтры ничего не подошло. Сбрось один из них.'} />
-    ) : (
-      <TileGrid min={236}>
-        {library.map(x => {
-          const res = resultFrom(kind, x.id, results)
-          return (
-            <Tile
-              key={x.id}
-              accent={palette.accent}
-              onClick={() => (mode === 'listening' ? setOpenAudioId((x as ListeningItem).id) : setOpenTextId((x as ReadingText).id))}
-            >
-              {/* Ряд плашек один на весь тренажёр: уровень акцентом первым,
-                  дальше метки серым — тематика и размер. Тема была здесь серой
-                  строкой, а у сцен и грамматики то же самое стояло плашкой, и
-                  две соседние витрины выглядели как из разных приложений. */}
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>{x.level}</TileChip>
-                <TileChip tone="mute">{t(x.topic)}</TileChip>
-                <TileChip tone="mute">{x.minutes} {t('мин')}</TileChip>
-              </span>
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
-                {x.title}
-              </span>
-              <TileMeter value={res ? Math.round((res.score / Math.max(res.total, 1)) * 100) : 0} />
-              <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
-                <span>{res ? t('пройдено') : `${x.questions.length} ${t('вопроса')}`}</span>
-                {res && (
-                  <span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>
-                    {res.score} / {res.total}
-                  </span>
-                )}
-              </span>
-            </Tile>
-          )
-        })}
-      </TileGrid>
-    )
+    content = libraryShelf.content
   } else if (mode === 'vocab' && vocabView === 'nests') {
     // Гнёзда созвучий: витрина и разбор. Прогон пишет результат туда же, куда
     // текст и запись, — в общий журнал материалов (lib/trainerProgress.ts),
