@@ -26,7 +26,7 @@ import TrainerShell, {
 } from './trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
-import { addCards, collectedCards, deckOwner, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
+import { addCards, deckOwner, deckStates, type CardState } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 // setCards переименован при импорте: в этом файле уже есть сеттер состояния
 // с тем же именем, и без псевдонима вызов молча уходил бы в него.
@@ -45,6 +45,7 @@ import { useScenesShelf } from './trainer/modes/useScenesShelf'
 import { useLibraryShelf } from './trainer/modes/useLibraryShelf'
 import { useNestsShelf } from './trainer/modes/useNestsShelf'
 import { useReviewDeck } from './trainer/modes/useReviewDeck'
+import { useMyWords } from './trainer/modes/useMyWords'
 import { useWordPacksShelf } from './trainer/modes/useWordPacksShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
@@ -59,9 +60,7 @@ import {
   survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
   type SurvivalBook, type SurvivalThemeCards,
 } from '../data/survivalPhrases'
-import {
-  MyWordsSession, MyWordsTile, myWordsFrom, myWordsStats, MY_WORDS_ID, type MyWord,
-} from './trainer/MyWords'
+import { MY_WORDS_ID } from './trainer/MyWords'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
 import { courseReach, reachLevelIndex, reachNote } from '../lib/courseReach'
 import GlossedText from './GlossedText'
@@ -658,26 +657,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return () => { alive = false }
   }, [owner, deckSubjects, knownKey])
 
-  // ── Личный словарь ─────────────────────────────────────────────────────────
-  //
-  // Собранные слова — те же строки колоды, только показанные списком, а не
-  // расписанием (см. trainer/MyWords.tsx). Читаются одним запросом рядом с
-  // памятью колоды и по тому же ключу `knownKey`: слово, забранное из текста,
-  // должно появиться на плитке сразу по возвращении из читалки.
-  const [cards, setCards] = useState<ReviewCard[]>([])
-  // Пока словарь не прочитан, «пусто» и «не доехало» неотличимы, и плитка
-  // сообщала бы человеку с двумя сотнями слов, что у него их нет.
-  const [cardsReady, setCardsReady] = useState(false)
-  useEffect(() => {
-    let alive = true
-    collectedCards(owner, deckSubjects)
-      .then(c => { if (alive) { setCards(c); setCardsReady(true) } })
-      // Словарь не доехал — вкладка живёт дальше: плитка покажет ноль слов,
-      // а не заменит собой всю витрину наборов ошибкой.
-      .catch(e => { console.error('collectedCards:', e); if (alive) setCardsReady(true) })
-    return () => { alive = false }
-  }, [owner, deckSubjects, knownKey])
-
   // Ответ по карточке уже сохранён в базе и вернулся новым состоянием — правим
   // свою копию точечно. Перечитывать всю колоду на каждый свайп значило бы
   // запрос в секунду и мигание счётчиков посреди стопки.
@@ -698,24 +677,24 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     () => new Set(allThemes.flatMap(x => x.phrases.map(p => p.term))),
     [allThemes],
   )
-  const myWords = useMemo(() => myWordsFrom(cards, lang, bookPhrases), [cards, lang, bookPhrases])
   /** Открыт словарь, а не тема: у него свой ключ в том же поле (см. MY_WORDS_ID). */
   const openMyWords = openTheme === MY_WORDS_ID
-  const myStats = useMemo(() => myWordsStats(myWords, states), [myWords, states])
-
-  /**
-   * Вычеркнуть слово.
-   *
-   * Строка уходит с экрана сразу, до ответа базы: удаление своего же слова — не
-   * то место, где ученик готов ждать сеть. Если база отказала (нет прав, нет
-   * связи), перечитываем словарь — слово возвращается на место, а не пропадает
-   * с экрана, оставшись в расписании.
-   */
-  const forget = useCallback(async (w: MyWord) => {
-    setCards(prev => prev.filter(c => c.id !== w.cardId))
-    const ok = await forgetCard(w.cardId)
-    if (!ok) setKnownKey(k => k + 1)
-  }, [])
+  // Личный словарь — собранные слова списком. Открыт он или нет, знает
+  // тренажёр: поле у него общее с темой разговорника, и писать в него из двух
+  // мест нельзя (components/trainer/modes/useMyWords).
+  const myWordsHalf = useMyWords({
+    lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
+    deckSubjects, reloadKey: knownKey, onReload: () => setKnownKey(k => k + 1),
+    bookPhrases, bookReady: !hasBook || book !== undefined,
+    open: openMyWords,
+    // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят посмотреть, что
+    // набрано, — стопка на сегодня в двух кликах, а обратно из свайпа к списку
+    // человек догадается не сразу.
+    onOpen: () => { setOpenTheme(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') },
+    onClose: () => setOpenTheme(null),
+    run, onRun: setRun, phraseView, states, statesReady, onGraded,
+    tourExtra: runTourStep,
+  })
 
   // ── Виджет прогресса в верхней строке ──────────────────────────────────────
   //
@@ -1317,17 +1296,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {mode === 'vocab' && openMyWords && (
         <>
-          <RailCard title="Словарь" accent={palette.accent} icon={<BookMarked size={15} />}>
-            <RailStat label="Слов собрано" value={myStats.total} />
-            <RailStat label="Выучено" value={myStats.learned} tone={myStats.learned > 0 ? 'good' : undefined} />
-            <RailStat label="Сегодня в стопке" value={myStats.due} tone={myStats.due > 0 ? 'warn' : undefined} />
-            {/* Откуда берутся слова — здесь, а не только в пустом состоянии:
-                словарь пополняют по ходу дела, и напоминание нужно тому, у
-                кого в нём уже что-то есть, ровно так же. */}
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
-              {bindShortWords(t('Слова приходят из текстов «Чтения» (нажми на слово → «В словарь»), из уроков курса и из разбора созвучий.'))}
-            </div>
-          </RailCard>
+          {myWordsHalf.rail}
           <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
             <RailToggle label="Романизация" on={phraseView.reading}
               onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
@@ -1494,25 +1463,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && vocabView === 'nests' && !nestsShelf.openId) {
     toolbar = nestsShelf.toolbar
   } else if (mode === 'vocab' && openMyWords) {
-    toolbar = (
-      <Toolbar>
-        <BackToSets onBack={() => setOpenTheme(null)} />
-        {/* Обёртка не декоративная: на телефоне Toolbar забирает StatusTabs в
-            шторку «Фильтры», а здесь это не фильтр, а способ прогона колоды —
-            «Свайп» против «Списком» жмут постоянно и ищут глазами в строке.
-            Обёртка выводит контрол из-под разбора по типу и оставляет в строке
-            (см. Toolbar в TrainerShell). */}
-        <div style={{ display: 'flex' }}>
-          <StatusTabs
-            options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
-            value={run}
-            onChange={v => setRun(v as RunMode)}
-            accent={palette.accent}
-          />
-        </div>
-        <ToolCount>{myStats.total} {t('слов')}</ToolCount>
-      </Toolbar>
-    )
+    toolbar = myWordsHalf.toolbar
   } else if (mode === 'vocab' && vocabView === 'sets' && !openItem && !openSet && !editGroup) {
     toolbar = (
       <Toolbar count={setsDecks.length}>
@@ -1609,30 +1560,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && vocabView === 'nests') {
     content = nestsShelf.content
   } else if (mode === 'vocab' && openMyWords) {
-    // Книга нужна не ради показа, а ради вычитания: пока она едет, фразы
-    // разговорника не отличить от своих слов, и словарь на секунду показал бы
-    // все шестьсот. Поэтому ждём и её, и саму колоду.
-    content = !cardsReady || (hasBook && book === undefined) ? (
-      <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
-    ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <MyWordsSession
-          words={myWords}
-          lang={lang}
-          subjectId={subjectId}
-          accent={palette.accent}
-          owner={owner}
-          view={phraseView}
-          run={run}
-          states={states}
-          statesReady={statesReady}
-          onGraded={onGraded}
-          onForget={forget}
-          tourExtra={runTourStep}
-        />
-        {run === 'swipe' && myWords.length > 0 && <DeckHint />}
-      </div>
-    )
+    content = myWordsHalf.content
   } else if (mode === 'vocab' && openItem && book) {
     content = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1750,19 +1678,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           early={x => x.ahead}
           lead={openGroup ? undefined : (
             <>
-              {hasBook && (
-                <MyWordsTile
-                  words={myWords}
-                  states={states}
-                  ready={cardsReady}
-                  accent={palette.accent}
-                  soft={palette.soft}
-                  // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят
-                  // посмотреть, что набрано, — стопка на сегодня в двух кликах,
-                  // а обратно из свайпа к списку человек догадается не сразу.
-                  onOpen={() => { setOpenTheme(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') }}
-                />
-              )}
+              {hasBook && myWordsHalf.tile}
               {/* Папки полок. Стоят перед сеткой и не участвуют в поиске: по
                   слову ищут набор, а не полку, и найденные наборы приезжают в
                   сетку сами (см. setsDecks). */}
