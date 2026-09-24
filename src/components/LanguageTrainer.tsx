@@ -45,6 +45,7 @@ import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import { useScenesShelf } from './trainer/modes/useScenesShelf'
 import { useLibraryShelf } from './trainer/modes/useLibraryShelf'
 import { useNestsShelf } from './trainer/modes/useNestsShelf'
+import { useWordPacksShelf } from './trainer/modes/useWordPacksShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import { hasScenes, scenesWord, workById, type Scene, type Work } from '../data/scenes'
@@ -455,31 +456,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // карточку «Озвучка»: на одном дикторе она была бы пустой коробкой.
   const voiceChoice = useVoiceChoice(lang)
 
-  // ── Наборы слов ────────────────────────────────────────────────────────────
-  //
-  // Четвёртая половина вкладки. Разговорник отвечает на вопрос «что сказать в
-  // этой ситуации», набор — на вопрос «дайте мне все слова про еду разом»
-  // (см. data/wordPacks.ts). Книга ленивая по той же причине, что и
-  // разговорник: две сотни слов не должны ехать тому, кто читает тексты.
-  const packsOn = useMemo(() => hasWordPacks(lang), [lang])
-  const [packBook, setPackBook] = useState<WordPackBook | null | undefined>(undefined)
-  useEffect(() => {
-    if (!packsOn) { setPackBook(null); return }
-    let alive = true
-    setPackBook(undefined)
-    loadWordPacks(lang).then(b => { if (alive) setPackBook(b ?? null) })
-    return () => { alive = false }
-  }, [packsOn, lang])
-
-  const packShelvesList = useMemo(() => wordPackShelves(packBook ?? undefined), [packBook])
-  const packsList = useMemo(() => allPacks(packBook ?? undefined), [packBook])
-  const [packShelf, setPackShelf] = useState('')
-  const [openPackId, setOpenPackId] = usePersistentState<string | null>(`trainer.${lang}.pack`, null)
-  const openPack = useMemo(
-    () => packsList.find(p => p.id === openPackId) ?? null,
-    [packsList, openPackId],
-  )
-
   // ── Группы наборов ─────────────────────────────────────────────────────────
   //
   // Пятая половина вкладки — единственная, чей материал заводят люди, а не код:
@@ -578,8 +554,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // факт, а незнание, и съезжать с половины по нему нельзя.
     else if (vocabView === 'sets' && !hasBook && groups !== undefined && !decksOn) setVocabView('due')
     else if (vocabView === 'nests' && !nestsShelf.on) setVocabView(hasBook ? 'sets' : 'due')
-    else if (vocabView === 'packs' && !packsOn) setVocabView(hasBook ? 'sets' : 'due')
-  }, [vocabView, hasBook, nestsShelf.on, packsOn, groups, decksOn, setVocabView])
+    // Наличие наборов — синхронный ответ реестра по языку; ждать хука,
+    // который стоит ниже (ему нужна память колоды), здесь незачем.
+    else if (vocabView === 'packs' && !hasWordPacks(lang)) setVocabView(hasBook ? 'sets' : 'due')
+  }, [vocabView, hasBook, lang, nestsShelf.on, groups, decksOn, setVocabView])
 
   // То же для «О языке»: восстановленная половина могла исчезнуть вместе с
   // языком, а режим целиком — вместе с рассказом и полкой.
@@ -855,54 +833,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
     return out
   }, [allThemes, shelves, shelf, query, status, sort, states, fLevel, themeLevel, themeAhead])
-  /**
-   * Наборы слов под витрину.
-   *
-   * Форма — стопка витрины (DeckCard): имя и список карточек. Ничего больше
-   * PhraseDecks и не спрашивает, поэтому наборы показываются той же витриной,
-   * что и разговорник, без второй её копии. Сам набор остаётся рядом в `pack`
-   * — из него берутся ступень, тема и описание.
-   */
-  const packDecks = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    // Поиск идёт по всем полкам и снимает выбор слева: человек ищет «острый»,
-    // а не «в каком разделе лежит острый».
-    const base = q
-      ? packsList
-      : (packShelf ? (packShelvesList.find(x => x.title === packShelf)?.packs ?? []) : packsList)
-    return base
-      .filter(pack => {
-        if (!anyOf(fLevel, survivalLevelLabel(pack.level, subject))) return false
-        if (q) {
-          // Ищем и по самим словам: набор «Вкус» должен находиться по 맵다 и по
-          // «острый», а не только по своему названию.
-          const hay = `${pack.title} ${pack.about} ${pack.topic} ${pack.words.map(w => `${w.term} ${w.ru} ${w.reading ?? ''}`).join(' ')}`
-          if (!hay.toLowerCase().includes(q)) return false
-        }
-        const st = themeStats({ theme: { id: pack.id, title: pack.title }, phrases: pack.words }, states)
-        const started = st.total - st.fresh > 0
-        const done = st.total > 0 && st.learned === st.total
-        if (status === 'new' && started) return false
-        if (status === 'wip' && (!started || done)) return false
-        if (status === 'done' && !done) return false
-        return true
-      })
-      .map(pack => ({ pack, theme: { id: pack.id, title: pack.title }, phrases: pack.words }))
-  }, [packsList, packShelvesList, packShelf, query, status, states, fLevel, subject])
-
-  /** Ступени, которые вообще встречаются среди наборов, — для фильтра. */
-  const packLevelOpts = useMemo(() => {
-    const found = new Set(packsList.map(p => p.level))
-    return SURVIVAL_LEVELS.filter(l => found.has(l)).map(l => survivalLevelLabel(l, subject))
-  }, [packsList, subject])
-
-  /** Состояние памяти по открытому набору — для чисел в рейле. */
-  const packStats = useMemo(
-    () => (openPack
-      ? themeStats({ theme: { id: openPack.id, title: openPack.title }, phrases: openPack.words }, states)
-      : { total: 0, fresh: 0, learning: 0, learned: 0, due: 0, lapses: 0, pct: 0 }),
-    [openPack, states],
-  )
+  // Наборы слов — своя книга, свои полки, своя витрина; общая с соседями
+  // только память колоды, поэтому она и передаётся сюда, а не заводится там.
+  const packs = useWordPacksShelf({
+    lang, subject, subjectId, accent: palette.accent, soft: palette.soft,
+    active: mode === 'vocab' && vocabView === 'packs',
+    query, onQuery: setQuery,
+    status, onStatus: setStatus,
+    fLevel, onFLevel: setFLevel,
+    run, onRun: setRun,
+    phraseView, states, statesReady, onGraded, owner,
+  })
 
   /**
    * Наборы выбранной группы под витрину.
@@ -1025,7 +966,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || openPack || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
+  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || packs.openId || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -1083,7 +1024,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // отдельный экран — и адрес у него отдельный.
       if (openMyWords) return { lang, screen: 'words' }
       if (vocabView === 'nests') return { lang, screen: 'nests', id: nestsShelf.openId ?? undefined }
-      if (vocabView === 'packs') return { lang, screen: 'packs', id: openPackId ?? undefined }
+      if (vocabView === 'packs') return { lang, screen: 'packs', id: packs.openId ?? undefined }
       if (vocabView === 'due') return { lang, screen: 'due' }
       // Набор группы и папка живут в «Наборах», но адрес у них прежний
       // (`decks`): ссылки на набор уже разошлись, и ломать их незачем.
@@ -1108,7 +1049,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [
     lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
     openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, openTheme,
-    nestsShelf.openId, openPackId, openSetId, openGroupId,
+    nestsShelf.openId, packs.openId, openSetId, openGroupId,
     guide.openId, grammar.openId,
   ])
   // Предмет дописывается здесь, а не в двенадцати ветках выше: он один на весь
@@ -1133,7 +1074,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
     // Гасим всё открытое — см. «открытое перебивает половину» выше.
     setOpenTextId(null); scenesShelf.setOpenWorkId(null); scenesShelf.setOpenSceneId(null); setOpenAudioId(null)
-    setOpenTheme(null); nestsShelf.setOpenId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
+    setOpenTheme(null); nestsShelf.setOpenId(null); packs.setOpenId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
     blocks.reset(); grammar.setOpenId(null); guide.setOpenId(null); speaking.close()
 
     const id = link.id ?? null
@@ -1147,7 +1088,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'sets':     setMode('vocab'); setVocabView('sets'); setOpenTheme(id); break
       case 'words':    setMode('vocab'); setVocabView('sets'); setOpenTheme(MY_WORDS_ID); break
       case 'nests':    setMode('vocab'); setVocabView('nests'); nestsShelf.setOpenId(id); break
-      case 'packs':    setMode('vocab'); setVocabView('packs'); setOpenPackId(id); break
+      case 'packs':    setMode('vocab'); setVocabView('packs'); packs.setOpenId(id); break
       // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
       // приехавшим группам (см. эффект рядом с openGroup).
       case 'decks':    setMode('vocab'); setVocabView('sets'); setOpenSetId(id); setOpenGroupId(link.sub || id || ''); break
@@ -1165,7 +1106,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [
     lang, setMode, setReadingView, setVocabView, guide.setView,
     setOpenTextId, scenesShelf.setOpenWorkId, scenesShelf.setOpenSceneId, setOpenAudioId, setOpenTheme,
-    nestsShelf.setOpenId, setOpenPackId, setOpenGroupId,
+    nestsShelf.setOpenId, packs.setOpenId, setOpenGroupId,
     blocks.reset, blocks.openFromLink, grammar.setOpenId, guide.setOpenId,
   ])
 
@@ -1183,13 +1124,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   useScreenTop([
     lang, mode, readingView, vocabView, guide.view,
     openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openTheme,
-    nestsShelf.openId, openPackId, openSetId,
+    nestsShelf.openId, packs.openId, openSetId,
     guide.openId, grammar.openId, speaking.openId ?? '', blocks.open?.id ?? '',
     speaking.draftKey, blocks.draftKey, grammar.draftKey, libraryShelf.draftKey,
     fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     scenesShelf.draftKey,
-    shelf, packShelf, openGroupId,
+    shelf, openGroupId,
   ].join('|'))
 
 
@@ -1294,14 +1235,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           «Одно место для сита» в комментарии к строке. Рейлу остаётся то, что
           отвечает на вопрос «что показываем»: половина «Чтения» и «Показ». */}
 
-      {mode === 'vocab' && (hasBook || nestsShelf.on || packsOn || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !openPack && !openSet && (
+      {mode === 'vocab' && (hasBook || nestsShelf.on || packs.on || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !packs.open && !openSet && (
         <>
           {/* Уровень уехал в строку управления — там же, где он у сцен,
               грамматики и библиотеки. Здесь остаётся выбор материала и полка:
               это «что показываем», а не «чем сузили». */}
           <RailCard title="Материал" accent={palette.accent} icon={<Layers size={15} />}
-            action={shelf || packShelf
-              ? { label: t('Сбросить'), onClick: () => { setShelf(''); setPackShelf('') } }
+            action={shelf || packs.shelfPicked
+              ? { label: t('Сбросить'), onClick: () => { setShelf(''); packs.reset() } }
               : undefined}>
             {!narrow && (
             <RailSegment
@@ -1313,7 +1254,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 // «Слова» отдельной таблеткой от «Наборов»: это разный
                 // материал, а не разный фильтр одного. В наборах — готовые
                 // фразы под ситуацию, здесь — лексика пачкой по смыслу.
-                ...(packsOn ? [{ value: 'packs', label: 'Слова', icon: <Languages size={15} /> }] : []),
+                ...(packs.on ? [{ value: 'packs', label: 'Слова', icon: <Languages size={15} /> }] : []),
                 // Подпись короткая: «Повторение» рядом с соседями не влезало
                 // в рейл и обрезалось в «Повторе…». Неактивные ждут значками
                 // (idleIcon), выбранный забирает освободившееся место.
@@ -1341,15 +1282,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 soft={palette.soft}
               />
             )}
-            {vocabView === 'packs' && packShelvesList.length > 0 && (
-              <RailList
-                items={packShelvesList.map(x => ({ id: x.title, label: t(x.title), sub: t(x.subtitle), hint: String(x.count) }))}
-                value={packShelf}
-                onChange={v => setPackShelf(v === packShelf ? '' : v)}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
+            {vocabView === 'packs' && packs.railList}
           </RailCard>
           {/* Полки — папки витрины, а не сито: строка ОТКРЫВАЕТ группу, как
               плитка в сетке, и стоять ей поэтому не в «Фильтрах». Группа БЕЗ
@@ -1391,7 +1324,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           {/* Глубина по курсу. Стоит рядом с материалом, а не в шапке: цифра
               объясняет ровно то, почему список именно такой длины. */}
           {vocabView === 'nests' && nestsShelf.rail}
-          {(hasBook || packsOn || decksOn) && vocabView !== 'nests' && (
+          {(hasBook || packs.on || decksOn) && vocabView !== 'nests' && (
             <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
               <RailToggle label="Романизация" on={phraseView.reading}
                 onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
@@ -1516,7 +1449,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     : mode === 'vocab'
       ? [
           ...(hasBook || decksOn ? [{ id: 'sets', label: 'Наборы' }] : []),
-          ...(packsOn ? [{ id: 'packs', label: 'Слова' }] : []),
+          ...(packs.on ? [{ id: 'packs', label: 'Слова' }] : []),
           { id: 'due', label: 'Повторение', badge: due },
           ...(nestsShelf.on ? [{ id: 'nests', label: 'Созвучия' }] : []),
         ]
@@ -1649,39 +1582,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </ToolCount>
       </Toolbar>
     )
-  } else if (mode === 'vocab' && packsOn && vocabView === 'packs' && !openPack) {
-    toolbar = (
-      <Toolbar count={packDecks.length}>
-        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или набор…')} />
-        {packLevelOpts.length > 1 && (
-          <FilterMenu
-            label="Уровень"
-            options={packLevelOpts.map(l => ({
-              value: l, label: l,
-              count: packsList.filter(x => survivalLevelLabel(x.level, subject) === l).length,
-            }))}
-            value={fLevel}
-            onChange={setFLevel}
-            accent={palette.accent}
-            soft={palette.soft}
-          />
-        )}
-        <StatusTabs
-          options={[
-            { value: '', label: 'Все' },
-            { value: 'new', label: 'Не начатые' },
-            { value: 'wip', label: 'В работе' },
-            { value: 'done', label: 'Выучено' },
-          ]}
-          value={status}
-          onChange={setStatus}
-          accent={palette.accent}
-        />
-        <ToolCount>
-          {packDecks.reduce((n, x) => n + x.phrases.length, 0)} {t('слов')} · {packDecks.length} {t('наборов')}
-        </ToolCount>
-      </Toolbar>
-    )
+  } else if (mode === 'vocab' && packs.on && vocabView === 'packs') {
+    toolbar = packs.toolbar
   } else if (mode === 'vocab' && openSet) {
     toolbar = (
       <Toolbar>
@@ -1693,19 +1595,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           accent={palette.accent}
         />
         <ToolCount>{openSet.set.title}</ToolCount>
-      </Toolbar>
-    )
-  } else if (mode === 'vocab' && openPack) {
-    toolbar = (
-      <Toolbar>
-        <BackToSets onBack={() => setOpenPackId(null)} />
-        <StatusTabs
-          options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
-          value={run}
-          onChange={v => setRun(v as RunMode)}
-          accent={palette.accent}
-        />
-        <ToolCount>{t(openPack.title)}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'guide') {
@@ -1870,42 +1759,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {run === 'swipe' && <DeckHint />}
       </div>
     )
-  } else if (mode === 'vocab' && openPack) {
-    content = (
-      <PhraseRun
-        runId={`${packBook?.key ?? 'wp'}-${openPack.id}`}
-        phrases={openPack.words}
-        label={openPack.title}
-        // Стикер за чистый прогон — как у темы разговорника: набор такая же
-        // стопка, и повод для награды у них один.
-        reward={{ key: `wp:${packBook?.key ?? 'wp'}:${openPack.id}`, title: openPack.title, size: openPack.words.length }}
-        doneTitle="Набор пройден"
-        emptyTitle="На сегодня набор закрыт"
-        emptyText={'Все слова набора уже разобраны и ждут своего дня.\nМожно прогнать его заново — расписание при этом продолжит считаться.'}
-        lang={lang}
-        subjectId={subjectId}
-        accent={palette.accent}
-        owner={owner}
-        view={phraseView}
-        run={run}
-        states={states}
-        statesReady={statesReady}
-        onGraded={onGraded}
-      />
-    )
-  } else if (mode === 'vocab' && vocabView === 'packs' && packsOn) {
-    content = packBook === undefined
-      ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
-      : (
-        <PhraseDecks
-          themes={packDecks}
-          states={states}
-          accent={palette.accent}
-          soft={palette.soft}
-          levelLabel={x => survivalLevelLabel(x.pack.level, subject)}
-          onOpen={id => { setOpenPackId(id); setQuery(''); setStatus(''); setRun('list') }}
-        />
-      )
+  } else if (mode === 'vocab' && packs.on && vocabView === 'packs') {
+    content = packs.content
   } else if (mode === 'vocab' && vocabView === 'sets' && (hasBook || decksOn) && !editGroup) {
     // ВСЕ НАБОРЫ ЯЗЫКА В ОДНОЙ ВИТРИНЕ: темы разговорника, наборы полок и
     // одиночные наборы учителя. Полка стоит папкой (плитки ниже), внутри
