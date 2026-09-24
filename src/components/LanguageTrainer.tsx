@@ -30,9 +30,7 @@ import { addCards, deckOwner, deckStates, type CardState } from '../data/reviewD
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 // setCards переименован при импорте: в этом файле уже есть сеттер состояния
 // с тем же именем, и без псевдонима вызов молча уходил бы в него.
-import { fetchCardGroups, appFlag, isShelf, setCards as allSetCards, type CardGroup } from '../lib/cardGroups'
-import { hasCardSeeds, loadCardSeeds } from '../data/cardGroupSeeds'
-import MySetEditor, { emptyMyGroup } from './trainer/MySetEditor'
+import { isShelf, setCards as allSetCards } from '../lib/cardGroups'
 import { hasWordPacks, loadWordPacks } from '../data/wordPackBooks'
 import { hasStory, loadStory } from '../data/languageGuides'
 import { hasTextbooks, textbooksForLang } from '../data/textbooks'
@@ -46,6 +44,7 @@ import { useLibraryShelf } from './trainer/modes/useLibraryShelf'
 import { useNestsShelf } from './trainer/modes/useNestsShelf'
 import { useReviewDeck } from './trainer/modes/useReviewDeck'
 import { useMyWords } from './trainer/modes/useMyWords'
+import { useCardGroups } from './trainer/modes/useCardGroups'
 import { useWordPacksShelf } from './trainer/modes/useWordPacksShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
@@ -451,82 +450,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // карточку «Озвучка»: на одном дикторе она была бы пустой коробкой.
   const voiceChoice = useVoiceChoice(lang)
 
-  // ── Группы наборов ─────────────────────────────────────────────────────────
-  //
-  // Пятая половина вкладки — единственная, чей материал заводят люди, а не код:
-  // учитель собирает группу в Конструкторе («Сверхъестественное» → набор на
-  // сезон), ученик проходит её здесь. Рядом едут подборки-сиды: без них витрина
-  // у нового ученика была бы пуста до тех пор, пока кто-нибудь что-нибудь не
-  // заведёт (см. data/cardGroupSeeds.ts).
-  //
-  // Группа из БД и группа из кода в этом месте неразличимы намеренно: витрине
-  // нужны имя набора и список карточек, и знать, откуда они, ей незачем.
-  const [groups, setGroups] = useState<CardGroup[] | undefined>(undefined)
-  // Счётчик перезагрузки: своя подборка, сохранённая учеником, должна появиться
-  // в витрине сразу, а не после ухода со вкладки и обратно.
-  const [groupsKey, setGroupsKey] = useState(0)
-  useEffect(() => {
-    let alive = true
-    setGroups(undefined)
-    Promise.all([
-      // Ключ витрины — предмет: см. fetchCardGroups. Язык остаётся у сидов —
-      // они лежат в коде и разложены по языкам, а не по предметам.
-      fetchCardGroups(subjectId, owner.studentId),
-      hasCardSeeds(lang) ? loadCardSeeds(lang) : Promise.resolve([] as CardGroup[]),
-    ]).then(([db, seeds]) => {
-      if (!alive) return
-      setGroups([...seeds, ...db].sort((a, b) => a.sort - b.sort))
-    })
-    return () => { alive = false }
-  }, [lang, subjectId, owner.studentId, groupsKey])
-
-  /**
-   * Может ли ученик собирать свои подборки.
-   *
-   * Ответ приходит из app_flags и по умолчанию «нет»: недоступная база, старая
-   * схема, ошибка сети — всё это должно значить «фичи нет», а не «фича есть».
-   */
-  const [mySetsOn, setMySetsOn] = useState(false)
-  useEffect(() => {
-    let alive = true
-    appFlag('student_card_sets').then(on => { if (alive) setMySetsOn(on) })
-    return () => { alive = false }
-  }, [])
-  /** Открытый редактор своей подборки: новая группа или своя из витрины. */
-  const [editGroup, setEditGroup] = useState<CardGroup | null>(null)
-
-  // Таблетка рисуется, как только известно, что показывать. Пока группы едут,
-  // ответ «есть ли они» даёт синхронный реестр сидов: у языка с подборкой
-  // половина появляется сразу, у остальных — когда придёт ответ из базы.
-  const decksOn = hasCardSeeds(lang) || (groups?.length ?? 0) > 0
-  /**
-   * Открытая папка-полка витрины «Наборов».
-   *
-   * Это НАВИГАЦИЯ, а не фильтр: «Сверхъестественное» — папка, внутри которой
-   * лежат наборы по сезонам, и выбор её меняет экран, а не сужает текущий.
-   * Ключ в памяти прежний (`cardGroup`): у того, кто стоял на группе в бывших
-   * «Подборках», она и откроется.
-   */
-  const [openGroupId, setOpenGroupId] = usePersistentState<string>(`trainer.${lang}.cardGroup`, '')
-  const [openSetId, setOpenSetId] = usePersistentState<string | null>(`trainer.${lang}.cardSet`, null)
-  const openSet = useMemo(() => {
-    if (!openSetId) return null
-    for (const g of groups ?? []) {
-      const set = g.sets.find(x => x.id === openSetId)
-      if (set) return { group: g, set }
-    }
-    return null
-  }, [groups, openSetId])
-
-  // Четвёртый уровень: стопка внутри набора (серия внутри сезона). Открыт он
-  // или нет — решает не отдельный экран, а наличие подстопок у набора: у
-  // обычного набора их нет, и он открывается сразу карточками, как раньше.
-  const [openSubsetId, setOpenSubsetId] = usePersistentState<string | null>(`trainer.${lang}.cardSubset`, null)
-  const openSubset = useMemo(() => {
-    if (!openSubsetId || !openSet) return null
-    return openSet.set.subsets?.find(s => s.id === openSubsetId) ?? null
-  }, [openSet, openSubsetId])
-
   // ── О языке: рассказ и полка учебников ────────────────────────────────────
   //
   // Режим «О языке» целиком — рассказ, полка учебников, их состояние и куски
@@ -538,21 +461,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     lang, subjectId, accent: palette.accent, soft: palette.soft, narrow, active: mode === 'guide',
   })
 
-  // Восстановленная половина может оказаться несуществующей: разговорник для
-  // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
-  // есть, — иначе таблетки в рейле нет, а содержимое от неё показано.
-  useEffect(() => {
-    // Сохранённые «Подборки» уводим в «Наборы»: половины больше нет, а вернуть
-    // человека надо туда, где лежит ровно тот же материал.
-    if (vocabView === 'decks') setVocabView('sets')
-    // Группы ждут ответа базы: пока `groups` не приехали, «нет групп» — это не
-    // факт, а незнание, и съезжать с половины по нему нельзя.
-    else if (vocabView === 'sets' && !hasBook && groups !== undefined && !decksOn) setVocabView('due')
-    else if (vocabView === 'nests' && !nestsShelf.on) setVocabView(hasBook ? 'sets' : 'due')
-    // Наличие наборов — синхронный ответ реестра по языку; ждать хука,
-    // который стоит ниже (ему нужна память колоды), здесь незачем.
-    else if (vocabView === 'packs' && !hasWordPacks(lang)) setVocabView(hasBook ? 'sets' : 'due')
-  }, [vocabView, hasBook, lang, nestsShelf.on, groups, decksOn, setVocabView])
 
   // То же для «О языке»: восстановленная половина могла исчезнуть вместе с
   // языком, а режим целиком — вместе с рассказом и полкой.
@@ -811,53 +719,36 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     phraseView, states, statesReady, onGraded, owner,
   })
 
-  /**
-   * Наборы выбранной группы под витрину.
-   *
-   * Форма прежняя — DeckCard: имя стопки и список карточек. Метка серии (`ep`)
-   * в витрину не идёт: на плитке она не помещается, а внутри набора её видно у
-   * каждой карточки.
-   *
-   * Без выбранной группы показываются наборы ВСЕХ групп подряд. Это осознанно:
-   * групп у ученика единицы, и пустой экран с надписью «выбери слева» стоил бы
-   * лишнего клика ради ничего.
-   */
-  const groupDecks = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    // Открытая папка держит выборку даже при поиске: искали внутри неё.
-    // Без папки ищется и показывается всё подряд — групп у ученика единицы.
-    const list = (groups ?? []).filter(g => openGroupId ? g.id === openGroupId : true)
-    return list.flatMap(g => g.sets.map(set => ({ group: g, set, theme: { id: set.id, title: set.title }, phrases: allSetCards(set) })))
-      .filter(x => {
-        if (q) {
-          const hay = `${x.group.title} ${x.set.title} ${x.set.about} ${x.phrases.map(c => `${c.term} ${c.ru} ${c.ep ?? ''}`).join(' ')}`
-          if (!hay.toLowerCase().includes(q)) return false
-        }
-        const st = themeStats({ theme: x.theme, phrases: x.phrases }, states)
-        const started = st.total - st.fresh > 0
-        const done = st.total > 0 && st.learned === st.total
-        if (status === 'new' && started) return false
-        if (status === 'wip' && (!started || done)) return false
-        if (status === 'done' && !done) return false
-        return true
-      })
-  }, [groups, openGroupId, query, status, states])
+  // Наборы учителя и свои подборки — единственный материал вкладки, который
+  // заводят люди. Четыре этажа (полка → набор → серия → прогон) целиком внутри;
+  // наружу идут плитки, потому что сетка у них общая с разговорником
+  // (components/trainer/modes/useCardGroups).
+  const cardGroups = useCardGroups({
+    lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
+    query, status, states, statesReady, run, phraseView, onGraded,
+    tourExtra: runTourStep,
+  })
+  const groups = cardGroups.groups
+  const decksOn = cardGroups.on
+  const groupDecks = cardGroups.decks
+  const openGroup = cardGroups.openGroup
+  const openSet = cardGroups.openSet
 
-  // Полки могла не пережить перезагрузку: группу удалили в Конструкторе, а её
-  // id остался в памяти вкладки. Без сброса витрина фильтровалась бы по
-  // несуществующей папке и стояла пустой.
+  // Восстановленная половина может оказаться несуществующей: разговорник для
+  // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
+  // есть, — иначе таблетки в рейле нет, а содержимое от неё показано.
   useEffect(() => {
-    if (groups === undefined) return
-    if (openGroupId && !groups.some(g => g.id === openGroupId && isShelf(g))) setOpenGroupId('')
-    if (openSetId && !groups.some(g => g.sets.some(x => x.id === openSetId))) { setOpenSetId(null); setOpenSubsetId(null) }
-    if (openSubsetId && !openSubset) setOpenSubsetId(null)
-  }, [groups, openGroupId, setOpenGroupId, openSetId, setOpenSetId])
-
-  /** Открытая папка — только названная группа: обёртка одиночного набора папкой не бывает. */
-  const openGroup = useMemo(
-    () => (groups ?? []).find(g => g.id === openGroupId && isShelf(g)) ?? null,
-    [groups, openGroupId],
-  )
+    // Сохранённые «Подборки» уводим в «Наборы»: половины больше нет, а вернуть
+    // человека надо туда, где лежит ровно тот же материал.
+    if (vocabView === 'decks') setVocabView('sets')
+    // Группы ждут ответа базы: пока `groups` не приехали, «нет групп» — это не
+    // факт, а незнание, и съезжать с половины по нему нельзя.
+    else if (vocabView === 'sets' && !hasBook && groups !== undefined && !decksOn) setVocabView('due')
+    else if (vocabView === 'nests' && !nestsShelf.on) setVocabView(hasBook ? 'sets' : 'due')
+    // Наличие наборов — синхронный ответ реестра по языку; ждать хука,
+    // который стоит ниже (ему нужна память колоды), здесь незачем.
+    else if (vocabView === 'packs' && !hasWordPacks(lang)) setVocabView(hasBook ? 'sets' : 'due')
+  }, [vocabView, hasBook, lang, nestsShelf.on, groups, decksOn, setVocabView])
 
   /**
    * Витрина «Наборов» целиком: темы разговорника и наборы групп в ОДНОЙ сетке.
@@ -990,9 +881,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // Папка без набора адресуется тем же полем id: что приехало — полка или
       // набор, — разбирается на входе (см. case 'decks'). Второй сегмент адреса
       // (`sub`) живёт только рядом с id, поэтому одной папке он не достался бы.
-      if (openSetId) return { lang, screen: 'decks', id: openSetId, sub: openGroupId || undefined }
+      if (cardGroups.openSet) return { lang, screen: 'decks', id: cardGroups.openSet.set.id, sub: cardGroups.openGroupId || undefined }
       if (openTheme) return { lang, screen: 'sets', id: openTheme }
-      if (openGroupId) return { lang, screen: 'decks', id: openGroupId }
+      if (cardGroups.openGroupId) return { lang, screen: 'decks', id: cardGroups.openGroupId }
       return { lang, screen: 'sets' }
     }
     if (mode === 'listening') return { lang, screen: 'audio', id: openAudioId ?? undefined }
@@ -1008,7 +899,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [
     lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
     openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, openTheme,
-    nestsShelf.openId, packs.openId, openSetId, openGroupId,
+    nestsShelf.openId, packs.openId, cardGroups.openSet, cardGroups.openGroupId,
     guide.openId, grammar.openId,
   ])
   // Предмет дописывается здесь, а не в двенадцати ветках выше: он один на весь
@@ -1033,7 +924,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
     // Гасим всё открытое — см. «открытое перебивает половину» выше.
     setOpenTextId(null); scenesShelf.setOpenWorkId(null); scenesShelf.setOpenSceneId(null); setOpenAudioId(null)
-    setOpenTheme(null); nestsShelf.setOpenId(null); packs.setOpenId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
+    setOpenTheme(null); nestsShelf.setOpenId(null); packs.setOpenId(null); cardGroups.setOpenSetId(null); cardGroups.setOpenSubsetId(null); cardGroups.setOpenGroupId('')
     blocks.reset(); grammar.setOpenId(null); guide.setOpenId(null); speaking.close()
 
     const id = link.id ?? null
@@ -1050,7 +941,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'packs':    setMode('vocab'); setVocabView('packs'); packs.setOpenId(id); break
       // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
       // приехавшим группам (см. эффект рядом с openGroup).
-      case 'decks':    setMode('vocab'); setVocabView('sets'); setOpenSetId(id); setOpenGroupId(link.sub || id || ''); break
+      case 'decks':    setMode('vocab'); setVocabView('sets'); cardGroups.setOpenSetId(id); cardGroups.setOpenGroupId(link.sub || id || ''); break
       case 'due':      setMode('vocab'); setVocabView('due'); break
       case 'audio':    setMode('listening'); setOpenAudioId(id); break
       case 'speaking': setMode('speaking'); break
@@ -1065,7 +956,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [
     lang, setMode, setReadingView, setVocabView, guide.setView,
     setOpenTextId, scenesShelf.setOpenWorkId, scenesShelf.setOpenSceneId, setOpenAudioId, setOpenTheme,
-    nestsShelf.setOpenId, packs.setOpenId, setOpenGroupId,
+    nestsShelf.setOpenId, packs.setOpenId, cardGroups.setOpenGroupId,
     blocks.reset, blocks.openFromLink, grammar.setOpenId, guide.setOpenId,
   ])
 
@@ -1083,13 +974,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   useScreenTop([
     lang, mode, readingView, vocabView, guide.view,
     openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openTheme,
-    nestsShelf.openId, packs.openId, openSetId,
+    nestsShelf.openId, packs.openId, cardGroups.openSet?.set.id ?? '',
     guide.openId, grammar.openId, speaking.openId ?? '', blocks.open?.id ?? '',
     speaking.draftKey, blocks.draftKey, grammar.draftKey, libraryShelf.draftKey,
     fLen, status, query, sort,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     scenesShelf.draftKey,
-    shelf, openGroupId,
+    shelf, cardGroups.openGroupId,
   ].join('|'))
 
 
@@ -1247,39 +1138,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               плитка в сетке, и стоять ей поэтому не в «Фильтрах». Группа БЕЗ
               ИМЕНИ (обёртка одиночного набора, см. isShelf) папки не заводит —
               её набор лежит в сетке сам. */}
-          {vocabView === 'sets' && (groups ?? []).some(isShelf) && (
-            <RailCard title="Полки" accent={palette.accent} icon={<Layers size={15} />}
-              action={openGroup ? { label: t('Ко всем'), onClick: () => setOpenGroupId('') } : undefined}>
-              <RailList
-                items={(groups ?? []).filter(isShelf).map(g => ({
-                  id: g.id,
-                  label: g.title,
-                  sub: g.about,
-                  // Через allSetCards, а не x.cards: у набора с сериями свои карточки
-                  // пусты, они лежат в стопках, и прямой счёт давал полке ноль.
-                  hint: String(g.sets.reduce((n, x) => n + allSetCards(x).length, 0)),
-                }))}
-                value={openGroupId}
-                onChange={v => setOpenGroupId(v === openGroupId ? '' : v)}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-              {/* Своя подборка правится оттуда же, где открыта: кнопка стоит
-                  под списком полок и появляется, только когда открыта СВОЯ. */}
-              {mySetsOn && openGroup?.authorStudentId && (
-                <button
-                  onClick={() => setEditGroup(openGroup)}
-                  style={{
-                    height: 34, borderRadius: 12, border: `1px solid ${palette.accent}55`,
-                    background: 'transparent', color: palette.accent, fontFamily: 'inherit',
-                    fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-                  }}
-                >
-                  {t('Править подборку')}
-                </button>
-              )}
-            </RailCard>
-          )}
+          {vocabView === 'sets' && cardGroups.rail}
           {/* Глубина по курсу. Стоит рядом с материалом, а не в шапке: цифра
               объясняет ровно то, почему список именно такой длины. */}
           {vocabView === 'nests' && nestsShelf.rail}
@@ -1464,12 +1323,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = nestsShelf.toolbar
   } else if (mode === 'vocab' && openMyWords) {
     toolbar = myWordsHalf.toolbar
-  } else if (mode === 'vocab' && vocabView === 'sets' && !openItem && !openSet && !editGroup) {
+  } else if (mode === 'vocab' && vocabView === 'sets' && !openItem && !openSet && !cardGroups.editing) {
     toolbar = (
       <Toolbar count={setsDecks.length}>
         {/* Внутри папки «назад» стоит первым — как в открытом наборе: папка
             такой же экран, а не выбранная слева галочка. */}
-        {openGroup && <BackToSets onBack={() => setOpenGroupId('')} />}
+        {openGroup && <BackToSets onBack={() => cardGroups.setOpenGroupId('')} />}
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(openGroup ? 'Найти набор…' : 'Найти тему или слово…')} />
         {!openGroup && setLevelOpts.length > 1 && (
@@ -1511,7 +1370,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && openSet) {
     toolbar = (
       <Toolbar>
-        <BackToSets onBack={() => (openSubset ? setOpenSubsetId(null) : setOpenSetId(null))} />
+        <BackToSets onBack={() => (cardGroups.openSubset ? cardGroups.setOpenSubsetId(null) : cardGroups.setOpenSetId(null))} />
         <StatusTabs
           options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
           value={run}
@@ -1583,86 +1442,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     )
   } else if (mode === 'guide') {
     content = guide.content
-  } else if (mode === 'vocab' && editGroup) {
-    content = (
-      <MySetEditor
-        group={editGroup}
-        studentId={owner.studentId ?? ''}
-        accent={palette.accent}
-        onClose={() => setEditGroup(null)}
-        onSaved={() => { setEditGroup(null); setGroupsKey(k => k + 1) }}
-      />
-    )
-  } else if (mode === 'vocab' && openSet && openSet.set.subsets?.length && !openSubset) {
-    // Набор с подстопками сам карточек не показывает: между ним и прогоном
-    // стоит выбор серии. Плитка та же, что у наборов, — витрина не должна
-    // менять язык на четвёртом уровне.
-    content = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <TileGrid min={220}>
-          {openSet.set.subsets.map(sub => {
-            const st = themeStats({ theme: { id: sub.id, title: sub.title }, phrases: sub.cards }, states)
-            const pct = st.total ? Math.round((st.learned / st.total) * 100) : 0
-            return (
-              <Tile key={sub.id} accent={palette.accent} onClick={() => setOpenSubsetId(sub.id)}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <TileChip tone="mute">{sub.cards.length} {t('слов')}</TileChip>
-                </span>
-                <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
-                    {sub.title}
-                  </span>
-                </span>
-                <TileMeter value={pct} />
-                <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
-                  <span>{st.total - st.fresh > 0 ? t('в работе') : t('не начата')}</span>
-                  {st.learned > 0 && (
-                    <span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>
-                      {st.learned} / {st.total}
-                    </span>
-                  )}
-                </span>
-              </Tile>
-            )
-          })}
-        </TileGrid>
-      </div>
-    )
-  } else if (mode === 'vocab' && openSet) {
-    // Прогон идёт по стопке серии, если она открыта, и по самому набору, если
-    // подстопок у него нет. Ключи прогресса и стикера берутся у того же
-    // источника — иначе серия считала бы прогресс сезона.
-    const runSet = openSubset ?? openSet.set
-    content = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <PhraseRun
-          runId={`cg-${runSet.id}`}
-          phrases={runSet.cards}
-          label={runSet.title}
-          // Стикер за чистый прогон — как у темы разговорника и набора слов.
-          // Ключ с префиксом cg: и id набора: он стабилен и у сида (см.
-          // data/cardSeeds), и у строки в базе.
-          reward={{ key: `cg:${runSet.id}`, title: runSet.title, size: runSet.cards.length }}
-          doneTitle="Набор пройден"
-          emptyTitle="На сегодня набор закрыт"
-          emptyText={'Все слова набора уже разобраны и ждут своего дня.\nМожно прогнать его заново — расписание при этом продолжит считаться.'}
-          lang={lang}
-          subjectId={subjectId}
-          accent={palette.accent}
-          owner={owner}
-          view={phraseView}
-          run={run}
-          states={states}
-          statesReady={statesReady}
-          onGraded={onGraded}
-          tourExtra={runTourStep}
-        />
-        {run === 'swipe' && <DeckHint />}
-      </div>
-    )
+  } else if (mode === 'vocab' && cardGroups.content) {
+    content = cardGroups.content
   } else if (mode === 'vocab' && packs.on && vocabView === 'packs') {
     content = packs.content
-  } else if (mode === 'vocab' && vocabView === 'sets' && (hasBook || decksOn) && !editGroup) {
+  } else if (mode === 'vocab' && vocabView === 'sets' && (hasBook || decksOn) && !cardGroups.editing) {
     // ВСЕ НАБОРЫ ЯЗЫКА В ОДНОЙ ВИТРИНЕ: темы разговорника, наборы полок и
     // одиночные наборы учителя. Полка стоит папкой (плитки ниже), внутри
     // папки — её наборы; см. setsDecks.
@@ -1683,7 +1467,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                   слову ищут набор, а не полку, и найденные наборы приезжают в
                   сетку сами (см. setsDecks). */}
               {!query.trim() && (groups ?? []).filter(isShelf).map(g => (
-                <Tile key={g.id} accent={palette.accent} stack onClick={() => setOpenGroupId(g.id)}>
+                <Tile key={g.id} accent={palette.accent} stack onClick={() => cardGroups.setOpenGroupId(g.id)}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>
                       {g.sets.length} {t(plural(g.sets.length, ['набор', 'набора', 'наборов']))}
@@ -1718,12 +1502,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               {/* Плитка «Своя подборка» — только при поднятом флаге. Плиткой, а
                   не кнопкой в панели: собрать своё — такой же вход в материал,
                   как открыть чужой набор, и место у него там же. */}
-              {mySetsOn && owner.studentId && (
+              {cardGroups.canMakeOwn && (
                 <Tile
                   accent={palette.accent}
                   stack
                   tint={{ surface: `${palette.accent}14`, border: `${palette.accent}4d` }}
-                  onClick={() => setEditGroup(emptyMyGroup(lang, subjectId))}
+                  onClick={cardGroups.startNew}
                 >
                   <TileChip tone="solid" accent={palette.accent} soft={palette.soft}>
                     {t('Своя')}
@@ -1743,7 +1527,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             // Набор группы и тема разговорника лежат в одной сетке, и открывать
             // их надо разным: у набора своя стопка (PhraseRun), у темы — своя.
             if ((groups ?? []).some(g => g.sets.some(x => x.id === id))) {
-              setOpenSetId(id); setRun('list')
+              cardGroups.setOpenSetId(id); setRun('list')
             } else {
               setOpenTheme(id); setRun('swipe')
             }
