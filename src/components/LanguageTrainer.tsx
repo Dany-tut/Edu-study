@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { hasFeed, dayLabel, type FeedItem } from '../data/feed'
 import { outletById } from '../data/feed/outlets'
@@ -15,19 +15,19 @@ import { getSubject, type TrainerMode } from '../lib/subjects'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import PhraseDecks, {
-  ThemeSession, PhraseRun, BackToSets, TakeWholeTheme, DeckHint, themeStats,
+  PhraseRun, BackToSets, DeckHint, themeStats,
   type PhraseView, type RunMode,
 } from './PhraseDecks'
 import TrainerShell, {
   useTrainerNarrow, type TrainerNav,
   RailHero, RailCard, RailModes, RailSegment, RailList, RailToggle, RailStat,
-  Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, FilterMenu, ToolCount, plural,
+  Toolbar, SearchPill, StatusTabs, ToolButton, FilterMenu, ToolCount, plural,
   Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty, PILL_GLASS,
 } from './trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
 import { addCards, deckOwner, deckStates, type CardState } from '../data/reviewDeck'
-import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
+import { hasSurvivalBook } from '../data/survivalBooks'
 // setCards переименован при импорте: в этом файле уже есть сеттер состояния
 // с тем же именем, и без псевдонима вызов молча уходил бы в него.
 import { isShelf, setCards as allSetCards } from '../lib/cardGroups'
@@ -45,6 +45,7 @@ import { useNestsShelf } from './trainer/modes/useNestsShelf'
 import { useReviewDeck } from './trainer/modes/useReviewDeck'
 import { useMyWords } from './trainer/modes/useMyWords'
 import { useCardGroups } from './trainer/modes/useCardGroups'
+import { useSurvivalShelf } from './trainer/modes/useSurvivalShelf'
 import { useWordPacksShelf } from './trainer/modes/useWordPacksShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
@@ -55,13 +56,9 @@ import {
   type TrainerLink,
 } from '../lib/trainerLink'
 import ScoreReader, { hasReadings } from './trainer/ScoreReader'
-import {
-  survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
-  type SurvivalBook, type SurvivalThemeCards,
-} from '../data/survivalPhrases'
 import { MY_WORDS_ID } from './trainer/MyWords'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
-import { courseReach, reachLevelIndex, reachNote } from '../lib/courseReach'
+import { courseReach, reachNote } from '../lib/courseReach'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
@@ -152,8 +149,6 @@ type BlocksView = 'stems' | 'roots' | 'numbers' | 'sounds'
  * тема отвечают на вопрос «потяну ли», длительность — на «влезет ли сейчас», и
  * без неё библиотека фильтруется только по первому.
  */
-/** Пересечение выбранного списка со значением. Пустой список = «все». */
-const anyOf = (picked: string[], value: string) => picked.length === 0 || picked.includes(value)
 
 /**
  * Три половины вкладки «Карточки».
@@ -292,7 +287,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Общая строка управления — одна на все режимы, поэтому и состояние общее.
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('')
-  const [sort, setSort] = useState('order')
 
   // Говорение считает свои задания само (список собирается из разговорника), а
   // рейлу и строке нужны только числа — поэтому они поднимаются оттуда сюда.
@@ -308,7 +302,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // библиотеку. Сбрасываются оба, иначе «Уровень B1», выбранный в чтении,
     // молча прячет половину наборов.
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen([])
-    setQuery(''); setStatus(''); setSort('order')
+    setQuery(''); setStatus('')
     libraryShelf.reset()
     // Вид задания говорения сбрасывается вместе с открытым — оба внутри режима.
     scenesShelf.reset(); speaking.reset()
@@ -473,7 +467,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // Книга и прогресс грузятся ЗДЕСЬ, а не внутри витрины: рейл показывает полки
   // со счётчиками и должен знать их до того, как отрисуется содержимое справа.
   // Книга ленивая (≈100 КБ на язык) — см. data/survivalBooks.ts.
-  const [book, setBook] = useState<SurvivalBook | null | undefined>(undefined)
   // Память колоды по фразам: сколько раз подряд вспомнил, сколько раз забыл,
   // когда вернётся. Раньше здесь лежало множество «что уже в колоде» — оно
   // отвечало только на вопрос «какие фразы я однажды не знал».
@@ -484,9 +477,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // читается по сети.
   const [statesReady, setStatesReady] = useState(false)
   const [knownKey, setKnownKey] = useState(0)
-  const [shelf, setShelf] = useState('')
-  // Открытая тема разговорника переживает F5 по той же причине, что и текст.
-  const [openTheme, setOpenTheme] = usePersistentState<string | null>(`trainer.${lang}.theme`, null)
   const [run, setRun] = useState<RunMode>('swipe')
   const [phraseView, setPhraseView] = useState<PhraseView>({ reading: true, reverse: false })
 
@@ -528,14 +518,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     text: t('Свайп проверяет память, а по новой теме её ещё нет. «Списком» даёт прочитать все фразы темы за минуту — с заметками и озвучкой — и только потом идти в стопку.'),
   }
 
-  useEffect(() => {
-    if (!hasBook) { setBook(null); return }
-    let alive = true
-    setBook(undefined)
-    loadSurvivalBook(lang).then(b => { if (alive) setBook(b ?? null) })
-    return () => { alive = false }
-  }, [hasBook, lang])
-
   // Режим «Грамматика» целиком — справочник, его фильтры и куски экрана
   // (components/trainer/modes/useGrammarMode). Второй режим, уехавший из этого
   // файла; поиск остаётся общим на весь тренажёр и приходит к нему пропом.
@@ -576,30 +558,51 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     })
   }, [])
 
-  const shelves = useMemo(() => survivalShelves(book ?? undefined), [book])
-  const allThemes = useMemo(() => shelves.flatMap(s => s.themes), [shelves])
+  // Наборы учителя и свои подборки — единственный материал вкладки, который
+  // заводят люди. Четыре этажа (полка → набор → серия → прогон) целиком внутри;
+  // наружу идут плитки, потому что сетка у них общая с разговорником
+  // (components/trainer/modes/useCardGroups).
+  const cardGroups = useCardGroups({
+    lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
+    query, status, states, statesReady, run, phraseView, onGraded,
+    tourExtra: runTourStep,
+  })
+  const groups = cardGroups.groups
+  const decksOn = cardGroups.on
+  const groupDecks = cardGroups.decks
+  const openGroup = cardGroups.openGroup
+  const openSet = cardGroups.openSet
 
-  // Фразы разговорника — то, чего в личном словаре быть не должно: они уже
-  // разложены по своим плиткам, и словарь с ними стал бы копией всей витрины.
-  const bookPhrases = useMemo(
-    () => new Set(allThemes.flatMap(x => x.phrases.map(p => p.term))),
-    [allThemes],
-  )
+  // Разговорник — готовые фразы по ситуациям. Книга, полки, ступени, сито и
+  // экран открытой темы целиком внутри; наружу идут плитки, потому что сетка у
+  // них общая с наборами учителя (components/trainer/modes/useSurvivalShelf).
+  const sets = useSurvivalShelf({
+    lang, subject, subjectId, owner, accent: palette.accent, soft: palette.soft,
+    hasBook, inGroup: !!openGroup,
+    query, status, fLevel, reach, states, statesReady,
+    run, onRun: setRun, phraseView, onGraded,
+    onAdded: () => setKnownKey(k => k + 1),
+    runTabsRef, tourExtra: runTourStep,
+  })
+  const book = sets.book
+  const allThemes = sets.themes
+  const openItem = sets.openItem
+
   /** Открыт словарь, а не тема: у него свой ключ в том же поле (см. MY_WORDS_ID). */
-  const openMyWords = openTheme === MY_WORDS_ID
+  const openMyWords = sets.openId === MY_WORDS_ID
   // Личный словарь — собранные слова списком. Открыт он или нет, знает
   // тренажёр: поле у него общее с темой разговорника, и писать в него из двух
   // мест нельзя (components/trainer/modes/useMyWords).
   const myWordsHalf = useMyWords({
     lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
     deckSubjects, reloadKey: knownKey, onReload: () => setKnownKey(k => k + 1),
-    bookPhrases, bookReady: !hasBook || book !== undefined,
+    bookPhrases: sets.phrases, bookReady: !hasBook || sets.book !== undefined,
     open: openMyWords,
     // Словарь открывается СПИСКОМ, а не свайпом: сюда приходят посмотреть, что
     // набрано, — стопка на сегодня в двух кликах, а обратно из свайпа к списку
     // человек догадается не сразу.
-    onOpen: () => { setOpenTheme(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') },
-    onClose: () => setOpenTheme(null),
+    onOpen: () => { sets.setOpenId(MY_WORDS_ID); setQuery(''); setStatus(''); setRun('list') },
+    onClose: () => sets.setOpenId(null),
     run, onRun: setRun, phraseView, states, statesReady, onGraded,
     tourExtra: runTourStep,
   })
@@ -626,87 +629,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       doneCount: bookStats.learned, totalCount: bookStats.total, wrongCount: bookStats.lapses, favCount: 0,
     })
   }, [subject, subjectId, bookStats, updateProgress])
-  const openItem = useMemo(
-    () => allThemes.find(x => x.theme.id === openTheme) ?? null,
-    [allThemes, openTheme],
-  )
   /** Состояние памяти по открытой теме — для чисел в рейле. */
-  const openStats = useMemo(
-    () => (openItem ? themeStats(openItem, states) : { total: 0, fresh: 0, learning: 0, learned: 0, due: 0, lapses: 0, pct: 0 }),
-    [openItem, states],
-  )
 
-  // ── Ступень темы ───────────────────────────────────────────────────────────
-  //
-  // Полки разговорника отвечают на вопрос «что за ситуация», а не «потяну ли
-  // я». Человеку, который уже говорит, витрина открывалась с «Здравствуйте» и
-  // «Чисел» — то есть с того, что он проходил три уровня назад, — и «Виза» с
-  // «Больницей», ради которых он сюда и пришёл, лежали шестым экраном вниз.
-  //
-  // Ступень подписывается в шкале самого предмета (у корейского TOPIK, у
-  // японского JLPT), поэтому фильтр работает по подписи, а не по букве CEFR:
-  // иначе в списке стояло бы «B1», а на карточке «TOPIK 3급», и это читалось бы
-  // как два разных фильтра.
-  const themeLevel = useMemo(
-    () => (x: SurvivalThemeCards) => survivalLevelLabel(x.theme.level, subject),
-    [subject],
-  )
-  const setLevelOpts = useMemo(() => {
-    const found = new Set(allThemes.map(x => x.theme.level))
-    return SURVIVAL_LEVELS.filter(l => found.has(l)).map(l => survivalLevelLabel(l, subject))
-  }, [allThemes, subject])
-
-  /**
-   * Тема выше глубины по курсу.
-   *
-   * Не фильтр: разговорник нужен человеку и на две ступени вперёд («завтра
-   * вылет»), поэтому такие темы остаются открытыми — они только гасятся на
-   * витрине и уезжают в её конец при сортировке по умолчанию.
-   */
-  const reachLevel = useMemo(() => reachLevelIndex(reach), [reach])
-  const themeAhead = useMemo(
-    () => (x: SurvivalThemeCards) => reachLevel >= 0 && SURVIVAL_LEVELS.indexOf(x.theme.level) > reachLevel,
-    [reachLevel],
-  )
-
-  /** Темы под текущей полкой, ступенью, поиском, статусом и сортировкой. */
-  const visibleThemes = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    // Поиск идёт по всем полкам и молча снимает выбор слева: человек, который
-    // ищет «аптеку», не должен ещё и угадывать, в каком она разделе.
-    const base = q
-      ? allThemes
-      : (shelf ? (shelves.find(s => s.title === shelf)?.themes ?? []) : allThemes)
-
-    const out = base.filter(x => {
-      if (!anyOf(fLevel, themeLevel(x))) return false
-      if (q && !`${x.theme.title} ${x.theme.vocabTheme} ${x.theme.goal}`.toLowerCase().includes(q)) return false
-      // Статус темы — по состоянию памяти: «не начатая» = ни одной фразы не
-      // отвечали, «выучено» = все фразы вынесены на длинный интервал.
-      const st = themeStats(x, states)
-      const started = st.total - st.fresh > 0
-      const done = st.total > 0 && st.learned === st.total
-      if (status === 'new' && started) return false
-      if (status === 'wip' && (!started || done)) return false
-      if (status === 'done' && !done) return false
-      return true
-    })
-    if (sort === 'size') out.sort((a, b) => b.phrases.length - a.phrases.length)
-    if (sort === 'progress') out.sort((a, b) => themeStats(b, states).pct - themeStats(a, states).pct)
-    // Сортировка стабильная, поэтому внутри ступени темы остаются в порядке
-    // сетки — «Кофейня» раньше «Еды», как и на витрине без сортировки.
-    if (sort === 'level') {
-      out.sort((a, b) => SURVIVAL_LEVELS.indexOf(a.theme.level) - SURVIVAL_LEVELS.indexOf(b.theme.level))
-    }
-    // По умолчанию витрина начинается с того, что ученику уже по силам, а темы
-    // на вырост уезжают в конец. Сортировка стабильная, поэтому внутри обеих
-    // половин порядок сетки сохраняется. Явно выбранную сортировку не трогаем:
-    // человек, который просил «по размеру», просил именно её.
-    if (sort === 'order') {
-      out.sort((a, b) => Number(themeAhead(a)) - Number(themeAhead(b)))
-    }
-    return out
-  }, [allThemes, shelves, shelf, query, status, sort, states, fLevel, themeLevel, themeAhead])
   // Наборы слов — своя книга, свои полки, своя витрина; общая с соседями
   // только память колоды, поэтому она и передаётся сюда, а не заводится там.
   const packs = useWordPacksShelf({
@@ -718,21 +642,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     run, onRun: setRun,
     phraseView, states, statesReady, onGraded, owner,
   })
-
-  // Наборы учителя и свои подборки — единственный материал вкладки, который
-  // заводят люди. Четыре этажа (полка → набор → серия → прогон) целиком внутри;
-  // наружу идут плитки, потому что сетка у них общая с разговорником
-  // (components/trainer/modes/useCardGroups).
-  const cardGroups = useCardGroups({
-    lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
-    query, status, states, statesReady, run, phraseView, onGraded,
-    tourExtra: runTourStep,
-  })
-  const groups = cardGroups.groups
-  const decksOn = cardGroups.on
-  const groupDecks = cardGroups.decks
-  const openGroup = cardGroups.openGroup
-  const openSet = cardGroups.openSet
 
   // Восстановленная половина может оказаться несуществующей: разговорник для
   // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
@@ -759,28 +668,21 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
    * лежит нужная стопка, — и на телефоне до неё вообще нельзя было дойти.
    *
    * Полка (названная группа) в сетку не разворачивается: она стоит папкой (см.
-   * shelfTiles), а внутри лежат её наборы. Обёртка одиночного набора папки не
-   * заводит — набор ложится в сетку сам. Поиск папки временно вскрывает: ищут
-   * слово, а не полку, и прятать найденное за папкой значит не найти.
+   * плитки-папки ниже), а внутри лежат её наборы. Обёртка одиночного набора
+   * папки не заводит — набор ложится в сетку сам. Поиск папки временно
+   * вскрывает: ищут слово, а не полку, и прятать найденное за папкой значит
+   * не найти.
    */
   const setsDecks = useMemo(() => {
     const searching = query.trim().length > 0
-    // Внутри папки витрина — наборы одной полки, и больше ничего: разговорник
-    // на этом этаже был бы чужим материалом, приехавшим без спроса.
+    // Внутри папки витрина — наборы одной полки, и больше ничего.
     if (openGroup) {
       return groupDecks.map(x => ({
         theme: x.theme, phrases: x.phrases, label: '', ahead: false,
       }))
     }
-    const themes = hasBook
-      ? visibleThemes.map(x => ({
-          theme: x.theme as { id: string; title: string },
-          phrases: x.phrases,
-          label: themeLevel(x),
-          ahead: themeAhead(x),
-        }))
-      : []
-    const sets = groupDecks
+    const themes = sets.decks
+    const groupSets = groupDecks
       .filter(x => searching || !isShelf(x.group))
       .map(x => ({
         theme: x.theme,
@@ -790,8 +692,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         label: isShelf(x.group) ? x.group.title : '',
         ahead: false,
       }))
-    return [...sets, ...themes]
-  }, [hasBook, visibleThemes, themeLevel, themeAhead, groupDecks, openGroup, query])
+    return [...groupSets, ...themes]
+  }, [sets.decks, groupDecks, openGroup, query])
 
   // Повторение — личная колода по расписанию. Половина без витрины: делит с
   // соседями только предмет и владельца, память `states` ей не нужна вовсе
@@ -882,7 +784,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // набор, — разбирается на входе (см. case 'decks'). Второй сегмент адреса
       // (`sub`) живёт только рядом с id, поэтому одной папке он не достался бы.
       if (cardGroups.openSet) return { lang, screen: 'decks', id: cardGroups.openSet.set.id, sub: cardGroups.openGroupId || undefined }
-      if (openTheme) return { lang, screen: 'sets', id: openTheme }
+      if (sets.openId) return { lang, screen: 'sets', id: sets.openId }
       if (cardGroups.openGroupId) return { lang, screen: 'decks', id: cardGroups.openGroupId }
       return { lang, screen: 'sets' }
     }
@@ -898,7 +800,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return { lang, screen: 'story', id: guide.openId ?? undefined }
   }, [
     lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
-    openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, openTheme,
+    openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, sets.openId,
     nestsShelf.openId, packs.openId, cardGroups.openSet, cardGroups.openGroupId,
     guide.openId, grammar.openId,
   ])
@@ -924,7 +826,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
     // Гасим всё открытое — см. «открытое перебивает половину» выше.
     setOpenTextId(null); scenesShelf.setOpenWorkId(null); scenesShelf.setOpenSceneId(null); setOpenAudioId(null)
-    setOpenTheme(null); nestsShelf.setOpenId(null); packs.setOpenId(null); cardGroups.setOpenSetId(null); cardGroups.setOpenSubsetId(null); cardGroups.setOpenGroupId('')
+    sets.setOpenId(null); nestsShelf.setOpenId(null); packs.setOpenId(null); cardGroups.setOpenSetId(null); cardGroups.setOpenSubsetId(null); cardGroups.setOpenGroupId('')
     blocks.reset(); grammar.setOpenId(null); guide.setOpenId(null); speaking.close()
 
     const id = link.id ?? null
@@ -935,8 +837,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'feed':     setMode('reading'); setReadingView('feed'); break
       case 'scenes':   setMode('reading'); setReadingView('scenes'); scenesShelf.setOpenWorkId(id); scenesShelf.setOpenSceneId(link.sub ?? null); break
       case 'texts':    setMode('reading'); setReadingView('texts'); setOpenTextId(id); break
-      case 'sets':     setMode('vocab'); setVocabView('sets'); setOpenTheme(id); break
-      case 'words':    setMode('vocab'); setVocabView('sets'); setOpenTheme(MY_WORDS_ID); break
+      case 'sets':     setMode('vocab'); setVocabView('sets'); sets.setOpenId(id); break
+      case 'words':    setMode('vocab'); setVocabView('sets'); sets.setOpenId(MY_WORDS_ID); break
       case 'nests':    setMode('vocab'); setVocabView('nests'); nestsShelf.setOpenId(id); break
       case 'packs':    setMode('vocab'); setVocabView('packs'); packs.setOpenId(id); break
       // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
@@ -955,7 +857,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
   }, [
     lang, setMode, setReadingView, setVocabView, guide.setView,
-    setOpenTextId, scenesShelf.setOpenWorkId, scenesShelf.setOpenSceneId, setOpenAudioId, setOpenTheme,
+    setOpenTextId, scenesShelf.setOpenWorkId, scenesShelf.setOpenSceneId, setOpenAudioId, sets.setOpenId,
     nestsShelf.setOpenId, packs.setOpenId, cardGroups.setOpenGroupId,
     blocks.reset, blocks.openFromLink, grammar.setOpenId, guide.setOpenId,
   ])
@@ -973,14 +875,14 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // сидят в том же ключе, что и режимы.
   useScreenTop([
     lang, mode, readingView, vocabView, guide.view,
-    openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openTheme,
+    openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', sets.openId,
     nestsShelf.openId, packs.openId, cardGroups.openSet?.set.id ?? '',
     guide.openId, grammar.openId, speaking.openId ?? '', blocks.open?.id ?? '',
     speaking.draftKey, blocks.draftKey, grammar.draftKey, libraryShelf.draftKey,
-    fLen, status, query, sort,
+    fLen, status, query,
     fLevel.join(','), fSkill.join(','), fTopic.join(','),
     scenesShelf.draftKey,
-    shelf, cardGroups.openGroupId,
+    cardGroups.openGroupId,
   ].join('|'))
 
 
@@ -1091,8 +993,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               грамматики и библиотеки. Здесь остаётся выбор материала и полка:
               это «что показываем», а не «чем сузили». */}
           <RailCard title="Материал" accent={palette.accent} icon={<Layers size={15} />}
-            action={shelf || packs.shelfPicked
-              ? { label: t('Сбросить'), onClick: () => { setShelf(''); packs.reset() } }
+            action={sets.shelfPicked || packs.shelfPicked
+              ? { label: t('Сбросить'), onClick: () => { sets.resetShelf(); packs.reset() } }
               : undefined}>
             {!narrow && (
             <RailSegment
@@ -1123,15 +1025,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             )}
             {/* Полки разговорника — сито верхнего этажа. Внутри папки их нет:
                 там лежат наборы одной группы, и «В городе» к ним никак. */}
-            {vocabView === 'sets' && !openGroup && shelves.length > 0 && (
-              <RailList
-                items={shelves.map(s => ({ id: s.title, label: t(s.title), hint: String(s.count) }))}
-                value={shelf}
-                onChange={v => setShelf(v === shelf ? '' : v)}
-                accent={palette.accent}
-                soft={palette.soft}
-              />
-            )}
+            {vocabView === 'sets' && !openGroup && sets.railList}
             {vocabView === 'packs' && packs.railList}
           </RailCard>
           {/* Полки — папки витрины, а не сито: строка ОТКРЫВАЕТ группу, как
@@ -1167,36 +1061,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {mode === 'vocab' && openItem && (
         <>
-          <RailCard title="Формула темы" accent={palette.accent} icon={<Sparkle size={15} />}>
-            {book?.notes[openItem.theme.id] ? (
-              <>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: palette.accent, lineHeight: 1.45 }}>
-                  {book.notes[openItem.theme.id].formula}
-                </div>
-                <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--color-text-2)' }}>
-                  {book.notes[openItem.theme.id].note}
-                </div>
-              </>
-            ) : (
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{t(openItem.theme.goal)}</div>
-            )}
-          </RailCard>
-          <RailCard title="Тема" accent={palette.accent} icon={<Layers size={15} />}>
-            <RailStat label="Уровень" value={themeLevel(openItem)} />
-            <RailStat label="Фраз в теме" value={openItem.phrases.length} />
-            {/* Три числа вместо одного «уже в колоде»: что уже держится в
-                памяти, что вернётся сегодня и сколько раз тема забывалась. */}
-            <RailStat label="Выучено" value={openStats.learned} tone={openStats.learned > 0 ? 'good' : undefined} />
-            <RailStat label="Сегодня в стопке" value={openStats.due} tone={openStats.due > 0 ? 'warn' : undefined} />
-            {openStats.lapses > 0 && <RailStat label="Ошибок за всё время" value={openStats.lapses} />}
-            <TakeWholeTheme
-              phrases={openItem.phrases}
-              owner={owner}
-              subjectId={subjectId}
-              accent={palette.accent}
-              onAdded={() => setKnownKey(k => k + 1)}
-            />
-          </RailCard>
+          {sets.rail}
           <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
             <RailToggle label="Романизация" on={phraseView.reading}
               onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
@@ -1301,12 +1166,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     { value: 'level', label: 'По уровню' },
     { value: 'short', label: 'Покороче' },
   ]
-  const SORTS_SETS = [
-    { value: 'order', label: 'По порядку' },
-    { value: 'level', label: 'По уровню' },
-    { value: 'size', label: 'По размеру' },
-    { value: 'progress', label: 'По прогрессу' },
-  ]
 
   let toolbar: React.ReactNode = null
   if (feedOn) {
@@ -1331,12 +1190,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {openGroup && <BackToSets onBack={() => cardGroups.setOpenGroupId('')} />}
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(openGroup ? 'Найти набор…' : 'Найти тему или слово…')} />
-        {!openGroup && setLevelOpts.length > 1 && (
+        {!openGroup && sets.levelOpts.length > 1 && (
           <FilterMenu
             label="Уровень"
-            options={setLevelOpts.map(l => ({
-              value: l, label: l,
-              count: allThemes.filter(x => themeLevel(x) === l).length,
+            options={sets.levelOpts.map(l => ({
+              value: l, label: l, count: sets.levelCount(l),
             }))}
             value={fLevel}
             onChange={setFLevel}
@@ -1355,9 +1213,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           onChange={setStatus}
           accent={palette.accent}
         />
-        {!openGroup && hasBook && (
-          <SortMenu options={SORTS_SETS} value={sort} onChange={setSort} accent={palette.accent} soft={palette.soft} />
-        )}
+        {!openGroup && hasBook && sets.sortMenu}
         <ToolCount>
           {openGroup
             ? `${openGroup.title} · ${setsDecks.length} ${t('наборов')}`
@@ -1385,23 +1241,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'speaking') {
     toolbar = speaking.toolbar
   } else if (mode === 'vocab' && openItem) {
-    toolbar = (
-      <Toolbar>
-        <BackToSets onBack={() => setOpenTheme(null)} />
-        {/* Обёртка ради ref: про этот переключатель рассказывает онбординг
-            стопки, а он живёт внутри CardDeck и своей строки управления не
-            видит. Шаг уезжает туда через ThemeSession (см. runTourStep). */}
-        <div ref={runTabsRef} style={{ display: 'flex' }}>
-          <StatusTabs
-            options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
-            value={run}
-            onChange={v => setRun(v as RunMode)}
-            accent={palette.accent}
-          />
-        </div>
-        <ToolCount>{t(openItem.theme.title)}</ToolCount>
-      </Toolbar>
-    )
+    toolbar = sets.toolbar
   }
 
   // ── Содержимое ─────────────────────────────────────────────────────────────
@@ -1421,25 +1261,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && openMyWords) {
     content = myWordsHalf.content
   } else if (mode === 'vocab' && openItem && book) {
-    content = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <ThemeSession
-          book={book}
-          item={openItem}
-          lang={lang}
-          subjectId={subjectId}
-          accent={palette.accent}
-          owner={owner}
-          view={phraseView}
-          run={run}
-          states={states}
-          statesReady={statesReady}
-          onGraded={onGraded}
-          tourExtra={runTourStep}
-        />
-        {run === 'swipe' && <DeckHint />}
-      </div>
-    )
+    content = sets.content
   } else if (mode === 'guide') {
     content = guide.content
   } else if (mode === 'vocab' && cardGroups.content) {
@@ -1529,7 +1351,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             if ((groups ?? []).some(g => g.sets.some(x => x.id === id))) {
               cardGroups.setOpenSetId(id); setRun('list')
             } else {
-              setOpenTheme(id); setRun('swipe')
+              sets.setOpenId(id); setRun('swipe')
             }
           }}
         />
