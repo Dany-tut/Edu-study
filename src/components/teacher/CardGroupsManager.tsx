@@ -266,8 +266,17 @@ export function useOwnDeckCount(subject: string, lang: string): number {
   }, 0), [groups, subject, lang])
 }
 
-export default function CardGroupsManager({ createNonce = 0, lang, subject, facet, query: outerQuery, onQuery }: {
+export default function CardGroupsManager({ createNonce = 0, lang, subject, facet, editMode = false, query: outerQuery, onQuery }: {
   createNonce?: number
+  /**
+   * Режим правки — карандаш в шапке Конструктора, общий для всех витрин.
+   *
+   * Отметки наборов, кнопка удаления и полоса «Сгруппировать» показываются
+   * только в нём. Раньше чекбоксы стояли на каждой карточке всегда: случайный
+   * клик мимо названия отмечал набор, и поперёк витрины вылезала полоса
+   * группировки, которую никто не звал.
+   */
+  editMode?: boolean
   /**
    * Фасет отбора от вкладки «Материалы» — встаёт в ряд фильтров первым, на
    * место собственного фасета языка. Главный выбор витрины («Все предметы»)
@@ -333,6 +342,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
     openCardsEditor(JSON.stringify({ group, focus }))
 
   const [picked, setPicked] = useState<Set<string>>(new Set())
+  useEffect(() => { if (!editMode) setPicked(new Set()) }, [editMode])
   const [shelfPick, setShelfPick] = useState('')
   // Отбор витрины. Полка — тоже фильтр, но своим рядом чипов: полок бывают
   // единицы и у каждой своё имя, дропдауном они читаются хуже, чем в лицо.
@@ -647,7 +657,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
         )}
       />
 
-      {picked.size > 0 && (
+      {editMode && picked.size > 0 && (
         <div
           style={{
             ...cardStyle, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
@@ -739,6 +749,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                 key={x.set.id}
                 set={x.set}
                 group={x.group}
+                editMode={editMode}
                 checked={picked.has(x.set.id)}
                 onCheck={v => setPicked(p => {
                   const n = new Set(p)
@@ -835,8 +846,8 @@ function ShelfChip({ label, hint, active, onClick, onEdit }: {
  * подвале ей не место — там счётчики, а отмечают набор ДО того, как в них
  * заглянули.
  */
-function SetCard({ set, group, checked, onCheck, onOpen, onDelete, onShelf }: {
-  set: CardSet; group: CardGroup; checked: boolean
+function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onShelf }: {
+  set: CardSet; group: CardGroup; checked: boolean; editMode: boolean
   onCheck: (v: boolean) => void
   onOpen: () => void; onDelete: () => void; onShelf: () => void
 }) {
@@ -847,7 +858,7 @@ function SetCard({ set, group, checked, onCheck, onOpen, onDelete, onShelf }: {
       <ContentCard
         accentColor={MAT_COLOR} accentBg={MAT_BG}
         isSelected={checked} onClick={onOpen}
-        actions={{ onDelete }}
+        actions={editMode ? { onDelete } : undefined}
         icon={<Layers size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
         iconBg={MAT_BG}
         badge={onShelfNow ? (
@@ -864,13 +875,16 @@ function SetCard({ set, group, checked, onCheck, onOpen, onDelete, onShelf }: {
         footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{set.cards.length} {t('карточек')}</span></>}
         footerRight={<>{langLabelOf(group.lang)}</>}
       />
-      {/* Отметка поверх иконки: карточку открывают кликом, а отмечают — сюда. */}
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{ position: 'absolute', top: 14, left: 14, zIndex: 6 }}
-      >
-        <Checkbox checked={checked} onChange={onCheck} size={17} />
-      </div>
+      {/* Отметка поверх иконки: карточку открывают кликом, а отмечают — сюда.
+          Только в режиме правки: иначе чекбокс ловил промахи мимо названия. */}
+      {editMode && (
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{ position: 'absolute', top: 14, left: 14, zIndex: 6 }}
+        >
+          <Checkbox checked={checked} onChange={onCheck} size={17} accent={MAT_COLOR} />
+        </div>
+      )}
     </div>
   )
 }

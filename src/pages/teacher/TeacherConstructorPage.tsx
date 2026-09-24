@@ -8164,7 +8164,7 @@ export default function TeacherConstructorPage() {
    * Google Forms касаются только заданий — странице нужно знать, что сейчас
    * под руками. Приходит из витрины, а не дублируется здесь.
    */
-  const [baseShelf, setBaseShelf] = useState<'tasks' | 'materials'>('materials')
+  const [baseShelf, setBaseShelf] = useState<'tasks' | 'decks' | 'materials'>('materials')
   const onTasksShelf = activeTab === 'decks' && baseShelf === 'tasks'
   const [formImportOpen, setFormImportOpen] = useState(false)
   const [pendingFormQuestions, setPendingFormQuestions] = useState<ImportedQuestion[] | null>(null)
@@ -9159,8 +9159,10 @@ export default function TeacherConstructorPage() {
 
   // Где режим выделения имеет смысл. Кнопка рисуется всегда — на материалах и
   // разметке она погашена: там нечего отмечать (см. ряд вкладок ниже).
+  // На «Базе» отмечать есть что на заданиях и на подборках; у готовых
+  // материалов отмечать нечего — они не правятся отсюда.
   const editToggleShown = activeTab === 'decks'
-    ? onTasksShelf && taskView === 'tasks'
+    ? (onTasksShelf ? taskView === 'tasks' : baseShelf === 'decks')
     : true
 
   return (
@@ -9515,6 +9517,7 @@ export default function TeacherConstructorPage() {
                   createNonce={deckNonce}
                   subject={shelfSubject} onSubject={setShelfSubject}
                   onShelfChange={setBaseShelf}
+                  editMode={editMode}
                   onOpen={openMaterialPage}
                   tasks={{
                     count: bankTaskCount,

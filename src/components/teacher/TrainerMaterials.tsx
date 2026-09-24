@@ -85,6 +85,23 @@ const SUBJECT_OPTIONS = [...LANG_SUBJECTS, ...OTHER_SUBJECTS]
 /** Код языка выбранного предмета. У биологии его нет — готовых полок тоже. */
 const langOf = (subject: string) => SUBJECTS.find(s => s.id === subject)?.langCode ?? ''
 
+/**
+ * Какие полки бывают у предмета.
+ *
+ * Семь режимов — рейл ЯЗЫКОВОГО тренажёра. Биологии аудирование, говорение,
+ * конструктор слов, грамматика и «о языке» не пригодятся ни завтра, ни через
+ * год, а прочерк напротив каждой строки читается не как «такого тут не бывает»,
+ * а как «половина базы отвалилась». Неязыковому предмету остаются «Карточки» —
+ * единственное, что у него правда есть (подборки). Появится у науки своя полка
+ * (тексты, записи) — строка дописывается сюда, и она сразу видна.
+ */
+const NON_LANG_MODES: MaterialMode[] = ['vocab']
+
+const modesFor = (subject: string) =>
+  !subject || langOf(subject)
+    ? MATERIAL_MODES
+    : MATERIAL_MODES.filter(m => NON_LANG_MODES.includes(m.id))
+
 const ALL_LANGS = LANG_SUBJECTS.map(s => s.langCode!)
 
 const langLabel = (code: string) => LANG_SUBJECTS.find(s => s.langCode === code)?.name ?? code
@@ -165,7 +182,7 @@ type Shelf = MaterialMode | '' | typeof TASKS_ID
 /** Адрес материала: по нему страница находит его сама, и он переживает F5. */
 export type MaterialRef = { lang: string; familyId: string; id: string }
 
-export default function TrainerMaterials({ createNonce = 0, subject, onSubject, tasks, onShelfChange, onOpen }: {
+export default function TrainerMaterials({ createNonce = 0, subject, onSubject, tasks, onShelfChange, editMode = false, onOpen }: {
   createNonce?: number
   /**
    * Банк заданий как полка «Базы». Страница отдаёт готовыми: `count` для
@@ -200,7 +217,9 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
    * Какая полка открыта — наружу, странице: правка, удаление отмеченного и
    * импорт из Google Forms касаются только заданий, и шапка обязана это знать.
    */
-  onShelfChange?: (shelf: 'tasks' | 'materials') => void
+  onShelfChange?: (shelf: 'tasks' | 'decks' | 'materials') => void
+  /** Режим правки из шапки: отметки наборов живут только в нём. */
+  editMode?: boolean
   /** Материал открывается отдельной страницей — её рисует Конструктор вместо вкладок. */
   onOpen: (ref: MaterialRef) => void
 }) {
@@ -260,6 +279,16 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
 
   // Подборки приезжают из базы, а не из кода, — в rows их нет, и без этого
   // счёта «Карточки» у биологии показывали пусто при двух лежащих наборах.
+  const modes = useMemo(() => modesFor(subject), [subject])
+
+  // Предмет сменился на неязыковой, а открыта была его полка — витрина осталась
+  // бы на «Аудировании», которого в дереве больше нет: строка не подсвечена,
+  // список пуст, вернуться некуда.
+  useEffect(() => {
+    if (!mode || mode === TASKS_ID) return
+    if (!modes.some(m => m.id === mode)) setMode('')
+  }, [modes, mode])
+
   const deckCount = useOwnDeckCount(subject, lang)
   const modeCount = (m: MaterialMode) =>
     rows.reduce((n, r) => n + (r.family.mode === m ? 1 : 0), 0) + (m === 'vocab' ? deckCount : 0)
@@ -292,7 +321,9 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
 
   const onDecks = familyId === DECKS_ID && mode === 'vocab'
   const onTasks = mode === TASKS_ID && !!tasks
-  useEffect(() => { onShelfChange?.(onTasks ? 'tasks' : 'materials') }, [onTasks, onShelfChange])
+  useEffect(() => {
+    onShelfChange?.(onTasks ? 'tasks' : onDecks ? 'decks' : 'materials')
+  }, [onTasks, onDecks, onShelfChange])
 
   // «+» на вкладке заводит НАБОР карточек, а набор живёт только на полке
   // «Подборки». Пока плюс просто уходил вниз, с любой другой полки (и с режима
@@ -398,6 +429,7 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
             lang={lang || undefined}
             subject={subject || undefined}
             facet={<MaterialsFacet value={subject} onChange={onSubject} />}
+            editMode={editMode}
             query={query}
             onQuery={setQuery}
           />
@@ -503,7 +535,7 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
         deckCount={deckCount}
         mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : '') }}
         familyId={familyId} onFamily={setFamilyId}
-        families={families} modeCount={modeCount}
+        families={families} modeCount={modeCount} modes={modes}
         level={level} onLevel={setLevel} levelOpts={levelOpts}
         topic={topic} onTopic={setTopic} topicOpts={topicOpts}
         dirty={dirty} onReset={() => { setLevel(''); setTopic(''); setQuery('') }}
@@ -588,7 +620,7 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
  * идут одним деревом: полка — это уточнение режима, а не отдельная ось.
  */
 function FilterPanel({
-  mode, onMode, familyId, onFamily, families, modeCount, deckCount, tasks,
+  mode, onMode, familyId, onFamily, families, modeCount, modes, deckCount, tasks,
   level, onLevel, levelOpts, topic, onTopic, topicOpts, dirty, onReset, total, loading,
 }: {
   mode: Shelf; onMode: (v: Shelf) => void
@@ -599,6 +631,8 @@ function FilterPanel({
   familyId: string; onFamily: (v: string) => void
   families: { family: MaterialFamily; count: number }[]
   modeCount: (m: MaterialMode) => number
+  /** Полки, которые вообще бывают у предмета (см. modesFor). */
+  modes: typeof MATERIAL_MODES
   level: string; onLevel: (v: string) => void; levelOpts: string[]
   topic: string; onTopic: (v: string) => void; topicOpts: string[]
   dirty: boolean; onReset: () => void
@@ -647,7 +681,7 @@ function FilterPanel({
             )}
           </div>
         )}
-        {MATERIAL_MODES.map(m => {
+        {modes.map(m => {
           const on = m.id === mode
           const n = modeCount(m.id)
           // Полка предмета, у которого её не бывает (тексты у биологии), не
