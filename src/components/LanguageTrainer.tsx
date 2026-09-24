@@ -44,6 +44,7 @@ import { useBlocksMode } from './trainer/modes/useBlocksMode'
 import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import { useScenesShelf } from './trainer/modes/useScenesShelf'
 import { useLibraryShelf } from './trainer/modes/useLibraryShelf'
+import { useNestsShelf } from './trainer/modes/useNestsShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
 import { hasScenes, scenesWord, workById, type Scene, type Work } from '../data/scenes'
@@ -57,8 +58,6 @@ import {
   survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
   type SurvivalBook, type SurvivalThemeCards,
 } from '../data/survivalPhrases'
-import { hasNests, nestById, nestsForLang, nestsUpTo } from '../data/soundNests'
-import { NestGrid, NestPage } from './trainer/SoundNestDrill'
 import {
   MyWordsSession, MyWordsTile, myWordsFrom, myWordsStats, MY_WORDS_ID, type MyWord,
 } from './trainer/MyWords'
@@ -436,25 +435,25 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // глубины помечаются «рано», но не прячутся (см. lib/courseReach.ts).
   const reach = useMemo(() => courseReach(deckCourses, deckSubjects), [deckCourses, deckSubjects])
 
+  // Гнёзда созвучий целиком — список по глубине курса, витрина и разбор
+  // (components/trainer/modes/useNestsShelf). Из четырёх половин «Карточек» это
+  // единственная, которая не делит с соседями ни разговорник, ни память колоды.
+  const nestsShelf = useNestsShelf({
+    lang, subjectId, accent: palette.accent, soft: palette.soft,
+    active: mode === 'vocab' && vocabView === 'nests',
+    query, onQuery: setQuery,
+    owner, reach, reachNote: reachNote(reach),
+    result: id => resultFrom('nest', id, results),
+    onFinished: (id, score, total) => {
+      saveResult('nest', id, score, total)
+      setResultsKey(k => k + 1)
+      setKnownKey(k => k + 1)
+    },
+  })
+
   // Есть ли в системе из чего выбирать голос — от этого зависит, рисовать ли
   // карточку «Озвучка»: на одном дикторе она была бы пустой коробкой.
   const voiceChoice = useVoiceChoice(lang)
-
-  // ── Гнёзда созвучий ────────────────────────────────────────────────────────
-  const nestsOn = useMemo(() => hasNests(lang), [lang])
-  const nests = useMemo(() => nestsUpTo(lang, reach), [lang, reach])
-  /** Сколько гнёзд ещё закрыто глубиной — цифра честнее, чем молчание. */
-  const nestsLocked = useMemo(() => nestsForLang(lang).length - nests.length, [lang, nests])
-  const [openNestId, setOpenNestId] = usePersistentState<string | null>(`trainer.${lang}.nest`, null)
-  const openNest = useMemo(() => (openNestId ? nestById(openNestId) ?? null : null), [openNestId])
-  /** Поиск идёт и по самим словам: ученик ищет «불», а не «начальная согласная». */
-  const visibleNests = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return nests
-    return nests.filter(n =>
-      `${n.title} ${n.why} ${n.words.map(w => `${w.term} ${w.reading} ${w.ru}`).join(' ')}`
-        .toLowerCase().includes(q))
-  }, [nests, query])
 
   // ── Наборы слов ────────────────────────────────────────────────────────────
   //
@@ -578,9 +577,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // Группы ждут ответа базы: пока `groups` не приехали, «нет групп» — это не
     // факт, а незнание, и съезжать с половины по нему нельзя.
     else if (vocabView === 'sets' && !hasBook && groups !== undefined && !decksOn) setVocabView('due')
-    else if (vocabView === 'nests' && !nestsOn) setVocabView(hasBook ? 'sets' : 'due')
+    else if (vocabView === 'nests' && !nestsShelf.on) setVocabView(hasBook ? 'sets' : 'due')
     else if (vocabView === 'packs' && !packsOn) setVocabView(hasBook ? 'sets' : 'due')
-  }, [vocabView, hasBook, nestsOn, packsOn, groups, decksOn, setVocabView])
+  }, [vocabView, hasBook, nestsShelf.on, packsOn, groups, decksOn, setVocabView])
 
   // То же для «О языке»: восстановленная половина могла исчезнуть вместе с
   // языком, а режим целиком — вместе с рассказом и полкой.
@@ -1026,7 +1025,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || openNest || openMyWords || openPack || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
+  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || openPack || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -1083,7 +1082,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // «Мои слова» лежат в том же поле, что и тема (см. MY_WORDS_ID), но это
       // отдельный экран — и адрес у него отдельный.
       if (openMyWords) return { lang, screen: 'words' }
-      if (vocabView === 'nests') return { lang, screen: 'nests', id: openNestId ?? undefined }
+      if (vocabView === 'nests') return { lang, screen: 'nests', id: nestsShelf.openId ?? undefined }
       if (vocabView === 'packs') return { lang, screen: 'packs', id: openPackId ?? undefined }
       if (vocabView === 'due') return { lang, screen: 'due' }
       // Набор группы и папка живут в «Наборах», но адрес у них прежний
@@ -1109,7 +1108,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [
     lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
     openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, openTheme,
-    openNestId, openPackId, openSetId, openGroupId,
+    nestsShelf.openId, openPackId, openSetId, openGroupId,
     guide.openId, grammar.openId,
   ])
   // Предмет дописывается здесь, а не в двенадцати ветках выше: он один на весь
@@ -1134,7 +1133,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
     // Гасим всё открытое — см. «открытое перебивает половину» выше.
     setOpenTextId(null); scenesShelf.setOpenWorkId(null); scenesShelf.setOpenSceneId(null); setOpenAudioId(null)
-    setOpenTheme(null); setOpenNestId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
+    setOpenTheme(null); nestsShelf.setOpenId(null); setOpenPackId(null); setOpenSetId(null); setOpenSubsetId(null); setOpenGroupId('')
     blocks.reset(); grammar.setOpenId(null); guide.setOpenId(null); speaking.close()
 
     const id = link.id ?? null
@@ -1147,7 +1146,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'texts':    setMode('reading'); setReadingView('texts'); setOpenTextId(id); break
       case 'sets':     setMode('vocab'); setVocabView('sets'); setOpenTheme(id); break
       case 'words':    setMode('vocab'); setVocabView('sets'); setOpenTheme(MY_WORDS_ID); break
-      case 'nests':    setMode('vocab'); setVocabView('nests'); setOpenNestId(id); break
+      case 'nests':    setMode('vocab'); setVocabView('nests'); nestsShelf.setOpenId(id); break
       case 'packs':    setMode('vocab'); setVocabView('packs'); setOpenPackId(id); break
       // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
       // приехавшим группам (см. эффект рядом с openGroup).
@@ -1166,7 +1165,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   }, [
     lang, setMode, setReadingView, setVocabView, guide.setView,
     setOpenTextId, scenesShelf.setOpenWorkId, scenesShelf.setOpenSceneId, setOpenAudioId, setOpenTheme,
-    setOpenNestId, setOpenPackId, setOpenGroupId,
+    nestsShelf.setOpenId, setOpenPackId, setOpenGroupId,
     blocks.reset, blocks.openFromLink, grammar.setOpenId, guide.setOpenId,
   ])
 
@@ -1184,7 +1183,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   useScreenTop([
     lang, mode, readingView, vocabView, guide.view,
     openTextId, openAudioId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openTheme,
-    openNestId, openPackId, openSetId,
+    nestsShelf.openId, openPackId, openSetId,
     guide.openId, grammar.openId, speaking.openId ?? '', blocks.open?.id ?? '',
     speaking.draftKey, blocks.draftKey, grammar.draftKey, libraryShelf.draftKey,
     fLen, status, query, sort,
@@ -1295,7 +1294,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           «Одно место для сита» в комментарии к строке. Рейлу остаётся то, что
           отвечает на вопрос «что показываем»: половина «Чтения» и «Показ». */}
 
-      {mode === 'vocab' && (hasBook || nestsOn || packsOn || decksOn) && !openItem && !openNest && !openMyWords && !openPack && !openSet && (
+      {mode === 'vocab' && (hasBook || nestsShelf.on || packsOn || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !openPack && !openSet && (
         <>
           {/* Уровень уехал в строку управления — там же, где он у сцен,
               грамматики и библиотеки. Здесь остаётся выбор материала и полка:
@@ -1321,7 +1320,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 { value: 'due', label: 'Повторы', badge: due, icon: <RotateCcw size={15} /> },
                 // Третья таблетка только там, где гнёзда для языка написаны:
                 // пустая вкладка хуже отсутствующей.
-                ...(nestsOn ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={15} /> }] : []),
+                ...(nestsShelf.on ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={15} /> }] : []),
               ]}
               value={vocabView}
               onChange={v => v && setVocabView(v as VocabView)}
@@ -1391,15 +1390,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           )}
           {/* Глубина по курсу. Стоит рядом с материалом, а не в шапке: цифра
               объясняет ровно то, почему список именно такой длины. */}
-          {vocabView === 'nests' && (
-            <RailCard title="Глубина" accent={palette.accent} icon={<Layers size={15} />}>
-              <RailStat label="Рядов открыто" value={nests.length} />
-              {nestsLocked > 0 && <RailStat label="Ждут курса" value={nestsLocked} />}
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-                {t(reachNote(reach))}
-              </div>
-            </RailCard>
-          )}
+          {vocabView === 'nests' && nestsShelf.rail}
           {(hasBook || packsOn || decksOn) && vocabView !== 'nests' && (
             <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
               <RailToggle label="Романизация" on={phraseView.reading}
@@ -1527,7 +1518,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           ...(hasBook || decksOn ? [{ id: 'sets', label: 'Наборы' }] : []),
           ...(packsOn ? [{ id: 'packs', label: 'Слова' }] : []),
           { id: 'due', label: 'Повторение', badge: due },
-          ...(nestsOn ? [{ id: 'nests', label: 'Созвучия' }] : []),
+          ...(nestsShelf.on ? [{ id: 'nests', label: 'Созвучия' }] : []),
         ]
     : mode === 'blocks' ? blocks.views
     : mode === 'guide'
@@ -1594,16 +1585,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = grammar.toolbar
   } else if (mode === 'blocks') {
     toolbar = blocks.toolbar
-  } else if (mode === 'vocab' && vocabView === 'nests' && !openNest) {
-    toolbar = (
-      <Toolbar>
-        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или ряд…')} />
-        <ToolCount>
-          {visibleNests.length} {t('рядов')}
-          {nestsLocked > 0 && ` · ${nestsLocked} ${t('ждут курса')}`}
-        </ToolCount>
-      </Toolbar>
-    )
+  } else if (mode === 'vocab' && vocabView === 'nests' && !nestsShelf.openId) {
+    toolbar = nestsShelf.toolbar
   } else if (mode === 'vocab' && openMyWords) {
     toolbar = (
       <Toolbar>
@@ -1762,42 +1745,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (isLang) {
     content = libraryShelf.content
   } else if (mode === 'vocab' && vocabView === 'nests') {
-    // Гнёзда созвучий: витрина и разбор. Прогон пишет результат туда же, куда
-    // текст и запись, — в общий журнал материалов (lib/trainerProgress.ts),
-    // поэтому плитка гнезда показывает счёт ровно как плитка текста.
-    content = openNest ? (
-      <NestPage
-        nest={openNest}
-        lang={lang}
-        accent={palette.accent}
-        soft={palette.soft}
-        owner={owner}
-        subjectId={subjectId}
-        onFinished={(score, total) => {
-          saveResult('nest', openNest.id, score, total)
-          setResultsKey(k => k + 1)
-          setKnownKey(k => k + 1)
-        }}
-        onBack={() => setOpenNestId(null)}
-      />
-    ) : visibleNests.length === 0 ? (
-      <ShellEmpty text={nests.length === 0
-        ? 'Ряды созвучий открываются по мере прохождения курса — пока ни одного юнита не пройдено.'
-        : 'Под поиск ничего не подошло.'} />
-    ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0, lineHeight: 1.6, ...proseWrap }}>
-          {bindShortWords(t('Слова, которые слипаются на слух. Разбор показывает, чем они отличаются, прогон проверяет, слышно ли это, а промахи уходят в колоду повторений и возвращаются сами.'))}
-        </p>
-        <NestGrid
-          nests={visibleNests}
-          results={id => resultFrom('nest', id, results)}
-          accent={palette.accent}
-          soft={palette.soft}
-          onOpen={id => { setOpenNestId(id); setQuery('') }}
-        />
-      </div>
-    )
+    content = nestsShelf.content
   } else if (mode === 'vocab' && openMyWords) {
     // Книга нужна не ради показа, а ради вычитания: пока она едет, фразы
     // разговорника не отличить от своих слов, и словарь на секунду показал бы
