@@ -14,7 +14,6 @@ import { useT } from '../lib/i18n'
 import { getSubject, type TrainerMode } from '../lib/subjects'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
-import CardDeck, { DECK_CTA } from './CardDeck'
 import PhraseDecks, {
   ThemeSession, PhraseRun, BackToSets, TakeWholeTheme, DeckHint, themeStats,
   type PhraseView, type RunMode,
@@ -27,7 +26,7 @@ import TrainerShell, {
 } from './trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
-import { addCards, collectedCards, deckOwner, dueCount, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
+import { addCards, collectedCards, deckOwner, deckStates, forgetCard, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 // setCards переименован при импорте: в этом файле уже есть сеттер состояния
 // с тем же именем, и без псевдонима вызов молча уходил бы в него.
@@ -45,6 +44,7 @@ import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import { useScenesShelf } from './trainer/modes/useScenesShelf'
 import { useLibraryShelf } from './trainer/modes/useLibraryShelf'
 import { useNestsShelf } from './trainer/modes/useNestsShelf'
+import { useReviewDeck } from './trainer/modes/useReviewDeck'
 import { useWordPacksShelf } from './trainer/modes/useWordPacksShelf'
 import type { LanguageStory } from '../data/languageStory'
 import { allPacks, wordPackShelves, type WordPackBook } from '../data/wordPacks'
@@ -396,9 +396,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Повторение» открывалась бы по чужим карточкам пустой.
   const deckCourses = useStudentData(s => s.subjects)
   const deckSubjects = useMemo(() => subjectAliases(subjectId), [subjectId, deckCourses])
-  const [deckKey, setDeckKey] = useState(0)
-  const [seeding, setSeeding] = useState(false)
-  const [seedNote, setSeedNote] = useState('')
 
   // ── Две половины вкладки «Карточки» ────────────────────────────────────────
   //
@@ -427,7 +424,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [vocabView, setVocabView] = usePersistentState<VocabView>(
     `trainer.${lang}.vocabView`, hasBook ? 'sets' : 'due',
   )
-  const [due, setDue] = useState(0)
 
   // ── Глубина по курсу ───────────────────────────────────────────────────────
   //
@@ -564,15 +560,6 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   useEffect(() => {
     if (mode === 'guide' && !guide.on) setMode('reading')
   }, [mode, guide.on, setMode])
-
-  useEffect(() => {
-    if (!hasBook) return
-    let alive = true
-    dueCount(owner, deckSubjects)
-      .then(n => { if (alive) setDue(n) })
-      .catch(() => { /* цифра на таблетке — не повод ронять вкладку */ })
-    return () => { alive = false }
-  }, [hasBook, owner, deckSubjects])
 
   // ── Разговорник ────────────────────────────────────────────────────────────
   //
@@ -936,27 +923,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return [...sets, ...themes]
   }, [hasBook, visibleThemes, themeLevel, themeAhead, groupDecks, openGroup, query])
 
-  const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
-    subject: subjectId,
-    source: 'manual' as const,
-    prompt: g.term,
-    answer: g.ru,
-  }))), [allTexts, subjectId])
-
-  async function seedFromTexts() {
-    setSeeding(true)
-    setSeedNote('')
-    try {
-      const added = await addCards(owner, glossaryCards)
-      setSeedNote(added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Все эти слова уже в колоде.'))
-      if (added > 0) setDeckKey(k => k + 1)
-    } catch (e) {
-      console.error('seedFromTexts:', e)
-      setSeedNote(t('Не получилось добавить слова. Попробуй ещё раз.'))
-    } finally {
-      setSeeding(false)
-    }
-  }
+  // Повторение — личная колода по расписанию. Половина без витрины: делит с
+  // соседями только предмет и владельца, память `states` ей не нужна вовсе
+  // (components/trainer/modes/useReviewDeck).
+  const review = useReviewDeck({
+    lang, subjectId, owner, accent: palette.accent,
+    active: mode === 'vocab' && vocabView === 'due',
+    deckSubjects, texts: allTexts,
+    onGoToTexts: () => { setMode('reading'); setReadingView('texts') },
+    note: (
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+        {bindShortWords(t('Разговорника для этого языка пока нет — колода набирается из уроков и ошибок.'))}
+      </div>
+    ),
+  })
 
   // ── Часы: занятие или витрина ──────────────────────────────────────────────
   //
@@ -1258,7 +1238,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 // Подпись короткая: «Повторение» рядом с соседями не влезало
                 // в рейл и обрезалось в «Повторе…». Неактивные ждут значками
                 // (idleIcon), выбранный забирает освободившееся место.
-                { value: 'due', label: 'Повторы', badge: due, icon: <RotateCcw size={15} /> },
+                { value: 'due', label: 'Повторы', badge: review.due, icon: <RotateCcw size={15} /> },
                 // Третья таблетка только там, где гнёзда для языка написаны:
                 // пустая вкладка хуже отсутствующей.
                 ...(nestsShelf.on ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={15} /> }] : []),
@@ -1404,14 +1384,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {mode === 'speaking' && speaking.rail}
 
-      {mode === 'vocab' && !hasBook && vocabView !== 'nests' && (
-        <RailCard title="Колода" accent={palette.accent} icon={<Layers size={15} />}>
-          <RailStat label="На сегодня" value={due} tone={due > 0 ? 'warn' : undefined} />
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
-            {bindShortWords(t('Разговорника для этого языка пока нет — колода набирается из уроков и ошибок.'))}
-          </div>
-        </RailCard>
-      )}
+      {mode === 'vocab' && !hasBook && vocabView !== 'nests' && review.rail}
 
       {/* Голос — общий на весь язык, поэтому и карточка одна на все режимы.
           Раньше выбор стоял только в рейле читалки: карточки, разговорник и
@@ -1450,7 +1423,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       ? [
           ...(hasBook || decksOn ? [{ id: 'sets', label: 'Наборы' }] : []),
           ...(packs.on ? [{ id: 'packs', label: 'Слова' }] : []),
-          { id: 'due', label: 'Повторение', badge: due },
+          { id: 'due', label: 'Повторение', badge: review.due },
           ...(nestsShelf.on ? [{ id: 'nests', label: 'Созвучия' }] : []),
         ]
     : mode === 'blocks' ? blocks.views
@@ -1862,63 +1835,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         />
       )
   } else if (mode === 'vocab') {
-    content = (
-      <div>
-        <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.6 }}>
-          {t('Слова из уроков и ошибок повторяются по расписанию: каждое возвращается ровно тогда, когда его вот-вот забудешь.')}
-        </p>
-        <CardDeck
-          // key перезапускает сессию после подгрузки слов: колода читается один
-          // раз на монтировании, иначе новые карточки появятся только после
-          // ухода со вкладки и обратно.
-          //
-          // Предмет — тоже часть ключа: у стопки своя очередь, свой указатель и
-          // свой прогресс сессии, и при смене предмета их надо начинать заново,
-          // а не дочитывать чужую колоду.
-          key={`${subjectId}:${deckKey}`}
-          owner={owner}
-          accent={palette.accent}
-          lang={lang}
-          subject={subjectId}
-          emptyExtra={
-            glossaryCards.length > 0 ? (
-              <button
-                onClick={seedFromTexts}
-                disabled={seeding}
-                style={{
-                  height: DECK_CTA.height, padding: DECK_CTA.padding, borderRadius: 999,
-                  cursor: seeding ? 'default' : 'pointer',
-                  border: `1px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
-                  fontFamily: 'inherit', fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight,
-                }}
-              >
-                {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossaryCards.length}`}
-              </button>
-            ) : allTexts.length > 0 ? (
-              // Брать ещё нечего: человек не читал ни одного текста, и слов,
-              // из которых набирается колода, просто не существует. Экран
-              // объяснял, ОТКУДА берутся карточки, но не давал туда пойти —
-              // и у нового ученика вкладка оказывалась тупиком. Кнопка ведёт
-              // ровно в то единственное место, где колода начинает набираться.
-              <button
-                onClick={() => { setMode('reading'); setReadingView('texts') }}
-                style={{
-                  height: DECK_CTA.height, padding: DECK_CTA.padding, borderRadius: 999,
-                  cursor: 'pointer',
-                  border: `1px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
-                  fontFamily: 'inherit', fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight,
-                }}
-              >
-                {`${t('Начать с текста')} · ${allTexts.length}`}
-              </button>
-            ) : null
-          }
-        />
-        {seedNote && (
-          <div style={{ marginTop: 12, textAlign: 'center', fontSize: 12, color: 'var(--color-muted)' }}>{seedNote}</div>
-        )}
-      </div>
-    )
+    content = review.content
   } else if (mode === 'blocks') {
     content = blocks.content
   } else {
