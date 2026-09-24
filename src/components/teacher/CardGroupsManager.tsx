@@ -237,6 +237,35 @@ export function readPasted(text: string): { title?: string; cards: SetCard[] } {
 // «Материалы» начинался со скелетонов, которые сменялись теми же наборами.
 let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup[] } | null = null
 
+/**
+ * Сколько наборов лежит на «Подборках» у этого предмета — для дерева «Базы».
+ *
+ * Дерево обещает числом, что за строкой что-то есть, а подборки единственные
+ * приезжают из базы: у биологии готовых материалов ноль, и без этого счёта её
+ * полка «Карточки» выглядела пустой, хотя два набора там лежали. Берём из того
+ * же кэша, которым живёт витрина, и грузим сами, только если она ещё не
+ * открывалась.
+ */
+export function useOwnDeckCount(subject: string, lang: string): number {
+  const [groups, setGroups] = useState<CardGroup[]>(() => groupsCache?.groups ?? [])
+  useEffect(() => {
+    if (groupsCache) { setGroups(groupsCache.groups); return }
+    let alive = true
+    void (async () => {
+      const uid = await getOwnerId()
+      const rows = uid ? await fetchOwnCardGroups(uid) : []
+      if (alive) setGroups(rows)
+    })()
+    return () => { alive = false }
+  }, [])
+  return useMemo(() => groups.reduce((n, g) => {
+    const mine = subject
+      ? g.subject === subject || (!!lang && g.lang === lang)
+      : true
+    return mine ? n + g.sets.length : n
+  }, 0), [groups, subject, lang])
+}
+
 export default function CardGroupsManager({ createNonce = 0, lang, subject, facet, query: outerQuery, onQuery }: {
   createNonce?: number
   /**

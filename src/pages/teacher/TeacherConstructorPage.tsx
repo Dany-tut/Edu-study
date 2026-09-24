@@ -9527,7 +9527,7 @@ export default function TeacherConstructorPage() {
                         facet={
                           <SubjectFacet
                             value={shelfSubject} allLabel={t('Все предметы')}
-                            accent="var(--color-purple-text)" searchable
+                            accent="var(--color-peach-text)" searchable
                             onChange={setShelfSubject}
                           />
                         }
@@ -9538,8 +9538,8 @@ export default function TeacherConstructorPage() {
                         showSelect={false}
                         compact={true}
                         editMode={editMode}
-                        accent="var(--color-purple-text)"
-                        accentBg="var(--color-purple-soft)"
+                        accent="var(--color-peach-text)"
+                        accentBg="var(--color-peach-soft)"
                       />
                     ) : <CurriculumManager />,
                     fields: (
@@ -9551,8 +9551,8 @@ export default function TeacherConstructorPage() {
                               <button key={v} onClick={() => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
                                 style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                                  background: on ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                                  color: on ? 'var(--color-purple-text)' : 'var(--color-muted)', transition: 'all 0.15s' }}>
+                                  background: on ? 'var(--color-peach-soft)' : 'var(--color-bg-3)',
+                                  color: on ? 'var(--color-peach-text)' : 'var(--color-muted)', transition: 'all 0.15s' }}>
                                 <Icon size={13} strokeWidth={2.2} /> {label}
                               </button>
                             )
@@ -9562,8 +9562,8 @@ export default function TeacherConstructorPage() {
                           <BankFilterFields
                             filters={bankFilters}
                             onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
-                            accent="var(--color-purple-text)"
-                            accentBg="rgba(120,106,215,0.13)"
+                            accent="var(--color-peach-text)"
+                            accentBg="var(--color-peach-soft)"
                           />
                         )}
                       </>

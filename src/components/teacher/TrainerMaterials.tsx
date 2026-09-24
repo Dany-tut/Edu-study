@@ -51,14 +51,16 @@ import { plural } from '../trainer/TrainerShell'
 import { SortDropdown, SubjectFacet, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import TeacherSelect from './TeacherSelect'
-import CardGroupsManager from './CardGroupsManager'
+import CardGroupsManager, { useOwnDeckCount } from './CardGroupsManager'
 import Skeleton from '../Skeleton'
 
 const MAT_COLOR = 'var(--color-peach-text)'
-// Задания в общей сетке держат свой фиолетовый: тип видно до чтения подписи.
-const TASK_COLOR = 'var(--color-purple-text)'
-const TASK_BG = 'var(--color-purple-soft)'
 const MAT_BG = 'var(--color-peach-soft)'
+// Задания — полка «Базы», а не своя вкладка: цвет у них её, персиковый.
+// Фиолетовый достался им от вкладки, которой больше нет, и на витрине читался
+// как «это откуда-то ещё». Тип различает бейдж и иконка, а не вторая палитра.
+const TASK_COLOR = MAT_COLOR
+const TASK_BG = MAT_BG
 
 /**
  * Опции фасета — ПРЕДМЕТЫ, а не языки.
@@ -256,7 +258,11 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
     return () => { alive = false }
   }, [subject, lang])
 
-  const modeCount = (m: MaterialMode) => rows.reduce((n, r) => n + (r.family.mode === m ? 1 : 0), 0)
+  // Подборки приезжают из базы, а не из кода, — в rows их нет, и без этого
+  // счёта «Карточки» у биологии показывали пусто при двух лежащих наборах.
+  const deckCount = useOwnDeckCount(subject, lang)
+  const modeCount = (m: MaterialMode) =>
+    rows.reduce((n, r) => n + (r.family.mode === m ? 1 : 0), 0) + (m === 'vocab' ? deckCount : 0)
 
   /** Полки выбранного режима, в которых есть материал. */
   const families = useMemo(() => {
@@ -494,6 +500,7 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
 
       <FilterPanel
         tasks={tasks && { count: tasks.count, fields: tasks.fields }}
+        deckCount={deckCount}
         mode={mode} onMode={m => { setMode(m); setFamilyId(m === 'vocab' ? DECKS_ID : '') }}
         familyId={familyId} onFamily={setFamilyId}
         families={families} modeCount={modeCount}
@@ -581,10 +588,12 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
  * идут одним деревом: полка — это уточнение режима, а не отдельная ось.
  */
 function FilterPanel({
-  mode, onMode, familyId, onFamily, families, modeCount, tasks,
+  mode, onMode, familyId, onFamily, families, modeCount, deckCount, tasks,
   level, onLevel, levelOpts, topic, onTopic, topicOpts, dirty, onReset, total, loading,
 }: {
   mode: Shelf; onMode: (v: Shelf) => void
+  /** Сколько наборов на «Подборках»: они из базы, в материалах их нет. */
+  deckCount: number
   /** Банк как полка дерева: счёт в строке, разметка — под ней. */
   tasks?: { count: number; fields: React.ReactNode }
   familyId: string; onFamily: (v: string) => void
@@ -660,7 +669,8 @@ function FilterPanel({
                 }}>
                   <NavRow small label={t('Все')} on={!familyId} onClick={() => onFamily('')} />
                   {mode === 'vocab' && (
-                    <NavRow small label={t('Подборки')} on={familyId === DECKS_ID} onClick={() => onFamily(DECKS_ID)} />
+                    <NavRow small label={t('Подборки')} count={deckCount || undefined}
+                      on={familyId === DECKS_ID} onClick={() => onFamily(DECKS_ID)} />
                   )}
                   {families.map(({ family, count }) => (
                     <NavRow key={family.id} small
