@@ -46,7 +46,7 @@ import {
   type CardGroup, type CardSet, type CardSubset, type SetCard,
 } from '../../lib/cardGroups'
 import { hasCardSeeds, loadCardSeeds } from '../../data/cardGroupSeeds'
-import { SURVIVAL_LEVELS, type SurvivalLevel } from '../../data/survivalPhrases'
+import { levelOptionsForSubject } from '../../lib/courseLevels'
 import GrowTextarea from '../GrowTextarea'
 import Checkbox from '../Checkbox'
 import CardImportPanel, { type ImportedGroup, type ImportMeta } from '../CardImportPanel'
@@ -237,8 +237,15 @@ export function readPasted(text: string): { title?: string; cards: SetCard[] } {
 // «Материалы» начинался со скелетонов, которые сменялись теми же наборами.
 let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup[] } | null = null
 
-export default function CardGroupsManager({ createNonce = 0, lang, subject, query: outerQuery, onQuery }: {
+export default function CardGroupsManager({ createNonce = 0, lang, subject, facet, query: outerQuery, onQuery }: {
   createNonce?: number
+  /**
+   * Фасет отбора от вкладки «Материалы» — встаёт в ряд фильтров первым, на
+   * место собственного фасета языка. Главный выбор витрины («Все предметы»)
+   * должен стоять там же, где на «Тестах» и «Курсах», а не двумя таблетками:
+   * предмет от вкладки и язык отсюда значат одно и то же.
+   */
+  facet?: React.ReactNode
   /**
    * Поиск держит вкладка «Материалы»: запрос не теряется при переходе между
    * подборками и остальными полками. Без пропа — свой.
@@ -543,12 +550,12 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, quer
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <SortDropdown value={sort} options={SET_SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
-        {!lang && <FacetDropdown
+        {facet ?? (!lang && <FacetDropdown
           value={langPick} options={langOpts} allLabel={t('Все языки')} accent={MAT_COLOR}
           labels={Object.fromEntries(LANG_OPTIONS.map(o => [o.value, o.label]))}
           icon={<Globe size={12} />} iconGap={9} minWidth={92}
           onChange={setLangPick}
-        />}
+        />)}
         <FacetDropdown
           value={studentPick} options={studentOpts} allLabel={t('Все ученики')} accent={MAT_COLOR}
           labels={studentNames} searchable
@@ -994,6 +1001,12 @@ function AudienceField({ group, patch, studentOptions }: {
   )
 }
 
+/** Ступени под предмет + уже выбранная (её могли проставить до смены предмета). */
+function levelChoices(subject: string | null | undefined, current: string | null | undefined): string[] {
+  const base = levelOptionsForSubject(subject)
+  return current && !base.includes(current) ? [...base, current] : base
+}
+
 /**
  * Язык, уровень и адресность — общие поля группы, где бы её ни правили.
  * `stacked` — для узкой колонки листа: два поля в ряд там не помещаются.
@@ -1019,11 +1032,16 @@ function ScopeFields({ group, patch, studentOptions, stacked = false }: {
             clearable={false}
           />
         </Field>
+        {/* Ступени зависят от предмета: у биологии нет A2, у корейского нет
+            CEFR, у химии нет TOPIK. Справочник один на все формы создания
+            (lib/courseLevels), раньше здесь висел жёсткий CEFR разговорника —
+            и набору по биологии предлагали выбрать B1. Уже проставленный
+            уровень дописываем пунктом, иначе он пропал бы из виду. */}
         <Field label={t('Уровень')}>
           <TeacherSelect
             value={group.level ?? ''}
-            options={SURVIVAL_LEVELS.map(l => ({ value: l, label: l }))}
-            onChange={v => patch({ level: (v || null) as SurvivalLevel | null })}
+            options={levelChoices(group.subject, group.level).map(l => ({ value: l, label: l }))}
+            onChange={v => patch({ level: v || null })}
             placeholder={t('Без уровня')}
           />
         </Field>
