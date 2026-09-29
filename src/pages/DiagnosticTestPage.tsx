@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Check, CheckCircle, Circle, ChevronRight, Target } from 'lucide-react'
+import { ArrowLeft, Check, CheckCircle, Circle, ChevronRight, Maximize2, Target, X } from 'lucide-react'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
   loadDiagProgress, discardDiagProgress, type DiagProgress,
@@ -99,6 +100,74 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 }
 
 // ── Done screen ───────────────────────────────────────────────────────────────
+/**
+ * Картинка задания на весь экран. Формулы на телефоне мелкие: тап по картинке
+ * открывает её целиком, второй тап увеличивает (дальше — водить пальцем),
+ * третий возвращает. В портале: страница теста при клавиатуре fixed со своим
+ * z-index, и оверлей внутри неё оказался бы под ней же.
+ */
+function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
+  const [zoomed, setZoomed] = useState(false)
+  const [natW, setNatW] = useState(0)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+  // Увеличение: вдвое шире экрана, но не больше двойного размера самого скана.
+  const zoomW = Math.round(Math.min(window.innerWidth * 2.4, (natW || 900) * 2))
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.88)',
+        overflow: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
+        display: 'grid', placeItems: zoomed ? 'start' : 'center',
+        padding: zoomed ? 0 : 'calc(env(safe-area-inset-top, 0px) + 56px) 12px calc(env(safe-area-inset-bottom, 0px) + 24px)',
+        boxSizing: 'border-box',
+      }}
+    >
+      <motion.img
+        src={src} alt=""
+        onLoad={e => setNatW((e.target as HTMLImageElement).naturalWidth)}
+        initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.94 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={e => { e.stopPropagation(); setZoomed(z => !z) }}
+        style={{
+          display: 'block', background: '#fff', borderRadius: zoomed ? 0 : 12, padding: 8, boxSizing: 'border-box',
+          cursor: zoomed ? 'zoom-out' : 'zoom-in',
+          ...(zoomed
+            ? { width: zoomW, maxWidth: 'none', height: 'auto' }
+            : { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }),
+        }}
+      />
+      <button
+        onClick={e => { e.stopPropagation(); onClose() }}
+        aria-label={t('Закрыть')}
+        style={{
+          position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 10px)', right: 12,
+          width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer',
+          background: 'rgba(255,255,255,0.16)', color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        <X size={20} />
+      </button>
+      {!zoomed && (
+        <div style={{
+          position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)',
+          textAlign: 'center', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none',
+        }}>
+          {t('Нажми на картинку, чтобы увеличить')}
+        </div>
+      )}
+    </motion.div>,
+    document.body,
+  )
+}
+
 function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, onRetry, doneLabel }: {
   accentColor: string; onBack: () => void; verdict?: PlacementVerdict | null; doneLabel?: string
   saveFailed?: boolean; retrying?: boolean; onRetry?: () => void
@@ -424,6 +493,8 @@ export default function DiagnosticTestPage() {
   const pageRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgTop, setImgTop] = useState(0)
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null)
+  useEffect(() => { setZoomSrc(null) }, [current])
   useEffect(() => {
     const vv = window.visualViewport
     if (isDesktop || !vv) { setView(null); return }
@@ -805,14 +876,31 @@ export default function DiagnosticTestPage() {
             </div>
 
             {q.image && (
+              <div style={{ position: 'relative', width: 'fit-content', maxWidth: '100%', margin: '0 auto' }}>
               <motion.img ref={imgRef} src={q.image} alt=""
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
+                onClick={() => {
+                  // Сначала убрать клавиатуру: иначе картинка открывается в
+                  // оставшуюся над ней половину экрана.
+                  ;(document.activeElement as HTMLElement | null)?.blur?.()
+                  setZoomSrc(q.image!)
+                }}
                 style={{
+                cursor: 'zoom-in',
                 display: 'block', maxWidth: '100%', maxHeight: imgMaxH, objectFit: 'contain', transition: 'max-height 0.2s ease',
                 // Сканы на белом: в тёмной теме — белая подложка со скруглением, а не дыра в карточке
                 background: '#fff', borderRadius: isDesktop ? 12 : 10, padding: isDesktop ? 8 : 4, boxSizing: 'border-box',
                 margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
               }} />
+              {/* Подсказка, что картинку можно открыть */}
+              <div style={{
+                position: 'absolute', right: 8, bottom: isDesktop ? 28 : 18, width: 28, height: 28, borderRadius: 8,
+                background: 'rgba(0,0,0,0.45)', color: '#fff', pointerEvents: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Maximize2 size={14} />
+              </div>
+              </div>
             )}
 
             {/* Confidence gate — shown when teacher enabled it; must pick before answering */}
@@ -1024,6 +1112,9 @@ export default function DiagnosticTestPage() {
             </AnimatePresence>
           </motion.div>
       </div>
+      <AnimatePresence>
+        {zoomSrc && <ImageZoom key={zoomSrc} src={zoomSrc} onClose={() => setZoomSrc(null)} />}
+      </AnimatePresence>
     </div>
   )
 }

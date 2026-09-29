@@ -4378,6 +4378,7 @@ export const EN: Record<string, string> = {
   'Принять ответ': 'Submit answer',
   'Ответ принят': 'Answer submitted',
   'Принято': 'Submitted',
+  'Нажми на картинку, чтобы увеличить': 'Tap the image to zoom',
   // — Импорт карточек по фото и ссылке (components/CardImportPanel.tsx, lib/cardImport.ts) —
   'Собрать карточки за меня': 'Build the cards for me',
   'Читаю снимок…': 'Reading the photo…',
