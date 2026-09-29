@@ -638,10 +638,13 @@ export default function DiagnosticTestPage() {
     if (isDesktop || !vv) { setView(null); return }
     const on = () => {
       fullViewH.current = Math.max(fullViewH.current, vv.height)
-      if (vv.height < fullViewH.current - 120) kbH.current = fullViewH.current - vv.height
-      // Клавиатура уехала совсем — сбрасываем «фокус ушёл» в «неизвестно»:
-      // иначе следующий автофокус без события оставил бы картинку большой.
-      else setKbFocus(f => (f === false ? null : f))
+      const open = vv.height < fullViewH.current - 120
+      if (open) kbH.current = fullViewH.current - vv.height
+      // Клавиатура уехала — картинке полный размер, даже если фокус остался в
+      // поле: на iOS «✓» над клавиатурой и свайп вниз прячут её, не снимая
+      // фокуса, и картинка ждала тапа по экрану, чтобы вырасти.
+      else if (kbWasOpen.current) setKbFocus(null)
+      kbWasOpen.current = open
       // Сдвиг — сразу в DOM, в том же кадре: через setState он приезжал кадром
       // позже, и во время анимации клавиатуры шапка успевала дёрнуться.
       const el = pageRef.current
@@ -659,6 +662,7 @@ export default function DiagnosticTestPage() {
   // фокуса = начала уезжать. Высоту берём с прошлого раза (впервые — 42%
   // экрана), точную подставит visualViewport, когда доедет.
   const kbH = useRef(0)
+  const kbWasOpen = useRef(false)
   // true — фокус в поле (клавиатура едет или стоит), false — фокус ушёл
   // (едет обратно), null — неизвестно: поле могло получить фокус программно
   // до подписки, тогда верим только visualViewport.
@@ -667,7 +671,16 @@ export default function DiagnosticTestPage() {
     if (isDesktop) return
     let t: number | undefined
     const isField = (el: EventTarget | null) => el instanceof HTMLTextAreaElement || (el instanceof HTMLInputElement && el.type !== 'checkbox' && el.type !== 'radio')
-    const onIn = (e: Event) => { if (isField(e.target)) { window.clearTimeout(t); setKbFocus(true) } }
+    let guess: number | undefined
+    const onIn = (e: Event) => {
+      if (!isField(e.target)) return
+      window.clearTimeout(t)
+      setKbFocus(true)
+      // Предсказание живёт недолго: не выехала клавиатура за 0.9 с (фокус без
+      // клавиатуры, внешняя клавиатура) — картинка возвращается к полной.
+      window.clearTimeout(guess)
+      guess = window.setTimeout(() => { if (!kbWasOpen.current) setKbFocus(null) }, 900)
+    }
     // С задержкой: между вопросами фокус переходит из поля в поле, и на этот
     // миг «клавиатура уехала» дёрнула бы картинку туда-обратно.
     const onOut = (e: FocusEvent) => { if (isField(e.target)) { window.clearTimeout(t); t = window.setTimeout(() => setKbFocus(false), 120) } }
@@ -678,6 +691,7 @@ export default function DiagnosticTestPage() {
     document.addEventListener('pointerdown', onIn, true)
     return () => {
       window.clearTimeout(t)
+      window.clearTimeout(guess)
       document.removeEventListener('focusin', onIn)
       document.removeEventListener('focusout', onOut)
       document.removeEventListener('pointerdown', onIn, true)
