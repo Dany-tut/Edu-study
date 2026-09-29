@@ -619,6 +619,19 @@ export default function DiagnosticTestPage() {
   // анимацией, иначе оживляло бы уходящий экземпляр — уже без запрета зума.
   const zoomN = useRef(0)
   const [imgRatio, setImgRatio] = useState<Record<string, number>>({})
+  // Ширина колонки — числом: переход ширины картинки анимируется только
+  // между пикселями, а с min(100%, …) iOS прыгал без анимации.
+  const colRef = useRef<HTMLDivElement>(null)
+  const [colW, setColW] = useState(0)
+  useEffect(() => {
+    const el = colRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setColW(el.clientWidth))
+    ro.observe(el)
+    setColW(el.clientWidth)
+    return () => ro.disconnect()
+  // Колонка появляется, когда доехали вопросы, — не только по смене шага.
+  }, [step, questions.length])
   useEffect(() => { setZoomSrc(null) }, [current])
   useEffect(() => {
     const vv = window.visualViewport
@@ -926,7 +939,7 @@ export default function DiagnosticTestPage() {
         paddingTop: 16, paddingBottom: KB_BOTTOM,
       } : {}),
     }}>
-      <div style={{ width: '100%', maxWidth: 560 }}>
+      <div ref={colRef} style={{ width: '100%', maxWidth: 560 }}>
 
         {/* Top bar */}
         {/* Узкий экран: название теста режется многоточием, кнопка и счётчик не переносятся */}
@@ -1016,11 +1029,13 @@ export default function DiagnosticTestPage() {
               // значок уезжал вправо от картинки. Ширину считаем по пропорции.
               const pad = isDesktop ? 8 : 4
               const ratio = imgRatio[q.image]
-              const boxW = ratio ? `min(100%, ${Math.round((imgMaxH - 2 * pad) * ratio + 2 * pad)}px)` : '100%'
+              const fitW = ratio ? Math.round((imgMaxH - 2 * pad) * ratio + 2 * pad) : 0
+              const boxW = fitW && colW ? Math.min(colW, fitW) : '100%'
               return (
               <div style={{
                 position: 'relative', width: boxW, margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
-                transition: 'width 0.2s ease',
+                // Под ход клавиатуры iOS: быстро стартует, мягко доезжает.
+                transition: 'width 0.32s cubic-bezier(0.25, 0.8, 0.25, 1)',
               }}>
               <motion.img ref={imgRef} src={q.image} alt=""
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
