@@ -32,8 +32,27 @@ export function recoverFromChunkError(msg: string): boolean {
   try { last = Number(sessionStorage.getItem(KEY) || '0') } catch { /**/ }
   if (Date.now() - last < 10_000) return false
   try { sessionStorage.setItem(KEY, String(Date.now())) } catch { /**/ }
-  window.location.reload()
+  void hardReload()
   return true
+}
+
+/**
+ * Перезагрузка мимо сервис-воркера. Простой reload() обслуживает тот же
+ * воркер, и если у него в кеше старая оболочка, вкладка снова получает старый
+ * index.html и падает на том же чанке второй раз (29.09.2026). Поэтому сначала
+ * снимаем воркер и кеши, где лежит HTML (app-shell и precache), — чанки с
+ * хешем в имени не трогаем, они не устаревают. Воркер встанет заново при загрузке.
+ */
+export async function hardReload(): Promise<void> {
+  const purge = async () => {
+    const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? []
+    await Promise.all(regs.map(r => r.unregister()))
+    const keys = (await window.caches?.keys?.()) ?? []
+    await Promise.all(keys.filter(k => k === 'app-shell' || k.includes('precache')).map(k => caches.delete(k)))
+  }
+  // Зависший воркер не должен запереть человека на экране ошибки: 2 с — и перезагрузка.
+  try { await Promise.race([purge(), new Promise(r => setTimeout(r, 2000))]) } catch { /* просто перезагрузка */ }
+  window.location.reload()
 }
 
 /**

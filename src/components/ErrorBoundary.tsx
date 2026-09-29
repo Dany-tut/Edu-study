@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { trackEvent } from '../lib/analytics'
-import { recoverFromChunkError } from '../lib/chunkError'
+import { hardReload, isChunkError, recoverFromChunkError } from '../lib/chunkError'
 import { t } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import FeedbackModal from './FeedbackModal'
@@ -79,7 +79,9 @@ export default class ErrorBoundary extends Component<Props, State> {
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
-            onClick={() => window.location.reload()}
+            // Чанковый крах, дошедший до экрана, значит, обычная перезагрузка уже
+            // не помогла: её обслужил воркер со старой оболочкой. Снимаем его.
+            onClick={() => { if (isChunkError(String(this.state.error?.message ?? ''))) void hardReload(); else window.location.reload() }}
             style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             {t('Обновить')}
