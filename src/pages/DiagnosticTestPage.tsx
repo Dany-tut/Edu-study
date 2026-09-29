@@ -148,8 +148,15 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
     tf.current = { s, x: (px - cx) - (px - cx - from.x) * k, y: (py - cy) - (py - cy - from.y) * k }
   }
 
+  // Зум браузера возвращаем В МОМЕНТ закрытия, а не при размонтировании:
+  // размонтирование ждёт анимацию выхода, и если она не доиграет, страница
+  // осталась бы без зума насовсем. Один раз на открытие — не на каждый рендер.
+  const release = useRef<() => void>(() => {})
+  const close = () => { release.current(); onClose() }
+  const closeRef = useRef(close)
+  closeRef.current = close
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current() }
     window.addEventListener('keydown', onKey)
     // iOS: щипок по странице — это gesture*-события; гасим их, пока открыто.
     const stop = (e: Event) => e.preventDefault()
@@ -158,13 +165,17 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
     const prev = meta?.content
     if (meta) meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'
-    return () => {
+    let done = false
+    release.current = () => {
+      if (done) return
+      done = true
       window.removeEventListener('keydown', onKey)
       document.removeEventListener('gesturestart', stop)
       document.removeEventListener('gesturechange', stop)
       if (meta && prev != null) meta.content = prev
     }
-  }, [onClose])
+    return () => release.current()
+  }, [])
 
   const onDown = (e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest('button')) return
@@ -216,7 +227,7 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
       // (а если увеличено — сперва вернуть как было).
       if (tf.current.s > 1.01) tf.current = { s: 1, x: 0, y: 0 }
       else if (onImg) zoomAt(2.5, e.clientX, e.clientY)
-      else { onClose(); return }
+      else { close(); return }
     }
     clamp()
     apply(true)
@@ -255,7 +266,7 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
       />
       </motion.div>
       <button
-        onClick={e => { e.stopPropagation(); onClose() }}
+        onClick={e => { e.stopPropagation(); close() }}
         aria-label={t('Закрыть')}
         style={{
           position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 10px)', right: 12,
@@ -604,6 +615,9 @@ export default function DiagnosticTestPage() {
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgTop, setImgTop] = useState(0)
   const [zoomSrc, setZoomSrc] = useState<string | null>(null)
+  // Своё имя каждому открытию: повторное открытие, пока прошлое ещё уходит
+  // анимацией, иначе оживляло бы уходящий экземпляр — уже без запрета зума.
+  const zoomN = useRef(0)
   const [imgRatio, setImgRatio] = useState<Record<string, number>>({})
   useEffect(() => { setZoomSrc(null) }, [current])
   useEffect(() => {
@@ -1018,6 +1032,7 @@ export default function DiagnosticTestPage() {
                   // Сначала убрать клавиатуру: иначе картинка открывается в
                   // оставшуюся над ней половину экрана.
                   ;(document.activeElement as HTMLElement | null)?.blur?.()
+                  zoomN.current++
                   setZoomSrc(q.image!)
                 }}
                 style={{
@@ -1251,7 +1266,7 @@ export default function DiagnosticTestPage() {
           </motion.div>
       </div>
       <AnimatePresence>
-        {zoomSrc && <ImageZoom key={zoomSrc} src={zoomSrc} onClose={() => setZoomSrc(null)} />}
+        {zoomSrc && <ImageZoom key={zoomN.current} src={zoomSrc} onClose={() => setZoomSrc(null)} />}
       </AnimatePresence>
     </div>
   )
