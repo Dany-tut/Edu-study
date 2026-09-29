@@ -412,6 +412,37 @@ export default function DiagnosticTestPage() {
   // Поэтому меняется только показ, а `pick()` ниже получает исходный номер.
   const optionOrder = useMemo(() => (q ? displayOrder(q.options, q.text) : []), [q])
   const total = questions.length
+  // Клавиатура на телефоне. iOS не меняет высоту страницы, когда она
+  // открывается, — меняется только visualViewport. Видимая часть становится
+  // вдвое ниже, iOS прокручивает страницу к полю, и между полем и клавиатурой
+  // висит пустота. Поэтому, пока клавиатура открыта, картинка ужимается ровно
+  // так, чтобы вопрос с полем влез в видимую часть, а прокрутка сбрасывается.
+  const [viewH, setViewH] = useState<number | null>(null)
+  const fullViewH = useRef(0)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [imgTop, setImgTop] = useState(0)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (isDesktop || !vv) { setViewH(null); return }
+    const on = () => {
+      fullViewH.current = Math.max(fullViewH.current, vv.height)
+      setViewH(vv.height)
+      // Дважды: iOS доводит свою прокрутку к полю анимацией уже после resize.
+      if (vv.height < fullViewH.current - 120) for (const ms of [60, 380]) window.setTimeout(() => window.scrollTo(0, 0), ms)
+    }
+    on()
+    vv.addEventListener('resize', on)
+    return () => vv.removeEventListener('resize', on)
+  }, [isDesktop])
+  const keyboardOpen = viewH != null && viewH < fullViewH.current - 120
+  useEffect(() => {
+    const el = imgRef.current
+    if (el) setImgTop(el.getBoundingClientRect().top + window.scrollY)
+  }, [current, keyboardOpen])
+  // Под картинкой: отступ 12 + строка поля ~46 + плашка адреса Safari,
+  // которая висит над клавиатурой поверх страницы, ~50.
+  const imgMaxH = isDesktop ? 380 : keyboardOpen && imgTop ? Math.max(110, Math.min(300, viewH! - imgTop - 112)) : 300
+
   // Картинки двух следующих вопросов качаем заранее: иначе новый вопрос
   // въезжает без неё, а через миг картинка догружается и толкает поле вниз.
   useEffect(() => {
@@ -662,7 +693,9 @@ export default function DiagnosticTestPage() {
     <div style={{
       // border-box: отступы внутри 100dvh, а не сверху — иначе пустая
       // страница была на 30px выше экрана и прокручивалась впустую.
-      minHeight: '100dvh', boxSizing: 'border-box', background: 'var(--color-bg)',
+      // На телефоне страница высотой по содержимому: пустой хвост до 100dvh
+      // при открытой клавиатуре был местом, куда iOS уводил прокрутку.
+      minHeight: isDesktop ? '100dvh' : undefined, boxSizing: 'border-box', background: 'var(--color-bg)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       // Вопрос начинается от верха страницы: без safe-area кнопка «Выйти» и
       // счётчик вопросов вставали ровно под вырез.
@@ -756,10 +789,10 @@ export default function DiagnosticTestPage() {
             </div>
 
             {q.image && (
-              <motion.img src={q.image} alt=""
+              <motion.img ref={imgRef} src={q.image} alt=""
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
                 style={{
-                display: 'block', maxWidth: '100%', maxHeight: isDesktop ? 380 : 300, objectFit: 'contain',
+                display: 'block', maxWidth: '100%', maxHeight: imgMaxH, objectFit: 'contain', transition: 'max-height 0.2s ease',
                 // Сканы на белом: в тёмной теме — белая подложка со скруглением, а не дыра в карточке
                 background: '#fff', borderRadius: isDesktop ? 12 : 10, padding: isDesktop ? 8 : 4, boxSizing: 'border-box',
                 margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
