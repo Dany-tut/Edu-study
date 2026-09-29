@@ -917,13 +917,13 @@ export default function DiagnosticTestPage() {
       // возвращалось обратно: экран дёргался на каждом вопросе.
       padding: isDesktop
         ? `calc(env(safe-area-inset-top, 0px) + 32px) 20px calc(env(safe-area-inset-bottom, 0px) + 32px)`
-        : `calc(env(safe-area-inset-top, 0px) + 10px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px)`,
+        : `calc(env(safe-area-inset-top, 0px) + 20px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px)`,
       // После padding: иначе сокращённая запись затёрла бы paddingBottom.
       // Верх видимой части при клавиатуре уже ниже выреза — safe-area не нужна.
       ...(keyboardOpen ? {
         position: 'fixed', left: 0, right: 0, top: view!.top, height: view!.h,
         overflowY: 'auto', overscrollBehavior: 'contain', zIndex: 1,
-        paddingTop: 10, paddingBottom: KB_BOTTOM,
+        paddingTop: 16, paddingBottom: KB_BOTTOM,
       } : {}),
     }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
