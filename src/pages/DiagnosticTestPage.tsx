@@ -102,47 +102,158 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 // ── Done screen ───────────────────────────────────────────────────────────────
 /**
  * Картинка задания на весь экран. Формулы на телефоне мелкие: тап по картинке
- * открывает её целиком, второй тап увеличивает (дальше — водить пальцем),
- * третий возвращает. В портале: страница теста при клавиатуре fixed со своим
- * z-index, и оверлей внутри неё оказался бы под ней же.
+ * открывает её целиком; дальше два пальца — зум самой картинки, один — водить,
+ * тап — 2.5× в точке тапа или обратно. Зум браузера на это время выключен:
+ * без этого щипок увеличивал всю страницу вместе с фоном. В портале: страница
+ * теста при клавиатуре fixed со своим z-index, и оверлей внутри неё оказался
+ * бы под ней же.
  */
 function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
+  const imgRef = useRef<HTMLImageElement>(null)
   const [zoomed, setZoomed] = useState(false)
-  const [natW, setNatW] = useState(0)
+  // Трансформ держим в ref и пишем прямо в style: щипок идёт по кадрам,
+  // setState на каждое движение пальца давал бы рывки.
+  const tf = useRef({ s: 1, x: 0, y: 0 })
+  const pts = useRef(new Map<number, { x: number; y: number }>())
+  const gesture = useRef<{ s: number; x: number; y: number; d: number; mx: number; my: number; px: number; py: number; moved: boolean } | null>(null)
+  const MAX = 5
+
+  const apply = (animate: boolean) => {
+    const el = imgRef.current
+    if (!el) return
+    el.style.transition = animate ? 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)' : 'none'
+    el.style.transform = `translate(${tf.current.x}px, ${tf.current.y}px) scale(${tf.current.s})`
+    setZoomed(tf.current.s > 1.01)
+  }
+  // Увеличенную картинку не даём утащить за край: край не уходит внутрь экрана.
+  const clamp = () => {
+    const el = imgRef.current
+    if (!el) return
+    const { s } = tf.current
+    if (s <= 1.01) { tf.current = { s: 1, x: 0, y: 0 }; return }
+    // Меньше экрана — по центру; больше — края не заходят внутрь экрана.
+    const lx = Math.max(0, (el.offsetWidth * s - window.innerWidth) / 2)
+    const ly = Math.max(0, (el.offsetHeight * s - window.innerHeight) / 2)
+    tf.current.x = Math.min(lx, Math.max(-lx, tf.current.x))
+    tf.current.y = Math.min(ly, Math.max(-ly, tf.current.y))
+  }
+  // Зум вокруг точки экрана (px, py): точка под пальцем остаётся на месте.
+  const zoomAt = (s: number, px: number, py: number, from = tf.current) => {
+    const el = imgRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    // Центр картинки без сдвига: из текущего положения вычитаем текущий сдвиг.
+    const cx = r.left + r.width / 2 - tf.current.x, cy = r.top + r.height / 2 - tf.current.y
+    const k = s / from.s
+    tf.current = { s, x: (px - cx) - (px - cx - from.x) * k, y: (py - cy) - (py - cy - from.y) * k }
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // iOS: щипок по странице — это gesture*-события; гасим их, пока открыто.
+    const stop = (e: Event) => e.preventDefault()
+    document.addEventListener('gesturestart', stop, { passive: false } as AddEventListenerOptions)
+    document.addEventListener('gesturechange', stop, { passive: false } as AddEventListenerOptions)
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
+    const prev = meta?.content
+    if (meta) meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('gesturestart', stop)
+      document.removeEventListener('gesturechange', stop)
+      if (meta && prev != null) meta.content = prev
+    }
   }, [onClose])
-  // Увеличение: вдвое шире экрана, но не больше двойного размера самого скана.
-  const zoomW = Math.round(Math.min(window.innerWidth * 2.4, (natW || 900) * 2))
+
+  const onDown = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* жест работает и без захвата */ }
+    pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const list = [...pts.current.values()]
+    const [a, b] = list
+    gesture.current = {
+      ...tf.current,
+      d: b ? Math.hypot(a.x - b.x, a.y - b.y) : 0,
+      mx: b ? (a.x + b.x) / 2 : a.x, my: b ? (a.y + b.y) / 2 : a.y,
+      px: a.x, py: a.y,
+      moved: gesture.current?.moved ?? false,
+    }
+    if (list.length === 1) gesture.current.moved = false
+  }
+  const onMove = (e: React.PointerEvent) => {
+    if (!pts.current.has(e.pointerId) || !gesture.current) return
+    pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const g = gesture.current
+    const [a, b] = [...pts.current.values()]
+    if (b && g.d) {
+      const s = Math.min(MAX, Math.max(0.8, g.s * Math.hypot(a.x - b.x, a.y - b.y) / g.d))
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2
+      zoomAt(s, g.mx, g.my, { s: g.s, x: g.x, y: g.y })
+      tf.current.x += mx - g.mx; tf.current.y += my - g.my
+      g.moved = true
+      apply(false)
+    } else if (!b) {
+      const dx = a.x - g.px, dy = a.y - g.py
+      if (Math.hypot(dx, dy) > 6) g.moved = true
+      if (g.moved && tf.current.s > 1.01) { tf.current.x = g.x + dx; tf.current.y = g.y + dy; apply(false) }
+    }
+  }
+  const onUp = (e: React.PointerEvent) => {
+    const g = gesture.current
+    pts.current.delete(e.pointerId)
+    if (pts.current.size) {
+      // Остался один палец после щипка — продолжаем водить от текущего места.
+      const [a] = [...pts.current.values()]
+      gesture.current = { ...tf.current, d: 0, mx: a.x, my: a.y, px: a.x, py: a.y, moved: true }
+      return
+    }
+    gesture.current = null
+    if (g && !g.moved) {
+      const r = imgRef.current?.getBoundingClientRect()
+      const onImg = !!r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+      // Тап: по картинке — 2.5× в точке тапа или обратно; мимо — закрыть
+      // (а если увеличено — сперва вернуть как было).
+      if (tf.current.s > 1.01) tf.current = { s: 1, x: 0, y: 0 }
+      else if (onImg) zoomAt(2.5, e.clientX, e.clientY)
+      else { onClose(); return }
+    }
+    clamp()
+    apply(true)
+  }
+
   return createPortal(
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      onClick={onClose}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.88)',
-        overflow: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
-        display: 'grid', placeItems: zoomed ? 'start' : 'center',
-        padding: zoomed ? 0 : 'calc(env(safe-area-inset-top, 0px) + 56px) 12px calc(env(safe-area-inset-bottom, 0px) + 24px)',
+        overflow: 'hidden', overscrollBehavior: 'contain', touchAction: 'none',
+        display: 'grid', placeItems: 'center',
+        padding: 'calc(env(safe-area-inset-top, 0px) + 56px) 12px calc(env(safe-area-inset-bottom, 0px) + 40px)',
         boxSizing: 'border-box',
       }}
     >
-      <motion.img
-        src={src} alt=""
-        onLoad={e => setNatW((e.target as HTMLImageElement).naturalWidth)}
-        initial={{ scale: 0.94 }} animate={{ scale: 1 }} exit={{ scale: 0.94 }}
+      {/* Появление — на обёртке, зум — на самой картинке: framer-motion сам
+          пишет transform и затёр бы наш. */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        onClick={e => { e.stopPropagation(); setZoomed(z => !z) }}
+        style={{ maxWidth: '100%', maxHeight: '100%', display: 'grid', placeItems: 'center', minHeight: 0 }}
+      >
+      <img
+        ref={imgRef} src={src} alt="" draggable={false}
         style={{
-          display: 'block', background: '#fff', borderRadius: zoomed ? 0 : 12, padding: 8, boxSizing: 'border-box',
-          cursor: zoomed ? 'zoom-out' : 'zoom-in',
-          ...(zoomed
-            ? { width: zoomW, maxWidth: 'none', height: 'auto' }
-            : { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }),
+          // Высота от экрана, а не 100%: у сетки нет заданной высоты, и процент
+          // от неё не считается — высокий скан вылез бы за край.
+          display: 'block', maxWidth: '100%', maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 96px)', objectFit: 'contain',
+          background: '#fff', borderRadius: 12, padding: 8, boxSizing: 'border-box',
+          cursor: zoomed ? 'grab' : 'zoom-in', touchAction: 'none', userSelect: 'none',
+          transformOrigin: 'center center', willChange: 'transform',
         }}
       />
+      </motion.div>
       <button
         onClick={e => { e.stopPropagation(); onClose() }}
         aria-label={t('Закрыть')}
@@ -155,14 +266,13 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
       >
         <X size={20} />
       </button>
-      {!zoomed && (
-        <div style={{
-          position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)',
-          textAlign: 'center', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none',
-        }}>
-          {t('Нажми на картинку, чтобы увеличить')}
-        </div>
-      )}
+      <div style={{
+        position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)',
+        textAlign: 'center', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none',
+        opacity: zoomed ? 0 : 1, transition: 'opacity 0.2s',
+      }}>
+        {t('Раздвинь пальцами или нажми, чтобы увеличить')}
+      </div>
     </motion.div>,
     document.body,
   )
@@ -494,6 +604,7 @@ export default function DiagnosticTestPage() {
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgTop, setImgTop] = useState(0)
   const [zoomSrc, setZoomSrc] = useState<string | null>(null)
+  const [imgRatio, setImgRatio] = useState<Record<string, number>>({})
   useEffect(() => { setZoomSrc(null) }, [current])
   useEffect(() => {
     const vv = window.visualViewport
@@ -884,10 +995,25 @@ export default function DiagnosticTestPage() {
               {bindShortWords(q.text)}
             </div>
 
-            {q.image && (
-              <div style={{ position: 'relative', width: 'fit-content', maxWidth: '100%', margin: '0 auto' }}>
+            {q.image && (() => {
+              // Рамка картинки — ровно по картинке, чтобы значок в углу стоял
+              // с одинаковыми отступами. fit-content тут не годится: когда
+              // картинку ужимает высота, рамка оставалась во всю ширину, и
+              // значок уезжал вправо от картинки. Ширину считаем по пропорции.
+              const pad = isDesktop ? 8 : 4
+              const ratio = imgRatio[q.image]
+              const boxW = ratio ? `min(100%, ${Math.round((imgMaxH - 2 * pad) * ratio + 2 * pad)}px)` : '100%'
+              return (
+              <div style={{
+                position: 'relative', width: boxW, margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
+                transition: 'width 0.2s ease',
+              }}>
               <motion.img ref={imgRef} src={q.image} alt=""
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
+                onLoad={e => {
+                  const im = e.currentTarget
+                  if (im.naturalWidth && im.naturalHeight) setImgRatio(r => ({ ...r, [q.image!]: im.naturalWidth / im.naturalHeight }))
+                }}
                 onClick={() => {
                   // Сначала убрать клавиатуру: иначе картинка открывается в
                   // оставшуюся над ней половину экрана.
@@ -896,21 +1022,21 @@ export default function DiagnosticTestPage() {
                 }}
                 style={{
                 cursor: 'zoom-in',
-                display: 'block', maxWidth: '100%', maxHeight: imgMaxH, objectFit: 'contain', transition: 'max-height 0.2s ease',
+                display: 'block', width: '100%', height: 'auto',
                 // Сканы на белом: в тёмной теме — белая подложка со скруглением, а не дыра в карточке
-                background: '#fff', borderRadius: isDesktop ? 12 : 10, padding: isDesktop ? 8 : 4, boxSizing: 'border-box',
-                margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
+                background: '#fff', borderRadius: isDesktop ? 12 : 10, padding: pad, boxSizing: 'border-box',
               }} />
-              {/* Подсказка, что картинку можно открыть */}
+              {/* Подсказка, что картинку можно открыть: равные отступы справа и снизу */}
               <div style={{
-                position: 'absolute', right: 8, bottom: isDesktop ? 28 : 18, width: 28, height: 28, borderRadius: 8,
+                position: 'absolute', right: 8, bottom: 8, width: 28, height: 28, borderRadius: 8,
                 background: 'rgba(0,0,0,0.45)', color: '#fff', pointerEvents: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <Maximize2 size={14} />
               </div>
               </div>
-            )}
+              )
+            })()}
 
             {/* Confidence gate — shown when teacher enabled it; must pick before answering */}
             {askConfidence && picked === undefined && (
