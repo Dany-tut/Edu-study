@@ -413,35 +413,44 @@ export default function DiagnosticTestPage() {
   const optionOrder = useMemo(() => (q ? displayOrder(q.options, q.text) : []), [q])
   const total = questions.length
   // Клавиатура на телефоне. iOS не меняет высоту страницы, когда она
-  // открывается, — меняется только visualViewport. Видимая часть становится
-  // вдвое ниже, iOS прокручивает страницу к полю, и между полем и клавиатурой
-  // висит пустота. Поэтому, пока клавиатура открыта, картинка ужимается ровно
-  // так, чтобы вопрос с полем влез в видимую часть, а прокрутка сбрасывается.
-  const [viewH, setViewH] = useState<number | null>(null)
+  // открывается, — меняется только visualViewport, и iOS двигает эту видимую
+  // часть по странице: к полю, от пальца, при вводе. Сброс прокрутки не
+  // помогал — iOS сдвигал её снова, и под полем открывалась пустота. Поэтому,
+  // пока клавиатура открыта, тест закреплён ровно в видимой части (fixed по
+  // offsetTop/height visualViewport) и едет вместе с ней: пустоте неоткуда
+  // взяться. Картинка при этом ужимается, чтобы поле влезло над клавиатурой.
+  const [view, setView] = useState<{ h: number; top: number } | null>(null)
   const fullViewH = useRef(0)
+  const pageRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgTop, setImgTop] = useState(0)
   useEffect(() => {
     const vv = window.visualViewport
-    if (isDesktop || !vv) { setViewH(null); return }
+    if (isDesktop || !vv) { setView(null); return }
     const on = () => {
       fullViewH.current = Math.max(fullViewH.current, vv.height)
-      setViewH(vv.height)
-      // Дважды: iOS доводит свою прокрутку к полю анимацией уже после resize.
-      if (vv.height < fullViewH.current - 120) for (const ms of [60, 380]) window.setTimeout(() => window.scrollTo(0, 0), ms)
+      setView({ h: vv.height, top: vv.offsetTop })
     }
     on()
     vv.addEventListener('resize', on)
-    return () => vv.removeEventListener('resize', on)
+    vv.addEventListener('scroll', on)
+    return () => { vv.removeEventListener('resize', on); vv.removeEventListener('scroll', on) }
   }, [isDesktop])
-  const keyboardOpen = viewH != null && viewH < fullViewH.current - 120
+  const keyboardOpen = view != null && view.h < fullViewH.current - 120
   useEffect(() => {
-    const el = imgRef.current
-    if (el) setImgTop(el.getBoundingClientRect().top + window.scrollY)
+    const el = imgRef.current, page = pageRef.current
+    if (el && page) setImgTop(el.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop)
   }, [current, keyboardOpen])
-  // Под картинкой: отступ 12 + строка поля ~46 + плашка адреса Safari,
-  // которая висит над клавиатурой поверх страницы, ~50.
-  const imgMaxH = isDesktop ? 380 : keyboardOpen && imgTop ? Math.max(110, Math.min(300, viewH! - imgTop - 112)) : 300
+  // Снизу при клавиатуре: отступ 12 + поле 46 + плашка адреса Safari поверх
+  // страницы ~56. Мельче 150 картинку не ужимаем — формулы перестают читаться,
+  // лучше пусть тест прокрутится внутри своей рамки.
+  const KB_BOTTOM = 56
+  const imgMaxH = isDesktop ? 380 : keyboardOpen && imgTop ? Math.max(150, Math.min(300, view!.h - imgTop - 12 - 46 - KB_BOTTOM - 8)) : 300
+  // Не влезло и при 150 — докручиваем рамку к полю.
+  useEffect(() => {
+    const page = pageRef.current
+    if (keyboardOpen && page) page.scrollTop = page.scrollHeight
+  }, [keyboardOpen, current])
 
   // Картинки двух следующих вопросов качаем заранее: иначе новый вопрос
   // въезжает без неё, а через миг картинка догружается и толкает поле вниз.
@@ -690,7 +699,7 @@ export default function DiagnosticTestPage() {
   const picked = chosen[q.id]
 
   return (
-    <div style={{
+    <div ref={pageRef} style={{
       // border-box: отступы внутри 100dvh, а не сверху — иначе пустая
       // страница была на 30px выше экрана и прокручивалась впустую.
       // На телефоне страница высотой по содержимому: пустой хвост до 100dvh
@@ -706,6 +715,13 @@ export default function DiagnosticTestPage() {
       padding: isDesktop
         ? `calc(env(safe-area-inset-top, 0px) + 32px) 20px calc(env(safe-area-inset-bottom, 0px) + 32px)`
         : `calc(env(safe-area-inset-top, 0px) + 10px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px)`,
+      // После padding: иначе сокращённая запись затёрла бы paddingBottom.
+      // Верх видимой части при клавиатуре уже ниже выреза — safe-area не нужна.
+      ...(keyboardOpen ? {
+        position: 'fixed', left: 0, right: 0, top: view!.top, height: view!.h,
+        overflowY: 'auto', overscrollBehavior: 'contain', zIndex: 1,
+        paddingTop: 10, paddingBottom: KB_BOTTOM,
+      } : {}),
     }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
 
@@ -768,8 +784,8 @@ export default function DiagnosticTestPage() {
               ? { duration: LEAVE_MS / 1000, ease: [0.4, 0, 1, 1] }
               : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Section badge */}
-            <div style={{
+            {/* Section badge — при клавиатуре место нужнее картинке */}
+            {!keyboardOpen && <div style={{
               display: 'inline-flex', alignItems: 'center',
               padding: '3px 10px', borderRadius: 999,
               background: `${theme.accent}18`,
@@ -777,7 +793,7 @@ export default function DiagnosticTestPage() {
               marginBottom: isDesktop ? 12 : 8,
             }}>
               {q.section}
-            </div>
+            </div>}
 
             {/* Question text */}
             <div style={{
@@ -841,6 +857,8 @@ export default function DiagnosticTestPage() {
                       style={{
                         width: '100%', boxSizing: 'border-box', resize: 'none', outline: 'none',
                         padding: '12px 14px', borderRadius: 13, fontSize: 16, fontFamily: 'inherit', lineHeight: 1.3,
+                        // Одна высота с кнопкой рядом: 46 = 12 + 20.8 + 12 + рамки.
+                        minHeight: 46,
                         border: `1.5px solid ${termDraft.trim() || locked ? theme.accent : 'var(--color-border-medium)'}`,
                         background: 'var(--color-bg-input)', color: locked ? theme.accent : 'var(--color-text)',
                         caretColor: theme.accent, fontWeight: 600, transition: 'border-color 0.15s',
@@ -854,7 +872,10 @@ export default function DiagnosticTestPage() {
                     whileTap={!locked && termDraft.trim() ? { scale: 0.97 } : {}}
                     onClick={submit} disabled={locked || !termDraft.trim()}
                     style={{
-                      width: inline ? 'auto' : '100%', flexShrink: 0, padding: inline ? '0 16px' : '13px', borderRadius: inline ? 13 : 14, border: 'none',
+                      // В строке — постоянный размер: «Ответить» и «✓ Принято» одной
+                      // ширины, высота = поле. Иначе кнопка прыгала при смене надписи.
+                      width: inline ? 112 : '100%', height: inline ? 46 : undefined, alignSelf: inline ? 'flex-start' : undefined,
+                      flexShrink: 0, padding: inline ? 0 : '13px', borderRadius: 13, border: 'none',
                       cursor: locked ? 'default' : termDraft.trim() ? 'pointer' : 'not-allowed',
                       background: locked ? `${theme.accent}26` : termDraft.trim() ? theme.accent : 'var(--color-bg-5)',
                       color: locked ? theme.accent : termDraft.trim() ? getContrastColor(theme.accent) : 'var(--color-text-3)',
