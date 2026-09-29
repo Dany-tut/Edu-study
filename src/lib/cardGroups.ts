@@ -20,7 +20,6 @@
 
 import { supabase } from './supabase'
 import type { Phrase } from '../data/survivalPhrases'
-import type { SurvivalLevel } from '../data/survivalPhrases'
 
 /**
  * Карточка набора — это Phrase из разговорника, и добавка ровно одна: id строки.
@@ -60,7 +59,12 @@ export interface CardSet {
   id: string
   title: string
   about: string
-  level?: SurvivalLevel | null
+  /**
+   * Ступень — свободная строка, а не CEFR: набор бывает и у биологии («ЕГЭ»),
+   * и у корейского («TOPIK I»). Что предлагать под предмет — levelOptionsForSubject
+   * в lib/courseLevels.ts, общий справочник на все формы создания.
+   */
+  level?: string | null
   /** Момент создания — по нему витрина Конструктора строит порядок «Новые». */
   createdAt?: string
   /**
@@ -90,7 +94,12 @@ export interface CardGroup {
   subject?: string | null
   title: string
   about: string
-  level?: SurvivalLevel | null
+  /**
+   * Ступень — свободная строка, а не CEFR: набор бывает и у биологии («ЕГЭ»),
+   * и у корейского («TOPIK I»). Что предлагать под предмет — levelOptionsForSubject
+   * в lib/courseLevels.ts, общий справочник на все формы создания.
+   */
+  level?: string | null
   sort: number
   /**
    * Кому назначена. Пусто = всем ученикам владельца.
@@ -124,7 +133,7 @@ function rowToGroup(r: GroupRow): CardGroup {
     subject: r.subject,
     title: r.title,
     about: r.about ?? '',
-    level: (r.level as SurvivalLevel | null) ?? null,
+    level: r.level ?? null,
     sort: r.sort ?? 0,
     studentIds: r.student_ids ?? [],
     createdBy: r.created_by,
@@ -159,7 +168,7 @@ async function fillSets(groups: CardGroup[]): Promise<CardGroup[]> {
       id: r.id as string,
       title: (r.title as string) ?? '',
       about: (r.about as string) ?? '',
-      level: (r.level as SurvivalLevel | null) ?? null,
+      level: r.level ?? null,
       createdAt: (r.created_at as string | null) ?? undefined,
       cards: [],
     }
