@@ -28,7 +28,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
-import { languageTaxonomy, type TaskLanguageTags } from '../../data/languageTaxonomy'
+import { languageTaxonomy, tagsLabel, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
 import { levelOptions, matchesLevel, levelOptionsForSubject, levelBuckets, sortLevels } from '../../lib/courseLevels'
 import {
@@ -8525,15 +8525,21 @@ export default function TeacherConstructorPage() {
    * что у предмета есть, а раздел с линией уточняют уже на полке «Задания».
    */
   const bankTaskCards = useMemo(
-    () => bankTasksOfSubject.map(x => ({
-      id: x.id,
-      title: plainText(x.question) || t('Без текста'),
-      about: [x.section, x.topic].filter(Boolean).join('. '),
-      // Языковое задание размечено уровнем в payload, ЕГЭ-шное — нет.
-      level: (x.payload?.language as TaskLanguageTags | undefined)?.level ?? '',
-      meta: x.part === 2 ? t('II часть') : t('I часть'),
-      chip: `${x.line} ${t('лин.')} · №${x.id}`,
-    })),
+    () => bankTasksOfSubject.map(x => {
+      // Разметка у предметов разная: у ЕГЭ — часть и линия, у языка —
+      // уровень, навык, тема. Показываем ту, что у задания правда есть:
+      // «I часть · 0 лин.» на корейском задании — подпись ни о чём.
+      const tags = x.payload?.language as TaskLanguageTags | undefined
+      const langLabel = tags ? tagsLabel(tags) : ''
+      return {
+        id: x.id,
+        title: plainText(x.question) || t('Без текста'),
+        about: [x.section, x.topic].filter(Boolean).join('. '),
+        level: tags?.level ?? '',
+        meta: langLabel || (x.part === 2 ? t('II часть') : t('I часть')),
+        chip: langLabel ? `№${x.id}` : `${x.line} ${t('лин.')} · №${x.id}`,
+      }
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [bankTasksOfSubject],
   )
@@ -9165,6 +9171,13 @@ export default function TeacherConstructorPage() {
     ? (onTasksShelf ? taskView === 'tasks' : baseShelf === 'decks')
     : true
 
+  // Ушли с полки, где было что отмечать, — режим правки гаснет вместе с ней.
+  // Иначе на «Всё» оставался красный крестик при погашенной кнопке: выключить
+  // режим нечем, а карточки вокруг на него не отзываются.
+  useEffect(() => {
+    if (!editToggleShown && editMode) { setEditMode(false); setCheckedIds(new Set()) }
+  }, [editToggleShown, editMode])
+
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', marginTop: -100 }}>
@@ -9527,6 +9540,7 @@ export default function TeacherConstructorPage() {
                     view: taskView === 'tasks' ? (
                       <TrainerBankBrowser
                         filters={bankFilters}
+                        onSearch={v => setBankFilters(prev => ({ ...prev, search: v }))}
                         facet={
                           <SubjectFacet
                             value={shelfSubject} allLabel={t('Все предметы')}

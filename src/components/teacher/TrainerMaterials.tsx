@@ -35,7 +35,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, FileCode2, LayoutGrid, List, Search, Trash2, X, Zap,
+  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, FileCode2, Layers, LayoutGrid, List, Search, Trash2, X, Zap,
 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -51,7 +51,7 @@ import { plural } from '../trainer/TrainerShell'
 import { SortDropdown, SubjectFacet, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import TeacherSelect from './TeacherSelect'
-import CardGroupsManager, { useOwnDeckCount } from './CardGroupsManager'
+import CardGroupsManager, { useOwnDecks } from './CardGroupsManager'
 import Skeleton from '../Skeleton'
 
 const MAT_COLOR = 'var(--color-peach-text)'
@@ -289,7 +289,8 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
     if (!modes.some(m => m.id === mode)) setMode('')
   }, [modes, mode])
 
-  const deckCount = useOwnDeckCount(subject, lang)
+  const decks = useOwnDecks(subject, lang)
+  const deckCount = decks.length
   const modeCount = (m: MaterialMode) =>
     rows.reduce((n, r) => n + (r.family.mode === m ? 1 : 0), 0) + (m === 'vocab' ? deckCount : 0)
 
@@ -399,20 +400,33 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
    * Учитель ищет не «задание» и не «материал», а то, что даст ученику по
    * предмету; полки — это уточнение, а не первый вопрос. Задания попадают сюда
    * только когда не выбрана полка: внутри «Чтения» им делать нечего.
+   *
+   * СОРТИРОВКА ОБЩАЯ, А НЕ ДВЕ ПОДРЯД. Пока каждая половина сортировалась у
+   * себя, «Всё» начиналось двумя сотнями заданий, и до первого текста надо было
+   * пролистать весь банк — вкладка «Задания» вернулась под другим названием.
    */
-  const shownTasks = useMemo(() => {
-    if (mode || familyId || !tasks?.cards) return []
+  const mixed = useMemo(() => {
     const q = normSearch(query)
-    let list = tasks.cards
-    if (level) list = list.filter(x => x.level === level)
-    if (q) list = list.filter(x => normSearch(x.title + ' ' + x.about).includes(q))
-    const out = [...list]
-    if (sort === 'az') out.sort((a, b) => a.title.localeCompare(b.title))
-    else if (sort === 'za') out.sort((a, b) => b.title.localeCompare(a.title))
-    return out
-  }, [tasks?.cards, mode, familyId, level, query, sort])
+    const taskItems = (mode || familyId || !tasks?.cards) ? [] : tasks.cards
+      .filter(x => !level || x.level === level)
+      .filter(x => !q || normSearch(x.title + ' ' + x.about).includes(q))
+      .map(x => ({ kind: 'task' as const, task: x, title: x.title, level: x.level, size: 0 }))
+    // Подборки тоже часть «Всего»: счёт у «Карточек» их считал, а витрина
+    // показывала только на своей полке — предмет с одними наборами (биология)
+    // выглядел пустым там, где панель обещала два.
+    const deckItems = (mode || familyId) ? [] : decks
+      .filter(x => !q || normSearch(x.title + ' ' + x.about).includes(q))
+      .map(x => ({ kind: 'deck' as const, deck: x, title: x.title, level: '', size: x.cards }))
+    const matItems = shown.map(x => ({ kind: 'material' as const, row: x, title: x.title, level: x.level ?? '', size: x.size }))
+    const all = [...taskItems, ...deckItems, ...matItems]
+    if (sort === 'az') all.sort((a, b) => a.title.localeCompare(b.title))
+    else if (sort === 'za') all.sort((a, b) => b.title.localeCompare(a.title))
+    else if (sort === 'size') all.sort((a, b) => b.size - a.size)
+    else all.sort((a, b) => a.level.localeCompare(b.level) || a.title.localeCompare(b.title))
+    return all
+  }, [shown, tasks?.cards, decks, mode, familyId, level, query, sort])
 
-  const totalShown = shown.length + shownTasks.length
+  const totalShown = mixed.length
 
   const dirty = !!(level || topic || query)
   const showLangChip = !lang
@@ -470,61 +484,82 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
               </div>
             ) : view === 'cards' ? (
               <div style={GRID}>
-                {shownTasks.map(x => (
+                {mixed.map(x => x.kind === 'task' ? (
                   <ContentCard
-                    key={`task-${x.id}`}
+                    key={`task-${x.task.id}`}
                     accentColor={TASK_COLOR} accentBg={TASK_BG}
-                    isSelected={false} onClick={() => tasks?.onOpenCard?.(x.id)}
+                    isSelected={false} onClick={() => tasks?.onOpenCard?.(x.task.id)}
                     icon={<Zap size={17} strokeWidth={2} style={{ color: TASK_COLOR }} />}
                     iconBg={TASK_BG}
                     badge={
                       <div style={{ display: 'flex', gap: 4 }}>
                         <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
-                        {x.level && <span style={cardChip('var(--color-text-3)')}>{x.level}</span>}
+                        {x.task.level && <span style={cardChip('var(--color-text-3)')}>{x.task.level}</span>}
                       </div>
                     }
-                    title={x.title}
-                    subtitle={x.about}
-                    footerLeft={<span>{x.meta}</span>}
-                    footerRight={<>{x.chip}</>}
+                    title={x.task.title}
+                    subtitle={x.task.about}
+                    footerLeft={<span>{x.task.meta}</span>}
+                    footerRight={<>{x.task.chip}</>}
                   />
-                ))}
-                {shown.map(x => (
+                ) : x.kind === 'deck' ? (
                   <ContentCard
-                    key={`${x.lang}-${x.family.id}-${x.id}`}
+                    key={`deck-${x.deck.id}`}
                     accentColor={MAT_COLOR} accentBg={MAT_BG}
-                    isSelected={false} onClick={() => onOpen(refOf(x))}
+                    isSelected={false} onClick={x.deck.open}
+                    icon={<Layers size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
+                    iconBg={MAT_BG}
+                    badge={<span style={cardChip(MAT_COLOR)}>{t('Подборка')}</span>}
+                    title={x.deck.title}
+                    subtitle={x.deck.about}
+                    footerLeft={<span>{x.deck.cards} {t(plural(x.deck.cards, ['карточка', 'карточки', 'карточек']))}</span>}
+                    footerRight={<>{x.deck.shelf}</>}
+                  />
+                ) : (
+                  <ContentCard
+                    key={`${x.row.lang}-${x.row.family.id}-${x.row.id}`}
+                    accentColor={MAT_COLOR} accentBg={MAT_BG}
+                    isSelected={false} onClick={() => onOpen(refOf(x.row))}
                     icon={<FileCode2 size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
                     iconBg={MAT_BG}
                     badge={
                       <div style={{ display: 'flex', gap: 4 }}>
-                        {showLangChip && <span style={cardChip('var(--color-text-3)')}>{langLabel(x.lang)}</span>}
-                        {x.level && <span style={cardChip(MAT_COLOR)}>{x.level}</span>}
+                        {showLangChip && <span style={cardChip('var(--color-text-3)')}>{langLabel(x.row.lang)}</span>}
+                        {x.row.level && <span style={cardChip(MAT_COLOR)}>{x.row.level}</span>}
                       </div>
                     }
-                    title={x.title}
-                    subtitle={x.about}
-                    footerLeft={<span>{x.meta}</span>}
-                    footerRight={<>{showFamilyChip ? t(x.family.label) : (x.topic ?? '')}</>}
+                    title={x.row.title}
+                    subtitle={x.row.about}
+                    footerLeft={<span>{x.row.meta}</span>}
+                    footerRight={<>{showFamilyChip ? t(x.row.family.label) : (x.row.topic ?? '')}</>}
                   />
                 ))}
               </div>
+            ) : mixed.every(x => x.kind === 'material') ? (
+              <MaterialRows items={shown} grouped={!familyId} showLang={showLangChip} onOpen={x => onOpen(refOf(x))} />
             ) : (
-              <>
-                {shownTasks.length > 0 && (
-                  <div style={ROWS_BOX}>
-                    {shownTasks.map(x => (
-                      <button key={`task-${x.id}`} onClick={() => tasks?.onOpenCard?.(x.id)}
-                        style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
-                        <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
-                        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
-                        <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.chip}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <MaterialRows items={shown} grouped={!familyId} showLang={showLangChip} onOpen={x => onOpen(refOf(x))} />
-              </>
+              // Списком порядок тот же, что плитками: полка «Всё» — один список,
+              // а не две стопки подряд.
+              <div style={ROWS_BOX}>
+                {mixed.map(x => x.kind === 'task' ? (
+                  <button key={`task-${x.task.id}`} onClick={() => tasks?.onOpenCard?.(x.task.id)}
+                    style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
+                    <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.task.title}</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.task.chip}</span>
+                  </button>
+                ) : x.kind === 'deck' ? (
+                  <button key={`deck-${x.deck.id}`} onClick={x.deck.open}
+                    style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
+                    <span style={cardChip(MAT_COLOR)}>{t('Подборка')}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.deck.title}</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.deck.cards} {t(plural(x.deck.cards, ['карточка', 'карточки', 'карточек']))}</span>
+                  </button>
+                ) : (
+                  <MaterialRow key={`${x.row.lang}-${x.row.family.id}-${x.row.id}`}
+                    x={x.row} showLang={showLangChip} onOpen={() => onOpen(refOf(x.row))} />
+                ))}
+              </div>
             )}
           </>
         )}
@@ -587,28 +622,34 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
       )
     }
     out.push(
-      <div
-        key={`${x.lang}-${x.family.id}-${x.id}`}
-        onClick={() => onOpen(x)}
-        style={{ ...ROW, cursor: 'pointer' }}
-        onMouseEnter={e => { e.currentTarget.style.background = MAT_BG }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.88)' }}
-      >
-        {showLang && <span style={cardChip('var(--color-text-3)')}>{langLabel(x.lang)}</span>}
-        {x.level && <span style={{ ...cardChip(MAT_COLOR), minWidth: 54, textAlign: 'center' }}>{x.level}</span>}
-        <span style={{
-          flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {x.title}
-        </span>
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
-          {[x.topic, x.meta].filter(Boolean).join(' · ')}
-        </span>
-      </div>,
+      <MaterialRow key={`${x.lang}-${x.family.id}-${x.id}`} x={x} showLang={showLang} onOpen={() => onOpen(x)} />,
     )
   }
   return <div style={ROWS_BOX}>{out}</div>
+}
+
+/** Одна строка материала. Та же и в плотном списке полки, и в общем «Всё». */
+function MaterialRow({ x, showLang, onOpen }: { x: Row; showLang: boolean; onOpen: () => void }) {
+  return (
+    <div
+      onClick={onOpen}
+      style={{ ...ROW, cursor: 'pointer' }}
+      onMouseEnter={e => { e.currentTarget.style.background = MAT_BG }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.88)' }}
+    >
+      {showLang && <span style={cardChip('var(--color-text-3)')}>{langLabel(x.lang)}</span>}
+      {x.level && <span style={{ ...cardChip(MAT_COLOR), minWidth: 54, textAlign: 'center' }}>{x.level}</span>}
+      <span style={{
+        flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {x.title}
+      </span>
+      <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+        {[x.topic, x.meta].filter(Boolean).join(' · ')}
+      </span>
+    </div>
+  )
 }
 
 /**

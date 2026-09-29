@@ -7,7 +7,8 @@ import {
   LayoutGrid, List, ArrowUpDown, Pencil, Zap, Clock, Database,
 } from 'lucide-react'
 import TeacherSelect from './TeacherSelect'
-import { ViewSwitch } from './ShelfFilters'
+import { ViewSwitch, ShelfSearch } from './ShelfFilters'
+import { plural } from '../trainer/TrainerShell'
 import {
   SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
   type Task, type Subject, type QuestionType, type ScoreMode, type TaskChoice, type TaskAnswerKey, type TaskCriterion,
@@ -283,15 +284,15 @@ export function BankQuestionCard({
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       animate={isEdited ? {
-        boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 0px rgba(99,84,207,0)'],
+        boxShadow: ['0 0 0 0px transparent', `0 0 0 3px ${accent}80`, `0 0 0 3px ${accent}80`, '0 0 0 0px transparent'],
       } : {}}
       transition={isEdited ? { duration: 2, ease: 'easeOut', times: [0, 0.1, 0.8, 1] } : {}}
       style={{
         position: 'relative',
         display: 'flex', flexDirection: 'column', gap: compact ? 0 : 12,
         padding: compact ? '10px 14px' : 18, borderRadius: compact ? 16 : 22,
-        background: isEdited ? 'rgba(238,219,255,0.22)' : 'rgba(var(--glass-rgb), 0.97)',
-        border: isEdited ? '1.5px solid var(--color-purple)' : selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(99,84,207,0.3)' : '1px solid var(--color-border-glass)',
+        background: isEdited ? `${accent}14` : 'rgba(var(--glass-rgb), 0.97)',
+        border: isEdited || selected ? `1.5px solid ${accent}` : dirty ? `1.5px solid ${accent}4d` : '1px solid var(--color-border-glass)',
         boxShadow: compact ? '0 1px 6px rgba(0,0,0,0.05)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.2s',
       }}>
       {compact ? (
@@ -300,7 +301,7 @@ export function BankQuestionCard({
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             <CopyableIdBadge id={task.id} />
             <span style={cardChipTone('neutral')}>{task.line} лин.</span>
-            {dirty && <span style={cardChipTone('purple')}>{t('изм.')}</span>}
+            {dirty && <span style={cardChip(accent)}>{t('изм.')}</span>}
           </div>
           <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
@@ -330,7 +331,7 @@ export function BankQuestionCard({
               <span style={cardChipTone('neutral')}>{task.line} {t('линия')}</span>
               <span style={cardChipTone('neutral')}>{t('Часть')} {task.part}</span>
               <span style={cardChip(accent)}>{computedMax} {plBall(computedMax)}</span>
-              {dirty && <span style={cardChipTone('purple')}>{t('изменено')}</span>}
+              {dirty && <span style={cardChip(accent)}>{t('изменено')}</span>}
             </div>
             <p style={{ fontSize: 14.5, lineHeight: 1.4, fontWeight: 650, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>
               {question || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
@@ -492,17 +493,17 @@ function BankGridCard({
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
       onClick={() => editMode ? onToggleSelected() : openEdit(task.id)}
       animate={isEdited ? {
-        boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 0px rgba(99,84,207,0)'],
-        borderColor: ['var(--color-purple)', 'var(--color-purple)', 'var(--color-purple)', 'var(--color-border-glass)'],
+        boxShadow: ['0 0 0 0px transparent', `0 0 0 3px ${accent}80`, `0 0 0 3px ${accent}80`, '0 0 0 0px transparent'],
+        borderColor: [accent, accent, accent, 'var(--color-border-glass)'],
       } : isNew ? {
-        boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.35)', '0 0 0 0px rgba(99,84,207,0)'],
-        borderColor: [undefined, 'var(--color-purple)', undefined],
+        boxShadow: ['0 0 0 0px transparent', `0 0 0 3px ${accent}59`, '0 0 0 0px transparent'],
+        borderColor: [undefined, accent, undefined],
       } : {}}
       transition={isEdited ? { duration: 2, ease: 'easeOut', times: [0, 0.1, 0.8, 1] } : { duration: 1.2, ease: 'easeOut' }}
       style={{
         position: 'relative',
         display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 18px 12px', borderRadius: 20,
-        background: isEdited ? 'rgba(238,219,255,0.28)' : isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
+        background: isEdited ? `${accent}1f` : isNew ? `${accent}14` : 'rgba(var(--glass-rgb), 0.97)',
         border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border-glass)',
         boxShadow: selected ? `0 0 0 3px ${accent}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box',
         transition: 'background 0.4s ease', cursor: 'pointer',
@@ -512,8 +513,8 @@ function BankGridCard({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
           style={{ position: 'absolute', top: 10, right: 10, zIndex: 6, padding: '3px 9px', borderRadius: 999,
-            background: 'var(--color-purple)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: 0.2,
-            boxShadow: '0 2px 10px rgba(99,84,207,0.45)', whiteSpace: 'nowrap' }}>
+            background: accent, color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: 0.2,
+            boxShadow: `0 2px 10px ${accent}73`, whiteSpace: 'nowrap' }}>
           {t('Изменено')}
         </motion.div>
       )}
@@ -634,7 +635,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
 
 // ─── Browser (filtered list of cards) ───────────────────────────────────────────
 export function TrainerBankBrowser({
-  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)', editMode = false, facet,
+  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)', editMode = false, facet, onSearch,
 }: {
   filters: TrainerFilters
   selectedIds: Set<number>
@@ -646,6 +647,11 @@ export function TrainerBankBrowser({
   accent?: string
   accentBg?: string
   editMode?: boolean
+  /**
+   * Поиск по тексту задания и номеру. Жил в панели банка, а она уехала: на
+   * «Базе» поиск стоит в ряду фильтров, как у всех остальных витрин.
+   */
+  onSearch?: (v: string) => void
   /**
    * Фасет предмета — таблеткой в ряду фильтров, как на «Тестах», «Курсах» и
    * «Материалах». Предмет стоял в панели справа, среди раздела и линии, хотя
@@ -731,7 +737,8 @@ export function TrainerBankBrowser({
         {facet}
         <ViewSwitch value={viewMode} onChange={setViewMode}
           options={[['grid', 'Карточками', LayoutGrid], ['list', 'Списком', List]]} />
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filtered.length} {t('заданий')}</span>
+        {onSearch && <ShelfSearch value={filters.search} onChange={onSearch} style={{ marginLeft: 'auto' }} />}
+        <span style={{ marginLeft: onSearch ? 0 : 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filtered.length} {t(plural(filtered.length, ['задание', 'задания', 'заданий']))}</span>
       </div>
 
       {filtered.length === 0 && (
@@ -813,6 +820,7 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
       <MultiSelectField label={t('Уровень')} values={filters.levels ?? []} options={langTax.levels} onChange={v => onChange({ levels: v })} accent={accent} accentBg={accentBg} />
       <MultiSelectField label={t('Навык')} values={filters.skills ?? []} options={langTax.skills} onChange={v => onChange({ skills: v })} accent={accent} accentBg={accentBg} />
       <MultiSelectField label={t('Тема')} values={filters.topics} options={langTax.topics} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
+      <ResetFilters filters={filters} onChange={onChange} />
     </>
   ) : (
     <>
@@ -833,7 +841,21 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
       </div>
       <MultiSelectField label={t('Линия')} values={filters.lines} options={allLines} onChange={v => onChange({ lines: v })} accent={accent} accentBg={accentBg} />
       <FilterField label={t('Источник')} value={filters.source} options={merge(SOURCES, SOURCE_SCOPE)} onChange={v => onChange({ source: v })} />
+      <ResetFilters filters={filters} onChange={onChange} />
     </>
+  )
+}
+
+/** Сброс уточнений банка. Предмет не трогаем — он общий для всех витрин. */
+function ResetFilters({ filters, onChange }: { filters: TrainerFilters; onChange: (f: Partial<TrainerFilters>) => void }) {
+  const t = useT()
+  const has = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source || filters.levels?.length || filters.skills?.length)
+  if (!has) return null
+  return (
+    <button onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [] })}
+      style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+      <Trash2 size={12} /> {t('Сбросить фильтры')}
+    </button>
   )
 }
 

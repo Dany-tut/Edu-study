@@ -144,6 +144,20 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const langLabelOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.label ?? lang
+
+/**
+ * Подпись набора на витрине — ПРЕДМЕТ, а не язык.
+ *
+ * У неязыкового набора язык всегда русский (см. langOfSubject), и плитка
+ * «Разделов биологии» подписывалась «🇷🇺 Русский» при выбранной биологии —
+ * подпись противоречила полю в редакторе. У языкового набора предмет и есть
+ * язык, так что ничего не теряется. Старые строки без предмета (заводились до
+ * поля «Предмет») откатываются на язык — иначе подпись просто исчезла бы.
+ */
+const scopeLabelOf = (g: { subject?: string | null; lang: string }) => {
+  const s = g.subject ? SUBJECTS.find(x => x.id === g.subject) : undefined
+  return s ? `${s.icon} ${s.name}` : langLabelOf(g.lang)
+}
 const subjectOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.subject ?? null
 
 const emptySet = (n: number): CardSet => ({
@@ -238,7 +252,7 @@ export function readPasted(text: string): { title?: string; cards: SetCard[] } {
 let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup[] } | null = null
 
 /**
- * Сколько наборов лежит на «Подборках» у этого предмета — для дерева «Базы».
+ * Наборы с «Подборок» этого предмета — для дерева и общей витрины «Базы».
  *
  * Дерево обещает числом, что за строкой что-то есть, а подборки единственные
  * приезжают из базы: у биологии готовых материалов ноль, и без этого счёта её
@@ -246,8 +260,9 @@ let groupsCache: { ownerId: string | null; groups: CardGroup[]; seeds: CardGroup
  * же кэша, которым живёт витрина, и грузим сами, только если она ещё не
  * открывалась.
  */
-export function useOwnDeckCount(subject: string, lang: string): number {
+export function useOwnDecks(subject: string, lang: string): DeckCard[] {
   const [groups, setGroups] = useState<CardGroup[]>(() => groupsCache?.groups ?? [])
+  const openCardsEditor = useTeacher(s => s.openCardsEditor)
   useEffect(() => {
     if (groupsCache) { setGroups(groupsCache.groups); return }
     let alive = true
@@ -258,12 +273,22 @@ export function useOwnDeckCount(subject: string, lang: string): number {
     })()
     return () => { alive = false }
   }, [])
-  return useMemo(() => groups.reduce((n, g) => {
-    const mine = subject
-      ? g.subject === subject || (!!lang && g.lang === lang)
-      : true
-    return mine ? n + g.sets.length : n
-  }, 0), [groups, subject, lang])
+  return useMemo(() => groups
+    .filter(g => subject ? g.subject === subject || (!!lang && g.lang === lang) : true)
+    .flatMap(g => g.sets.map(set => ({
+      id: set.id,
+      title: set.title || 'Без названия',
+      about: set.about || langLabelOf(g.lang),
+      shelf: isShelf(g) ? g.title : '',
+      cards: set.cards.length,
+      open: () => openCardsEditor(JSON.stringify({ group: g, focus: set.id })),
+    }))),
+  [groups, subject, lang, openCardsEditor])
+}
+
+/** Набор карточек в общей витрине «Базы»: ровно то, что видно на карточке. */
+export type DeckCard = {
+  id: string; title: string; about: string; shelf: string; cards: number; open: () => void
 }
 
 export default function CardGroupsManager({ createNonce = 0, lang, subject, facet, editMode = false, query: outerQuery, onQuery }: {
@@ -684,8 +709,8 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                   display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                   borderRadius: 12, border: 'none', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
                   cursor: !busy && shelfName.trim() ? 'pointer' : 'default',
-                  background: shelfName.trim() ? 'var(--color-purple-soft)' : 'var(--color-bg-1)',
-                  color: shelfName.trim() ? 'var(--color-purple-text)' : 'var(--color-text-3)',
+                  background: shelfName.trim() ? MAT_BG : 'var(--color-bg-1)',
+                  color: shelfName.trim() ? MAT_COLOR : 'var(--color-text-3)',
                 }}
               >
                 <Layers size={14} /> {t('Сгруппировать')}
@@ -811,8 +836,8 @@ function ShelfChip({ label, hint, active, onClick, onEdit }: {
         display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: onEdit ? '0 6px 0 12px' : '0 12px',
         borderRadius: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700,
         border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
-        background: active ? 'var(--color-purple-soft)' : 'transparent',
-        color: active ? 'var(--color-purple-text)' : 'var(--color-text-2)',
+        background: active ? MAT_BG : 'transparent',
+        color: active ? MAT_COLOR : 'var(--color-text-2)',
       }}
     >
       <Layers size={13} />
@@ -871,9 +896,9 @@ function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onS
           </span>
         ) : undefined}
         title={set.title || t('Без названия')}
-        subtitle={set.about || langLabelOf(group.lang)}
+        subtitle={set.about || scopeLabelOf(group)}
         footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{set.cards.length} {t('карточек')}</span></>}
-        footerRight={<>{langLabelOf(group.lang)}</>}
+        footerRight={<>{scopeLabelOf(group)}</>}
       />
       {/* Отметка поверх иконки: карточку открывают кликом, а отмечают — сюда.
           Только в режиме правки: иначе чекбокс ловил промахи мимо названия. */}
@@ -905,9 +930,9 @@ function SeedCard({ group, onTake }: { group: CardGroup; onTake: () => void }) {
       iconBg={MAT_BG}
       badge={<span style={cardChip(MAT_COLOR)}>{t('Готовое')}</span>}
       title={group.title}
-      subtitle={group.about || langLabelOf(group.lang)}
+      subtitle={group.about || scopeLabelOf(group)}
       footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{group.sets.length} {t(plural(group.sets.length, ['набор', 'набора', 'наборов']))} · {cards} {t(plural(cards, ['карточка', 'карточки', 'карточек']))}</span></>}
-      footerRight={<>{langLabelOf(group.lang)}</>}
+      footerRight={<>{scopeLabelOf(group)}</>}
     />
   )
 }
@@ -1183,9 +1208,9 @@ function SetProps({ group, set, patch, onGroupChange, studentOptions }: {
   const shelfLine = (
     <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-muted)' }}>
       <Layers size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
-      {t('Лежит на полке')} «{group.title}» · {langLabelOf(group.lang)}{' '}
+      {t('Лежит на полке')} «{group.title}» · {scopeLabelOf(group)}{' '}
       <span style={{ color: 'var(--color-text-3)' }}>
-        {t('— язык и адресность у полки общие.')}
+        {t('— предмет и адресность у полки общие.')}
       </span>
     </div>
   )
@@ -1677,7 +1702,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
           style={{
             ...ghost, width: 26, height: 26, border: 'none',
             cursor: ready ? 'pointer' : 'default',
-            color: ready ? 'var(--color-purple-text)' : 'var(--color-text-3)',
+            color: ready ? MAT_COLOR : 'var(--color-text-3)',
           }}
         >
           <Plus size={15} />
@@ -1722,8 +1747,8 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
               style={{
                 height: 34, padding: '0 14px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
                 cursor: parseBulk(bulk).length > 0 ? 'pointer' : 'default',
-                background: parseBulk(bulk).length > 0 ? 'var(--color-purple-soft)' : 'var(--color-bg-1)',
-                color: parseBulk(bulk).length > 0 ? 'var(--color-purple-text)' : 'var(--color-text-3)',
+                background: parseBulk(bulk).length > 0 ? MAT_BG : 'var(--color-bg-1)',
+                color: parseBulk(bulk).length > 0 ? MAT_COLOR : 'var(--color-text-3)',
                 fontSize: 12.5, fontWeight: 700,
               }}
             >
