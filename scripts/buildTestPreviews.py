@@ -22,7 +22,12 @@ ROOT = Path(__file__).resolve().parent.parent
 ORIGIN = 'https://edu-study-app.vercel.app'
 FONT = '/System/Library/Fonts/HelveticaNeue.ttc'
 W, H = 1200, 630
-ACCENT = (34, 197, 94)       # #22c55e — акцент тестов Линии 1
+# Предмет теста: полоса и чип красятся под него. Поле `subject` в JSON;
+# без него — биология, как у первых тестов Линии 1.
+SUBJECTS = {
+    'bio':  {'name': 'Биология', 'gen': 'биологии', 'accent': (34, 197, 94),  'chip_bg': (220, 252, 231), 'chip_fg': (21, 128, 61)},
+    'chem': {'name': 'Химия',    'gen': 'химии',    'accent': (139, 92, 246), 'chip_bg': (237, 233, 254), 'chip_fg': (109, 40, 217)},
+}
 INK = (17, 17, 19)
 MUTED = (110, 110, 118)
 BG = (245, 245, 246)
@@ -72,21 +77,26 @@ def wrap(draw, text, fnt, width):
     return greedy(hi)
 
 
+def subj(test):
+    return SUBJECTS[test.get('subject', 'bio')]
+
+
 def render(test, out):
+    sj = subj(test)
     img = Image.new('RGB', (W, H), BG)
     d = ImageDraw.Draw(img)
     pad = 100
 
     # Белая карточка с зелёной полосой слева
     d.rounded_rectangle((40, 40, W - 40, H - 40), radius=36, fill=(255, 255, 255))
-    d.rounded_rectangle((72, 96, 84, H - 96), radius=6, fill=ACCENT)
+    d.rounded_rectangle((72, 96, 84, H - 96), radius=6, fill=sj['accent'])
 
     # Чип
-    chip = f"{test.get('exam', 'ЕГЭ')} · Биология · Линия 1"
+    chip = f"{test.get('exam', 'ЕГЭ')} · {sj['name']} · {test.get('line', 'Линия 1')}"
     cf = font(30, bold=True)
     cw = d.textlength(chip, font=cf)
-    d.rounded_rectangle((pad + 20, 96, pad + 20 + cw + 44, 150), radius=27, fill=(220, 252, 231))
-    d.text((pad + 42, 123), chip, font=cf, fill=(21, 128, 61), anchor='lm')
+    d.rounded_rectangle((pad + 20, 96, pad + 20 + cw + 44, 150), radius=27, fill=sj['chip_bg'])
+    d.text((pad + 42, 123), chip, font=cf, fill=sj['chip_fg'], anchor='lm')
 
     # Заголовок: подбираем кегль, чтобы влезть в 3 строки
     title_w = W - 2 * pad - 40
@@ -156,8 +166,8 @@ def main():
         page = PAGE.format(
             id=t['id'],
             # Уровень в заголовке: у ЕГЭ и ОГЭ есть тесты с одинаковым названием.
-            title=html.escape(re.sub(r'часть (\d+)', 'часть\u00a0\\1', t['title']) + f" — {t.get('exam', 'ЕГЭ')} по\u00a0биологии"),
-            desc=html.escape(f"Линия 1 {t.get('exam', 'ЕГЭ')} · {plural_tasks(t['count'])}: {t.get('task', 'впиши пропущенный термин в таблицу')}"),
+            title=html.escape(re.sub(r'часть (\d+)', 'часть\u00a0\\1', t['title']) + f" — {t.get('exam', 'ЕГЭ')} по\u00a0{subj(t)['gen']}"),
+            desc=html.escape(f"{t.get('line', 'Линия 1')} {t.get('exam', 'ЕГЭ')} · {plural_tasks(t['count'])}: {t.get('task', 'впиши пропущенный термин в таблицу')}"),
             url=f"{ORIGIN}/t/{t['id']}",
             image=f"{ORIGIN}/og/{t['id']}.png?v=4",
         )

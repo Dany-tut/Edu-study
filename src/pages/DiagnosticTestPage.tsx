@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target } from 'lucide-react'
+import { ArrowLeft, Check, CheckCircle, Circle, ChevronRight, Target } from 'lucide-react'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
   loadDiagProgress, discardDiagProgress, type DiagProgress,
@@ -386,6 +386,19 @@ export default function DiagnosticTestPage() {
   }
   const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
 
+  // Уход вопроса. Выхода через AnimatePresence тут нет (см. комментарий у
+  // вопроса ниже), поэтому уход — это обычная анимация того же блока, а смена
+  // вопроса ждёт её таймером: таймер не теряется, в отличие от onExit.
+  const LEAVE_MS = 200
+  const [leaving, setLeaving] = useState(false)
+  const leaveTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(leaveTimer.current), [])
+  function advance(then: () => void) {
+    window.clearTimeout(leaveTimer.current)
+    setLeaving(true)
+    leaveTimer.current = window.setTimeout(() => { then(); setLeaving(false) }, LEAVE_MS)
+  }
+
   const isLinkMode = !assignmentId  // shared link: no feedback shown
 
   const q: DiagQuestion | undefined = questions[current]
@@ -397,6 +410,13 @@ export default function DiagnosticTestPage() {
   // Поэтому меняется только показ, а `pick()` ниже получает исходный номер.
   const optionOrder = useMemo(() => (q ? displayOrder(q.options, q.text) : []), [q])
   const total = questions.length
+  // Картинки двух следующих вопросов качаем заранее: иначе новый вопрос
+  // въезжает без неё, а через миг картинка догружается и толкает поле вниз.
+  useEffect(() => {
+    for (const nq of questions.slice(current + 1, current + 3)) {
+      if (nq.image) { const im = new Image(); im.src = nq.image }
+    }
+  }, [questions, current])
 
   // Вопрос «термин в таблицу»: курсор сразу в ячейке ответа — ученик печатает,
   // не кликая в поле на каждом вопросе. Ждём ворота уверенности, если они есть.
@@ -430,11 +450,11 @@ export default function DiagnosticTestPage() {
       })
     }
     setTimeout(() => {
-      setConfident(null)
-      setTermDraft('')
       if (current < total - 1) {
-        setCurrent(c => c + 1)
+        advance(() => { setConfident(null); setTermDraft(''); setCurrent(c => c + 1) })
       } else {
+        setConfident(null)
+        setTermDraft('')
         finishTest(next)
       }
     }, 600)
@@ -685,7 +705,7 @@ export default function DiagnosticTestPage() {
         <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', marginBottom: 28, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             style={{ height: '100%', borderRadius: 999, background: theme.accent }}
           />
         </div>
@@ -699,9 +719,11 @@ export default function DiagnosticTestPage() {
             показ/скрытие, оно самовосстанавливается. */}
           <motion.div
             key={q.id}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.22 }}
+            initial={{ opacity: 0, x: 28 }}
+            animate={leaving ? { opacity: 0, x: -28 } : { opacity: 1, x: 0 }}
+            transition={leaving
+              ? { duration: LEAVE_MS / 1000, ease: [0.4, 0, 1, 1] }
+              : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Section badge */}
             <div style={{
@@ -724,7 +746,9 @@ export default function DiagnosticTestPage() {
             </div>
 
             {q.image && (
-              <img src={q.image} alt="" style={{
+              <motion.img src={q.image} alt=""
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
+                style={{
                 display: 'block', maxWidth: '100%', maxHeight: isDesktop ? 380 : 300, objectFit: 'contain',
                 // Сканы на белом: в тёмной теме — белая подложка со скруглением, а не дыра в карточке
                 background: '#fff', borderRadius: 12, padding: 8, boxSizing: 'border-box',
@@ -775,22 +799,30 @@ export default function DiagnosticTestPage() {
                         caretColor: theme.accent, fontWeight: 600, transition: 'border-color 0.15s',
                       }} />
                   )}
-                  {!locked && (
-                    <motion.button
-                      whileHover={termDraft.trim() ? { scale: 1.01 } : {}}
-                      whileTap={termDraft.trim() ? { scale: 0.99 } : {}}
-                      onClick={submit} disabled={!termDraft.trim()}
-                      style={{
-                        width: '100%', padding: '13px', borderRadius: 14, border: 'none',
-                        cursor: termDraft.trim() ? 'pointer' : 'not-allowed',
-                        background: termDraft.trim() ? theme.accent : 'var(--color-bg-5)',
-                        color: termDraft.trim() ? getContrastColor(theme.accent) : 'var(--color-text-3)',
-                        fontSize: 14, fontWeight: 700, fontFamily: 'inherit', transition: 'background 0.15s',
-                      }}
-                    >
-                      {t('Принять ответ')}
-                    </motion.button>
-                  )}
+                  {/* Кнопка после ответа не исчезает, а становится «Ответ принят»:
+                      иначе всё под ней подпрыгивало вверх ровно в момент клика. */}
+                  <motion.button
+                    whileHover={!locked && termDraft.trim() ? { scale: 1.01 } : {}}
+                    whileTap={!locked && termDraft.trim() ? { scale: 0.97 } : {}}
+                    onClick={submit} disabled={locked || !termDraft.trim()}
+                    style={{
+                      width: '100%', padding: '13px', borderRadius: 14, border: 'none',
+                      cursor: locked ? 'default' : termDraft.trim() ? 'pointer' : 'not-allowed',
+                      background: locked ? `${theme.accent}26` : termDraft.trim() ? theme.accent : 'var(--color-bg-5)',
+                      color: locked ? theme.accent : termDraft.trim() ? getContrastColor(theme.accent) : 'var(--color-text-3)',
+                      fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+                      transition: 'background 0.25s, color 0.25s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    }}
+                  >
+                    {locked ? (
+                      <motion.span key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <Check size={16} strokeWidth={2.6} /> {t('Ответ принят')}
+                      </motion.span>
+                    ) : t('Принять ответ')}
+                  </motion.button>
                 </div>
               )
             })()}
@@ -908,7 +940,7 @@ export default function DiagnosticTestPage() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  onClick={() => setCurrent(c => c + 1)}
+                  onClick={() => advance(() => { setConfident(null); setTermDraft(''); setCurrent(c => c + 1) })}
                   style={{
                     marginTop: 12, width: '100%', padding: '13px',
                     borderRadius: 14, border: 'none', cursor: 'pointer',
