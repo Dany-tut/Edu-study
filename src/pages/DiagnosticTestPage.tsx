@@ -638,6 +638,10 @@ export default function DiagnosticTestPage() {
     if (isDesktop || !vv) { setView(null); return }
     const on = () => {
       fullViewH.current = Math.max(fullViewH.current, vv.height)
+      if (vv.height < fullViewH.current - 120) kbH.current = fullViewH.current - vv.height
+      // Клавиатура уехала совсем — сбрасываем «фокус ушёл» в «неизвестно»:
+      // иначе следующий автофокус без события оставил бы картинку большой.
+      else setKbFocus(f => (f === false ? null : f))
       // Сдвиг — сразу в DOM, в том же кадре: через setState он приезжал кадром
       // позже, и во время анимации клавиатуры шапка успевала дёрнуться.
       const el = pageRef.current
@@ -649,7 +653,44 @@ export default function DiagnosticTestPage() {
     vv.addEventListener('scroll', on)
     return () => { vv.removeEventListener('resize', on); vv.removeEventListener('scroll', on) }
   }, [isDesktop])
-  const keyboardOpen = view != null && view.h < fullViewH.current - 120
+  // Клавиатуру предсказываем по фокусу. visualViewport меняется только в
+  // КОНЦЕ её выезда, и картинка начинала ужиматься, когда клавиатура уже
+  // стояла, — отставала. Фокус в поле = клавиатура начала выезжать; уход
+  // фокуса = начала уезжать. Высоту берём с прошлого раза (впервые — 42%
+  // экрана), точную подставит visualViewport, когда доедет.
+  const kbH = useRef(0)
+  // true — фокус в поле (клавиатура едет или стоит), false — фокус ушёл
+  // (едет обратно), null — неизвестно: поле могло получить фокус программно
+  // до подписки, тогда верим только visualViewport.
+  const [kbFocus, setKbFocus] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (isDesktop) return
+    let t: number | undefined
+    const isField = (el: EventTarget | null) => el instanceof HTMLTextAreaElement || (el instanceof HTMLInputElement && el.type !== 'checkbox' && el.type !== 'radio')
+    const onIn = (e: Event) => { if (isField(e.target)) { window.clearTimeout(t); setKbFocus(true) } }
+    // С задержкой: между вопросами фокус переходит из поля в поле, и на этот
+    // миг «клавиатура уехала» дёрнула бы картинку туда-обратно.
+    const onOut = (e: FocusEvent) => { if (isField(e.target)) { window.clearTimeout(t); t = window.setTimeout(() => setKbFocus(false), 120) } }
+    document.addEventListener('focusin', onIn)
+    document.addEventListener('focusout', onOut)
+    // Тап по полю, которое уже в фокусе (автофокус без клавиатуры), нового
+    // focusin не даёт — а клавиатура именно сейчас поедет.
+    document.addEventListener('pointerdown', onIn, true)
+    return () => {
+      window.clearTimeout(t)
+      document.removeEventListener('focusin', onIn)
+      document.removeEventListener('focusout', onOut)
+      document.removeEventListener('pointerdown', onIn, true)
+    }
+  }, [isDesktop])
+  const realKb = view != null && view.h < fullViewH.current - 120
+  const keyboardOpen = realKb || (kbFocus === true && view != null)
+  // Высота видимой части для картинки: фокус ушёл — сразу полная, не
+  // дожидаясь, пока клавиатура уедет; доехала — настоящая; едет — предсказанная.
+  const kbViewH = view == null || kbFocus === false ? null
+    : realKb ? view.h
+    : kbFocus ? fullViewH.current - (kbH.current || Math.round(fullViewH.current * 0.42))
+    : null
   useEffect(() => {
     const el = imgRef.current, page = pageRef.current
     if (el && page) setImgTop(el.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop)
@@ -658,7 +699,7 @@ export default function DiagnosticTestPage() {
   // страницы ~56. Мельче 150 картинку не ужимаем — формулы перестают читаться,
   // лучше пусть тест прокрутится внутри своей рамки.
   const KB_BOTTOM = 44
-  const imgMaxH = isDesktop ? 380 : keyboardOpen && imgTop ? Math.max(150, Math.min(300, view!.h - imgTop - 12 - 46 - KB_BOTTOM)) : 300
+  const imgMaxH = isDesktop ? 380 : kbViewH != null && imgTop ? Math.max(150, Math.min(300, kbViewH - imgTop - 12 - 46 - KB_BOTTOM)) : 300
   // Не влезло и при 150 — докручиваем рамку к полю.
   useEffect(() => {
     const page = pageRef.current
@@ -1034,8 +1075,9 @@ export default function DiagnosticTestPage() {
               return (
               <div style={{
                 position: 'relative', width: boxW, margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
-                // Под ход клавиатуры iOS: быстро стартует, мягко доезжает.
-                transition: 'width 0.32s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                // Стартует вместе с клавиатурой (по фокусу) и идёт чуть дольше
+                // неё — мягко, без рывка в конце.
+                transition: 'width 0.45s cubic-bezier(0.32, 0.72, 0, 1)',
               }}>
               <motion.img ref={imgRef} src={q.image} alt=""
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
