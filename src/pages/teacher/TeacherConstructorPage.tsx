@@ -46,6 +46,7 @@ import { getPlacementVerdict } from '../../data/placementTests'
 import { useAllStudents, useGroups, fetchSharedCourseIds, groupStudentsByPerson } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
+import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
 import { isCourseResetRef } from '../../lib/homeworkReset'
 import { getOwnerId } from '../../lib/owner'
@@ -2717,6 +2718,7 @@ function CreatorView({
         color: editCourse?.color ?? 'var(--color-purple)', bg: editCourse?.bg ?? '#EFE0FF', lastEdited: dateStr,
         dbCourseId: editCourse?.dbCourseId,
       }
+      if (!editCourse) trackEvent('course_create', { course_id: c.id })
       onSaveCourse(c)
     } else {
       const finalWItems = wType === 'pomodoro'
@@ -4441,8 +4443,20 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                         onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
                         style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }}
                       />
+                      {editOpts.length > 2 && (
+                        <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
+                          style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <X size={11} />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {editOpts.length < 6 && (
+                    <button onClick={() => setEditOpts([...editOpts, ''])}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <Plus size={11} /> {t('Добавить вариант')}
+                    </button>
+                  )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                     <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
                     <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />{t('Сохранить')}</button>
@@ -7915,8 +7929,20 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                         style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
                       <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
                         style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                      {editOpts.length > 2 && (
+                        <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
+                          style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <X size={11} />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {editOpts.length < 6 && (
+                    <button onClick={() => setEditOpts([...editOpts, ''])}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <Plus size={11} /> {t('Добавить вариант')}
+                    </button>
+                  )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                     <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
                     <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />{t('Сохранить')}</button>
