@@ -4377,6 +4377,7 @@ export const EN: Record<string, string> = {
   'Например: экология; синэкология': 'E.g.: ecology; synecology',
   'Принять ответ': 'Submit answer',
   'Ответ принят': 'Answer submitted',
+  'Принято': 'Submitted',
   // — Импорт карточек по фото и ссылке (components/CardImportPanel.tsx, lib/cardImport.ts) —
   'Собрать карточки за меня': 'Build the cards for me',
   'Читаю снимок…': 'Reading the photo…',

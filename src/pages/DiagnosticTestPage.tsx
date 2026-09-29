@@ -396,7 +396,9 @@ export default function DiagnosticTestPage() {
   function advance(then: () => void) {
     window.clearTimeout(leaveTimer.current)
     setLeaving(true)
-    leaveTimer.current = window.setTimeout(() => { then(); setLeaving(false) }, LEAVE_MS)
+    // Новый вопрос — с верха страницы: если iOS прокрутил её к полю, следующий
+    // вопрос иначе въезжал бы с обрезанной шапкой.
+    leaveTimer.current = window.setTimeout(() => { then(); setLeaving(false); window.scrollTo(0, 0) }, LEAVE_MS)
   }
 
   const isLinkMode = !assignmentId  // shared link: no feedback shown
@@ -658,22 +660,30 @@ export default function DiagnosticTestPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: 'var(--color-bg)',
+      // border-box: отступы внутри 100dvh, а не сверху — иначе пустая
+      // страница была на 30px выше экрана и прокручивалась впустую.
+      minHeight: '100dvh', boxSizing: 'border-box', background: 'var(--color-bg)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       // Вопрос начинается от верха страницы: без safe-area кнопка «Выйти» и
       // счётчик вопросов вставали ровно под вырез.
-      padding: `calc(env(safe-area-inset-top, 0px) + 32px) 20px calc(env(safe-area-inset-bottom, 0px) + 32px)`,
+      // На телефоне отступы ужаты: вопрос с картинкой, поле и кнопка должны
+      // влезть над клавиатурой целиком. Не влезали — iOS при каждом тапе в поле
+      // прокручивал страницу, шапка уезжала за верх, а после ответа всё
+      // возвращалось обратно: экран дёргался на каждом вопросе.
+      padding: isDesktop
+        ? `calc(env(safe-area-inset-top, 0px) + 32px) 20px calc(env(safe-area-inset-bottom, 0px) + 32px)`
+        : `calc(env(safe-area-inset-top, 0px) + 10px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px)`,
     }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
 
         {/* Top bar */}
         {/* Узкий экран: название теста режется многоточием, кнопка и счётчик не переносятся */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: isDesktop ? 24 : 12 }}>
           <button
             onClick={goBack}
             style={{
               display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap',
-              padding: '8px 14px 8px 10px', borderRadius: 999,
+              padding: isDesktop ? '8px 14px 8px 10px' : '6px 12px 6px 8px', borderRadius: 999,
               border: '1px solid var(--color-border-soft)',
               background: 'rgba(var(--glass-rgb), 0.9)',
               color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
@@ -702,7 +712,7 @@ export default function DiagnosticTestPage() {
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', marginBottom: 28, overflow: 'hidden' }}>
+        <div style={{ height: isDesktop ? 5 : 4, borderRadius: 999, background: 'var(--color-bg-5)', marginBottom: isDesktop ? 28 : 14, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${progress * 100}%` }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -731,15 +741,15 @@ export default function DiagnosticTestPage() {
               padding: '3px 10px', borderRadius: 999,
               background: `${theme.accent}18`,
               fontSize: 11, fontWeight: 600, color: theme.accent,
-              marginBottom: 12,
+              marginBottom: isDesktop ? 12 : 8,
             }}>
               {q.section}
             </div>
 
             {/* Question text */}
             <div style={{
-              fontSize: 16, fontWeight: 700, lineHeight: 1.22,
-              color: 'var(--color-text)', marginBottom: 20,
+              fontSize: isDesktop ? 16 : 14.5, fontWeight: 700, lineHeight: 1.22,
+              color: 'var(--color-text)', marginBottom: isDesktop ? 20 : 12,
               ...proseWrap,
             }}>
               {bindShortWords(q.text)}
@@ -751,8 +761,8 @@ export default function DiagnosticTestPage() {
                 style={{
                 display: 'block', maxWidth: '100%', maxHeight: isDesktop ? 380 : 300, objectFit: 'contain',
                 // Сканы на белом: в тёмной теме — белая подложка со скруглением, а не дыра в карточке
-                background: '#fff', borderRadius: 12, padding: 8, boxSizing: 'border-box',
-                margin: '-6px auto 20px',
+                background: '#fff', borderRadius: isDesktop ? 12 : 10, padding: isDesktop ? 8 : 4, boxSizing: 'border-box',
+                margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
               }} />
             )}
 
@@ -781,14 +791,18 @@ export default function DiagnosticTestPage() {
               const gated = askConfidence && !locked && confident === null
               const value = locked ? String(picked) : termDraft
               const submit = () => { if (termDraft.trim()) pick(termDraft.trim()) }
+              // Телефон, ответ в отдельное поле: поле и кнопка в одну строку —
+              // минус строка высоты, и вопрос целиком остаётся над клавиатурой.
+              const inline = !isDesktop && !q.table
               return (
-                <div ref={termBoxRef} style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
+                <div ref={termBoxRef} style={{ display: 'flex', flexDirection: inline ? 'row' : 'column', alignItems: inline ? 'stretch' : undefined, gap: inline ? 8 : 14, opacity: gated ? 0.45 : 1, pointerEvents: gated ? 'none' : 'auto', transition: 'opacity 0.15s' }}
                   onKeyDown={e => { if (e.key === 'Enter' && !locked) { e.preventDefault(); submit() } }}>
                   {q.table ? (
                     <QuestionTable table={q.table} mobile={!isDesktop} interactive disabled={locked} accent={theme.accent}
                       cellValue={key => key === blank ? value : ''}
                       onCellChange={(key, v) => { if (key === blank) setTermDraft(v) }} />
                   ) : (
+                    <div style={{ flex: 1, minWidth: 0 }}>
                     <GrowTextarea rows={1} value={value} onChange={v => setTermDraft(v.replace(/\n/g, ' '))}
                       disabled={locked} placeholder={t('Впиши ответ…')}
                       style={{
@@ -798,6 +812,7 @@ export default function DiagnosticTestPage() {
                         background: 'var(--color-bg-input)', color: locked ? theme.accent : 'var(--color-text)',
                         caretColor: theme.accent, fontWeight: 600, transition: 'border-color 0.15s',
                       }} />
+                    </div>
                   )}
                   {/* Кнопка после ответа не исчезает, а становится «Ответ принят»:
                       иначе всё под ней подпрыгивало вверх ровно в момент клика. */}
@@ -806,7 +821,7 @@ export default function DiagnosticTestPage() {
                     whileTap={!locked && termDraft.trim() ? { scale: 0.97 } : {}}
                     onClick={submit} disabled={locked || !termDraft.trim()}
                     style={{
-                      width: '100%', padding: '13px', borderRadius: 14, border: 'none',
+                      width: inline ? 'auto' : '100%', flexShrink: 0, padding: inline ? '0 16px' : '13px', borderRadius: inline ? 13 : 14, border: 'none',
                       cursor: locked ? 'default' : termDraft.trim() ? 'pointer' : 'not-allowed',
                       background: locked ? `${theme.accent}26` : termDraft.trim() ? theme.accent : 'var(--color-bg-5)',
                       color: locked ? theme.accent : termDraft.trim() ? getContrastColor(theme.accent) : 'var(--color-text-3)',
@@ -819,9 +834,9 @@ export default function DiagnosticTestPage() {
                       <motion.span key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <Check size={16} strokeWidth={2.6} /> {t('Ответ принят')}
+                        <Check size={16} strokeWidth={2.6} /> {inline ? t('Принято') : t('Ответ принят')}
                       </motion.span>
-                    ) : t('Принять ответ')}
+                    ) : inline ? t('Ответить') : t('Принять ответ')}
                   </motion.button>
                 </div>
               )
