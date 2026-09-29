@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -500,6 +500,10 @@ export default function DiagnosticTestPage() {
     if (isDesktop || !vv) { setView(null); return }
     const on = () => {
       fullViewH.current = Math.max(fullViewH.current, vv.height)
+      // Сдвиг — сразу в DOM, в том же кадре: через setState он приезжал кадром
+      // позже, и во время анимации клавиатуры шапка успевала дёрнуться.
+      const el = pageRef.current
+      if (el && el.style.position === 'fixed') { el.style.top = `${vv.offsetTop}px`; el.style.height = `${vv.height}px` }
       setView({ h: vv.height, top: vv.offsetTop })
     }
     on()
@@ -515,12 +519,12 @@ export default function DiagnosticTestPage() {
   // Снизу при клавиатуре: отступ 12 + поле 46 + плашка адреса Safari поверх
   // страницы ~56. Мельче 150 картинку не ужимаем — формулы перестают читаться,
   // лучше пусть тест прокрутится внутри своей рамки.
-  const KB_BOTTOM = 56
-  const imgMaxH = isDesktop ? 380 : keyboardOpen && imgTop ? Math.max(150, Math.min(300, view!.h - imgTop - 12 - 46 - KB_BOTTOM - 8)) : 300
+  const KB_BOTTOM = 44
+  const imgMaxH = isDesktop ? 380 : keyboardOpen && imgTop ? Math.max(150, Math.min(300, view!.h - imgTop - 12 - 46 - KB_BOTTOM)) : 300
   // Не влезло и при 150 — докручиваем рамку к полю.
   useEffect(() => {
     const page = pageRef.current
-    if (keyboardOpen && page) page.scrollTop = page.scrollHeight
+    if (keyboardOpen && page && page.scrollHeight > page.clientHeight) page.scrollTo({ top: page.scrollHeight, behavior: 'smooth' })
   }, [keyboardOpen, current])
 
   // Картинки двух следующих вопросов качаем заранее: иначе новый вопрос
@@ -534,9 +538,12 @@ export default function DiagnosticTestPage() {
   // Вопрос «термин в таблицу»: курсор сразу в ячейке ответа — ученик печатает,
   // не кликая в поле на каждом вопросе. Ждём ворота уверенности, если они есть.
   const termBoxRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (step !== 'test' || q?.kind !== 'term' || chosen[q.id] !== undefined) return
     if (askConfidence && confident === null) return
+    // Если клавиатура уже открыта (фокус в поле прошлого вопроса), iOS
+    // передаёт её новому полю без закрытия — но только когда фокус приходит в
+    // том же такте, что и снятие старого поля. Поэтому useLayoutEffect.
     termBoxRef.current?.querySelector<HTMLTextAreaElement>('textarea:not(:disabled)')?.focus({ preventScroll: true })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, q?.id, confident, askConfidence])
@@ -855,8 +862,10 @@ export default function DiagnosticTestPage() {
               ? { duration: LEAVE_MS / 1000, ease: [0.4, 0, 1, 1] }
               : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Section badge — при клавиатуре место нужнее картинке */}
-            {!keyboardOpen && <div style={{
+            {/* Section badge. На телефоне его нет вовсе: без него поле стоит
+                выше клавиатуры уже в момент тапа, и iOS не начинает сдвигать
+                страницу (а прятать его при клавиатуре — это ещё один скачок). */}
+            {isDesktop && <div style={{
               display: 'inline-flex', alignItems: 'center',
               padding: '3px 10px', borderRadius: 999,
               background: `${theme.accent}18`,
@@ -941,7 +950,10 @@ export default function DiagnosticTestPage() {
                   ) : (
                     <div style={{ flex: 1, minWidth: 0 }}>
                     <GrowTextarea rows={1} value={value} onChange={v => setTermDraft(v.replace(/\n/g, ' '))}
-                      disabled={locked} placeholder={t('Впиши ответ…')}
+                      // readOnly, а не disabled: выключенное поле теряет фокус, и
+                      // iOS закрывал клавиатуру после каждого ответа, чтобы тут же
+                      // открыть её на следующем вопросе, — экран прыгал дважды.
+                      readOnly={locked} placeholder={t('Впиши ответ…')}
                       style={{
                         width: '100%', boxSizing: 'border-box', resize: 'none', outline: 'none',
                         padding: '12px 14px', borderRadius: 13, fontSize: 16, fontFamily: 'inherit', lineHeight: 1.3,
