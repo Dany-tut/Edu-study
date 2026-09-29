@@ -111,7 +111,7 @@ export const EN: Record<string, string> = {
   'Подпись': 'Caption',
   'О чём этот сезон, глава, часть — необязательно': 'What this season, chapter or part is about — optional',
   'Лежит на полке': 'Sits on the shelf',
-  '— язык и адресность у полки общие.': '— language and audience are the shelf’s.',
+  '— предмет и адресность у полки общие.': '— subject and audience are the shelf’s.',
   'Никто не отмечен — значит, это увидят все ваши ученики этого предмета.': 'Nobody ticked — every student of yours taking this subject will see it.',
   'К группам': 'Back to groups',
   'Название группы': 'Group name',
