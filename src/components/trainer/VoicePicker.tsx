@@ -4,7 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronDown, Mic } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import type { VoiceRole } from '../../lib/speech'
-import { hasVoiceFor, preferredVoice, setPreferredVoice, speak, voiceOptions } from '../../lib/speech'
+import {
+  hasVoiceFor, isIOS, preferredVoice, serverVoiceOn, setPreferredVoice, setServerVoice, speak, voiceOptions,
+} from '../../lib/speech'
+import Switch from '../Switch'
 import { useOverlayScroll, ScrollOverlays } from '../teacher/OverlayScroll'
 
 // Выбор голоса — рядом с любой кнопкой «Послушать».
@@ -81,6 +84,40 @@ export function useVoiceChoice(lang?: string): boolean {
   }, [])
   void ready
   return voiceOptions(lang).length >= 2
+}
+
+/**
+ * «Голос с сервера» — запасная озвучка для устройства, где голос браузера молчит.
+ *
+ * ЗАЧЕМ РУЧНОЙ. На части айфонов синтез речи проходит фразу без ошибок, а из
+ * динамика тишина — и снаружи это не отличить от звучащей фразы (lib/speech.ts,
+ * раздел «Голос с сервера»). Поэтому решает ухо ученика, а на айфоне подсказка
+ * прямо говорит, когда включать. Включение тут же читает пробную фразу — уже
+ * через сервер, и сразу слышно, помогло ли.
+ */
+export function ServerVoiceToggle({ lang }: { lang: string }) {
+  const t = useT()
+  const [on, setOn] = useState(serverVoiceOn)
+  function change(v: boolean) {
+    setOn(v)
+    setServerVoice(v)
+    speak(SAMPLE[lang.split('-')[0]] ?? SAMPLE.en, { lang })
+  }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)' }}>
+          {t('Голос с сервера')}
+        </span>
+        <span style={{ fontSize: 11.5, lineHeight: 1.35, color: 'var(--color-muted)' }}>
+          {isIOS()
+            ? t('Если на айфоне тишина при включённом звуке — включите: фразы будут звучать как запись.')
+            : t('Если голос браузера молчит — включите: фразы будут звучать как запись.')}
+        </span>
+      </div>
+      <Switch checked={on} onChange={change} label={t('Голос с сервера')} />
+    </div>
+  )
 }
 
 /** Ширина меню: не уже этого даже под круглой кнопкой-микрофоном. */

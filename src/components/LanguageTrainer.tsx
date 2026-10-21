@@ -8,8 +8,9 @@ import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
 import AudioPlayer from './AudioPlayer'
 import TrackPlayer from './trainer/TrackPlayer'
-import VoicePicker, { useVoiceChoice } from './trainer/VoicePicker'
+import VoicePicker, { ServerVoiceToggle, useVoiceChoice } from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
+import { isIOS, serverVoiceOn } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import { getSubject, type TrainerMode } from '../lib/subjects'
 import { useSwipeBack } from '../lib/useSwipeBack'
@@ -1115,12 +1116,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           созвучия читались тем диктором, которого угадала автоматика, и
           поменять его было негде — при том что ключ в localStorage у них с
           читалкой один и тот же. */}
-      {voiceChoice && (
+      {/* Карточка нужна и без выбора голосов: на айфоне в ней живёт «Голос с
+          сервера» — запасная озвучка, когда голос браузера молчит. */}
+      {(voiceChoice || isIOS() || serverVoiceOn()) && (
         <RailCard title="Озвучка" accent={palette.accent} icon={<Mic size={15} />}>
           <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
-            {bindShortWords(t('Этим голосом читается всё на этом языке: тексты, карточки, разговорник.'))}
-          </div>
+          {voiceChoice && (
+            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+              {bindShortWords(t('Этим голосом читается всё на этом языке: тексты, карточки, разговорник.'))}
+            </div>
+          )}
+          <ServerVoiceToggle lang={lang} />
         </RailCard>
       )}
     </>
