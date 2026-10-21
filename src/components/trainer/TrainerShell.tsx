@@ -1009,12 +1009,25 @@ export function RailList({ items, value, onChange, accent, soft }: {
   // его, то карточку. На узком рейл лежит НАД содержимым во всю ширину и своего
   // скролла не имеет — там ограничение по высоте остаётся.
   const narrow = useNarrow()
+  // Края коробки тают, пока за ними есть строки: без этого обрезанная строка
+  // внизу выглядит как ошибка вёрстки, а не как «дальше ещё». Маской, а не
+  // градиентом цветом фона: список лежит на стекле карточки поверх стекла
+  // шторки, и угадать цвет под ним нельзя.
+  const [edges, setEdges] = useState({ top: false, bottom: false })
+  const readEdges = (el: HTMLElement) => {
+    const top = el.scrollTop > 2
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
+    setEdges(p => (p.top === top && p.bottom === bottom ? p : { top, bottom }))
+  }
+  const mask = `linear-gradient(to bottom, ${edges.top ? 'transparent 0, black 28px' : 'black 0'}, ${edges.bottom ? 'black calc(100% - 28px), transparent 100%' : 'black 100%'})`
   return (
     <div
       className="no-scrollbar"
+      ref={el => { if (el && narrow) readEdges(el) }}
+      onScroll={narrow ? e => readEdges(e.currentTarget) : undefined}
       style={{
         display: 'flex', flexDirection: 'column', gap: 2,
-        ...(narrow ? { maxHeight: 300, overflowY: 'auto' as const } : null),
+        ...(narrow ? { maxHeight: 300, overflowY: 'auto' as const, maskImage: mask, WebkitMaskImage: mask } : null),
       }}
     >
       {items.map(i => {
