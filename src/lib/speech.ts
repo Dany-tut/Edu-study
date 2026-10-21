@@ -25,8 +25,7 @@
 //    останется гореть индикатор «звучит».
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { isIOS, preferPlaybackSession } from './audioSession'
-import { trackEvent } from './analytics'
+import { preferPlaybackSession } from './audioSession'
 
 const BLANKS = [
   // Подчёркивание в прозе не встречается вовсе — снимаем даже одиночное.
@@ -699,41 +698,6 @@ function finish(done = false) {
 }
 
 /** Прервать любую речь. */
-/** След одной реплики для tts_trace: что движок сказал о ней и когда. */
-function traceUtterance(u: SpeechSynthesisUtterance, list: SpeechSynthesisVoice[]) {
-  const t0 = Date.now()
-  const marks: string[] = []
-  let sent = false
-  const send = (why: string) => {
-    if (sent) return
-    sent = true
-    const nav = navigator as Navigator & { audioSession?: { type: string } }
-    trackEvent('tts_trace', {
-      why,
-      text: u.text.slice(0, 60),
-      lang: u.lang,
-      voice: u.voice ? `${u.voice.name}|${u.voice.lang}|${u.voice.localService ? 'local' : 'remote'}` : null,
-      volume: u.volume,
-      marks,
-      voices: list.length,
-      en: list.filter(v => /^en/i.test(v.lang)).slice(0, 12).map(v => `${v.name}|${v.lang}${v.default ? '|default' : ''}`),
-      speaking: speechSynthesis.speaking,
-      pending: speechSynthesis.pending,
-      paused: speechSynthesis.paused,
-      session: nav.audioSession?.type ?? null,
-      visible: document.visibilityState,
-      standalone: (navigator as Navigator & { standalone?: boolean }).standalone ?? null,
-    })
-  }
-  setTimeout(() => send('timeout'), 6000)
-  return {
-    mark(what: string) {
-      marks.push(`${what}@${Date.now() - t0}`)
-      if (what === 'end' || what.startsWith('error')) send(what)
-    },
-  }
-}
-
 export function stopSpeech() {
   finish()
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
@@ -760,15 +724,10 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   // диктор этого занятия → автовыбор. Выбор ученика бьёт автоматику: она
   // угадывает по именам, а он слышит результат. Ниже него — сцена: пока голос
   // не закреплён, каждый урок и каждая домашка читаются своим человеком.
-  //
-  // На айфоне автовыбор не навязываем: getVoices() там отдаёт и голоса, которые
-  // не скачаны на устройство, и с таким голосом фраза «звучит» молча — onstart
-  // приходит, бегунок бежит, звука нет (список фраз набора молчал, а стопка
-  // того же набора без явного голоса говорила). Без u.voice iOS берёт своего
-  // установленного диктора под u.lang. Голос, выбранный руками, остаётся.
   const chosen = opts.voiceName || preferredVoice(opts.lang)
   const voice = (chosen && voices.find(v => v.name === chosen))
-    || (isIOS() ? undefined : sceneVoice(opts.lang, opts.seed ?? sceneSeed) || pickVoice(locale))
+    || sceneVoice(opts.lang, opts.seed ?? sceneSeed)
+    || pickVoice(locale)
   const rate = opts.rate ?? 1
   const gap = opts.gap ?? 0
 
@@ -800,13 +759,8 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
       if (idx === start) opts.onStart?.()
       opts.onLine?.(idx, lines.length)
     }
-    // ВРЕМЕННО (21.10.2026): на айфоне список фраз набора молчит, а стопка
-    // того же набора звучит. Воспроизвести на компьютере нельзя — след каждой
-    // реплики уходит в телеметрию событием tts_trace. Снять после разбора.
-    const trace = isIOS() ? traceUtterance(u, voices) : null
-    u.onstart = () => { trace?.mark('start'); begin() }
+    u.onstart = begin
     u.onboundary = e => {
-      trace?.mark('boundary')
       if (mine !== run) return
       begin()
       // name === 'sentence' приходит от части голосов вперемешку со словами;
@@ -814,11 +768,11 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
       if (e.name && e.name !== 'word') return
       opts.onWord?.(idx, e.charIndex)
     }
-    u.onend = () => { trace?.mark('end'); step() }
+    u.onend = step
     // Ошибка одной реплики не должна ронять весь текст: interrupted/canceled
     // приходят от нашего же cancel() и отсекаются по номеру запуска, остальное
     // просто пропускаем и читаем дальше.
-    u.onerror = e => { trace?.mark(`error:${e.error}`); step() }
+    u.onerror = step
     // Chrome после долгого простоя вкладки залипает в состоянии paused, и
     // speak() уходит в тишину. resume() на не-паузе безвреден.
     speechSynthesis.resume()
