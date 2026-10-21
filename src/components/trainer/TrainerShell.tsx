@@ -1563,7 +1563,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         // самого высокого соседа (группы статусов), иначе поиск стоял на пару
         // пикселей ниже остальных. minHeight — на случай, когда перенос строки
         // оставил его одного.
-        display: 'flex', alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box',
+        display: 'flex', alignItems: 'center', alignSelf: narrow ? 'center' : 'stretch', boxSizing: 'border-box',
         gap: narrow && !wide ? 0 : 8, minHeight: MOBILE_PILL_H, borderRadius: 999,
         background: PILL_BG, ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
@@ -1571,10 +1571,13 @@ export function SearchPill({ value, onChange, placeholder }: {
         // эти 76px и есть разница между строкой в одну полосу и в две. А
         // раскрытый не держит свои 260, а забирает остаток строки, иначе он
         // выталкивал бы за край таблетку фильтров и счётчик.
+        // На телефоне высота своя, а не от строки: счётчик справа там
+        // переносится в две-три строки, и stretch вытягивал кружок поиска в
+        // овал высотой с этот счётчик.
         ...(narrow
           ? wide
-            ? { flex: '1 1 0', minWidth: 0, padding: '0 12px' }
-            : { width: MOBILE_PILL_H, padding: 0, justifyContent: 'center', flexShrink: 0 }
+            ? { flex: '1 1 0', minWidth: 0, padding: '0 12px', height: MOBILE_PILL_H }
+            : { width: MOBILE_PILL_H, height: MOBILE_PILL_H, padding: 0, justifyContent: 'center', flexShrink: 0 }
           : { width: wide ? 260 : 112, padding: '0 14px', flexShrink: 0 }),
         transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
         overflow: 'hidden', cursor: wide ? 'text' : 'pointer',

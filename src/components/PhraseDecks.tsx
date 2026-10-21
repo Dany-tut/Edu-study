@@ -644,17 +644,24 @@ export function BackToSets({ onBack }: { onBack: () => void }) {
   const t = useT()
   // Кнопка «К наборам» = экранный «назад»: свайп от края делает то же самое.
   useSwipeBack(onBack)
+  // Круг со стрелкой, без подписи: подпись «К наборам» на телефоне переносилась
+  // в две строки и раздувала строку инструментов. 40×40 — та же высота, что у
+  // круглого поиска рядом (ToolButton с иконкой), кнопки стоят вровень.
+  // Смысл остаётся в aria-label и подсказке.
   return (
     <button
       onClick={onBack}
+      aria-label={t('К наборам')}
+      title={t('К наборам')}
       style={{
-        display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: 999,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 40, height: 40, flexShrink: 0, padding: 0, borderRadius: 999,
         border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.62)',
         backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-        cursor: 'pointer', fontSize: 12.5, fontWeight: 550, color: 'var(--color-text-2)', fontFamily: 'inherit',
+        cursor: 'pointer', color: 'var(--color-text-2)', fontFamily: 'inherit',
       }}
     >
-      <ChevronLeft size={14} /> {t('К наборам')}
+      <ChevronLeft size={20} strokeWidth={2.25} style={{ marginLeft: -2 }} />
     </button>
   )
 }
