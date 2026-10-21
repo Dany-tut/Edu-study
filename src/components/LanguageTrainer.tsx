@@ -58,6 +58,7 @@ import {
 } from '../lib/trainerLink'
 import ScoreReader, { hasReadings } from './trainer/ScoreReader'
 import { MY_WORDS_ID } from './trainer/MyWords'
+import { GAPS_ID, useGapJournal } from './trainer/modes/useGapJournal'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
 import { courseReach, reachNote } from '../lib/courseReach'
 import GlossedText from './GlossedText'
@@ -594,6 +595,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   /** Открыт словарь, а не тема: у него свой ключ в том же поле (см. MY_WORDS_ID). */
   const openMyWords = sets.openId === MY_WORDS_ID
+  /** Открыт журнал «Не смог сказать» — тот же приём, что у словаря (см. GAPS_ID). */
+  const openGaps = sets.openId === GAPS_ID
   // Личный словарь — собранные слова списком. Открыт он или нет, знает
   // тренажёр: поле у него общее с темой разговорника, и писать в него из двух
   // мест нельзя (components/trainer/modes/useMyWords).
@@ -609,6 +612,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     onClose: () => sets.setOpenId(null),
     run, onRun: setRun, phraseView, states, statesReady, onGraded,
     tourExtra: runTourStep,
+  })
+  // Журнал «Не смог сказать»: фраза уходит в колоду — словарь перечитывается
+  // тем же счётчиком, что после «В словарь» из текста.
+  const gapsHalf = useGapJournal({
+    lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
+    open: openGaps,
+    onOpen: () => { sets.setOpenId(GAPS_ID); setQuery(''); setStatus('') },
+    onClose: () => sets.setOpenId(null),
+    onCarded: () => setKnownKey(k => k + 1),
   })
 
   // ── Виджет прогресса в верхней строке ──────────────────────────────────────
@@ -722,7 +734,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || packs.openId || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
+  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || openGaps || packs.openId || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -783,6 +795,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // «Мои слова» лежат в том же поле, что и тема (см. MY_WORDS_ID), но это
       // отдельный экран — и адрес у него отдельный.
       if (openMyWords) return { lang, screen: 'words' }
+      if (openGaps) return { lang, screen: 'gaps' }
       if (vocabView === 'nests') return { lang, screen: 'nests', id: nestsShelf.openId ?? undefined }
       if (vocabView === 'packs') return { lang, screen: 'packs', id: packs.openId ?? undefined }
       if (vocabView === 'due') return { lang, screen: 'due' }
@@ -808,7 +821,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     if (guide.view === 'books') return { lang, screen: 'books' }
     return { lang, screen: 'story', id: guide.openId ?? undefined }
   }, [
-    lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
+    lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords, openGaps,
     openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, sets.openId,
     nestsShelf.openId, packs.openId, cardGroups.openSet, cardGroups.openGroupId,
     guide.openId, grammar.openId,
@@ -848,6 +861,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'texts':    setMode('reading'); setReadingView('texts'); setOpenTextId(id); break
       case 'sets':     setMode('vocab'); setVocabView('sets'); sets.setOpenId(id); break
       case 'words':    setMode('vocab'); setVocabView('sets'); sets.setOpenId(MY_WORDS_ID); break
+      case 'gaps':     setMode('vocab'); setVocabView('sets'); sets.setOpenId(GAPS_ID); break
       case 'nests':    setMode('vocab'); setVocabView('nests'); nestsShelf.setOpenId(id); break
       case 'packs':    setMode('vocab'); setVocabView('packs'); packs.setOpenId(id); break
       // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
@@ -999,7 +1013,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           «Одно место для сита» в комментарии к строке. Рейлу остаётся то, что
           отвечает на вопрос «что показываем»: половина «Чтения» и «Показ». */}
 
-      {mode === 'vocab' && (hasBook || nestsShelf.on || packs.on || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !packs.open && !openSet && (
+      {mode === 'vocab' && (hasBook || nestsShelf.on || packs.on || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !openGaps && !packs.open && !openSet && (
         <>
           {/* Уровень уехал в строку управления — там же, где он у сцен,
               грамматики и библиотеки. Здесь остаётся выбор материала и полка:
@@ -1058,6 +1072,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           )}
         </>
       )}
+
+      {mode === 'vocab' && openGaps && gapsHalf.rail}
 
       {mode === 'vocab' && openMyWords && (
         <>
@@ -1196,6 +1212,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = nestsShelf.toolbar
   } else if (mode === 'vocab' && openMyWords) {
     toolbar = myWordsHalf.toolbar
+  } else if (mode === 'vocab' && openGaps) {
+    toolbar = gapsHalf.toolbar
   } else if (mode === 'vocab' && vocabView === 'sets' && !openItem && !openSet && !cardGroups.editing) {
     toolbar = (
       <Toolbar count={setsDecks.length}>
@@ -1230,7 +1248,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {!openGroup && hasBook && sets.sortMenu}
         <ToolCount>
           {openGroup
-            ? `${openGroup.title} · ${setsDecks.length} ${t('наборов')}`
+            ? `${t(openGroup.title)} · ${setsDecks.length} ${t('наборов')}`
             : `${setsDecks.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${setsDecks.length} ${t('наборов')}`}
         </ToolCount>
       </Toolbar>
@@ -1247,7 +1265,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           onChange={v => setRun(v as RunMode)}
           accent={palette.accent}
         />
-        <ToolCount>{openSet.set.title}</ToolCount>
+        <ToolCount>{t(openSet.set.title)}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'guide') {
@@ -1276,6 +1294,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     content = nestsShelf.content
   } else if (mode === 'vocab' && openMyWords) {
     content = myWordsHalf.content
+  } else if (mode === 'vocab' && openGaps) {
+    content = gapsHalf.content
   } else if (mode === 'vocab' && openItem && book) {
     content = sets.content
   } else if (mode === 'guide') {
@@ -1296,11 +1316,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           states={states}
           accent={palette.accent}
           soft={palette.soft}
-          levelLabel={x => x.label}
+          levelLabel={x => t(x.label)}
           early={x => x.ahead}
           lead={openGroup ? undefined : (
             <>
               {hasBook && myWordsHalf.tile}
+              {gapsHalf.tile}
               {/* Папки полок. Стоят перед сеткой и не участвуют в поиске: по
                   слову ищут набор, а не полку, и найденные наборы приезжают в
                   сетку сами (см. setsDecks). */}
@@ -1322,7 +1343,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                     fontSize: 14.5, lineHeight: 1.3, fontWeight: 750, color: 'var(--color-text)',
                   }}>
                     <Layers size={15} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
-                    {g.title}
+                    {t(g.title)}
                   </div>
                   {/* Описание полки — тремя строками: у сида это целый абзац,
                       и во всю длину плитка полки вырастала вчетверо выше
@@ -1332,7 +1353,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                       fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
                       display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
-                      {g.about}
+                      {t(g.about)}
                     </div>
                   )}
                 </Tile>
