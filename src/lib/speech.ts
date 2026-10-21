@@ -26,6 +26,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { isIOS, preferPlaybackSession } from './audioSession'
+import { trackEvent } from './analytics'
 
 const BLANKS = [
   // Подчёркивание в прозе не встречается вовсе — снимаем даже одиночное.
@@ -698,6 +699,41 @@ function finish(done = false) {
 }
 
 /** Прервать любую речь. */
+/** След одной реплики для tts_trace: что движок сказал о ней и когда. */
+function traceUtterance(u: SpeechSynthesisUtterance, list: SpeechSynthesisVoice[]) {
+  const t0 = Date.now()
+  const marks: string[] = []
+  let sent = false
+  const send = (why: string) => {
+    if (sent) return
+    sent = true
+    const nav = navigator as Navigator & { audioSession?: { type: string } }
+    trackEvent('tts_trace', {
+      why,
+      text: u.text.slice(0, 60),
+      lang: u.lang,
+      voice: u.voice ? `${u.voice.name}|${u.voice.lang}|${u.voice.localService ? 'local' : 'remote'}` : null,
+      volume: u.volume,
+      marks,
+      voices: list.length,
+      en: list.filter(v => /^en/i.test(v.lang)).slice(0, 12).map(v => `${v.name}|${v.lang}${v.default ? '|default' : ''}`),
+      speaking: speechSynthesis.speaking,
+      pending: speechSynthesis.pending,
+      paused: speechSynthesis.paused,
+      session: nav.audioSession?.type ?? null,
+      visible: document.visibilityState,
+      standalone: (navigator as Navigator & { standalone?: boolean }).standalone ?? null,
+    })
+  }
+  setTimeout(() => send('timeout'), 6000)
+  return {
+    mark(what: string) {
+      marks.push(`${what}@${Date.now() - t0}`)
+      if (what === 'end' || what.startsWith('error')) send(what)
+    },
+  }
+}
+
 export function stopSpeech() {
   finish()
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
@@ -764,8 +800,13 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
       if (idx === start) opts.onStart?.()
       opts.onLine?.(idx, lines.length)
     }
-    u.onstart = begin
+    // ВРЕМЕННО (21.10.2026): на айфоне список фраз набора молчит, а стопка
+    // того же набора звучит. Воспроизвести на компьютере нельзя — след каждой
+    // реплики уходит в телеметрию событием tts_trace. Снять после разбора.
+    const trace = isIOS() ? traceUtterance(u, voices) : null
+    u.onstart = () => { trace?.mark('start'); begin() }
     u.onboundary = e => {
+      trace?.mark('boundary')
       if (mine !== run) return
       begin()
       // name === 'sentence' приходит от части голосов вперемешку со словами;
@@ -773,11 +814,11 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
       if (e.name && e.name !== 'word') return
       opts.onWord?.(idx, e.charIndex)
     }
-    u.onend = step
+    u.onend = () => { trace?.mark('end'); step() }
     // Ошибка одной реплики не должна ронять весь текст: interrupted/canceled
     // приходят от нашего же cancel() и отсекаются по номеру запуска, остальное
     // просто пропускаем и читаем дальше.
-    u.onerror = step
+    u.onerror = e => { trace?.mark(`error:${e.error}`); step() }
     // Chrome после долгого простоя вкладки залипает в состоянии paused, и
     // speak() уходит в тишину. resume() на не-паузе безвреден.
     speechSynthesis.resume()
