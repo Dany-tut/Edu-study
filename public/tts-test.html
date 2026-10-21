@@ -32,6 +32,9 @@
 <a href="?v=9" id="v9">9 — сеанс «playback» + тон WebAudio с нулевой громкостью</a>
 <a href="?v=10" id="v10">10 — сеанс «playback» + неслышимый тон, который держится всю фразу</a>
 <button id="say">Сказать: I’m off.</button>
+<h1 style="margin-top:24px">Голоса</h1>
+<p>Каждая кнопка говорит фразу своим голосом. Отметь, какие ЗВУЧАТ.</p>
+<div id="voices"></div>
 <pre id="log"></pre>
 <script>
   const v = new URLSearchParams(location.search).get('v') || '1'
@@ -78,6 +81,29 @@
     u.onerror = e => log('error ' + e.error)
     speechSynthesis.speak(u)
   }
+  const box = document.getElementById('voices')
+  const draw = () => {
+    const vs = speechSynthesis.getVoices().filter(x => /^(en|ru)/i.test(x.lang))
+    if (!vs.length) return
+    box.innerHTML = ''
+    vs.forEach((voice, i) => {
+      const b = document.createElement('button')
+      b.style.background = '#2b2b2b'
+      b.style.fontSize = '16px'
+      b.textContent = (i + 1) + ' · ' + voice.name + ' · ' + voice.lang + (voice.default ? ' · default' : '') + (voice.localService ? '' : ' · сеть')
+      b.onclick = () => {
+        speechSynthesis.cancel()
+        const u = new SpeechSynthesisUtterance(/^ru/i.test(voice.lang) ? 'Всё, я пошёл.' : 'I’m off.')
+        u.voice = voice; u.lang = voice.lang
+        u.onend = () => log((i + 1) + ' ' + voice.name + ': end')
+        u.onerror = e => log((i + 1) + ' ' + voice.name + ': error ' + e.error)
+        speechSynthesis.speak(u)
+      }
+      box.appendChild(b)
+    })
+  }
+  draw()
+  speechSynthesis.onvoiceschanged = draw
 </script>
 </body>
 </html>
