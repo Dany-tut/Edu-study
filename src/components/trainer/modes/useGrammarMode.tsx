@@ -16,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { BookMarked, ChevronLeft } from 'lucide-react'
+import { BookMarked } from 'lucide-react'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import Skeleton from '../../Skeleton'
@@ -26,6 +26,7 @@ import {
 } from '../TrainerShell'
 import { GrammarGrid, GrammarPage } from '../GrammarShelf'
 import { hasGrammarRef, loadGrammarRef, GRAMMAR_COUNTS, type GrammarRef } from '../../../data/grammar'
+import BackCircle from '../../../components/BackCircle'
 
 export interface GrammarMode {
   /** Есть ли справочник у этого языка. */
@@ -136,9 +137,7 @@ export function useGrammarMode({
   const toolbar = !active ? null : (
     <Toolbar>
       {openForm ? (
-        <ToolButton onClick={() => setOpenId(null)}>
-          <ChevronLeft size={14} /> {t('К справочнику')}
-        </ToolButton>
+        <BackCircle onClick={() => setOpenId(null)} label="К справочнику" />
       ) : (
         <>
           <SearchPill value={query} onChange={onQuery} placeholder={t('Форма, название или пример…')} />

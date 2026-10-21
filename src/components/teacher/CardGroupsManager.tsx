@@ -33,7 +33,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, Trash2, ChevronLeft, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
 import { useT, useTc } from '../../lib/i18n'
 import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
@@ -57,6 +57,7 @@ import { ContentCard, CardSkeleton } from './ContentCard'
 import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, normSearch } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import { guessLang } from '../../lib/guessLang'
+import BackCircle from '../../components/BackCircle'
 
 /** Языки, на которых вообще бывает тренажёр, — по реестру предметов. */
 const LANG_OPTIONS = SUBJECTS
@@ -1467,9 +1468,7 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
   if (open) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button type="button" onClick={() => setOpenId(null)} style={ghostBtn}>
-          <ChevronLeft size={14} /> {t('К стопкам')}
-        </button>
+        <BackCircle onClick={() => setOpenId(null)} label="К стопкам" />
         <CardsEditor
           cards={open.cards}
           onCards={cards => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, cards } : x)))}

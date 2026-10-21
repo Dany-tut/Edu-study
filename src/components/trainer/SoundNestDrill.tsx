@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Volume2, ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
+import { Volume2, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'
@@ -11,6 +11,7 @@ import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
 import { TierChip } from '../GlossedText'
 import type { MaterialResult } from '../../lib/trainerProgress'
 import { SoundBadge } from '../SoundBadge'
+import BackCircle from '../../components/BackCircle'
 
 // Гнёзда созвучий: витрина и разбор одного гнезда.
 //
@@ -417,13 +418,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <button onClick={onBack} style={{
-        alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px 6px 8px',
-        borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
-        cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)',
-      }}>
-        <ChevronLeft size={14} /> {t('К созвучиям')}
-      </button>
+      <BackCircle onClick={onBack} label="К созвучиям" />
 
       {header}
 

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Users, ChevronRight, ArrowLeft, Phone, Send, Wallet, CalendarCheck, Check } from 'lucide-react'
+import { Users, ChevronRight, Phone, Send, Wallet, CalendarCheck, Check } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import Skeleton from '../../Skeleton'
@@ -13,6 +13,7 @@ import { contactLabel } from '../../../lib/contactLink'
 import { useT, useTc } from '../../../lib/i18n'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
+import BackCircle from '../../../components/BackCircle'
 
 // MOBILE ONLY students browser: groups list → tap → roster → tap student →
 // detail sheet (contacts, attendance, scores, debt). Read-focused; editing the
@@ -177,9 +178,7 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <button onClick={onBack} className="cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', padding: '2px 0' }}>
-          <ArrowLeft size={17} /> {t('Все группы')}
-        </button>
+        <BackCircle onClick={onBack} label="Все группы" />
         <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{group.icon} {group.name}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {students.map(s => (

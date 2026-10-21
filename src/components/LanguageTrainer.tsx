@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { hasFeed, dayLabel, type FeedItem } from '../data/feed'
 import { outletById } from '../data/feed/outlets'
@@ -70,6 +70,7 @@ import { usePersistentState } from '../lib/useDraft'
 import { useScreenTop } from '../lib/useScreenTop'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
+import BackCircle from './BackCircle'
 
 // Тренажёр для языковых предметов.
 //
@@ -1811,9 +1812,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
 
   const toolbar = (
     <Toolbar>
-      <ToolButton onClick={onBack}>
-        <ChevronLeft size={14} /> {t('К списку')}
-      </ToolButton>
+      <BackCircle onClick={onBack} label="К списку" />
       {/* Вид текста — переключатель, а не замена: обычный текст остаётся видом
           по умолчанию (так текст читается как текст), разбор включается тогда,
           когда нужно понять, как это звучит и что значит.
@@ -2253,9 +2252,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
 
   const toolbar = (
     <Toolbar>
-      <ToolButton onClick={onBack}>
-        <ChevronLeft size={14} /> {t('К списку')}
-      </ToolButton>
+      <BackCircle onClick={onBack} label="К списку" />
       {item.credit && <ToolCount>{item.credit}</ToolCount>}
     </Toolbar>
   )

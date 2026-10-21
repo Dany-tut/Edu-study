@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Plus, Video, Link2, Upload,
+  Plus, Video, Link2, Upload,
   BookOpen, AlignLeft, CheckSquare, Type, Shuffle,
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
@@ -63,6 +63,7 @@ import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import { SEED_CARDS } from '../../data/courseSeedCards'
+import BackCircle from '../../components/BackCircle'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -6194,10 +6195,7 @@ export default function TeacherCourseEditorPage() {
         style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
       >
         <div ref={headLeftRef} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={handleBack} label="Назад" />
           <AnimatePresence>
             {selectedLesson && (
               <motion.button

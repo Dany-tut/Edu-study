@@ -39,7 +39,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Layers, Sparkles, Check, RotateCcw, Trash2 } from 'lucide-react'
+import { Layers, Sparkles, Check, RotateCcw, Trash2 } from 'lucide-react'
 import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
 import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'
@@ -51,6 +51,7 @@ import GlossedText from './GlossedText'
 import { SoundBadge, SoundTrack, useSpeakOne } from './SoundBadge'
 import { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
+import BackCircle from './BackCircle'
 import { Tile, TileGrid, TileMeter, TileChip, Empty } from './trainer/TrainerShell'
 
 type Owner = { studentId?: string; anonName?: string }
@@ -645,29 +646,10 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
 
 /** Возврат к витрине — живёт в строке управления. */
 export function BackToSets({ onBack }: { onBack: () => void }) {
-  const t = useT()
   // Кнопка «К наборам» = экранный «назад»: свайп от края делает то же самое.
+  // Сама кнопка — общий шеврон в круге (components/BackCircle).
   useSwipeBack(onBack)
-  // Круг со стрелкой, без подписи: подпись «К наборам» на телефоне переносилась
-  // в две строки и раздувала строку инструментов. 40×40 — та же высота, что у
-  // круглого поиска рядом (ToolButton с иконкой), кнопки стоят вровень.
-  // Смысл остаётся в aria-label и подсказке.
-  return (
-    <button
-      onClick={onBack}
-      aria-label={t('К наборам')}
-      title={t('К наборам')}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 40, height: 40, flexShrink: 0, padding: 0, borderRadius: 999,
-        border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.62)',
-        backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-        cursor: 'pointer', color: 'var(--color-text-2)', fontFamily: 'inherit',
-      }}
-    >
-      <ChevronLeft size={20} strokeWidth={2.25} style={{ marginLeft: -2 }} />
-    </button>
-  )
+  return <BackCircle onClick={onBack} label="К наборам" />
 }
 
 /** «Всю тему в повторение» — в рейле сессии. */

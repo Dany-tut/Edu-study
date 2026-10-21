@@ -9,7 +9,7 @@ import {
   GraduationCap, Brain, FileText, X, Check,
   Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown,
   CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh,
-  Image as ImageIcon, Key, ArrowLeft, Maximize2,
+  Image as ImageIcon, Key, Maximize2,
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
@@ -92,6 +92,7 @@ import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 import { alertMissingAnswers, breakAtDash, isDiagMissingAnswer } from '../../lib/answerCheck'
 import QuestionTable, { type QTable } from '../../components/QuestionTable'
+import BackCircle from '../../components/BackCircle'
 
 type NewBankTask = Omit<BankTask, 'id'>
 // Высота таблеток верхней строки Конструктора (вкладки, крестик режима
@@ -2072,9 +2073,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 24px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
-        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px 8px 10px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          <ArrowLeft size={15} /> {t('Назад')}
-        </button>
+        <BackCircle onClick={onClose} label="Назад" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lessonTitle || t('Урок')}</div>
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Связано с базой ·')} {shortId}</div>
@@ -2779,18 +2778,7 @@ function CreatorView({
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
             }}
           >
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={handleCancel}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'inherit', pointerEvents: 'auto',
-              }}
-            >
-              <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-            </motion.button>
+            <BackCircle onClick={handleCancel} label="Назад" />
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -2825,18 +2813,7 @@ function CreatorView({
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={handleCancel}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={handleCancel} label="Назад" />
 
           {/* Absolutely centred — stays at true screen centre regardless of button widths */}
           <div style={{
@@ -4861,20 +4838,7 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
 
         {/* Back button */}
         <div>
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={onBack}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '9px 16px 9px 12px', borderRadius: 999,
-              border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.9)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={onBack} label="Назад" />
         </div>
 
         {/* Header */}
@@ -5857,10 +5821,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={onClose} label="Назад" />
               <div ref={dockTitleRef} style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {label}
               </div>
@@ -5874,10 +5835,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
         animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 20px' }}
       >
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-        </motion.button>
+        <BackCircle onClick={onClose} label="Назад" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
             <Icon size={16} style={{ color: accent }} />
@@ -6758,10 +6716,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
               exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dg, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto', fontFamily: 'inherit' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={onClose} label="Назад" />
               <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
                 {cfg.title || t('Скрининг мышления')}
               </div>
@@ -6780,10 +6735,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
         <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
         >
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={onClose} label="Назад" />
           <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
             {cfg.title || t('Скрининг мышления')}
           </div>
@@ -7100,10 +7052,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onCancel}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dg, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto', fontFamily: 'inherit' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={onCancel} label="Назад" />
               <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {title || t('Новый тест')}
               </div>
@@ -7121,10 +7070,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
         <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
         >
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onCancel}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={onCancel} label="Назад" />
           <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
             {title || t('Новый тест')}
           </div>

@@ -18,11 +18,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import { Plus, Trash2, ChevronLeft } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { saveCardGroup, type CardGroup, type CardSet, type SetCard } from '../../lib/cardGroups'
 import GrowTextarea from '../GrowTextarea'
 import CardImportPanel from '../CardImportPanel'
+import BackCircle from '../../components/BackCircle'
 
 const input = (accent: string): React.CSSProperties => ({
   width: '100%', boxSizing: 'border-box', borderRadius: 12,
@@ -70,16 +71,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button
-          onClick={onClose}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
-            borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'transparent',
-            color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
-          }}
-        >
-          <ChevronLeft size={14} /> {t('К подборкам')}
-        </button>
+        <BackCircle onClick={onClose} label="К подборкам" />
         <button
           onClick={save}
           disabled={!draft.title.trim() || saving}

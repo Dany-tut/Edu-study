@@ -46,7 +46,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, ChevronLeft, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { subjectFill } from '../../lib/subjects'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -59,6 +59,7 @@ import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '
 import MobileSheet from '../MobileSheet'
 import MobileDock, { DockCircle, DockSegment, DockSlot, useSmoothCollapse, COLLAPSE } from '../MobileDock'
 import { MOBILE_TOP_GAP, MOBILE_PILL_H } from '../../lib/mobileTokens'
+import BackCircle from '../../components/BackCircle'
 
 const RAIL_W = 300
 
@@ -1411,17 +1412,7 @@ function SheetFilters({ groups, drill, onDrill }: {
     >
       {open ? (
         <>
-          <button
-            onClick={() => onDrill(null)}
-            style={{
-              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4,
-              padding: '6px 12px 6px 8px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-              border: '1px solid var(--color-border-medium)', background: 'transparent',
-              fontSize: 12.5, fontWeight: 650, color: 'var(--color-text-2)',
-            }}
-          >
-            <ChevronLeft size={14} /> {t('Ко всем фильтрам')}
-          </button>
+          <BackCircle onClick={() => onDrill(null)} label="Ко всем фильтрам" />
           <OptionRows g={open} />
         </>
       ) : groups.map((g, i) => g.options.length > LONG_LIST

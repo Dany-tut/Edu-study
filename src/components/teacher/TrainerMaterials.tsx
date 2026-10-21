@@ -53,6 +53,7 @@ import { cardChip } from '../../lib/pillStyles'
 import TeacherSelect from './TeacherSelect'
 import CardGroupsManager, { useOwnDecks } from './CardGroupsManager'
 import Skeleton from '../Skeleton'
+import BackCircle from '../../components/BackCircle'
 
 const MAT_COLOR = 'var(--color-peach-text)'
 const MAT_BG = 'var(--color-peach-soft)'
@@ -1011,14 +1012,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
   const shelfTitle = family ? `${t(family.label)} · ${t(langLabel(target.lang))}` : t('Материалы')
 
   const backBtn = (glass: boolean) => (
-    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999,
-        ...(glass ? pageGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)' }),
-        color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', pointerEvents: 'auto',
-      }}>
-      <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-    </motion.button>
+    <BackCircle onClick={onClose} label="Назад" />
   )
 
   return (

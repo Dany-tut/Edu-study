@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Send, Plus, X, Trash2,
+  Send, Plus, X, Trash2,
   Star, ChevronDown, ChevronUp, Search,
   AlignLeft, CheckSquare, Type, Shuffle, Eye,
   BookOpen, AlertCircle, Check, GripVertical, Sparkles,
@@ -42,6 +42,7 @@ import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
 import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
+import BackCircle from '../../components/BackCircle'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -2225,7 +2226,6 @@ export default function TeacherHomeworkCreatePage() {
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  const backBtn = <><ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}</>
   const draftLabel = t('Черновик')
 
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
@@ -2368,18 +2368,7 @@ export default function TeacherHomeworkCreatePage() {
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
             }}
           >
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={exitPage}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'inherit', pointerEvents: 'auto',
-              }}
-            >
-              {backBtn}
-            </motion.button>
+            <BackCircle onClick={exitPage} label="Назад" />
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -2423,18 +2412,7 @@ export default function TeacherHomeworkCreatePage() {
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={exitPage}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            {backBtn}
-          </motion.button>
+          <BackCircle onClick={exitPage} label="Назад" />
 
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',

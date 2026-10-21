@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, ChevronDown, Plus, X, Trash2,
+  ChevronDown, Plus, X, Trash2,
   Video, Link2, ListVideo, NotebookPen, FileText, FolderOpen,
   GraduationCap, Upload, Calendar, Clock, Search,
   ChevronLeft, ChevronRight,
@@ -20,6 +20,7 @@ import {
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import BackCircle from '../../components/BackCircle'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -1159,11 +1160,6 @@ export default function TeacherLessonEditorPage() {
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  const backBtn = (
-    <>
-      <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-    </>
-  )
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar
@@ -1185,18 +1181,7 @@ export default function TeacherLessonEditorPage() {
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={() => setActivePage('home')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            {backBtn}
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="Назад" />
 
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
@@ -1228,18 +1213,7 @@ export default function TeacherLessonEditorPage() {
                 display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
               }}
             >
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-                onClick={() => setActivePage('home')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                  padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                  color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'inherit', pointerEvents: 'auto',
-                }}
-              >
-                {backBtn}
-              </motion.button>
+              <BackCircle onClick={() => setActivePage('home')} label="Назад" />
 
               <div
                 style={{

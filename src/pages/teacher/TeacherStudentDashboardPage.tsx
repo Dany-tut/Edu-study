@@ -22,6 +22,7 @@ import {
   fetchStudentSessionDays,
 } from '../../lib/db'
 import { useT, t, useTc, tn } from '../../lib/i18n'
+import BackCircle from '../../components/BackCircle'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -399,18 +400,7 @@ export default function TeacherStudentDashboardPage() {
               transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-                onClick={() => setActivePage('groups')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                  padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                  color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                  pointerEvents: 'auto',
-                }}
-              >
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={() => setActivePage('groups')} label="Назад" />
 
               <div style={{
                 flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',

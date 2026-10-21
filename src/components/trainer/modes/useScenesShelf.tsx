@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, Eye, SlidersHorizontal } from 'lucide-react'
+import { Eye, SlidersHorizontal } from 'lucide-react'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import Skeleton from '../../Skeleton'
@@ -27,6 +27,7 @@ import {
   hasScenes, loadScenes, sceneCount, scenesWord, shelvesForLang, worksForLang,
   type Scene, type Work,
 } from '../../../data/scenes'
+import BackCircle from '../../../components/BackCircle'
 
 export interface ScenesShelf {
   on: boolean
@@ -213,9 +214,7 @@ export function useScenesShelf({ lang, accent, soft, active, query, onQuery, sta
   const toolbar = !active ? null : (
       <Toolbar count={openWork ? undefined : visibleWorks.length}>
         {openWork ? (
-          <ToolButton onClick={() => setOpenWorkId(null)}>
-            <ChevronLeft size={14} /> {t('К полкам')}
-          </ToolButton>
+          <BackCircle onClick={() => setOpenWorkId(null)} label="К полкам" />
         ) : (
           <>
             <SearchPill value={query} onChange={onQuery} placeholder={t('Автор или название…')} />
