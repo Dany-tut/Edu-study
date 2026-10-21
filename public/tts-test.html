@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка озвучки</title>
+<!-- ВРЕМЕННО (21.10.2026): разбор тишины синтеза речи на айфоне. Каждая
+     кнопка открывает страницу заново со своим вариантом, чтобы варианты не
+     заражали друг друга сеансом. Удалить после разбора. -->
+<style>
+  body { font: 17px -apple-system, system-ui, sans-serif; margin: 0; padding: 20px 16px; background: #111; color: #eee; }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  p { color: #aaa; margin: 0 0 18px; line-height: 1.4; }
+  a, button { display: block; width: 100%; box-sizing: border-box; margin: 0 0 12px; padding: 16px; border-radius: 14px; border: none; font: inherit; font-weight: 600; text-align: left; text-decoration: none; }
+  a { background: #222; color: #ccc; }
+  a.on { background: #33285a; color: #fff; }
+  button { background: #786AD7; color: #fff; font-size: 19px; }
+  pre { white-space: pre-wrap; font-size: 13px; color: #9c9; }
+</style>
+</head>
+<body>
+<h1>Проверка озвучки</h1>
+<p>Выбери вариант (страница откроется заново), потом нажми большую кнопку «Сказать». Запомни, какие варианты звучат.</p>
+<a href="?v=1" id="v1">1 — просто синтез, ничего лишнего</a>
+<a href="?v=2" id="v2">2 — сеанс «playback», как в приложении</a>
+<a href="?v=3" id="v3">3 — сеанс «playback» + тихий аудиофайл, как сейчас в приложении</a>
+<a href="?v=4" id="v4">4 — просто синтез + звуковой щелчок WebAudio перед ним</a>
+<button id="say">Сказать: I’m off.</button>
+<pre id="log"></pre>
+<script>
+  const v = new URLSearchParams(location.search).get('v') || '1'
+  document.getElementById('v' + v)?.classList.add('on')
+  const log = s => { document.getElementById('log').textContent += s + '\n' }
+  log('вариант ' + v + ' · audioSession: ' + (navigator.audioSession ? navigator.audioSession.type : 'нет'))
+  document.getElementById('say').onclick = () => {
+    if ((v === '2' || v === '3') && navigator.audioSession) navigator.audioSession.type = 'playback'
+    if (v === '3') {
+      const n = 4000, b = new DataView(new ArrayBuffer(44 + n))
+      const w = (o, s) => { for (let k = 0; k < s.length; k++) b.setUint8(o + k, s.charCodeAt(k)) }
+      w(0, 'RIFF'); b.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); b.setUint32(16, 16, true)
+      b.setUint16(20, 1, true); b.setUint16(22, 1, true); b.setUint32(24, 8000, true); b.setUint32(28, 8000, true)
+      b.setUint16(32, 1, true); b.setUint16(34, 8, true); w(36, 'data'); b.setUint32(40, n, true)
+      for (let k = 0; k < n; k++) b.setUint8(44 + k, 128)
+      new Audio(URL.createObjectURL(new Blob([b], { type: 'audio/wav' }))).play().catch(e => log('audio: ' + e))
+    }
+    if (v === '4') {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const o = ctx.createOscillator(), g = ctx.createGain()
+      g.gain.value = 0.05; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.05)
+    }
+    speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance('I’m off.')
+    u.lang = 'en-US'
+    const t0 = Date.now()
+    u.onstart = () => log('start @' + (Date.now() - t0))
+    u.onend = () => log('end @' + (Date.now() - t0) + ' · сеанс ' + (navigator.audioSession ? navigator.audioSession.type : '-'))
+    u.onerror = e => log('error ' + e.error)
+    speechSynthesis.speak(u)
+  }
+</script>
+</body>
+</html>
