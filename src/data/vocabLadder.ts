@@ -30,6 +30,7 @@
 
 import type { SeedTask, VocabItem } from './languageCourse'
 import { chamoOf, syllableDistractors } from './hangul'
+import { KANA, isKana } from './kana'
 import { answerSide } from './taskTypes'
 
 /**
@@ -593,6 +594,10 @@ export function ladderTasks(words: VocabItem[], opts: LadderOptions = {}): SeedT
       // Формулировка — как в первом знакомстве с буквой (koreanHangul.ts):
       // «обведите» читается как «обведите кружком», а задание про письмо.
       return [{ type: 'trace', question: `Напишите букву ${term} по пунктиру — ${w.ru}`, chamo: term, ttsText: term, allowSlow: false } as SeedTask]
+    }
+    // Знак каны — то же самое: один знак не собирают, его пишут (japaneseKana.ts).
+    if (isKana(term)) {
+      return [{ type: 'trace', question: `Напишите знак ${term} по пунктиру — ${w.ru}`, chamo: term, ttsText: KANA[term].say, allowSlow: false } as SeedTask]
     }
     // Один знак собирать не из чего: у хангыля это работа для сборки слога из
     // букв, у остальных письменностей — вообще не задание.

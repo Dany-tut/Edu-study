@@ -72,6 +72,11 @@ await build({
       export { SUPERNATURAL } from './src/data/cardSeeds/supernatural'
       export { SPOKEN_EN } from './src/data/cardSeeds/spokenEn'
       export { SPN_EPISODES } from './src/data/cardSeeds/spnEpisodes'
+      export { EN_1000 } from './src/data/cardSeeds/en1000'
+      export { EN_GRAMMAR_CARDS } from './src/data/cardSeeds/enGrammar'
+      export { EN_PHRASAL } from './src/data/cardSeeds/enPhrasal'
+      export { EN_EVERYDAY } from './src/data/cardSeeds/enEveryday'
+      export { EN_SWEAR } from './src/data/cardSeeds/enSwear'
       export { EN_FEED } from './src/data/feed/feedEn'
       export { KO_FEED } from './src/data/feed/feedKo'
       export { JA_FEED } from './src/data/feed/feedJa'
@@ -86,6 +91,7 @@ const {
   WORD_GLOSS, buildLexicon, ensureGloss, READING_LIBRARY, EN_SCENES, KO_SCENES, JA_SCENES, PT_SCENES,
   DE_SCENES, RU_SCENES, COURSE_SEEDS,
   EN_FEED, KO_FEED, JA_FEED, PT_FEED, SUPERNATURAL, SPOKEN_EN, SPN_EPISODES,
+  EN_1000, EN_GRAMMAR_CARDS, EN_PHRASAL, EN_EVERYDAY, EN_SWEAR,
   KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENGLISH_SURVIVAL, GERMAN_SURVIVAL,
   KOREAN_GRAMMAR, ENGLISH_GRAMMAR, GERMAN_GRAMMAR,
   KO_VOCAB_EXAMPLES, JA_VOCAB_EXAMPLES, EN_VOCAB_EXAMPLES, PT_VOCAB_EXAMPLES, DE_VOCAB_EXAMPLES,
@@ -332,7 +338,7 @@ for (const book of [KOREAN_SURVIVAL, JAPANESE_SURVIVAL, PORTUGUESE_SURVIVAL, ENG
 // это было лишь по счётчику слов: он УПАЛ после того, как колоды переехали на
 // четыре уровня, хотя карточек стало больше. Сторож, который не видит половину
 // поверхности, отчитывается зелёным ровно так же, как настоящий.
-for (const g of [SUPERNATURAL, SPOKEN_EN, SPN_EPISODES]) {
+for (const g of [SUPERNATURAL, SPOKEN_EN, SPN_EPISODES, EN_1000, EN_GRAMMAR_CARDS, EN_PHRASAL, EN_EVERYDAY, EN_SWEAR]) {
   for (const set of g.sets) {
     const all = [...set.cards, ...(set.subsets ?? []).flatMap(s => s.cards)]
     for (const c of all) { tapFeed(g.lang, c.term); if (c.ex) tapFeed(g.lang, c.ex.term) }

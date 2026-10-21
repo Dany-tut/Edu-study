@@ -63,7 +63,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     units: 14,
     vocabCount: 140,
     taskCount: 1193,
-    stamp: '71ff4565de04',
+    stamp: '1d30f9b3b9c0',
     guidedHours: '21–28',
     lessonMinutes: 100,
     scopeNote:
@@ -104,6 +104,18 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     lessonMinutes: 60,
     scopeNote:
       'С этого курса начинают корейский: сорок букв, строение слога, патчхим и первые сорок слов. Буква здесь такая же карточка, как слово, — её показывают до заданий и потом повторяют. Грамматики почти нет: она начинается в курсе «Корейский с нуля — до TOPIK I», который продолжает этот и алфавит уже не повторяет.',
+  },
+  jakn: {
+    title: 'Японский с нуля: кана',
+    level: 'с нуля → JLPT N5',
+    units: 11,
+    vocabCount: 229,
+    taskCount: 1957,
+    stamp: 'f5928fed7420',
+    guidedHours: '20–26 часов',
+    lessonMinutes: 60,
+    scopeNote:
+      'С этого курса начинают японский: вся хирагана и катакана — 92 основных знака, звонкие и малые, долгота и удвоение, около ста слов. Каждый знак пишется пальцем по порядку черт. Грамматики почти нет: она начинается в курсе «Японский с нуля — до JLPT N5», который продолжает этот.',
   },
   kotp: {
     title: 'Корейский с нуля — до TOPIK I',
@@ -146,8 +158,8 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → JLPT N5 → N4',
     units: 26,
     vocabCount: 260,
-    taskCount: 2068,
-    stamp: 'dc8e2b629978',
+    taskCount: 2069,
+    stamp: 'b8d0ac4d8afe',
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:

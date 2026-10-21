@@ -45,6 +45,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { RotateCcw } from 'lucide-react'
 import { CHAMO, strokePath, type Point, type Stroke } from '../data/hangul'
+import { KANA } from '../data/kana'
 import { playPop, vibrate } from '../lib/sound'
 import { okChime } from '../lib/feedback'
 import { useT } from '../lib/i18n'
@@ -97,6 +98,68 @@ function densify(s: Stroke): Point[] {
   return out
 }
 
+/** Что обводим: черты, подпись звука и на каком языке его произносить. */
+interface Glyph {
+  ch: string
+  sound: string
+  /** Текст для озвучки; пусто — у знака нет своего звука (っ, ー). */
+  say: string
+  lang: string
+  strokes: Stroke[]
+}
+
+/** Разбор строки kanaStrokes: черты через «|», точки «x,y» через пробел. */
+const parseStrokes = (s: string, small: boolean): Stroke[] => {
+  const strokes: Stroke[] = s.split('|')
+    .map(st => ({ pts: st.split(' ').map(p => p.split(',').map(Number) as unknown as Point), round: true }))
+  // МАЛЫЕ ЗНАКИ РАСТЯГИВАЮТСЯ НА КВАДРАТ. В KanjiVG ゃ и っ нарисованы так, как
+  // стоят в строке, — мелко и в нижнем углу. Обводить пальцем знак размером с
+  // ноготь при черте толщиной 9 нельзя: штрихи слипаются в кляксу. Размер
+  // малого знака учит конспект, а рука учит форму — её и даём крупно.
+  const xs = strokes.flatMap(st => st.pts.map(p => p[0]))
+  const ys = strokes.flatMap(st => st.pts.map(p => p[1]))
+  const w = Math.max(...xs) - Math.min(...xs)
+  const h = Math.max(...ys) - Math.min(...ys)
+  const size = Math.max(w, h)
+  if (!small || size === 0 || size >= 66) return strokes
+  const k = 66 / size
+  const cx = (Math.max(...xs) + Math.min(...xs)) / 2
+  const cy = (Math.max(...ys) + Math.min(...ys)) / 2
+  return strokes.map(st => ({ ...st, pts: st.pts.map(([x, y]) => [50 + (x - cx) * k, 50 + (y - cy) * k] as Point) }))
+}
+
+let kanaCache: Record<string, string> | null = null
+
+/**
+ * Знак для обводки: буква хангыля или знак каны.
+ *
+ * ЧЕРТЫ КАНЫ ГРУЗЯТСЯ ЛЕНИВО. Это 45 КБ точек из KanjiVG, и нужны они только
+ * на экране обводки японского знака — в общий чанк домашки им незачем. Пока
+ * кусок едет, квадрат пустой (доли секунды; дальше он в кэше модуля).
+ */
+function useGlyph(ch: string): Glyph | null {
+  const letter = CHAMO[ch]
+  const kana = KANA[ch]
+  const [kanaStrokes, setKanaStrokes] = useState<Record<string, string> | null>(kanaCache)
+  useEffect(() => {
+    if (!kana || kanaStrokes) return
+    let alive = true
+    void import('../data/kanaStrokes').then(m => {
+      kanaCache = m.KANA_STROKES
+      if (alive) setKanaStrokes(m.KANA_STROKES)
+    })
+    return () => { alive = false }
+  }, [kana, kanaStrokes])
+
+  return useMemo(() => {
+    if (letter) return { ch, sound: letter.sound, say: letter.ch, lang: 'ko', strokes: letter.strokes }
+    if (kana && kanaStrokes?.[ch]) {
+      return { ch, sound: kana.ru, say: kana.say, lang: 'ja', strokes: parseStrokes(kanaStrokes[ch], kana.row === 'малые') }
+    }
+    return null
+  }, [ch, letter, kana, kanaStrokes])
+}
+
 export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   /** Буква, которую обводят. */
   chamo: string
@@ -106,7 +169,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   onChange: (value: string) => void
 }) {
   const t = useT()
-  const letter = CHAMO[chamo]
+  const letter = useGlyph(chamo)
   const svgRef = useRef<SVGSVGElement | null>(null)
   /** Сколько черт уже пройдено целиком. Единственное, что влияет на картинку. */
   const [strokeIndex, setStrokeIndex] = useState(0)
@@ -383,7 +446,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     // подсвечивать подпись под квадратом.
     <div className="flex flex-col" style={{ gap: 12, userSelect: 'none', WebkitUserSelect: 'none' }}>
       <div className="flex items-center" style={{ gap: 12 }}>
-        <AudioPlayer ttsText={letter.ch} lang="ko" compact />
+        {letter.say && <AudioPlayer ttsText={letter.say} lang={letter.lang} compact />}
         <div>
           <div style={{ fontSize: 26, lineHeight: 1, fontWeight: 700, color: 'var(--color-text)' }}>
             {letter.ch}
@@ -569,7 +632,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
 
       <p style={{ fontSize: 13, textAlign: 'center', color: done ? 'var(--color-green-text)' : 'var(--color-muted)' }}>
         {done
-          ? t('Буква написана')
+          ? t(letter.lang === 'ja' ? 'Знак написан' : 'Буква написана')
           : `${t('Черта')} ${Math.min(strokeIndex + 1, strokes.length)} ${t('из')} ${strokes.length} — ${t('ведите от точки')}`}
       </p>
     </div>

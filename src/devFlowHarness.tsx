@@ -12,6 +12,7 @@ import { authoredTaskToQuestion } from './data/lessonContent'
 import type { AuthoredHomeworkTask, LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
 import { buildKoreanHangulCourse } from './data/koreanHangul'
 import { buildJapaneseJlptCourse } from './data/japaneseJlpt'
+import { buildJapaneseKanaCourse } from './data/japaneseKana'
 import { BIO_CELL_LESSON_CONTENT } from './data/bioCellLessons'
 import { BIO_PREU_LESSON_CONTENT } from './data/bioPreULessons'
 import './index.css'
@@ -25,6 +26,7 @@ const params = new URLSearchParams(location.search)
 const courseLesson = (() => {
   const n = (key: string) => Math.max(0, Number(params.get(key) || 0))
   if (params.has('jajl')) return buildJapaneseJlptCourse('stand').lessons[n('jajl')]
+  if (params.has('jakn')) return buildJapaneseKanaCourse('stand').lessons[n('jakn')]
   return buildKoreanHangulCourse('stand').lessons[n('kohg')]
 })()
 
@@ -72,6 +74,9 @@ const questions: HomeworkQuizQuestion[] = [
     explanation: 'Слова урока.',
   }),
   q({ id: 'tr', type: 'trace', prompt: 'Обведите букву ㄱ — ведите от точки, черта за чертой', chamo: 'ㄱ' }),
+  // Кана: черты из KanjiVG, грузятся лениво (ChamoTrace, useGlyph).
+  q({ id: 'tr-ja', type: 'trace', lang: 'ja', prompt: 'Напишите знак あ по пунктиру', chamo: 'あ' }),
+  q({ id: 'tr-ja2', type: 'trace', lang: 'ja', prompt: 'Напишите знак シ по пунктиру', chamo: 'シ' }),
   q({ id: 'bs', type: 'buildSyllable', prompt: 'Соберите слог «ким» из букв', syllable: '김' }),
   q({
     id: 'q3', type: 'wordBank', prompt: 'Соберите предложение: «Это кимчи»',
@@ -182,7 +187,7 @@ const homework: LessonHomework = {
 const bioId = params.get('bio') ?? ''
 const bio = BIO_PREU_LESSON_CONTENT[bioId] ?? BIO_CELL_LESSON_CONTENT[bioId]
 
-const useHangul = params.has('kohg') || params.has('jajl')
+const useHangul = params.has('kohg') || params.has('jajl') || params.has('jakn')
 const shownBase: LessonHomework = useHangul
   ? {
     ...homework,
@@ -228,7 +233,7 @@ createRoot(document.getElementById('root')!).render(
     <HomeworkFlow
       lessonId="stand-ko-1"
       lessonTitle={bio ? bioId : useHangul ? courseLesson.title : 'Еда'}
-      subject={bio ? 'Биология' : params.has('jajl') ? 'Японский' : 'Корейский'}
+      subject={bio ? 'Биология' : params.has('jajl') || params.has('jakn') ? 'Японский' : 'Корейский'}
       homework={shown}
       onBack={() => {}}
     />

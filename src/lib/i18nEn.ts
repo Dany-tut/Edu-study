@@ -2506,6 +2506,7 @@ export const EN: Record<string, string> = {
   'уедет в конец стопки': 'moves to the end of the deck',
   'Заново': 'Start over',
   'Буква написана': 'Letter written',
+  'Знак написан': 'Character written',
   'Черта': 'Stroke',
   'ведите от точки': 'start at the dot',
 
