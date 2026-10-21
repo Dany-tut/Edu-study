@@ -28,6 +28,9 @@
 <a href="?v=5" id="v5">5 — синтез + БЕЗЗВУЧНЫЙ буфер WebAudio</a>
 <a href="?v=6" id="v6">6 — сеанс «playback» + беззвучный буфер WebAudio</a>
 <a href="?v=7" id="v7">7 — сеанс «playback» + слышимый щелчок WebAudio</a>
+<a href="?v=8" id="v8">8 — сеанс «playback» + НЕСЛЫШИМЫЙ тон WebAudio (очень тихо)</a>
+<a href="?v=9" id="v9">9 — сеанс «playback» + тон WebAudio с нулевой громкостью</a>
+<a href="?v=10" id="v10">10 — сеанс «playback» + неслышимый тон, который держится всю фразу</a>
 <button id="say">Сказать: I’m off.</button>
 <pre id="log"></pre>
 <script>
@@ -45,6 +48,14 @@
       b.setUint16(32, 1, true); b.setUint16(34, 8, true); w(36, 'data'); b.setUint32(40, n, true)
       for (let k = 0; k < n; k++) b.setUint8(44 + k, 128)
       new Audio(URL.createObjectURL(new Blob([b], { type: 'audio/wav' }))).play().catch(e => log('audio: ' + e))
+    }
+    if (v === '8' || v === '9' || v === '10') {
+      if (navigator.audioSession) navigator.audioSession.type = 'playback'
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const o = ctx.createOscillator(), g = ctx.createGain()
+      g.gain.value = v === '9' ? 0 : 0.0005
+      o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + (v === '10' ? 3 : 0.05))
+      log('ctx ' + ctx.state)
     }
     if (v === '6' || v === '7') { if (navigator.audioSession) navigator.audioSession.type = 'playback' }
     if (v === '4' || v === '7') {
