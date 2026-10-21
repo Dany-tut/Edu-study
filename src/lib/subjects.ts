@@ -82,12 +82,19 @@ export type TrainerMode =
   | 'reading'    // тексты с вопросами
   | 'listening'  // аудирование
   | 'speaking'   // говорение
+  | 'exam'       // пробники экзамена под таймером
   | 'blocks'     // конструктор: из чего собраны слова
   | 'grammar'    // справочник форм
   | 'guide'      // о языке
 
 /** Полный набор языкового предмета — у всех языков он один. */
 const LANG_MODES: TrainerMode[] = ['reading', 'cards', 'listening', 'speaking', 'blocks', 'grammar', 'guide']
+
+/**
+ * Язык с экзаменом. Пробники — не у всех языков: пока написан только IELTS,
+ * и пункт меню «Пробники» у корейского вёл бы в пустую витрину.
+ */
+const EXAM_LANG_MODES: TrainerMode[] = [...LANG_MODES, 'exam']
 
 /**
  * Предмет с банком заданий. Карточки здесь не «в довесок»: термины и даты
@@ -245,7 +252,7 @@ export const SUBJECTS: SubjectDef[] = [
   { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: NATIVE_RANKS, trainer: LANG_MODES, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
   { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], trainer: LANG_MODES, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
   { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ranks: ['Старт', 'Даты', 'Эпохи', 'Реформы', 'Хроника', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
-  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, trainer: EXAM_LANG_MODES, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
   { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
   { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
   { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },

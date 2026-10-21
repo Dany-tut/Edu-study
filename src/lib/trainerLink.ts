@@ -50,6 +50,8 @@ export type TrainerScreen =
   | 'sets' | 'nests' | 'packs' | 'decks' | 'due' | 'words'
   // Аудирование и говорение
   | 'audio' | 'speaking'
+  // Пробники экзамена
+  | 'mocks'
   // Конструктор
   | 'stems' | 'roots' | 'numbers' | 'sounds'
   // Справочники
@@ -58,7 +60,7 @@ export type TrainerScreen =
 const SCREENS: TrainerScreen[] = [
   'texts', 'scenes', 'feed',
   'sets', 'nests', 'packs', 'decks', 'due', 'words',
-  'audio', 'speaking',
+  'audio', 'speaking', 'mocks',
   'stems', 'roots', 'numbers', 'sounds',
   'grammar', 'story', 'books',
 ]

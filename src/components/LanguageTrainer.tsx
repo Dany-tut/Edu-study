@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { hasFeed, dayLabel, type FeedItem } from '../data/feed'
 import { outletById } from '../data/feed/outlets'
@@ -37,6 +37,7 @@ import { hasTextbooks, textbooksForLang } from '../data/textbooks'
 import { useGuideMode } from './trainer/modes/useGuideMode'
 import { useGrammarMode } from './trainer/modes/useGrammarMode'
 import { useSpeakingMode } from './trainer/modes/useSpeakingMode'
+import { useMocksMode } from './trainer/modes/useMocksMode'
 import { useBlocksMode } from './trainer/modes/useBlocksMode'
 import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import { useScenesShelf } from './trainer/modes/useScenesShelf'
@@ -81,7 +82,7 @@ import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressS
 // ссылки к урокам курса, а не на собственную библиотеку. Говорение записывает
 // ответ и отдаёт учителю — автоматической оценки произношения нет.
 
-type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar' | 'guide'
+type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'mocks' | 'blocks' | 'grammar' | 'guide'
 
 /**
  * Половины вкладки «Чтение». Не режимы: у всех трёх одна читалка, один словарь
@@ -100,7 +101,7 @@ type ReadingView = 'texts' | 'scenes' | 'feed'
  */
 const MODE_CAP: Record<Mode, TrainerMode> = {
   reading: 'reading', vocab: 'cards', listening: 'listening',
-  speaking: 'speaking', blocks: 'blocks', grammar: 'grammar', guide: 'guide',
+  speaking: 'speaking', mocks: 'exam', blocks: 'blocks', grammar: 'grammar', guide: 'guide',
 }
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
@@ -108,6 +109,9 @@ const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] 
   { id: 'vocab',     label: 'Карточки',   hint: 'Свайп: знаю / не помню',   Icon: Layers },
   { id: 'listening', label: 'Аудирование', hint: 'Лекции и разговоры',      Icon: Headphones },
   { id: 'speaking',  label: 'Говорение',  hint: 'Записать и отправить',     Icon: Mic },
+  // Пробники — не ещё один навык, а все четыре подряд под таймером, с баллом.
+  // Появляются у языков, для которых экзамен написан (см. mocksOn).
+  { id: 'mocks',     label: 'Пробники',   hint: 'Экзамен под таймером',     Icon: ClipboardCheck },
   // Пятый режим — не «ещё одна библиотека», а другой взгляд на язык: не «выучи
   // слово», а «увидь, из чего оно собрано». Появляется только у языков, где
   // такая сборка вообще описана (см. blocksOn).
@@ -737,6 +741,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     active: mode === 'speaking',
   })
 
+  // Режим «Пробники» — экзамен целиком (components/trainer/modes/useMocksMode).
+  // Сам экзамен идёт своим слоем на весь экран, здесь только витрина.
+  const mocks = useMocksMode({ lang, accent: palette.accent, soft: palette.soft, active: mode === 'mocks' })
+
   // ── Выборка справочника ────────────────────────────────────────────────────
   //
   // Три сита: раздел, уровень и строка поиска. Поиск идёт и по самой форме, и по
@@ -790,6 +798,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
     if (mode === 'listening') return { lang, screen: 'audio', id: openAudioId ?? undefined }
     if (mode === 'speaking') return { lang, screen: 'speaking' }
+    if (mode === 'mocks') return { lang, screen: 'mocks' }
     if (mode === 'blocks') {
       return blocks.open
         ? { lang, screen: blocks.open.screen, id: blocks.open.id }
@@ -847,6 +856,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'due':      setMode('vocab'); setVocabView('due'); break
       case 'audio':    setMode('listening'); setOpenAudioId(id); break
       case 'speaking': setMode('speaking'); break
+      case 'mocks':    setMode('mocks'); break
       case 'stems':    setMode('blocks'); blocks.openFromLink('stems', id); break
       case 'roots':    setMode('blocks'); blocks.openFromLink('roots', id); break
       case 'numbers':  setMode('blocks'); blocks.openFromLink('numbers', id); break
@@ -902,6 +912,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speaking.count,
+    mocks: mocks.count,
     // Всё, что в режиме можно открыть: основы, корни, ряды счёта, правила
     // чтения. Все таблицы лежат в коде, поэтому цифра известна синхронно и не
     // прыгает после загрузки.
@@ -925,6 +936,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // правилами чтения значило бы обещать несуществующее.
     : mode === 'blocks' ? blocks.subtitle
     : mode === 'grammar' ? grammar.subtitle
+    : mode === 'mocks' ? mocks.subtitle
     : speaking.subtitle
 
 
@@ -936,7 +948,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
-            .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on))
+            .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on) && (m.id !== 'mocks' || mocks.on))
             .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
@@ -1077,6 +1089,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {mode === 'speaking' && speaking.rail}
 
+      {mode === 'mocks' && mocks.rail}
+
       {mode === 'vocab' && !hasBook && vocabView !== 'nests' && review.rail}
 
       {/* Голос — общий на весь язык, поэтому и карточка одна на все режимы.
@@ -1144,7 +1158,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // справочник, тексты, разбор слов. Первое сито отвечает на вопрос «бывает
       // ли у этого предмета говорение», второе — «написано ли оно уже».
       .filter(m => allowed.includes(MODE_CAP[m.id]))
-      .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on))
+      .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on) && (m.id !== 'mocks' || mocks.on))
       .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon })),
     mode,
     onMode: m => switchMode(m as Mode),
@@ -1240,6 +1254,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = guide.toolbar
   } else if (mode === 'speaking') {
     toolbar = speaking.toolbar
+  } else if (mode === 'mocks') {
+    toolbar = mocks.toolbar
   } else if (mode === 'vocab' && openItem) {
     toolbar = sets.toolbar
   }
@@ -1360,6 +1376,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     content = review.content
   } else if (mode === 'blocks') {
     content = blocks.content
+  } else if (mode === 'mocks') {
+    content = <>{mocks.content}{mocks.overlay}</>
   } else {
     content = speaking.content
   }
