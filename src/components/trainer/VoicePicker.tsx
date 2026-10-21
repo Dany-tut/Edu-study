@@ -5,7 +5,7 @@ import { Check, ChevronDown, Mic } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import type { VoiceRole } from '../../lib/speech'
 import {
-  hasVoiceFor, isIOS, preferredVoice, serverVoiceOn, setPreferredVoice, setServerVoice, speak, voiceOptions,
+  hasVoiceFor, isIOS, nativeApp, preferredVoice, serverVoiceOn, setPreferredVoice, setServerVoice, speak, voiceOptions,
 } from '../../lib/speech'
 import Switch from '../Switch'
 import { useOverlayScroll, ScrollOverlays } from '../teacher/OverlayScroll'
@@ -98,6 +98,8 @@ export function useVoiceChoice(lang?: string): boolean {
 export function ServerVoiceToggle({ lang }: { lang: string }) {
   const t = useT()
   const [on, setOn] = useState(serverVoiceOn)
+  // В приложении говорит системный синтез — серверный голос там не нужен.
+  if (nativeApp()) return null
   function change(v: boolean) {
     setOn(v)
     setServerVoice(v)
