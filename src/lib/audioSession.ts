@@ -19,6 +19,13 @@ type AudioSessionNav = Navigator & { audioSession?: { type: string } }
 
 let unlocked = false
 
+/** Айфон или айпад (iPadOS представляется маком, выдаёт его сенсорный экран). */
+export function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /iP(hone|ad|od)/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
 /**
  * Пол-секунды тишины WAV-файлом. Синтез речи на айфоне живёт мимо
  * `audioSession`: объявленный сеанс он не всегда наследует, и фраза «звучит»
@@ -55,9 +62,7 @@ export function preferPlaybackSession() {
   // Медиаэлемент — один раз и только на айфоне/айпаде: на остальных
   // системах переключателя нет, и лишний «плеер» в системе ни к чему.
   if (unlocked || typeof document === 'undefined') return
-  const ios = /iP(hone|ad|od)/.test(navigator.userAgent)
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  if (!ios) return
+  if (!isIOS()) return
   unlocked = true
   try {
     const el = new Audio(silentWav())

@@ -25,7 +25,7 @@
 //    останется гореть индикатор «звучит».
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { preferPlaybackSession } from './audioSession'
+import { isIOS, preferPlaybackSession } from './audioSession'
 
 const BLANKS = [
   // Подчёркивание в прозе не встречается вовсе — снимаем даже одиночное.
@@ -724,10 +724,15 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   // диктор этого занятия → автовыбор. Выбор ученика бьёт автоматику: она
   // угадывает по именам, а он слышит результат. Ниже него — сцена: пока голос
   // не закреплён, каждый урок и каждая домашка читаются своим человеком.
+  //
+  // На айфоне автовыбор не навязываем: getVoices() там отдаёт и голоса, которые
+  // не скачаны на устройство, и с таким голосом фраза «звучит» молча — onstart
+  // приходит, бегунок бежит, звука нет (список фраз набора молчал, а стопка
+  // того же набора без явного голоса говорила). Без u.voice iOS берёт своего
+  // установленного диктора под u.lang. Голос, выбранный руками, остаётся.
   const chosen = opts.voiceName || preferredVoice(opts.lang)
   const voice = (chosen && voices.find(v => v.name === chosen))
-    || sceneVoice(opts.lang, opts.seed ?? sceneSeed)
-    || pickVoice(locale)
+    || (isIOS() ? undefined : sceneVoice(opts.lang, opts.seed ?? sceneSeed) || pickVoice(locale))
   const rate = opts.rate ?? 1
   const gap = opts.gap ?? 0
 
