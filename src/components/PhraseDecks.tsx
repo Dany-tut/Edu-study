@@ -503,7 +503,11 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
             onClick={() => setOpen(on ? null : i)}
             style={{
               position: 'relative', overflow: 'hidden',
-              display: 'flex', alignItems: 'flex-start', gap: 12, borderRadius: 14,
+              // Свёрнутая строка — по центру: значок 30px выше строки текста,
+              // и при flex-start однострочная фраза висела над его серединой.
+              // Раскрытая — сверху: под фразой заметка и пример, и значок
+              // уехал бы в середину простыни.
+              display: 'flex', alignItems: on ? 'flex-start' : 'center', gap: 12, borderRadius: 14,
               padding: '11px 14px',
               background: 'var(--color-bg-2)',
               border: `1px solid ${sp ? accent : on ? `${accent}55` : 'var(--color-border-soft)'}`,
@@ -522,7 +526,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
               onClick={(e: React.MouseEvent) => { e.stopPropagation(); say(`p${i}`, p.term, lang) }}
               label={t('Послушать')}
               size={30}
-              style={{ position: 'static', flexShrink: 0, marginTop: 1 }}
+              style={{ position: 'static', flexShrink: 0 }}
             />
             <div style={{ flex: 1, minWidth: 0 }}>
               {/* Раскрытая фраза разбирается по клику на слово: 데워 주세요 —
