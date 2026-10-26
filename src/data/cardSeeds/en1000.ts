@@ -59,29 +59,13 @@ const SETS: CardSet[] = [
   },
   {
     id: "seed:en-1000:s2",
-    title: "Артикли",
-    about: "2 карточек.",
+    title: "Служебные слова",
+    about: "13 карточек.",
     level: "A1",
     cards: [
       { term: "the", ru: "определённый артикль", reading: "[ðiː, ði, ðə]", ep: "№ 40" },
       { term: "a (an)", ru: "неопределённый артикль", reading: "[eɪ, ə (æn, ən)]", ep: "№ 41" },
-    ],
-  },
-  {
-    id: "seed:en-1000:s3",
-    title: "Самый важный глагол",
-    about: "1 карточек.",
-    level: "A1",
-    cards: [
       { term: "to be", ru: "быть", reading: "[biː]", ep: "№ 42" },
-    ],
-  },
-  {
-    id: "seed:en-1000:s4",
-    title: "Союзы",
-    about: "10 карточек.",
-    level: "A1",
-    cards: [
       { term: "and", ru: "и", reading: "[ænd]", ep: "№ 43" },
       { term: "if", ru: "если", reading: "[ɪf]", ep: "№ 44" },
       { term: "or", ru: "или", reading: "[ɔː(r)]", ep: "№ 45" },
