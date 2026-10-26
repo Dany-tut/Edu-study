@@ -1226,7 +1226,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <Toolbar count={setsDecks.length}>
         {/* Внутри папки «назад» стоит первым — как в открытом наборе: папка
             такой же экран, а не выбранная слева галочка. */}
-        {openGroup && <BackToSets onBack={() => cardGroups.setOpenGroupId('')} />}
+        {/* key — у каждого экрана своя кнопка: у папки и у набора она стоит
+            первой в одной строке, и без ключа React отдавал набору экземпляр
+            папки. Свайп назад тогда не замечал нового экрана, не клал под него
+            снимок папки — и под пальцем было пусто, а после жеста экран
+            рисовался с нуля. */}
+        {openGroup && <BackToSets key={`group-${openGroup.id}`} onBack={() => cardGroups.setOpenGroupId('')} />}
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(openGroup ? 'Найти набор…' : 'Найти тему или слово…')} />
         {!openGroup && sets.levelOpts.length > 1 && (
@@ -1265,7 +1270,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && openSet) {
     toolbar = (
       <Toolbar>
-        <BackToSets onBack={() => (cardGroups.openSubset ? cardGroups.setOpenSubsetId(null) : cardGroups.setOpenSetId(null))} />
+        <BackToSets
+          key={`set-${openSet.set.id}-${cardGroups.openSubset?.id ?? ''}`}
+          onBack={() => (cardGroups.openSubset ? cardGroups.setOpenSubsetId(null) : cardGroups.setOpenSetId(null))} />
         <StatusTabs
           options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
           value={run}
