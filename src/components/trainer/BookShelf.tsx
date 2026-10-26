@@ -25,7 +25,7 @@
 // под кнопкой написано, что искать на той странице.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { BookOpen, Download, ExternalLink, GraduationCap, Gift, Languages, MessageCircle, ScrollText, ShoppingBag } from 'lucide-react'
+import { BookOpen, Download, ExternalLink, GraduationCap, Gift, Headphones, Languages, MessageCircle, ScrollText, ShoppingBag } from 'lucide-react'
 import { bookMark, bookShort, type Textbook, type TextbookAccess, type TextbookKind } from '../../data/textbooks'
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
@@ -38,6 +38,7 @@ const KIND_ICON: Record<TextbookKind, typeof BookOpen> = {
   'экзамен': GraduationCap,
   'самоучитель': MessageCircle,
   'словарь': Languages,
+  'подкаст': Headphones,
 }
 
 /** Подпись и иконка кнопки — по типу доступа. */

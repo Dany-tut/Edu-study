@@ -2232,6 +2232,7 @@ export const EN: Record<string, string> = {
   "экзамен": "exam",
   "самоучитель": "self-study",
   "словарь": "dictionary",
+  "подкаст": "podcast",
 
   // — Мои слова (личный словарь) —
   "Мои слова": "My words",
