@@ -195,7 +195,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
   const body = done ? (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: '24px 16px 80px' }}>
       <h2 style={{ fontSize: 22, fontWeight: 850, color: 'var(--color-text)', margin: '0 0 16px' }}>
-        {t('Результат')} · {mock.title}
+        {t('Результат')} · {t(mock.title)}
       </h2>
       <MockResults attempt={done} mock={mock} accent={accent} soft={soft} />
     </div>
@@ -229,7 +229,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
             fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
-            {wide ? `IELTS Academic · ${mock.title}` : mock.title}
+            {wide ? `IELTS Academic · ${t(mock.title)}` : t(mock.title)}
           </span>
           <span style={{ fontSize: 15, fontWeight: 850, color: 'var(--color-text)' }}>
             {done ? t('Результат') : t(SECTION_LABEL[section])}

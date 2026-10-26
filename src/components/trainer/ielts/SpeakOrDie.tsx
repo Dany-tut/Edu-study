@@ -18,7 +18,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { LogOut, Mic, RotateCcw, Trophy } from 'lucide-react'
-import { useT } from '../../../lib/i18n'
+import { useLang, useT } from '../../../lib/i18n'
 import { isAsrAvailable, listenLong, type AsrSession } from '../../../lib/asr'
 import { wordCount } from '../../../lib/ieltsScore'
 import { loadArcade, saveArcade } from '../../../lib/ieltsMocks'
@@ -58,6 +58,7 @@ type Phase = 'ready' | 'play' | 'won' | 'lost'
 
 export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; soft: string; onClose: () => void }) {
   const t = useT()
+  const lang = useLang(s => s.lang)
   const [level, setLevel] = useState<(typeof LEVELS)[number]>(LEVELS[1])
   const [topic, setTopic] = useState(() => TOPICS[Math.floor(Math.random() * TOPICS.length)])
   const [phase, setPhase] = useState<Phase>('ready')
@@ -167,7 +168,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                     background: level.id === l.id ? soft : 'var(--color-bg-2)',
                     color: level.id === l.id ? accent : 'var(--color-text)',
                   }}>
-                    {t(l.label)} · {String(l.silence).replace('.', ',')} {t('с тишины')}
+                    {t(l.label)} · {lang === 'en' ? l.silence : String(l.silence).replace('.', ',')} {t('с тишины')}
                   </button>
                 ))}
               </div>

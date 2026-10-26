@@ -141,7 +141,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
           <Tile accent={accent} tint={{ surface: `${accent}14`, border: `${accent}4d` }} onClick={() => setRunning(draft)}>
             <TileChip tone="solid" accent={accent} soft={soft}>{t('Не досдан')}</TileChip>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>
-              <Play size={15} style={{ color: accent }} /> {t('Продолжить')}: {draftMock.title}
+              <Play size={15} style={{ color: accent }} /> {t('Продолжить')}: {t(draftMock.title)}
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>
               {t('Сейчас')}: {SECTION_LABEL[draft.section]}
@@ -168,10 +168,10 @@ export function useMocksMode({ lang, accent, soft, active }: {
           <div key={m.id} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 850, color: 'var(--color-text)' }}>
-                {m.title}
+                {t(m.title)}
                 {fullDone && <TileChip>{t('пройден')}</TileChip>}
               </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{m.about}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(m.about)}</div>
             </div>
             <TileGrid min={190}>
               <Tile accent={accent} stack onClick={() => start(m.id, 'full')}>
@@ -588,7 +588,7 @@ function HistoryRow({ a, accent, onOpen, onDelete }: {
         background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
       }}>
         <span style={{ fontSize: 13, fontWeight: 750, color: 'var(--color-text)', minWidth: 120 }}>
-          {mock?.title ?? a.mockId} · {a.scope === 'full' ? t('полный') : SECTION_LABEL[a.scope]}
+          {mock ? t(mock.title) : a.mockId} · {a.scope === 'full' ? t('полный') : SECTION_LABEL[a.scope]}
         </span>
         <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
           {new Date(a.finishedAt ?? a.startedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
