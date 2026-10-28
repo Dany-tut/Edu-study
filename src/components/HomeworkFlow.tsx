@@ -21,6 +21,7 @@ import type {
 } from '../lib/useHomework'
 import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KEY } from '../lib/useHomework'
 import { optimizePhoto } from '../lib/imageOptim'
+import { storeSolutionImages } from '../lib/homeworkPhotos'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import {
@@ -2227,7 +2228,9 @@ export default function HomeworkFlow({
       ? (data!.attachments as HardAttachmentsNew).tasks
       : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])
     const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
-    const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...payload }
+    // Фото и доска — в бакет homework-photos, в JSONB только ссылка (lib/homeworkPhotos).
+    const stored = await storeSolutionImages(payload, ownerStudentIdFor(subject))
+    const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...stored }
     const tasks: HardTaskStudentBlock[] = effectiveDefs.map(d => {
       const sols = studentSolutions(prevByKey.get(d.key))
       return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
