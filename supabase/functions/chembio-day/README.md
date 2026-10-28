@@ -1,6 +1,6 @@
 # chembio-day — утренняя сводка ХимБио → Таскли
 
-По будням в 07:30 Москвы cron (миграция `0104_chembio_day_summary.sql`) зовёт эту функцию,
+По будням в 07:30 Москвы cron (миграция `0105_chembio_day_summary.sql`) зовёт эту функцию,
 она собирает сводку Вадима через `chembio_day_summary()` и делает `PUT` в канал Таскли
 `/chembio/day`. Формат канала — `ChemBio_KB/integration/TASKLY.md`, «Канал ХимБио».
 
@@ -20,8 +20,8 @@ echo "$CRON"   # → SQL Editor: select vault.create_secret('<CRON>', 'chembio_c
 # 4. Функция, без проверки JWT: cron ходит со своим секретом.
 supabase functions deploy chembio-day --project-ref igsdwvwiqnozgwczzycx --no-verify-jwt
 
-# 5. Миграция 0104: функция сводки + задача cron chembio-day-weekdays.
-supabase db push   # или применить 0104 через MCP apply_migration
+# 5. Миграция 0105: функция сводки + задача cron chembio-day-weekdays.
+supabase db push   # или применить 0105 через MCP apply_migration
 ```
 
 ## Проверка после включения

@@ -167,7 +167,7 @@ begin
   );
 end; $$;
 
-revoke all on function public.run_chembio_day() from public;
+revoke all on function public.run_chembio_day() from public, anon, authenticated;
 
 -- Будни, 04:30 UTC = 07:30 Москвы.
 select cron.unschedule('chembio-day-weekdays')
