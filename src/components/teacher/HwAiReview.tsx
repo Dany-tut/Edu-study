@@ -220,9 +220,10 @@ export default function HwAiReview({ progressId, taskKey, compact = false }: {
 
       {grade.ai_elements.map(e => {
         const v = editing ? (verdicts[e.id] ?? e.verdict) : (grade.teacher_marks?.find(m => m.id === e.id)?.verdict ?? e.verdict)
-        const ui = VERDICT_UI[v]
         const changed = v !== e.verdict
         const counted = v === 'yes' && (!!e.quote || changed)
+        // «Есть» без цитаты не засчитан — зелёным его не красим, чтобы не врать.
+        const ui = v === 'yes' && !counted ? { ...VERDICT_UI.no, label: 'Есть, без цитаты' } : VERDICT_UI[v]
         return (
           <div key={e.id} style={{
             border: `1px solid ${changed ? 'var(--color-purple-text)' : v === 'partial' ? 'var(--color-peach-soft)' : 'var(--color-border-soft)'}`,

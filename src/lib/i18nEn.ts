@@ -4683,4 +4683,5 @@ export const EN: Record<string, string> = {
   "Утвердить": "Approve",
   "имя ученика модели не передаётся": "the student’s name is not sent to the model",
   "Разобрать заново": "Re-analyse",
+  "Есть, без цитаты": "Present, no quote",
 }
