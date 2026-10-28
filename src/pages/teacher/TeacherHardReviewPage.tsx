@@ -14,6 +14,8 @@ import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { alertDialog } from '../../components/ConfirmHost'
 import BackCircle from '../../components/BackCircle'
+import HwAiReview from '../../components/teacher/HwAiReview'
+import { useHwGradeEnabled } from '../../lib/hwGrade'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -44,6 +46,9 @@ export default function TeacherHardReviewPage() {
   // Хуки — до раннего возврата ниже.
   const sideRef = useRef<HTMLDivElement>(null)
   const sideLift = useStickyLift(sideRef)
+  const aiRef = useRef<HTMLDivElement>(null)
+  const aiLift = useStickyLift(aiRef)
+  const aiEnabled = useHwGradeEnabled()
 
   if (!sub) {
     return (
@@ -180,6 +185,13 @@ export default function TeacherHardReviewPage() {
             draftScope={`hardReview:${sub.id}`}
           />
         </div>
+
+        {/* Разбор ИИ по критериям экзамена — только у заданий домашки (hw-…) и при поднятом рубильнике. */}
+        {aiEnabled && sub.lessonRef.startsWith('hw-') && (activeKey || tabs[0]?.key) && (
+          <div ref={aiRef} style={{ ...aiLift, width: 380, flexShrink: 0, position: 'sticky', top: 20 }}>
+            <HwAiReview progressId={sub.id} taskKey={activeKey || tabs[0].key} />
+          </div>
+        )}
       </div>
 
       {/* Photo zoom overlay */}
