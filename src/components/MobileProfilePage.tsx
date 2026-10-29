@@ -30,6 +30,8 @@ import type { Subject } from '../data/mockData'
 import { XP_PER_LEVEL } from '../lib/xp'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
+import Switch from './Switch'
+import { useSeason, setSeasonOff } from '../lib/season'
 
 // MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
 // (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
@@ -71,6 +73,7 @@ export default function MobileProfilePage() {
   const subjects = useStudentData(s => s.subjects)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const { dark, toggle } = useTheme()
+  const season = useSeason()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const { avatarPath, savePhoto, removePhoto } = useStudentAvatarPhoto()
   const [cropFile, setCropFile] = useState<File | null>(null)
@@ -320,6 +323,14 @@ export default function MobileProfilePage() {
                   {dark ? t('Тёмная') : t('Светлая')}
                 </span>
               </button>
+
+              {/* Праздничная тема — только пока сезон идёт: выключить у себя. */}
+              {season.live && (
+                <div className="flex items-center justify-between" style={{ width: '100%', height: ROW_H, padding: '0 15px', borderTop: '1px solid var(--color-border-soft)' }}>
+                  <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Хэллоуин-тема')}</span>
+                  <Switch checked={!season.off} onChange={v => { tactile(); setSeasonOff(!v) }} label={t('Хэллоуин-тема')} />
+                </div>
+              )}
 
               {/* Цвет курса — глубина перекраски и личные цвета предметов */}
               <motion.button

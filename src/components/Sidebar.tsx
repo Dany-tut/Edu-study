@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -27,6 +27,8 @@ import { useT, useLang, tn, type Lang } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
+import Switch from './Switch'
+import { useSeason, setSeasonOff } from '../lib/season'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -217,6 +219,7 @@ export default function Sidebar() {
   const bellRef = useRef<HTMLDivElement>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
+  const season = useSeason()
   const { lang, setLang } = useLang()
   // Счётчик новых материалов ленты. С отсрочкой: бар рисуется на каждом экране
   // кабинета, и тянуть чанк ленты наперегонки с данными главной ради цифры
@@ -669,6 +672,15 @@ export default function Sidebar() {
                           }
                           <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
                         </motion.button>
+
+                        {/* Праздничная тема — только пока сезон идёт: выключить у себя. */}
+                        {season.live && (
+                          <div style={{ width: '100%', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text)', fontSize: 14, fontWeight: 550 }}>
+                            <Ghost size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            <span style={{ flex: 1, textAlign: 'left' }}>{t('Хэллоуин-тема')}</span>
+                            <Switch checked={!season.off} onChange={v => setSeasonOff(!v)} label={t('Хэллоуин-тема')} />
+                          </div>
+                        )}
 
                         {/* Opens the list modal — left-aligned like SettingsRow */}
                         <motion.button

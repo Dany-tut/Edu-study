@@ -21,6 +21,7 @@ import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
 import { Alert } from '../../components/Alert'
+import SeasonAdmin from '../../components/teacher/SeasonAdmin'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -1135,6 +1136,8 @@ export default function TeacherAdminPage() {
             loading={firstLoad}
           />
         </div>
+
+        <SeasonAdmin />
 
         <AiSwitches />
 

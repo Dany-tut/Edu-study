@@ -331,8 +331,10 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   overflow: 'visible',
                 }}
               >
-                {/* Base track line — spans the full width between first & last node */}
+                {/* Base track line — spans the full width between first & last node.
+                    season-track-* — праздничная тема перекрашивает линию (season.css). */}
                 <div
+                  className="season-track-base"
                   style={{
                     position: 'absolute',
                     left: padCenter,
@@ -348,6 +350,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                 {/* Completed progress fill — at 100% it reaches the last node at
                     the right edge of the row. */}
                 <motion.div
+                  className="season-track-fill"
                   style={{
                     position: 'absolute',
                     left: padCenter,

@@ -28,6 +28,7 @@ import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment 
 import { ClipboardList, ChevronRight } from 'lucide-react'
 import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from '../components/season/Season'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
 //
@@ -364,6 +365,8 @@ export default function DashboardPage() {
       {isDesktop && (
       <LayoutGroup>
       <div className="dashboard-root" style={{ display: 'flex' }}>
+        {/* Праздничная тема (lib/season.ts): фон за всеми блоками главной. Без темы — ничего. */}
+        {activePage === 'home' && <SeasonBackdrop />}
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
             floating topbar pill — content scrolls up under a soft blurred band so
             it never bleeds through the gaps around the pills. */}
@@ -414,6 +417,11 @@ export default function DashboardPage() {
 
         {activePage === 'home' ? (
           <>
+            {/* Шапка праздничной темы — над расписанием; без темы не рендерится. */}
+            <section className="dashboard-schedule season-hero-row">
+              <SeasonHero />
+            </section>
+
             {/* Row 1: Schedule — pill + 4-card carousel */}
             <section className="dashboard-schedule">
               <ScheduleCarousel />
@@ -424,6 +432,9 @@ export default function DashboardPage() {
               {/* Row 2: Widget carousel (stats / science facts / focus timer). */}
               <section style={{ flexShrink: 0, position: 'relative', zIndex: 20 }}>
                 <WidgetCarousel />
+                {/* Кот сидит на ряду виджетов — здесь, а не в плитке: карусель
+                    обрезает всё, что выше её на 56 px. */}
+                <SeasonCat />
               </section>
 
               {/* Row 3: Course track — natural height, no flex-grow */}
@@ -436,6 +447,7 @@ export default function DashboardPage() {
                 <AssignedTestsBlock />
               </section>
             </main>
+            <SeasonCornerPumpkin />
           </>
         ) : showLesson ? (
           /* Single lesson — player + materials (screen 2). The page

@@ -15,6 +15,8 @@ import { useTheme } from '../store/themeStore'
 import { t, useT, useTc } from '../lib/i18n'
 import { EMOJI_STEPS } from './homeworkSteps'
 import HardSatelliteLottie from './HardSatelliteLottie'
+import { SeasonCurrentNode } from './season/Season'
+import { useSeason } from '../lib/season'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -118,6 +120,9 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   // Active = the node the popover is anchored to, or the in-progress lesson.
   const nodeRgb = FLASH_RGB[displayStatus]
   const isActive = isSelected || displayStatus === 'current'
+  // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
+  // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
+  const seasonNode = useSeason().on('track') && displayStatus === 'current' && !isDiamond
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
@@ -176,7 +181,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           scale: { type: 'spring', stiffness: 320, damping: 22 },
           opacity: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
         }}
-        className="absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none"
+        className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done')}
         style={{
           background: `linear-gradient(${style.bg}, ${style.bg}), var(--color-bg-3)`,
           border: `2px solid ${style.border}`,
@@ -192,6 +197,8 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           }
         </div>
       </motion.button>
+
+      {seasonNode && <SeasonCurrentNode size={size} />}
 
       {/* Hard satellite circle — appears half-overlapping from the right */}
       {showHardSatellite && (

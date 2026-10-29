@@ -1,0 +1,217 @@
+/* Праздничная тема (lib/season.ts ставит data-season и data-season-variant на <html>).
+   Только свои классы и помеченные места: акцент и фоны красит оттенок курса
+   инлайном, с ним не спорим. Варианты: lanterns / candy / potions. */
+
+/* ── Фон страницы (десктоп) ───────────────────────────────────────────── */
+.season-backdrop {
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+}
+.season-backdrop--lanterns { background: linear-gradient(180deg, #120C2A, #1C1442); }
+.season-backdrop__banner {
+  position: absolute; left: 0; top: 0; width: 100%; height: 520px;
+  object-fit: cover; object-position: right center;
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent);
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+}
+.season-backdrop__dusk {
+  position: absolute; left: 0; right: 0; top: 0; height: 330px;
+  background: linear-gradient(180deg, #24184F, #4A3496 70%, #7A5FC8);
+  border-radius: 0 0 56px 56px; overflow: hidden;
+}
+.season-glow { position: absolute; border-radius: 50%; filter: blur(90px); }
+.season-glow--mint { right: 4%; top: 20px; width: 380px; height: 380px; background: rgba(52, 211, 153, 0.22); }
+.season-glow--amber { right: 26%; top: 110px; width: 320px; height: 260px; background: rgba(255, 138, 42, 0.24); }
+.season-stars {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 8% 20%, #fff8, transparent),
+    radial-gradient(2px 2px at 22% 62%, #fff9, transparent),
+    radial-gradient(3px 3px at 37% 14%, #fffa, transparent),
+    radial-gradient(2px 2px at 51% 40%, #fff7, transparent),
+    radial-gradient(2px 2px at 64% 12%, #fff9, transparent),
+    radial-gradient(3px 3px at 79% 34%, #fff8, transparent),
+    radial-gradient(2px 2px at 92% 18%, #fffa, transparent),
+    radial-gradient(2px 2px at 14% 82%, #fff6, transparent),
+    radial-gradient(2px 2px at 71% 72%, #fff7, transparent);
+}
+.season-blob { position: absolute; border-radius: 50%; filter: blur(130px); }
+.season-blob--amber { left: -120px; top: -160px; width: 640px; height: 520px; background: rgba(255, 179, 107, 0.35); }
+.season-blob--violet { right: -80px; top: -200px; width: 700px; height: 560px; background: rgba(156, 140, 240, 0.35); }
+
+/* Блоки главной — над фоном темы. */
+html[data-season] .dashboard-schedule,
+html[data-season] .dashboard-main { position: relative; z-index: 1; }
+html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top: -12px; }
+/* Шапка добавляет высоты: на низком окне главной разрешено прокручиваться,
+   чтобы дорожка уроков не уходила под край. */
+html[data-season] .dashboard-root { overflow-y: auto; }
+.season-hero-row:empty { display: none; }
+
+/* ── Шапка ─────────────────────────────────────────────────────────────── */
+.season-hero {
+  position: relative; display: flex; align-items: center;
+  min-height: 92px; padding: 0 0 6px;
+}
+.season-hero__copy { position: relative; z-index: 1; min-width: 0; max-width: 62%; }
+.season-hero__chip {
+  display: inline-block; padding: 5px 13px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 650; line-height: 1.2;
+}
+.season-hero__title { margin: 6px 0 3px; font-size: 34px; font-weight: 750; letter-spacing: -0.03em; line-height: 1.05; }
+.season-hero__sub { font-size: 15px; line-height: 1.4; margin: 0; }
+.season-hero__img {
+  position: absolute; right: 6%; bottom: -8px; height: 228px; width: auto;
+  pointer-events: none; user-select: none;
+}
+
+.season-hero--lanterns .season-hero__chip { background: rgba(255, 138, 42, 0.16); color: #FFB36B; box-shadow: inset 0 0 0 1px rgba(255, 138, 42, 0.5); }
+.season-hero--lanterns .season-hero__title { color: #fff; }
+.season-hero--lanterns .season-hero__sub { color: #C9C0F5; }
+.season-hero--lanterns .season-hero__img { right: 15%; height: 250px; filter: drop-shadow(0 0 40px rgba(255, 179, 71, 0.45)); }
+
+.season-hero--potions .season-hero__chip { background: rgba(52, 211, 153, 0.16); color: #7CF0C2; box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.5); }
+.season-hero--potions .season-hero__title { color: #fff; }
+.season-hero--potions .season-hero__sub { color: #D9D2FF; }
+.season-hero--potions .season-hero__img { right: 10%; filter: drop-shadow(0 0 36px rgba(183, 156, 255, 0.4)); }
+
+.season-hero--candy {
+  padding: 12px 24px; border-radius: 28px;
+  background: linear-gradient(90deg, #FFF4EA, #F3EEFF);
+  box-shadow: inset 0 0 0 2px #fff, 0 16px 40px rgba(255, 138, 42, 0.12);
+}
+.season-hero--candy .season-hero__chip { background: rgba(255, 138, 42, 0.12); color: #E0650A; }
+.season-hero--candy .season-hero__title { color: #1B1446; }
+.season-hero--candy .season-hero__sub { color: #5A5480; }
+.season-hero--candy .season-hero__img { right: 8%; bottom: -14px; height: 210px; filter: drop-shadow(0 20px 30px rgba(194, 81, 10, 0.25)); }
+
+/* Телефон: карточка-шапка в ленте главной. */
+.season-hero--compact {
+  min-height: 132px; padding: 16px 18px; border-radius: 24px; overflow: visible;
+  margin-top: 30px;
+}
+.season-hero--compact .season-hero__copy { max-width: 64%; }
+.season-hero--compact .season-hero__title { font-size: 25px; margin: 7px 0 3px; }
+.season-hero--compact .season-hero__sub { font-size: 12.5px; }
+.season-hero--compact .season-hero__chip { font-size: 11px; padding: 4px 10px; }
+.season-hero--compact .season-hero__img { right: 6px; bottom: 4px; height: 150px; }
+.season-hero--compact.season-hero--lanterns {
+  background: url('/season/halloween/night-banner.webp') right center / cover, #150E30;
+  box-shadow: 0 10px 30px rgba(18, 12, 42, 0.35);
+}
+.season-hero--compact.season-hero--lanterns .season-hero__img { height: 160px; right: 2px; }
+.season-hero--compact.season-hero--potions {
+  background: linear-gradient(180deg, #24184F, #4A3496 70%, #7A5FC8);
+  box-shadow: 0 10px 30px rgba(36, 24, 79, 0.3);
+}
+.season-hero--compact.season-hero--candy { padding: 16px 18px; }
+.season-hero--compact.season-hero--candy .season-hero__img { height: 140px; bottom: 2px; }
+
+/* ── Кот и тыква ───────────────────────────────────────────────────────── */
+.season-cat {
+  position: absolute; z-index: 30; pointer-events: none; height: 104px; width: auto;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.35));
+}
+.season-cat--lanterns { left: calc(25% + 40px); top: -62px; height: 84px; }
+.season-cat--potions { right: 64px; top: -62px; height: 84px; }
+.season-corner {
+  position: absolute; z-index: 0; pointer-events: none; width: auto;
+  filter: drop-shadow(0 14px 20px rgba(154, 58, 0, 0.25));
+}
+.season-corner--candy { right: -40px; bottom: -96px; height: 190px; transform: rotate(-10deg); }
+.season-corner--potions { right: -6px; bottom: -44px; height: 104px; transform: rotate(8deg); }
+
+/* ── Пустой день ──────────────────────────────────────────────────────── */
+.season-empty { display: flex; align-items: center; gap: 12px; text-align: left; }
+.season-empty__ghost { width: auto; flex-shrink: 0; pointer-events: none; }
+.season-empty__ghost { height: 86px; }
+.season-empty__title { font-size: 15px; font-weight: 650; color: var(--color-text); margin: 0; }
+.season-empty__sub { font-size: 12.5px; color: var(--color-muted); margin: 3px 0 0; line-height: 1.35; }
+
+/* ── Карточки статистики ─────────────────────────────────────────────── */
+.season-stat-img { height: 64px; width: auto; pointer-events: none; }
+html[data-season-variant="lanterns"] .season-stat-img { filter: drop-shadow(0 0 18px rgba(255, 138, 42, 0.55)); }
+html[data-season-variant="lanterns"] .stat-card--season-stars .stat-value { color: #FFB36B !important; }
+html[data-season-variant="candy"] .stat-card--season-stars {
+  background: linear-gradient(135deg, #FFB36B, #FF7A1A) !important;
+  box-shadow: 0 14px 30px rgba(255, 122, 26, 0.35) !important;
+  border-color: transparent !important;
+}
+html[data-season-variant="candy"] .stat-card--season-stars .stat-value,
+html[data-season-variant="candy"] .stat-card--season-stars .stat-label { color: #fff !important; }
+
+.stat-card--flask { padding-inline: 14px !important; }
+.stat-card--flask .stat-value { font-size: 40px !important; }
+.season-flask {
+  position: relative; display: inline-block; flex-shrink: 0; overflow: hidden;
+  border-radius: 999px; background: #F1EDFF;
+  box-shadow: inset 0 0 0 2px #D9D1FF, inset 0 4px 6px rgba(255, 255, 255, 0.9);
+}
+.season-flask__liquid {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(5px 5px at 30% 60%, #fff9, transparent),
+    radial-gradient(4px 4px at 66% 35%, #fff8, transparent),
+    radial-gradient(6px 6px at 45% 82%, #fff9, transparent),
+    linear-gradient(180deg, #B39CFF, #6B55E0);
+  transition: height 1.2s cubic-bezier(.22, 1, .36, 1);
+}
+.season-flask__shine { position: absolute; left: 18%; top: 8%; width: 14%; height: 56%; border-radius: 999px; background: rgba(255, 255, 255, 0.7); }
+
+/* ── Дорожка уроков ──────────────────────────────────────────────────── */
+html[data-season-variant="lanterns"] .season-track-base { background: rgba(255, 255, 255, 0.08) !important; height: 6px !important; }
+html[data-season-variant="lanterns"] .season-track-fill {
+  background: linear-gradient(90deg, #FFC46B, #FF7A1A) !important; height: 6px !important;
+  box-shadow: 0 0 16px rgba(255, 154, 61, 0.65);
+}
+html[data-season-variant="candy"] .season-track-base { background: #E7E2FA !important; }
+html[data-season-variant="candy"] .season-track-fill {
+  background: repeating-linear-gradient(-55deg, #FF8A2A 0 10px, #FFD2AA 10px 18px) !important;
+}
+html[data-season-variant="potions"] .season-track-base {
+  background: rgba(255, 255, 255, 0.9) !important; height: 28px !important;
+  box-shadow: inset 0 0 0 2px #D9D1FF, inset 0 -3px 8px rgba(184, 172, 240, 0.35), 0 8px 20px rgba(75, 58, 168, 0.08);
+}
+html[data-season-variant="potions"] .season-track-fill {
+  height: 28px !important;
+  background:
+    radial-gradient(4px 4px at 12% 40%, #fff9, transparent),
+    radial-gradient(6px 6px at 30% 65%, #fff8, transparent),
+    radial-gradient(4px 4px at 52% 30%, #fff9, transparent),
+    radial-gradient(5px 5px at 74% 60%, #fff8, transparent),
+    radial-gradient(4px 4px at 90% 38%, #fff9, transparent),
+    linear-gradient(90deg, #6B55E0, #B39CFF 70%, #34D399) !important;
+}
+
+/* Текущий урок: картинка поверх кружка, кружок прячем, кнопка остаётся кликабельной. */
+.season-node-img {
+  position: absolute; left: 50%; bottom: 50%; width: auto; z-index: 2;
+  transform: translate(-50%, 42%); pointer-events: none;
+}
+.season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform: translate(-50%, 30%); }
+.season-node-img--candy { transform: translate(-50%, 50%) rotate(-12deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
+.season-node-orb {
+  position: absolute; inset: -4px; border-radius: 999px; z-index: 2; pointer-events: none;
+  background: #34D399; box-shadow: 0 0 0 4px #fff, 0 0 22px rgba(52, 211, 153, 0.7);
+}
+.season-node-hidden { opacity: 0 !important; }
+
+/* Пройденные уроки: огонёк, белая бусина в оранжевой оправе, бусина в стекле. */
+html[data-season-variant="lanterns"] .season-node-done {
+  background: linear-gradient(180deg, #FFD08A, #FF7A1A) !important;
+  border-color: #FFC46B !important;
+  box-shadow: 0 0 18px rgba(255, 154, 61, 0.7) !important;
+}
+html[data-season-variant="candy"] .season-node-done { background: #fff !important; border: 3px solid #FF8A2A !important; }
+html[data-season-variant="potions"] .season-node-done { background: #fff !important; border: 3px solid #6B55E0 !important; }
+html[data-season-variant="lanterns"] .season-node-done svg,
+html[data-season-variant="lanterns"] .season-node-done svg * { color: #fff !important; stroke: #fff !important; }
+html[data-season-variant="candy"] .season-node-done svg,
+html[data-season-variant="candy"] .season-node-done svg * { color: #E0650A !important; stroke: #E0650A !important; }
+html[data-season-variant="potions"] .season-node-done svg,
+html[data-season-variant="potions"] .season-node-done svg * { color: #6354CF !important; stroke: #6354CF !important; }
+
+/* Лёгкое парение 3D-объектов; при «меньше движения» стоят на месте. */
+@keyframes season-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+.season-float { animation: season-float 4.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .season-float { animation: none; } }
