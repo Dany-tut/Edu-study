@@ -2,7 +2,7 @@
 // Подключение — кодом из Тестли (меню профиля → «Подключить к Искре»):
 // код меняет на ключ сервер (testly-bridge), в браузер ключ не попадает.
 import { useEffect, useState } from 'react'
-import { Check, ExternalLink, Loader2 } from 'lucide-react'
+import { Check, ClipboardPaste, ExternalLink, Loader2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { connectTestly, disconnectTestly, plural, useTestlyModule, TESTLY_SITE } from '../../lib/testlyModule'
 import { confirmDialog } from '../ConfirmHost'
@@ -17,12 +17,27 @@ export default function TeacherModules() {
   const [error, setError] = useState('')
   useEffect(() => { void load() }, [load])
 
-  async function connect() {
-    if (busy || code.replace(/\s/g, '').length < 6) return
+  // Код набирают как угодно — «k5b ajd», «K5B-AJD»: оставляем шесть букв и цифр.
+  const clean = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+
+  async function connect(value = code) {
+    if (busy || value.length < 6) return
     setBusy(true); setError('')
-    try { await connectTestly(code); setCode('') }
+    try { await connectTestly(value); setCode('') }
     catch (e) { setError(e instanceof Error ? e.message : String(e)) }
     finally { setBusy(false) }
+  }
+
+  /** Вставили целый код — подключаем сразу, «Подключить» жать не нужно. */
+  function take(raw: string) {
+    const v = clean(raw)
+    setCode(v); setError('')
+    if (v.length === 6) void connect(v)
+  }
+
+  async function pasteFromClipboard() {
+    try { take(await navigator.clipboard.readText()) }
+    catch { setError(t('Браузер не дал прочитать буфер — вставьте код в поле сочетанием ⌘V.')) }
   }
 
   async function disconnect() {
@@ -99,23 +114,34 @@ export default function TeacherModules() {
         ) : (
           <>
             <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                value={code}
-                onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
-                onKeyDown={e => { if (e.key === 'Enter') void connect() }}
-                placeholder={t('Код из Тестли, например K7P29Q')}
-                maxLength={8}
-                autoComplete="off"
-                style={{
-                  flex: 1, padding: '10px 14px', borderRadius: 12, border: '1.5px solid var(--color-border)',
-                  background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit',
-                  outline: 'none', letterSpacing: code ? 1.5 : 0, fontVariantNumeric: 'tabular-nums',
-                }}
-              />
-              <button onClick={() => void connect()} disabled={busy || code.replace(/\s/g, '').length < 6} style={{
+              <div style={{ position: 'relative', flex: 1, display: 'flex' }}>
+                <input
+                  value={code}
+                  onChange={e => { setCode(clean(e.target.value)); setError('') }}
+                  onPaste={e => { e.preventDefault(); take(e.clipboardData.getData('text')) }}
+                  onKeyDown={e => { if (e.key === 'Enter') void connect() }}
+                  placeholder={t('Код из Тестли, например K7P29Q')}
+                  autoComplete="off"
+                  style={{
+                    flex: 1, padding: '10px 96px 10px 14px', borderRadius: 12, border: '1.5px solid var(--color-border)',
+                    background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit',
+                    outline: 'none', letterSpacing: code ? 1.5 : 0, fontVariantNumeric: 'tabular-nums',
+                  }}
+                />
+                {/* Вставить из буфера: код копируют в Тестли кнопкой «Скопировать». */}
+                <button onClick={() => void pasteFromClipboard()} disabled={busy} style={{
+                  position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                  display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 9,
+                  border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <ClipboardPaste size={13} /> {t('Вставить')}
+                </button>
+              </div>
+              <button onClick={() => void connect()} disabled={busy || code.length < 6} style={{
                 padding: '10px 18px', borderRadius: 12, border: 'none', background: 'var(--color-accent)', color: '#fff',
                 fontSize: 13, fontWeight: 700, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit', flexShrink: 0,
-                display: 'flex', alignItems: 'center', gap: 6, opacity: busy || code.replace(/\s/g, '').length < 6 ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', gap: 6, opacity: busy || code.length < 6 ? 0.6 : 1,
               }}>
                 {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
                 {t('Подключить')}

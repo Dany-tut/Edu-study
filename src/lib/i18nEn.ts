@@ -4701,6 +4701,8 @@ export const EN: Record<string, string> = {
   'Виджет не сохранился — проверьте связь и попробуйте ещё раз.': 'The widget didn’t save — check your connection and try again.',
   'Копия курса не создалась — проверьте связь и попробуйте ещё раз.': 'The course copy wasn’t created — check your connection and try again.',
   // — Модуль «Тестли» (lib/testlyModule.ts, профиль → Модули, ДЗ, уроки, Конструктор) —
+  "Вставить": "Paste",
+  "Браузер не дал прочитать буфер — вставьте код в поле сочетанием ⌘V.": "The browser didn’t allow reading the clipboard — paste the code into the field with ⌘V.",
   "Есть часть 2": "Has part 2",
   "Отключить Тестли?": "Disconnect Testly?",
   "Кнопки «Из Тестли» пропадут. Тесты, уже поставленные в домашки, останутся — ученики их пройдут.": "The “From Testly” buttons will disappear. Tests already in homework stay — students can still take them.",
