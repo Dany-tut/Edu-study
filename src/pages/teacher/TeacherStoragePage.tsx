@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { motion } from 'framer-motion'
-import { Database, HardDrive, ImageIcon, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { Database, HardDrive, RefreshCw, ArrowLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import { t, useT } from '../../lib/i18n'
+import { Alert } from '../../components/Alert'
 
 type Stats = {
   db_bytes: number
@@ -132,9 +133,7 @@ export default function TeacherStoragePage() {
       </div>
 
       {error ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text-3)', fontSize: 13, padding: '24px 0' }}>
-          <AlertTriangle size={16} /> {t('Не удалось загрузить статистику')}
-        </div>
+        <Alert tone="danger" text={t('Не удалось загрузить статистику')} style={{ marginTop: 16 }} />
       ) : (
         <>
           {stats && <>
@@ -145,31 +144,17 @@ export default function TeacherStoragePage() {
           </div>
 
           {/* Photos note */}
-          <div style={{
-            display: 'flex', gap: 12, alignItems: 'flex-start',
-            padding: '14px 16px', borderRadius: 16,
-            background: 'var(--color-bg-2)',
-            border: '1px solid var(--color-border-soft)',
-          }}>
-            <ImageIcon size={16} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+          <Alert
+            tone="info"
+            text={<>
               {t('Фото и рисунки доски хранятся в строках ДЗ внутри базы данных (не в Storage):')}&nbsp;
               <b style={{ color: 'var(--color-text)' }}>{fmtBytes(stats.attachments_bytes)}</b> {t('в')} {stats.attachments_rows} {t('записях.')}
-            </div>
-          </div>
+            </>}
+          />
 
           {/* Warning */}
           {dbPct >= 60 && (
-            <div style={{
-              display: 'flex', gap: 10, alignItems: 'flex-start',
-              padding: '14px 16px', borderRadius: 16,
-              background: 'var(--color-peach-soft)',
-              border: '1px solid var(--color-peach-text)',
-              fontSize: 12.5, color: 'var(--color-peach-text)', lineHeight: 1.6,
-            }}>
-              <AlertTriangle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-              {t('База заполнена на')} {dbPct.toFixed(0)}%. {t('Стоит перенести фото и доски в Storage, чтобы разгрузить Postgres.')}
-            </div>
+            <Alert tone="warning" title={`${t('База заполнена на')} ${dbPct.toFixed(0)}%.`} text={t('Стоит перенести фото и доски в Storage, чтобы разгрузить Postgres.')} />
           )}
 
           {/* Per-table breakdown */}

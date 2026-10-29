@@ -12,6 +12,7 @@ import WhiteboardCanvas from '../WhiteboardCanvas'
 import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
 import { useT, useTc } from '../../../lib/i18n'
 import { alertDialog } from '../../ConfirmHost'
+import { Alert } from '../../Alert'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -103,7 +104,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
             <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
-        {photoError && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{photoError}</div>}
+        {photoError && <Alert tone="danger" text={photoError} style={{ marginTop: 8 }} />}
         {photos.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
             {photos.map((src, i) => (

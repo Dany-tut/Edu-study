@@ -21,6 +21,7 @@ import { useMyTeacherAvatarPath } from '../../../lib/avatarPhoto'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
 import { subjectNamesFromStored } from '../../../lib/subjects'
 import TeacherSubjectsField from '../TeacherSubjectsField'
+import { Alert } from '../../Alert'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -133,7 +134,7 @@ export default function MobileTeacherProfile() {
         {isTeacher && (
           <div style={{ gridColumn: 'span 2' }}>
             <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
-            {subjectsError && <div style={{ fontSize: 11.5, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Не удалось сохранить предметы. Попробуйте ещё раз.')}</div>}
+            {subjectsError && <Alert tone="danger" text={t('Не удалось сохранить предметы. Попробуйте ещё раз.')} style={{ marginTop: 8 }} />}
           </div>
         )}
 
