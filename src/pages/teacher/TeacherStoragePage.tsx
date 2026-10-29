@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import BackCircle from '../../components/BackCircle'
 import Skeleton from '../../components/Skeleton'
 import { motion } from 'framer-motion'
-import { Database, HardDrive, RefreshCw, ArrowLeft } from 'lucide-react'
+import { Database, HardDrive, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import { t, useT } from '../../lib/i18n'
@@ -95,21 +96,10 @@ export default function TeacherStoragePage() {
   const maxTableBytes = stats ? Math.max(...stats.tables.map(t => t.bytes), 1) : 1
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}><div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}><div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          onClick={() => setActivePage('home')}
-          style={{
-            width: 36, height: 36, borderRadius: 12,
-            background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0,
-          }}
-        >
-          <ArrowLeft size={16} strokeWidth={2} />
-        </motion.button>
+        <BackCircle onClick={() => setActivePage('home')} label="На главную" />
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Хранилище')}</div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('База данных и файлы')}</div>

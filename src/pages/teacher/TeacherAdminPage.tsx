@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
+import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
 import Segmented from '../../components/Segmented'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
@@ -1026,18 +1027,7 @@ export default function TeacherAdminPage() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            onClick={() => setActivePage('home')}
-            style={{
-              width: 36, height: 36, borderRadius: 12,
-              background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0,
-            }}
-          >
-            <ArrowLeft size={16} strokeWidth={2} />
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Администрирование')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Управление платформой')}</div>

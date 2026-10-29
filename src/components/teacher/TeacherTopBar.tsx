@@ -429,7 +429,7 @@ export default function TeacherTopBar() {
                   style={{
                     position: 'absolute', inset: 0, borderRadius: 22,
                     background: 'var(--grad-purple)',
-                    boxShadow: isActive ? '0 4px 14px rgba(106,90,230,0.42)' : 'none',
+                    boxShadow: isActive ? '0 4px 14px rgba(var(--accent-rgb), 0.42)' : 'none',
                     opacity: isActive ? 1 : 0,
                     transition: 'opacity 0.22s ease, box-shadow 0.22s ease',
                     zIndex: 0,
@@ -476,7 +476,7 @@ export default function TeacherTopBar() {
         </motion.button>
 
         <motion.button
-          whileHover={{ scale: 1.08, backgroundColor: 'rgba(155,109,255,0.14)' }}
+          whileHover={{ scale: 1.06, backgroundColor: 'rgba(155,109,255,0.14)' }}
           whileTap={{ scale: 0.96 }}
           onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? t('Развернуть') : t('Свернуть')}

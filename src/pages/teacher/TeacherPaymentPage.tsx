@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import BackCircle from '../../components/BackCircle'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check, Zap, CreditCard, Send } from 'lucide-react'
+import { Check, Zap, CreditCard, Send } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useT, useLang } from '../../lib/i18n'
 import { PLAN_TIERS, fetchMyPlan, planPrice, type MyPlan, type PlanTier } from '../../lib/plan'
@@ -93,15 +94,12 @@ export default function TeacherPaymentPage() {
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-          <motion.button whileTap={{ scale: 0.94 }} onClick={() => setActivePage('home')}
-            style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0 }}>
-            <ArrowLeft size={16} strokeWidth={2} />
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Тарифы')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Подписка и счета')}</div>
