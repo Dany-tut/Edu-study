@@ -169,7 +169,7 @@ export default function LandingPage() {
             <h1 className="lp-h1" style={{ fontSize: 'clamp(34px, 6.4vw, 64px)', lineHeight: 1.04, fontWeight: 800, letterSpacing: -1.4, margin: 0 }}>
               {t('Вся преподавательская')}<br />
               {t('операционка —')}{' '}
-              <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${ACCENT_L})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', whiteSpace: 'nowrap' }}>
+              <span className="lp-grad-text" style={{ background: `linear-gradient(110deg, ${ACCENT} 0%, ${ACCENT_L} 25%, ${ACCENT} 50%, ${ACCENT_L} 75%, ${ACCENT} 100%)`, backgroundSize: '200% 100%', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', whiteSpace: 'nowrap' }}>
                 {t('в одном окне')}
               </span>
             </h1>
@@ -392,6 +392,9 @@ export default function LandingPage() {
 
       <style>{`
         .lp-nav a:hover { color: var(--color-text); }
+        @keyframes lp-grad-shift { from { background-position: 0% 50%; } to { background-position: -200% 50%; } }
+        .lp-grad-text { animation: lp-grad-shift 6s linear infinite; }
+        @media (prefers-reduced-motion: reduce) { .lp-grad-text { animation: none; } }
         #how, #features, #tariffs { scroll-margin-top: ${headerH + 16}px; }
         .lp-feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, ${ACCENT} 45%, var(--color-border)); }
         @media (max-width: 760px) { .lp-nav { display: none !important; } }

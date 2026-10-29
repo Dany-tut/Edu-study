@@ -10,7 +10,7 @@ import {
   Search, Plus,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
-import { SUBJECT_ICON_MAP, mySubjectNames } from '../../lib/subjects'
+import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
@@ -448,7 +448,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               <TeacherSelect
                 value={selectedGroup}
                 onChange={setSelectedGroup}
-                options={groups.map(g => ({ value: g.id, label: `${g.icon} ${g.name}` }))}
+                options={groups.map(g => ({ value: g.id, label: `${g.icon}${ICON_GAP}${g.name}` }))}
                 clearable={false}
                 triggerStyle={selectTriggerStyle}
               />
@@ -1552,7 +1552,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {tc(group.subject)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
                 </div>
               </div>
             </div>
@@ -1966,7 +1966,7 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {tc(group.subject)}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
               </div>
             </div>
           </div>

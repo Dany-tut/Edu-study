@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
@@ -443,7 +444,7 @@ export default function TeacherStudentDashboardPage() {
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 22, marginBottom: 4 }}>{tn(student.name)}</h1>
-        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon} {tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
+        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon}{ICON_GAP}{tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
             {[
@@ -526,7 +527,7 @@ export default function TeacherStudentDashboardPage() {
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.name}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {tc(group.subject)}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
               </div>
               {student.startedAt && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('c')} {student.startedAt}</span>}
               <span style={{

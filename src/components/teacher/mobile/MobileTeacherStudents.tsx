@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
 import { Users, ChevronRight, Phone, Send, Wallet, CalendarCheck, Check } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
@@ -183,7 +184,7 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <BackCircle onClick={onBack} label="Все группы" />
-        <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{group.icon} {group.name}</div>
+        <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{group.icon}{ICON_GAP}{group.name}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {students.map(s => (
             <PersonRow key={s.id} student={s} onClick={() => setSelected(s)} />

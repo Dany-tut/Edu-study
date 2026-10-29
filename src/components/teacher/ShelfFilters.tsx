@@ -27,7 +27,7 @@ import { useState, useRef, type ReactNode, type CSSProperties, type ComponentTyp
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUpDown, BookOpen, ChevronUp, Search, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { SUBJECTS, getSubject, isMySubject } from '../../lib/subjects'
+import { SUBJECTS, getSubject, isMySubject, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import ScrollFade from '../ScrollFade'
 
@@ -475,7 +475,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
                   style={rowStyle(on.includes(val), soft)}
                   onMouseEnter={e => { e.currentTarget.style.background = soft }}
                   onMouseLeave={e => { e.currentTarget.style.background = on.includes(val) ? soft : 'transparent' }}>
-                  <MenuRowLabel label={<>{getSubject(val)?.icon ?? '📚'}&nbsp;&nbsp;{label(val)}</>} on={on.includes(val)} accent={accent} />
+                  <MenuRowLabel label={<>{getSubject(val)?.icon ?? '📚'}{ICON_GAP}{label(val)}</>} on={on.includes(val)} accent={accent} />
                 </button>
               ))}
             </ScrollFade>
