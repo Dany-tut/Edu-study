@@ -62,9 +62,10 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
   const s = useSeason()
   if (!s.on('hero') || !s.variant || !s.season) return null
   const c = heroCopy(s.variant, untilLabel(s.season.endsAt))
-  // «Сладость» на компьютере — чистая картинка без текста (решение Дани 29.10.2026):
-  // паук на паутине слева, справа ведёрко и качающийся скелет. Заголовок остаётся
-  // для экранного диктора. На телефоне текст нужен — без него карточка непонятна.
+  // «Сладость» на компьютере — без карточки и текста (решение Дани 29.10.2026):
+  // паук на паутине в левом верхнем углу экрана, скелет свисает на нитке от верха
+  // экрана справа. Заголовок остаётся для экранного диктора. На телефоне текст
+  // нужен — без него карточка непонятна.
   const pictureOnly = s.variant === 'candy' && !compact
   return (
     <div className={`season-hero season-hero--${s.variant}${compact ? ' season-hero--compact' : ''}${pictureOnly ? ' season-hero--picture' : ''}`}>
@@ -77,11 +78,10 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
           <p className="season-hero__sub">{t(c.sub)}</p>
         </div>
       )}
-      <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" />
+      {!pictureOnly && <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" />}
       {pictureOnly && (
         <>
           <img aria-hidden src={seasonImg('spider-web')} alt="" className="season-hero__spider" />
-          <img aria-hidden src={seasonImg('sticker-candy')} alt="" className="season-hero__sticker season-hero__sticker--candy" />
           <img aria-hidden src={seasonImg('skeleton')} alt="" className="season-hero__skeleton" />
         </>
       )}
