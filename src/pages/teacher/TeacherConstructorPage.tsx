@@ -4194,7 +4194,7 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
 
   return createPortal(
     <div ref={popupRef} style={{
-      position: 'fixed', top, left, zIndex: 99999,
+      position: 'fixed', top, left, zIndex: 4000, // lib/layers: popover
       width: 264, borderRadius: 16, boxSizing: 'border-box',
       background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)',
       boxShadow: '0 16px 48px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18)',

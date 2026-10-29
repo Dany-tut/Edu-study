@@ -2136,7 +2136,7 @@ export default function BankTrainer({ subjectState }: {
             onClick={() => (document.querySelector('.dashboard-main') as HTMLElement | null)?.scrollTo({ top: 0, behavior: 'smooth' })}
             style={{
               position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-              zIndex: 9998,
+              zIndex: 100, // lib/layers: chrome — делил 9998 с окном установки
               display: 'flex', alignItems: 'center', gap: 7,
               padding: '11px 22px 11px 18px',
               borderRadius: 999,

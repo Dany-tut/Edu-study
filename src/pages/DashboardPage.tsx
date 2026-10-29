@@ -1,4 +1,5 @@
 import Sidebar from '../components/Sidebar'
+import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
 import WidgetCarousel from '../components/WidgetCarousel'
 import CompactWidgetPill from '../components/CompactWidgetPill'
@@ -70,16 +71,6 @@ function TrainerChunk() {
   )
 }
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)')
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isDesktop
-}
 
 const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile' | 'homeworkList'> = {
   '#/': 'home',
