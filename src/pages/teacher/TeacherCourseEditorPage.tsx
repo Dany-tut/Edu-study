@@ -5481,16 +5481,25 @@ export default function TeacherCourseEditorPage() {
   // Persist edits ~900ms after the teacher stops changing things, so they never
   // have to press "Сохранить" after every action. Keeps whatever status the
   // course already has (a draft stays a draft, published stays published — we
-  // never auto-publish). Guarded to already-saved courses so a brand-new draft
-  // isn't written to the DB on the first keystroke, and the first render (the
-  // initial load from JSON) is skipped.
+  // never auto-publish). The first render (the initial load from JSON) is
+  // skipped for saved courses.
+  //
+  // НОВЫЙ КУРС ТОЖЕ ПИШЕТСЯ САМ. Раньше автосейв ждал dbCourseId, а кнопку
+  // «Сохранить» убрали в расчёте на автосейв: у нового курса не оставалось ни
+  // одного способа попасть в базу, кроме публикации (а ей нужна аудитория).
+  // Полчаса работы жили в sessionStorage и пропадали при выходе из вкладки.
+  // Пишем черновиком, как только у курса есть название; первый рендер у такого
+  // курса не пропускаем — курс, поднятый из черновика сессии, сохраняется сразу.
   const autosaveArmed = useRef(false)
   useEffect(() => {
-    if (!course.dbCourseId) return
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
     if (course.heavyPending) return
-    if (!autosaveArmed.current) { autosaveArmed.current = true; return }
+    if (!course.dbCourseId && !course.title.trim()) return
+    if (!autosaveArmed.current) {
+      autosaveArmed.current = true
+      if (course.dbCourseId) return
+    }
     const t = setTimeout(() => {
       setCourseEdited(JSON.stringify(course))
       const seq = draftSeq.current
