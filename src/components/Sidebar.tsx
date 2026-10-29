@@ -75,17 +75,19 @@ function buildAvatars(name: string): AvatarOption[] {
 const panelBox = {
   // Геометрия как в учительском меню: узкая рамка панели (8), а воздух дают
   // сами строки своим padding'ом — так содержимое отступает от края на 16.
+  // Радиус и отступ — как у общей поверхности меню (lib/dropdownStyle): 14 / 6,
+  // строки — 8 (концентрично). Стекло плотнее (0.96), тень — меню.
   width: 252,
-  padding: 8,
-  borderRadius: 18,
+  padding: 6,
+  borderRadius: 14,
   // Frosted-glass recipe like the module buttons / track-click card, but a
   // touch more opaque (0.72) so the label, divider and "Настройки" text keep
   // enough contrast even when the popover floats over a dark video backdrop.
-  background: 'rgba(var(--glass-rgb), 0.88)',
+  background: 'rgba(var(--glass-rgb), 0.96)',
   backdropFilter: 'blur(16px) saturate(180%)',
   WebkitBackdropFilter: 'blur(16px) saturate(180%)',
   border: '1px solid var(--color-border-glass)',
-  boxShadow: 'var(--shadow-sidebar)',
+  boxShadow: 'var(--shadow-dropdown)',
   boxSizing: 'border-box',
 } as const
 
@@ -121,20 +123,20 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         alignItems: 'center',
         gap: 10,
         padding: '9px 8px',
-        borderRadius: 10,
+        borderRadius: 8,
         border: 'none',
         cursor: 'pointer',
         background: active ? 'rgba(var(--accent-rgb), 0.1)' : 'transparent',
-        color: danger ? '#C53030' : 'var(--color-text)',
+        color: danger ? 'var(--color-red-text)' : 'var(--color-text)',
         fontSize: 14,
         fontWeight: 500,
         textAlign: 'left',
         transition: 'background 0.15s',
       }}
     >
-      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? '#C53030' : 'var(--color-muted)', flexShrink: 0 }} />
+      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-muted)', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      <ChevronRight size={16} style={{ color: danger ? '#E57373' : 'var(--color-text-4)', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
     </motion.button>
   )
 }

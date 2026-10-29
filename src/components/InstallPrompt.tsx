@@ -83,7 +83,7 @@ export default function InstallPrompt() {
               margin: '0 auto', maxWidth: 440,
               paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 28px)',
               background: 'var(--color-bg)',
-              borderTopLeftRadius: 30, borderTopRightRadius: 30,
+              borderTopLeftRadius: 28, borderTopRightRadius: 28,
               border: '1px solid var(--color-border-soft)', borderBottom: 'none',
               boxShadow: '0 -20px 60px rgba(0,0,0,0.35)',
               overflow: 'hidden',
@@ -98,7 +98,7 @@ export default function InstallPrompt() {
             {/* Grabber + close — lifted above the content below so the close
                 button stays clickable where the two rows overlap. */}
             <div style={{ position: 'relative', paddingTop: 10, zIndex: 3 }}>
-              <div style={{ width: 40, height: 5, borderRadius: 99, background: 'var(--color-border-medium)', margin: '0 auto' }} />
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)', margin: '0 auto' }} />
               <button
                 onClick={close}
                 aria-label={t('Закрыть')}

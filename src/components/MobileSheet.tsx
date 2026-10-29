@@ -65,6 +65,14 @@ export default function MobileSheet({
     dragControls.start(e)
   }
 
+  // Esc закрывает, как и окна: шторка открывается и на ПК (узкое окно).
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   // Палец: свой жест на touch-событиях (см. шапку файла) + замок на страницу
   // позади шторки — она не должна листаться под ней.
   useEffect(() => {

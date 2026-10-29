@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { dropdownSurface } from '../../lib/dropdownStyle'
 import CountBadge from '../CountBadge'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
@@ -342,14 +343,11 @@ export default function TeacherTopBar() {
   }
   const planEnding = (planDaysLeft != null && planDaysLeft <= 7) || (planPct != null && planPct >= 90)
 
+  // Общая поверхность меню (lib/dropdownStyle): стекло 0.96, радиус 14,
+  // отступ 6, тень из темы; пункты — радиус 8 (концентрично 14 − 6).
   const dropdownStyle: React.CSSProperties = {
-    background: 'rgba(var(--glass-rgb), 0.92)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 18,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-    padding: 8, minWidth: 230,
+    ...dropdownSurface,
+    overflow: 'visible', minWidth: 230,
     display: 'flex', flexDirection: 'column',
   }
 
@@ -553,9 +551,9 @@ export default function TeacherTopBar() {
                     if (action.page) setActivePage(action.page)
                     setAddOpen(false)
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
                 >
                   <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: action.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
@@ -637,11 +635,11 @@ export default function TeacherTopBar() {
                   if (item.action === 'feedback') setFeedbackOpen(true)
                   setProfileOpen(false)
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
               >
-                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -656,11 +654,11 @@ export default function TeacherTopBar() {
             <motion.button whileTap={{ scale: 0.98 }}
               onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
               aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
             >
-              <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Globe size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -674,12 +672,12 @@ export default function TeacherTopBar() {
               onClick={() => { void trackNow('logout', { role: 'teacher' }); supabase.auth.signOut(); setProfileOpen(false) }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LogOut size={16} strokeWidth={2} style={{ color: dark ? '#FC8181' : '#C53030' }} />
+                <LogOut size={16} strokeWidth={2} style={{ color: 'var(--color-red-text)' }} />
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: dark ? '#FC8181' : '#C53030', lineHeight: 1.3 }}>{t('Выйти')}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-red-text)', lineHeight: 1.3 }}>{t('Выйти')}</div>
             </motion.button>
 
             {/* Подвал меню: номер сборки этого устройства + проверка обновления */}

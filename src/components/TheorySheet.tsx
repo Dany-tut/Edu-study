@@ -217,8 +217,9 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   borderLeft: '1px solid var(--color-border-glass)',
                 }
                 : {
-                  left: 0, right: 0, bottom: 0, maxHeight: '82vh',
-                  borderTopLeftRadius: 26, borderTopRightRadius: 26,
+                  // Спека шторки — как MobileSheet: радиус 28, высота в dvh.
+                  left: 0, right: 0, bottom: 0, maxHeight: '85dvh',
+                  borderTopLeftRadius: 28, borderTopRightRadius: 28,
                   borderTop: '1px solid var(--color-border-glass)',
                   paddingBottom: 'env(safe-area-inset-bottom, 0px)',
                 }),
