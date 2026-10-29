@@ -316,9 +316,12 @@ export async function fetchOwnCardGroups(ownerId: string): Promise<CardGroup[]> 
  * в одной таблице set_cards. Две копии этой функции разошлись бы на первой же
  * правке формата карточки.
  */
-async function writeCards(setId: string, cards: SetCard[]): Promise<void> {
-  const { error: delErr } = await supabase.from('set_cards').delete().eq('set_id', setId)
-  if (delErr) console.error('cardGroups: clear cards', delErr)
+async function writeCards(setId: string, cards: SetCard[]): Promise<boolean> {
+  // СНАЧАЛА ВСТАВКА, ПОТОМ УДАЛЕНИЕ СТАРЫХ. Было наоборот: стёрли, вставка упала —
+  // и в базе пустой набор, а на экране «Сохранено». Теперь при сбое вставки
+  // старые карточки остаются на месте.
+  const { data: old, error: readErr } = await supabase.from('set_cards').select('id').eq('set_id', setId)
+  if (readErr) { console.error('cardGroups: read cards', readErr); return false }
   const rows = cards
     .filter(c => c.term.trim() && c.ru.trim())
     .map((c, n) => ({
@@ -331,16 +334,43 @@ async function writeCards(setId: string, cards: SetCard[]): Promise<void> {
       ex: c.ex ?? null,
       sort: n,
     }))
-  if (rows.length === 0) return
-  const { error } = await supabase.from('set_cards').insert(rows)
-  if (error) console.error('cardGroups: insert cards', error)
+  if (rows.length > 0) {
+    const { error } = await supabase.from('set_cards').insert(rows)
+    if (error) { console.error('cardGroups: insert cards', error); return false }
+  }
+  const oldIds = (old ?? []).map(r => r.id as string)
+  if (oldIds.length > 0) {
+    const { error } = await supabase.from('set_cards').delete().in('id', oldIds)
+    if (error) { console.error('cardGroups: clear old cards', error); return false }
+  }
+  return true
+}
+
+/**
+ * Итог сохранения. `ok: false` — что-то не доехало: редактор показывает ошибку
+ * и НЕ перечитывает базу (иначе несохранённое пропало бы с экрана), а по `idMap`
+ * пересаживает уже вставленные наборы на настоящие id — чтобы повтор не плодил
+ * их копии.
+ */
+export type CardGroupSaveResult = { id: string | null; ok: boolean; idMap: Record<string, string> }
+
+/** Пересадить состояние редактора на id из базы после частичного сохранения. */
+export function applyCardSaveIds(group: CardGroup, res: CardGroupSaveResult): CardGroup {
+  const m = (id: string) => res.idMap[id] ?? id
+  return {
+    ...group,
+    ...(res.id ? { id: res.id, seed: false } : {}),
+    sets: group.sets.map(s => ({ ...s, id: m(s.id), subsets: s.subsets?.map(x => ({ ...x, id: m(x.id) })) })),
+  }
 }
 
 export async function saveCardGroup(
   group: CardGroup,
   owner: { createdBy?: string | null; authorStudentId?: string | null },
-): Promise<string | null> {
+): Promise<CardGroupSaveResult> {
   const isNew = !group.id || group.seed
+  const idMap: Record<string, string> = {}
+  let ok = true
   const base = {
     lang: group.lang,
     subject: group.subject ?? null,
@@ -362,15 +392,21 @@ export async function saveCardGroup(
       })
       .select('id')
       .single()
-    if (error || !data) { console.error('cardGroups: insert group', error); return null }
+    if (error || !data) { console.error('cardGroups: insert group', error); return { id: null, ok: false, idMap } }
     groupId = data.id as string
   } else {
     const { error } = await supabase.from('card_groups').update(base).eq('id', groupId)
-    if (error) { console.error('cardGroups: update group', error); return null }
+    if (error) { console.error('cardGroups: update group', error); return { id: groupId ?? null, ok: false, idMap } }
   }
 
   // Наборы: чего нет в состоянии — стереть (карточки уедут каскадом).
-  const { data: oldSets } = await supabase.from('card_sets').select('id').eq('group_id', groupId)
+  const { data: oldSets, error: oldErr } = await supabase.from('card_sets').select('id').eq('group_id', groupId)
+  // Не прочитали, что лежит в базе, — не знаем, что удалять и что вставлять.
+  if (oldErr) { console.error('cardGroups: read sets', oldErr); return { id: groupId ?? null, ok: false, idMap } }
+  // Что УЖЕ в базе — по базе, а не по редактору. В `keep` лежат и временные id
+  // (`new-…`) только что добавленных наборов и стопок: проверка по нему вела их
+  // в UPDATE несуществующей строки, тот падал, и новый набор молча пропадал.
+  const existing = new Set((oldSets ?? []).map(r => r.id as string))
   // В `keep` идут И СТОПКИ ТОЖЕ: они лежат в той же таблице и попадают в
   // oldSets наравне с наборами. Собрав список только по group.sets, сохранение
   // сносило бы все стопки при каждой правке — тихо и каскадом вместе с
@@ -382,7 +418,7 @@ export async function saveCardGroup(
   const dropSets = (oldSets ?? []).map(r => r.id as string).filter(id => !keep.has(id))
   if (dropSets.length > 0) {
     const { error } = await supabase.from('card_sets').delete().in('id', dropSets)
-    if (error) console.error('cardGroups: delete sets', error)
+    if (error) { console.error('cardGroups: delete sets', error); ok = false }
   }
 
   for (const [i, set] of group.sets.entries()) {
@@ -394,16 +430,17 @@ export async function saveCardGroup(
       sort: i,
     }
     let setId = set.id
-    if (!setId || !keep.has(setId) || isNew) {
+    if (!setId || !existing.has(setId) || isNew) {
       const { data, error } = await supabase.from('card_sets').insert(setBase).select('id').single()
-      if (error || !data) { console.error('cardGroups: insert set', error); continue }
+      if (error || !data) { console.error('cardGroups: insert set', error); ok = false; continue }
+      if (setId) idMap[setId] = data.id as string
       setId = data.id as string
     } else {
       const { error } = await supabase.from('card_sets').update(setBase).eq('id', setId)
-      if (error) { console.error('cardGroups: update set', error); continue }
+      if (error) { console.error('cardGroups: update set', error); ok = false; continue }
     }
 
-    await writeCards(setId, set.cards)
+    if (!(await writeCards(setId, set.cards))) ok = false
 
     // Стопки набора — строки той же таблицы с ссылкой на родителя. Пишутся
     // после самого набора: до вставки у нового набора ещё нет id, а без него
@@ -418,19 +455,20 @@ export async function saveCardGroup(
         sort: k,
       }
       let subId = sub.id
-      if (!subId || !keep.has(subId) || isNew) {
+      if (!subId || !existing.has(subId) || isNew) {
         const { data, error } = await supabase.from('card_sets').insert(subBase).select('id').single()
-        if (error || !data) { console.error('cardGroups: insert subset', error); continue }
+        if (error || !data) { console.error('cardGroups: insert subset', error); ok = false; continue }
+        if (subId) idMap[subId] = data.id as string
         subId = data.id as string
       } else {
         const { error } = await supabase.from('card_sets').update(subBase).eq('id', subId)
-        if (error) { console.error('cardGroups: update subset', error); continue }
+        if (error) { console.error('cardGroups: update subset', error); ok = false; continue }
       }
-      await writeCards(subId, sub.cards)
+      if (!(await writeCards(subId, sub.cards))) ok = false
     }
   }
 
-  return groupId ?? null
+  return { id: groupId ?? null, ok, idMap }
 }
 
 /**

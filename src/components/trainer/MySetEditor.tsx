@@ -20,7 +20,7 @@
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { saveCardGroup, type CardGroup, type CardSet, type SetCard } from '../../lib/cardGroups'
+import { saveCardGroup, applyCardSaveIds, type CardGroup, type CardSet, type SetCard } from '../../lib/cardGroups'
 import GrowTextarea from '../GrowTextarea'
 import CardImportPanel from '../CardImportPanel'
 import BackCircle from '../../components/BackCircle'
@@ -62,9 +62,14 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
     if (!draft.title.trim()) return
     setSaving(true)
     setErr('')
-    const id = await saveCardGroup(draft, { authorStudentId: studentId })
+    const res = await saveCardGroup(draft, { authorStudentId: studentId })
     setSaving(false)
-    if (!id) { setErr(t('Не получилось сохранить. Попробуй ещё раз.')); return }
+    if (!res.ok) {
+      // Уже вставленное — на настоящие id, чтобы повтор не сделал копий.
+      setDraft(d => applyCardSaveIds(d, res))
+      setErr(t('Не получилось сохранить. Попробуй ещё раз.'))
+      return
+    }
     onSaved()
   }
 

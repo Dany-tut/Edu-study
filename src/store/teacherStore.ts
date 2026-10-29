@@ -233,11 +233,25 @@ function initialPage(): TeacherPage {
   return HASH_TO_PAGE[window.location.hash] ?? 'home'
 }
 
+// ── Сторож ухода ────────────────────────────────────────────────────────────
+// Переход по меню идёт через setActivePage и молча гасит черновик редактора;
+// beforeunload его не видит — вкладка-то не закрывается. Редактор с
+// несохранённой работой ставит сюда проверку, и уход спрашивает подтверждение.
+// Возвращает true, если терять есть что.
+let leaveGuard: (() => boolean) | null = null
+export function setLeaveGuard(fn: (() => boolean) | null) { leaveGuard = fn }
+export function mayLeave(): boolean {
+  if (!leaveGuard || !leaveGuard()) return true
+  if (!window.confirm('Есть несохранённые изменения. Уйти без сохранения?')) return false
+  leaveGuard = null
+  return true
+}
+
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
-  setActivePage: page => { clearEditorSession(); clearCardsSession(); set({ activePage: page, headerDocked: false }) },
+  setActivePage: page => { if (!mayLeave()) return; clearEditorSession(); clearCardsSession(); set({ activePage: page, headerDocked: false }) },
   pendingGradebookLessonId: null,
-  openGradebook: scheduleId => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) },
+  openGradebook: scheduleId => { if (!mayLeave()) return; clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) },
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
   editingCourseJson: readEditorSession(),
   openCourseEditor: courseJson => {
