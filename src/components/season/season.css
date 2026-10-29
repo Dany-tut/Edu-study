@@ -153,7 +153,8 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
 .season-corner--potions { right: -6px; bottom: -44px; height: 104px; transform: rotate(8deg); }
 
 /* ── Пустой день ──────────────────────────────────────────────────────── */
-.season-empty { display: flex; align-items: center; gap: 12px; text-align: left; }
+.season-empty { display: flex; align-items: center; gap: 28px; text-align: left; margin-left: -28px; }
+/* Привидение левее, текст дальше от него: группа по центру карточки, но с перекосом влево. */
 .season-empty__ghost { width: auto; flex-shrink: 0; pointer-events: none; }
 .season-empty__ghost { height: 86px; }
 .season-empty__title { font-size: 15px; font-weight: 650; color: var(--color-text); margin: 0; }
