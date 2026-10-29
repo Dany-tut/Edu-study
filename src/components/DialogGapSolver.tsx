@@ -110,7 +110,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           display: 'inline-block', minWidth: 64, margin: '0 4px', padding: '1px 10px',
           borderRadius: 8, textAlign: 'center', fontWeight: 700,
           border: showVerdict
-            ? `1.5px solid ${correct ? '#6EE7A0' : '#F48B91'}`
+            ? `1.5px solid ${correct ? 'var(--color-green-border)' : 'var(--color-red-border)'}`
             : value?.trim() ? '1.5px solid rgba(var(--accent-rgb), 0.38)' : '1.5px dashed var(--color-border-strong)',
           background: showVerdict
             ? (correct ? 'var(--color-green-soft)' : 'var(--color-red-soft)')
@@ -224,7 +224,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                 width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 14,
                 fontFamily: 'inherit', fontSize: 14, color: 'var(--color-text)',
                 background: 'var(--color-bg-input)', outline: 'none',
-                border: `1px solid ${showVerdict ? (correct ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                border: `1px solid ${showVerdict ? (correct ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
               }}
             />
             {/* Реплику ждут письмом, которого нет на клавиатуре ученика. */}

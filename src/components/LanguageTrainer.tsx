@@ -2176,7 +2176,7 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
                 display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left',
                 padding: '10px 13px', borderRadius: 13, fontFamily: 'inherit', fontSize: 14,
                 cursor: checked ? 'default' : 'pointer', color: 'var(--color-text)',
-                border: `1.5px solid ${showRight ? '#6EE7A0' : showWrong ? '#F48B91' : picked ? accent : 'var(--color-border-soft)'}`,
+                border: `1.5px solid ${showRight ? 'var(--color-green-border)' : showWrong ? 'var(--color-red-border)' : picked ? accent : 'var(--color-border-soft)'}`,
                 background: showRight ? 'var(--color-green-soft)' : showWrong ? 'var(--color-red-soft)' : picked ? 'var(--color-bg-3)' : 'var(--color-bg-input)',
               }}
             >

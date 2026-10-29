@@ -113,7 +113,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                 padding: '10px 13px', borderRadius: 14,
                 cursor: disabled ? 'default' : 'pointer',
                 border: `1px solid ${
-                  showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
+                  showVerdict ? (ok ? 'var(--color-green-border)' : 'var(--color-red-border)')
                     : chosen ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-soft)'
                 }`,
                 background: showVerdict

@@ -235,8 +235,8 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
 
         {quizState === 'active' && (
           <div className="flex-shrink-0 flex items-center gap-2">
-            <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
-            <span style={{ fontSize: 14, fontWeight: 600, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
+            <Clock size={16} style={{ color: timerPct < 30 ? 'var(--color-red-text)' : 'var(--color-muted)' }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: timerPct < 30 ? 'var(--color-red-text)' : 'var(--color-muted)', minWidth: 46 }}>
               {timeLeft} {t('сек')}
             </span>
             <motion.button

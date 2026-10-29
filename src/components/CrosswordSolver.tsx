@@ -176,7 +176,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--color-text)',
                   border: showVerdict
-                    ? `1.5px solid ${ok ? '#6EE7A0' : '#F48B91'}`
+                    ? `1.5px solid ${ok ? 'var(--color-green-border)' : 'var(--color-red-border)'}`
                     : chosen ? '2px solid var(--color-accent)' : '1.5px solid var(--color-border-strong)',
                   background: showVerdict
                     ? (ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)')

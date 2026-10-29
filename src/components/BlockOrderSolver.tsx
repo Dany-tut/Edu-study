@@ -85,8 +85,8 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
     padding: '10px 13px', borderRadius: 13, fontFamily: 'inherit',
     fontSize: 14, lineHeight: 1.3, fontWeight: 600, color: 'var(--color-text)',
     border: `1px solid ${
-      verdict === 'good' ? '#6EE7A0'
-        : verdict === 'bad' ? '#F48B91'
+      verdict === 'good' ? 'var(--color-green-border)'
+        : verdict === 'bad' ? 'var(--color-red-border)'
         : state === 'answer' ? 'rgba(var(--accent-rgb), 0.38)'
         : 'var(--color-border-strong)'
     }`,

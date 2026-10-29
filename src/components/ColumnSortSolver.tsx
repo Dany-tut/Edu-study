@@ -95,7 +95,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
           border: `1.5px solid ${
             ok === null
               ? (active ? 'var(--color-accent)' : 'var(--color-border-strong)')
-              : ok ? '#6EE7A0' : '#F48B91'
+              : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
           }`,
           background: ok === null
             ? (active ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.96)')

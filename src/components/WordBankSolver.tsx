@@ -86,7 +86,7 @@ export default function WordBankSolver({
     padding: '8px 13px', borderRadius: 10, cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
     fontSize: 14, fontWeight: 600, lineHeight: 1.2,
     border: `1.5px solid ${
-      ok === null ? (accent ? 'var(--color-accent)' : 'var(--color-border-soft)') : ok ? '#6EE7A0' : '#F48B91'
+      ok === null ? (accent ? 'var(--color-accent)' : 'var(--color-border-soft)') : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
     }`,
     background: ok === null
       ? (accent ? 'var(--color-purple-soft)' : 'var(--color-bg-2)')

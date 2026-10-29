@@ -99,7 +99,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                     border: `1.5px solid ${
                       ok === null
                         ? (open === i ? 'var(--color-accent)' : chosenText ? 'rgba(var(--accent-rgb), 0.4)' : 'var(--color-border-strong)')
-                        : ok ? '#6EE7A0' : '#F48B91'
+                        : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
                     }`,
                     background: ok === null
                       ? (chosenText ? 'rgba(var(--glass-rgb), 0.96)' : 'transparent')

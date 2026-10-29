@@ -256,7 +256,7 @@ export default function MatchingSolver({
   /** Плитка: обычная / выбранная / связанная / с вердиктом (зелёная, красная). */
   const skin = (state: { active: boolean; num: number; ok: boolean | null }): React.CSSProperties => {
     if (state.ok !== null) return {
-      border: `1.5px solid ${state.ok ? '#6EE7A0' : '#F48B91'}`,
+      border: `1.5px solid ${state.ok ? 'var(--color-green-border)' : 'var(--color-red-border)'}`,
       background: state.ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
       fontWeight: 600,
     }
@@ -284,7 +284,7 @@ export default function MatchingSolver({
       flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 11, fontWeight: 700, color: '#fff',
-      background: ok === null ? 'var(--grad-purple)' : ok ? '#3FAE6E' : '#E2646B',
+      background: ok === null ? 'var(--grad-purple)' : ok ? 'var(--btn-green-bg)' : 'var(--btn-red-bg)',
     }}>{num}</span>
   )
 

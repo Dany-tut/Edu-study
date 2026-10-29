@@ -1263,7 +1263,7 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
         return (
           <div key={itemIdx} style={{
             display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14,
-            border: `1px solid ${showVerdict ? (rightSpot ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+            border: `1px solid ${showVerdict ? (rightSpot ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
             background: showVerdict ? (rightSpot ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
           }}>
             <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{pos + 1}</span>
@@ -1550,7 +1550,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
                       borderRadius: 14, fontFamily: 'inherit', fontSize: 15,
                       color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
                       border: `1px solid ${
-                        showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
+                        showVerdict ? (ok ? 'var(--color-green-border)' : 'var(--color-red-border)')
                           : shown ? 'rgba(248,201,145,0.55)'
                           : 'var(--color-border)'
                       }`,
@@ -3883,8 +3883,8 @@ export default function HomeworkFlow({
                               padding: '14px 16px',
                               borderRadius: 18,
                               border: `1px solid ${
-                                correctSelected ? '#6EE7A0'
-                                  : wrongSelected ? '#F48B91'
+                                correctSelected ? 'var(--color-green-border)'
+                                  : wrongSelected ? 'var(--color-red-border)'
                                   : active ? 'rgba(var(--accent-rgb), 0.38)'
                                   : 'var(--color-border)'
                               }`,
@@ -4155,7 +4155,7 @@ export default function HomeworkFlow({
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
                           color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
-                          border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                          border: `1px solid ${showVerdict ? (isCorrect ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
@@ -4196,8 +4196,8 @@ export default function HomeworkFlow({
                                 padding: '16px 14px', borderRadius: 18, fontFamily: 'inherit',
                                 fontSize: 18, fontWeight: 700, color: 'var(--color-text)',
                                 border: `1px solid ${
-                                  showVerdict && right ? '#6EE7A0'
-                                    : showVerdict && active ? '#F48B91'
+                                  showVerdict && right ? 'var(--color-green-border)'
+                                    : showVerdict && active ? 'var(--color-red-border)'
                                     : active ? 'rgba(var(--accent-rgb), 0.38)' : 'var(--color-border)'
                                 }`,
                                 background: showVerdict && right ? 'var(--color-green-soft)'
@@ -4253,7 +4253,7 @@ export default function HomeworkFlow({
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
                           color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
-                          border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                          border: `1px solid ${showVerdict ? (isCorrect ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
@@ -4394,7 +4394,7 @@ export default function HomeworkFlow({
                           borderRadius: 16, fontFamily: 'inherit',
                           fontSize: 14, color: 'var(--color-text)',
                           background: 'var(--color-bg-input)', outline: 'none',
-                          border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                          border: `1px solid ${showVerdict ? (isCorrect ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
