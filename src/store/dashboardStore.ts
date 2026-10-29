@@ -6,6 +6,7 @@ import type { HardTaskReviewBlock } from '../lib/useHomework'
 import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { trackEvent } from '../lib/analytics'
+import { splitHwRef } from '../lib/extraHomework'
 
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
@@ -49,6 +50,8 @@ interface DashboardState {
 
   // The lesson currently open on the lesson page (screen 2), or null.
   currentLessonId: string | null
+  /** Какая домашка урока открыта: null — основная, иначе id доп. домашки (lib/extraHomework). */
+  currentExtraHwId: string | null
   // Where the lesson page's "Назад" button returns to — the page we came from.
   lessonReturnPage: LessonReturnPage
   // Open a lesson on the dedicated lesson page (screen 2). Remembers the current
@@ -79,7 +82,8 @@ interface DashboardState {
   setTopPillW: (v: number | null) => void
   // Open homework as its own page, preserving the current lesson context so the
   // student can return to the same lesson via the top bar.
-  openHomework: () => void
+  openHomework: (extraId?: string | null) => void
+  /** lessonId может быть составным ключом `<урок>~<доп>` — так его пишет адрес домашки. */
   openHomeworkForLesson: (lessonId: string, level?: 'basic' | 'hard', opts?: { keepReturn?: boolean }) => void
   // Какой уровень домашки открыть при входе (напр. карточка «Сложный уровень ·
   // Возвращён» должна сразу открыть хард, а не базу). Сбрасывается в HomeworkFlow.
@@ -228,6 +232,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   },
 
   currentLessonId: null,
+  currentExtraHwId: null,
   lessonReturnPage: 'home',
   openLesson: (lessonId, opts) => set((s) => {
     // Preselect the lesson's subject/module so returning to the catalogue lands
@@ -240,6 +245,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     return {
       activePage: 'lesson',
       currentLessonId: lessonId,
+      currentExtraHwId: null,
       lessonScrolled: false,
       lessonReturnPage: opts?.keepReturn || s.activePage === 'lesson' || s.activePage === 'homework'
         ? s.lessonReturnPage
@@ -265,14 +271,15 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     homeworkWidgetFeedback: null,
     lessonScrolled: false,
   })),
-  openHomework: () => set((s) => (
+  openHomework: (extraId) => set((s) => (
     s.currentLessonId
-      ? { activePage: 'homework', lessonScrolled: false }
+      ? { activePage: 'homework', lessonScrolled: false, currentExtraHwId: extraId ?? null }
       : { activePage: s.activePage }
   )),
-  openHomeworkForLesson: (lessonId, level, opts) => {
+  openHomeworkForLesson: (ref, level, opts) => {
+    const { lessonId, extraId } = splitHwRef(ref)
     useDashboard.getState().openLesson(lessonId, opts)
-    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null })
+    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null, currentExtraHwId: extraId })
   },
   homeworkInitialLevel: null,
   clearHomeworkInitialLevel: () => set({ homeworkInitialLevel: null }),

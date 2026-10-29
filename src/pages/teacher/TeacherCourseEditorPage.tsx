@@ -62,6 +62,7 @@ import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonConte
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
 import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
+import { extraHwLabel, newExtraHwId } from '../../lib/extraHomework'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 import BackCircle from '../../components/BackCircle'
@@ -137,6 +138,8 @@ export interface CELesson {
   recHwDate?: string
   recHwDateManual?: boolean
   recHwTasks?: HWTask[]
+  /** Доп. домашки урока («Доп», «Доп 1», «Доп 2»…) — см. lib/extraHomework. */
+  extraHw?: CEExtraHw[]
   // calendar scheduling — LESSON (Урок) event
   scheduledDate?: string   // DD.MM.YYYY
   scheduledTime?: string   // HH:MM
@@ -284,12 +287,6 @@ const taskTextSt: React.CSSProperties = { ...inputSt, lineHeight: TASK_TEXT_LH }
  */
 function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextarea>) {
   return <GrowTextarea {...rest} style={{ ...inputSt, ...style }} />
-}
-/** AutoTextarea с сохранённой подписью — см. useContentField. Фокус ловится
- *  обёрткой: в React onFocus/onBlur всплывают. */
-function ContentAutoTextarea({ value, ...rest }: React.ComponentProps<typeof GrowTextarea> & { value: string }) {
-  const f = useContentField(value)
-  return <div onFocus={f.onFocus} onBlur={f.onBlur}><AutoTextarea {...rest} value={f.value} /></div>
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -3574,14 +3571,124 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   )
 }
 
-// ─── Homework field map ───────────────────────────────────────────────────────
-// Each lesson carries two independent homeworks — one for the «Урок» node and one
-// for the «Запись» node. The hwTab toggle (lifted to the page) picks which.
+// ─── Homework slots ───────────────────────────────────────────────────────────
+// У урока основная домашка (hwTasks/hwDate) и сколько угодно доп. домашек
+// (extraHw). hwTab — какая открыта: MAIN_HW или id доп. домашки; поднят на
+// уровень страницы, чтобы левая колонка и список заданий в центре совпадали.
+// Своего названия у домашки нет — у ученика это «Домашка по теме «<урок>»» и
+// «Доп 1 · <урок>».
 
-function hwFields(hwTab: 'lesson' | 'rec') {
-  return hwTab === 'rec'
-    ? { title: 'recHwTitle', date: 'recHwDate', dateManual: 'recHwDateManual', tasks: 'recHwTasks' } as const
-    : { title: 'hwTitle',    date: 'hwDate',    dateManual: 'hwDateManual',    tasks: 'hwTasks' } as const
+interface CEExtraHw { id: string; date?: string; tasks: HWTask[] }
+const MAIN_HW = 'main'
+
+/** Открытая домашка. Незнакомый hwTab (доп. удалили, старое 'lesson'/'rec' из
+ *  sessionStorage) — основная. */
+function hwSlot(lesson: CELesson, hwTab: string): { tab: string; tasks: HWTask[]; date?: string } {
+  const x = lesson.extraHw?.find(e => e.id === hwTab)
+  return x
+    ? { tab: x.id, tasks: x.tasks ?? [], date: x.date }
+    : { tab: MAIN_HW, tasks: lesson.hwTasks ?? [], date: lesson.hwDate }
+}
+
+function patchHwSlot(lesson: CELesson, hwTab: string, p: { tasks?: HWTask[]; date?: string }): CELesson {
+  if (lesson.extraHw?.some(e => e.id === hwTab)) {
+    return { ...lesson, extraHw: lesson.extraHw.map(e => e.id === hwTab ? { ...e, ...p } : e) }
+  }
+  const next: CELesson = { ...lesson }
+  if (p.tasks) next.hwTasks = p.tasks
+  // Editing the due date by hand detaches it from the lesson date; clearing it
+  // re-attaches so it resumes mirroring that date.
+  if ('date' in p) { next.hwDate = p.date; next.hwDateManual = !!p.date }
+  return next
+}
+
+/** Вкладки «ДЗ · Доп 1 · Доп 2» и под ними кнопка «+ Доп. ДЗ». Пока доп.
+ *  домашек нет, вкладок нет вовсе — только кнопка. */
+function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab }: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+  hwTab: string
+  setHwTab: (t: string) => void
+}) {
+  const t = useT()
+  const extras = lesson.extraHw ?? []
+  const active = hwSlot(lesson, hwTab).tab
+
+  function addExtra() {
+    const id = newExtraHwId()
+    onUpdate({ ...lesson, extraHw: [...extras, { id, tasks: [] }] })
+    setHwTab(id)
+  }
+
+  async function removeExtra(x: CEExtraHw, label: string) {
+    if (x.tasks.length > 0) {
+      const ok = await confirmDialog({
+        title: `${t('Удалить')} «${label}»?`,
+        message: t('Задания этой домашки удалятся вместе с ней.'),
+        confirmLabel: t('Удалить'),
+        tone: 'danger',
+      })
+      if (!ok) return
+    }
+    onUpdate({ ...lesson, extraHw: extras.filter(e => e.id !== x.id) })
+    setHwTab(MAIN_HW)
+  }
+
+  const addButton = (
+    <button onClick={addExtra} style={{
+      flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+      padding: '7px 10px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+      fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)',
+      background: 'transparent', border: '1px dashed var(--color-green-text)',
+    }}>
+      <Plus size={14} strokeWidth={2.2} />
+      {t('Доп. ДЗ')}
+    </button>
+  )
+  if (extras.length === 0) return addButton
+
+  const tabs = [
+    { id: MAIN_HW, label: t('ДЗ'), n: (lesson.hwTasks ?? []).length, extra: null as CEExtraHw | null },
+    ...extras.map((x, i) => ({ id: x.id, label: extraHwLabel(i, extras.length, t), n: x.tasks.length, extra: x as CEExtraHw | null })),
+  ]
+  return (
+    <>
+    {/* flexShrink 0: колонка — flex-столбец с прокруткой; без него ряд сплющивало
+        в полоску, когда заданий много. Вкладки переносятся, а не режутся. */}
+    <div style={{ flexShrink: 0, display: 'flex', flexWrap: 'wrap', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+      {tabs.map(tt => {
+        const on = active === tt.id
+        return (
+          <div key={tt.id} role="button" tabIndex={0}
+            onClick={() => setHwTab(tt.id)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHwTab(tt.id) } }}
+            style={{
+              flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: '7px 8px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+              background: on ? 'var(--color-green-soft)' : 'transparent',
+              color: on ? 'var(--color-green-text)' : 'var(--color-text-3)',
+              transition: 'background 0.13s',
+            }}>
+            {tt.label}
+            {tt.n > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: on ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: on ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
+            )}
+            {on && tt.extra && (
+              <button
+                onClick={e => { e.stopPropagation(); void removeExtra(tt.extra!, tt.label) }}
+                title={t('Удалить')} aria-label={`${t('Удалить')} ${tt.label}`}
+                style={{ display: 'flex', padding: 0, margin: '0 -2px 0 0', border: 'none', background: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.7 }}
+              >
+                <X size={13} strokeWidth={2.2} />
+              </button>
+            )}
+          </div>
+        )
+      })}
+    </div>
+    {addButton}
+    </>
+  )
 }
 
 // ─── Bank picker (collapsible «Из тренажёра» list) ───────────────────────────
@@ -3661,13 +3768,13 @@ function HomeworkLeftPanel({
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
-  hwTab: 'lesson' | 'rec'
-  setHwTab: (t: 'lesson' | 'rec') => void
+  hwTab: string
+  setHwTab: (t: string) => void
   isLanguage?: boolean
 }) {
   const t = useT()
-  const F = hwFields(hwTab)
-  const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+  const slot = hwSlot(lesson, hwTab)
+  const tasks = slot.tasks
   // Language types only appear for language courses; other courses keep the base palette.
   const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
 
@@ -3677,34 +3784,13 @@ function HomeworkLeftPanel({
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
 
-  // Переключатель ДЗ урока / записи: если обе подписи не влезают (английский),
-  // неактивная вкладка сворачивается в иконку. Меряем скрытым рядом с полными подписями.
-  const hwTabs = [
-    { id: 'lesson', label: t('ДЗ урока'), n: (lesson.hwTasks ?? []).length, Icon: BookOpen },
-    { id: 'rec',    label: t('ДЗ записи'), n: (lesson.recHwTasks ?? []).length, Icon: Video },
-  ] as const
-  const toggleRef = useRef<HTMLDivElement>(null)
-  const measureRef = useRef<HTMLDivElement>(null)
-  const [toggleCompact, setToggleCompact] = useState(false)
-  const toggleKey = hwTabs.map(tt => `${tt.label}:${tt.n}`).join('|')
-  useLayoutEffect(() => {
-    const box = toggleRef.current, probe = measureRef.current
-    if (!box || !probe) return
-    const check = () => setToggleCompact(probe.scrollWidth > box.clientWidth)
-    check()
-    const ro = new ResizeObserver(check)
-    ro.observe(box)
-    return () => ro.disconnect()
-  }, [toggleKey])
-
-  function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
 
   function addTask(type: HWTaskType, isHard: boolean) {
-    patch({ [F.tasks]: [...tasks, makeHWTask(type, isHard)] })
+    onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, makeHWTask(type, isHard)] }))
   }
 
   function addFromBank(bt: BankTask, isHard: boolean) {
-    patch({ [F.tasks]: [...tasks, hwTaskFromBank(bt, isHard)] })
+    onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, hwTaskFromBank(bt, isHard)] }))
   }
 
   // Сложные задания: развёрнутый ответ, выбор и доска (ребёнок рисует решение).
@@ -3732,60 +3818,13 @@ function HomeworkLeftPanel({
         padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
         ...fadeMask(hwFade),
       }}>
-      {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
-      {/* flexShrink 0: колонка — flex-столбец с прокруткой, а ряд с overflow:hidden
-          теряет min-height:auto — когда заданий много, его сплющивало в полоску. */}
-      <div ref={toggleRef} style={{ position: 'relative', overflow: 'hidden', flexShrink: 0, display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
-        {/* Скрытый замер: обе вкладки с полными подписями, без сжатия. */}
-        <div ref={measureRef} aria-hidden style={{
-          position: 'absolute', left: 0, top: 0, width: 'max-content', display: 'flex', gap: 4, padding: 3,
-          visibility: 'hidden', pointerEvents: 'none', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-        }}>
-          {hwTabs.map(tt => (
-            <span key={tt.id} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 8px' }}>
-              {tt.label}
-              {tt.n > 0 && <span style={{ fontSize: 10, padding: '1px 6px' }}>{tt.n}</span>}
-            </span>
-          ))}
-        </div>
-        {hwTabs.map(tt => {
-          const iconOnly = toggleCompact && hwTab !== tt.id
-          return (
-          <button key={tt.id} onClick={() => setHwTab(tt.id)} title={iconOnly ? tt.label : undefined} aria-label={iconOnly ? tt.label : undefined} style={{
-            flex: iconOnly ? '0 0 auto' : 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
-            border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-            background: hwTab === tt.id ? 'var(--color-green-soft)' : 'transparent',
-            color: hwTab === tt.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
-            transition: 'background 0.13s',
-          }}>
-            {iconOnly
-              ? <tt.Icon size={15} strokeWidth={2} />
-              : <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{tt.label}</span>}
-            {tt.n > 0 && !iconOnly && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === tt.id ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: hwTab === tt.id ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
-            )}
-          </button>
-          )
-        })}
-      </div>
+      <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab} />
 
       <div>
-        {/* Названия юнитов длинные («Юнит 1. Хангыль: гласные и первые слова») —
-            в одну строку они обрезались, поэтому поле растёт по тексту. */}
-        <ContentAutoTextarea
-          value={(lesson[F.title] as string | undefined) ?? ''}
-          onChange={v => patch({ [F.title]: v })}
-          style={{ padding: '7px 10px', fontSize: 12, lineHeight: 1.35 }}
-          placeholder={t('Название задания')}
-        />
-      </div>
-      <div>
         <CalendarPicker
-          value={(lesson[F.date] as string | undefined) ?? ''}
+          value={slot.date ?? ''}
           placeholder={t('Дата сдачи')}
-          // Editing the due date by hand detaches it from the lesson/recording date;
-          // clearing it re-attaches so it resumes mirroring that date.
-          onChange={v => patch({ [F.date]: v, [F.dateManual]: !!v })}
+          onChange={v => onUpdate(patchHwSlot(lesson, slot.tab, { date: v || undefined }))}
         />
       </div>
 
@@ -3900,11 +3939,11 @@ function CenterHomework({
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
-  hwTab: 'lesson' | 'rec'
+  hwTab: string
 }) {
   const t = useT()
-  const F = hwFields(hwTab)
-  const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+  const slot = hwSlot(lesson, hwTab)
+  const tasks = slot.tasks
 
   // Drag-to-reorder. The whole card can't be `draggable` (it would block text
   // selection inside the textareas), so dragging is «armed» only on grip
@@ -3914,9 +3953,9 @@ function CenterHomework({
   const [dropIdx, setDropIdx] = useState<number | null>(null)
   const clearDrag = () => { setDragId(null); setDropIdx(null); setArmedId(null) }
 
-  function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
-  function removeTask(id: string) { patch({ [F.tasks]: tasks.filter(t => t.id !== id) }) }
-  function updateTask(updated: HWTask) { patch({ [F.tasks]: tasks.map(t => t.id === updated.id ? updated : t) }) }
+  function setTasks(next: HWTask[]) { onUpdate(patchHwSlot(lesson, slot.tab, { tasks: next })) }
+  function removeTask(id: string) { setTasks(tasks.filter(t => t.id !== id)) }
+  function updateTask(updated: HWTask) { setTasks(tasks.map(t => t.id === updated.id ? updated : t)) }
 
   function commitDrop() {
     if (dragId == null || dropIdx == null) { clearDrag(); return }
@@ -3926,7 +3965,7 @@ function CenterHomework({
     const [moved] = cur.splice(from, 1)
     const insertAt = from < dropIdx ? dropIdx - 1 : dropIdx
     cur.splice(insertAt, 0, moved)
-    patch({ [F.tasks]: cur })
+    setTasks(cur)
     clearDrag()
   }
 
@@ -4552,7 +4591,7 @@ function LessonRow({
             ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Вопросы')} />
             : <>
                 {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Запись')} />}
-                {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('ДЗ')} />}
+                {((lesson.hwTasks?.length ?? 0) > 0 || !!lesson.extraHw?.some(x => x.tasks.length > 0)) && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('ДЗ')} />}
                 {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title={t('Доп. ученики')} />}
               </>}
         </div>
@@ -5217,6 +5256,7 @@ export default function TeacherCourseEditorPage() {
               recHwDate: l.recHwDate ?? hw.recHwDate ?? undefined,
               recHwDateManual: l.recHwDateManual ?? hw.recHwDateManual ?? false,
               recHwTasks: l.recHwTasks ?? (Array.isArray(hw.recHwTasks) ? hw.recHwTasks : []),
+              extraHw: l.extraHw ?? (Array.isArray(hw.extraHw) ? hw.extraHw : []),
             }
           }),
         }
@@ -5358,7 +5398,7 @@ export default function TeacherCourseEditorPage() {
   const savedPos = (() => {
     try {
       const raw = sessionStorage.getItem(posKey)
-      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode; hwTab?: 'lesson' | 'rec' }) : null
+      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode; hwTab?: string }) : null
     } catch { return null }
   })()
 
@@ -5366,11 +5406,11 @@ export default function TeacherCourseEditorPage() {
     savedPos?.lessonId && course.lessons.some(l => l.id === savedPos.lessonId) ? savedPos.lessonId : null
   )
   const [lessonMode, setLessonMode] = useState<LessonMode>(savedPos?.mode ?? 'lesson')
-  // Homework target toggle (ДЗ урока vs ДЗ записи) — lifted here so the left
+  // Открытая домашка урока (основная / доп., см. hwSlot) — lifted here so the left
   // meta rail and the center task list stay in sync. Живёт на уровне страницы,
   // поэтому переключение урока его не сбрасывает; в sessionStorage — чтобы
   // пережить и перезагрузку, как выбранный урок с вкладкой режима.
-  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>(savedPos?.hwTab ?? 'lesson')
+  const [hwTab, setHwTab] = useState<string>(savedPos?.hwTab ?? MAIN_HW)
 
   useEffect(() => {
     try {
@@ -5842,6 +5882,7 @@ export default function TeacherCourseEditorPage() {
         recHwDate: lesson.recHwDate ?? null,
         recHwDateManual: lesson.recHwDateManual ?? false,
         recHwTasks: lesson.recHwTasks ?? [],
+        extraHw: lesson.extraHw ?? [],
       },
     }))
     if (lessonRows.length > 0) {
@@ -6061,6 +6102,7 @@ export default function TeacherCourseEditorPage() {
         scheduledDate: shiftDot(l.scheduledDate, deltaDays),
         recDate: shiftDot(l.recDate, deltaDays),
         hwDate: shiftDot(l.hwDate, deltaDays),
+        extraHw: l.extraHw?.map(x => ({ ...x, date: shiftDot(x.date, deltaDays) })),
         recHwDate: shiftDot(l.recHwDate, deltaDays),
       }
     })
@@ -6138,7 +6180,8 @@ export default function TeacherCourseEditorPage() {
       })
       scan(l.testTasks, '')
       scan(l.hwTasks, ` · ${t('ДЗ')}`)
-      scan(l.recHwTasks, ` · ${t('ДЗ записи')}`)
+      const extras = l.extraHw ?? []
+      extras.forEach((x, i) => scan(x.tasks, ` · ${extraHwLabel(i, extras.length, t)}`))
     }
     return out
   }

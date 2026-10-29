@@ -18,7 +18,8 @@ import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
 import Skeleton from '../components/Skeleton'
-import { findLessonById, getLessonDetail } from '../data/lessonContent'
+import { findLessonById, getExtraHomeworks, getLessonDetail } from '../data/lessonContent'
+import { hwRef } from '../lib/extraHomework'
 import { useStudentData } from '../store/studentDataStore'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
 import { useCourseTint, useTint } from '../store/tintStore'
@@ -124,8 +125,14 @@ export default function DashboardPage() {
   const setLessonScrolled = useDashboard(s => s.setLessonScrolled)
   const closeHomework = useDashboard(s => s.closeHomework)
   const closeLesson = useDashboard(s => s.closeLesson)
+  const currentExtraHwId = useDashboard(s => s.currentExtraHwId)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
-  const homework = lesson ? getLessonDetail(lesson).homework : null
+  // Доп. домашка урока решается тем же HomeworkFlow, но под своим ключом
+  // `<урок>~<доп>` (lib/extraHomework): своя сдача, свой черновик, свой адрес.
+  const homework = !lesson ? null
+    : currentExtraHwId ? (getExtraHomeworks(lesson).find(x => x.id === currentExtraHwId)?.homework ?? null)
+    : getLessonDetail(lesson).homework
+  const homeworkRef = lesson ? hwRef(lesson.id, currentExtraHwId) : ''
   // Конспект и домашка урока едут вторым запросом (см. heavyPending в
   // data/mockData.ts). Пока они в пути, «домашки нет» ещё не значит, что её
   // нет, — и урок нельзя ни показывать пустым, ни отбивать назад. Узел-тест
@@ -249,7 +256,7 @@ export default function DashboardPage() {
     if (!restored) return
     let hash: string | null = null
     if (activePage === 'lesson' && currentLessonId) hash = `#/lesson/${encodeURIComponent(currentLessonId)}`
-    else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(currentLessonId)}`
+    else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(hwRef(currentLessonId, currentExtraHwId))}`
     // Внутри тренажёра адрес ведёт он сам — и ведёт подробнее (язык, экран,
     // открытый материал; см. lib/trainerLink). Ровное «#/trainer» отсюда
     // затирало бы присланную ссылку ровно в тот момент, когда её открыли:
@@ -260,7 +267,7 @@ export default function DashboardPage() {
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage, currentLessonId, restored])
+  }, [activePage, currentLessonId, currentExtraHwId, restored])
 
   // КАКОЙ ЭКРАН КАБИНЕТА ПОКАЗАН СЕЙЧАС.
   //
@@ -471,7 +478,8 @@ export default function DashboardPage() {
           >
             <Suspense fallback={<LessonLoading />}>
               <HomeworkFlow
-                lessonId={lesson.id}
+                key={homeworkRef}
+                lessonId={homeworkRef}
                 lessonTitle={lesson.title}
                 subject={lesson.subject}
                 homework={homework}
@@ -541,7 +549,8 @@ export default function DashboardPage() {
             ) : showHomework && lesson && homework ? (
               <Suspense fallback={<LessonLoading />}>
                 <HomeworkFlow
-                  lessonId={lesson.id}
+                  key={homeworkRef}
+                  lessonId={homeworkRef}
                   lessonTitle={lesson.title}
                   subject={lesson.subject}
                   homework={homework}

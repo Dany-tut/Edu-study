@@ -802,7 +802,8 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
     description?: string | null
   }
   for (const l of data as Row[]) {
-    const homework = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
+    const homework = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length
+      || l.homework.extraHw?.some(x => x?.tasks?.length))
       ? l.homework
       : undefined
     const content = l.content && l.content.paragraphs?.length

@@ -83,6 +83,7 @@ import { chamoOf, composeKeys, keysOf } from '../data/hangul'
 import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
+import { baseLessonRef } from '../lib/extraHomework'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
 import {
@@ -1634,8 +1635,12 @@ function getInitialState(): PersistedHomeworkState {
  */
 function hwTitle(title: string, tr: (s: string) => string): string {
   const m = title.match(/^Домашка по теме\s*«(.+)»$/)
-  return m ? `${tr('Домашка по теме')} «${tcStatic(m[1])}»` : tcStatic(title)
+  if (m) return `${tr('Домашка по теме')} «${tcStatic(m[1])}»`
+  // Доп. домашка: «Доп 2 · <урок>» (см. getExtraHomeworks).
+  const x = title.match(EXTRA_TITLE_RE)
+  return x ? `${tr('Доп')}${x[1] ?? ''} · ${tcStatic(x[2])}` : tcStatic(title)
 }
+const EXTRA_TITLE_RE = /^Доп( \d+)? · (.+)$/
 
 export default function HomeworkFlow({
   lessonId,
@@ -1646,6 +1651,8 @@ export default function HomeworkFlow({
 }: HomeworkFlowProps) {
   const t = useT()
   const isMobile = !useIsDesktop()
+  // «Доп 2 · <урок>» — заголовок доп. домашки (без «Домашка по теме «…»»).
+  const extraTitle = homework.title.match(EXTRA_TITLE_RE)
   const { dark } = useTheme()
   // `subject` здесь — short_id курса («kohg»), а не слаг предмета: реестр о нём
   // не знает и ЛЮБАЯ домашка получала палитру запасного предмета — фиолетовую.
@@ -1855,7 +1862,8 @@ export default function HomeworkFlow({
   // страница урока, поэтому второй копии текста не появляется. Урока может не
   // быть в каталоге (назначенное ДЗ вне курса) — тогда кнопки просто нет.
   const theoryParagraphs = useMemo(() => {
-    const lesson = findLessonById(lessonId)
+    // У доп. домашки ключ `<урок>~<доп>` — конспект берём у самого урока.
+    const lesson = findLessonById(baseLessonRef(lessonId))
     return lesson ? getLessonDetail(lesson).paragraphs : []
   }, [lessonId])
   // Задание без тела считаем закрытым: ответить на него нельзя, и держать из-за
@@ -3109,10 +3117,10 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  {t('Домашка по теме')}&nbsp;«
+                  {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
                 </motion.span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {tcStatic(homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
+                  {tcStatic(extraTitle ? extraTitle[2] : homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
                 </span>
                 <motion.span
                   initial={false}
@@ -3120,7 +3128,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  »
+                  {extraTitle ? '' : '»'}
                 </motion.span>
               </span>
               {!isMobile && levelPill(true)}

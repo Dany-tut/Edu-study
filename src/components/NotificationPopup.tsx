@@ -5,6 +5,7 @@ import { useNotificationsStore, type Notification } from '../store/notifications
 import type { NotifType } from '../store/notificationsStore'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
+import { baseLessonRef } from '../lib/extraHomework'
 import { t, useT } from '../lib/i18n'
 import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
 
@@ -115,7 +116,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
     if (!n.read) markRead(n.id)
     const ref = n.link?.lessonRef
     if (ref) {
-      const base = ref.endsWith('-hard') ? ref.slice(0, -5) : ref
+      const base = baseLessonRef(ref)
       if (findLessonById(base)) {
         openLesson(base)
         onClose()

@@ -6,6 +6,7 @@ import type { ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 import type { LessonFiles } from '../lib/lessonFiles'
 import { isChecklistParagraph } from '../lib/theoryChecklist'
+import { extraHwLabel } from '../lib/extraHomework'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
@@ -169,6 +170,13 @@ export interface AuthoredHomework {
   recHwDate?: string | null
   recHwDateManual?: boolean
   recHwTasks?: AuthoredHomeworkTask[]
+  /** Доп. домашки урока («Доп 1», «Доп 2»…), см. lib/extraHomework. */
+  extraHw?: AuthoredExtraHomework[]
+}
+export interface AuthoredExtraHomework {
+  id: string
+  date?: string | null
+  tasks?: AuthoredHomeworkTask[]
 }
 export interface HomeworkTeacherTask {
   topic: string
@@ -256,11 +264,15 @@ const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /** Deterministic mock detail for a catalogue lesson — date, duration, timecodes
  *  and downloadable materials — so the lesson page (screen 2) is data-driven. */
-export function getLessonDetail(lesson: Lesson): LessonDetail {
-  // Deterministic + stable per lesson number (no Date.now()/random).
+/** Deterministic + stable per lesson number (no Date.now()/random). */
+function lessonDateStr(lesson: Lesson): string {
   const day = (lesson.number % 28) + 1
   const month = ((lesson.number * 3) % 12) + 1
-  const dateStr = `${pad2(day)}.${pad2(month)}`
+  return `${pad2(day)}.${pad2(month)}`
+}
+
+export function getLessonDetail(lesson: Lesson): LessonDetail {
+  const dateStr = lessonDateStr(lesson)
 
   // Только видео и таймкоды из БД, без подставного набора.
   //
@@ -310,6 +322,25 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     paragraphs: descParagraphs,
     homework: authoredHw ?? undefined,
   }
+}
+
+/** Доп. домашки урока для ученика — только те, где есть задания. Подпись
+ *  считается по месту среди ВСЕХ доп. домашек, как её видит учитель в редакторе,
+ *  чтобы «Доп 2» у ученика и у учителя была одной и той же домашкой. */
+export function getExtraHomeworks(lesson: Lesson): Array<{ id: string; index: number; total: number; homework: LessonHomework }> {
+  const extras = lesson.homework?.extraHw ?? []
+  return extras.flatMap((x, i) => {
+    if (!x?.id || !x.tasks?.length) return []
+    const label = extraHwLabel(i, extras.length, s => s)
+    return [{
+      id: x.id,
+      index: i,
+      total: extras.length,
+      homework: buildAuthoredHomework(lesson, lessonDateStr(lesson), {
+        tasks: x.tasks, date: x.date, title: `${label} · ${lesson.title}`,
+      }),
+    }]
+  })
 }
 
 /** Map one persisted authored task → a homework question. Choice tasks become
@@ -441,12 +472,17 @@ export function lessonHasHardLevel(lesson: Lesson): boolean {
  *  level holds the non-hard tasks; hard tasks (isHard) feed the teacher-review
  *  level. HomeworkFlow requires both a basic and a hard level, so the hard
  *  level always exists (falling back to a generic prompt when none authored). */
-function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHomework {
-  const hw = lesson.homework!
-  const all = hw.hwTasks ?? []
+function buildAuthoredHomework(
+  lesson: Lesson,
+  fallbackDate: string,
+  src: { tasks: AuthoredHomeworkTask[]; date?: string | null; title?: string } = {
+    tasks: lesson.homework?.hwTasks ?? [], date: lesson.homework?.hwDate,
+  },
+): LessonHomework {
+  const all = src.tasks
   const basicTasks = all.filter(t => !t.isHard)
   const hardTasks = all.filter(t => t.isHard)
-  const dueDate = hw.hwDate?.trim() || fallbackDate
+  const dueDate = src.date?.trim() || fallbackDate
   const recommendationScore = 80
 
   // Each authored hard task → its own «Задание N» tab (NOT merged into one
@@ -468,7 +504,9 @@ function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHome
     : getChemistryHardTask(lesson.title)
 
   return {
-    title: hw.hwTitle?.trim() || `Домашка по теме «${lesson.title}»`,
+    // Своего названия у домашки больше нет: оно повторяло название урока (а
+    // сиды и вовсе писали туда «Юнит N · занятие M» с другой нумерацией).
+    title: src.title ?? `Домашка по теме «${lesson.title}»`,
     subtitle: 'Базовый уровень — задания от преподавателя; хард уходит на проверку.',
     recommendationScore,
     // Нет авторских хард-заданий → скрываем вход в хард (уровень остаётся в
