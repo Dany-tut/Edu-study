@@ -3,10 +3,11 @@ import { Ghost } from 'lucide-react'
 import Switch from '../Switch'
 import Checkbox from '../Checkbox'
 import TeacherSaveButton from './TeacherSaveButton'
+import DateTimeField from '../DateTimeField'
 import { Alert } from '../Alert'
 import { useT } from '../../lib/i18n'
 import {
-  loadSeason, saveSeason, setSeasonPreview, statusOf, useSeason, seasonImg,
+  loadSeason, saveSeason, setSeasonPreview, setSeasonChoice, statusOf, useSeason, seasonImg,
   VARIANTS, PARTS, type Season, type SeasonVariant,
 } from '../../lib/season'
 
@@ -21,19 +22,6 @@ const VARIANT_BG: Record<SeasonVariant, string> = {
   lanterns: 'linear-gradient(180deg, #120C2A, #2A1F5C)',
   candy: 'linear-gradient(135deg, #FFF4EA, #F3EEFF)',
   potions: 'linear-gradient(180deg, #24184F, #7A5FC8)',
-}
-
-/** ISO → значение для <input type="datetime-local"> в часовом поясе браузера. */
-function toLocalInput(iso: string): string {
-  const d = new Date(iso)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-const fieldStyle: React.CSSProperties = {
-  width: '100%', height: 40, padding: '0 12px', borderRadius: 12,
-  border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
-  color: 'var(--color-text)', fontSize: 13.5, fontFamily: 'inherit',
 }
 
 export default function SeasonAdmin() {
@@ -97,22 +85,39 @@ export default function SeasonAdmin() {
         </div>
 
         <div style={{ padding: '14px 18px', borderTop: '1px solid var(--color-border)', opacity: draft.enabled ? 1 : 0.45, transition: 'opacity 0.15s' }}>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 6 }}>{t('Даты: включается и выключается сама')}</div>
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 6 }}>{t('Даты по Москве: тема включается и уходит сама')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <input type="datetime-local" aria-label={t('Начало')} style={fieldStyle}
-              value={toLocalInput(draft.startsAt)} onChange={e => e.target.value && patch({ startsAt: new Date(e.target.value).toISOString() })} />
-            <input type="datetime-local" aria-label={t('Конец')} style={fieldStyle}
-              value={toLocalInput(draft.endsAt)} onChange={e => e.target.value && patch({ endsAt: new Date(e.target.value).toISOString() })} />
+            <DateTimeField label={t('Начало')} value={draft.startsAt} onChange={v => patch({ startsAt: v })} />
+            <DateTimeField label={t('Конец')} value={draft.endsAt} onChange={v => patch({ endsAt: v })} />
           </div>
 
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', margin: '16px 0 6px' }}>{t('Вариант оформления')}</div>
+          <div style={{ marginTop: 16 }}>
+            <Checkbox checked={draft.ask} align="start" onChange={v => patch({ ask: v })}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Спрашивать учеников')}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.4 }}>
+                  {draft.ask
+                    ? t('При первом входе окно «Сейчас Хэллоуин»: ученик сам выбирает одну из трёх тем или оставляет всё как есть. Пока не выбрал — темы нет.')
+                    : t('Всем сразу включается тема, выбранная ниже.')}
+                </div>
+              </div>
+            </Checkbox>
+          </div>
+
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', margin: '16px 0 6px' }}>
+            {draft.ask
+              ? t('Моя тема — только у меня, применяется сразу. Твой выбор на учеников не влияет.')
+              : t('Тема для всех учеников')}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
             {VARIANTS.map(v => {
-              const on = draft.variant === v.key
+              // Спрашиваем учеников — карточки выбирают ЛИЧНУЮ тему админа (как окно
+              // у ученика); не спрашиваем — общую тему в базе, по «Сохранить».
+              const on = draft.ask ? view.choice === v.key : draft.variant === v.key
               return (
                 <button
                   key={v.key}
-                  onClick={() => patch({ variant: v.key })}
+                  onClick={() => (draft.ask ? setSeasonChoice(on ? 'off' : v.key) : patch({ variant: v.key }))}
                   aria-pressed={on}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10, padding: 10, textAlign: 'left', cursor: 'pointer',
@@ -142,18 +147,6 @@ export default function SeasonAdmin() {
             ))}
           </div>
 
-          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
-            <Checkbox checked={draft.ask} align="start" onChange={v => patch({ ask: v })}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Спрашивать учеников')}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.4 }}>
-                  {draft.ask
-                    ? t('При первом входе окно «Сейчас Хэллоуин — включить тему?». Пока ученик не ответил, тему он не видит.')
-                    : t('Тема включается всем сама, без вопроса.')}
-                </div>
-              </div>
-            </Checkbox>
-          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 18px', borderTop: '1px solid var(--color-border)' }}>

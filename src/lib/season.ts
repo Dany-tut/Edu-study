@@ -21,11 +21,13 @@ export type SeasonKey = 'halloween'
 export type SeasonVariant = 'lanterns' | 'candy' | 'potions'
 export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty'
 export type SeasonParts = Record<SeasonPart, boolean>
-/** ask — спрашивать ли ученика модалкой «Сейчас Хэллоуин — включить тему?» (иначе тема
- *  включается всем сама). В базе лежит в parts.ask: отдельной колонки под флаг не заводили. */
+/** ask — спрашивать ли ученика окном «Сейчас Хэллоуин — выбери тему» (иначе всем сразу
+ *  включается variant). В базе лежит в parts.ask: отдельной колонки под флаг не заводили.
+ *  variant — тема для всех, только когда не спрашиваем; при ask каждый выбирает свою. */
 export type Season = { key: SeasonKey; enabled: boolean; startsAt: string; endsAt: string; variant: SeasonVariant; parts: SeasonParts; ask: boolean }
-/** Ответ ученика на этот сезон: включить, не надо или ещё не ответил. */
-export type SeasonChoice = 'on' | 'off' | null
+/** Выбор человека на этот сезон: свой вариант, «не надо» или ещё не выбирал. Личный —
+ *  у ученика из окна, у админа из админки; на других он не влияет. */
+export type SeasonChoice = SeasonVariant | 'off' | null
 
 export const VARIANTS: { key: SeasonVariant; title: string; about: string }[] = [
   { key: 'lanterns', title: 'Ночь фонарей', about: 'Тёмная на сезон. Урок — зажжённый фонарь' },
@@ -46,6 +48,9 @@ const PREVIEW_KEY = 'season.preview'
 /** Старый выключатель (до модалки) — читаем как ответ «не надо». */
 const LEGACY_OFF_KEY = 'season.off'
 const THEME_WAS = 'season.themeWas'
+/** Последний выбранный вариант — переключатель «включить» в меню возвращает его. */
+const LAST_KEY = 'season.lastVariant'
+const isVariant = (v: string | null): v is SeasonVariant => VARIANTS.some(x => x.key === v)
 
 const ls = {
   get: (k: string) => { try { return localStorage.getItem(k) } catch { return null } },
@@ -66,7 +71,9 @@ const choiceKey = (s: Season) => `season.choice.${s.key}.${new Date(s.startsAt).
 function readChoice(s: Season | null): SeasonChoice {
   if (!s) return null
   const v = ls.get(choiceKey(s))
-  if (v === 'on' || v === 'off') return v
+  if (v === 'off' || isVariant(v)) return v
+  // «on» — ответ из окна до выбора вариантов: тогда включалась общая тема.
+  if (v === 'on') return s.variant
   return ls.get(LEGACY_OFF_KEY) === '1' ? 'off' : null
 }
 
@@ -105,7 +112,7 @@ let started = false
 function devSeason(): Season | null {
   if (!import.meta.env.DEV) return null
   const v = ls.get('season.dev') as SeasonVariant | null
-  if (!v || !VARIANTS.some(x => x.key === v)) return null
+  if (!isVariant(v)) return null
   return { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: v, parts: ALL_ON, ask: true }
 }
 
@@ -127,23 +134,32 @@ export function setSeasonPreview(on: boolean) {
   emit()
 }
 
-/** Ученик: ответ из модалки или переключатель в меню/профиле. */
-export function setSeasonChoice(on: boolean) {
-  const choice: SeasonChoice = on ? 'on' : 'off'
+/** Свой выбор: вариант из окна (ученик) или из админки (админ, только у себя), либо 'off'. */
+export function setSeasonChoice(choice: SeasonVariant | 'off') {
   if (state.season) ls.set(choiceKey(state.season), choice)
+  if (choice !== 'off') ls.set(LAST_KEY, choice)
   ls.set(LEGACY_OFF_KEY, null)
   state = { ...state, choice }
   emit()
+}
+
+/** Переключатель в меню/профиле: включить — последний выбранный вариант (или общий). */
+export function setSeasonOn(on: boolean) {
+  const last = ls.get(LAST_KEY)
+  setSeasonChoice(on ? (isVariant(last) ? last : state.season?.variant ?? 'lanterns') : 'off')
 }
 
 export type SeasonStatus = 'soon' | 'live' | 'over'
 export const statusOf = (s: Season, now = Date.now()): SeasonStatus =>
   now < Date.parse(s.startsAt) ? 'soon' : now < Date.parse(s.endsAt) ? 'live' : 'over'
 const isLive = (st: State) => !!st.season && (st.preview || (st.season.enabled && statusOf(st.season, st.now) === 'live'))
-/** Тема на экране: сезон идёт, ученик не отказался и либо согласился, либо спрашивать
- *  не велено. Админский предпросмотр модалку пропускает. */
+/** Тема на экране: сезон идёт, человек не отказался и либо выбрал вариант, либо спрашивать
+ *  не велено. Админский предпросмотр окно пропускает. */
 const isOn = (st: State) => isLive(st) && st.choice !== 'off'
-  && (st.preview || !st.season!.ask || st.choice === 'on')
+  && (st.preview || !st.season!.ask || isVariant(st.choice))
+/** Чей вариант на экране: свой выбор, иначе общий из базы. */
+const variantOf = (st: State): SeasonVariant | null =>
+  isVariant(st.choice) ? st.choice : st.season?.variant ?? null
 /** Пора спросить: сезон идёт, спрашивать велено, ответа ещё нет. */
 const isAsking = (st: State) => isLive(st) && !st.preview && !!st.season?.ask && st.choice === null
 
@@ -152,11 +168,14 @@ export type SeasonView = {
   active: boolean
   /** сезон идёт — в настройках показываем выключатель */
   live: boolean
-  /** показать ученику модалку «Сейчас Хэллоуин — включить тему?» */
+  /** показать ученику окно «Сейчас Хэллоуин — выбери тему» */
   asking: boolean
   preview: boolean
   season: Season | null
+  /** вариант на экране (null — темы нет) */
   variant: SeasonVariant | null
+  /** свой выбор на этот сезон — для карточек в админке и окне */
+  choice: SeasonChoice
   on: (p: SeasonPart) => boolean
 }
 
@@ -169,7 +188,7 @@ const snapshot = (): SeasonView => {
   viewOf = state
   view = {
     active, live: isLive(state), asking: isAsking(state), preview: state.preview, season: s,
-    variant: active && s ? s.variant : null,
+    variant: active ? variantOf(state) : null, choice: state.choice,
     on: p => active && !!s?.parts[p],
   }
   return view
@@ -188,9 +207,9 @@ export function useSeason(): SeasonView {
 function mark() {
   const v = snapshot()
   const el = document.documentElement
-  if (v.active && v.season) {
+  if (v.active && v.season && v.variant) {
     el.dataset.season = v.season.key
-    el.dataset.seasonVariant = v.season.variant
+    el.dataset.seasonVariant = v.variant
   } else {
     delete el.dataset.season
     delete el.dataset.seasonVariant
