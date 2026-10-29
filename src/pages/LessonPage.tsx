@@ -7,8 +7,9 @@ import {
 } from 'lucide-react'
 import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
-import { activeTimecodeIndex, findLessonById, getLessonDetail, type LessonHomework } from '../data/lessonContent'
-import { downloadLessonFile, formatFileSize, type LessonFile } from '../lib/lessonFiles'
+import { activeTimecodeIndex, findLessonById, getExtraHomeworks, getLessonDetail, type LessonHomework } from '../data/lessonContent'
+import { extraHwLabel, hwRef } from '../lib/extraHomework'
+import { downloadLessonFile, formatFileSize, isLinkFile, type LessonFile } from '../lib/lessonFiles'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
@@ -316,7 +317,7 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
           letterSpacing: '0.04em', color: '#fff',
         }}
       >
-        {file.url ? 'URL' : fileChipLabel(file.name)}
+        {isLinkFile(file) ? 'URL' : fileChipLabel(file.name)}
       </div>
       <span className="min-w-0" style={{ flex: 1 }}>
         <span style={{ display: 'block', fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
@@ -373,8 +374,8 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
           {!active ? t('файл не прикреплён')
             : err ? t('не удалось скачать')
             : busy ? t('загружаем…')
-            : file!.url ? `${file!.name} · ${t('открыть')}`
-            : [fileChipLabel(file!.name), formatFileSize(file!.size), t('скачать')].filter(Boolean).join(' · ')}
+            : isLinkFile(file!) ? `${file!.name} · ${t('открыть')}`
+            : [fileChipLabel(file!.name), formatFileSize(file!.size), file!.url ? t('открыть') : t('скачать')].filter(Boolean).join(' · ')}
         </p>
       </div>
       {active && (file!.url
@@ -491,7 +492,7 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
   }
 }
 
-function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homework: LessonHomework; onOpen: () => void }) {
+function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string }) {
   const t = useT()
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
   const assessment = useDashboard(s => s.lessonAssessments[lessonId])
@@ -528,7 +529,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
   const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
-    { id: 'base' as const, icon: GraduationCap, iconSize: 20, title: t('Домашка') },
+    { id: 'base' as const, icon: GraduationCap, iconSize: 20, title: title ?? t('Домашка') },
     ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
@@ -1309,9 +1310,15 @@ export default function LessonPage() {
         <MaterialsTile materials={detail.files.materials ?? []} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={openHomework} />
+            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} />
           </div>
         )}
+        {/* Доп. домашки — такие же карточки, у каждой своя сдача (lib/extraHomework). */}
+        {getExtraHomeworks(lesson).map(x => (
+          <div key={x.id} style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
+            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} title={extraHwLabel(x.index, x.total, t)} />
+          </div>
+        ))}
       </div>
 
     </div>

@@ -17,7 +17,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { useT, t as tGlobal, useTc, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import {
-  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
+  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
@@ -321,7 +321,7 @@ function UploadTile({
                 background: 'var(--grad-green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 7, fontWeight: 800, color: '#fff',
-              }}>{f.url ? 'URL' : fileExt(f.name)}</div>
+              }}>{isLinkFile(f) ? 'URL' : fileExt(f.name)}</div>
               <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
               <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
               <button
