@@ -40,13 +40,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   const previewScheduleLesson = useDashboard(s => s.previewScheduleLesson)
   const clearTrackHighlight = useDashboard(s => s.clearTrackHighlight)
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
-  // Tick every second while any lesson is within an hour (the pill shows a
-  // seconds countdown there); otherwise the default 30s is plenty.
-  const anySoon = day.lessons.some(l => {
-    const st = lessonTimeState(day.date, l.time, new Date())
-    return !st.passed && st.secondsUntil <= 3600
-  })
-  const now = useNow(anySoon ? 1000 : 30_000)
+  // Карточка обновляется раз в 30 с. Секунды отсчёта тикают в <Countdown> —
+  // раньше вся карточка перерисовывалась каждую секунду за час до урока.
+  const now = useNow(30_000)
 
   // Resolve each lesson's live time state once and pick the soonest future one
   // as the "upcoming" highlight — derived from real time, not stored on data.
@@ -80,14 +76,6 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
     }
   }
 
-  // The countdown is a clock ("через 40:20") and only appears within the final
-  // hour before the lesson (see the badge gate below), so it's always M:SS.
-  const formatUntil = (st: { secondsUntil: number }) => {
-    const s = Math.max(0, st.secondsUntil)
-    const m = Math.floor(s / 60)
-    const sec = s % 60
-    return `${t('через')} ${m}:${String(sec).padStart(2, '0')}`
-  }
 
   const scale = isCenter ? 1 : distance === 1 ? 0.90 : distance === 2 ? 0.82 : 0.74
   const opacity = isCenter ? 1 : distance === 1 ? 0.72 : distance === 2 ? 0.48 : 0.3
@@ -194,13 +182,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                       {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
                         isUpcoming ? (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }}>
-                            {formatUntil(st)}
-                          </span>
+                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }} />
                         ) : (
-                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', padding: '1px 6px', borderRadius: 999 }}>
-                            {formatUntil(st)}
-                          </span>
+                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', padding: '1px 6px', borderRadius: 999 }} />
                         )
                       )}
                     </div>
@@ -290,5 +274,21 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
         </div>
       )}
     </motion.div>
+  )
+}
+
+// Отсчёт «через 40:20» — часы, видны только в последний час до урока, поэтому
+// всегда M:SS. Свой секундный таймер у одной таблетки, а не у всей карточки;
+// цифры моноширинные, чтобы таблетка не дёргалась на 10:00 → 9:59.
+function Countdown({ date, time, style }: { date: string; time: string; style: React.CSSProperties }) {
+  const t = useT()
+  const now = useNow(1000)
+  const s = Math.max(0, lessonTimeState(date, time, now).secondsUntil)
+  if (s <= 0) return null
+  const m = Math.floor(s / 60)
+  return (
+    <span style={{ ...style, fontVariantNumeric: 'tabular-nums' }}>
+      {`${t('через')} ${m}:${String(s % 60).padStart(2, '0')}`}
+    </span>
   )
 }

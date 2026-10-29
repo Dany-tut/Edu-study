@@ -57,9 +57,13 @@ export default function SpoilerText({
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
+    // Открытый спойлер частицы не рисует: холст только гаснет до нуля, а цикл
+    // раньше крутился дальше — и вне экрана, и в фоновой вкладке.
+    if (revealed) return
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!canvas || !ctx) return
+    const still = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
     const rand = (min: number, max: number) => min + Math.random() * (max - min)
 
@@ -95,8 +99,19 @@ export default function SpoilerText({
       lastH = H
     }
 
+    // Цвет точек из темы — не на каждом кадре (getComputedStyle дорогой), а раз
+    // в секунду: этого хватает, чтобы подхватить смену темы.
+    let dotColor = ''
+    const readColor = () => { dotColor = color ?? (getComputedStyle(document.documentElement).getPropertyValue('--spoiler-dot-rgb').trim() || '11, 11, 13') }
+    readColor()
+    let frame = 0
+    let visible = true
+    const running = () => !still && visible && document.visibilityState === 'visible'
+
     let raf = 0
     const tick = () => {
+      raf = 0
+      if (++frame % 60 === 0) readColor()
       // measure from the laid-out canvas itself (it's sized 100% of the text + pad)
       const W = canvas.clientWidth
       const H = canvas.clientHeight
@@ -104,7 +119,6 @@ export default function SpoilerText({
         if (W !== lastW || H !== lastH) resize(W, H)
 
         ctx.clearRect(0, 0, W, H)
-        const dotColor = color ?? (getComputedStyle(document.documentElement).getPropertyValue('--spoiler-dot-rgb').trim() || '11, 11, 13')
         for (const p of particles) {
           p.x += p.vx
           p.y += p.vy
@@ -139,11 +153,16 @@ export default function SpoilerText({
           ctx.fill()
         }
       }
-      raf = requestAnimationFrame(tick)
+      if (running()) raf = requestAnimationFrame(tick)
     }
+    const wake = () => { if (!raf && running()) raf = requestAnimationFrame(tick) }
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; wake() })
+    io.observe(canvas)
+    document.addEventListener('visibilitychange', wake)
+    // Первый кадр рисуем всегда — при «уменьшить движение» он и остаётся.
     raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [density, color, feather, maxAlpha])
+    return () => { cancelAnimationFrame(raf); io.disconnect(); document.removeEventListener('visibilitychange', wake) }
+  }, [density, color, feather, maxAlpha, revealed])
 
   if (fill) {
     return (

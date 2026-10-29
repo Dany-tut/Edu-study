@@ -324,13 +324,20 @@ export default function DashboardPage() {
   // We rAF-poll the sidebar's right edge and write directly to the pill
   // wrapper's style — avoiding React re-renders that would trip the inner
   // motion.div's layoutId animation into re-projecting its transform.
+  //
+  // ОПРОС — ВСПЛЕСКАМИ, А НЕ ВСЕГДА. Раньше rAF крутился, пока открыта главная:
+  // два getBoundingClientRect на каждом кадре, и в покое тоже. Край боковой
+  // панели двигается только когда меняются размеры (окно, сворачивание панели,
+  // морф layoutId следом) — их ловит ResizeObserver и запускает опрос на
+  // ~0.8 с, этого хватает, чтобы досмотреть анимацию до конца.
   const sidebarWrapRef = useRef<HTMLDivElement>(null)
   const pillWrapRef = useRef<HTMLDivElement>(null)
   const [pillMounted, setPillMounted] = useState(false)
   useEffect(() => {
     let raf = 0
     let last = -1
-    const tick = () => {
+    let until = 0
+    const measure = () => {
       const el = sidebarWrapRef.current
       const parent = el?.parentElement
       const pill = pillWrapRef.current
@@ -344,10 +351,24 @@ export default function DashboardPage() {
           if (!pillMounted) setPillMounted(true)
         }
       }
-      raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    const tick = () => {
+      measure()
+      raf = performance.now() < until ? requestAnimationFrame(tick) : 0
+    }
+    const burst = () => {
+      measure() // сразу, без кадра: в превью Claude rAF не срабатывает
+      until = performance.now() + 800
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+    burst()
+    const ro = new ResizeObserver(burst)
+    const el = sidebarWrapRef.current
+    if (el) { ro.observe(el); if (el.parentElement) ro.observe(el.parentElement) }
+    // Смена раздела перестраивает шапку — тоже повод досмотреть.
+    window.addEventListener('resize', burst)
+    window.addEventListener('hashchange', burst)
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener('resize', burst); window.removeEventListener('hashchange', burst) }
   }, [pillMounted])
 
   return (

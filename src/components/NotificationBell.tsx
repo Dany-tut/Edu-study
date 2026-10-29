@@ -19,7 +19,8 @@ const ringVariants = {
     rotate: [0, -4, 4, -4, 4, 0],
     scale: 1.12,
     color: '#FF5A5A',
-    transition: { rotate: { repeat: Infinity, duration: 2.4, ease: 'easeInOut', repeatDelay: 1.5 }, scale: { duration: 0 }, color: { duration: 0 } },
+    // Три качания и замер: красный цвет и точка остаются, движение — нет.
+    transition: { rotate: { repeat: 2, duration: 2.4, ease: 'easeInOut', repeatDelay: 1.5 }, scale: { duration: 0 }, color: { duration: 0 } },
   },
 }
 

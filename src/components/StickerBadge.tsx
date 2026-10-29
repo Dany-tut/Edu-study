@@ -20,8 +20,10 @@ interface Props {
 }
 
 // Кейфреймы перелива — один раз на документ (бейджей на экране бывает десятки).
+// Два прохода и стоп: десятки бейджей с вечным переливом перерисовывали экран
+// на каждом кадре, пока он просто открыт.
 const SHINE_CSS = `
-  .holo-shine { animation: holoShine 5.5s linear infinite; }
+  .holo-shine { animation: holoShine 5.5s linear 2; }
   @keyframes holoShine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
   @media (prefers-reduced-motion: reduce) { .holo-shine { animation: none; } }
 `

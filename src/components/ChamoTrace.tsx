@@ -559,7 +559,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             fill="var(--color-blue-fill)"
             initial={{ scale: 0.7, opacity: 0.7 }}
             animate={{ scale: [0.85, 1.05, 0.85], opacity: 1 }}
-            transition={{ duration: 1.4, repeat: Infinity }}
+            transition={{ duration: 1.4, repeat: 2 }}
           />
         )}
 
@@ -575,7 +575,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             key={`${strokeIndex}-${nudge}-${takenIdx}`}
             initial={{ opacity: 0.7 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.4, repeat: Infinity, repeatType: 'reverse' }}
+            transition={{ duration: 1.4, repeat: 3, repeatType: 'reverse' }}
           >
             {/* Кружок на кончике написанного: с него продолжают, если руку
                 сняли посреди черты. */}

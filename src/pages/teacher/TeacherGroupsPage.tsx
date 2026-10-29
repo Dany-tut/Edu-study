@@ -1400,11 +1400,6 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
           : (
             <span style={shimBar}>
-              <span style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
-                animation: 'shimmer-bar 1.6s ease-in-out infinite',
-              }} />
             </span>
           )
         }
@@ -1415,11 +1410,6 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right' }}>{password}</span>
           : (
             <span style={shimBar}>
-              <span style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
-                animation: 'shimmer-bar 1.6s ease-in-out 0.3s infinite',
-              }} />
             </span>
           )
         }

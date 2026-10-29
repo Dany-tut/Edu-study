@@ -719,7 +719,9 @@ a {
   border-radius: inherit;
   pointer-events: none;
   z-index: 4;
-  animation: courseNodePulse 2.4s ease-in-out infinite;
+  /* Три вдоха и стоп: кольцо отмечает урок, а не мигает всё время, пока
+     открыт трек (тень перерисовывается на каждом кадре). */
+  animation: courseNodePulse 2.4s ease-in-out 3;
 }
 
 /* Hard-done node: animated green gradient */
@@ -732,8 +734,11 @@ a {
   0%, 100% { box-shadow: 0 0 0 3px rgba(245,200,66,0.45), 0 0 14px rgba(245,200,66,0.35); }
   50%       { box-shadow: 0 0 0 5px rgba(245,200,66,0.65), 0 0 26px rgba(245,200,66,0.55); }
 }
+/* Свечение статичное: пульс шёл на каждом пройденном сложном уроке, пока
+   открыт трек, и перерисовывал тень на каждом кадре. Один вдох при появлении. */
 .hard-done-node {
-  animation: hardDoneGlow 2s ease-in-out infinite !important;
+  animation: hardDoneGlow 2s ease-in-out 1 !important;
+  box-shadow: 0 0 0 4px rgba(245,200,66,0.55), 0 0 20px rgba(245,200,66,0.45) !important;
 }
 
 /* Линия озвучки под карточкой слова (VocabIntro): заполняется, пока говорит

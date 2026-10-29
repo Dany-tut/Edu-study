@@ -509,7 +509,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // ── Тик: время, буфер и накопление отсмотренного ──────────────────────────
   useEffect(() => {
     if (!started || !custom) return
-    const id = window.setInterval(() => {
+    const tick = () => {
       let time = 0
       let dur = 0
       let playing = false
@@ -563,7 +563,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         position: time,
         duration: dur || base.duration || duration,
       }))
-    }, TICK_MS)
+    }
+    // На паузе не тикаем: один замер, чтобы зафиксировать позицию, и тишина.
+    // Раньше таймер шёл четыре раза в секунду и на паузе, и после конца ролика.
+    tick()
+    if (paused) return
+    const id = window.setInterval(tick, TICK_MS)
     return () => window.clearInterval(id)
   }, [started, custom, source.kind, paused, scrubbing, duration])
 

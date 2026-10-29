@@ -14,7 +14,7 @@ import { useEffect } from 'react'
 
 const CSS = `
   .ddm { transform-box: fill-box; transform-origin: 50% 50%; }
-  .ddm-float { animation: ddmFloat 3.6s ease-in-out 1.5s infinite; }
+  .ddm-float { animation: ddmFloat 3.6s ease-in-out 1.5s 2; }
   .ddm-card { opacity: 0; animation: ddmCard .42s cubic-bezier(.2,.75,.35,1) forwards; }
   .ddm-card-2 { animation-delay: .07s; }
   .ddm-card-3 { animation-delay: .14s; }

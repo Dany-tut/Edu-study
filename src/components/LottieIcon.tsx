@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from 'react'
+import { useEffect, useRef, useState, type ComponentType } from 'react'
 
 // ── Анимации грузятся с сервера, а не из бандла ──────────────────────────────
 //
@@ -14,12 +14,19 @@ import { useEffect, useState, type ComponentType } from 'react'
 // готовности значок держит своё место пустой коробкой того же размера, чтобы
 // вокруг ничего не дёргалось.
 
+type LottieHandle = { goToAndStop: (v: number, isFrame?: boolean) => void; goToAndPlay: (v: number, isFrame?: boolean) => void; getDuration: (inFrames?: boolean) => number | undefined }
 type LottieProps = {
   animationData: unknown
   loop?: boolean
   autoplay?: boolean
   style?: React.CSSProperties
+  lottieRef?: React.MutableRefObject<LottieHandle | null>
+  onDOMLoaded?: () => void
 }
+
+// Системная настройка «уменьшить движение» — тогда значок стоит на последнем
+// кадре и не играет вовсе.
+const reducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 let lottiePromise: Promise<ComponentType<LottieProps>> | null = null
 function loadLottie() {
@@ -45,6 +52,9 @@ export type LottieIconProps = {
   /** Имя файла в public/anim, без расширения. */
   name: string
   size: number
+  /** По умолчанию — один проход и стоп на последнем кадре: значок на экране, где
+   *  сидят подолгу, не крутится вечно (экран в покое не рисует кадров).
+   *  Повтор — по наведению. */
   loop?: boolean
   style?: React.CSSProperties
   /** Правка данных перед показом (перекраска). Обязателен `transformKey`. */
@@ -52,7 +62,8 @@ export type LottieIconProps = {
   transformKey?: string
 }
 
-export default function LottieIcon({ name, size, loop = true, style, transform, transformKey }: LottieIconProps) {
+export default function LottieIcon({ name, size, loop = false, style, transform, transformKey }: LottieIconProps) {
+  const lottieRef = useRef<LottieHandle | null>(null)
   const [ready, setReady] = useState<{ Lottie: ComponentType<LottieProps>; data: unknown } | null>(null)
 
   useEffect(() => {
@@ -72,5 +83,18 @@ export default function LottieIcon({ name, size, loop = true, style, transform, 
   const box: React.CSSProperties = { width: size, height: size, flexShrink: 0, ...style }
   if (!ready) return <span style={{ display: 'inline-block', ...box }} />
   const { Lottie, data } = ready
-  return <Lottie animationData={data} loop={loop} autoplay style={box} />
+  const still = reducedMotion()
+  const toLast = () => { const h = lottieRef.current; const n = h?.getDuration(true); if (h && n) h.goToAndStop(n - 1, true) }
+  return (
+    <span
+      style={{ display: 'inline-block', lineHeight: 0, ...box }}
+      onMouseEnter={loop || still ? undefined : () => lottieRef.current?.goToAndPlay(0, true)}
+    >
+      <Lottie
+        animationData={data} loop={loop && !still} autoplay={!still}
+        lottieRef={lottieRef} onDOMLoaded={still ? toLast : undefined}
+        style={{ width: '100%', height: '100%' }}
+      />
+    </span>
+  )
 }

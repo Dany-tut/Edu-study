@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { MotionConfig } from 'framer-motion'
 import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -116,9 +117,13 @@ guardStylesheet()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <OfflineBanner />
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    {/* Системная настройка «уменьшить движение» — для всего framer-motion
+        сразу: без неё бесконечные repeat: Infinity её не слушали. */}
+    <MotionConfig reducedMotion="user">
+      <OfflineBanner />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </MotionConfig>
   </StrictMode>,
 )

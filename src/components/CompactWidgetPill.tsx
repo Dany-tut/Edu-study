@@ -578,7 +578,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
                 position: 'absolute', inset: 0, borderRadius: 999,
                 background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%)',
                 filter: 'blur(3px)',
-                animation: 'shimmer-bar 2.2s ease-in-out infinite',
+                animation: 'shimmer-bar 2.2s ease-in-out 1',
                 pointerEvents: 'none',
               }} />
             )}
@@ -1234,11 +1234,12 @@ export default function CompactWidgetPill() {
   // Trainer idle detection: wave is active for 40s after the last answer
   useEffect(() => {
     if (lastAnswerAt === 0) { setTrainerWaveActive(false); return }
-    setTrainerWaveActive(Date.now() - lastAnswerAt < 40000)
-    const iv = setInterval(() => {
-      setTrainerWaveActive(Date.now() - lastAnswerAt < 40000)
-    }, 1000)
-    return () => clearInterval(iv)
+    const left = 40000 - (Date.now() - lastAnswerAt)
+    setTrainerWaveActive(left > 0)
+    if (left <= 0) return
+    // Один таймер на остаток, а не тик раз в секунду навсегда.
+    const to = setTimeout(() => setTrainerWaveActive(false), left)
+    return () => clearTimeout(to)
   }, [lastAnswerAt])
 
   // When a homework answer lands and the pill is not already showing the Stats

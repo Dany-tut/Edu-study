@@ -76,7 +76,9 @@ function GesturePreview({ gesture, action, engagement }: {
   // Перезапуск при любой смене жеста или действия: `key` на моторе кадров.
   const key = `${gesture}:${action}:${engagement}`
 
-  const loop = { repeat: Infinity, repeatDelay: 0.55, ease: EASE }
+  // Три показа и стоп: лист настроек открыт подолгу, а демо крутилось без конца.
+  // Смена жеста перезапускает его по key.
+  const loop = { repeat: 2, repeatDelay: 0.55, ease: EASE }
 
   // Карточка: свайп её везёт, тапы — вжимают.
   const card = dead

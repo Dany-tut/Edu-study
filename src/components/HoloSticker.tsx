@@ -52,6 +52,8 @@ function webglOk() {
 /** «Приклеивание»: сколько уголок висит отогнутым, прежде чем лечь, и сколько ложится */
 const REVEAL_HOLD = 260
 const REVEAL_MS = 1700
+// Сколько гуляет блик после появления или касания — потом стикер стоит.
+const SWEEP_MS = 6000
 /**
  * В reveal-режиме статичный бейдж не показываем сразу: он плоский, и его
  * подмена на отогнутый WebGL читалась как «стикер приклеился → отклеился до
@@ -109,6 +111,8 @@ export default function HoloSticker({
   propsRef.current = { interactive, sweep, reveal }
   /** Битмап следующего стикера — цикл подхватит его на ближайшем кадре. */
   const pendingRef = useRef<ImageBitmap | null>(null)
+  // Будит цикл рендера: он крутится только пока есть что показывать.
+  const wakeRef = useRef<(ms: number) => void>(() => {})
 
   useEffect(() => {
     if (!reveal) { setFallbackReady(true); return }
@@ -210,13 +214,23 @@ export default function HoloSticker({
 
       // rAF в некоторых окружениях (Claude Preview) не срабатывает —
       // если через 400 мс нет ни кадра, переключаемся на таймер.
-      const loop = () => { draw(); if (!dead) raf = requestAnimationFrame(loop) }
+      // РИСУЕМ ПО ДЕЛУ, А НЕ ВСЕГДА. Раньше цикл жил, пока жив компонент: блик
+      // гулял вечно, а вне экрана rAF всё равно тикал вхолостую. Теперь кадры
+      // идут, пока приклеивается стикер, пока на нём палец/мышь и ещё
+      // SWEEP_MS после — потом стикер замирает на последнем кадре.
+      let activeUntil = performance.now() + (still ? 0 : SWEEP_MS)
+      const busy = () => !!pointerRef.current || !!pendingRef.current || !renderer.hasImage() || performance.now() < activeUntil
+      const loop = () => { raf = 0; draw(); if (!dead && visible && busy()) raf = requestAnimationFrame(loop) }
+      wakeRef.current = (ms: number) => {
+        if (!still) activeUntil = Math.max(activeUntil, performance.now() + ms)
+        if (!raf && !dead && visible) raf = requestAnimationFrame(loop)
+      }
       raf = requestAnimationFrame(loop)
       guard = setTimeout(() => { if (frames === 0 && !dead) timer = setInterval(draw, 33) }, 400)
 
       // не жжём GPU, пока стикер за экраном
       if (hostRef.current && 'IntersectionObserver' in window) {
-        io = new IntersectionObserver(([e]) => { visible = e.isIntersecting }, { threshold: 0.05 })
+        io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) wakeRef.current(0) }, { threshold: 0.05 })
         io.observe(hostRef.current)
       }
     })()
@@ -237,7 +251,7 @@ export default function HoloSticker({
   useEffect(() => {
     let stale = false
     stickerBitmap({ score, label, sublabel, stickerId, emblem }).then(bmp => {
-      if (!stale) pendingRef.current = bmp
+      if (!stale) { pendingRef.current = bmp; wakeRef.current(REVEAL_HOLD + REVEAL_MS + SWEEP_MS) }
     })
     return () => { stale = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -257,8 +271,9 @@ export default function HoloSticker({
           x: ((e.clientX - r.left) / r.width) * 2 - 1,
           y: 1 - ((e.clientY - r.top) / r.height) * 2,
         }
+        wakeRef.current(600)
       }}
-      onPointerLeave={() => { pointerRef.current = null }}
+      onPointerLeave={() => { pointerRef.current = null; wakeRef.current(600) }}
     >
       {/* Без key: элемент канваса живёт от монтирования до размонтирования.
           Свежий <canvas> под WebGL успевает мигнуть белым до первого композита. */}
