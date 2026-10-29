@@ -17,8 +17,8 @@ import BackCircle from '../../components/BackCircle'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   border: '1px solid var(--color-border-glass)',
   borderRadius: 20,
   boxShadow: 'var(--shadow-sm-page)',

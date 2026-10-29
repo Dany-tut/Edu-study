@@ -1443,8 +1443,8 @@ export default function CompactWidgetPill() {
         // more opaque recipe (same opacity / border / shadow); elsewhere it
         // keeps the lighter glass that mirrors the bar's non-compact state.
         background: overDarkDock ? 'rgba(var(--glass-rgb), 0.92)' : 'rgba(var(--glass-rgb), 0.72)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: overDarkDock ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
         boxShadow: overDarkDock
           ? 'var(--shadow-lg)'

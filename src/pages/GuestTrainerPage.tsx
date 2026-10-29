@@ -134,8 +134,8 @@ function GuestBar({ onLead }: { onLead: () => void }) {
           width: '100%', maxWidth: 760, boxSizing: 'border-box',
           padding: '12px 14px 12px 18px', borderRadius: 20,
           background: 'rgba(var(--glass-rgb), 0.94)',
-          backdropFilter: 'blur(14px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+          backdropFilter: 'var(--blur-glass)',
+          WebkitBackdropFilter: 'var(--blur-glass)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: 'var(--shadow-4)',
         }}

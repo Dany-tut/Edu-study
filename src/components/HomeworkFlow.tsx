@@ -410,8 +410,8 @@ function ResultModal({
         position: 'fixed', inset: 0, zIndex: 200,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: 'rgba(11,11,18,0.48)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
+        backdropFilter: 'var(--blur-thin)',
+        WebkitBackdropFilter: 'var(--blur-thin)',
         padding: 20,
       }}
     >
@@ -2951,8 +2951,8 @@ export default function HomeworkFlow({
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     boxShadow: 'var(--shadow-lg)',
   } as const
 
@@ -5085,8 +5085,8 @@ function BottomProgressBar({
           borderRadius: 18,
           background: 'rgba(var(--glass-rgb), 0.62)',
           border: '1px solid var(--color-border-glass)',
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+          backdropFilter: 'var(--blur-glass)',
+          WebkitBackdropFilter: 'var(--blur-glass)',
           boxShadow: 'var(--shadow-sm)',
         }}
       >
@@ -5194,8 +5194,8 @@ function BottomProgressBar({
               borderRadius: 18,
               background: 'rgba(var(--glass-rgb), 0.62)',
               border: '1px solid var(--color-border-glass)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               boxShadow: 'var(--shadow-sm)',
             }}
           >

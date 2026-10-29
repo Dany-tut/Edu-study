@@ -40,8 +40,8 @@ import ScrollFade from '../ScrollFade'
  * фон дают каждой таблетке собственное стекло, как у плавающего топбара.
  */
 export const PILL_GLASS: CSSProperties = {
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
 }
 
 /**
@@ -92,8 +92,8 @@ const pillStyle = (open: boolean, extra?: CSSProperties): CSSProperties => ({
 
 const menuStyle: CSSProperties = {
   position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170,
-  background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+  background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)', borderRadius: 14,
   boxShadow: 'var(--shadow-4)', padding: 6,
 }

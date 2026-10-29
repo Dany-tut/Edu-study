@@ -11,6 +11,7 @@ import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -404,7 +405,7 @@ export default function TeacherFinancesPage() {
   // instead of hard-clipping (shared scroll-under-topbar recipe).
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100 }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '128px 24px 60px' }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '128px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>

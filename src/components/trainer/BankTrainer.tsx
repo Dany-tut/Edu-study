@@ -177,7 +177,7 @@ function FilterField({ label, options, value, onChange, accent }: {
             // sheet anchored to the field's bottom edge.
             position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 50,
             background: 'rgba(var(--glass-rgb), 0.9)',
-            backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-glass)', borderRadius: 13,
             boxShadow: 'var(--shadow-modal-sm)', overflow: 'hidden',
           }}
@@ -250,8 +250,8 @@ function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void;
               padding: '6px 10px 6px 8px',
               borderRadius: 999,
               background: 'rgba(var(--glass-rgb), 0.22)',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
               whiteSpace: 'nowrap',
@@ -1184,8 +1184,8 @@ function ProgressModal({
         style={{
           width: '100%', maxWidth: 520, maxHeight: '85dvh',
           background: 'rgba(var(--glass-rgb), 0.98)',
-          backdropFilter: 'blur(28px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-glass)',
           borderRadius: 22, boxShadow: 'var(--shadow-5)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -1813,7 +1813,7 @@ export default function BankTrainer({ subjectState }: {
           // Тот же корпус, что у нижней навигации и дока: заливка 0.78 —
           // ниже неё контент под стеклом читался сквозь круг.
           background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-          backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
           color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
         }}
       >
@@ -1990,7 +1990,7 @@ export default function BankTrainer({ subjectState }: {
                 paddingRight: 16,
                 borderRadius: 999, overflow: 'hidden',
                 background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-                backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
                 border: '1px solid var(--color-border-glass)',
                 boxShadow: 'var(--shadow-pill)',
                 cursor: searchExpanded ? 'text' : 'pointer', pointerEvents: 'auto',
@@ -2104,8 +2104,8 @@ export default function BankTrainer({ subjectState }: {
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 18px', borderRadius: 999,
               background: 'rgba(var(--glass-rgb), 0.88)',
-              backdropFilter: 'blur(24px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: 'var(--shadow-filter)',
             }}
@@ -2141,8 +2141,8 @@ export default function BankTrainer({ subjectState }: {
               padding: '12px 22px 12px 18px',
               borderRadius: 999,
               background: dark ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.72)',
-              backdropFilter: 'blur(32px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               border: dark ? '1px solid rgba(255,255,255,0.16)' : '1px solid rgba(255,255,255,0.9)',
               boxShadow: dark
                 ? '0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)'

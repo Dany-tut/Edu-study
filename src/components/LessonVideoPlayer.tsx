@@ -1026,7 +1026,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               transition={{ duration: 0.15 }}
               style={{
                 display: 'flex', alignItems: 'baseline', gap: 10, padding: '10px 18px',
-                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
+                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'var(--blur-thin)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
               }}
             >
@@ -1059,7 +1059,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               transition={{ duration: 0.15 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: touch ? 6 : 10, padding: touch ? '4px 10px' : '8px 14px',
-                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
+                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'var(--blur-thin)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
                 maxWidth: 'calc(100% - 24px)',
               }}

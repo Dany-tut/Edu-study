@@ -39,6 +39,7 @@ import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './Scr
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
+import { PAGE_WIDTH } from '../lib/pageWidth'
 
 /**
  * Поля ответа в тесте живут по тем же правилам, что и в домашке: обнимают
@@ -137,7 +138,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
   }).length
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 20px 80px' }}>
+    <div style={{ maxWidth: PAGE_WIDTH.reading, margin: '0 auto', padding: '12px 20px 80px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <BackCircle onClick={onBack} />

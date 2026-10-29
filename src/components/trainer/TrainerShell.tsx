@@ -1649,8 +1649,8 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
         background: PILL_BG,
         border: '1px solid var(--color-border)',
         boxShadow: 'var(--shadow-1)',
-        backdropFilter: 'blur(18px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
       }}
     >
       {pill.pillRect && (
@@ -1664,8 +1664,8 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
             background: accent
               ? `linear-gradient(${accent}26, ${accent}26), rgba(var(--glass-rgb), 0.82)`
               : 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
-            backdropFilter: 'blur(16px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            backdropFilter: 'var(--blur-glass)',
+            WebkitBackdropFilter: 'var(--blur-glass)',
             boxShadow: 'var(--shadow-tab-pill)',
             border: `1px solid ${accent ? `${accent}59` : 'var(--color-border-glass)'}`,
             pointerEvents: 'none', zIndex: 0,
@@ -1766,8 +1766,8 @@ export function ToolButton({ children, on, onClick, accent, btnRef, icon, label 
  * рябь, и таблетка остаётся стеклом, а не глухой плашкой.
  */
 export const PILL_GLASS = {
-  backdropFilter: 'blur(18px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
 } as const
 
 /**

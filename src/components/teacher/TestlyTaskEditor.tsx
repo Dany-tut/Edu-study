@@ -37,7 +37,7 @@ export default function TestlyTaskEditor({ value, onChange }: {
             <ExternalLink size={13} /> {t('Открыть в Тестли')}
           </a>
           <button onClick={() => setPicking(p => !p)} style={{
-            padding: '8px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent',
+            padding: '8px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent',
             color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
           }}>
             {picking ? t('Скрыть') : t('Другой тест')}

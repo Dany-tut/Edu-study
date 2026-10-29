@@ -26,6 +26,7 @@ import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
 import { Alert } from '../../components/Alert'
 import SeasonAdmin from '../../components/teacher/SeasonAdmin'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -176,8 +177,8 @@ function InviteModal({ onClose }: { onClose: () => void }) {
           pointerEvents: 'auto',
           width: 560, maxWidth: '100%', maxHeight: '86vh', overflowY: 'auto',
           background: 'var(--color-bg-2)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 24, padding: 24,
           boxShadow: 'var(--shadow-5)',
@@ -1023,7 +1024,7 @@ export default function TeacherAdminPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>

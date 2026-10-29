@@ -11,8 +11,8 @@ export const DROPDOWN_GLASS = 'rgba(var(--glass-rgb), 0.96)'
 /** Коробка списка (позиционирование — на стороне вызывающего). */
 export const dropdownSurface: CSSProperties = {
   background: DROPDOWN_GLASS,
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   border: '1px solid var(--color-border-glass)',
   borderRadius: 14,
   boxShadow: 'var(--shadow-dropdown)',

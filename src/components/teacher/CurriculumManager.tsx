@@ -12,6 +12,7 @@ import { useTeacherAccess } from '../../lib/teacherAccess'
 import { bankSubjectOptionsFor, subjectIcon } from '../../lib/subjects'
 import SubjectPicker from './SubjectPicker'
 import { useT } from '../../lib/i18n'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // ── Reveal-on-right-hover ─────────────────────────────────────────────────────
 // The delete button stays hidden until the cursor enters the right quarter of
@@ -319,7 +320,7 @@ export default function CurriculumManager() {
   const totalTopics = Object.values(data.topics).reduce((s, t) => s + t.length, 0)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 960, margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: PAGE_WIDTH.wide, margin: '0 auto' }}>
       {/* Intro / controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

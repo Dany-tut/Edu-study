@@ -207,7 +207,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
                           padding: '10px 12px', borderRadius: 14, opacity: 0.72,
-                          background: 'rgba(var(--glass-rgb), 0.5)', border: '1.5px solid var(--color-border-medium)',
+                          background: 'rgba(var(--glass-rgb), 0.5)', border: '1px solid var(--color-border-medium)',
                         }}
                       >
                         <span
@@ -260,7 +260,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
                   style={{
-                    padding: '0 18px', height: 42, borderRadius: 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
+                    padding: '0 18px', height: 42, borderRadius: 12, border: '1px solid var(--color-border-strong)', cursor: 'pointer',
                     background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
                   }}
                 >

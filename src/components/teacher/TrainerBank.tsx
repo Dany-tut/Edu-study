@@ -64,7 +64,7 @@ function CopyableIdBadge({ id }: { id: number }) {
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '6px 10px 6px 8px', borderRadius: 999,
               background: 'rgba(var(--glass-rgb), 0.22)',
-              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+              backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
               whiteSpace: 'nowrap',
@@ -116,7 +116,7 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '6px 10px 6px 8px', borderRadius: 999,
               background: 'rgba(var(--glass-rgb), 0.22)',
-              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+              backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
               whiteSpace: 'nowrap',
@@ -616,7 +616,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}
           style={{
             position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
-            background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-glass)', borderRadius: 14,
             boxShadow: 'var(--shadow-4)', padding: 6,
             // Свой скролл — единственный живой, пока меню открыто. `contain`

@@ -148,7 +148,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
                       background: 'rgba(var(--glass-rgb), 0.55)', borderRadius: 12, padding: '10px 12px',
-                      border: '1.5px solid var(--color-border-medium)', opacity: 0.78,
+                      border: '1px solid var(--color-border-medium)', opacity: 0.78,
                       transition: 'background 0.15s',
                     }}
                     onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.85)')}
@@ -179,7 +179,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
             <button
               onClick={onClose}
               style={{
-                padding: '10px 20px', borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
+                padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)',
                 background: 'rgba(var(--glass-rgb), 0.6)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer',
               }}
             >

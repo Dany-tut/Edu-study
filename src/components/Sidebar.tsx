@@ -84,8 +84,8 @@ const panelBox = {
   // touch more opaque (0.72) so the label, divider and "Настройки" text keep
   // enough contrast even when the popover floats over a dark video backdrop.
   background: 'rgba(var(--glass-rgb), 0.96)',
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: 'var(--shadow-dropdown)',
   boxSizing: 'border-box',
@@ -430,8 +430,8 @@ export default function Sidebar() {
         width: 'fit-content',
         boxSizing: 'border-box',
         background: 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-glass)',
         boxShadow: 'var(--shadow-pill)',
         display: 'flex',

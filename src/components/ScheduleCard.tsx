@@ -124,8 +124,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
           style={{
             padding: '16px',
             background: 'rgba(var(--glass-rgb), 0.85)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            backdropFilter: 'var(--blur-solid)',
+            WebkitBackdropFilter: 'var(--blur-solid)',
             boxShadow: 'var(--shadow-3)',
           }}
         >
@@ -252,7 +252,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
           style={{
             padding: '14px 16px',
             background: `rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80})`,
-            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+            backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
             boxShadow: 'var(--shadow-2)',
           }}
         >

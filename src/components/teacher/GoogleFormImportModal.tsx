@@ -164,7 +164,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
                 <button
                   onClick={() => setForm(null)}
-                  style={{ padding: '10px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                 >
                   {t('Назад')}
                 </button>

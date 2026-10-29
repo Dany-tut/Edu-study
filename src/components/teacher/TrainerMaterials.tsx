@@ -937,8 +937,8 @@ function segmentsOf(item: Row): Segment[] {
 const pageGlass = {
   border: '1px solid var(--color-border-glass)',
   background: 'rgba(var(--glass-rgb), 0.86)',
-  backdropFilter: 'blur(14px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   boxShadow: 'var(--shadow-lg)',
 } as const
 

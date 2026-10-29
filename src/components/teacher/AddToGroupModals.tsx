@@ -88,7 +88,7 @@ export function PickStudentModal({
               key={key} disabled={busy} onClick={() => onPick(person)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                 borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
                 opacity: busy ? 0.6 : 1,
               }}
@@ -173,7 +173,7 @@ export function PickGroupModal({
                 key={g.id} disabled={busy} onClick={() => onPick(g.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                  background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                  background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                   borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
                   opacity: busy ? 0.6 : 1,
                 }}
@@ -289,7 +289,7 @@ export function AddExistingIndividualModal({
                 <button key={key} onClick={() => { setPicked({ person, registered }); setStep('subject') }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                    background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                    background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                     borderRadius: 14, cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-accent)' }}

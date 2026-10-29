@@ -160,8 +160,8 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 16,
         boxShadow: 'var(--shadow-4)',
@@ -247,8 +247,8 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 14,
         boxShadow: 'var(--shadow-4)',
@@ -492,7 +492,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           style={{
             width: 520, borderRadius: 22,
             background: 'rgba(var(--glass-rgb), 0.96)',
-            backdropFilter: 'blur(24px) saturate(200%)',
+            backdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-glass)',
             boxShadow: 'var(--shadow-modal)',
             overflow: 'visible',
@@ -589,8 +589,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
                       marginTop: 6,
                       background: 'rgba(var(--glass-rgb), 0.72)',
-                      backdropFilter: 'blur(20px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(20px) saturate(200%)',
+                      backdropFilter: 'var(--blur-solid)',
+                      WebkitBackdropFilter: 'var(--blur-solid)',
                       border: '1px solid var(--color-border-glass)',
                       borderRadius: 14,
                       boxShadow: 'var(--shadow-dropdown)',
@@ -744,7 +744,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 onClick={handleClose}
                 style={{
                   flex: 1, padding: '12px 0', borderRadius: 14,
-                  border: '1.5px solid var(--color-border-soft)', background: 'transparent',
+                  border: '1px solid var(--color-border-soft)', background: 'transparent',
                   fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', cursor: 'pointer',
                 }}
               >

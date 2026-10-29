@@ -275,8 +275,8 @@ function tileDropdownStyle(up: boolean): React.CSSProperties {
     padding: 8,
     borderRadius: 16,
     background: 'rgba(var(--glass-rgb), 0.92)',
-    backdropFilter: 'blur(24px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+    backdropFilter: 'var(--blur-solid)',
+    WebkitBackdropFilter: 'var(--blur-solid)',
     border: '1px solid var(--color-border-glass)',
     boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
   }
@@ -896,8 +896,8 @@ export default function LessonPage() {
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     boxShadow: 'var(--shadow-lg)',
   } as const
 

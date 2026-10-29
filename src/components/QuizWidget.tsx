@@ -35,8 +35,8 @@ const RESULT_DELAY = 1600
 
 const cardStyle: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.92)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
+  backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: '0 4px 32px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
 }
@@ -301,7 +301,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 className="rounded-2xl text-left cursor-pointer"
                 style={{
                   padding: '4px 12px', fontSize: 13, fontWeight: 500,
-                  background: 'var(--color-bg)', color: 'var(--color-text)', border: '1.5px solid var(--color-border)',
+                  background: 'var(--color-bg)', color: 'var(--color-text)', border: '1px solid var(--color-border)',
                   minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', overflow: 'hidden',
                 }}
               >

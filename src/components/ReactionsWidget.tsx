@@ -24,7 +24,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
 
   if (!reaction) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
-      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
+      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border-glass)' }}>
       <span style={{ fontSize: 24 }}>⚗️</span>
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Реакции курса')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
@@ -50,8 +50,8 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
       className="flex h-full w-full overflow-hidden rounded-[24px]"
       style={{
         background: 'rgba(var(--glass-rgb), 0.9)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border-glass)',
         boxShadow: 'var(--shadow-3)',
       }}

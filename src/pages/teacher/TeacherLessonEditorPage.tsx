@@ -98,8 +98,8 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 16,
         boxShadow: 'var(--shadow-4)',
@@ -157,8 +157,8 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 14,
         boxShadow: 'var(--shadow-4)',
@@ -536,7 +536,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
-              border: '1.5px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent',
+              border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent',
               color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
             }}
           >
@@ -843,8 +843,8 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
       width: 240, flexShrink: 0,
       padding: 16, borderRadius: 18,
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       boxShadow: 'var(--shadow-sm-page)',
       display: 'flex', flexDirection: 'column', gap: 14,
@@ -1193,8 +1193,8 @@ export default function TeacherLessonEditorPage() {
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     boxShadow: 'var(--shadow-lg)',
   } as const
 

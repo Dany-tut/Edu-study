@@ -30,6 +30,7 @@ import { bookMark, bookShort, type Textbook, type TextbookAccess, type TextbookK
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
 import { TileChip } from './TrainerShell'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 /** Иконка типа — фоновый знак там, где иероглифического знака у языка нет. */
 const KIND_ICON: Record<TextbookKind, typeof BookOpen> = {
@@ -111,7 +112,7 @@ export function BookShelf({ books, lang, accent, soft }: {
 }) {
   const t = useT()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 820 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: PAGE_WIDTH.form }}>
       {books.map(book => (
         <article
           key={book.id}

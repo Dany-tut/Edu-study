@@ -16,8 +16,8 @@ type Props = {
 // Matches the topbar glass card style
 const GLASS_STYLE: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
-  backdropFilter: 'blur(14px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: 'var(--shadow-pill)',
 }
@@ -56,8 +56,8 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '10px 24px',
           background: 'rgba(var(--glass-rgb), 0.96)',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           borderBottom: '1px solid var(--color-border-glass)',
           boxShadow: 'var(--shadow-3)',
         }}

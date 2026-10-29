@@ -457,7 +457,7 @@ export default function RichConditionEditor({
                   onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hexToRgba(hex, hlAlpha)) }}
                   style={{
                     width: 16, height: 16, borderRadius: 4,
-                    border: '1.5px solid rgba(0,0,0,0.12)',
+                    border: '1px solid rgba(0,0,0,0.12)',
                     background: hexToRgba(hex, hlAlpha), cursor: 'pointer', flexShrink: 0,
                   }}
                 />
@@ -467,7 +467,7 @@ export default function RichConditionEditor({
                 onMouseDown={e => { e.preventDefault(); exec('hiliteColor', 'transparent') }}
                 style={{
                   width: 16, height: 16, borderRadius: 4,
-                  border: '1.5px solid var(--color-border-medium)',
+                  border: '1px solid var(--color-border-medium)',
                   background: 'transparent', cursor: 'pointer', flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--color-text-3)',
@@ -524,7 +524,7 @@ export default function RichConditionEditor({
             <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => { drawDataRef.current = ''; setDrawMode(false) }}
-                style={{ padding: '6px 14px', borderRadius: 9, border: '1.5px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 {t('Отменить')}
               </button>

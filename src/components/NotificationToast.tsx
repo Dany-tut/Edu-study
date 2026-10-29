@@ -177,8 +177,8 @@ export default function NotificationToastContainer() {
               overflow: 'hidden',
               cursor: 'pointer',
               background: `radial-gradient(ellipse at top left, rgba(${rgb},0.18) 0%, rgba(var(--glass-rgb),0.96) 55%)`,
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               border: `1px solid rgba(${rgb},0.22)`,
               boxShadow: `0 8px 32px rgba(${rgb},0.12), 0 2px 10px rgba(0,0,0,0.08)`,
             }}

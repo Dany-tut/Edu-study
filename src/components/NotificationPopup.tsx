@@ -174,8 +174,8 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             overflow: 'hidden',
             transformOrigin: 'top center',
             background: 'rgba(var(--glass-rgb), 0.88)',
-            backdropFilter: 'blur(24px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            backdropFilter: 'var(--blur-solid)',
+            WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-medium)',
             boxShadow: '0 8px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)',
           }}

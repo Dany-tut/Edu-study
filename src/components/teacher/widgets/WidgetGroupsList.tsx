@@ -14,8 +14,8 @@ export default function WidgetGroupsList() {
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       borderRadius: 24,
       border: '1px solid var(--color-border-medium)',
       // shadow on wrapper

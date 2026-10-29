@@ -372,7 +372,7 @@ export default function WhiteboardCanvas({
   const HANDLES: Corner[] = ['tl', 'tr', 'bl', 'br']
 
   return (
-    <div style={{ border: '1.5px solid var(--color-border-medium)', borderRadius: 12, overflow: 'visible', position: 'relative' }}>
+    <div style={{ border: '1px solid var(--color-border-medium)', borderRadius: 12, overflow: 'visible', position: 'relative' }}>
       {!readOnly && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
@@ -549,7 +549,7 @@ export default function WhiteboardCanvas({
           zIndex: 9999,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
           background: 'var(--color-bg)',
-          border: '1.5px solid var(--color-border-medium)',
+          border: '1px solid var(--color-border-medium)',
           borderRadius: 10,
           padding: '8px 10px',
           boxShadow: 'var(--shadow-2)',

@@ -11,8 +11,8 @@ import { TAP_SCALE, JELLY_EASE, MOBILE_PILL_H } from '../lib/mobileTokens'
 
 const glassBase: CSSProperties = {
   background: 'rgba(var(--glass-rgb), var(--glass-fill-top))',
-  backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+  backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: 'var(--shadow-bar)',
 }

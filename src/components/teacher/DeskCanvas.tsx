@@ -92,7 +92,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
 
   if (!def) return (
     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(var(--glass-rgb), 0.5)', borderRadius: 16, border: '1.5px solid var(--color-border-medium)' }}>
+      background: 'rgba(var(--glass-rgb), 0.5)', borderRadius: 16, border: '1px solid var(--color-border-medium)' }}>
       <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>{t('Неизвестный виджет')}</span>
     </div>
   )
@@ -109,7 +109,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
           // десяток, и десять вращающихся точек читаются как «всё сломалось»,
           // тогда как проступающая раскладка — как «сейчас будет».
           <div aria-busy="true" style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb),0.5)',
-            borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
+            borderRadius: 16, border: '1px solid var(--color-border-medium)',
             display: 'flex', flexDirection: 'column', gap: 12, padding: 18, overflow: 'hidden' }}>
             <Skeleton w="46%" h={13} />
             <Skeleton w="72%" h={24} radius={9} />

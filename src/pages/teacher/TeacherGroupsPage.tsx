@@ -256,7 +256,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
             disabled={groups.length === 0}
             style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-              background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+              background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
               borderRadius: 16, cursor: groups.length > 0 ? 'pointer' : 'not-allowed',
               opacity: groups.length === 0 ? 0.45 : 1, textAlign: 'left',
             }}
@@ -278,7 +278,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
             onClick={onPickIndividual}
             style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-              background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+              background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
               borderRadius: 16, cursor: 'pointer', textAlign: 'left',
             }}
           >
@@ -298,7 +298,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
               onClick={onPickExisting}
               style={{
                 display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-                background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                 borderRadius: 16, cursor: 'pointer', textAlign: 'left',
               }}
             >
@@ -825,8 +825,8 @@ function Card({
       onClick={onClick}
       style={{
         background: 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-glass)',
         borderRadius: 22,
         boxShadow: 'var(--shadow-sm-page)',
@@ -1159,8 +1159,8 @@ function GroupCard({
       className="group-card"
       style={{
         background: isActive ? `${group.color}14` : 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: isActive ? `1.5px solid ${group.color}` : '1px solid var(--color-border-glass)',
         borderRadius: 22,
         boxShadow: isActive
@@ -1921,8 +1921,8 @@ function StudentPanel({
       style={{
         width: 320, flexShrink: 0, flex: 1, minHeight: 0,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',

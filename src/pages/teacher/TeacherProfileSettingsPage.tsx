@@ -19,6 +19,7 @@ import { useTeacherAccess } from '../../lib/teacherAccess'
 import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
 import TeacherModules from '../../components/teacher/TeacherModules'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -172,7 +173,7 @@ export default function TeacherProfileSettingsPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>

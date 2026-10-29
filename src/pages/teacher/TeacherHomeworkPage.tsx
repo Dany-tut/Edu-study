@@ -80,8 +80,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
       boxShadow: 'var(--shadow-sm-page)',
@@ -118,8 +118,8 @@ function AssignForm({ onClose }: { onClose: () => void }) {
       style={{
         width: 332, flexShrink: 0, flex: 1, minHeight: 0,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',
@@ -407,8 +407,8 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
       style={{
         width: 332, flexShrink: 0, flex: 1, minHeight: 0,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',

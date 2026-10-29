@@ -209,8 +209,8 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
               position: 'fixed', zIndex: 201,
               display: 'flex', flexDirection: 'column',
               background: 'rgba(var(--glass-rgb), 0.98)',
-              backdropFilter: 'blur(18px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               ...(isDesktop
                 ? {
                   top: 0, right: 0, bottom: 0, width: 'min(520px, 92vw)',

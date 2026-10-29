@@ -178,7 +178,7 @@ function ReviewBottomBar({
         display: 'flex', alignItems: 'center', flex: 1, minWidth: 0,
         height: 44, padding: '12px 16px', borderRadius: 18,
         background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
-        backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         boxShadow: 'var(--shadow-sm)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0, height: 20 }}>
@@ -220,7 +220,7 @@ function ReviewBottomBar({
         flexShrink: 0, height: 44, display: 'flex', alignItems: 'center',
         padding: '0 14px', borderRadius: 18,
         background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
-        backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         boxShadow: 'var(--shadow-sm)',
       }}>
         {remaining === 0 ? (
@@ -415,8 +415,8 @@ export default function TeacherHomeworkReviewPage() {
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     boxShadow: 'var(--shadow-lg)',
   } as const
 
@@ -857,7 +857,7 @@ function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled:
       style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
         border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.86)',
-        backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         boxShadow: 'var(--shadow-lg)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',

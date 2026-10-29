@@ -67,8 +67,8 @@ export default function MobileTeacherNav({
         style={{
           borderRadius: '28px',
           background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-          backdropFilter: 'blur(28px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-glass)',
           // Тень бара из темы: свой белый inset 0.5 в тёмной теме рисовал
           // жёсткую линию по верхнему краю. [[feedback-glass-no-white-inset]]

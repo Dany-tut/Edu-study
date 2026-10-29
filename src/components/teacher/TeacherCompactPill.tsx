@@ -700,8 +700,8 @@ export default function TeacherCompactPill() {
           position: 'relative',
           cursor: 'pointer',
           background: 'rgba(var(--glass-rgb), 0.75)',
-          backdropFilter: 'blur(14px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+          backdropFilter: 'var(--blur-glass)',
+          WebkitBackdropFilter: 'var(--blur-glass)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: 'var(--shadow-pill)',
           overflow: 'hidden',
@@ -714,8 +714,8 @@ export default function TeacherCompactPill() {
           transition={{ duration: blurOn ? 0.10 : 0.28, ease: 'easeOut' }}
           style={{
             position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-            backdropFilter: 'blur(18px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(18px) saturate(200%)',
+            backdropFilter: 'var(--blur-glass)',
+            WebkitBackdropFilter: 'var(--blur-glass)',
             background: 'rgba(var(--glass-rgb), 0.55)',
           }}
         />

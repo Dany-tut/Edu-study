@@ -30,6 +30,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { useKeyboardState } from '../lib/useKeyboardInset'
+import { PAGE_WIDTH } from '../lib/pageWidth'
 
 export default function HomeworkFlowBar({
   step,
@@ -88,7 +89,7 @@ export default function HomeworkFlowBar({
     >
       <div
         className="flex flex-col"
-        style={{ gap: 12, padding: '14px 20px 16px', maxWidth: 720, margin: '0 auto' }}
+        style={{ gap: 12, padding: '14px 20px 16px', maxWidth: PAGE_WIDTH.reading, margin: '0 auto' }}
       >
         {/* Прогресс — тонкая полоска над кнопкой, а не край панели: она и так на
             экране всегда, отдельная шкала наверху отняла бы у задания вертикаль. */}
@@ -120,7 +121,7 @@ export default function HomeworkFlowBar({
                 // Прозрачной кнопке нужен был фон панели; без панели она читалась
                 // бы поверх текста задания, поэтому у неё своё стекло.
                 background: 'rgba(var(--glass-rgb), 0.86)',
-                backdropFilter: 'blur(14px)',
+                backdropFilter: 'var(--blur-glass)',
                 boxShadow: 'var(--shadow-3)',
                 color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                 flexShrink: 0, pointerEvents: 'auto',

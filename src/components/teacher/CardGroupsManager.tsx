@@ -110,8 +110,8 @@ const MAT_BG = 'var(--color-peach-soft)'
 const cardStyle: React.CSSProperties = {
   borderRadius: 18, border: '1px solid var(--color-border-glass)',
   background: 'rgba(var(--glass-rgb), 0.88)',
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   boxShadow: 'var(--shadow-sm-page)',
   padding: 16,
 }

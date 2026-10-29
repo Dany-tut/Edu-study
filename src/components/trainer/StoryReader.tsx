@@ -24,6 +24,7 @@ import type { StoryChapter, LanguageStory } from '../../data/languageStory'
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
 import { Tile, TileGrid, TileMeter, TileChip } from './TrainerShell'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 /** Витрина глав. */
 export function StoryGrid({ story, read, accent, soft, onOpen }: {
@@ -96,7 +97,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
   const last = at === chapter.cards.length - 1
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 720, margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: PAGE_WIDTH.reading, margin: '0 auto', width: '100%' }}>
       {/* Полоска шагов: сколько прошли и сколько осталось. Отдельными
           сегментами, а не сплошной линией, — по ней видно, что шагов семь, а
           не «примерно половина». */}

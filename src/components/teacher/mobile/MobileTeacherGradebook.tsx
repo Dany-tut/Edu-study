@@ -198,8 +198,8 @@ export default function MobileTeacherGradebook() {
                   borderRadius: 18, textAlign: 'left', position: 'relative', overflow: 'hidden',
                   ...(first ? {
                     background: 'linear-gradient(135deg, rgba(255,190,50,0.22) 0%, rgba(255,120,30,0.14) 100%)',
-                    backdropFilter: 'blur(18px)',
-                    WebkitBackdropFilter: 'blur(18px)',
+                    backdropFilter: 'var(--blur-glass)',
+                    WebkitBackdropFilter: 'var(--blur-glass)',
                     border: '1px solid rgba(255,175,40,0.35)',
                     boxShadow: '0 6px 28px rgba(255,150,20,0.22), inset 0 1px 0 rgba(255,220,100,0.18)',
                   } : {

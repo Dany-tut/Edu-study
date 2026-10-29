@@ -176,7 +176,7 @@ function GoogleFormBankCategoryModal({
             options={SOURCES.map(s => ({ value: s, label: s }))} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
-          <button onClick={onClose} style={{ padding: '10px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
+          <button onClick={onClose} style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
           <button onClick={handleConfirm} disabled={saving}
             style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
             {t('Импортировать')} {questions.length}
@@ -519,8 +519,8 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 18,
       boxShadow: 'var(--shadow-sm-page)',
@@ -532,8 +532,8 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
 const dockGlass = {
   border: '1px solid var(--color-border-glass)',
   background: 'rgba(var(--glass-rgb), 0.86)',
-  backdropFilter: 'blur(14px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   boxShadow: 'var(--shadow-lg)',
 } as const
 
@@ -1228,7 +1228,7 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
             style={{
               position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
               zIndex: 20, minWidth: 170, maxWidth: 240,
-              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)', borderRadius: 12, padding: '8px 10px',
               boxShadow: 'var(--shadow-3)', cursor: 'default',
             }}
@@ -1600,7 +1600,7 @@ function WidgetFilterPanel({
       style={{
         ...lift,
         width: 240, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
-        background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: 'var(--shadow-3)', padding: 16,
         display: 'flex', flexDirection: 'column', gap: 12,
       }}
@@ -1920,8 +1920,8 @@ function LessonNameInput({ value, onChange, onAdd }: {
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 60,
               padding: 8, borderRadius: 14,
               background: 'rgba(var(--glass-rgb), 0.96)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               border: '1px solid var(--color-border)',
               boxShadow: 'var(--shadow-4)',
             }}
@@ -3410,7 +3410,7 @@ function CreatorView({
             {/* 4 ─ Объяснение */}
             <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
               <Label>{t('Объяснение / решение (показывается после ответа)')}</Label>
-              <div style={{ border: '1.5px solid var(--color-border-medium)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
+              <div style={{ border: '1px solid var(--color-border-medium)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
                 <textarea
                   ref={explTextareaRef}
                   value={tkSolution}
@@ -4005,7 +4005,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
               position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 50,
               borderRadius: 14, padding: '8px 8px 6px',
               background: 'rgba(var(--glass-rgb), 0.88)',
-              backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)',
+              backdropFilter: 'var(--blur-thin)', WebkitBackdropFilter: 'var(--blur-thin)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: 'var(--shadow-3)',
             }}>
@@ -5150,7 +5150,7 @@ function DiagResultStudentPanel({
       <motion.div
         initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(24px) saturate(1.4)', WebkitBackdropFilter: 'blur(24px) saturate(1.4)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={tn(result.name)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         {/* Полоса прокрутки поверх, а не своей колонкой: «Все вопросы» удлиняет
@@ -9425,7 +9425,7 @@ export default function TeacherConstructorPage() {
                     style={{
                       marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8,
                       height: PILL_H, boxSizing: 'border-box',
-                      padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                      padding: '0 18px', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: 'pointer',
                       background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                       color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                       boxShadow: 'var(--shadow-2)', flexShrink: 0,
@@ -9473,7 +9473,7 @@ export default function TeacherConstructorPage() {
                           style={{
                             display: 'flex', alignItems: 'center', gap: 8,
                             height: PILL_H, boxSizing: 'border-box',
-                            padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                            padding: '0 18px', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: 'pointer',
                             background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                             color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                             boxShadow: 'var(--shadow-2)',
@@ -9773,7 +9773,7 @@ export default function TeacherConstructorPage() {
                     {editMode && c.shared && (
                       <div title={t("Общий курс — только для чтения")} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
-                        border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
+                        border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
                         boxShadow: 'var(--shadow-1)', color: 'var(--color-text-3)',
                       }}>

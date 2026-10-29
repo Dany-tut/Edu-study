@@ -383,8 +383,8 @@ export default function TeacherStudentDashboardPage() {
   const dockGlass: React.CSSProperties = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     boxShadow: 'var(--shadow-lg)',
     fontFamily: 'inherit',
   }
@@ -492,7 +492,7 @@ export default function TeacherStudentDashboardPage() {
         >
           <button
             onClick={() => setActivePage('groups')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px 8px 12px', borderRadius: 999, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'color 0.15s', fontFamily: 'inherit' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px 8px 12px', borderRadius: 999, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'var(--blur-glass)', transition: 'color 0.15s', fontFamily: 'inherit' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
           >
@@ -501,7 +501,7 @@ export default function TeacherStudentDashboardPage() {
           </button>
           <button
             onClick={() => printStudentCard(tn(student.name))}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'var(--blur-glass)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit' }}
           >
             <Download size={14} />
             {t('Скачать PDF')}

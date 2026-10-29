@@ -95,7 +95,7 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
       style={{
         position: 'relative',
         background: isSelected ? accentBg : 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         border: isSelected ? `1.5px solid ${borderColor ?? accentColor}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: '18px 18px 12px', cursor: 'pointer',
         boxShadow: isSelected ? `0 0 0 3px color-mix(in srgb, ${borderColor ?? accentColor} 14%, transparent), 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',

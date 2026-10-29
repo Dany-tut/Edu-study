@@ -625,8 +625,8 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
             // видно, над каким местом текста карточка стоит, но читаемость
             // держит размытие, а не глухая заливка.
             background: 'rgba(var(--glass-rgb), 0.82)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            backdropFilter: 'var(--blur-solid)',
+            WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-strong)',
             boxShadow: 'var(--shadow-lg)', whiteSpace: 'normal',
             pointerEvents: pinned ? 'auto' : 'none',

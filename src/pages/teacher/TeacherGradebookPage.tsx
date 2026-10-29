@@ -85,8 +85,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
       boxShadow: 'var(--shadow-sm-page)',
@@ -479,7 +479,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         style={{
           background: 'rgba(var(--glass-rgb), 0.97)',
-          backdropFilter: 'blur(20px)',
+          backdropFilter: 'var(--blur-solid)',
           borderRadius: 22,
           boxShadow: 'var(--shadow-modal-lg)',
           width: 560, maxHeight: '82vh',
@@ -664,7 +664,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           <button
             onClick={onClose}
             style={{
-              padding: '10px 20px', borderRadius: 13, border: '1.5px solid var(--color-border-medium)',
+              padding: '10px 20px', borderRadius: 13, border: '1px solid var(--color-border-medium)',
               background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >

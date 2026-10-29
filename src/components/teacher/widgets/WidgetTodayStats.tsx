@@ -14,8 +14,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',

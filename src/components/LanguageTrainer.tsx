@@ -72,6 +72,7 @@ import { useScreenTop } from '../lib/useScreenTop'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
 import BackCircle from './BackCircle'
+import { PAGE_WIDTH } from '../lib/pageWidth'
 
 // Тренажёр для языковых предметов.
 //
@@ -1542,7 +1543,7 @@ export function Chips({ label, value, options, onChange, accent }: {
 // width: '100%' здесь обязателен. Родитель — flex-колонка, а у флекс-элемента с
 // auto-полем по поперечной оси растяжение отключается: без явной ширины блок
 // ужимается до max-content своего содержимого.
-const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' } as const
+const column = { width: '100%', maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '8px 20px 80px' } as const
 
 /** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
 /**

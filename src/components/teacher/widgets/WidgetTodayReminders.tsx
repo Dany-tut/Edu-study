@@ -44,8 +44,8 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '12px 14px', borderRadius: 18,
         background: done ? 'var(--color-green-soft)' : 'rgba(var(--glass-rgb), 0.62)',
-        backdropFilter: 'blur(10px) saturate(135%)',
-        WebkitBackdropFilter: 'blur(10px) saturate(135%)',
+        backdropFilter: 'var(--blur-thin)',
+        WebkitBackdropFilter: 'var(--blur-thin)',
         border: `1px solid ${done ? 'transparent' : 'var(--color-border-medium)'}`,
         boxShadow: done ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.16)',
         cursor: clickable ? 'pointer' : 'default',
@@ -143,7 +143,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           >
             <div>
               <div style={{ position: 'relative', zIndex: 3 }}>
-                <ReminderRow item={front} done={isDone(front)} onAction={undefined} style={{ paddingRight: 48, background: 'rgba(var(--glass-rgb), 0.80)', backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)' }} />
+                <ReminderRow item={front} done={isDone(front)} onAction={undefined} style={{ paddingRight: 48, background: 'rgba(var(--glass-rgb), 0.80)', backdropFilter: 'var(--blur-thin)', WebkitBackdropFilter: 'var(--blur-thin)' }} />
                 <div style={{
                   position: 'absolute', inset: 0, borderRadius: 16, overflow: 'hidden',
                   pointerEvents: 'none', zIndex: 1,
@@ -164,8 +164,8 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 height: 18, marginTop: -4, marginLeft: 12, marginRight: 12,
                 position: 'relative', zIndex: 2,
                 background: `color-mix(in srgb, ${accent} 14%, rgba(var(--glass-rgb), 0.55))`,
-                backdropFilter: 'blur(9px) saturate(135%)',
-                WebkitBackdropFilter: 'blur(9px) saturate(135%)',
+                backdropFilter: 'var(--blur-thin)',
+                WebkitBackdropFilter: 'var(--blur-thin)',
                 borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 24%, transparent)`,
                 borderRadius: '0 0 16px 16px',
               }} />
@@ -174,8 +174,8 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                   height: 18, marginTop: -6, marginLeft: 22, marginRight: 22,
                   position: 'relative', zIndex: 1,
                   background: `color-mix(in srgb, ${accent} 10%, rgba(var(--glass-rgb), 0.5))`,
-                  backdropFilter: 'blur(9px) saturate(135%)',
-                  WebkitBackdropFilter: 'blur(9px) saturate(135%)',
+                  backdropFilter: 'var(--blur-thin)',
+                  WebkitBackdropFilter: 'var(--blur-thin)',
                   borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
                   borderRadius: '0 0 16px 16px',
                 }} />
@@ -297,8 +297,8 @@ export default function WidgetTodayReminders() {
       height: '100%', width: '100%', overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',

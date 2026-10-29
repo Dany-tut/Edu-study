@@ -96,8 +96,8 @@ export default function PlayerPill({
         padding: inline ? (grown ? '0 8px 0 6px' : '0 4px 0 4px') : '10px 12px',
         borderRadius: inline ? undefined : 22,
         background: 'rgba(var(--glass-rgb), 0.86)',
-        backdropFilter: 'blur(28px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border-glass)',
         boxShadow: 'var(--shadow-pill)',
       }}

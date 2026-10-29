@@ -47,8 +47,8 @@ export default function ReviewNavPill() {
         padding: '6px 8px', borderRadius: 999,
         background: 'rgba(var(--glass-rgb), 0.86)',
         border: '1px solid var(--color-border-glass)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         boxShadow: 'var(--shadow-pill)',
       }}>
         <NavBtn disabled={reviewIdx === 0} onClick={() => go(reviewIdx - 1)} dir="left" />
@@ -64,8 +64,8 @@ export default function ReviewNavPill() {
         padding: '8px 14px', borderRadius: 999,
         background: 'rgba(var(--glass-rgb), 0.86)',
         border: '1px solid var(--color-border-glass)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         boxShadow: 'var(--shadow-pill)',
       }}>
         <CheckCircle2 size={14} style={{ color: allDone ? 'var(--color-green-text)' : 'var(--color-text-4)', flexShrink: 0 }} />

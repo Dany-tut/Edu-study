@@ -73,6 +73,7 @@ import { extraHwLabel, newExtraHwId } from '../../lib/extraHomework'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 import BackCircle from '../../components/BackCircle'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -308,8 +309,8 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 18,
       boxShadow: 'var(--shadow-sm-page)',
@@ -643,7 +644,7 @@ function AssignPicker({
               borderRadius: 12,
               border: on ? '1.5px solid var(--color-green-text)'
                 : needsPick ? '1.5px solid var(--color-yellow-text)'
-                : '1.5px solid var(--color-border)',
+                : '1px solid var(--color-border)',
               background: on ? 'var(--color-green-soft)' : 'transparent',
               transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}>
@@ -1095,7 +1096,7 @@ function CenterCourseAccess({
 
   return (
     <OverlayScrollArea style={{ flex: 1 }} padding="32px 48px">
-      <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
 
         {/* Who gets the course */}
         <div>
@@ -1313,8 +1314,8 @@ function ScheduleCard({
     <div style={{
       width: 248, flexShrink: 0,
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
@@ -1541,7 +1542,7 @@ function TimecodeRail({
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setBulk(null)}
-                style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {t('Отмена')}
               </button>
               <button onClick={applyBulk}
@@ -1570,7 +1571,7 @@ function TimecodeRail({
           onClick={() => setBulk(bulk === null ? '' : null)}
           title={t('Вставить списком')}
           style={{
-            width: 38, borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
+            width: 38, borderRadius: 12, border: '1px solid var(--color-border-medium)',
             background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
@@ -1671,7 +1672,7 @@ function CenterRecording({
           />
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setLinkMode(false)}
-              style={{ padding: '10px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('Отмена')}
             </button>
             <TeacherSaveButton label={t('Сохранить')} onClick={() => { onUpdate({ ...lesson, videoUrl }); setLinkMode(false) }} style={{ flex: 1 }} />
@@ -1696,7 +1697,7 @@ function CenterRecording({
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> {t('Вставить ссылку')}
           </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Upload size={14} /> {t('Загрузить файл')}
           </button>
         </div>
@@ -2088,7 +2089,7 @@ function CenterLesson({
 
   return (
     <OverlayScrollArea style={{ flex: 1 }} padding="28px 36px">
-      <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <Label>{t('Название урока')}</Label>
           <ContentInput
@@ -2250,7 +2251,7 @@ function CenterLesson({
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
                       padding: '10px 12px', borderRadius: 12,
-                      border: '1.5px solid var(--color-border)',
+                      border: '1px solid var(--color-border)',
                       background: taken ? 'var(--color-green-soft)' : 'transparent',
                       cursor: 'pointer', fontFamily: 'inherit',
                       color: taken ? 'var(--color-green-text)' : 'var(--color-text)',
@@ -2387,8 +2388,8 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, width: pos.width,
               minWidth: width ?? 110,
               background: 'rgba(var(--glass-rgb), 0.97)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-medium)',
               borderRadius: 14, boxShadow: 'var(--shadow-4)',
               padding: 6, overflow: 'hidden',
@@ -2512,8 +2513,8 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
             style={{
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, minWidth: 260,
               background: 'rgba(var(--glass-rgb), 0.97)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-medium)',
               borderRadius: 16, boxShadow: 'var(--shadow-4)', padding: '14px 12px 12px',
             }}
@@ -3858,8 +3859,8 @@ function HomeworkLeftPanel({
     <div style={{
       width: 248, flexShrink: 0,
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18,
@@ -4009,7 +4010,7 @@ function CenterHomework({
           </span>
         </div>
       ) : (
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto' }}>
           <div
             style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
             onDrop={e => { e.preventDefault(); commitDrop() }}
@@ -4085,7 +4086,7 @@ function CenterTestView({
             <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>{t('Выберите тип вопроса слева — составьте сами или возьмите из тренажёра')}</span>
           </div>
         ) : (
-          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {tasks.map((task, i) => (
               <HWTaskCard key={task.id} task={task} index={i} onUpdate={updateTask} onDelete={() => removeTask(task.id)} />
             ))}
@@ -4187,8 +4188,8 @@ function StudentsLeftPanel({
     <div style={{
       width: 248, flexShrink: 0,
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
@@ -5151,7 +5152,7 @@ function RightPanelLessons({
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setAddingModule(false)}
-                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: '1.5px solid var(--color-border)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
+                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
                 {t('Отмена')}
               </button>
               <button onClick={addModule}

@@ -88,7 +88,7 @@ export default function NewStudentConfig({
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
-              border: '1.5px solid var(--color-border-medium)',
+              border: '1px solid var(--color-border-medium)',
               background: 'transparent', color: 'var(--color-muted)',
               fontSize: 12, fontWeight: 700,
             }}
@@ -106,7 +106,7 @@ export default function NewStudentConfig({
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
-                border: '1.5px solid var(--color-border-medium)',
+                border: '1px solid var(--color-border-medium)',
                 background: 'var(--color-bg-4)',
                 opacity: isHidden ? 0.55 : 1,
                 textAlign: 'left',

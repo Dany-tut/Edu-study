@@ -6,6 +6,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useT, useLang } from '../../lib/i18n'
 import { PLAN_TIERS, fetchMyPlan, planPrice, type MyPlan, type PlanTier } from '../../lib/plan'
 import { submitFeedback } from '../../lib/feedbackRequests'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 function PlanCard({ tier, current, onRequest, requesting, requested }: {
   tier: PlanTier
@@ -95,7 +96,7 @@ export default function TeacherPaymentPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>

@@ -129,8 +129,8 @@ export default function MobileBottomNav() {
         style={{
           borderRadius: '28px',
           background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-          backdropFilter: 'blur(28px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-glass)',
           // Обводка та же, что у верхней таблетки (DynamicIsland): свою тень с
           // жёстким белым inset здесь держать нельзя — в тёмной теме

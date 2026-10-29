@@ -192,7 +192,7 @@ export default function DateTimeField({ value, onChange, label }: {
               style={{
                 position: 'fixed', top: pos.top, left: pos.left, width: 280, zIndex: 4000,
                 background: 'rgba(var(--glass-rgb), 0.97)',
-                backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
                 border: '1px solid var(--color-border-medium)', borderRadius: 18,
                 boxShadow: 'var(--shadow-4)', padding: '14px 12px 12px',
               }}
