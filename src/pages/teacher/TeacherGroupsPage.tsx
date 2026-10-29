@@ -1025,7 +1025,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
                 }}
               >
                 {copiedId === s.id
-                  ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-success, #2C7A58)' }} />
+                  ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
                   : <Copy size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />}
                 {s.name}
               </button>

@@ -192,7 +192,7 @@ function Muted({ children, tone }: { children: React.ReactNode; tone?: 'bad' }) 
   return (
     <div style={{
       fontSize: 13, lineHeight: 1.5,
-      color: tone === 'bad' ? 'var(--color-red-fill)' : 'var(--color-muted)',
+      color: tone === 'bad' ? 'var(--color-red-text)' : 'var(--color-muted)',
       ...proseWrap,
     }}>
       {children}

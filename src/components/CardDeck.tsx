@@ -58,7 +58,7 @@ interface Seat {
 }
 
 const TONE: Record<string, string> = {
-  bad: 'var(--color-red-text)', hard: '#f59e0b', good: 'var(--color-green-accent)', easy: 'var(--color-green-text)',
+  bad: 'var(--color-red-text)', hard: 'var(--color-peach-text)', good: 'var(--color-green-accent)', easy: 'var(--color-green-text)',
   // Нейтральный тон для «не знаю»: это не ответ, а отказ отвечать, и красным
   // он бы читался как второе «неверно».
   mute: 'var(--color-text-2)',

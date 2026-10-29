@@ -130,7 +130,7 @@ export default function TaskVideo({
       <div style={{
         padding: '14px 16px', borderRadius: 16, fontSize: 14, lineHeight: 1.45,
         border: '1px solid var(--color-border)', background: 'var(--color-bg-input)',
-        color: 'var(--color-text-secondary)',
+        color: 'var(--color-text-2)',
       }}>
         {t('Ссылка на видео не распознана — попроси преподавателя проверить её.')}
       </div>
@@ -180,7 +180,7 @@ export default function TaskVideo({
         </div>
         <div style={{
           fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
-          color: done ? 'var(--color-green-text)' : 'var(--color-text-secondary)',
+          color: done ? 'var(--color-green-text)' : 'var(--color-text-2)',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>
           {done && <Check size={14} />}
@@ -194,7 +194,7 @@ export default function TaskVideo({
 
       {credit && (
         <div className="flex items-center" style={{
-          gap: 6, fontSize: 13, color: 'var(--color-text-secondary)',
+          gap: 6, fontSize: 13, color: 'var(--color-text-2)',
         }}>
           <Youtube size={14} />
           <span>{credit}</span>

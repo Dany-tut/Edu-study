@@ -710,7 +710,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                   display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                   borderRadius: 12, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                   cursor: !busy && shelfName.trim() ? 'pointer' : 'default',
-                  background: shelfName.trim() ? MAT_BG : 'var(--color-bg-1)',
+                  background: shelfName.trim() ? MAT_BG : 'var(--color-bg-2)',
                   color: shelfName.trim() ? MAT_COLOR : 'var(--color-text-3)',
                 }}
               >
@@ -1742,7 +1742,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
               style={{
                 height: 34, padding: '0 14px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
                 cursor: parseBulk(bulk).length > 0 ? 'pointer' : 'default',
-                background: parseBulk(bulk).length > 0 ? MAT_BG : 'var(--color-bg-1)',
+                background: parseBulk(bulk).length > 0 ? MAT_BG : 'var(--color-bg-2)',
                 color: parseBulk(bulk).length > 0 ? MAT_COLOR : 'var(--color-text-3)',
                 fontSize: 13, fontWeight: 700,
               }}

@@ -679,7 +679,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             />
                           ))}
                         </div>
-                        <span style={{ fontSize: 14, fontWeight: 800, color: '#F5C842' }}>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-yellow-text)' }}>
                           {hardAssessment.hardScore}/5
                         </span>
                       </div>

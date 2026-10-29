@@ -442,7 +442,7 @@ function PersonCard({
           <span style={{
             ...chipBase,
             color: 'var(--color-muted)',
-            background: 'var(--color-surface-2)', border: '1px solid var(--color-border-soft)',
+            background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
           }}>
             +{hiddenCount}
           </span>

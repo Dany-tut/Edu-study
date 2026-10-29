@@ -37,7 +37,7 @@ export default function CalibrationMatrix({ owner, subject }: {
           const n = c[q.key] as number
           const pct = c.total ? Math.round((n / c.total) * 100) : 0
           return (
-            <div key={q.key} style={{ padding: '10px 12px', borderRadius: 12, border: `1.5px solid ${q.color}55`, background: `${q.color}12` }}>
+            <div key={q.key} style={{ padding: '10px 12px', borderRadius: 12, border: `1.5px solid color-mix(in srgb, ${q.color} 33%, transparent)`, background: `color-mix(in srgb, ${q.color} 7%, transparent)` }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(q.label)}</span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: q.color }}>{n}</span>
