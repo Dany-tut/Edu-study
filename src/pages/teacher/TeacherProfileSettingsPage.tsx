@@ -18,6 +18,7 @@ import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from '../../component
 import { uploadAvatarPhoto, removeAvatarPhoto, saveTeacherAvatarPath } from '../../lib/avatarPhoto'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
+import { Alert } from '../../components/Alert'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -303,7 +304,7 @@ export default function TeacherProfileSettingsPage() {
           </div>
 
           {error && (
-            <div style={{ fontSize: 12, color: '#E04848', background: 'rgba(224,72,72,0.08)', borderRadius: 10, padding: '8px 12px' }}>{error}</div>
+            <Alert tone="danger" text={error} />
           )}
 
           <motion.button

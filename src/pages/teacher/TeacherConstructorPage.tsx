@@ -25,6 +25,7 @@ import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
+import { Alert, AlertStack } from '../../components/Alert'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
@@ -3586,9 +3587,7 @@ function CreatorView({
                     <input type="number" min={1} max={30} value={wPomoBreak} onChange={e => setWPomoBreak(Number(e.target.value))} style={inputSt} />
                   </div>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-peach-soft)', borderRadius: 10, padding: '10px 12px' }}>
-                  {t('Эти настройки применятся к таймеру «Фокус» у студентов')}
-                </div>
+                <Alert tone="info" text={t('Эти настройки применятся к таймеру «Фокус» у студентов')} />
               </>}
 
               {wType === 'memes' && <>
@@ -7101,11 +7100,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
           </motion.button>
         </motion.div>
 
-        {saveError && (
-          <div style={{ margin: '0 24px 12px', padding: '10px 14px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 13 }}>
-            {saveError}
-          </div>
-        )}
+        <AlertStack style={{ margin: '0 24px 12px' }} items={[saveError && { id: 'save-err', tone: 'danger', text: saveError }]} />
 
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           {/* LEFT: name + color + assignment */}

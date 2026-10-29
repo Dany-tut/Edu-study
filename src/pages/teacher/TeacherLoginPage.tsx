@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
+import { AlertStack } from '../../components/Alert'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
@@ -189,16 +190,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             </span>
           )}
 
-          {error && (
-            <div style={{ color: 'var(--color-red-text)', fontSize: 13, padding: '8px 12px', background: 'var(--color-red-soft)', borderRadius: 10 }}>
-              {error}
-            </div>
-          )}
-          {notice && (
-            <div style={{ color: 'var(--color-purple)', fontSize: 13, padding: '8px 12px', background: 'rgba(155,109,255,0.12)', borderRadius: 10 }}>
-              {notice}
-            </div>
-          )}
+          <AlertStack items={[
+            error && { id: 'error', tone: 'danger', text: error },
+            notice && { id: 'notice', tone: 'info', text: notice },
+          ]} />
 
           <button
             type="submit"

@@ -6,6 +6,7 @@ import { PLAN_TIERS, planPrice, type PlanTier } from '../../lib/plan'
 import { tactile } from '../../lib/feedback'
 import { submitFeedback } from '../../lib/feedbackRequests'
 import { useT, useLang } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 // Витрина тарифов (мобильный профиль учителя). Оплата не подключена: выбор
 // тарифа сразу шлёт заявку админу (без формы обратной связи), админ
@@ -145,7 +146,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                 })}
               </div>
 
-              {error && <div style={{ fontSize: 13, color: 'var(--color-red-text, #e5484d)', marginTop: 12, textAlign: 'center' }}>{error}</div>}
+              {error && <Alert tone="danger" text={error} style={{ marginTop: 12 }} />}
 
               <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 14, textAlign: 'center', lineHeight: 1.4 }}>
                 {t('Оплата подключается вручную: после заявки мы свяжемся с вами.')}

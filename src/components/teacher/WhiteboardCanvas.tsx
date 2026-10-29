@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from 'lucide-react'
 import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 const WB_COLORS = ['#0B0B0D', '#E53E3E', '#3182CE', '#38A169', '#D69E2E', '#805AD5', '#DD6B20']
 
@@ -453,9 +454,7 @@ export default function WhiteboardCanvas({
       )}
 
       {sizeError && (
-        <div style={{ padding: '7px 12px', fontSize: 12, fontWeight: 600, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderBottom: '1px solid var(--color-border-medium)' }}>
-          {sizeError}
-        </div>
+        <Alert tone="danger" text={sizeError} onClose={() => setSizeError(null)} style={{ margin: 8 }} />
       )}
 
       <div style={{ position: 'relative', lineHeight: 0 }}>

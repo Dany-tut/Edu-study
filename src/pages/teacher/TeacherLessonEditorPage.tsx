@@ -22,6 +22,7 @@ import {
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import BackCircle from '../../components/BackCircle'
+import { AlertStack } from '../../components/Alert'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -1059,7 +1060,7 @@ export default function TeacherLessonEditorPage() {
   }, [])
   const publishedRef = useRef(false)
   publishedRef.current = published
-  const [publishErr, setPublishErr] = useState<string | null>(null)
+  const [publishErr, setPublishErr] = useState<{ tone: 'danger' | 'info'; text: string } | null>(null)
 
   // Содержимое привязанного урока — из `lessons`, а не из воздуха. Черновик
   // (несохранённая правка в этой вкладке) старше базы: он и был причиной, по
@@ -1116,11 +1117,11 @@ export default function TeacherLessonEditorPage() {
     // Gate publish: needs an audience (кому/для кого) and a date + time.
     // Otherwise the teacher can still save it as a draft.
     if (meta.recipients.length === 0) {
-      setPublishErr(t('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.'))
+      setPublishErr({ tone: 'info', text: t('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.') })
       return
     }
     if (!meta.date || !meta.startTime) {
-      setPublishErr(t('Укажите дату и время урока — иначе можно только сохранить черновик.'))
+      setPublishErr({ tone: 'info', text: t('Укажите дату и время урока — иначе можно только сохранить черновик.') })
       return
     }
     setPublishErr(null)
@@ -1143,7 +1144,7 @@ export default function TeacherLessonEditorPage() {
       }).eq('id', lessonRowId)
       if (lessonErr) {
         console.error('[lesson-editor] lessons update failed', lessonErr)
-        setPublishErr(t('Не удалось сохранить содержимое урока — попробуйте ещё раз.'))
+        setPublishErr({ tone: 'danger', text: t('Не удалось сохранить содержимое урока — попробуйте ещё раз.') })
         return
       }
     }
@@ -1162,7 +1163,7 @@ export default function TeacherLessonEditorPage() {
       const { error } = await supabase.from('schedule_lessons').update(scheduleBase).eq('id', editingScheduleId)
       if (error) {
         console.error('[lesson-editor] schedule update failed', error)
-        setPublishErr(t('Не удалось сохранить дату и время урока — попробуйте ещё раз.'))
+        setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
         return
       }
     } else {
@@ -1181,7 +1182,7 @@ export default function TeacherLessonEditorPage() {
         const { error } = await supabase.from('schedule_lessons').insert(rows)
         if (error) {
           console.error('[lesson-editor] schedule insert failed', error)
-          setPublishErr(t('Не удалось поставить урок в расписание — попробуйте ещё раз.'))
+          setPublishErr({ tone: 'danger', text: t('Не удалось поставить урок в расписание — попробуйте ещё раз.') })
           return
         }
       }
@@ -1277,24 +1278,7 @@ export default function TeacherLessonEditorPage() {
         </div>
 
         {/* ── Publish-blocked banner ── */}
-        <AnimatePresence>
-          {publishErr && (
-            <motion.div
-              key="publish-err"
-              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                margin: '0 0 14px', padding: '10px 14px', borderRadius: 12,
-                border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
-                color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
-            >
-              <span style={{ flexShrink: 0 }}>⚠️</span>
-              <span>{publishErr}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <AlertStack style={{ margin: '0 0 14px' }} items={[publishErr && { id: 'publish-err', tone: publishErr.tone, text: publishErr.text, onClose: () => setPublishErr(null) }]} />
 
         {/* ── Body ── */}
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

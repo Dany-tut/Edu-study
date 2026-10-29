@@ -7,6 +7,7 @@ import Skeleton from '../Skeleton'
 import GrowTextarea from '../GrowTextarea'
 import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 // Админский реестр учеников: кто к какому учителю привязан, перевод другому
 // учителю / в другую группу, правка карточки и удаление. Владельца ученик не
@@ -62,7 +63,7 @@ export default function AdminStudentsManager() {
   const [editing, setEditing] = useState<StudentRow | null>(null)
   const [confirmDel, setConfirmDel] = useState<StudentRow | null>(null)
   const [confirmMove, setConfirmMove] = useState<{ row: StudentRow; owner: string } | null>(null)
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<{ tone: 'danger' | 'success'; text: string } | null>(null)
   // Свёрнутые учителя. Держим именно РАЗВЁРНУТЫХ, а не свёрнутых: учителей
   // становится больше со временем, и новый должен приходить закрытым сам, без
   // нашего участия.
@@ -108,9 +109,9 @@ export default function AdminStudentsManager() {
     setConfirmMove(null)
     const { data, error } = await supabase.rpc('admin_student_reassign', { p_student: row.id, p_owner: newOwner })
     const teacher = teachers.find(x => x.id === newOwner)?.name ?? ''
-    if (error) setNotice(error.message)
-    else if (data === 'new_group') setNotice(`${tn(row.name)} → ${teacher}: ${t('создана личная группа, групповое ДЗ старой группы не перенесено')}`)
-    else if (data === 'group_moved') setNotice(`${tn(row.name)} → ${teacher}`)
+    if (error) setNotice({ tone: 'danger', text: error.message })
+    else if (data === 'new_group') setNotice({ tone: 'success', text: `${tn(row.name)} → ${teacher}: ${t('создана личная группа, групповое ДЗ старой группы не перенесено')}` })
+    else if (data === 'group_moved') setNotice({ tone: 'success', text: `${tn(row.name)} → ${teacher}` })
     await load()
     setBusyId(null)
   }
@@ -119,10 +120,10 @@ export default function AdminStudentsManager() {
     setBusyId(row.id)
     setEditing(null)
     const { error } = await supabase.rpc('admin_student_update', { p_id: row.id, p_patch: patch })
-    if (error) setNotice(error.message)
+    if (error) setNotice({ tone: 'danger', text: error.message })
     if (groupId && groupId !== row.group_id) {
       const { error: mErr } = await supabase.rpc('admin_student_move', { p_student: row.id, p_group: groupId })
-      if (mErr) setNotice(mErr.message)
+      if (mErr) setNotice({ tone: 'danger', text: mErr.message })
     }
     await load()
     setBusyId(null)
@@ -132,7 +133,7 @@ export default function AdminStudentsManager() {
     setBusyId(row.id)
     setConfirmDel(null)
     const { error } = await supabase.rpc('admin_student_delete', { p_id: row.id })
-    if (error) setNotice(error.message)
+    if (error) setNotice({ tone: 'danger', text: error.message })
     await load()
     setBusyId(null)
   }
@@ -251,17 +252,7 @@ export default function AdminStudentsManager() {
       </div>
 
       {notice && (
-        <div style={{
-          display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12,
-          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-          borderRadius: 12, padding: '9px 12px', fontSize: 12.5, color: 'var(--color-text-2)',
-        }}>
-          <ArrowRightLeft size={14} strokeWidth={2} style={{ color: 'var(--color-purple)', flexShrink: 0, marginTop: 1 }} />
-          <span style={{ flex: 1 }}>{notice}</span>
-          <button onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: 0 }}>
-            <X size={13} strokeWidth={2.2} />
-          </button>
-        </div>
+        <Alert tone={notice.tone} text={notice.text} onClose={() => setNotice(null)} style={{ marginBottom: 12 }} />
       )}
 
       {loading && rows.length === 0 ? (

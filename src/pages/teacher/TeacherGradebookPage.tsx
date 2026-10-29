@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, X, Check, Clock, CalendarClock } from 'lucide-react'
+import { Download, X, Check } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
 import type { Group } from '../../data/teacherMockData'
 import { expandToPerson } from '../../lib/personGroups'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
+import { Alert, AlertStack } from '../../components/Alert'
 import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
@@ -17,14 +18,6 @@ const fadeUp = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
 })
-
-// Russian plural: pluralRu(1,'урок','урока','уроков') → урок / урока / уроков
-function pluralRu(n: number, one: string, few: string, many: string) {
-  const m10 = n % 10, m100 = n % 100
-  if (m10 === 1 && m100 !== 11) return one
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
-  return many
-}
 
 function ScorePill({ value }: { value: number | null }) {
   if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
@@ -662,7 +655,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
         }}>
           {saveError && (
-            <span style={{ fontSize: 12, color: 'var(--color-red-text)', flex: 1 }}>{saveError}</span>
+            <Alert tone="danger" text={saveError} style={{ flex: 1, minWidth: 0 }} />
           )}
           <button
             onClick={onClose}
@@ -753,63 +746,17 @@ export default function TeacherGradebookPage() {
       </motion.div>
 
       {/* "Журнал не заполнен" — lessons that finished without attendance recorded */}
-      <AnimatePresence>
-        {pendingJournals.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            style={{
-              borderRadius: 16, padding: 14,
-              background: 'var(--color-yellow-soft)', border: '1px solid var(--color-border-soft)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 11 }}>
-              <Clock size={17} style={{ color: 'var(--color-yellow-text)' }} />
-              <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>
-                {t('Журнал не заполнен')} · {pendingJournals.length} {pluralRu(pendingJournals.length, t('урок'), t('урока'), t('уроков'))}
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-              {pendingJournals.slice(0, 5).map(p => {
-                const [, mm, dd] = p.date.split('-')
-                return (
-                  <div key={p.scheduleId} style={{
-                    display: 'flex', alignItems: 'center', gap: 11,
-                    background: 'rgba(var(--glass-rgb), 0.55)', border: '1px solid var(--color-border-soft)',
-                    borderRadius: 10, padding: '10px 12px',
-                  }}>
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 10, flex: 'none',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
-                    }}>
-                      <CalendarClock size={17} strokeWidth={2} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.scopeName || tc(p.title) || t('Урок')}
-                      </div>
-                      <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
-                        {dd}.{mm}{p.timeStart ? ` · ${p.timeStart}` : ''}{p.title && p.scopeName ? ` · ${tc(p.title)}` : ''}
-                      </div>
-                    </div>
-                    <motion.button
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => openJournalFor(p)}
-                      style={{
-                        flex: 'none', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                        background: 'var(--color-yellow-text)', color: 'var(--color-bg)', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
-                        boxShadow: '0 2px 10px rgba(246,228,122,0.35)',
-                      }}
-                    >
-                      {t('Заполнить')}
-                    </motion.button>
-                  </div>
-                )
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <AlertStack
+        items={pendingJournals.map(p => {
+          const [, mm, dd] = p.date.split('-')
+          return {
+            id: p.scheduleId, tone: 'warning' as const,
+            title: `${t('Журнал не заполнен')}:`,
+            text: `${p.scopeName || tc(p.title) || t('Урок')} · ${dd}.${mm}${p.timeStart ? ` · ${p.timeStart}` : ''}${p.title && p.scopeName ? ` · ${tc(p.title)}` : ''}`,
+            action: { label: t('Заполнить'), onClick: () => openJournalFor(p) },
+          }
+        })}
+      />
 
       {/* Subject switcher — when a merged 1:1 person is selected, let the teacher
           flip between their subject journals (each subject is its own group). */}

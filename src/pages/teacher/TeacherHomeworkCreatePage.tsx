@@ -14,6 +14,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, useTc, tc } from '../../lib/i18n'
 import { alertDialog } from '../../components/ConfirmHost'
+import { AlertStack } from '../../components/Alert'
 import { supabase } from '../../lib/supabase'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
@@ -2320,7 +2321,7 @@ export default function TeacherHomeworkCreatePage() {
   }
 
   const [publishing, setPublishing] = useState(false)
-  const [publishErr, setPublishErr] = useState<string | null>(null)
+  const [publishErr, setPublishErr] = useState<{ tone: 'danger' | 'info'; text: string } | null>(null)
 
   async function doPublish() {
     setShowPublishConfirm(false)
@@ -2340,7 +2341,7 @@ export default function TeacherHomeworkCreatePage() {
       }
       // Раньше без группы не писалось ничего, а «Опубликовано!» всё равно горело.
       if (!targetGroupId) {
-        setPublishErr(t('Выберите, кому задать домашку — группу или ученика.'))
+        setPublishErr({ tone: 'info', text: t('Выберите, кому задать домашку — группу или ученика.') })
         return
       }
 
@@ -2371,7 +2372,7 @@ export default function TeacherHomeworkCreatePage() {
       // при сбое работа остаётся на экране и в черновике.
       if (error) {
         console.error('[homework] publish failed', error)
-        setPublishErr(t('Не удалось опубликовать — проверьте интернет и попробуйте ещё раз. Задания сохранены в черновике.'))
+        setPublishErr({ tone: 'danger', text: t('Не удалось опубликовать — проверьте интернет и попробуйте ещё раз. Задания сохранены в черновике.') })
         return
       }
       clearDrafts(`${draftScope}.`)
@@ -2464,9 +2465,6 @@ export default function TeacherHomeworkCreatePage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            {publishErr && (
-              <div style={{ maxWidth: 280, fontSize: 12, lineHeight: 1.25, color: 'var(--color-red)', fontWeight: 600 }}>{publishErr}</div>
-            )}
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}>
               {hwTasks.length} {t('зад.')}{hardTasks.length > 0 ? ` + ${hardTasks.length} ${t('сложн.')}` : ''}
             </div>
@@ -2486,6 +2484,11 @@ export default function TeacherHomeworkCreatePage() {
             />
           </div>
         </motion.div>
+
+        <AlertStack
+          style={{ margin: '0 24px 14px' }}
+          items={[publishErr && { id: 'publish-err', tone: publishErr.tone, text: publishErr.text, onClose: () => setPublishErr(null) }]}
+        />
 
         {/* ── Three-column body ── */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>

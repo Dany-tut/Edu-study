@@ -29,6 +29,7 @@ import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLi
 import { useTeacher } from '../../store/teacherStore'
 import { useT, useTc } from '../../lib/i18n'
 import { confirmDialog } from '../../components/ConfirmHost'
+import { Alert } from '../../components/Alert'
 import {
   fetchStudentActiveCourses, type StudentCourseInfo,
   fetchStudentTrainerSections, type TrainerSection,
@@ -193,7 +194,7 @@ function AddGroupModal({ onClose, onSave }: {
         </div>
 
         {saveErr && (
-          <div style={{ marginTop: 14, fontSize: 13, lineHeight: 1.3, color: 'var(--color-red)', fontWeight: 600 }}>{saveErr}</div>
+          <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
         )}
         <button
           onClick={handleSave}
@@ -478,7 +479,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         </div>
 
         {saveErr && (
-          <div style={{ marginTop: 14, fontSize: 13, lineHeight: 1.3, color: 'var(--color-red)', fontWeight: 600 }}>{saveErr}</div>
+          <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
         )}
         <button
           onClick={handleSave}
@@ -785,7 +786,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               </div>
             </div>
             {saveErr && (
-              <div style={{ marginTop: 14, fontSize: 13, lineHeight: 1.3, color: 'var(--color-red)', fontWeight: 600 }}>{saveErr}</div>
+              <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
             )}
             <button
               onClick={handleSave}
@@ -1056,7 +1057,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           )}
 
           {issueErr && (
-            <div style={{ fontSize: 12, color: 'var(--color-danger, #e5484d)' }}>{issueErr}</div>
+            <Alert tone="danger" text={issueErr} />
           )}
 
           {issued && (
@@ -2013,9 +2014,7 @@ function StudentPanel({
               {resetting ? t('Сбрасываем…') : newPass ? `${t('Новый пароль:')} ${newPass}` : t('Сбросить пароль')}
             </button>
             {resetErr && (
-              <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-danger, #e5484d)', textAlign: 'center' }}>
-                {resetErr}
-              </div>
+              <Alert tone="danger" text={resetErr} style={{ marginTop: 8 }} />
             )}
           </section>
         )}

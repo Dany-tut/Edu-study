@@ -121,7 +121,7 @@ export function Alert(props: Omit<AlertItem, 'id'> & { style?: React.CSSProperti
  * Все алерты места — одной карточкой. Пустой список ничего не рисует, поэтому
  * собирать его можно условно: `[cond && {...}, ...].filter(Boolean)`.
  */
-export function AlertStack({ items, style }: { items: Array<AlertItem | false | null | undefined>; style?: React.CSSProperties }) {
+export function AlertStack({ items, style }: { items: Array<AlertItem | false | null | undefined | '' | 0>; style?: React.CSSProperties }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const list = items

@@ -5,6 +5,7 @@ import TeacherSaveButton from './TeacherSaveButton'
 import TeacherSubjectsField from './TeacherSubjectsField'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { useT } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 // Разовое окно «Какие предметы вы ведёте?» для учителей, зарегистрированных до
 // того, как регистрация стала спрашивать предметы. Висит, пока набор пуст;
@@ -68,9 +69,7 @@ export default function TeacherSubjectsPrompt() {
           <TeacherSubjectsField value={picked} onChange={setPicked} look="profile" />
 
           {error && (
-            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
-              {t('Не удалось сохранить предметы. Попробуйте ещё раз.')}
-            </div>
+            <Alert tone="danger" text={t('Не удалось сохранить предметы. Попробуйте ещё раз.')} style={{ marginTop: 10 }} />
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginTop: 20, flexDirection: isPhone ? 'column-reverse' : 'row' }}>

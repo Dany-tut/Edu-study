@@ -20,6 +20,7 @@ import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../li
 import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
+import { Alert } from '../../components/Alert'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -237,7 +238,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
               subjects={selectedSubjects} onSubjectsChange={setSelectedSubjects}
             />
 
-            {error && <div style={{ fontSize: 11, color: '#E04848', marginTop: 12 }}>{error}</div>}
+            {error && <Alert tone="danger" text={error} style={{ marginTop: 12 }} />}
 
             <button
               onClick={createInvite}

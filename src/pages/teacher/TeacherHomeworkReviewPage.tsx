@@ -16,6 +16,7 @@ import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import { alertDialog } from '../../components/ConfirmHost'
+import { Alert } from '../../components/Alert'
 
 // Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
 type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
@@ -342,7 +343,7 @@ function ReviewAttachEditor({
           <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
         </button>
       </div>
-      {error && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{error}</div>}
+      {error && <Alert tone="danger" text={error} onClose={() => setError(null)} style={{ marginTop: 8 }} />}
       {photos.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
           {photos.map((src, i) => (

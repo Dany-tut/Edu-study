@@ -4,6 +4,7 @@ import { uploadMedia, MediaTooLargeError } from '../../lib/mediaStorage'
 import AudioPlayer from '../AudioPlayer'
 import Checkbox from '../Checkbox'
 import { useT } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 // Редактор аудио-стимула для языковых заданий (listenType/listenBank/minimalPair).
 // Два взаимодополняющих источника: загруженный файл в бакет task-media (5A) ИЛИ
@@ -94,7 +95,7 @@ export default function AudioStimulusEditor({
         {t('Разрешить замедленное воспроизведение')}
       </Checkbox>
 
-      {error && <div style={{ fontSize: 11.5, color: 'var(--color-red-text)' }}>{error}</div>}
+      {error && <Alert tone="danger" text={error} />}
       <input ref={fileRef} type="file" accept="audio/*" style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) void onFile(f) }} />
     </div>

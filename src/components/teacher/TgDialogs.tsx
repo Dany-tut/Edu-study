@@ -6,6 +6,7 @@ import {
   fetchThreads, fetchMessages, sendReply, setThreadStatus, markThreadSeen,
   threadName, isUnread, type TgThread, type TgMessage, type TgStatus,
 } from '../../lib/tgChat'
+import { Alert } from '../Alert'
 
 const STATUS_META: Record<TgStatus, { label: string; bg: string; color: string }> = {
   new:         { label: 'Новый',    bg: 'var(--color-purple-soft)', color: 'var(--color-purple)' },
@@ -204,7 +205,7 @@ function Conversation({ thread, onBack, onStatus }: {
 
       {/* composer */}
       <div style={{ paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
-        {err && <div style={{ fontSize: 12, color: '#E86A6A', fontWeight: 600, marginBottom: 8 }}>{err}</div>}
+        {err && <Alert tone="danger" text={err} style={{ marginBottom: 8 }} />}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
           <textarea
             value={text} onChange={e => setText(e.target.value)}

@@ -10,6 +10,7 @@ import { t, useT, tn } from '../../lib/i18n'
 import AssignPlanButton from './AssignPlanButton'
 import AdminStudentsManager from './AdminStudentsManager'
 import { setViewAs, getViewAs } from '../../lib/owner'
+import { Alert } from '../Alert'
 
 // Админский экран «По пользователям»: активное время, last seen, сессии по
 // каждому пользователю + per-teacher usage (активные ученики = будущий счётчик
@@ -400,7 +401,7 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
           autoFocus
           style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', marginBottom: 14 }}
         />
-        {err && <div style={{ fontSize: 12, color: '#E04848', marginBottom: 12 }}>{err}</div>}
+        {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <button onClick={onClose} style={{ padding: '9px 14px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>{t('Отмена')}</button>
           <button disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>

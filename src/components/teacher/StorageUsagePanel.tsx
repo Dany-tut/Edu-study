@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import Skeleton from '../Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, ImageIcon, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Database, HardDrive, ImageIcon, RefreshCw, ChevronDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT, t } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 // Mirrors the JSON returned by the `storage_stats()` Postgres RPC.
 type Stats = {
@@ -130,9 +131,7 @@ export default function StorageUsagePanel() {
       </div>
 
       {error ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-3)', fontSize: 12.5, padding: '16px 0 4px' }}>
-          <AlertTriangle size={15} /> {t('Не удалось загрузить статистику')}
-        </div>
+        <Alert tone="danger" text={t('Не удалось загрузить статистику')} style={{ marginTop: 12 }} />
       ) : (
         <>
           {stats && <>
@@ -188,10 +187,7 @@ export default function StorageUsagePanel() {
                   </div>
 
                   {dbPct >= 60 && (
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12, background: 'var(--color-peach-soft)', fontSize: 11.5, color: 'var(--color-peach-text)', lineHeight: 1.5 }}>
-                      <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                      {t('База заполнена на')} {dbPct.toFixed(0)}%. {t('Стоит перенести фото и доски в Storage, чтобы разгрузить Postgres.')}
-                    </div>
+                    <Alert tone="warning" title={`${t('База заполнена на')} ${dbPct.toFixed(0)}%.`} text={t('Стоит перенести фото и доски в Storage, чтобы разгрузить Postgres.')} />
                   )}
                 </div>
               </motion.div>
