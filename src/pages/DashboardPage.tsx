@@ -29,6 +29,7 @@ import { ClipboardList, ChevronRight } from 'lucide-react'
 import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from '../components/season/Season'
+import SeasonAsk from '../components/season/SeasonAsk'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
 //
@@ -352,6 +353,8 @@ export default function DashboardPage() {
   return (
     <>
       <AnswerFlightLayer />
+      {/* «Сейчас Хэллоуин — включить тему?» — один раз за сезон, если админ велел спрашивать. */}
+      <SeasonAsk />
       {/* Desktop live notifications surface inside CompactWidgetPill (beside the
           topbar); the standalone toast is only kept for mobile where there's no pill. */}
       {!isDesktop && <NotificationToastContainer />}

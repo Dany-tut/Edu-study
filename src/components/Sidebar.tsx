@@ -28,7 +28,7 @@ import { useFeedGlance } from '../lib/feedRead'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
 import Switch from './Switch'
-import { useSeason, setSeasonOff } from '../lib/season'
+import { useSeason, setSeasonOn } from '../lib/season'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -678,7 +678,7 @@ export default function Sidebar() {
                           <div style={{ width: '100%', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text)', fontSize: 14, fontWeight: 550 }}>
                             <Ghost size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                             <span style={{ flex: 1, textAlign: 'left' }}>{t('Хэллоуин-тема')}</span>
-                            <Switch checked={!season.off} onChange={v => setSeasonOff(!v)} label={t('Хэллоуин-тема')} />
+                            <Switch checked={season.active} onChange={v => setSeasonOn(v)} label={t('Хэллоуин-тема')} />
                           </div>
                         )}
 
