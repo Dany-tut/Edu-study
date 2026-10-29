@@ -134,6 +134,8 @@ const ghostBtn: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
   color: 'var(--color-text-3)', marginBottom: 8,
+  // Отступ = начало текста в поле (inputStyle: 12 px), а не край рамки.
+  paddingLeft: 12,
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

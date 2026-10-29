@@ -58,7 +58,7 @@ export default function ReviewSession({ owner, onDone }: {
         <span style={{ fontSize: 12, fontWeight: 700, color: ACC, display: 'flex', alignItems: 'center', gap: 6 }}>
           <RotateCcw size={13} /> {t('Повторение')}
         </span>
-        <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>{idx + 1} / {cards.length}</span>
+        <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{idx + 1} / {cards.length}</span>
       </div>
 
       {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда

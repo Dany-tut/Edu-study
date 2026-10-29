@@ -256,7 +256,8 @@ function AssignForm({ onClose }: { onClose: () => void }) {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 4 }}>{children}</div>
+  // Отступ = начало текста в поле (12 px + рамка 1.5), а не край рамки.
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 4, paddingLeft: 13 }}>{children}</div>
 }
 
 const inputStyle: React.CSSProperties = {

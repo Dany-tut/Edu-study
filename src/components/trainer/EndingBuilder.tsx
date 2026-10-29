@@ -300,7 +300,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
         {header}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 700 }}>
+          <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 700, fontVariantNumeric: 'tabular-nums', minWidth: 44 }}>
             {idx + 1} / {run.length}
           </span>
           <span style={{ flex: 1 }}><TileMeter value={Math.round((idx / run.length) * 100)} /></span>

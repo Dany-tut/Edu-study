@@ -179,7 +179,7 @@ export default function TaskVideo({
           }} />
         </div>
         <div style={{
-          fontSize: 12.5, fontWeight: 650, whiteSpace: 'nowrap',
+          fontSize: 12.5, fontWeight: 650, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
           color: done ? 'var(--color-green-text)' : 'var(--color-text-secondary)',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>

@@ -93,7 +93,7 @@ function SectionLabel({ children, action, onAction }: {
   children: React.ReactNode; action?: string; onAction?: () => void
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px', marginBottom: 2 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', marginBottom: 2 }}>
       <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase' }}>{children}</span>
       {action && (
         <button onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)' }}>

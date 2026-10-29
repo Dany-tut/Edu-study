@@ -249,7 +249,7 @@ export default function MobileProfilePage() {
           {/* Статистика — герой со средним баллом и полноценным графиком
               (сетка, заливка, точки, дельта), ниже компактные метрики. */}
           <div className="flex flex-col" style={{ gap: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 16 }}>
               {t('Статистика')} · {scopeLabel}
             </span>
 
@@ -305,7 +305,7 @@ export default function MobileProfilePage() {
           {/* Settings — grouped into one card with hairline dividers instead of
               separate full-width plates. */}
           <div className="flex flex-col" style={{ gap: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '4px 2px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '4px 16px' }}>
               {t('Настройки')}
             </div>
             <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>

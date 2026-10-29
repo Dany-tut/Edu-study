@@ -336,9 +336,10 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('цель')}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {/* Степпер — одна капсула: 34 = 3 + круг 28 + 3, число постоянной ширины. */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, height: 34, padding: 3, borderRadius: 999, background: 'var(--color-bg-3)' }}>
             <button type="button" onClick={() => set({ target: Math.max(4, target - 0.5) })} style={stepBtn} aria-label={t('Ниже')}><Minus size={13} /></button>
-            <span style={{ fontSize: 26, fontWeight: 850, lineHeight: 1, color: accent, minWidth: 44, textAlign: 'center' }}>{fmtBand(target)}</span>
+            <span style={{ fontSize: 22, fontWeight: 850, lineHeight: 1, color: accent, minWidth: 48, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{fmtBand(target)}</span>
             <button type="button" onClick={() => set({ target: Math.min(9, target + 0.5) })} style={stepBtn} aria-label={t('Выше')}><Plus size={13} /></button>
           </div>
         </div>
@@ -375,8 +376,9 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
 }
 
 const stepBtn: React.CSSProperties = {
-  width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)',
-  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'var(--color-surface)', color: 'var(--color-text)',
+  boxShadow: '0 1px 2px rgba(0,0,0,0.08)', padding: 0,
+  cursor: 'pointer', display: 'grid', placeItems: 'center',
 }
 
 /** Месяц сеткой. Свой, а не нативный input[type=date]: тот рисует система. */

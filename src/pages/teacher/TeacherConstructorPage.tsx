@@ -526,7 +526,8 @@ const inputSt: React.CSSProperties = {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (inputSt: 12 px), а не край рамки.
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>{children}</div>
 }
 
 function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
@@ -552,7 +553,8 @@ const dockGlass = {
 } as const
 
 function SectionHead({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (inputSt: 12 px), а не край рамки.
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>{children}</div>
 }
 
 function SegBtn({ label, active, color, bg, onClick }: { label: string; active: boolean; color: string; bg: string; onClick: () => void }) {

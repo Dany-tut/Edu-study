@@ -1001,6 +1001,9 @@ function PillContent({
             fontWeight: 600,
             color: 'var(--color-text)',
             lineHeight: 1.25,
+            // В заголовке тикает отсчёт помодоро — без моноширинных цифр плашка
+            // меняет ширину каждую секунду.
+            fontVariantNumeric: 'tabular-nums',
             display: '-webkit-box',
             // Collapsed: clamp to one line so the mini pill stays a capsule.
             // Expanded: drop the clamp so the full question is revealed (the

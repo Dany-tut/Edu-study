@@ -728,7 +728,7 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Вопрос')} {idx + 1} {t('из')} {trials.length}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{t('Вопрос')} {idx + 1} {t('из')} {trials.length}</div>
         <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4 }}>{t('Цвет ШРИФТА (не слова) — быстро!')}</div>
       </div>
 

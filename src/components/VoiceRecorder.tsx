@@ -184,7 +184,7 @@ export default function VoiceRecorder({
       )}
 
       {phase === 'recording' && (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: 'var(--color-red-text)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600, color: 'var(--color-red-text)', fontVariantNumeric: 'tabular-nums' }}>
           <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--color-red-text)' }} />
           {mmss(elapsed)} / {mmss(maxSeconds)}
         </span>

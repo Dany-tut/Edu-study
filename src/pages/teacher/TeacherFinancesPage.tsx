@@ -130,7 +130,7 @@ function AddPaymentModal({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Сумма, ₽')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Сумма, ₽')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -142,7 +142,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Занятий оплачено')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Занятий оплачено')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -153,7 +153,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Заметка (необязательно)')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Заметка (необязательно)')}</div>
             <input
               style={inputStyle}
               placeholder={t('Перевод на карту...')}

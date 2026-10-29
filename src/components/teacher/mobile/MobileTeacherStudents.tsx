@@ -209,7 +209,7 @@ const FILTERS: { key: StudentsFilter; label: string }[] = [
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', margin: '6px 2px 2px' }}>{children}</div>
+    <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', margin: '6px 15px 2px' }}>{children}</div>
   )
 }
 

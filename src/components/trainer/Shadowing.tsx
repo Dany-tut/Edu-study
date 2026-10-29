@@ -275,7 +275,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
 
         {phase === 'recording' ? (
           <button onClick={stopRec} style={btn('var(--color-red-text)', true)}>
-            <Square size={16} /> {t('Стоп')} · {elapsed}
+            <Square size={16} /> {t('Стоп')} · <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '2ch', textAlign: 'right' }}>{elapsed}</span>
           </button>
         ) : (
           <button onClick={() => void startRec()} style={btn('var(--color-red-text)', false)}>

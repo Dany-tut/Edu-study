@@ -469,7 +469,7 @@ function Field({ label, value, onChange, placeholder }: {
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5 }}>{label}</span>
+      <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 12 }}>{label}</span>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={fieldStyle} />
     </label>
   )
@@ -515,12 +515,12 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       <Field label={t('Контакт родителя')} value={parent} onChange={setParent} />
 
       <label style={{ display: 'block', marginBottom: 12 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5 }}>{t('Комментарий')}</span>
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 12 }}>{t('Комментарий')}</span>
         <GrowTextarea value={comment} onChange={setComment} minHeight={60} style={fieldStyle} />
       </label>
 
       <div style={{ marginBottom: 18 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5 }}>{t('Группа (и вместе с ней — учитель)')}</span>
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 12 }}>{t('Группа (и вместе с ней — учитель)')}</span>
         <TeacherSelect
           clearable={false}
           placeholder={t('— без группы —')}
