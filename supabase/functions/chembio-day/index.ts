@@ -3,7 +3,8 @@
 // Собирает сводку одним вызовом chembio_day_summary() (миграция 0105) и
 // кладёт её в канал Таскли: PUT /chembio/day с заголовком X-ChemBio-Token.
 // Формат канала — ChemBio_KB/integration/TASKLY.md, «Канал ХимБио».
-// Канал хранит одну последнюю сводку, и её видит телефон Вадима.
+// У каждого учителя в канале своя сводка: PUT /chembio/day/<teacher_id>,
+// в Таскли её выбирают в настройках модуля. Имя учителя едет в teacher.name.
 //
 // Запрос:  POST { teacher_id: uuid, date?: 'ГГГГ-ММ-ДД', sample?: boolean, dry_run?: boolean }
 //   — только от cron: заголовок x-chembio-secret со значением CHEMBIO_CRON_SECRET;
@@ -54,13 +55,16 @@ Deno.serve(async (req) => {
   })
   if (error || !summary) return json({ error: error?.message ?? 'empty summary' }, 500)
   if (body.sample === true) summary.sample = true
+  const { data: who } = await admin.auth.admin.getUserById(teacherId)
+  const name = who?.user?.user_metadata?.name
+  summary.teacher = { id: teacherId, ...(typeof name === 'string' && name ? { name } : {}) }
 
   if (body.dry_run === true) return json({ summary })
 
   const token = Deno.env.get('CHEMBIO_TOKEN')
   if (!token) return json({ error: 'CHEMBIO_TOKEN not set', summary }, 500)
 
-  const res = await fetch(TASKLY_URL, {
+  const res = await fetch(`${TASKLY_URL}/${teacherId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-ChemBio-Token': token },
     body: JSON.stringify(summary),
