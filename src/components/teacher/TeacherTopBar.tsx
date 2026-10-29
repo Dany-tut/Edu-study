@@ -211,7 +211,8 @@ export default function TeacherTopBar() {
       const nameW = nameRef.current?.offsetWidth ?? 0
       const roleW = roleRef.current?.offsetWidth ?? 0
       const widths = [8 + Math.max(nameW, roleW), 8 + roleW, 0]
-      const level = widths.findIndex(w => base + w + 2 * rightNeed <= inner)
+      // Короткое имя («Босс») уже подписи «Учитель» крупным — тогда ступень 1 не сжимает, пропускаем.
+      const level = widths.findIndex((w, i) => (i !== 1 || w < widths[0]) && base + w + 2 * rightNeed <= inner)
       setSqueeze((level < 0 ? 2 : level) as 0 | 1 | 2)
     }
     fit()
@@ -219,8 +220,18 @@ export default function TeacherTopBar() {
     const settle = setTimeout(fit, 420)
     const ro = new ResizeObserver(fit)
     ro.observe(row)
+    // Пилюля монтируется позже бара (данные расписания) и сама меняет размер —
+    // ширина ряда при этом не меняется, поэтому следим за ней отдельно.
+    const slot = row.lastElementChild as HTMLElement | null
+    const watchPill = () => {
+      const pill = slot?.firstElementChild
+      if (pill) ro.observe(pill)
+      fit()
+    }
+    const mo = new MutationObserver(watchPill)
+    if (slot) { mo.observe(slot, { childList: true }); watchPill() }
     window.addEventListener('resize', fit)
-    return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', fit) }
+    return () => { clearTimeout(settle); ro.disconnect(); mo.disconnect(); window.removeEventListener('resize', fit) }
   }, [activePage, headerDocked, collapsed, teacherName, teacherRole])
 
   useLayoutEffect(() => {
