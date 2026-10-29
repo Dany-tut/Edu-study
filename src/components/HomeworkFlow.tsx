@@ -57,7 +57,7 @@ import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
 import SpeechHeard from './SpeechHeard'
 import {
-  answerMap, charUnits, gapChoiceRows, sentenceTokens, sortRows, tfRows, EMBED_DONE, testlyDoneAt,
+  answerMap, charUnits, gapChoiceRows, sentenceTokens, sortRows, tfRows, EMBED_DONE, testlyDoneAt, testlyCredit, testlyScoreOf,
 } from '../data/taskTypes'
 import TrueFalseSolver from './TrueFalseSolver'
 import DropdownGapSolver from './DropdownGapSolver'
@@ -1875,12 +1875,14 @@ export default function HomeworkFlow({
 
   // Подсмотренное подсказкой не идёт в балл: ученик увидел ответ до того, как
   // вспомнил его сам, и засчитывать это как знание — врать в первую очередь ему.
+  // Тест из Тестли идёт в балл долей: 14 из 19 — это 0,74 задания, а не «мимо».
   const basicCorrectCount = useMemo(() => {
-    return basicQuestions.filter(question =>
-      questionScored(question)
-      && !state.basicHints[question.id]
-      && questionCorrect(question, state.basicAnswers[question.id])
-    ).length
+    return basicQuestions.reduce((sum, question) => {
+      if (!questionScored(question) || state.basicHints[question.id]) return sum
+      const ans = state.basicAnswers[question.id]
+      if (qType(question) === 'testly') return sum + testlyCredit(ans)
+      return sum + (questionCorrect(question, ans) ? 1 : 0)
+    }, 0)
   }, [basicQuestions, state.basicAnswers, state.basicHints])
   // Score over the auto-gradable subset (choice + text/fill with an эталон),
   // mirroring TestFlow. When nothing is auto-gradable (all teacher-reviewed),
@@ -1971,6 +1973,7 @@ export default function HomeworkFlow({
       // словами через пробел, порядок — индексами: преподавателю нужно то, что
       // видел ученик, а не внутреннее представление.
       let answer = raw ?? ''
+      let testly: BasicAnswerRow['testly']
       if (questionIsMulti(question)) {
         answer = parseIds(raw)
           .map(id => question.options.find(o => o.id === id)?.text ?? id)
@@ -2017,6 +2020,14 @@ export default function HomeworkFlow({
         answer = raw === EMBED_DONE ? tStatic('прошёл') : ''
       } else if (tp === 'testly') {
         answer = testlyDoneAt(raw) !== null ? tStatic('сдал тест в Тестли') : ''
+        const sc = testlyScoreOf(raw)
+        if (question.testly?.id) {
+          testly = {
+            testId: question.testly.id,
+            ...(sc ? { got: sc.got, max: sc.max, ...(sc.pending ? { pending: true } : {}) } : {}),
+            ...(testlyDoneAt(raw) ? { submittedAt: testlyDoneAt(raw)! } : {}),
+          }
+        }
       } else if (tp === 'pattern') {
         // Дрилл хранится JSON-картой «строка → что вписали»: преподавателю она
         // нечитаема, разворачиваем в те же строки, что видел ученик.
@@ -2086,6 +2097,7 @@ export default function HomeworkFlow({
         ...(correct ? { correct } : {}),
         verdict,
         ...(voice ? { voice: true } : {}),
+        ...(testly ? { testly } : {}),
         // Что услышала распознавалка — преподавателю в незачтённых: по нему
         // сразу видно, ученик сказал не то или машина не расслышала.
         ...(tp === 'speaking' && parseVoiceAnswer(raw).heard
@@ -2096,7 +2108,7 @@ export default function HomeworkFlow({
     return {
       v: 'basic-1',
       gradable: basicGradableCount,
-      correct: basicCorrectCount,
+      correct: Math.round(basicCorrectCount * 100) / 100,
       rows,
     }
   }

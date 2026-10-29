@@ -682,7 +682,7 @@ export default function TeacherHomeworkReviewPage() {
                       снимка, их нет — там честно говорим, что показать нечего,
                       вместо прежних выдуманных «solution.pdf». */}
                   {currentSubmission?.answers
-                    ? <BasicAnswersList payload={currentSubmission.answers} />
+                    ? <BasicAnswersList payload={currentSubmission.answers} studentId={student.id} />
                     : !currentSubmission?.comment && (
                       <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)' }}>
                         {t('Ответы этой сдачи не сохранились — она сделана до того, как работа начала доезжать до преподавателя.')}

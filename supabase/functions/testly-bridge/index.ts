@@ -9,6 +9,13 @@
 //   { action: 'connect', code }  → { email, tests }
 //   { action: 'tests' }          → { tests: TestlyTest[] }
 //   { action: 'disconnect' }     → { ok }
+//   { action: 'results', items: [{ testId, studentId }] } → { items }   балл учеников этого учителя (studentId — students.id)
+//
+// Ученик (JWT ученика) — тест из Тестли в своей домашке:
+//   { action: 'start', testId, owner? }  → { path, status }  личная ссылка /t/<id>?i=<token>
+//   { action: 'status', testId, owner? } → статус попытки и балл (что показывать — как в Тестли)
+// owner — учитель, поставивший тест (TestlyRef.owner); без него ищем среди учителей ученика.
+// key ученика в Тестли — 'iskra:<auth id ученика>'.
 //
 // Секреты функции: TESTLY_URL (https://<проект>.supabase.co) и
 // TESTLY_ISKRA_SECRET — тот же, что ISKRA_BRIDGE_SECRET у функции iskra в Тестли.
@@ -64,8 +71,76 @@ Deno.serve(async (req) => {
     return (data?.token as string | undefined) ?? null
   }
 
+  /** Учителя ученика с подключённым Тестли: владелец задания первым, если он среди них. */
+  const ownersOfStudent = async (owner: unknown) => {
+    const { data: rows } = await admin.from('students').select('name, group_id').eq('auth_user_id', teacher)
+    const groups = [...new Set((rows ?? []).map(r => r.group_id).filter(Boolean))]
+    if (!groups.length) return { name: '', owners: [] as string[] }
+    const { data: gs } = await admin.from('groups').select('created_by').in('id', groups)
+    const all = [...new Set((gs ?? []).map(g => g.created_by as string).filter(Boolean))]
+    const owners = typeof owner === 'string' && all.includes(owner) ? [owner] : all
+    return { name: String(rows?.[0]?.name ?? ''), owners }
+  }
+  const tokenFor = async (owner: string) => {
+    const { data } = await admin.from('teacher_module_secrets').select('token')
+      .eq('teacher_id', owner).eq('module', 'testly').maybeSingle()
+    return (data?.token as string | undefined) ?? null
+  }
+  /** Ученику — то, что Тестли разрешает показать после сдачи (настройка «что показывать»). */
+  const forStudent = (x: Record<string, unknown>) => {
+    const show = x.showAfter
+    return {
+      state: x.state, total: x.total, answered: x.answered, startedAt: x.startedAt, submittedAt: x.submittedAt,
+      ...(show !== 'none' && x.state === 'submitted' ? { got: x.got, max: x.max, pending: x.pending } : {}),
+      ...(show === 'review' && x.state === 'submitted' ? { review: x.review } : {}),
+    }
+  }
+  const studentKey = `iskra:${teacher}`
+
   try {
     switch (body.action) {
+      case 'start':
+      case 'status': {
+        const { name, owners } = await ownersOfStudent(body.owner)
+        if (!owners.length) return json({ error: 'not_student' }, 403)
+        // Тест ищем у владельца задания; у старых заданий его нет — пробуем учителей ученика по очереди.
+        for (const owner of owners) {
+          const token = await tokenFor(owner)
+          if (!token) continue
+          if (body.action === 'start') {
+            const r = await testly({ action: 'invite', token, testId: String(body.testId ?? ''), key: studentKey, name })
+            if (r.status === 404 || r.status === 401) continue
+            if (!r.ok) return json({ error: 'testly' }, 502)
+            return json({ path: r.data.path, status: r.data.status })
+          }
+          const r = await testly({ action: 'status', token, items: [{ testId: String(body.testId ?? ''), key: studentKey }] })
+          if (!r.ok) continue
+          const it = (r.data.items as Record<string, unknown>[] | undefined)?.[0]
+          if (!it || it.state === 'gone') continue
+          return json(forStudent(it))
+        }
+        return json({ error: 'not_connected' }, 409)
+      }
+      case 'results': {
+        const token = await tokenOf()
+        if (!token) return json({ error: 'not_connected' }, 409)
+        const items = (Array.isArray(body.items) ? body.items : []).slice(0, 100) as { testId?: unknown; studentId?: unknown }[]
+        // Только ученики групп этого учителя: чужой балл по id не отдаём.
+        const ids = [...new Set(items.map(i => String(i?.studentId ?? '')).filter(x => /^[0-9a-f-]{36}$/i.test(x)))]
+        const { data: groups } = await admin.from('groups').select('id').eq('created_by', teacher)
+        const { data: mine } = ids.length && groups?.length
+          ? await admin.from('students').select('id, auth_user_id').in('id', ids).in('group_id', groups.map(g => g.id))
+          : { data: [] as { id: string; auth_user_id: string | null }[] }
+        const keyOf = new Map((mine ?? []).filter(r => r.auth_user_id).map(r => [r.id as string, `iskra:${r.auth_user_id}`]))
+        const asked = items.filter(i => keyOf.has(String(i?.studentId ?? '')))
+          .map(i => ({ testId: String(i.testId ?? ''), studentId: String(i.studentId), key: keyOf.get(String(i.studentId))! }))
+        if (!asked.length) return json({ items: [] })
+        const r = await testly({ action: 'status', token, items: asked.map(({ testId, key }) => ({ testId, key })) })
+        if (r.status === 401) return json({ error: 'revoked' }, 409)
+        if (!r.ok) return json({ error: 'testly' }, 502)
+        const got = (r.data.items ?? []) as Record<string, unknown>[]
+        return json({ items: got.map(x => ({ ...x, studentId: asked.find(a => a.testId === x.testId && a.key === x.key)?.studentId })) })
+      }
       case 'connect': {
         const r = await testly({ action: 'exchange', code: String(body.code ?? ''), iskraEmail })
         if (!r.ok) return json({ error: r.data.error === 'bad_code' ? 'bad_code' : 'testly' }, r.status === 400 ? 400 : 502)

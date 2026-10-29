@@ -91,7 +91,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
   const byDate = new Map<string, DbScheduleLesson[]>()
   const seen = new Set<string>()
   for (const row of data as DbScheduleLesson[]) {
-    // Отменённое учителем занятие (0119) в календарь ученика не ставим: об отмене
+    // Отменённое учителем занятие (0121) в календарь ученика не ставим: об отмене
     // ему уже пришло уведомление, а «пустой» урок в ленте сбивал бы с толку.
     if ((row as { status?: string }).status === 'cancelled') continue
     const key = `${row.date}|${row.time_start}|${row.lesson_title}|${row.lesson_number}|${row.subject}`

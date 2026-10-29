@@ -4,6 +4,7 @@ import ScheduleCarousel from '../components/ScheduleCarousel'
 import WidgetCarousel from '../components/WidgetCarousel'
 import CompactWidgetPill from '../components/CompactWidgetPill'
 import CourseTrack from '../components/CourseTrack'
+import HomeNext, { useHomeRedesign } from '../components/HomeNext'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileHome from '../components/MobileHome'
 import MobileCourses from '../components/MobileCourses'
@@ -110,6 +111,7 @@ export default function DashboardPage() {
   useNotificationsInit(getStudentSession()?.id)
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
+  const homeRedesign = useHomeRedesign()
   const activePage = useDashboard(s => s.activePage)
   const setActivePage = useDashboard(s => s.setActivePage)
   const currentLessonId = useDashboard(s => s.currentLessonId)
@@ -381,7 +383,7 @@ export default function DashboardPage() {
       <LayoutGroup>
       <div className={activePage === 'home' ? 'dashboard-root dashboard-root--home' : 'dashboard-root'} style={{ display: 'flex' }}>
         {/* Праздничная тема (lib/season.ts): фон за всеми блоками главной. Без темы — ничего. */}
-        {activePage === 'home' && <SeasonBackdrop />}
+        {activePage === 'home' && !homeRedesign && <SeasonBackdrop />}
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
             floating topbar pill — content scrolls up under a soft blurred band so
             it never bleeds through the gaps around the pills. */}
@@ -431,6 +433,18 @@ export default function DashboardPage() {
         </div>
 
         {activePage === 'home' ? (
+          homeRedesign ? (
+            /* Новая главная (флаг home_redesign, см. HomeNext.tsx). Праздничные
+               украшения сюда не идут: они привязаны к старой раскладке. */
+            <main className="dashboard-main">
+              <section style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: trackPopoverOpen ? 30 : 5 }}>
+                <HomeNext />
+              </section>
+              <section style={{ flexShrink: 0 }}>
+                <AssignedTestsBlock />
+              </section>
+            </main>
+          ) : (
           <>
             {/* Шапка праздничной темы — над расписанием; без темы не рендерится. */}
             <section className="dashboard-schedule season-hero-row">
@@ -464,6 +478,7 @@ export default function DashboardPage() {
             </main>
             <SeasonCornerPumpkin />
           </>
+          )
         ) : showLesson ? (
           /* Single lesson — player + materials (screen 2). The page
              extends past the viewport (homework levels, transcript, etc.),
