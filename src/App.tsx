@@ -29,6 +29,7 @@ import StickerRevealGate from './components/StickerRevealGate'
 import InstallPrompt from './components/InstallPrompt'
 import ConfirmHost from './components/ConfirmHost'
 import type { Session } from '@supabase/supabase-js'
+import { Capacitor } from '@capacitor/core'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
 import {
@@ -75,6 +76,12 @@ function Chunk({ children }: { children: React.ReactNode }) {
     </Suspense>
   )
 }
+
+// В приложении (обёртка Capacitor, ios/) лендинг с заявкой не нужен: его
+// скачали, чтобы войти. Пустой адрес = экран входа, а учитель с живой сессией
+// сразу попадает в кабинет — иначе после каждого холодного запуска он шёл
+// «Войти → Я преподаватель», хотя давно вошёл.
+const IS_NATIVE = Capacitor.isNativePlatform()
 
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash)
@@ -125,6 +132,12 @@ function AppRoutes() {
     document.addEventListener('visibilitychange', onFocus)
     return () => { subscription.unsubscribe(); document.removeEventListener('visibilitychange', onFocus) }
   }, [])
+
+  useEffect(() => {
+    if (!IS_NATIVE || !session || getStudentSession()) return
+    if (session.user?.user_metadata?.role === 'student') return
+    if (hash === '' || hash === '#' || hash === '#/') window.location.replace('#/teacher')
+  }, [session, hash])
 
   // Load real Supabase data whenever a student session exists
   useEffect(() => {
@@ -237,6 +250,9 @@ function AppRoutes() {
     // получал бы обратно материал вместо лендинга.
     const guestLink = parseTrainerLink(hash)
     if (guestLink) return <Chunk><GuestTrainerPage link={guestLink} /></Chunk>
+    // Вход общий: учителя StudentLoginPage сам уводит в #/teacher.
+    // Учитель с живой сессией — пустой кадр, пока эффект выше уводит в кабинет.
+    if (IS_NATIVE) return session === undefined || (session && session.user?.user_metadata?.role !== 'student') ? null : <StudentLoginPage />
     return <LandingPage />
   }
   // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted

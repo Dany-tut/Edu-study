@@ -167,7 +167,7 @@ export default function MobileTeacherProfile() {
           bg={m.debt > 0 ? 'var(--color-red-soft)' : 'var(--color-bg-3)'}
           fg={m.debt > 0 ? 'var(--color-red-text)' : 'var(--color-muted)'}
         />
-        <StatTile icon={<Users size={18} />} value={m.studentTotal} label={`${t('Ученики')} · ${m.groupCount} ${t('групп')}`} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" />
+        <StatTile icon={<Users size={18} />} value={m.studentTotal} label={`${t('Ученики')} · ${m.groupCount} ${t(m.groupCount % 10 === 1 && m.groupCount % 100 !== 11 ? 'группа' : m.groupCount % 10 >= 2 && m.groupCount % 10 <= 4 && (m.groupCount % 100 < 12 || m.groupCount % 100 > 14) ? 'группы' : 'групп')}`} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" />
         <StatTile icon={<ClipboardCheck size={18} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
 
         {/* Settings — span 2, grouped icon-list (C-style) */}

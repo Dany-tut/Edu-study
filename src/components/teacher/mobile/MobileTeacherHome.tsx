@@ -129,10 +129,16 @@ function Confetti() {
   )
 }
 
+// Русская форма по числу: 1 работа, 3 работы, 5 работ.
+function ru(n: number, one: string, few: string, many: string): string {
+  const m10 = n % 10, m100 = n % 100
+  return m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many
+}
+
 // ─── hero (what's on fire) ───────────────────────────────────────────────────
 function Hero({ state, review, hard, oldestDays, onOpen }: {
   state: 'overdue' | 'fresh' | 'calm'
-  review: number; hard: number; oldestDays: number
+  review: number; hard: number; oldestDays: number | null
   onOpen: () => void
 }) {
   const t = useT()
@@ -154,9 +160,10 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
   }
   const danger = state === 'overdue'
   const pair = danger ? PAIR.error : PAIR.focus
+  const counts = `${hard} ${t(ru(hard, 'сложная', 'сложных', 'сложных'))} · ${review - hard} ${t(ru(review - hard, 'обычная', 'обычных', 'обычных'))}`
   const sub = danger
-    ? `${hard} ${t('сложных')} · ${review - hard} ${t('обычных')} · ${t('старейшая ждёт')} ${oldestDays} ${t('дн.')}`
-    : `${hard} ${t('сложных')} · ${review - hard} ${t('обычных')} — ${t('свежие, без просрочки')}`
+    ? oldestDays ? `${counts} · ${t('старейшая ждёт')} ${oldestDays} ${t('дн.')}` : counts
+    : `${counts} — ${t('свежие, без просрочки')}`
   return (
     <div style={{ borderRadius: 20, background: pair.bg, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -164,7 +171,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
           <ClipboardCheck size={20} style={{ color: pair.text }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: pair.text, lineHeight: 1.3 }}>{review} {t('работ ждут проверки')}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: pair.text, lineHeight: 1.3 }}>{review} {t(ru(review, 'работа ждёт проверки', 'работы ждут проверки', 'работ ждут проверки'))}</div>
           <div style={{ fontSize: 12, fontWeight: 500, color: pair.text, opacity: 0.82, marginTop: 2 }}>{sub}</div>
         </div>
       </div>
@@ -375,7 +382,13 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
     model.totalReview === 0 ? 'calm'
     : model.attention.some(a => a.tagKind === 'danger') ? 'overdue'
     : 'fresh'
-  const oldestDays = 2
+  // Возраст старейшей сложной работы — по настоящей дате сдачи. Здесь стояла
+  // константа 2, и в проде «старейшая ждёт 2 дн.» висело при любой очереди.
+  const oldestDays = useDemo ? 2 : (() => {
+    const times = submissions.filter(s => s.status === 'submitted' && s.updatedAt).map(s => Date.parse(s.updatedAt)).filter(n => !Number.isNaN(n))
+    if (!times.length) return null
+    return Math.max(1, Math.floor((Date.now() - Math.min(...times)) / 86_400_000))
+  })()
 
   const nextLesson = model.schedule.find(s => s.status === 'live')
     ?? model.schedule.find(s => s.status === 'upcoming')
@@ -435,7 +448,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           <Alert
             tone="warning"
             title={`${t('Журнал не заполнен')}.`}
-            text={`${model.journalPending} ${t('урок(а) ждут отметки')}`}
+            text={`${model.journalPending} ${t(ru(model.journalPending, 'урок ждёт отметки', 'урока ждут отметки', 'уроков ждут отметки'))}`}
             action={{ label: t('Заполнить'), onClick: () => { tactile(); onNavigate('gradebook') } }}
           />
         )}

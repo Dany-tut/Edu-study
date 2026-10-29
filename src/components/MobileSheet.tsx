@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, useDragControls, animate } from 'framer-motion'
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 
@@ -176,7 +177,12 @@ export default function MobileSheet({
     }
   }, [open, y])
 
-  return (
+  // В body, а не там, где шторку объявили. Экраны рисуют её внутри своей
+  // прокрутки (MobileScreen, overflow:auto), а WebKit кладёт содержимое такой
+  // коробки в её собственный слой: fixed-шторка с zIndex 81 оказывалась ПОД
+  // fixed-навигацией (z 50) снаружи, и док учителя закрывал низ карточки
+  // ученика — в приложении и в Safari на айфоне; Chrome этого не делает.
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -270,6 +276,7 @@ export default function MobileSheet({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

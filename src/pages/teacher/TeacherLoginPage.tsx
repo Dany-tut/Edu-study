@@ -5,6 +5,7 @@ import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { AlertStack } from '../../components/Alert'
+import IskraMark from '../../components/landing/IskraMark'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
@@ -95,7 +96,9 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         boxShadow: 'var(--shadow-4)',
         border: '1px solid var(--color-border-glass)',
       }}>
-        <div style={{ fontSize: 36, marginBottom: 8 }}>👩‍🏫</div>
+        {/* Знак Искры вместо эмодзи 👩‍🏫: вход учителя — такой же экран бренда,
+            как лендинг, а эмодзи-«учительница» говорит за всех, кто входит. */}
+        <div style={{ marginBottom: 12 }}><IskraMark size={44} /></div>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', margin: '0 0 4px' }}>
           {t('Платформа учителя')}
         </h1>
@@ -109,6 +112,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               className="auth-input"
               type="email"
               placeholder="Email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={email}
               onChange={e => setEmail(e.target.value)}
               autoComplete="username"

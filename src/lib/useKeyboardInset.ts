@@ -27,6 +27,7 @@
 // которую прячут именно по этому признаку.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
 
 export interface KeyboardState {
   /** На сколько пикселей поднимать прижатое к низу. 0 — клавиатуры нет. */
@@ -64,11 +65,34 @@ function overlap(vv: VisualViewport): number {
   return Math.round(mark.getBoundingClientRect().bottom - (vv.offsetTop + vv.height))
 }
 
+// ПРИЛОЖЕНИЕ (Capacitor, ios/) — третья среда. Обычно там всё как в Safari
+// (ужимается видимая область), но WKWebView умеет и ужать окно целиком:
+// innerHeight падает вместе с visualViewport, разность ниже остаётся около
+// нуля, и «открыта» не загоралось — док вставал над клавиатурой поверх поля.
+// В симуляторе встречались оба режима в одной сборке. Запасной признак —
+// окно стало ниже экрана, и только пока фокус в поле ввода (иначе окно Stage
+// Manager на айпаде читалось бы как вечная клавиатура). Подъём в этом режиме
+// не нужен: fixed-элементы и так стоят у нижнего края ужатого окна.
+const IS_NATIVE = Capacitor.isNativePlatform()
+
+function editableFocused(): boolean {
+  const el = document.activeElement as HTMLElement | null
+  if (!el) return false
+  return el.isContentEditable || el.tagName === 'TEXTAREA'
+    || (el.tagName === 'INPUT' && !/^(button|checkbox|radio|range|submit|reset|file|color|image)$/i.test((el as HTMLInputElement).type))
+}
+
+function nativeWindowShrunk(): boolean {
+  const landscape = window.matchMedia('(orientation: landscape)').matches
+  const full = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height)
+  return full - window.innerHeight >= MIN_KEYBOARD && editableFocused()
+}
+
 function read(): KeyboardState {
   const vv = typeof window === 'undefined' ? null : window.visualViewport
   if (!vv) return CLOSED
   const height = Math.round(window.innerHeight - vv.height)
-  if (height < MIN_KEYBOARD) return CLOSED
+  if (height < MIN_KEYBOARD) return IS_NATIVE && nativeWindowShrunk() ? { inset: 0, open: true } : CLOSED
   // Нахлёст не бывает больше клавиатуры и меньше нуля: за пределами этого
   // отрезка замер поймал промежуточный кадр анимации, а не положение.
   const lift = Math.max(0, Math.min(height, overlap(vv)))
@@ -94,6 +118,8 @@ function wire() {
   vv?.addEventListener('resize', settle)
   vv?.addEventListener('scroll', publish)
   window.addEventListener('orientationchange', settle)
+  // В приложении ужимается само окно — visualViewport об этом молчит не везде.
+  if (IS_NATIVE) window.addEventListener('resize', settle)
   // Уход фокуса из поля — самый честный признак, что клавиатура закрывается,
   // и приходит он раньше, чем viewport признаётся в новом размере.
   window.addEventListener('focusout', settle, true)

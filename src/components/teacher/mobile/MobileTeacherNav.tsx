@@ -4,6 +4,7 @@ import CountBadge from '../../CountBadge'
 import { Home, Users, ClipboardCheck, CheckSquare, User } from 'lucide-react'
 import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
+import { useKeyboardOpen } from '../../../lib/useKeyboardInset'
 import { useT } from '../../../lib/i18n'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
@@ -39,8 +40,14 @@ export default function MobileTeacherNav({
   const t = useT()
   const visibleItems = items.filter(item => !hidden.includes(item.id))
   const collapsed = useNavCollapse()
+  // Клавиатура открыта (комментарий к работе, поиск) — док уезжает вниз, как
+  // у ученика: иначе он вставал над клавиатурой и закрывал поле ввода.
+  const kbOpen = useKeyboardOpen()
   return (
-    <div
+    <motion.div
+      initial={false}
+      animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
+      transition={COLLAPSE}
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
       // Навигация одна и та же на всех экранах кабинета, поэтому на свайпе
       // «назад» она не едет со страницей, а стоит: страница проходит ПОД ней
@@ -49,7 +56,7 @@ export default function MobileTeacherNav({
       // Отступ снизу — MOBILE_DOCK_EDGE, а не сырой env(): Safari и WKWebView
       // какое-то время кладут в safe-area свою панель, и док садился на глазах.
       // Размеры — как у ученического дока (MobileBottomNav): один док на оба кабинета.
-      style={{ paddingBottom: MOBILE_DOCK_EDGE }}
+      style={{ paddingBottom: MOBILE_DOCK_EDGE, pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div
         className="mb-2 flex items-center justify-around px-2"
@@ -117,6 +124,6 @@ export default function MobileTeacherNav({
           )
         })}
       </motion.div>
-    </div>
+    </motion.div>
   )
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { Check, RotateCcw, Image as ImageIcon, ClipboardCheck, Loader2, PenLine, X } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
@@ -13,11 +13,17 @@ import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
 import { useT, useTc } from '../../../lib/i18n'
 import { alertDialog } from '../../ConfirmHost'
 import { Alert } from '../../Alert'
-import { btn } from '../../../lib/pillStyles'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
 type ReviewAttachments = { photos: string[]; board: string | null }
+
+const attachBtn = (on: boolean): CSSProperties => ({
+  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12,
+  border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
+  background: on ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+  color: on ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700,
+})
 
 // MOBILE ONLY review queue. The actionable part is "сложные" submissions —
 // accept / return with one tap (reviewHard). Regular homework that still needs
@@ -98,10 +104,12 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
       <div>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ ...btn('M', 'secondary'), flex: 1 }}>
-            <ImageIcon size={14} /> {t('Фото')}
+          {/* Пара кнопок одного вида: «Фото» на btn('M','secondary') в карточке
+              без рамки сливалась с фоном рядом с обведённой «Доской». */}
+          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={attachBtn(photos.length > 0)}>
+            <ImageIcon size={14} /> {photos.length > 0 ? `${t('Фото')} · ${photos.length}` : t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
+          <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={attachBtn(showBoard || !!board)}>
             <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>

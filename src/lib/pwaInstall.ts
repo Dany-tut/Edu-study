@@ -3,6 +3,8 @@
 // the InstallPrompt banner uses. iOS has no such event — there we show a manual
 // "Add to Home Screen" tutorial instead.
 
+import { Capacitor } from '@capacitor/core'
+
 type BIPEvent = Event & {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
@@ -60,6 +62,10 @@ export async function promptInstall(): Promise<boolean> {
 }
 
 export function isStandalone(): boolean {
+  // Приложение Capacitor уже установлено, но WKWebView не отвечает ни на
+  // display-mode, ни на navigator.standalone — без этой строки внутри
+  // приложения выезжал щит «Добавьте на экран „Домой“».
+  if (Capacitor.isNativePlatform()) return true
   try {
     return window.matchMedia('(display-mode: standalone)').matches
       || (window.navigator as unknown as { standalone?: boolean }).standalone === true
