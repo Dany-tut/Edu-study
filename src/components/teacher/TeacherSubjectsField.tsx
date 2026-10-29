@@ -31,6 +31,8 @@ export default function TeacherSubjectsField({ value, onChange, look }: {
       onChange={names => onChange(subjectsToStored(names.map(n => getSubject(n) ? n : n.charAt(0).toUpperCase() + n.slice(1))))}
       creatable
       createLabel="Добавить свой предмет"
+      createHint="Добавить свой предмет"
+      createPlaceholder="Впишите название предмета"
       field={LOOKS[look]}
     />
   )

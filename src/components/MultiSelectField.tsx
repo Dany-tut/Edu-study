@@ -24,7 +24,7 @@ import { useScrollLock } from '../lib/useScrollLock'
 export default function MultiSelectField({
   label, options, values, onChange,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)', small = false,
-  lockScroll = false, creatable = false, createLabel = 'Добавить', field,
+  lockScroll = false, creatable = false, createLabel = 'Добавить', createHint, createPlaceholder, field,
 }: {
   label: string
   options: string[]
@@ -52,6 +52,13 @@ export default function MultiSelectField({
   /** Подпись строки «Добавить „…“» — ключ перевода. */
   createLabel?: string
   /**
+   * Строка под списком, видная сразу, пока ничего не набрано («＋ Свой
+   * предмет»): без неё про добавление своего узнавали, только напечатав
+   * то, чего нет. Клик ставит курсор в поле с `createPlaceholder`.
+   */
+  createHint?: string
+  createPlaceholder?: string
+  /**
    * Поле стоит в форме среди обычных полей ввода (регистрация, профиль), а не в
    * колонке фильтров: коробка, рамка покоя и кегль — как у соседних инпутов.
    */
@@ -60,6 +67,7 @@ export default function MultiSelectField({
   const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [naming, setNaming] = useState(false)
   const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
   const btnRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -92,7 +100,7 @@ export default function MultiSelectField({
     if (!open) { setPos(null); return }
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
-    const estH = Math.min((shown.length + (canCreate ? 1 : 0)) * (small ? 30 : 34) + 16, 248)
+    const estH = Math.min((shown.length + (canCreate ? 1 : 0)) * (small ? 30 : 34) + 16, 248) + (creatable && createHint ? 38 : 0)
     const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
     const left = Math.min(r.left, window.innerWidth - r.width - 8)
     setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
@@ -102,7 +110,7 @@ export default function MultiSelectField({
     setOpen(true); setQuery('')
     setTimeout(() => inputRef.current?.focus(), 30)
   }
-  const close = () => { setOpen(false); setQuery('') }
+  const close = () => { setOpen(false); setQuery(''); setNaming(false) }
 
   function toggle(opt: string) {
     onChange(values.includes(opt) ? values.filter(v => v !== opt) : [...values, opt])
@@ -115,6 +123,7 @@ export default function MultiSelectField({
     if (!canCreate) return
     onChange([...values, typed])
     setQuery('')
+    setNaming(false)
     inputRef.current?.focus()
   }
 
@@ -185,7 +194,7 @@ export default function MultiSelectField({
             <input
               ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               className="mobile-input-16"
-              placeholder={isEmpty ? label : ''}
+              placeholder={naming && createPlaceholder ? t(createPlaceholder) : isEmpty ? label : ''}
               onClick={e => { if (open && !query && isEmpty) { e.stopPropagation(); close() } }}
               onKeyDown={e => {
                 if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1))
@@ -282,6 +291,15 @@ export default function MultiSelectField({
                   )}
                 </div>
               </ScrollFade>
+              {creatable && createHint && !typed && (
+                <div onMouseDown={e => { e.preventDefault(); setNaming(true); inputRef.current?.focus() }}
+                  style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, color: accent, marginTop: 4, borderTop: '1px solid var(--color-border)', borderRadius: '0 0 9px 9px' }}
+                  {...dropdownRowHover(false)}
+                >
+                  <Plus size={13} strokeWidth={2.4} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>{t(createHint)}</span>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>,
