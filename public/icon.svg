@@ -1,12 +1,28 @@
-<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<svg width="512" height="512" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#9B6FE8"/>
-      <stop offset="1" stop-color="#6F3FBF"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9D8BFF"/>
+      <stop offset="1" stop-color="#6A5AE6"/>
     </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.14"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="glyph" x1="0" y1="26" x2="0" y2="93" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E7E4FB"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4"/></filter>
+    <path id="spark" d="M12 2c1 6 4 9 10 10-6 1-9 4-10 10-1-6-4-9-10-10 6-1 9-4 10-10Z" transform="translate(78 31) scale(0.98) translate(-12 -12)"/>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <!-- Открытая книга — ученическая платформа -->
-  <path d="M256 176 C216 144 160 144 120 160 V352 C160 336 216 336 256 368 Z" fill="#fff"/>
-  <path d="M256 176 C296 144 352 144 392 160 V352 C352 336 296 336 256 368 Z" fill="#fff" opacity="0.82"/>
+  <!-- Искра — знак «Буква И»: диагональ упирается в короткую правую палочку, над ней искра. Кабинет ученика. -->
+  <rect width="120" height="120" rx="27" fill="url(#tile)"/>
+  <rect width="120" height="120" rx="27" fill="url(#sheen)"/>
+  <g fill="url(#glyph)">
+    <rect x="33" y="26" width="14" height="67" rx="7"/>
+    <rect x="71" y="47" width="14" height="46" rx="7"/>
+  </g>
+  <path d="M40 86 L78 54" stroke="url(#glyph)" stroke-width="14" stroke-linecap="round"/>
+  <use href="#spark" fill="#fff" opacity="0.8" filter="url(#glow)"/>
+  <use href="#spark" fill="#fff"/>
 </svg>
