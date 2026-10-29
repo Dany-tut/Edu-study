@@ -1936,6 +1936,10 @@ export default function HomeworkFlow({
   const hardUnlocked = (basicCompleted && basicScore >= homework.recommendationScore) || !!hardVerdict
   const selectedLevel = state.selectedLevel
 
+  // Сдача базы в полёте — второй клик не шлёт её повторно (см. submitBasic).
+  // Ref, а не state: объявлен до раннего return, чтобы порядок хуков не плыл.
+  const submittingBasicRef = useRef(false)
+
   if (!basicLevel || !hardLevel) return null
 
   const selectedEstimatedTime = formatEstimatedTime(
@@ -2104,7 +2108,14 @@ export default function HomeworkFlow({
       | BasicAnswersPayload,
   ) {
     const session = getStudentSession()
-    if (!session?.id) return
+    if (!session?.id) {
+      // Без сессии записать некуда — но и «сдано» показывать нельзя.
+      setSubmitFailed({
+        text: tStatic('Ответы не отправлены — войдите в аккаунт ученика и повторите.'),
+        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
+      })
+      return false
+    }
     // Basic level is auto-graded — mark completed immediately if score meets threshold.
     // Hard level (essay) always goes to submitted and awaits teacher review.
     //
@@ -2139,7 +2150,7 @@ export default function HomeworkFlow({
       })
       setSubmitFailed({
         text: tStatic('Ответы не отправлены — проверьте связь и повторите.'),
-        retry: () => { void submitToSupabase(level, score, comment, attachments) },
+        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
       })
       return false
     }
@@ -2148,6 +2159,24 @@ export default function HomeworkFlow({
     if (level === 'basic') void captureBasicToDeck()
     useStudentData.getState().load()
     return true
+  }
+
+  /**
+   * Сдача базы: окно «Домашка сдана» — только после ответа базы. Раньше оно
+   * открывалось сразу, «продолжить» ставило basicSubmitted в localStorage, и
+   * после F5 кнопки повтора уже не было, а сверка с базой через 15 минут стирала
+   * черновик с ответами. Теперь при сбое — красная плашка с повтором, окна нет,
+   * черновик на месте.
+   */
+  async function submitBasic() {
+    if (submittingBasicRef.current) return
+    submittingBasicRef.current = true
+    try {
+      const ok = await submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
+      if (ok) setShowResultModal('basic')
+    } finally {
+      submittingBasicRef.current = false
+    }
   }
 
   /**
@@ -3329,7 +3358,7 @@ export default function HomeworkFlow({
                   <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
                     <motion.button
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
+                      onClick={() => { void submitBasic() }}
                       className="cursor-pointer"
                       style={{
                         padding: '13px 22px', borderRadius: 16, border: 'none',
@@ -4562,8 +4591,7 @@ export default function HomeworkFlow({
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         if (!confirmSubmitAsIs) { setConfirmSubmitAsIs(true); return }
-                        submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
-                        setShowResultModal('basic')
+                        void submitBasic()
                       }}
                       className="flex items-center justify-center cursor-pointer"
                       style={{
@@ -4658,7 +4686,7 @@ export default function HomeworkFlow({
                   hints={state.basicHints}
                   score={basicScore}
                   recommendationScore={homework.recommendationScore}
-                  onSubmit={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
+                  onSubmit={() => { void submitBasic() }}
                   onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   onJump={jumpToQuestion}
                 />
