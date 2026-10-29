@@ -25,7 +25,7 @@
 
 import { useState, useRef, type ReactNode, type CSSProperties, type ComponentType } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpDown, ChevronUp, Search, X } from 'lucide-react'
+import { ArrowUpDown, BookOpen, ChevronUp, Search, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { SUBJECTS, getSubject, isMySubject } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
@@ -446,10 +446,12 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
     <div style={{ position: 'relative' }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
       <button onClick={() => { setOpen(o => !o); setQuery('') }}
-        // Пустой выбор — единственное, что держит витрину пустой: таблетка
-        // горит акцентом, чтобы взгляд сразу нашёл, куда нажать.
-        style={pillStyle(open, on.length ? { fontWeight: 700 } : { color: accent, borderColor: accent })}>
-        <span style={{ display: 'flex', fontSize: 12 }}>{on.length === 1 ? getSubject(on[0])?.icon ?? '📚' : '📚'}</span>
+        // Таблетка как у соседей по ряду: своя обводка акцентом выбивалась из
+        // ряда. Куда нажать, подсказывает строка под рядом (PickSubjectHint).
+        style={pillStyle(open, { fontWeight: on.length ? 700 : 600 })}>
+        <span style={{ display: 'flex', fontSize: 12, color: 'var(--color-text-3)' }}>
+          {on.length === 1 ? getSubject(on[0])?.icon ?? <BookOpen size={12} /> : <BookOpen size={12} />}
+        </span>
         <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{head}</span>
         <Caret open={open} />
       </button>
