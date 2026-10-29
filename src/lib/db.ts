@@ -512,7 +512,8 @@ export async function fetchStudentTrack(
       ownerStudentId: ownerFor(studentIds, groupIds),
       modules: (mods ?? []).map(([position, label, lessons]) => ({
         id: position,
-        label,
+        label: label?.trim() ? label : 'Уроки',
+        loose: !label?.trim() || undefined,
         lessons: (lessons ?? []).flatMap(t => {
           const [lid, lShort, lTitle, num, shape, hasHard, youtube, timecodes, kind, testTasks,
                  schedDate, schedTime, recDate, recTime, schedManual, materials] = t
