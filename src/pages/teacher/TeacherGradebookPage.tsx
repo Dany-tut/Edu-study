@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Check } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
@@ -13,6 +12,7 @@ import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
+import { btn } from '../../lib/pillStyles'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -75,8 +75,6 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
         opacity: fadeRight ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
-      <ScrollArrow side="left" visible={fadeLeft} onClick={() => ref.current && nudgeScroll(ref.current, 'left')} inset={6} />
-      <ScrollArrow side="right" visible={fadeRight} onClick={() => ref.current && nudgeScroll(ref.current, 'right')} inset={6} />
     </div>
   )
 }
@@ -663,10 +661,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           )}
           <button
             onClick={onClose}
-            style={{
-              padding: '10px 20px', borderRadius: 13, border: '1px solid var(--color-border-medium)',
-              background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}
+            style={btn('M', 'secondary')}
           >
             {t('Отмена')}
           </button>
@@ -794,11 +789,7 @@ export default function TeacherGradebookPage() {
         <div style={{ flex: 1 }} />
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 16px', borderRadius: 14, border: '1px solid var(--color-border)', cursor: 'pointer',
-            background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
-          }}
+          style={btn('S', 'secondary')}
         >
           <Download size={14} strokeWidth={2} />
           {t('Экспорт CSV')}

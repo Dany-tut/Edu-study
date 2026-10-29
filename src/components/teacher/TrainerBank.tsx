@@ -25,7 +25,7 @@ import { useTheme } from '../../store/themeStore'
 import SubjectPicker from './SubjectPicker'
 import { useCurriculum } from '../../store/curriculumStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
-import { cardChip, cardChipTone } from '../../lib/pillStyles'
+import { cardChip, cardChipTone, btn } from '../../lib/pillStyles'
 import { copyToClipboard } from '../../lib/clipboard'
 import MultiSelectField from '../MultiSelectField'
 import { useScrollLock } from '../../lib/useScrollLock'
@@ -868,7 +868,7 @@ function ResetFilters({ filters, onChange }: { filters: TrainerFilters; onChange
   if (!has) return null
   return (
     <button onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [] })}
-      style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+      style={btn('S', 'secondary')}>
       <Trash2 size={12} /> {t('Сбросить фильтры')}
     </button>
   )

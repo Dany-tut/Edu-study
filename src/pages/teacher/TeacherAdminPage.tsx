@@ -27,6 +27,7 @@ import { getAuthUser } from '../../lib/owner'
 import { Alert } from '../../components/Alert'
 import SeasonAdmin from '../../components/teacher/SeasonAdmin'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
+import { btn } from '../../lib/pillStyles'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -211,7 +212,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
                 {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
-              <button onClick={onClose} style={{ padding: '12px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
+              <button onClick={onClose} style={btn('M', 'secondary')}>{t('Готово')}</button>
             </div>
           </div>
         ) : (
@@ -614,12 +615,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
           <button
             onClick={resetPassword}
             disabled={pwLoading}
-            style={{
-              padding: '8px 16px', borderRadius: 12, cursor: pwLoading ? 'wait' : 'pointer',
-              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-              color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600,
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}
+            style={btn('S', 'secondary')}
           >
             <KeyRound size={14} strokeWidth={2} />
             {pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}
@@ -1014,7 +1010,7 @@ export default function TeacherAdminPage() {
         <div style={{ textAlign: 'center', color: 'var(--color-text-3)' }}>
           <ShieldAlert size={32} strokeWidth={1.5} style={{ opacity: 0.6 }} />
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>{t('Раздел доступен только администратору')}</div>
-          <button onClick={() => setActivePage('home')} style={{ marginTop: 16, padding: '8px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={() => setActivePage('home')} style={{ ...btn('S', 'secondary'), marginTop: 16 }}>
             {t('На главную')}
           </button>
         </div>
@@ -1217,7 +1213,7 @@ export default function TeacherAdminPage() {
                     <button
                       onClick={() => { void copyToClipboard(link) }}
                       title={t('Скопировать ссылку')}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '8px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
+                      style={{ ...btn('S', 'secondary'), flexShrink: 0 }}
                     >
                       <Copy size={14} strokeWidth={2} />{t('Ссылка')}
                     </button>

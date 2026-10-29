@@ -55,6 +55,7 @@ function getSuggestionType(text: string): TaskType | null {
 }
 
 import type { Student, Group } from '../../data/teacherMockData'
+import { btn } from '../../lib/pillStyles'
 
 function getEntitySuggestions(titleText: string, students: Student[], groups: Group[]) {
   const atIdx = titleText.lastIndexOf('@')
@@ -742,11 +743,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
               <button
                 onClick={handleClose}
-                style={{
-                  flex: 1, padding: '12px 0', borderRadius: 14,
-                  border: '1px solid var(--color-border-soft)', background: 'transparent',
-                  fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', cursor: 'pointer',
-                }}
+                style={{ ...btn('M', 'secondary'), flex: 1 }}
               >
                 {t('Отмена')}
               </button>

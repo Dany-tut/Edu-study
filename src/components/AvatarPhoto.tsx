@@ -8,6 +8,7 @@ import { Minus, Plus } from 'lucide-react'
 import { renderAvatarBlob, useAvatarUrl } from '../lib/avatarPhoto'
 import { useT } from '../lib/i18n'
 import { Alert } from './Alert'
+import { btn } from '../lib/pillStyles'
 
 /** Фото поверх кружка (иконки, инициалов). Родителю нужен position: relative.
  *  Пока ссылки нет — ничего не рисует, и виден запасной вариант под ним. */
@@ -237,11 +238,7 @@ export function AvatarCropModal({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            style={{
-              flex: 1, padding: '10.5px 12px 13.5px', borderRadius: 13, border: '1px solid var(--color-border-medium)',
-              background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
+            style={{ ...btn('M', 'secondary'), flex: 1 }}
           >
             {t('Отмена')}
           </button>

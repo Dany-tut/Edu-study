@@ -74,6 +74,7 @@ import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 import BackCircle from '../../components/BackCircle'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
+import { btn } from '../../lib/pillStyles'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -735,20 +736,12 @@ function AssignPicker({
       </div>
 
       {!query && !expanded && hiddenCount > 0 && (
-        <button onClick={() => setExpanded(true)} style={{
-          alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 999,
-          background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
-          color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-        }}>
+        <button onClick={() => setExpanded(true)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
           {t('Показать всех')} ({hiddenCount})
         </button>
       )}
       {!query && expanded && (
-        <button onClick={() => setExpanded(false)} style={{
-          alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 999,
-          background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
-          color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-        }}>
+        <button onClick={() => setExpanded(false)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
           {t('Свернуть')}
         </button>
       )}
@@ -1542,11 +1535,11 @@ function TimecodeRail({
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setBulk(null)}
-                style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={btn('S', 'secondary')}>
                 {t('Отмена')}
               </button>
               <button onClick={applyBulk}
-                style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={btn('S', 'primary', { flex: 1, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' })}>
                 {t('Добавить')}
               </button>
             </div>
@@ -1672,7 +1665,7 @@ function CenterRecording({
           />
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setLinkMode(false)}
-              style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={btn('M', 'secondary')}>
               {t('Отмена')}
             </button>
             <TeacherSaveButton label={t('Сохранить')} onClick={() => { onUpdate({ ...lesson, videoUrl }); setLinkMode(false) }} style={{ flex: 1 }} />
@@ -1697,7 +1690,7 @@ function CenterRecording({
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> {t('Вставить ссылку')}
           </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button style={btn('M', 'secondary')}>
             <Upload size={14} /> {t('Загрузить файл')}
           </button>
         </div>
@@ -5152,11 +5145,11 @@ function RightPanelLessons({
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setAddingModule(false)}
-                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
+                style={{ ...btn('S', 'secondary'), flex: 1 }}>
                 {t('Отмена')}
               </button>
               <button onClick={addModule}
-                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: 'none', background: 'var(--color-green-soft)', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', fontFamily: 'inherit' }}>
+                style={btn('S', 'primary', { flex: 1, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' })}>
                 {t('Создать')}
               </button>
             </div>
@@ -6538,7 +6531,7 @@ export default function TeacherCourseEditorPage() {
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button onClick={() => !handoutBusy && setHandoutOpen(false)}
-                style={{ padding: '12px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={btn('M', 'secondary')}>
                 {t('Отмена')}
               </button>
               <TeacherSaveButton

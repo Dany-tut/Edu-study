@@ -8,6 +8,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { t, useT } from '../../lib/i18n'
 import { Alert } from '../../components/Alert'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
+import { btn } from '../../lib/pillStyles'
 
 type Stats = {
   db_bytes: number
@@ -109,14 +110,7 @@ export default function TeacherStoragePage() {
           whileTap={{ scale: 0.94 }}
           onClick={load}
           title={t('Обновить')}
-          style={{
-            marginLeft: 'auto',
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '8px 14px', borderRadius: 10,
-            background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-            cursor: 'pointer', color: 'var(--color-text-3)',
-            fontSize: 12, fontWeight: 600,
-          }}
+          style={{ ...btn('S', 'secondary'), marginLeft: 'auto' }}
         >
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
           {t('Обновить')}

@@ -24,6 +24,7 @@ import {
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import BackCircle from '../../components/BackCircle'
 import { AlertStack } from '../../components/Alert'
+import { btn } from '../../lib/pillStyles'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -534,11 +535,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           </button>
           <button
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
-              border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent',
-              color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
-            }}
+            style={btn('M', 'secondary')}
           >
             <Upload size={16} /> {t('Загрузить файл')}
           </button>

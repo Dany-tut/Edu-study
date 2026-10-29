@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useT } from '../lib/i18n'
+import { OverlayScrollArea } from './teacher/OverlayScroll'
 
 /**
  * ОКНО — один каркас на всё приложение.
@@ -16,7 +17,7 @@ import { useT } from '../lib/i18n'
  *  - Затемнение 0.45 + размытие 4 px, карточка --color-bg-2, радиус 22 —
  *    самый частый вариант в коде, его и взяли (MODAL_BACKDROP / MODAL_CARD).
  *  - Рамка не прокручивается никогда. Шапка (заголовок + крестик) и подвал
- *    стоят, листается только тело — полоса прокрутки остаётся внутри.
+ *    стоят, листается только тело — свой ползунок и фейды, без линий.
  *  - Монтирование/размонтирование — у вызывающего, внутри <AnimatePresence>:
  *    так анимация выхода работает, как и раньше.
  *  - Полноэкранные просмотрщики картинок — не окна, их это не касается.
@@ -96,11 +97,18 @@ export default function Modal({
               <ModalClose onClose={onClose} />
             </div>
           )}
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: `${title != null ? 4 : padding}px ${padding}px ${footer ? 12 : padding}px` }}>
+          {/* Тело: свой тонкий ползунок поверх текста (системный в тёмной теме —
+              чёрная полоса во всю высоту) и фейд у того края, за которым ещё
+              есть текст. Разделительных линий у шапки и подвала нет: край
+              читается фейдом, а без прокрутки окно — один чистый лист. */}
+          <OverlayScrollArea
+            style={{ flex: 1 }}
+            padding={`${title != null ? 4 : padding}px ${padding}px ${footer ? 12 : padding}px`}
+          >
             {children}
-          </div>
+          </OverlayScrollArea>
           {footer && (
-            <div style={{ flexShrink: 0, padding: `12px ${padding}px ${padding}px`, borderTop: '1px solid var(--color-border-soft)' }}>
+            <div style={{ flexShrink: 0, padding: `12px ${padding}px ${padding}px` }}>
               {footer}
             </div>
           )}

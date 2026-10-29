@@ -2,6 +2,7 @@ import { Component, type ReactNode } from 'react'
 import { trackEvent } from '../../lib/analytics'
 import { isChunkError, recoverFromChunkError } from '../../lib/chunkError'
 import { t } from '../../lib/i18n'
+import { btn } from '../../lib/pillStyles'
 
 type Props = { children: ReactNode; label?: string }
 type State = { error: Error | null; attempt: number }
@@ -51,8 +52,7 @@ export default class WidgetBoundary extends Component<Props, State> {
             if (chunk) window.location.reload()
             else this.setState(s => ({ error: null, attempt: s.attempt + 1 }))
           }}
-          style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid var(--color-border-medium)',
-            background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          style={btn('S', 'secondary')}
         >
           {chunk ? t('Обновить') : t('Повторить')}
         </button>

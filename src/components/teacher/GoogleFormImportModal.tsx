@@ -6,6 +6,7 @@ import { isGoogleFormUrl, importGoogleForm, type ImportedForm, type ImportedQues
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'
+import { btn } from '../../lib/pillStyles'
 
 const TYPE_LABELS: Record<string, string> = {
   single: 'Один ответ', multi: 'Несколько верных', fill: 'Вписать ответ',
@@ -164,7 +165,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
                 <button
                   onClick={() => setForm(null)}
-                  style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  style={btn('M', 'secondary')}
                 >
                   {t('Назад')}
                 </button>

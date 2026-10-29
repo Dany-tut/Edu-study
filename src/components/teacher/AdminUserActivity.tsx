@@ -12,6 +12,7 @@ import AssignPlanButton from './AssignPlanButton'
 import AdminStudentsManager from './AdminStudentsManager'
 import { setViewAs, getViewAs } from '../../lib/owner'
 import { Alert } from '../Alert'
+import { btn as uiBtn } from '../../lib/pillStyles'
 
 // Админский экран «По пользователям»: активное время, last seen, сессии по
 // каждому пользователю + per-teacher usage (активные ученики = будущий счётчик
@@ -290,12 +291,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                 <button
                   onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
                   title={t('Открыть кабинет этого преподавателя')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
-                    background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
-                    color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
-                  }}
+                  style={uiBtn('S', 'secondary')}
                 >
                   <Eye size={12} strokeWidth={2} />
                   {t('Кабинет')}
@@ -380,7 +376,7 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
         />
         {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <button onClick={onClose} style={{ padding: '10px 14px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>{t('Отмена')}</button>
+          <button onClick={onClose} style={uiBtn('M', 'secondary')}>{t('Отмена')}</button>
           <button disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>
           <button disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}>{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</button>
         </div>

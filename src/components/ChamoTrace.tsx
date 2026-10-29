@@ -50,6 +50,7 @@ import { playPop, vibrate } from '../lib/sound'
 import { okChime } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import AudioPlayer from './AudioPlayer'
+import { btn } from '../lib/pillStyles'
 
 /** Толщина черты в единицах квадрата: ею же рисуется и подложка, и чернила. */
 const INK_WIDTH = 9
@@ -460,11 +461,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           <button
             onClick={reset}
             className="flex items-center cursor-pointer"
-            style={{
-              gap: 6, padding: '8px 12px', borderRadius: 999,
-              border: '1px solid var(--color-border)', background: 'transparent',
-              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-            }}
+            style={btn('S', 'secondary')}
           >
             <RotateCcw size={14} />
             {t('Заново')}

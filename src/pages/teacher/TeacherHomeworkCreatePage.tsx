@@ -13,7 +13,7 @@ import { useT, useTc, tc } from '../../lib/i18n'
 import { alertDialog } from '../../components/ConfirmHost'
 import { AlertStack } from '../../components/Alert'
 import { supabase } from '../../lib/supabase'
-import { cardChip, cardChipTone } from '../../lib/pillStyles'
+import { cardChip, cardChipTone, btn } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
 import { useHomework, type HardTaskDef } from '../../lib/useHomework'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
@@ -2752,7 +2752,7 @@ export default function TeacherHomeworkCreatePage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => setShowPublishConfirm(false)}
-                    style={{ flex: 1, padding: '10px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    style={{ ...btn('M', 'secondary'), flex: 1 }}
                   >
                     {t('Отмена')}
                   </button>

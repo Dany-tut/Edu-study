@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom'
 import { Eye, X } from 'lucide-react'
 import { getViewAs, setViewAs } from '../../lib/owner'
 import { useT, useTc } from '../../lib/i18n'
+import { btn } from '../../lib/pillStyles'
 
 /**
  * Полоса «вы смотрите чужой кабинет».
@@ -52,12 +53,7 @@ export default function ViewAsBanner() {
       <button
         onClick={() => setViewAs(null)}
         title={t('Вернуться к себе')}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-          padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
-          background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
-          color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-        }}
+        style={{ ...btn('S', 'secondary'), flexShrink: 0 }}
       >
         <X size={12} strokeWidth={2.5} />
         {t('К себе')}

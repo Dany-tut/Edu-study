@@ -25,6 +25,7 @@ import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
 import { Tile, TileGrid, TileMeter, TileChip } from './TrainerShell'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
+import { btn } from '../../lib/pillStyles'
 
 /** Витрина глав. */
 export function StoryGrid({ story, read, accent, soft, onOpen }: {
@@ -181,12 +182,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
         <button
           onClick={() => onAt(Math.max(0, at - 1))}
           disabled={at === 0}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 16px',
-            borderRadius: 999, border: '1px solid var(--color-border)', background: 'transparent',
-            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
-            cursor: at === 0 ? 'default' : 'pointer', opacity: at === 0 ? 0.4 : 1,
-          }}
+          style={{ ...btn('M', 'secondary'), opacity: at === 0 ? 0.4 : 1 }}
         >
           <ArrowLeft size={16} /> {t('Назад')}
         </button>

@@ -12,6 +12,7 @@ import GrowTextarea from '../GrowTextarea'
 import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
 import { Alert } from '../Alert'
+import { btn } from '../../lib/pillStyles'
 
 // Админский реестр учеников: кто к какому учителю привязан, перевод другому
 // учителю / в другую группу, правка карточки и удаление. Владельца ученик не
@@ -482,7 +483,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
+        <button onClick={onClose} style={btn('S', 'secondary')}>{t('Отмена')}</button>
         <TeacherSaveButton
           label={t('Сохранить')}
           onClick={() => onSave({

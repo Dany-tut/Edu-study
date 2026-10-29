@@ -7,6 +7,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { WIDGET_META, DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
+import { btn } from '../lib/pillStyles'
 
 const EASE = [0.32, 0.72, 0, 1] as const
 
@@ -246,12 +247,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   onClick={reset}
                   disabled={isDefault}
                   title={t('Вернуть порядок по умолчанию')}
-                  style={{
-                    marginRight: 'auto', display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '0 12px', height: 42, borderRadius: 12, border: 'none',
-                    cursor: isDefault ? 'default' : 'pointer', opacity: isDefault ? 0.4 : 1,
-                    background: 'transparent', color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
-                  }}
+                  style={{ ...btn('M', 'quiet'), marginRight: 'auto', cursor: isDefault ? 'default' : 'pointer', opacity: isDefault ? 0.4 : 1 }}
                 >
                   <RotateCcw size={16} />
                   {t('Сбросить')}
@@ -259,20 +255,14 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
-                  style={{
-                    padding: '0 18px', height: 42, borderRadius: 12, border: '1px solid var(--color-border-strong)', cursor: 'pointer',
-                    background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
-                  }}
+                  style={btn('M', 'secondary')}
                 >
                   {t('Отмена')}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={apply}
-                  style={{ height: 40,
-                    padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
-                  }}
+                  style={btn('M', 'primary')}
                 >
                   {t('Готово')}
                 </motion.button>

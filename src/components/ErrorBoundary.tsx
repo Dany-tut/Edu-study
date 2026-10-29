@@ -5,6 +5,7 @@ import { hardReload, isChunkError, recoverFromChunkError } from '../lib/chunkErr
 import { t } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import FeedbackModal from './FeedbackModal'
+import { btn } from '../lib/pillStyles'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null; reporting: boolean; reported: boolean }
@@ -94,13 +95,13 @@ export default class ErrorBoundary extends Component<Props, State> {
               window.location.hash = '#/'
               window.location.reload()
             }}
-            style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border, rgba(128,128,128,0.3))', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ ...btn('M', 'secondary'), lineHeight: 1.2 }}
           >
             {t('На главную')}
           </button>
           <button
             onClick={() => this.setState({ reporting: true })}
-            style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border, rgba(128,128,128,0.3))', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ ...btn('M', 'secondary'), lineHeight: 1.2 }}
           >
             {this.state.reported ? t('Сообщение отправлено') : t('Сообщить об ошибке')}
           </button>

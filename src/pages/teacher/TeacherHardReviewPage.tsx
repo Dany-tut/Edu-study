@@ -5,15 +5,18 @@ import { useTeacher } from '../../store/teacherStore'
 import {
   useHardSubmissions, type Annotation as HardAnnotation,
   type HardComment, type HardReviewNew,
-  teacherComments, deriveHardRowStatus, deriveHardScore, hardId,
+  teacherComments, deriveHardRowStatus, deriveHardScore, hardId, taskStatus,
 } from '../../lib/useHomework'
 import { openHardSubHomework } from '../../lib/teacherNav'
-import { clearDrafts } from '../../lib/useDraft'
+import { clearDrafts, readDraft, writeDraft } from '../../lib/useDraft'
+import AiGradeCard from '../../components/teacher/AiGradeCard'
+import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { alertDialog } from '../../components/ConfirmHost'
 import BackCircle from '../../components/BackCircle'
+import { btn } from '../../lib/pillStyles'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -44,12 +47,18 @@ export default function TeacherHardReviewPage() {
   // Хуки — до раннего возврата ниже.
   const sideRef = useRef<HTMLDivElement>(null)
   const sideLift = useStickyLift(sideRef)
+  // Предоценка ИИ по критериям ФИПИ (hw_ai_grades, kind hard): по вкладке —
+  // первичные баллы и оценка 1–5. «Править» кладёт оценку в черновик проверки
+  // и пересоздаёт переписку, чтобы поле подхватило черновик. Комментарий ИИ
+  // ученику не уходит: «Ок» берёт комментарий из черновика учителя.
+  const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(sub ? [sub.id] : [])
+  const [composerEpoch, setComposerEpoch] = useState(0)
 
   if (!sub) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
         <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('Работа не найдена')}</div>
-        <button onClick={() => setActivePage('homework')} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Назад')}</button>
+        <button onClick={() => setActivePage('homework')} style={btn('M', 'secondary')}>{t('Назад')}</button>
       </div>
     )
   }
@@ -97,9 +106,21 @@ export default function TeacherHardReviewPage() {
       setBusy(false)
       return
     }
+    // Работа проверена целиком — отметка «ИИ → учитель»: принял оценки ИИ
+    // или поставил свои.
+    if (status !== 'submitted' && aiGrade && (aiGrade.status === 'graded' || aiGrade.status === 'dismissed')) {
+      await confirmAiGrade(aiGrade.id, score)
+    }
+    void reloadAi()
     clearDrafts(`hardReview:${sub!.id}:${key}`)
     setBusy(false)
   }
+
+  const currentKey = activeKey || tabs[0]?.key || ''
+  const aiGrade = aiByProgress.get(sub.id)
+  const aiTask = aiGrade?.tasks.find(x => x.key === currentKey)
+  const currentBlock = sub.taskBlocks.find(b => b.key === currentKey)
+  const taskDone = taskStatus(currentBlock, sub.reviewBlocks.find(b => b.key === currentKey)) !== 'submitted'
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
@@ -148,12 +169,7 @@ export default function TeacherHardReviewPage() {
                 if (!ok) setHwMissing(true)
               }}
               disabled={hwBusy}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '12px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
-                cursor: hwBusy ? 'default' : 'pointer', background: 'var(--color-bg-2)', color: 'var(--color-text)',
-                fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: hwBusy ? 0.6 : 1,
-              }}
+              style={{ ...btn('M', 'secondary'), width: '100%', opacity: hwBusy ? 0.6 : 1 }}
             >
               <ClipboardList size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
               {hwBusy ? t('Открываю…') : t('Открыть домашку')}
@@ -167,7 +183,28 @@ export default function TeacherHardReviewPage() {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
+          {aiGrade && (aiTask || aiGrade.status === 'pending' || aiGrade.status === 'working' || aiGrade.status === 'error') && (
+            <AiGradeCard
+              grade={aiGrade}
+              task={aiTask}
+              done={taskDone}
+              onAccept={() => {
+                if (!aiTask?.mark) return
+                void reviewTab(currentKey, {
+                  comment: (readDraft<string>(`hardReview:${sub.id}:${currentKey}:comment`) ?? '').trim(),
+                  photos: [], board: null, boardMode: 'beside', annotation: null,
+                  verdict: 'completed', score: aiTask.mark,
+                })
+              }}
+              onEdit={() => {
+                if (!aiTask?.mark) return
+                writeDraft(`hardReview:${sub.id}:${currentKey}:score`, aiTask.mark)
+                setComposerEpoch(e => e + 1)
+              }}
+            />
+          )}
           <HardConversation
+            key={composerEpoch}
             tabs={tabs}
             studentBlocks={sub.taskBlocks}
             reviewBlocks={sub.reviewBlocks}

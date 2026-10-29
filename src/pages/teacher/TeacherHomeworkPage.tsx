@@ -18,6 +18,7 @@ import { useGroups, useStudents } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import { useT, t as tGlobal, useTc } from '../../lib/i18n'
+import { btn } from '../../lib/pillStyles'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -490,13 +491,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             }
           }}
           disabled={lessonBusy}
-          style={{
-            width: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '12px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
-            cursor: lessonBusy ? 'default' : 'pointer', background: 'var(--color-bg-2)', color: 'var(--color-text)',
-            fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: lessonBusy ? 0.6 : 1,
-          }}
+          style={{ ...btn('M', 'secondary'), width: '100%', opacity: lessonBusy ? 0.6 : 1 }}
         >
           {hw.lessonId
             ? <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />

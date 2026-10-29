@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { cardChip } from '../../lib/pillStyles'
+import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
-import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
 import Skeleton from '../../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -997,11 +996,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
         </div>
         <button
           onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
-          style={{
-            padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
-            border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-            color: 'var(--color-text)', fontSize: 12, fontWeight: 600,
-          }}
+          style={btn('S', 'secondary')}
         >
           {open ? t('Свернуть') : t('Показать')}
         </button>
@@ -1016,13 +1011,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
                 key={s.id}
                 onClick={() => copyOne(s)}
                 title={t('Скопировать ссылку приглашения')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 12px', borderRadius: 999, cursor: 'pointer',
-                  border: '1px solid var(--color-border-medium)',
-                  background: 'var(--color-bg-3)', color: 'var(--color-text)',
-                  fontSize: 13, fontWeight: 600,
-                }}
+                style={btn('S', 'secondary')}
               >
                 {copiedId === s.id
                   ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
@@ -1048,11 +1037,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           {pending.length > 0 && (
           <button
             onClick={copyAll}
-            style={{
-              padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
-              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-              color: 'var(--color-text)', fontSize: 13, fontWeight: 600,
-            }}
+            style={btn('M', 'secondary')}
           >
             {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
           </button>
@@ -1085,11 +1070,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
               </div>
               <button
                 onClick={copyIssued}
-                style={{
-                  padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
-                  border: '1px solid var(--color-border-medium)', background: 'var(--color-bg)',
-                  color: 'var(--color-text)', fontSize: 12, fontWeight: 600,
-                }}
+                style={btn('S', 'secondary')}
               >
                 {copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}
               </button>
@@ -1134,8 +1115,6 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
         opacity: fadeRight ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
-      <ScrollArrow side="left" visible={fadeLeft} onClick={() => ref.current && nudgeScroll(ref.current, 'left')} inset={6} />
-      <ScrollArrow side="right" visible={fadeRight} onClick={() => ref.current && nudgeScroll(ref.current, 'right')} inset={6} />
     </div>
   )
 }
@@ -1868,7 +1847,7 @@ function TracksSection({
               </button>
               <button
                 type="button" onClick={() => { setAdding(false); setSubject(''); setLevel('') }}
-                style={{ padding: '8px 12px', borderRadius: 9, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
+                style={btn('S', 'secondary')}
               >
                 {t('Отмена')}
               </button>
@@ -1995,7 +1974,7 @@ function StudentPanel({
             <button
               onClick={resetPassword}
               disabled={resetting}
-              style={{ marginTop: 8, width: '100%', padding: '8px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: resetting ? 'default' : 'pointer' }}
+              style={{ ...btn('S', 'secondary'), marginTop: 8, width: '100%' }}
             >
               {resetting ? t('Сбрасываем…') : newPass ? `${t('Новый пароль:')} ${newPass}` : t('Сбросить пароль')}
             </button>

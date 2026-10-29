@@ -22,6 +22,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Info } from 'lucide-react'
 import { t } from '../lib/i18n'
+import { btn } from '../lib/pillStyles'
 
 export type ConfirmOpts = {
   /** Главный вопрос. Одна строка, без «вы уверены?» — что произойдёт. */
@@ -151,11 +152,7 @@ export default function ConfirmHost() {
               {top.kind === 'confirm' && (
                 <button
                   onClick={() => close(false)}
-                  style={{
-                    flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                    border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-                    color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
-                  }}
+                  style={{ ...btn('M', 'secondary'), flex: 1 }}
                 >
                   {top.cancelLabel ?? t('Отмена')}
                 </button>

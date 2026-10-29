@@ -39,6 +39,7 @@ import { useTheme } from '../store/themeStore'
 import { useT } from '../lib/i18n'
 import { trackNow } from '../lib/analytics'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
+import { btn } from '../lib/pillStyles'
 
 export default function GuestTrainerPage({ link }: { link: TrainerLink }) {
   const t = useT()
@@ -151,13 +152,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
           <button
             onClick={() => { window.location.hash = '#/login' }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-              border: '1px solid var(--color-border-medium)',
-              background: 'transparent', color: 'var(--color-text)',
-            }}
+            style={btn('M', 'secondary')}
           >
             <LogIn size={14} /> {t('Войти')}
           </button>
