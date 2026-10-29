@@ -178,7 +178,7 @@ export function useScenesShelf({ lang, accent, soft, active, query, onQuery, sta
         <RailCard
           title="Полки"
           accent={accent}
-          icon={<SlidersHorizontal size={15} />}
+          icon={<SlidersHorizontal size={16} />}
           action={shelf ? { label: t('Все полки'), onClick: () => setShelf('') } : undefined}
         >
           <RailList
@@ -196,14 +196,14 @@ export function useScenesShelf({ lang, accent, soft, active, query, onQuery, sta
       )}
 
       {(
-        <RailCard title="Показ" accent={accent} icon={<Eye size={15} />}>
+        <RailCard title="Показ" accent={accent} icon={<Eye size={16} />}>
           <RailToggle
             label="Прятать спойлеры"
             on={hideSpoilers}
             onChange={setHideSpoilers}
             accent={accent}
           />
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {t('Скрывает сцены, которые раскрывают середину или финал. Первые сцены книги видно всегда.')}
           </div>
         </RailCard>

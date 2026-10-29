@@ -10,7 +10,7 @@ import { proseWrap } from '../../lib/typography'
 // в стилях/верстке сдвинуло бы чернила, поэтому рендер строго общий.
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10 }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{children}</div>
 }
 
 export default function AnswerBody({
@@ -34,11 +34,11 @@ export default function AnswerBody({
         isHtml ? (
           <div
             className="rich-answer"
-            style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', ...proseWrap }}
+            style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', ...proseWrap }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(comment) }}
           />
         ) : (
-          <div style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+          <div style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
             {comment}
           </div>
         )
@@ -46,7 +46,7 @@ export default function AnswerBody({
 
       {!!photos?.length && (
         <div>
-          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={13} /> {t('Фото')} · {photos.length}</span></Label>
+          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={14} /> {t('Фото')} · {photos.length}</span></Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {photos.map((src, i) => (
               <button
@@ -64,7 +64,7 @@ export default function AnswerBody({
 
       {board && (
         <div>
-          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={13} /> {t('Доска')}</span></Label>
+          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={14} /> {t('Доска')}</span></Label>
           <WhiteboardCanvas readOnly initialData={board} />
         </div>
       )}

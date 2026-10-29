@@ -172,7 +172,7 @@ export function ScrollArrow({ side, visible, onClick, inset = 0 }: {
         ...glassCircle,
       }}
     >
-      {side === 'left' ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+      {side === 'left' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
     </button>
   )
 }

@@ -77,8 +77,8 @@ function AlertRow({ item }: { item: AlertItem }) {
       >
         <Icon size={16} strokeWidth={2.2} />
       </span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35, color: 'var(--color-muted)' }}>
-        {item.title && <b style={{ color: 'var(--color-text)', fontWeight: 650 }}>{item.title}</b>}
+      <span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.3, color: 'var(--color-muted)' }}>
+        {item.title && <b style={{ color: 'var(--color-text)', fontWeight: 600 }}>{item.title}</b>}
         {item.title && item.text ? ' ' : null}
         {item.text}
       </span>
@@ -90,7 +90,7 @@ function AlertRow({ item }: { item: AlertItem }) {
           style={{
             height: 30, padding: '0 14px', borderRadius: 999, border: 'none',
             background: 'var(--grad-purple)', color: '#fff',
-            fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 13, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
           {/* Подъём −0.12em из общего правила здесь перебирал: в таблетке без
@@ -106,7 +106,7 @@ function AlertRow({ item }: { item: AlertItem }) {
           className="cursor-pointer flex-shrink-0 flex items-center justify-center"
           style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', color: 'var(--color-muted)' }}
         >
-          <X size={15} />
+          <X size={16} />
         </button>
       )}
     </div>

@@ -57,7 +57,7 @@ export default function ReviewSession({ owner, onDone }: {
     <Shell>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: ACC, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <RotateCcw size={13} /> {t('Повторение')}
+          <RotateCcw size={14} /> {t('Повторение')}
         </span>
         <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{idx + 1} / {cards.length}</span>
       </div>
@@ -88,7 +88,7 @@ export default function ReviewSession({ owner, onDone }: {
             {revealed && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                 style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)', textAlign: 'center' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{t('Ответ')}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{t('Ответ')}</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-green-text)', lineHeight: 1.5, ...balancedWrap }}>{bindShortWords(card.answer)}</div>
               </motion.div>
             )}

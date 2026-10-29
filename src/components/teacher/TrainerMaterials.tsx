@@ -517,7 +517,7 @@ export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects
                     key={`task-${x.task.id}`}
                     accentColor={TASK_COLOR} accentBg={TASK_BG}
                     isSelected={false} onClick={() => tasks?.onOpenCard?.(x.task.id)}
-                    icon={<Zap size={17} strokeWidth={2} style={{ color: TASK_COLOR }} />}
+                    icon={<Zap size={18} strokeWidth={2} style={{ color: TASK_COLOR }} />}
                     iconBg={TASK_BG}
                     badge={
                       <div style={{ display: 'flex', gap: 4 }}>
@@ -535,7 +535,7 @@ export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects
                     key={`deck-${x.deck.id}`}
                     accentColor={MAT_COLOR} accentBg={MAT_BG}
                     isSelected={false} onClick={x.deck.open}
-                    icon={<Layers size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
+                    icon={<Layers size={18} strokeWidth={2} style={{ color: MAT_COLOR }} />}
                     iconBg={MAT_BG}
                     badge={<span style={cardChip(MAT_COLOR)}>{t('Подборка')}</span>}
                     title={x.deck.title}
@@ -548,7 +548,7 @@ export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects
                     key={`${x.row.lang}-${x.row.family.id}-${x.row.id}`}
                     accentColor={MAT_COLOR} accentBg={MAT_BG}
                     isSelected={false} onClick={() => onOpen(refOf(x.row))}
-                    icon={<FileCode2 size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
+                    icon={<FileCode2 size={18} strokeWidth={2} style={{ color: MAT_COLOR }} />}
                     iconBg={MAT_BG}
                     badge={
                       <div style={{ display: 'flex', gap: 4 }}>
@@ -641,7 +641,7 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
       out.push(
         <div key={`h-${x.family.id}`} style={{ ...ROW, background: 'var(--color-bg-2)', padding: '7px 14px' }}>
           <span style={{
-            fontSize: 10.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
             color: 'var(--color-text-3)',
           }}>
             {t(x.family.label)}
@@ -673,7 +673,7 @@ function MaterialRow({ x, showLang, onOpen }: { x: Row; showLang: boolean; onOpe
       }}>
         {x.title}
       </span>
-      <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
         {[x.topic, x.meta].filter(Boolean).join(' · ')}
       </span>
     </div>
@@ -722,7 +722,7 @@ function FilterPanel({
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Search size={15} style={{ color: MAT_COLOR }} />
+        <Search size={16} style={{ color: MAT_COLOR }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
       </div>
 
@@ -831,7 +831,7 @@ function FilterPanel({
 function PanelLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase',
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
       color: 'var(--color-text-3)', marginBottom: 5,
     }}>
       {children}
@@ -850,7 +850,7 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
       style={{
         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
         padding: small ? '5px 8px' : '7px 9px', borderRadius: 9, border: 'none', cursor: 'pointer',
-        fontFamily: 'inherit', fontSize: small ? 12 : 12.5, fontWeight: on ? 700 : 500,
+        fontFamily: 'inherit', fontSize: small ? 12 : 13, fontWeight: on ? 700 : 500,
         background: on ? MAT_BG : 'transparent',
         color: on ? MAT_COLOR : 'var(--color-text-2)',
         // Кольцо фокуса — персиковым, цветом вкладки. Общий фиолетовый ринг
@@ -869,7 +869,7 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
       {skeleton
         ? <Skeleton w={22} h={10} radius={4} />
         : count !== undefined && (
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: on ? MAT_COLOR : 'var(--color-text-3)' }}>{count}</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: on ? MAT_COLOR : 'var(--color-text-3)' }}>{count}</span>
         )}
     </button>
   )
@@ -1103,7 +1103,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
             }}>
               {copied ? t('Путь скопирован') : path}
             </span>
-            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? <Check size={14} /> : <Copy size={14} />}
           </button>
         )}
       </motion.div>
@@ -1121,9 +1121,9 @@ export function MaterialPage({ target, onSwitch, onClose }: {
                 <PassportRow label={t('Объём')} value={item.meta} />
               </div>
               {item.body && item.about && item.about !== item.body.slice(0, item.about.length) && (
-                <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{item.about}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{item.about}</div>
               )}
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, borderTop: '1px solid var(--color-border-soft)', paddingTop: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, borderTop: '1px solid var(--color-border-soft)', paddingTop: 12 }}>
                 {t(item.family.hint)}
               </div>
               {flat.length > 1 && (
@@ -1161,7 +1161,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.35, padding: '0 4px' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, padding: '0 4px' }}>
                 {idx + 1}. {item.title}
               </div>
 
@@ -1188,7 +1188,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
                         <span style={{ position: 'relative', zIndex: 1, whiteSpace: 'nowrap' }}>
                           {t(s.label)}
                           {s.count !== undefined && (
-                            <span style={{ marginLeft: 6, fontSize: 11.5, color: active ? MAT_COLOR : 'var(--color-text-3)' }}>{s.count}</span>
+                            <span style={{ marginLeft: 6, fontSize: 12, color: active ? MAT_COLOR : 'var(--color-text-3)' }}>{s.count}</span>
                           )}
                         </span>
                       </button>
@@ -1223,9 +1223,9 @@ export function MaterialPage({ target, onSwitch, onClose }: {
 
 function PassportRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontSize: 12.5 }}>
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontSize: 13 }}>
       <span style={{ width: 70, flexShrink: 0, color: 'var(--color-text-3)' }}>{label}</span>
-      <span style={{ minWidth: 0, fontWeight: 600, color: accent ? MAT_COLOR : 'var(--color-text)', lineHeight: 1.35 }}>{value}</span>
+      <span style={{ minWidth: 0, fontWeight: 600, color: accent ? MAT_COLOR : 'var(--color-text)', lineHeight: 1.3 }}>{value}</span>
     </div>
   )
 }
@@ -1283,7 +1283,7 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '16px 18px 10px', borderBottom: '1px solid var(--color-border-soft)' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Полка')}</span>
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{loading ? '' : `${flat.length} ${t('шт.')}`}</span>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{loading ? '' : `${flat.length} ${t('шт.')}`}</span>
       </div>
       <div ref={list} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: 8, position: 'relative' }}>
         {loading ? (
@@ -1314,7 +1314,7 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
                 >
                   {open ? <ChevronDown size={14} style={{ color: 'var(--color-text-3)' }} /> : <ChevronRight size={14} style={{ color: 'var(--color-text-3)' }} />}
                   <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name || t('Без темы')}</span>
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{g.items.length}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>{g.items.length}</span>
                 </button>
               )}
               {open && g.items.map(x => {
@@ -1364,12 +1364,12 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
 
 /** Проза: читаемая строка, а не строка во всю ширину кабинета. */
 const PROSE: React.CSSProperties = {
-  fontSize: 14, lineHeight: 1.7, color: 'var(--color-text)',
+  fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)',
   whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxWidth: '68ch',
 }
 
 const BLOCK_TITLE: React.CSSProperties = {
-  fontSize: 11.5, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase',
+  fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
   color: 'var(--color-text-3)',
 }
 
@@ -1413,10 +1413,10 @@ function BlockView({ block }: { block: MaterialBlock }) {
               padding: '9px 12px', borderRadius: 12,
               background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
             }}>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)' }}>{r.term}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-2)' }}>{r.ru}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{r.term}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{r.ru}</div>
               {/* Подпись примера — то, ради чего он и написан: когда так говорят. */}
-              {r.note && <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>{r.note}</div>}
+              {r.note && <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>{r.note}</div>}
             </div>
           ))}
         </div>
@@ -1436,7 +1436,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
                 {block.head.map((h, i) => (
                   <th key={i} style={{
                     textAlign: 'left', padding: '7px 12px', whiteSpace: 'nowrap',
-                    fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)',
+                    fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)',
                     borderBottom: '1px solid var(--color-border-soft)',
                   }}>{h}</th>
                 ))}
@@ -1475,7 +1475,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
             {/* Учителю нужен ключ: он смотрит материал, а не проходит его. */}
             {q.options.map((o, j) => (
               <div key={j} style={{
-                display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12.5,
+                display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 13,
                 color: j === q.answer ? MAT_COLOR : 'var(--color-text-2)',
                 fontWeight: j === q.answer ? 600 : 400,
               }}>
@@ -1484,7 +1484,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
               </div>
             ))}
             {q.why && (
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>{q.why}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>{q.why}</div>
             )}
           </div>
         ))}

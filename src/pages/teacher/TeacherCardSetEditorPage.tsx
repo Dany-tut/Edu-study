@@ -156,12 +156,12 @@ export default function TeacherCardSetEditorPage() {
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setFocus(null)}
               style={{ ...headBtn, color: 'var(--color-text-2)' }}
             >
-              <ChevronLeft size={15} strokeWidth={2} /> {t('Полка')}
+              <ChevronLeft size={16} strokeWidth={2} /> {t('Полка')}
             </motion.button>
           )}
         </div>
         <div style={{ position: 'absolute', left: 240, right: 240, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{title}</span>
+          <span className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{title}</span>
         </div>
         {/* ПОЧЕМУ КНОПКА НЕ ЖМЁТСЯ — СТРОКОЙ РЯДОМ, а не подсказкой при наведении.
             Набор на полсотни карточек, собранный вставкой, упирался в серую
@@ -170,12 +170,12 @@ export default function TeacherCardSetEditorPage() {
             На телефоне наведения нет вовсе, так что подсказка там не спасала бы. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {saveErr && (
-            <span style={{ fontSize: 11.5, color: 'var(--color-red, #d33)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 12, color: 'var(--color-red, #d33)', whiteSpace: 'nowrap' }}>
               {t('Не удалось сохранить — нажмите ещё раз')}
             </span>
           )}
           {!canSave && (
-            <span style={{ fontSize: 11.5, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
               {editedSet ? t('Дайте набору название') : t('Дайте полке название')}
             </span>
           )}

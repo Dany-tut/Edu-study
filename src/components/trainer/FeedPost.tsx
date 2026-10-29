@@ -241,19 +241,19 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             }}
           >
             <span style={{
-              fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)',
+              fontSize: 15, fontWeight: 700, color: 'var(--color-text)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {outlet.name}
             </span>
             <span style={{
-              fontSize: 12.5, color: 'var(--color-muted)',
+              fontSize: 13, color: 'var(--color-muted)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {outletHandle(outlet)}
             </span>
             {when && (
-              <span style={{ fontSize: 12.5, color: 'var(--color-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <span style={{ fontSize: 13, color: 'var(--color-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 · {when}
               </span>
             )}
@@ -275,7 +275,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           // Переведённый заголовок — обычный текст: разбирать по словам в нём
           // нечего, он уже по-русски.
           <span style={{
-            display: 'block', fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
+            display: 'block', fontSize: 16, fontWeight: 700, lineHeight: 1.3,
             color: 'var(--color-text)', ...proseWrap,
           }}>
             {bindShortWords(shownTitle)}
@@ -288,7 +288,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             accent={accent}
             subject={subjectId}
             style={{
-              fontSize: 16.5, fontWeight: 700, lineHeight: 1.35,
+              fontSize: 16, fontWeight: 700, lineHeight: 1.3,
               color: 'var(--color-text)', ...proseWrap,
             }}
           />
@@ -366,7 +366,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
                   onClick={() => { setTier(i); setExpanded(false); touched() }}
                   style={{
                     padding: '3px 10px', borderRadius: 999, cursor: 'pointer',
-                    fontFamily: 'inherit', fontSize: 11.5, fontWeight: 750,
+                    fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
                     border: `1px solid ${i === tier ? accent : 'var(--color-border)'}`,
                     background: i === tier ? `${accent}1A` : 'transparent',
                     color: i === tier ? accent : 'var(--color-muted)',
@@ -378,7 +378,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             </div>
           )}
           {ru ? (
-            <div style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-text)', ...proseWrap }}>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', ...proseWrap }}>
               {shown.split('\n\n').map((para, i) => (
                 <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
               ))}
@@ -390,7 +390,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
               accent={accent}
               subject={subjectId}
-              style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-text)' }}
+              style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}
             />
           )}
 
@@ -399,7 +399,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               onClick={() => { setExpanded(true); touched() }}
               style={{
                 alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0,
-                cursor: 'pointer', fontSize: 13, fontWeight: 650, color: accent,
+                cursor: 'pointer', fontSize: 13, fontWeight: 600, color: accent,
                 display: 'inline-flex', alignItems: 'center', gap: 4,
               }}
             >
@@ -417,7 +417,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               onClick={toggleTranslate}
               style={{
                 alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0,
-                cursor: 'pointer', fontSize: 13, fontWeight: 650, color: accent,
+                cursor: 'pointer', fontSize: 13, fontWeight: 600, color: accent,
               }}
             >
               {ru ? t('Показать оригинал') : t('Показать перевод')}
@@ -489,7 +489,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           padding: '10px 12px', borderRadius: 12,
           background: 'var(--color-bg-3)', ...proseWrap,
         }}>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-4)', lineHeight: 1.45, marginBottom: words.length ? 8 : 0 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-4)', lineHeight: 1.45, marginBottom: words.length ? 8 : 0 }}>
             {bindShortWords(words.length
               ? t('Перевода целиком у этого поста нет — вот слова из него. Любое слово в тексте открывается и тапом.')
               : t('Перевода целиком у этого поста нет, а слов, знакомых словарю, здесь не нашлось.'))}
@@ -515,7 +515,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       />
 
       {mustCredit && (
-        <div style={{ fontSize: 10.5, color: 'var(--color-text-4)', lineHeight: 1.4 }}>
+        <div style={{ fontSize: 11, color: 'var(--color-text-4)', lineHeight: 1.4 }}>
           {/* Имя источника теперь в шапке — здесь остаётся то, чего в шапке
               нет: автор текста и лицензия. */}
           {[item.byline, (outlet?.license ?? '').split('—')[0].trim()]
@@ -599,7 +599,7 @@ function Avatar({ outlet, small }: { outlet: Outlet; small?: boolean }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         // Знак бывает и в три буквы (SBS), и в один иероглиф (위): кегль
         // подбираем по длине, иначе трёхбуквенный вылезает из кружка.
-        fontSize: outlet.mark.length > 2 ? 12.5 : outlet.mark.length > 1 ? 14.5 : 17,
+        fontSize: outlet.mark.length > 2 ? 13 : outlet.mark.length > 1 ? 15 : 18,
         fontWeight: 800, letterSpacing: outlet.mark.length > 1 ? -0.2 : 0,
         lineHeight: 1,
       }}
@@ -648,7 +648,7 @@ function IconBtn({ children, on, accent, title, count, onClick }: {
         display: 'inline-flex', alignItems: 'center', gap: 2,
         background: 'none', border: 'none', padding: 0, cursor: 'pointer',
         color: on ? accent : 'var(--color-muted)',
-        fontSize: 12.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+        fontSize: 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
         lineHeight: '19px',
         transition: 'color .15s ease',
       }}

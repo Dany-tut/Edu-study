@@ -116,7 +116,7 @@ export function useGrammarMode({
   }, [gram])
 
   const rail = !active ? null : gram && !openForm ? (
-    <RailCard title="Раздел" accent={accent} icon={<BookMarked size={15} />}>
+    <RailCard title="Раздел" accent={accent} icon={<BookMarked size={16} />}>
       <RailList
         items={[
           { id: '', label: t('Все разделы'), hint: String(gram.forms.length) },

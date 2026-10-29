@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import CountBadge from './CountBadge'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
@@ -126,7 +127,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         background: active ? 'rgba(var(--accent-rgb), 0.1)' : 'transparent',
         color: danger ? '#C53030' : 'var(--color-text)',
         fontSize: 14,
-        fontWeight: 550,
+        fontWeight: 500,
         textAlign: 'left',
         transition: 'background 0.15s',
       }}
@@ -152,7 +153,7 @@ const photoBtnStyle = {
   background: 'rgba(var(--glass-rgb), 0.6)',
   color: 'var(--color-text)',
   fontSize: 13,
-  fontWeight: 550,
+  fontWeight: 500,
   cursor: 'pointer',
   fontFamily: 'inherit',
 } as const
@@ -172,9 +173,9 @@ function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
           border: 'none', cursor: 'pointer', background: 'rgba(var(--glass-rgb), 0.6)', color: 'var(--color-text-4)',
         }}
       >
-        <ChevronLeft size={15} />
+        <ChevronLeft size={16} />
       </motion.button>
-      <span onClick={onBack} style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', cursor: 'pointer' }}>{title}</span>
+      <span onClick={onBack} style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>{title}</span>
     </div>
   )
 }
@@ -558,7 +559,7 @@ export default function Sidebar() {
                         onClick={() => { pickImageFile(setCropFile); closePicker() }}
                         style={photoBtnStyle}
                       >
-                        <Camera size={14} strokeWidth={2.1} style={{ flexShrink: 0 }} />
+                        <Camera size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
                         <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
                       </motion.button>
                       {avatarPath && (
@@ -569,7 +570,7 @@ export default function Sidebar() {
                           title={t('Убрать фото')}
                           style={{ ...photoBtnStyle, flex: 'none', width: 34, padding: 0, justifyContent: 'center' }}
                         >
-                          <X size={14} strokeWidth={2.1} />
+                          <X size={14} strokeWidth={2} />
                         </motion.button>
                       )}
                     </div>
@@ -662,12 +663,12 @@ export default function Sidebar() {
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
                             color: 'var(--color-text)',
-                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                           }}
                         >
                           {dark
-                            ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                            : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            ? <Sun size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            : <Moon size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                           }
                           <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
                         </motion.button>
@@ -686,10 +687,10 @@ export default function Sidebar() {
                               gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                               background: 'transparent',
                               color: 'var(--color-text)',
-                              fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                              fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                             }}
                           >
-                            <Ghost size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            <Ghost size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                             <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{t('Хэллоуин-тема')}</span>
                             <span className="truncate" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
                               {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
@@ -710,10 +711,10 @@ export default function Sidebar() {
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
                             color: 'var(--color-text)',
-                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                           }}
                         >
-                          <ArrowUpDown size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <ArrowUpDown size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{t('Настроить виджеты')}</span>
                         </motion.button>
 
@@ -731,10 +732,10 @@ export default function Sidebar() {
                               gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                               background: 'transparent',
                               color: 'var(--color-text)',
-                              fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                              fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                             }}
                           >
-                            <ListOrdered size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            <ListOrdered size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                             <span style={{ flex: 1, textAlign: 'left' }}>{t('Порядок курсов')}</span>
                           </motion.button>
                         )}
@@ -752,10 +753,10 @@ export default function Sidebar() {
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
                             color: 'var(--color-text)',
-                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                           }}
                         >
-                          <Palette size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <Palette size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{t('Цвет курса')}</span>
                           {tintColor && (
                             <span style={{ width: 16, height: 16, borderRadius: 999, background: tintColor, boxShadow: '0 0 0 1px var(--color-border-medium)', flexShrink: 0 }} />
@@ -775,12 +776,12 @@ export default function Sidebar() {
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
                             color: 'var(--color-text)',
-                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                           }}
                         >
-                          <Globe size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <Globe size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{t('Язык')}</span>
-                          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>
                             {lang === 'ru' ? 'Русский' : 'English'}
                           </span>
                         </motion.button>
@@ -897,25 +898,11 @@ export default function Sidebar() {
                 {t(item.label)}
               </motion.span>
 
-              {badge > 0 && (
-                <span style={{
-                  position: 'absolute', top: 4, right: isCompact ? 2 : 6,
-                  minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  // На активном пункте фон уже фиолетовый — там метка белая с
-                  // фиолетовой цифрой, иначе она сливалась бы с кнопкой. Цифра
-                  // литералом, а не var(--color-purple-text): подложка метки
-                  // жёстко белая в обеих темах, а переменная в тёмной светлеет
-                  // до #DAD3FB — и цифра пропадала на белом кружке.
-                  background: isActive ? '#fff' : 'var(--grad-purple)',
-                  color: isActive ? '#3D33A0' : '#fff',
-                  fontSize: 10, fontWeight: 800, lineHeight: 1,
-                  fontVariantNumeric: 'tabular-nums',
-                  boxShadow: isActive ? 'none' : '0 2px 6px rgba(var(--accent-rgb), 0.45)',
-                }}>
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              )}
+              {/* На активном пункте фон уже фиолетовый — там счётчик белый (inverse). */}
+              <CountBadge
+                count={badge} tone={isActive ? 'inverse' : 'accent'}
+                style={{ position: 'absolute', top: 4, right: isCompact ? 2 : 6, boxShadow: isActive ? 'none' : '0 2px 6px rgba(var(--accent-rgb), 0.45)' }}
+              />
             </motion.button>
           )
         })}

@@ -30,7 +30,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
 
   if (!target) {
     return (
-      <div style={{ fontSize: 13.5, color: 'var(--color-muted)' }}>
+      <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
         {t('Ссылка на упражнение не указана — покажите её преподавателю.')}
       </div>
     )
@@ -70,7 +70,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
           />
         ) : (
           <div style={{ padding: '18px 14px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
+            <span style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
               {t('Упражнение откроется в новой вкладке — вернитесь сюда, когда закончите.')}
             </span>
             <a
@@ -104,7 +104,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
           {done ? <Check size={14} /> : null}
           {done ? t('Отмечено выполненным') : t('Я закончил')}
         </button>
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
           {t('Результат с чужой площадки к нам не приходит — засчитывается прохождение.')}
         </span>
       </div>

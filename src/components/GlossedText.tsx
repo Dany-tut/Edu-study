@@ -53,7 +53,7 @@ export function TierChip({ term, lang, accent, style }: {
       title={t(tierNote(tier))}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 7,
-        padding: '2px 9px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
+        padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 800,
         background: core ? `${accent}22` : 'var(--color-bg-3)',
         color: core ? accent : 'var(--color-muted)',
         ...style,
@@ -634,13 +634,13 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                 {active.seg.text}
               </div>
               {/* Как это звучит. Написанное в словаре чтение важнее
                   посчитанного: там оно выверено человеком. */}
               {(active.seg.gloss?.reading || transcribe(active.seg.text, lang)) && (
-                <div style={{ fontSize: 12.5, color: accent, marginTop: 2, opacity: 0.9 }}>
+                <div style={{ fontSize: 13, color: accent, marginTop: 2, opacity: 0.9 }}>
                   {active.seg.gloss?.reading || transcribe(active.seg.text, lang)}
                 </div>
               )}
@@ -658,7 +658,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               <Volume2 size={14} />
             </button>
           </div>
-          <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', marginTop: 6, ...proseWrap }}>
+          <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-2)', marginTop: 6, ...proseWrap }}>
             {active.seg.gloss
               ? bindShortWords(active.seg.gloss.ru)
               : active.seg.parts
@@ -675,7 +675,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
           {!active.seg.gloss && active.seg.parts && (
             <div style={{ display: 'grid', gap: 4, marginTop: 8 }}>
               {active.seg.parts.map((p, k) => (
-                <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 12.5, lineHeight: 1.4 }}>
+                <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 13, lineHeight: 1.4 }}>
                   <span style={{
                     fontWeight: 700, whiteSpace: 'nowrap',
                     color: p.gloss ? 'var(--color-text)' : 'var(--color-text-3)',
@@ -721,7 +721,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
                 pointerEvents: 'auto',
               }}
             >
-              {inDeck ? <Check size={13} /> : <Plus size={13} />}
+              {inDeck ? <Check size={14} /> : <Plus size={14} />}
               {collectLabel}
             </button>
           )}

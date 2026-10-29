@@ -52,7 +52,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
       subtitle={t('Выберите тариф — мы свяжемся и подключим его')}
       icon={
         <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Sparkles size={19} style={{ color: 'var(--color-purple)' }} />
+          <Sparkles size={20} style={{ color: 'var(--color-purple)' }} />
         </div>
       }
     >
@@ -79,17 +79,17 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{t(p.name)}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t(p.name)}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                       {price(p)}{p.priceRub > 0 && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)' }}> /{t('мес')}</span>}
                     </div>
                   </div>
-                  <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>{t(p.tagline)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>{t(p.tagline)}</div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 11 }}>
                     {p.features.map((f, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
-                        <Check size={14} style={{ color: 'var(--color-purple)', flexShrink: 0 }} strokeWidth={2.6} />
+                        <Check size={14} style={{ color: 'var(--color-purple)', flexShrink: 0 }} strokeWidth={2.5} />
                         {t(f)}
                       </div>
                     ))}
@@ -97,8 +97,8 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
 
                   <div style={{ marginTop: 13 }}>
                     {current ? (
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'var(--color-purple)', background: 'var(--color-bg-2)', padding: '7px 13px', borderRadius: 20 }}>
-                        <Check size={14} strokeWidth={2.6} /> {t('Ваш тариф')}
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--color-purple)', background: 'var(--color-bg-2)', padding: '7px 13px', borderRadius: 20 }}>
+                        <Check size={14} strokeWidth={2.5} /> {t('Ваш тариф')}
                       </div>
                     ) : (
                       <button
@@ -122,7 +122,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
 
           {error && <Alert tone="danger" text={error} style={{ marginTop: 12 }} />}
 
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 14, textAlign: 'center', lineHeight: 1.4 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 14, textAlign: 'center', lineHeight: 1.4 }}>
             {t('Оплата подключается вручную: после заявки мы свяжемся с вами.')}
           </div>
         </>

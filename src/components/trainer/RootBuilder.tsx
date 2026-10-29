@@ -84,12 +84,12 @@ export function RootGrid({ roots, results, accent, soft, onOpen }: {
             <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Block accent={accent} tone={brickTone(root.ko)} size="lg">{root.ko}</Block>
               <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                <span style={{ fontSize: 15.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                   {root.ru}
                 </span>
                 {/* Иероглиф — опора, а не предмет заучивания, поэтому он мелкий
                     и приглушённый: узнать в заголовке газеты, не выписывать. */}
-                <span style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>{root.cn}</span>
+                <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{root.cn}</span>
               </span>
             </span>
             <TileMeter value={res ? Math.round((res.score / Math.max(res.total, 1)) * 100) : 0} />
@@ -151,7 +151,7 @@ function WordRow({ word, root, lang, accent, tone, reading }: {
                 <Block key={i} accent={accent} tone={brickTone(b.ko)} title={b.ru}>{b.ko}</Block>
               ))
             : <Block accent={accent}>{word.term}</Block>}
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)', marginLeft: 4 }}>{word.ru}</span>
+          <span style={{ fontSize: 14, color: 'var(--color-text-2)', marginLeft: 4 }}>{word.ru}</span>
           <TierChip term={word.term} lang={lang} accent={accent} style={{ marginTop: 0 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
@@ -281,15 +281,15 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <Block accent={accent} tone={brickTone(root.ko)} size="lg">{root.ko}</Block>
         <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontSize: 19, fontWeight: 780, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+          <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
             {root.ru}
           </span>
-          <span style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>
             {root.cn} · {t(root.group)}
           </span>
         </span>
       </div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
+      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
         {t('Один кирпич — сразу столько слов:')} {root.words.length}.{' '}
         {t('Учить надо кирпич: он всплывёт и в тех словах, которых здесь нет.')}
       </p>
@@ -319,7 +319,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 700 }}>{t('Собери слово')}</div>
-          <div style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', textAlign: 'center' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center' }}>
             «{q.item.word.ru}»
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -338,7 +338,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
           </div>
           {/* Подсказка — значения известных кирпичей: задание про состав слова,
               а не про угадывание перевода по звучанию. */}
-          <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', textAlign: 'center', ...proseWrap }}>
+          <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', ...proseWrap }}>
             {q.item.bricks.map((b, i) => (i === q.item.gap && !picked ? '?' : `${b.ko} ${b.ru}`)).join(' + ')}
           </div>
         </div>
@@ -367,8 +367,8 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
                   color: 'var(--color-text)',
                 }}
               >
-                <span style={{ fontSize: 21, fontWeight: 750 }}>{o.ko}</span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 650 }}>{o.ru}</span>
+                <span style={{ fontSize: 20, fontWeight: 700 }}>{o.ko}</span>
+                <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}>{o.ru}</span>
               </button>
             )
           })}
@@ -377,7 +377,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
         {picked && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 750,
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700,
               color: right ? 'var(--color-green-text)' : 'var(--color-red-text)',
             }}>
               {right ? <Check size={16} /> : <X size={16} />}
@@ -407,7 +407,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
           padding: '22px 18px', borderRadius: 20, textAlign: 'center',
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
               ? t('Гнездо собрано целиком. Вторые кирпичи этих слов открывают свои гнёзда — загляни в них.')
@@ -416,7 +416,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
         </div>
         {weak.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-muted)' }}>{t('Не собралось')}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)' }}>{t('Не собралось')}</div>
             {weak.map(w => (
               <WordRow key={w.term} word={w} root={root} lang={lang} accent={accent} tone="bad" reading={reading} />
             ))}
@@ -450,7 +450,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {canRun && (
           <button onClick={start} style={primaryBtn(accent)}>
-            <Blocks size={15} />
+            <Blocks size={16} />
             {t('Собрать слова')}
           </button>
         )}
@@ -458,7 +458,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
           {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
         {added !== null && (
-          <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Всё это уже в колоде.')}
           </span>
         )}

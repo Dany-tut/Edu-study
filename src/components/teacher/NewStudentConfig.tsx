@@ -93,7 +93,7 @@ export default function NewStudentConfig({
               fontSize: 12, fontWeight: 700,
             }}
           >
-            {allHidden ? <Eye size={13} /> : <EyeOff size={13} />}
+            {allHidden ? <Eye size={14} /> : <EyeOff size={14} />}
             {allHidden ? t('Показать все') : t('Скрыть все')}
           </button>
         </div>
@@ -121,7 +121,7 @@ export default function NewStudentConfig({
               </span>
               <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{w.label}</span>
               <span style={{ display: 'flex', color: isHidden ? 'var(--color-muted)' : 'var(--color-accent)' }}>
-                {isHidden ? <EyeOff size={17} /> : <Eye size={17} />}
+                {isHidden ? <EyeOff size={18} /> : <Eye size={18} />}
               </span>
             </button>
           )

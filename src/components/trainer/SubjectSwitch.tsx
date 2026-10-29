@@ -65,7 +65,7 @@ export function SubjectList({ state, onPicked, accent }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <div style={{ padding: '6px 10px 4px', fontSize: 11, fontWeight: 650, color: 'var(--color-text-3)' }}>
+      <div style={{ padding: '6px 10px 4px', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>
         {t('Мои предметы')}
       </div>
 
@@ -118,7 +118,7 @@ export function SubjectList({ state, onPicked, accent }: {
                   {n} {t('на повтор')}
                 </span>
               )}
-              {active && <Check size={15} style={{ flexShrink: 0, color: accent }} />}
+              {active && <Check size={16} style={{ flexShrink: 0, color: accent }} />}
             </button>
           </div>
         )
@@ -189,7 +189,7 @@ export function SubjectHero({ state, subtitle, palette }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {current && <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{current.def.icon}</span>}
           <span style={{
-            fontSize: 11.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase',
+            fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
             opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {current ? t(current.def.name) : t('Тренажёр')}
@@ -199,7 +199,7 @@ export function SubjectHero({ state, subtitle, palette }: {
               marginLeft: 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               width: 22, height: 22, borderRadius: 999, background: 'rgba(255,255,255,0.22)',
             }}>
-              <ChevronDown size={15} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              <ChevronDown size={16} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
             </span>
           )}
         </div>
@@ -312,7 +312,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           boxShadow: 'var(--shadow-pill)',
         }}
       >
-        <span style={{ fontSize: compact ? 19 : 15, lineHeight: 1 }}>{current?.def.icon ?? '📚'}</span>
+        <span style={{ fontSize: compact ? 20 : 15, lineHeight: 1 }}>{current?.def.icon ?? '📚'}</span>
         {!compact && (
           <>
             <span style={{ whiteSpace: 'nowrap' }}>{current ? t(current.def.name) : t('Тренажёр')}</span>

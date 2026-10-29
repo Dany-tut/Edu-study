@@ -57,7 +57,7 @@ export function NestGrid({ nests, results, accent, soft, onOpen }: {
               </span>
             </span>
             <span style={{
-              flex: 1, fontSize: 17, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.35,
+              flex: 1, fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3,
               letterSpacing: '-0.01em',
             }}>
               {nest.title}
@@ -112,18 +112,18 @@ function WordRow({ word, lang, accent, tone }: {
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.25 }}>
+          <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
             {word.term}
           </span>
-          <span style={{ fontSize: 12.5, color: accent, opacity: 0.9 }}>{word.reading}</span>
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)' }}>{word.ru}</span>
+          <span style={{ fontSize: 13, color: accent, opacity: 0.9 }}>{word.reading}</span>
+          <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{word.ru}</span>
           {/* Вес слова прямо в строке разбора: гнездо специально собирает и
               ходовые слова, и редкие соседи по звучанию — 물 учить сегодня,
               뿔 просто не путать с ним. */}
           <TierChip term={word.term} lang={lang} accent={accent} style={{ marginTop: 0 }} />
         </div>
         {word.tip && (
-          <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
+          <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
             {word.tip}
           </div>
         )}
@@ -264,11 +264,11 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <TileChip tone="accent" accent={accent} soft={soft}>{t(nestAxisLabel(nest.axis))}</TileChip>
-        <span style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
           {nest.title}
         </span>
       </div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
+      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
         {nest.why}
       </p>
     </div>
@@ -337,7 +337,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
                 disabled={!!picked}
                 style={{
                   padding: '14px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
-                  fontFamily: 'inherit', fontSize: 20, fontWeight: 750, lineHeight: 1.2,
+                  fontFamily: 'inherit', fontSize: 20, fontWeight: 700, lineHeight: 1.2,
                   border: `1.5px solid ${
                     show && isAnswer ? 'var(--color-green-accent)'
                     : show ? 'var(--color-red-border)'
@@ -357,7 +357,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         {picked && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 750,
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700,
               color: right ? 'var(--color-green-text)' : 'var(--color-red-text)',
             }}>
               {right ? <Check size={16} /> : <X size={16} />}
@@ -388,7 +388,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           padding: '22px 18px', borderRadius: 20, textAlign: 'center',
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
               ? t('Ряд различается целиком. Он вернётся на повторение позже — на слух это забывается быстрее, чем кажется.')
@@ -397,7 +397,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         </div>
         {weak.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-muted)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)' }}>
               {t('Не расслышал')}
             </div>
             {weak.map(w => <WordRow key={w.term} word={w} lang={lang} accent={accent} tone="bad" />)}
@@ -429,16 +429,16 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {audible ? (
           <button onClick={start} style={primaryBtn(accent)}>
-            <Ear size={15} />
+            <Ear size={16} />
             {t('Проверить на слух')}
           </button>
         ) : (
           <div style={{
             display: 'flex', alignItems: 'flex-start', gap: 8, padding: '12px 14px', borderRadius: 16,
             border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-            fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-muted)', ...proseWrap,
+            fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap,
           }}>
-            <Sparkle size={15} style={{ flexShrink: 0, marginTop: 1, color: accent }} />
+            <Sparkle size={16} style={{ flexShrink: 0, marginTop: 1, color: accent }} />
             {nest.axis === 'homonym'
               ? t('Проверки на слух здесь нет и быть не может: слова звучат одинаково. Различает их только фраза, в которой они стоят.')
               : t('Проверки на слух здесь нет: эти звуки в современной речи слились, и носители их тоже не различают. Учить надо написание слова целиком.')}
@@ -448,7 +448,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
         {added !== null && (
-          <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Всё это уже в колоде.')}
           </span>
         )}
@@ -474,7 +474,7 @@ const BTN_H = 42
 const btnBase: React.CSSProperties = {
   height: BTN_H, boxSizing: 'border-box', borderRadius: 999, cursor: 'pointer',
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, lineHeight: 1, whiteSpace: 'nowrap',
+  fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 
 const primaryBtn = (accent: string): React.CSSProperties => ({

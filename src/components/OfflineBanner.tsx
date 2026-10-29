@@ -95,13 +95,13 @@ export default function OfflineBanner() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(224,132,74,0.16)', color: '#E0844A',
           }}>
-            <WifiOff size={17} strokeWidth={2.4} />
+            <WifiOff size={18} strokeWidth={2.5} />
           </span>
           <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.25 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {t('Нет соединения')}
             </span>
-            <span style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.25 }}>
+            <span style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.3 }}>
               {t('Часть данных может не загрузиться')}
             </span>
           </span>

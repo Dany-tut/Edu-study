@@ -46,7 +46,7 @@ export default function MockGroupView({ group, answers, onAnswer, review, accent
       </div>
 
       {group.title && (
-        <div style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)' }}>{group.title}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{group.title}</div>
       )}
 
       {/* Общий список у «сопоставления»: на листе экзамена он стоит один раз над
@@ -57,7 +57,7 @@ export default function MockGroupView({ group, answers, onAnswer, review, accent
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>
           {group.options.map(o => (
-            <div key={o.key} style={{ display: 'flex', gap: 10, fontSize: 13.5, lineHeight: 1.45, color: 'var(--color-text)' }}>
+            <div key={o.key} style={{ display: 'flex', gap: 10, fontSize: 14, lineHeight: 1.45, color: 'var(--color-text)' }}>
               <b style={{ minWidth: 22, color: accent }}>{o.key}</b>
               <span>{o.text}</span>
             </div>
@@ -101,7 +101,7 @@ function QuestionRow({ q, group, value, onAnswer, review, accent, soft }: {
     }}>
       <span style={{
         flexShrink: 0, width: 26, height: 26, borderRadius: 8, display: 'inline-flex',
-        alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 800,
+        alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800,
         background: value ? soft : 'var(--color-bg-3)', color: value ? accent : 'var(--color-text-2)',
       }}>
         {q.n}
@@ -110,7 +110,7 @@ function QuestionRow({ q, group, value, onAnswer, review, accent, soft }: {
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {group.kind === 'gap'
           ? <GapText text={q.text} value={value} onChange={set} disabled={review} accent={accent} />
-          : <div style={{ fontSize: 14.5, lineHeight: 1.5, color: 'var(--color-text)' }}>{q.text}</div>}
+          : <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>{q.text}</div>}
 
         {choices && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, flexDirection: group.kind === 'mcq' ? 'column' : 'row' }}>
@@ -126,7 +126,7 @@ function QuestionRow({ q, group, value, onAnswer, review, accent, soft }: {
                     display: 'flex', alignItems: 'flex-start', gap: 8, textAlign: 'left',
                     padding: group.kind === 'mcq' ? '8px 12px' : '6px 12px',
                     borderRadius: 10, cursor: review ? 'default' : 'pointer', fontFamily: 'inherit',
-                    fontSize: 13.5, lineHeight: 1.4, fontWeight: on ? 700 : 500,
+                    fontSize: 14, lineHeight: 1.4, fontWeight: on ? 700 : 500,
                     background: on ? soft : 'var(--color-bg-2)',
                     color: on ? accent : 'var(--color-text)',
                     border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
@@ -141,7 +141,7 @@ function QuestionRow({ q, group, value, onAnswer, review, accent, soft }: {
         )}
 
         {review && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, flexWrap: 'wrap' }}>
             {ok
               ? <><Check size={14} style={{ color: 'var(--color-green-text)' }} /><span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>{t('Верно')}</span></>
               : <>
@@ -173,7 +173,7 @@ function GapText({ text, value, onChange, disabled, accent }: {
 }) {
   const [before, after = ''] = text.split('___')
   return (
-    <div style={{ fontSize: 14.5, lineHeight: 1.9, color: 'var(--color-text)' }}>
+    <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}>
       {before}
       <GrowTextarea
         value={value}
@@ -185,7 +185,7 @@ function GapText({ text, value, onChange, disabled, accent }: {
         onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
         style={{
           display: 'inline-block', verticalAlign: 'middle', width: 170, maxWidth: '100%',
-          margin: '0 4px', padding: '4px 10px', borderRadius: 8, fontFamily: 'inherit', fontSize: 14.5,
+          margin: '0 4px', padding: '4px 10px', borderRadius: 8, fontFamily: 'inherit', fontSize: 15,
           background: 'var(--color-bg-2)', color: 'var(--color-text)',
           border: `1.5px solid ${value ? accent : 'var(--color-border-soft)'}`, outline: 'none',
         }}

@@ -70,7 +70,7 @@ export function PickStudentModal({
         </div>
 
         <div style={searchBox}>
-          <Search size={15} style={{ color: 'var(--color-text-3)' }} />
+          <Search size={16} style={{ color: 'var(--color-text-3)' }} />
           <input
             autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск по имени…')}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
@@ -153,7 +153,7 @@ export function PickGroupModal({
         </div>
 
         <div style={searchBox}>
-          <Search size={15} style={{ color: 'var(--color-text-3)' }} />
+          <Search size={16} style={{ color: 'var(--color-text-3)' }} />
           <input
             autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск группы…')}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
@@ -184,7 +184,7 @@ export function PickGroupModal({
                   width: 38, height: 38, borderRadius: 11, flexShrink: 0,
                   background: `${g.color}22`, border: `1px solid ${g.color}44`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: g.color,
-                }}><Users size={17} /></div>
+                }}><Users size={18} /></div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {g.name}
@@ -275,7 +275,7 @@ export function AddExistingIndividualModal({
               {t('выберите человека — новая карточка переиспользует его аккаунт')}
             </div>
             <div style={searchBox}>
-              <Search size={15} style={{ color: 'var(--color-text-3)' }} />
+              <Search size={16} style={{ color: 'var(--color-text-3)' }} />
               <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск по имени…')}
                 style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }} />
             </div>
@@ -356,7 +356,7 @@ export function AddExistingIndividualModal({
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
                 <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
-                  {copied ? <><Check size={15} strokeWidth={2.6} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
+                  {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
                 </button>
               </>
             )}

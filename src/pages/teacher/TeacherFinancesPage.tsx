@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Wallet, Plus, X, Check, ChevronDown, ChevronUp,
@@ -79,14 +80,7 @@ function AddPaymentModal({
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 12px',
-    background: 'var(--color-bg-3)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 10, fontSize: 14,
-    color: 'var(--color-text)',
-    outline: 'none', boxSizing: 'border-box',
-  }
+  const inputStyle: React.CSSProperties = { ...FIELD }
 
   return (
     <motion.div
@@ -130,7 +124,7 @@ function AddPaymentModal({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Сумма, ₽')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Сумма, ₽')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -142,7 +136,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Занятий оплачено')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Занятий оплачено')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -153,7 +147,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Заметка (необязательно)')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Заметка (необязательно)')}</div>
             <input
               style={inputStyle}
               placeholder={t('Перевод на карту...')}
@@ -180,7 +174,7 @@ function AddPaymentModal({
           } as React.CSSProperties}
         >
           {saved
-            ? <><Check size={15} /> {t('Сохранено')}</>
+            ? <><Check size={16} /> {t('Сохранено')}</>
             : saving
               ? t('Сохраняем...')
               : t('Сохранить платёж')
@@ -251,15 +245,15 @@ function StudentRow({
 
         {/* Name + status */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
             {tn(student.name).split(' ').slice(0, 2).join(' ')}
             <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 400, marginLeft: 6 }}>{groupName}</span>
           </div>
           <div style={{ fontSize: 11, color: statusColor, marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
-            {status === 'overdue' && <><AlertCircle size={11} /> {t('просрочено')} {Math.abs(diffDays(student.paymentDue!))} {t('дн.')}</>}
-            {status === 'soon'    && <><Clock size={11} /> {t('через')} {diffDays(student.paymentDue!)} {t('дн.')}</>}
-            {status === 'pending' && <><Clock size={11} /> {t('до')} {fmtDate(student.paymentDue!)}</>}
-            {status === 'ok'     && balance > 0 && <><CheckCircle2 size={11} /> {t('баланс')} {balance} {t('зан.')}</>}
+            {status === 'overdue' && <><AlertCircle size={12} /> {t('просрочено')} {Math.abs(diffDays(student.paymentDue!))} {t('дн.')}</>}
+            {status === 'soon'    && <><Clock size={12} /> {t('через')} {diffDays(student.paymentDue!)} {t('дн.')}</>}
+            {status === 'pending' && <><Clock size={12} /> {t('до')} {fmtDate(student.paymentDue!)}</>}
+            {status === 'ok'     && balance > 0 && <><CheckCircle2 size={12} /> {t('баланс')} {balance} {t('зан.')}</>}
             {status === 'ok'     && balance <= 0 && '—'}
           </div>
         </div>
@@ -278,7 +272,7 @@ function StudentRow({
         {/* Amount */}
         {student.paymentAmount ? (
           <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 4 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: statusColor }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: statusColor }}>
               {fmt(student.paymentAmount)} ₽
             </div>
           </div>
@@ -308,7 +302,7 @@ function StudentRow({
 
         {/* Expand toggle */}
         <div style={{ color: 'var(--color-text-3)', flexShrink: 0 }}>
-          {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </div>
 
@@ -337,7 +331,7 @@ function StudentRow({
                   padding: '8px 12px',
                   borderBottom: i < payments.length - 1 ? '1px solid var(--color-border)' : 'none',
                 }}>
-                  <CheckCircle2 size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                  <CheckCircle2 size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                   <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-2)' }}>
                     {fmtDate(p.paidAt)}
                     {p.lessonsPaid > 0 && <span style={{ color: 'var(--color-text-3)' }}> · {p.lessonsPaid} {t('зан.')}</span>}
@@ -353,7 +347,7 @@ function StudentRow({
                       color: 'var(--color-text-3)', padding: 2, display: 'flex',
                     }}
                   >
-                    <Trash2 size={13} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               ))}
@@ -439,7 +433,7 @@ export default function TeacherFinancesPage() {
               cursor: 'pointer',
             } as React.CSSProperties}
           >
-            <Plus size={15} /> {t('Платёж')}
+            <Plus size={16} /> {t('Платёж')}
           </motion.button>
         </div>
 
@@ -452,10 +446,10 @@ export default function TeacherFinancesPage() {
           marginBottom: 20,
         }}>
           {[
-            { label: t('Получено'),  value: fmt(summary.received),  color: 'var(--color-green-text)', icon: <CheckCircle2 size={13} /> },
-            { label: t('Ожидается'), value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={13} /> },
-            { label: t('Долг'),      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={13} /> },
-            { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={13} /> },
+            { label: t('Получено'),  value: fmt(summary.received),  color: 'var(--color-green-text)', icon: <CheckCircle2 size={14} /> },
+            { label: t('Ожидается'), value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={14} /> },
+            { label: t('Долг'),      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={14} /> },
+            { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={14} /> },
           ].map((item, i, arr) => (
             <div key={item.label} style={{
               flex: 1, padding: '14px 8px', textAlign: 'center',
@@ -482,7 +476,7 @@ export default function TeacherFinancesPage() {
                 background: filter === tab.id ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                 border: filter === tab.id ? '1px solid transparent' : '1px solid var(--color-border)',
                 color: filter === tab.id ? 'var(--color-purple)' : 'var(--color-text-2)',
-                fontSize: 12.5, fontWeight: 600,
+                fontSize: 13, fontWeight: 600,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
                 transition: 'background 0.15s, color 0.15s',
               } as React.CSSProperties}

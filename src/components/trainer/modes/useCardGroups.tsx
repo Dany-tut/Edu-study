@@ -201,7 +201,7 @@ export function useCardGroups({
   // Полки — папки витрины, а не сито: строка ОТКРЫВАЕТ группу, как плитка в
   // сетке, и стоять ей поэтому не в «Фильтрах».
   const rail = !(groups ?? []).some(isShelf) ? null : (
-    <RailCard title="Полки" accent={accent} icon={<Layers size={15} />}
+    <RailCard title="Полки" accent={accent} icon={<Layers size={16} />}
       action={openGroup ? { label: t('Ко всем'), onClick: () => setOpenGroupId('') } : undefined}>
       <RailList
         items={(groups ?? []).filter(isShelf).map(g => ({
@@ -225,7 +225,7 @@ export function useCardGroups({
           style={{
             height: 34, borderRadius: 12, border: `1px solid ${accent}55`,
             background: 'transparent', color: accent, fontFamily: 'inherit',
-            fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            fontSize: 13, fontWeight: 700, cursor: 'pointer',
           }}
         >
           {t('Править подборку')}
@@ -257,7 +257,7 @@ export function useCardGroups({
                 <TileChip tone="mute">{sub.cards.length} {t('слов')}</TileChip>
               </span>
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                   {sub.title}
                 </span>
               </span>

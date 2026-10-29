@@ -58,7 +58,7 @@ function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextar
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
+    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
       {children}
     </div>
   )
@@ -134,7 +134,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                                   onClick={() => patch({ verdict: c.v })}
                                   style={{
                                     padding: '5px 11px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
-                                    fontSize: 11.5, fontWeight: 700,
+                                    fontSize: 12, fontWeight: 700,
                                     border: `1.5px solid ${row.verdict === c.v ? accent.color : 'var(--color-border-medium)'}`,
                                     background: row.verdict === c.v ? accent.bg : 'var(--color-bg-2)',
                                     color: row.verdict === c.v ? accent.color : 'var(--color-text-3)',
@@ -150,7 +150,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                               onClick={() => setRows(rows.filter((_, k) => k !== ri))}
                               style={{ width: 24, height: 24, marginTop: 5, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
-                              <X size={11} />
+                              <X size={12} />
                             </button>
                           )}
                         </div>
@@ -214,7 +214,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
                                 }}
                               >
-                                {gap.correct === oi && <Check size={11} />}
+                                {gap.correct === oi && <Check size={12} />}
                               </button>
                               <AutoTextarea
                                 value={opt}
@@ -230,16 +230,16 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                                   })}
                                   style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                                 >
-                                  <X size={11} />
+                                  <X size={12} />
                                 </button>
                               )}
                             </div>
                           ))}
                           <button
                             onClick={() => patch({ options: [...gap.options, ''] })}
-                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11.5, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                           >
-                            <Plus size={11} /> {t('Вариант')}
+                            <Plus size={12} /> {t('Вариант')}
                           </button>
                         </div>
                       )
@@ -285,7 +285,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                               })}
                               style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
-                              <X size={11} />
+                              <X size={12} />
                             </button>
                           )}
                         </div>
@@ -316,7 +316,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                               onClick={() => onUpdate({ ...task, sortItems: items.map((x, k) => k === ii ? { ...x, column: ci } : x) })}
                               style={{
                                 padding: '5px 10px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
-                                fontSize: 11.5, fontWeight: 700, maxWidth: 92, overflow: 'hidden',
+                                fontSize: 12, fontWeight: 700, maxWidth: 92, overflow: 'hidden',
                                 textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                 border: `1.5px solid ${item.column === ci ? accent.color : 'var(--color-border-medium)'}`,
                                 background: item.column === ci ? accent.bg : 'var(--color-bg-2)',
@@ -332,7 +332,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                             onClick={() => onUpdate({ ...task, sortItems: items.filter((_, k) => k !== ii) })}
                             style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           >
-                            <X size={11} />
+                            <X size={12} />
                           </button>
                         )}
                       </div>

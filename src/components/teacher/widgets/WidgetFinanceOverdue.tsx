@@ -71,7 +71,7 @@ export default function WidgetFinanceOverdue() {
           background: 'var(--color-green-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Check size={22} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
+          <Check size={24} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Задолженностей нет')}</div>
         <div style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{t('все ученики в порядке')}</div>
@@ -104,7 +104,7 @@ export default function WidgetFinanceOverdue() {
             background: 'var(--color-red-soft)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <AlertCircle size={14} strokeWidth={2.2} style={{ color: 'var(--color-red-text)' }} />
+            <AlertCircle size={14} strokeWidth={2} style={{ color: 'var(--color-red-text)' }} />
           </div>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Должники')}</span>
           <span style={{
@@ -158,7 +158,7 @@ export default function WidgetFinanceOverdue() {
 
               {/* Name + group */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {tn(s.name).split(' ').slice(0, 2).join(' ')}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
@@ -197,7 +197,7 @@ export default function WidgetFinanceOverdue() {
                   display: 'flex', alignItems: 'center', gap: 4,
                 } as React.CSSProperties}
               >
-                {isPaid ? <><Check size={11} /> {t('Готово')}</> : t('Оплачено')}
+                {isPaid ? <><Check size={12} /> {t('Готово')}</> : t('Оплачено')}
               </button>
             </div>
           )

@@ -186,8 +186,8 @@ export interface DeckSource {
 export const DECK_CTA = {
   height: 34,
   padding: '0 14px',
-  fontSize: 12.5,
-  fontWeight: 650,
+  fontSize: 13,
+  fontWeight: 600,
   gap: 6,
   icon: 14,
 } as const
@@ -435,7 +435,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   if (queue.length === 0) return (
     <Shell>
       <Empty
-        icon={<Layers size={26} style={{ color: 'var(--color-text-3)' }} />}
+        icon={<Layers size={24} style={{ color: 'var(--color-text-3)' }} />}
         title={source?.emptyTitle ? t(source.emptyTitle) : t('Колода пуста')}
         text={source?.emptyText
           ? t(source.emptyText)
@@ -664,7 +664,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
               color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            <HelpCircle size={13} />
+            <HelpCircle size={14} />
           </button>
         </div>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -907,7 +907,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
 
       {judge ? (
         <>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.35, ...balancedWrap }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, ...balancedWrap }}>
             {bindShortWords(seat.card.prompt)} <span style={{ color: 'var(--color-text-3)' }}>=</span> {bindShortWords(seat.shown ?? '')}
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 10 }}>{t('верно или нет?')}</div>
@@ -954,7 +954,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
               {/* Кегль по длине: слово должно читаться через всю комнату, а
                   условие задания на 300 знаков тем же кеглем не влезет. */}
               <div style={{
-                fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 550,
+                fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 500,
                 color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
                 textAlign: promptSize > 20 ? 'center' : 'left', width: '100%',
                 // Крупное слово по центру — строки поровну; длинное условие
@@ -1001,7 +1001,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                   {seat.card.reading}
                 </div>
               )}
-              <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-green-text)', lineHeight: 1.4, ...balancedWrap }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-green-text)', lineHeight: 1.4, ...balancedWrap }}>
                 {bindShortWords(seat.card.answer)}
               </div>
               {/* Заметка — то, ради чего фразу и стоило учить: когда так
@@ -1010,7 +1010,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
               {seat.card.note && (
                 <div style={{
                   marginTop: 8,
-                  fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap,
+                  fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap,
                 }}>
                   {seat.card.note}
                 </div>
@@ -1037,13 +1037,13 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                       стоит перевод. */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4 }}>
                         {lang
                           ? <GlossedText text={seat.card.ex.term} lang={lang} accent={accent} />
                           : seat.card.ex.term}
                       </div>
                       {seat.card.ex.reading && (
-                        <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, letterSpacing: 0.2 }}>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2, letterSpacing: 0.2 }}>
                           {seat.card.ex.reading}
                         </div>
                       )}
@@ -1052,7 +1052,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                           Пустой строкой её не заменяем — под предложением
                           висел бы пустой отступ. */}
                       {seat.card.ex.ru && (
-                        <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                        <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
                           {seat.card.ex.ru}
                         </div>
                       )}
@@ -1178,7 +1178,7 @@ function SwipeLegend({ rows, active, accent }: {
             }}>
               {r.arrow}
             </span>
-            <span style={{ fontSize: 13, fontWeight: 750, color, flexShrink: 0 }}>{r.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color, flexShrink: 0 }}>{r.label}</span>
             <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-3)' }}>— {r.note}</span>
           </div>
         )
@@ -1236,7 +1236,7 @@ function UndoButton({ onClick, label, disabled, big }: {
         color: disabled ? 'var(--color-text-3)' : 'var(--color-text-2)',
       }}
     >
-      <Undo2 size={big ? DECK_CTA.icon : 13} /> {label}
+      <Undo2 size={big ? DECK_CTA.icon : 14} /> {label}
     </button>
   )
 }
@@ -1271,7 +1271,7 @@ function ActionButton({ tone, label, hint, onClick }: {
         // теме тон поверх фона страницы проваливался, и кнопки читались как
         // дырки под карточкой, а не как её продолжение.
         background: `color-mix(in srgb, ${color} ${hover ? 14 : 8}%, var(--color-bg-2))`,
-        color, fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        color, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         display: 'flex', flexDirection: hint ? 'column' : 'row',
         gap: hint ? 2 : 7, alignItems: 'center', justifyContent: 'center',
         // Высота задана, а не набрана содержимым: слот под рядом кнопок считается
@@ -1304,7 +1304,7 @@ function Empty({ icon, title, text, extra }: {
     }}>
       <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{icon}</div>
       <div style={{
-        fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginBottom: 6,
+        fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginBottom: 6,
         ...balancedWrap,
       }}>{bindShortWords(title)}</div>
       {/* Длину строки держим сами: на широком экране абзац растягивался во всю

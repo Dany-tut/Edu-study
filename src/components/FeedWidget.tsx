@@ -76,13 +76,13 @@ export default function FeedWidget({ columns }: { columns: number }) {
       minHeight: 0, overflow: 'hidden',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
-        <Rows3 size={15} style={{ color: palette.accent }} />
+        <Rows3 size={16} style={{ color: palette.accent }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Лента')}</span>
         {unread.length > 0 ? (
           <span style={{
             padding: '2px 8px', borderRadius: 999,
             background: `${palette.accent}24`, color: palette.text,
-            fontSize: 11, fontWeight: 750, whiteSpace: 'nowrap',
+            fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
           }}>
             {unread.length} {t(materialsWord(unread.length))}
           </span>
@@ -94,10 +94,10 @@ export default function FeedWidget({ columns }: { columns: number }) {
           onClick={e => { e.preventDefault(); open() }}
           style={{
             marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4,
-            fontSize: 11.5, fontWeight: 700, color: palette.text, textDecoration: 'none',
+            fontSize: 12, fontWeight: 700, color: palette.text, textDecoration: 'none',
           }}
         >
-          {t('Открыть')} <ArrowRight size={13} />
+          {t('Открыть')} <ArrowRight size={14} />
         </a>
       </div>
 
@@ -122,20 +122,20 @@ export default function FeedWidget({ columns }: { columns: number }) {
                 flexShrink: 0, width: 20, height: 20, borderRadius: 999,
                 background: outlet?.tint ?? palette.accent, color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: (outlet?.mark.length ?? 1) > 2 ? 7.5 : 9,
+                fontSize: (outlet?.mark.length ?? 1) > 2 ? 7.5 : 10,
                 fontWeight: 800, lineHeight: 1,
               }}>
                 {outlet?.mark ?? '·'}
               </span>
               <span style={{
                 flex: '1 1 auto', minWidth: 0,
-                fontSize: 12.5, fontWeight: fresh ? 700 : 600,
+                fontSize: 13, fontWeight: fresh ? 700 : 600,
                 color: fresh ? 'var(--color-text)' : 'var(--color-text-2)',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {item.title}
               </span>
-              <span style={{ flexShrink: 0, fontSize: 10.5, color: 'var(--color-text-4)', whiteSpace: 'nowrap' }}>
+              <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--color-text-4)', whiteSpace: 'nowrap' }}>
                 {dayLabel(item.date)}
               </span>
             </a>

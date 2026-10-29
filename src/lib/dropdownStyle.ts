@@ -38,7 +38,7 @@ export const dropdownRow = (
   display: 'flex', alignItems: 'center', gap: 8,
   padding: small ? '6px 9px' : '8px 11px', borderRadius: 9,
   border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
-  fontSize: small ? 11 : 13, fontWeight: selected ? 650 : 500, fontFamily: 'inherit',
+  fontSize: small ? 11 : 13, fontWeight: selected ? 600 : 500, fontFamily: 'inherit',
   background: selected ? accentBg : 'transparent',
   color: selected ? accent : 'var(--color-text)',
   transition: 'background 0.12s',

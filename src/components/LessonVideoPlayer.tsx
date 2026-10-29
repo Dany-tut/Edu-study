@@ -986,7 +986,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 }}
               >
                 {ended
-                  ? <Repeat size={26} />
+                  ? <Repeat size={24} />
                   : <Play size={28} fill="var(--color-purple)" style={{ marginLeft: 4 }} />}
               </motion.span>
             </button>
@@ -1007,7 +1007,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 background: `radial-gradient(circle at ${skipFlash.side === 'right' ? '100%' : '0%'} 50%, rgba(255,255,255,0.20), transparent 72%)`,
               }}
             >
-              {skipFlash.side === 'right' ? <RotateCw size={22} /> : <RotateCcw size={22} />}
+              {skipFlash.side === 'right' ? <RotateCw size={24} /> : <RotateCcw size={24} />}
               <span style={{ fontSize: 15, fontWeight: 800 }}>10</span>
             </motion.div>
           )}
@@ -1030,7 +1030,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
               }}
             >
-              <span style={{ fontSize: 21, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 20, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
                 {formatClock(current)}
               </span>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.62)', fontVariantNumeric: 'tabular-nums' }}>
@@ -1080,7 +1080,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 ))}
               </div>
 
-              <span style={{ fontSize: touch ? 13 : 14.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{boost}×</span>
+              <span style={{ fontSize: touch ? 13 : 15, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{boost}×</span>
 
               {/* Замок: капсула наливается снизу вверх по ходу жеста. */}
               <motion.span
@@ -1107,8 +1107,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   style={{ display: 'flex', position: 'relative' }}
                 >
                   {boostLocked
-                    ? <Lock size={touch ? 10 : 12} />
-                    : <LockOpen size={touch ? 10 : 12} style={{ opacity: 0.4 + lockFill * 0.6 }} />}
+                    ? <Lock size={touch ? 12 : 12} />
+                    : <LockOpen size={touch ? 12 : 12} style={{ opacity: 0.4 + lockFill * 0.6 }} />}
                 </motion.span>
               </motion.span>
 
@@ -1198,7 +1198,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
             <div className="flex items-center" style={{ gap: 2, marginTop: 2 }}>
               <button onClick={() => (paused ? doPlay() : doPause())} style={iconBtn()} aria-label={paused ? t('Продолжить') : t('Пауза')}>
-                {paused ? <Play size={19} fill="#fff" /> : <Pause size={19} fill="#fff" />}
+                {paused ? <Play size={20} fill="#fff" /> : <Pause size={20} fill="#fff" />}
               </button>
               {/* Кнопок «−10 / +10» в строке нет НАМЕРЕННО. У длинного ролика
                   время занимает всю строку («5:41 / 1:26:56»), и первым из неё
@@ -1229,12 +1229,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 )}
               </div>
 
-              <span style={{ marginLeft: 8, fontSize: 12.5, fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              <span style={{ marginLeft: 8, fontSize: 13, fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {formatClock(current)} <span style={{ color: 'rgba(255,255,255,0.6)' }}>/ {formatClock(duration)}</span>
               </span>
 
               {activeChapter >= 0 && (
-                <span className="truncate" style={{ marginLeft: 12, fontSize: 12.5, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
+                <span className="truncate" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
                   {timecodes[activeChapter].label}
                 </span>
               )}
@@ -1259,7 +1259,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 5 } : { width: 'auto', padding: '0 8px', gap: 5 })}
                     aria-label={t('Скорость')}
                   >
-                    <Gauge size={17} />
+                    <Gauge size={18} />
                     <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
                   </button>
                   {rateOpen && ratePos && createPortal(
@@ -1284,10 +1284,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                           style={{
                             gap: 8, padding: '7px 9px', borderRadius: 9, border: 'none',
                             background: r === rate ? 'rgba(255,255,255,0.14)' : 'transparent',
-                            color: '#fff', fontSize: 12.5, fontWeight: r === rate ? 700 : 500,
+                            color: '#fff', fontSize: 13, fontWeight: r === rate ? 700 : 500,
                           }}
                         >
-                          <Check size={13} style={{ opacity: r === rate ? 1 : 0 }} />
+                          <Check size={14} style={{ opacity: r === rate ? 1 : 0 }} />
                           {r === 1 ? t('Обычная') : `${r}×`}
                         </button>
                       ))}
@@ -1328,7 +1328,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             <span
               style={{
                 position: 'absolute', top: 16, left: 16, zIndex: 2,
-                fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
                 color: 'rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.14)',
                 padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
               }}
@@ -1356,7 +1356,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
                 }}
               >
-                <Play size={30} fill="var(--color-purple)" style={{ marginLeft: 4 }} />
+                <Play size={28} fill="var(--color-purple)" style={{ marginLeft: 4 }} />
               </motion.div>
             </button>
 
@@ -1366,7 +1366,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   onClick={() => { setStartAt(resumeAt); setStarted(true) }}
                   className="cursor-pointer"
                   style={{
-                    fontSize: 12.5, fontWeight: 700, color: '#fff',
+                    fontSize: 13, fontWeight: 700, color: '#fff',
                     background: 'rgba(0,0,0,0.55)', padding: '6px 12px', borderRadius: 999,
                     border: 'none', backdropFilter: 'blur(8px)',
                   }}
@@ -1377,7 +1377,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   onClick={() => { setStartAt(0); setStarted(true) }}
                   className="cursor-pointer"
                   style={{
-                    fontSize: 12.5, fontWeight: 600, color: 'rgba(255,255,255,0.82)',
+                    fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.82)',
                     background: 'rgba(255,255,255,0.16)', padding: '6px 12px', borderRadius: 999,
                     border: 'none', backdropFilter: 'blur(8px)',
                   }}

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import CountBadge from '../../CountBadge'
 import { Home, Users, ClipboardCheck, CheckSquare, User } from 'lucide-react'
 import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
@@ -90,22 +91,14 @@ export default function MobileTeacherNav({
                   strokeWidth={isActive ? 2.5 : 1.8}
                   style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
                 />
-                {item.id === 'review' && reviewBadge > 0 && (
-                  <span style={{
-                    position: 'absolute', top: -5, right: -9,
-                    minWidth: 16, height: 16, padding: '0 4px',
-                    borderRadius: 999, background: 'var(--color-red-text)',
-                    color: '#fff', fontSize: 9, fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{reviewBadge}</span>
-                )}
+                {item.id === 'review' && <CountBadge count={reviewBadge} tone="danger" style={{ position: 'absolute', top: -5, right: -9 }} />}
               </div>
               <motion.span
                 initial={false}
                 animate={{ height: collapsed ? 0 : 12, opacity: collapsed ? 0 : 1, marginTop: collapsed ? 0 : 4 }}
                 transition={COLLAPSE}
                 style={{
-                  fontSize: 9,
+                  fontSize: 10,
                   lineHeight: '12px',
                   overflow: 'hidden',
                   maxWidth: '100%',

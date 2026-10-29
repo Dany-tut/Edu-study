@@ -39,6 +39,7 @@
 // родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import CountBadge from '../CountBadge'
 import {
   Children, Fragment, createContext, isValidElement,
   useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
@@ -603,7 +604,7 @@ function ShareRow({ url, accent }: { url: string; accent?: string }) {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         flex: 1, minWidth: 0, padding: '13px 16px', borderRadius: 16,
-        cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 650,
+        cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
         border: `1px solid ${done ? tint : 'var(--color-border-medium)'}`,
         background: 'transparent',
         color: done ? tint : 'var(--color-text-2)',
@@ -636,12 +637,12 @@ function HelpButton({ onClick, wide }: { onClick: () => void; wide?: boolean }) 
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         // Вровень с «Поделиться»: высоту берём от соседа (stretch), а не числом.
         ...(wide ? { flex: 1, padding: '13px 16px' } : { alignSelf: 'stretch', width: 46, flexShrink: 0 }),
-        borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 650,
+        borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
         border: '1px solid var(--color-border-medium)', background: 'transparent',
         color: 'var(--color-text-2)',
       }}
     >
-      <HelpCircle size={wide ? 16 : 19} />
+      <HelpCircle size={wide ? 16 : 20} />
       {wide && label}
     </button>
   )
@@ -666,7 +667,7 @@ function ShareCircle({ url, accent }: { url: string; accent?: string }) {
         color: on,
       }}
     >
-      {done ? <Check size={15} /> : sheet ? <Share2 size={15} /> : <Link2 size={15} />}
+      {done ? <Check size={16} /> : sheet ? <Share2 size={16} /> : <Link2 size={16} />}
     </button>
   )
 }
@@ -710,12 +711,12 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
                   плитка вырастала на треть ради двух знаков, а «сколько там
                   всего» читается вместе с названием режима, не после него. */}
               <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, width: '100%', minWidth: 0 }}>
-                <span style={{ fontSize: 13.5, fontWeight: on ? 750 : 600, lineHeight: 1.25, minWidth: 0, ...clamp2 }}>
+                <span style={{ fontSize: 14, fontWeight: on ? 700 : 600, lineHeight: 1.3, minWidth: 0, ...clamp2 }}>
                   {t(m.label)}
                 </span>
                 {m.count !== undefined && (
                   <span style={{
-                    fontSize: 11.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                    fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
                     color: on ? accent : 'var(--color-text-3)', flexShrink: 0, marginLeft: 'auto',
                   }}>
                     {m.count}
@@ -740,7 +741,7 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-                  fontSize: 12.5, fontWeight: on ? 750 : 600,
+                  fontSize: 13, fontWeight: on ? 700 : 600,
                   border: on ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
                   background: on ? `${accent}1f` : 'transparent',
                   color: on ? accent : 'var(--color-text-2)',
@@ -810,8 +811,8 @@ export function RailHero({ title, subtitle, palette, plain }: {
       boxShadow: `0 18px 44px ${palette.ring}`,
     }}>
       <div style={plain
-        ? { fontSize: 15, fontWeight: 750, lineHeight: 1.3, marginBottom: 8 }
-        : { fontSize: 11.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10, opacity: 0.95 }}>
+        ? { fontSize: 15, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 }
+        : { fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10, opacity: 0.95 }}>
         {title}
       </div>
       {subtitle && (
@@ -846,7 +847,7 @@ export function RailCard({ icon, title, accent, children, action }: {
             onClick={action.onClick}
             style={{
               marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 11.5, fontWeight: 650, color: accent, padding: 0,
+              fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: accent, padding: 0,
             }}
           >
             {t(action.label)}
@@ -887,11 +888,11 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
               border: 'none', textAlign: 'left',
               background: on ? soft : 'transparent',
               color: on ? accent : 'var(--color-text-2)',
-              fontSize: 13.5, fontWeight: on ? 700 : 550,
+              fontSize: 14, fontWeight: on ? 700 : 500,
             }}
           >
             {m.Icon && <m.Icon size={15} />}
-            <span style={{ flex: 1, minWidth: 0, lineHeight: 1.25, ...clamp2 }}>
+            <span style={{ flex: 1, minWidth: 0, lineHeight: 1.3, ...clamp2 }}>
               {t(m.label)}
             </span>
             {m.count !== undefined && (
@@ -979,7 +980,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                 меняла ширину и соседка прыгала следом. */}
             {o.badge !== undefined && o.badge > 0 && !(idleIcon && on) && (
               <span style={{
-                padding: '1px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
+                padding: '1px 6px', borderRadius: 999, fontSize: 11, fontWeight: 800,
                 // На выбранной кнопке фон уже мягкий — бейдж того же цвета там
                 // растворялся; берём цвет поля, число читается впадиной.
                 background: on ? 'var(--color-bg-input)' : soft, color: accent,
@@ -1059,12 +1060,12 @@ export function RailList({ items, value, onChange, accent, soft }: {
               padding: '7px 9px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
               border: 'none', background: on ? soft : 'transparent',
               color: on ? accent : 'var(--color-text-2)',
-              fontSize: 12.5, fontWeight: on ? 700 : 550,
+              fontSize: 13, fontWeight: on ? 700 : 500,
             }}
           >
             <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, width: '100%' }}>
               <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 1 }}>
-                <span style={{ ...clamp2, lineHeight: 1.25 }}>
+                <span style={{ ...clamp2, lineHeight: 1.3 }}>
                   {t(i.label)}
                 </span>
                 {/* Транскрипция — под словом и тише его: она нужна, чтобы слово
@@ -1106,7 +1107,7 @@ export function RailToggle({ label, on, onChange, accent }: {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
         width: '100%', padding: '5px 0', border: 'none', background: 'none', cursor: 'pointer',
-        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 550, color: 'var(--color-text-2)', textAlign: 'left',
+        fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--color-text-2)', textAlign: 'left',
       }}
       role="switch"
       aria-checked={on}
@@ -1132,7 +1133,7 @@ export function RailStat({ label, value, tone }: {
   const t = useT()
   const color = tone === 'good' ? 'var(--color-green-text)' : tone === 'warn' ? '#E0A22A' : 'var(--color-text)'
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, fontSize: 12.5 }}>
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, fontSize: 13 }}>
       <span style={{ color: 'var(--color-text-2)' }}>{t(label)}</span>
       <span style={{ fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
     </div>
@@ -1319,13 +1320,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
           одинаковых значка на экране означали бы одно и то же место. */}
       <Filter size={14} />
       {t('Фильтры')}
-      {on && (
-        <span style={{
-          minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-          background: 'var(--grad-purple)', color: '#fff',
-          fontSize: 10, fontWeight: 800, lineHeight: '16px', textAlign: 'center',
-        }}>{count}</span>
-      )}
+      {on && <CountBadge count={count} />}
     </button>
   )
 }
@@ -1334,7 +1329,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
 const SHEET_BTN: React.CSSProperties = {
   height: 42, boxSizing: 'border-box', borderRadius: 999,
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, lineHeight: 1, whiteSpace: 'nowrap',
+  fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 
 /**
@@ -1428,7 +1423,7 @@ function GroupTitle({ g }: { g: SheetGroup }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'baseline', gap: 7,
-      fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
       color: 'var(--color-text-3)',
     }}>
       {t(g.title)}
@@ -1462,7 +1457,7 @@ function ChipGroup({ g }: { g: SheetGroup }) {
             >
               {t(o.label)}
               {o.count != null && (
-                <span style={{ fontSize: 11.5, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>{o.count}</span>
+                <span style={{ fontSize: 12, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>{o.count}</span>
               )}
             </button>
           )
@@ -1492,13 +1487,13 @@ function DrillRow({ g, onClick }: { g: SheetGroup; onClick: () => void }) {
         background: 'transparent',
       }}
     >
-      <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t(g.title)}</span>
+      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t(g.title)}</span>
       <span style={{
         marginLeft: 'auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        fontSize: 12.5, fontWeight: chosen.length ? 700 : 500,
+        fontSize: 13, fontWeight: chosen.length ? 700 : 500,
         color: chosen.length ? tint : 'var(--color-text-3)',
       }}>{summary}</span>
-      <ChevronRight size={15} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
     </button>
   )
 }
@@ -1520,7 +1515,7 @@ function OptionRows({ g }: { g: SheetGroup }) {
               padding: '11px 12px', borderRadius: 11, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
               background: on ? (g.soft ?? 'var(--color-purple-soft)') : 'transparent',
               color: on ? tint : 'var(--color-text-2)',
-              fontSize: 13.5, fontWeight: on ? 700 : 500,
+              fontSize: 14, fontWeight: on ? 700 : 500,
             }}
           >
             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1529,7 +1524,7 @@ function OptionRows({ g }: { g: SheetGroup }) {
             {o.count != null && (
               <span style={{ fontSize: 12, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>{o.count}</span>
             )}
-            {on && <Check size={15} style={{ flexShrink: 0 }} />}
+            {on && <Check size={16} style={{ flexShrink: 0 }} />}
           </button>
         )
       })}
@@ -1596,7 +1591,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         <button aria-label={t('Очистить')}
           onClick={e => { e.stopPropagation(); onChange('') }}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}
-        ><X size={13} strokeWidth={2.5} /></button>
+        ><X size={14} strokeWidth={2.5} /></button>
       )}
     </div>
   )
@@ -1858,7 +1853,7 @@ export function SortMenu({ options, value, onChange, accent, soft }: {
       >
         {t(current?.label ?? '')}
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
-          <ChevronDown size={13} />
+          <ChevronDown size={14} />
         </motion.span>
       </button>
       {createPortal(
@@ -1992,18 +1987,9 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
         }}
       >
         {t(label)}
-        {on && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-            background: tint, color: '#fff', fontSize: 10, fontWeight: 800,
-            fontVariantNumeric: 'tabular-nums',
-          }}>
-            {value.length}
-          </span>
-        )}
+        {on && <CountBadge count={value.length} style={{ background: tint }} />}
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
-          <ChevronDown size={13} />
+          <ChevronDown size={14} />
         </motion.span>
       </button>
       {createPortal(
@@ -2056,7 +2042,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
                     display: 'block', width: '100%', textAlign: 'left',
                     marginTop: 4, padding: '8px 10px', borderRadius: 9, cursor: 'pointer',
                     border: 'none', borderTop: '1px solid var(--color-border-soft)',
-                    fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
+                    fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
                     background: 'transparent', color: 'var(--color-text-3)',
                     transition: 'background 0.12s',
                   }}
@@ -2232,7 +2218,7 @@ export function TileChip({ children, tone, accent, soft }: {
     // ниже соседних в том же ряду.
     <span style={{
       display: 'inline-flex', alignItems: 'center', lineHeight: '14px',
-      padding: '2px 8px', borderRadius: 999, fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap',
+      padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800, whiteSpace: 'nowrap',
       background: solid ? (accent ?? neutral) : isAccent ? (soft ?? neutral) : neutral,
       color: solid ? '#fff' : isAccent ? (accent ?? 'var(--color-text-2)') : 'var(--color-muted)',
     }}>

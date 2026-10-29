@@ -93,7 +93,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 color: 'var(--color-text-3)', flexShrink: 0,
               }}
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
 

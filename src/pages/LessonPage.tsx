@@ -313,14 +313,14 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
         style={{
           width: 32, height: 32, borderRadius: 9, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: fileChipGradient(file.name), fontSize: 9, fontWeight: 800,
+          background: fileChipGradient(file.name), fontSize: 10, fontWeight: 800,
           letterSpacing: '0.04em', color: '#fff',
         }}
       >
         {isLinkFile(file) ? 'URL' : fileChipLabel(file.name)}
       </div>
       <span className="min-w-0" style={{ flex: 1 }}>
-        <span style={{ display: 'block', fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
         {(err || file.size > 0) && (
           <span style={{ display: 'block', fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)' }}>
             {err ? t('не удалось скачать') : formatFileSize(file.size)}
@@ -328,8 +328,8 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
         )}
       </span>
       {file.url
-        ? <ExternalLink size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-        : <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+        ? <ExternalLink size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+        : <Download size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
     </button>
   )
 }
@@ -369,7 +369,7 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
         <Icon size={16} strokeWidth={1.9} />
       </div>
       <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-        <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
         <p style={{ fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {!active ? t('файл не прикреплён')
             : err ? t('не удалось скачать')
@@ -379,8 +379,8 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
         </p>
       </div>
       {active && (file!.url
-        ? <ExternalLink size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-        : <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />)}
+        ? <ExternalLink size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+        : <Download size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />)}
     </motion.button>
   )
 }
@@ -435,17 +435,17 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
             color: active ? 'var(--color-accent)' : 'var(--color-text-4)',
           }}
         >
-          <FolderOpen size={16} strokeWidth={1.9} />
+          <FolderOpen size={16} strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15 }}>{t('Материалы')}</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.2 }}>{t('Материалы')}</p>
           <p style={{ fontSize: 11, color: 'var(--color-text-4)', marginTop: 1 }}>
             {active ? `${materials.length} ${plural(materials.length, t('файл'), t('файла'), t('файлов'))}` : t('файлы не прикреплены')}
           </p>
         </div>
         {active && (
           <ChevronDown
-            size={15}
+            size={16}
             style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
           />
         )}
@@ -612,7 +612,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
                 className="inline-flex items-center"
                 style={{ gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}
               >
-                <Clock size={13} />
+                <Clock size={14} />
                 ~{basicEstimatedTime} {t('мин')}
               </span>
             )}
@@ -810,7 +810,7 @@ export default function LessonPage() {
   if (!lesson) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 300, color: 'var(--color-muted)' }}>
-        <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t('Урок не найден')}</p>
+        <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Урок не найден')}</p>
         <button
           onClick={closeLesson}
           style={{ marginTop: 12, padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600 }}
@@ -959,7 +959,7 @@ export default function LessonPage() {
             color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
           }}
         >
-          <Calendar size={15} />
+          <Calendar size={16} />
           {detail.date}
         </div>
       </motion.div>
@@ -1036,7 +1036,7 @@ export default function LessonPage() {
                 transition={dateMorph}
                 style={{ display: 'inline-flex', overflow: 'hidden', flexShrink: 0 }}
               >
-                <Calendar size={15} />
+                <Calendar size={16} />
               </motion.span>
               <span style={{ whiteSpace: 'nowrap' }}>{detail.date.split('.')[0]}</span>
               <motion.span
@@ -1099,7 +1099,7 @@ export default function LessonPage() {
                 </div>
                 <span
                   className="flex items-center flex-shrink-0"
-                  style={{ gap: 5, fontSize: 12.5, fontWeight: 650, color: watch.completed ? 'var(--color-success, #1DB97D)' : 'var(--color-text-3)' }}
+                  style={{ gap: 5, fontSize: 13, fontWeight: 600, color: watch.completed ? 'var(--color-success, #1DB97D)' : 'var(--color-text-3)' }}
                 >
                   {watch.completed
                     ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
@@ -1131,7 +1131,7 @@ export default function LessonPage() {
             }}
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
-              <ListVideo size={17} style={{ color: 'var(--color-accent)' }} />
+              <ListVideo size={18} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
               <span style={{ flex: 1 }} />
               {/* Позиция ролика прямо в шапке — видно, что список и плеер об
@@ -1139,7 +1139,7 @@ export default function LessonPage() {
               {playing && (
                 <span
                   style={{
-                    fontSize: 11.5, fontWeight: 650, fontVariantNumeric: 'tabular-nums',
+                    fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
                     color: 'var(--color-text-3)', flexShrink: 0,
                   }}
                 >
@@ -1179,7 +1179,7 @@ export default function LessonPage() {
                     >
                       {tc.time}
                     </span>
-                    <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : 'var(--color-text-2)' }}>
+                    <span style={{ fontSize: 14, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : 'var(--color-text-2)' }}>
                       {tc.label}
                     </span>
                     {/* Сколько этой главы уже проиграно — та же полоса, что
@@ -1219,7 +1219,7 @@ export default function LessonPage() {
           }}
         >
           <div className="flex items-center" style={{ gap: 8 }}>
-            <FileText size={17} style={{ color: 'var(--color-accent)' }} />
+            <FileText size={18} style={{ color: 'var(--color-accent)' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание')}</span>
             {/* Кегль конспекта. Кнопка стоит у самого текста, а не в шапке
                 страницы: включают её, уже начав читать и споткнувшись о размер. */}
@@ -1230,7 +1230,7 @@ export default function LessonPage() {
               className="flex items-center cursor-pointer"
               style={{
                 marginLeft: 'auto', gap: 6, padding: '5px 11px', borderRadius: 999,
-                fontFamily: 'inherit', fontSize: 12, fontWeight: 650,
+                fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
                 /* Нейтральный графит, а не акцентный фиолет: акцент в тёмной
                    теме светлый (#B3A6F7), и белая надпись на нём давала 1.6:1.
                    Включённое состояние читается заливкой и цветом текста. */
@@ -1239,7 +1239,7 @@ export default function LessonPage() {
                 color: big ? 'var(--color-text)' : 'var(--color-muted)',
               }}
             >
-              <ALargeSmall size={15} />
+              <ALargeSmall size={16} />
               {t('Крупный текст')}
             </button>
           </div>
@@ -1268,7 +1268,7 @@ export default function LessonPage() {
                     fontSize: 15 * scale,
                     lineHeight: 1.6,
                     color: 'var(--color-text)',
-                    fontWeight: 450,
+                    fontWeight: 500,
                     ...line.style,
                   }}
                 />
@@ -1279,7 +1279,7 @@ export default function LessonPage() {
                     fontSize: 15 * scale,
                     lineHeight: 1.6,
                     color: 'var(--color-text)',
-                    fontWeight: 450,
+                    fontWeight: 500,
                     ...proseWrap,
                     ...line.style,
                   }}

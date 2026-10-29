@@ -108,7 +108,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       minHeight: 0, overflow: 'hidden',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
-        <Sunrise size={15} style={{ color: palette.accent }} />
+        <Sunrise size={16} style={{ color: palette.accent }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Доза дня')}</span>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
           {text.minutes} {t('мин')} · {text.level}
@@ -132,7 +132,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
         }}
       >
         <div style={{
-          fontSize: wide ? 15.5 : 14.5, fontWeight: 750, color: palette.text, lineHeight: 1.3,
+          fontSize: wide ? 16 : 15, fontWeight: 700, color: palette.text, lineHeight: 1.3,
           overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 1,
         }}>
           {text.title}
@@ -154,7 +154,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
             borderRadius: 999, background: palette.accent, color: '#fff',
-            fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
+            fontSize: 13, fontWeight: 700, textDecoration: 'none',
           }}
         >
           {t('Читать')} <ArrowRight size={14} />
@@ -169,7 +169,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
               borderRadius: 999, border: '1px solid var(--color-border-soft)',
               background: 'transparent', fontFamily: 'inherit',
               color: taken !== null ? 'var(--color-green-text)' : 'var(--color-text-2)',
-              fontSize: 12.5, fontWeight: 650,
+              fontSize: 13, fontWeight: 600,
               cursor: taking || taken !== null ? 'default' : 'pointer',
             }}
           >

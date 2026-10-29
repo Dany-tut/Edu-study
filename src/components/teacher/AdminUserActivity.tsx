@@ -104,7 +104,7 @@ export default function AdminUserActivity() {
               onClick={() => setDays(d)}
               style={{
                 padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                fontSize: 12.5, fontWeight: 600,
+                fontSize: 13, fontWeight: 600,
                 background: days === d ? 'var(--color-purple-soft)' : 'transparent',
                 color: days === d ? 'var(--color-purple)' : 'var(--color-text-3)',
               }}
@@ -147,18 +147,18 @@ function Kpi({ icon: Icon, label, value }: { icon: React.ElementType; label: str
     <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 14, padding: '13px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
         <Icon size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
       </div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.4px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.4px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   )
 }
 
 const thStyle: React.CSSProperties = {
-  fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase',
+  fontSize: 11, letterSpacing: '0.05em', textTransform: 'uppercase',
   color: 'var(--color-text-3)', textAlign: 'left', fontWeight: 600, padding: '9px 12px',
 }
-const tdStyle: React.CSSProperties = { padding: '10px 12px', fontSize: 13.5, color: 'var(--color-text-2)', borderTop: '1px solid var(--color-border)' }
+const tdStyle: React.CSSProperties = { padding: '10px 12px', fontSize: 14, color: 'var(--color-text-2)', borderTop: '1px solid var(--color-border)' }
 const numTd: React.CSSProperties = { ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
 
 function TableShell({ children }: { children: React.ReactNode }) {
@@ -204,7 +204,7 @@ function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; 
             zIndex: 4000, pointerEvents: 'none', maxWidth: 260,
             background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
             borderRadius: 10, padding: '8px 11px', boxShadow: '0 10px 28px rgba(0,0,0,0.28)',
-            fontSize: 12.5, lineHeight: 1.35, fontWeight: 500, letterSpacing: 0,
+            fontSize: 13, lineHeight: 1.3, fontWeight: 500, letterSpacing: 0,
             textTransform: 'none', textAlign: 'left', color: 'var(--color-text-2)',
           }}
         >
@@ -226,10 +226,10 @@ function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; 
  */
 function NameCell({ name, email }: { name: string; email: string | null }) {
   return (
-    <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600, lineHeight: 1.25 }}>
+    <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600, lineHeight: 1.3 }}>
       {tn(name)}
       {email && (
-        <div style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.2 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.2 }}>
           {email}
         </div>
       )}
@@ -258,7 +258,7 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
           return (
             <tr key={r.actor_id}>
               <NameCell name={r.name} email={r.email} />
-              <td style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 12.5 }}>{t(k.label)}</span></td>
+              <td style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 13 }}>{t(k.label)}</span></td>
               <td style={numTd}>{fmtMin(r.active_min)}</td>
               <td style={numTd}>{r.sessions}</td>
               <td style={numTd}>{r.logins || '—'}</td>
@@ -308,7 +308,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
             <td style={numTd}>{fmtWhen(r.last_seen)}</td>
             <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
               {getViewAs()?.id === r.teacher_id ? (
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#D07020' }}>{t('смотрите сейчас')}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#D07020' }}>{t('смотрите сейчас')}</span>
               ) : (
                 <button
                   onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
@@ -317,10 +317,10 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                     display: 'inline-flex', alignItems: 'center', gap: 5,
                     padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
                     background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
-                    color: 'var(--color-text-2)', fontSize: 11.5, fontWeight: 600, fontFamily: 'inherit',
+                    color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
-                  <Eye size={12.5} strokeWidth={2.2} />
+                  <Eye size={12} strokeWidth={2} />
                   {t('Кабинет')}
                 </button>
               )}
@@ -333,7 +333,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                   background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
                 }}
               >
-                <Trash2 size={13} strokeWidth={2.2} />
+                <Trash2 size={14} strokeWidth={2} />
               </button>
             </td>
           </tr>

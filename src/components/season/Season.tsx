@@ -38,7 +38,14 @@ export function SeasonBackdrop() {
   if (!s.on('hero') || !s.variant) return null
   return (
     <div aria-hidden className={`season-backdrop season-backdrop--${s.variant}`}>
-      {s.variant === 'lanterns' && <img src={seasonImg('night-banner')} alt="" className="season-backdrop__banner" />}
+      {s.variant === 'lanterns' && (
+        <>
+          <img src={seasonImg('night-banner')} alt="" className="season-backdrop__banner" />
+          <span className="season-moon-glow" />
+          <SeasonBat className="season-bat--a" />
+          <SeasonBat className="season-bat--b" />
+        </>
+      )}
       {s.variant === 'potions' && (
         <div className="season-backdrop__dusk">
           <span className="season-glow season-glow--mint" />
@@ -62,10 +69,11 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
   const s = useSeason()
   if (!s.on('hero') || !s.variant || !s.season) return null
   const c = heroCopy(s.variant, untilLabel(s.season.endsAt))
-  // «Сладость» на компьютере — чистая картинка без текста (решение Дани 29.10.2026):
-  // паук на паутине слева, справа ведёрко и качающийся скелет. Заголовок остаётся
-  // для экранного диктора. На телефоне текст нужен — без него карточка непонятна.
-  const pictureOnly = s.variant === 'candy' && !compact
+  // «Сладость» на компьютере — без карточки и текста (решение Дани 29.10.2026):
+  // паук на паутине в левом верхнем углу экрана, скелет свисает на нитке от верха
+  // экрана справа. Заголовок остаётся для экранного диктора. На телефоне текст
+  // нужен — без него карточка непонятна.
+  const pictureOnly = (s.variant === 'candy' || s.variant === 'lanterns') && !compact
   return (
     <div className={`season-hero season-hero--${s.variant}${compact ? ' season-hero--compact' : ''}${pictureOnly ? ' season-hero--picture' : ''}`}>
       {pictureOnly ? (
@@ -77,11 +85,10 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
           <p className="season-hero__sub">{t(c.sub)}</p>
         </div>
       )}
-      <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" />
-      {pictureOnly && (
+      {s.variant !== 'candy' || compact ? <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" /> : null}
+      {pictureOnly && s.variant === 'candy' && (
         <>
           <img aria-hidden src={seasonImg('spider-web')} alt="" className="season-hero__spider" />
-          <img aria-hidden src={seasonImg('sticker-candy')} alt="" className="season-hero__sticker season-hero__sticker--candy" />
           <img aria-hidden src={seasonImg('skeleton')} alt="" className="season-hero__skeleton" />
         </>
       )}
@@ -93,7 +100,39 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
 export function SeasonCat() {
   const s = useSeason()
   if (!s.on('decor') || (s.variant !== 'lanterns' && s.variant !== 'potions')) return null
-  return <img aria-hidden src={seasonImg('cat-books')} alt="" className={`season-cat season-cat--${s.variant}`} />
+  // Хвост — отдельный слой поверх того же кадра (поворачивается от основания), веки —
+  // тёмные овалы над глазами: картинка одна, а кот живой.
+  return (
+    <span aria-hidden className={`season-cat season-cat--${s.variant}`}>
+      <img src={seasonImg('cat-books')} alt="" className="season-cat__img" />
+      <img src={seasonImg('cat-tail')} alt="" className="season-cat__tail" />
+      <span className="season-cat__lid season-cat__lid--l" />
+      <span className="season-cat__lid season-cat__lid--r" />
+    </span>
+  )
+}
+
+/** Тыква-искра, которая время от времени подмигивает правым глазом-звездой. */
+export function SeasonPumpkin({ className = '', style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <span aria-hidden className={`season-wink ${className}`} style={style}>
+      <img src={seasonImg('pumpkin-spark')} alt="" />
+      <span className="season-wink__lid" />
+    </span>
+  )
+}
+
+/** Летучая мышь: тело и два крыла слоями — крылья машут, мышь пролетает по небу. */
+function SeasonBat({ className }: { className: string }) {
+  return (
+    <span className={`season-bat ${className}`}>
+      <span className="season-bat__flap">
+        <img src={seasonImg('bat-wing-l')} alt="" className="season-bat__wing season-bat__wing--l" />
+        <img src={seasonImg('bat-wing-r')} alt="" className="season-bat__wing season-bat__wing--r" />
+        <img src={seasonImg('bat-body')} alt="" className="season-bat__body" />
+      </span>
+    </span>
+  )
 }
 
 /** Тыква выглядывает из нижнего правого угла. */
@@ -104,7 +143,7 @@ export function SeasonCornerPumpkin() {
   // иначе у главной появлялась прокрутка ровно на высоту её выступа.
   return (
     <div aria-hidden className="season-clip">
-      <img src={seasonImg('pumpkin-spark')} alt="" className={`season-corner season-corner--${s.variant}`} />
+      <SeasonPumpkin className={`season-corner season-corner--${s.variant}`} />
     </div>
   )
 }
@@ -119,7 +158,7 @@ export function SeasonEmptyDay() {
     : 'Привидение-листок ждёт новую домашку'
   return (
     <div className="season-empty">
-      <img aria-hidden src={seasonImg('ghost-paper')} alt="" className="season-empty__ghost season-float" />
+      <img aria-hidden src={seasonImg('ghost-paper')} alt="" className="season-empty__ghost" />
       <div style={{ minWidth: 0 }}>
         <p className="season-empty__title">{t('Бу! Уроков нет')}</p>
         <p className="season-empty__sub">{t(sub)}</p>

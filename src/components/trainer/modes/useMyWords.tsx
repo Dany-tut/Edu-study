@@ -102,14 +102,14 @@ export function useMyWords({
   }, [onReload])
 
   const rail = !open ? null : (
-    <RailCard title="Словарь" accent={accent} icon={<BookMarked size={15} />}>
+    <RailCard title="Словарь" accent={accent} icon={<BookMarked size={16} />}>
       <RailStat label="Слов собрано" value={stats.total} />
       <RailStat label="Выучено" value={stats.learned} tone={stats.learned > 0 ? 'good' : undefined} />
       <RailStat label="Сегодня в стопке" value={stats.due} tone={stats.due > 0 ? 'warn' : undefined} />
       {/* Откуда берутся слова — здесь, а не только в пустом состоянии:
           словарь пополняют по ходу дела, и напоминание нужно тому, у
           кого в нём уже что-то есть, ровно так же. */}
-      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
         {bindShortWords(t('Слова приходят из текстов «Чтения» (нажми на слово → «В словарь»), из уроков курса и из разбора созвучий.'))}
       </div>
     </RailCard>

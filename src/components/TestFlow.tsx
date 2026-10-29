@@ -117,7 +117,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
           style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
           <CheckCircle2 size={38} style={{ color: 'var(--color-green-text)' }} />
         </motion.div>
-        <h2 style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{t('Тест отправлен!')}</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Тест отправлен!')}</h2>
         <p style={{ fontSize: 14, color: 'var(--color-muted)', marginBottom: 20 }}>
           {result.gradable > 0
             ? `${t('Верно')} ${result.correct} ${t('из')} ${result.gradable} · ${result.score}%`
@@ -557,7 +557,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
             disabled={submitting}
             style={{
               padding: '13px 40px', borderRadius: 16, border: 'none',
-              background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 750,
+              background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700,
               cursor: submitting ? 'wait' : 'pointer', fontFamily: 'inherit',
               boxShadow: '0 8px 24px rgba(var(--accent-rgb), 0.35)', opacity: submitting ? 0.7 : 1,
             }}>

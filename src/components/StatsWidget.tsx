@@ -5,7 +5,7 @@ import StarStickerLottie from './StarStickerLottie'
 import Skeleton from './Skeleton'
 import { useT } from '../lib/i18n'
 import { useSeason, seasonImg } from '../lib/season'
-import { useSeasonStars, SeasonFlask } from './season/Season'
+import { useSeasonStars, SeasonFlask, SeasonPumpkin } from './season/Season'
 
 const STAT_ICONS: Record<string, string> = {
   'Успеваемость': '📈',
@@ -97,7 +97,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
         {statCards.map(s => {
           const body = (
             <>
-              <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1 }}>
+              <span className="stat-value" style={{ fontWeight: 600, color: 'var(--color-text)', lineHeight: 1 }}>
                 {s.value ?? (loaded ? <EmptyValue icon={STAT_ICONS[s.label]} /> : <PendingValue />)}
               </span>
               <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
@@ -120,11 +120,13 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
 
         {/* Stars card */}
         <div className={`stat-card flex flex-col items-center justify-center rounded-[24px]${seasonStars ? ' stat-card--season-stars' : ''}`} style={{ ...cardStyle, textAlign: 'center', gap: 8 }}>
-          <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="stat-value" style={{ fontWeight: 600, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
             {hasLessons ? (
               <>
                 {seasonStars
-                  ? <img aria-hidden src={seasonImg(seasonStars.img)} alt="" className="season-stat-img" style={columns >= 3 ? { height: 40 } : undefined} />
+                  ? (seasonStars.img === 'pumpkin-spark'
+                    ? <SeasonPumpkin className="season-stat-img" style={columns >= 3 ? { height: 40 } : undefined} />
+                    : <img aria-hidden src={seasonImg(seasonStars.img)} alt="" className="season-stat-img" style={columns >= 3 ? { height: 40 } : undefined} />)
                   : <span style={{ display: 'flex', transform: 'translateY(-1px)' }}><StarStickerLottie size={36} /></span>}
                 <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{stats.stars}</span>
               </>

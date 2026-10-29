@@ -85,7 +85,7 @@ export function NumberGrid({ sets, results, accent, soft, onOpen }: {
             </span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
               <span style={{
-                fontSize: 16.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3,
+                fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3,
                 letterSpacing: '-0.01em',
               }}>
                 {t(set.title)}
@@ -97,7 +97,7 @@ export function NumberGrid({ sets, results, accent, soft, onOpen }: {
                   </Block>
                 ))}
               </span>
-              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(set.when)}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(set.when)}</span>
             </span>
             <TileMeter value={res ? Math.round((res.score / Math.max(res.total, 1)) * 100) : 0} />
             <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -129,7 +129,7 @@ function CoreTable({ lang, accent, reading }: { lang: string; accent: string; re
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{
         display: 'grid', gridTemplateColumns: '38px 1fr 1fr', gap: 10, padding: '0 14px',
-        fontSize: 11, fontWeight: 800, letterSpacing: 0.3, textTransform: 'uppercase',
+        fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
         color: 'var(--color-text-3)',
       }}>
         <span>№</span>
@@ -153,12 +153,12 @@ function CoreTable({ lang, accent, reading }: { lang: string; accent: string; re
                 {'→'} {n.attr} + {t('счётное слово')}
               </span>
             )}
-            {reading && <span style={{ fontSize: 11.5, color: accent, opacity: 0.9 }}>{n.nativeReading}</span>}
+            {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{n.nativeReading}</span>}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <SpeakBtn term={n.sino} lang={lang} accent={accent} size={26} />
             <Block accent={accent} tone={SYSTEM_TONE.sino} size="sm">{n.sino}</Block>
-            {reading && <span style={{ fontSize: 11.5, color: accent, opacity: 0.9 }}>{n.sinoReading}</span>}
+            {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{n.sinoReading}</span>}
           </span>
         </div>
       ))}
@@ -205,7 +205,7 @@ function NumberRowView({ row, lang, accent, tone, reading }: {
           ) : (
             <Block accent={accent} tone={numTone(row.form)}>{row.form}</Block>
           )}
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)', marginLeft: 4 }}>{row.ru}</span>
+          <span style={{ fontSize: 14, color: 'var(--color-text-2)', marginLeft: 4 }}>{row.ru}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
           {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{row.reading}</span>}
@@ -345,11 +345,11 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <TileChip tone="accent" accent={accent} soft={soft}>{t(systemLabel(set.system))}</TileChip>
-        <span style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
           {t(set.title)}
         </span>
       </div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
+      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
         {t(set.note)}
       </p>
     </div>
@@ -381,7 +381,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
           </div>
           {q.kind === 'build' ? (
             <>
-              <div style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', textAlign: 'center' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center' }}>
                 «{q.row.ru}»
               </div>
               {/* Счётное слово стоит на месте с самого начала: спрашиваем не
@@ -418,7 +418,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
                 disabled={!!picked}
                 style={{
                   padding: '13px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
-                  fontFamily: 'inherit', fontSize: q.kind === 'build' ? 19 : 14.5, fontWeight: 700, lineHeight: 1.3,
+                  fontFamily: 'inherit', fontSize: q.kind === 'build' ? 20 : 15, fontWeight: 700, lineHeight: 1.3,
                   border: `1.5px solid ${
                     show && isAnswer ? 'var(--color-green-accent)'
                     : show ? 'var(--color-red-border)'
@@ -438,7 +438,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
         {picked && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 750,
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700,
               color: right ? 'var(--color-green-text)' : 'var(--color-red-text)',
             }}>
               {right ? <Check size={16} /> : <X size={16} />}
@@ -467,7 +467,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
           padding: '22px 18px', borderRadius: 20, textAlign: 'center',
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
               ? t('Набор взят. Числа забываются не пониманием, а скоростью — вернись к нему через пару дней.')
@@ -476,7 +476,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
         </div>
         {weak.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-muted)' }}>{t('Не сошлось')}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)' }}>{t('Не сошлось')}</div>
             {weak.map(x => (
               <NumberRowView key={x.form} row={x} lang={lang} accent={accent} tone="bad" reading={reading} />
             ))}
@@ -513,14 +513,14 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <button onClick={start} style={primaryBtn(accent)}>
-          <Blocks size={15} />
+          <Blocks size={16} />
           {t('Посчитать')}
         </button>
         <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять числа в колоду')}
         </button>
         {added !== null && (
-          <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Всё это уже в колоде.')}
           </span>
         )}

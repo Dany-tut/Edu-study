@@ -94,7 +94,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                     // в таблетке боком.
                     display: 'inline-flex', alignItems: 'center', gap: 5,
                     padding: '3px 9px', borderRadius: 10,
-                    fontFamily: 'inherit', fontSize: 15, fontWeight: 650, lineHeight: 1.5,
+                    fontFamily: 'inherit', fontSize: 15, fontWeight: 600, lineHeight: 1.5,
                     cursor: disabled ? 'default' : 'pointer', verticalAlign: 'middle',
                     border: `1.5px solid ${
                       ok === null
@@ -118,7 +118,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                   {chosenText ? (
                     <>
                       {chosenText}
-                      <ChevronDown size={13} style={{ opacity: 0.5, flexShrink: 0 }} />
+                      <ChevronDown size={14} style={{ opacity: 0.5, flexShrink: 0 }} />
                     </>
                   ) : (
                     <span style={{ display: 'grid', alignItems: 'center', justifyItems: 'center' }}>
@@ -129,7 +129,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                           style={{ ...pillContent, visibility: 'hidden', pointerEvents: 'none' }}
                         >
                           {option}
-                          <ChevronDown size={13} style={{ flexShrink: 0 }} />
+                          <ChevronDown size={14} style={{ flexShrink: 0 }} />
                         </span>
                       ))}
                       {/* В пустом пропуске стоит многоточие, а не слово
@@ -140,7 +140,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                           подпись осталась в aria-label кнопки. */}
                       <span style={{ ...pillContent, opacity: 0.75 }}>
                         …
-                        <ChevronDown size={13} style={{ opacity: 0.5, flexShrink: 0 }} />
+                        <ChevronDown size={14} style={{ opacity: 0.5, flexShrink: 0 }} />
                       </span>
                     </span>
                   )}
@@ -169,7 +169,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                         onClick={() => choose(i, oi)}
                         style={{
                           padding: '7px 10px', borderRadius: 9, border: 'none', textAlign: 'left',
-                          fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, cursor: 'pointer',
+                          fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer',
                           background: oi === pickedIdx ? 'var(--color-purple-soft)' : 'transparent',
                           color: 'var(--color-text)',
                         }}

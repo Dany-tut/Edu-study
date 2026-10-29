@@ -86,7 +86,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
           background: `color-mix(in srgb, ${accent} 16%, transparent)`,
           color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
         }}>
-          <AlertCircle size={12} strokeWidth={2.4} />
+          <AlertCircle size={12} strokeWidth={2.5} />
           {urgencyLabel(item.type)}
         </span>
       )}
@@ -154,7 +154,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                   minWidth: 26, height: 26, padding: '0 8px', borderRadius: 13,
                   background: accent, color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 750, lineHeight: 1, pointerEvents: 'none',
+                  fontSize: 13, fontWeight: 700, lineHeight: 1, pointerEvents: 'none',
                   boxShadow: `0 4px 12px color-mix(in srgb, ${accent} 50%, transparent)`,
                 }}>
                   {items.length}
@@ -204,7 +204,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                   {t(stackTypeLabel[front.type])} · {items.length}
                 </span>
                 <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
-                  {t('Свернуть')} <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
+                  {t('Свернуть')} <ChevronRight size={12} style={{ transform: 'rotate(-90deg)' }} />
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

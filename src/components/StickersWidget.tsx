@@ -25,7 +25,7 @@ export default function StickersWidget({ columns }: { columns: number }) {
     <div style={{ width: '100%', height: '100%', padding: wide ? '20px 28px' : '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Sparkles size={15} style={{ color: 'var(--color-purple-text)' }} />
+          <Sparkles size={16} style={{ color: 'var(--color-purple-text)' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Стикеры')}</span>
         </div>
         {stickers.length > 0 && (
@@ -95,10 +95,10 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
           <button onClick={onClose} aria-label={t('Закрыть')} style={{
             position: 'absolute', top: 14, right: 14, width: 30, height: 30, borderRadius: 10,
             border: 'none', background: 'var(--color-bg)', color: 'var(--color-muted)', cursor: 'pointer', display: 'grid', placeItems: 'center',
-          }}><X size={15} /></button>
+          }}><X size={16} /></button>
 
-          <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)' }}>{t('Мои стикеры')}</div>
-          <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginBottom: 14 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{t('Мои стикеры')}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14 }}>
             {stickers.length} {t('шт. · за принятые задания и выученные темы')}
           </div>
 

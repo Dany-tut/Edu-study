@@ -173,7 +173,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
               >
                 {filled ?? (
                   <span style={{
-                    fontSize: 10.5, fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.1,
+                    fontSize: 11, fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.2,
                     maxWidth: '100%', textAlign: 'center', overflowWrap: 'anywhere', hyphens: 'auto',
                   }}>{t(slot.label)}</span>
                 )}
@@ -222,7 +222,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                 fontFamily: 'inherit', cursor: disabled || spent || full ? 'default' : 'pointer',
               }}
             >
-              <span style={{ fontSize: 28, lineHeight: 1.1, fontWeight: 700 }}>{c}</span>
+              <span style={{ fontSize: 28, lineHeight: 1.2, fontWeight: 700 }}>{c}</span>
               <span style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3 }}>
                 {CHAMO[c]?.sound}
               </span>
@@ -232,7 +232,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
       </div>
 
       {picked.length > 0 && !disabled && !showVerdict && (
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Тап по букве в блоке убирает её и следующие')}
         </span>
       )}

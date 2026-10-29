@@ -128,7 +128,7 @@ export default function TaskVideo({
   if (!source) {
     return (
       <div style={{
-        padding: '14px 16px', borderRadius: 16, fontSize: 13.5, lineHeight: 1.45,
+        padding: '14px 16px', borderRadius: 16, fontSize: 14, lineHeight: 1.45,
         border: '1px solid var(--color-border)', background: 'var(--color-bg-input)',
         color: 'var(--color-text-secondary)',
       }}>
@@ -179,7 +179,7 @@ export default function TaskVideo({
           }} />
         </div>
         <div style={{
-          fontSize: 12.5, fontWeight: 650, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
+          fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
           color: done ? 'var(--color-green-text)' : 'var(--color-text-secondary)',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>
@@ -194,7 +194,7 @@ export default function TaskVideo({
 
       {credit && (
         <div className="flex items-center" style={{
-          gap: 6, fontSize: 12.5, color: 'var(--color-text-secondary)',
+          gap: 6, fontSize: 13, color: 'var(--color-text-secondary)',
         }}>
           <Youtube size={14} />
           <span>{credit}</span>

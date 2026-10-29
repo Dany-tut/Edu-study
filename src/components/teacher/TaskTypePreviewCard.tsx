@@ -39,7 +39,7 @@ function chipStyle(state?: PreviewChip['state']): React.CSSProperties {
 function Chip({ chip }: { chip: PreviewChip }) {
   return (
     <span style={{
-      padding: '3px 7px', borderRadius: 7, fontSize: 10.5, fontWeight: 600,
+      padding: '3px 7px', borderRadius: 7, fontSize: 11, fontWeight: 600,
       border: '1px solid', whiteSpace: 'nowrap', ...chipStyle(chip.state),
     }}>
       {chip.text}
@@ -53,7 +53,7 @@ function Field({ text, lines = 1 }: { text?: string; lines?: number }) {
     <div style={{
       border: '1px solid var(--color-border)', borderRadius: 8,
       background: 'var(--color-bg)', padding: '5px 7px',
-      fontSize: 10.5, color: text ? 'var(--color-text-2)' : 'var(--color-text-4)',
+      fontSize: 11, color: text ? 'var(--color-text-2)' : 'var(--color-text-4)',
       minHeight: lines > 1 ? lines * 15 : undefined, lineHeight: 1.4,
     }}>
       {text || ' '}
@@ -63,7 +63,7 @@ function Field({ text, lines = 1 }: { text?: string; lines?: number }) {
 
 function GapRun({ parts }: { parts: GapPart[] }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, fontSize: 10.5, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
       {parts.map((p, i) => {
         if (typeof p === 'string') return <span key={i}>{p}</span>
         if ('pill' in p) return <Chip key={i} chip={{ text: p.pill, state: 'correct' }} />
@@ -73,7 +73,7 @@ function GapRun({ parts }: { parts: GapPart[] }) {
             background: 'var(--color-bg)', color: p.select ? 'var(--color-text-2)' : 'var(--color-text-4)',
             fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4,
           }}>
-            {p.select || 'Выбрать'}<span style={{ opacity: 0.5, fontSize: 8 }}>▾</span>
+            {p.select || 'Выбрать'}<span style={{ opacity: 0.5, fontSize: 10 }}>▾</span>
           </span>
         )
         return (
@@ -111,12 +111,12 @@ function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5, padding: '4px 7px',
           borderBottom: '1px solid var(--color-border-soft)', background: 'var(--color-bg)',
-          fontSize: 9, color: 'var(--color-text-4)',
+          fontSize: 10, color: 'var(--color-text-4)',
         }}>
-          <ExternalLink size={9} /> wordwall.net
+          <ExternalLink size={12} /> wordwall.net
         </div>
         <div style={{ ...box, height: 44, borderRadius: 0, border: 'none' }}>
-          <span style={{ fontSize: 9.5 }}>внешнее упражнение</span>
+          <span style={{ fontSize: 10 }}>внешнее упражнение</span>
         </div>
       </div>
     )
@@ -125,8 +125,8 @@ function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas
     return (
       <div style={{ ...box, height: 52, border: '1px dashed var(--color-border-medium)', position: 'relative' }}>
         {glyph
-          ? <span style={{ fontSize: 26, fontWeight: 300, color: 'var(--color-text-4)', letterSpacing: 2 }}>{glyph}</span>
-          : <PenLine size={15} />}
+          ? <span style={{ fontSize: 24, fontWeight: 300, color: 'var(--color-text-4)', letterSpacing: 2 }}>{glyph}</span>
+          : <PenLine size={16} />}
       </div>
     )
   }
@@ -143,7 +143,7 @@ function Player({ label, mic }: { label?: string; mic?: boolean }) {
         width: 20, height: 20, borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0,
         background: mic ? 'var(--color-control-accent)' : 'var(--color-blue-fill)', color: '#fff',
       }}>
-        {mic ? <Mic size={11} /> : <Volume2 size={11} />}
+        {mic ? <Mic size={12} /> : <Volume2 size={12} />}
       </span>
       {/* Волна — восемь полосок разной высоты: узнаваемо и без картинки. */}
       <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 2, height: 14 }}>
@@ -154,7 +154,7 @@ function Player({ label, mic }: { label?: string; mic?: boolean }) {
           }} />
         ))}
       </span>
-      {label && <span style={{ fontSize: 9.5, fontWeight: 600, color: mic ? 'var(--color-purple-text)' : 'var(--color-blue-pill-text)' }}>{label}</span>}
+      {label && <span style={{ fontSize: 10, fontWeight: 600, color: mic ? 'var(--color-purple-text)' : 'var(--color-blue-pill-text)' }}>{label}</span>}
     </div>
   )
 }
@@ -167,7 +167,7 @@ function Block({ block }: { block: PreviewBlock }) {
     case 'prompt':
       return (
         <div style={{
-          fontSize: 10.5, lineHeight: 1.45,
+          fontSize: 11, lineHeight: 1.45,
           fontWeight: block.muted ? 600 : 700,
           color: block.muted ? 'var(--color-text-3)' : 'var(--color-text)',
         }}>{t(block.text)}</div>
@@ -182,7 +182,7 @@ function Block({ block }: { block: PreviewBlock }) {
             return (
               <div key={i} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '4px 7px',
-                borderRadius: 7, border: '1px solid', fontSize: 10.5, fontWeight: 600, ...s,
+                borderRadius: 7, border: '1px solid', fontSize: 11, fontWeight: 600, ...s,
               }}>
                 <span style={{
                   width: 11, height: 11, flexShrink: 0,
@@ -211,7 +211,7 @@ function Block({ block }: { block: PreviewBlock }) {
                   const on = r.pick === k
                   return (
                     <span key={k} style={{
-                      padding: '2px 7px', borderRadius: 6, fontSize: 9.5, fontWeight: 700,
+                      padding: '2px 7px', borderRadius: 6, fontSize: 10, fontWeight: 700,
                       border: '1px solid',
                       ...(on
                         ? { background: 'var(--color-green-soft)', color: 'var(--color-green-text)', borderColor: 'transparent' }
@@ -229,7 +229,7 @@ function Block({ block }: { block: PreviewBlock }) {
     case 'tiles':
       return (
         <div>
-          {block.label && <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-4)', marginBottom: 3, letterSpacing: 0.3 }}>{t(block.label)}</div>}
+          {block.label && <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-4)', marginBottom: 3, letterSpacing: 0.3 }}>{t(block.label)}</div>}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {block.items.map((c, i) => <Chip key={i} chip={c} />)}
           </div>
@@ -247,7 +247,7 @@ function Block({ block }: { block: PreviewBlock }) {
             ? block.items.map((c, i) => <Chip key={i} chip={c} />)
             : null}
           {block.placeholder && (
-            <span style={{ fontSize: 9.5, color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t(block.placeholder)}</span>
+            <span style={{ fontSize: 10, color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t(block.placeholder)}</span>
           )}
         </div>
       )
@@ -292,7 +292,7 @@ function Block({ block }: { block: PreviewBlock }) {
               flex: 1, borderRadius: 8, padding: 5, background: 'var(--color-bg)',
               border: '1px dashed var(--color-border-medium)', display: 'grid', gap: 3, alignContent: 'start',
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)' }}>{c.title}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)' }}>{c.title}</div>
               {c.items.map((it, j) => <Chip key={j} chip={it} />)}
             </div>
           ))}
@@ -304,7 +304,7 @@ function Block({ block }: { block: PreviewBlock }) {
         <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
           <div style={{ display: 'flex', background: 'var(--color-table-header-bg)' }}>
             {block.headers.map((h, i) => (
-              <div key={i} style={{ flex: 1, padding: '4px 6px', fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)' }}>{h}</div>
+              <div key={i} style={{ flex: 1, padding: '4px 6px', fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)' }}>{h}</div>
             ))}
           </div>
           {block.rows.map((row, i) => (
@@ -383,7 +383,7 @@ function Block({ block }: { block: PreviewBlock }) {
               </div>
             ))}
           </div>
-          {block.clue && <div style={{ fontSize: 9.5, color: 'var(--color-text-3)' }}>{t(block.clue)}</div>}
+          {block.clue && <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{t(block.clue)}</div>}
         </div>
       )
 
@@ -413,7 +413,7 @@ function Block({ block }: { block: PreviewBlock }) {
           background: block.ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
           color: block.ok ? 'var(--color-green-text)' : 'var(--color-red-text)',
         }}>
-          <CheckCircle2 size={11} />{t(block.text)}
+          <CheckCircle2 size={12} />{t(block.text)}
         </div>
       )
   }
@@ -441,7 +441,7 @@ export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
         <span style={{ width: 26, height: 26, borderRadius: 8, background: bg, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
           <def.Icon size={13} style={{ color }} />
         </span>
-        <span style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-text)' }}>{t(def.label)}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(def.label)}</span>
       </div>
 
       {/* Сам макет — на подложке, чтобы читался как «экран ученика», а не как
@@ -458,7 +458,7 @@ export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {flags.map(f => (
           <span key={f} style={{
-            fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 999,
+            fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 999,
             background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
           }}>{t(f)}</span>
         ))}

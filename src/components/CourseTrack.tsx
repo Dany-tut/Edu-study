@@ -288,7 +288,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   flexShrink: 0,
                 }}
               >
-                {isLocked && <Lock size={11} style={{ position: 'relative', zIndex: 1 }} />}
+                {isLocked && <Lock size={12} style={{ position: 'relative', zIndex: 1 }} />}
                 <span style={{ position: 'relative', zIndex: 1 }}>{tc(mod.label)}</span>
                 {pct > 0 && !isLocked && (
                   <span
@@ -475,7 +475,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
-                              lineHeight: 1.25,
+                              lineHeight: 1.3,
                             }}
                           >
                             {tc(selectedLesson.title)}
@@ -561,7 +561,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id) }}
                             style={{
                               fontSize: 13,
-                              fontWeight: 750,
+                              fontWeight: 700,
                               color: '#fff',
                               background: 'var(--grad-purple)',
                               border: 'none',
@@ -658,7 +658,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        lineHeight: 1.25,
+                        lineHeight: 1.3,
                       }}
                     >
                       {t('Сложный уровень')} · {tc(selectedHardLesson.title)}
@@ -777,7 +777,7 @@ export default function CourseTrack() {
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 160, gap: 8 }}>
         {loaded && (
           <>
-            <Lock size={22} style={{ opacity: 0.35, color: 'var(--color-muted)' }} />
+            <Lock size={24} style={{ opacity: 0.35, color: 'var(--color-muted)' }} />
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Курсы ещё не добавлены')}</p>
             <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
           </>
@@ -874,7 +874,7 @@ export default function CourseTrack() {
                   position: 'relative', zIndex: 1,
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   textAlign: 'center',
-                  lineHeight: 1.25,
+                  lineHeight: 1.3,
                 }}
               >
                 {balanceTitle(tc(s.name)).map((line, i, lines) => (

@@ -133,7 +133,7 @@ export default function TeacherHardReviewPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1, background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 12px' }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', opacity: 0.75, marginBottom: 4 }}>{t('Базовая')}</div>
-                <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-accent)' }}>2/2</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-accent)' }}>2/2</div>
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function TeacherHardReviewPage() {
                 fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: hwBusy ? 0.6 : 1,
               }}
             >
-              <ClipboardList size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
+              <ClipboardList size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
               {hwBusy ? t('Открываю…') : t('Открыть домашку')}
             </motion.button>
             {hwMissing && (

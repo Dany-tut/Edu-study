@@ -37,10 +37,10 @@ export default function ViewAsBanner() {
         boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
       }}
     >
-      <Eye size={15} strokeWidth={2.2} style={{ color: '#D07020', flexShrink: 0 }} />
-      <div style={{ minWidth: 0, lineHeight: 1.25 }}>
+      <Eye size={16} strokeWidth={2} style={{ color: '#D07020', flexShrink: 0 }} />
+      <div style={{ minWidth: 0, lineHeight: 1.3 }}>
         <div style={{
-          fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)',
+          fontSize: 13, fontWeight: 700, color: 'var(--color-text)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {t('Кабинет')}: {tn(view.name)}
@@ -56,10 +56,10 @@ export default function ViewAsBanner() {
           display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
           padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
           background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
-          color: 'var(--color-text-2)', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit',
+          color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
         }}
       >
-        <X size={12} strokeWidth={2.4} />
+        <X size={12} strokeWidth={2.5} />
         {t('К себе')}
       </button>
     </div>,

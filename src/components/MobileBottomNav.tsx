@@ -163,7 +163,7 @@ export default function MobileBottomNav() {
                   position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',
                   minWidth: 16, height: 16, padding: '0 5px',
                   borderRadius: 999, background: 'var(--grad-purple)',
-                  color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1,
+                  color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 2px 6px rgba(var(--accent-rgb), 0.45)',
                 }}>{feedBadge > 99 ? '99+' : feedBadge}</span>
@@ -177,7 +177,7 @@ export default function MobileBottomNav() {
                   position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',
                   minWidth: 16, height: 16, padding: '0 5px',
                   borderRadius: 999, background: 'var(--grad-purple)',
-                  color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1,
+                  color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 2px 6px rgba(var(--accent-rgb), 0.45)',
                 }}>{hwBadge > 99 ? '99+' : hwBadge}</span>
@@ -187,7 +187,7 @@ export default function MobileBottomNav() {
                 animate={{ height: collapsed ? 0 : 12, opacity: collapsed ? 0 : 1, marginTop: collapsed ? 0 : 4 }}
                 transition={COLLAPSE}
                 style={{
-                  fontSize: 9,
+                  fontSize: 10,
                   lineHeight: '12px',
                   overflow: 'hidden',
                   maxWidth: '100%',

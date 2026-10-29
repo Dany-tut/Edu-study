@@ -91,7 +91,7 @@ function SectionProgress({ step, labels }: { step: number; labels: string[] }) {
       {labels.map((label, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 26, height: 4, borderRadius: 999, background: i < step ? ACC : i === step ? `${ACC}66` : 'var(--color-bg-5)', transition: 'background 0.3s' }} />
-          <div style={{ fontSize: 9, color: i <= step ? ACC : 'var(--color-text-3)', fontWeight: 600 }}>{label}</div>
+          <div style={{ fontSize: 10, color: i <= step ? ACC : 'var(--color-text-3)', fontWeight: 600 }}>{label}</div>
         </div>
       ))}
     </div>
@@ -140,8 +140,8 @@ function InfoDot({ info }: { info: DomainInfo }) {
                   [t('Методология'), t(info.science)],
                 ] as [string, string][]).map(([h, body]) => (
                   <div key={h} style={{ marginTop: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>{h}</div>
-                    <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55 }}>{body}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>{h}</div>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{body}</div>
                   </div>
                 ))}
               </div>
@@ -171,11 +171,11 @@ function SectionIntro({ icon, title, desc, tip, step, labels, onStart, info }: I
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>{desc}</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, background: `${ACC}1f`, border: `1px solid ${ACC}55`, borderRadius: 12, padding: '11px 14px', fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 20 }}>
-            <Lightbulb size={15} style={{ color: ACC, flexShrink: 0, marginTop: 1 }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, background: `${ACC}1f`, border: `1px solid ${ACC}55`, borderRadius: 12, padding: '11px 14px', fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 20 }}>
+            <Lightbulb size={16} style={{ color: ACC, flexShrink: 0, marginTop: 1 }} />
             <span>{tip}</span>
           </div>
-          <Btn onClick={onStart}>{t('Начать')} <ChevronRight size={15} /></Btn>
+          <Btn onClick={onStart}>{t('Начать')} <ChevronRight size={16} /></Btn>
         </Card>
       </motion.div>
     </Wrap>
@@ -273,7 +273,7 @@ function MatricesSection({ cfg, step, labels, onComplete }: SectionProps<Matrice
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
           {t('Задание')} {qIdx + 1}{cfg.adaptive ? '' : ` ${t('из')} ${cfg.count}`} · {t('уровень')} {m.level}/5
         </div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Что стоит на месте «?»')}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Что стоит на месте «?»')}</div>
       </div>
 
       <Card style={{ marginBottom: 16 }}>
@@ -282,7 +282,7 @@ function MatricesSection({ cfg, step, labels, onComplete }: SectionProps<Matrice
           {m.grid.flat().map((cell, i) => (
             <div key={i} style={{ width: CELL, height: CELL, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', borderRadius: 8 }}>
               {i === 8
-                ? <span style={{ fontSize: 26, color: ACC, fontWeight: 900 }}>?</span>
+                ? <span style={{ fontSize: 24, color: ACC, fontWeight: 800 }}>?</span>
                 : <GenCellView cell={cell} size={CELL - 8} />}
             </div>
           ))}
@@ -355,14 +355,14 @@ function SeriesSection({ cfg, step, labels, onComplete }: SectionProps<SeriesCon
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {qIdx + 1}{cfg.adaptive ? '' : ` ${t('из')} ${cfg.count}`} · {t('уровень')} {m.level}/5</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Что следующее?')}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Что следующее?')}</div>
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
           {m.seq.map((v, i) => (
             <div key={i} style={{ minWidth: 44, height: 52, padding: '0 10px', borderRadius: 12, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>{v}</div>
           ))}
-          <div style={{ minWidth: 44, height: 52, borderRadius: 12, background: 'var(--color-bg)', border: `2px dashed ${ACC}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 900, color: ACC }}>?</div>
+          <div style={{ minWidth: 44, height: 52, borderRadius: 12, background: 'var(--color-bg)', border: `2px dashed ${ACC}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 800, color: ACC }}>?</div>
         </div>
       </Card>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -421,13 +421,13 @@ function AnalogiesSection({ cfg, step, labels, onComplete }: SectionProps<Analog
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {qIdx + 1} {t('из')} {items.length}</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Подбери по аналогии')}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Подбери по аналогии')}</div>
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>
           <span>{m.a}</span><span style={{ color: ACC }}>→</span><span>{m.b}</span>
           <span style={{ color: 'var(--color-text-3)', margin: '0 6px', fontWeight: 500 }}>{t('как')}</span>
-          <span>{m.c}</span><span style={{ color: ACC }}>→</span><span style={{ color: ACC, fontWeight: 900 }}>?</span>
+          <span>{m.c}</span><span style={{ color: ACC }}>→</span><span style={{ color: ACC, fontWeight: 800 }}>?</span>
         </div>
       </Card>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -490,7 +490,7 @@ function RotationSection({ cfg, step, labels, onComplete }: SectionProps<Rotatio
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {qIdx + 1}{cfg.adaptive ? '' : ` ${t('из')} ${cfg.count}`} · {t('уровень')} {m.level}/5</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Та же фигура, повёрнутая')}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Та же фигура, повёрнутая')}</div>
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
@@ -656,7 +656,7 @@ function MemorySection({ cfg, step, labels, onComplete }: SectionProps<MemoryCon
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Раунд')} {trialIdx + 1} · {trial.cells.length} {t('ячеек')}{trial.backward ? ` · ${t('обратный порядок')}` : ''}</div>
-        <div style={{ fontSize: 17, fontWeight: 800, marginTop: 4, color: memPhase === 'feedback' ? (feedback ? OK_TXT : NO_TXT) : 'var(--color-text)' }}>
+        <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4, color: memPhase === 'feedback' ? (feedback ? OK_TXT : NO_TXT) : 'var(--color-text)' }}>
           {memPhase === 'show' ? t('Запоминай последовательность') : memPhase === 'recall' ? (trial.backward ? t('Нажимай в ОБРАТНОМ порядке') : t('Нажимай в том же порядке')) : feedback ? t('✓ Верно!') : t('✗ Ошибка')}
         </div>
       </div>
@@ -749,7 +749,7 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
             transition={{ duration: 0.18 }}
             style={{ textAlign: 'center', padding: '28px 0' }}
           >
-            <span style={{ fontSize: 42, fontWeight: 900, color: ink, letterSpacing: 2, fontFamily: 'inherit' }}>
+            <span style={{ fontSize: 42, fontWeight: 800, color: ink, letterSpacing: 2, fontFamily: 'inherit' }}>
               {cfg.colors[trial.wordIdx]?.name}
             </span>
           </motion.div>
@@ -840,7 +840,7 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {taskIdx + 1} {t('из')} {tasks.length}</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{task.title}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{task.title}</div>
         <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>{t('Нажми левый элемент, потом — соответствующий правый')}</div>
       </div>
 
@@ -855,7 +855,7 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
               const bg = conn ? (conn.correct ? OK_BG : NO_BG) : isSel ? `${ACC}22` : 'var(--color-bg-3)'
               return (
                 <div key={i} onClick={() => clickLeft(i)} style={{ padding: '10px 12px', borderRadius: 12, border: `2px solid ${border}`, background: bg, cursor: usedLeft.has(i) ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {conn && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: conn.correct ? OK_TXT : NO_TXT }}>{conn.correct ? '✓' : '✗'}</span>}
+                  {conn && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: conn.correct ? OK_TXT : NO_TXT }}>{conn.correct ? '✓' : '✗'}</span>}
                   {left}
                 </div>
               )
@@ -905,12 +905,12 @@ function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConf
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🧠</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{t('Скрининг завершён')}</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)' }}>{t('Скрининг завершён')}</div>
           <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{name}</div>
         </div>
 
         <Card style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: ACC, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('Твой профиль')}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: ACC, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Твой профиль')}</div>
           {sorted.map(s => {
             const col = s.pct >= 70 ? OK_TXT : s.pct >= 40 ? ACC : NO_TXT
             const isTop = s.key === top.key
@@ -986,13 +986,13 @@ export default function CognitiveScreeningPage() {
           {/* Что за тест — меткой сверху, заголовок карточки отдан вопросу (как во входе в диагностику).
               Длинная строка переносится, а не режется: «~16 минут» уходил в многоточие на телефоне */}
           <div style={{ alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'flex-start', gap: 6, padding: '5px 11px 5px 9px', borderRadius: 12, lineHeight: 1.3, background: `${ACC}1f`, color: ACC, fontSize: 12, fontWeight: 600 }}>
-            <Brain size={13} style={{ flexShrink: 0, marginTop: 1.5 }} />
+            <Brain size={14} style={{ flexShrink: 0, marginTop: 1.5 }} />
             <span style={{ minWidth: 0 }}>
               {cfg.title} · {seq.length}{'\u00A0'}{t('разделов')} · ~{Math.max(6, seq.length * 2)}{'\u00A0'}{t('мин')}
             </span>
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
             <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('По имени преподаватель найдёт твои результаты.')}</div>
           </div>
           <NameEntryField value={name} onChange={setName} onSubmit={() => { setStepIdx(0); setMode('intro') }} accent={ACC} />

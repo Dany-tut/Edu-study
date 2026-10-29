@@ -164,10 +164,10 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             color: pct >= 60 ? 'var(--color-green-text)' : 'var(--color-red-text)',
           }}
         >
-          <Trophy size={22} />
+          <Trophy size={24} />
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>
             {correct}/{TOTAL}
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{t('правильных ответов')}</div>
@@ -191,7 +191,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           style={{
             height: 40, padding: '0 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
             background: 'var(--grad-purple)',
-            color: '#fff', fontSize: 13.5, fontWeight: 650, lineHeight: 1,
+            color: '#fff', fontSize: 14, fontWeight: 600, lineHeight: 1,
           }}
         >
           {t('Начать заново')}
@@ -209,7 +209,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       <div className="flex items-start justify-between gap-4" style={{ marginBottom: compact ? 8 : 0, flexShrink: 0 }}>
         <div className="flex min-w-0 flex-1 flex-col items-start" style={{ gap: compact ? 6 : 8 }}>
           {!compact && (
-            <span style={{ fontSize: 12 * scale, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
+            <span style={{ fontSize: 12 * scale, fontWeight: 600, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
               {t('Викторина дня')}
             </span>
           )}
@@ -236,7 +236,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
         {quizState === 'active' && (
           <div className="flex-shrink-0 flex items-center gap-2">
             <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
-            <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
               {timeLeft} {t('сек')}
             </span>
             <motion.button
@@ -246,7 +246,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               style={{ width: 30, height: 30, borderRadius: 999, flexShrink: 0, background: 'var(--color-bg-3)', color: 'var(--color-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               aria-label={t('Остановить')}
             >
-              <Pause size={15} fill="currentColor" />
+              <Pause size={16} fill="currentColor" />
             </motion.button>
           </div>
         )}
@@ -258,7 +258,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           <SpoilerText
             fill
             revealed={spoilerRevealed}
-            style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.25, color: 'var(--color-text)', textAlign: 'center', ...balancedWrap }}
+            style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.3, color: 'var(--color-text)', textAlign: 'center', ...balancedWrap }}
           >
             {bindShortWords(question.title)}
           </SpoilerText>
@@ -275,7 +275,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             style={{
               height: 44 * scale, padding: `0 ${22 * scale}px`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               background: 'var(--grad-purple)',
-              borderRadius: 16, color: '#fff', fontSize: 14 * scale, fontWeight: 650, lineHeight: 1, cursor: 'pointer',
+              borderRadius: 16, color: '#fff', fontSize: 14 * scale, fontWeight: 600, lineHeight: 1, cursor: 'pointer',
             }}
           >
             {quizResumeIndex > 0 ? t('Продолжить') : t('Начать')}
@@ -300,7 +300,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 onClick={() => handleAnswer(ans.id)}
                 className="rounded-2xl text-left cursor-pointer"
                 style={{
-                  padding: '4px 12px', fontSize: 12.5, fontWeight: 500,
+                  padding: '4px 12px', fontSize: 13, fontWeight: 500,
                   background: 'var(--color-bg)', color: 'var(--color-text)', border: '1.5px solid var(--color-border)',
                   minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', overflow: 'hidden',
                 }}
@@ -372,7 +372,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             <span style={{ fontSize: 18, flexShrink: 0, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
               {quizState === 'timeout' ? '⏱' : results[current] === 'correct' ? '✓' : '✕'}
             </span>
-            <p style={{ fontSize: 15, fontWeight: 650, lineHeight: 1.35, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
+            <p style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
               {quizState === 'timeout'
                 ? t('Время вышло')
                 : results[current] === 'correct'

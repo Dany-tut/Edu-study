@@ -151,12 +151,12 @@ export function MyWordsTile({ words, states, ready, accent, soft, onOpen }: {
             ступень нарисована мягким, и на их фоне заливка читается первой. */}
         <TileChip tone="solid" accent={accent} soft={soft}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <BookMarked size={11} aria-hidden /> {t('Словарь')}
+            <BookMarked size={12} aria-hidden /> {t('Словарь')}
           </span>
         </TileChip>
         {ready && st.total > 0 && <TileChip>{st.total} {t('слов')}</TileChip>}
       </span>
-      <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
         {t('Мои слова')}
       </span>
       <span style={{
@@ -239,7 +239,7 @@ export function MyWordsSession({
       emptyTitle="На сегодня словарь закрыт"
       emptyText={'Все слова уже разобраны и ждут своего дня.\nМожно прогнать словарь заново — расписание при этом продолжит считаться.'}
       intro={
-        <p style={{ fontSize: 12.5, color: 'var(--color-muted)', margin: 0, lineHeight: 1.6, ...proseWrap }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0, lineHeight: 1.6, ...proseWrap }}>
           {bindShortWords(t('Новое сверху. Нажми на строку, чтобы разобрать слово по частям, послушать его или убрать из словаря.'))}
         </p>
       }

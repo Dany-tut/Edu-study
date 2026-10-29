@@ -184,7 +184,7 @@ export default function CoursesPage() {
       <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 300, gap: 8 }}>
         {loaded && (
           <>
-            <p style={{ fontSize: 16, fontWeight: 650, color: 'var(--color-text)' }}>{t('Курсы ещё не добавлены')}</p>
+            <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>{t('Курсы ещё не добавлены')}</p>
             <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
           </>
         )}
@@ -443,7 +443,7 @@ export default function CoursesPage() {
                 padding: '7px 16px',
                 borderRadius: 999,
                 fontSize: 13,
-                fontWeight: 650,
+                fontWeight: 600,
                 background: 'transparent',
                 color: module && pct === 100 ? 'var(--color-green-text)' : 'var(--color-text)',
                 border: '1px solid transparent',
@@ -548,7 +548,7 @@ export default function CoursesPage() {
                       background: 'var(--lesson-badge-bg)',
                       color: st.subText,
                       fontSize: 11,
-                      fontWeight: 750,
+                      fontWeight: 700,
                       lineHeight: 1,
                       boxShadow: 'var(--shadow-inset)',
                     }}
@@ -556,12 +556,12 @@ export default function CoursesPage() {
                     {lesson.points}
                   </span>
                 )}
-                <span style={{ fontSize: 15, fontWeight: 650, color: st.label, lineHeight: 1.2 }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: st.label, lineHeight: 1.2 }}>
                   {t('Занятие №')}{lesson.number + 1}
                 </span>
                 <span
                   className="line-clamp-2"
-                  style={{ fontSize: 12.5, fontWeight: 500, color: st.subText, lineHeight: 1.25 }}
+                  style={{ fontSize: 13, fontWeight: 500, color: st.subText, lineHeight: 1.3 }}
                 >
                   {tc(lesson.title)}
                 </span>
@@ -576,8 +576,8 @@ export default function CoursesPage() {
             minHeight: 200, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-muted)',
           }}
         >
-          <Search size={22} style={{ marginBottom: 8 }} />
-          <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t('Ничего не найдено')}</p>
+          <Search size={24} style={{ marginBottom: 8 }} />
+          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Ничего не найдено')}</p>
           <p style={{ fontSize: 13, marginTop: 3 }}>{t('Попробуйте изменить запрос или модуль')}</p>
         </div>
       )}
@@ -710,7 +710,7 @@ export default function CoursesPage() {
                   background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
                   border: 'none', textAlign: 'left',
                   color: active ? 'var(--color-accent)' : 'var(--color-text)',
-                  fontSize: 15, fontWeight: active ? 650 : 500,
+                  fontSize: 15, fontWeight: active ? 600 : 500,
                 }}
               >
                 {t(o.label)}

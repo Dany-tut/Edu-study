@@ -234,11 +234,11 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           {effectiveHardStatus === 'locked' ? (
             <Lock size={12} color={hardStyle.iconColor} strokeWidth={2.5} />
           ) : effectiveHardStatus === 'returned' ? (
-            <RotateCcw size={13} color={hardStyle.iconColor} strokeWidth={2.5} />
+            <RotateCcw size={14} color={hardStyle.iconColor} strokeWidth={2.5} />
           ) : effectiveHardStatus === 'completed' ? (
             <HardSatelliteLottie size={20} />
           ) : (
-            <Star size={13} color={hardStyle.iconColor} fill={effectiveHardStatus === 'submitted' ? 'none' : 'none'} strokeWidth={2} />
+            <Star size={14} color={hardStyle.iconColor} fill={effectiveHardStatus === 'submitted' ? 'none' : 'none'} strokeWidth={2} />
           )}
         </motion.button>
       )}

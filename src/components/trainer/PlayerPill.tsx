@@ -197,7 +197,7 @@ export default function PlayerPill({
           style={{
             display: 'flex', justifyContent: 'space-between', gap: 8, overflow: 'hidden',
             marginTop: inline ? undefined : 3,
-            fontSize: 10.5, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
+            fontSize: 11, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
           }}
         >
           {lead !== undefined && lead !== null && lead !== '' && (
@@ -213,7 +213,7 @@ export default function PlayerPill({
           пропадать вместе со второй строкой. */}
       {inline && !grown && counter !== undefined && (
         <span style={{
-          flexShrink: 0, fontSize: 10.5, color: 'var(--color-muted)',
+          flexShrink: 0, fontSize: 11, color: 'var(--color-muted)',
           fontVariantNumeric: 'tabular-nums',
         }}>
           {counter}
@@ -239,7 +239,7 @@ export default function PlayerPill({
           opacity: menuHeld ? 0.55 : 1, transition: 'opacity .12s ease',
         }}
       >
-        <Menu size={17} />
+        <Menu size={18} />
       </button>
     </motion.div>
   )

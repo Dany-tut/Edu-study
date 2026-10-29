@@ -110,7 +110,7 @@ function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.Elem
         </>
       ) : (
         <>
-          <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
           {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{sub}</div>}
         </>
       )}
@@ -204,7 +204,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             <div style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', borderRadius: 12, padding: '10px 12px', wordBreak: 'break-all', marginBottom: 12 }}>{link}</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={copyLink} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                {copied ? <Check size={15} strokeWidth={2.5} /> : <Copy size={15} />}
+                {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
                 {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
               <button onClick={onClose} style={{ padding: '11px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
@@ -215,7 +215,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             <div style={{ marginBottom: 18 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6 }}>{t('Email учителя (необязательно, подставится в форму)')}</label>
               <div style={{ position: 'relative' }}>
-                <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
+                <Mail size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
                 <input
                   type="email"
                   value={email}
@@ -326,8 +326,8 @@ function AiSwitches() {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-        <Sparkles size={13} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+        <Sparkles size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Расход на ИИ')}
         </div>
       </div>
@@ -348,15 +348,15 @@ function AiSwitches() {
               }}
             >
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13.5, fontWeight: isMaster ? 700 : 600, color: 'var(--color-text)' }}>
+                <div style={{ fontSize: 14, fontWeight: isMaster ? 700 : 600, color: 'var(--color-text)' }}>
                   {isMaster ? t('Обращения к модели разрешены') : (head(r.about) || r.key)}
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 3, lineHeight: 1.45 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 3, lineHeight: 1.45 }}>
                   {isMaster
                     ? t('Пока выключено, ни одна задача ниже не работает — даже поднятая.')
                     : tail(r.about)}
                 </div>
-                <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 3 }}>{r.key}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 3 }}>{r.key}</div>
               </div>
               <Switch
                 checked={r.enabled}
@@ -368,7 +368,7 @@ function AiSwitches() {
           )
         })}
       </div>
-      <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
         {t('Ночная сборка ленты читает эти рубильники перед первым запросом к модели: выключенная задача стоит ноль. Изменение действует со следующего прогона (04:30 UTC).')}
       </div>
     </div>
@@ -403,7 +403,7 @@ function FeatureFlags() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
         {t('Функции')}
       </div>
       <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
@@ -416,8 +416,8 @@ function FeatureFlags() {
               onChange={v => toggle(r.key, v)}
             >
               <div>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)' }}>{r.about || r.key}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{r.key}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{r.about || r.key}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{r.key}</div>
               </div>
             </Checkbox>
           </div>
@@ -540,7 +540,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       {/* Read-only: what the teacher ALREADY has. The picker below is "give more". */}
       {current && current.length > 0 && (
         <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>{t('Уже у учителя')}</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Уже у учителя')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {current.map(r => (
               <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 9px' }}>
@@ -577,7 +577,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       {/* Тариф (0037): ручное назначение админом; «без тарифа» = бета-аккаунт,
           лимит учеников не применяется. Оплата пока вне системы (ручные счета). */}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>{t('Тариф')}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Тариф')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {/* NO_PLAN — свой маркер вместо '': пустую строку TeacherSelect трактует
               как «нет выбора» и такую опцию не показывает. */}
@@ -595,7 +595,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
             />
           </div>
           {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Сохраняем…')}</span>}
-          {planSaved && <Check size={14} strokeWidth={2.6} style={{ color: '#3FA867' }} />}
+          {planSaved && <Check size={14} strokeWidth={2.5} style={{ color: '#3FA867' }} />}
           {planError && <span style={{ fontSize: 11, color: '#E04848' }}>{planError}</span>}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
@@ -617,7 +617,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
               display: 'flex', alignItems: 'center', gap: 6,
             }}
           >
-            <KeyRound size={13} strokeWidth={2} />
+            <KeyRound size={14} strokeWidth={2} />
             {pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}
           </button>
           {pwValue && (
@@ -631,7 +631,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
               }}
             >
               <code style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-purple)', letterSpacing: 0.4 }}>{pwValue}</code>
-              {pwCopied ? <Check size={13} strokeWidth={2.6} style={{ color: 'var(--color-purple)' }} /> : <Copy size={13} style={{ color: 'var(--color-purple)' }} />}
+              {pwCopied ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} /> : <Copy size={14} style={{ color: 'var(--color-purple)' }} />}
             </div>
           )}
           {pwError && <span style={{ fontSize: 11, color: '#E04848' }}>{pwError}</span>}
@@ -717,7 +717,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
           </span>
         )}
         <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
-          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
       </div>
@@ -740,7 +740,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
               }}>
-                {row.kind === 'course' ? <BookOpen size={15} strokeWidth={2} /> : <Users size={15} strokeWidth={2} />}
+                {row.kind === 'course' ? <BookOpen size={16} strokeWidth={2} /> : <Users size={16} strokeWidth={2} />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -778,7 +778,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                   background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
                 }}
               >
-                <X size={15} strokeWidth={2.2} />
+                <X size={16} strokeWidth={2} />
               </button>
             </div>
           ))}
@@ -874,11 +874,11 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Задачи учителей')}
         </div>
         <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
-          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
       </div>
@@ -937,7 +937,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
                       }}
                     >
-                      <X size={15} strokeWidth={2.2} />
+                      <X size={16} strokeWidth={2} />
                     </button>
                   </div>
                 ))}
@@ -1034,7 +1034,7 @@ export default function TeacherAdminPage() {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', color: 'var(--color-text-3)' }}>
-          <ShieldAlert size={32} strokeWidth={1.6} style={{ opacity: 0.6 }} />
+          <ShieldAlert size={32} strokeWidth={1.5} style={{ opacity: 0.6 }} />
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>{t('Раздел доступен только администратору')}</div>
           <button onClick={() => setActivePage('home')} style={{ marginTop: 16, padding: '8px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             {t('На главную')}
@@ -1073,7 +1073,7 @@ export default function TeacherAdminPage() {
               title={t('Обновить')}
               style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
             >
-              <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
               {t('Обновить')}
             </motion.button>
           )}
@@ -1138,7 +1138,7 @@ export default function TeacherAdminPage() {
         {/* Teachers */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>{t('Учителя')}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Учителя')}</div>
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={() => setInviteOpen(true)}
@@ -1150,7 +1150,7 @@ export default function TeacherAdminPage() {
                 boxShadow: '0 2px 10px rgba(106,90,230,0.35)',
               }}
             >
-              <UserPlus size={13} strokeWidth={2.5} />
+              <UserPlus size={14} strokeWidth={2.5} />
               {t('Добавить учителя')}
             </motion.button>
           </div>
@@ -1173,11 +1173,11 @@ export default function TeacherAdminPage() {
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {tn(tr.name)}
                         {tr.role === 'admin' && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.3 }}>admin</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>admin</span>
                         )}
                         {isTeacher && restrictCount > 0 && (
                           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                            <Lock size={9} strokeWidth={2.6} />{restrictCount}
+                            <Lock size={12} strokeWidth={2.5} />{restrictCount}
                           </span>
                         )}
                         {isTeacher && (
@@ -1206,7 +1206,7 @@ export default function TeacherAdminPage() {
                           fontSize: 12, fontWeight: 600, transition: 'all 0.12s',
                         }}
                       >
-                        <SlidersHorizontal size={13} strokeWidth={2} />
+                        <SlidersHorizontal size={14} strokeWidth={2} />
                         {t('Доступы')}
                       </button>
                     )}
@@ -1239,7 +1239,7 @@ export default function TeacherAdminPage() {
         {/* Pending invites — teachers sent a link who haven't signed up yet. */}
         {pendingInvites.length > 0 && (
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
               {t('Приглашения · не активированы')}
             </div>
             <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
@@ -1248,7 +1248,7 @@ export default function TeacherAdminPage() {
                 return (
                   <div key={inv.token} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}>
-                      <Mail size={15} strokeWidth={2} />
+                      <Mail size={16} strokeWidth={2} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1267,14 +1267,14 @@ export default function TeacherAdminPage() {
                       title={t('Скопировать ссылку')}
                       style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '7px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
                     >
-                      <Copy size={13} strokeWidth={2} />{t('Ссылка')}
+                      <Copy size={14} strokeWidth={2} />{t('Ссылка')}
                     </button>
                     <button
                       onClick={() => revokeInvite(inv.token)}
                       title={t('Отозвать приглашение')}
                       style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: '#E04848' }}
                     >
-                      <Trash2 size={13} strokeWidth={2} />
+                      <Trash2 size={14} strokeWidth={2} />
                     </button>
                   </div>
                 )
@@ -1285,7 +1285,7 @@ export default function TeacherAdminPage() {
 
         {/* Storage — compact tiles on the same 3-column grid as the stat cards above. */}
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Хранилище')}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Хранилище')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             <StorageTile icon={Database} label={t('База данных')} value={storage ? fmtBytes(storage.db_bytes) : '—'} pct={dbPct} />
             <StorageTile icon={HardDrive} label={t('Файловое хранилище')} value={storage ? fmtBytes(storage.storage_bytes) : '—'} pct={storagePct} />
@@ -1293,7 +1293,7 @@ export default function TeacherAdminPage() {
               onClick={() => setActivePage('storage')}
               style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}
             >
-              {t('Подробная статистика')} <ChevronRight size={15} />
+              {t('Подробная статистика')} <ChevronRight size={16} />
             </div>
           </div>
         </div>

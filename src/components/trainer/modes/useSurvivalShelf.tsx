@@ -239,21 +239,21 @@ export function useSurvivalShelf({
 
   const rail = !openItem ? null : (
     <>
-      <RailCard title="Формула темы" accent={accent} icon={<Sparkle size={15} />}>
+      <RailCard title="Формула темы" accent={accent} icon={<Sparkle size={16} />}>
         {book?.notes[openItem.theme.id] ? (
           <>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: accent, lineHeight: 1.45 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: accent, lineHeight: 1.45 }}>
               {book.notes[openItem.theme.id].formula}
             </div>
-            <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--color-text-2)' }}>
+            <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
               {book.notes[openItem.theme.id].note}
             </div>
           </>
         ) : (
-          <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{t(openItem.theme.goal)}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{t(openItem.theme.goal)}</div>
         )}
       </RailCard>
-      <RailCard title="Тема" accent={accent} icon={<Layers size={15} />}>
+      <RailCard title="Тема" accent={accent} icon={<Layers size={16} />}>
         <RailStat label="Уровень" value={themeLevel(openItem)} />
         <RailStat label="Фраз в теме" value={openItem.phrases.length} />
         {/* Три числа вместо одного «уже в колоде»: что уже держится в

@@ -37,18 +37,18 @@ function Chip({ label, on, onToggle, dimmed }: { label: string; on: boolean; onT
         border: `1px solid ${on ? 'var(--color-purple)' : 'var(--color-border)'}`,
         background: on ? 'var(--color-purple-soft)' : 'transparent',
         color: on ? 'var(--color-purple)' : 'var(--color-text-3)',
-        fontSize: 12.5, fontWeight: 600, transition: 'all 0.12s',
+        fontSize: 13, fontWeight: 600, transition: 'all 0.12s',
         opacity: dimmed ? 0.4 : 1,
       }}
     >
-      {!on && <Lock size={11} strokeWidth={2.4} />}
+      {!on && <Lock size={12} strokeWidth={2.5} />}
       {label}
     </button>
   )
 }
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
     {children}
   </div>
 )
@@ -114,14 +114,14 @@ export default function AccessConfigurator({
     onSubjectsChange?.(subjList.includes(id) ? subjList.filter(x => x !== id) : [...subjList, id])
 
   const bentoTiles: { key: string; label: string; icon: React.ReactNode; badge?: string }[] = [
-    ...TEACHER_TABS.filter(tab => selectedTabs.includes(tab.id)).map(tab => ({ key: `t-${tab.id}`, label: tr(tab.label), icon: <LayoutGrid size={13} /> })),
+    ...TEACHER_TABS.filter(tab => selectedTabs.includes(tab.id)).map(tab => ({ key: `t-${tab.id}`, label: tr(tab.label), icon: <LayoutGrid size={14} /> })),
     ...courseAssignments.map(a => {
       const c = courses.find(x => x.id === a.course_id)
-      return { key: `c-${a.course_id}`, label: c?.title ?? tr('Курс'), icon: <BookOpen size={13} />, badge: a.mode === 'copy' ? tr('копия') : tr('общий') }
+      return { key: `c-${a.course_id}`, label: c?.title ?? tr('Курс'), icon: <BookOpen size={14} />, badge: a.mode === 'copy' ? tr('копия') : tr('общий') }
     }),
     ...groupIds.map(id => {
       const g = groups.find(x => x.id === id)
-      return { key: `g-${id}`, label: g?.title != null ? tc(g.title) : tr('Группа'), icon: <Users size={13} /> }
+      return { key: `g-${id}`, label: g?.title != null ? tc(g.title) : tr('Группа'), icon: <Users size={14} /> }
     }),
   ]
 
@@ -174,7 +174,7 @@ export default function AccessConfigurator({
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 11, border: `1px solid ${a ? 'var(--color-purple)' : 'var(--color-border)'}`, background: a ? 'var(--color-purple-soft)' : 'transparent' }}>
                     <button onClick={() => toggleCourse(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
                       <CheckboxMark checked={!!a} />
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(c.title) || '—'}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(c.title) || '—'}</span>
                       <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>· {tn(c.owner_name)}</span>
                     </button>
                     {a && (
@@ -217,7 +217,7 @@ export default function AccessConfigurator({
               <div key={tile.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)' }}>
                 <span style={{ color: 'var(--color-purple)', flexShrink: 0 }}>{tile.icon}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.label}</span>
-                {tile.badge && <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 5px', borderRadius: 5, flexShrink: 0 }}>{tile.badge}</span>}
+                {tile.badge && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 5px', borderRadius: 5, flexShrink: 0 }}>{tile.badge}</span>}
               </div>
             ))}
           </div>

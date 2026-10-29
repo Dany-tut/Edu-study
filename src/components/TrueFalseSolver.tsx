@@ -68,7 +68,7 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
             }}
           >
             <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
-              <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 7 }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 7 }}>
                 {String(i + 1).padStart(2, '0')}
               </span>
               {row.text}
@@ -87,7 +87,7 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
                     disabled={disabled}
                     style={{
                       padding: '7px 13px', borderRadius: 10, fontFamily: 'inherit',
-                      fontSize: 13.5, fontWeight: 650, cursor: disabled ? 'default' : 'pointer',
+                      fontSize: 14, fontWeight: 600, cursor: disabled ? 'default' : 'pointer',
                       border: `1.5px solid ${
                         truth ? '#3FAE6E'
                           : on ? (showVerdict ? '#E2646B' : 'var(--color-accent)')

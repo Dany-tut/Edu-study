@@ -128,7 +128,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
         </span>
         <span style={{ minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>{t(def.label)}</span>
-          <span style={{ display: 'block', fontSize: 10, lineHeight: 1.25, color: 'var(--color-muted)', marginTop: 2 }}>{t(def.hint)}</span>
+          <span style={{ display: 'block', fontSize: 10, lineHeight: 1.3, color: 'var(--color-muted)', marginTop: 2 }}>{t(def.hint)}</span>
         </span>
       </button>
 
@@ -154,7 +154,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
           transition: 'opacity 0.12s',
         }}
       >
-        <Info size={13} />
+        <Info size={14} />
       </button>
 
       {open && createPortal(

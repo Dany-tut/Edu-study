@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
 import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
@@ -429,7 +430,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 transition: 'background 0.2s',
               }}
             >
-              {copied ? <><Check size={15} strokeWidth={2.6} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
+              {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
             <button
               onClick={onClose}
@@ -508,11 +509,7 @@ const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 6,
   fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
 }
-const inputStyle: React.CSSProperties = {
-  padding: '10px 12px', borderRadius: 12,
-  border: '1.5px solid var(--color-border-medium)', fontSize: 14,
-  outline: 'none', background: 'var(--color-bg-4)', color: 'var(--color-text)',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 // Makes a TeacherSelect trigger match the bordered input fields above.
 const selectTriggerStyle: React.CSSProperties = {
   padding: '10px 12px', borderRadius: 12,
@@ -593,7 +590,7 @@ function TrackFields({
               color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
       ))}
@@ -607,7 +604,7 @@ function TrackFields({
           color: 'var(--color-accent)', fontSize: 13, fontWeight: 600,
         }}
       >
-        <Plus size={15} /> {t('Ещё направление')}
+        <Plus size={16} /> {t('Ещё направление')}
       </button>
     </div>
   )
@@ -732,7 +729,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
             }}>
-              {copied ? <><Check size={15} strokeWidth={2.6} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
+              {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
             <button onClick={onClose} style={{
               width: '100%', padding: '10px 0',
@@ -745,9 +742,9 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             {onPickExisting && (
               <button
                 type="button" onClick={onPickExisting}
-                style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
+                style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
               >
-                <UserPlus size={15} /> {t('Выбрать из существующих')}
+                <UserPlus size={16} /> {t('Выбрать из существующих')}
               </button>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -986,7 +983,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           width: 34, height: 34, borderRadius: 12, flexShrink: 0,
           background: 'var(--color-bg-4)', display: 'grid', placeItems: 'center',
         }}>
-          <UserPlus size={17} strokeWidth={2.2} style={{ color: 'var(--color-text-2)' }} />
+          <UserPlus size={18} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
@@ -1022,12 +1019,12 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
                   padding: '7px 11px', borderRadius: 999, cursor: 'pointer',
                   border: '1px solid var(--color-border-medium)',
                   background: 'var(--color-bg-3)', color: 'var(--color-text)',
-                  fontSize: 12.5, fontWeight: 600,
+                  fontSize: 13, fontWeight: 600,
                 }}
               >
                 {copiedId === s.id
-                  ? <Check size={13} strokeWidth={2.6} style={{ color: 'var(--color-success, #2C7A58)' }} />
-                  : <Copy size={13} strokeWidth={2.2} style={{ color: 'var(--color-text-3)' }} />}
+                  ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-success, #2C7A58)' }} />
+                  : <Copy size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />}
                 {s.name}
               </button>
             ))}
@@ -1041,7 +1038,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
             style={{
               padding: '9px 14px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
               border: 'none', opacity: issuing ? 0.7 : 1,
-              background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700,
+              background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
             }}
           >
             {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}
@@ -1052,7 +1049,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
             style={{
               padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
               border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-              color: 'var(--color-text)', fontSize: 12.5, fontWeight: 600,
+              color: 'var(--color-text)', fontSize: 13, fontWeight: 600,
             }}
           >
             {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
@@ -1069,10 +1066,10 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
               border: '1px solid var(--color-border-soft)', display: 'flex',
               flexDirection: 'column', gap: 8,
             }}>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
                 {t('Заведено')}: {issued.filter(a => a.status === 'created').length}
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
                 {t('Пароли показываются один раз. Скопируйте список — потом их можно только сбросить.')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 220, overflowY: 'auto' }}>
@@ -1194,7 +1191,7 @@ function GroupCard({
             }}
             title={t('Удалить группу')}
           >
-            <Trash2 size={13} strokeWidth={2.2} />
+            <Trash2 size={14} strokeWidth={2} />
           </motion.button>
         )}
       </AnimatePresence>
@@ -1211,7 +1208,7 @@ function GroupCard({
           {t(group.level)}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
-          <Users size={13} strokeWidth={1.8} />
+          <Users size={14} strokeWidth={2} />
           <span style={{ fontSize: 12, fontWeight: 600 }}>{group.studentCount}</span>
         </div>
       </div>
@@ -1331,9 +1328,9 @@ function Th({
         {label}
         {active
           ? dir === 'asc'
-            ? <ChevronUp size={11} />
-            : <ChevronDown size={11} />
-          : <ChevronsUpDown size={11} style={{ opacity: 0.4 }} />
+            ? <ChevronUp size={12} />
+            : <ChevronDown size={12} />
+          : <ChevronsUpDown size={12} style={{ opacity: 0.4 }} />
         }
       </span>
     </th>
@@ -1479,7 +1476,7 @@ function StudentAvatar({
         }}>
           {copied
             ? <Check size={18} strokeWidth={2.5} style={{ color: group.color }} />
-            : <Copy size={17} strokeWidth={2.2} style={{ color: group.color }} />
+            : <Copy size={18} strokeWidth={2} style={{ color: group.color }} />
           }
         </div>
       )}
@@ -1543,7 +1540,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <StudentAvatar student={student} group={group} />
               <div>
-                <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{tn(student.name)}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)' }}>{tn(student.name)}</div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
@@ -1552,7 +1549,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
               </div>
             </div>
             <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
           {/* Tabs */}
@@ -1576,7 +1573,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 {/* Left col */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <section>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Контакты')}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Контакты')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
                       {student.telegramLink && <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />}
@@ -1584,7 +1581,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     </div>
                   </section>
                   <section>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Прочее')}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Прочее')}</div>
                     <InfoRow label={t('Начал(а)')} value={student.startedAt} />
                     <InfoRow label={t('Последний вход')} value={student.lastVisit} />
                     <InfoRow label={t('Целевой балл')} value={`${student.desiredScore} ${t('баллов')}`} />
@@ -1593,14 +1590,14 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 {/* Right col */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <section>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Показатели')}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Показатели')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
                       <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
                       {student.trialScore !== null && <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
+                          <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
                           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 700, color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>
@@ -1627,7 +1624,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     ]
                   })().map(({ val, label, color, bg }) => (
                     <div key={label} style={{ padding: '12px 14px', borderRadius: 14, background: bg, textAlign: 'center' }}>
-                      <div style={{ fontSize: 24, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
                       <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 4 }}>{t(label)}</div>
                     </div>
                   ))}
@@ -1712,7 +1709,7 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
 
   return (
     <section>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
         {t('Активные курсы')}
       </div>
       {!loading && courses.length === 0 && (
@@ -1793,7 +1790,7 @@ function TracksSection({
 
   return (
     <section>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
         {t('Направления')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1994,7 +1991,7 @@ function StudentPanel({
         {/* Credentials */}
         {(student.email || student.tempPassword) && (
           <section>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
               {t('Доступ в кабинет')}
             </div>
             <CredentialsSpoiler
@@ -2030,7 +2027,7 @@ function StudentPanel({
 
         {/* Contacts */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Контакты')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -2046,7 +2043,7 @@ function StudentPanel({
 
         {/* Scores */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Показатели')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2060,7 +2057,7 @@ function StudentPanel({
               padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
+                <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
               </div>
               <span style={{
@@ -2078,7 +2075,7 @@ function StudentPanel({
 
         {/* Goal */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Цель')}
           </div>
           {/* Янтарь, а не --color-yellow-*: тот подобран как ЦВЕТ ТЕКСТА, и
@@ -2092,13 +2089,13 @@ function StudentPanel({
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл ЕГЭ')}</span>
-            <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-amber-text)' }}>{student.desiredScore}</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-amber-text)' }}>{student.desiredScore}</span>
           </div>
         </section>
 
         {/* Info */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Прочее')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -2110,7 +2107,7 @@ function StudentPanel({
         {/* Comment */}
         <section>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
               {t('Заметка преподавателя')}
             </div>
             {commentErr && (
@@ -2118,7 +2115,7 @@ function StudentPanel({
             )}
             {commentSaved && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
-                <Check size={11} /> {t('сохранено')}
+                <Check size={12} /> {t('сохранено')}
               </span>
             )}
           </div>
@@ -2164,7 +2161,7 @@ function StudentPanel({
           onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
           onMouseLeave={e => { e.currentTarget.style.filter = 'none' }}
         >
-          <Plus size={15} strokeWidth={2.4} /> {t('Выдать ДЗ допом')}
+          <Plus size={16} strokeWidth={2.5} /> {t('Выдать ДЗ допом')}
         </button>
         {onAddToGroup && (
           <button
@@ -2180,7 +2177,7 @@ function StudentPanel({
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-purple-soft)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-bg-3)' }}
           >
-            <Users size={15} strokeWidth={2.2} /> {t('Добавить в группу')}
+            <Users size={16} strokeWidth={2} /> {t('Добавить в группу')}
           </button>
         )}
         <button
@@ -2232,7 +2229,7 @@ function ContactRow({ icon: Icon, label, href }: { icon: React.ElementType; labe
     >
       <Icon size={13} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      <ExternalLink size={11} style={{ color: 'var(--color-text-3)' }} />
+      <ExternalLink size={12} style={{ color: 'var(--color-text-3)' }} />
     </a>
   )
 }
@@ -2591,7 +2588,7 @@ export default function TeacherGroupsPage() {
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 6,
                               padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
-                              fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+                              fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
                               background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                               color: active ? 'var(--color-text)' : 'var(--color-muted)',
                               border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
@@ -2625,7 +2622,7 @@ export default function TeacherGroupsPage() {
                           }}
                         />
                         {searchQuery && (
-                          <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer', flex: 'none' }} onClick={() => setSearchQuery('')} />
+                          <X size={14} style={{ color: 'var(--color-text-3)', cursor: 'pointer', flex: 'none' }} onClick={() => setSearchQuery('')} />
                         )}
                       </div>
 
@@ -2641,10 +2638,10 @@ export default function TeacherGroupsPage() {
                               display: 'inline-flex', alignItems: 'center', gap: 6,
                               padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
                               background: 'var(--grad-purple)', border: 'none',
-                              color: '#fff', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
+                              color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                             }}
                           >
-                            <Plus size={14} strokeWidth={2.6} /> {t('Ученик')}
+                            <Plus size={14} strokeWidth={2.5} /> {t('Ученик')}
                           </button>
                           {rosterAddMenu && createPortal(
                             <>
@@ -2797,7 +2794,7 @@ export default function TeacherGroupsPage() {
               textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)',
             }}
           >
-            <Users size={36} strokeWidth={1.3} style={{ margin: '0 auto 12px' }} />
+            <Users size={36} strokeWidth={1.5} style={{ margin: '0 auto 12px' }} />
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Выберите группу')}</div>
             <div style={{ fontSize: 12, marginTop: 4 }}>{t('чтобы увидеть список студентов')}</div>
           </motion.div>

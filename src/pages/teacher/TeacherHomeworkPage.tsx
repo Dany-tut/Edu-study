@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
@@ -246,7 +247,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
               boxShadow: '0 4px 16px rgba(99,84,207,0.32)',
             }}
           >
-            <Send size={15} strokeWidth={2} />
+            <Send size={16} strokeWidth={2} />
             {t('Выдать задание')}
           </motion.button>
         </form>
@@ -260,15 +261,7 @@ function Label({ children }: { children: React.ReactNode }) {
   return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 4, paddingLeft: 13 }}>{children}</div>
 }
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box',
-  padding: '10px 12px', borderRadius: 12,
-  border: '1.5px solid var(--color-border-medium)',
-  fontSize: 13, color: 'var(--color-text)',
-  background: 'var(--color-bg-2)',
-  outline: 'none',
-  fontFamily: 'inherit',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 
 // ─── Homework row ──────────────────────────────────────────────────────────────
 function HwRow({ hw, index, isSelected, onClick, subject }: {
@@ -305,7 +298,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
         {subject && (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, marginLeft: 16,
-            fontSize: 10.5, fontWeight: 600, color: subject.color,
+            fontSize: 11, fontWeight: 600, color: subject.color,
             background: subject.color + '1E', border: `1px solid ${subject.color}3A`,
             borderRadius: 6, padding: '2px 7px',
           }}>
@@ -325,7 +318,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
             fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
           }}>
-            <ClipboardCheck size={11} strokeWidth={2.4} /> {t('Основное')}
+            <ClipboardCheck size={12} strokeWidth={2.5} /> {t('Основное')}
           </span>
           {(hw.hardTotal ?? hw.hardTaskIds?.length ?? 0) > 0 && (
             <span style={{
@@ -333,7 +326,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
               fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
               background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
             }}>
-              <Star size={10} strokeWidth={0} fill="currentColor" /> {t('Сложное')}
+              <Star size={12} strokeWidth={0} fill="currentColor" /> {t('Сложное')}
             </span>
           )}
         </div>
@@ -436,7 +429,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0,
           }}>
-            <X size={13} />
+            <X size={14} />
           </button>
         </div>
       </div>
@@ -452,7 +445,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           ].map(item => (
             <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: item.labelColor, opacity: 0.75, marginBottom: 4 }}>{item.label}</div>
-              <div style={{ fontSize: 16, fontWeight: 750, color: item.color }}>{item.value}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: item.color }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -461,10 +454,10 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         <div style={{ display: 'flex', gap: 8 }}>
           <div style={{ flex: 1, background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-              <ClipboardCheck size={12} strokeWidth={2.4} style={{ color: 'var(--color-accent)' }} />
+              <ClipboardCheck size={12} strokeWidth={2.5} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)' }}>{t('Основное')}</span>
             </div>
-            <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-accent)' }}>{hw.submittedCount}/{hw.totalCount}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-accent)' }}>{hw.submittedCount}/{hw.totalCount}</div>
           </div>
           <div style={{
             flex: 1, borderRadius: 12, padding: '10px 12px',
@@ -472,10 +465,10 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             opacity: hasHard ? 1 : 0.6,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-              <Star size={11} strokeWidth={0} fill="currentColor" style={{ color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }} />
+              <Star size={12} strokeWidth={0} fill="currentColor" style={{ color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }} />
               <span style={{ fontSize: 10, fontWeight: 700, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>{t('Сложное')}</span>
             </div>
-            <div style={{ fontSize: 15, fontWeight: 750, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>
               {hasHard ? `${hardCount} ${t('зад.')}` : '—'}
             </div>
           </div>
@@ -506,8 +499,8 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           }}
         >
           {hw.lessonId
-            ? <BookOpen size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
-            : <ClipboardList size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />}
+            ? <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
+            : <ClipboardList size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />}
           {lessonBusy ? t('Открываю…') : hw.lessonId ? t('Открыть урок') : t('Открыть домашку')}
         </motion.button>
 
@@ -527,14 +520,14 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
               boxShadow: pendingReview > 0 ? '0 4px 16px rgba(99,84,207,0.32)' : 'none',
             }}
           >
-            <ClipboardList size={16} strokeWidth={2.2} />
+            <ClipboardList size={16} strokeWidth={2} />
             {pendingReview > 0 ? `${t('Проверить ДЗ')} · ${pendingReview}` : t('Пересмотреть работы')}
           </motion.button>
         )}
 
         {/* Student list */}
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Студенты')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -553,7 +546,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                     width: 26, height: 26, borderRadius: 8, flexShrink: 0,
                     background: group.color + '99',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 9, fontWeight: 700, color: '#fff',
+                    fontSize: 10, fontWeight: 700, color: '#fff',
                   }}>
                     {initials}
                   </div>
@@ -568,7 +561,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: submitted ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     }}>
-                      <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? 'var(--color-accent)' : 'var(--color-text-4)' }} />
+                      <ClipboardCheck size={12} strokeWidth={2} style={{ color: submitted ? 'var(--color-accent)' : 'var(--color-text-4)' }} />
                     </div>
                     {/* Reviewed by teacher */}
                     <div title={returned ? t('На доработку') : reviewed ? t('Проверено') : t('Не проверено')} style={{
@@ -577,8 +570,8 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                       background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                     }}>
                       {returned
-                        ? <Clock size={12} strokeWidth={2.2} style={{ color: 'var(--color-peach-text)' }} />
-                        : <CheckCircle2 size={12} strokeWidth={2.2} style={{ color: reviewed ? 'var(--color-green-text)' : 'var(--color-text-4)' }} />
+                        ? <Clock size={12} strokeWidth={2} style={{ color: 'var(--color-peach-text)' }} />
+                        : <CheckCircle2 size={12} strokeWidth={2} style={{ color: reviewed ? 'var(--color-green-text)' : 'var(--color-text-4)' }} />
                       }
                     </div>
                   </div>
@@ -761,9 +754,9 @@ export default function TeacherHomeworkPage() {
             style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
           >
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 4px 11px' }}>
-              <span style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)' }}>{t('Нужно проверить')}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Нужно проверить')}</span>
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 999, background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)' }}>{queue.length}</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>{t('по дедлайну')}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>{t('по дедлайну')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {queue.map(item => (
@@ -783,18 +776,18 @@ export default function TeacherHomeworkPage() {
                     background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
                     color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
                   }}>
-                    {item.kind === 'hard' ? <Star size={15} strokeWidth={0} fill="currentColor" /> : <ClipboardCheck size={16} />}
+                    {item.kind === 'hard' ? <Star size={16} strokeWidth={0} fill="currentColor" /> : <ClipboardCheck size={16} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2 }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.who}</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.who}</span>
                       <span style={{
                         flex: 'none', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
                         background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
                         color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
                       }}>{item.kind === 'hard' ? `★ ${t('Сложное')}` : t('Основное')}</span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                    <div style={{ fontSize: 12, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.title}</span>
                       <span style={{ flex: 'none', color: 'var(--color-text-3)' }}>·</span>
                       {item.steps ? (
@@ -806,7 +799,7 @@ export default function TeacherHomeworkPage() {
                                 title={s.kind === 'returned' ? t('Возвращено на доработку') : i === 0 ? t('Отправлено на проверку') : t('Отправлено повторно')}
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: s.kind === 'returned' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}
                               >
-                                {s.kind === 'returned' ? <RotateCcw size={11} /> : <Send size={11} />}
+                                {s.kind === 'returned' ? <RotateCcw size={12} /> : <Send size={12} />}
                                 {shortAgo(s.at)}
                               </span>
                             </span>
@@ -817,7 +810,7 @@ export default function TeacherHomeworkPage() {
                       )}
                     </div>
                   </div>
-                  <div style={{ flex: 'none', fontSize: 11.5, fontWeight: 600, textAlign: 'right', color: item.overdue ? 'var(--color-red-text)' : 'var(--color-text-3)', marginRight: 4, whiteSpace: 'nowrap' }}>
+                  <div style={{ flex: 'none', fontSize: 12, fontWeight: 600, textAlign: 'right', color: item.overdue ? 'var(--color-red-text)' : 'var(--color-text-3)', marginRight: 4, whiteSpace: 'nowrap' }}>
                     {item.overdue ? t('просрочено') : item.due || ''}
                   </div>
                   <motion.button
@@ -825,7 +818,7 @@ export default function TeacherHomeworkPage() {
                     onClick={item.onClick}
                     style={{
                       flex: 'none', padding: '9px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                      background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                      background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                     }}
                   >
                     {t('Проверить')}
@@ -854,7 +847,7 @@ export default function TeacherHomeworkPage() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Star size={15} style={{ color: 'var(--color-accent)' }} />
+                  <Star size={16} style={{ color: 'var(--color-accent)' }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хард-уровень · Сданные работы')}</span>
                   {pendingHardCount > 0 && (
                     <span style={{

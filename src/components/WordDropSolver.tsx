@@ -122,7 +122,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
               }}
             >
               <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}>
-                <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 7 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 7 }}>
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {before}
@@ -173,7 +173,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
               disabled={disabled || spent}
               style={{
                 padding: '8px 14px', borderRadius: 11, fontFamily: 'inherit',
-                fontSize: 14.5, fontWeight: 650, lineHeight: 1.25,
+                fontSize: 15, fontWeight: 600, lineHeight: 1.3,
                 border: '1px solid var(--color-border-strong)',
                 background: spent ? 'var(--color-bg-3)' : 'rgba(var(--glass-rgb), 0.96)',
                 color: spent ? 'var(--color-muted)' : 'var(--color-text)',
@@ -188,7 +188,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
       </div>
 
       {!disabled && !showVerdict && (
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Тап по строке выбирает её, тап по слову в строке возвращает его в банк')}
         </span>
       )}

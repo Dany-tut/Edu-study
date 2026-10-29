@@ -161,7 +161,7 @@ export default function JoinTeacherPage() {
         {step === 'form' && (
           <>
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>{t('Добро пожаловать в «Искру»!')}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добро пожаловать в «Искру»!')}</div>
               <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Создайте аккаунт преподавателя')}</div>
             </div>
 
@@ -232,7 +232,7 @@ function ConsentRow({ checked, onChange, children }: { checked: boolean; onChang
       checked={checked}
       onChange={onChange}
       align="start"
-      labelStyle={{ display: 'flex', fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45 }}
+      labelStyle={{ display: 'flex', fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.45 }}
     >
       {children}
     </Checkbox>

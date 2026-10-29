@@ -93,7 +93,7 @@ function Kpi({ icon: Icon, label, value, sub, accent, loading }: {
     <Card style={{ padding: '14px 16px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:8 }}>
         <Icon size={14} strokeWidth={2} style={{ color: accent ?? 'var(--color-text-3)' }} />
-        <span style={{ fontSize:11.5, color:'var(--color-text-3)', fontWeight:500 }}>{label}</span>
+        <span style={{ fontSize:12, color:'var(--color-text-3)', fontWeight:500 }}>{label}</span>
       </div>
       <div style={{ fontSize:24, fontWeight:800, color: accent ?? 'var(--color-text)', letterSpacing:'-0.5px', lineHeight:1, height:24, display:'flex', alignItems:'center' }}>
         {loading ? <Skeleton w={44} h={20} /> : value}
@@ -123,7 +123,7 @@ function Markdown({ text }: { text: string }) {
   const flushList = () => {
     if (list.length === 0) return
     out.push(
-      <ul key={`ul${out.length}`} style={{ margin:'6px 0 12px', paddingLeft:20, lineHeight:1.7 }}>
+      <ul key={`ul${out.length}`} style={{ margin:'6px 0 12px', paddingLeft:20, lineHeight:1.6 }}>
         {list.map((li, i) => <li key={i} style={{ marginBottom:3 }}>{bold(li)}</li>)}
       </ul>,
     )
@@ -141,7 +141,7 @@ function Markdown({ text }: { text: string }) {
       const lvl = h[1].length
       out.push(
         <div key={out.length} style={{
-          fontSize: lvl <= 2 ? 15 : 13.5, fontWeight:700, color:'var(--color-text)',
+          fontSize: lvl <= 2 ? 15 : 14, fontWeight:700, color:'var(--color-text)',
           margin: out.length === 0 ? '0 0 10px' : '20px 0 8px',
         }}>{bold(h[2])}</div>,
       )
@@ -152,13 +152,13 @@ function Markdown({ text }: { text: string }) {
     if (/^\s*\|.*\|\s*$/.test(line)) {
       const cells = line.split('|').slice(1, -1).map(c => c.trim())
       out.push(
-        <div key={out.length} style={{ display:'flex', gap:12, padding:'4px 0', fontSize:12.5, borderBottom:'1px solid var(--color-border)' }}>
+        <div key={out.length} style={{ display:'flex', gap:12, padding:'4px 0', fontSize:13, borderBottom:'1px solid var(--color-border)' }}>
           {cells.map((c, i) => <div key={i} style={{ flex: i === 0 ? 2 : 1, minWidth:0 }}>{bold(c)}</div>)}
         </div>,
       )
       continue
     }
-    out.push(<p key={out.length} style={{ margin:'0 0 10px', lineHeight:1.7 }}>{bold(line)}</p>)
+    out.push(<p key={out.length} style={{ margin:'0 0 10px', lineHeight:1.6 }}>{bold(line)}</p>)
   }
   flushList()
   return <div style={{ fontSize:13, color:'var(--color-text-2)' }}>{out}</div>
@@ -214,7 +214,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
       <div style={{ overflowX:'auto' }}>
         <div style={{ display:'flex', gap:4, marginBottom:4, paddingLeft:28 }}>
           {Array.from({length:24}).map((_,h) => (
-            <div key={h} style={{ width:16, fontSize:8, color:'var(--color-text-3)', textAlign:'center', flexShrink:0 }}>
+            <div key={h} style={{ width:16, fontSize:10, color:'var(--color-text-3)', textAlign:'center', flexShrink:0 }}>
               {h%4===0 ? h : ''}
             </div>
           ))}
@@ -319,7 +319,7 @@ function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: stri
             <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
               flexDirection:'column', gap:6, color:'var(--color-text-3)', pointerEvents:'none' }}>
               <div style={{ fontSize:13, fontWeight:600, opacity:0.5 }}>{pLabel(label)}</div>
-              <div style={{ fontSize:10.5, opacity:0.4 }}>{t('клики по нормализованным координатам экрана')}</div>
+              <div style={{ fontSize:11, opacity:0.4 }}>{t('клики по нормализованным координатам экрана')}</div>
             </div>
           )}
         <canvas ref={ref} style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }} />
@@ -330,7 +330,7 @@ function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: stri
           </div>
         )}
       </div>
-      <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:10, fontSize:10.5, color:'var(--color-text-3)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:10, fontSize:11, color:'var(--color-text-3)' }}>
         <span>{t('реже')}</span>
         <div style={{ width:120, height:8, borderRadius:4, background:'linear-gradient(to right, rgba(46,64,180,0.5), #28b6c0, #46c860, #f0d03a, #e43c30)' }} />
         <span>{t('чаще')}</span>
@@ -722,7 +722,7 @@ export default function TeacherAnalytics() {
           {(activeTab === 'heatmap' ? [7, CLICK_RETENTION_DAYS] : [7,30,90]).map(d => (
             <button key={d} onClick={() => setDays(d)} style={{
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-              fontSize:12.5, fontWeight:600,
+              fontSize:13, fontWeight:600,
               background: (activeTab==='heatmap' ? clickDays : days)===d ? 'var(--color-purple-soft)' : 'transparent',
               color: (activeTab==='heatmap' ? clickDays : days)===d ? 'var(--color-purple)' : 'var(--color-text-3)',
               transition:'background 0.15s, color 0.15s',
@@ -737,7 +737,7 @@ export default function TeacherAnalytics() {
             <button key={id} onClick={() => setActiveTab(id)} style={{
               display:'flex', alignItems:'center', gap:7, whiteSpace:'nowrap',
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-              fontSize:12.5, fontWeight:600,
+              fontSize:13, fontWeight:600,
               background: activeTab===id ? 'var(--color-purple-soft)' : 'transparent',
               color: activeTab===id ? 'var(--color-purple)' : 'var(--color-text-3)',
               transition:'background 0.15s, color 0.15s',
@@ -746,7 +746,7 @@ export default function TeacherAnalytics() {
               {id==='issues' && totalErrors>0 && (
                 <span style={{
                   borderRadius:9, padding:'1px 7px',
-                  fontSize:11.5, fontWeight:700, lineHeight:'16px',
+                  fontSize:12, fontWeight:700, lineHeight:'16px',
                   background:'var(--color-red-soft)', color:'var(--color-red-text)',
                 }}>{totalErrors}</span>
               )}
@@ -762,7 +762,7 @@ export default function TeacherAnalytics() {
           {([['teacher', t('Учителя'), ACCENT], ['student', t('Ученики'), ACCENT_S]] as const).map(([id,label,color]) => (
             <button key={id} onClick={() => setHeatRole(id)} style={{
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-              fontSize:12.5, fontWeight:600,
+              fontSize:13, fontWeight:600,
               background: heatRole===id ? 'var(--color-bg-2)' : 'transparent',
               color: heatRole===id ? color : 'var(--color-text-3)',
               transition:'background 0.15s, color 0.15s',
@@ -808,7 +808,7 @@ export default function TeacherAnalytics() {
               <div style={{ fontSize:12, fontWeight:700, color:currentColor, marginBottom:10 }}>
                 {heatRole==='teacher' ? t('Учителя') : t('Ученики')}
               </div>
-              <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.7 }}>
+              <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.6 }}>
                 {currentHeat.length === 0
                   ? (heatRole==='teacher' ? t('Нет данных') : t('Нет данных — ученики ещё не заходили'))
                   : (() => {
@@ -914,7 +914,7 @@ export default function TeacherAnalytics() {
                       <span style={{ textAlign:'right', color:'var(--color-text)', fontWeight:700 }}>{g.total}</span>
                     </div>
                   ))}
-                  <div style={{ fontSize:10.5, color:'var(--color-text-3)', marginTop:10 }}>
+                  <div style={{ fontSize:11, color:'var(--color-text-3)', marginTop:10 }}>
                     {t('Приблизительно: таймзона — грубый гео-прокси, не GeoIP. Счёт по сессиям.')}
                   </div>
                 </>
@@ -935,7 +935,7 @@ export default function TeacherAnalytics() {
               color: copied ? '#3FA867' : 'var(--color-text-2)',
               transition:'background 0.15s, color 0.15s',
             }}>
-              {copied ? <Check size={13}/> : <Copy size={13}/>}
+              {copied ? <Check size={14}/> : <Copy size={14}/>}
               {copied ? t('Скопировано') : t('Скопировать все проблемы')}
             </button>
           </div>
@@ -958,7 +958,7 @@ export default function TeacherAnalytics() {
 
           {/* Issue score */}
           <Card style={{ marginBottom:24, display:'flex', alignItems:'center', gap:16 }}>
-            <div style={{ fontSize:36, fontWeight:900, color: issueScore===0?'#3FA867':issueScore<5?'#D07020':'#E04848', lineHeight:1 }}>
+            <div style={{ fontSize:36, fontWeight:800, color: issueScore===0?'#3FA867':issueScore<5?'#D07020':'#E04848', lineHeight:1 }}>
               {issueScore===0 ? '✓' : Math.round(issueScore)}
             </div>
             <div>
@@ -1019,7 +1019,7 @@ export default function TeacherAnalytics() {
                   )}
                   {openBounce.length > 0 && (
                     <button onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
-                      <CheckCircle2 size={13}/>{t('Всё разобрано')}
+                      <CheckCircle2 size={14}/>{t('Всё разобрано')}
                     </button>
                   )}
                 </div>
@@ -1042,7 +1042,7 @@ export default function TeacherAnalytics() {
                         title={p.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
                           color: p.closed ? 'var(--color-text-3)' : '#3FA867', padding:0 }}>
-                        {p.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={13}/>}
+                        {p.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
                       </button>
                     </div>
                   ))
@@ -1063,7 +1063,7 @@ export default function TeacherAnalytics() {
                   )}
                   {openRage.length > 0 && (
                     <button onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
-                      <CheckCircle2 size={13}/>{t('Всё разобрано')}
+                      <CheckCircle2 size={14}/>{t('Всё разобрано')}
                     </button>
                   )}
                 </div>
@@ -1088,7 +1088,7 @@ export default function TeacherAnalytics() {
                         title={r.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
                           color: r.closed ? 'var(--color-text-3)' : '#3FA867', padding:0 }}>
-                        {r.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={13}/>}
+                        {r.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
                       </button>
                     </div>
                   ))
@@ -1107,11 +1107,11 @@ export default function TeacherAnalytics() {
               )}
               {openGroups.length > 0 && (
                 <button onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
-                  <CheckCircle2 size={13}/>{t('Всё разобрано')}
+                  <CheckCircle2 size={14}/>{t('Всё разобрано')}
                 </button>
               )}
               <button onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
-                {errExpanded ? <ChevronUp size={13}/> : <ChevronDown size={13}/>}
+                {errExpanded ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
                 {errExpanded ? t('Свернуть') : t('Все ошибки')}
               </button>
             </div>
@@ -1145,7 +1145,7 @@ export default function TeacherAnalytics() {
                       <button onClick={() => void resolveSignature(g.key, g.closed)} title={g.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer',
                           color: g.closed ? 'var(--color-text-3)' : '#3FA867', fontSize:10, padding:0 }}>
-                        {g.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={13}/>}
+                        {g.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
                       </button>
                     </div>
                     <div style={{ color:'var(--color-text-3)', marginTop:2, marginLeft:4 }}>
@@ -1169,7 +1169,7 @@ export default function TeacherAnalytics() {
             {(heatRole==='teacher' ? t('Учителя') : t('Ученики'))} · {t('Тепловые карты кликов · по экранам')}
           </SectionTitle>
 
-          <div style={{ fontSize:11.5, color:'var(--color-text-3)', marginTop:-8, marginBottom:12, lineHeight:1.5 }}>
+          <div style={{ fontSize:12, color:'var(--color-text-3)', marginTop:-8, marginBottom:12, lineHeight:1.5 }}>
             {t('Клики хранятся 14 дней — за больший период данных нет. Клики без координат (с клавиатуры и программные) не записываются, поэтому угол экрана больше не «горит».')}
           </div>
 
@@ -1185,7 +1185,7 @@ export default function TeacherAnalytics() {
                   placeholder={t('Поиск экрана…')}
                   style={{
                     width:'100%', maxWidth:340, boxSizing:'border-box', marginBottom:10,
-                    padding:'8px 12px', borderRadius:10, fontSize:12.5,
+                    padding:'8px 12px', borderRadius:10, fontSize:13,
                     border:'1px solid var(--color-border)', background:'var(--color-bg-2)',
                     color:'var(--color-text)', outline:'none',
                   }}
@@ -1202,7 +1202,7 @@ export default function TeacherAnalytics() {
                         fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color .15s, background .15s',
                       }}>
                         {pLabel(p.path)}
-                        <span style={{ fontSize:10.5, fontWeight:500, color:'var(--color-text-3)',
+                        <span style={{ fontSize:11, fontWeight:500, color:'var(--color-text-3)',
                           background:'var(--color-bg-3)', borderRadius:7, padding:'1px 6px' }}>{pathCnt(p)}</span>
                       </button>
                     )
@@ -1257,12 +1257,12 @@ export default function TeacherAnalytics() {
                 fontSize:12, fontWeight:600, cursor: digestBusy ? 'default' : 'pointer',
               }}>
                 {digestBusy
-                  ? <><RefreshCw size={13} style={{ animation:'spin 1s linear infinite' }} /> {t('Считаем…')}</>
-                  : <><Sparkles size={13} /> {t('Собрать разбор')}</>}
+                  ? <><RefreshCw size={14} style={{ animation:'spin 1s linear infinite' }} /> {t('Считаем…')}</>
+                  : <><Sparkles size={14} /> {t('Собрать разбор')}</>}
               </button>
             }>{t('Разбор телеметрии')}</SectionTitle>
 
-            <div style={{ fontSize:11.5, color:'var(--color-text-3)', marginTop:-8, marginBottom:14, lineHeight:1.5 }}>
+            <div style={{ fontSize:12, color:'var(--color-text-3)', marginTop:-8, marginBottom:14, lineHeight:1.5 }}>
               {t('Модель читает сводку по экранам, ошибкам и кликам и пишет выводы. Запускается раз в месяц по расписанию; кнопка — внеочередной прогон за выбранный период.')}
             </div>
 
@@ -1271,7 +1271,7 @@ export default function TeacherAnalytics() {
             )}
 
             {reports.length === 0 && !digestBusy && !digestErr && (
-              <Card><div style={{ fontSize:12.5, color:'var(--color-text-3)' }}>
+              <Card><div style={{ fontSize:13, color:'var(--color-text-3)' }}>
                 {t('Разборов ещё нет. Нажмите «Собрать разбор» — или дождитесь ежемесячного прогона.')}
               </div></Card>
             )}
@@ -1280,7 +1280,7 @@ export default function TeacherAnalytics() {
               <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:14 }}>
                 {reports.map((r, i) => (
                   <button key={r.id} onClick={() => setReportIdx(i)} style={{
-                    padding:'6px 11px', borderRadius:9, fontSize:11.5, fontWeight:600, cursor:'pointer',
+                    padding:'6px 11px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer',
                     border:'1px solid', borderColor: i === reportIdx ? ACCENT : 'var(--color-border)',
                     background: i === reportIdx ? withAlpha(ACCENT, 0.12) : 'var(--color-bg-2)',
                     color: i === reportIdx ? 'var(--color-text)' : 'var(--color-text-3)',

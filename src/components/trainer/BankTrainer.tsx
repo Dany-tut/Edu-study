@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
+import CountBadge from '../CountBadge'
 import ScrollFade from '../ScrollFade'
 import QuestionTable from '../QuestionTable'
 import { useFloatingPill } from '../../lib/useFloatingPill'
@@ -159,7 +160,7 @@ function FilterField({ label, options, value, onChange, accent }: {
         />
         {value && !open ? (
           <button aria-label={t('Очистить')} onMouseDown={e => { e.preventDefault(); onChange('') }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}><X size={13} strokeWidth={2.5} /></button>
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}><X size={14} strokeWidth={2.5} /></button>
         ) : (
           <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease', pointerEvents: 'none' }}>
             <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -201,7 +202,7 @@ function FilterField({ label, options, value, onChange, accent }: {
                   <button key={opt} onMouseDown={e => { e.preventDefault(); onChange(opt); setOpen(false) }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${accent}1f` }}
                     onMouseLeave={e => { e.currentTarget.style.background = rest }}
-                    style={{ width: '100%', padding: '9px 8px', borderRadius: 9, textAlign: 'left', background: rest, border: 'none', fontSize: 12.5, cursor: 'pointer', color: 'var(--color-text)', fontWeight: opt === value ? 700 : 400, transition: 'background 0.13s ease' }}>
+                    style={{ width: '100%', padding: '9px 8px', borderRadius: 9, textAlign: 'left', background: rest, border: 'none', fontSize: 13, cursor: 'pointer', color: 'var(--color-text)', fontWeight: opt === value ? 700 : 400, transition: 'background 0.13s ease' }}>
                     {opt}
                   </button>
                 )
@@ -368,7 +369,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
                   {task.line} {t('линия')}
                 </span>
-                <NumberBadge id={task.id} onCopied={onCopyId} icon={<Database size={10} strokeWidth={2.4} />} />
+                <NumberBadge id={task.id} onCopied={onCopyId} icon={<Database size={12} strokeWidth={2.5} />} />
               </>
             ) : (
               <>
@@ -393,12 +394,12 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               тоже. Плашка держит тот же размер, что вердикт. */}
           {peeked ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', fontSize: 13, fontWeight: 700 }}>
-              <Eye size={15} />
+              <Eye size={16} />
               {t('Подсказка')}
             </div>
           ) : state !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
-              {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
+              {isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
               {isCorrect ? t('Верно') : t('Неверно')}
             </div>
           )}
@@ -424,7 +425,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               boxShadow: isFav ? '0 2px 9px rgba(245,166,35,0.4)' : 'none',
               transition: 'all 0.18s ease',
             }}>
-              <Star size={mobile ? 15 : 16} fill={isFav ? '#fff' : 'none'} color={isFav ? '#fff' : 'var(--color-text-3)'} />
+              <Star size={mobile ? 16 : 16} fill={isFav ? '#fff' : 'none'} color={isFav ? '#fff' : 'var(--color-text-3)'} />
             </span>
           </button>
         </div>
@@ -433,7 +434,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
+      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 500 : 500, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
         dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(task.question)) }} />
 
       {/* Image / table blocks in teacher-configured order */}
@@ -618,7 +619,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                       // text at a different width inside a fixed-size button,
                       // which reads as the icon/label twitching sideways. Only
                       // colour now carries the active state.
-                      fontSize: 13, fontWeight: 650, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)',
+                      fontSize: 13, fontWeight: 600, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)',
                       transition: 'background 0.18s ease, border-color 0.18s ease, color 0.18s ease',
                     }}
                   >
@@ -681,10 +682,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           ? <span style={{ flex: 1 }} />
           : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>}
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
-          <AlertTriangle size={10} />{reported ? t('Отправлено') : t('Ошибка')}
+          <AlertTriangle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>
         <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-3)', cursor: 'pointer' }}>
-          <Share2 size={10} />{copied ? t('Скопировано') : t('Поделиться')}
+          <Share2 size={12} />{copied ? t('Скопировано') : t('Поделиться')}
         </button>
       </div>
     </div>
@@ -912,7 +913,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
         background: `${accent}22`, border: `1px solid ${accent}44`,
       }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1.2 }}>
-          <Sparkles size={15} />
+          <Sparkles size={16} />
           {t('Рекомендуемые линии для')} «{section}»
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -976,7 +977,7 @@ function StatChip({ value, label, detail, bg, border, color, active, onClick }: 
       <motion.span
         animate={{ fontSize: hovered ? '17px' : '26px' }}
         transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-        style={{ fontWeight: 750, color, lineHeight: 1, flexShrink: 0 }}
+        style={{ fontWeight: 700, color, lineHeight: 1, flexShrink: 0 }}
       >
         {value}
       </motion.span>
@@ -990,7 +991,7 @@ function StatChip({ value, label, detail, bg, border, color, active, onClick }: 
             style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0, overflow: 'hidden' }}
           >
             <span style={{ fontSize: 12, fontWeight: 700, color, lineHeight: 1.3, whiteSpace: 'normal' }}>{label}</span>
-            {detail && <span style={{ fontSize: 11, color, opacity: 0.68, lineHeight: 1.25 }}>{detail}</span>}
+            {detail && <span style={{ fontSize: 11, color, opacity: 0.68, lineHeight: 1.3 }}>{detail}</span>}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1103,7 +1104,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 {wrongCount > 0 && (
                   <button onClick={() => { onRetryWrong(); setActive(null) }}
                     style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <XCircle size={13} />{t('Повторить ошибки')}
+                    <XCircle size={14} />{t('Повторить ошибки')}
                   </button>
                 )}
                 <button onClick={onOpenModal}
@@ -1116,7 +1117,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{favCount} {t('в избранном')}</span>
                 <button onClick={() => { onToggleFav(); setActive(null) }}
                   style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${showFavOnly ? 'rgba(248,200,50,0.4)' : 'var(--color-border-medium)'}`, background: showFavOnly ? 'rgba(248,239,140,0.22)' : 'transparent', color: showFavOnly ? '#7A6B00' : 'var(--color-text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
+                  <Star size={14} fill={showFavOnly ? 'currentColor' : 'none'} />
                   {showFavOnly ? t('Показать все') : t('Только избранное')}
                 </button>
               </>)}
@@ -1193,7 +1194,7 @@ function ProgressModal({
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ fontSize: 17, fontWeight: 750, color: 'var(--color-text)' }}>{t('Мой прогресс')}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Мой прогресс')}</div>
             <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
               <X size={14} />
             </button>
@@ -1205,7 +1206,7 @@ function ProgressModal({
               { val: favorites.size, label: t('Избранное'), bg: `${palette.accent}18`, border: `${palette.accent}33`, color: palette.text },
             ].map(({ val, label, bg, border, color }) => (
               <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, border: `1px solid ${border}`, textAlign: 'center' }}>
-                <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
                 <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 3 }}>{label}</div>
               </div>
             ))}
@@ -1217,7 +1218,7 @@ function ProgressModal({
 
           {(todayCorrect > 0 || todayWrong > 0) && (
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>{t('Сегодня')}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>{t('Сегодня')}</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {todayCorrect > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} {t('верно')}</span>}
                 {todayWrong   > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} {t('ошибок')}</span>}
@@ -1227,7 +1228,7 @@ function ProgressModal({
 
           {sectionStats.length > 0 && (
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 }}>{t('По разделам')}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('По разделам')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {sectionStats.map(([sec, s]) => {
                   const total = s.correct + s.wrong
@@ -1254,7 +1255,7 @@ function ProgressModal({
           {wrongTasks.length > 0 && (
             <div style={{ paddingBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase' }}>{t('Ошибки')} ({wrongTasks.length})</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Ошибки')} ({wrongTasks.length})</div>
                 <button onClick={onRetryMistakes} style={{ padding: '4px 12px', borderRadius: 999, border: 'none', background: `${palette.accent}22`, color: palette.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                   {t('Повторить все →')}
                 </button>
@@ -1349,7 +1350,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
             { val: favorites.size, label: t('Избранное'), bg: `${palette.accent}18`, color: palette.text },
           ].map(({ val, label, bg, color }) => (
             <div key={label} style={{ padding: '10px 8px', borderRadius: 14, background: bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
               <div style={{ fontSize: 10, color, opacity: 0.75, marginTop: 3 }}>{label}</div>
             </div>
           ))}
@@ -1365,7 +1366,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
         {/* By section */}
         {sectionStats.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t('По разделам')}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('По разделам')}</div>
             {sectionStats.map(([sec, s]) => {
               const total = s.correct + s.wrong
               const pct = total ? s.correct / total : 0
@@ -1390,12 +1391,12 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
             <button onClick={onRetryMistakes}
               style={{ width: '100%', padding: '13px', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 14px ${palette.ring}` }}>
-              <XCircle size={15} />{t('Повторить ошибки')} ({wrongTasks.length})
+              <XCircle size={16} />{t('Повторить ошибки')} ({wrongTasks.length})
             </button>
             {wrongLines.length > 0 && (
               <button onClick={() => onSimilarTasks(wrongLines)}
                 style={{ width: '100%', padding: '13px', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 14, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Target size={15} />{t('Похожие задания')}
+                <Target size={16} />{t('Похожие задания')}
               </button>
             )}
           </div>
@@ -1817,11 +1818,7 @@ export default function BankTrainer({ subjectState }: {
         }}
       >
         {icon}
-        {!!opts.badge && opts.badge > 0 && (
-          <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 4px', borderRadius: 999, background: 'var(--grad-purple)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {opts.badge}
-          </span>
-        )}
+        {!!opts.badge && <CountBadge count={opts.badge} style={{ position: 'absolute', top: -2, right: -2 }} />}
       </motion.button>
     )
 
@@ -2158,7 +2155,7 @@ export default function BankTrainer({ subjectState }: {
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowUp size={15} strokeWidth={2.5} />
+            <ArrowUp size={16} strokeWidth={2.5} />
             {t('Наверх')}
           </motion.button>
         )}
@@ -2200,7 +2197,7 @@ export default function BankTrainer({ subjectState }: {
         {bankOn && view !== 'decks' && (
         <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
           <div className="flex items-center" style={{ gap: 7 }}>
-            <Filter size={15} style={{ color: palette.text }} />
+            <Filter size={16} style={{ color: palette.text }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2266,7 +2263,7 @@ export default function BankTrainer({ subjectState }: {
               placeholder={searchOpen || search ? t('Поиск по тексту или №...') : t('Поиск')}
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
             />
-            {search && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={13} strokeWidth={2.5} /></button>}
+            {search && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={14} strokeWidth={2.5} /></button>}
           </div>
           {/* Статус, вид и сортировка — общие со скелетом (components/trainer).
               Своих копий у банка больше нет: расходились бы при первой правке. */}
@@ -2299,7 +2296,7 @@ export default function BankTrainer({ subjectState }: {
 
           <button onClick={() => setShowFavOnly(f => !f)}
             style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, ...PILL_GLASS, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
-            <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
+            <Star size={14} fill={showFavOnly ? 'currentColor' : 'none'} />
             {showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}
           </button>
 

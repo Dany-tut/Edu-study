@@ -90,7 +90,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
         }}
         style={{
           padding: '7px 12px', borderRadius: 11, fontFamily: 'inherit',
-          fontSize: 14.5, fontWeight: 650, lineHeight: 1.25,
+          fontSize: 15, fontWeight: 600, lineHeight: 1.3,
           cursor: disabled ? 'default' : 'pointer',
           border: `1.5px solid ${
             ok === null
@@ -123,7 +123,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
         {loose.length > 0
           ? loose.map(i => <Tile key={i} i={i} inColumn={false} />)
           : (
-            <span style={{ fontSize: 12.5, color: 'var(--color-text-3)', alignSelf: 'center' }}>
+            <span style={{ fontSize: 13, color: 'var(--color-text-3)', alignSelf: 'center' }}>
               {t('Всё разложено')}
             </span>
           )}
@@ -159,7 +159,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
       </div>
 
       {!disabled && !showVerdict && (
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Тап по слову, затем по столбцу. Тап по разложенному вернёт его назад')}
         </span>
       )}

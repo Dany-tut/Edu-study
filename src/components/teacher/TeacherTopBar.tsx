@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import CountBadge from '../CountBadge'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
@@ -449,11 +450,7 @@ export default function TeacherTopBar() {
               }}>
                 {t(item.label)}
               </span>
-              {badgeCount > 0 && (
-                <span style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, minWidth: 17, height: 17, borderRadius: 9, padding: '0 5px', background: 'linear-gradient(135deg, #E5484D, #A8282D)', color: '#fff', fontSize: 10.5, fontWeight: 800, lineHeight: 1, letterSpacing: '0.2px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5), 0 0 0 1.5px var(--color-bg)' }}>
-                  {badgeCount}
-                </span>
-              )}
+              <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
             </motion.button>
           )
         })}
@@ -475,7 +472,7 @@ export default function TeacherTopBar() {
           aria-label={t('Действия')}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 44, borderRadius: 14, border: 'none', cursor: 'pointer', background: 'none', color: 'var(--color-muted)' }}
         >
-          <LayoutGrid size={17} strokeWidth={2} />
+          <LayoutGrid size={18} strokeWidth={2} />
         </motion.button>
 
         <motion.button
@@ -602,8 +599,8 @@ export default function TeacherTopBar() {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: planPct != null ? 7 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                  <Zap size={13} strokeWidth={2.2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(planTier.name)}</span>
+                  <Zap size={14} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(planTier.name)}</span>
                 </div>
                 {planDaysLeft != null && (
                   <span style={{ fontSize: 11, fontWeight: 600, flexShrink: 0, color: planEnding ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>
@@ -616,7 +613,7 @@ export default function TeacherTopBar() {
                   <div style={{ height: 5, borderRadius: 3, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
                     <div style={{ width: `${planPct}%`, height: '100%', borderRadius: 3, background: planEnding ? 'var(--color-red-text)' : 'var(--grad-purple)' }} />
                   </div>
-                  <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', marginTop: 4 }}>{planUsed} / {planLimit} {t('учеников')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{planUsed} / {planLimit} {t('учеников')}</div>
                 </>
               )}
             </button>
@@ -664,7 +661,7 @@ export default function TeacherTopBar() {
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Globe size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                <Globe size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('Язык')}</div>
@@ -680,7 +677,7 @@ export default function TeacherTopBar() {
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LogOut size={15} strokeWidth={2} style={{ color: dark ? '#FC8181' : '#C53030' }} />
+                <LogOut size={16} strokeWidth={2} style={{ color: dark ? '#FC8181' : '#C53030' }} />
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: dark ? '#FC8181' : '#C53030', lineHeight: 1.3 }}>{t('Выйти')}</div>
             </motion.button>

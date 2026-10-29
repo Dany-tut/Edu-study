@@ -67,7 +67,7 @@ export function Block({ children, tone, accent, size = 'md', dashed, state, onCl
     // `borderStyle` при перерисовке (и правда путает их порядок применения).
     borderWidth: 2, borderStyle: dashed ? 'dashed' : 'solid', borderColor: fg,
     background: bg, color: fg,
-    fontFamily: 'inherit', fontSize: font, fontWeight: 750, lineHeight: 1.15,
+    fontFamily: 'inherit', fontSize: font, fontWeight: 700, lineHeight: 1.2,
     boxShadow: dashed ? 'none' : '2px 2px 0 var(--color-border-medium)',
     cursor: onClick ? 'pointer' : 'default',
   }
@@ -127,7 +127,7 @@ const BTN_H = 42
 const btnBase: React.CSSProperties = {
   height: BTN_H, boxSizing: 'border-box', borderRadius: 999, cursor: 'pointer',
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, lineHeight: 1, whiteSpace: 'nowrap',
+  fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 
 export const primaryBtn = (accent: string): React.CSSProperties => ({

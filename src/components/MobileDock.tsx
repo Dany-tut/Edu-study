@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import CountBadge from './CountBadge'
 import { createPortal } from 'react-dom'
 import { useRef, useState, useLayoutEffect, useCallback, useEffect } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
@@ -254,7 +255,7 @@ export function DockSegment<T extends string | number>({
                 // на всю таблетку: «Немецкий с нуля — A1 → B1, живой» съедал ряд
                 // целиком, и соседних курсов в нём не оставалось видно вовсе.
                 maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis',
-                fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
+                fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                 background: active ? (accent ?? 'var(--grad-purple)') : 'transparent',
                 color: active ? '#fff' : 'var(--color-text-2)',
                 transition: 'background 0.2s, color 0.2s',
@@ -298,15 +299,7 @@ export function DockCircle({
       }}
     >
       {icon}
-      {badge != null && badge > 0 && (
-        <span style={{
-          position: 'absolute', top: -2, right: -2,
-          minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-          background: 'var(--grad-purple)', color: '#fff',
-          fontSize: 10, fontWeight: 800, border: '1.5px solid var(--color-bg)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>{badge > 99 ? '99+' : badge}</span>
-      )}
+      {badge != null && <CountBadge count={badge} ring="var(--color-bg)" style={{ position: 'absolute', top: -2, right: -2 }} />}
     </motion.button>
   )
 }

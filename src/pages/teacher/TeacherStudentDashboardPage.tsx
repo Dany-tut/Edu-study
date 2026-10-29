@@ -56,7 +56,7 @@ function SectionHeader({ icon: Icon, label, accent }: { icon: React.FC<{ size?: 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 16 }}>
       <Icon size={13} style={{ color: accent ?? 'var(--color-text-3)' }} />
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', letterSpacing: 0.2, textTransform: 'uppercase' }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
     </div>
   )
 }
@@ -267,7 +267,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
                       )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 30, fontWeight: 900, color: pctColor, letterSpacing: -1 }}>{pct}%</div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: pctColor, letterSpacing: -1 }}>{pct}%</div>
                 </div>
                 {/* Section bars grid */}
                 <div style={{ padding: '14px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -443,7 +443,7 @@ export default function TeacherStudentDashboardPage() {
       >
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
-        <h1 style={{ fontSize: 22, marginBottom: 4 }}>{tn(student.name)}</h1>
+        <h1 style={{ fontSize: 24, marginBottom: 4 }}>{tn(student.name)}</h1>
         <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon}{ICON_GAP}{tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
@@ -518,7 +518,7 @@ export default function TeacherStudentDashboardPage() {
         }}>
           <Avatar student={student} group={group} size={68} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -543,7 +543,7 @@ export default function TeacherStudentDashboardPage() {
                   padding: '2px 10px', borderRadius: 7,
                   background: group.color + '18', border: `1px solid ${group.color}30`,
                 }}>
-                  <BookOpen size={11} />
+                  <BookOpen size={12} />
                   {tc(c.title)}
                   <span style={{ fontSize: 11, opacity: 0.7 }}>{c.completedLessons}/{c.totalLessons}</span>
                 </span>
@@ -554,17 +554,17 @@ export default function TeacherStudentDashboardPage() {
             {student.phone && (
               <a href={`tel:${student.phone}`}
                 style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={student.phone}><Phone size={15} /></a>
+                title={student.phone}><Phone size={16} /></a>
             )}
             {student.telegramLink && (
               <a href={contactHref(student.telegramLink)} target="_blank" rel="noreferrer"
                 style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={contactLabel(student.telegramLink)}><Send size={15} /></a>
+                title={contactLabel(student.telegramLink)}><Send size={16} /></a>
             )}
             {student.parentContact && (
               <a href={`tel:${student.parentContact}`}
                 style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={`${t('Родитель:')} ${student.parentContact}`}><User size={15} /></a>
+                title={`${t('Родитель:')} ${student.parentContact}`}><User size={16} /></a>
             )}
           </div>
         </div>
@@ -574,7 +574,7 @@ export default function TeacherStudentDashboardPage() {
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <Target size={14} style={{ color: 'var(--color-accent)' }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('Результаты диагностики')}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Результаты диагностики')}</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '1px 8px' }}>{diagResults.length}</span>
             </div>
             <DiagnosticPillRow results={diagResults} />
@@ -598,9 +598,9 @@ export default function TeacherStudentDashboardPage() {
             <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 7 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={13} style={{ color }} />
-                <span style={{ fontSize: 11, color, opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</span>
+                <span style={{ fontSize: 11, color, opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
               </div>
-              <span style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>{value}</span>
+              <span style={{ fontSize: 24, fontWeight: 800, color, lineHeight: 1 }}>{value}</span>
             </div>
           ))}
         </div>
@@ -625,7 +625,7 @@ export default function TeacherStudentDashboardPage() {
                 padding: '4px 12px', borderRadius: 999,
                 background: 'var(--color-bg-card)', border: '1px solid var(--color-border-soft)',
               }}>
-                <Target size={11} style={{ color: 'var(--color-accent)' }} />
+                <Target size={12} style={{ color: 'var(--color-accent)' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
                   {t('Диагностика')} · {diagResults.length}
                 </span>
@@ -634,7 +634,7 @@ export default function TeacherStudentDashboardPage() {
                   transition={{ duration: 0.2 }}
                   style={{ display: 'flex', alignItems: 'center' }}
                 >
-                  <ChevronDown size={13} style={{ color: 'var(--color-text-3)' }} />
+                  <ChevronDown size={14} style={{ color: 'var(--color-text-3)' }} />
                 </motion.div>
               </div>
               <div style={{ flex: 1, height: 1, background: 'var(--color-border-soft)' }} />
@@ -674,10 +674,10 @@ export default function TeacherStudentDashboardPage() {
                 {student.trialScore != null && <ScoreBar label={t('Пробный экзамен')} icon={Award} value={student.trialScore} color="var(--color-yellow-text)" bg="rgba(245,166,35,0.12)" />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--color-bg)', borderRadius: 12 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: realAttendance >= 90 ? 'rgba(95,214,138,0.14)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'rgba(244,139,145,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Clock size={13} strokeWidth={2} style={{ color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }} />
+                    <Clock size={14} strokeWidth={2} style={{ color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }} />
                   </div>
                   <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{t('Посещаемость')}</span>
-                  <span style={{ fontSize: 16, fontWeight: 750, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{realAttendance}%</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{realAttendance}%</span>
                 </div>
               </div>
             </Card>
@@ -699,7 +699,7 @@ export default function TeacherStudentDashboardPage() {
                         transition={{ duration: 0.5, delay: i * 0.04 }}
                         style={{ width: '100%', borderRadius: 4, background: isLast ? group.color : group.color + '66', flexShrink: 0 }}
                       />
-                      <span style={{ fontSize: 9, color: isLast ? 'var(--color-text)' : 'var(--color-muted)', fontWeight: isLast ? 700 : 400 }}>{val}</span>
+                      <span style={{ fontSize: 10, color: isLast ? 'var(--color-text)' : 'var(--color-muted)', fontWeight: isLast ? 700 : 400 }}>{val}</span>
                     </div>
                   )
                 })}
@@ -738,7 +738,7 @@ export default function TeacherStudentDashboardPage() {
               </div>
               <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12, background: 'var(--color-bg-5)' }}>
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Средний балл за ДЗ')}</span>
-                <span style={{ marginLeft: 'auto', fontSize: 14, fontWeight: 750, color: hwAvg >= 80 ? 'var(--color-green-text)' : hwAvg >= 60 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{Math.round(hwAvg)}%</span>
+                <span style={{ marginLeft: 'auto', fontSize: 14, fontWeight: 700, color: hwAvg >= 80 ? 'var(--color-green-text)' : hwAvg >= 60 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{Math.round(hwAvg)}%</span>
               </div>
             </Card>
 
@@ -787,7 +787,7 @@ export default function TeacherStudentDashboardPage() {
                       {student.debt != null && student.debt > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 10px', borderRadius: 10, background: 'var(--color-red-soft)' }}>
                           <span style={{ fontSize: 12, color: 'var(--color-red-text)', fontWeight: 600 }}>{t('Долг')}</span>
-                          <span style={{ fontSize: 12, fontWeight: 750, color: 'var(--color-red-text)' }}>{student.debt.toLocaleString('ru')} ₽</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-red-text)' }}>{student.debt.toLocaleString('ru')} ₽</span>
                         </div>
                       )}
                     </div>
@@ -856,7 +856,7 @@ export default function TeacherStudentDashboardPage() {
                   { val: sessionDays, label: t('Занятий'), color: 'var(--color-purple)', bg: 'rgba(185,143,255,0.14)' },
                 ].map(({ val, label, color, bg }) => (
                   <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, textAlign: 'center' }}>
-                    <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
                     <div style={{ fontSize: 10, color, opacity: 0.7, marginTop: 3 }}>{label}</div>
                   </div>
                 ))}
@@ -890,7 +890,7 @@ export default function TeacherStudentDashboardPage() {
                     <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
                     <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{wt.topic}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Линия')} {wt.line}</span>
-                    <CheckCircle2 size={13} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+                    <CheckCircle2 size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
                   </div>
                 ))}
               </div>
@@ -936,7 +936,7 @@ export default function TeacherStudentDashboardPage() {
                 })}
                 {trainerSections.filter(s => s.total > 0 && s.correct / s.total < 0.5).length === 0 && (
                   <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)', fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <CheckCircle2 size={13} style={{ flexShrink: 0 }} /> {t('Нет явно слабых тем — отличная равномерная подготовка')}
+                    <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> {t('Нет явно слабых тем — отличная равномерная подготовка')}
                   </div>
                 )}
               </div>

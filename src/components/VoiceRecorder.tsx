@@ -158,10 +158,10 @@ export default function VoiceRecorder({
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <AudioPlayer audioUrl={value} compact accent={accent} />
-        <span style={{ fontSize: 12.5, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Ответ записан')}</span>
+        <span style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Ответ записан')}</span>
         <button onClick={() => onChange(null)} title={t('Перезаписать')}
-          style={{ marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 8, height: 30, padding: '0 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
-          <Trash2 size={13} /> {t('Заново')}
+          style={{ marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 8, height: 30, padding: '0 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+          <Trash2 size={14} /> {t('Заново')}
         </button>
       </div>
     )
@@ -191,7 +191,7 @@ export default function VoiceRecorder({
       )}
 
       {phase === 'error' && (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-red-text)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--color-red-text)' }}>
           <AlertCircle size={14} /> {error}
         </span>
       )}
@@ -200,7 +200,7 @@ export default function VoiceRecorder({
           инструкция, если держать её в одном ряду с кнопкой. */}
       {phase === 'error' && !!hint && (
         <p style={{
-          flexBasis: '100%', margin: 0, fontSize: 12.5, lineHeight: 1.5,
+          flexBasis: '100%', margin: 0, fontSize: 13, lineHeight: 1.5,
           color: 'var(--color-text-2)', padding: '10px 12px', borderRadius: 14,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>

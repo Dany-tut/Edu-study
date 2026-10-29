@@ -200,7 +200,7 @@ export default function CardImportPanel({
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <Sparkles size={13} style={{ color: accent, flexShrink: 0 }} />
+              <Sparkles size={14} style={{ color: accent, flexShrink: 0 }} />
               <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginRight: 'auto' }}>
                 {caption ?? t('Собрать карточки за меня')}
               </div>
@@ -273,7 +273,7 @@ export default function CardImportPanel({
       {found && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
               {t('Нашлось карточек:')} {rows.length}
             </div>
             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -284,7 +284,7 @@ export default function CardImportPanel({
               justifyContent: 'center', borderRadius: 9, border: '1px solid var(--color-border-soft)',
               background: 'transparent', color: 'var(--color-text-2)', cursor: 'pointer',
             }}>
-              <X size={13} />
+              <X size={14} />
             </button>
           </div>
 
@@ -308,7 +308,7 @@ export default function CardImportPanel({
                     onFocus={underline(accent)}
                     onBlur={underline(null)}
                     placeholder={t('Слово')}
-                    style={bare(accent, { flex: 1, fontWeight: 650 })}
+                    style={bare(accent, { flex: 1, fontWeight: 600 })}
                   />
                   <input
                     value={r.ru}
@@ -326,7 +326,7 @@ export default function CardImportPanel({
                       onBlur={underline(null)}
                       placeholder={t('Раздел')}
                       title={t('Из этой метки собирается стопка')}
-                      style={bare(accent, { width: '16%', fontSize: 11.5, color: 'var(--color-text-3)' })}
+                      style={bare(accent, { width: '16%', fontSize: 12, color: 'var(--color-text-3)' })}
                     />
                   )}
                 </div>
@@ -337,7 +337,7 @@ export default function CardImportPanel({
           {canSplit && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginRight: 'auto' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginRight: 'auto' }}>
                   {t('Куда положить')}
                 </div>
                 <button onClick={() => setSplit(true)} style={pill(accent, split)}>
@@ -364,14 +364,14 @@ export default function CardImportPanel({
               disabled={kept === 0}
               style={{
                 height: 34, padding: '0 16px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
-                background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700,
+                background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
                 opacity: kept === 0 ? 0.45 : 1, cursor: kept === 0 ? 'default' : 'pointer',
               }}
             >
               {asGroups ? t('Разложить по стопкам') : (addLabel ?? t('Добавить в набор'))} · {kept}
             </button>
             {kept < rows.length && (
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>
                 {t('Снято:')} {rows.length - kept}
               </div>
             )}
@@ -408,7 +408,7 @@ const pill = (accent: string, active: boolean): React.CSSProperties => ({
   borderRadius: 11, border: `1px solid ${active ? accent : 'var(--color-border-soft)'}`,
   background: active ? `${accent}1f` : 'transparent',
   color: active ? accent : 'var(--color-text-2)',
-  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+  fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
 })
 
 /**

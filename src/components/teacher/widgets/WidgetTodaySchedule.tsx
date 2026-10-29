@@ -23,7 +23,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
   const isDone = item.status === 'completed'
 
   const dot = isDone ? (
-    <CheckCircle2 size={17} strokeWidth={2.2} style={{ color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: '50%' }} />
+    <CheckCircle2 size={18} strokeWidth={2} style={{ color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: '50%' }} />
   ) : isLive ? (
     <span style={{ position: 'relative', display: 'flex' }}>
       <span style={{ width: 13, height: 13, borderRadius: '50%', background: item.color, boxShadow: `0 0 0 3px color-mix(in srgb, ${item.color} 28%, transparent)` }} />
@@ -62,7 +62,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
         </span>
       </div>
 
-      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, flexShrink: 0, width: 62, alignSelf: 'center' }}>
+      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, flexShrink: 0, width: 62, alignSelf: 'center' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: isLive ? 'var(--color-text)' : 'var(--color-text-2)' }}>
           {item.time}{item.endTime ? `–${item.endTime}` : ''}
         </span>
@@ -81,10 +81,10 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
             borderRadius: 8, padding: '3px 9px', flexShrink: 0, maxWidth: '100%',
           }}>
             <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
           </span>
           {isLive && (
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
               {t('ИДЁТ СЕЙЧАС')}
             </span>
           )}
@@ -97,7 +97,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
       </span>
 
       <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-3)', alignSelf: 'center' }}>
-        <Users size={13} strokeWidth={1.8} />
+        <Users size={14} strokeWidth={2} />
         <span style={{ fontSize: 12, fontWeight: 600 }}>{item.studentCount}</span>
       </span>
     </motion.button>
@@ -111,7 +111,7 @@ function NowMarker({ time }: { time: string }) {
       <div style={{ width: 22, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-red-text)', boxShadow: '0 0 0 3px var(--color-red-soft)' }} />
       </div>
-      <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
+      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
         {t('СЕЙЧАС')} · {time}
       </span>
       <span style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--color-red-soft), transparent)' }} />
@@ -166,7 +166,7 @@ export default function WidgetTodaySchedule() {
         >
           {todaySchedule.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
-              <Clock size={26} strokeWidth={1.5} />
+              <Clock size={24} strokeWidth={1.5} />
               <span style={{ fontSize: 13, fontWeight: 600 }}>{t('Сегодня уроков нет')}</span>
             </div>
           ) : todaySchedule.map((item, i) => (

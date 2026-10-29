@@ -51,10 +51,10 @@ export function GrammarGrid({ groups, result, accent, soft, onOpen }: {
       {groups.map(g => (
         <section key={g.chapter} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <header>
-            <h2 style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
               {t(g.chapter)}
             </h2>
-            <p style={{ fontSize: 12.5, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5 }}>
               {g.forms.length} {t(formsWord(g.forms.length))}
             </p>
           </header>
@@ -72,13 +72,13 @@ export function GrammarGrid({ groups, result, accent, soft, onOpen }: {
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {/* Сама форма крупно и своим письмом: её и ищут глазами,
                         а не русское название. */}
-                    <span style={{ fontSize: 17, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.25 }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                       {f.form}
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)', lineHeight: 1.3 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', lineHeight: 1.3 }}>
                       {f.title}
                     </span>
-                    <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>
                       {f.short}
                     </span>
                   </span>
@@ -161,7 +161,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
       <Section title={t('Как это работает')}>
         {form.rule.split('\n\n').map((p, i) => (
           <p key={i} style={{
-            margin: 0, fontSize: 14.5, lineHeight: 1.7,
+            margin: 0, fontSize: 15, lineHeight: 1.6,
             color: 'var(--color-text-2)', ...proseWrap,
           }}>
             {bindShortWords(p)}
@@ -184,12 +184,12 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
               display: 'flex', flexDirection: 'column', gap: 5,
             }}>
               <GlossedText text={ex.text} lang={lang} accent={accent} subject={subject} />
-              <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
                 {ex.ru}
               </div>
               <div style={{
                 display: 'flex', gap: 6, alignItems: 'flex-start',
-                fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.5,
+                fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5,
               }}>
                 <Sparkle size={12} style={{ color: accent, flexShrink: 0, marginTop: 2 }} />
                 <span style={proseWrap}>{bindShortWords(ex.when)}</span>
@@ -205,8 +205,8 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
           display: 'flex', gap: 10, padding: '13px 16px', borderRadius: 14,
           background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
         }}>
-          <AlertTriangle size={15} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 2 }} />
-          <span style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
+          <AlertTriangle size={16} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 2 }} />
+          <span style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
             <b style={{ color: 'var(--color-text)' }}>{t('Типичная ошибка')}. </b>
             {bindShortWords(form.pitfall)}
           </span>
@@ -233,10 +233,10 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
                 >
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: 6,
-                    fontSize: 14.5, fontWeight: 750, color: accent,
+                    fontSize: 15, fontWeight: 700, color: accent,
                   }}>
                     {other ? other.form : c.with}
-                    {other && <ArrowRight size={13} />}
+                    {other && <ArrowRight size={14} />}
                   </span>
                   <span style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
                     {bindShortWords(c.note)}
@@ -269,7 +269,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <header>
-        <h3 style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', margin: 0 }}>{title}</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>{title}</h3>
         {hint && (
           <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5, ...proseWrap }}>
             {bindShortWords(hint)}
@@ -296,7 +296,7 @@ function FormTable({ table, accent, soft }: {
             {table.head.map((h, i) => (
               <th key={i} style={{
                 textAlign: 'left', padding: '10px 13px', fontSize: 12,
-                fontWeight: 750, color: accent, whiteSpace: 'nowrap',
+                fontWeight: 700, color: accent, whiteSpace: 'nowrap',
               }}>
                 {h}
               </th>
@@ -310,7 +310,7 @@ function FormTable({ table, accent, soft }: {
                 <td key={j} style={{
                   padding: '10px 13px', fontSize: 13, lineHeight: 1.5,
                   color: j === 0 ? 'var(--color-text)' : 'var(--color-text-2)',
-                  fontWeight: j === 0 ? 650 : 400,
+                  fontWeight: j === 0 ? 600 : 400,
                 }}>
                   {cell}
                 </td>
@@ -361,7 +361,7 @@ function Quiz({ form, accent, soft, onDone }: {
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
           display: 'flex', flexDirection: 'column', gap: 9,
         }}>
-          <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.5, ...proseWrap }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, ...proseWrap }}>
             {bindShortWords(q.q)}
           </div>
 
@@ -382,7 +382,7 @@ function Quiz({ form, accent, soft, onDone }: {
                     textAlign: 'left', cursor: done ? 'default' : 'pointer',
                     padding: '10px 13px', borderRadius: 12,
                     display: 'flex', alignItems: 'center', gap: 9,
-                    fontSize: 13.5, lineHeight: 1.5,
+                    fontSize: 14, lineHeight: 1.5,
                     color: 'var(--color-text-2)',
                     background: tone === 'right' ? 'var(--color-green-soft)'
                       : tone === 'wrong' ? 'var(--color-red-soft)'
@@ -403,7 +403,7 @@ function Quiz({ form, accent, soft, onDone }: {
 
           {picked[qi] !== undefined && (
             <div style={{
-              fontSize: 12.5, lineHeight: 1.6, color: 'var(--color-text-2)',
+              fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)',
               padding: '10px 13px', borderRadius: 12, background: soft, ...proseWrap,
             }}>
               {bindShortWords(q.why)}
@@ -416,7 +416,7 @@ function Quiz({ form, accent, soft, onDone }: {
         <div style={{
           padding: '12px 16px', borderRadius: 14, background: soft,
           border: `1px solid ${accent}33`,
-          fontSize: 13.5, fontWeight: 700, color: accent,
+          fontSize: 14, fontWeight: 700, color: accent,
         }}>
           {score} / {form.quiz.length} — {score === form.quiz.length
             ? t('форма разобрана')

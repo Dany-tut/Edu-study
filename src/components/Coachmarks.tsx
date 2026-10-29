@@ -253,10 +253,10 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: accent, marginBottom: 5 }}>
           {i + 1} / {steps.length}
         </div>
-        <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6, paddingRight: 28 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6, paddingRight: 28 }}>
           {step.title}
         </div>
-        <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-text-2)' }}>
+        <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)' }}>
           {step.text}
         </div>
 
@@ -282,7 +282,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
                 flexShrink: 0,
                 padding: '8px 12px', borderRadius: 999, border: 'none', background: 'transparent',
                 color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 13, fontWeight: 650,
+                fontSize: 13, fontWeight: 600,
               }}
             >
               {t('Пропустить')}
@@ -293,7 +293,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
             style={{
               flexShrink: 0,
               padding: '9px 16px', borderRadius: 999, border: 'none', background: accent,
-              color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700,
+              color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
             }}
           >
             {last ? t('Понятно') : t('Дальше')}

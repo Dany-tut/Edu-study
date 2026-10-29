@@ -158,7 +158,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
               <Block accent={accent} tone={ending.tone}>{tailOf(verb, ending.id)}</Block>
             </>
           )}
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)', marginLeft: 4 }}>{form.ru}</span>
+          <span style={{ fontSize: 14, color: 'var(--color-text-2)', marginLeft: 4 }}>{form.ru}</span>
         </div>
         {merged && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}>
@@ -166,7 +166,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 750, color: 'var(--color-text-3)' }}>{ending.label}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{ending.label}</span>
           {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{form.reading}</span>}
         </div>
       </div>
@@ -278,12 +278,12 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <TileChip tone="accent" accent={accent} soft={soft}>{verb.ru}</TileChip>
-        <span style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
           {verb.dict}
         </span>
         {reading && <span style={{ fontSize: 13, color: accent, opacity: 0.9 }}>{verb.reading}</span>}
       </div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
+      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
         {t('Основа')} <b>{verb.stem}</b>{' '}
         {t('не меняется ни в одной форме — меняется только хвост справа. Выучить нужно хвосты, а не формы.')}
       </p>
@@ -317,7 +317,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
           </div>
           {q.kind === 'build' ? (
             <>
-              <div style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', textAlign: 'center' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center' }}>
                 «{form.ru}»
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -355,7 +355,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
                 disabled={!!picked}
                 style={{
                   padding: '13px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
-                  fontFamily: 'inherit', fontSize: q.kind === 'build' ? 19 : 14.5, fontWeight: 700, lineHeight: 1.3,
+                  fontFamily: 'inherit', fontSize: q.kind === 'build' ? 20 : 15, fontWeight: 700, lineHeight: 1.3,
                   border: `1.5px solid ${
                     show && isAnswer ? 'var(--color-green-accent)'
                     : show ? 'var(--color-red-border)'
@@ -375,7 +375,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
         {picked && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 750,
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700,
               color: right ? 'var(--color-green-text)' : 'var(--color-red-text)',
             }}>
               {right ? <Check size={16} /> : <X size={16} />}
@@ -384,7 +384,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
             {/* Подпись хвоста показывается ровно в момент ответа: тогда она
                 читается как объяснение, а не как справка на полях. */}
             <div style={{
-              fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)',
+              fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)',
               padding: '10px 14px', borderRadius: 14,
               border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', ...proseWrap,
             }}>
@@ -412,7 +412,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
           padding: '22px 18px', borderRadius: 20, textAlign: 'center',
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
               ? t('Основа собрана целиком. Те же хвосты цепляются к любому глаголу — попробуй следующий.')
@@ -421,7 +421,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
         </div>
         {weak.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-muted)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)' }}>
               {t('Не собралось')}
             </div>
             {weak.map(e => (
@@ -456,14 +456,14 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <button onClick={start} style={primaryBtn(accent)}>
-          <Blocks size={15} />
+          <Blocks size={16} />
           {t('Собрать формы')}
         </button>
         <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять формы в колоду')}
         </button>
         {added !== null && (
-          <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Всё это уже в колоде.')}
           </span>
         )}

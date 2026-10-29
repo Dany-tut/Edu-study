@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -170,18 +171,11 @@ const SORT_OPTS: [SortMode, string][] = [
 const uid = () => Math.random().toString(36).slice(2)
 const plBall = (n: number) => (n === 1 ? t('балл') : n >= 2 && n <= 4 ? t('балла') : t('баллов'))
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box',
-  padding: '9px 12px', borderRadius: 11,
-  border: 'none',
-  fontSize: 13, color: 'var(--color-text)',
-  background: 'var(--color-bg-2)', outline: 'none',
-  fontFamily: 'inherit',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
-  // Отступ = начало текста в поле под подписью (12 px), а не край рамки.
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 12 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (12 + рамка 1.5), а не край рамки.
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 13 }}>{children}</div>
 }
 
 // Default scoring derivation for a task that has none set yet.
@@ -336,7 +330,7 @@ export function BankQuestionCard({
               <button onClick={onDelete} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, cursor: 'pointer',
                 background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: 'none',
-              }}><Trash2 size={13} /></button>
+              }}><Trash2 size={14} /></button>
             )}
           </div>
         </div>
@@ -353,7 +347,7 @@ export function BankQuestionCard({
               <span style={cardChip(accent)}>{computedMax} {plBall(computedMax)}</span>
               {dirty && <span style={cardChip(accent)}>{t('изменено')}</span>}
             </div>
-            <p style={{ fontSize: 14.5, lineHeight: 1.4, fontWeight: 650, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontSize: 15, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>
               {question || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
             </p>
           </div>
@@ -460,7 +454,7 @@ function KeyRubric({
                 : <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: accent, opacity: 0.7 }} />}
               <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{r.text}</div>
               <div style={{ padding: '3px 10px', borderRadius: 8, background: accentBg, color: accent, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{r.points} {plBall(r.points)}</div>
-              <button onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', 'var(--color-red-text)')}><X size={10} /></button>
+              <button onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', 'var(--color-red-text)')}><X size={12} /></button>
             </div>
           ))}
         </div>
@@ -473,7 +467,7 @@ function KeyRubric({
           <input type="number" min={1} value={newPts} onChange={e => setNewPts(Number(e.target.value))} style={inputStyle} />
         </div>
         <motion.button whileTap={{ scale: 0.95 }} onClick={onAdd} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: accentBg, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Plus size={16} strokeWidth={2.4} />
+          <Plus size={16} strokeWidth={2.5} />
         </motion.button>
       </div>
       {rows.length === 0 && (
@@ -547,13 +541,13 @@ function BankGridCard({
           cursor: 'pointer', transition: 'all 0.14s',
           boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
         }}>
-          {selected && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+          {selected && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
         </div>
       )}
       {/* Head: icon box + badges */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Zap size={17} strokeWidth={2} style={{ color: subjectColor }} />
+          <Zap size={18} strokeWidth={2} style={{ color: subjectColor }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <CopyableLineBadge line={task.line} accent={accent} accentBg={accentBg} />
@@ -578,7 +572,7 @@ function BankGridCard({
           {showSelect && (
             <button onClick={onToggleSelected} title={selected ? t('Убрать из тренажёра') : t('Добавить в тренажёр')}
               style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? accentBg : 'var(--grad-purple)', color: selected ? accent : '#fff' }}>
-              {selected ? <Check size={11} strokeWidth={3} /> : <Plus size={11} strokeWidth={3} />}
+              {selected ? <Check size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
             </button>
           )}
         </div>

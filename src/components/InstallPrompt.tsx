@@ -115,10 +115,10 @@ export default function InstallPrompt() {
             <div style={{ position: 'relative', padding: '14px 22px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <PhoneMockup />
 
-              <div style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', marginTop: 18, letterSpacing: '-0.01em' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', marginTop: 18, letterSpacing: '-0.01em' }}>
                 {t('Установить «Искру»')}
               </div>
-              <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4, textAlign: 'center', marginTop: 5, maxWidth: 300 }}>
+              <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.4, textAlign: 'center', marginTop: 5, maxWidth: 300 }}>
                 {t('Быстрый доступ прямо с экрана «Домой» — без адресной строки')}
               </div>
 
@@ -139,17 +139,17 @@ export default function InstallPrompt() {
                   style={{
                     width: '100%', padding: '15px 0', borderRadius: 16, border: 'none',
                     background: 'linear-gradient(135deg,#9B6FE8,#6F3FBF)', color: '#fff',
-                    fontSize: 15.5, fontWeight: 750, cursor: 'pointer',
+                    fontSize: 16, fontWeight: 700, cursor: 'pointer',
                     boxShadow: '0 10px 26px rgba(111,63,191,0.4)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
                 >
-                  <Plus size={18} strokeWidth={2.6} /> {t('Установить приложение')}
+                  <Plus size={18} strokeWidth={2.5} /> {t('Установить приложение')}
                 </button>
               </div>
             ) : (
               <div style={{ padding: '18px 22px 4px' }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 12 }}>
                   {t('Как установить')}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -157,7 +157,7 @@ export default function InstallPrompt() {
                     {t('Нажмите')} <Glyph><Share size={14} strokeWidth={2} /></Glyph> {t('«Поделиться» внизу Safari')}
                   </Step>
                   <Step n={2}>
-                    {t('Выберите')} <b style={{ color: 'var(--color-text)' }}>{t('«На экран Домой»')}</b> <Glyph><Plus size={14} strokeWidth={2.4} /></Glyph>
+                    {t('Выберите')} <b style={{ color: 'var(--color-text)' }}>{t('«На экран Домой»')}</b> <Glyph><Plus size={14} strokeWidth={2.5} /></Glyph>
                   </Step>
                   <Step n={3}>
                     {t('Нажмите')} <b style={{ color: 'var(--color-text)' }}>{t('«Добавить»')}</b> {t('— иконка «Искры» появится на экране')}
@@ -214,7 +214,7 @@ function Perk({ icon: Icon, label }: { icon: typeof Rocket; label: string }) {
       padding: '11px 6px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
     }}>
       <Icon size={17} style={{ color: 'var(--color-accent)' }} />
-      <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--color-text-2)', textAlign: 'center', lineHeight: 1.2 }}>{label}</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', textAlign: 'center', lineHeight: 1.2 }}>{label}</span>
     </div>
   )
 }
@@ -242,7 +242,7 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
       }}>
         {n}
       </span>
-      <span style={{ fontSize: 13.5, lineHeight: 1.25, color: 'var(--color-text-2)' }}>{children}</span>
+      <span style={{ fontSize: 14, lineHeight: 1.3, color: 'var(--color-text-2)' }}>{children}</span>
     </div>
   )
 }

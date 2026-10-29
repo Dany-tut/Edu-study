@@ -217,7 +217,7 @@ function GesturePreview({ gesture, action, engagement }: {
       {/* Подпись под макетом: что именно сейчас показывают. */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-        padding: '9px 0 2px', fontSize: 12.5, fontWeight: 650, color: 'var(--color-text-3)',
+        padding: '9px 0 2px', fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)',
       }}>
         <span>{t(GESTURES.find(g => g.id === gesture)!.label)}</span>
         <span style={{ color: 'var(--color-text-4)' }}>→</span>
@@ -242,7 +242,7 @@ function ActionChip({ action, on, onPick }: { action: FeedAction; on: boolean; o
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '7px 12px 7px 10px', borderRadius: 999, cursor: 'pointer',
-        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+        fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
         border: `1px solid ${on ? 'transparent' : 'var(--color-border)'}`,
         background: on ? tone.soft : 'transparent',
         color: on ? tone.ink : 'var(--color-muted)',
@@ -271,8 +271,8 @@ function FlagRow({ label, hint, value, onChange, first }: {
       borderTop: first ? 'none' : '1px solid var(--color-border-soft)',
     }}>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t(label)}</div>
-        <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(hint)}</div>
+        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t(label)}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(hint)}</div>
       </div>
       <Switch checked={value} onChange={onChange} label={t(label)} />
     </div>
@@ -380,8 +380,8 @@ export function FeedGesturesSettings() {
                   вправо» ломался пополам на 375 px, и заголовок ряда читался
                   хуже собственного пояснения. */}
               <div style={{ marginBottom: 9 }}>
-                <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t(g.label)}</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-4)', lineHeight: 1.35, marginTop: 2 }}>{t(g.hint)}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t(g.label)}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-4)', lineHeight: 1.3, marginTop: 2 }}>{t(g.hint)}</div>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                 {ACTIONS.map(a => (
@@ -398,12 +398,12 @@ export function FeedGesturesSettings() {
         </div>
       </div>
 
-      <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', padding: '0 4px' }}>
+      <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', padding: '0 4px' }}>
         {t('Свайп начинается от края экрана — узкой полосой слева или справа. Смах по середине поста листает рубрики, как раньше.')}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '0 4px' }}>
-        <span style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+        <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
           {t('Раскладка своя на каждом устройстве — на планшете она может быть другой.')}
         </span>
         <motion.button
@@ -412,7 +412,7 @@ export function FeedGesturesSettings() {
           disabled={JSON.stringify(map) === JSON.stringify(DEFAULT_MAP)}
           style={{
             flexShrink: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: 13, fontWeight: 650, color: 'var(--color-accent)',
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)',
           }}
         >
           {t('Сбросить')}

@@ -141,7 +141,7 @@ export default function MobileCourses() {
         {!subject ? (
           !loaded ? <CoursesSkeleton /> : (
             <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 240, gap: 6 }}>
-              <Lock size={22} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
+              <Lock size={24} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
               <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
               <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
             </div>
@@ -153,7 +153,7 @@ export default function MobileCourses() {
               <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
                 <span style={{ fontSize: 14, fontWeight: 800, color: pal.text }}>{t('Уровень')} {level} · {t(rank)}</span>
                 <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: pal.text }}>
-                  <Zap size={13} />{xpInLevel}/{XP_PER_LEVEL} XP
+                  <Zap size={14} />{xpInLevel}/{XP_PER_LEVEL} XP
                 </span>
               </div>
               <div style={{ height: 8, background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 99, overflow: 'hidden' }}>
@@ -201,7 +201,7 @@ export default function MobileCourses() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 160, color: 'var(--color-muted)', gap: 4 }}>
-                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t('В модуле пока нет уроков')}</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('В модуле пока нет уроков')}</p>
               </div>
             )}
           </div>
@@ -297,7 +297,7 @@ function CoursesSkeleton() {
 function CourseStat({ value, label, pair }: { value: string; label: string; pair: StatusVisual }) {
   return (
     <div style={{ flex: 1, minWidth: 0, borderRadius: 14, padding: '11px 12px', background: pair.tintBg }}>
-      <div style={{ fontSize: 17, fontWeight: 800, color: pair.tint, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: pair.tint, lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 11, fontWeight: 600, color: pair.tint, opacity: 0.85, marginTop: 4 }}>{label}</div>
     </div>
   )
@@ -315,8 +315,8 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
         background: active ? pal.soft : 'transparent' }}
     >
       <div className="flex-1 min-w-0">
-        <div className="truncate" style={{ fontSize: 14.5, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
-        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 3 }}>{done} {t('из')} {total} · {pct}%</div>
+        <div className="truncate" style={{ fontSize: 15, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 3 }}>{done} {t('из')} {total} · {pct}%</div>
       </div>
       <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : pal.accent }} />
@@ -359,7 +359,7 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
           </span>
           {status === 'completed' && lesson.points != null && (
             <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: 'var(--color-yellow-text)', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>
-              <Zap size={11} />+{lesson.points}
+              <Zap size={12} />+{lesson.points}
             </span>
           )}
         </div>

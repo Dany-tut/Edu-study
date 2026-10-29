@@ -222,7 +222,7 @@ export default function TeacherProfileSettingsPage() {
               onClick={() => pickImageFile(setCropFile)}
               style={photoBtnStyle}
             >
-              <Camera size={14} strokeWidth={2.2} />
+              <Camera size={14} strokeWidth={2} />
               <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
             </motion.button>
             {avatarPath && (
@@ -231,7 +231,7 @@ export default function TeacherProfileSettingsPage() {
                 onClick={removePhoto}
                 style={photoBtnStyle}
               >
-                <X size={14} strokeWidth={2.2} />
+                <X size={14} strokeWidth={2} />
                 <span style={{ position: 'relative', top: '-0.12em' }}>{t('Убрать фото')}</span>
               </motion.button>
             )}
@@ -301,7 +301,7 @@ export default function TeacherProfileSettingsPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
-            <User size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
+            <User size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
             <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? t('Администратор') : t('Учитель')}</span>
           </div>
 
@@ -312,7 +312,7 @@ export default function TeacherProfileSettingsPage() {
           <TeacherSaveButton
             label={t('Сохранить')} savingLabel={t('Сохраняем…')}
             saving={saving} saved={saved} disabled={!name.trim()}
-            onClick={handleSave} icon={<Save size={15} strokeWidth={2.5} />} fullWidth
+            onClick={handleSave} icon={<Save size={16} strokeWidth={2.5} />} fullWidth
           />
         </div>
 
@@ -327,7 +327,7 @@ export default function TeacherProfileSettingsPage() {
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Цвета предметов')}</div>
               {colorSaved && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Сохранено')}</div>}
             </div>
-            <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginBottom: 12 }}>
+            <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', marginBottom: 12 }}>
               {t('Этим цветом предмет видите вы и ваши ученики. Ученик может выбрать свой — у вас останется этот.')}
             </div>
             <SubjectColorPicker

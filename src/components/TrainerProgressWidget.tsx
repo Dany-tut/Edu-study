@@ -72,7 +72,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <TrendingUp size={15} style={{ color: accent }} />
+          <TrendingUp size={16} style={{ color: accent }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
             {t(def?.name ?? 'Прогресс')}
           </span>
@@ -91,25 +91,25 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
           растёт на любом предмете и в любом режиме. */}
       <div style={{ display: 'flex', gap: 10 }}>
         <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: `${accent}1F`, textAlign: 'center' }}>
-          <div style={{ fontSize: wide ? 28 : 22, fontWeight: 750, color: palette.text, lineHeight: 1 }}>
+          <div style={{ fontSize: wide ? 28 : 24, fontWeight: 700, color: palette.text, lineHeight: 1 }}>
             {Math.floor(todayMs / 60000)}
           </div>
           <div style={{ fontSize: 10, color: palette.text, opacity: 0.75, marginTop: 4 }}>{t('Мин сегодня')}</div>
         </div>
         <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: 'var(--color-green-soft)', textAlign: 'center' }}>
-          <div style={{ fontSize: wide ? 28 : 22, fontWeight: 750, color: 'var(--color-green-text)', lineHeight: 1 }}>{doneCount}</div>
+          <div style={{ fontSize: wide ? 28 : 24, fontWeight: 700, color: 'var(--color-green-text)', lineHeight: 1 }}>{doneCount}</div>
           <div style={{ fontSize: 10, color: 'var(--color-green-text)', opacity: 0.75, marginTop: 4 }}>
             {kind === 'lang' ? t('Выучено') : t('Верно')}
           </div>
         </div>
         <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', textAlign: 'center' }}>
-          <div style={{ fontSize: wide ? 28 : 22, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1 }}>{totalCount}</div>
+          <div style={{ fontSize: wide ? 28 : 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>{totalCount}</div>
           <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('Всего')}</div>
         </div>
         {wide && kind === 'bank' && (
           <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <Star size={16} style={{ color: 'var(--color-muted)' }} />
-            <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1 }}>{favCount}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>{favCount}</div>
             <div style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Избр.')}</div>
           </div>
         )}
@@ -136,7 +136,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
       {/* Today row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Clock size={11} /> {t('Сегодня')}
+          <Clock size={12} /> {t('Сегодня')}
         </span>
         {/* Та же точка, что в пилюле верхней строки: идёт счёт или пауза. */}
         <span style={{ padding: '3px 9px', borderRadius: 999, background: `${accent}1F`, color: palette.text, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>

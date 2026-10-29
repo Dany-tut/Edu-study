@@ -90,11 +90,11 @@ export function CourseTintSettings({ surface = 'rgba(var(--glass-rgb), 0.98)' }:
                 // попадает где угодно, кроме как раньше в пустоту справа.
                 labelStyle={{
                   display: 'flex', width: '100%', padding: '12px 15px',
-                  fontSize: 15, fontWeight: 550, color: 'var(--color-text)',
+                  fontSize: 15, fontWeight: 500, color: 'var(--color-text)',
                 }}
               >
                 <span style={{ display: 'block' }}>{t(l.label)}</span>
-                <span style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>
                   {t(l.hint)}
                 </span>
               </Radio>
@@ -116,7 +116,7 @@ export function CourseTintSettings({ surface = 'rgba(var(--glass-rgb), 0.98)' }:
             resetLabel={t('Как у преподавателя')}
             onOpenChange={setFocusId}
           />
-          <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', padding: '10px 4px 0' }}>
+          <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', padding: '10px 4px 0' }}>
             {t('Свой цвет виден только вам — у преподавателя останется его.')}
           </div>
         </div>
@@ -174,7 +174,7 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0, marginBottom: 18 }}>
               <div>
-                <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Цвет курса')}</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Цвет курса')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
                   {t('Интерфейс подстраивается под открытый курс.')}
                 </p>
@@ -189,7 +189,7 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
                   background: 'var(--color-bg-3)', color: 'var(--color-muted)',
                 }}
               >
-                <X size={17} />
+                <X size={18} />
               </motion.button>
             </div>
             <div ref={panelRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 24px 24px' }}>

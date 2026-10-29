@@ -567,7 +567,7 @@ export default function WhiteboardCanvas({
           }} />
           <div style={{
             color: 'var(--color-text-2)',
-            fontSize: 9, fontWeight: 700, whiteSpace: 'nowrap', lineHeight: 1,
+            fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', lineHeight: 1,
           }}>
             {tool === 'eraser' ? `${size * 5}px` : `${size}px`}
           </div>

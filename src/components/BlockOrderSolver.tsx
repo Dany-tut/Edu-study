@@ -83,7 +83,7 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
   const blockSt = (state: 'answer' | 'bank' | 'spent', verdict?: 'good' | 'bad'): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
     padding: '10px 13px', borderRadius: 13, fontFamily: 'inherit',
-    fontSize: 14, lineHeight: 1.35, fontWeight: 600, color: 'var(--color-text)',
+    fontSize: 14, lineHeight: 1.3, fontWeight: 600, color: 'var(--color-text)',
     border: `1px solid ${
       verdict === 'good' ? '#6EE7A0'
         : verdict === 'bad' ? '#F48B91'
@@ -165,7 +165,7 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
       </div>
 
       {picked.length > 0 && !disabled && !showVerdict && (
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Тап по блоку в ответе возвращает его в банк')}
         </span>
       )}
