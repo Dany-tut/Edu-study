@@ -153,8 +153,10 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
 .season-corner--potions { right: -6px; bottom: -44px; height: 104px; transform: rotate(8deg); }
 
 /* ── Пустой день ──────────────────────────────────────────────────────── */
-.season-empty { display: flex; align-items: center; gap: 28px; text-align: left; margin-left: -28px; }
-/* Привидение левее, текст дальше от него: группа по центру карточки, но с перекосом влево. */
+/* Привидение — у левого края карточки, под датой; текст справа с большим отступом
+   (рисунок Дани 29.10.2026). Поле с паддингом 24 px внутри карточки с паддингом 16 —
+   −24 px ставит привидение на линию даты. */
+.season-empty { display: flex; align-items: center; gap: 40px; text-align: left; width: calc(100% + 24px); margin-left: -24px; justify-content: flex-start; }
 .season-empty__ghost { width: auto; flex-shrink: 0; pointer-events: none; }
 .season-empty__ghost { height: 86px; }
 .season-empty__title { font-size: 15px; font-weight: 650; color: var(--color-text); margin: 0; }
