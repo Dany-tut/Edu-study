@@ -81,7 +81,7 @@ function pct(used: number, limit: number) {
 }
 
 function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React.ElementType; label: string; value: string; pct: number }) {
-  const color = value_pct >= 85 ? '#E04848' : value_pct >= 60 ? '#D07020' : '#3FA867'
+  const color = value_pct >= 85 ? 'var(--color-red-text)' : value_pct >= 60 ? 'var(--color-peach-text)' : 'var(--color-green-text)'
   return (
     <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-3)', fontSize: 12, fontWeight: 500 }}>
@@ -598,8 +598,8 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
             />
           </div>
           {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Сохраняем…')}</span>}
-          {planSaved && <Check size={14} strokeWidth={2.5} style={{ color: '#3FA867' }} />}
-          {planError && <span style={{ fontSize: 11, color: '#E04848' }}>{planError}</span>}
+          {planSaved && <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />}
+          {planError && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{planError}</span>}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
           {t('Лимит учеников применяется при добавлении новых. «Без тарифа» — внутренний/бета-аккаунт без ограничений.')}
@@ -637,7 +637,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
               {pwCopied ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} /> : <Copy size={14} style={{ color: 'var(--color-purple)' }} />}
             </div>
           )}
-          {pwError && <span style={{ fontSize: 11, color: '#E04848' }}>{pwError}</span>}
+          {pwError && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{pwError}</span>}
         </div>
         {pwValue && (
           <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
@@ -769,7 +769,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                   triggerStyle={{
                     padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                     background: 'var(--color-bg-3)',
-                    border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                    border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                   }}
                 />
               </div>
@@ -780,7 +780,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                 style={{
                   width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
                 }}
               >
                 <X size={16} strokeWidth={2} />
@@ -900,7 +900,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         triggerStyle={{
                           padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
-                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                         }}
                       />
                     </div>
@@ -911,7 +911,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                       style={{
                         width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                        background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
                       }}
                     >
                       <X size={16} strokeWidth={2} />
@@ -1223,7 +1223,7 @@ export default function TeacherAdminPage() {
                     <button
                       onClick={() => revokeInvite(inv.token)}
                       title={t('Отозвать приглашение')}
-                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: '#E04848' }}
+                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)' }}
                     >
                       <Trash2 size={14} strokeWidth={2} />
                     </button>

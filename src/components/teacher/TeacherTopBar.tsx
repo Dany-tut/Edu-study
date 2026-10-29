@@ -608,8 +608,8 @@ export default function TeacherTopBar() {
               </div>
               {planPct != null && (
                 <>
-                  <div style={{ height: 5, borderRadius: 3, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
-                    <div style={{ width: `${planPct}%`, height: '100%', borderRadius: 3, background: planEnding ? 'var(--color-red-text)' : 'var(--grad-purple)' }} />
+                  <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
+                    <div style={{ width: `${planPct}%`, height: '100%', borderRadius: 999, background: planEnding ? 'var(--color-red-text)' : 'var(--grad-purple)' }} />
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{planUsed} / {planLimit} {t('учеников')}</div>
                 </>

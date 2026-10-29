@@ -42,7 +42,7 @@ function fmtWhen(iso: string | null): string {
 
 const KIND_LABEL: Record<string, { label: string; color: string }> = {
   teacher: { label: 'Учитель', color: 'var(--color-purple)' },
-  admin: { label: 'Админ', color: '#D07020' },
+  admin: { label: 'Админ', color: 'var(--color-peach-text)' },
   student: { label: 'Ученик', color: '#2E8F76' },
   anon: { label: 'Гость', color: 'var(--color-text-3)' },
 }
@@ -285,7 +285,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
             <td style={numTd}>{fmtWhen(r.last_seen)}</td>
             <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
               {getViewAs()?.id === r.teacher_id ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#D07020' }}>{t('смотрите сейчас')}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t('смотрите сейчас')}</span>
               ) : (
                 <button
                   onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
@@ -307,7 +307,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: 6,
                   width: 29, height: 29, borderRadius: 9, cursor: 'pointer', verticalAlign: 'middle',
-                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
                 }}
               >
                 <Trash2 size={14} strokeWidth={2} />
@@ -354,14 +354,14 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
     padding: '9px 14px', borderRadius: 11, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
     cursor: armed && !busy ? 'pointer' : 'default', opacity: armed ? 1 : 0.45,
     border: danger ? 'none' : '1px solid #E04848',
-    background: danger ? '#E04848' : 'transparent', color: danger ? '#fff' : '#E04848',
+    background: danger ? 'var(--color-red-text)' : 'transparent', color: danger ? '#fff' : 'var(--color-red-text)',
   })
 
   return createPortal(
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ width: 420, maxWidth: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 22, padding: 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
+          <ShieldAlert size={18} strokeWidth={2} style={{ color: 'var(--color-red-text)' }} />
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{tn(teacher.name)}: {t('начать с нуля')}</div>
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 14 }}>

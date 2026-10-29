@@ -1450,7 +1450,7 @@ function StudentAvatar({
       title={isRegistered ? '' : t('Скопировать ссылку приглашения')}
     >
       <div style={{
-        position: 'relative', width: 46, height: 46, borderRadius: 16,
+        position: 'relative', width: 46, height: 46, borderRadius: '50%',
         background: group.color,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 18, fontWeight: 700, color: '#fff',
@@ -2703,7 +2703,7 @@ export default function TeacherGroupsPage() {
                             <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', ...colBg('name') }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{
-                                  width: 30, height: 30, borderRadius: 10, flexShrink: 0,
+                                  width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
                                   background: activeGroup.color,
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   fontSize: 11, fontWeight: 700, color: '#fff',

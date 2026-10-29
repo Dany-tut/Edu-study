@@ -57,7 +57,7 @@ function BigUsageBar({ icon: Icon, label, used, limit, hint }: {
           {pct.toFixed(pct < 10 ? 1 : 0)}%
         </div>
       </div>
-      <div style={{ height: 12, borderRadius: 8, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+      <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -160,7 +160,7 @@ export default function TeacherStoragePage() {
               {[...stats.tables].sort((a, b) => b.bytes - a.bytes).map(tbl => (
                 <div key={tbl.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ fontSize: 13, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbl.name}</span>
-                  <div style={{ flex: 1, height: 8, borderRadius: 5, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(tbl.bytes / maxTableBytes) * 100}%` }}

@@ -165,7 +165,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{
-                          position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                          position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                           background: 'var(--color-avatar-bg)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 10, fontWeight: 700, color: '#fff',
@@ -274,7 +274,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
-                        position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                        position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                         background: 'var(--grad-purple)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
@@ -585,7 +585,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                 {/* Name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
-                    position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                    position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                     background: studentPresent ? 'var(--color-avatar-bg)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     // У отсутствующего фон светло-серый — белые инициалы на нём пропадали.

@@ -237,7 +237,7 @@ function StudentRow({
       >
         {/* Avatar */}
         <div style={{
-          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+          width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
           background: avatarBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, color: statusColor,

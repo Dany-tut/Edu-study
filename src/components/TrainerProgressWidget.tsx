@@ -128,7 +128,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
             <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: 'easeOut' }}
               style={{ height: '100%', background: accent, flexShrink: 0 }} />
             <motion.div animate={{ width: `${wrongPct}%` }} transition={{ duration: 0.6, ease: 'easeOut' }}
-              style={{ height: '100%', background: '#F48B91', flexShrink: 0 }} />
+              style={{ height: '100%', background: 'var(--color-red-text)', flexShrink: 0 }} />
           </div>
         </div>
       )}

@@ -702,9 +702,9 @@ export default function TeacherAnalytics() {
 
   // severity badge
   function severity(n: number): { label:string; bg:string; color:string } {
-    if (n===0) return { label:'OK', bg:'rgba(63,168,103,0.15)', color:'#2a8a55' }
-    if (n<3)   return { label:t('Внимание'), bg:'rgba(208,112,32,0.15)', color:'#b05a00' }
-    return        { label:t('Проблема'), bg:'rgba(224,72,72,0.15)', color:'#c0282a' }
+    if (n===0) return { label:'OK', bg:'rgba(63,168,103,0.15)', color:'var(--color-green-text)' }
+    if (n<3)   return { label:t('Внимание'), bg:'rgba(208,112,32,0.15)', color:'var(--color-peach-text)' }
+    return        { label:t('Проблема'), bg:'rgba(224,72,72,0.15)', color:'var(--color-red-text)' }
   }
 
   const errorSev = severity(totalErrors)
@@ -853,8 +853,8 @@ export default function TeacherAnalytics() {
                         </div>
                         <div style={{ height:6, borderRadius:3, background:'var(--color-bg-3)' }}>
                           <div style={{ width:`${(b.cnt/bdMax)*100}%`, height:'100%', borderRadius:3,
-                            background: b.event.includes('error')||b.event.includes('rejection') ? '#E04848'
-                              : b.event==='rage_click' ? '#D07020' : currentColor, opacity:0.75 }} />
+                            background: b.event.includes('error')||b.event.includes('rejection') ? 'var(--color-red-text)'
+                              : b.event==='rage_click' ? 'var(--color-peach-text)' : currentColor, opacity:0.75 }} />
                         </div>
                       </div>
                     ))
@@ -906,7 +906,7 @@ export default function TeacherAnalytics() {
               display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10,
               border:'1px solid var(--color-border)', cursor:'pointer', fontSize:12, fontWeight:600,
               background: copied ? 'rgba(63,168,103,0.15)' : 'var(--color-bg-2)',
-              color: copied ? '#3FA867' : 'var(--color-text-2)',
+              color: copied ? 'var(--color-green-text)' : 'var(--color-text-2)',
               transition:'background 0.15s, color 0.15s',
             }}>
               {copied ? <Check size={14}/> : <Copy size={14}/>}
@@ -919,20 +919,20 @@ export default function TeacherAnalytics() {
             <Kpi icon={AlertTriangle} label={t('JS ошибок')}
               value={totalErrors}
               sub={totalErrors===0 ? t('Всё чисто') : t('за выбранный период')}
-              accent={totalErrors>0 ? '#E04848' : '#3FA867'} />
+              accent={totalErrors>0 ? 'var(--color-red-text)' : 'var(--color-green-text)'} />
             <Kpi icon={MousePointerClick} label={t('Rage-клики')}
               value={totalRage}
               sub={totalRage===0 ? t('Пользователи не злятся') : t('места путаницы')}
-              accent={totalRage>2 ? '#D07020' : totalRage===0 ? '#3FA867' : undefined} />
+              accent={totalRage>2 ? 'var(--color-peach-text)' : totalRage===0 ? 'var(--color-green-text)' : undefined} />
             <Kpi icon={Clock} label={t('Bounce-риск')}
               value={bounceRisk}
               sub={bounceRisk===0 ? t('Страниц с коротким dwell нет') : t('страниц с dwell<5с')}
-              accent={bounceRisk>0 ? '#D07020' : '#3FA867'} />
+              accent={bounceRisk>0 ? 'var(--color-peach-text)' : 'var(--color-green-text)'} />
           </div>
 
           {/* Issue score */}
           <Card style={{ marginBottom:24, display:'flex', alignItems:'center', gap:16 }}>
-            <div style={{ fontSize:36, fontWeight:800, color: issueScore===0?'#3FA867':issueScore<5?'#D07020':'#E04848', lineHeight:1 }}>
+            <div style={{ fontSize:36, fontWeight:800, color: issueScore===0?'var(--color-green-text)':issueScore<5?'var(--color-peach-text)':'var(--color-red-text)', lineHeight:1 }}>
               {issueScore===0 ? '✓' : Math.round(issueScore)}
             </div>
             <div>
@@ -957,8 +957,8 @@ export default function TeacherAnalytics() {
                     borderBottom:'1px solid var(--color-border)', marginBottom:8 }}>
                     <span>{t('Страница / роль')}</span><span style={{textAlign:'center'}}>{t('Визитов')}</span>
                     <span style={{textAlign:'center'}}>Dwell</span>
-                    <span style={{textAlign:'center', color:'#E04848'}}>{t('Ошибки')}</span>
-                    <span style={{textAlign:'center', color:'#D07020'}}>Rage</span>
+                    <span style={{textAlign:'center', color:'var(--color-red-text)'}}>{t('Ошибки')}</span>
+                    <span style={{textAlign:'center', color:'var(--color-peach-text)'}}>Rage</span>
                   </div>
                   {problemPages.map((p,i) => (
                     <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 80px', gap:8,
@@ -969,11 +969,11 @@ export default function TeacherAnalytics() {
                         <div style={{ fontSize:10, color:'var(--color-text-3)' }}>{p.role}</div>
                       </div>
                       <div style={{ textAlign:'center', color:'var(--color-text-3)' }}>{p.visits}</div>
-                      <div style={{ textAlign:'center', color: p.avg_dwell_sec!==null && p.avg_dwell_sec<5?'#D07020':'var(--color-text-3)' }}>
+                      <div style={{ textAlign:'center', color: p.avg_dwell_sec!==null && p.avg_dwell_sec<5?'var(--color-peach-text)':'var(--color-text-3)' }}>
                         {p.avg_dwell_sec!==null ? `${p.avg_dwell_sec}${t('с')}` : '—'}
                       </div>
-                      <div style={{ textAlign:'center', color:p.errors>0?'#E04848':'var(--color-text-3)', fontWeight:p.errors>0?700:400 }}>{p.errors||'—'}</div>
-                      <div style={{ textAlign:'center', color:p.rage_clicks>0?'#D07020':'var(--color-text-3)', fontWeight:p.rage_clicks>0?700:400 }}>{p.rage_clicks||'—'}</div>
+                      <div style={{ textAlign:'center', color:p.errors>0?'var(--color-red-text)':'var(--color-text-3)', fontWeight:p.errors>0?700:400 }}>{p.errors||'—'}</div>
+                      <div style={{ textAlign:'center', color:p.rage_clicks>0?'var(--color-peach-text)':'var(--color-text-3)', fontWeight:p.rage_clicks>0?700:400 }}>{p.rage_clicks||'—'}</div>
                     </div>
                   ))}
                 </div>
@@ -992,7 +992,7 @@ export default function TeacherAnalytics() {
                     </button>
                   )}
                   {openBounce.length > 0 && (
-                    <button onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
+                    <button onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
                       <CheckCircle2 size={14}/>{t('Всё разобрано')}
                     </button>
                   )}
@@ -1004,18 +1004,18 @@ export default function TeacherAnalytics() {
                 </div>
                 {(() => {
                   const shown = bounceState.filter(p => showClosedBounce || !p.closed)
-                  if (shown.length === 0) return <div style={{ fontSize:12, color:'#3FA867' }}>{t('Все страницы разобраны')}</div>
+                  if (shown.length === 0) return <div style={{ fontSize:12, color:'var(--color-green-text)' }}>{t('Все страницы разобраны')}</div>
                   return shown.map((p,i) => (
                     <div key={bounceSignature(p)} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
                       borderBottom:i<shown.length-1?'1px solid var(--color-border)':undefined, fontSize:12, opacity: p.closed ? 0.5 : 1 }}>
-                      <Clock size={12} style={{ color: p.closed ? '#3FA867' : '#D07020', flexShrink:0 }} />
+                      <Clock size={12} style={{ color: p.closed ? 'var(--color-green-text)' : 'var(--color-peach-text)', flexShrink:0 }} />
                       <div style={{ flex:1, color:'var(--color-text)', textDecoration: p.closed?'line-through':undefined }}>{pLabel(p.path)}</div>
                       <div style={{ color:'var(--color-text-3)', fontSize:11 }}>{p.role}</div>
-                      <div style={{ fontWeight:700, color: p.closed ? 'var(--color-text-3)' : '#D07020', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}{t('с')}</div>
+                      <div style={{ fontWeight:700, color: p.closed ? 'var(--color-text-3)' : 'var(--color-peach-text)', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}{t('с')}</div>
                       <button onClick={() => void resolveBounce(p)}
                         title={p.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
-                          color: p.closed ? 'var(--color-text-3)' : '#3FA867', padding:0 }}>
+                          color: p.closed ? 'var(--color-text-3)' : 'var(--color-green-text)', padding:0 }}>
                         {p.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
                       </button>
                     </div>
@@ -1036,7 +1036,7 @@ export default function TeacherAnalytics() {
                     </button>
                   )}
                   {openRage.length > 0 && (
-                    <button onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
+                    <button onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
                       <CheckCircle2 size={14}/>{t('Всё разобрано')}
                     </button>
                   )}
@@ -1048,20 +1048,20 @@ export default function TeacherAnalytics() {
                 </div>
                 {(() => {
                   const shown = rageWithState.filter(r => showClosedRage || !r.closed).slice(0,8)
-                  if (shown.length === 0) return <div style={{ fontSize:12, color:'#3FA867' }}>{t('Все точки разобраны')}</div>
+                  if (shown.length === 0) return <div style={{ fontSize:12, color:'var(--color-green-text)' }}>{t('Все точки разобраны')}</div>
                   return shown.map((r,i) => (
                     <div key={rageSignature(r)} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
                       borderBottom:i<shown.length-1?'1px solid var(--color-border)':undefined, fontSize:12, opacity: r.closed ? 0.5 : 1 }}>
-                      <MousePointerClick size={12} style={{ color: r.closed ? '#3FA867' : '#D07020', flexShrink:0 }} />
+                      <MousePointerClick size={12} style={{ color: r.closed ? 'var(--color-green-text)' : 'var(--color-peach-text)', flexShrink:0 }} />
                       <div style={{ flex:1 }}>
                         <div style={{ color:'var(--color-text)', fontWeight:500, textDecoration: r.closed?'line-through':undefined }}>{r.element}</div>
                         <div style={{ fontSize:10, color:'var(--color-text-3)' }}>{pLabel(r.path)}</div>
                       </div>
-                      <div style={{ fontWeight:700, color: r.closed ? 'var(--color-text-3)' : '#D07020' }}>{r.cnt}×</div>
+                      <div style={{ fontWeight:700, color: r.closed ? 'var(--color-text-3)' : 'var(--color-peach-text)' }}>{r.cnt}×</div>
                       <button onClick={() => void resolveSignature(rageSignature(r), r.closed)}
                         title={r.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
-                          color: r.closed ? 'var(--color-text-3)' : '#3FA867', padding:0 }}>
+                          color: r.closed ? 'var(--color-text-3)' : 'var(--color-green-text)', padding:0 }}>
                         {r.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
                       </button>
                     </div>
@@ -1080,7 +1080,7 @@ export default function TeacherAnalytics() {
                 </button>
               )}
               {openGroups.length > 0 && (
-                <button onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#3FA867', background:'none', border:'none', cursor:'pointer' }}>
+                <button onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
                   <CheckCircle2 size={14}/>{t('Всё разобрано')}
                 </button>
               )}
@@ -1096,7 +1096,7 @@ export default function TeacherAnalytics() {
             {(() => {
               const shown = errGroups.filter(g => showClosed || !g.closed).slice(0, errExpanded ? 100 : 8)
               if (errGroups.length === 0) return <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ошибок нет — отлично!')}</div>
-              if (shown.length === 0) return <div style={{ fontSize:12, color:'#3FA867' }}>{t('Все ошибки разобраны')}</div>
+              if (shown.length === 0) return <div style={{ fontSize:12, color:'var(--color-green-text)' }}>{t('Все ошибки разобраны')}</div>
               return shown.map((g,i) => {
                 const e = g.sample
                 const evLabel = t(EVENT_LABELS[e.event] ?? e.event)
@@ -1105,7 +1105,7 @@ export default function TeacherAnalytics() {
                     fontSize:11, lineHeight:1.5, opacity: g.closed ? 0.5 : 1 }}>
                     <div style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
                       <span style={{ background: g.closed?'rgba(63,168,103,0.12)':'rgba(224,72,72,0.12)',
-                        color: g.closed?'#3FA867':'#E04848', fontSize:10, fontWeight:600, padding:'2px 6px', borderRadius:5, flexShrink:0, marginTop:1 }}>
+                        color: g.closed?'var(--color-green-text)':'var(--color-red-text)', fontSize:10, fontWeight:600, padding:'2px 6px', borderRadius:5, flexShrink:0, marginTop:1 }}>
                         {g.closed ? t('Разобрано') : evLabel}
                       </span>
                       <div style={{ flex:1 }}>
@@ -1118,7 +1118,7 @@ export default function TeacherAnalytics() {
                       </div>
                       <button onClick={() => void resolveSignature(g.key, g.closed)} title={g.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer',
-                          color: g.closed ? 'var(--color-text-3)' : '#3FA867', fontSize:10, padding:0 }}>
+                          color: g.closed ? 'var(--color-text-3)' : 'var(--color-green-text)', fontSize:10, padding:0 }}>
                         {g.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
                       </button>
                     </div>

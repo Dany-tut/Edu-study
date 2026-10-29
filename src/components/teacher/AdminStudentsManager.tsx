@@ -288,7 +288,7 @@ export default function AdminStudentsManager() {
                 />
                 <span style={{
                   fontSize: 13, fontWeight: 700,
-                  color: ownerId === NO_OWNER ? '#D07020' : 'var(--color-text)',
+                  color: ownerId === NO_OWNER ? 'var(--color-peach-text)' : 'var(--color-text)',
                 }}>{tn(grp.name)}</span>
                 <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
                   {grp.items.length} {t('учеников')}
@@ -335,7 +335,7 @@ export default function AdminStudentsManager() {
                         triggerStyle={{
                           padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
-                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                         }}
                       />
                     </div>
@@ -355,7 +355,7 @@ export default function AdminStudentsManager() {
                       }).then(ok => { if (ok) void doDelete(row) })}
                       disabled={busyId === row.id}
                       title={t('Удалить')}
-                      style={iconBtn('#E04848')}
+                      style={iconBtn('var(--color-red-text)')}
                     >
                       <X size={16} strokeWidth={2} />
                     </button>

@@ -867,7 +867,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {totalCount > 0 && (
               <div style={{ flex: 1, height: 4, borderRadius: 999, background: `${accent}22`, overflow: 'hidden', display: 'flex' }}>
                 <div style={{ height: '100%', width: `${pct}%`, background: accent, flexShrink: 0, transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
-                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: 'rgba(240,96,112,0.45)', flexShrink: 0 }} />
+                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: 'color-mix(in srgb, var(--color-red-text) 55%, transparent)', flexShrink: 0 }} />
               </div>
             )}
             {/* Разбор есть только у банка: у языка модалки нет, и мёртвая
