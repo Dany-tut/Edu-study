@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { cardChip } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
@@ -1199,13 +1200,7 @@ function GroupCard({
 
       {/* Level badge + count */}
       <div className="group-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
-          color: group.color,
-          background: group.color + '22',
-          padding: '3px 9px', borderRadius: 8,
-          border: `1px solid ${group.color}33`,
-        }}>
+        <span style={cardChip(group.color)}>
           {t(group.level)}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
@@ -2556,11 +2551,7 @@ export default function TeacherGroupsPage() {
                         {activeGroup.name}
                       </span>
                       {activeGroup.isIndividual && (
-                        <span style={{
-                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, flex: 'none',
-                          background: `${activeGroup.color}22`, color: activeGroup.color,
-                          border: `1px solid ${activeGroup.color}44`,
-                        }}>1:1</span>
+                        <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
                       )}
                       <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
                         · {groupStudents.length} {groupStudents.length === 1 ? t('студент') : t('студентов')}

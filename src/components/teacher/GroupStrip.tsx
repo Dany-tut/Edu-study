@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
+import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus } from 'lucide-react'
@@ -211,7 +212,7 @@ function GroupMiniCard({
         )}
       </AnimatePresence>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: group.color, background: group.color + '22', padding: '3px 9px', borderRadius: 8, border: `1px solid ${group.color}33` }}>
+        <span style={cardChip(group.color)}>
           {group.level}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
@@ -286,10 +287,10 @@ function IndividualCard({
     >
       {/* 1:1 + level badges */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 11 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: group.color, background: group.color + '22', padding: '2px 8px', borderRadius: 7, border: `1px solid ${group.color}33` }}>
+        <span style={cardChip(group.color)}>
           1:1
         </span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-5)', padding: '2px 8px', borderRadius: 6 }}>
+        <span style={cardChipTone('neutral')}>
           {group.level}
         </span>
         <User size={14} strokeWidth={2} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
@@ -397,7 +398,7 @@ function PersonCard({
     >
       {/* 1:1 badge + count */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: person.color, background: person.color + '22', padding: '2px 8px', borderRadius: 7, border: `1px solid ${person.color}33` }}>
+        <span style={cardChip(person.color)}>
           1:1
         </span>
         <User size={14} strokeWidth={2} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
