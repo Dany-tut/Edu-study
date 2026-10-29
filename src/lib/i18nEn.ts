@@ -3145,6 +3145,7 @@ export const EN: Record<string, string> = {
   'Заданий добавлено': 'Tasks added',
   'СЛОЖНОЕ ЗАДАНИЕ': 'HARD TASK',
   'Выберите тип задания слева': 'Pick a task type on the left',
+  'Сложные задания — кнопкой': 'Hard tasks — with the button',
   'Например: Контрольная по модулю 1': 'For example: Module 1 test',
   'Откроется у студента автоматически после прохождения предыдущего модуля':
     'Opens for the student automatically once the previous module is done',

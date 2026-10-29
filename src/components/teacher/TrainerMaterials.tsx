@@ -454,6 +454,15 @@ export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {onTasks ? (
           tasks.view
+        ) : onDecks && !active ? (
+          // Подборки рисует CardGroupsManager со своими готовыми наборами всех
+          // языков — без предмета он показал бы их все. Ряд с фасетом и подсказка.
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <MaterialsFacet values={subjects} onChange={onSubjects} only={facetOpts} />
+            </div>
+            <PickSubjectHint />
+          </>
         ) : onDecks ? (
           <CardGroupsManager
             createNonce={deckCreate}

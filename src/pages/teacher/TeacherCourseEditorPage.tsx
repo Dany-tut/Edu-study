@@ -33,7 +33,7 @@ import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight, TASK_TEXT_LH, TEXT_LIFT } from '../../components/GrowTextarea'
+import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import {
   taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID,
@@ -2484,7 +2484,9 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
         }}
       >
         <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
-        <span style={{ flex: 1, ...TEXT_LIFT, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        {/* Без TEXT_LIFT: рядом с иконкой календаря подъём уводил буквы на
+            1,4px выше её центра (замер 29.10.2026). */}
+        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || ph}
         </span>
         {value ? (
@@ -3608,13 +3610,16 @@ function patchHwSlot(lesson: CELesson, hwTab: string, p: { tasks?: HWTask[]; dat
   return next
 }
 
-/** Вкладки «ДЗ · Доп 1 · Доп 2» и под ними кнопка «+ Доп. ДЗ». Пока доп.
- *  домашек нет, вкладок нет вовсе — только кнопка. */
-function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab }: {
+/** Вкладки «ДЗ · Доп 1 · Доп 2» и под ними кнопки «+ Доп. ДЗ» и «★ Сложное».
+ *  Пока доп. домашек нет, вкладок нет вовсе — только кнопки. */
+function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHard, hardCount }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   hwTab: string
   setHwTab: (t: string) => void
+  hardMode: boolean
+  onToggleHard: () => void
+  hardCount: number
 }) {
   const t = useT()
   const extras = lesson.extraHw ?? []
@@ -3640,16 +3645,34 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab }: {
     setHwTab(MAIN_HW)
   }
 
+  const btnBase: React.CSSProperties = {
+    flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+    padding: '7px 8px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+    fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', transition: 'background 0.13s',
+  }
+  // «★ Сложное» переключает палитру слева на сложные задания; они ложатся в
+  // домашку открытой вкладки (ДЗ или Доп).
   const addButton = (
-    <button onClick={addExtra} style={{
-      flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      padding: '7px 10px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-      fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)',
-      background: 'transparent', border: '1px dashed var(--color-green-text)',
-    }}>
-      <Plus size={14} strokeWidth={2.2} />
-      {t('Доп. ДЗ')}
-    </button>
+    <div style={{ flexShrink: 0, display: 'flex', gap: 6 }}>
+      <button onClick={addExtra} style={{
+        ...btnBase, color: 'var(--color-green-text)',
+        background: 'transparent', border: '1px dashed var(--color-green-text)',
+      }}>
+        <Plus size={14} strokeWidth={2.2} />
+        {t('Доп. ДЗ')}
+      </button>
+      <button onClick={onToggleHard} aria-pressed={hardMode} style={{
+        ...btnBase, color: '#D97706',
+        background: hardMode ? 'rgba(245,158,11,0.16)' : 'transparent',
+        border: `1px ${hardMode ? 'solid' : 'dashed'} rgba(245,158,11,0.7)`,
+      }}>
+        <Star size={13} style={{ flexShrink: 0, color: '#F59E0B', fill: hardMode ? '#F59E0B' : 'none' }} />
+        {t('Сложное')}
+        {hardCount > 0 && (
+          <span title={t('Заданий добавлено')} style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: 'rgba(245,158,11,0.18)' }}>{hardCount}</span>
+        )}
+      </button>
+    </div>
   )
   if (extras.length === 0) return addButton
 
@@ -3784,8 +3807,8 @@ function HomeworkLeftPanel({
   // Language types only appear for language courses; other courses keep the base palette.
   const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
 
-  // Аккордеон: открыта ровно одна секция (по умолчанию — обычные типы).
-  const [openSection, setOpenSection] = useState<'basic' | 'hard'>('basic')
+  // Режим палитры: обычные типы или сложные (кнопка «★ Сложное» наверху).
+  const [hardMode, setHardMode] = useState(false)
   const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
@@ -3824,7 +3847,8 @@ function HomeworkLeftPanel({
         padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
         ...fadeMask(hwFade),
       }}>
-      <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab} />
+      <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab}
+        hardMode={hardMode} onToggleHard={() => setHardMode(m => !m)} hardCount={hardCount} />
 
       <div>
         <CalendarPicker
@@ -3836,28 +3860,15 @@ function HomeworkLeftPanel({
 
       <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 0' }} />
 
-      {/* Аккордеон: открыта всегда ровно одна секция (тип / сложное). */}
-      <AccordionSection
-        title={t('ТИП ЗАДАНИЯ')}
-        count={basicCount}
-        open={openSection === 'basic'}
-        onToggle={() => setOpenSection(s => s === 'basic' ? 'hard' : 'basic')}
-      >
+      {!hardMode ? (
+      <PaletteSection title={t('ТИП ЗАДАНИЯ')} count={basicCount}>
         {palette.map(tt => (
           <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type, false)} />
         ))}
         <BankPicker onPick={bt => addFromBank(bt, false)} />
-      </AccordionSection>
-
-      <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 4px' }} />
-
-      <AccordionSection
-        title={t('СЛОЖНОЕ ЗАДАНИЕ')}
-        count={hardCount}
-        accent="#B45309"
-        open={openSection === 'hard'}
-        onToggle={() => setOpenSection(s => s === 'hard' ? 'basic' : 'hard')}
-      >
+      </PaletteSection>
+      ) : (
+      <PaletteSection title={t('СЛОЖНОЕ ЗАДАНИЕ')} count={hardCount} accent="#D97706">
         {hardTaskTypes.map(tt => (
           <button key={tt.type + '_hard'} onClick={() => addTask(tt.type, true)} style={{
             display: 'flex', alignItems: 'center', gap: 8,
@@ -3874,37 +3885,26 @@ function HomeworkLeftPanel({
           </button>
         ))}
         <BankPicker hard onPick={bt => addFromBank(bt, true)} />
-      </AccordionSection>
+      </PaletteSection>
+      )}
       </div>
     </div>
   )
 }
 
-// ─── Collapsible section header (mutually-exclusive accordion) ───────────────
+// ─── Palette section: header with the added-task count + its types ──────────
 
-function AccordionSection({ title, count, open, onToggle, accent, children }: {
+function PaletteSection({ title, count, accent, children }: {
   title: string
   count: number
-  open: boolean
-  onToggle: () => void
   accent?: string
   children: React.ReactNode
 }) {
   const t = useT()
   return (
     <div>
-      <button
-        onClick={onToggle}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '8px 8px', borderRadius: 11, border: 'none',
-          background: open ? 'var(--color-bg-2)' : 'transparent',
-          cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s',
-        }}
-        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
-        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-      >
-        <span style={{ flex: 1, textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: accent ?? 'var(--color-text-3)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px' }}>
+        <span style={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: accent ?? 'var(--color-text-3)' }}>
           {title}
         </span>
         {count > 0 && (
@@ -3917,23 +3917,10 @@ function AccordionSection({ title, count, open, onToggle, accent, children }: {
             color: accent ?? 'var(--color-muted)',
           }}>{count}</span>
         )}
-        <ChevronDown size={15} style={{ flexShrink: 0, color: accent ?? 'var(--color-text-3)', transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 8 }}>
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 10 }}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -3985,6 +3972,11 @@ function CenterHomework({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
           <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Выберите тип задания слева')}</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            {t('Сложные задания — кнопкой')}
+            <Star size={12} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
+            {t('Сложное')}
+          </span>
         </div>
       ) : (
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
