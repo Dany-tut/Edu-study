@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
@@ -17,6 +17,14 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     recovery ? 'newpassword' : linkExpired ? 'reset' : 'login',
   )
   const [showPassword, setShowPassword] = useState(false)
+
+  // По ссылке из письма вход уже выполнен — подставляем почту аккаунта.
+  // Поле с логином рядом с new-password нужно менеджерам паролей: без него
+  // браузер не предлагает надёжный пароль и не знает, к какому входу его сохранить.
+  useEffect(() => {
+    if (mode !== 'newpassword') return
+    supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setEmail(data.user.email) })
+  }, [mode])
 
   function switchMode(next: 'login' | 'reset') {
     setMode(next)
@@ -95,14 +103,15 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {mode !== 'newpassword' && (
+          {(mode !== 'newpassword' || email) && (
             <input
               className="auth-input"
               type="email"
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              autoComplete="email"
+              autoComplete="username"
+              readOnly={mode === 'newpassword'}
               required
               style={{
                 minHeight: 50,
@@ -116,6 +125,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
                 color: 'var(--color-text)',
                 WebkitTextFillColor: 'var(--color-text)',
                 background: 'var(--color-bg-input)',
+                opacity: mode === 'newpassword' ? 0.7 : 1,
               }}
             />
           )}
