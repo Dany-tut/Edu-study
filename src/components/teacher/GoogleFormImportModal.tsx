@@ -100,7 +100,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
           style={{
             background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px 24px 20px',
             width: 480, maxWidth: '92vw', maxHeight: '84vh', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--shadow-5)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>

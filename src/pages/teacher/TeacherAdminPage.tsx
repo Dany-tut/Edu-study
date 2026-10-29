@@ -180,7 +180,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 24, padding: 24,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
+          boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>

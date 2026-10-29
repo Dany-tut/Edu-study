@@ -180,7 +180,7 @@ function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; 
             position: 'fixed', left: pos.x, top: pos.y, transform: 'translateX(-50%)',
             zIndex: 4000, pointerEvents: 'none', maxWidth: 260,
             background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-            borderRadius: 10, padding: '8px 11px', boxShadow: '0 10px 28px rgba(0,0,0,0.28)',
+            borderRadius: 10, padding: '8px 11px', boxShadow: 'var(--shadow-3)',
             fontSize: 13, lineHeight: 1.3, fontWeight: 500, letterSpacing: 0,
             textTransform: 'none', textAlign: 'left', color: 'var(--color-text-2)',
           }}

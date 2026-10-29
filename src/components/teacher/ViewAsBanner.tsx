@@ -34,7 +34,7 @@ export default function ViewAsBanner() {
         padding: '9px 9px 9px 12px', borderRadius: 18,
         background: 'var(--color-bg-2)',
         border: '1px solid #D07020',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
+        boxShadow: 'var(--shadow-3)',
       }}
     >
       <Eye size={16} strokeWidth={2} style={{ color: '#D07020', flexShrink: 0 }} />

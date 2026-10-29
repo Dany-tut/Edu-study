@@ -220,7 +220,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
   return (
     <div style={{
       borderRadius: 18, border: '1px solid var(--color-border-glass)',
-      background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', overflow: 'hidden',
+      background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', overflow: 'hidden',
     }}>
       {/* Header */}
       <div onClick={() => setOpen(o => !o)} {...del.bind}

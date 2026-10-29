@@ -137,7 +137,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
           backdropFilter: 'blur(14px) saturate(180%)',
           WebkitBackdropFilter: 'blur(14px) saturate(180%)',
           border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
+          boxShadow: 'var(--shadow-4)',
         }}
       >
         <div style={{ flex: '1 1 260px', minWidth: 0 }}>

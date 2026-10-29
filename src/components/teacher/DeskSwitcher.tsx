@@ -59,7 +59,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           backdropFilter: 'blur(24px) saturate(180%)',
           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
           borderBottom: '1px solid var(--color-border-glass)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+          boxShadow: 'var(--shadow-3)',
         }}
       >
         {/* Desk tabs */}

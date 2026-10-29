@@ -400,7 +400,7 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, help, 
             padding: 16, borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.97)',
             border: '1px solid var(--color-border-glass)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+            boxShadow: 'var(--shadow-4)',
             // Карточка обнимает содержимое, пока оно короче экрана, и только
             // упёршись в нижний край окна отдаёт остаток собственному скроллу.
             ...(narrow ? null : {
@@ -837,7 +837,7 @@ export function RailCard({ icon, title, accent, children, action }: {
       display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 18,
       background: 'rgba(var(--glass-rgb), 0.94)',
       border: '1px solid var(--color-border-soft)',
-      boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+      boxShadow: 'var(--shadow-3)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         {icon && <span style={{ display: 'flex', color: accent }}>{icon}</span>}
@@ -1121,7 +1121,7 @@ export function RailToggle({ label, on, onChange, accent }: {
       }}>
         <span style={{
           position: 'absolute', top: 1, left: on ? 13 : 1, width: 16, height: 16, borderRadius: '50%',
-          background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.28)', transition: 'left .16s',
+          background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left .16s',
         }} />
       </span>
     </button>
@@ -1648,7 +1648,7 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
         padding: 3, borderRadius: 999,
         background: PILL_BG,
         border: '1px solid var(--color-border)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        boxShadow: 'var(--shadow-1)',
         backdropFilter: 'blur(18px) saturate(180%)',
         WebkitBackdropFilter: 'blur(18px) saturate(180%)',
       }}

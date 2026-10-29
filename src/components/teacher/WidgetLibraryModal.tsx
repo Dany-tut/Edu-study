@@ -113,7 +113,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
             background: 'var(--color-bg-input)',
             backdropFilter: 'blur(24px)',
             borderRadius: 22,
-            boxShadow: '0 32px 100px rgba(0,0,0,0.22)',
+            boxShadow: 'var(--shadow-5)',
             width: 460, maxWidth: '94vw', maxHeight: '80vh',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',

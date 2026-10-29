@@ -60,7 +60,7 @@ export default function Tooltip({ label, keys, children }: {
             display: 'flex', alignItems: 'center', gap: 8, padding: '6px 9px', borderRadius: 8,
             background: 'var(--color-text)', color: 'var(--color-bg)',
             fontSize: 12, fontWeight: 600, lineHeight: 1.2, whiteSpace: 'nowrap', pointerEvents: 'none',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--shadow-2)',
           }}
         >
           {label}

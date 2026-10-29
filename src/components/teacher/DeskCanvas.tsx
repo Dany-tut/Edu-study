@@ -143,7 +143,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
           style={{ position: 'absolute', top: -11, right: -11, width: 26, height: 26, borderRadius: '50%',
             background: '#dc3c3c', border: '2.5px solid rgba(0,0,0,0.35)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}
+            boxShadow: 'var(--shadow-2)' }}
         >
           <X size={12} color="#fff" strokeWidth={2.5} />
         </button>

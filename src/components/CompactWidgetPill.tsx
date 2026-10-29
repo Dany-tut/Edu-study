@@ -117,7 +117,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             color: accentColor,
             fontSize: 10, fontWeight: 800,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+            boxShadow: 'var(--shadow-1)',
             lineHeight: 1,
           }}>
             {lastQuestionIndex + 1}
@@ -1513,7 +1513,7 @@ export default function CompactWidgetPill() {
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(var(--glass-rgb), 0.85)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+              boxShadow: 'var(--shadow-1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1542,7 +1542,7 @@ export default function CompactWidgetPill() {
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(var(--glass-rgb), 0.85)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+              boxShadow: 'var(--shadow-1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

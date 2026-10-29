@@ -552,7 +552,7 @@ export default function WhiteboardCanvas({
           border: '1.5px solid var(--color-border-medium)',
           borderRadius: 10,
           padding: '7px 9px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          boxShadow: 'var(--shadow-2)',
           minWidth: 36,
         }}>
           <div style={{
@@ -563,7 +563,7 @@ export default function WhiteboardCanvas({
             border: tool === 'eraser'
               ? '2px dashed var(--color-text-3)'
               : `2px solid ${color === '#0B0B0D' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'}`,
-            boxShadow: '0 1px 6px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--shadow-1)',
             flexShrink: 0,
           }} />
           <div style={{

@@ -57,7 +57,7 @@ export default function Switch({ checked, onChange, disabled, label, size = 'M' 
         style={{
           position: 'absolute', top: PAD, left: PAD,
           width: knob, height: knob, borderRadius: 999, background: '#fff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.28)',
+          boxShadow: 'var(--shadow-1)',
           transform: `translateX(${checked ? W - knob - PAD * 2 : 0}px)`,
           transition: 'transform .2s cubic-bezier(0.32, 0.72, 0, 1)',
         }}

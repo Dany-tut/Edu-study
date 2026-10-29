@@ -794,7 +794,7 @@ export default function TeacherCompactPill() {
                     top: '50%', transform: 'translateY(-50%)',
                     width: 22, height: 22, borderRadius: '50%', border: 'none',
                     background: 'rgba(var(--glass-rgb), 0.85)',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+                    boxShadow: 'var(--shadow-1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'var(--color-text-2)', cursor: 'pointer',
                     opacity: hovering ? 1 : 0, transition: 'opacity 0.18s ease',

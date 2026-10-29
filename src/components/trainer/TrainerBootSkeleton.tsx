@@ -64,7 +64,7 @@ export default function TrainerBootSkeleton({ desktop }: { desktop: boolean }) {
             padding: 16, borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.97)',
             border: '1px solid var(--color-border-glass)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+            boxShadow: 'var(--shadow-4)',
           }}>
             <Bar h={104} r={16} />
             <div style={{

@@ -2971,7 +2971,7 @@ export default function HomeworkFlow({
       className="flex items-center justify-center cursor-pointer flex-shrink-0"
       style={{
         gap: 6, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999,
-        ...(docked ? dockGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }),
+        ...(docked ? dockGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)' }),
         color: palette.text, fontSize: 14, fontWeight: 600,
         ...(docked ? { pointerEvents: 'auto' as const } : {}),
       }}
@@ -3075,7 +3075,7 @@ export default function HomeworkFlow({
           style={{
             // «Назад» — шеврон в круге везде, как BackCircle.
             gap: 4, padding: 0, width: 40, height: 40, borderRadius: 999, border: '1px solid var(--color-border-soft)',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -3239,7 +3239,7 @@ export default function HomeworkFlow({
               borderRadius: 16,
               background: 'rgba(var(--glass-rgb), 0.94)',
               border: '1px solid var(--color-border-soft)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--shadow-3)',
               gap: 12,
             }}
           >
@@ -3330,7 +3330,7 @@ export default function HomeworkFlow({
                     gap: 14, padding: 18, borderRadius: 24,
                     background: 'var(--color-bg-input)',
                     border: '1px solid var(--color-border-medium)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+                    boxShadow: 'var(--shadow-3)',
                   }}
                 >
                   <div className="flex items-start" style={{ gap: 12 }}>
@@ -4785,7 +4785,7 @@ export default function HomeworkFlow({
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 12, cursor: 'default', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 12, cursor: 'default', boxShadow: 'var(--shadow-5)' }}
           />
         </motion.div>
       )}

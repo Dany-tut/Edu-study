@@ -377,7 +377,7 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
 
 const stepBtn: React.CSSProperties = {
   width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'var(--color-surface)', color: 'var(--color-text)',
-  boxShadow: '0 1px 2px rgba(0,0,0,0.08)', padding: 0,
+  boxShadow: 'var(--shadow-1)', padding: 0,
   cursor: 'pointer', display: 'grid', placeItems: 'center',
 }
 
@@ -403,7 +403,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
   return (
     <div style={{
       position: 'absolute', top: 38, left: 0, zIndex: 20, width: 252, padding: 12, borderRadius: 16,
-      background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', boxShadow: '0 12px 32px rgba(0,0,0,0.16)',
+      background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-4)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
         <button type="button" onClick={() => shift(-1)} style={stepBtn}><ChevronLeft size={14} /></button>

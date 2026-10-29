@@ -102,7 +102,7 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         padding: '12px 14px 14px',
         minWidth: 232, userSelect: 'none',
       }}
@@ -161,7 +161,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         overflow: 'hidden',
       }}
     >
@@ -391,7 +391,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
   return (
     <div className="flex flex-col h-full" style={{
       borderRadius: 24, background: 'rgba(var(--glass-rgb), 0.96)',
-      border: '1px solid var(--color-border-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+      border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-2)',
       padding: 16, gap: 8, maxHeight: '54vh',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
@@ -454,7 +454,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
       <div style={{
         position: 'relative', width: '100%', height: '54vh', borderRadius: 24, overflow: 'hidden',
         background: 'linear-gradient(135deg, #2A2A2C, #111113)',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14,
       }}>
         <div style={{
@@ -703,7 +703,7 @@ function AudiencePicker({
               style={{
                 position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
                 background: 'var(--color-bg-input)', borderRadius: 14, zIndex: 200,
-                boxShadow: '0 12px 36px rgba(0,0,0,0.16)',
+                boxShadow: 'var(--shadow-4)',
                 border: '1px solid var(--color-border)', overflow: 'hidden',
               }}
             >
@@ -1311,7 +1311,7 @@ export default function TeacherLessonEditorPage() {
                   display: 'flex', flexDirection: 'column', gap: 12,
                   padding: 24, borderRadius: 24,
                   background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                  boxShadow: 'var(--shadow-2)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <FileText size={18} style={{ color: 'var(--color-green-text)' }} />

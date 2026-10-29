@@ -58,7 +58,7 @@ export default function TeacherSubjectsPrompt() {
           style={{
             pointerEvents: 'auto', width: 440, maxWidth: '100%',
             background: 'var(--color-bg-2)', borderRadius: 22, padding: 24,
-            border: '1px solid var(--color-border)', boxShadow: '0 20px 60px rgba(0,0,0,0.28)',
+            border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-5)',
           }}
         >
           <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{t('Какие предметы вы ведёте?')}</div>

@@ -149,7 +149,7 @@ function ActionPanel({
           borderRadius: 16, cursor: 'pointer',
           padding: '0 16px', color: 'var(--color-purple)', fontFamily: 'inherit',
           backdropFilter: 'blur(14px)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--shadow-2)',
         }}
       >
         <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(155,109,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -170,7 +170,7 @@ function GroupMiniCard({
   const [hovered, setHovered] = useState(false)
   return (
     <motion.div
-      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
+      whileHover={{ y: -2, boxShadow: 'var(--shadow-4)' }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
@@ -266,7 +266,7 @@ function IndividualCard({
   const stu = students[0] ?? null
   return (
     <motion.div
-      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
+      whileHover={{ y: -2, boxShadow: 'var(--shadow-4)' }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       style={{
@@ -378,7 +378,7 @@ function PersonCard({
   const { visible: visibleSubjects, hiddenCount } = packSubjects(person.subjects)
   return (
     <motion.div
-      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
+      whileHover={{ y: -2, boxShadow: 'var(--shadow-4)' }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       style={{

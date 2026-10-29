@@ -196,6 +196,13 @@
   --shadow-sm-page:  0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95);
   --shadow-md:       0 6px 18px rgba(21,18,31,0.10), inset 0 1px 1px rgba(255,255,255,0.65);
   --shadow-lg:       inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14);
+  /* Тени — пять ступеней (дизайн-система, круг 3). У каждой тёмная пара:
+     сырые rgba(0,0,0,.05) в тёмной теме не видны вовсе. */
+  --shadow-1: 0 1px 4px rgba(21,18,31,0.08);
+  --shadow-2: 0 3px 14px rgba(21,18,31,0.07);
+  --shadow-3: 0 6px 22px rgba(21,18,31,0.10);
+  --shadow-4: 0 12px 40px rgba(21,18,31,0.14);
+  --shadow-5: 0 24px 68px rgba(21,18,31,0.20);
   --shadow-inset:    inset 0 1px 0 rgba(255,255,255,0.75);
   --shadow-modal-sm: 0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.8);
   --shadow-modal:    0 24px 72px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1);
@@ -329,6 +336,11 @@
   --shadow-sm-page:  inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 28px rgba(0,0,0,0.45);
   --shadow-md:       inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 36px rgba(0,0,0,0.50), 0 3px 10px rgba(0,0,0,0.25);
   --shadow-lg:       inset 0 1px 0 rgba(255,255,255,0.10), 0 16px 48px rgba(0,0,0,0.60), 0 4px 14px rgba(0,0,0,0.30);
+  --shadow-1: 0 1px 4px rgba(0,0,0,0.40);
+  --shadow-2: 0 4px 16px rgba(0,0,0,0.40);
+  --shadow-3: 0 8px 26px rgba(0,0,0,0.50);
+  --shadow-4: 0 14px 44px rgba(0,0,0,0.55);
+  --shadow-5: 0 26px 72px rgba(0,0,0,0.65);
   --shadow-inset:    inset 0 1px 0 rgba(255,255,255,0.08);
   --shadow-modal-sm: inset 0 1px 0 rgba(255,255,255,0.10), 0 14px 40px rgba(0,0,0,0.55);
   --shadow-modal:    inset 0 1px 0 rgba(255,255,255,0.12), 0 28px 80px rgba(0,0,0,0.65), 0 8px 24px rgba(0,0,0,0.35);
@@ -356,8 +368,10 @@
 
 /* Upgrade all backdrop-filter surfaces in dark mode to use saturate —
    this is what turns a blurry dark box into actual tinted glass */
-[data-theme="dark"] [style*="backdrop-filter"],
-[data-theme="dark"] [style*="backdropFilter"] {
+/* Затемнение под окнами (blur 4px, MODAL_BACKDROP) не раздуваем до 20 px:
+   иначе в тёмной теме фон под окном превращается в кашу. */
+[data-theme="dark"] [style*="backdrop-filter"]:not([style*="blur(4px)"]),
+[data-theme="dark"] [style*="backdropFilter"]:not([style*="blur(4px)"]) {
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
 }

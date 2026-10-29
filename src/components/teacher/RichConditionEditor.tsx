@@ -368,7 +368,7 @@ export default function RichConditionEditor({
                 border: '1px solid var(--color-border-medium)',
                 padding: '0 6px',
                 zIndex: 20,
-                boxShadow: '0 2px 14px rgba(0,0,0,0.18)',
+                boxShadow: 'var(--shadow-2)',
                 flexWrap: 'nowrap', overflowX: 'auto',
               }}
             >
@@ -402,7 +402,7 @@ export default function RichConditionEditor({
                     position: 'fixed', top: sizeDropPos.top, left: sizeDropPos.left,
                     background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
                     borderRadius: 10, padding: '4px', zIndex: 9999,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                    boxShadow: 'var(--shadow-2)',
                     display: 'flex', flexDirection: 'column', gap: 1, minWidth: 70,
                   }}>
                     {FONT_SIZES.map(s => (

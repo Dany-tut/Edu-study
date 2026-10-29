@@ -319,7 +319,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                 position: 'fixed', left: pos.left, width: pos.width, zIndex: 9999,
                 ...(pos.top !== undefined ? { top: pos.top } : { bottom: pos.bottom }),
                 borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
-                boxShadow: '0 16px 40px rgba(0,0,0,0.18)', overflow: 'hidden',
+                boxShadow: 'var(--shadow-4)', overflow: 'hidden',
               }}
             >
               <ScrollOverlays thumb={thumb} />

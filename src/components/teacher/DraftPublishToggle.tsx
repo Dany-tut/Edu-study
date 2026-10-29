@@ -44,7 +44,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
     <div role="radiogroup" style={{
       display: 'flex', gap: 2, padding: 3, borderRadius: 999, flexShrink: 0,
       border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...style,
+      boxShadow: 'var(--shadow-2)', ...style,
     }}>
       <button role="radio" aria-checked={!published}
         onClick={draftClickable ? onDraft : undefined}

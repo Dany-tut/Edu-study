@@ -228,7 +228,7 @@ export default function CoursesPage() {
             borderRadius: 999,
             background: 'rgba(var(--glass-rgb), 0.95)',
             border: '1px solid var(--color-border-soft)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            boxShadow: 'var(--shadow-2)',
             color: search ? 'var(--color-accent)' : 'var(--color-text-3)',
             cursor: deskSearchOpen ? 'text' : 'pointer',
           }}

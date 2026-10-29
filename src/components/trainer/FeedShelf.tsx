@@ -242,7 +242,7 @@ export function FeedTabs({ chips, value, onChange, accent }: {
           padding: 3, borderRadius: 999,
           background: 'rgba(var(--glass-rgb), 0.88)',
           border: '1px solid var(--color-border)',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          boxShadow: 'var(--shadow-1)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
         }}

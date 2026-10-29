@@ -536,7 +536,7 @@ export default function TeacherHomeworkReviewPage() {
           style={{
             gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
             border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
+            boxShadow: 'var(--shadow-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
@@ -638,7 +638,7 @@ export default function TeacherHomeworkReviewPage() {
                 <div style={{
                   padding: 22, borderRadius: 24,
                   background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+                  boxShadow: 'var(--shadow-3)',
                 }}>
                   <div className="flex items-center" style={{ gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                     <FileText size={16} style={{ color: group.color }} />
@@ -678,7 +678,7 @@ export default function TeacherHomeworkReviewPage() {
                 <div style={{
                   padding: 22, borderRadius: 24,
                   background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+                  boxShadow: 'var(--shadow-3)',
                 }}>
                   <div className="flex items-center" style={{ gap: 8, marginBottom: 16 }}>
                     <Star size={16} style={{ color: '#F5A623' }} />

@@ -646,7 +646,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
       {pick && (
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={addMark} style={{
           position: 'fixed', left: pick.x, top: Math.max(8, pick.y - 42), transform: 'translateX(-50%)', zIndex: 5,
-          ...solidBtn, height: 32, boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+          ...solidBtn, height: 32, boxShadow: 'var(--shadow-3)',
         }}>
           <Highlighter size={14} /> {t('Выделить')}
         </button>

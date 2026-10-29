@@ -45,7 +45,7 @@ function InsertHandle({ accent, title, onClick, style }: {
       <div style={{
         width: 18, height: 18, borderRadius: '50%', background: accent, color: getContrastColor(accent),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.28)', pointerEvents: 'none',
+        boxShadow: 'var(--shadow-2)', pointerEvents: 'none',
         opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',
         transition: 'opacity 0.12s ease, transform 0.12s ease',
       }}>

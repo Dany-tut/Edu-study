@@ -78,7 +78,7 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
       dragControls={controls}
       // Пока ряд едет, он поднимается над соседями — иначе на границе двух
       // рядов не видно, какой из них в руке.
-      whileDrag={{ scale: 1.02, zIndex: 3, boxShadow: '0 10px 30px rgba(0,0,0,0.22)' }}
+      whileDrag={{ scale: 1.02, zIndex: 3, boxShadow: 'var(--shadow-4)' }}
       style={{
         position: 'relative', listStyle: 'none',
         background: 'var(--color-bg-3)',

@@ -718,7 +718,7 @@ function FilterPanel({
       width: 264, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
       background: 'rgba(var(--glass-rgb), 0.9)', ...PILL_GLASS,
       border: '1px solid var(--color-border-glass)', borderRadius: 18,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,
+      boxShadow: 'var(--shadow-3)', padding: 16,
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

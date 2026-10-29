@@ -1187,7 +1187,7 @@ function ProgressModal({
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid var(--color-border-glass)',
-          borderRadius: 22, boxShadow: '0 28px 70px rgba(0,0,0,0.22)',
+          borderRadius: 22, boxShadow: 'var(--shadow-5)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
       >
@@ -2195,7 +2195,7 @@ export default function BankTrainer({ subjectState }: {
         {/* Фильтры — это фильтры ЗАДАНИЙ: раздел, линия, часть. На карточках они
             не сужают ничего, а занимают весь рейл и врут, что сужают. */}
         {bankOn && view !== 'decks' && (
-        <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+        <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-3)', gap: 12 }}>
           <div className="flex items-center" style={{ gap: 7 }}>
             <Filter size={16} style={{ color: palette.text }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
@@ -2252,7 +2252,7 @@ export default function BankTrainer({ subjectState }: {
           {view !== 'decks' && (<>
           <div
             onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS, border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS, border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: 'var(--shadow-2)', flexShrink: 0 }}>
             <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
             <input
               ref={searchInputRef}

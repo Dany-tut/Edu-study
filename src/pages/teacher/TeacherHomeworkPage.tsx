@@ -125,7 +125,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       {/* Header */}
@@ -413,7 +413,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         borderRadius: 20,
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       <div style={{ padding: '18px 18px 14px', background: group.color + '1A', borderBottom: `1px solid ${group.color}33`, flexShrink: 0, borderTopLeftRadius: 19, borderTopRightRadius: 19 }}>

@@ -52,7 +52,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid var(--color-border-glass)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+        boxShadow: 'var(--shadow-3)',
       }}
     >
       {/* Photo tile — rounded with slight inset from the card edge */}

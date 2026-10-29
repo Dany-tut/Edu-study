@@ -903,7 +903,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         // начать выделение текста и показать «Copy · Look Up · Translate».
         userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none',
         background: 'linear-gradient(135deg, #2A2A2C, #111113)',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       {/* ── Движок ── */}
@@ -982,7 +982,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   width: 72, height: 72, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                  boxShadow: 'var(--shadow-4)',
                 }}
               >
                 {ended
@@ -1269,7 +1269,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
                         width: RATE_MENU_W, padding: 6, borderRadius: 14,
                         background: 'rgba(20,20,22,0.94)', border: '1px solid rgba(255,255,255,0.14)',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+                        boxShadow: 'var(--shadow-4)',
                       }}
                     >
                       {rates.map(r => (
@@ -1353,7 +1353,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   width: 76, height: 76, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                  boxShadow: 'var(--shadow-4)',
                 }}
               >
                 <Play size={28} fill="var(--color-purple)" style={{ marginLeft: 4 }} />

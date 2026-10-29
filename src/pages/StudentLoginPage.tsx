@@ -100,7 +100,7 @@ export default function StudentLoginPage() {
         transition={{ duration: 0.3 }}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
-          width: '100%', maxWidth: 340, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+          width: '100%', maxWidth: 340, boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ marginBottom: 28 }}>

@@ -1460,7 +1460,7 @@ function TimecodeRail({
       borderRadius: 24, padding: 16, minHeight: 0, maxHeight: PLAYER_MAX_H,
       background: 'rgba(var(--glass-rgb), 0.96)',
       border: '1px solid var(--color-border-soft)',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+      boxShadow: 'var(--shadow-2)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ListVideo size={16} style={{ color: 'var(--color-green-text)' }} />
@@ -2232,7 +2232,7 @@ function CenterLesson({
                 border: '1px solid var(--color-border-glass)',
                 borderRadius: 20, padding: '20px 20px 16px',
                 display: 'flex', flexDirection: 'column', gap: 8,
-                width: 290, boxShadow: '0 24px 64px rgba(0,0,0,0.35)',
+                width: 290, boxShadow: 'var(--shadow-5)',
               }}
             >
               <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{t('Куда добавить файл?')}</div>
@@ -2390,7 +2390,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-medium)',
-              borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              borderRadius: 14, boxShadow: 'var(--shadow-4)',
               padding: 6, overflow: 'hidden',
             }}
           >
@@ -2515,7 +2515,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-medium)',
-              borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: '14px 12px 12px',
+              borderRadius: 16, boxShadow: 'var(--shadow-4)', padding: '14px 12px 12px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -4876,7 +4876,7 @@ function RightPanelLessons({
                         position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 20,
                         minWidth: 160, padding: 4,
                         borderRadius: 10, background: 'var(--color-bg-card, var(--color-bg))',
-                        border: '1px solid var(--color-border)', boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+                        border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)',
                       }}
                     >
                       <ScrollFade maxHeight={232} bg="var(--color-bg-card, var(--color-bg))" overlayScrollbar>
@@ -6390,7 +6390,7 @@ export default function TeacherCourseEditorPage() {
                 transition={{ duration: 0.16 }}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedLessonId(null)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <ChevronLeft size={16} strokeWidth={2} /> {t('Курс')}
               </motion.button>
             )}
@@ -6411,7 +6411,7 @@ export default function TeacherCourseEditorPage() {
           {/* Вне потока, слева от группы: плашка живёт секунду, и пока она была в
               ряду, её уход менял ширину группы — название по центру съезжало. */}
           {course.heavyPending && (
-            <div style={{ position: 'absolute', right: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
+            <div style={{ position: 'absolute', right: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
               {heavyErr
                 ? <>{t('Не удалось догрузить уроки — перезагрузите страницу')}</>
                 : <><Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} /> {t('Догружаем уроки…')}</>}
@@ -6420,7 +6420,7 @@ export default function TeacherCourseEditorPage() {
           {seedDiff.changes.length > 0 && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
               title={`${t('Из сида')} · ${seedDiff.changes.length} — ${t('Показать, что изменилось в готовом курсе с момента добавления')}`}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: seedCompact ? '9px 11px' : '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: seedCompact ? '9px 11px' : '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: 'var(--shadow-2)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               <RefreshCw size={14} strokeWidth={2} />
               {!seedCompact && <span ref={seedLabelRef}>{t('Из сида')} · {seedDiff.changes.length}</span>}
             </motion.button>
@@ -6428,7 +6428,7 @@ export default function TeacherCourseEditorPage() {
           {course.dbCourseId && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
               title={t('Скопировать курс для другой группы со своим стартом дат')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
           )}
@@ -6480,7 +6480,7 @@ export default function TeacherCourseEditorPage() {
           <motion.div
             initial={{ scale: 0.96, y: 8 }} animate={{ scale: 1, y: 0 }}
             onClick={e => e.stopPropagation()}
-            style={{ width: 460, maxWidth: '92vw', maxHeight: '88vh', overflow: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', borderRadius: 22, boxShadow: '0 24px 70px rgba(0,0,0,0.4)', padding: 22 }}>
+            style={{ width: 460, maxWidth: '92vw', maxHeight: '88vh', overflow: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', borderRadius: 22, boxShadow: 'var(--shadow-5)', padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Copy size={18} strokeWidth={2} color="var(--color-green-text)" />

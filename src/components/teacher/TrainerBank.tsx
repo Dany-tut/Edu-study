@@ -448,7 +448,7 @@ function KeyRubric({
       {rows.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((r, idx) => (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', boxShadow: 'var(--shadow-1)' }}>
               {numbered
                 ? <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: accentBg, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
                 : <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: accent, opacity: 0.7 }} />}
@@ -539,7 +539,7 @@ function BankGridCard({
           background: selected ? '#c0303a' : 'var(--color-bg-5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.14s',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+          boxShadow: 'var(--shadow-1)',
         }}>
           {selected && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
         </div>
@@ -618,7 +618,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
             position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
             background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: '1px solid var(--color-border-glass)', borderRadius: 14,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5,
+            boxShadow: 'var(--shadow-4)', padding: 5,
             // Свой скролл — единственный живой, пока меню открыто. `contain`
             // обязателен: докрутив до края, список потянул бы за собой фон.
             maxHeight: 'min(60vh, 320px)', overflowY: 'auto', overscrollBehavior: 'contain',

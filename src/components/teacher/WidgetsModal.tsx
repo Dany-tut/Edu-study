@@ -69,7 +69,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
           onClick={e => e.stopPropagation()}
           style={{
             background: 'var(--color-bg-input)', borderRadius: 22,
-            boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--shadow-5)',
             width: 420, maxWidth: '92vw',
             padding: '28px 24px 20px',
             display: 'flex', flexDirection: 'column', gap: 0,

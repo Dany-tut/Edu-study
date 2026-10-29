@@ -120,7 +120,7 @@ function AddGroupModal({ onClose, onSave }: {
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
-          width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          width: 420, boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -243,7 +243,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
-          width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          width: 380, boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -389,7 +389,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22,
-          width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          width: 420, boxShadow: 'var(--shadow-5)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
         }}
@@ -695,7 +695,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22,
-          width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          width: 420, boxShadow: 'var(--shadow-5)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
         }}
@@ -1149,7 +1149,7 @@ function GroupCard({
   const [hovered, setHovered] = useState(false)
   return (
     <motion.div
-      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
+      whileHover={{ y: -2, boxShadow: 'var(--shadow-4)' }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
@@ -1525,7 +1525,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
         style={{
           width: '100%', maxWidth: 800, maxHeight: '90dvh',
           background: 'var(--color-bg-input)',
-          borderRadius: 22, boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
+          borderRadius: 22, boxShadow: 'var(--shadow-5)',
           border: '1px solid var(--color-border-glass)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
@@ -1928,7 +1928,7 @@ function StudentPanel({
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       {/* Header */}
@@ -2639,7 +2639,7 @@ export default function TeacherGroupsPage() {
                               <div style={{
                                 position: 'fixed', right: rosterAddMenu.right, top: rosterAddMenu.top, zIndex: 1101,
                                 background: 'var(--color-bg-input)', borderRadius: 14, padding: 6, width: 220,
-                                boxShadow: '0 12px 40px rgba(0,0,0,0.18)', border: '1px solid var(--color-border-soft)',
+                                boxShadow: 'var(--shadow-4)', border: '1px solid var(--color-border-soft)',
                               }}>
                                 <RosterAddItem
                                   title={t('Новый ученик')} subtitle={t('создать и выдать логин')}

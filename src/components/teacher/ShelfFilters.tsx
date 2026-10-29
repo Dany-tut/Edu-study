@@ -95,7 +95,7 @@ const menuStyle: CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)',
   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
   border: '1px solid var(--color-border-glass)', borderRadius: 14,
-  boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5,
+  boxShadow: 'var(--shadow-4)', padding: 5,
 }
 
 const rowStyle = (on: boolean, soft: string): CSSProperties => ({

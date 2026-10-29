@@ -22,7 +22,7 @@ const overlay = {
 const card = {
   background: 'var(--color-bg-input)', borderRadius: 24, padding: 24,
   width: 420, maxHeight: '80vh', display: 'flex', flexDirection: 'column' as const,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+  boxShadow: 'var(--shadow-5)',
 }
 const searchBox = {
   display: 'flex', alignItems: 'center', gap: 8,

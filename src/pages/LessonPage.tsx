@@ -661,7 +661,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
               background: 'rgba(22,14,44,0.94)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              boxShadow: '0 14px 34px rgba(0,0,0,0.30)',
+              boxShadow: 'var(--shadow-4)',
               color: '#fff',
             }}
           >
@@ -930,7 +930,7 @@ export default function LessonPage() {
             // перетекает в таблетку соседнего экрана, и разница видна.
             // «Назад» — шеврон в круге везде, как BackCircle; подпись — в aria-label.
             height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -955,7 +955,7 @@ export default function LessonPage() {
           style={{
             gap: 6, padding: '0 16px', height: MOBILE_PILL_H, boxSizing: 'border-box',
             borderRadius: 999, border: '1px solid var(--color-border-soft)',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
             color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -1123,7 +1123,7 @@ export default function LessonPage() {
               borderRadius: 24,
               background: 'rgba(var(--glass-rgb), 0.96)',
               border: '1px solid var(--color-border-soft)',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--shadow-2)',
               padding: 16,
               gap: 6,
               minHeight: 0,
@@ -1215,7 +1215,7 @@ export default function LessonPage() {
             borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.96)',
             border: '1px solid var(--color-border-soft)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            boxShadow: 'var(--shadow-2)',
           }}
         >
           <div className="flex items-center" style={{ gap: 8 }}>

@@ -209,7 +209,7 @@ function SaveToTrainerDialog({
         transition={{ type: 'spring', stiffness: 420, damping: 32 }}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: '28px 28px 22px',
-          width: 380, boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+          width: 380, boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -797,7 +797,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
         padding: 20, borderRadius: 24,
         background: 'rgba(var(--glass-rgb), 0.96)',
         border: modified ? '1px solid rgba(99,84,207,0.35)' : '1px solid var(--color-border-soft)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+        boxShadow: 'var(--shadow-3)',
         transition: 'border-color 0.2s',
       }}
     >
@@ -877,7 +877,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     <span style={{
                       position: 'absolute', top: 2, left: variantId !== null ? 13 : 2,
                       width: 11, height: 11, borderRadius: '50%', background: 'var(--color-bg-input)',
-                      transition: 'left 0.18s', boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                      transition: 'left 0.18s', boxShadow: 'var(--shadow-1)',
                     }} />
                   </span>
                   {variantId !== null
@@ -1886,7 +1886,7 @@ function LessonPicker({
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               border: '1px solid var(--color-border)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+              boxShadow: 'var(--shadow-4)',
             }}
           >
             {/* Search */}
@@ -2520,7 +2520,7 @@ export default function TeacherHomeworkCreatePage() {
             <button
               style={{
                 padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
-                background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
+                background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', cursor: 'pointer',
                 fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
               }}
             >
@@ -2561,7 +2561,7 @@ export default function TeacherHomeworkCreatePage() {
             backdropFilter: 'blur(12px)',
             borderRadius: 14, padding: 4,
             alignSelf: 'flex-start',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-2)',
             border: '1px solid var(--color-border-glass)',
           }}>
             {TABS.map(tab => (
@@ -2734,7 +2734,7 @@ export default function TeacherHomeworkCreatePage() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.92, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '28px 28px 22px', width: 380, boxShadow: '0 24px 60px rgba(0,0,0,0.18)' }}
+                style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '28px 28px 22px', width: 380, boxShadow: 'var(--shadow-5)' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

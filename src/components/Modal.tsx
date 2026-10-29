@@ -34,7 +34,7 @@ export const MODAL_CARD: CSSProperties = {
   background: 'var(--color-bg-2)',
   borderRadius: MODAL_RADIUS,
   border: '1px solid var(--color-border)',
-  boxShadow: '0 20px 60px rgba(0,0,0,0.28)',
+  boxShadow: 'var(--shadow-5)',
 }
 
 export default function Modal({

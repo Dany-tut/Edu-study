@@ -194,7 +194,7 @@ export default function DateTimeField({ value, onChange, label }: {
                 background: 'rgba(var(--glass-rgb), 0.97)',
                 backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
                 border: '1px solid var(--color-border-medium)', borderRadius: 18,
-                boxShadow: '0 12px 36px rgba(0,0,0,0.18)', padding: '14px 12px 12px',
+                boxShadow: 'var(--shadow-4)', padding: '14px 12px 12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>

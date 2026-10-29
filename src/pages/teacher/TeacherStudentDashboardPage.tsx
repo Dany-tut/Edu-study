@@ -67,7 +67,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
       padding: 22, borderRadius: 20,
       background: 'var(--color-bg-card, rgba(var(--glass-rgb), 0.96))',
       border: '1px solid var(--color-border-soft)',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+      boxShadow: 'var(--shadow-1)',
       ...style,
     }}>
       {children}

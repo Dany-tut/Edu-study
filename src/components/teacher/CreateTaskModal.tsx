@@ -164,7 +164,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         padding: '12px 14px 14px',
         minWidth: 232,
         userSelect: 'none',
@@ -251,7 +251,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         overflow: 'hidden',
       }}
     >

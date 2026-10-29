@@ -31,7 +31,7 @@ const card: React.CSSProperties = {
   background: 'var(--color-bg-input)', borderRadius: 24, padding: 32,
   // maxWidth, а не width: ссылку-приглашение открывают с телефона, и жёсткие
   // 400px прижимали карточку вплотную к краям экрана, срезая её углы.
-  width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+  width: '100%', maxWidth: 400, boxShadow: 'var(--shadow-5)',
 }
 
 export default function JoinPage() {

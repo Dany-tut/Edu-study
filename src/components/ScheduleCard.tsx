@@ -126,7 +126,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             background: 'rgba(var(--glass-rgb), 0.85)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+            boxShadow: 'var(--shadow-3)',
           }}
         >
           {dateHeader(13, 10)}
@@ -253,7 +253,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             padding: '14px 16px',
             background: `rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80})`,
             backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-2)',
           }}
         >
           <div style={glassFade ? { opacity: Math.min(1, opacity + 0.15) } : undefined}>

@@ -92,7 +92,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         padding: '40px 36px',
         width: '100%',
         maxWidth: 400,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
         border: '1px solid var(--color-border-glass)',
       }}>
         <div style={{ fontSize: 36, marginBottom: 8 }}>👩‍🏫</div>

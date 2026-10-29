@@ -220,7 +220,7 @@ export function SubjectHero({ state, subtitle, palette }: {
         <div ref={menuRef} className="no-scrollbar" style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50,
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
-          border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)',
           // Длинный список (у ученика бывает восемь предметов) крутится сам, а
           // не тянет за собой фон — тот на время выбора заморожен.
           maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',
@@ -326,7 +326,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           position: 'absolute', left: 0, zIndex: 60, minWidth: 280,
           ...(up ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
-          border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+          border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)',
           maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',
         }}>
           <SubjectList state={state} accent={palette.accent} onPicked={() => setOpen(false)} />

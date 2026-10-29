@@ -177,7 +177,7 @@ export function AvatarCropModal({
         style={{
           width: 'min(340px, 100%)', boxSizing: 'border-box', padding: 20, borderRadius: 22,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-          boxShadow: '0 18px 48px rgba(0,0,0,0.3)',
+          boxShadow: 'var(--shadow-4)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
         }}
       >

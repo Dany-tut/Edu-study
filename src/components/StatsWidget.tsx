@@ -77,7 +77,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
     border: '1px solid var(--color-border-glass)',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+    boxShadow: 'var(--shadow-3)',
   }
 
   // ≤2 widgets per row → single row of 4; ≥3 → 2×2

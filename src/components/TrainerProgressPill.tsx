@@ -26,7 +26,7 @@ export default function TrainerProgressPill() {
         borderRadius: 18,
         background: 'rgba(var(--glass-rgb), 0.94)',
         border: '1px solid var(--color-border-soft)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
+        boxShadow: 'var(--shadow-3)',
         backdropFilter: 'blur(20px) saturate(160%)',
         WebkitBackdropFilter: 'blur(20px) saturate(160%)',
         cursor: 'pointer',

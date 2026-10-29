@@ -169,7 +169,7 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
               // Рамка не прокручивается: шапка стоит, листается только тело (см. Modal.tsx).
               width: 'min(420px, 100%)', maxHeight: '90dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
               background: 'var(--color-bg)', borderRadius: MODAL_RADIUS, paddingTop: 24,
-              boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+              boxShadow: 'var(--shadow-5)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0, marginBottom: 18 }}>

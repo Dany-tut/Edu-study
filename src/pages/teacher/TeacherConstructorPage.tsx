@@ -153,7 +153,7 @@ function GoogleFormBankCategoryModal({
         initial={{ scale: 0.94, opacity: 0, y: 16 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 420, damping: 32 }}
         onClick={e => e.stopPropagation()}
-        style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px', width: 380, maxWidth: '92vw', boxShadow: '0 24px 60px rgba(0,0,0,0.18)' }}
+        style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px', width: 380, maxWidth: '92vw', boxShadow: 'var(--shadow-5)' }}
       >
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{t('Категория для')} {questions.length} {t('заданий')}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 16, lineHeight: 1.5 }}>
@@ -650,7 +650,7 @@ function CourseEditor({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t("Редактор курса")} accent="var(--color-accent)" accentBg="var(--color-purple-soft)" Icon={BookOpen} onClose={onClose} onExpand={onExpand} />
 
@@ -795,7 +795,7 @@ function TrainerEditor({
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t("Редактор тренажёра")} accent="#8B4900" accentBg="var(--color-peach-soft)" Icon={Zap} onClose={onClose} />
 
@@ -959,7 +959,7 @@ function WidgetEditor({
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t("Редактор виджета")} accent="#1a7a3f" accentBg="var(--color-green-soft)" Icon={Layers} onClose={onClose} />
 
@@ -1230,7 +1230,7 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
               zIndex: 20, minWidth: 170, maxWidth: 240,
               background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-glass)', borderRadius: 12, padding: '8px 10px',
-              boxShadow: '0 8px 28px rgba(0,0,0,0.16)', cursor: 'default',
+              boxShadow: 'var(--shadow-3)', cursor: 'default',
             }}
           >
             {/* Зазоры 8px — ровно на вылет фейда ScrollFade (top/bottom: -8), иначе градиент лёг бы на подписи. */}
@@ -1601,7 +1601,7 @@ function WidgetFilterPanel({
         ...lift,
         width: 240, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
         background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,
+        border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: 'var(--shadow-3)', padding: 16,
         display: 'flex', flexDirection: 'column', gap: 12,
       }}
     >
@@ -1719,13 +1719,13 @@ function WidgetGroupsView({
                         border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                       }}>
                         {checkedIds.has(w.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
                       <button onClick={e => { e.stopPropagation(); onDuplicateWidget(w) }} title={t("Дублировать")}
                         style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
-                          background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                          background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
                         <Copy size={14} strokeWidth={2} />
                       </button>
@@ -1923,7 +1923,7 @@ function LessonNameInput({ value, onChange, onAdd }: {
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               border: '1px solid var(--color-border)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+              boxShadow: 'var(--shadow-4)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
@@ -3304,7 +3304,7 @@ function CreatorView({
                   </div>
                   <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 32, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', boxSizing: 'border-box', background: tkAllowPhoto ? cfg.color : 'var(--color-bg-5)', border: `1px solid ${tkAllowPhoto ? 'transparent' : 'var(--color-border-medium)'}`, transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: 1, left: tkAllowPhoto ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.28)', transition: 'left 0.15s' }} />
+                      <span style={{ position: 'absolute', top: 1, left: tkAllowPhoto ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s' }} />
                     </span>
                     <ImageIcon size={16} strokeWidth={2} style={{ color: tkAllowPhoto ? cfg.color : 'var(--color-text-3)' }} />
                     <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Разрешить прикрепить фото решения')}</div>
@@ -3398,7 +3398,7 @@ function CreatorView({
                   </div>
                   <button onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: criteriaVisible ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 32, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', boxSizing: 'border-box', background: criteriaVisible ? cfg.color : 'var(--color-bg-5)', border: `1px solid ${criteriaVisible ? 'transparent' : 'var(--color-border-medium)'}` }}>
-                      <span style={{ position: 'absolute', top: 1, left: criteriaVisible ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.28)', transition: 'left 0.15s' }} />
+                      <span style={{ position: 'absolute', top: 1, left: criteriaVisible ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s' }} />
                     </span>
                     {criteriaVisible ? <Eye size={16} strokeWidth={2} style={{ color: cfg.color }} /> : <EyeOff size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />}
                     <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Показывать критерии студенту при проверке')}</div>
@@ -4007,7 +4007,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
               background: 'rgba(var(--glass-rgb), 0.88)',
               backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)',
               border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
+              boxShadow: 'var(--shadow-3)',
             }}>
             {/* Search */}
             <div style={{ position: 'relative', marginBottom: 8 }}>
@@ -4502,7 +4502,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
         exit={{ opacity: 0, scale: 0.94, y: 12 }}
         transition={{ duration: 0.2 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 400, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.22)' }}
+        style={{ width: '100%', maxWidth: 400, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden', boxShadow: 'var(--shadow-4)' }}
       >
         <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выбрать ученика')}</div>
@@ -5150,7 +5150,7 @@ function DiagResultStudentPanel({
       <motion.div
         initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(24px) saturate(1.4)', WebkitBackdropFilter: 'blur(24px) saturate(1.4)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(24px) saturate(1.4)', WebkitBackdropFilter: 'blur(24px) saturate(1.4)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={tn(result.name)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         {/* Полоса прокрутки поверх, а не своей колонкой: «Все вопросы» удлиняет
@@ -5399,7 +5399,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
 
   return createPortal(
     <motion.div ref={ref} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: 'var(--shadow-4)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS_FULL[viewMonth])} {viewYear}</span>
@@ -5469,7 +5469,7 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
   }
   return createPortal(
     <motion.div ref={containerRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: 'var(--shadow-4)', overflow: 'hidden' }}>
       <div style={{ padding: 6, borderBottom: '1px solid var(--color-border)' }}>
         <input autoFocus value={manual} onChange={e => { const d = e.target.value.replace(/\D/g, '').slice(0, 4); setManual(d.length <= 2 ? d : `${d.slice(0, 2)}:${d.slice(2)}`) }}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitManual() } else if (e.key === 'Escape') onClose() }}
@@ -7710,7 +7710,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
       <motion.div
         initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={label} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -7848,7 +7848,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t('Редактор: ') + (label)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -9428,7 +9428,7 @@ export default function TeacherConstructorPage() {
                       padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
                       background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                       color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
+                      boxShadow: 'var(--shadow-2)', flexShrink: 0,
                     }}
                   >
                     <Link2 size={14} strokeWidth={2.5} />
@@ -9476,7 +9476,7 @@ export default function TeacherConstructorPage() {
                             padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
                             background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                             color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            boxShadow: 'var(--shadow-2)',
                           } as React.CSSProperties}
                         >
                           <Copy size={14} strokeWidth={2.5} />
@@ -9578,7 +9578,7 @@ export default function TeacherConstructorPage() {
                       {t('Раскрыто')} {seriesOpenCount} {t('из')} {seriesTotal}
                       {/* Поля как у кнопок SegmentFilter (обёртка 2px + 5px) — таблетка ровно по высоте соседей. */}
                       <span style={{ padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                        background: 'var(--color-surface)', color: 'var(--color-purple-text)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                        background: 'var(--color-surface)', color: 'var(--color-purple-text)', boxShadow: 'var(--shadow-1)' }}>
                         {t('Свернуть')}
                       </span>
                     </button>
@@ -9687,13 +9687,13 @@ export default function TeacherConstructorPage() {
                                   border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                                   background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                                  cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                                 }}>
                                   {checkedIds.has(w.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                                 </div>
                                 <button onClick={e => { e.stopPropagation(); duplicateWidget(w) }} title={t("Дублировать")}
                                   style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
-                                    background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                                    background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
                                   <Copy size={14} strokeWidth={2} />
                                 </button>
@@ -9775,7 +9775,7 @@ export default function TeacherConstructorPage() {
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                         border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
-                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)', color: 'var(--color-text-3)',
+                        boxShadow: 'var(--shadow-1)', color: 'var(--color-text-3)',
                       }}>
                         <Lock size={12} strokeWidth={2} />
                       </div>
@@ -9788,13 +9788,13 @@ export default function TeacherConstructorPage() {
                           background: checkedIds.has(c.id) ? '#c0303a' : 'var(--color-bg-5)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
-                          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                          boxShadow: 'var(--shadow-1)',
                         }}>
                           {checkedIds.has(c.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                         </div>
                         <button onClick={e => { e.stopPropagation(); duplicateCourse(c) }} title={t("Дублировать")}
                           style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
-                            background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                            background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
                           <Copy size={14} strokeWidth={2} />
                         </button>
@@ -9827,7 +9827,7 @@ export default function TeacherConstructorPage() {
                         border: checkedIds.has(subject) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(subject) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                       }}>
                         {checkedIds.has(subject) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
@@ -9851,7 +9851,7 @@ export default function TeacherConstructorPage() {
                         border: checkedIds.has(ct.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(ct.id) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                       }}>
                         {checkedIds.has(ct.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
@@ -9983,7 +9983,7 @@ function AssignTestModal({
         initial={{ scale: 0.94, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 16 }}
         transition={{ type: 'spring', stiffness: 360, damping: 32 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 22, border: '1px solid var(--color-border-glass)', boxShadow: '0 32px 80px rgba(0,0,0,0.22)', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 22, border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-5)', overflow: 'hidden' }}
       >
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', gap: 12 }}>

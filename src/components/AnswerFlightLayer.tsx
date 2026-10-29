@@ -112,7 +112,7 @@ function FlightChip({
         alignItems: 'center',
         justifyContent: 'center',
         lineHeight: 1,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+        boxShadow: 'var(--shadow-1)',
       }}>
         {questionIndex + 1}
       </div>

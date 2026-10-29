@@ -86,7 +86,7 @@ export default function OfflineBanner() {
             backdropFilter: 'blur(20px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
             border: '1px solid var(--color-border-strong)',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.16)',
+            boxShadow: 'var(--shadow-4)',
             pointerEvents: 'none',
           }}
         >

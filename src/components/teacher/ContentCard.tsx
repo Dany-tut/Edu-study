@@ -143,7 +143,7 @@ export function CardSkeleton() {
       border: '1px solid var(--color-border-glass)',
       borderRadius: 20, padding: '18px 18px 12px',
       display: 'flex', flexDirection: 'column', gap: 10, height: '100%',
-      boxShadow: '0 3px 16px rgba(0,0,0,0.06)',
+      boxShadow: 'var(--shadow-2)',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <Skeleton w={36} h={36} radius={12} />

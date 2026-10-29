@@ -121,7 +121,7 @@ export default function HomeworkFlowBar({
                 // бы поверх текста задания, поэтому у неё своё стекло.
                 background: 'rgba(var(--glass-rgb), 0.86)',
                 backdropFilter: 'blur(14px)',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
+                boxShadow: 'var(--shadow-3)',
                 color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                 flexShrink: 0, pointerEvents: 'auto',
               }}
