@@ -515,7 +515,7 @@ html[data-season] .season-hero-row:has(.season-hero--picture) { z-index: 0; }
 @keyframes season-moon { 0%, 100% { opacity: 0.6; scale: 1; } 50% { opacity: 1; scale: 1.06; } }
 
 /* Летучие мыши пролетают по небу время от времени, машут крыльями. */
-.season-bat { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
+.season-bat { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; transform-origin: 50% 50%; }
 .season-bat__flap { position: relative; display: block; width: 100%; aspect-ratio: 505 / 220; animation: season-bat-bob 0.9s ease-in-out infinite; }
 .season-bat__flap > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
 .season-bat__wing--l { transform-origin: 36% 46%; animation: season-wing-l 0.26s ease-in-out infinite alternate; }
@@ -525,21 +525,23 @@ html[data-season] .season-hero-row:has(.season-hero--picture) { z-index: 0; }
 @keyframes season-wing-l { from { transform: rotate(-6deg) scaleY(1); } to { transform: rotate(16deg) scaleY(0.5); } }
 @keyframes season-wing-r { from { transform: rotate(6deg) scaleY(1); } to { transform: rotate(-16deg) scaleY(0.5); } }
 @keyframes season-bat-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+/* Мышь нарисована анфас — значит, летит на зрителя, а не вбок: вылетает крошкой
+   с луны / из-за горизонта, растёт и уходит за верхний край экрана. */
 @keyframes season-bat-fly-a {
-  0% { transform: translate(-10vw, 190px) rotate(8deg); opacity: 0; }
+  0% { transform: translate(82vw, 170px) scale(0.12) rotate(0deg); opacity: 0; }
   3% { opacity: 1; }
-  20% { transform: translate(40vw, 90px) rotate(-4deg); }
-  36% { opacity: 1; }
-  40% { transform: translate(108vw, 30px) rotate(6deg); opacity: 0; }
-  100% { transform: translate(108vw, 30px); opacity: 0; }
+  14% { transform: translate(74vw, 130px) scale(0.35) rotate(-6deg); }
+  26% { transform: translate(62vw, 60px) scale(0.85) rotate(-10deg); opacity: 1; }
+  33% { transform: translate(54vw, -160px) scale(1.5) rotate(-14deg); opacity: 0; }
+  100% { transform: translate(54vw, -160px) scale(1.5); opacity: 0; }
 }
 @keyframes season-bat-fly-b {
-  0% { transform: translate(105vw, 60px) rotate(-6deg); opacity: 0; }
-  3% { opacity: 0.9; }
-  18% { transform: translate(60vw, 140px) rotate(4deg); }
-  33% { opacity: 0.9; }
-  36% { transform: translate(-10vw, 70px) rotate(-8deg); opacity: 0; }
-  100% { transform: translate(-10vw, 70px); opacity: 0; }
+  0% { transform: translate(12vw, 300px) scale(0.12) rotate(0deg); opacity: 0; }
+  3% { opacity: 0.95; }
+  15% { transform: translate(18vw, 230px) scale(0.4) rotate(5deg); }
+  27% { transform: translate(28vw, 120px) scale(0.9) rotate(9deg); opacity: 0.95; }
+  34% { transform: translate(36vw, -150px) scale(1.5) rotate(12deg); opacity: 0; }
+  100% { transform: translate(36vw, -150px) scale(1.5); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
