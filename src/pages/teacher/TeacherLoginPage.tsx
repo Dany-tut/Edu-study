@@ -88,7 +88,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       <div style={{
         background: 'rgba(var(--glass-rgb), 0.92)',
         backdropFilter: 'blur(20px)',
-        borderRadius: 28,
+        borderRadius: 24,
         padding: '40px 36px',
         width: '100%',
         maxWidth: 400,

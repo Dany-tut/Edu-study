@@ -636,7 +636,7 @@ export default function TeacherHomeworkReviewPage() {
               <div className="flex flex-col" style={{ gap: 16 }}>
                 {/* Submission */}
                 <div style={{
-                  padding: 22, borderRadius: 26,
+                  padding: 22, borderRadius: 24,
                   background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
                 }}>
@@ -676,7 +676,7 @@ export default function TeacherHomeworkReviewPage() {
 
                 {/* Grading */}
                 <div style={{
-                  padding: 22, borderRadius: 26,
+                  padding: 22, borderRadius: 24,
                   background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
                 }}>

@@ -746,7 +746,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
     <div
       style={{
         display: 'flex', flexDirection: 'column', gap: 14,
-        padding: 20, borderRadius: 26,
+        padding: 20, borderRadius: 24,
         background: 'rgba(var(--glass-rgb), 0.96)',
         border: modified ? '1px solid rgba(99,84,207,0.35)' : '1px solid var(--color-border-soft)',
         boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
