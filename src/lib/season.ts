@@ -201,8 +201,8 @@ export function useSeason(): SeasonView {
 /**
  * Атрибуты на <html>: season.css красит помеченные классами места
  * (html[data-season-variant="lanterns"] .season-track-fill и т. п.).
- * «Ночь фонарей» — тёмная: включаем тёмную тему один раз за сезон, как в Taskly,
- * и возвращаем прежнюю, когда тема ушла (если ученик сам её не поменял).
+ * Режим кабинета — под вариант (MODE): при выборе ставим один раз, как в Taskly,
+ * и возвращаем прежний, когда тема ушла (если ученик сам его не поменял).
  */
 function mark() {
   const v = snapshot()
@@ -217,21 +217,27 @@ function mark() {
   syncTheme(v)
 }
 
+/** Режим кабинета у варианта: «Ночь фонарей» — ночь, две другие нарисованы на светлом. */
+const MODE: Record<SeasonVariant, 'dark' | 'light'> = { lanterns: 'dark', candy: 'light', potions: 'light' }
+/** Вариант, чей режим уже поставлен: ставим один раз при выборе, дальше ученик меняет сам. */
+const APPLIED = 'season.themeApplied'
+
 function syncTheme(v: SeasonView) {
   const theme = useTheme.getState()
-  const wantDark = v.variant === 'lanterns'
-  const was = ls.get(THEME_WAS)
-  if (wantDark && v.season) {
-    const once = `season.dark.${v.season.key}.${new Date(v.season.startsAt).getFullYear()}`
-    if (ls.get(once)) return
-    ls.set(once, '1')
-    ls.set(THEME_WAS, theme.dark ? 'dark' : 'light')
-    if (!theme.dark) theme.toggle()
-  } else if (was) {
+  const applied = ls.get(APPLIED)
+  if (v.variant) {
+    if (applied === v.variant) return
+    // Исходный режим запоминаем один раз — при смене варианта он не перезаписывается.
+    if (!ls.get(THEME_WAS)) ls.set(THEME_WAS, theme.dark ? 'dark' : 'light')
+    ls.set(APPLIED, v.variant)
+    if (theme.dark !== (MODE[v.variant] === 'dark')) theme.toggle()
+  } else if (applied) {
+    // Тема ушла: возвращаем прежний режим, если на экране всё ещё тот, что ставила тема.
+    const was = ls.get(THEME_WAS)
+    ls.set(APPLIED, null)
     ls.set(THEME_WAS, null)
-    if (was === 'light' && theme.dark) theme.toggle()
-    // Вернули — значит, при следующем включении «Ночи фонарей» снова потемнеет.
-    if (v.season) ls.set(`season.dark.${v.season.key}.${new Date(v.season.startsAt).getFullYear()}`, null)
+    const ours = isVariant(applied) && theme.dark === (MODE[applied] === 'dark')
+    if (was && ours && theme.dark !== (was === 'dark')) theme.toggle()
   }
 }
 

@@ -43,23 +43,43 @@
 html[data-season] .dashboard-schedule,
 html[data-season] .dashboard-main { position: relative; z-index: 1; }
 html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top: -12px; }
-/* Шапка добавляет высоты: на низком окне главной разрешено прокручиваться,
-   чтобы дорожка уроков не уходила под край. */
-html[data-season] .dashboard-root { overflow-y: auto; }
+/* Главная — без прокрутки, как и без темы: место под шапку забираем у виджетов ниже,
+   а на невысоком окне шапка ещё компактнее (без подзаголовка). Прокрутка, которая
+   была здесь раньше, давала полосу на ноутбуках — Даня заметил 29.10.2026. */
+
+/* Шапка добавляет ~90 px — забираем их у ряда виджетов и промежутков, чтобы главная
+   по-прежнему помещалась в окно без прокрутки (как в макете: плитки ниже, цифры мельче).
+   Только когда шапка на экране: .season-hero-row:has(.season-hero). */
+@media (min-width: 1024px) {
+  html[data-season] .dashboard-root:has(.season-hero) .widget-carousel { height: 136px; }
+  html[data-season] .dashboard-root:has(.season-hero) .carousel-nav { top: 68px; }
+  html[data-season] .dashboard-root:has(.season-hero) .stat-card { padding: 12px 18px; }
+  html[data-season] .dashboard-root:has(.season-hero) .stat-value { font-size: 44px; }
+  html[data-season] .dashboard-root:has(.season-hero) .season-stat-img { height: 50px; }
+  html[data-season] .dashboard-root:has(.season-hero) .dashboard-main { gap: 16px; padding-top: 14px; padding-bottom: 12px; }
+}
+@media (min-width: 1024px) and (max-height: 860px) {
+  .season-hero:not(.season-hero--compact) { min-height: 58px; }
+  .season-hero:not(.season-hero--compact) .season-hero__sub { display: none; }
+  .season-hero:not(.season-hero--compact) .season-hero__title { font-size: 26px; margin: 4px 0 0; }
+  .season-hero:not(.season-hero--compact) .season-hero__img { height: 170px; }
+  .season-hero--candy:not(.season-hero--compact) { padding-block: 10px; }
+  .season-hero--candy:not(.season-hero--compact) .season-hero__img { height: 150px; }
+}
 .season-hero-row:empty { display: none; }
 
 /* ── Шапка ─────────────────────────────────────────────────────────────── */
 .season-hero {
   position: relative; display: flex; align-items: center;
-  min-height: 92px; padding: 0 0 6px;
+  min-height: 80px; padding: 0 0 4px;
 }
 .season-hero__copy { position: relative; z-index: 1; min-width: 0; max-width: 62%; }
 .season-hero__chip {
   display: inline-block; padding: 5px 13px; border-radius: 999px;
   font-size: 12.5px; font-weight: 650; line-height: 1.2;
 }
-.season-hero__title { margin: 6px 0 3px; font-size: 34px; font-weight: 750; letter-spacing: -0.03em; line-height: 1.05; }
-.season-hero__sub { font-size: 15px; line-height: 1.4; margin: 0; }
+.season-hero__title { margin: 5px 0 2px; font-size: 30px; font-weight: 750; letter-spacing: -0.03em; line-height: 1.05; }
+.season-hero__sub { font-size: 14px; line-height: 1.35; margin: 0; }
 .season-hero__img {
   position: absolute; right: 6%; bottom: -8px; height: 228px; width: auto;
   pointer-events: none; user-select: none;
@@ -114,6 +134,7 @@ html[data-season] .dashboard-root { overflow-y: auto; }
 }
 .season-cat--lanterns { left: calc(25% + 40px); top: -62px; height: 84px; }
 .season-cat--potions { right: 64px; top: -62px; height: 84px; }
+.season-clip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 .season-corner {
   position: absolute; z-index: 0; pointer-events: none; width: auto;
   filter: drop-shadow(0 14px 20px rgba(154, 58, 0, 0.25));
