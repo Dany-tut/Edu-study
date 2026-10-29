@@ -50,11 +50,16 @@ export interface BasicAnswerRow {
   heard?: string
   /** Сколько раз перезаписывал. Про беглость, а не про правильность. */
   attempts?: number
+  /**
+   * Тест из Тестли: балл на момент сдачи и чем спросить свежий (у теста с
+   * ручной частью итог приходит после проверки в Тестли).
+   */
+  testly?: { testId: string; got?: number; max?: number; pending?: boolean; submittedAt?: string }
 }
 
 export interface BasicAnswersPayload {
   v: 'basic-1'
-  /** Сколько заданий с автопроверкой и сколько из них верно — для шапки. */
+  /** Сколько заданий с автопроверкой и сколько из них верно — для шапки (тест из Тестли — долей). */
   gradable: number
   correct: number
   rows: BasicAnswerRow[]

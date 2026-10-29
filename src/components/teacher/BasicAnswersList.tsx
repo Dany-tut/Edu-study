@@ -15,14 +15,20 @@
 // счёт виден всегда, записи — по требованию.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
-import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Eye, MicOff, Minus, Send } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, ExternalLink, Eye, MicOff, Minus, Send } from 'lucide-react'
 import type { BasicAnswerRow, BasicAnswersPayload, BasicAnswerVerdict } from '../../lib/basicAnswers'
 import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import AudioPlayer from '../AudioPlayer'
 import { btn } from '../../lib/pillStyles'
+import { fetchTestlyResults, plural, testlyPoints, testlyResultsUrl, type TestlyAttempt } from '../../lib/testlyModule'
+
+/** Балл теста из Тестли: свежий из Тестли, если спросили, иначе — на момент сдачи. */
+type TestlyLive = Pick<TestlyAttempt, 'got' | 'max' | 'pending' | 'submittedAt'>
+const testlyOf = (row: BasicAnswerRow, live?: TestlyLive): TestlyLive | null =>
+  live?.max != null ? live : row.testly?.max != null ? row.testly : null
 
 /** Цвета вердикта — те же три состояния, что и у ученика в разборе. */
 function verdictStyle(v: BasicAnswerVerdict): { bg: string; fg: string; Icon: typeof CheckCircle2 } {
@@ -42,9 +48,10 @@ function verdictStyle(v: BasicAnswerVerdict): { bg: string; fg: string; Icon: ty
   }
 }
 
-function AnswerCard({ row }: { row: BasicAnswerRow }) {
+function AnswerCard({ row, live }: { row: BasicAnswerRow; live?: TestlyLive }) {
   const t = useT()
   const { bg, fg, Icon } = verdictStyle(row.verdict)
+  const tl = row.testly ? testlyOf(row, live) : null
   // Эталон нужен и там, где показана расшифровка: преподаватель читает две
   // строки рядом — что просили сказать и что услышала машина, — и по ним
   // решает, ученик сказал не то или распознавалка не расслышала.
@@ -70,16 +77,47 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
         <p style={{ flex: 1, minWidth: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-2)', ...proseWrap }}>
           {bindShortWords(row.prompt)}
         </p>
-        <span className="flex items-center" style={{
-          flexShrink: 0, gap: 6, padding: '6px 10px', borderRadius: 999,
-          background: bg, color: fg, fontSize: 12, fontWeight: 700,
-        }}>
-          <Icon size={13} />
-          {t(verdictLabel(row.verdict))}
-        </span>
+        {tl?.max != null && tl.got != null ? (
+          // Тест из Тестли — балл как в Тестли, не «Верно/Неверно».
+          <span className="flex items-center" style={{
+            flexShrink: 0, gap: 6, padding: '6px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+            fontVariantNumeric: 'tabular-nums',
+            background: tl.pending ? 'var(--color-yellow-soft)' : 'var(--color-green-soft)',
+            color: tl.pending ? 'var(--color-yellow-text)' : 'var(--color-green-text)',
+          }}>
+            {tl.pending
+              ? `${testlyPoints(tl.got, tl.max)} · ${t('ждёт проверки')}`
+              : `${testlyPoints(tl.got, tl.max)} ${t(plural(Math.round(tl.max), 'балл', 'балла', 'баллов'))}`}
+          </span>
+        ) : (
+          <span className="flex items-center" style={{
+            flexShrink: 0, gap: 6, padding: '6px 10px', borderRadius: 999,
+            background: bg, color: fg, fontSize: 12, fontWeight: 700,
+          }}>
+            <Icon size={13} />
+            {t(verdictLabel(row.verdict))}
+          </span>
+        )}
       </div>
 
-      {row.voice ? (
+      {row.testly && (
+        <div className="flex items-center flex-wrap" style={{ gap: 12 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: tl?.pending ? 'var(--color-yellow-text)' : 'var(--color-text-3)' }}>
+            {tl?.pending
+              ? t('Вторая часть ждёт вашей проверки в Тестли')
+              : tl?.submittedAt
+                ? `${t('Сдан')} ${new Date(tl.submittedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`
+                : row.answer ? t('Балл в Тестли скрыт от ученика') : t('Тест ещё не сдан')}
+          </span>
+          <a href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer" style={{
+            ...btn('S', tl?.pending ? 'primary' : 'secondary'), display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none',
+          }}>
+            {tl?.pending ? t('Проверить в Тестли') : t('Разбор в Тестли')} <ExternalLink size={12} />
+          </a>
+        </div>
+      )}
+
+      {row.testly ? null : row.voice ? (
         <AudioPlayer audioUrl={row.answer} compact />
       ) : row.answer ? (
         <p style={{
@@ -117,9 +155,35 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
 /** Устное, которое машина зачла: слушать нечего — нужные слова прозвучали. */
 const isPassedVoice = (r: BasicAnswerRow) => !!r.voice && r.verdict === 'correct'
 
-export default function BasicAnswersList({ payload }: { payload: BasicAnswersPayload }) {
+export default function BasicAnswersList({ payload, studentId }: { payload: BasicAnswersPayload; studentId?: string }) {
   const t = useT()
   const [showPassed, setShowPassed] = useState(false)
+  // Тесты из Тестли: балл переспрашиваем — у теста с ручной частью итог
+  // приходит после проверки в Тестли, уже после сдачи домашки.
+  const [live, setLive] = useState<Record<string, TestlyLive>>({})
+  const testlyIds = payload.rows.map(r => r.testly?.testId).filter((x): x is string => !!x)
+  const testlyKey = testlyIds.join(',')
+  useEffect(() => {
+    if (!studentId || !testlyKey) return
+    let alive = true
+    fetchTestlyResults(testlyKey.split(',').map(testId => ({ testId, studentId })))
+      .then(items => {
+        if (!alive) return
+        const m: Record<string, TestlyLive> = {}
+        for (const x of items) if (x.state === 'submitted') m[x.testId] = { got: x.got, max: x.max, pending: x.pending, submittedAt: x.submittedAt }
+        setLive(m)
+      })
+      .catch(() => { /* Тестли не ответил — остаётся балл на момент сдачи */ })
+    return () => { alive = false }
+  }, [studentId, testlyKey])
+  const testlyRows = payload.rows.filter(r => r.testly)
+  // В «Автопроверке» тест из Тестли не считаем — у него своя плашка с баллом.
+  const testlyCredit = testlyRows.reduce((s, r) => {
+    const x = r.testly!
+    return s + (x.max ? Math.min(1, (x.got ?? 0) / x.max) : r.answer ? 1 : 0)
+  }, 0)
+  const autoCorrect = Math.max(0, Math.round((payload.correct - testlyCredit) * 100) / 100)
+  const autoGradable = Math.max(0, payload.gradable - testlyRows.length)
   // Устные задания и описания картинок — то, ради чего преподаватель сюда и
   // заходит: машина их не проверяет, а раньше они вообще не доезжали.
   const reviewCount = payload.rows.filter(r => r.verdict === 'review' || r.verdict === 'skip').length
@@ -134,9 +198,24 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
       <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
-          {t('Автопроверка')}: {payload.correct} / {payload.gradable}
-        </span>
+        {autoGradable > 0 && (
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
+            {t('Автопроверка')}: {String(autoCorrect).replace('.', ',')} / {autoGradable}
+          </span>
+        )}
+        {testlyRows.map(r => {
+          const tl = testlyOf(r, live[r.testly!.testId])
+          if (tl?.got == null || tl.max == null) return null
+          return (
+            <span key={r.n} style={{
+              padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+              background: tl.pending ? 'var(--color-yellow-soft)' : 'var(--color-green-soft)',
+              color: tl.pending ? 'var(--color-yellow-text)' : 'var(--color-green-text)',
+            }}>
+              {t('Тестли')}: {testlyPoints(tl.got, tl.max)}
+            </span>
+          )
+        })}
         {reviewCount > 0 && (
           <span style={{
             padding: '4px 10px', borderRadius: 999,
@@ -169,7 +248,7 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
           </span>
         </button>
       )}
-      {rows.map(row => <AnswerCard key={row.n} row={row} />)}
+      {rows.map(row => <AnswerCard key={row.n} row={row} live={row.testly ? live[row.testly.testId] : undefined} />)}
     </div>
   )
 }

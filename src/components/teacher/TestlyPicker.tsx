@@ -5,13 +5,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, Clock, ExternalLink, ListChecks, Loader2, Plus, Search } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { fetchTestlyTests, testlyMeta, testlyNewUrl, type TestlyTest } from '../../lib/testlyModule'
+import { fetchTestlyTests, testlyMeta, testlyNewUrl, useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import type { TestlyRef } from '../../data/taskTypes'
 import { cardChip } from '../../lib/pillStyles'
 import { TestlyTile } from '../TestlyMark'
 
 export const testlyRef = (x: TestlyTest): TestlyRef => ({
   id: x.id, title: x.title, questions: x.questions, points: x.points, minutes: x.minutes, manual: x.manual,
+  ...(useTestlyModule.getState().teacherId ? { owner: useTestlyModule.getState().teacherId } : {}),
 })
 
 export default function TestlyPicker({ onPick, addedIds, compact = false }: {

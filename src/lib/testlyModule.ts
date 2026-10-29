@@ -15,6 +15,7 @@ export const TESTLY_SITE = 'https://testly-sigma.vercel.app'
 export const testlyPlayUrl = (id: string) => `${TESTLY_SITE}/t/${id}`
 export const testlyEditUrl = (id: string) => `${TESTLY_SITE}/app/tests/${id}`
 export const testlyNewUrl = () => `${TESTLY_SITE}/app/tests/new`
+export const testlyResultsUrl = (id: string) => `${TESTLY_SITE}/app/tests/${id}/results`
 
 /** Тест из Тестли, как его отдаёт testly-bridge: без вопросов и ключей. */
 export interface TestlyTest {
@@ -31,6 +32,8 @@ export interface TestlyTest {
 
 interface TestlyModuleState {
   loaded: boolean
+  /** учитель, чей это кабинет: пишется в TestlyRef.owner при выборе теста */
+  teacherId: string
   connected: boolean
   email: string
   tests: number
@@ -39,6 +42,7 @@ interface TestlyModuleState {
 
 export const useTestlyModule = create<TestlyModuleState>(set => ({
   loaded: false,
+  teacherId: '',
   connected: false,
   email: '',
   tests: 0,
@@ -48,7 +52,7 @@ export const useTestlyModule = create<TestlyModuleState>(set => ({
     const { data } = await supabase.from('teacher_modules').select('meta')
       .eq('teacher_id', user.id).eq('module', 'testly').maybeSingle()
     const meta = (data?.meta ?? {}) as { email?: string; tests?: number }
-    set({ loaded: true, connected: !!data, email: meta.email ?? '', tests: meta.tests ?? 0 })
+    set({ loaded: true, teacherId: user.id, connected: !!data, email: meta.email ?? '', tests: meta.tests ?? 0 })
   },
 }))
 
@@ -57,6 +61,7 @@ const ERRORS: Record<string, string> = {
   not_connected: 'Тестли не подключён. Подключите его в Профиль → Модули.',
   revoked: 'Доступ к Тестли отозван. Подключите модуль заново в Профиль → Модули.',
   not_configured: 'Модуль Тестли ещё не включён на сервере.',
+  not_student: 'Тест доступен только ученикам преподавателя.',
 }
 
 /** Вызов testly-bridge. Ошибку функции отдаём человеческим текстом. */
@@ -87,6 +92,47 @@ export async function fetchTestlyTests(): Promise<TestlyTest[]> {
   const { tests } = await bridge<{ tests: TestlyTest[] }>({ action: 'tests' })
   useTestlyModule.setState({ tests: tests.length })
   return tests
+}
+
+/** Попытка ученика в Тестли — как её отдаёт testly-bridge. */
+export interface TestlyAttempt {
+  state: 'none' | 'started' | 'submitted' | 'gone'
+  total?: number
+  answered?: number
+  startedAt?: string | null
+  submittedAt?: string | null
+  /** балла нет, если Тестли не показывает его ученику (настройка теста) */
+  got?: number
+  max?: number
+  pending?: boolean
+  /** токен разбора /r/<token> */
+  review?: string
+}
+
+export const testlyReviewUrl = (token: string) => `${TESTLY_SITE}/r/${token}`
+
+/** Ученик: личная ссылка на тест (одна на ученика, заводится при первом открытии). */
+export async function startTestlyTest(testId: string, owner?: string): Promise<string> {
+  const { path } = await bridge<{ path: string }>({ action: 'start', testId, owner })
+  return TESTLY_SITE + path
+}
+
+/** Ученик: что с его попыткой. */
+export function fetchTestlyStatus(testId: string, owner?: string): Promise<TestlyAttempt> {
+  return bridge<TestlyAttempt>({ action: 'status', testId, owner })
+}
+
+/** Учитель: свежие баллы своих учеников по тестам. */
+export async function fetchTestlyResults(items: { testId: string; studentId: string }[]): Promise<(TestlyAttempt & { testId: string; studentId: string })[]> {
+  if (!items.length) return []
+  const { items: out } = await bridge<{ items: (TestlyAttempt & { testId: string; studentId: string })[] }>({ action: 'results', items })
+  return out
+}
+
+/** «14 / 19» — балл как в Тестли, без перевода в сотню; дробные с запятой. */
+export function testlyPoints(got: number, max: number): string {
+  const f = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',')
+  return `${f(got)} / ${f(max)}`
 }
 
 /** Русская форма по числу: 1 тест, 3 теста, 5 тестов. */

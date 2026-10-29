@@ -438,6 +438,8 @@ export interface TestlyRef {
   minutes: number | null
   /** есть развёрнутые ответы — их проверяет учитель в Тестли */
   manual: boolean
+  /** учитель, поставивший тест: его ключ Тестли заводит ученику личную ссылку */
+  owner?: string
 }
 
 /** Ответ ученика. Сериализуемый, одна форма на тип. */
@@ -1380,9 +1382,9 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
    * Тест из Тестли целиком — модуль, который учитель подключает в профиле.
    *
    * Это не тип палитры: его нет в taskTypesFor(), задание добавляют вкладкой
-   * «Из Тестли» в ДЗ и кнопкой «Из Тестли» в уроке курса. Шаг 1 — засчитываем
-   * сдачу по отметке ученика, как у внешнего упражнения. Балл из Тестли придёт
-   * на шаге 2 (личное приглашение на ученика).
+   * «Из Тестли» в ДЗ и кнопкой «Из Тестли» в уроке курса. Ученик проходит тест
+   * по личной ссылке, балл приходит из Тестли сам (testlyScoreOf). «Верно» —
+   * только полный балл; частичный зачёт считает домашка (testlyCredit).
    */
   testly: def({
     id: 'testly', family: 'audio',
@@ -1392,7 +1394,7 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     isGradable: t => !!t.testly?.id,
     grade: (t, a) => {
       if (!TASK_TYPES.testly.isGradable(t)) return NOT_AUTO
-      return { auto: true, correct: testlyDoneAt(a) !== null }
+      return { auto: true, correct: testlyCredit(a) === 1 }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
   }),
@@ -1456,11 +1458,37 @@ export function sortRows(t: { sortItems?: SortItem[] }): SortItem[] {
 /** Отметка «прошёл» у внешнего упражнения. Ответа с результатом оттуда нет. */
 export const EMBED_DONE = 'done'
 
-/** Отметка «сдал тест» у теста из Тестли (шаг 1 — без балла): «done@<ISO-время>». */
+/**
+ * Сдача теста из Тестли: «done@<ISO-время>», дальше через «;» — балл из Тестли:
+ * g=<набрано>;m=<из скольких>;p=1 (часть ждёт проверки учителя);r=<токен разбора>.
+ * Без балла — тест сдан, а Тестли его ученику не показывает (или сдача шага 1).
+ */
 export const TESTLY_DONE_PREFIX = 'done@'
 export const TESTLY_DONE = 'done'
 export const testlyDoneAt = (a: unknown): string | null =>
-  typeof a === 'string' && a.startsWith(TESTLY_DONE_PREFIX) ? a.slice(TESTLY_DONE_PREFIX.length) : a === TESTLY_DONE ? '' : null
+  typeof a === 'string' && a.startsWith(TESTLY_DONE_PREFIX) ? a.slice(TESTLY_DONE_PREFIX.length).split(';')[0] : a === TESTLY_DONE ? '' : null
+
+export interface TestlyScore { got: number; max: number; pending: boolean; review?: string }
+
+export function testlyScoreOf(a: unknown): TestlyScore | null {
+  if (testlyDoneAt(a) === null || typeof a !== 'string') return null
+  const f = Object.fromEntries(a.split(';').slice(1).map(x => [x.slice(0, x.indexOf('=')), x.slice(x.indexOf('=') + 1)]))
+  const got = Number(f.g), max = Number(f.m)
+  if (!Number.isFinite(got) || !Number.isFinite(max) || max <= 0) return null
+  return { got, max, pending: f.p === '1', ...(f.r ? { review: f.r } : {}) }
+}
+
+export function testlyAnswer(at: string, score?: TestlyScore | null): string {
+  if (!score) return TESTLY_DONE_PREFIX + at
+  return [TESTLY_DONE_PREFIX + at, `g=${score.got}`, `m=${score.max}`, ...(score.pending ? ['p=1'] : []), ...(score.review ? [`r=${score.review}`] : [])].join(';')
+}
+
+/** Доля задания, которую тест даёт в балл домашки: 14 из 19 → 0,74; сдан без балла → 1. */
+export function testlyCredit(a: unknown): number {
+  if (testlyDoneAt(a) === null) return 0
+  const sc = testlyScoreOf(a)
+  return sc ? Math.max(0, Math.min(1, sc.got / sc.max)) : 1
+}
 
 /** Ответ на «порядок» приходит массивом чисел либо строкой "2,0,1" (легаси). */
 function toOrder(a: TaskAnswer): number[] | null {
