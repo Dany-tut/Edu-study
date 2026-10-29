@@ -5,6 +5,7 @@ import {
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import SubjectColorPicker, { type ColorSubject } from '../../components/SubjectColorPicker'
 import { getSubject, registrySubjectPalette } from '../../lib/subjects'
 import { loadTeacherSubjectColors, saveTeacherSubjectColors, type SubjectColorMap } from '../../lib/teacherSubjectColors'
@@ -20,6 +21,7 @@ import { getAuthUser } from '../../lib/owner'
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string; glow: string; scale?: number }
 
 const AVATARS: AvatarOption[] = [
+  { id: 'teacher', Icon: TeacherBook, gradient: 'linear-gradient(135deg, hsl(228 78% 70%), hsl(248 64% 52%) 60%, hsl(262 60% 42%))', glow: 'hsl(244 70% 58% / 0.5)', scale: 1.08 },
   { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 0.96 },
   { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))',    glow: 'hsl(21 88% 62% / 0.45)' },
   { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))', glow: 'hsl(337 82% 67% / 0.45)' },
@@ -161,7 +163,7 @@ export default function TeacherProfileSettingsPage() {
           </div>
 
           {/* Avatar grid — same recipe as the student sidebar picker */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12, width: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${AVATARS.length}, 1fr)`, gap: 12, width: '100%' }}>
             {AVATARS.map(opt => {
               const Ic = opt.Icon
               const isSelected = avatarId === opt.id
