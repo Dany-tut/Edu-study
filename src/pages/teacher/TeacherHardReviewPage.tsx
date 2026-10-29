@@ -5,10 +5,12 @@ import { useTeacher } from '../../store/teacherStore'
 import {
   useHardSubmissions, type Annotation as HardAnnotation,
   type HardComment, type HardReviewNew,
-  teacherComments, deriveHardRowStatus, deriveHardScore, hardId,
+  teacherComments, deriveHardRowStatus, deriveHardScore, hardId, taskStatus,
 } from '../../lib/useHomework'
 import { openHardSubHomework } from '../../lib/teacherNav'
-import { clearDrafts } from '../../lib/useDraft'
+import { clearDrafts, writeDraft } from '../../lib/useDraft'
+import AiGradeCard from '../../components/teacher/AiGradeCard'
+import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -45,6 +47,11 @@ export default function TeacherHardReviewPage() {
   // Хуки — до раннего возврата ниже.
   const sideRef = useRef<HTMLDivElement>(null)
   const sideLift = useStickyLift(sideRef)
+  // Предоценка ИИ по критериям ФИПИ (hw_ai_grades, kind hard): по вкладке —
+  // первичные баллы и оценка 1–5. «Править» кладёт её в черновик проверки и
+  // пересоздаёт переписку, чтобы поля подхватили черновик.
+  const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(sub ? [sub.id] : [])
+  const [composerEpoch, setComposerEpoch] = useState(0)
 
   if (!sub) {
     return (
@@ -98,9 +105,21 @@ export default function TeacherHardReviewPage() {
       setBusy(false)
       return
     }
+    // Работа проверена целиком — отметка «ИИ → учитель»: принял оценки ИИ
+    // или поставил свои.
+    if (status !== 'submitted' && aiGrade && (aiGrade.status === 'graded' || aiGrade.status === 'dismissed')) {
+      await confirmAiGrade(aiGrade.id, score)
+    }
+    void reloadAi()
     clearDrafts(`hardReview:${sub!.id}:${key}`)
     setBusy(false)
   }
+
+  const currentKey = activeKey || tabs[0]?.key || ''
+  const aiGrade = aiByProgress.get(sub.id)
+  const aiTask = aiGrade?.tasks.find(x => x.key === currentKey)
+  const currentBlock = sub.taskBlocks.find(b => b.key === currentKey)
+  const taskDone = taskStatus(currentBlock, sub.reviewBlocks.find(b => b.key === currentKey)) !== 'submitted'
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
@@ -163,7 +182,29 @@ export default function TeacherHardReviewPage() {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
+          {aiGrade && (aiTask || aiGrade.status === 'pending' || aiGrade.status === 'working' || aiGrade.status === 'error') && (
+            <AiGradeCard
+              grade={aiGrade}
+              task={aiTask}
+              done={taskDone}
+              onAccept={() => {
+                if (!aiTask?.mark) return
+                void reviewTab(currentKey, {
+                  comment: aiTask.comment ?? '', photos: [], board: null, boardMode: 'beside', annotation: null,
+                  verdict: 'completed', score: aiTask.mark,
+                })
+              }}
+              onEdit={() => {
+                if (!aiTask) return
+                const draft = `hardReview:${sub.id}:${currentKey}`
+                if (aiTask.comment) writeDraft(`${draft}:comment`, aiTask.comment)
+                if (aiTask.mark) writeDraft(`${draft}:score`, aiTask.mark)
+                setComposerEpoch(e => e + 1)
+              }}
+            />
+          )}
           <HardConversation
+            key={composerEpoch}
             tabs={tabs}
             studentBlocks={sub.taskBlocks}
             reviewBlocks={sub.reviewBlocks}

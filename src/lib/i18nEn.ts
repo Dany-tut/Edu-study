@@ -4771,4 +4771,6 @@ export const EN: Record<string, string> = {
   "цитаты нет в ответе, не засчитано": "quote isn’t in the answer, not counted",
   "Ок": "OK",
   "Править": "Edit",
+  "ИИ предлагает оценку": "AI suggests a grade of",
+  "с фото": "from the photo",
 }

@@ -8,11 +8,14 @@
  *
  * «Ок» — принять балл и комментарий ИИ как есть (та же запись проверки, что у
  * кнопки «Засчитать»). «Править» — перенести их в поля ниже и поправить руками.
+ *
+ * С `task` — карточка одного сложного задания: оценка 1–5 (из первичных по
+ * проценту, как в контрольной Тестли) и комментарий ИИ к этому заданию.
  */
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, Check, PenLine, ChevronDown, Loader2 } from 'lucide-react'
-import type { AiGrade, AiGradeElement } from '../../lib/useAiGrades'
+import type { AiGrade, AiGradeElement, AiGradeTask } from '../../lib/useAiGrades'
 import { useT } from '../../lib/i18n'
 
 const MARK: Record<AiGradeElement['verdict'], string> = { yes: '✓', partial: '½', no: '✗' }
@@ -24,8 +27,12 @@ function pointsWord(n: number, t: (s: string) => string): string {
   return t('баллов')
 }
 
-export default function AiGradeCard({ grade, onAccept, onEdit }: {
+export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
   grade: AiGrade
+  /** Одно сложное задание вместо всей работы. */
+  task?: AiGradeTask
+  /** Учитель уже проверил (задание) — кнопок нет. */
+  done?: boolean
   onAccept: () => void
   onEdit: () => void
 }) {
@@ -56,6 +63,9 @@ export default function AiGradeCard({ grade, onAccept, onEdit }: {
   if (grade.score == null || !['graded', 'dismissed', 'confirmed', 'changed'].includes(grade.status)) return null
 
   const decided = grade.status === 'confirmed' || grade.status === 'changed'
+  const tasks = task ? [task] : grade.tasks
+  const comment = task ? task.comment : grade.comment
+  const note = task ? task.note : grade.teacherNote
 
   return (
     <div style={{
@@ -66,26 +76,32 @@ export default function AiGradeCard({ grade, onAccept, onEdit }: {
       <div className="flex items-center" style={{ gap: 8, flexWrap: 'wrap' }}>
         <Sparkles size={16} style={{ color: 'var(--color-purple-text)' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-          {t('ИИ предложил')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{grade.score}</span> {pointsWord(grade.score, t)}
+          {task
+            ? <>{t('ИИ предлагает оценку')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{task.mark ?? '—'}/5</span></>
+            : <>{t('ИИ предложил')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{grade.score}</span> {pointsWord(grade.score, t)}</>}
         </span>
-        {grade.max != null && grade.max > 0 && (
+        {task ? (
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>
+            {task.points} {t('из')} {task.max_points} {t('первичных по ФИПИ')}
+          </span>
+        ) : grade.max != null && grade.max > 0 && (
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>
             {grade.primary} {t('из')} {grade.max} {t('первичных по ФИПИ')}
           </span>
         )}
-        {decided && (
+        {decided && !task && (
           <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
             {grade.status === 'confirmed' ? t('Вы приняли оценку ИИ') : t('Вы поставили свою оценку')}
           </span>
         )}
       </div>
 
-      {grade.comment && (
-        <p style={{ fontSize: 13, lineHeight: 1.35, color: 'var(--color-text-2)', marginTop: 8 }}>{grade.comment}</p>
+      {comment && (
+        <p style={{ fontSize: 13, lineHeight: 1.35, color: 'var(--color-text-2)', marginTop: 8 }}>{comment}</p>
       )}
-      {grade.teacherNote && (
+      {note && (
         <p style={{ fontSize: 12, lineHeight: 1.35, color: 'var(--color-text-3)', marginTop: 6 }}>
-          {t('Заметка ИИ')}: {grade.teacherNote}
+          {t('Заметка ИИ')}: {note}
         </p>
       )}
 
@@ -103,7 +119,7 @@ export default function AiGradeCard({ grade, onAccept, onEdit }: {
 
       {open && (
         <div className="flex flex-col" style={{ gap: 10, marginTop: 10 }}>
-          {grade.tasks.map(task => (
+          {tasks.map(task => (
             <div key={task.n} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(var(--glass-rgb), 0.7)' }}>
               <div className="flex items-center" style={{ gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>
                 {t('Задание')} {task.n}
@@ -121,20 +137,20 @@ export default function AiGradeCard({ grade, onAccept, onEdit }: {
                       <div style={{ color: 'var(--color-text)' }}>{e.text}</div>
                       {e.quote && (
                         <div style={{ color: 'var(--color-text-3)', marginTop: 2 }}>
-                          «{e.quote}»{e.verdict === 'yes' && !e.counted ? ` — ${t('цитаты нет в ответе, не засчитано')}` : ''}
+                          {e.from === 'photo' ? `${t('с фото')}: ` : ''}«{e.quote}»{e.verdict === 'yes' && !e.counted ? ` — ${t('цитаты нет в ответе, не засчитано')}` : ''}
                         </div>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
-              {task.note && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6, lineHeight: 1.3 }}>{task.note}</div>}
+              {task.note && tasks.length > 1 && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6, lineHeight: 1.3 }}>{task.note}</div>}
             </div>
           ))}
         </div>
       )}
 
-      {!decided && (
+      {!decided && !done && (
         <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 12 }}>
           <motion.button
             whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}

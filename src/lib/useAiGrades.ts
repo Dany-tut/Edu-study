@@ -11,10 +11,12 @@ import { supabase } from './supabase'
 export type AiGradeStatus =
   | 'pending' | 'working' | 'graded' | 'confirmed' | 'changed' | 'error' | 'skipped' | 'dismissed'
 
-export interface AiGradeElement { text: string; verdict: 'yes' | 'partial' | 'no'; quote: string; ref: string; counted: boolean }
+export interface AiGradeElement { text: string; verdict: 'yes' | 'partial' | 'no'; quote: string; from?: 'text' | 'photo'; ref: string; counted: boolean }
 export interface AiGradeTask {
   n: number; kim_n: number | null; max_points: number; points: number
-  elements: AiGradeElement[]; note: string
+  /** Сложное задание: ключ вкладки и оценка 1–5 по проценту первичных. */
+  key?: string; mark?: number
+  elements: AiGradeElement[]; comment: string; note: string
 }
 
 export interface AiGrade {

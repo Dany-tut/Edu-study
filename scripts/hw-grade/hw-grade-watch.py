@@ -12,8 +12,10 @@ grader.ts) — те же пойдут в Claude API, когда появится
 Запуск: launchd, com.dany.iskra-hw-grade (scripts/hw-grade/com.dany.iskra-hw-grade.plist).
 Разово: python3 scripts/hw-grade/hw-grade-watch.py --once
 """
+import base64
 import datetime as dt
 import json
+import shutil
 import subprocess
 import sys
 import time
@@ -26,8 +28,8 @@ CLAUDE = "/usr/local/bin/claude"
 MODEL = "opus"
 KB = Path.home() / "Cursor/ChemBio_KB"
 LOG = Path.home() / "Library/Logs/iskra-hw-grade.log"
-# пустая папка: Claude Code не подхватывает чужие CLAUDE.md и настройки проекта;
-# база подключается отдельно через --add-dir и только на чтение
+# у каждой работы своя пустая папка: там только фото и доска решения, Claude Code
+# не подхватывает чужие CLAUDE.md и настройки; база — через --add-dir, на чтение
 WORK = Path.home() / "Library/Caches/iskra-hw-grade"
 PERIOD = 30
 # функция вернёт работу в очередь через 40 минут — дольше ждать нет смысла
@@ -46,13 +48,12 @@ def call(body: dict):
         return json.loads(r.read())
 
 
-def ask_claude(system: str, prompt: str, schema: dict) -> dict:
+def ask_claude(system: str, prompt: str, schema: dict, cwd: Path) -> dict:
     """Claude Code без окна: ответ — JSON по схеме. Ошибка — исключение с понятным текстом."""
-    WORK.mkdir(parents=True, exist_ok=True)
     args = [CLAUDE, "-p", prompt, "--output-format", "json", "--json-schema", json.dumps(schema),
             "--model", MODEL, "--system-prompt", system, "--add-dir", str(KB),
             "--allowedTools", "Read", "Grep", "Glob"]
-    p = subprocess.run(args, cwd=WORK, capture_output=True, text=True, timeout=TIMEOUT)
+    p = subprocess.run(args, cwd=cwd, capture_output=True, text=True, timeout=TIMEOUT)
     try:
         out = json.loads(p.stdout)
     except ValueError:
@@ -69,15 +70,22 @@ def ask_claude(system: str, prompt: str, schema: dict) -> dict:
 
 def grade(task: dict, system: str, schema: dict):
     try:
-        call({"action": "claim", "id": task["id"]})
+        claimed = call({"action": "claim", "id": task["id"]})
     except urllib.error.HTTPError as e:
         if e.code == 409:
             return  # уже взяли
         raise
-    log(f"оценка {task['id']}")
+    # фото и доска решения — файлами в папку работы: Claude читает их через Read
+    cwd = WORK / task["id"]
+    shutil.rmtree(cwd, ignore_errors=True)
+    cwd.mkdir(parents=True)
+    for img in claimed.get("images", []):
+        name = Path(img["name"]).name  # имя с сервера — только имя файла, без пути
+        (cwd / name).write_bytes(base64.b64decode(img["data"]))
+    log(f"оценка {task['id']} (картинок: {len(claimed.get('images', []))})")
     t0 = time.time()
     try:
-        result = ask_claude(system, task["prompt"], schema)
+        result = ask_claude(system, task["prompt"], schema, cwd)
         got = call({"action": "result", "id": task["id"], "result": result, "model": f"claude-code:{MODEL}"})
         log(f"готово {task['id']}: {got.get('primary')}/{got.get('max')} → {got.get('score')} за {int(time.time() - t0)} с")
     except subprocess.TimeoutExpired:
@@ -88,6 +96,8 @@ def grade(task: dict, system: str, schema: dict):
     except (RuntimeError, ValueError) as e:
         log(f"ошибка {task['id']}: {e}")
         call({"action": "result", "id": task["id"], "error": "Claude не справился с оценкой."})
+    finally:
+        shutil.rmtree(cwd, ignore_errors=True)  # фото учеников на Маке не копим
 
 
 def tick():
