@@ -491,14 +491,14 @@ export default function TeacherHomeworkReviewPage() {
     if (target !== -1 && target !== idx) go(target)
   }
 
-  // ai — «Ок» на предоценке ИИ: балл и комментарий ИИ вместо полей формы
-  // (свой комментарий учителя, если он уже написан, остаётся).
-  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number; comment: string }) {
+  // ai — «Ок» на предоценке ИИ: балл ИИ вместо поля формы. Комментарий —
+  // только учителя: ответ ИИ ученик не видит.
+  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number }) {
     const submissionId = currentSubmission?.id
     if (!submissionId) return
     const score = ai ? ai.score
       : hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
-    const comment = ai && !draft.comment.trim() ? ai.comment : draft.comment
+    const comment = draft.comment
     // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
     // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
     const ok = await reviewHomework(submissionId, verdict, score, comment, {
@@ -704,11 +704,8 @@ export default function TeacherHomeworkReviewPage() {
                   {aiGrade && (
                     <AiGradeCard
                       grade={aiGrade}
-                      onAccept={() => { if (aiGrade.score != null) void handleVerdict('accepted', { score: aiGrade.score, comment: aiGrade.comment }) }}
-                      onEdit={() => setDraft({
-                        score: aiGrade.score != null ? String(aiGrade.score) : draft.score,
-                        comment: draft.comment.trim() ? draft.comment : aiGrade.comment,
-                      })}
+                      onAccept={() => { if (aiGrade.score != null) void handleVerdict('accepted', { score: aiGrade.score }) }}
+                      onEdit={() => { if (aiGrade.score != null) setDraft({ score: String(aiGrade.score) }) }}
                     />
                   )}
 

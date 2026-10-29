@@ -6,8 +6,12 @@
  * элемент с цитатой, которая правда есть в ответе (считает функция hw-grade,
  * не модель), поэтому рядом с элементом видно, засчитан он или нет.
  *
- * «Ок» — принять балл и комментарий ИИ как есть (та же запись проверки, что у
- * кнопки «Засчитать»). «Править» — перенести их в поля ниже и поправить руками.
+ * «Ок» — принять балл ИИ (та же запись проверки, что у кнопки «Засчитать»),
+ * «Править» — перенести балл в поле ниже. Комментарий ИИ ученику не уходит:
+ * его видит только учитель и пишет ученику сам.
+ *
+ * Балл ИИ ставит только заданиям КИМ. Своё задание учителя — только
+ * комментарий, без балла и без кнопок.
  *
  * С `task` — карточка одного сложного задания: оценка 1–5 (из первичных по
  * проценту, как в контрольной Тестли) и комментарий ИИ к этому заданию.
@@ -60,12 +64,14 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
       </div>
     )
   }
-  if (grade.score == null || !['graded', 'dismissed', 'confirmed', 'changed'].includes(grade.status)) return null
+  if (!['graded', 'dismissed', 'confirmed', 'changed'].includes(grade.status)) return null
 
   const decided = grade.status === 'confirmed' || grade.status === 'changed'
   const tasks = task ? [task] : grade.tasks
   const comment = task ? task.comment : grade.comment
   const note = task ? task.note : grade.teacherNote
+  // Балл есть только у заданий КИМ; иначе карточка — один комментарий.
+  const scored = task ? task.mark != null : grade.score != null
 
   return (
     <div style={{
@@ -76,11 +82,12 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
       <div className="flex items-center" style={{ gap: 8, flexWrap: 'wrap' }}>
         <Sparkles size={16} style={{ color: 'var(--color-purple-text)' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-          {task
-            ? <>{t('ИИ предлагает оценку')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{task.mark ?? '—'}/5</span></>
-            : <>{t('ИИ предложил')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{grade.score}</span> {pointsWord(grade.score, t)}</>}
+          {!scored ? t('Комментарий ИИ')
+            : task
+              ? <>{t('ИИ предлагает оценку')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{task.mark}/5</span></>
+              : <>{t('ИИ предложил')} <span style={{ fontVariantNumeric: 'tabular-nums' }}>{grade.score}</span> {pointsWord(grade.score!, t)}</>}
         </span>
-        {task ? (
+        {!scored ? null : task ? (
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>
             {task.points} {t('из')} {task.max_points} {t('первичных по ФИПИ')}
           </span>
@@ -89,11 +96,11 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
             {grade.primary} {t('из')} {grade.max} {t('первичных по ФИПИ')}
           </span>
         )}
-        {decided && !task && (
-          <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
-            {grade.status === 'confirmed' ? t('Вы приняли оценку ИИ') : t('Вы поставили свою оценку')}
-          </span>
-        )}
+        <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
+          {decided && !task
+            ? (grade.status === 'confirmed' ? t('Вы приняли оценку ИИ') : t('Вы поставили свою оценку'))
+            : t('Ученик это не видит')}
+        </span>
       </div>
 
       {comment && (
@@ -150,7 +157,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
         </div>
       )}
 
-      {!decided && !done && (
+      {scored && !decided && !done && (
         <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 12 }}>
           <motion.button
             whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
