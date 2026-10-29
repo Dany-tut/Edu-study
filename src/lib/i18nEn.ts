@@ -4776,4 +4776,6 @@ export const EN: Record<string, string> = {
   "Комментарий ИИ": "AI comment",
   "Черновик ответа ученику": "Draft reply to the student",
   "Ок, отправить": "OK, send",
+  "Найти курс": "Find a course",
+  "откроется после": "opens after",
 }
