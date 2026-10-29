@@ -64,17 +64,29 @@ export default function ScheduleCarousel() {
     // добавлено» это утверждение об учителе, и говорить его до ответа базы
     // нечестно. Ряд той же формы, что и настоящие карточки дней.
     if (!loaded) {
+      // Геометрия — та же, что у настоящей ленты ниже: ширины слотов, высота полосы,
+      // масштаб и приглушение боковых (как в ScheduleCard). Иначе при загрузке
+      // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
-        <div className="flex items-end justify-center" role="status" aria-busy="true"
-          aria-label={t('Расписание не добавлено')} style={{ height: 198, gap: 12 }}>
-          {[110, 130, 160, 220, 160, 130, 110].map((w, i) => (
-            <Skeleton key={i} w={w} h={i === 3 ? 172 : 128 - Math.abs(i - 3) * 14} radius={20} />
-          ))}
+        <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Расписание не добавлено')}
+          className="flex items-center gap-3"
+          style={{ height: stripHeight, paddingLeft: pad, paddingRight: pad, justifyContent: 'center', overflowX: 'clip' }}>
+          {offsets.map(offset => {
+            const d = Math.abs(offset)
+            const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
+            const scale = d === 0 ? 1 : d === 1 ? 0.9 : d === 2 ? 0.82 : 0.74
+            const opacity = d === 0 ? 1 : d === 1 ? 0.72 : d === 2 ? 0.48 : 0.3
+            return (
+              <div key={offset} className="flex-shrink-0 h-full" style={{ width: w, transform: `scale(${scale})`, opacity }}>
+                <Skeleton w="100%" h={stripHeight} radius={28} />
+              </div>
+            )
+          })}
         </div>
       )
     }
     return (
-      <div className="flex items-center justify-center" style={{ height: 198 }}>
+      <div className="flex items-center justify-center" style={{ height: stripHeight }}>
         <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Расписание не добавлено')}</p>
       </div>
     )
