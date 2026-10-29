@@ -6,12 +6,13 @@
  * элемент с цитатой, которая правда есть в ответе (считает функция hw-grade,
  * не модель), поэтому рядом с элементом видно, засчитан он или нет.
  *
- * «Ок» — принять балл ИИ (та же запись проверки, что у кнопки «Засчитать»),
- * «Править» — перенести балл в поле ниже. Комментарий ИИ ученику не уходит:
- * его видит только учитель и пишет ученику сам.
+ * Комментарий ИИ — черновик ответа ученику. «Ок» — отправить балл и этот
+ * ответ (та же запись проверки, что у кнопки «Засчитать»): ученик получает его
+ * от учителя и не знает, что писал ИИ. «Править» — перенести балл и ответ в
+ * поля ниже, поправить и отправить самому.
  *
- * Балл ИИ ставит только заданиям КИМ. Своё задание учителя — только
- * комментарий, без балла и без кнопок.
+ * Балл ИИ ставит только заданиям КИМ. Своё задание учителя — только черновик
+ * ответа: «Ок» нет, балл учитель ставит сам через «Править».
  *
  * С `task` — карточка одного сложного задания: оценка 1–5 (из первичных по
  * проценту, как в контрольной Тестли) и комментарий ИИ к этому заданию.
@@ -99,7 +100,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
         <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
           {decided && !task
             ? (grade.status === 'confirmed' ? t('Вы приняли оценку ИИ') : t('Вы поставили свою оценку'))
-            : t('Ученик это не видит')}
+            : t('Черновик ответа ученику')}
         </span>
       </div>
 
@@ -157,9 +158,9 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
         </div>
       )}
 
-      {scored && !decided && !done && (
+      {(scored || !!comment) && !decided && !done && (
         <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 12 }}>
-          <motion.button
+          {scored && <motion.button
             whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
             onClick={onAccept}
             className="flex items-center cursor-pointer"
@@ -169,8 +170,8 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
             }}
           >
             <Check size={16} strokeWidth={2.5} />
-            {t('Ок')}
-          </motion.button>
+            {t('Ок, отправить')}
+          </motion.button>}
           <motion.button
             whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
             onClick={onEdit}
