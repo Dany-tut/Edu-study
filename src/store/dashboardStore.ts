@@ -73,6 +73,10 @@ interface DashboardState {
   // before colliding with the bar. Transient (not persisted).
   topBarBox: { left: number; right: number } | null
   setTopBarBox: (v: { left: number; right: number } | null) => void
+  // Ширина правой пилюли верхнего бара учителя (TeacherCompactPill): её задаёт
+  // TeacherTopBar по свободному месту. null — полная ширина. Не сохраняется.
+  topPillW: number | null
+  setTopPillW: (v: number | null) => void
   // Open homework as its own page, preserving the current lesson context so the
   // student can return to the same lesson via the top bar.
   openHomework: () => void
@@ -248,6 +252,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   setTopBarBox: (v) => set((s) => (
     s.topBarBox?.left === v?.left && s.topBarBox?.right === v?.right ? {} : { topBarBox: v }
   )),
+  topPillW: null,
+  setTopPillW: (v) => set((s) => (s.topPillW === v ? {} : { topPillW: v })),
   closeLesson: () => set((s) => ({
     activePage: s.lessonReturnPage,
     // В списке подсвечиваем урок, из которого вышли, — на любой из двух вкладок.

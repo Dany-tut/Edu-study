@@ -6,6 +6,7 @@ import {
   Bell, Clock, RotateCcw, Trophy,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
+import { useDashboard } from '../../store/dashboardStore'
 import { useHomework } from '../../lib/useHomework'
 import { useScheduleToday } from '../../lib/useScheduleToday'
 import { useJournalPending } from '../../lib/useGroups'
@@ -16,7 +17,7 @@ import { useT, useTc } from '../../lib/i18n'
 
 const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
-const PILL_WIDTH = 320
+export const PILL_WIDTH = 320
 
 
 const META: Record<number, { kicker: string; accent: string }> = {
@@ -651,14 +652,17 @@ export default function TeacherCompactPill() {
   }
 
   const accent = META[widgetId]?.accent ?? 'var(--color-accent)'
+  // В тесноте бар учителя ужимает пилюлю (TeacherTopBar → topPillW).
+  const pillW = useDashboard(s => s.topPillW) ?? PILL_WIDTH
 
   // Collapsed pill dimensions (compact summary state)
   const DOT_H = COLLAPSED_H
-  const dotsW = PILL_WIDTH
+  const dotsW = pillW
 
-  // Width is fixed at PILL_WIDTH — only height animates
+  // Width follows the room the top bar gives (≤ PILL_WIDTH); height animates
   const pillTransition = {
     height:       { type: 'spring', stiffness: 340, damping: 32, mass: 0.9 },
+    width:        { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const },
     borderRadius: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const },
   }
 
@@ -668,7 +672,7 @@ export default function TeacherCompactPill() {
       <div
         ref={measureRef}
         style={{
-          position: 'fixed', top: 0, left: -9999, width: PILL_WIDTH,
+          position: 'fixed', top: 0, left: -9999, width: pillW,
           visibility: 'hidden', pointerEvents: 'none', zIndex: -1,
         }}
       >
@@ -679,14 +683,15 @@ export default function TeacherCompactPill() {
 
       <motion.div
         ref={rootRef}
+        data-fluid-pill
         onClick={notifActive ? handleNotifAction : handleClick}
         onPointerDownCapture={bumpCollapse}
         onMouseMove={bumpCollapse}
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
-        initial={{ width: PILL_WIDTH, height: COLLAPSED_H, borderRadius: 30 }}
+        initial={{ width: pillW, height: COLLAPSED_H, borderRadius: 30 }}
         animate={{
-          width:  PILL_WIDTH,
+          width:  pillW,
           height: isOpen ? expandedH : COLLAPSED_H,
           borderRadius: 30,
         }}

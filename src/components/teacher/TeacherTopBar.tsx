@@ -25,6 +25,7 @@ import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
+import { PILL_WIDTH } from './TeacherCompactPill'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
@@ -55,6 +56,12 @@ const AVATARS: AvatarOption[] = [
 ]
 
 const EASE = [0.32, 0.72, 0, 1] as const
+// Правая пилюля-сводка в тесноте: обычный нижний предел и крайний (профиль уже кружок).
+const PILL_SOFT_MIN = 272
+const PILL_MIN = 200
+// Последняя ступень тесноты: вкладки остаются со словами, но с меньшими полями.
+const NAV_PAD = 16
+const NAV_PAD_TIGHT = 10
 const transition = { duration: 0.32, ease: EASE }
 
 type QuickAction = { type?: 'action'; icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
@@ -189,10 +196,13 @@ export default function TeacherTopBar() {
     return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', apply) }
   }, [setTopBarBox, collapsed])
 
-  // Тесно (пилюля справа не влезает) → сжимается только профиль: сперва без
-  // имени, одно «Учитель», потом один кружок аватарки. Навигацию не трогаем —
-  // её сворачивает только шеврон.
-  const [squeeze, setSqueeze] = useState<0 | 1 | 2>(0)
+  // Тесно (пилюля справа не влезает) → сжимаются профиль и пилюля, навигацию
+  // не трогаем — её сворачивает только шеврон. Ступени профиля: имя + роль →
+  // одно «Учитель» → кружок аватарки → кружок и вкладки с узкими полями. На
+  // каждой ступени пилюля сперва ужимается до PILL_SOFT_MIN и только потом бар
+  // переходит на следующую; на последней пилюля может уйти до PILL_MIN.
+  const [squeeze, setSqueeze] = useState<0 | 1 | 2 | 3>(0)
+  const setTopPillW = useDashboard(s => s.setTopPillW)
   const profileTextRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLDivElement>(null)
   const roleRef = useRef<HTMLDivElement>(null)
@@ -200,39 +210,49 @@ export default function TeacherTopBar() {
     const bar = teacherBarRef.current
     const row = bar?.closest('.topbar-row') as HTMLElement | null
     if (!bar || !row) return
+    const slot = row.lastElementChild as HTMLElement | null
     const fit = () => {
       const cs = getComputedStyle(row)
       const inner = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
-      // Правая колонка: paddingLeft + пилюля (если она сейчас показана).
-      const slot = row.lastElementChild as HTMLElement | null
+      const slotPad = slot ? parseFloat(getComputedStyle(slot).paddingLeft) : 0
       const pill = slot?.firstElementChild as HTMLElement | null
-      const rightNeed = pill ? pill.offsetWidth + parseFloat(getComputedStyle(slot!).paddingLeft) : 0
+      // Резиновая только сводка; у других пилюль (навигация ревью) ширина своя.
+      const fluid = !!slot?.querySelector('[data-fluid-pill]')
+      const fixedNeed = pill && !fluid ? pill.offsetWidth + slotPad : 0
+      // Бар без подписи профиля и с обычными полями вкладок.
+      const navSave = 2 * (NAV_PAD - NAV_PAD_TIGHT) * visibleNav.length
+      // Поля вкладок читаем как есть сейчас: посреди перехода они промежуточные.
+      const navBtn = bar.querySelector('nav button')
+      const navPad = navBtn ? parseFloat(getComputedStyle(navBtn).paddingLeft) : NAV_PAD
       const base = bar.offsetWidth - (profileTextRef.current?.offsetWidth ?? 0)
+        + 2 * (NAV_PAD - navPad) * visibleNav.length
       const nameW = nameRef.current?.offsetWidth ?? 0
       const roleW = roleRef.current?.offsetWidth ?? 0
-      const widths = [8 + Math.max(nameW, roleW), 8 + roleW, 0]
-      // Короткое имя («Босс») уже подписи «Учитель» крупным — тогда ступень 1 не сжимает, пропускаем.
-      const level = widths.findIndex((w, i) => (i !== 1 || w < widths[0]) && base + w + 2 * rightNeed <= inner)
-      setSqueeze((level < 0 ? 2 : level) as 0 | 1 | 2)
+      const widths = [8 + Math.max(nameW, roleW), 8 + roleW, 0, -navSave]
+      // Бар по центру: справа остаётся половина того, что он не занял.
+      const room = (w: number) => (inner - base - w) / 2 - slotPad
+      let level = widths.findIndex((w, i) => {
+        // Короткое имя («Босс») уже подписи «Учитель» крупным — ступень 1 не сжимает.
+        if (i === 1 && w >= widths[0]) return false
+        if (!fluid) return base + w + 2 * fixedNeed <= inner
+        return room(w) >= (i === 3 ? PILL_MIN : PILL_SOFT_MIN)
+      })
+      if (level < 0) level = 3
+      setSqueeze(level as 0 | 1 | 2 | 3)
+      setTopPillW(fluid ? Math.max(PILL_MIN, Math.min(PILL_WIDTH, Math.floor(room(widths[level])))) : null)
     }
     fit()
-    // Пилюля въезжает/уезжает анимацией — досчитываем после неё.
-    const settle = setTimeout(fit, 420)
+    // Пилюля въезжает анимацией, подпись и поля вкладок тоже — досчитываем после (0.5s).
+    const settle = setTimeout(fit, 560)
     const ro = new ResizeObserver(fit)
     ro.observe(row)
-    // Пилюля монтируется позже бара (данные расписания) и сама меняет размер —
-    // ширина ряда при этом не меняется, поэтому следим за ней отдельно.
-    const slot = row.lastElementChild as HTMLElement | null
-    const watchPill = () => {
-      const pill = slot?.firstElementChild
-      if (pill) ro.observe(pill)
-      fit()
-    }
-    const mo = new MutationObserver(watchPill)
-    if (slot) { mo.observe(slot, { childList: true }); watchPill() }
+    // Пилюля монтируется позже бара (данные расписания) — ширина ряда при этом
+    // не меняется, поэтому следим за слотом отдельно.
+    const mo = new MutationObserver(fit)
+    if (slot) mo.observe(slot, { childList: true })
     window.addEventListener('resize', fit)
     return () => { clearTimeout(settle); ro.disconnect(); mo.disconnect(); window.removeEventListener('resize', fit) }
-  }, [activePage, headerDocked, collapsed, teacherName, teacherRole])
+  }, [activePage, headerDocked, collapsed, teacherName, teacherRole, setTopPillW, visibleNav.length, squeeze])
 
   useLayoutEffect(() => {
     if (!addOpen) return
@@ -383,11 +403,11 @@ export default function TeacherTopBar() {
               style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
+                padding: `0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
-                transition: 'color 0.18s, font-weight 0.18s',
+                transition: 'color 0.18s, font-weight 0.18s, padding 0.3s ease',
                 whiteSpace: 'nowrap',
               }}
             >
