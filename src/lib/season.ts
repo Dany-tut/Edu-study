@@ -21,7 +21,11 @@ export type SeasonKey = 'halloween'
 export type SeasonVariant = 'lanterns' | 'candy' | 'potions'
 export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty'
 export type SeasonParts = Record<SeasonPart, boolean>
-export type Season = { key: SeasonKey; enabled: boolean; startsAt: string; endsAt: string; variant: SeasonVariant; parts: SeasonParts }
+/** ask — спрашивать ли ученика модалкой «Сейчас Хэллоуин — включить тему?» (иначе тема
+ *  включается всем сама). В базе лежит в parts.ask: отдельной колонки под флаг не заводили. */
+export type Season = { key: SeasonKey; enabled: boolean; startsAt: string; endsAt: string; variant: SeasonVariant; parts: SeasonParts; ask: boolean }
+/** Ответ ученика на этот сезон: включить, не надо или ещё не ответил. */
+export type SeasonChoice = 'on' | 'off' | null
 
 export const VARIANTS: { key: SeasonVariant; title: string; about: string }[] = [
   { key: 'lanterns', title: 'Ночь фонарей', about: 'Тёмная на сезон. Урок — зажжённый фонарь' },
@@ -39,7 +43,8 @@ export const PARTS: { key: SeasonPart; title: string }[] = [
 const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true }
 
 const PREVIEW_KEY = 'season.preview'
-const OFF_KEY = 'season.off'
+/** Старый выключатель (до модалки) — читаем как ответ «не надо». */
+const LEGACY_OFF_KEY = 'season.off'
 const THEME_WAS = 'season.themeWas'
 
 const ls = {
@@ -47,11 +52,23 @@ const ls = {
   set: (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v) } catch { /* без хранилища — не запомним */ } },
 }
 
-type Row = { key: SeasonKey; enabled: boolean; starts_at: string; ends_at: string; variant: SeasonVariant; parts: Partial<SeasonParts> | null }
-const fromRow = (r: Row): Season => ({
-  key: r.key, enabled: r.enabled, startsAt: r.starts_at, endsAt: r.ends_at, variant: r.variant,
-  parts: { ...ALL_ON, ...(r.parts ?? {}) },
-})
+type Row = { key: SeasonKey; enabled: boolean; starts_at: string; ends_at: string; variant: SeasonVariant; parts: (Partial<SeasonParts> & { ask?: boolean }) | null }
+const fromRow = (r: Row): Season => {
+  const { ask, ...parts } = r.parts ?? {}
+  return {
+    key: r.key, enabled: r.enabled, startsAt: r.starts_at, endsAt: r.ends_at, variant: r.variant,
+    parts: { ...ALL_ON, ...parts }, ask: ask ?? true,
+  }
+}
+
+/** Ответ хранится на сезон-год: на следующий Хэллоуин спросим заново. */
+const choiceKey = (s: Season) => `season.choice.${s.key}.${new Date(s.startsAt).getFullYear()}`
+function readChoice(s: Season | null): SeasonChoice {
+  if (!s) return null
+  const v = ls.get(choiceKey(s))
+  if (v === 'on' || v === 'off') return v
+  return ls.get(LEGACY_OFF_KEY) === '1' ? 'off' : null
+}
 
 export async function loadSeason(): Promise<Season | null> {
   const { data, error } = await supabase
@@ -67,7 +84,7 @@ export async function loadSeason(): Promise<Season | null> {
 export async function saveSeason(s: Season): Promise<string | null> {
   const { error } = await supabase.from('app_seasons').upsert({
     key: s.key, enabled: s.enabled, starts_at: s.startsAt, ends_at: s.endsAt,
-    variant: s.variant, parts: s.parts, updated_at: new Date().toISOString(),
+    variant: s.variant, parts: { ...s.parts, ask: s.ask }, updated_at: new Date().toISOString(),
   }, { onConflict: 'key' })
   if (error) return error.message
   state = { ...state, season: s }
@@ -77,26 +94,27 @@ export async function saveSeason(s: Season): Promise<string | null> {
 
 // ── общее состояние: грузим один раз на вкладку, все хуки видят одно и то же ──
 
-type State = { season: Season | null; preview: boolean; off: boolean; now: number }
-let state: State = { season: null, preview: ls.get(PREVIEW_KEY) === '1', off: ls.get(OFF_KEY) === '1', now: Date.now() }
+type State = { season: Season | null; preview: boolean; choice: SeasonChoice; now: number }
+let state: State = { season: null, preview: ls.get(PREVIEW_KEY) === '1', choice: null, now: Date.now() }
 const subs = new Set<() => void>()
 function emit() { subs.forEach(f => f()); mark() }
 let started = false
 /** Только в разработке: localStorage['season.dev'] = 'lanterns' | 'candy' | 'potions' —
- *  тема включена с этим вариантом без строки в базе (проверить вёрстку всех трёх). */
+ *  тема включена с этим вариантом без строки в базе (проверить вёрстку всех трёх).
+ *  localStorage['season.devAsk'] = '1' — без предпросмотра, как у ученика: с модалкой. */
 function devSeason(): Season | null {
   if (!import.meta.env.DEV) return null
   const v = ls.get('season.dev') as SeasonVariant | null
   if (!v || !VARIANTS.some(x => x.key === v)) return null
-  return { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: v, parts: ALL_ON }
+  return { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: v, parts: ALL_ON, ask: true }
 }
 
 function start() {
   if (started) return
   started = true
   const dev = devSeason()
-  if (dev) { state = { ...state, season: dev, preview: true }; queueMicrotask(emit); return }
-  loadSeason().then(s => { state = { ...state, season: s }; emit() }).catch(() => { /* нет связи — без темы */ })
+  if (dev) { state = { ...state, season: dev, preview: ls.get('season.devAsk') !== '1', choice: readChoice(dev) }; queueMicrotask(emit); return }
+  loadSeason().then(s => { state = { ...state, season: s, choice: readChoice(s) }; emit() }).catch(() => { /* нет связи — без темы */ })
   // Граница дат проходит, пока вкладка открыта: раз в минуту сверяем часы.
   setInterval(() => { const was = isOn(state); state = { ...state, now: Date.now() }; if (isOn(state) !== was) emit() }, 60_000)
 }
@@ -109,10 +127,12 @@ export function setSeasonPreview(on: boolean) {
   emit()
 }
 
-/** Ученик: выключить тему у себя — кабинет выглядит как обычно. */
-export function setSeasonOff(off: boolean) {
-  ls.set(OFF_KEY, off ? '1' : null)
-  state = { ...state, off }
+/** Ученик: ответ из модалки или переключатель в меню/профиле. */
+export function setSeasonChoice(on: boolean) {
+  const choice: SeasonChoice = on ? 'on' : 'off'
+  if (state.season) ls.set(choiceKey(state.season), choice)
+  ls.set(LEGACY_OFF_KEY, null)
+  state = { ...state, choice }
   emit()
 }
 
@@ -120,14 +140,20 @@ export type SeasonStatus = 'soon' | 'live' | 'over'
 export const statusOf = (s: Season, now = Date.now()): SeasonStatus =>
   now < Date.parse(s.startsAt) ? 'soon' : now < Date.parse(s.endsAt) ? 'live' : 'over'
 const isLive = (st: State) => !!st.season && (st.preview || (st.season.enabled && statusOf(st.season, st.now) === 'live'))
-const isOn = (st: State) => isLive(st) && !st.off
+/** Тема на экране: сезон идёт, ученик не отказался и либо согласился, либо спрашивать
+ *  не велено. Админский предпросмотр модалку пропускает. */
+const isOn = (st: State) => isLive(st) && st.choice !== 'off'
+  && (st.preview || !st.season!.ask || st.choice === 'on')
+/** Пора спросить: сезон идёт, спрашивать велено, ответа ещё нет. */
+const isAsking = (st: State) => isLive(st) && !st.preview && !!st.season?.ask && st.choice === null
 
 export type SeasonView = {
   /** тема сейчас в кабинете (по датам или предпросмотром) и не выключена у себя */
   active: boolean
   /** сезон идёт — в настройках показываем выключатель */
   live: boolean
-  off: boolean
+  /** показать ученику модалку «Сейчас Хэллоуин — включить тему?» */
+  asking: boolean
   preview: boolean
   season: Season | null
   variant: SeasonVariant | null
@@ -142,7 +168,7 @@ const snapshot = (): SeasonView => {
   const s = state.season
   viewOf = state
   view = {
-    active, live: isLive(state), off: state.off, preview: state.preview, season: s,
+    active, live: isLive(state), asking: isAsking(state), preview: state.preview, season: s,
     variant: active && s ? s.variant : null,
     on: p => active && !!s?.parts[p],
   }

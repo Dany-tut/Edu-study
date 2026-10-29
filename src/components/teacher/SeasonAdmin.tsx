@@ -141,6 +141,19 @@ export default function SeasonAdmin() {
               </Checkbox>
             ))}
           </div>
+
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
+            <Checkbox checked={draft.ask} align="start" onChange={v => patch({ ask: v })}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Спрашивать учеников')}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.4 }}>
+                  {draft.ask
+                    ? t('При первом входе окно «Сейчас Хэллоуин — включить тему?». Пока ученик не ответил, тему он не видит.')
+                    : t('Тема включается всем сама, без вопроса.')}
+                </div>
+              </div>
+            </Checkbox>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 18px', borderTop: '1px solid var(--color-border)' }}>
@@ -156,7 +169,7 @@ export default function SeasonAdmin() {
       </div>
       {error && <Alert tone="danger" title={t('Не сохранилось')} text={error} style={{ marginTop: 10 }} />}
       <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
-        {t('Ученик может выключить тему у себя: в меню и в профиле появляется переключатель, пока сезон идёт.')}
+        {t('Пока сезон идёт, у ученика в меню и в профиле есть переключатель: можно передумать в любую сторону.')}
       </div>
     </div>
   )

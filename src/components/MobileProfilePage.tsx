@@ -31,7 +31,7 @@ import { XP_PER_LEVEL } from '../lib/xp'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
 import Switch from './Switch'
-import { useSeason, setSeasonOff } from '../lib/season'
+import { useSeason, setSeasonChoice } from '../lib/season'
 
 // MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
 // (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
@@ -328,7 +328,7 @@ export default function MobileProfilePage() {
               {season.live && (
                 <div className="flex items-center justify-between" style={{ width: '100%', height: ROW_H, padding: '0 15px', borderTop: '1px solid var(--color-border-soft)' }}>
                   <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Хэллоуин-тема')}</span>
-                  <Switch checked={!season.off} onChange={v => { tactile(); setSeasonOff(!v) }} label={t('Хэллоуин-тема')} />
+                  <Switch checked={season.active} onChange={v => { tactile(); setSeasonChoice(v) }} label={t('Хэллоуин-тема')} />
                 </div>
               )}
 
