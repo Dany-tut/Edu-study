@@ -22,6 +22,7 @@ import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import AudioPlayer from '../AudioPlayer'
+import { btn } from '../../lib/pillStyles'
 
 /** Цвета вердикта — те же три состояния, что и у ученика в разборе. */
 function verdictStyle(v: BasicAnswerVerdict): { bg: string; fg: string; Icon: typeof CheckCircle2 } {
@@ -159,11 +160,7 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
         <button
           onClick={() => setShowPassed(v => !v)}
           className="flex items-center cursor-pointer"
-          style={{
-            alignSelf: 'flex-start', gap: 8, padding: '8px 12px', borderRadius: 12,
-            border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
-            color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-          }}
+          style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}
         >
           {showPassed ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           {t('Устные, зачтённые машиной')}: {passed.length}

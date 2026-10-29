@@ -19,6 +19,7 @@ import { AlertTriangle, Check, Plus, RefreshCw, Trash2, X } from 'lucide-react'
 import type { SeedChange, SeedDiff } from '../../lib/seedSync'
 import { useT, useTc } from '../../lib/i18n'
 import Checkbox from '../Checkbox'
+import { btn } from '../../lib/pillStyles'
 
 const KIND_LABEL: Record<SeedChange['kind'], string> = {
   lesson: 'Новый урок',
@@ -245,7 +246,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             {t('Выбрано:')} {picked.size} {t('из')} {diff.changes.length}
           </span>
           <button onClick={onClose} className="cursor-pointer"
-            style={{ marginLeft: 'auto', padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
+            style={{ ...btn('M', 'secondary'), marginLeft: 'auto' }}>
             {t('Отмена')}
           </button>
           <button

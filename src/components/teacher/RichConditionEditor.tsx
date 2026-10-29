@@ -8,6 +8,7 @@ import WhiteboardCanvas from './WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
 import { alertDialog } from '../ConfirmHost'
+import { btn } from '../../lib/pillStyles'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -524,13 +525,13 @@ export default function RichConditionEditor({
             <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => { drawDataRef.current = ''; setDrawMode(false) }}
-                style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={btn('S', 'secondary')}
               >
                 {t('Отменить')}
               </button>
               <button
                 onClick={insertDrawing}
-                style={{ padding: '6px 14px', borderRadius: 9, border: 'none', background: 'var(--color-blue-pill-bg)', color: 'var(--color-blue-pill-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={btn('S', 'primary', { background: 'var(--color-blue-pill-bg)', color: 'var(--color-blue-pill-text)' })}
               >
                 {t('Вставить рисунок')}
               </button>

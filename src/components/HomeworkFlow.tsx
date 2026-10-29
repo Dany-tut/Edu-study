@@ -95,6 +95,7 @@ import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { Alert } from './Alert'
+import { btn } from '../lib/pillStyles'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -1358,11 +1359,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
     <button
       onClick={() => speak(want, { lang })}
       className="flex items-center cursor-pointer"
-      style={{
-        gap: 8, padding: '8px 14px', borderRadius: 999,
-        border: '1px solid var(--color-border)', background: 'transparent',
-        color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-      }}
+      style={btn('S', 'secondary')}
     >
       <Volume2 size={14} />
       {t('Послушать эталон')}
@@ -1425,11 +1422,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
           <button
             onClick={() => onChange(NO_VOICE)}
             className="flex items-center cursor-pointer"
-            style={{
-              gap: 8, padding: '8px 14px', borderRadius: 999,
-              border: '1px solid var(--color-border)', background: 'transparent',
-              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-            }}
+            style={btn('S', 'secondary')}
           >
             <MicOff size={14} />
             {t('Не могу записать сейчас')}
@@ -2890,11 +2883,7 @@ export default function HomeworkFlow({
           whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
           onClick={() => jumpToQuestion(basicWrong[0].q.id)}
           className="flex items-center justify-center cursor-pointer"
-          style={{
-            flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
-            border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
-            color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
-          }}
+          style={{ ...btn('M', 'secondary'), flex: '1 1 190px', minWidth: 0 }}
         >
           <RotateCcw size={16} />
           {t('Разобрать ошибки')}
@@ -2919,11 +2908,7 @@ export default function HomeworkFlow({
         whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
         onClick={onBack}
         className="flex items-center justify-center cursor-pointer"
-        style={{
-          flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
-          border: '1px solid var(--color-border-medium)', background: 'transparent',
-          color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
-        }}
+        style={{ ...btn('M', 'secondary'), flex: '1 1 190px', minWidth: 0 }}
       >
         <ChevronLeft size={16} />
         {t('Вернуться к уроку')}
@@ -2932,11 +2917,7 @@ export default function HomeworkFlow({
         whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
         onClick={() => { clearHomeworkWidgetFeedback(); openCourses(currentLessonId ?? undefined) }}
         className="flex items-center justify-center cursor-pointer"
-        style={{
-          flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16,
-          border: '1px solid var(--color-border-medium)', background: 'transparent',
-          color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
-        }}
+        style={{ ...btn('M', 'secondary'), flex: '1 1 190px', minWidth: 0 }}
       >
         <Library size={16} />
         {t('К урокам')}
@@ -4461,12 +4442,7 @@ export default function HomeworkFlow({
                           <button
                             onClick={() => revealHint(question.id)}
                             className="flex items-center cursor-pointer"
-                            style={{
-                              gap: 8, padding: '10px 16px', borderRadius: 999,
-                              border: '1px solid var(--color-border)', background: 'transparent',
-                              color: 'var(--color-muted)', fontFamily: 'inherit',
-                              fontSize: 13, fontWeight: 700,
-                            }}
+                            style={btn('M', 'secondary')}
                           >
                             <Eye size={14} />
                             {t('Подсказка')}

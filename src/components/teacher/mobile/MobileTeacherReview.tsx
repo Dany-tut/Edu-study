@@ -13,6 +13,7 @@ import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
 import { useT, useTc } from '../../../lib/i18n'
 import { alertDialog } from '../../ConfirmHost'
 import { Alert } from '../../Alert'
+import { btn } from '../../../lib/pillStyles'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -97,7 +98,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
       <div>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
+          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ ...btn('M', 'secondary'), flex: 1 }}>
             <ImageIcon size={14} /> {t('Фото')}
           </button>
           <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>

@@ -8,6 +8,7 @@ import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
+import { btn } from '../lib/pillStyles'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -148,7 +149,7 @@ export default function JoinPage() {
               </button>
               <button
                 onClick={() => { window.location.hash = '#/login'; window.location.reload() }}
-                style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                style={btn('M', 'secondary')}
               >
                 {t('Войти')}
               </button>

@@ -17,6 +17,7 @@ import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import { alertDialog } from '../../components/ConfirmHost'
 import { Alert } from '../../components/Alert'
+import { btn } from '../../lib/pillStyles'
 
 // Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
 type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
@@ -336,7 +337,7 @@ function ReviewAttachEditor({
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
         onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
+        <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ ...btn('M', 'secondary'), flex: 1 }}>
           <ImageIcon size={14} /> {t('Фото')}
         </button>
         <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? color : 'var(--color-border-medium)'}`, background: showBoard || board ? color + '22' : 'var(--color-bg-2)', color: showBoard || board ? color : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>

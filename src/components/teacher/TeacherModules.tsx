@@ -8,6 +8,7 @@ import { connectTestly, disconnectTestly, plural, useTestlyModule, TESTLY_SITE }
 import { confirmDialog } from '../ConfirmHost'
 import { Alert } from '../Alert'
 import { TestlyTile } from '../TestlyMark'
+import { btn } from '../../lib/pillStyles'
 
 export default function TeacherModules() {
   const t = useT()
@@ -105,10 +106,7 @@ export default function TeacherModules() {
                 border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
                 color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, textDecoration: 'none',
               }}><ExternalLink size={13} /> {t('Открыть Тестли')}</a>
-              <button onClick={() => void disconnect()} disabled={busy} style={{
-                padding: '8px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent',
-                color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-              }}>{t('Отключить')}</button>
+              <button onClick={() => void disconnect()} disabled={busy} style={btn('S', 'secondary')}>{t('Отключить')}</button>
             </div>
           </>
         ) : (

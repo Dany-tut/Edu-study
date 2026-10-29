@@ -24,6 +24,7 @@ import QuestionTable from '../components/QuestionTable'
 import GrowTextarea from '../components/GrowTextarea'
 import NameEntryField from '../components/NameEntryField'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { btn } from '../lib/pillStyles'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
 function playVictorySound() {
@@ -902,7 +903,7 @@ export default function DiagnosticTestPage() {
                 </motion.button>
                 <button
                   onClick={startOver}
-                  style={{ width: '100%', padding: '12px', borderRadius: 14, border: '1px solid var(--color-border-soft)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit' }}
+                  style={{ ...btn('M', 'secondary'), width: '100%' }}
                 >
                   {t('Начать заново')}
                 </button>

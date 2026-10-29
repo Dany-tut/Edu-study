@@ -50,7 +50,7 @@ import {
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { plural } from '../trainer/TrainerShell'
 import { SortDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
-import { cardChip } from '../../lib/pillStyles'
+import { cardChip, btn } from '../../lib/pillStyles'
 import TeacherSelect from './TeacherSelect'
 import CardGroupsManager, { useOwnDecks } from './CardGroupsManager'
 import Skeleton from '../Skeleton'
@@ -811,12 +811,7 @@ function FilterPanel({
 
       {dirty && (
         <button onClick={onReset}
-          style={{
-            padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)',
-            background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            color: 'var(--color-muted)', fontFamily: 'inherit',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}>
+          style={btn('S', 'secondary')}>
           <Trash2 size={12} /> {t('Сбросить фильтры')}
         </button>
       )}

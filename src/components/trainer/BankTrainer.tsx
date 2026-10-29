@@ -52,6 +52,7 @@ import { glassCircle, MOBILE_TOP_GAP, MOBILE_DOCK_EDGE } from '../../lib/mobileT
 import { tactile } from '../../lib/feedback'
 import { useT } from '../../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
+import { btn } from '../../lib/pillStyles'
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
@@ -1108,7 +1109,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                   </button>
                 )}
                 <button onClick={onOpenModal}
-                  style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  style={btn('S', 'secondary')}>
                   {t('Полная статистика')}
                 </button>
               </>)}
@@ -1870,7 +1871,7 @@ export default function BankTrainer({ subjectState }: {
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
               <button onClick={() => { tactile(); clearFilters() }}
-                style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={btn('S', 'secondary')}>
                 {t('Сбросить фильтры')}
               </button>
             </div>
@@ -2324,7 +2325,7 @@ export default function BankTrainer({ subjectState }: {
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
           <button onClick={clearFilters}
-            style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={btn('S', 'secondary')}>
             {t('Сбросить фильтры')}
           </button>
         </div>

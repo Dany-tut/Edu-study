@@ -58,7 +58,7 @@ import MultiSelectField from '../MultiSelectField'
 import { confirmDialog } from '../ConfirmHost'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, normSearch } from './ShelfFilters'
-import { cardChip } from '../../lib/pillStyles'
+import { cardChip, btn } from '../../lib/pillStyles'
 import { guessLang } from '../../lib/guessLang'
 import BackCircle from '../../components/BackCircle'
 
@@ -737,12 +737,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
             <button
               onClick={() => void doUngroup()}
               disabled={busy}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                borderRadius: 12, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit',
-                border: '1px solid var(--color-border-medium)', background: 'transparent',
-                color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
-              }}
+              style={btn('M', 'secondary')}
             >
               <FolderInput size={14} /> {t('Вынуть с полки')}
             </button>

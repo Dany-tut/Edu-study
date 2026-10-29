@@ -8,6 +8,7 @@ import { useTextOfDay } from '../lib/useTextOfDay'
 import { streakDays } from '../lib/trainerDay'
 import { trainerHash } from '../lib/trainerLink'
 import { useT } from '../lib/i18n'
+import { btn } from '../lib/pillStyles'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Доза дня: пять минут языка без выбора, что именно делать
@@ -164,14 +165,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
           <button
             onClick={() => void take()}
             disabled={taking || taken !== null}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-              borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'transparent', fontFamily: 'inherit',
-              color: taken !== null ? 'var(--color-green-text)' : 'var(--color-text-2)',
-              fontSize: 13, fontWeight: 600,
-              cursor: taking || taken !== null ? 'default' : 'pointer',
-            }}
+            style={btn('S', 'secondary')}
           >
             {taken !== null
               ? <><Check size={14} /> {taken > 0 ? `+${taken}` : t('уже в колоде')}</>

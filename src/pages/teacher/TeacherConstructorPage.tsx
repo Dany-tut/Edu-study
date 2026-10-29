@@ -53,7 +53,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
-import { cardChip, cardChipTone } from '../../lib/pillStyles'
+import { cardChip, cardChipTone, btn } from '../../lib/pillStyles'
 import TestlyMark, { TestlyTile } from '../../components/TestlyMark'
 import { fetchTestlyTests, testlyEditUrl, testlyMeta, testlyNewUrl, useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -176,7 +176,7 @@ function GoogleFormBankCategoryModal({
             options={SOURCES.map(s => ({ value: s, label: s }))} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
-          <button onClick={onClose} style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
+          <button onClick={onClose} style={btn('M', 'secondary')}>{t('Отмена')}</button>
           <button onClick={handleConfirm} disabled={saving}
             style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
             {t('Импортировать')} {questions.length}
@@ -1655,7 +1655,7 @@ function WidgetFilterPanel({
 
       {hasFilters && (
         <button onClick={() => onChange({ search: '', type: '', linked: '', activeGroup: '' })}
-          style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          style={btn('S', 'secondary')}>
           <Trash2 size={12} /> {t('Сбросить фильтры')}
         </button>
       )}
@@ -4441,8 +4441,8 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+                    <button onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
                   </div>
                 </div>
               ) : (
@@ -4471,7 +4471,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
             <button
               onClick={resetToDefault}
-              style={{ flex: 1, padding: '8px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+              style={{ ...btn('S', 'secondary'), flex: 1 }}
             >
               {t('Сбросить к стандарту')}
             </button>
@@ -5849,7 +5849,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{label}</span>
         </div>
         <div style={{ marginLeft: 'auto' }}>
-          <button onClick={resetToDefault} style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={resetToDefault} style={btn('S', 'secondary')}>
             {t('Сбросить к стандарту')}
           </button>
         </div>
@@ -6205,9 +6205,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </div>
                     )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
-                      <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>
+                      <button onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
-                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit' }}>
+                        style={{ ...btn('M', 'primary'), background: accent, color: getContrastColor(accent), gap: 8 }}>
                         <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
                       </motion.button>
                     </div>
@@ -6535,9 +6535,9 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button onClick={() => setEditId(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>
-                <button onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Удалить')}</button>
-                <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: SCR_ACC, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Сохранить')}</button>
+                <button onClick={() => setEditId(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+                <button onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ ...btn('S', 'primary'), background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontFamily: 'inherit' }}>{t('Удалить')}</button>
+                <button onClick={commitEdit} style={{ ...btn('S', 'primary'), background: SCR_ACC, color: '#fff', fontFamily: 'inherit' }}>{t('Сохранить')}</button>
               </div>
             </div>
           ) : (
@@ -7301,9 +7301,9 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       </>
                     )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
-                      <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>
+                      <button onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
-                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit' }}>
+                        style={{ ...btn('M', 'primary'), background: accent, color: getContrastColor(accent), gap: 8 }}>
                         <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
                       </motion.button>
                     </div>
@@ -7892,8 +7892,8 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+                    <button onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
                   </div>
                 </div>
               ) : (
@@ -7911,7 +7911,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
               )}
             </div>
           ))}
-          <button onClick={resetToDefault} style={{ padding: '8px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={resetToDefault} style={btn('S', 'secondary')}>
             {t('Сбросить к стандарту')}
           </button>
         </div>

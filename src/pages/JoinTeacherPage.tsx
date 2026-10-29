@@ -10,6 +10,7 @@ import { authErrorRu } from '../lib/authErrors'
 import TeacherSubjectsField from '../components/teacher/TeacherSubjectsField'
 import { getSubject } from '../lib/subjects'
 import { Alert } from '../components/Alert'
+import { btn } from '../lib/pillStyles'
 
 // Teacher self-registration from an admin invite link (#/join-teacher?token=…).
 // Mirrors JoinPage: create an auth account (role: teacher), then apply the baked
@@ -149,7 +150,7 @@ export default function JoinTeacherPage() {
               </button>
               <button
                 onClick={() => { window.location.hash = '#/login'; window.location.reload() }}
-                style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                style={btn('M', 'secondary')}
               >
                 {t('Войти')}
               </button>

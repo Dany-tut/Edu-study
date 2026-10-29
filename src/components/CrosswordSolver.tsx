@@ -27,6 +27,7 @@ import type { CrosswordClue } from '../data/taskTypes'
 import { playPop, vibrate } from '../lib/sound'
 import { useOwnString } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'
+import { btn } from '../lib/pillStyles'
 
 /** Ответы клеток лежат одной строкой-JSON «строка,столбец → знак». */
 export function parseCells(raw: string | undefined): Record<string, string> {
@@ -225,11 +226,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
               <button
                 onClick={clear}
                 className="self-center cursor-pointer"
-                style={{
-                  padding: '8px 16px', borderRadius: 999, border: '1px solid var(--color-border)',
-                  background: 'transparent', color: 'var(--color-muted)',
-                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-                }}
+                style={btn('S', 'secondary')}
               >
                 {t('Очистить клетку')}
               </button>

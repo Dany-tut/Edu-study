@@ -4,6 +4,7 @@ import { Pencil, Plus, RotateCcw, Check } from 'lucide-react'
 import { useDeskStore } from '../../store/deskStore'
 import type { DeskConfig } from '../../lib/useDeskLayouts'
 import { useT } from '../../lib/i18n'
+import { btn } from '../../lib/pillStyles'
 
 type Props = {
   config: DeskConfig
@@ -118,14 +119,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
 
         <button
           onClick={() => { onResetDesk(activeDeskId); setEditMode(false) }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '6px 14px', borderRadius: 100,
-            border: '1px solid var(--color-border-medium)',
-            background: 'transparent', color: 'var(--color-muted)',
-            fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            flexShrink: 0,
-          }}
+          style={{ ...btn('M', 'secondary'), flexShrink: 0 }}
         >
           <RotateCcw size={14} />
           {t('Сбросить')}

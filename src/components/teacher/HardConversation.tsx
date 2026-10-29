@@ -23,6 +23,7 @@ import {
   mergeTaskEvents, taskStatus, hardTaskScore, lastSolutionOf, type HardTaskStatus,
 } from '../../lib/useHomework'
 import { Alert } from '../Alert'
+import { btn } from '../../lib/pillStyles'
 
 // Вкладки сложных заданий + датированная лента раундов (решение → комментарий →
 // решение → … → принято) + composer под роль. Persistence — в родителе (страница
@@ -238,7 +239,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <button onClick={() => fileRef.current?.click()} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => fileRef.current?.click()} style={btn('M', 'secondary')}>
             <ImageIcon size={16} /> {t('Фото')}
           </button>
           <button onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -329,7 +330,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <Label>{t('Приложить к ответу')}</Label>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => fileRef.current?.click()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => fileRef.current?.click()} style={{ ...btn('M', 'secondary'), flex: 1 }}>
             <ImageIcon size={14} /> {t('Фото')}
           </button>
           <button onClick={() => setShowBoard(v => !v)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -365,7 +366,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
           <Check size={16} /> {t('Принять задание')} · {score}/5
         </motion.button>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('returned')} disabled={busy}
-          style={{ padding: '12px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: busy ? 0.6 : 1 }}>
+          style={{ ...btn('M', 'secondary'), opacity: busy ? 0.6 : 1 }}>
           <RotateCcw size={14} /> {t('На доработку')}
         </motion.button>
       </div>
