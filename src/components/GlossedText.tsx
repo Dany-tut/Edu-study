@@ -650,7 +650,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               title={t('Произнести')}
               aria-label={t('Произнести')}
               style={{
-                width: 28, height: 28, flexShrink: 0, borderRadius: '50%', border: 'none',
+                width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none',
                 cursor: 'pointer', display: 'grid', placeItems: 'center',
                 background: `${accent}22`, color: accent, pointerEvents: 'auto',
               }}

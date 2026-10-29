@@ -412,7 +412,7 @@ export default function AnnotationLayer({
 
 function iconBtn(on: boolean, bg = 'transparent', fg = 'var(--color-muted)'): React.CSSProperties {
   return {
-    width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+    width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: on ? bg : 'transparent', color: on ? fg : 'var(--color-muted)',
   }

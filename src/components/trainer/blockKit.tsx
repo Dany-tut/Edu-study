@@ -81,7 +81,8 @@ export function Block({ children, tone, accent, size = 'md', dashed, state, onCl
  * продукте (components/SoundBadge): круг мягкой заливки с цветной иконкой.
  * Ставится в правом краю своего объекта — строки, ячейки, ответа.
  */
-export function SpeakBtn({ term, lang, accent, size = 30, style }: {
+// Кнопка озвучки — одна на приложение: круг 32 тона предмета (круг 3).
+export function SpeakBtn({ term, lang, accent, size = 32, style }: {
   term: string
   lang: string
   accent: string

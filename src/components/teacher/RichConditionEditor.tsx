@@ -21,7 +21,7 @@ function ToolbarBtn({ children, onClick, title, active }: {
     <button
       onMouseDown={e => { e.preventDefault(); onClick() }}
       style={{
-        width: 28, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer',
+        width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer',
         background: active ? 'var(--color-bg-3)' : 'transparent',
         color: active ? 'var(--color-text)' : 'var(--color-text-2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',

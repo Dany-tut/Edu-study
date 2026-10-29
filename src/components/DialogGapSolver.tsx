@@ -161,12 +161,15 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                     onClick={() => { stopSpeech(); speakLine(i) }}
                     aria-label={t('Озвучить реплику')}
                     className="cursor-pointer"
+                    // Как SpeakBtn: круг 32 (было голой иконкой ~17 px — пальцем не попасть).
                     style={{
-                      border: 'none', background: 'transparent', padding: 2, display: 'flex',
+                      border: 'none', width: 32, height: 32, borderRadius: '50%', flexShrink: 0, padding: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: active ? 'var(--color-accent-soft)' : 'var(--color-bg-3)',
                       color: active ? 'var(--color-accent)' : 'var(--color-muted)',
                     }}
                   >
-                    <Volume2 size={14} />
+                    <Volume2 size={16} />
                   </button>
                 </div>
                 <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
