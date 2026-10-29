@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import Tooltip from '../Tooltip'
 import { createPortal } from 'react-dom'
 import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from 'lucide-react'
 import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
@@ -379,15 +380,15 @@ export default function WhiteboardCanvas({
           borderBottom: '1px solid var(--color-border-medium)',
           borderRadius: '10px 10px 0 0',
         }}>
-          <button title={t('Карандаш')} onClick={() => chooseTool('pen')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'pen' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'pen' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
+          <Tooltip label={t('Карандаш')}><button onClick={() => chooseTool('pen')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'pen' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'pen' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
             <Pencil size={12} />
-          </button>
-          <button title={t('Ластик')} onClick={() => chooseTool('eraser')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'eraser' ? 'var(--color-peach-soft)' : 'transparent', color: tool === 'eraser' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}>
+          </button></Tooltip>
+          <Tooltip label={t('Ластик')}><button onClick={() => chooseTool('eraser')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'eraser' ? 'var(--color-peach-soft)' : 'transparent', color: tool === 'eraser' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}>
             <Eraser size={12} />
-          </button>
-          <button title={t('Выбор — выделить, перенести и уменьшить')} onClick={() => chooseTool('select')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'select' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'select' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
+          </button></Tooltip>
+          <Tooltip label={t('Выбор — выделить, перенести и уменьшить')}><button onClick={() => chooseTool('select')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'select' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'select' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
             <MousePointer2 size={12} />
-          </button>
+          </button></Tooltip>
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           {WB_COLORS.map(c => (
             <button key={c} onClick={() => { setColor(c); chooseTool('pen') }} style={{ width: 16, height: 16, borderRadius: '50%', border: color === c && tool === 'pen' ? '2.5px solid var(--color-blue-pill-text)' : '2px solid var(--color-border)', background: c, cursor: 'pointer', flexShrink: 0 }} />
@@ -444,12 +445,12 @@ export default function WhiteboardCanvas({
           )}
 
           <div style={{ flex: 1 }} />
-          <button title={t('Отменить')} onClick={undo} disabled={!canUndo} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: canUndo ? 'pointer' : 'not-allowed', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: canUndo ? 1 : 0.35 }}>
+          <Tooltip label={t('Отменить')}><button onClick={undo} disabled={!canUndo} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: canUndo ? 'pointer' : 'not-allowed', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: canUndo ? 1 : 0.35 }}>
             <Undo2 size={12} />
-          </button>
-          <button title={t('Очистить')} onClick={clear} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
+          </button></Tooltip>
+          <Tooltip label={t('Очистить')}><button onClick={clear} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
             <Trash2 size={12} />
-          </button>
+          </button></Tooltip>
         </div>
       )}
 

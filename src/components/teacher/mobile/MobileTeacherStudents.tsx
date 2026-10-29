@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import EmptyState from '../../EmptyState'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
 import { Users, ChevronRight, Phone, Send, Wallet, CalendarCheck, Check } from 'lucide-react'
@@ -323,9 +324,12 @@ export default function MobileTeacherStudents() {
           {((showGroups && groupList.length === 0 && !showIndividuals) ||
             (showIndividuals && individuals.length === 0 && !showGroups) ||
             (groupList.length === 0 && individuals.length === 0)) && (
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>
-              {groups.length === 0 ? t('Групп пока нет. Создайте их на компьютере.') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
-            </div>
+            <EmptyState
+              icon={Users}
+              title={groups.length === 0 ? t('Групп пока нет') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
+              text={groups.length === 0 ? t('Создайте их на компьютере.') : undefined}
+              style={{ marginTop: 8 }}
+            />
           )}
 
           {sel && <StudentSheet student={sel.student} group={sel.group} open={sheetOpen} onClose={() => setSheetOpen(false)} />}

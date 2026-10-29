@@ -2237,14 +2237,16 @@ export function TileChip({ children, tone, accent, soft }: {
 export function Empty({ text }: { text: string }) {
   const t = useT()
   return (
+    // Вид пустого экрана — как EmptyState (components/EmptyState.tsx): сплошная
+    // карточка, без пунктира; текст абзацами по \n остаётся своим.
     <div style={{
-      padding: '34px 22px', borderRadius: 18, textAlign: 'center',
-      border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
+      padding: '24px 18px', borderRadius: 18, textAlign: 'center',
+      border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
     }}>
       <div style={{ maxWidth: 420, margin: '0 auto' }}>
         {t(text).split('\n').map((line, i) => (
           <div key={i} style={{
-            fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)',
+            fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-3)',
             marginTop: i ? 6 : 0, ...balancedWrap,
           }}>{bindShortWords(line)}</div>
         ))}

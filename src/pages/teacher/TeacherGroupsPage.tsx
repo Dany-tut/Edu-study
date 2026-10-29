@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import Tooltip from '../../components/Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
@@ -582,8 +583,8 @@ function TrackFields({
           <div style={{ flex: 1 }}>
             <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={levelOptionsForSubject(tr.subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
           </div>
-          <button
-            type="button" onClick={() => removeTrack(i)} title={t('Убрать направление')}
+          <Tooltip label={t('Убрать направление')}><button
+            type="button" onClick={() => removeTrack(i)}
             style={{
               width: 32, height: 32, flexShrink: 0, borderRadius: 9, cursor: 'pointer',
               border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)',
@@ -591,7 +592,7 @@ function TrackFields({
             }}
           >
             <X size={16} />
-          </button>
+          </button></Tooltip>
         </div>
       ))}
 
@@ -1803,7 +1804,7 @@ function TracksSection({
             <span>{tc(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
           {siblings.length > 0 && (
-            <button
+            <Tooltip label={t('Удалить карточку')}><button
               type="button"
               onClick={async () => {
                 const ok = await confirmDialog({
@@ -1814,11 +1815,10 @@ function TracksSection({
                 })
                 if (ok) await onRemoveCard(group.id)
               }}
-              title={t('Удалить карточку')}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={14} />
-            </button>
+            </button></Tooltip>
           )}
         </div>
 
@@ -1832,12 +1832,12 @@ function TracksSection({
               <span>{sc.icon}</span>
               <span>{tc(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
-            <button
-              type="button" onClick={() => onRemoveCard(sc.id)} title={t('Удалить карточку')}
+            <Tooltip label={t('Удалить карточку')}><button
+              type="button" onClick={() => onRemoveCard(sc.id)}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={14} />
-            </button>
+            </button></Tooltip>
           </div>
         ))}
 
@@ -1963,15 +1963,14 @@ function StudentPanel({
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button
+            <Tooltip label={t('Полная статистика ученика')}><button
               onClick={onOpenFullCard}
-              title={t('Полная статистика ученика')}
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-accent)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
             >
               <BarChart2 size={14} />
-            </button>
+            </button></Tooltip>
             <button
               onClick={onClose}
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}

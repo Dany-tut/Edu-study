@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import Tooltip from '../Tooltip'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Image as ImageIcon, PenLine } from 'lucide-react'
@@ -13,9 +14,11 @@ import { alertDialog } from '../ConfirmHost'
 function ToolbarBtn({ children, onClick, title, active }: {
   children: React.ReactNode; onClick: () => void; title: string; active?: boolean
 }) {
+  // «Жирный (Ctrl+B)» → подпись «Жирный» и сочетание «Ctrl+B» в подсказке.
+  const m = title.match(/^(.*?)\s*\((.*)\)$/)
   return (
+    <Tooltip label={m ? m[1] : title} keys={m ? m[2] : undefined}>
     <button
-      title={title}
       onMouseDown={e => { e.preventDefault(); onClick() }}
       style={{
         width: 28, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer',
@@ -30,6 +33,7 @@ function ToolbarBtn({ children, onClick, title, active }: {
     >
       {children}
     </button>
+    </Tooltip>
   )
 }
 
