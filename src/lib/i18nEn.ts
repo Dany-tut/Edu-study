@@ -2854,6 +2854,7 @@ export const EN: Record<string, string> = {
   'Чтобы подтвердить, впишите': 'To confirm, type',
   'Стираем…': 'Wiping…',
   'Удаляем…': 'Deleting…',
+  'Ссылка из письма устарела или уже использована. Отправьте письмо ещё раз и откройте самое новое.': 'The email link has expired or was already used. Send the email again and open the newest one.',
   'Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.': 'Email sent. Open the link in it and the new password form will appear here.',
   'Заявка': 'Request',
   'Голосовой ответ': 'Voice answer',

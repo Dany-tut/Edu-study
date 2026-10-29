@@ -202,6 +202,11 @@ function AppRoutes() {
   // (/#access_token=…&type=recovery); supabase-js съедает его и шлёт
   // PASSWORD_RECOVERY, а адрес остаётся пустым. Поэтому форма нового пароля
   // не ждёт #/teacher, а встаёт поверх любого маршрута.
+  // Протухшая или уже использованная ссылка из письма: Supabase возвращает
+  // /#error=access_denied&error_code=otp_expired… — ни один маршрут это не
+  // ловил, и человек оказывался на лендинге без объяснений.
+  if (hash.startsWith('#error=')) return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
+
   if (recovery) return <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); window.location.hash = '#/teacher' }} recovery /></Chunk>
 
   if (hash.startsWith('#/teacher')) {

@@ -5,16 +5,16 @@ import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 
-export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
+export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(linkExpired ? t('Ссылка из письма устарела или уже использована. Отправьте письмо ещё раз и откройте самое новое.') : '')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   // Свободной регистрации нет: аккаунт учителя создаётся только по ссылке-приглашению (#/join-teacher)
   const [mode, setMode] = useState<'login' | 'reset' | 'newpassword'>(
-    recovery ? 'newpassword' : 'login',
+    recovery ? 'newpassword' : linkExpired ? 'reset' : 'login',
   )
   const [showPassword, setShowPassword] = useState(false)
 
