@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
@@ -42,6 +43,7 @@ const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = 
 
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string }
 const AVATARS: AvatarOption[] = [
+  { id: 'teacher', Icon: TeacherBook, gradient: 'linear-gradient(135deg, hsl(228 78% 70%), hsl(248 64% 52%) 60%, hsl(262 60% 42%))' },
   { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))' },
   { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))' },
   { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))' },
@@ -168,6 +170,9 @@ export default function TeacherTopBar() {
   // Края центрованного бара — закреплённое название страницы (редактор теста)
   // обрезается у левого края, а не заезжает под бар. Бар при сворачивании
   // меняет ширину и съезжает — ловим кадры анимации ResizeObserver'ом.
+  const headerDocked = useTeacher(s => s.headerDocked)
+  const isHome = activePage === 'home'
+
   const setTopBarBox = useDashboard(s => s.setTopBarBox)
   useLayoutEffect(() => {
     const apply = () => {
@@ -183,6 +188,40 @@ export default function TeacherTopBar() {
     window.addEventListener('resize', apply)
     return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', apply) }
   }, [setTopBarBox, collapsed])
+
+  // Тесно (пилюля справа не влезает) → сжимается только профиль: сперва без
+  // имени, одно «Учитель», потом один кружок аватарки. Навигацию не трогаем —
+  // её сворачивает только шеврон.
+  const [squeeze, setSqueeze] = useState<0 | 1 | 2>(0)
+  const profileTextRef = useRef<HTMLDivElement>(null)
+  const nameRef = useRef<HTMLDivElement>(null)
+  const roleRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const bar = teacherBarRef.current
+    const row = bar?.closest('.topbar-row') as HTMLElement | null
+    if (!bar || !row) return
+    const fit = () => {
+      const cs = getComputedStyle(row)
+      const inner = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      // Правая колонка: paddingLeft + пилюля (если она сейчас показана).
+      const slot = row.lastElementChild as HTMLElement | null
+      const pill = slot?.firstElementChild as HTMLElement | null
+      const rightNeed = pill ? pill.offsetWidth + parseFloat(getComputedStyle(slot!).paddingLeft) : 0
+      const base = bar.offsetWidth - (profileTextRef.current?.offsetWidth ?? 0)
+      const nameW = nameRef.current?.offsetWidth ?? 0
+      const roleW = roleRef.current?.offsetWidth ?? 0
+      const widths = [8 + Math.max(nameW, roleW), 8 + roleW, 0]
+      const level = widths.findIndex(w => base + w + 2 * rightNeed <= inner)
+      setSqueeze((level < 0 ? 2 : level) as 0 | 1 | 2)
+    }
+    fit()
+    // Пилюля въезжает/уезжает анимацией — досчитываем после неё.
+    const settle = setTimeout(fit, 420)
+    const ro = new ResizeObserver(fit)
+    ro.observe(row)
+    window.addEventListener('resize', fit)
+    return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', fit) }
+  }, [activePage, headerDocked, collapsed, teacherName, teacherRole])
 
   useLayoutEffect(() => {
     if (!addOpen) return
@@ -230,7 +269,6 @@ export default function TeacherTopBar() {
     return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
   }, [profileOpen])
 
-  const headerDocked = useTeacher(s => s.headerDocked)
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
     headerDocked ? lockSnap() : lockRelease()
@@ -242,8 +280,6 @@ export default function TeacherTopBar() {
     const id = setTimeout(() => el.classList.remove('topbar-snap-down', 'topbar-snap-up'), 460)
     return () => clearTimeout(id)
   }, [headerDocked])
-
-  const isHome = activePage === 'home'
 
   // Тариф для бейджа в меню профиля: name + ползунок учеников + число дней.
   const planTier = PLAN_TIERS.find(p => p.code === (myPlan?.plan_code ?? 'free')) ?? PLAN_TIERS[0]
@@ -431,15 +467,26 @@ export default function TeacherTopBar() {
         >
           <AvatarIcon size={16} strokeWidth={1.8} style={{ color: '#fff' }} />
         </motion.div>
-        <div style={{
+        <div ref={profileTextRef} style={{
           overflow: 'hidden', whiteSpace: 'nowrap',
-          maxWidth: (isHome && teacherName) ? 208 : 0,
-          opacity: (isHome && teacherName) ? 1 : 0,
+          maxWidth: (isHome && teacherName && squeeze < 2) ? 208 : 0,
+          opacity: (isHome && teacherName && squeeze < 2) ? 1 : 0,
           transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
         }}>
-          <div style={{ paddingLeft: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(teacherName)}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? t('Админ') : t('Учитель')}</div>
+          <div style={{ paddingLeft: 8, width: 'max-content' }}>
+            {/* Имя меряется всегда (для расчёта тесноты); при сжатии вынуто из потока */}
+            <div style={squeeze === 0 ? undefined : { position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }}>
+              <div ref={nameRef} style={{ width: 'max-content', fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(teacherName)}</div>
+            </div>
+            <div style={{
+              width: 'max-content', lineHeight: 1.2,
+              fontSize: squeeze === 0 ? 10 : 13, fontWeight: squeeze === 0 ? 400 : 600,
+              color: squeeze === 0 ? 'var(--color-muted)' : 'var(--color-text)',
+            }}>{teacherRole === 'admin' ? t('Админ') : t('Учитель')}</div>
+          </div>
+          {/* Мерка одиночной подписи (ступень 1) — шрифт там крупнее, чем под именем */}
+          <div ref={roleRef} aria-hidden style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', width: 'max-content', fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>
+            {teacherRole === 'admin' ? t('Админ') : t('Учитель')}
           </div>
         </div>
       </motion.div>
