@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Users, GraduationCap, Clock, RefreshCw, Eye } from 'lucide-react'
+import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 import {
   fetchUserActivity, fetchTeacherUsage,
   type UserActivityRow, type TeacherUsageRow,
@@ -130,7 +131,9 @@ export default function AdminUserActivity() {
           {view === 'people' ? (
             <PeopleTable rows={people} />
           ) : (
-            <TeachersTable rows={teachers} />
+            <TeachersTable rows={teachers} onDeleted={(id, keepAccount) => setTeachers(prev => keepAccount
+              ? prev.map(x => x.teacher_id === id ? { ...x, total_students: 0, active_students: 0 } : x)
+              : prev.filter(x => x.teacher_id !== id))} />
           )}
         </>
       )}
@@ -267,9 +270,10 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
   )
 }
 
-function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
+function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted: (id: string, keepAccount: boolean) => void }) {
   const t = useT()
   const [plans, setPlans] = useState<Record<string, { code: string | null; expires: string | null }>>({})
+  const [toDelete, setToDelete] = useState<TeacherUsageRow | null>(null)
   if (rows.length === 0) return <Empty />
   return (
     <TableShell>
@@ -319,11 +323,92 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
                   {t('Кабинет')}
                 </button>
               )}
+              <button
+                onClick={() => setToDelete(r)}
+                title={t('Стереть данные или удалить аккаунт')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: 6,
+                  width: 29, height: 29, borderRadius: 9, cursor: 'pointer', verticalAlign: 'middle',
+                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                }}
+              >
+                <Trash2 size={13} strokeWidth={2.2} />
+              </button>
             </td>
           </tr>
         ))}
       </tbody>
+      {toDelete && (
+        <DeleteTeacherDialog
+          teacher={toDelete}
+          onClose={() => setToDelete(null)}
+          onDone={keepAccount => { onDeleted(toDelete.teacher_id, keepAccount); setToDelete(null) }}
+        />
+      )}
     </TableShell>
+  )
+}
+
+// Учитель хочет начать с нуля: «Стереть данные» оставляет вход и тариф,
+// «Удалить аккаунт» убирает и его (вернуться — по новому приглашению).
+// Оба пути необратимы, поэтому сначала нужно вписать почту учителя.
+function DeleteTeacherDialog({ teacher, onClose, onDone }: {
+  teacher: TeacherUsageRow
+  onClose: () => void
+  onDone: (keepAccount: boolean) => void
+}) {
+  const t = useT()
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState<'wipe' | 'delete' | null>(null)
+  const [err, setErr] = useState('')
+  const expected = (teacher.email ?? teacher.name).trim().toLowerCase()
+  const armed = typed.trim().toLowerCase() === expected
+
+  async function run(keepAccount: boolean) {
+    setBusy(keepAccount ? 'wipe' : 'delete'); setErr('')
+    const { error } = await supabase.rpc('admin_delete_teacher', { p_teacher: teacher.teacher_id, p_keep_account: keepAccount })
+    setBusy(null)
+    if (error) { setErr(error.message); return }
+    onDone(keepAccount)
+  }
+
+  const btn = (danger: boolean): React.CSSProperties => ({
+    padding: '9px 14px', borderRadius: 11, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+    cursor: armed && !busy ? 'pointer' : 'default', opacity: armed ? 1 : 0.45,
+    border: danger ? 'none' : '1px solid #E04848',
+    background: danger ? '#E04848' : 'transparent', color: danger ? '#fff' : '#E04848',
+  })
+
+  return createPortal(
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 420, maxWidth: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 18, padding: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
+          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{tn(teacher.name)}: {t('начать с нуля')}</div>
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 14 }}>
+          <b>{t('Стереть данные')}</b> — {t('удалятся группы с учениками, расписанием, ДЗ и журналом, курсы, тренажёры, задачи и оплаты. Вход и тариф останутся.')}
+          <br />
+          <b>{t('Удалить аккаунт')}</b> — {t('то же и сам аккаунт. Вернуться можно только по новому приглашению.')}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 6 }}>
+          {t('Чтобы подтвердить, впишите')} <b style={{ color: 'var(--color-text)' }}>{teacher.email ?? teacher.name}</b>
+        </div>
+        <input
+          value={typed}
+          onChange={e => setTyped(e.target.value)}
+          autoFocus
+          style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', marginBottom: 14 }}
+        />
+        {err && <div style={{ fontSize: 12, color: '#E04848', marginBottom: 12 }}>{err}</div>}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <button onClick={onClose} style={{ padding: '9px 14px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>{t('Отмена')}</button>
+          <button disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>
+          <button disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}>{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
