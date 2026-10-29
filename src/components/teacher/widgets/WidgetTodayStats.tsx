@@ -42,7 +42,7 @@ function EarningsCard({ delay }: { delay: number }) {
             <TrendingUp size={16} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
           {t('Нет данных')}
         </div>
         <div style={{
@@ -75,7 +75,7 @@ function StatCard({
             <Icon size={15} strokeWidth={2} style={{ color: accentColor }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: accentColor,
           background: accentBg, borderRadius: 8, padding: '3px 8px',

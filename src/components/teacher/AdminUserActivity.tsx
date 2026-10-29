@@ -126,7 +126,7 @@ function Kpi({ icon: Icon, label, value }: { icon: React.ElementType; label: str
         <Icon size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
       </div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.4px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.01em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   )
 }

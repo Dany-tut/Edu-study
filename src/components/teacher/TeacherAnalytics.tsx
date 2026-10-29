@@ -97,7 +97,7 @@ function Kpi({ icon: Icon, label, value, sub, accent, loading }: {
         <Icon size={14} strokeWidth={2} style={{ color: accent ?? 'var(--color-text-3)' }} />
         <span style={{ fontSize:12, color:'var(--color-text-3)', fontWeight:500 }}>{label}</span>
       </div>
-      <div style={{ fontSize:24, fontWeight:800, color: accent ?? 'var(--color-text)', letterSpacing:'-0.5px', lineHeight:1, height:24, display:'flex', alignItems:'center' }}>
+      <div style={{ fontSize:28, fontWeight:800, fontVariantNumeric:'tabular-nums', color: accent ?? 'var(--color-text)', letterSpacing:'-0.01em', lineHeight:1, height:28, display:'flex', alignItems:'center' }}>
         {loading ? <Skeleton w={44} h={20} /> : value}
       </div>
       {sub && <div style={{ fontSize:11, color:'var(--color-text-3)', marginTop:4 }}>{sub}</div>}

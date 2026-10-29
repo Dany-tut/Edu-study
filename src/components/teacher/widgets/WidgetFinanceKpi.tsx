@@ -42,7 +42,7 @@ function KpiCard({ icon: Icon, label, value, sub, accentBg, accentColor }: KpiCa
         </div>
       </div>
 
-      <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+      <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.01em' }}>
         {value}
       </div>
 

@@ -42,7 +42,7 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
       {loading ? (
         <Skeleton w={72} h={32} radius={10} />
       ) : (
-        <div style={{ fontSize: 32, fontWeight: 800, color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.01em' }}>
           {value}
         </div>
       )}

@@ -89,7 +89,7 @@ function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '6px 0 8px' }}>
-        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+        <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>· {value_pct}%</span>
       </div>
       <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
@@ -113,7 +113,7 @@ function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.Elem
         </>
       ) : (
         <>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', letterSpacing: '-0.01em', lineHeight: 1 }}>{value}</div>
           {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{sub}</div>}
         </>
       )}
