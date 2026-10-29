@@ -384,7 +384,7 @@ export default function LandingPage() {
 
       <footer style={{ marginTop: 'clamp(64px, 9vw, 110px)', padding: '30px clamp(16px, 5vw, 56px) 44px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', color: 'var(--color-text-3)', fontSize: 13 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, color: 'var(--color-text-2)' }}>
-          <img src="/icon-512.png" alt="" width={22} height={22} style={{ borderRadius: '22.5%' }} /> Искра
+          <img src="/icon.svg?v=3" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
         </div>
         <span style={{ marginLeft: 'auto' }}>© Искра · {t('Платформа для преподавателей')}</span>
       </footer>
