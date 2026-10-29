@@ -74,6 +74,9 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
   min-height: 80px; padding: 0 0 4px;
 }
 .season-hero__copy { position: relative; z-index: 1; min-width: 0; max-width: 62%; }
+/* Десктоп: левый край шапки — на одной линии с плитками и дорожкой ниже
+   (у них +32 px от края ряда). Без этого заголовок торчал левее всего экрана. */
+.season-hero:not(.season-hero--compact) { margin-inline: 32px; }
 .season-hero__chip {
   display: inline-block; padding: 5px 13px; border-radius: 999px;
   font-size: 12.5px; font-weight: 650; line-height: 1.2;
@@ -219,13 +222,35 @@ html[data-season-variant="potions"] .season-track-fill {
   position: absolute; left: 50%; bottom: 50%; width: auto; z-index: 2;
   transform: translate(-50%, 42%); pointer-events: none;
 }
-.season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform: translate(-50%, 30%); }
+.season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform: translate(-50%, 34%) scale(0.86); transform-origin: 50% 100%; }
 .season-node-img--candy { transform: translate(-50%, 50%) scale(0.8) rotate(-12deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
 .season-node-orb {
   position: absolute; inset: -4px; border-radius: 999px; z-index: 2; pointer-events: none;
   background: #34D399; box-shadow: 0 0 0 4px #fff, 0 0 22px rgba(52, 211, 153, 0.7);
 }
 .season-node-hidden { opacity: 0 !important; }
+
+/* Незажжённые уроки — как в макетах: «Ночь фонарей» — тёмно-фиолетовые бусины,
+   «Сладость» и «Зельеварня» — светлые с лавандовой каймой. Иконки внутри остаются
+   (по ним видно, видео это, тест или замок), но приглушены в тон. */
+html[data-season-variant="lanterns"] .season-node:not(.season-node-done) {
+  background: #2A2058 !important; border-color: #4A3E86 !important;
+}
+html[data-season-variant="lanterns"] .season-node:not(.season-node-done) svg,
+html[data-season-variant="lanterns"] .season-node:not(.season-node-done) svg * { color: #A79BE0 !important; stroke: #A79BE0 !important; }
+html[data-season-variant="lanterns"] .season-node-locked { background: #211A45 !important; border-color: #3A3070 !important; }
+html[data-season-variant="lanterns"] .season-node-locked svg,
+html[data-season-variant="lanterns"] .season-node-locked svg * { color: #6E62A8 !important; stroke: #6E62A8 !important; }
+/* Дышащее кольцо у открытых уроков — тёплым светом фонаря, а не фиолетом. */
+html[data-season-variant="lanterns"] .course-node-pulse-ring { --node-rgb: 255, 154, 61 !important; }
+html[data-season-variant="candy"] .season-node:not(.season-node-done),
+html[data-season-variant="potions"] .season-node:not(.season-node-done) {
+  background: #FBFAFF !important; border-color: #D4CCF5 !important;
+}
+html[data-season-variant="candy"] .season-node:not(.season-node-done) svg,
+html[data-season-variant="candy"] .season-node:not(.season-node-done) svg *,
+html[data-season-variant="potions"] .season-node:not(.season-node-done) svg,
+html[data-season-variant="potions"] .season-node:not(.season-node-done) svg * { color: #8F84C8 !important; stroke: #8F84C8 !important; }
 
 /* Пройденные уроки: огонёк, белая бусина в оранжевой оправе, бусина в стекле. */
 html[data-season-variant="lanterns"] .season-node-done {

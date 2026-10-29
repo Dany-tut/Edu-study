@@ -144,7 +144,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
       )}
 
       {/* Dark-theme active ring: soft, breathing, tinted to the node colour. */}
-      {dark && isActive && !isHighlighted && (
+      {dark && isActive && !isHighlighted && !seasonNode && (
         <div
           className="course-node-pulse-ring"
           style={{
@@ -184,7 +184,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           scale: { type: 'spring', stiffness: 320, damping: 22 },
           opacity: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
         }}
-        className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done')}
+        className={cn('season-node absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', displayStatus === 'locked' && 'season-node-locked')}
         style={{
           background: `linear-gradient(${style.bg}, ${style.bg}), var(--color-bg-3)`,
           border: `2px solid ${style.border}`,

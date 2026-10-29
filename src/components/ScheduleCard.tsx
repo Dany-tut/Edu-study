@@ -31,7 +31,13 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   // Праздничная тема: пустой день в центральной карточке — привидение-листок
   // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
   // одинаковых привидений читался как сбой, а не как шутка.
-  const seasonEmpty = useSeason().on('empty')
+  const season = useSeason()
+  const seasonEmpty = season.on('empty')
+  // Праздничная тема: под карточками картинка (ночь, вечерняя шапка), и боковым нужно
+  // стекло с размытием. Затухание обёрткой (opacity) его убивает: backdrop-filter
+  // внутри полупрозрачного родителя в Chromium не размывает ничего. Поэтому в теме
+  // обёртка непрозрачная, а гаснут только содержимое и тон стекла.
+  const glassFade = season.on('hero') && !isCenter
   const { tc } = useTc()
   const subjects = useStudentData(s => s.subjects)
   const openLesson = useDashboard(s => s.openLesson)
@@ -99,8 +105,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   return (
     <motion.div
       layout
-      animate={{ scale, opacity }}
-      whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: Math.min(1, opacity + 0.18) }}
+      animate={{ scale, opacity: glassFade ? 1 : opacity }}
+      whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: glassFade ? 1 : Math.min(1, opacity + 0.18) }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="flex-shrink-0 cursor-pointer h-full"
@@ -245,11 +251,12 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
           className="w-full h-full rounded-[28px]"
           style={{
             padding: '14px 16px',
-            background: 'rgba(var(--glass-rgb), 0.80)',
+            background: `rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80})`,
             backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
           }}
         >
+          <div style={glassFade ? { opacity: Math.min(1, opacity + 0.15) } : undefined}>
           {dateHeader(11, 8)}
           <div className="flex flex-col gap-2">
             {day.lessons.length > 0 ? (
@@ -270,6 +277,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 <p style={{ fontSize: 11, marginTop: 3 }}>{t('Уроки еще не проставлены')}</p>
               </div>
             )}
+          </div>
           </div>
         </div>
       )}
