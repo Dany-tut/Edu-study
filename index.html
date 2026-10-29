@@ -14,9 +14,9 @@
     <meta name="theme-color" content="#F5F5F6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" id="app-favicon" type="image/svg+xml" href="./icon.svg?v=2" />
+    <link rel="icon" id="app-favicon" type="image/svg+xml" href="./icon.svg?v=3" />
     <!-- iOS ignores SVG apple-touch-icon → must be a PNG for a crisp home-screen icon. -->
-    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=3" />
     <title>Искра — Кабинет ученика</title>
     <!-- Слой мобильного дока живёт в <body>, снаружи разметки React: скрытие
          мобильной ветки через display:none у обёртки до портала не достаёт.
@@ -33,7 +33,7 @@
       @keyframes boot-pulse { 0%, 100% { opacity: .6 } 50% { opacity: 1 } }
       @media (prefers-reduced-motion: reduce) { #boot i { animation: none } }
     </style>
-    <!-- Фавикон + заголовок переключаются по маршруту: ученик (книга) / учитель (искра).
+    <!-- Фавикон + заголовок переключаются по маршруту: ученик (фиолетовая плитка) / учитель (ночная плитка).
          apple-touch-icon is intentionally NOT switched — iOS reads it once at add-time. -->
     <script>
       (function () {
@@ -46,7 +46,7 @@
         } catch (e) {}
         function syncIcon() {
           var teacher = location.hash.indexOf('#/teacher') === 0
-          var href = teacher ? './icon-teacher.svg?v=2' : './icon.svg?v=2'
+          var href = teacher ? './icon-teacher.svg?v=3' : './icon.svg?v=3'
           var fav = document.getElementById('app-favicon')
           if (fav) fav.href = href
           // Заголовок вкладки — тоже интерфейс: язык берём там же, где его

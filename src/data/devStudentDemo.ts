@@ -57,6 +57,14 @@ export const DEMO_SUBJECTS: Subject[] = [
                 { id: 't4', type: 'sequence', isHard: false, question: 'Расставьте по возрастанию силы электролита.', sequenceItems: ['Уксусная кислота', 'Угольная кислота', 'Серная кислота'] },
                 { id: 'h1', type: 'extended', isHard: true, label: 'Задание 1', question: 'Опишите механизм электролитической диссоциации хлорида натрия в воде. Приведите уравнение.' },
               ],
+              // Доп. домашка — своя карточка на странице урока и своя сдача.
+              extraHw: [{
+                id: 'demo-dop',
+                tasks: [
+                  { id: 'x1', type: 'fill', isHard: false, question: 'Как называются положительно заряженные ионы?', answer: 'катионы' },
+                  { id: 'x2', type: 'single', isHard: false, question: 'Какой ион даёт кислая среда?', choices: ['OH⁻', 'H⁺', 'Na⁺'], correctChoices: [1] },
+                ],
+              }],
             },
           }),
           L('demo-c6', 'chemistry', 6, 'Реакции ионного обмена', 'returned', { points: 45, comment: 'Пересдай задание 3 — перепутал осадок.' }),

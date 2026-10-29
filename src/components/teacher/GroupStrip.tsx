@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
+import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
@@ -309,7 +310,7 @@ function IndividualCard({
             {group.name}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {group.icon} {[group.subject, ...(group.tracks ?? []).map(t => t.subject).filter(Boolean)].join(' · ')}
+            {group.icon}{ICON_GAP}{[group.subject, ...(group.tracks ?? []).map(t => t.subject).filter(Boolean)].join(' · ')}
           </div>
         </div>
       </div>

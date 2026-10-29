@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
@@ -24,11 +25,13 @@ import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
+import { PILL_WIDTH } from './TeacherCompactPill'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
 import { getAuthUser } from '../../lib/owner'
+import { AvatarPhotoFill } from '../AvatarPhoto'
 import { useDashboard } from '../../store/dashboardStore'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
@@ -42,6 +45,7 @@ const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = 
 
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string }
 const AVATARS: AvatarOption[] = [
+  { id: 'teacher', Icon: TeacherBook, gradient: 'linear-gradient(135deg, hsl(228 78% 70%), hsl(248 64% 52%) 60%, hsl(262 60% 42%))' },
   { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))' },
   { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))' },
   { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))' },
@@ -53,6 +57,12 @@ const AVATARS: AvatarOption[] = [
 ]
 
 const EASE = [0.32, 0.72, 0, 1] as const
+// Правая пилюля-сводка в тесноте: обычный нижний предел и крайний (профиль уже кружок).
+const PILL_SOFT_MIN = 272
+const PILL_MIN = 200
+// Последняя ступень тесноты: вкладки остаются со словами, но с меньшими полями.
+const NAV_PAD = 16
+const NAV_PAD_TIGHT = 10
 const transition = { duration: 0.32, ease: EASE }
 
 type QuickAction = { type?: 'action'; icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
@@ -147,6 +157,7 @@ export default function TeacherTopBar() {
   const [teacherEmail, setTeacherEmail] = useState('')
   const [teacherRole,  setTeacherRole]  = useState<'admin' | 'teacher'>('teacher')
   const [avatarId,     setAvatarId]     = useState('flower')
+  const [avatarPath,   setAvatarPath]   = useState<string | null>(null)
   useEffect(() => {
     getAuthUser().then(u => {
       if (!u) return
@@ -156,7 +167,18 @@ export default function TeacherTopBar() {
       setTeacherEmail(u.email ?? '')
       setTeacherRole(role)
       setAvatarId(u.user_metadata?.avatarId ?? 'flower')
+      setAvatarPath(u.user_metadata?.avatarPath ?? null)
     })
+    // Профиль правят на соседней странице — бар подхватывает имя, иконку и
+    // фото сразу, без перезагрузки.
+    const { data: sub } = supabase.auth.onAuthStateChange((evt, session) => {
+      if (evt !== 'USER_UPDATED' || !session?.user) return
+      const m = session.user.user_metadata ?? {}
+      if (m.name) setTeacherName(m.name)
+      setAvatarId(m.avatarId ?? 'flower')
+      setAvatarPath(m.avatarPath ?? null)
+    })
+    return () => sub.subscription.unsubscribe()
   }, [])
 
   const [myPlan, setMyPlan] = useState<MyPlan | null>(null)
@@ -168,6 +190,9 @@ export default function TeacherTopBar() {
   // Края центрованного бара — закреплённое название страницы (редактор теста)
   // обрезается у левого края, а не заезжает под бар. Бар при сворачивании
   // меняет ширину и съезжает — ловим кадры анимации ResizeObserver'ом.
+  const headerDocked = useTeacher(s => s.headerDocked)
+  const isHome = activePage === 'home'
+
   const setTopBarBox = useDashboard(s => s.setTopBarBox)
   useLayoutEffect(() => {
     const apply = () => {
@@ -183,6 +208,64 @@ export default function TeacherTopBar() {
     window.addEventListener('resize', apply)
     return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', apply) }
   }, [setTopBarBox, collapsed])
+
+  // Тесно (пилюля справа не влезает) → сжимаются профиль и пилюля, навигацию
+  // не трогаем — её сворачивает только шеврон. Ступени профиля: имя + роль →
+  // одно «Учитель» → кружок аватарки → кружок и вкладки с узкими полями. На
+  // каждой ступени пилюля сперва ужимается до PILL_SOFT_MIN и только потом бар
+  // переходит на следующую; на последней пилюля может уйти до PILL_MIN.
+  const [squeeze, setSqueeze] = useState<0 | 1 | 2 | 3>(0)
+  const setTopPillW = useDashboard(s => s.setTopPillW)
+  const profileTextRef = useRef<HTMLDivElement>(null)
+  const nameRef = useRef<HTMLDivElement>(null)
+  const roleRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const bar = teacherBarRef.current
+    const row = bar?.closest('.topbar-row') as HTMLElement | null
+    if (!bar || !row) return
+    const slot = row.lastElementChild as HTMLElement | null
+    const fit = () => {
+      const cs = getComputedStyle(row)
+      const inner = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      const slotPad = slot ? parseFloat(getComputedStyle(slot).paddingLeft) : 0
+      const pill = slot?.firstElementChild as HTMLElement | null
+      // Резиновая только сводка; у других пилюль (навигация ревью) ширина своя.
+      const fluid = !!slot?.querySelector('[data-fluid-pill]')
+      const fixedNeed = pill && !fluid ? pill.offsetWidth + slotPad : 0
+      // Бар без подписи профиля и с обычными полями вкладок.
+      const navSave = 2 * (NAV_PAD - NAV_PAD_TIGHT) * visibleNav.length
+      // Поля вкладок читаем как есть сейчас: посреди перехода они промежуточные.
+      const navBtn = bar.querySelector('nav button')
+      const navPad = navBtn ? parseFloat(getComputedStyle(navBtn).paddingLeft) : NAV_PAD
+      const base = bar.offsetWidth - (profileTextRef.current?.offsetWidth ?? 0)
+        + 2 * (NAV_PAD - navPad) * visibleNav.length
+      const nameW = nameRef.current?.offsetWidth ?? 0
+      const roleW = roleRef.current?.offsetWidth ?? 0
+      const widths = [8 + Math.max(nameW, roleW), 8 + roleW, 0, -navSave]
+      // Бар по центру: справа остаётся половина того, что он не занял.
+      const room = (w: number) => (inner - base - w) / 2 - slotPad
+      let level = widths.findIndex((w, i) => {
+        // Короткое имя («Босс») уже подписи «Учитель» крупным — ступень 1 не сжимает.
+        if (i === 1 && w >= widths[0]) return false
+        if (!fluid) return base + w + 2 * fixedNeed <= inner
+        return room(w) >= (i === 3 ? PILL_MIN : PILL_SOFT_MIN)
+      })
+      if (level < 0) level = 3
+      setSqueeze(level as 0 | 1 | 2 | 3)
+      setTopPillW(fluid ? Math.max(PILL_MIN, Math.min(PILL_WIDTH, Math.floor(room(widths[level])))) : null)
+    }
+    fit()
+    // Пилюля въезжает анимацией, подпись и поля вкладок тоже — досчитываем после (0.5s).
+    const settle = setTimeout(fit, 560)
+    const ro = new ResizeObserver(fit)
+    ro.observe(row)
+    // Пилюля монтируется позже бара (данные расписания) — ширина ряда при этом
+    // не меняется, поэтому следим за слотом отдельно.
+    const mo = new MutationObserver(fit)
+    if (slot) mo.observe(slot, { childList: true })
+    window.addEventListener('resize', fit)
+    return () => { clearTimeout(settle); ro.disconnect(); mo.disconnect(); window.removeEventListener('resize', fit) }
+  }, [activePage, headerDocked, collapsed, teacherName, teacherRole, setTopPillW, visibleNav.length, squeeze])
 
   useLayoutEffect(() => {
     if (!addOpen) return
@@ -230,7 +313,6 @@ export default function TeacherTopBar() {
     return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
   }, [profileOpen])
 
-  const headerDocked = useTeacher(s => s.headerDocked)
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
     headerDocked ? lockSnap() : lockRelease()
@@ -242,8 +324,6 @@ export default function TeacherTopBar() {
     const id = setTimeout(() => el.classList.remove('topbar-snap-down', 'topbar-snap-up'), 460)
     return () => clearTimeout(id)
   }, [headerDocked])
-
-  const isHome = activePage === 'home'
 
   // Тариф для бейджа в меню профиля: name + ползунок учеников + число дней.
   const planTier = PLAN_TIERS.find(p => p.code === (myPlan?.plan_code ?? 'free')) ?? PLAN_TIERS[0]
@@ -336,11 +416,11 @@ export default function TeacherTopBar() {
               style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
+                padding: `0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
-                transition: 'color 0.18s, font-weight 0.18s',
+                transition: 'color 0.18s, font-weight 0.18s, padding 0.3s ease',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -427,19 +507,31 @@ export default function TeacherTopBar() {
         <motion.div
           whileHover={{ scale: 1.10, boxShadow: '0 0 0 3px rgba(120,106,215,0.35), 0 4px 16px rgba(106,90,230,0.55)' }}
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          style={{ width: 30, height: 30, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}
+          style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}
         >
           <AvatarIcon size={16} strokeWidth={1.8} style={{ color: '#fff' }} />
+          <AvatarPhotoFill path={avatarPath} />
         </motion.div>
-        <div style={{
+        <div ref={profileTextRef} style={{
           overflow: 'hidden', whiteSpace: 'nowrap',
-          maxWidth: (isHome && teacherName) ? 208 : 0,
-          opacity: (isHome && teacherName) ? 1 : 0,
+          maxWidth: (isHome && teacherName && squeeze < 2) ? 208 : 0,
+          opacity: (isHome && teacherName && squeeze < 2) ? 1 : 0,
           transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
         }}>
-          <div style={{ paddingLeft: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(teacherName)}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? t('Админ') : t('Учитель')}</div>
+          <div style={{ paddingLeft: 8, width: 'max-content' }}>
+            {/* Имя меряется всегда (для расчёта тесноты); при сжатии вынуто из потока */}
+            <div style={squeeze === 0 ? undefined : { position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }}>
+              <div ref={nameRef} style={{ width: 'max-content', fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(teacherName)}</div>
+            </div>
+            <div style={{
+              width: 'max-content', lineHeight: 1.2,
+              fontSize: squeeze === 0 ? 10 : 13, fontWeight: squeeze === 0 ? 400 : 600,
+              color: squeeze === 0 ? 'var(--color-muted)' : 'var(--color-text)',
+            }}>{teacherRole === 'admin' ? t('Админ') : t('Учитель')}</div>
+          </div>
+          {/* Мерка одиночной подписи (ступень 1) — шрифт там крупнее, чем под именем */}
+          <div ref={roleRef} aria-hidden style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', width: 'max-content', fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>
+            {teacherRole === 'admin' ? t('Админ') : t('Учитель')}
           </div>
         </div>
       </motion.div>
@@ -493,8 +585,9 @@ export default function TeacherTopBar() {
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px 10px' }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
+              <div style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
                 <AvatarIcon size={18} strokeWidth={1.8} style={{ color: '#fff' }} />
+                <AvatarPhotoFill path={avatarPath} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{teacherName || (teacherRole === 'admin' ? t('Админ') : t('Учитель'))}</div>

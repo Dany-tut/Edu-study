@@ -49,7 +49,7 @@ const NODE_MODULES = new URL('../node_modules', import.meta.url).pathname
 const MODULES = {
   endc: 'englishDesignCareer', enac: 'englishAdvanced', ielt: 'englishIelts', ensv: 'survivalEn',
   kohg: 'koreanHangul', kotp: 'koreanTopik', kot2: 'koreanTopik2', kosv: 'survivalKo',
-  jajl: 'japaneseJlpt', jan3: 'japaneseJlptN3', jasv: 'survivalJa',
+  jakn: 'japaneseKana', jajl: 'japaneseJlpt', jan3: 'japaneseJlptN3', jasv: 'survivalJa',
   ptbr: 'portugueseCelpe', ptb2: 'portugueseIntermediate', ptsv: 'survivalPt',
   deab: 'germanA1B1', desv: 'survivalDe',
   ruzh: 'russianSpeech', ruvo: 'russianVoice', rulit: 'russianLiterature',

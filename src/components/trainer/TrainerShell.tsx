@@ -46,7 +46,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, ChevronLeft, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { subjectFill } from '../../lib/subjects'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -59,6 +59,7 @@ import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '
 import MobileSheet from '../MobileSheet'
 import MobileDock, { DockCircle, DockSegment, DockSlot, useSmoothCollapse, COLLAPSE } from '../MobileDock'
 import { MOBILE_TOP_GAP, MOBILE_PILL_H } from '../../lib/mobileTokens'
+import BackCircle from '../../components/BackCircle'
 
 const RAIL_W = 300
 
@@ -1009,12 +1010,25 @@ export function RailList({ items, value, onChange, accent, soft }: {
   // его, то карточку. На узком рейл лежит НАД содержимым во всю ширину и своего
   // скролла не имеет — там ограничение по высоте остаётся.
   const narrow = useNarrow()
+  // Края коробки тают, пока за ними есть строки: без этого обрезанная строка
+  // внизу выглядит как ошибка вёрстки, а не как «дальше ещё». Маской, а не
+  // градиентом цветом фона: список лежит на стекле карточки поверх стекла
+  // шторки, и угадать цвет под ним нельзя.
+  const [edges, setEdges] = useState({ top: false, bottom: false })
+  const readEdges = (el: HTMLElement) => {
+    const top = el.scrollTop > 2
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
+    setEdges(p => (p.top === top && p.bottom === bottom ? p : { top, bottom }))
+  }
+  const mask = `linear-gradient(to bottom, ${edges.top ? 'transparent 0, black 28px' : 'black 0'}, ${edges.bottom ? 'black calc(100% - 28px), transparent 100%' : 'black 100%'})`
   return (
     <div
       className="no-scrollbar"
+      ref={el => { if (el && narrow) readEdges(el) }}
+      onScroll={narrow ? e => readEdges(e.currentTarget) : undefined}
       style={{
         display: 'flex', flexDirection: 'column', gap: 2,
-        ...(narrow ? { maxHeight: 300, overflowY: 'auto' as const } : null),
+        ...(narrow ? { maxHeight: 300, overflowY: 'auto' as const, maskImage: mask, WebkitMaskImage: mask } : null),
       }}
     >
       {items.map(i => {
@@ -1398,17 +1412,7 @@ function SheetFilters({ groups, drill, onDrill }: {
     >
       {open ? (
         <>
-          <button
-            onClick={() => onDrill(null)}
-            style={{
-              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4,
-              padding: '6px 12px 6px 8px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-              border: '1px solid var(--color-border-medium)', background: 'transparent',
-              fontSize: 12.5, fontWeight: 650, color: 'var(--color-text-2)',
-            }}
-          >
-            <ChevronLeft size={14} /> {t('Ко всем фильтрам')}
-          </button>
+          <BackCircle onClick={() => onDrill(null)} label="Ко всем фильтрам" />
           <OptionRows g={open} />
         </>
       ) : groups.map((g, i) => g.options.length > LONG_LIST
@@ -1550,7 +1554,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         // самого высокого соседа (группы статусов), иначе поиск стоял на пару
         // пикселей ниже остальных. minHeight — на случай, когда перенос строки
         // оставил его одного.
-        display: 'flex', alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box',
+        display: 'flex', alignItems: 'center', alignSelf: narrow ? 'center' : 'stretch', boxSizing: 'border-box',
         gap: narrow && !wide ? 0 : 8, minHeight: MOBILE_PILL_H, borderRadius: 999,
         background: PILL_BG, ...PILL_GLASS,
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
@@ -1558,10 +1562,13 @@ export function SearchPill({ value, onChange, placeholder }: {
         // эти 76px и есть разница между строкой в одну полосу и в две. А
         // раскрытый не держит свои 260, а забирает остаток строки, иначе он
         // выталкивал бы за край таблетку фильтров и счётчик.
+        // На телефоне высота своя, а не от строки: счётчик справа там
+        // переносится в две-три строки, и stretch вытягивал кружок поиска в
+        // овал высотой с этот счётчик.
         ...(narrow
           ? wide
-            ? { flex: '1 1 0', minWidth: 0, padding: '0 12px' }
-            : { width: MOBILE_PILL_H, padding: 0, justifyContent: 'center', flexShrink: 0 }
+            ? { flex: '1 1 0', minWidth: 0, padding: '0 12px', height: MOBILE_PILL_H }
+            : { width: MOBILE_PILL_H, height: MOBILE_PILL_H, padding: 0, justifyContent: 'center', flexShrink: 0 }
           : { width: wide ? 260 : 112, padding: '0 14px', flexShrink: 0 }),
         transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
         overflow: 'hidden', cursor: wide ? 'text' : 'pointer',

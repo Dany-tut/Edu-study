@@ -98,6 +98,88 @@ export function listen(lang: string): AsrSession | null {
   }
 }
 
+/**
+ * Слушать монолог — минуту и дольше, с паузами.
+ *
+ * ЧЕМ ОТЛИЧАЕТСЯ ОТ listen(). Однофразная сессия закрывается на первой паузе:
+ * для «прочитай фразу» это ровно то, что нужно, а ответ в Speaking Part 2
+ * обрывался бы на первом «hmm». Здесь continuous=true, и сессию, которую браузер
+ * всё равно закрыл сам (Chrome делает это после ~минуты тишины или сбоя сети),
+ * мы поднимаем заново, пока вызывающий не сказал stop(). Финальные куски
+ * копятся по всем перезапускам — иначе каждый перезапуск стирал бы сказанное.
+ */
+export function listenLong(lang: string, onText?: (text: string) => void): AsrSession | null {
+  const Ctor = ctor()
+  if (!Ctor) return null
+
+  let finals = ''
+  let interim = ''
+  let stopped = false
+  let rec: InstanceType<SpeechRecognitionCtor> | null = null
+  // Перезапуск — только после живой сессии. Отказ в микрофоне закрывает
+  // сессию мгновенно, и слепой перезапуск крутился бы по кругу десятки раз в
+  // секунду. Три коротких сессии подряд — значит, слушать нечем, сдаёмся.
+  let quick = 0
+  let openedAt = 0
+  let settle: (s: string) => void
+  const done = new Promise<string>(res => { settle = res })
+  const text = () => `${finals} ${interim}`.replace(/\s+/g, ' ').trim()
+
+  const open = () => {
+    const r = new Ctor()
+    r.lang = lang
+    r.continuous = true
+    r.interimResults = true
+    r.maxAlternatives = 1
+    // Результаты сессии нумеруются с нуля в каждой сессии: финальные куски
+    // этой сессии собираются заново целиком и приклеиваются к прежним.
+    let sessionFinals = ''
+    r.onresult = e => {
+      let fin = ''
+      let mid = ''
+      for (let i = 0; i < e.results.length; i++) {
+        const res = e.results[i] as ArrayLike<{ transcript: string }> & { isFinal?: boolean }
+        const piece = res[0]?.transcript ?? ''
+        if (res.isFinal) fin += ` ${piece}`
+        else mid += ` ${piece}`
+      }
+      sessionFinals = fin
+      interim = `${fin} ${mid}`
+      // Ход речи наружу — для тех, кому важно «говорит ли он прямо сейчас»
+      // (игра на беглость), а не только итоговый текст.
+      onText?.(text())
+    }
+    r.onerror = (e?: unknown) => {
+      // Запрет микрофона не лечится перезапуском — onend придёт следом и
+      // отдаст то, что успели.
+      const code = (e as { error?: string } | undefined)?.error
+      if (code === 'not-allowed' || code === 'service-not-allowed' || code === 'audio-capture') stopped = true
+    }
+    r.onend = () => {
+      finals = `${finals} ${sessionFinals || interim}`
+      interim = ''
+      quick = Date.now() - openedAt < 1500 ? quick + 1 : 0
+      if (stopped || quick >= 3) { settle(text()); return }
+      try { open() } catch { settle(text()) }
+    }
+    rec = r
+    openedAt = Date.now()
+    r.start()
+  }
+
+  try { open() } catch { return null }
+
+  return {
+    done,
+    stop: () => { stopped = true; try { rec?.stop() } catch { settle(text()) } },
+    cancel: () => {
+      stopped = true
+      finals = ''; interim = ''
+      try { rec?.abort() } catch { settle('') }
+    },
+  }
+}
+
 /** Мягкая нормализация для сверки «сказал ли он эталон»: регистр, пунктуация. */
 export function asrNormalize(s: string): string {
   return s

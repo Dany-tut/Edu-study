@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
-  ArrowLeft, Save, User,
+  ArrowLeft, Save, User, Camera, X,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import SubjectColorPicker, { type ColorSubject } from '../../components/SubjectColorPicker'
 import { getSubject, registrySubjectPalette } from '../../lib/subjects'
 import { loadTeacherSubjectColors, saveTeacherSubjectColors, type SubjectColorMap } from '../../lib/teacherSubjectColors'
@@ -13,6 +14,11 @@ import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
+import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from '../../components/AvatarPhoto'
+import { uploadAvatarPhoto, removeAvatarPhoto, saveTeacherAvatarPath } from '../../lib/avatarPhoto'
+import { useTeacherAccess } from '../../lib/teacherAccess'
+import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
+import { Alert } from '../../components/Alert'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -20,6 +26,7 @@ import { getAuthUser } from '../../lib/owner'
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string; glow: string; scale?: number }
 
 const AVATARS: AvatarOption[] = [
+  { id: 'teacher', Icon: TeacherBook, gradient: 'linear-gradient(135deg, hsl(228 78% 70%), hsl(248 64% 52%) 60%, hsl(262 60% 42%))', glow: 'hsl(244 70% 58% / 0.5)', scale: 1.08 },
   { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 0.96 },
   { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))',    glow: 'hsl(21 88% 62% / 0.45)' },
   { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))', glow: 'hsl(337 82% 67% / 0.45)' },
@@ -44,6 +51,9 @@ export default function TeacherProfileSettingsPage() {
   const [name,     setName]     = usePersistentState('profile.name', '')
   const [avatarId, setAvatarId] = usePersistentState('profile.avatarId', 'flower')
   const [email,    setEmail]    = useState('')
+  // Фото сохраняется сразу, без кнопки «Сохранить»: файл уже в хранилище.
+  const [avatarPath, setAvatarPath] = useState<string | null>(null)
+  const [cropFile,   setCropFile]   = useState<File | null>(null)
   const [role,     setRole]     = useState<'admin' | 'teacher'>('teacher')
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
@@ -56,6 +66,7 @@ export default function TeacherProfileSettingsPage() {
       setEmail(u.email ?? '')
       setRole(u.app_metadata?.role === 'admin' ? 'admin' : 'teacher')
       if (!hadDraft.avatarId) setAvatarId(u.user_metadata?.avatarId ?? 'flower')
+      setAvatarPath(u.user_metadata?.avatarPath ?? null)
     })
   }, [])
 
@@ -94,8 +105,43 @@ export default function TeacherProfileSettingsPage() {
     if (ok) { setColorSaved(true); setTimeout(() => setColorSaved(false), 2000) }
   }
 
+  // ── Мои предметы ───────────────────────────────────────────────────────────
+  // Сохраняются сразу, как цвета: по ним сужаются списки предметов по всему
+  // кабинету. У админа строки в profiles нет — он видит всё, поля нет.
+  const mySubjects = useTeacherAccess(s => s.subjects)
+  const saveSubjects = useTeacherAccess(s => s.saveSubjects)
+  const [subjectsNote, setSubjectsNote] = useState<'saved' | 'error' | null>(null)
+
+  async function changeSubjects(next: string[]) {
+    const ok = await saveSubjects(next)
+    setSubjectsNote(ok ? 'saved' : 'error')
+    if (ok) setTimeout(() => setSubjectsNote(n => (n === 'saved' ? null : n)), 2000)
+  }
+
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
   const AvatarIcon = selectedAvatar.Icon
+
+  async function savePhoto(blob: Blob) {
+    const path = await uploadAvatarPhoto(blob)
+    await saveTeacherAvatarPath(path)
+    const old = avatarPath
+    setAvatarPath(path)
+    setCropFile(null)
+    removeAvatarPhoto(old)
+  }
+
+  async function removePhoto() {
+    const old = avatarPath
+    if (!old) return
+    setAvatarPath(null)
+    try {
+      await saveTeacherAvatarPath(null)
+      removeAvatarPhoto(old)
+    } catch {
+      setAvatarPath(old)
+      setError(t('Не удалось убрать фото. Попробуйте ещё раз.'))
+    }
+  }
 
   async function handleSave() {
     setSaving(true); setSaved(false); setError('')
@@ -107,6 +153,13 @@ export default function TeacherProfileSettingsPage() {
     clearDrafts('profile.')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
+  }
+
+  const photoBtnStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '7px 12px', borderRadius: 10,
+    border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+    color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   }
 
   const inputStyle: React.CSSProperties = {
@@ -139,7 +192,7 @@ export default function TeacherProfileSettingsPage() {
         {/* Avatar preview + picker */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
           <motion.div
-            key={avatarId}
+            key={avatarPath ?? avatarId}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 460, damping: 22 }}
@@ -155,22 +208,44 @@ export default function TeacherProfileSettingsPage() {
                 by the circular container (kills GPU corner-bleed on transforms). */}
             <div style={{ position: 'absolute', inset: -2, background: selectedAvatar.gradient }} />
             <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
+            <AvatarPhotoFill path={avatarPath} />
           </motion.div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 12 }}>
             {role === 'admin' ? t('Администратор') : t('Учитель')}
           </div>
 
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => pickImageFile(setCropFile)}
+              style={photoBtnStyle}
+            >
+              <Camera size={14} strokeWidth={2.2} />
+              <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
+            </motion.button>
+            {avatarPath && (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={removePhoto}
+                style={photoBtnStyle}
+              >
+                <X size={14} strokeWidth={2.2} />
+                <span style={{ position: 'relative', top: '-0.12em' }}>{t('Убрать фото')}</span>
+              </motion.button>
+            )}
+          </div>
+
           {/* Avatar grid — same recipe as the student sidebar picker */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12, width: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${AVATARS.length}, 1fr)`, gap: 12, width: '100%' }}>
             {AVATARS.map(opt => {
               const Ic = opt.Icon
-              const isSelected = avatarId === opt.id
+              const isSelected = !avatarPath && avatarId === opt.id
               return (
                 <motion.button
                   key={opt.id}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.92 }}
-                  onClick={() => setAvatarId(opt.id)}
+                  onClick={() => { setAvatarId(opt.id); removePhoto() }}
                   aria-label={opt.id}
                   style={{
                     width: 52, height: 52, justifySelf: 'center',
@@ -200,6 +275,19 @@ export default function TeacherProfileSettingsPage() {
             style={inputStyle}
           />
 
+          {role !== 'admin' && (
+            <div>
+              <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
+              <div style={{ fontSize: 11, marginTop: 5, color: subjectsNote === 'error' ? 'var(--color-red-text)' : subjectsNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
+                {subjectsNote === 'error'
+                  ? t('Не удалось сохранить предметы. Попробуйте ещё раз.')
+                  : subjectsNote === 'saved'
+                    ? t('Сохранено')
+                    : t('Остальные предметы уберём из списков в Конструкторе, тренажёре, ДЗ и группах')}
+              </div>
+            </div>
+          )}
+
           <div>
             <div style={{ position: 'relative' }}>
               <input value={email} readOnly placeholder="Email" style={{ ...inputStyle, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
@@ -216,7 +304,7 @@ export default function TeacherProfileSettingsPage() {
           </div>
 
           {error && (
-            <div style={{ fontSize: 12, color: '#E04848', background: 'rgba(224,72,72,0.08)', borderRadius: 10, padding: '8px 12px' }}>{error}</div>
+            <Alert tone="danger" text={error} />
           )}
 
           <motion.button
@@ -260,6 +348,9 @@ export default function TeacherProfileSettingsPage() {
         )}
 
       </div>
+      {cropFile && (
+        <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={savePhoto} />
+      )}
     </div>
   )
 }

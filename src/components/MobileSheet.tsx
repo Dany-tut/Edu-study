@@ -27,6 +27,13 @@ import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 // Правило дележа то же: палец на списке, пролистанном вниз, — это скролл;
 // список в самом верху (или не прокручивается вовсе) — движение ВНИЗ забирает
 // шторка, движение ВВЕРХ остаётся списку.
+//
+// СПИСОК ВНУТРИ СПИСКА. В шторке бывают свои коробки с прокруткой — список
+// разделов грамматики (RailList, 300px) лежит в теле шторки, которое само
+// помещается целиком. Смотреть только на тело было нельзя: оно «не
+// прокручивается», значит касание глушилось, внутренний список не листался
+// вовсе, а движение вниз уводило всю шторку. Поэтому прокрутка ищется по
+// цепочке от пальца вверх до шторки: любая коробка, которой есть куда ехать.
 export default function MobileSheet({
   open,
   onClose,
@@ -88,14 +95,26 @@ export default function MobileSheet({
       mode = 'wait'
     }
 
-    const onMove = (e: TouchEvent) => {
+    // Коробки с прокруткой под пальцем, от ближней к телу шторки включительно.
+    // Пусто — листать под пальцем нечего, и жест целиком наш.
+    const scrollersAt = (target: Node): HTMLElement[] => {
       const sc = scrollRef.current
-      const target = e.target as Node
-      const inScroll = !!sc && sc.contains(target)
-      const scrollable = !!sc && sc.scrollHeight > sc.clientHeight + 1
+      if (!sc || !sc.contains(target)) return []
+      const out: HTMLElement[] = []
+      for (let el = target instanceof HTMLElement ? target : target.parentElement; el; el = el.parentElement) {
+        const oy = el === sc ? 'auto' : getComputedStyle(el).overflowY
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) out.push(el)
+        if (el === sc) break
+      }
+      return out
+    }
+
+    const onMove = (e: TouchEvent) => {
+      const scrollers = scrollersAt(e.target as Node)
+      const canScroll = scrollers.length > 0
       if (id === null) {
         // Касание мимо шторки (фон, страница под ней) — глушим целиком.
-        if (!inScroll || !scrollable) e.preventDefault()
+        if (!canScroll) e.preventDefault()
         return
       }
       const t = finger(e)
@@ -103,8 +122,10 @@ export default function MobileSheet({
       const dy = t.clientY - startY
       const dx = t.clientX - startX
       if (mode === 'wait') {
-        if (Math.abs(dy) < 4 && Math.abs(dx) < 4) { if (!inScroll || !scrollable) e.preventDefault(); return }
-        const atTop = !inScroll || !scrollable || sc!.scrollTop <= 0
+        if (Math.abs(dy) < 4 && Math.abs(dx) < 4) { if (!canScroll) e.preventDefault(); return }
+        // Вниз шторку тянет только палец, под которым всё уже в самом верху:
+        // иначе это прокрутка вложенного списка обратно к началу.
+        const atTop = scrollers.every(el => el.scrollTop <= 0)
         mode = dy > 0 && Math.abs(dy) > Math.abs(dx) && atTop ? 'pull' : 'scroll'
       }
       if (mode === 'pull') {
@@ -119,7 +140,7 @@ export default function MobileSheet({
         return
       }
       // Скролл: списку — его прокрутка, всему остальному — замок.
-      if (!inScroll || !scrollable) e.preventDefault()
+      if (!canScroll) e.preventDefault()
     }
 
     const onEnd = () => {

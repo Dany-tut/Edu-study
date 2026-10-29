@@ -83,6 +83,7 @@ import { chamoOf, composeKeys, keysOf } from '../data/hangul'
 import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
+import { baseLessonRef } from '../lib/extraHomework'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
 import {
@@ -92,6 +93,7 @@ import {
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
+import { Alert } from './Alert'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -1634,8 +1636,12 @@ function getInitialState(): PersistedHomeworkState {
  */
 function hwTitle(title: string, tr: (s: string) => string): string {
   const m = title.match(/^Домашка по теме\s*«(.+)»$/)
-  return m ? `${tr('Домашка по теме')} «${tcStatic(m[1])}»` : tcStatic(title)
+  if (m) return `${tr('Домашка по теме')} «${tcStatic(m[1])}»`
+  // Доп. домашка: «Доп 2 · <урок>» (см. getExtraHomeworks).
+  const x = title.match(EXTRA_TITLE_RE)
+  return x ? `${tr('Доп')}${x[1] ?? ''} · ${tcStatic(x[2])}` : tcStatic(title)
 }
+const EXTRA_TITLE_RE = /^Доп( \d+)? · (.+)$/
 
 export default function HomeworkFlow({
   lessonId,
@@ -1646,6 +1652,8 @@ export default function HomeworkFlow({
 }: HomeworkFlowProps) {
   const t = useT()
   const isMobile = !useIsDesktop()
+  // «Доп 2 · <урок>» — заголовок доп. домашки (без «Домашка по теме «…»»).
+  const extraTitle = homework.title.match(EXTRA_TITLE_RE)
   const { dark } = useTheme()
   // `subject` здесь — short_id курса («kohg»), а не слаг предмета: реестр о нём
   // не знает и ЛЮБАЯ домашка получала палитру запасного предмета — фиолетовую.
@@ -1855,7 +1863,8 @@ export default function HomeworkFlow({
   // страница урока, поэтому второй копии текста не появляется. Урока может не
   // быть в каталоге (назначенное ДЗ вне курса) — тогда кнопки просто нет.
   const theoryParagraphs = useMemo(() => {
-    const lesson = findLessonById(lessonId)
+    // У доп. домашки ключ `<урок>~<доп>` — конспект берём у самого урока.
+    const lesson = findLessonById(baseLessonRef(lessonId))
     return lesson ? getLessonDetail(lesson).paragraphs : []
   }, [lessonId])
   // Задание без тела считаем закрытым: ответить на него нельзя, и держать из-за
@@ -1927,6 +1936,10 @@ export default function HomeworkFlow({
   // устройстве (нет локальных ответов) хард показался бы «закрытым».
   const hardUnlocked = (basicCompleted && basicScore >= homework.recommendationScore) || !!hardVerdict
   const selectedLevel = state.selectedLevel
+
+  // Сдача базы в полёте — второй клик не шлёт её повторно (см. submitBasic).
+  // Ref, а не state: объявлен до раннего return, чтобы порядок хуков не плыл.
+  const submittingBasicRef = useRef(false)
 
   if (!basicLevel || !hardLevel) return null
 
@@ -2096,7 +2109,14 @@ export default function HomeworkFlow({
       | BasicAnswersPayload,
   ) {
     const session = getStudentSession()
-    if (!session?.id) return
+    if (!session?.id) {
+      // Без сессии записать некуда — но и «сдано» показывать нельзя.
+      setSubmitFailed({
+        text: tStatic('Ответы не отправлены — войдите в аккаунт ученика и повторите.'),
+        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
+      })
+      return false
+    }
     // Basic level is auto-graded — mark completed immediately if score meets threshold.
     // Hard level (essay) always goes to submitted and awaits teacher review.
     //
@@ -2131,7 +2151,7 @@ export default function HomeworkFlow({
       })
       setSubmitFailed({
         text: tStatic('Ответы не отправлены — проверьте связь и повторите.'),
-        retry: () => { void submitToSupabase(level, score, comment, attachments) },
+        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
       })
       return false
     }
@@ -2140,6 +2160,24 @@ export default function HomeworkFlow({
     if (level === 'basic') void captureBasicToDeck()
     useStudentData.getState().load()
     return true
+  }
+
+  /**
+   * Сдача базы: окно «Домашка сдана» — только после ответа базы. Раньше оно
+   * открывалось сразу, «продолжить» ставило basicSubmitted в localStorage, и
+   * после F5 кнопки повтора уже не было, а сверка с базой через 15 минут стирала
+   * черновик с ответами. Теперь при сбое — красная плашка с повтором, окна нет,
+   * черновик на месте.
+   */
+  async function submitBasic() {
+    if (submittingBasicRef.current) return
+    submittingBasicRef.current = true
+    try {
+      const ok = await submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
+      if (ok) setShowResultModal('basic')
+    } finally {
+      submittingBasicRef.current = false
+    }
   }
 
   /**
@@ -2963,28 +3001,15 @@ export default function HomeworkFlow({
     {/* Неотправленная сдача. Поверх всего и с кнопкой: тупика «ошибка есть,
         деться некуда» быть не должно. */}
     {submitFailed && (
-      <div style={{
-        position: 'fixed', left: 12, right: 12, zIndex: 6000,
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-        padding: '12px 14px', borderRadius: 16,
-        background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
-        border: '1px solid var(--color-red-fill)',
-        boxShadow: '0 12px 34px rgba(0,0,0,0.18)',
-        fontSize: 13, lineHeight: 1.4,
-      }}>
-        <span style={{ flex: 1, minWidth: 180 }}>{submitFailed.text}</span>
-        <button
-          onClick={() => { const r = submitFailed.retry; setSubmitFailed(null); r() }}
-          style={{
-            padding: '8px 16px', borderRadius: 12, border: 'none',
-            background: 'var(--grad-purple, #786AD7)', color: '#fff',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-          }}
-        >
-          {t('Отправить ещё раз')}
-        </button>
-      </div>
+      <Alert
+        tone="danger"
+        text={submitFailed.text}
+        action={{ label: t('Отправить ещё раз'), onClick: () => { const r = submitFailed.retry; setSubmitFailed(null); r() } }}
+        style={{
+          position: 'fixed', left: 12, right: 12, zIndex: 6000,
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        }}
+      />
     )}
     <AnimatePresence>
       {showResultModal && (
@@ -3109,10 +3134,10 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  {t('Домашка по теме')}&nbsp;«
+                  {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
                 </motion.span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {tcStatic(homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
+                  {tcStatic(extraTitle ? extraTitle[2] : homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
                 </span>
                 <motion.span
                   initial={false}
@@ -3120,7 +3145,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  »
+                  {extraTitle ? '' : '»'}
                 </motion.span>
               </span>
               {!isMobile && levelPill(true)}
@@ -3321,7 +3346,7 @@ export default function HomeworkFlow({
                   <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
                     <motion.button
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
+                      onClick={() => { void submitBasic() }}
                       className="cursor-pointer"
                       style={{
                         padding: '13px 22px', borderRadius: 16, border: 'none',
@@ -3803,15 +3828,7 @@ export default function HomeworkFlow({
                     /* Пустой экран вместо задания — то же самое, что молчание:
                        ученик сидит и ждёт, что сейчас дорисуется. Говорим прямо
                        и не держим на нём: кнопка внизу пропускает задание. */
-                    <div className="flex items-start" style={{
-                      gap: 10, padding: '14px 16px', borderRadius: 18,
-                      background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
-                    }}>
-                      <CircleAlert size={17} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
-                        {t('Это задание приехало без содержимого — решать нечего. Пропусти его, оно не пойдёт в ошибки.')}
-                      </span>
-                    </div>
+                    <Alert tone="warning" text={t('Это задание приехало без содержимого — решать нечего. Пропусти его, оно не пойдёт в ошибки.')} />
                     ) : isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
                       {/* Стимул — звук, а не текст: «что вы услышали?» (ступень 2,
@@ -4554,8 +4571,7 @@ export default function HomeworkFlow({
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         if (!confirmSubmitAsIs) { setConfirmSubmitAsIs(true); return }
-                        submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
-                        setShowResultModal('basic')
+                        void submitBasic()
                       }}
                       className="flex items-center justify-center cursor-pointer"
                       style={{
@@ -4650,7 +4666,7 @@ export default function HomeworkFlow({
                   hints={state.basicHints}
                   score={basicScore}
                   recommendationScore={homework.recommendationScore}
-                  onSubmit={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
+                  onSubmit={() => { void submitBasic() }}
                   onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   onJump={jumpToQuestion}
                 />

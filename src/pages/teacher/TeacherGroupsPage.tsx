@@ -10,7 +10,8 @@ import {
   Search, Plus,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
-import { SUBJECT_ICON_MAP } from '../../lib/subjects'
+import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
@@ -28,12 +29,14 @@ import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLi
 import { useTeacher } from '../../store/teacherStore'
 import { useT, useTc } from '../../lib/i18n'
 import { confirmDialog } from '../../components/ConfirmHost'
+import { Alert } from '../../components/Alert'
 import {
   fetchStudentActiveCourses, type StudentCourseInfo,
   fetchStudentTrainerSections, type TrainerSection,
   fetchStudentWrongTasks, type WrongTask,
   fetchStudentSessionDays,
 } from '../../lib/db'
+import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 
 // ─── Цвета для выбора группы ─────────────────────────────────────────────────
 const GROUP_COLORS = [
@@ -48,7 +51,7 @@ const GROUP_COLORS = [
 // ─── Модалка создания группы ──────────────────────────────────────────────────
 function AddGroupModal({ onClose, onSave }: {
   onClose: () => void
-  onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>, courseId: string | null) => Promise<void>
+  onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>, courseId: string | null) => Promise<{ error: string | null }>
 }) {
   const t = useT()
   const { tc } = useTc()
@@ -62,6 +65,8 @@ function AddGroupModal({ onClose, onSave }: {
   const [courseId, setCourseId] = usePersistentState<string>('groups.addGroup.courseId', '')
   const [courses, setCourses] = useState<GroupCourseOption[]>([])
   const [saving, setSaving] = useState(false)
+  // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
+  const [saveErr, setSaveErr] = useState<string | null>(null)
 
   // Load the teacher's courses so "Всего уроков" can come from a course instead
   // of being guessed by hand. A group can still be created without a course and
@@ -77,8 +82,9 @@ function AddGroupModal({ onClose, onSave }: {
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
+    setSaveErr(null)
     const c = GROUP_COLORS[colorIdx]
-    await onSave({
+    const { error } = await onSave({
       name: name.trim(),
       subject: subject as Group['subject'],
       icon,
@@ -88,6 +94,8 @@ function AddGroupModal({ onClose, onSave }: {
       startDate: new Date().toLocaleDateString('ru-RU'),
       totalLessons: effectiveTotal,
     }, selectedCourse ? selectedCourse.id : null)
+    setSaving(false)
+    if (error) { setSaveErr(error); return }
     clearDrafts('groups.addGroup.')
     onClose()
   }
@@ -127,7 +135,7 @@ function AddGroupModal({ onClose, onSave }: {
               if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
             }}
             placeholder={t('Предмет')}
-            options={Object.keys(subjectIcons).map(o => ({ value: o, label: t(o) }))}
+            options={mySubjectNames(useTeacherAccess.getState().subjects, subject).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -185,6 +193,9 @@ function AddGroupModal({ onClose, onSave }: {
           </div>
         </div>
 
+        {saveErr && (
+          <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
+        )}
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
@@ -305,7 +316,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
 
 function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   onClose: () => void
-  onSave: (groupId: string, s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null }>
+  onSave: (groupId: string, s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null; error: string | null }>
   groups: Group[]
   initialGroupId: string | null
 }) {
@@ -319,6 +330,8 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   const [desiredScore, setDesiredScore] = usePersistentState('groups.addStudent.desiredScore', 0)
   const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addStudent.paymentAmount', 0)
   const [saving, setSaving] = useState(false)
+  // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
+  const [saveErr, setSaveErr] = useState<string | null>(null)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   // form → config (widgets + course) → link. The student row exists from `config`
@@ -329,8 +342,11 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   async function handleSave() {
     if (!name.trim() || !selectedGroup) return
     setSaving(true)
-    const { inviteToken, studentId } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
+    setSaveErr(null)
+    const { inviteToken, studentId, error } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
     setSaving(false)
+    // Ученик не создан — форма остаётся, причина (например, лимит тарифа) — текстом.
+    if (!studentId) { setSaveErr(error ?? t('Не удалось добавить ученика — попробуйте ещё раз.')); return }
     clearDrafts('groups.addStudent.')
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
@@ -432,7 +448,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               <TeacherSelect
                 value={selectedGroup}
                 onChange={setSelectedGroup}
-                options={groups.map(g => ({ value: g.id, label: `${g.icon} ${g.name}` }))}
+                options={groups.map(g => ({ value: g.id, label: `${g.icon}${ICON_GAP}${g.name}` }))}
                 clearable={false}
                 triggerStyle={selectTriggerStyle}
               />
@@ -462,6 +478,9 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           />
         </div>
 
+        {saveErr && (
+          <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
+        )}
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
@@ -536,7 +555,7 @@ function TrackFields({
               if (level && !levelOptionsForSubject(v).includes(level)) onLevel('')
             }}
             placeholder={t('Предмет')}
-            options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+            options={mySubjectNames(useTeacherAccess.getState().subjects, subject).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
         </div>
@@ -556,7 +575,7 @@ function TrackFields({
                 ...(tr.level && !levelOptionsForSubject(v).includes(tr.level) ? { level: '' } : {}),
               })}
               placeholder={t('Предмет')}
-              options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+              options={mySubjectNames(useTeacherAccess.getState().subjects, tr.subject).map(o => ({ value: o, label: t(o) }))}
               triggerStyle={selectTriggerStyle}
             />
           </div>
@@ -600,7 +619,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
     name: string; subject: string; icon: string; level: string; color: string; colorSoft: string;
     phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number;
     tracks: GroupTrack[]
-  }) => Promise<{ inviteToken: string | null; studentId: string | null; groupId: string | null }>
+  }) => Promise<{ inviteToken: string | null; studentId: string | null; groupId: string | null; error: string | null }>
 }) {
   const t = useT()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
@@ -616,6 +635,8 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
   const [desiredScore, setDesiredScore] = usePersistentState('groups.addIndiv.desiredScore', 0)
   const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addIndiv.paymentAmount', 0)
   const [saving, setSaving] = useState(false)
+  // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
+  const [saveErr, setSaveErr] = useState<string | null>(null)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [step, setStep] = useState<'form' | 'config' | 'link'>('form')
@@ -626,13 +647,15 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
     if (!name.trim()) return
     setSaving(true)
     const c = INDIV_COLORS[colorIdx % INDIV_COLORS.length]
-    const { inviteToken, studentId, groupId } = await onSave({
+    setSaveErr(null)
+    const { inviteToken, studentId, groupId, error } = await onSave({
       name: name.trim(), subject, icon: SUBJECT_ICONS[subject] ?? '📚',
       level, color: c.color, colorSoft: c.soft,
       phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount,
       tracks: tracks.filter(t => t.subject.trim() || t.level.trim()),
     })
     setSaving(false)
+    if (!studentId) { setSaveErr(error ?? t('Не удалось добавить ученика — попробуйте ещё раз.')); return }
     clearDrafts('groups.addIndiv.')
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
@@ -762,6 +785,9 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 </div>
               </div>
             </div>
+            {saveErr && (
+              <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
+            )}
             <button
               onClick={handleSave}
               disabled={!name.trim() || saving}
@@ -1031,7 +1057,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           )}
 
           {issueErr && (
-            <div style={{ fontSize: 12, color: 'var(--color-danger, #e5484d)' }}>{issueErr}</div>
+            <Alert tone="danger" text={issueErr} />
           )}
 
           {issued && (
@@ -1436,7 +1462,7 @@ function StudentAvatar({
       title={isRegistered ? '' : t('Скопировать ссылку приглашения')}
     >
       <div style={{
-        width: 46, height: 46, borderRadius: 16,
+        position: 'relative', width: 46, height: 46, borderRadius: 16,
         background: group.color,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 18, fontWeight: 700, color: '#fff',
@@ -1444,6 +1470,7 @@ function StudentAvatar({
         opacity: hovered ? 0.25 : 1,
       }}>
         {initials}
+        <AvatarPhotoFill path={student.avatarPath} />
       </div>
 
       {/* Overlay: copy icon (not registered) */}
@@ -1525,7 +1552,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {tc(group.subject)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
                 </div>
               </div>
             </div>
@@ -1834,7 +1861,7 @@ function TracksSection({
                     if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
                   }}
                   placeholder={t('Предмет')}
-                  options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+                  options={mySubjectNames(useTeacherAccess.getState().subjects, subject).map(o => ({ value: o, label: t(o) }))}
                   triggerStyle={selectTriggerStyle}
                 />
               </div>
@@ -1876,11 +1903,12 @@ function TracksSection({
 function StudentPanel({
   student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
   siblingCards, onAddCard, onRemoveCard, onOpenCard, onAddToGroup,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<boolean>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
   const t = useT()
   const { tc, tn } = useTc()
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
+  const [commentErr, setCommentErr] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [newPass, setNewPass] = useState<string | null>(null)
@@ -1896,7 +1924,8 @@ function StudentPanel({
   useEffect(() => { setComment(student.comment ?? ''); setCommentSaved(false) }, [student.id])
   async function saveComment() {
     if (comment === (student.comment ?? '')) return
-    await onSaveComment(comment)
+    setCommentErr(false)
+    if (!(await onSaveComment(comment))) { setCommentErr(true); return }
     setCommentSaved(true)
     setTimeout(() => setCommentSaved(false), 2000)
   }
@@ -1937,7 +1966,7 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {tc(group.subject)}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
               </div>
             </div>
           </div>
@@ -1985,9 +2014,7 @@ function StudentPanel({
               {resetting ? t('Сбрасываем…') : newPass ? `${t('Новый пароль:')} ${newPass}` : t('Сбросить пароль')}
             </button>
             {resetErr && (
-              <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-danger, #e5484d)', textAlign: 'center' }}>
-                {resetErr}
-              </div>
+              <Alert tone="danger" text={resetErr} style={{ marginTop: 8 }} />
             )}
           </section>
         )}
@@ -2091,6 +2118,9 @@ function StudentPanel({
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
               {t('Заметка преподавателя')}
             </div>
+            {commentErr && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-red)' }}>{t('не сохранилось — повторите')}</span>
+            )}
             {commentSaved && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
                 <Check size={11} /> {t('сохранено')}
@@ -2794,7 +2824,7 @@ export default function TeacherGroupsPage() {
               }}
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
-              onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
+              onSaveComment={async (text) => !(await updateStudent(activeStudentId, { comment: text })).error}
               siblingCards={siblingCards}
               onAddCard={addCardForActive}
               onRemoveCard={async (groupId) => {
@@ -2832,8 +2862,10 @@ export default function TeacherGroupsPage() {
           <AddGroupModal
             onClose={() => { setShowAddGroup(false); clearDrafts('groups.addGroup.') }}
             onSave={async (g, courseId) => {
-              const { data } = await addGroup(g)
-              if (data && courseId) await bindGroupToCourse(data.id, courseId)
+              const { data, error } = await addGroup(g)
+              if (error || !data) return { error: (error as { message?: string } | null)?.message ?? t('Не удалось создать группу — попробуйте ещё раз.') }
+              if (courseId) await bindGroupToCourse(data.id, courseId)
+              return { error: null }
             }}
           />
         )}
@@ -2853,8 +2885,8 @@ export default function TeacherGroupsPage() {
             initialGroupId={selectedGroupId}
             onClose={() => { setShowAddStudent(false); clearDrafts('groups.addStudent.') }}
             onSave={async (groupId, s) => {
-              const { inviteToken, studentId } = await addStudentToGroup(groupId, s)
-              return { inviteToken: inviteToken ?? null, studentId: studentId ?? null }
+              const { inviteToken, studentId, error } = await addStudentToGroup(groupId, s)
+              return { inviteToken: inviteToken ?? null, studentId: studentId ?? null, error: (error as { message?: string } | null)?.message ?? null }
             }}
           />
         )}
@@ -2864,14 +2896,14 @@ export default function TeacherGroupsPage() {
             onPickExisting={people.length > 0 ? () => { setShowAddIndividual(false); setShowExistingIndiv(true) } : undefined}
             onSave={async (s) => {
               const result = await addIndividualStudent(s as Parameters<typeof addIndividualStudent>[0])
-              return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null }
+              return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null, error: (result.error as { message?: string } | null)?.message ?? null }
             }}
           />
         )}
         {showExistingIndiv && (
           <AddExistingIndividualModal
             people={people}
-            subjectOptions={Object.keys(SUBJECT_ICONS)}
+            subjectOptions={mySubjectNames(useTeacherAccess.getState().subjects)}
             onCreate={createIndivForExisting}
             onClose={() => setShowExistingIndiv(false)}
           />

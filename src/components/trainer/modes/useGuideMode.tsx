@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, Compass, Library } from 'lucide-react'
+import { Compass, Library } from 'lucide-react'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import { bindShortWords, proseWrap } from '../../../lib/typography'
@@ -34,6 +34,7 @@ import type { LanguageStory } from '../../../data/languageStory'
 import { hasTextbooks, textbooksForLang } from '../../../data/textbooks'
 import { StoryGrid, StoryChapterPage } from '../StoryReader'
 import { BookShelf } from '../BookShelf'
+import BackCircle from '../../../components/BackCircle'
 
 /** Две половины режима: рассказ о языке и полка учебников. */
 export type GuideView = 'story' | 'books'
@@ -176,9 +177,7 @@ export function useGuideMode({ lang, subjectId, accent, soft, narrow, active }: 
 
   const toolbar = !active ? null : openChapter ? (
     <Toolbar>
-      <ToolButton onClick={() => setOpenId(null)}>
-        <ChevronLeft size={14} /> {t('К главам')}
-      </ToolButton>
+      <BackCircle onClick={() => setOpenId(null)} label="К главам" />
       <ToolCount>{t(openChapter.title)}</ToolCount>
     </Toolbar>
   ) : view === 'books' ? (

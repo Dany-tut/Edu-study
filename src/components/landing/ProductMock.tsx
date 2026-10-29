@@ -160,8 +160,8 @@ export default function ProductMock() {
           background: 'color-mix(in srgb, var(--color-bg) 30%, var(--color-surface))',
           borderBottom: '1px solid var(--color-border)',
         }}>
-          <BrowserTabBtn on={tab === 'teacher'} onClick={() => setTab('teacher')} title="Искра — кабинет учителя" />
-          <BrowserTabBtn on={tab === 'student'} onClick={() => setTab('student')} title="Искра — кабинет ученика" />
+          <BrowserTabBtn on={tab === 'teacher'} onClick={() => setTab('teacher')} title="Искра — кабинет учителя" favicon="/icon-teacher.svg?v=3" />
+          <BrowserTabBtn on={tab === 'student'} onClick={() => setTab('student')} title="Искра — кабинет ученика" favicon="/icon.svg?v=3" />
           <button title={t('Новая вкладка')} style={{ ...iconBtnBase, width: 24, height: 24, marginLeft: 2, marginBottom: 2, color: 'var(--color-text-3)' }}>
             <Plus size={14} />
           </button>
@@ -173,7 +173,7 @@ export default function ProductMock() {
             {/* сайдбар */}
             <div className="lp-mock-side" style={{ width: 178, flexShrink: 0, borderRight: '1px solid var(--color-border)', padding: '16px 12px', background: 'color-mix(in srgb, var(--color-bg) 25%, var(--color-surface))' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 15, marginBottom: 18, padding: '0 4px' }}>
-                <span style={{ width: 22, height: 22, borderRadius: 6, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }} /> Искра
+                <img src="/icon.svg?v=3" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
               </div>
               {SECTIONS.map((s, i) => {
                 const on = section === i
@@ -348,7 +348,7 @@ function ToolBtn({ children, onClick, disabled, title }: { children: React.React
   )
 }
 
-function BrowserTabBtn({ on, onClick, title }: { on: boolean; onClick: () => void; title: string }) {
+function BrowserTabBtn({ on, onClick, title, favicon }: { on: boolean; onClick: () => void; title: string; favicon: string }) {
   const t = useT()
   return (
     <button onClick={onClick} style={{
@@ -360,7 +360,8 @@ function BrowserTabBtn({ on, onClick, title }: { on: boolean; onClick: () => voi
       boxShadow: on ? '0 1px 3px rgba(0,0,0,.12)' : 'none',
       transition: 'background .15s, color .15s',
     }}>
-      <span style={{ width: 12, height: 12, borderRadius: 4, flexShrink: 0, background: on ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-border)' }} />
+      {/* фавиконка вкладки — как у настоящих кабинетов: ученик фиолетовый, учитель ночной */}
+      <img src={favicon} alt="" width={12} height={12} style={{ borderRadius: 3, flexShrink: 0, opacity: on ? 1 : 0.55 }} />
       <span className="lp-tab-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(title)}</span>
       {on && <X size={11} style={{ flexShrink: 0, opacity: 0.5 }} />}
     </button>

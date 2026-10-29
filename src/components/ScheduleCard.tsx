@@ -11,6 +11,8 @@ import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
 import ScrollFade from './ScrollFade'
 import { useT, useTc } from '../lib/i18n'
+import { SeasonEmptyDay } from './season/Season'
+import { useSeason } from '../lib/season'
 
 interface Props {
   day: ScheduleDay
@@ -26,6 +28,10 @@ interface Props {
 
 export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth }: Props) {
   const t = useT()
+  // Праздничная тема: пустой день в центральной карточке — привидение-листок
+  // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
+  // одинаковых привидений читался как сбой, а не как шутка.
+  const seasonEmpty = useSeason().on('empty')
   const { tc } = useTc()
   const subjects = useStudentData(s => s.subjects)
   const openLesson = useDashboard(s => s.openLesson)
@@ -220,9 +226,13 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 className="rounded-2xl flex flex-col items-center justify-center text-center"
                 style={{ minHeight: 116, padding: '18px 24px', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
               >
-                <CalendarX2 size={20} style={{ marginBottom: 8 }} />
-                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
-                <p style={{ fontSize: 12, marginTop: 3 }}>{t('Преподаватель еще не проставил уроки')}</p>
+                {seasonEmpty ? <SeasonEmptyDay /> : (
+                  <>
+                    <CalendarX2 size={20} style={{ marginBottom: 8 }} />
+                    <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
+                    <p style={{ fontSize: 12, marginTop: 3 }}>{t('Преподаватель еще не проставил уроки')}</p>
+                  </>
+                )}
               </div>
             )}
               </div>

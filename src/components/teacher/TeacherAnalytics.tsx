@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
 import { tzToCountry } from '../../lib/tzCountry'
 import { copyToClipboard } from '../../lib/clipboard'
+import { Alert } from '../Alert'
 
 // ── types ──────────────────────────────────────────────────────────────────
 type Overview = {
@@ -771,9 +772,7 @@ export default function TeacherAnalytics() {
       )}
 
       {err && (
-        <Card style={{ marginBottom:18, borderColor:'rgba(224,72,72,0.4)' }}>
-          <div style={{ fontSize:13, color:'#E04848', fontWeight:600 }}>{err}</div>
-        </Card>
+        <Alert tone="danger" text={err} style={{ marginBottom:18 }} />
       )}
 
       {/* ── TAB: ACTIVITY ── */}
@@ -1268,11 +1267,7 @@ export default function TeacherAnalytics() {
             </div>
 
             {digestErr && (
-              <Card style={{ marginBottom:16, borderColor:'rgba(224,72,72,0.4)' }}>
-                <div style={{ fontSize:12.5, color:'#c0282a', lineHeight:1.6 }}>
-                  {t('Разбор не собрался:')} {digestErr}
-                </div>
-              </Card>
+              <Alert tone="danger" title={t('Разбор не собрался:')} text={digestErr} style={{ marginBottom:16 }} />
             )}
 
             {reports.length === 0 && !digestBusy && !digestErr && (

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
-import { SUBJECTS } from '../../lib/subjects'
+import { SUBJECTS, ICON_GAP } from '../../lib/subjects'
 import { WIDGET_REGISTRY } from './widgets/registry'
 import { useT, useTc } from '../../lib/i18n'
 
@@ -135,7 +135,7 @@ export default function AccessConfigurator({
           </SectionTitle>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
             {SUBJECTS.map(s => (
-              <Chip key={s.id} label={`${s.icon} ${s.name}`} on={subjList.includes(s.id)} onToggle={() => toggleSubject(s.id)} />
+              <Chip key={s.id} label={`${s.icon}${ICON_GAP}${s.name}`} on={subjList.includes(s.id)} onToggle={() => toggleSubject(s.id)} />
             ))}
           </div>
         </>

@@ -2,12 +2,13 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, ChevronDown, Plus, X, Trash2,
+  ChevronDown, Plus, X, Trash2,
   Video, Link2, ListVideo, NotebookPen, FileText, FolderOpen,
   GraduationCap, Upload, Calendar, Clock, Search,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
-import { useTeacher } from '../../store/teacherStore'
+import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
+import { useTeacher, setLeaveGuard } from '../../store/teacherStore'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
@@ -16,10 +17,12 @@ import ScrollFade from '../../components/ScrollFade'
 import { useT, t as tGlobal, useTc, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import {
-  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
+  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import BackCircle from '../../components/BackCircle'
+import { AlertStack } from '../../components/Alert'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -247,6 +250,13 @@ function UploadTile({
     }
   }
 
+  function addLink(file: LessonFile) {
+    setErr(null)
+    onChange(multiple
+      ? { ...files, materials: [...(files.materials ?? []), file] }
+      : { ...files, [slot]: file })
+  }
+
   // Убираем файл только из урока: объект в бакете оставляем, иначе закрытая без
   // сохранения правка оставила бы ученику плитку, которая не скачивается.
   function remove(path: string) {
@@ -312,7 +322,7 @@ function UploadTile({
                 background: 'var(--grad-green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 7, fontWeight: 800, color: '#fff',
-              }}>{fileExt(f.name)}</div>
+              }}>{isLinkFile(f) ? 'URL' : fileExt(f.name)}</div>
               <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
               <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
               <button
@@ -325,6 +335,7 @@ function UploadTile({
           ))}
         </div>
       )}
+      {(multiple || !has) && !busy && <LessonLinkAttach onAdd={addLink} />}
     </div>
   )
 }
@@ -1031,7 +1042,25 @@ export default function TeacherLessonEditorPage() {
   const [files, setFiles] = usePersistentState<LessonFiles>(`${draftNs}.files`, {})
   const [description, setDescription] = usePersistentState(`${draftNs}.description`, '')
   const [published, setPublished] = useState(false)
-  const [publishErr, setPublishErr] = useState<string | null>(null)
+
+  // Сторож ухода. До «Опубликовать» правки живут только в черновике вкладки:
+  // меню, «назад» и закрытие вкладки молча их теряли.
+  // Изменения в первые полторы секунды — загрузка урока из базы, не правка.
+  const openedAt = useRef(Date.now())
+  const editDirty = useRef(false)
+  useEffect(() => {
+    if (Date.now() - openedAt.current > 1500) editDirty.current = true
+  }, [meta, videoUrl, timecodes, files, description])
+  useEffect(() => {
+    const isDirty = () => editDirty.current && !publishedRef.current
+    const warn = (e: BeforeUnloadEvent) => { if (isDirty()) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', warn)
+    setLeaveGuard(isDirty)
+    return () => { window.removeEventListener('beforeunload', warn); setLeaveGuard(null) }
+  }, [])
+  const publishedRef = useRef(false)
+  publishedRef.current = published
+  const [publishErr, setPublishErr] = useState<{ tone: 'danger' | 'info'; text: string } | null>(null)
 
   // Содержимое привязанного урока — из `lessons`, а не из воздуха. Черновик
   // (несохранённая правка в этой вкладке) старше базы: он и был причиной, по
@@ -1088,11 +1117,11 @@ export default function TeacherLessonEditorPage() {
     // Gate publish: needs an audience (кому/для кого) and a date + time.
     // Otherwise the teacher can still save it as a draft.
     if (meta.recipients.length === 0) {
-      setPublishErr(t('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.'))
+      setPublishErr({ tone: 'info', text: t('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.') })
       return
     }
     if (!meta.date || !meta.startTime) {
-      setPublishErr(t('Укажите дату и время урока — иначе можно только сохранить черновик.'))
+      setPublishErr({ tone: 'info', text: t('Укажите дату и время урока — иначе можно только сохранить черновик.') })
       return
     }
     setPublishErr(null)
@@ -1115,33 +1144,48 @@ export default function TeacherLessonEditorPage() {
       }).eq('id', lessonRowId)
       if (lessonErr) {
         console.error('[lesson-editor] lessons update failed', lessonErr)
-        setPublishErr(t('Не удалось сохранить содержимое урока — попробуйте ещё раз.'))
+        setPublishErr({ tone: 'danger', text: t('Не удалось сохранить содержимое урока — попробуйте ещё раз.') })
         return
       }
     }
 
+    // Ошибки записи расписания раньше не проверялись: «Опубликован» и чистка
+    // черновика шли при любом исходе. А урок только для ученика (без группы) не
+    // вставлялся вовсе — строка расписания умеет быть и на ученика (0003).
+    const scheduleBase = {
+      lesson_title: meta.title,
+      lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
+      date: isoDate,
+      time_start: meta.startTime || null,
+      time_end: meta.endTime || null,
+    }
     if (editingScheduleId) {
-      await supabase.from('schedule_lessons').update({
-        lesson_title: meta.title,
-        lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
-        date: isoDate,
-        time_start: meta.startTime || null,
-        time_end: meta.endTime || null,
-      }).eq('id', editingScheduleId)
-    } else if (groupRecipients.length > 0) {
-      await Promise.all(groupRecipients.map(r => {
-        const group = groups.find(g => g.id === r.id)
-        return supabase.from('schedule_lessons').insert({
-          group_id: r.id,
-          lesson_title: meta.title,
-          lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
-          date: isoDate,
-          time_start: meta.startTime || null,
-          time_end: meta.endTime || null,
-          subject: group?.subject ?? '',
-          status: 'upcoming',
-        })
-      }))
+      const { error } = await supabase.from('schedule_lessons').update(scheduleBase).eq('id', editingScheduleId)
+      if (error) {
+        console.error('[lesson-editor] schedule update failed', error)
+        setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
+        return
+      }
+    } else {
+      const studentRecipients = meta.recipients.filter(r => r.kind === 'student')
+      const rows = [
+        ...groupRecipients.map(r => ({
+          ...scheduleBase, group_id: r.id, student_id: null,
+          subject: groups.find(g => g.id === r.id)?.subject ?? '', status: 'upcoming',
+        })),
+        ...studentRecipients.map(r => ({
+          ...scheduleBase, group_id: null, student_id: r.id,
+          subject: '', status: 'upcoming',
+        })),
+      ]
+      if (rows.length > 0) {
+        const { error } = await supabase.from('schedule_lessons').insert(rows)
+        if (error) {
+          console.error('[lesson-editor] schedule insert failed', error)
+          setPublishErr({ tone: 'danger', text: t('Не удалось поставить урок в расписание — попробуйте ещё раз.') })
+          return
+        }
+      }
     }
 
     clearDrafts(draftNs)
@@ -1159,11 +1203,6 @@ export default function TeacherLessonEditorPage() {
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  const backBtn = (
-    <>
-      <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-    </>
-  )
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar
@@ -1185,18 +1224,7 @@ export default function TeacherLessonEditorPage() {
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={() => setActivePage('home')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            {backBtn}
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="Назад" />
 
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
@@ -1228,18 +1256,7 @@ export default function TeacherLessonEditorPage() {
                 display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
               }}
             >
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-                onClick={() => setActivePage('home')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                  padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                  color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'inherit', pointerEvents: 'auto',
-                }}
-              >
-                {backBtn}
-              </motion.button>
+              <BackCircle onClick={() => setActivePage('home')} label="Назад" />
 
               <div
                 style={{
@@ -1261,24 +1278,7 @@ export default function TeacherLessonEditorPage() {
         </div>
 
         {/* ── Publish-blocked banner ── */}
-        <AnimatePresence>
-          {publishErr && (
-            <motion.div
-              key="publish-err"
-              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                margin: '0 0 14px', padding: '10px 14px', borderRadius: 12,
-                border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
-                color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}
-            >
-              <span style={{ flexShrink: 0 }}>⚠️</span>
-              <span>{publishErr}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <AlertStack style={{ margin: '0 0 14px' }} items={[publishErr && { id: 'publish-err', tone: publishErr.tone, text: publishErr.text, onClose: () => setPublishErr(null) }]} />
 
         {/* ── Body ── */}
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

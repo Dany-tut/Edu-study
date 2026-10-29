@@ -146,6 +146,14 @@ export const COURSE_SEEDS: CourseSeed[] = [
     build: lazy('kosv', () => import('./survivalKo'), m => m.buildKoreanSurvivalCourse),
   },
   {
+    // Стоит перед JLPT-курсами по той же причине, что kohg перед TOPIK: он для
+    // того, кто ещё не читает каны, а курс до N5 проходит её за два урока.
+    key: 'jakn',
+    subject: 'Японский',
+    summary: SEED_CARDS.jakn,
+    build: lazy('jakn', () => import('./japaneseKana'), m => m.buildJapaneseKanaCourse),
+  },
+  {
     key: 'jajl',
     subject: 'Японский',
     summary: SEED_CARDS.jajl,

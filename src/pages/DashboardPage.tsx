@@ -18,7 +18,8 @@ import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
 import Skeleton from '../components/Skeleton'
-import { findLessonById, getLessonDetail } from '../data/lessonContent'
+import { findLessonById, getExtraHomeworks, getLessonDetail } from '../data/lessonContent'
+import { hwRef } from '../lib/extraHomework'
 import { useStudentData } from '../store/studentDataStore'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
 import { useCourseTint, useTint } from '../store/tintStore'
@@ -27,6 +28,7 @@ import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment 
 import { ClipboardList, ChevronRight } from 'lucide-react'
 import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from '../components/season/Season'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
 //
@@ -124,8 +126,14 @@ export default function DashboardPage() {
   const setLessonScrolled = useDashboard(s => s.setLessonScrolled)
   const closeHomework = useDashboard(s => s.closeHomework)
   const closeLesson = useDashboard(s => s.closeLesson)
+  const currentExtraHwId = useDashboard(s => s.currentExtraHwId)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
-  const homework = lesson ? getLessonDetail(lesson).homework : null
+  // Доп. домашка урока решается тем же HomeworkFlow, но под своим ключом
+  // `<урок>~<доп>` (lib/extraHomework): своя сдача, свой черновик, свой адрес.
+  const homework = !lesson ? null
+    : currentExtraHwId ? (getExtraHomeworks(lesson).find(x => x.id === currentExtraHwId)?.homework ?? null)
+    : getLessonDetail(lesson).homework
+  const homeworkRef = lesson ? hwRef(lesson.id, currentExtraHwId) : ''
   // Конспект и домашка урока едут вторым запросом (см. heavyPending в
   // data/mockData.ts). Пока они в пути, «домашки нет» ещё не значит, что её
   // нет, — и урок нельзя ни показывать пустым, ни отбивать назад. Узел-тест
@@ -249,7 +257,7 @@ export default function DashboardPage() {
     if (!restored) return
     let hash: string | null = null
     if (activePage === 'lesson' && currentLessonId) hash = `#/lesson/${encodeURIComponent(currentLessonId)}`
-    else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(currentLessonId)}`
+    else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(hwRef(currentLessonId, currentExtraHwId))}`
     // Внутри тренажёра адрес ведёт он сам — и ведёт подробнее (язык, экран,
     // открытый материал; см. lib/trainerLink). Ровное «#/trainer» отсюда
     // затирало бы присланную ссылку ровно в тот момент, когда её открыли:
@@ -260,7 +268,7 @@ export default function DashboardPage() {
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage, currentLessonId, restored])
+  }, [activePage, currentLessonId, currentExtraHwId, restored])
 
   // КАКОЙ ЭКРАН КАБИНЕТА ПОКАЗАН СЕЙЧАС.
   //
@@ -357,6 +365,8 @@ export default function DashboardPage() {
       {isDesktop && (
       <LayoutGroup>
       <div className="dashboard-root" style={{ display: 'flex' }}>
+        {/* Праздничная тема (lib/season.ts): фон за всеми блоками главной. Без темы — ничего. */}
+        {activePage === 'home' && <SeasonBackdrop />}
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
             floating topbar pill — content scrolls up under a soft blurred band so
             it never bleeds through the gaps around the pills. */}
@@ -407,6 +417,11 @@ export default function DashboardPage() {
 
         {activePage === 'home' ? (
           <>
+            {/* Шапка праздничной темы — над расписанием; без темы не рендерится. */}
+            <section className="dashboard-schedule season-hero-row">
+              <SeasonHero />
+            </section>
+
             {/* Row 1: Schedule — pill + 4-card carousel */}
             <section className="dashboard-schedule">
               <ScheduleCarousel />
@@ -417,6 +432,9 @@ export default function DashboardPage() {
               {/* Row 2: Widget carousel (stats / science facts / focus timer). */}
               <section style={{ flexShrink: 0, position: 'relative', zIndex: 20 }}>
                 <WidgetCarousel />
+                {/* Кот сидит на ряду виджетов — здесь, а не в плитке: карусель
+                    обрезает всё, что выше её на 56 px. */}
+                <SeasonCat />
               </section>
 
               {/* Row 3: Course track — natural height, no flex-grow */}
@@ -429,6 +447,7 @@ export default function DashboardPage() {
                 <AssignedTestsBlock />
               </section>
             </main>
+            <SeasonCornerPumpkin />
           </>
         ) : showLesson ? (
           /* Single lesson — player + materials (screen 2). The page
@@ -471,7 +490,8 @@ export default function DashboardPage() {
           >
             <Suspense fallback={<LessonLoading />}>
               <HomeworkFlow
-                lessonId={lesson.id}
+                key={homeworkRef}
+                lessonId={homeworkRef}
                 lessonTitle={lesson.title}
                 subject={lesson.subject}
                 homework={homework}
@@ -541,7 +561,8 @@ export default function DashboardPage() {
             ) : showHomework && lesson && homework ? (
               <Suspense fallback={<LessonLoading />}>
                 <HomeworkFlow
-                  lessonId={lesson.id}
+                  key={homeworkRef}
+                  lessonId={homeworkRef}
                   lessonTitle={lesson.title}
                   subject={lesson.subject}
                   homework={homework}

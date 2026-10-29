@@ -35,6 +35,7 @@ import { useTint } from '../store/tintStore'
 import { useT, useTc, t as tt, useLang } from '../lib/i18n'
 import type { LucideIcon } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
+import { SeasonHero } from './season/Season'
 
 // MOBILE ONLY home (v2). Desktop layout in DashboardPage is untouched.
 // Concept: not a dashboard — a "today + continue" screen.
@@ -374,6 +375,8 @@ export default function MobileHome() {
       <MobileScreen topZone={topZone} topPad={72} restoreKey="home">
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
+          {/* Шапка праздничной темы (lib/season.ts); без темы не рендерится. */}
+          <SeasonHero compact />
           {/* Плитки переходов: все переходы экрана одним рядом. Цветная
               заливка — «там есть дело», нейтральная — просто раздел. Ряд
               заменяет и плитки «Тренажёр»/«Курс», и жёлтую карточку домашки. */}

@@ -25,6 +25,7 @@
 //    останется гореть индикатор «звучит».
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Capacitor, registerPlugin } from '@capacitor/core'
 import { preferPlaybackSession } from './audioSession'
 
 const BLANKS = [
@@ -601,6 +602,196 @@ export function speechUnits(raw: string, unit: 'line' | 'sentence' = 'line'): st
   return lines.flatMap(splitSentences)
 }
 
+// ─── Голос с сервера ─────────────────────────────────────────────────────────
+
+/*
+ * ЗАЧЕМ. На части айфонов синтез речи в браузере честно проходит фразу —
+ * onstart, onboundary, onend, ошибок нет, — а из динамика тишина любым голосом,
+ * даже на голой странице без нашего кода. <audio> на тех же телефонах звучит.
+ * Для них фраза синтезируется на сервере (supabase/functions/tts) и играется
+ * медиаэлементом.
+ *
+ * ПОЧЕМУ ПЕРЕКЛЮЧАТЕЛЬ, А НЕ АВТОМАТИКА. «Движок дошёл до onend, а звука не
+ * было» снаружи не отличить от «звук был»: события те же, громкость динамика
+ * странице не видна. Угадывать по модели телефона — значит гнать на сервер всех
+ * айфонов, у которых всё и так звучит. Поэтому решает ухо: ученик включает
+ * «Голос с сервера» в карточке «Озвучка», а на айфоне рядом стоит подсказка,
+ * что делать, если тихо. Выбор живёт в localStorage — он про ЭТО устройство.
+ *
+ * ПОЧЕМУ ОДИН ЭЛЕМЕНТ НА ВСЁ. iOS разрешает play() только из жеста — и разрешает
+ * навсегда тому элементу, который один раз из жеста заиграл. Поэтому плеер
+ * один: первая реплика стартует в клике (src ставится без await, адрес функции
+ * и есть адрес звука), следующие — из onended того же элемента.
+ */
+
+const SERVER_KEY = 'tts-server'
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL ?? ''}/functions/v1/tts`
+
+/** Сколько дикторов у сервера (см. VOICES в функции): по сцене берём один из них. */
+const SERVER_VOICES = 4
+
+/** Озвучка идёт через сервер на этом устройстве. В приложении — никогда:
+ *  там говорит системный синтез (см. «Голос системы» ниже), он главнее. */
+export function serverVoiceOn(): boolean {
+  if (nativeApp()) return false
+  try { return localStorage.getItem(SERVER_KEY) === '1' } catch { return false }
+}
+
+export function setServerVoice(on: boolean) {
+  try {
+    if (on) localStorage.setItem(SERVER_KEY, '1')
+    else localStorage.removeItem(SERVER_KEY)
+  } catch { /* приватный режим — останемся на голосе браузера */ }
+}
+
+/** Айфон или айпад (айпад с iPadOS 13 представляется Маком с тачскрином). */
+export function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /iP(hone|ad|od)/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
+let player: HTMLAudioElement | null = null
+
+function ttsUrl(text: string, locale: string, voice: number, rate: number): string {
+  const q = new URLSearchParams({ l: locale, v: String(voice), r: String(rate), t: text })
+  return `${TTS_URL}?${q}`
+}
+
+/** Прогреть следующую реплику, пока звучит эта: синтез занимает полсекунды, и
+ *  без прогрева между репликами была бы лишняя пауза. Ответ не читаем. */
+function warm(url: string) {
+  fetch(url, { mode: 'no-cors' }).catch(() => {})
+}
+
+/** Тот же ход реплик, что у браузерного синтеза ниже, только через <audio>.
+ *  Пословной подсветки нет — onWord не зовётся, на это договор и рассчитан. */
+function speakServer(lines: string[], start: number, opts: SpeakOptions, mine: number) {
+  const el = player ?? (player = new Audio())
+  el.preload = 'auto'
+  const locale = speechLocale(opts.lang) ?? 'en-US'
+  const seed = opts.seed ?? sceneSeed
+  const voice = seed ? seedHash(seed) % SERVER_VOICES : 0
+  const rate = opts.rate ?? 1
+  const gap = opts.gap ?? 0
+  // Пробелы, оставшиеся от снятых прочерков («I'm off to    .»), схлопываем:
+  // текст — часть ключа кэша, и одна фраза не должна оплачиваться дважды.
+  const url = (idx: number) => ttsUrl(
+    voiceText(lines[idx]).replace(/\s+/g, ' ').replace(/ ([.,!?;:])/g, '$1').trim(),
+    locale, voice, rate,
+  )
+
+  let i = start
+  const next = () => {
+    if (mine !== run) return
+    if (i >= lines.length) { finish(true); return }
+    const idx = i++
+    const step = () => {
+      if (mine !== run) return
+      if (gap && i < lines.length) gapTimer = setTimeout(next, gap)
+      else next()
+    }
+    if (!voiceText(lines[idx]).trim()) { step(); return }
+    let began = false
+    el.onplaying = () => {
+      if (began || mine !== run) return
+      began = true
+      if (idx === start) opts.onStart?.()
+      opts.onLine?.(idx, lines.length)
+      if (i < lines.length) warm(url(i))
+    }
+    el.onended = step
+    // Сбой реплики (выключен рубильник, нет сети) не роняет текст: идём дальше,
+    // и onEnd всё равно придёт — индикатор не останется гореть.
+    el.onerror = step
+    el.src = url(idx)
+    el.play().catch(() => { if (mine === run) step() })
+  }
+  next()
+}
+
+// ─── Голос системы (приложение iOS) ──────────────────────────────────────────
+
+/*
+ * ЗАЧЕМ. В приложении (обёртка Capacitor, папка ios/) Web Speech живёт в том же
+ * WKWebView, что и Safari, и на тех же айфонах так же молчит. Поэтому там
+ * говорит AVSpeechSynthesizer — плагин ios/App/App/NativeSpeechPlugin.swift.
+ *
+ * Плагин читает ОДНУ реплику: speak() закрывается, когда она дочитана или
+ * оборвана. Ход реплик, паузы и промотка — здесь, тем же порядком, что у
+ * браузерного синтеза ниже: договор onStart/onLine/onWord/onEnd один на всех.
+ */
+interface NativeSpeechPlugin {
+  speak(o: { id: number; text: string; lang: string; rate: number; voice?: string }): Promise<{ done: boolean }>
+  stop(): Promise<void>
+  addListener(e: 'speechStart', f: (d: { id: number }) => void): Promise<unknown>
+  addListener(e: 'speechWord', f: (d: { id: number; char: number }) => void): Promise<unknown>
+}
+
+const NativeSpeech = registerPlugin<NativeSpeechPlugin>('NativeSpeech')
+
+/** Мы в нативном приложении, а не в браузере. */
+export function nativeApp(): boolean {
+  return Capacitor.isNativePlatform()
+}
+
+/** Реплика, которая сейчас звучит в плагине: события сверяются с её номером. */
+let nativeLine: { id: number; begin: () => void; word: (char: number) => void } | null = null
+let nativeSeq = 0
+let nativeListening = false
+
+function listenNative() {
+  if (nativeListening) return
+  nativeListening = true
+  void NativeSpeech.addListener('speechStart', d => { if (nativeLine?.id === d.id) nativeLine.begin() })
+  void NativeSpeech.addListener('speechWord', d => {
+    if (nativeLine?.id !== d.id) return
+    nativeLine.begin()
+    nativeLine.word(d.char)
+  })
+}
+
+function speakNative(lines: string[], start: number, opts: SpeakOptions, mine: number) {
+  listenNative()
+  const lang = speechLocale(opts.lang) ?? 'en-US'
+  // Имя голоса, выбранное учеником или учителем, совпадает с системным: в
+  // WKWebView список голосов тот же, что у AVSpeech. Без выбора плагин сам
+  // берёт лучший установленный (premium → enhanced → обычный).
+  const voice = opts.voiceName || preferredVoice(opts.lang) || undefined
+  const rate = opts.rate ?? 1
+  const gap = opts.gap ?? 0
+
+  let i = start
+  const next = () => {
+    if (mine !== run) return
+    if (i >= lines.length) { finish(true); return }
+    const idx = i++
+    const text = voiceText(lines[idx])
+    const step = () => {
+      if (mine !== run) return
+      if (gap && i < lines.length) gapTimer = setTimeout(next, gap)
+      else next()
+    }
+    if (!text.trim()) { step(); return }
+    const id = ++nativeSeq
+    let began = false
+    nativeLine = {
+      id,
+      begin: () => {
+        if (began || mine !== run) return
+        began = true
+        if (idx === start) opts.onStart?.()
+        opts.onLine?.(idx, lines.length)
+      },
+      word: char => { if (mine === run) opts.onWord?.(idx, char) },
+    }
+    // Оборванная реплика (done: false) — это наш же stop(): номер запуска уже
+    // сменился, и step() ничего не сделает. Сбой плагина не роняет текст.
+    NativeSpeech.speak({ id, text, lang, rate, voice }).then(step, step)
+  }
+  next()
+}
+
 // ─── Речь ────────────────────────────────────────────────────────────────────
 
 export interface SpeakOptions {
@@ -700,7 +891,9 @@ function finish(done = false) {
 /** Прервать любую речь. */
 export function stopSpeech() {
   finish()
+  if (nativeApp()) { nativeLine = null; void NativeSpeech.stop().catch(() => {}); return }
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
+  if (player && !player.paused) player.pause()
 }
 
 /**
@@ -708,7 +901,9 @@ export function stopSpeech() {
  * лекарство от обрыва в Chrome, и от чтения таймкодов, и повод дать паузу.
  */
 export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
-  if (typeof speechSynthesis === 'undefined') return NOOP
+  const native = nativeApp()
+  const server = serverVoiceOn()
+  if (!native && !server && typeof speechSynthesis === 'undefined') return NOOP
   // Задание на слух обязано звучать и при выключенном звонке — иначе на айфоне
   // «Прослушать» молчит, и понять почему нельзя (lib/audioSession.ts).
   preferPlaybackSession()
@@ -718,6 +913,19 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   stopSpeech()
   const mine = run
   activeEnd = opts.onEnd ?? null
+  // Промотка: читаем не с начала, а с выбранной реплики. Номер зажат в
+  // границы списка — снаружи он приходит из бегунка, а список мог смениться.
+  const start = Math.min(Math.max(0, Math.floor(opts.from ?? 0)), lines.length - 1)
+
+  if (native) {
+    speakNative(lines, start, opts, mine)
+    return { stop: () => { if (mine === run) stopSpeech() } }
+  }
+
+  if (server) {
+    speakServer(lines, start, opts, mine)
+    return { stop: () => { if (mine === run) stopSpeech() } }
+  }
 
   const locale = speechLocale(opts.lang)
   // Голос задания (его выбрал учитель) → голос ученика для этого языка →
@@ -731,9 +939,6 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   const rate = opts.rate ?? 1
   const gap = opts.gap ?? 0
 
-  // Промотка: читаем не с начала, а с выбранной реплики. Номер зажат в
-  // границы списка — снаружи он приходит из бегунка, а список мог смениться.
-  const start = Math.min(Math.max(0, Math.floor(opts.from ?? 0)), lines.length - 1)
   let i = start
   const next = () => {
     if (mine !== run) return

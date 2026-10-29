@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { fetchCalibration, type CalibrationCounts } from '../../data/confidence'
 import { useT } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 const QUADRANTS: { key: keyof CalibrationCounts; label: string; hint: string; color: string }[] = [
   { key: 'confidentCorrect', label: 'Уверен + верно',   hint: 'здоровое знание',        color: 'var(--color-green-accent)' },
@@ -47,9 +48,7 @@ export default function CalibrationMatrix({ owner, subject }: {
         })}
       </div>
       {c.confidentWrong > 0 && (
-        <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-red-text)', lineHeight: 1.5 }}>
-          ⚠ {c.confidentWrong} {t('ответ(ов) «уверен, но неверно» — стоит разобрать: ученик уверен в неправильном.')}
-        </div>
+        <Alert tone="warning" text={`${c.confidentWrong} ${t('ответ(ов) «уверен, но неверно» — стоит разобрать: ученик уверен в неправильном.')}`} style={{ marginTop: 10 }} />
       )}
     </div>
   )

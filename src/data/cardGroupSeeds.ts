@@ -26,7 +26,14 @@ const SEED_LANGS: Record<string, () => Promise<CardGroup[]>> = {
   // остальное, включая соседнюю подборку по сериалу.
   en: () => Promise.all([
     import('./cardSeeds/spokenEn').then(m => m.SPOKEN_EN),
+    import('./cardSeeds/enHome').then(m => m.EN_HOME),
     import('./cardSeeds/spnEpisodes').then(m => m.SPN_EPISODES),
+    // Пособия из PDF (_inbox/english): база, грамматика, быт, фразовые глаголы.
+    import('./cardSeeds/en1000').then(m => m.EN_1000),
+    import('./cardSeeds/enGrammar').then(m => m.EN_GRAMMAR_CARDS),
+    import('./cardSeeds/enPhrasal').then(m => m.EN_PHRASAL),
+    import('./cardSeeds/enEveryday').then(m => m.EN_EVERYDAY),
+    import('./cardSeeds/enSwear').then(m => m.EN_SWEAR),
   ]),
 }
 

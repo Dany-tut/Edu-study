@@ -4,6 +4,8 @@ import { getOwnerId } from './owner'
 import { createSharedQuery, useSharedQuery } from './sharedQuery'
 import type { HomeworkItem } from '../data/teacherMockData'
 import { parseBasicAnswers, type BasicAnswersPayload } from './basicAnswers'
+import { baseLessonRef, extraHwLabel, hwRef } from './extraHomework'
+import { t } from './i18n'
 
 export type HardSub = {
   id: string
@@ -364,6 +366,7 @@ export function useHomework() {
     hardTaskIds?: number[]
     hardTotal?: number
     hardTasks?: HardTaskDef[]
+    basicTasks?: unknown[]
   }) {
     const { data, error } = await supabase.from('homework').insert({
       group_id: hw.groupId,
@@ -377,6 +380,7 @@ export function useHomework() {
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
+      basic_tasks: hw.basicTasks ?? [],
       created_by: await getOwnerId(),
     }).select().single()
     if (!error) await load()
@@ -393,6 +397,7 @@ export function useHomework() {
     hardTaskIds?: number[]
     hardTotal?: number
     hardTasks?: HardTaskDef[]
+    basicTasks?: unknown[]
   }) {
     const { error } = await supabase.from('homework').update({
       group_id: hw.groupId,
@@ -404,6 +409,7 @@ export function useHomework() {
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
+      basic_tasks: hw.basicTasks ?? [],
     }).eq('id', id)
     if (!error) await load()
     return { error }
@@ -441,14 +447,20 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
     r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
   ))]
 
-  // Fetch lesson titles
+  // Fetch lesson titles. Сдача доп. домашки лежит под `<урок>~<доп>`
+  // (lib/extraHomework): название — у урока, плюс «· Доп 2» по месту в списке.
   const { data: lessons } = await supabase
     .from('lessons')
-    .select('short_id, title')
-    .in('short_id', baseRefs)
-  const titleMap: Record<string, string> = Object.fromEntries(
-    (lessons ?? []).map(l => [l.short_id, l.title])
-  )
+    .select('short_id, title, extra:homework->extraHw')
+    .in('short_id', [...new Set(baseRefs.map(baseLessonRef))])
+  const titleMap: Record<string, string> = {}
+  for (const l of (lessons ?? []) as Array<{ short_id: string; title: string; extra: Array<{ id: string }> | null }>) {
+    titleMap[l.short_id] = l.title
+    const extras = Array.isArray(l.extra) ? l.extra : []
+    extras.forEach((x, i) => {
+      if (x?.id) titleMap[hwRef(l.short_id, x.id)] = `${l.title} · ${extraHwLabel(i, extras.length, t)}`
+    })
+  }
 
   return rows.map(r => {
     const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref

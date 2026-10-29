@@ -24,16 +24,35 @@ export function isChunkError(msg: string): boolean {
  * Один принудительный reload, чтобы забрать свежий index.html с актуальными
  * хешами. Гард в sessionStorage — иначе при по-настоящему пропавшем файле
  * страница уходит в вечный цикл перезагрузок.
+ *
+ * Вторая ступень. Если чанк упал снова сразу после такой перезагрузки, дело не
+ * в старой оболочке, а в самом хранилище сайта в этом браузере: у Вадима в Edge
+ * (29.10.2026) файл был на проде, в соседнем браузере грузился, а у него падал
+ * на каждой перезагрузке, пока не стёрли данные сайта. Поэтому один раз в минуту
+ * сносим воркер и ВСЕ кеши, включая app-chunks, — то же, что «удалить данные
+ * сайта», только без выхода из аккаунта (localStorage не трогаем).
  */
 export function recoverFromChunkError(msg: string): boolean {
   if (!isChunkError(msg)) return false
-  const KEY = 'chunk_reload_at'
-  let last = 0
-  try { last = Number(sessionStorage.getItem(KEY) || '0') } catch { /**/ }
-  if (Date.now() - last < 10_000) return false
-  try { sessionStorage.setItem(KEY, String(Date.now())) } catch { /**/ }
-  void hardReload()
-  return true
+  const now = Date.now()
+  const read = (key: string) => {
+    try { return Number(sessionStorage.getItem(key) || '0') } catch { return 0 }
+  }
+  const mark = (key: string) => {
+    try { sessionStorage.setItem(key, String(now)) } catch { /**/ }
+  }
+  if (now - read('chunk_reload_at') >= 10_000) {
+    mark('chunk_reload_at')
+    void hardReload()
+    return true
+  }
+  if (now - read('chunk_purge_at') >= 60_000) {
+    mark('chunk_purge_at')
+    mark('chunk_reload_at')
+    void hardReload({ full: true })
+    return true
+  }
+  return false
 }
 
 /**
@@ -42,13 +61,14 @@ export function recoverFromChunkError(msg: string): boolean {
  * index.html и падает на том же чанке второй раз (29.09.2026). Поэтому сначала
  * снимаем воркер и кеши, где лежит HTML (app-shell и precache), — чанки с
  * хешем в имени не трогаем, они не устаревают. Воркер встанет заново при загрузке.
+ * `full` — снести все кеши сайта (вторая ступень, см. recoverFromChunkError).
  */
-export async function hardReload(): Promise<void> {
+export async function hardReload({ full = false }: { full?: boolean } = {}): Promise<void> {
   const purge = async () => {
     const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? []
     await Promise.all(regs.map(r => r.unregister()))
     const keys = (await window.caches?.keys?.()) ?? []
-    await Promise.all(keys.filter(k => k === 'app-shell' || k.includes('precache')).map(k => caches.delete(k)))
+    await Promise.all(keys.filter(k => full || k === 'app-shell' || k.includes('precache')).map(k => caches.delete(k)))
   }
   // Зависший воркер не должен запереть человека на экране ошибки: 2 с — и перезагрузка.
   try { await Promise.race([purge(), new Promise(r => setTimeout(r, 2000))]) } catch { /* просто перезагрузка */ }

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Check, X } from 'lucide-react'
+import { ChevronDown, Check, X, Plus } from 'lucide-react'
 import ScrollFade from './ScrollFade'
 import { useT } from '../lib/i18n'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../lib/dropdownStyle'
@@ -24,7 +24,7 @@ import { useScrollLock } from '../lib/useScrollLock'
 export default function MultiSelectField({
   label, options, values, onChange,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)', small = false,
-  lockScroll = false,
+  lockScroll = false, creatable = false, createLabel = 'Добавить', createHint, createPlaceholder, field,
 }: {
   label: string
   options: string[]
@@ -43,10 +43,31 @@ export default function MultiSelectField({
    * один раз и за уехавшим полем не следит.
    */
   lockScroll?: boolean
+  /**
+   * Можно добавить своё значение: набранное, которого нет в списке, встаёт
+   * последней строкой «Добавить „…“» (и по Enter). Свои значения не
+   * вычищаются, когда список вариантов меняется.
+   */
+  creatable?: boolean
+  /** Подпись строки «Добавить „…“» — ключ перевода. */
+  createLabel?: string
+  /**
+   * Строка под списком, видная сразу, пока ничего не набрано («＋ Свой
+   * предмет»): без неё про добавление своего узнавали, только напечатав
+   * то, чего нет. Клик ставит курсор в поле с `createPlaceholder`.
+   */
+  createHint?: string
+  createPlaceholder?: string
+  /**
+   * Поле стоит в форме среди обычных полей ввода (регистрация, профиль), а не в
+   * колонке фильтров: коробка, рамка покоя и кегль — как у соседних инпутов.
+   */
+  field?: { padding: string; borderRadius: number; background: string; restBorder: string; borderWidth?: number; fontSize: number; minHeight: number }
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [naming, setNaming] = useState(false)
   const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
   const btnRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -61,10 +82,14 @@ export default function MultiSelectField({
         return o.toLowerCase().includes(q) || t(o).toLowerCase().includes(q)
       })
     : options
+  const typed = query.trim()
+  const canCreate = creatable && !!typed
+    && !options.some(o => o.toLowerCase() === typed.toLowerCase() || t(o).toLowerCase() === typed.toLowerCase())
+    && !values.some(v => v.toLowerCase() === typed.toLowerCase())
 
   // Keep selection clean if the option set narrows (cascade) below current picks.
   useEffect(() => {
-    if (!values.length) return
+    if (!values.length || creatable) return
     const valid = values.filter(v => options.includes(v))
     if (valid.length !== values.length) onChange(valid)
   }, [options]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -75,22 +100,30 @@ export default function MultiSelectField({
     if (!open) { setPos(null); return }
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
-    const estH = Math.min(shown.length * (small ? 30 : 34) + 16, 248)
+    const estH = Math.min((shown.length + (canCreate ? 1 : 0)) * (small ? 30 : 34) + 16, 248) + (creatable && createHint ? 38 : 0)
     const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
     const left = Math.min(r.left, window.innerWidth - r.width - 8)
     setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
-  }, [open, values.length, query, shown.length, small])
+  }, [open, values.length, query, shown.length, small, canCreate])
 
   const openDropdown = () => {
     setOpen(true); setQuery('')
     setTimeout(() => inputRef.current?.focus(), 30)
   }
-  const close = () => { setOpen(false); setQuery('') }
+  const close = () => { setOpen(false); setQuery(''); setNaming(false) }
 
   function toggle(opt: string) {
     onChange(values.includes(opt) ? values.filter(v => v !== opt) : [...values, opt])
     // Clear the search after a pick so the next one doesn't need manual erasing.
     setQuery('')
+    inputRef.current?.focus()
+  }
+
+  function create() {
+    if (!canCreate) return
+    onChange([...values, typed])
+    setQuery('')
+    setNaming(false)
     inputRef.current?.focus()
   }
 
@@ -125,11 +158,11 @@ export default function MultiSelectField({
   }, [open])
 
   const isEmpty = values.length === 0
-  const fontSize = small ? 11 : 13
-  const chipFont = small ? 10 : 11
+  const fontSize = field?.fontSize ?? (small ? 11 : 13)
+  const chipFont = field ? 12 : small ? 10 : 11
 
   const chip = (v: string) => (
-    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: '2px 7px', borderRadius: 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
+    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: field ? '3px 8px' : '2px 7px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(v)}</span>
       <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 9 : 11} strokeWidth={2.6} /></span>
     </span>
@@ -143,21 +176,34 @@ export default function MultiSelectField({
         transition={{ layout: { type: 'spring', stiffness: 600, damping: 42, mass: 0.7 } }}
         onClick={() => { if (!open) openDropdown(); else if (!query && isEmpty) close(); else inputRef.current?.focus() }}
         style={{
-          width: '100%', boxSizing: 'border-box', padding: small ? '6px 9px' : '7px 11px',
-          borderRadius: 11, ...dropdownRing(open, accent),
-          background: 'var(--color-bg-input)', cursor: 'text',
-          display: 'flex', alignItems: 'center', gap: 6, minHeight: small ? 32 : 38,
+          width: '100%', boxSizing: 'border-box', padding: field?.padding ?? (small ? '6px 9px' : '7px 11px'),
+          borderRadius: field?.borderRadius ?? 11,
+          ...(field
+            ? { border: `${field.borderWidth ?? 1}px solid ${open ? accent : field.restBorder}`, transition: 'border-color 0.15s' }
+            : dropdownRing(open, accent)),
+          background: field?.background ?? 'var(--color-bg-input)', cursor: 'text',
+          display: 'flex', alignItems: 'center', gap: 6, minHeight: field?.minHeight ?? (small ? 32 : 38),
         }}
       >
         {open ? (
           // Expanded: input first so it stays on the same line as chips.
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* В форме выбранное — первым, курсор за ним, как в поле ввода:
+                справа от длинной строки ввода плашки читались как чужие. */}
+            {field && values.map(chip)}
             <input
               ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               className="mobile-input-16"
-              placeholder={isEmpty ? label : ''}
+              placeholder={naming && createPlaceholder ? t(createPlaceholder) : isEmpty ? label : ''}
               onClick={e => { if (open && !query && isEmpty) { e.stopPropagation(); close() } }}
-              onKeyDown={e => { if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1)) }}
+              onKeyDown={e => {
+                if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1))
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  if (shown.length === 1 && !values.includes(shown[0])) toggle(shown[0])
+                  else create()
+                }
+              }}
               // ВЫСОТА СТРОКИ ПРИБИТА, А НЕ УНАСЛЕДОВАНА.
               //
               // Поле раскрывается подменой подписи на поле ввода, и без этого
@@ -172,10 +218,15 @@ export default function MultiSelectField({
               // коробка остаётся на своих 38.
               style={{ flex: 1, minWidth: 80, border: 'none', outline: 'none', background: 'transparent', fontSize, lineHeight: '20px', height: 20, color: 'var(--color-text)', fontFamily: 'inherit', padding: 0 }}
             />
-            {values.map(chip)}
+            {!field && values.map(chip)}
           </div>
         ) : isEmpty ? (
-          <span style={{ flex: 1, minWidth: 0, fontSize, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+          <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+        ) : field ? (
+          // В форме выбранного немного и прятать его за «+N» незачем — всё видно.
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+            {values.map(chip)}
+          </div>
         ) : (
           // Collapsed: one line — first chip + "+N".
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, alignItems: 'center', overflow: 'hidden' }}>
@@ -215,7 +266,7 @@ export default function MultiSelectField({
             >
               <ScrollFade maxHeight={224} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {shown.length === 0 ? (
+                  {shown.length === 0 && !canCreate ? (
                     <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : shown.map(o => {
                     const selected = values.includes(o)
@@ -229,8 +280,26 @@ export default function MultiSelectField({
                       </div>
                     )
                   })}
+                  {canCreate && (
+                    <div onClick={create}
+                      style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, color: 'var(--color-text-2)' }}
+                      {...dropdownRowHover(false)}
+                    >
+                      <Plus size={13} strokeWidth={2.4} style={{ flexShrink: 0, color: accent }} />
+                      <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{t(createLabel)} «{typed}»</span>
+                    </div>
+                  )}
                 </div>
               </ScrollFade>
+              {creatable && createHint && !typed && (
+                <div onMouseDown={e => { e.preventDefault(); setNaming(true); inputRef.current?.focus() }}
+                  style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, color: accent, marginTop: 4, borderTop: '1px solid var(--color-border)', borderRadius: '0 0 9px 9px' }}
+                  {...dropdownRowHover(false)}
+                >
+                  <Plus size={13} strokeWidth={2.4} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>{t(createHint)}</span>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>,

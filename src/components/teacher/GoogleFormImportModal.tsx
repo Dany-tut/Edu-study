@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, AlertCircle, Loader2, Check } from 'lucide-react'
+import { X, Link2, Loader2, Check } from 'lucide-react'
 import { isGoogleFormUrl, importGoogleForm, type ImportedForm, type ImportedQuestion } from '../../lib/googleFormsImport'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { useT } from '../../lib/i18n'
+import { Alert } from '../Alert'
 
 const TYPE_LABELS: Record<string, string> = {
   single: 'Один ответ', multi: 'Несколько верных', fill: 'Вписать ответ',
@@ -143,10 +144,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                 </button>
               </div>
               {error && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 12, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12.5, lineHeight: 1.5 }}>
-                  <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>{error}</span>
-                </div>
+                <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
               )}
             </div>
           )}

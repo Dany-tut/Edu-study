@@ -10,6 +10,8 @@ import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
 import { useLang, useT } from '../lib/i18n'
 import ThemeToggleBtn from '../components/ThemeToggleBtn'
+import IskraMark from '../components/landing/IskraMark'
+import { Alert } from '../components/Alert'
 
 // Мокап продукта — 81 КБ рисованного интерфейса, и он стоит ПОД первым экраном
 // (внутри Reveal, который и так ждёт прокрутки). Держать его в главном чанке
@@ -118,8 +120,8 @@ export default function LandingPage() {
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         borderBottom: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)',
       }}>
-        <div className="lp-brand" style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 800, fontSize: 20, letterSpacing: -0.3, flexShrink: 0 }}>
-          <img src="/icon.svg" alt="" width={30} height={30} style={{ borderRadius: 8 }} />
+        <div className="lp-brand iskra-host" style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 800, fontSize: 20, letterSpacing: -0.3, flexShrink: 0 }}>
+          <IskraMark size={30} />
           Искра
         </div>
         <nav style={{ marginLeft: 28, display: 'flex', gap: 22 }} className="lp-nav">
@@ -167,7 +169,7 @@ export default function LandingPage() {
             <h1 className="lp-h1" style={{ fontSize: 'clamp(34px, 6.4vw, 64px)', lineHeight: 1.04, fontWeight: 800, letterSpacing: -1.4, margin: 0 }}>
               {t('Вся преподавательская')}<br />
               {t('операционка —')}{' '}
-              <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${ACCENT_L})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', whiteSpace: 'nowrap' }}>
+              <span className="lp-grad-text" style={{ background: `linear-gradient(110deg, ${ACCENT} 0%, ${ACCENT_L} 25%, ${ACCENT} 50%, ${ACCENT_L} 75%, ${ACCENT} 100%)`, backgroundSize: '200% 100%', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', whiteSpace: 'nowrap' }}>
                 {t('в одном окне')}
               </span>
             </h1>
@@ -383,13 +385,16 @@ export default function LandingPage() {
 
       <footer style={{ marginTop: 'clamp(64px, 9vw, 110px)', padding: '30px clamp(16px, 5vw, 56px) 44px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', color: 'var(--color-text-3)', fontSize: 13 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, color: 'var(--color-text-2)' }}>
-          <img src="/icon.svg" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
+          <img src="/icon.svg?v=3" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
         </div>
         <span style={{ marginLeft: 'auto' }}>© Искра · {t('Платформа для преподавателей')}</span>
       </footer>
 
       <style>{`
         .lp-nav a:hover { color: var(--color-text); }
+        @keyframes lp-grad-shift { from { background-position: 0% 50%; } to { background-position: -200% 50%; } }
+        .lp-grad-text { animation: lp-grad-shift 6s linear infinite; }
+        @media (prefers-reduced-motion: reduce) { .lp-grad-text { animation: none; } }
         #how, #features, #tariffs { scroll-margin-top: ${headerH + 16}px; }
         .lp-feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, ${ACCENT} 45%, var(--color-border)); }
         @media (max-width: 760px) { .lp-nav { display: none !important; } }
@@ -582,7 +587,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
                 </div>
               </div>
               <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t('Сообщение — коротко о задаче (необязательно)')} rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
-              {error && <div style={{ fontSize: 13, color: '#E86A6A', fontWeight: 600 }}>{error}</div>}
+              {error && <Alert tone="danger" text={error} />}
               <button onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
                 <Send size={17} /> {sending ? t('Отправляем…') : t('Отправить заявку')}
               </button>

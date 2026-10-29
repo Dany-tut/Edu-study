@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { Check, ListChecks, MessagesSquare, Mic, Repeat, SlidersHorizontal, Volume2, ChevronLeft } from 'lucide-react'
+import { Check, ListChecks, MessagesSquare, Mic, Repeat, SlidersHorizontal, Volume2 } from 'lucide-react'
 import { useT } from '../../../lib/i18n'
 import VoiceRecorder from '../../VoiceRecorder'
 import Shadowing, { type ShadowLine } from '../Shadowing'
@@ -31,6 +31,7 @@ import {
   RailCard, RailSegment, RailStat, Toolbar, ToolButton, ToolCount, SearchPill, StatusTabs,
   Tile, TileGrid, TileChip, Empty as ShellEmpty, plural,
 } from '../TrainerShell'
+import BackCircle from '../../../components/BackCircle'
 
 // ─── Говорение ───────────────────────────────────────────────────────────────
 
@@ -462,9 +463,7 @@ export function useSpeakingMode({
 
   const toolbar = !active ? null : open ? (
     <Toolbar>
-      <ToolButton onClick={() => setOpen(null)}>
-        <ChevronLeft size={14} /> {t('К списку')}
-      </ToolButton>
+      <BackCircle onClick={() => setOpen(null)} label="К списку" />
       <ToolCount>{t(open.title)}</ToolCount>
     </Toolbar>
   ) : (

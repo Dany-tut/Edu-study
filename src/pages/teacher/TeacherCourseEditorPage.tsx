@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
+import { AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Plus, Video, Link2, Upload,
+  Plus, Video, Link2, Upload,
   BookOpen, AlignLeft, CheckSquare, Type, Shuffle,
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
@@ -12,11 +13,13 @@ import {
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
+import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
-import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
+import { courseSubjectOptionsFor, isLanguageSubject } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
 import { useGroups, useAllStudents, groupStudentsByPerson, type PersonRow } from '../../lib/useGroups'
@@ -30,7 +33,7 @@ import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight, TASK_TEXT_LH, TEXT_LIFT } from '../../components/GrowTextarea'
+import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import {
   taskTypesFor, makeTask, charUnits, scrambleUnits, TASK_TYPES as TASK_TYPES_BY_ID,
@@ -61,8 +64,10 @@ import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonConte
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
 import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
+import { extraHwLabel, newExtraHwId } from '../../lib/extraHomework'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import { SEED_CARDS } from '../../data/courseSeedCards'
+import BackCircle from '../../components/BackCircle'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,6 +140,8 @@ export interface CELesson {
   recHwDate?: string
   recHwDateManual?: boolean
   recHwTasks?: HWTask[]
+  /** Доп. домашки урока («Доп», «Доп 1», «Доп 2»…) — см. lib/extraHomework. */
+  extraHw?: CEExtraHw[]
   // calendar scheduling — LESSON (Урок) event
   scheduledDate?: string   // DD.MM.YYYY
   scheduledTime?: string   // HH:MM
@@ -190,6 +197,10 @@ export interface CourseEdData {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
+// Модули необязательны. Уроки «без модуля» живут в модуле с пустым названием:
+// в базе урок обязан висеть на модуле (ученик читает уроки через course_modules),
+// а в редакторе и у ученика у такого модуля нет заголовка.
+function isLooseModule(m: { label: string }) { return !m.label.trim() }
 
 /** Поле с сохранённым названием/описанием: без фокуса в английском режиме
  *  показывает перевод (tc), в фокусе — исходник, так что правится оригинал.
@@ -283,12 +294,6 @@ const taskTextSt: React.CSSProperties = { ...inputSt, lineHeight: TASK_TEXT_LH }
 function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextarea>) {
   return <GrowTextarea {...rest} style={{ ...inputSt, ...style }} />
 }
-/** AutoTextarea с сохранённой подписью — см. useContentField. Фокус ловится
- *  обёрткой: в React onFocus/onBlur всплывают. */
-function ContentAutoTextarea({ value, ...rest }: React.ComponentProps<typeof GrowTextarea> & { value: string }) {
-  const f = useContentField(value)
-  return <div onFocus={f.onFocus} onBlur={f.onBlur}><AutoTextarea {...rest} value={f.value} /></div>
-}
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -356,6 +361,7 @@ function LeftCourseMeta({
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
 }) {
   const t = useT()
+  const mySubjects = useTeacherAccess(s => s.subjects)
   const titleField = useContentField(course.title)
   const descField = useContentField(course.description ?? '')
   // Title is a textarea so long names wrap onto a 2nd line instead of clipping;
@@ -375,7 +381,8 @@ function LeftCourseMeta({
         rows={1}
         {...titleField}
         onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
-        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden' }}
+        // flexShrink 0: колонка — флекс, и в низком окне она ужимала поле по высоте
+        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden', flexShrink: 0 }}
         placeholder={t('Название курса')}
       />
 
@@ -385,7 +392,7 @@ function LeftCourseMeta({
           <Label>{t('Предмет')}</Label>
           <TeacherSelect
             value={course.subject}
-            options={COURSE_SUBJECTS.map(o => ({ ...o, label: t(o.label) }))}
+            options={courseSubjectOptionsFor(mySubjects, course.subject).map(o => ({ ...o, label: t(o.label) }))}
             onChange={v => setCourse(c => ({ ...c, subject: v }))}
             placeholder={t('Выберите предмет')}
             clearable={false}
@@ -438,7 +445,6 @@ function LeftCourseMeta({
 // ─── CENTER: Course access — who gets the course (no lesson selected) ─────────
 
 // Subjects a course can belong to — sourced from the subject registry.
-const COURSE_SUBJECTS = courseSubjectOptions()
 
 type AccessMode = 'full' | 'custom' | 'by_date'
 const ACCESS_MODE_OPTIONS: Array<{ value: AccessMode; label: string }> = [
@@ -2156,6 +2162,13 @@ function CenterLesson({
                   </div>
                 )}
 
+                {(multiple || !has) && !busy && (
+                  <LessonLinkAttach compact onAdd={file => {
+                    setSlotErr(e => ({ ...e, [slot]: undefined }))
+                    onUpdate({ ...lesson, files: withSlotFiles(lesson.files, slot, [file]) })
+                  }} />
+                )}
+
                 {has && !multiple && (
                   <button
                     onClick={e => { e.stopPropagation(); removeFile(slot, files[0]) }}
@@ -2471,7 +2484,9 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
         }}
       >
         <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
-        <span style={{ flex: 1, ...TEXT_LIFT, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        {/* Без TEXT_LIFT: рядом с иконкой календаря подъём уводил буквы на
+            1,4px выше её центра (замер 29.10.2026). */}
+        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || ph}
         </span>
         {value ? (
@@ -3564,14 +3579,145 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   )
 }
 
-// ─── Homework field map ───────────────────────────────────────────────────────
-// Each lesson carries two independent homeworks — one for the «Урок» node and one
-// for the «Запись» node. The hwTab toggle (lifted to the page) picks which.
+// ─── Homework slots ───────────────────────────────────────────────────────────
+// У урока основная домашка (hwTasks/hwDate) и сколько угодно доп. домашек
+// (extraHw). hwTab — какая открыта: MAIN_HW или id доп. домашки; поднят на
+// уровень страницы, чтобы левая колонка и список заданий в центре совпадали.
+// Своего названия у домашки нет — у ученика это «Домашка по теме «<урок>»» и
+// «Доп 1 · <урок>».
 
-function hwFields(hwTab: 'lesson' | 'rec') {
-  return hwTab === 'rec'
-    ? { title: 'recHwTitle', date: 'recHwDate', dateManual: 'recHwDateManual', tasks: 'recHwTasks' } as const
-    : { title: 'hwTitle',    date: 'hwDate',    dateManual: 'hwDateManual',    tasks: 'hwTasks' } as const
+interface CEExtraHw { id: string; date?: string; tasks: HWTask[] }
+const MAIN_HW = 'main'
+
+/** Открытая домашка. Незнакомый hwTab (доп. удалили, старое 'lesson'/'rec' из
+ *  sessionStorage) — основная. */
+function hwSlot(lesson: CELesson, hwTab: string): { tab: string; tasks: HWTask[]; date?: string } {
+  const x = lesson.extraHw?.find(e => e.id === hwTab)
+  return x
+    ? { tab: x.id, tasks: x.tasks ?? [], date: x.date }
+    : { tab: MAIN_HW, tasks: lesson.hwTasks ?? [], date: lesson.hwDate }
+}
+
+function patchHwSlot(lesson: CELesson, hwTab: string, p: { tasks?: HWTask[]; date?: string }): CELesson {
+  if (lesson.extraHw?.some(e => e.id === hwTab)) {
+    return { ...lesson, extraHw: lesson.extraHw.map(e => e.id === hwTab ? { ...e, ...p } : e) }
+  }
+  const next: CELesson = { ...lesson }
+  if (p.tasks) next.hwTasks = p.tasks
+  // Editing the due date by hand detaches it from the lesson date; clearing it
+  // re-attaches so it resumes mirroring that date.
+  if ('date' in p) { next.hwDate = p.date; next.hwDateManual = !!p.date }
+  return next
+}
+
+/** Вкладки «ДЗ · Доп 1 · Доп 2» и под ними кнопки «+ Доп. ДЗ» и «★ Сложное».
+ *  Пока доп. домашек нет, вкладок нет вовсе — только кнопки. */
+function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHard, hardCount }: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+  hwTab: string
+  setHwTab: (t: string) => void
+  hardMode: boolean
+  onToggleHard: () => void
+  hardCount: number
+}) {
+  const t = useT()
+  const extras = lesson.extraHw ?? []
+  const active = hwSlot(lesson, hwTab).tab
+
+  function addExtra() {
+    const id = newExtraHwId()
+    onUpdate({ ...lesson, extraHw: [...extras, { id, tasks: [] }] })
+    setHwTab(id)
+  }
+
+  async function removeExtra(x: CEExtraHw, label: string) {
+    if (x.tasks.length > 0) {
+      const ok = await confirmDialog({
+        title: `${t('Удалить')} «${label}»?`,
+        message: t('Задания этой домашки удалятся вместе с ней.'),
+        confirmLabel: t('Удалить'),
+        tone: 'danger',
+      })
+      if (!ok) return
+    }
+    onUpdate({ ...lesson, extraHw: extras.filter(e => e.id !== x.id) })
+    setHwTab(MAIN_HW)
+  }
+
+  const btnBase: React.CSSProperties = {
+    flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+    padding: '7px 8px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+    fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', transition: 'background 0.13s',
+  }
+  // «★ Сложное» переключает палитру слева на сложные задания; они ложатся в
+  // домашку открытой вкладки (ДЗ или Доп).
+  const addButton = (
+    <div style={{ flexShrink: 0, display: 'flex', gap: 6 }}>
+      <button onClick={addExtra} style={{
+        ...btnBase, color: 'var(--color-green-text)',
+        background: 'transparent', border: '1px dashed var(--color-green-text)',
+      }}>
+        <Plus size={14} strokeWidth={2.2} />
+        {t('Доп. ДЗ')}
+      </button>
+      <button onClick={onToggleHard} aria-pressed={hardMode} style={{
+        ...btnBase, color: '#D97706',
+        background: hardMode ? 'rgba(245,158,11,0.16)' : 'transparent',
+        border: `1px ${hardMode ? 'solid' : 'dashed'} rgba(245,158,11,0.7)`,
+      }}>
+        <Star size={13} style={{ flexShrink: 0, color: '#F59E0B', fill: hardMode ? '#F59E0B' : 'none' }} />
+        {t('Сложное')}
+        {hardCount > 0 && (
+          <span title={t('Заданий добавлено')} style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: 'rgba(245,158,11,0.18)' }}>{hardCount}</span>
+        )}
+      </button>
+    </div>
+  )
+  if (extras.length === 0) return addButton
+
+  const tabs = [
+    { id: MAIN_HW, label: t('ДЗ'), n: (lesson.hwTasks ?? []).length, extra: null as CEExtraHw | null },
+    ...extras.map((x, i) => ({ id: x.id, label: extraHwLabel(i, extras.length, t), n: x.tasks.length, extra: x as CEExtraHw | null })),
+  ]
+  return (
+    <>
+    {/* flexShrink 0: колонка — flex-столбец с прокруткой; без него ряд сплющивало
+        в полоску, когда заданий много. Вкладки переносятся, а не режутся. */}
+    <div style={{ flexShrink: 0, display: 'flex', flexWrap: 'wrap', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+      {tabs.map(tt => {
+        const on = active === tt.id
+        return (
+          <div key={tt.id} role="button" tabIndex={0}
+            onClick={() => setHwTab(tt.id)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHwTab(tt.id) } }}
+            style={{
+              flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: '7px 8px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+              background: on ? 'var(--color-green-soft)' : 'transparent',
+              color: on ? 'var(--color-green-text)' : 'var(--color-text-3)',
+              transition: 'background 0.13s',
+            }}>
+            {tt.label}
+            {tt.n > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: on ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: on ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
+            )}
+            {on && tt.extra && (
+              <button
+                onClick={e => { e.stopPropagation(); void removeExtra(tt.extra!, tt.label) }}
+                title={t('Удалить')} aria-label={`${t('Удалить')} ${tt.label}`}
+                style={{ display: 'flex', padding: 0, margin: '0 -2px 0 0', border: 'none', background: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.7 }}
+              >
+                <X size={13} strokeWidth={2.2} />
+              </button>
+            )}
+          </div>
+        )
+      })}
+    </div>
+    {addButton}
+    </>
+  )
 }
 
 // ─── Bank picker (collapsible «Из тренажёра» list) ───────────────────────────
@@ -3651,50 +3797,29 @@ function HomeworkLeftPanel({
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
-  hwTab: 'lesson' | 'rec'
-  setHwTab: (t: 'lesson' | 'rec') => void
+  hwTab: string
+  setHwTab: (t: string) => void
   isLanguage?: boolean
 }) {
   const t = useT()
-  const F = hwFields(hwTab)
-  const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+  const slot = hwSlot(lesson, hwTab)
+  const tasks = slot.tasks
   // Language types only appear for language courses; other courses keep the base palette.
   const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
 
-  // Аккордеон: открыта ровно одна секция (по умолчанию — обычные типы).
-  const [openSection, setOpenSection] = useState<'basic' | 'hard'>('basic')
+  // Режим палитры: обычные типы или сложные (кнопка «★ Сложное» наверху).
+  const [hardMode, setHardMode] = useState(false)
   const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
 
-  // Переключатель ДЗ урока / записи: если обе подписи не влезают (английский),
-  // неактивная вкладка сворачивается в иконку. Меряем скрытым рядом с полными подписями.
-  const hwTabs = [
-    { id: 'lesson', label: t('ДЗ урока'), n: (lesson.hwTasks ?? []).length, Icon: BookOpen },
-    { id: 'rec',    label: t('ДЗ записи'), n: (lesson.recHwTasks ?? []).length, Icon: Video },
-  ] as const
-  const toggleRef = useRef<HTMLDivElement>(null)
-  const measureRef = useRef<HTMLDivElement>(null)
-  const [toggleCompact, setToggleCompact] = useState(false)
-  const toggleKey = hwTabs.map(tt => `${tt.label}:${tt.n}`).join('|')
-  useLayoutEffect(() => {
-    const box = toggleRef.current, probe = measureRef.current
-    if (!box || !probe) return
-    const check = () => setToggleCompact(probe.scrollWidth > box.clientWidth)
-    check()
-    const ro = new ResizeObserver(check)
-    ro.observe(box)
-    return () => ro.disconnect()
-  }, [toggleKey])
-
-  function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
 
   function addTask(type: HWTaskType, isHard: boolean) {
-    patch({ [F.tasks]: [...tasks, makeHWTask(type, isHard)] })
+    onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, makeHWTask(type, isHard)] }))
   }
 
   function addFromBank(bt: BankTask, isHard: boolean) {
-    patch({ [F.tasks]: [...tasks, hwTaskFromBank(bt, isHard)] })
+    onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, hwTaskFromBank(bt, isHard)] }))
   }
 
   // Сложные задания: развёрнутый ответ, выбор и доска (ребёнок рисует решение).
@@ -3722,87 +3847,28 @@ function HomeworkLeftPanel({
         padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
         ...fadeMask(hwFade),
       }}>
-      {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
-      {/* flexShrink 0: колонка — flex-столбец с прокруткой, а ряд с overflow:hidden
-          теряет min-height:auto — когда заданий много, его сплющивало в полоску. */}
-      <div ref={toggleRef} style={{ position: 'relative', overflow: 'hidden', flexShrink: 0, display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
-        {/* Скрытый замер: обе вкладки с полными подписями, без сжатия. */}
-        <div ref={measureRef} aria-hidden style={{
-          position: 'absolute', left: 0, top: 0, width: 'max-content', display: 'flex', gap: 4, padding: 3,
-          visibility: 'hidden', pointerEvents: 'none', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-        }}>
-          {hwTabs.map(tt => (
-            <span key={tt.id} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 8px' }}>
-              {tt.label}
-              {tt.n > 0 && <span style={{ fontSize: 10, padding: '1px 6px' }}>{tt.n}</span>}
-            </span>
-          ))}
-        </div>
-        {hwTabs.map(tt => {
-          const iconOnly = toggleCompact && hwTab !== tt.id
-          return (
-          <button key={tt.id} onClick={() => setHwTab(tt.id)} title={iconOnly ? tt.label : undefined} aria-label={iconOnly ? tt.label : undefined} style={{
-            flex: iconOnly ? '0 0 auto' : 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
-            border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-            background: hwTab === tt.id ? 'var(--color-green-soft)' : 'transparent',
-            color: hwTab === tt.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
-            transition: 'background 0.13s',
-          }}>
-            {iconOnly
-              ? <tt.Icon size={15} strokeWidth={2} />
-              : <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{tt.label}</span>}
-            {tt.n > 0 && !iconOnly && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === tt.id ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: hwTab === tt.id ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
-            )}
-          </button>
-          )
-        })}
-      </div>
+      <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab}
+        hardMode={hardMode} onToggleHard={() => setHardMode(m => !m)} hardCount={hardCount} />
 
       <div>
-        {/* Названия юнитов длинные («Юнит 1. Хангыль: гласные и первые слова») —
-            в одну строку они обрезались, поэтому поле растёт по тексту. */}
-        <ContentAutoTextarea
-          value={(lesson[F.title] as string | undefined) ?? ''}
-          onChange={v => patch({ [F.title]: v })}
-          style={{ padding: '7px 10px', fontSize: 12, lineHeight: 1.35 }}
-          placeholder={t('Название задания')}
-        />
-      </div>
-      <div>
         <CalendarPicker
-          value={(lesson[F.date] as string | undefined) ?? ''}
+          value={slot.date ?? ''}
           placeholder={t('Дата сдачи')}
-          // Editing the due date by hand detaches it from the lesson/recording date;
-          // clearing it re-attaches so it resumes mirroring that date.
-          onChange={v => patch({ [F.date]: v, [F.dateManual]: !!v })}
+          onChange={v => onUpdate(patchHwSlot(lesson, slot.tab, { date: v || undefined }))}
         />
       </div>
 
       <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 0' }} />
 
-      {/* Аккордеон: открыта всегда ровно одна секция (тип / сложное). */}
-      <AccordionSection
-        title={t('ТИП ЗАДАНИЯ')}
-        count={basicCount}
-        open={openSection === 'basic'}
-        onToggle={() => setOpenSection(s => s === 'basic' ? 'hard' : 'basic')}
-      >
+      {!hardMode ? (
+      <PaletteSection title={t('ТИП ЗАДАНИЯ')} count={basicCount}>
         {palette.map(tt => (
           <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type, false)} />
         ))}
         <BankPicker onPick={bt => addFromBank(bt, false)} />
-      </AccordionSection>
-
-      <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 4px' }} />
-
-      <AccordionSection
-        title={t('СЛОЖНОЕ ЗАДАНИЕ')}
-        count={hardCount}
-        accent="#B45309"
-        open={openSection === 'hard'}
-        onToggle={() => setOpenSection(s => s === 'hard' ? 'basic' : 'hard')}
-      >
+      </PaletteSection>
+      ) : (
+      <PaletteSection title={t('СЛОЖНОЕ ЗАДАНИЕ')} count={hardCount} accent="#D97706">
         {hardTaskTypes.map(tt => (
           <button key={tt.type + '_hard'} onClick={() => addTask(tt.type, true)} style={{
             display: 'flex', alignItems: 'center', gap: 8,
@@ -3819,37 +3885,26 @@ function HomeworkLeftPanel({
           </button>
         ))}
         <BankPicker hard onPick={bt => addFromBank(bt, true)} />
-      </AccordionSection>
+      </PaletteSection>
+      )}
       </div>
     </div>
   )
 }
 
-// ─── Collapsible section header (mutually-exclusive accordion) ───────────────
+// ─── Palette section: header with the added-task count + its types ──────────
 
-function AccordionSection({ title, count, open, onToggle, accent, children }: {
+function PaletteSection({ title, count, accent, children }: {
   title: string
   count: number
-  open: boolean
-  onToggle: () => void
   accent?: string
   children: React.ReactNode
 }) {
   const t = useT()
   return (
     <div>
-      <button
-        onClick={onToggle}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '8px 8px', borderRadius: 11, border: 'none',
-          background: open ? 'var(--color-bg-2)' : 'transparent',
-          cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s',
-        }}
-        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
-        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-      >
-        <span style={{ flex: 1, textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: accent ?? 'var(--color-text-3)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px' }}>
+        <span style={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: accent ?? 'var(--color-text-3)' }}>
           {title}
         </span>
         {count > 0 && (
@@ -3862,23 +3917,10 @@ function AccordionSection({ title, count, open, onToggle, accent, children }: {
             color: accent ?? 'var(--color-muted)',
           }}>{count}</span>
         )}
-        <ChevronDown size={15} style={{ flexShrink: 0, color: accent ?? 'var(--color-text-3)', transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 8 }}>
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 10 }}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -3890,11 +3932,11 @@ function CenterHomework({
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
-  hwTab: 'lesson' | 'rec'
+  hwTab: string
 }) {
   const t = useT()
-  const F = hwFields(hwTab)
-  const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+  const slot = hwSlot(lesson, hwTab)
+  const tasks = slot.tasks
 
   // Drag-to-reorder. The whole card can't be `draggable` (it would block text
   // selection inside the textareas), so dragging is «armed» only on grip
@@ -3904,9 +3946,9 @@ function CenterHomework({
   const [dropIdx, setDropIdx] = useState<number | null>(null)
   const clearDrag = () => { setDragId(null); setDropIdx(null); setArmedId(null) }
 
-  function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
-  function removeTask(id: string) { patch({ [F.tasks]: tasks.filter(t => t.id !== id) }) }
-  function updateTask(updated: HWTask) { patch({ [F.tasks]: tasks.map(t => t.id === updated.id ? updated : t) }) }
+  function setTasks(next: HWTask[]) { onUpdate(patchHwSlot(lesson, slot.tab, { tasks: next })) }
+  function removeTask(id: string) { setTasks(tasks.filter(t => t.id !== id)) }
+  function updateTask(updated: HWTask) { setTasks(tasks.map(t => t.id === updated.id ? updated : t)) }
 
   function commitDrop() {
     if (dragId == null || dropIdx == null) { clearDrag(); return }
@@ -3916,7 +3958,7 @@ function CenterHomework({
     const [moved] = cur.splice(from, 1)
     const insertAt = from < dropIdx ? dropIdx - 1 : dropIdx
     cur.splice(insertAt, 0, moved)
-    patch({ [F.tasks]: cur })
+    setTasks(cur)
     clearDrag()
   }
 
@@ -3930,6 +3972,11 @@ function CenterHomework({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
           <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Выберите тип задания слева')}</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            {t('Сложные задания — кнопкой')}
+            <Star size={12} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
+            {t('Сложное')}
+          </span>
         </div>
       ) : (
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -4542,7 +4589,7 @@ function LessonRow({
             ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Вопросы')} />
             : <>
                 {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Запись')} />}
-                {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('ДЗ')} />}
+                {((lesson.hwTasks?.length ?? 0) > 0 || !!lesson.extraHw?.some(x => x.tasks.length > 0)) && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('ДЗ')} />}
                 {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title={t('Доп. ученики')} />}
               </>}
         </div>
@@ -4581,12 +4628,14 @@ function RightPanelLessons({
   function appendLesson(lesson: CELesson) {
     setCourse(c => {
       const updatedLessons = [...c.lessons, lesson]
-      if (c.modules.length === 0) return { ...c, lessons: updatedLessons }
-      const targetId = activeModuleId && c.modules.some(m => m.id === activeModuleId)
-        ? activeModuleId
-        : c.modules[c.modules.length - 1].id
+      // Выбран модуль — урок идёт в него, иначе — в уроки без модуля.
+      const active = activeModuleId ? c.modules.find(m => m.id === activeModuleId) : undefined
+      const target = active ?? c.modules.find(isLooseModule)
+      if (!target) {
+        return { ...c, lessons: updatedLessons, modules: [{ id: uid(), label: '', expanded: true, lessonIds: [lesson.id] }, ...c.modules] }
+      }
       const mods = c.modules.map(m =>
-        m.id === targetId ? { ...m, lessonIds: [...m.lessonIds, lesson.id] } : m
+        m.id === target.id ? { ...m, lessonIds: [...m.lessonIds, lesson.id] } : m
       )
       return { ...c, lessons: updatedLessons, modules: mods }
     })
@@ -4630,6 +4679,25 @@ function RightPanelLessons({
       ...c,
       modules: c.modules.map(m => m.id === id ? { ...m, label: trimmed } : m),
     }))
+  }
+
+  // Убрать модуль, не трогая уроки: они уходят в уроки без модуля.
+  function dissolveModule(id: string) {
+    setCourse(c => {
+      const mod = c.modules.find(m => m.id === id)
+      if (!mod) return c
+      const rest = c.modules.filter(m => m.id !== id)
+      const loose = rest.find(isLooseModule)
+      return {
+        ...c,
+        modules: loose
+          ? rest.map(m => m === loose ? { ...m, lessonIds: [...m.lessonIds, ...mod.lessonIds] } : m)
+          : mod.lessonIds.length
+            ? [{ id: uid(), label: '', expanded: true, lessonIds: mod.lessonIds }, ...rest]
+            : rest,
+      }
+    })
+    if (activeModuleId === id) setActiveModuleId(null)
   }
 
   function deleteLesson(lessonId: string) {
@@ -4796,7 +4864,7 @@ function RightPanelLessons({
                           onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          {tc(m.label)}
+                          {isLooseModule(m) ? t('Без модуля') : tc(m.label)}
                         </button>
                       ))}
                       </ScrollFade>
@@ -4870,9 +4938,10 @@ function RightPanelLessons({
             .filter(Boolean) as CELesson[]
           const isTarget = dropTarget?.moduleId === mod.id
           const isActive = activeModuleId === mod.id
+          const loose = isLooseModule(mod)
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
-              <button
+              {!loose && <button
                 onClick={e => {
                   // e.detail > 1 — это второй клик двойного, его глотаем:
                   // раскрытие/сворачивание должно реагировать только на одиночный.
@@ -4964,18 +5033,29 @@ function RightPanelLessons({
                     {t('в конец')}
                   </span>
                 )}
+                {isActive && editingModuleId !== mod.id && (
+                  <span
+                    role="button"
+                    title={t('Убрать модуль — уроки останутся без модуля')}
+                    onClick={e => { e.stopPropagation(); dissolveModule(mod.id) }}
+                    onDoubleClick={e => e.stopPropagation()}
+                    style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', color: 'var(--color-green-text)', padding: 1, margin: -1 }}
+                  >
+                    <X size={12} />
+                  </span>
+                )}
                 <span style={{ fontSize: 10, color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
-              </button>
+              </button>}
               {/* initial={false}: при входе в курс модули уже развёрнуты — без него
                   каждый вырастал с нуля, и правая колонка дёргалась на входе. */}
               <AnimatePresence initial={false}>
-                {mod.expanded && (
+                {(loose || mod.expanded) && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.18 }}
-                    style={{ overflow: 'hidden', paddingLeft: 10, paddingTop: 3, paddingBottom: 3 }}
+                    style={{ overflow: 'hidden', paddingLeft: loose ? 0 : 10, paddingTop: loose ? 0 : 3, paddingBottom: 3 }}
                     onDragOver={e => {
                       e.preventDefault()
                       if (dropTarget?.moduleId !== mod.id) {
@@ -4986,7 +5066,9 @@ function RightPanelLessons({
                     {modLessons.length === 0 ? (
                       isTarget
                         ? <DropLine />
-                        : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>{t('Нет уроков')}</div>
+                        : loose
+                          ? (dragging && <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', borderRadius: 8, border: '1.5px dashed var(--color-border)' }}>{t('Без модуля')}</div>)
+                          : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>{t('Нет уроков')}</div>
                     ) : (
                       <>
                         {modLessons.map((l, i) => (
@@ -5136,7 +5218,7 @@ export default function TeacherCourseEditorPage() {
           id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
           color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
           groupIds: [], studentIds: [],
-          modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
+          modules: [],
           lessons: [],
         }
     // Unsaved edits win over the snapshot the editor was opened with: the
@@ -5207,6 +5289,7 @@ export default function TeacherCourseEditorPage() {
               recHwDate: l.recHwDate ?? hw.recHwDate ?? undefined,
               recHwDateManual: l.recHwDateManual ?? hw.recHwDateManual ?? false,
               recHwTasks: l.recHwTasks ?? (Array.isArray(hw.recHwTasks) ? hw.recHwTasks : []),
+              extraHw: l.extraHw ?? (Array.isArray(hw.extraHw) ? hw.extraHw : []),
             }
           }),
         }
@@ -5348,7 +5431,7 @@ export default function TeacherCourseEditorPage() {
   const savedPos = (() => {
     try {
       const raw = sessionStorage.getItem(posKey)
-      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode; hwTab?: 'lesson' | 'rec' }) : null
+      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode; hwTab?: string }) : null
     } catch { return null }
   })()
 
@@ -5356,11 +5439,11 @@ export default function TeacherCourseEditorPage() {
     savedPos?.lessonId && course.lessons.some(l => l.id === savedPos.lessonId) ? savedPos.lessonId : null
   )
   const [lessonMode, setLessonMode] = useState<LessonMode>(savedPos?.mode ?? 'lesson')
-  // Homework target toggle (ДЗ урока vs ДЗ записи) — lifted here so the left
+  // Открытая домашка урока (основная / доп., см. hwSlot) — lifted here so the left
   // meta rail and the center task list stay in sync. Живёт на уровне страницы,
   // поэтому переключение урока его не сбрасывает; в sessionStorage — чтобы
   // пережить и перезагрузку, как выбранный урок с вкладкой режима.
-  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>(savedPos?.hwTab ?? 'lesson')
+  const [hwTab, setHwTab] = useState<string>(savedPos?.hwTab ?? MAIN_HW)
 
   useEffect(() => {
     try {
@@ -5472,24 +5555,65 @@ export default function TeacherCourseEditorPage() {
   // Persist edits ~900ms after the teacher stops changing things, so they never
   // have to press "Сохранить" after every action. Keeps whatever status the
   // course already has (a draft stays a draft, published stays published — we
-  // never auto-publish). Guarded to already-saved courses so a brand-new draft
-  // isn't written to the DB on the first keystroke, and the first render (the
-  // initial load from JSON) is skipped.
+  // never auto-publish). The first render (the initial load from JSON) is
+  // skipped for saved courses.
+  //
+  // НОВЫЙ КУРС ТОЖЕ ПИШЕТСЯ САМ. Раньше автосейв ждал dbCourseId, а кнопку
+  // «Сохранить» убрали в расчёте на автосейв: у нового курса не оставалось ни
+  // одного способа попасть в базу, кроме публикации (а ей нужна аудитория).
+  // Полчаса работы жили в sessionStorage и пропадали при выходе из вкладки.
+  // Пишем черновиком, как только у курса есть название; первый рендер у такого
+  // курса не пропускаем — курс, поднятый из черновика сессии, сохраняется сразу.
   const autosaveArmed = useRef(false)
   useEffect(() => {
-    if (!course.dbCourseId) return
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
     if (course.heavyPending) return
-    if (!autosaveArmed.current) { autosaveArmed.current = true; return }
+    if (!course.dbCourseId && !course.title.trim()) return
+    if (!autosaveArmed.current) {
+      autosaveArmed.current = true
+      if (course.dbCourseId) return
+    }
+    unsaved.current = true
     const t = setTimeout(() => {
       setCourseEdited(JSON.stringify(course))
-      const seq = draftSeq.current
-      syncAccessToSupabase(course).then(ok => clearCourseDraftAfterSync(seq, ok))
-      flash()
+      runAutosave(course)
     }, 900)
     return () => clearTimeout(t)
   }, [course])
+
+  // «Сохранено!» — только после ответа базы. Раньше подпись мигала сразу, до
+  // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
+  // Пока последняя правка не доехала, `unsaved` поднят: по нему закрытие вкладки
+  // спрашивает подтверждение, а уход из редактора дописывает курс напоследок.
+  const unsaved = useRef(false)
+  const latestCourse = useRef(course)
+  latestCourse.current = course
+  // Свежая функция, а не из первого рендера: та видит пустую карту уровней
+  // доступа и затёрла бы выставленные учителем.
+  const latestSync = useRef(syncAccessToSupabase)
+  latestSync.current = syncAccessToSupabase
+  function runAutosave(c: CourseEdData) {
+    const seq = draftSeq.current
+    return syncAccessToSupabase(c).then(ok => {
+      clearCourseDraftAfterSync(seq, ok)
+      if (ok && draftSeq.current === seq) unsaved.current = false
+      if (ok) { setPublishErr(null); flash() }
+      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+      return ok
+    })
+  }
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => { if (unsaved.current) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', warn)
+    return () => {
+      window.removeEventListener('beforeunload', warn)
+      // Выход из редактора раньше, чем истекли 900 мс автосейва, гасил таймер —
+      // и последняя правка терялась. Дописываем её при размонтировании.
+      const c = latestCourse.current
+      if (unsaved.current && !c.heavyPending && (c.dbCourseId || c.title.trim())) void latestSync.current(c)
+    }
+  }, [])
 
   async function openLessonForStudents(lessonId: string) {
     if (!course.dbCourseId) return
@@ -5612,7 +5736,23 @@ export default function TeacherCourseEditorPage() {
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
   }
 
-  async function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
+  // ── Записи курса идут строго по одной ─────────────────────────────────────
+  //
+  // Сохранение длится секунду-другую (курс, модули, уроки, календарь), а
+  // автосейв срабатывает через 900 мс после правки. Учитель печатает дальше —
+  // и вторая запись стартовала, пока первая ещё писала. Вторая видела отпечаток
+  // первой (курс уже переписан, а baselineStamp сдвигается только в самом
+  // конце) и принимала нашу же запись за чужую: «Курс изменили в другом месте»
+  // плюс красное «Не удалось сохранить», хотя вкладка одна. Поэтому очередь:
+  // следующая запись ждёт, пока предыдущая не сдвинет отпечаток.
+  const saveChain = useRef<Promise<unknown>>(Promise.resolve())
+  function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
+    const run = saveChain.current.then(() => syncCourseNow(c), () => syncCourseNow(c))
+    saveChain.current = run
+    return run
+  }
+
+  async function syncCourseNow(c: CourseEdData): Promise<boolean> {
     const shortId = c.dbCourseId ?? c.id
 
     // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
@@ -5691,9 +5831,11 @@ export default function TeacherCourseEditorPage() {
     // course_modules → lessons, so every lesson must live under a module.
     // Build the ordered lesson list: module order, then each module's lessonIds,
     // with any ungrouped lesson appended to the first module.
-    const editorModules = c.modules.length > 0
-      ? c.modules
-      : [{ id: 'm0', label: 'Модуль 1', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
+    // Пустой модуль «без названия» не пишем — иначе у ученика пустая вкладка.
+    const keptModules = c.modules.filter(m => !isLooseModule(m) || m.lessonIds.length > 0)
+    const editorModules = keptModules.length > 0
+      ? keptModules
+      : [{ id: 'm0', label: '', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
     const firstModuleLocalId = editorModules[0].id
 
     // 1. Reuse existing modules by position; create missing, drop extras.
@@ -5791,6 +5933,7 @@ export default function TeacherCourseEditorPage() {
         recHwDate: lesson.recHwDate ?? null,
         recHwDateManual: lesson.recHwDateManual ?? false,
         recHwTasks: lesson.recHwTasks ?? [],
+        extraHw: lesson.extraHw ?? [],
       },
     }))
     if (lessonRows.length > 0) {
@@ -5949,19 +6092,28 @@ export default function TeacherCourseEditorPage() {
     // lessons, then insert the fresh set. Deleting only the lessons that still
     // produce a row (the old behaviour) orphaned entries whenever a date was
     // cleared or a recording stopped diverging → phantom calendar dates.
+    //
+    // ПОРЯДОК: прочитать старые → вставить новые → удалить старые по id. Было
+    // «удалить всё, потом вставить», и упавшая вставка оставляла курс без
+    // календаря, а сохранение всё равно возвращало true — «Сохранено!».
     const allLessonIds = dbLessons.map(l => l.id)
+    let oldScheduleIds: string[] = []
     if (allLessonIds.length > 0) {
-      const { error: delErr } = await supabase
-        .from('schedule_lessons')
-        .delete()
-        .in('lesson_id', allLessonIds)
-      if (delErr) console.error('schedule_lessons delete failed:', delErr)
+      const { data: oldRows, error: readErr } = await supabase
+        .from('schedule_lessons').select('id').in('lesson_id', allLessonIds)
+      if (readErr) { console.error('schedule_lessons read failed:', readErr); return false }
+      oldScheduleIds = (oldRows ?? []).map(r => (r as { id: string }).id)
     }
     if (rows.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(rows)
-      if (insErr) console.error('schedule_lessons insert failed:', insErr)
+      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return false }
+    }
+    if (oldScheduleIds.length > 0) {
+      const { error: delErr } = await supabase
+        .from('schedule_lessons').delete().in('id', oldScheduleIds)
+      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return false }
     }
     // Записали мы — значит теперь свежая версия наша. Без этого следующее же
     // сохранение упёрлось бы в собственный след и решило, что курс изменили со
@@ -6010,6 +6162,7 @@ export default function TeacherCourseEditorPage() {
         scheduledDate: shiftDot(l.scheduledDate, deltaDays),
         recDate: shiftDot(l.recDate, deltaDays),
         hwDate: shiftDot(l.hwDate, deltaDays),
+        extraHw: l.extraHw?.map(x => ({ ...x, date: shiftDot(x.date, deltaDays) })),
         recHwDate: shiftDot(l.recHwDate, deltaDays),
       }
     })
@@ -6087,7 +6240,8 @@ export default function TeacherCourseEditorPage() {
       })
       scan(l.testTasks, '')
       scan(l.hwTasks, ` · ${t('ДЗ')}`)
-      scan(l.recHwTasks, ` · ${t('ДЗ записи')}`)
+      const extras = l.extraHw ?? []
+      extras.forEach((x, i) => scan(x.tasks, ` · ${extraHwLabel(i, extras.length, t)}`))
     }
     return out
   }
@@ -6121,8 +6275,11 @@ export default function TeacherCourseEditorPage() {
     setCourse(updated)
     setCourseEdited(JSON.stringify(updated))
     const seq = draftSeq.current + 1
-    syncAccessToSupabase(updated).then(ok => clearCourseDraftAfterSync(seq, ok))
-    flash()
+    syncAccessToSupabase(updated).then(ok => {
+      clearCourseDraftAfterSync(seq, ok)
+      if (ok) { setPublishErr(null); flash() }
+      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+    })
   }
 
   // Страница редактора не прокручивается целиком, поэтому «прилипшей» шапки
@@ -6194,10 +6351,7 @@ export default function TeacherCourseEditorPage() {
         style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
       >
         <div ref={headLeftRef} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={handleBack} label="Назад" />
           <AnimatePresence>
             {selectedLesson && (
               <motion.button
@@ -6374,65 +6528,28 @@ export default function TeacherCourseEditorPage() {
         document.body
       )}
 
-      {/* ── Publish-blocked banner ── */}
-      <AnimatePresence>
-        {/* Курс изменили, пока вкладка была открыта. Не ошибка сети, а
-            развилка: сохранить отсюда — значит откатить чужую работу. Поэтому
-            не «попробуйте ещё раз», а «перезагрузите» — и предупреждение, что
-            несохранённое в этой вкладке при этом пропадёт. */}
-        {staleConflict && (
-          <motion.div
-            key="stale-conflict"
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              flexShrink: 0,
-              margin: '0 24px 8px', padding: '12px 14px', borderRadius: 12,
-              border: '1px solid var(--color-yellow-text)', background: 'var(--color-yellow-soft)',
-              color: 'var(--color-text)', fontSize: 13,
-              display: 'flex', alignItems: 'center', gap: 10,
-            }}
-          >
-            <span style={{ flex: 1, lineHeight: 1.5 }}>
-              <b>{t('Курс изменили в другом месте.')}</b>{' '}
-              {t('Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.')}
-            </span>
-            <button
-              onClick={() => { clearDrafts(draftNs); window.location.reload() }}
-              className="cursor-pointer flex-shrink-0"
-              style={{ padding: '8px 14px', borderRadius: 999, border: 'none', background: 'var(--color-control-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit' }}
-            >
-              {t('Перезагрузить')}
-            </button>
-            <button
-              onClick={() => setStaleConflict(false)}
-              aria-label={t('Закрыть')}
-              className="cursor-pointer flex-shrink-0 flex items-center justify-center"
-              style={{ width: 28, height: 28, borderRadius: 9, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-muted)' }}
-            >
-              <X size={14} />
-            </button>
-          </motion.div>
-        )}
-
-        {publishErr && (
-          <motion.div
-            key="publish-err"
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              flexShrink: 0,
-              margin: '0 24px 8px', padding: '10px 14px', borderRadius: 12,
-              border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
-              color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}
-          >
-            <span style={{ flexShrink: 0 }}>⚠️</span>
-            <span>{publishErr}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Алерты редактора — одной карточкой (см. components/Alert.tsx) ── */}
+      {/* Конфликт версий — не ошибка сети, а развилка: сохранить отсюда —
+          значит откатить чужую работу. Поэтому не «попробуйте ещё раз», а
+          «перезагрузите» с предупреждением о потере несохранённого. Пока он
+          висит, красное «Не удалось сохранить» — лишь его следствие: та же
+          отменённая запись, — второй строкой его не показываем. */}
+      <AlertStack
+        style={{ flexShrink: 0, margin: '0 24px 8px' }}
+        items={[
+          staleConflict && {
+            id: 'stale-conflict', tone: 'warning',
+            title: t('Курс изменили в другом месте.'),
+            text: t('Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.'),
+            action: { label: t('Перезагрузить'), onClick: () => { clearDrafts(draftNs); window.location.reload() } },
+            onClose: () => setStaleConflict(false),
+          },
+          !!publishErr && !staleConflict && {
+            id: 'publish-err', tone: 'danger', text: publishErr,
+            onClose: () => setPublishErr(null),
+          },
+        ]}
+      />
 
       {/* ── 3-column body — ровно по высоте окна (flex:1 + minHeight:0), чтобы
              колонки не могли вытянуть страницу и остались независимыми ── */}

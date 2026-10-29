@@ -6,6 +6,7 @@ import type { FeedbackRequest, FeedbackStatus } from '../../lib/feedbackRequests
 import { useT } from '../../lib/i18n'
 import TgDialogs from './TgDialogs'
 import AssignPlanButton from './AssignPlanButton'
+import { fetchTeacherUsage, type TeacherUsageRow } from '../../lib/plan'
 
 // Вкладка «Заявки» в Админке: список обратной связи от учеников и учителей.
 // data-URL картинки нельзя открыть через window.open → показываем в оверлее.
@@ -30,6 +31,9 @@ export default function FeedbackRequestsManager() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FeedbackStatus | 'all'>('all')
   const [lightbox, setLightbox] = useState<string | null>(null)
+  // Учителя с тарифом и почтой: по ним заявка с лендинга находит аккаунт
+  // (у неё нет author_id, только contact), а кнопка тарифа знает текущий.
+  const [teachers, setTeachers] = useState<TeacherUsageRow[]>([])
   const [view, setView] = useState<'requests' | 'dialogs'>(() => {
     // Быстрый переход из меню профиля «Диалоги» кладёт сюда флаг.
     const v = sessionStorage.getItem('feedback_view')
@@ -41,6 +45,7 @@ export default function FeedbackRequestsManager() {
     setLoading(true)
     const { data } = await supabase.from('feedback_requests').select('*').order('created_at', { ascending: false })
     setRows((data as FeedbackRequest[] | null) ?? [])
+    setTeachers(await fetchTeacherUsage())
     setLoading(false)
   }
 
@@ -118,6 +123,13 @@ export default function FeedbackRequestsManager() {
           const sm = STATUS_META[r.status]
           const RoleIcon = r.author_role === 'teacher' ? GraduationCap : r.author_role === 'lead' ? Inbox : User
           const roleLabel = r.author_role === 'teacher' ? t('учитель') : r.author_role === 'lead' ? t('заявка с лендинга') : t('ученик')
+          const contact = r.contact?.trim().toLowerCase()
+          const account = r.author_role === 'teacher'
+            ? teachers.find(x => x.teacher_id === r.author_id)
+            : r.author_role === 'lead' && contact
+              ? teachers.find(x => x.email?.toLowerCase() === contact)
+              : undefined
+          const planTeacherId = r.author_role === 'teacher' ? r.author_id : account?.teacher_id
           return (
             <div key={r.id} style={{ borderRadius: 16, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -164,11 +176,19 @@ export default function FeedbackRequestsManager() {
                     {t(STATUS_META[s].label)}
                   </button>
                 ))}
-                {/* Заявка от учителя (в т.ч. запрос смены тарифа) → назначить тариф прямо тут */}
-                {r.author_role === 'teacher' && r.author_id && (
+                {/* Заявка от учителя или с лендинга от того, у кого уже есть аккаунт
+                    (совпала почта) → назначить тариф прямо тут */}
+                {planTeacherId ? (
                   <div style={{ marginLeft: 'auto' }}>
-                    <AssignPlanButton teacherId={r.author_id} onChanged={() => setStatus(r.id, 'done')} size="sm" />
+                    <AssignPlanButton teacherId={planTeacherId}
+                      currentCode={account?.plan_code} expiresAt={account?.expires_at}
+                      onChanged={(code, expiresAt) => {
+                        setTeachers(prev => prev.map(x => x.teacher_id === planTeacherId ? { ...x, plan_code: code, expires_at: expiresAt } : x))
+                        setStatus(r.id, 'done')
+                      }} size="sm" />
                   </div>
+                ) : r.author_role === 'lead' && !loading && (
+                  <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Аккаунта с этой почтой нет')}</div>
                 )}
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, ClipboardList } from 'lucide-react'
+import { Star, ClipboardList } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import {
   useHardSubmissions, type Annotation as HardAnnotation,
@@ -13,6 +13,7 @@ import HardConversation, { type HardTabVM, type ReviewPayload } from '../../comp
 import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { alertDialog } from '../../components/ConfirmHost'
+import BackCircle from '../../components/BackCircle'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -104,18 +105,7 @@ export default function TeacherHardReviewPage() {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 16px' }}>
-        <motion.button
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-          onClick={() => setActivePage('homework')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-            padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-          }}
-        >
-          <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-        </motion.button>
+        <BackCircle onClick={() => setActivePage('homework')} label="Назад" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <Star size={16} style={{ color: 'var(--color-accent)' }} fill="currentColor" />
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

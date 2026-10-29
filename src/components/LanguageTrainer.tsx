@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { hasFeed, dayLabel, type FeedItem } from '../data/feed'
 import { outletById } from '../data/feed/outlets'
@@ -8,8 +8,9 @@ import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import { questionRu } from '../data/questionRu'
 import AudioPlayer from './AudioPlayer'
 import TrackPlayer from './trainer/TrackPlayer'
-import VoicePicker, { useVoiceChoice } from './trainer/VoicePicker'
+import VoicePicker, { ServerVoiceToggle, useVoiceChoice } from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
+import { isIOS, serverVoiceOn } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import { getSubject, type TrainerMode } from '../lib/subjects'
 import { useSwipeBack } from '../lib/useSwipeBack'
@@ -37,6 +38,7 @@ import { hasTextbooks, textbooksForLang } from '../data/textbooks'
 import { useGuideMode } from './trainer/modes/useGuideMode'
 import { useGrammarMode } from './trainer/modes/useGrammarMode'
 import { useSpeakingMode } from './trainer/modes/useSpeakingMode'
+import { useMocksMode } from './trainer/modes/useMocksMode'
 import { useBlocksMode } from './trainer/modes/useBlocksMode'
 import { useFeedShelf } from './trainer/modes/useFeedShelf'
 import { useScenesShelf } from './trainer/modes/useScenesShelf'
@@ -57,6 +59,7 @@ import {
 } from '../lib/trainerLink'
 import ScoreReader, { hasReadings } from './trainer/ScoreReader'
 import { MY_WORDS_ID } from './trainer/MyWords'
+import { GAPS_ID, useGapJournal } from './trainer/modes/useGapJournal'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
 import { courseReach, reachNote } from '../lib/courseReach'
 import GlossedText from './GlossedText'
@@ -68,6 +71,7 @@ import { usePersistentState } from '../lib/useDraft'
 import { useScreenTop } from '../lib/useScreenTop'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
+import BackCircle from './BackCircle'
 
 // Тренажёр для языковых предметов.
 //
@@ -81,7 +85,7 @@ import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressS
 // ссылки к урокам курса, а не на собственную библиотеку. Говорение записывает
 // ответ и отдаёт учителю — автоматической оценки произношения нет.
 
-type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'blocks' | 'grammar' | 'guide'
+type Mode = 'reading' | 'vocab' | 'listening' | 'speaking' | 'mocks' | 'blocks' | 'grammar' | 'guide'
 
 /**
  * Половины вкладки «Чтение». Не режимы: у всех трёх одна читалка, один словарь
@@ -100,7 +104,7 @@ type ReadingView = 'texts' | 'scenes' | 'feed'
  */
 const MODE_CAP: Record<Mode, TrainerMode> = {
   reading: 'reading', vocab: 'cards', listening: 'listening',
-  speaking: 'speaking', blocks: 'blocks', grammar: 'grammar', guide: 'guide',
+  speaking: 'speaking', mocks: 'exam', blocks: 'blocks', grammar: 'grammar', guide: 'guide',
 }
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
@@ -108,6 +112,9 @@ const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] 
   { id: 'vocab',     label: 'Карточки',   hint: 'Свайп: знаю / не помню',   Icon: Layers },
   { id: 'listening', label: 'Аудирование', hint: 'Лекции и разговоры',      Icon: Headphones },
   { id: 'speaking',  label: 'Говорение',  hint: 'Записать и отправить',     Icon: Mic },
+  // Пробники — не ещё один навык, а все четыре подряд под таймером, с баллом.
+  // Появляются у языков, для которых экзамен написан (см. mocksOn).
+  { id: 'mocks',     label: 'Пробники',   hint: 'Экзамен под таймером',     Icon: ClipboardCheck },
   // Пятый режим — не «ещё одна библиотека», а другой взгляд на язык: не «выучи
   // слово», а «увидь, из чего оно собрано». Появляется только у языков, где
   // такая сборка вообще описана (см. blocksOn).
@@ -590,6 +597,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   /** Открыт словарь, а не тема: у него свой ключ в том же поле (см. MY_WORDS_ID). */
   const openMyWords = sets.openId === MY_WORDS_ID
+  /** Открыт журнал «Не смог сказать» — тот же приём, что у словаря (см. GAPS_ID). */
+  const openGaps = sets.openId === GAPS_ID
   // Личный словарь — собранные слова списком. Открыт он или нет, знает
   // тренажёр: поле у него общее с темой разговорника, и писать в него из двух
   // мест нельзя (components/trainer/modes/useMyWords).
@@ -605,6 +614,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     onClose: () => sets.setOpenId(null),
     run, onRun: setRun, phraseView, states, statesReady, onGraded,
     tourExtra: runTourStep,
+  })
+  // Журнал «Не смог сказать»: фраза уходит в колоду — словарь перечитывается
+  // тем же счётчиком, что после «В словарь» из текста.
+  const gapsHalf = useGapJournal({
+    lang, subjectId, owner, accent: palette.accent, soft: palette.soft,
+    open: openGaps,
+    onOpen: () => { sets.setOpenId(GAPS_ID); setQuery(''); setStatus('') },
+    onClose: () => sets.setOpenId(null),
+    onCarded: () => setKnownKey(k => k + 1),
   })
 
   // ── Виджет прогресса в верхней строке ──────────────────────────────────────
@@ -718,7 +736,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
   //
   // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
-  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || packs.openId || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
+  useTrainerEngaged(!!(scenesShelf.openScene || openText || openAudio || openItem || nestsShelf.openId || openMyWords || openGaps || packs.openId || openSet || (mode === 'blocks' && blocks.open) || (mode === 'guide' && guide.openId)))
 
   // ── Рейл ───────────────────────────────────────────────────────────────────
   //
@@ -736,6 +754,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     query, onQuery: setQuery, status, onStatus: setStatus,
     active: mode === 'speaking',
   })
+
+  // Режим «Пробники» — экзамен целиком (components/trainer/modes/useMocksMode).
+  // Сам экзамен идёт своим слоем на весь экран, здесь только витрина.
+  const mocks = useMocksMode({ lang, accent: palette.accent, soft: palette.soft, active: mode === 'mocks' })
 
   // ── Выборка справочника ────────────────────────────────────────────────────
   //
@@ -775,6 +797,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // «Мои слова» лежат в том же поле, что и тема (см. MY_WORDS_ID), но это
       // отдельный экран — и адрес у него отдельный.
       if (openMyWords) return { lang, screen: 'words' }
+      if (openGaps) return { lang, screen: 'gaps' }
       if (vocabView === 'nests') return { lang, screen: 'nests', id: nestsShelf.openId ?? undefined }
       if (vocabView === 'packs') return { lang, screen: 'packs', id: packs.openId ?? undefined }
       if (vocabView === 'due') return { lang, screen: 'due' }
@@ -790,6 +813,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
     if (mode === 'listening') return { lang, screen: 'audio', id: openAudioId ?? undefined }
     if (mode === 'speaking') return { lang, screen: 'speaking' }
+    if (mode === 'mocks') return { lang, screen: 'mocks' }
     if (mode === 'blocks') {
       return blocks.open
         ? { lang, screen: blocks.open.screen, id: blocks.open.id }
@@ -799,7 +823,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     if (guide.view === 'books') return { lang, screen: 'books' }
     return { lang, screen: 'story', id: guide.openId ?? undefined }
   }, [
-    lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords,
+    lang, mode, readingView, vocabView, blocks.view, blocks.open, guide.view, openMyWords, openGaps,
     openTextId, scenesShelf.openWorkId, scenesShelf.openScene?.id ?? '', openAudioId, sets.openId,
     nestsShelf.openId, packs.openId, cardGroups.openSet, cardGroups.openGroupId,
     guide.openId, grammar.openId,
@@ -839,6 +863,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'texts':    setMode('reading'); setReadingView('texts'); setOpenTextId(id); break
       case 'sets':     setMode('vocab'); setVocabView('sets'); sets.setOpenId(id); break
       case 'words':    setMode('vocab'); setVocabView('sets'); sets.setOpenId(MY_WORDS_ID); break
+      case 'gaps':     setMode('vocab'); setVocabView('sets'); sets.setOpenId(GAPS_ID); break
       case 'nests':    setMode('vocab'); setVocabView('nests'); nestsShelf.setOpenId(id); break
       case 'packs':    setMode('vocab'); setVocabView('packs'); packs.setOpenId(id); break
       // id — набор ИЛИ полка: кладём в оба поля, лишнее снимет проверка по
@@ -847,6 +872,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       case 'due':      setMode('vocab'); setVocabView('due'); break
       case 'audio':    setMode('listening'); setOpenAudioId(id); break
       case 'speaking': setMode('speaking'); break
+      case 'mocks':    setMode('mocks'); break
       case 'stems':    setMode('blocks'); blocks.openFromLink('stems', id); break
       case 'roots':    setMode('blocks'); blocks.openFromLink('roots', id); break
       case 'numbers':  setMode('blocks'); blocks.openFromLink('numbers', id); break
@@ -902,6 +928,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speaking.count,
+    mocks: mocks.count,
     // Всё, что в режиме можно открыть: основы, корни, ряды счёта, правила
     // чтения. Все таблицы лежат в коде, поэтому цифра известна синхронно и не
     // прыгает после загрузки.
@@ -925,6 +952,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     // правилами чтения значило бы обещать несуществующее.
     : mode === 'blocks' ? blocks.subtitle
     : mode === 'grammar' ? grammar.subtitle
+    : mode === 'mocks' ? mocks.subtitle
     : speaking.subtitle
 
 
@@ -936,7 +964,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
           items={MODES
-            .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on))
+            .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on) && (m.id !== 'mocks' || mocks.on))
             .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
           value={mode}
           onChange={switchMode}
@@ -987,7 +1015,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           «Одно место для сита» в комментарии к строке. Рейлу остаётся то, что
           отвечает на вопрос «что показываем»: половина «Чтения» и «Показ». */}
 
-      {mode === 'vocab' && (hasBook || nestsShelf.on || packs.on || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !packs.open && !openSet && (
+      {mode === 'vocab' && (hasBook || nestsShelf.on || packs.on || decksOn) && !openItem && !nestsShelf.openId && !openMyWords && !openGaps && !packs.open && !openSet && (
         <>
           {/* Уровень уехал в строку управления — там же, где он у сцен,
               грамматики и библиотеки. Здесь остаётся выбор материала и полка:
@@ -1047,6 +1075,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </>
       )}
 
+      {mode === 'vocab' && openGaps && gapsHalf.rail}
+
       {mode === 'vocab' && openMyWords && (
         <>
           {myWordsHalf.rail}
@@ -1077,6 +1107,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
       {mode === 'speaking' && speaking.rail}
 
+      {mode === 'mocks' && mocks.rail}
+
       {mode === 'vocab' && !hasBook && vocabView !== 'nests' && review.rail}
 
       {/* Голос — общий на весь язык, поэтому и карточка одна на все режимы.
@@ -1084,12 +1116,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           созвучия читались тем диктором, которого угадала автоматика, и
           поменять его было негде — при том что ключ в localStorage у них с
           читалкой один и тот же. */}
-      {voiceChoice && (
+      {/* Карточка нужна и без выбора голосов: на айфоне в ней живёт «Голос с
+          сервера» — запасная озвучка, когда голос браузера молчит. */}
+      {(voiceChoice || isIOS() || serverVoiceOn()) && (
         <RailCard title="Озвучка" accent={palette.accent} icon={<Mic size={15} />}>
           <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
-            {bindShortWords(t('Этим голосом читается всё на этом языке: тексты, карточки, разговорник.'))}
-          </div>
+          {voiceChoice && (
+            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+              {bindShortWords(t('Этим голосом читается всё на этом языке: тексты, карточки, разговорник.'))}
+            </div>
+          )}
+          <ServerVoiceToggle lang={lang} />
         </RailCard>
       )}
     </>
@@ -1144,7 +1181,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       // справочник, тексты, разбор слов. Первое сито отвечает на вопрос «бывает
       // ли у этого предмета говорение», второе — «написано ли оно уже».
       .filter(m => allowed.includes(MODE_CAP[m.id]))
-      .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on))
+      .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on) && (m.id !== 'mocks' || mocks.on))
       .map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon })),
     mode,
     onMode: m => switchMode(m as Mode),
@@ -1182,12 +1219,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = nestsShelf.toolbar
   } else if (mode === 'vocab' && openMyWords) {
     toolbar = myWordsHalf.toolbar
+  } else if (mode === 'vocab' && openGaps) {
+    toolbar = gapsHalf.toolbar
   } else if (mode === 'vocab' && vocabView === 'sets' && !openItem && !openSet && !cardGroups.editing) {
     toolbar = (
       <Toolbar count={setsDecks.length}>
         {/* Внутри папки «назад» стоит первым — как в открытом наборе: папка
             такой же экран, а не выбранная слева галочка. */}
-        {openGroup && <BackToSets onBack={() => cardGroups.setOpenGroupId('')} />}
+        {/* key — у каждого экрана своя кнопка: у папки и у набора она стоит
+            первой в одной строке, и без ключа React отдавал набору экземпляр
+            папки. Свайп назад тогда не замечал нового экрана, не клал под него
+            снимок папки — и под пальцем было пусто, а после жеста экран
+            рисовался с нуля. */}
+        {openGroup && <BackToSets key={`group-${openGroup.id}`} onBack={() => cardGroups.setOpenGroupId('')} />}
         <SearchPill value={query} onChange={setQuery}
           placeholder={t(openGroup ? 'Найти набор…' : 'Найти тему или слово…')} />
         {!openGroup && sets.levelOpts.length > 1 && (
@@ -1216,7 +1260,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         {!openGroup && hasBook && sets.sortMenu}
         <ToolCount>
           {openGroup
-            ? `${openGroup.title} · ${setsDecks.length} ${t('наборов')}`
+            ? `${t(openGroup.title)} · ${setsDecks.length} ${t('наборов')}`
             : `${setsDecks.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${setsDecks.length} ${t('наборов')}`}
         </ToolCount>
       </Toolbar>
@@ -1226,20 +1270,24 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   } else if (mode === 'vocab' && openSet) {
     toolbar = (
       <Toolbar>
-        <BackToSets onBack={() => (cardGroups.openSubset ? cardGroups.setOpenSubsetId(null) : cardGroups.setOpenSetId(null))} />
+        <BackToSets
+          key={`set-${openSet.set.id}-${cardGroups.openSubset?.id ?? ''}`}
+          onBack={() => (cardGroups.openSubset ? cardGroups.setOpenSubsetId(null) : cardGroups.setOpenSetId(null))} />
         <StatusTabs
           options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
           value={run}
           onChange={v => setRun(v as RunMode)}
           accent={palette.accent}
         />
-        <ToolCount>{openSet.set.title}</ToolCount>
+        <ToolCount>{t(openSet.set.title)}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'guide') {
     toolbar = guide.toolbar
   } else if (mode === 'speaking') {
     toolbar = speaking.toolbar
+  } else if (mode === 'mocks') {
+    toolbar = mocks.toolbar
   } else if (mode === 'vocab' && openItem) {
     toolbar = sets.toolbar
   }
@@ -1260,6 +1308,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     content = nestsShelf.content
   } else if (mode === 'vocab' && openMyWords) {
     content = myWordsHalf.content
+  } else if (mode === 'vocab' && openGaps) {
+    content = gapsHalf.content
   } else if (mode === 'vocab' && openItem && book) {
     content = sets.content
   } else if (mode === 'guide') {
@@ -1280,11 +1330,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           states={states}
           accent={palette.accent}
           soft={palette.soft}
-          levelLabel={x => x.label}
+          levelLabel={x => t(x.label)}
           early={x => x.ahead}
           lead={openGroup ? undefined : (
             <>
               {hasBook && myWordsHalf.tile}
+              {gapsHalf.tile}
               {/* Папки полок. Стоят перед сеткой и не участвуют в поиске: по
                   слову ищут набор, а не полку, и найденные наборы приезжают в
                   сетку сами (см. setsDecks). */}
@@ -1306,7 +1357,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                     fontSize: 14.5, lineHeight: 1.3, fontWeight: 750, color: 'var(--color-text)',
                   }}>
                     <Layers size={15} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
-                    {g.title}
+                    {t(g.title)}
                   </div>
                   {/* Описание полки — тремя строками: у сида это целый абзац,
                       и во всю длину плитка полки вырастала вчетверо выше
@@ -1316,7 +1367,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                       fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
                       display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
-                      {g.about}
+                      {t(g.about)}
                     </div>
                   )}
                 </Tile>
@@ -1360,6 +1411,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     content = review.content
   } else if (mode === 'blocks') {
     content = blocks.content
+  } else if (mode === 'mocks') {
+    content = <>{mocks.content}{mocks.overlay}</>
   } else {
     content = speaking.content
   }
@@ -1772,9 +1825,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
 
   const toolbar = (
     <Toolbar>
-      <ToolButton onClick={onBack}>
-        <ChevronLeft size={14} /> {t('К списку')}
-      </ToolButton>
+      <BackCircle onClick={onBack} label="К списку" />
       {/* Вид текста — переключатель, а не замена: обычный текст остаётся видом
           по умолчанию (так текст читается как текст), разбор включается тогда,
           когда нужно понять, как это звучит и что значит.
@@ -2214,9 +2265,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
 
   const toolbar = (
     <Toolbar>
-      <ToolButton onClick={onBack}>
-        <ChevronLeft size={14} /> {t('К списку')}
-      </ToolButton>
+      <BackCircle onClick={onBack} label="К списку" />
       {item.credit && <ToolCount>{item.credit}</ToolCount>}
     </Toolbar>
   )

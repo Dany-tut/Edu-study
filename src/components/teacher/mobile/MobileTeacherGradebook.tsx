@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
 import { CheckSquare, Check, X, CalendarCheck, Loader2 } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
@@ -11,6 +12,7 @@ import { useGroups, useGroupLessons, useLessonRoster, useAttendance, type GroupL
 import { DEMO_GROUPS, demoLessonsFor, demoRosterFor, isDemoId } from '../../../data/teacherDevDemo'
 import { useTheme } from '../../../store/themeStore'
 import { useT, useTc } from '../../../lib/i18n'
+import { Alert } from '../../Alert'
 
 // MOBILE ONLY journal: pick group → pick lesson → mark present/absent with a
 // "все присутствовали" shortcut, then save (useAttendance.saveLesson).
@@ -75,9 +77,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
       footer={lesson ? (
         <>
           {saveError && (
-            <div style={{ fontSize: 13, fontWeight: 600, color: PAIR.error.text, background: PAIR.error.bg, borderRadius: 12, padding: '10px 14px', textAlign: 'center', marginBottom: 8 }}>
-              {t('Не удалось сохранить — попробуйте ещё раз')}
-            </div>
+            <Alert tone="danger" text={t('Не удалось сохранить — попробуйте ещё раз')} style={{ marginBottom: 8 }} />
           )}
           <motion.button
             whileTap={{ scale: 0.98 }}
@@ -172,7 +172,7 @@ export default function MobileTeacherGradebook() {
         }} className="no-scrollbar">
           {groups.map(g => (
             <MobilePill key={g.id} active={g.id === groupId} onClick={() => setGroupId(g.id)} size="sm">
-              {g.icon} {g.name}
+              {g.icon}{ICON_GAP}{g.name}
             </MobilePill>
           ))}
         </div>

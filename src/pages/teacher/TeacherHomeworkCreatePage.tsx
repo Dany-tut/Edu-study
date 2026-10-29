@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Send, Plus, X, Trash2,
+  Send, Plus, X, Trash2,
   Star, ChevronDown, ChevronUp, Search,
   AlignLeft, CheckSquare, Type, Shuffle, Eye,
   BookOpen, AlertCircle, Check, GripVertical, Sparkles,
@@ -13,6 +13,8 @@ import { useStickyLift } from '../../lib/useStickyLift'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, useTc, tc } from '../../lib/i18n'
+import { alertDialog } from '../../components/ConfirmHost'
+import { AlertStack } from '../../components/Alert'
 import { supabase } from '../../lib/supabase'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
@@ -42,6 +44,7 @@ import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
 import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
+import BackCircle from '../../components/BackCircle'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -720,25 +723,36 @@ function BankTaskCard({ task, index, added, onAdd }: {
   // Snapshot of just the editable fields → reused for new/replacement bank tasks.
   const editedFields = () => ({ question: editedQuestion, answer: editedAnswer, solution: editedSolution })
 
+  // Сбой записи в банк — сказать один раз, а не на каждую букву правки.
+  const bankFailShown = useRef(false)
+  function bankFailed(e: unknown) {
+    console.error('[bank]', e)
+    if (bankFailShown.current) return
+    bankFailShown.current = true
+    void alertDialog({ title: t('Задание в банке не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      .then(() => { bankFailShown.current = false })
+  }
+
   // Keep the live variant in sync while the toggle stays on and edits continue.
   useEffect(() => {
-    if (variantId !== null) replaceTaskInBank(variantId, editedFields())
+    if (variantId !== null) replaceTaskInBank(variantId, editedFields()).catch(bankFailed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editedQuestion, editedAnswer, editedSolution])
 
   function toggleVariant() {
     if (variantId !== null) {
-      removeTaskFromBank(variantId)
-      setVariantId(null)
+      const id = variantId
+      removeTaskFromBank(id).then(() => setVariantId(null), bankFailed)
     } else {
       // Same characteristics, new content, fresh searchable id.
       const { id: _omit, ...rest } = task
-      addTaskToBank({ ...rest, ...editedFields() }).then(newId => setVariantId(newId))
+      addTaskToBank({ ...rest, ...editedFields() }).then(newId => setVariantId(newId), bankFailed)
     }
   }
 
-  function replaceInTrainer() {
-    replaceTaskInBank(task.id, editedFields())
+  async function replaceInTrainer() {
+    try { await replaceTaskInBank(task.id, editedFields()) }
+    catch (e) { bankFailed(e); return }
     setJustReplaced(true)
     setTimeout(() => setJustReplaced(false), 2000)
   }
@@ -2147,6 +2161,7 @@ export default function TeacherHomeworkCreatePage() {
   const tasksBuiltRef = useRef(false)
   const [editTaskIds, setEditTaskIds] = useState<{ regular: number[]; hard: number[] } | null>(null)
   const [editHardDefs, setEditHardDefs] = useState<HardTaskDef[] | null>(null)
+  const [editBasic, setEditBasic] = useState<HWTask[] | null>(null)
   useEffect(() => {
     if (!editingHomeworkId || prefilledRef.current) return
     prefilledRef.current = true
@@ -2155,7 +2170,7 @@ export default function TeacherHomeworkCreatePage() {
     if (hadDraft.meta && hadDraft.tasks) return
     supabase
       .from('homework')
-      .select('group_id, title, due_date, task_ids, hard_task_ids, hard_tasks, lesson_id')
+      .select('group_id, title, due_date, task_ids, hard_task_ids, hard_tasks, basic_tasks, lesson_id')
       .eq('id', editingHomeworkId)
       .single()
       .then(({ data }) => {
@@ -2164,6 +2179,7 @@ export default function TeacherHomeworkCreatePage() {
           const hardIds: number[] = Array.isArray(data.hard_task_ids) ? data.hard_task_ids : []
           const allIds: number[] = Array.isArray(data.task_ids) ? data.task_ids : []
           setEditHardDefs(Array.isArray(data.hard_tasks) ? (data.hard_tasks as HardTaskDef[]) : [])
+          setEditBasic(Array.isArray(data.basic_tasks) ? (data.basic_tasks as HWTask[]) : [])
           setEditTaskIds({ regular: allIds.filter(id => !hardIds.includes(id)), hard: hardIds })
         }
         if (hadDraft.meta) return
@@ -2189,7 +2205,9 @@ export default function TeacherHomeworkCreatePage() {
       .map(id => bankTasks.find(b => b.id === id))
       .filter((b): b is BankTask => !!b)
       .map(taskFromBank)
-    setHwTasks(buildFrom(editTaskIds.regular))
+    // Домашка, сохранённая целиком (0107), — из basic_tasks как есть; старая —
+    // по номерам из банка.
+    setHwTasks(editBasic && editBasic.length > 0 ? editBasic : buildFrom(editTaskIds.regular))
     // Сложные задания восстанавливаем из hard_tasks (банк + свободные); если их
     // нет (старое ДЗ до перехода) — падаем на банковские id, как раньше.
     if (editHardDefs && editHardDefs.length > 0) {
@@ -2202,7 +2220,7 @@ export default function TeacherHomeworkCreatePage() {
     } else {
       setHardTasks(buildFrom(editTaskIds.hard))
     }
-  }, [editTaskIds, bankTasks, editHardDefs])
+  }, [editTaskIds, bankTasks, editHardDefs, editBasic])
   const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '' })
   // Rebuilt from the restored draft so trainer rows keep their "added" state.
   const [trainerAddedIds, setTrainerAddedIds] = useState<Set<number>>(
@@ -2225,13 +2243,15 @@ export default function TeacherHomeworkCreatePage() {
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  const backBtn = <><ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}</>
   const draftLabel = t('Черновик')
 
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
 
   // Explicit "Назад" = user abandons the form — the one place a draft dies unsaved.
   function exitPage() {
+    // Назад стирает черновик насовсем — с собранными заданиями спрашиваем.
+    if (!published && hwTasks.length + hardTasks.length > 0
+      && !window.confirm(t('Домашка не опубликована. Выйти и удалить черновик?'))) return
     clearDrafts(`${draftScope}.`)
     setActivePage('homework')
   }
@@ -2300,20 +2320,31 @@ export default function TeacherHomeworkCreatePage() {
     doPublish()
   }
 
+  const [publishing, setPublishing] = useState(false)
+  const [publishErr, setPublishErr] = useState<{ tone: 'danger' | 'info'; text: string } | null>(null)
+
   async function doPublish() {
     setShowPublishConfirm(false)
+    // Двойной клик вставлял домашку дважды.
+    if (publishing) return
+    setPublishing(true)
+    setPublishErr(null)
+    try {
+      // Resolve the target group + roster size. For "Студенту" we attach the
+      // homework to the student's personal 1:1 group (reuse or auto-create), so it
+      // shows up as a card under their name on the homework page.
+      let targetGroupId = meta.assignTo === 'group' ? meta.groupId : ''
+      let totalStudents = groupStudents.length
+      if (meta.assignTo === 'student' && meta.studentId) {
+        targetGroupId = (await resolveIndividualGroup(meta.studentId)) ?? ''
+        totalStudents = 1
+      }
+      // Раньше без группы не писалось ничего, а «Опубликовано!» всё равно горело.
+      if (!targetGroupId) {
+        setPublishErr({ tone: 'info', text: t('Выберите, кому задать домашку — группу или ученика.') })
+        return
+      }
 
-    // Resolve the target group + roster size. For "Студенту" we attach the
-    // homework to the student's personal 1:1 group (reuse or auto-create), so it
-    // shows up as a card under their name on the homework page.
-    let targetGroupId = meta.assignTo === 'group' ? meta.groupId : ''
-    let totalStudents = groupStudents.length
-    if (meta.assignTo === 'student' && meta.studentId) {
-      targetGroupId = (await resolveIndividualGroup(meta.studentId)) ?? ''
-      totalStudents = 1
-    }
-
-    if (targetGroupId) {
       const regularIds = hwTasks.filter(t => t.bankId != null).map(t => t.bankId!)
       const hardIds = hardTasks.filter(t => t.bankId != null).map(t => t.bankId!)
       const parts = meta.dueDate.split('.')
@@ -2330,16 +2361,26 @@ export default function TeacherHomeworkCreatePage() {
         // Полные определения сложных заданий (банк + свободные) — источник правды
         // для пер-задачного рендера у ученика.
         hardTasks: buildHardTaskDefs(hardTasks),
+        // И базовых — целиком. По одним task_ids свои задания, импорт из Google
+        // Форм и правки банковских молча пропадали при публикации.
+        basicTasks: hwTasks,
       }
-      if (editingHomeworkId) await updateHomework(editingHomeworkId, payload)
-      else await createHomework(payload)
+      const { error } = editingHomeworkId
+        ? await updateHomework(editingHomeworkId, payload)
+        : await createHomework(payload)
+      // Черновик гасим и «Опубликовано!» показываем только после ответа базы:
+      // при сбое работа остаётся на экране и в черновике.
+      if (error) {
+        console.error('[homework] publish failed', error)
+        setPublishErr({ tone: 'danger', text: t('Не удалось опубликовать — проверьте интернет и попробуйте ещё раз. Задания сохранены в черновике.') })
+        return
+      }
       clearDrafts(`${draftScope}.`)
+      setPublished(true)
+      setTimeout(() => setActivePage('homework'), 1600)
+    } finally {
+      setPublishing(false)
     }
-    // For edit mode the roster size shouldn't change just because the composer
-    // resolved a fresh 1:1 group — keep the existing group (handled above by
-    // assignTo defaulting to 'group' with the loaded groupId).
-    setPublished(true)
-    setTimeout(() => setActivePage('homework'), 1600)
   }
 
   const TABS: { key: MainTab; label: string; icon: React.ElementType }[] = [
@@ -2368,18 +2409,7 @@ export default function TeacherHomeworkCreatePage() {
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
             }}
           >
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={exitPage}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'inherit', pointerEvents: 'auto',
-              }}
-            >
-              {backBtn}
-            </motion.button>
+            <BackCircle onClick={exitPage} label="Назад" />
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -2403,7 +2433,7 @@ export default function TeacherHomeworkCreatePage() {
             <TeacherSaveButton
               label={isEditing ? t('Сохранить') : t('Опубликовать')} savedLabel={isEditing ? t('Сохранено!') : t('Опубликовано!')}
               icon={<Send size={14} />}
-              saved={published} onClick={handlePublish}
+              saved={published} saving={publishing} onClick={handlePublish}
               style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }}
             />
           </motion.div>
@@ -2423,18 +2453,7 @@ export default function TeacherHomeworkCreatePage() {
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={exitPage}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            {backBtn}
-          </motion.button>
+          <BackCircle onClick={exitPage} label="Назад" />
 
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
@@ -2461,10 +2480,15 @@ export default function TeacherHomeworkCreatePage() {
             <TeacherSaveButton
               label={isEditing ? t('Сохранить') : t('Опубликовать')} savedLabel={isEditing ? t('Сохранено!') : t('Опубликовано!')}
               icon={<Send size={14} />}
-              saved={published} onClick={handlePublish}
+              saved={published} saving={publishing} onClick={handlePublish}
             />
           </div>
         </motion.div>
+
+        <AlertStack
+          style={{ margin: '0 24px 14px' }}
+          items={[publishErr && { id: 'publish-err', tone: publishErr.tone, text: publishErr.text, onClose: () => setPublishErr(null) }]}
+        />
 
         {/* ── Three-column body ── */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>

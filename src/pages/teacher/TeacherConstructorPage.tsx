@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
-import { SortDropdown, FacetDropdown, SubjectFacet, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
+import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -9,7 +9,7 @@ import {
   GraduationCap, Brain, FileText, X, Check,
   Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown,
   CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh,
-  Image as ImageIcon, Key, ArrowLeft, Maximize2,
+  Image as ImageIcon, Key, Maximize2,
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
@@ -25,8 +25,9 @@ import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
+import { Alert, AlertStack } from '../../components/Alert'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
+import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs, ICON_GAP } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy, tagsLabel, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
@@ -92,6 +93,7 @@ import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 import { alertMissingAnswers, breakAtDash, isDiagMissingAnswer } from '../../lib/answerCheck'
 import QuestionTable, { type QTable } from '../../components/QuestionTable'
+import BackCircle from '../../components/BackCircle'
 
 type NewBankTask = Omit<BankTask, 'id'>
 // Высота таблеток верхней строки Конструктора (вкладки, крестик режима
@@ -169,7 +171,7 @@ function GoogleFormBankCategoryModal({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <TeacherSelect value={subject} onChange={v => { setSubject(v as Subject); setSection(''); setTopic('') }} placeholder={t("Предмет")}
-            options={bankSubjectOptions(false).map(o => ({ value: o.value, label: t(o.label) }))} />
+            options={bankSubjectOptionsFor(useTeacherAccess.getState().subjects, false).map(o => ({ value: o.value, label: t(o.label) }))} />
           <TeacherSelect value={section} onChange={v => { setSection(v); setTopic('') }} placeholder={t("Раздел")}
             options={sections.map(s => ({ value: s, label: s }))} />
           <TeacherSelect value={topic} onChange={setTopic} placeholder={t("Тема")}
@@ -2072,9 +2074,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 24px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
-        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px 8px 10px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          <ArrowLeft size={15} /> {t('Назад')}
-        </button>
+        <BackCircle onClick={onClose} label="Назад" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lessonTitle || t('Урок')}</div>
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Связано с базой ·')} {shortId}</div>
@@ -2675,13 +2675,25 @@ function CreatorView({
 
       if (editingTask) {
         // Update existing task in the bank, then close without creating a new trainer card.
-        replaceTask(editingTask.id, task)
+        // Закрываем только после записи: при сбое правка и черновик остаются.
+        try { await replaceTask(editingTask.id, task) }
+        catch (e) {
+          console.error('[bank] replaceTask', e)
+          void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+          return
+        }
         clearDrafts(tkDraft)
         onCancel()
         return
       }
 
-      const newId = await addTask(task)
+      let newId: number
+      try { newId = await addTask(task) }
+      catch (e) {
+        console.error('[bank] addTask', e)
+        void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+        return
+      }
 
       // Create a trainer card so the task appears in the Тренажёр list.
       const isBio = tkSubject === 'Биология'
@@ -2779,18 +2791,7 @@ function CreatorView({
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
             }}
           >
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={handleCancel}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'inherit', pointerEvents: 'auto',
-              }}
-            >
-              <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-            </motion.button>
+            <BackCircle onClick={handleCancel} label="Назад" />
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -2825,18 +2826,7 @@ function CreatorView({
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={handleCancel}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={handleCancel} label="Назад" />
 
           {/* Absolutely centred — stays at true screen centre regardless of button widths */}
           <div style={{
@@ -2879,7 +2869,7 @@ function CreatorView({
                 value={tkSubject}
                 onChange={v => { setTkSubject(v); setTkSection(''); setTkTopic('') }}
                 placeholder={t('Предмет')}
-                options={SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${tc(s.name)}` }))}
+                options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [tkSubject]).map(s => ({ value: s.name, label: `${s.icon}${ICON_GAP}${tc(s.name)}` }))}
               />
             </div>
             {/* Разметка. У языкового предмета своя: уровень / навык / тема —
@@ -3597,9 +3587,7 @@ function CreatorView({
                     <input type="number" min={1} max={30} value={wPomoBreak} onChange={e => setWPomoBreak(Number(e.target.value))} style={inputSt} />
                   </div>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-peach-soft)', borderRadius: 10, padding: '10px 12px' }}>
-                  {t('Эти настройки применятся к таймеру «Фокус» у студентов')}
-                </div>
+                <Alert tone="info" text={t('Эти настройки применятся к таймеру «Фокус» у студентов')} />
               </>}
 
               {wType === 'memes' && <>
@@ -4300,6 +4288,16 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
   )
 }
 
+/** Вопросы теста — в базу; сбой виден. Раньше запись уходила «в фоне», и
+ *  отказ базы оставался в консоли: учитель правил тест, а ученики получали
+ *  старые вопросы. */
+function persistDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]): void {
+  saveDiagQuestions(subject, qs).catch(e => {
+    console.error('[diag] saveDiagQuestions', e)
+    void alertDialog({ title: t('Вопросы теста не сохранились — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+  })
+}
+
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   const t = useT()
   const { label: rawLabel, accent, soft } = SUBJECT_META[subject]
@@ -4316,7 +4314,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
 
   function save(qs: DiagQuestion[]) {
     setQuestions(qs)
-    saveDiagQuestions(subject, qs)
+    persistDiagQuestions(subject, qs)
   }
 
   function startEdit(idx: number) {
@@ -4861,20 +4859,7 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
 
         {/* Back button */}
         <div>
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={onBack}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '9px 16px 9px 12px', borderRadius: 999,
-              border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.9)',
-              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={onBack} label="Назад" />
         </div>
 
         {/* Header */}
@@ -5792,7 +5777,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
-  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs); setDirty(false) }
+  function save(qs: DiagQuestion[]) { setQuestions(qs); persistDiagQuestions(subject, qs); setDirty(false) }
   function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct); setEditAccepts((q.accepts ?? []).join('; ')); setEditTable(q.table); setDirty(false) }
   function applyEdit(q: DiagQuestion): DiagQuestion {
     if (q.kind === 'term') return { ...q, text: editText, table: editTable, accepts: editAccepts.split(/[;\n]/).map(x => x.trim()).filter(Boolean) }
@@ -5818,7 +5803,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
         save(questions.map((q, i) => i === editIdx ? applyEdit(q) : q))
         setEditIdx(null)
       } else {
-        saveDiagQuestions(subject, questions)
+        persistDiagQuestions(subject, questions)
       }
     },
   }))
@@ -5857,10 +5842,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={onClose} label="Назад" />
               <div ref={dockTitleRef} style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {label}
               </div>
@@ -5874,10 +5856,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
         animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 20px' }}
       >
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-        </motion.button>
+        <BackCircle onClick={onClose} label="Назад" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
             <Icon size={16} style={{ color: accent }} />
@@ -5961,7 +5940,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={subjectState} onChange={handleSubjectChange} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, subjectState).map(o => ({ value: o.value, label: `${subjectIcon(o.value)}${ICON_GAP}${t(o.value)}` }))} />
               </div>
             )}
             {isCustomTest && (
@@ -6758,10 +6737,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
               exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dg, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto', fontFamily: 'inherit' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={onClose} label="Назад" />
               <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
                 {cfg.title || t('Скрининг мышления')}
               </div>
@@ -6780,10 +6756,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
         <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
         >
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={onClose} label="Назад" />
           <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
             {cfg.title || t('Скрининг мышления')}
           </div>
@@ -7100,10 +7073,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onCancel}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dg, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto', fontFamily: 'inherit' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
+              <BackCircle onClick={onCancel} label="Назад" />
               <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {title || t('Новый тест')}
               </div>
@@ -7121,10 +7091,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
         <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
         >
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onCancel}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-          </motion.button>
+          <BackCircle onClick={onCancel} label="Назад" />
           <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
             {title || t('Новый тест')}
           </div>
@@ -7133,11 +7100,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
           </motion.button>
         </motion.div>
 
-        {saveError && (
-          <div style={{ margin: '0 24px 12px', padding: '10px 14px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 13 }}>
-            {saveError}
-          </div>
-        )}
+        <AlertStack style={{ margin: '0 24px 12px' }} items={[saveError && { id: 'save-err', tone: 'danger', text: saveError }]} />
 
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           {/* LEFT: name + color + assignment */}
@@ -7172,7 +7135,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={testSubject} onChange={setTestSubject} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, testSubject).map(o => ({ value: o.value, label: `${subjectIcon(o.value)}${ICON_GAP}${t(o.value)}` }))} />
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
               {/* Mode tabs */}
@@ -7886,7 +7849,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
   const [editCorrect, setEditCorrect] = useState(0)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
-  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
+  function save(qs: DiagQuestion[]) { setQuestions(qs); persistDiagQuestions(subject, qs) }
   function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }
   function commitEdit() {
     if (editIdx === null) return
@@ -8226,15 +8189,22 @@ export default function TeacherConstructorPage() {
    * предмета): курсы и тесты хранят предмет русским именем и переводят его на
    * границе через canonSubject, а не заводят второй словарь.
    */
-  const [shelfSubject, setShelfSubject] = usePersistentState('ctor.subject', '')
+  // Мультивыбор без «все»: пока у учителя несколько предметов и ни один не
+  // отмечен, витрины пусты (см. activeShelfSubjects в ShelfFilters).
+  const [shelfSubjects, setShelfSubjects] = usePersistentState<string[]>('ctor.subjects', [])
   // Банк заданий отбирается своим набором полей, и предмет — его вершина:
-  // разделы, темы, части и линии бывают только внутри предмета. Сменился общий
-  // предмет — уточнения под старым теряют смысл и сбрасываются.
+  // разделы, темы, части и линии бывают только внутри ОДНОГО предмета. Отмечено
+  // несколько — банк показывает их задания, а уточнения по разделу молчат.
+  // Сменился выбор — уточнения под старым теряют смысл и сбрасываются.
+  const bankSubjects = useShelfSubjects(shelfSubjects).active
+  const bankSubjectsKey = bankSubjects?.join(',') ?? '\u0000'
   useEffect(() => {
-    setBankFilters(prev => prev.subject === shelfSubject ? prev : ({
-      ...prev, subject: shelfSubject, sections: [], topics: [], lines: [], parts: [], levels: [], skills: [],
+    const subject = bankSubjects?.length === 1 ? bankSubjects[0] : ''
+    const subjects = bankSubjects ?? []
+    setBankFilters(prev => prev.subject === subject && (prev.subjects ?? []).join(',') === subjects.join(',') ? prev : ({
+      ...prev, subject, subjects, sections: [], topics: [], lines: [], parts: [], levels: [], skills: [],
     }))
-  }, [shelfSubject])
+  }, [bankSubjectsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
   const [testLevel, setTestLevel] = usePersistentState('ctor.testLevel', '')
   // Поиск не переживает перезагрузку: забытый запрос прятал бы тесты без видимой причины.
@@ -8294,6 +8264,15 @@ export default function TeacherConstructorPage() {
   const isAdmin = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
   useEffect(() => { if (!accessLoaded) useTeacherAccess.getState().load() }, [accessLoaded])
+  // «Мои предметы» учителя: чужие готовые курсы, встроенные тесты и задания
+  // банка по другим предметам на витрины не попадают. Своё (созданное
+  // учителем или выданное ему админом) видно всегда, в каком бы предмете ни было.
+  const mySubjects = useTeacherAccess(s => s.subjects)
+  const myDiag = useMemo(
+    // Логика без предмета — общая для всех, её не прячем.
+    () => DIAG_SUBJECTS.filter(id => !testSubjectName(id) || isMySubject(testSubjectName(id), mySubjects)),
+    [mySubjects],
+  )
   const seedById = useMemo(() => {
     const map = new Map<string, CourseSeed>()
     // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
@@ -8321,8 +8300,8 @@ export default function TeacherConstructorPage() {
   // Всё, что вообще показывается на вкладке: свои курсы + плитки сидов. Из этого
   // же списка собираются опции фильтров, поэтому пустых вариантов не бывает.
   const allCourses = useMemo(
-    () => [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id))],
-    [courses, seedById],
+    () => [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id)).filter(c => isMySubject(c.subject, mySubjects))],
+    [courses, seedById, mySubjects],
   )
   // Языки идут своим блоком: их курсов больше всего, и искать «Корейский»
   // среди химий неудобно. Между «все предметы», языками и остальным — черта.
@@ -8332,27 +8311,30 @@ export default function TeacherConstructorPage() {
   )
   // Тот же расклад, что у тестов: общий предмет, по которому курсов нет, не
   // прячет витрину — он просто не сужает её.
-  const activeCourseSubject = subjectOpts.includes(shelfSubject) ? shelfSubject : ''
+  // null — предметов несколько, а не отмечен ни один: курсов не показываем.
+  // Курс без предмета ничьим не мешает и виден всегда.
+  const courseSubjects = useShelfSubjects(shelfSubjects, subjectOpts).active
+  const courseSubjectOk = (c: Course) => { const id = canonSubject(c.subject.trim()); return !id || !!courseSubjects?.includes(id) }
   const testSubjectOf = useMemo(() => {
     const m = new Map<string, string>()
-    DIAG_SUBJECTS.forEach(id => m.set(id, testSubjectName(id)))
+    myDiag.forEach(id => m.set(id, testSubjectName(id)))
     customTests.forEach(ct => m.set(ct.id, ct.subject || testSubjectName(ct.id, ct.label, ct.iconKey)))
     return m
-  }, [customTests])
+  }, [customTests, myDiag])
   const testSubjectOpts = useMemo(
     () => [...new Set([...testSubjectOf.values()].filter(Boolean).map(canonSubject))],
     [testSubjectOf],
   )
   // Общий предмет мог указывать на тот, тестов которого нет: витрина тогда
   // показывает всё, а не пустой экран — отбор общий, а полки у вкладок разные.
-  const activeTestSubject = testSubjectOpts.includes(shelfSubject) ? shelfSubject : ''
+  const testSubjects = useShelfSubjects(shelfSubjects, testSubjectOpts).active
   // Уровни теста — те же корзины, что у курсов. Явный уровень главнее; без
   // него пробуем название и чип («Химия ЕГЭ»), но только по известным корзинам —
   // само название уровнем не становится.
   const testLevelsOf = useMemo(() => {
     const known = (raw: string) => { const b = levelBuckets(raw); return b.length === 1 && b[0] === raw.trim() ? [] : b }
     const m = new Map<string, string[]>()
-    DIAG_SUBJECTS.forEach(id => m.set(id, DIAG_BUILTIN_LEVEL[id] ?? []))
+    myDiag.forEach(id => m.set(id, DIAG_BUILTIN_LEVEL[id] ?? []))
     customTests.forEach(ct => m.set(ct.id, ct.level ? levelBuckets(ct.level) : known(`${ct.label} ${ct.chip ?? ''}`)))
     return m
   }, [customTests])
@@ -8368,11 +8350,12 @@ export default function TeacherConstructorPage() {
     }
     return m
   }, [diagAnonResults])
-  const testSubjectVisible = (id: string) => !activeTestSubject || canonSubject(testSubjectOf.get(id) ?? '') === activeTestSubject
+  // Тест без предмета («Логика») общий — виден при любом выборе.
+  const testSubjectVisible = (id: string) => { const s = canonSubject(testSubjectOf.get(id) ?? ''); return !s || !!testSubjects?.includes(s) }
   const testLevelOpts = useMemo(
-    () => sortLevels([...new Set([...DIAG_SUBJECTS, ...customTests.map(ct => ct.id)].filter(testSubjectVisible).flatMap(id => testLevelsOf.get(id) ?? []))]),
+    () => sortLevels([...new Set([...myDiag, ...customTests.map(ct => ct.id)].filter(testSubjectVisible).flatMap(id => testLevelsOf.get(id) ?? []))]),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [customTests, testLevelsOf, activeTestSubject, testSubjectOf],
+    [customTests, testLevelsOf, testSubjects, testSubjectOf, myDiag],
   )
   const activeTestLevel = testLevelOpts.includes(testLevel) ? testLevel : ''
   const testNeedle = normSearch(testQuery)
@@ -8390,7 +8373,7 @@ export default function TeacherConstructorPage() {
     const created = new Map(customTests.map(ct => [ct.id, ct.createdAt ?? ''] as const))
     const titleOf = (id: string) => customTests.find(ct => ct.id === id)?.label ?? getSubjectMeta(id as DiagSubject).label
     const items: ({ kind: 'builtin'; id: DiagSubject } | { kind: 'custom'; id: string; ct: CustomTest })[] = [
-      ...DIAG_SUBJECTS.filter(testVisible).map(id => ({ kind: 'builtin' as const, id })),
+      ...myDiag.filter(testVisible).map(id => ({ kind: 'builtin' as const, id })),
       ...customTests.filter(ct => testVisible(ct.id)).map(ct => ({ kind: 'custom' as const, id: ct.id, ct })),
     ]
     if (testSort === 'newest' || testSort === 'oldest') {
@@ -8406,7 +8389,7 @@ export default function TeacherConstructorPage() {
     return sorted.sort((a, b) => (testStats.get(b.id)?.done ?? 0) - (testStats.get(a.id)?.done ?? 0)
       || (testStats.get(b.id)?.last ?? '').localeCompare(testStats.get(a.id)?.last ?? ''))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customTests, testSort, testStats, activeTestSubject, activeTestLevel, testPass, testNeedle, testLevelsOf, testSubjectOf])
+  }, [customTests, testSort, testStats, testSubjects, activeTestLevel, testPass, testNeedle, testLevelsOf, testSubjectOf, myDiag])
   const visibleDiagSubjects = visibleTests.filter(x => x.kind === 'builtin').map(x => x.id as DiagSubject)
   const visibleCustomTests = visibleTests.flatMap(x => x.kind === 'custom' ? [x.ct] : [])
   // Клетки сетки: серия встаёт на место своей первой части в текущей сортировке
@@ -8453,8 +8436,9 @@ export default function TeacherConstructorPage() {
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(
-    () => levelOptions(activeCourseSubject ? allCourses.filter(c => canonSubject(c.subject.trim()) === activeCourseSubject) : allCourses),
-    [allCourses, activeCourseSubject],
+    () => levelOptions(allCourses.filter(courseSubjectOk)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allCourses, courseSubjects],
   )
   // Сменили предмет — выбранный уровень мог исчезнуть из его списка. Без сброса
   // список курсов молча опустел бы под фильтром, которого уже не видно.
@@ -8497,7 +8481,7 @@ export default function TeacherConstructorPage() {
   const filteredCourses = useMemo(() => {
     let cs = allCourses
     if (courseStatus) cs = cs.filter(c => c.status === courseStatus)
-    if (activeCourseSubject) cs = cs.filter(c => canonSubject(c.subject.trim()) === activeCourseSubject)
+    cs = cs.filter(courseSubjectOk)
     if (courseLevel) cs = cs.filter(c => matchesLevel(c, courseLevel))
     if (courseStudent) cs = cs.filter(c => personsByCourse[c.id]?.has(courseStudent))
     if (courseNeedle) cs = cs.filter(c => normSearch(c.title).includes(courseNeedle))
@@ -8508,7 +8492,7 @@ export default function TeacherConstructorPage() {
     // (publishedAt) поднимает курс наверх, обычная правка не двигает вообще.
     const dir = courseSort === 'newest' ? -1 : 1
     return sorted.sort((a, b) => dir * courseSortAt(a).localeCompare(courseSortAt(b)))
-  }, [allCourses, courseSort, courseStatus, activeCourseSubject, courseLevel, courseStudent, courseNeedle, personsByCourse])
+  }, [allCourses, courseSort, courseStatus, courseSubjects, courseLevel, courseStudent, courseNeedle, personsByCourse])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -8540,8 +8524,9 @@ export default function TeacherConstructorPage() {
   /** Условие задания без разметки — для карточки в общей сетке. */
   const plainText = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
   const bankTasksOfSubject = useMemo(
-    () => shelfSubject ? allTasks.filter(x => x.subject === shelfSubject) : allTasks,
-    [allTasks, shelfSubject],
+    () => bankSubjects ? allTasks.filter(x => bankSubjects.includes(x.subject)) : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allTasks, bankSubjectsKey],
   )
   const bankTaskCount = bankTasksOfSubject.length
   /**
@@ -8729,7 +8714,7 @@ export default function TeacherConstructorPage() {
       lessons = course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 }))
     }
     if (modules.length === 0) {
-      modules = [{ id: uid(), label: t('Модуль 1'), expanded: true, lessonIds: lessons.map(l => l.id as string) }]
+      modules = [{ id: uid(), label: '', expanded: true, lessonIds: lessons.map(l => l.id as string) }]
     }
 
     const edData = {
@@ -8780,7 +8765,7 @@ export default function TeacherConstructorPage() {
       id, title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
       color: 'var(--color-purple)', bg: 'var(--color-purple-soft)',
       description: '', groupIds: [], studentIds: [],
-      modules: [{ id: uid(), label: t('Модуль 1'), expanded: true, lessonIds: [] }],
+      modules: [],
       lessons: [],
     }
     openCourseEditor(JSON.stringify(edData))
@@ -8930,29 +8915,54 @@ export default function TeacherConstructorPage() {
     })
   }
 
+  // Карточка уходит с экрана только после ответа базы. Раньше её убирали
+  // сразу: отказ (нет прав, нет связи) молчал, и после F5 «удалённое»
+  // возвращалось. Не удалилось — остаётся отмеченным, и учитель это видит.
   async function deleteChecked() {
+    const failed = new Set<string>()
     if (activeTab === 'course') {
       const toDelete = courses.filter(c => checkedIds.has(c.id))
-      setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
-      await Promise.all(toDelete.map(c => {
-        const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
-        return shortId ? supabase.from('courses').delete().eq('short_id', shortId) : Promise.resolve()
+      await Promise.all(toDelete.map(async c => {
+        if (!(await deleteCourseRow(c))) failed.add(c.id)
       }))
+      setCourses(prev => prev.filter(c => !checkedIds.has(c.id) || failed.has(c.id)))
     } else if (onTasksShelf) {
-      checkedIds.forEach(id => removeTask(Number(id)))
-      const uuids = [...checkedIds].filter(id => isUUID(id))
-      if (uuids.length) await supabase.from('trainers').delete().in('id', uuids)
+      await Promise.all([...checkedIds].map(id => removeTask(Number(id)).catch(e => {
+        console.error('[bank] removeTask', e); failed.add(id)
+      })))
     } else if (activeTab === 'testing') {
-      await Promise.all([...checkedIds].map(id => deleteCustomTestMeta(id)))
-      setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id)))
+      await Promise.all([...checkedIds].map(id => deleteCustomTestMeta(id).catch(() => { failed.add(id) })))
+      setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id) || failed.has(ct.id)))
     } else {
       const toDelete = widgets.filter(w => checkedIds.has(w.id))
-      setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
-      const uuids = toDelete.map(w => w.id).filter(id => isUUID(id))
-      if (uuids.length) await supabase.from('widgets').delete().in('id', uuids)
+      await Promise.all(toDelete.map(async w => {
+        if (!(await deleteWidgetRow(w))) failed.add(w.id)
+      }))
+      setWidgets(prev => prev.filter(w => !checkedIds.has(w.id) || failed.has(w.id)))
+    }
+    if (failed.size) {
+      setCheckedIds(failed)
+      void alertDialog({ title: t('Часть отмеченного не удалилась — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
     }
     setCheckedIds(new Set())
     setEditMode(false)
+  }
+
+  /** Удалить строку курса в базе. false — база отказала; курса, которого в
+   *  базе ещё нет, удалять нечего — это успех. */
+  async function deleteCourseRow(c: Course): Promise<boolean> {
+    const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
+    if (!shortId) return true
+    const { data, error } = await supabase.from('courses').delete().eq('short_id', shortId).select('id')
+    if (error || !data?.length) { console.error('[deleteCourse]', error ?? 'нет прав'); return false }
+    return true
+  }
+  async function deleteWidgetRow(w: Widget): Promise<boolean> {
+    if (!isUUID(w.id)) return true
+    const { data, error } = await supabase.from('widgets').delete().eq('id', w.id).select('id')
+    if (error || !data?.length) { console.error('[deleteWidget]', error ?? 'нет прав'); return false }
+    return true
   }
 
   async function duplicateChecked() {
@@ -9041,9 +9051,18 @@ export default function TeacherConstructorPage() {
       title: w.title, type: w.type, linked_trainer_id: linkedUuid,
       items: w.items, color: w.color, bg: w.bg,
     }
+    // У widgets.created_by нет значения по умолчанию, а читать строку можно
+    // только автору — без автора вставка с RETURNING падала целиком, и у
+    // учителя без админки виджеты не сохранялись вовсе. Автора ставим только
+    // новому: правка чужого (админом) не должна переписывать владельца.
     if (isUUID(w.id)) row.id = w.id
+    else row.created_by = await getOwnerId()
     const { data, error } = await supabase.from('widgets').upsert(row, { onConflict: 'id' }).select('id, created_at').single()
-    if (error) { console.error('[syncWidgetToDb]', error); return }
+    if (error) {
+      console.error('[syncWidgetToDb]', error)
+      void alertDialog({ title: t('Виджет не сохранился — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
     if (data) {
       // Время создания берём из БД — оно и задаёт порядок карточек.
       setWidgets(prev => prev.map(x => x.id === w.id
@@ -9136,14 +9155,33 @@ export default function TeacherConstructorPage() {
 
   // Per-card actions: duplicate clones with fresh ids + "(копия)" as a draft;
   // delete confirms first (irreversible).
-  function duplicateCourse(c: Course) {
+  // Копия курса из базы делается в базе целиком: модули и уроки с содержимым
+  // (duplicate_my_course). Раньше копия собиралась только на экране и после
+  // F5 пропадала. Курс, которого в базе ещё нет, копируется на экране и
+  // записывается так же, как новый.
+  async function duplicateCourse(c: Course) {
+    const title = (c.title) + t(' (копия)')
     const copy: Course = {
-      ...c, id: uid(), title: (c.title) + t(' (копия)'), status: 'draft',
+      ...c, id: uid(), title, status: 'draft', shared: false,
+      // Как и в duplicate_course: назначения и метка сида у копии свои (пустые).
+      groupIds: [], studentIds: [], seedStamp: undefined,
       lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp(),
       // Копия — новый курс: своё время создания, чужую публикацию не наследует.
       createdAt: new Date().toISOString(), publishedAt: undefined,
     }
-    setCourses(prev => [copy, ...prev])
+    if (!c.dbCourseId) {
+      setCourses(prev => [{ ...copy, dbCourseId: undefined }, ...prev])
+      syncCourseToDb({ ...copy, dbCourseId: undefined })
+      return
+    }
+    const { data, error } = await supabase.rpc('duplicate_my_course', { p_short_id: c.dbCourseId, p_title: title })
+    const row = (data as Array<{ id: string; short_id: string; created_at: string }> | null)?.[0]
+    if (error || !row) {
+      console.error('[duplicateCourse]', error)
+      void alertDialog({ title: t('Копия курса не создалась — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
+    setCourses(prev => [{ ...copy, id: row.short_id, dbCourseId: row.short_id, createdAt: row.created_at }, ...prev])
   }
   async function deleteCourse(c: Course) {
     const ok = await confirmDialog({
@@ -9153,10 +9191,12 @@ export default function TeacherConstructorPage() {
       tone: 'danger',
     })
     if (!ok) return
+    if (!(await deleteCourseRow(c))) {
+      void alertDialog({ title: t('Курс не удалился — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
     setCourses(prev => prev.filter(x => x.id !== c.id))
     if (selectedId === c.id) setSelectedId(null)
-    const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
-    if (shortId) await supabase.from('courses').delete().eq('short_id', shortId)
   }
   function duplicateWidget(w: Widget) {
     const copy: Widget = {
@@ -9166,6 +9206,8 @@ export default function TeacherConstructorPage() {
       createdAt: new Date().toISOString(),
     }
     setWidgets(prev => [copy, ...prev])
+    // Копия — в базу сразу, иначе она жила до перезагрузки страницы.
+    syncWidgetToDb(copy)
   }
   async function deleteWidget(w: Widget) {
     const ok = await confirmDialog({
@@ -9174,9 +9216,12 @@ export default function TeacherConstructorPage() {
       tone: 'danger',
     })
     if (!ok) return
+    if (!(await deleteWidgetRow(w))) {
+      void alertDialog({ title: t('Виджет не удалился — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
     setWidgets(prev => prev.filter(x => x.id !== w.id))
     if (selectedId === w.id) setSelectedId(null)
-    if (isUUID(w.id)) await supabase.from('widgets').delete().eq('id', w.id)
   }
 
   // Подписи — по сущности (см. тип Tab). Цвет разметки достался «Материалам»:
@@ -9462,9 +9507,9 @@ export default function TeacherConstructorPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
                   <SubjectFacet
-                    value={activeCourseSubject} only={subjectOpts} allLabel={t('Все предметы')}
+                    values={shelfSubjects} only={subjectOpts}
                     accent="var(--color-green-text)"
-                    onChange={setShelfSubject}
+                    onChange={setShelfSubjects}
                   />
                   <CourseFacetDropdown
                     value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
@@ -9488,9 +9533,9 @@ export default function TeacherConstructorPage() {
                 <div ref={testRowRef} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
                   <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={136} onChange={setTestSort} />
                   <SubjectFacet
-                    value={activeTestSubject} only={testSubjectOpts} allLabel={t('Все предметы')}
+                    values={shelfSubjects} only={testSubjectOpts}
                     accent="var(--color-green-text)"
-                    onChange={setShelfSubject}
+                    onChange={setShelfSubjects}
                   />
                   <CourseFacetDropdown
                     value={activeTestLevel} options={testLevelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
@@ -9554,7 +9599,7 @@ export default function TeacherConstructorPage() {
               {activeTab === 'decks' && (
                 <TrainerMaterials
                   createNonce={deckNonce}
-                  subject={shelfSubject} onSubject={setShelfSubject}
+                  subjects={shelfSubjects} onSubjects={setShelfSubjects}
                   onShelfChange={setBaseShelf}
                   editMode={editMode}
                   onOpen={openMaterialPage}
@@ -9569,15 +9614,18 @@ export default function TeacherConstructorPage() {
                         onSearch={v => setBankFilters(prev => ({ ...prev, search: v }))}
                         facet={
                           <SubjectFacet
-                            value={shelfSubject} allLabel={t('Все предметы')}
+                            values={shelfSubjects}
                             accent="var(--color-peach-text)" searchable
-                            onChange={setShelfSubject}
+                            onChange={setShelfSubjects}
                           />
                         }
                         selectedIds={new Set([...checkedIds].map(Number).filter(n => !isNaN(n)))}
                         onToggleSelected={id => toggleCheck(String(id))}
                         onForkSelected={() => {}}
-                        onDeleteTask={id => removeTask(id)}
+                        onDeleteTask={id => { removeTask(id).catch(e => {
+                          console.error('[bank] removeTask', e)
+                          void alertDialog({ title: t('Задание не удалилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+                        }) }}
                         showSelect={false}
                         compact={true}
                         editMode={editMode}
@@ -9682,6 +9730,7 @@ export default function TeacherConstructorPage() {
               {/* Сетка сжимается мгновенно, а плавность даёт framer: один замер до и
                   после. CSS-переход здесь менял столбцы посреди кадров, и плитки
                   перескакивали мимо layout-анимации. */}
+              {((activeTab === 'course' && !dbLoading && !courseSubjects) || (activeTab === 'testing' && !testSubjects)) && <PickSubjectHint />}
               <div style={{ position: 'relative', marginRight: diagShift }}>
               {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
               {/* layoutScroll: переезды плиток меряются с учётом прокрутки окна. */}

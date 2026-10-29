@@ -1,22 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
+import { AlertStack } from '../../components/Alert'
 
-export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
+export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(linkExpired ? t('Ссылка из письма устарела или уже использована. Отправьте письмо ещё раз и откройте самое новое.') : '')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   // Свободной регистрации нет: аккаунт учителя создаётся только по ссылке-приглашению (#/join-teacher)
   const [mode, setMode] = useState<'login' | 'reset' | 'newpassword'>(
-    recovery ? 'newpassword' : 'login',
+    recovery ? 'newpassword' : linkExpired ? 'reset' : 'login',
   )
   const [showPassword, setShowPassword] = useState(false)
+
+  // По ссылке из письма вход уже выполнен — подставляем почту аккаунта.
+  // Поле с логином рядом с new-password нужно менеджерам паролей: без него
+  // браузер не предлагает надёжный пароль и не знает, к какому входу его сохранить.
+  useEffect(() => {
+    if (mode !== 'newpassword') return
+    supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setEmail(data.user.email) })
+  }, [mode])
 
   function switchMode(next: 'login' | 'reset') {
     setMode(next)
@@ -36,10 +45,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         void trackNow('login', { role: 'teacher', method: 'auth' })
         onLogin()
       } else if (mode === 'reset') {
-        const redirectTo = `${window.location.origin}${window.location.pathname}#/teacher`
+        // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
+        // адресе ломал разбор. Форму нового пароля App показывает сам.
+        // Адрес должен быть в Auth → URL Configuration → Redirect URLs.
+        const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
         if (error) throw error
-        setNotice(t('Письмо для сброса пароля отправлено. Проверьте почту.'))
+        setNotice(t('Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.'))
       } else if (mode === 'newpassword') {
         const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
@@ -92,14 +104,15 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {mode !== 'newpassword' && (
+          {(mode !== 'newpassword' || email) && (
             <input
               className="auth-input"
               type="email"
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              autoComplete="email"
+              autoComplete="username"
+              readOnly={mode === 'newpassword'}
               required
               style={{
                 minHeight: 50,
@@ -113,6 +126,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
                 color: 'var(--color-text)',
                 WebkitTextFillColor: 'var(--color-text)',
                 background: 'var(--color-bg-input)',
+                opacity: mode === 'newpassword' ? 0.7 : 1,
               }}
             />
           )}
@@ -176,16 +190,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
             </span>
           )}
 
-          {error && (
-            <div style={{ color: 'var(--color-red-text)', fontSize: 13, padding: '8px 12px', background: 'var(--color-red-soft)', borderRadius: 10 }}>
-              {error}
-            </div>
-          )}
-          {notice && (
-            <div style={{ color: 'var(--color-purple)', fontSize: 13, padding: '8px 12px', background: 'rgba(155,109,255,0.12)', borderRadius: 10 }}>
-              {notice}
-            </div>
-          )}
+          <AlertStack items={[
+            error && { id: 'error', tone: 'danger', text: error },
+            notice && { id: 'notice', tone: 'info', text: notice },
+          ]} />
 
           <button
             type="submit"

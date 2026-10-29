@@ -20,14 +20,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { useTeacher } from '../../store/teacherStore'
+import { useTeacher, setLeaveGuard, mayLeave } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
 import { getOwnerId } from '../../lib/owner'
-import { fetchOwnCardGroups, saveCardGroup, isShelf, type CardGroup } from '../../lib/cardGroups'
+import { fetchOwnCardGroups, saveCardGroup, applyCardSaveIds, isShelf, type CardGroup } from '../../lib/cardGroups'
 import { SetPage, ShelfPage } from '../../components/teacher/CardGroupsManager'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
+import BackCircle from '../../components/BackCircle'
 
 /** Посылка витрины: что правим и чем заняты. */
 type Payload = { group: CardGroup; focus: string | null }
@@ -56,8 +57,21 @@ export default function TeacherCardSetEditorPage() {
   const [ownerId, setOwnerId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveErr, setSaveErr] = useState(false)
+  // Снимок последнего сохранённого состояния: отличается от текущего — есть что
+  // терять. По нему закрытие вкладки и «назад» спрашивают подтверждение.
+  const savedSnap = useRef(JSON.stringify(initial.current?.group ?? null))
+  const dirty = !!group && JSON.stringify(group) !== savedSnap.current
+  const dirtyRef = useRef(dirty)
+  dirtyRef.current = dirty
 
   useEffect(() => { void getOwnerId().then(setOwnerId) }, [])
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => { if (dirtyRef.current) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', warn)
+    setLeaveGuard(() => dirtyRef.current)
+    return () => { window.removeEventListener('beforeunload', warn); setLeaveGuard(null) }
+  }, [])
 
   // Черновик в сессию — на каждое изменение: страница переживает F5.
   useEffect(() => {
@@ -85,18 +99,34 @@ export default function TeacherCardSetEditorPage() {
   async function save() {
     if (!group || !canSave) return
     setSaving(true)
-    const id = await saveCardGroup(group, { createdBy: ownerId })
+    // Владелец мог ещё не приехать: без него created_by = null, и RLS режет вставку.
+    const owner = ownerId ?? await getOwnerId()
+    const res = await saveCardGroup(group, { createdBy: owner })
     setSaving(false)
-    if (!id) return
+    if (!res.ok || !res.id) {
+      // Базу НЕ перечитываем: несохранённое пропало бы с экрана. Вставленное
+      // пересаживаем на настоящие id, чтобы повтор не плодил копии.
+      setGroup(g => (g ? applyCardSaveIds(g, res) : g))
+      setSaveErr(true)
+      return
+    }
+    const id = res.id
+    setSaveErr(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 1600)
 
     // Перечитываем и ПЕРЕСАЖИВАЕМ редактор на строки из базы. Новая группа и её
     // наборы получили настоящие id; останься редактор на временных, второе
     // «Сохранить» посчитало бы их удалёнными и перезалило набор копией.
-    const rows = ownerId ? await fetchOwnCardGroups(ownerId) : []
+    const rows = owner ? await fetchOwnCardGroups(owner) : []
     const fresh = rows.find(g => g.id === id)
-    if (!fresh) { setGroup(g => (g ? { ...g, id, seed: false } : g)); return }
+    if (!fresh) {
+      const next = { ...group, id, seed: false }
+      savedSnap.current = JSON.stringify(next)
+      setGroup(next)
+      return
+    }
+    savedSnap.current = JSON.stringify(fresh)
     const idx = group.sets.findIndex(s => s.id === focus)
     setGroup(fresh)
     if (focus) setFocus(fresh.sets[idx]?.id ?? null)
@@ -104,6 +134,8 @@ export default function TeacherCardSetEditorPage() {
 
   /** Выход: черновик из сессии убираем — иначе следующий F5 вернул бы сюда. */
   function back() {
+    // Спросить ДО того, как гасить черновик сессии: отказ оставляет всё как было.
+    if (!mayLeave()) return
     setCardsEdited(null)
     setActivePage('constructor')
   }
@@ -115,12 +147,7 @@ export default function TeacherCardSetEditorPage() {
           требовали заново искать глазами одни и те же кнопки. */}
       <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={back}
-            style={headBtn}
-          >
-            <ArrowLeft size={15} strokeWidth={2} /> {t('К наборам')}
-          </motion.button>
+          <BackCircle onClick={back} label="К наборам" />
           {/* Набор открыт ИЗ ПОЛКИ — даём ход назад к ней, не выходя из правки:
               полка и её наборы сохраняются одной строкой, и выход на витрину
               ради соседнего набора стоил бы несохранённого. */}
@@ -142,6 +169,11 @@ export default function TeacherCardSetEditorPage() {
             человек видел готовый список и не догадывался, что не хватает имени.
             На телефоне наведения нет вовсе, так что подсказка там не спасала бы. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {saveErr && (
+            <span style={{ fontSize: 11.5, color: 'var(--color-red, #d33)', whiteSpace: 'nowrap' }}>
+              {t('Не удалось сохранить — нажмите ещё раз')}
+            </span>
+          )}
           {!canSave && (
             <span style={{ fontSize: 11.5, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
               {editedSet ? t('Дайте набору название') : t('Дайте полке название')}

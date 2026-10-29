@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
-  Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered,
+  Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -25,6 +25,10 @@ import NotificationBell from './NotificationBell'
 import NotificationPopup from './NotificationPopup'
 import { useT, useLang, tn, type Lang } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
+import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
+import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
+import Switch from './Switch'
+import { useSeason, setSeasonOff } from '../lib/season'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -135,6 +139,25 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
   )
 }
 
+// Кнопки «Загрузить фото» / «Убрать фото» под сеткой аватаров.
+const photoBtnStyle = {
+  flex: 1,
+  height: 34,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  padding: '0 10px',
+  borderRadius: 10,
+  border: '1px solid var(--color-border)',
+  background: 'rgba(var(--glass-rgb), 0.6)',
+  color: 'var(--color-text)',
+  fontSize: 13,
+  fontWeight: 550,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+} as const
+
 // Header for a sub-view: a back button + the view title.
 function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
   const t = useT()
@@ -196,6 +219,7 @@ export default function Sidebar() {
   const bellRef = useRef<HTMLDivElement>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
+  const season = useSeason()
   const { lang, setLang } = useLang()
   // Счётчик новых материалов ленты. С отсрочкой: бар рисуется на каждом экране
   // кабинета, и тянуть чанк ленты наперегонки с данными главной ради цифры
@@ -210,6 +234,9 @@ export default function Sidebar() {
   const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
   const avatarId = useDashboard(state => state.avatarId)
   const setAvatarId = useDashboard(state => state.setAvatarId)
+  // Своё фото поверх иконки. Выбор иконки снимает фото.
+  const { avatarPath, savePhoto, removePhoto } = useStudentAvatarPhoto()
+  const [cropFile, setCropFile] = useState<File | null>(null)
   const widgetColumns = useDashboard(state => state.widgetColumns)
   const setWidgetColumns = useDashboard(state => state.setWidgetColumns)
   const activePage = useDashboard(state => state.activePage)
@@ -423,6 +450,7 @@ export default function Sidebar() {
               else { setMenuView('root'); setPickerOpen(true) }
             }}
             style={{
+              position: 'relative',
               width: 36,
               height: 36,
               borderRadius: '50%',
@@ -443,6 +471,7 @@ export default function Sidebar() {
             aria-expanded={pickerOpen}
           >
             <avatar.Icon size={20} strokeWidth={2} />
+            <AvatarPhotoFill path={avatarPath} />
           </motion.button>
 
           {createPortal(
@@ -488,7 +517,7 @@ export default function Sidebar() {
                       }}
                     >
                       {AVATARS.map(opt => {
-                        const selected = opt.id === avatarId
+                        const selected = !avatarPath && opt.id === avatarId
                         return (
                           <motion.button
                             key={opt.id}
@@ -496,6 +525,7 @@ export default function Sidebar() {
                             whileTap={{ scale: 0.92 }}
                             onClick={() => {
                               setAvatarId(opt.id)
+                              void removePhoto()
                               closePicker()
                             }}
                             role="menuitemradio"
@@ -522,6 +552,27 @@ export default function Sidebar() {
                           </motion.button>
                         )
                       })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 12, padding: '0 8px' }}>
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => { pickImageFile(setCropFile); closePicker() }}
+                        style={photoBtnStyle}
+                      >
+                        <Camera size={14} strokeWidth={2.1} style={{ flexShrink: 0 }} />
+                        <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
+                      </motion.button>
+                      {avatarPath && (
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => { void removePhoto() }}
+                          aria-label={t('Убрать фото')}
+                          title={t('Убрать фото')}
+                          style={{ ...photoBtnStyle, flex: 'none', width: 34, padding: 0, justifyContent: 'center' }}
+                        >
+                          <X size={14} strokeWidth={2.1} />
+                        </motion.button>
+                      )}
                     </div>
                     {/* Переключатель предметов — для 1:1 учеников с несколькими карточками.
                         Сам решает, показываться ли (скрыт/null при одной карточке, без пустого зазора). */}
@@ -621,6 +672,15 @@ export default function Sidebar() {
                           }
                           <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
                         </motion.button>
+
+                        {/* Праздничная тема — только пока сезон идёт: выключить у себя. */}
+                        {season.live && (
+                          <div style={{ width: '100%', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text)', fontSize: 14, fontWeight: 550 }}>
+                            <Ghost size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            <span style={{ flex: 1, textAlign: 'left' }}>{t('Хэллоуин-тема')}</span>
+                            <Switch checked={!season.off} onChange={v => setSeasonOff(!v)} label={t('Хэллоуин-тема')} />
+                          </div>
+                        )}
 
                         {/* Opens the list modal — left-aligned like SettingsRow */}
                         <motion.button
@@ -884,6 +944,7 @@ export default function Sidebar() {
     <CourseOrderModal open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
     <CourseTintModal open={tintModalOpen} onClose={() => setTintModalOpen(false)} />
     {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
+    {cropFile && <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={async b => { await savePhoto(b); setCropFile(null) }} />}
     </>
   )
 }

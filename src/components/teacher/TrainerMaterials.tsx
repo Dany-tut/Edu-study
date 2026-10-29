@@ -41,18 +41,20 @@ import { useT } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { usePersistentState, clearDraft } from '../../lib/useDraft'
 import { useTeacher } from '../../store/teacherStore'
-import { SUBJECTS } from '../../lib/subjects'
+import { SUBJECTS, isMySubject } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import {
   MATERIAL_MODES, MATERIAL_FAMILIES,
   type MaterialMode, type MaterialFamily, type MaterialItem, type MaterialBlock,
 } from '../../data/trainerMaterials'
 import { ContentCard, CardSkeleton } from './ContentCard'
 import { plural } from '../trainer/TrainerShell'
-import { SortDropdown, SubjectFacet, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
+import { SortDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, ShelfCount, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import TeacherSelect from './TeacherSelect'
 import CardGroupsManager, { useOwnDecks } from './CardGroupsManager'
 import Skeleton from '../Skeleton'
+import BackCircle from '../../components/BackCircle'
 
 const MAT_COLOR = 'var(--color-peach-text)'
 const MAT_BG = 'var(--color-peach-soft)'
@@ -112,15 +114,8 @@ const langLabel = (code: string) => LANG_SUBJECTS.find(s => s.langCode === code)
  * («Литература» и «Русский» дают одну и ту же витрину), неязыковые стоят за
  * чертой ради подборок карточек — готовых материалов у них нет.
  */
-function MaterialsFacet({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const t = useT()
-  return (
-    <SubjectFacet
-      value={value} onChange={onChange}
-      only={SUBJECT_OPTIONS.map(s => s.id)}
-      accent={MAT_COLOR} allLabel={t('Все предметы')}
-    />
-  )
+function MaterialsFacet({ values, onChange, only }: { values: string[]; onChange: (v: string[]) => void; only: string[] }) {
+  return <SubjectFacet values={values} onChange={onChange} only={only} accent={MAT_COLOR} />
 }
 
 type SortMode = 'az' | 'za' | 'size' | 'level'
@@ -182,7 +177,7 @@ type Shelf = MaterialMode | '' | typeof TASKS_ID
 /** Адрес материала: по нему страница находит его сама, и он переживает F5. */
 export type MaterialRef = { lang: string; familyId: string; id: string }
 
-export default function TrainerMaterials({ createNonce = 0, subject, onSubject, tasks, onShelfChange, editMode = false, onOpen }: {
+export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects, tasks, onShelfChange, editMode = false, onOpen }: {
   createNonce?: number
   /**
    * Банк заданий как полка «Базы». Страница отдаёт готовыми: `count` для
@@ -210,9 +205,12 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
    * написаны на изучаемом языке и грузятся по коду языка предмета; у подборок
    * язык и предмет разошлись — набор по биологии написан по-русски, но
    * принадлежит биологии.
+   *
+   * Мультивыбор: отмечено несколько — витрина собирает языки всех отмеченных;
+   * не отмечено ни одного при нескольких предметах учителя — витрина пуста.
    */
-  subject: string
-  onSubject: (v: string) => void
+  subjects: string[]
+  onSubjects: (v: string[]) => void
   /**
    * Какая полка открыта — наружу, странице: правка, удаление отмеченного и
    * импорт из Google Forms касаются только заданий, и шапка обязана это знать.
@@ -225,14 +223,28 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
 }) {
   const t = useT()
 
+  // Только предметы учителя: ведущему химию корейские полки ни к чему.
+  const mine = useTeacherAccess(s => s.subjects)
+  const facetOpts = useMemo(() => SUBJECT_OPTIONS.filter(s => isMySubject(s.id, mine)).map(s => s.id), [mine])
+  const { active } = useShelfSubjects(subjects, facetOpts)
+  const activeKey = active?.join(',') ?? ''
+  // Один отмеченный предмет — вся прежняя логика «предмета витрины» (полки,
+  // подборки, язык). Несколько — общий список, без привязки к одному.
+  const subject = active?.length === 1 ? active[0] : ''
   const lang = langOf(subject)
+  const langs = useMemo(
+    () => ALL_LANGS.filter(l => active?.some(id => langOf(id) === l)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeKey],
+  )
+  const cacheKey = subject || `m:${langs.join(',')}`
   const [mode, setMode] = useState<Shelf>(() =>
     (localStorage.getItem('materials-mode') as Shelf | null) ?? '')
   const [view, setView] = useState<'cards' | 'rows'>(() =>
     localStorage.getItem('materials-view') === 'rows' ? 'rows' : 'cards')
 
-  const [rows, setRows] = useState<Row[]>(() => rowsCache.get(subject) ?? [])
-  const [loading, setLoading] = useState(() => !rowsCache.has(subject))
+  const [rows, setRows] = useState<Row[]>(() => rowsCache.get(cacheKey) ?? [])
+  const [loading, setLoading] = useState(() => !rowsCache.has(cacheKey))
 
   // Отбор переживает поход в материал и обратно. Страница материала встаёт
   // вместо вкладок, витрина при этом размонтируется — и в useState уровень,
@@ -251,13 +263,12 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
   // список и не роняет соседние — витрина без одной полки лучше пустой вкладки.
   useEffect(() => {
     let alive = true
-    const cached = rowsCache.get(subject)
+    const cached = rowsCache.get(cacheKey)
     if (cached) { setRows(cached); setLoading(false); return }
     setLoading(true)
     setRows([])
     // Предмет без языка (биология, химия) — готовых полок у него нет вовсе:
     // грузить нечего, и режимы честно показывают ноль вместо вечной загрузки.
-    const langs = subject ? (lang ? [lang] : []) : ALL_LANGS
     void Promise.all(
       langs.flatMap(l => MATERIAL_FAMILIES.map(async f => {
         try {
@@ -270,16 +281,19 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
       })),
     ).then(chunks => {
       if (!alive) return
-      rowsCache.set(subject, chunks.flat())
+      rowsCache.set(cacheKey, chunks.flat())
       setRows(chunks.flat())
       setLoading(false)
     })
     return () => { alive = false }
-  }, [subject, lang])
+  }, [cacheKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Подборки приезжают из базы, а не из кода, — в rows их нет, и без этого
   // счёта «Карточки» у биологии показывали пусто при двух лежащих наборах.
-  const modes = useMemo(() => modesFor(subject), [subject])
+  // Среди отмеченных есть язык — все полки; одни науки — только их.
+  const modes = useMemo(() => modesFor(langs.length ? '' : subject || (active?.[0] ?? '')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [langs, subject, activeKey])
 
   // Предмет сменился на неязыковой, а открыта была его полка — витрина осталась
   // бы на «Аудировании», которого в дереве больше нет: строка не подсвечена,
@@ -289,7 +303,10 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
     if (!modes.some(m => m.id === mode)) setMode('')
   }, [modes, mode])
 
-  const decks = useOwnDecks(subject, lang)
+  // Предмет не выбран — витрина пуста, и подборки тоже. Отмечено несколько —
+  // свои подборки все: они и так только свои.
+  const ownDecks = useOwnDecks(subject, lang)
+  const decks = active ? ownDecks : []
   const deckCount = decks.length
   const modeCount = (m: MaterialMode) =>
     rows.reduce((n, r) => n + (r.family.mode === m ? 1 : 0), 0) + (m === 'vocab' ? deckCount : 0)
@@ -437,12 +454,21 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {onTasks ? (
           tasks.view
+        ) : onDecks && !active ? (
+          // Подборки рисует CardGroupsManager со своими готовыми наборами всех
+          // языков — без предмета он показал бы их все. Ряд с фасетом и подсказка.
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <MaterialsFacet values={subjects} onChange={onSubjects} only={facetOpts} />
+            </div>
+            <PickSubjectHint />
+          </>
         ) : onDecks ? (
           <CardGroupsManager
             createNonce={deckCreate}
             lang={lang || undefined}
             subject={subject || undefined}
-            facet={<MaterialsFacet value={subject} onChange={onSubject} />}
+            facet={<MaterialsFacet values={subjects} onChange={onSubjects} only={facetOpts} />}
             editMode={editMode}
             query={query}
             onQuery={setQuery}
@@ -451,14 +477,16 @@ export default function TrainerMaterials({ createNonce = 0, subject, onSubject, 
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <SortDropdown value={sort} options={SORT_OPTS} accent={MAT_COLOR} onChange={setSort} />
-              <MaterialsFacet value={subject} onChange={onSubject} />
+              <MaterialsFacet values={subjects} onChange={onSubjects} only={facetOpts} />
               <ViewSwitch value={view} accent={MAT_COLOR} onChange={setView}
                 options={[['cards', 'Плитками', LayoutGrid], ['rows', 'Строками', List]]} />
               <ShelfSearch value={query} onChange={setQuery} style={{ marginLeft: 'auto' }} />
               <ShelfCount style={{ marginLeft: 0 }}>{totalShown} {t(plural(totalShown, ['единица', 'единицы', 'единиц']))}</ShelfCount>
             </div>
 
-            {loading ? (
+            {!active ? (
+              <PickSubjectHint />
+            ) : loading ? (
               view === 'cards' ? (
                 <div style={GRID}>{Array.from({ length: 8 }, (_, i) => <CardSkeleton key={i} />)}</div>
               ) : (
@@ -1011,14 +1039,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
   const shelfTitle = family ? `${t(family.label)} · ${t(langLabel(target.lang))}` : t('Материалы')
 
   const backBtn = (glass: boolean) => (
-    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999,
-        ...(glass ? pageGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)' }),
-        color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', pointerEvents: 'auto',
-      }}>
-      <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-    </motion.button>
+    <BackCircle onClick={onClose} label="Назад" />
   )
 
   return (

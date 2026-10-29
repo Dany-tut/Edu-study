@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Send, Image as ImageIcon, PenLine, X, Check, RotateCcw, Star, Clock, MessageSquare,
+  Send, Image as ImageIcon, PenLine, X, Check, RotateCcw, Star, MessageSquare,
 } from 'lucide-react'
 import RichConditionEditor from './RichConditionEditor'
 import WhiteboardCanvas from './WhiteboardCanvas'
@@ -22,6 +22,7 @@ import {
   type HardTaskStudentBlock, type HardTaskReviewBlock, type HardEvent, type HardSolution,
   mergeTaskEvents, taskStatus, hardTaskScore, lastSolutionOf, type HardTaskStatus,
 } from '../../lib/useHomework'
+import { Alert } from '../Alert'
 
 // Вкладки сложных заданий + датированная лента раундов (решение → комментарий →
 // решение → … → принято) + composer под роль. Persistence — в родителе (страница
@@ -446,9 +447,7 @@ export default function HardConversation({
 
       {/* Подсказки-ожидание */}
       {role === 'student' && status === 'submitted' && (
-        <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 600 }}>
-          <Clock size={16} /> {t('Решение отправлено — ждём проверку преподавателя.')}
-        </div>
+        <Alert tone="info" text={t('Решение отправлено — ждём проверку преподавателя.')} />
       )}
       {status === 'completed' && (
         typeof score === 'number' ? (
@@ -465,20 +464,14 @@ export default function HardConversation({
             </div>
           </div>
         ) : (
-          <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
-            <Star size={16} fill="currentColor" /> {t('Задание принято')}.
-          </div>
+          <Alert tone="success" title={`${t('Задание принято')}.`} />
         )
       )}
       {role === 'teacher' && status === 'returned' && (
-        <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-peach-text)', fontSize: 13, fontWeight: 600 }}>
-          <Clock size={16} /> {t('Возвращено — ждём новое решение ученика.')}
-        </div>
+        <Alert tone="info" text={t('Возвращено — ждём новое решение ученика.')} />
       )}
       {role === 'teacher' && status === 'in_progress' && (
-        <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-bg-2)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
-          <Clock size={16} /> {t('Ученик ещё не присылал решение по этому заданию.')}
-        </div>
+        <Alert tone="info" text={t('Ученик ещё не присылал решение по этому заданию.')} />
       )}
     </div>
   )

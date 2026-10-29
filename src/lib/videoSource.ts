@@ -1,12 +1,13 @@
 // Normalises a pasted lesson-recording URL into a playable source. Supports
 // three formats side by side:
-//   • RuTube  — rutube.ru/video/<id> or /play/embed/<id> (or a bare hex id)
+//   • RuTube  — rutube.ru/video/<id> or /play/embed/<id> (or a bare hex id);
+//     приватное — rutube.ru/video/private/<id>/?p=<ключ>
 //   • YouTube — youtube.com/watch?v=, youtu.be/, /embed/, /shorts/, /live/
 //   • own link — a direct media file (.webm/.mp4/…) OR a teachstream /watch/<id>
 //     page (any other http(s) URL is embedded in an iframe as-is)
 // The teacher pastes one link; the student player picks the right embed.
 export type VideoSource =
-  | { kind: 'rutube'; id: string }
+  | { kind: 'rutube'; id: string; key?: string } // key — ?p= приватного видео
   | { kind: 'youtube'; id: string }
   | { kind: 'file'; url: string }   // raw media → native <video>
   | { kind: 'audio'; url: string }  // raw audio → native <audio controls>
@@ -21,9 +22,14 @@ export function parseVideoSource(raw?: string | null): VideoSource | undefined {
   const url = raw?.trim()
   if (!url) return undefined
 
-  // RuTube: /video/<hex>/, /play/embed/<hex>, or a bare hex id.
-  const ru = url.match(/rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i)
-  if (ru) return { kind: 'rutube', id: ru[1] }
+  // RuTube: /video/<hex>/, /play/embed/<hex>, or a bare hex id. Приватное
+  // видео открывается только с ключом из ?p= — без него плеер RuTube покажет
+  // «видео недоступно», поэтому ключ несём до самого embed.
+  const ru = url.match(/rutube\.ru\/(?:video|play\/embed)\/(?:private\/)?([0-9a-f]+)/i)
+  if (ru) {
+    const key = url.match(/[?&]p=([\w-]+)/)?.[1]
+    return key ? { kind: 'rutube', id: ru[1], key } : { kind: 'rutube', id: ru[1] }
+  }
   if (/^[0-9a-f]{16,}$/i.test(url)) return { kind: 'rutube', id: url }
 
   // YouTube: watch?v=, youtu.be/, /embed/, /shorts/, /live/ (11-char id).
@@ -53,7 +59,7 @@ export function parseVideoSource(raw?: string | null): VideoSource | undefined {
 export function videoEmbedSrc(src: VideoSource, startSeconds = 0): string {
   const t = Math.max(0, Math.floor(startSeconds))
   switch (src.kind) {
-    case 'rutube': return `https://rutube.ru/play/embed/${src.id}?t=${t}`
+    case 'rutube': return `https://rutube.ru/play/embed/${src.id}/?${src.key ? `p=${src.key}&` : ''}t=${t}`
     case 'youtube': {
       const params = new URLSearchParams({
         autoplay: '1',

@@ -6,6 +6,7 @@ import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
+import { Alert } from '../components/Alert'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -155,9 +156,7 @@ export default function StudentLoginPage() {
         </div>
 
         {error && (
-          <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
-            {error}
-          </div>
+          <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
         )}
 
         <button

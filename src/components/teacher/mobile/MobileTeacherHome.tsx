@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
-  ClipboardCheck, Users, ChevronRight, AlertTriangle, BookOpen, Link2, Copy, Check,
+  ClipboardCheck, Users, ChevronRight, BookOpen, Link2, Copy, Check,
   Wallet, Play, PartyPopper, Send, ArrowRight, CircleCheck, Clock,
 } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
@@ -22,17 +22,21 @@ import type { MTab } from './MobileTeacherNav'
 import { StudentSheet } from './MobileTeacherStudents'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP } from '../../../data/teacherDevDemo'
 import { useT, t, useTc } from '../../../lib/i18n'
+import { isMySubject } from '../../../lib/subjects'
+import { useTeacherAccess } from '../../../lib/teacherAccess'
+import { Alert } from '../../Alert'
 
 const BASE_URL = window.location.origin + window.location.pathname
-const DIAG_SUBJECTS: { id: string; label: string }[] = [
-  { id: 'biology', label: 'Биология' },
-  { id: 'chemistry', label: 'Химия' },
+// subject — предмет реестра для «Моих предметов»; у «Мышления» его нет, она общая.
+const DIAG_SUBJECTS: { id: string; label: string; subject?: string }[] = [
+  { id: 'biology', label: 'Биология', subject: 'biology' },
+  { id: 'chemistry', label: 'Химия', subject: 'chemistry' },
   { id: 'logic', label: 'Мышление' },
-  { id: 'ap-chem-ru', label: 'AP Химия RU' },
-  { id: 'ap-chem-en', label: 'AP Chemistry EN' },
-  { id: 'eng-placement', label: 'Английский — уровень' },
-  { id: 'eng-restore', label: 'Английский — восстановление B2' },
-  { id: 'kor-placement', label: 'Корейский — уровень' },
+  { id: 'ap-chem-ru', label: 'AP Химия RU', subject: 'chemistry' },
+  { id: 'ap-chem-en', label: 'AP Chemistry EN', subject: 'chemistry' },
+  { id: 'eng-placement', label: 'Английский — уровень', subject: 'english' },
+  { id: 'eng-restore', label: 'Английский — восстановление B2', subject: 'english' },
+  { id: 'kor-placement', label: 'Корейский — уровень', subject: 'korean' },
 ]
 const diagLink = (subject: string, assignmentId?: string) =>
   `${BASE_URL}#/diagnostic?subject=${subject}${assignmentId ? `&assignment=${assignmentId}` : ''}`
@@ -429,19 +433,12 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
 
         {/* журнал не заполнен */}
         {model.journalPending > 0 && (
-          <motion.button
-            whileTap={{ scale: 0.99 }}
-            onClick={() => { tactile(); onNavigate('gradebook') }}
-            className="cursor-pointer"
-            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '13px 14px', borderRadius: 16, background: PAIR.warning.bg }}
-          >
-            <AlertTriangle size={18} style={{ color: PAIR.warning.text, flexShrink: 0 }} />
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: PAIR.warning.text }}>{t('Журнал не заполнен')}</span>
-              <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.warning.text, opacity: 0.82, marginTop: 2 }}>{model.journalPending} {t('урок(а) ждут отметки')}</span>
-            </span>
-            <ChevronRight size={18} style={{ color: PAIR.warning.text, opacity: 0.7, flexShrink: 0 }} />
-          </motion.button>
+          <Alert
+            tone="warning"
+            title={`${t('Журнал не заполнен')}.`}
+            text={`${model.journalPending} ${t('урок(а) ждут отметки')}`}
+            action={{ label: t('Заполнить'), onClick: () => { tactile(); onNavigate('gradebook') } }}
+          />
         )}
 
         {/* 4 — attention */}
@@ -502,7 +499,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Диагностики по предметам')}</div>
-            {DIAG_SUBJECTS.map(s => (
+            {DIAG_SUBJECTS.filter(s => !s.subject || isMySubject(s.subject, useTeacherAccess.getState().subjects)).map(s => (
               <LinkRow key={s.id} label={t(s.label)} sub={t('открытая диагностика')} url={diagLink(s.id)} />
             ))}
           </div>

@@ -14,6 +14,7 @@ import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
 import { isNewHard, teacherComments, type HardTaskReviewBlock } from './useHomework'
 import { assignEmblems, type StickerEmblem } from './holo/presets'
+import { baseLessonRef } from './extraHomework'
 
 /** За что выдан стикер. От этого зависит только подпись — тир общий. */
 export type StickerKind = 'task' | 'deck'
@@ -70,7 +71,7 @@ function stickersFromRow(row: {
       kind: 'task',
       score: last.score as number,
       taskIndex: i + 1,
-      lessonRef: row.lesson_ref.endsWith('-hard') ? row.lesson_ref.slice(0, -5) : row.lesson_ref,
+      lessonRef: baseLessonRef(row.lesson_ref),
       lessonTitle: '',
       at: last.at || row.updated_at || '',
       comment: last.comment ?? '',

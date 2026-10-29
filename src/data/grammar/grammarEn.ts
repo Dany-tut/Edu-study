@@ -1559,6 +1559,80 @@ Regret doing — сожаление о сделанном: I regret telling him 
     ],
   },
   {
+    id: 'en-purpose',
+    chapter: 'Герундий, инфинитив, фразовые',
+    level: 'B1',
+    form: 'to do / so that smb can',
+    title: 'Цель: to, in order to, so that',
+    short: '«Чтобы»: для себя — to do, для другого — so that',
+    attach: 'к придаточному цели',
+    rule: `Русское «чтобы» в английском расходится на две конструкции, и выбирает их один вопрос: кто делает второе действие?
+
+Тот же человек — инфинитив: I got up early to make breakfast (встал я и готовлю я). Никакого «for» и никакого «that»: просто to + глагол. Формальнее — in order to, ещё официальнее — so as to: We diluted the acid in order to reduce the risk. Отрицание цели строят только с ними: in order not to / so as not to be late. Голое not to для цели звучит неуклюже.
+
+Другой человек — so that + подлежащее + модальный: I got up early so that Mum could help me (встал я, помогает мама). Внутри почти всегда can/could (возможность) или will/would: настоящее в главной — can/will, прошедшее — could/would. В разговоре that часто выпадает: …so Mum could help me.
+
+Осторожно с голым so: с запятой и без модального это «поэтому», то есть следствие, а не цель. I got up early, so I made breakfast — встал рано, поэтому приготовил. I got up early so I could make breakfast — встал рано, чтобы приготовить. Цель выдаёт модальный глагол.
+
+Есть и третий путь для другого человека: for + человек + to do — I left the door open for the courier to come in. Грамматично, но тяжелее, чем so that; в речи чаще звучит so that.`,
+    table: {
+      head: ['Кто делает второе', 'Конструкция', 'Пример'],
+      rows: [
+        ['я же (тот же)', 'to do', 'I came early to get a seat.'],
+        ['я же, официально', 'in order to / so as to', 'in order to avoid errors'],
+        ['я же, отрицание', 'in order not to / so as not to', 'so as not to miss the train'],
+        ['другой человек', 'so (that) + smb + can/could', 'so that you can see the board'],
+        ['другой, книжно', 'for + smb + to do', 'for the class to see'],
+        ['не цель, а следствие', ', so + без модального', 'It rained, so we stayed in.'],
+      ],
+    },
+    examples: [
+      { text: 'I got up early to make breakfast.', ru: 'Я встал пораньше, чтобы приготовить завтрак.', when: 'Тот же человек — просто to.' },
+      { text: 'I went to the pharmacy to buy some cough syrup.', ru: 'Я сходил в аптеку купить сироп от кашля.', when: 'Цель похода — to + глагол, без for.' },
+      { text: 'We heat the solution in order to speed up the reaction.', ru: 'Мы нагреваем раствор, чтобы ускорить реакцию.', when: 'in order to — регистр лабораторного отчёта.' },
+      { text: 'I left early so as not to miss the last train.', ru: 'Я ушёл пораньше, чтобы не опоздать на последнюю электричку.', when: 'Отрицательная цель — so as not to.' },
+      { text: 'Wear gloves in order not to get acid on your skin.', ru: 'Надевайте перчатки, чтобы кислота не попала на кожу.', when: 'in order not to — инструкция по технике безопасности.' },
+      { text: 'I got up early so that Mum could help me.', ru: 'Я встал пораньше, чтобы мама мне помогла.', when: 'Другой человек — so that + could (прошлое).' },
+      { text: 'I’ll write the formula bigger so that everyone can see it.', ru: 'Напишу формулу крупнее, чтобы всем было видно.', when: 'so that + can (будущее/настоящее).' },
+      { text: 'Text me when you arrive so I know you’re safe.', ru: 'Напиши, когда доедешь, чтобы я знал, что всё в порядке.', when: 'Разговорное so без that.' },
+      { text: 'She recorded the lecture so that she wouldn’t have to take notes.', ru: 'Она записала лекцию, чтобы не пришлось конспектировать.', when: 'Отрицание для другого — so that + wouldn’t.' },
+      { text: 'I left the door open for the courier to come in.', ru: 'Я оставил дверь открытой, чтобы курьер мог войти.', when: 'for + человек + to do — книжный вариант.' },
+      { text: 'The metro was closed, so I took a taxi.', ru: 'Метро закрыли, поэтому я взял такси.', when: 'Запятая + so без модального — следствие, не цель.' },
+      { text: 'I took a taxi so I could get there on time.', ru: 'Я взял такси, чтобы успеть вовремя.', when: 'so + could — уже цель.' },
+    ],
+    pitfall: 'Три русские кальки: for to do / for doing вместо to do («I came here for study» — ошибка, только to study; for + -ing — это назначение предмета: a knife for cutting bread); that вместо инфинитива для того же человека; so that + голое будущее без модального там, где нужна возможность: so that she will help → so that she can help.',
+    contrast: [
+      { with: 'en-gerund-vs-infinitive', note: '«Хочу, чтобы ты…» — это want you to, а не цель: после want/ask/tell so that не ставят.' },
+      { with: 'en-stop-remember-regret-try', note: 'stop to do — тот же инфинитив цели: остановиться, чтобы сделать.' },
+    ],
+    quiz: [
+      {
+        q: '«Я встал пораньше, чтобы мама мне помогла» —',
+        options: ['I got up early so that Mum could help me.', 'I got up early to Mum help me.', 'I got up early for Mum helps me.'],
+        answer: 0,
+        why: 'Второе действие делает другой человек — so that + подлежащее + could.',
+      },
+      {
+        q: 'I went to the library ___ for the exam.',
+        options: ['to study', 'for studying', 'for study'],
+        answer: 0,
+        why: 'Цель того же человека — просто to + глагол. for + -ing описывает назначение предмета, а не цель действия.',
+      },
+      {
+        q: 'I set two alarms ___ oversleep.',
+        options: ['so as not to', 'not to', 'for not'],
+        answer: 0,
+        why: 'Отрицательная цель — so as not to / in order not to.',
+      },
+      {
+        q: 'It was raining, so we stayed home. Здесь so —',
+        options: ['поэтому (следствие)', 'чтобы (цель)'],
+        answer: 0,
+        why: 'Запятая и нет модального — это следствие. Цель была бы: …so (that) we could…',
+      },
+    ],
+  },
+  {
     id: 'en-phrasal-verbs',
     chapter: 'Герундий, инфинитив, фразовые',
     level: 'B2',

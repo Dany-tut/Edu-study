@@ -109,6 +109,14 @@ function commit(
   fn: (d: SubjectData) => SubjectData,
 ) {
   set(s => {
+    // Пока рубрикатор не загружен из базы, в памяти лежат заводские значения.
+    // Правка поверх них записала бы их целиком в общую строку предмета и стёрла
+    // настройки всех учителей. Поэтому до загрузки — не правим и не пишем.
+    if (!s.loaded) {
+      console.warn('[curriculum] edit before load — ignored')
+      void useCurriculum.getState().load()
+      return { saveState: 'error' as const }
+    }
     const base = s.data[subject] ?? seedSubject(subject) // seed a not-yet-loaded subject on first edit
     const updated = fn(base)
     if (updated === base) return s // no-op guard (e.g. duplicate name)

@@ -6,6 +6,7 @@ import type { HardTaskReviewBlock } from '../lib/useHomework'
 import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { trackEvent } from '../lib/analytics'
+import { splitHwRef } from '../lib/extraHomework'
 
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
@@ -49,6 +50,8 @@ interface DashboardState {
 
   // The lesson currently open on the lesson page (screen 2), or null.
   currentLessonId: string | null
+  /** Какая домашка урока открыта: null — основная, иначе id доп. домашки (lib/extraHomework). */
+  currentExtraHwId: string | null
   // Where the lesson page's "Назад" button returns to — the page we came from.
   lessonReturnPage: LessonReturnPage
   // Open a lesson on the dedicated lesson page (screen 2). Remembers the current
@@ -73,9 +76,14 @@ interface DashboardState {
   // before colliding with the bar. Transient (not persisted).
   topBarBox: { left: number; right: number } | null
   setTopBarBox: (v: { left: number; right: number } | null) => void
+  // Ширина правой пилюли верхнего бара учителя (TeacherCompactPill): её задаёт
+  // TeacherTopBar по свободному месту. null — полная ширина. Не сохраняется.
+  topPillW: number | null
+  setTopPillW: (v: number | null) => void
   // Open homework as its own page, preserving the current lesson context so the
   // student can return to the same lesson via the top bar.
-  openHomework: () => void
+  openHomework: (extraId?: string | null) => void
+  /** lessonId может быть составным ключом `<урок>~<доп>` — так его пишет адрес домашки. */
   openHomeworkForLesson: (lessonId: string, level?: 'basic' | 'hard', opts?: { keepReturn?: boolean }) => void
   // Какой уровень домашки открыть при входе (напр. карточка «Сложный уровень ·
   // Возвращён» должна сразу открыть хард, а не базу). Сбрасывается в HomeworkFlow.
@@ -119,6 +127,9 @@ interface DashboardState {
   moduleFocusNonce: number
   avatarId: string
   setAvatarId: (id: string) => void
+  /** Своё фото вместо иконки: путь в бакете avatars (students.avatar_path). */
+  avatarPath: string | null
+  setAvatarPath: (path: string | null) => void
   scheduleIndex: number
   setScheduleIndex: (idx: number) => void
   quizDismissed: boolean
@@ -221,6 +232,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   },
 
   currentLessonId: null,
+  currentExtraHwId: null,
   lessonReturnPage: 'home',
   openLesson: (lessonId, opts) => set((s) => {
     // Preselect the lesson's subject/module so returning to the catalogue lands
@@ -233,6 +245,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     return {
       activePage: 'lesson',
       currentLessonId: lessonId,
+      currentExtraHwId: null,
       lessonScrolled: false,
       lessonReturnPage: opts?.keepReturn || s.activePage === 'lesson' || s.activePage === 'homework'
         ? s.lessonReturnPage
@@ -248,6 +261,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   setTopBarBox: (v) => set((s) => (
     s.topBarBox?.left === v?.left && s.topBarBox?.right === v?.right ? {} : { topBarBox: v }
   )),
+  topPillW: null,
+  setTopPillW: (v) => set((s) => (s.topPillW === v ? {} : { topPillW: v })),
   closeLesson: () => set((s) => ({
     activePage: s.lessonReturnPage,
     // В списке подсвечиваем урок, из которого вышли, — на любой из двух вкладок.
@@ -256,14 +271,15 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     homeworkWidgetFeedback: null,
     lessonScrolled: false,
   })),
-  openHomework: () => set((s) => (
+  openHomework: (extraId) => set((s) => (
     s.currentLessonId
-      ? { activePage: 'homework', lessonScrolled: false }
+      ? { activePage: 'homework', lessonScrolled: false, currentExtraHwId: extraId ?? null }
       : { activePage: s.activePage }
   )),
-  openHomeworkForLesson: (lessonId, level, opts) => {
+  openHomeworkForLesson: (ref, level, opts) => {
+    const { lessonId, extraId } = splitHwRef(ref)
     useDashboard.getState().openLesson(lessonId, opts)
-    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null })
+    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null, currentExtraHwId: extraId })
   },
   homeworkInitialLevel: null,
   clearHomeworkInitialLevel: () => set({ homeworkInitialLevel: null }),
@@ -319,6 +335,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   setActiveModule: (id) => set({ activeModuleId: id }),
   avatarId: 'flower',
   setAvatarId: (id) => set({ avatarId: id }),
+  avatarPath: null,
+  setAvatarPath: (path) => set({ avatarPath: path }),
   scheduleIndex: 3,
   setScheduleIndex: (idx) => set({ scheduleIndex: idx }),
   quizDismissed: false,

@@ -38,6 +38,7 @@ import {
   MAX_PHOTOS, type CardImportResult, type CardImportSource,
 } from '../lib/cardImport'
 import type { SetCard } from '../lib/cardGroups'
+import { Alert } from './Alert'
 
 type Mode = 'idle' | 'link'
 
@@ -267,7 +268,7 @@ export default function CardImportPanel({
         </div>
       )}
 
-      {err && <div style={{ fontSize: 12, color: 'var(--color-red-text)', lineHeight: 1.45 }}>{err}</div>}
+      {err && <Alert tone="danger" text={err} />}
 
       {found && (
         <>

@@ -7,6 +7,7 @@ import TeacherSelect from './teacher/TeacherSelect'
 import { optimizePhoto, ImageTooLargeError } from '../lib/imageOptim'
 import { submitFeedback, FEEDBACK_SECTIONS, type FeedbackRole } from '../lib/feedbackRequests'
 import { useT } from '../lib/i18n'
+import { Alert } from './Alert'
 
 // Общая форма обратной связи для учителя и ученика. Раздел из списка ИЛИ
 // вписанный вручную, текст, скриншоты (Ctrl+V или файлом → base64). Уходит в
@@ -226,7 +227,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
                 <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={e => { void addFiles(e.target.files); e.target.value = '' }} />
               </div>
 
-              {error && <div style={{ fontSize: 13, color: 'var(--color-red-text, #e5484d)', marginBottom: 12 }}>{error}</div>}
+              {error && <Alert tone="danger" text={error} style={{ marginBottom: 12 }} />}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} />

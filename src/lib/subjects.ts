@@ -82,12 +82,19 @@ export type TrainerMode =
   | 'reading'    // тексты с вопросами
   | 'listening'  // аудирование
   | 'speaking'   // говорение
+  | 'exam'       // пробники экзамена под таймером
   | 'blocks'     // конструктор: из чего собраны слова
   | 'grammar'    // справочник форм
   | 'guide'      // о языке
 
 /** Полный набор языкового предмета — у всех языков он один. */
 const LANG_MODES: TrainerMode[] = ['reading', 'cards', 'listening', 'speaking', 'blocks', 'grammar', 'guide']
+
+/**
+ * Язык с экзаменом. Пробники — не у всех языков: пока написан только IELTS,
+ * и пункт меню «Пробники» у корейского вёл бы в пустую витрину.
+ */
+const EXAM_LANG_MODES: TrainerMode[] = [...LANG_MODES, 'exam']
 
 /**
  * Предмет с банком заданий. Карточки здесь не «в довесок»: термины и даты
@@ -245,7 +252,7 @@ export const SUBJECTS: SubjectDef[] = [
   { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: NATIVE_RANKS, trainer: LANG_MODES, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
   { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: ['Старт', 'Строки', 'Сюжеты', 'Образы', 'Эпохи', 'Эксперт', 'Мастер'], trainer: LANG_MODES, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
   { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ranks: ['Старт', 'Даты', 'Эпохи', 'Реформы', 'Хроника', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
-  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ranks: LANG_RANKS, trainer: EXAM_LANG_MODES, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
   { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
   { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
   { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ranks: LANG_RANKS, trainer: LANG_MODES, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
@@ -316,7 +323,7 @@ export const SUBJECT_ICON_MAP: Record<string, string> = Object.fromEntries(SUBJE
 
 /** Options for a course/group subject <select>: value = Russian name, icon-prefixed label. */
 export function courseSubjectOptions(): { value: string; label: string }[] {
-  return SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${s.name}` }))
+  return SUBJECTS.map(s => ({ value: s.name, label: `${s.icon}${ICON_GAP}${s.name}` }))
 }
 
 /**
@@ -360,6 +367,70 @@ export function bankSubjectOptionsFor(allowed: string[] | null | undefined, with
 /** Bank-subject ids scoped to a teacher's allowed set — replaces default ['biology','chemistry']. */
 export function bankSubjectIdsFor(allowed: string[] | null | undefined): string[] {
   return allowedSubjectDefs(allowed).filter(s => s.hasBank).map(s => s.id)
+}
+
+// ── «Мои предметы» учителя ──────────────────────────────────────────────────
+// В profiles.subjects лежат id реестра и свои предметы строкой («Экономика»).
+// Поле выбора работает именами — их видит учитель; на границе с базой имя
+// реестрового предмета переводится в id, своё остаётся как есть.
+
+/**
+ * Зазор между иконкой предмета и его именем — полукруглая шпация (½ кегля).
+ * Обычный пробел после эмодзи-флага на мелком кегле почти не виден, и флаг
+ * лип к слову («🇬🇧Английский»). Везде, где иконка стоит перед именем.
+ */
+export const ICON_GAP = '\u2002'
+
+/** Имена реестра — подсказки поля «Предметы, которые вы ведёте». */
+export const SUBJECT_NAMES: string[] = SUBJECTS.map(s => s.name)
+
+/** profiles.subjects → то, что показывает поле. */
+export const subjectNamesFromStored = (stored: string[]): string[] =>
+  stored.map(v => getSubject(v)?.name ?? v)
+
+/** Поле → profiles.subjects. Повторы схлопываются. */
+export const subjectsToStored = (names: string[]): string[] =>
+  [...new Set(names.map(n => getSubject(n)?.id ?? n.trim()).filter(Boolean))]
+
+/**
+ * Предметы для списка выбора у учителя: его набор плюс то, что уже стоит в его
+ * данных (`keep`) — старый курс по чужому предмету не должен пропасть из
+ * фильтра. Пустой набор = ещё не выбрал = весь реестр.
+ */
+export function teacherSubjectDefs(allowed: string[] | null | undefined, keep: (string | null | undefined)[] = []): SubjectDef[] {
+  if (!allowed || allowed.length === 0) return SUBJECTS
+  const ids = new Set([...allowed, ...keep].map(a => getSubject(a)?.id).filter(Boolean) as string[])
+  return SUBJECTS.filter(s => ids.has(s.id))
+}
+
+/** Свои предметы учителя — то, чего нет в реестре. */
+export const customSubjects = (allowed: string[] | null | undefined): string[] =>
+  (allowed ?? []).filter(a => !getSubject(a))
+
+/**
+ * Предмет (id, русское имя или свой строкой) — из набора учителя. Пустой набор
+ * = ещё не выбрал = всё «моё». Сравнение своих — без регистра.
+ */
+export function isMySubject(idOrName: string | null | undefined, allowed: string[] | null | undefined): boolean {
+  if (!allowed || allowed.length === 0) return true
+  if (!idOrName || !idOrName.trim()) return false
+  const id = getSubject(idOrName)?.id
+  if (id) return allowed.some(a => getSubject(a)?.id === id)
+  const low = idOrName.trim().toLowerCase()
+  return allowed.some(a => a.trim().toLowerCase() === low)
+}
+
+/** Русские имена предметов учителя (реестр + свои) — для списков, где предмет хранится именем (группы). */
+export function mySubjectNames(allowed: string[] | null | undefined, keep?: string): string[] {
+  const own = [...customSubjects(allowed), ...(keep && !getSubject(keep) ? [keep] : [])]
+  return [...teacherSubjectDefs(allowed, [keep]).map(s => s.name), ...new Set(own)]
+}
+
+/** Варианты «Предмет курса» под набор учителя: реестр + свои; `keep` — текущее значение. */
+export function courseSubjectOptionsFor(allowed: string[] | null | undefined, keep?: string): { value: string; label: string }[] {
+  const reg = teacherSubjectDefs(allowed, [keep]).map(s => ({ value: s.name, label: `${s.icon}${ICON_GAP}${s.name}` }))
+  const own = [...customSubjects(allowed), ...(keep && !getSubject(keep) ? [keep] : [])]
+  return [...reg, ...[...new Set(own)].map(n => ({ value: n, label: `📚${ICON_GAP}${n}` }))]
 }
 
 /** True if the subject (by id or Russian name) is a language subject — gates the language task palette. */

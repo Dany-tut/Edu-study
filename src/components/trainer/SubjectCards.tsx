@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, Layers, Search } from 'lucide-react'
+import { Layers, Search } from 'lucide-react'
 import CardDeck, { type DeckSource } from '../CardDeck'
 import { Tile, TileGrid, TileChip, TileMeter, plural } from './TrainerShell'
 import { fetchCardGroups, setCards as allSetCards, isShelf, type CardGroup, type CardSet } from '../../lib/cardGroups'
@@ -29,6 +29,7 @@ import { deckOwner, deckStates, gradePrompt, isDue, type CardState, type ReviewC
 import { INITIAL_SRS } from '../../lib/srs'
 import { useT } from '../../lib/i18n'
 import Skeleton from '../Skeleton'
+import BackCircle from '../../components/BackCircle'
 
 /** Набор витрины: сам набор и полка, на которой он лежит (если лежит). */
 interface ShelfItem { set: CardSet; shelf?: string }
@@ -94,9 +95,7 @@ export default function SubjectCards({ subjectId, accent, soft }: {
   if (open) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button type="button" onClick={() => setOpenId('')} style={backBtn}>
-          <ChevronLeft size={14} /> {t('К наборам')}
-        </button>
+        <BackCircle onClick={() => setOpenId('')} label="К наборам" />
         <SetRun item={open} subjectId={subjectId} accent={accent} owner={owner} states={states} />
       </div>
     )

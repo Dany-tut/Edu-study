@@ -33,13 +33,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, Trash2, ChevronLeft, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
 import { useT, useTc } from '../../lib/i18n'
 import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
 import { useTeacher } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
-import { SUBJECTS } from '../../lib/subjects'
+import { SUBJECTS, teacherSubjectDefs, ICON_GAP } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import {
   fetchOwnCardGroups, deleteCardGroup, deleteCardSet,
   groupSets, moveSetsToGroup, ungroupSets, isShelf,
@@ -57,6 +58,7 @@ import { ContentCard, CardSkeleton } from './ContentCard'
 import { SortDropdown, FacetDropdown, ShelfCount, ShelfSearch, normSearch } from './ShelfFilters'
 import { cardChip } from '../../lib/pillStyles'
 import { guessLang } from '../../lib/guessLang'
+import BackCircle from '../../components/BackCircle'
 
 /** Языки, на которых вообще бывает тренажёр, — по реестру предметов. */
 const LANG_OPTIONS = SUBJECTS
@@ -66,7 +68,7 @@ const LANG_OPTIONS = SUBJECTS
   // значением (React ругался на дублирующийся ключ), а подпись у обеих бралась
   // от последней. Первый выигрывает — это сам язык.
   .filter((s, i, all) => all.findIndex(x => x.langCode === s.langCode) === i)
-  .map(s => ({ value: s.langCode!, label: `${s.icon} ${s.name}`, subject: s.id }))
+  .map(s => ({ value: s.langCode!, label: `${s.icon}${ICON_GAP}${s.name}`, subject: s.id }))
 
 /**
  * Предметы для поля набора — ВСЕ, а не только языковые.
@@ -76,7 +78,7 @@ const LANG_OPTIONS = SUBJECTS
  * наборы по предмету своего кабинета (см. fetchCardGroups), поэтому здесь
  * выбирается именно предмет, а язык из него выводится.
  */
-const SUBJECT_OPTIONS = SUBJECTS.map(s => ({ value: s.id, label: `${s.icon} ${s.name}` }))
+// Список строится на месте — по «Моим предметам» учителя (teacherSubjectDefs).
 
 /**
  * Язык группы по выбранному предмету.
@@ -156,7 +158,7 @@ const langLabelOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.
  */
 const scopeLabelOf = (g: { subject?: string | null; lang: string }) => {
   const s = g.subject ? SUBJECTS.find(x => x.id === g.subject) : undefined
-  return s ? `${s.icon} ${s.name}` : langLabelOf(g.lang)
+  return s ? `${s.icon}${ICON_GAP}${s.name}` : langLabelOf(g.lang)
 }
 const subjectOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.subject ?? null
 
@@ -1107,7 +1109,7 @@ function ScopeFields({ group, patch, studentOptions, stacked = false }: {
         <Field label={t('Предмет')}>
           <TeacherSelect
             value={group.subject ?? ''}
-            options={SUBJECT_OPTIONS}
+            options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [group.subject]).map(s => ({ value: s.id, label: `${s.icon}${ICON_GAP}${s.name}` }))}
             onChange={v => patch({ subject: v, lang: langOfSubject(v) })}
             clearable={false}
           />
@@ -1467,9 +1469,7 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
   if (open) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button type="button" onClick={() => setOpenId(null)} style={ghostBtn}>
-          <ChevronLeft size={14} /> {t('К стопкам')}
-        </button>
+        <BackCircle onClick={() => setOpenId(null)} label="К стопкам" />
         <CardsEditor
           cards={open.cards}
           onCards={cards => patchSubsets(subsets.map(x => (x.id === open.id ? { ...x, cards } : x)))}

@@ -23,6 +23,8 @@ interface DbStandaloneHw {
   title: string | null
   task_ids: number[] | null
   hard_tasks: HardTaskDef[] | null
+  /** Базовые задания целиком (0107). Пусто — старая домашка, база из task_ids. */
+  basic_tasks: Array<Record<string, unknown>> | null
   due_date: string | null
   assigned_at: string | null
 }
@@ -54,7 +56,7 @@ export async function fetchStandaloneHomework(groupId: string): Promise<DbStanda
   if (!groupId) return []
   const { data, error } = await supabase
     .from('homework')
-    .select('id, title, task_ids, hard_tasks, due_date, assigned_at')
+    .select('id, title, task_ids, hard_tasks, basic_tasks, due_date, assigned_at')
     .eq('group_id', groupId)
     .is('lesson_id', null)
     .eq('status', 'active')
@@ -116,10 +118,18 @@ function bankTaskToAuthored(t: DbBankTask): AuthoredHomeworkTask {
 
 /** Строка `homework` → AuthoredHomework (база из task_ids + хард из hard_tasks). */
 function buildAuthored(hw: DbStandaloneHw, bankById: Map<number, DbBankTask>): AuthoredHomework {
-  const basic = (hw.task_ids ?? [])
-    .map(id => bankById.get(id))
-    .filter((t): t is DbBankTask => !!t)
-    .map(bankTaskToAuthored)
+  // Новая домашка несёт задания целиком — в том виде, в каком их собрал учитель
+  // (свои, импорт, правленые из банка). Служебные поля редактора отрезаем.
+  const stored = Array.isArray(hw.basic_tasks) ? hw.basic_tasks : []
+  const basic: AuthoredHomeworkTask[] = stored.length > 0
+    ? stored.map((raw, i) => {
+        const { source: _s, bankId: _b, modified: _m, savedToTrainer: _st, canvasData: _c, ...task } = raw
+        return { ...task, id: String(task.id ?? `b${i}`), isHard: false } as AuthoredHomeworkTask
+      })
+    : (hw.task_ids ?? [])
+      .map(id => bankById.get(id))
+      .filter((t): t is DbBankTask => !!t)
+      .map(bankTaskToAuthored)
   const hard: AuthoredHomeworkTask[] = (hw.hard_tasks ?? []).map((d: HardTaskDef, i) => ({
     id: d.key || `h${i}`,
     type: 'extended',

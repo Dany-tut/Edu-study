@@ -29,6 +29,12 @@ import { copyToClipboard } from '../../lib/clipboard'
 import MultiSelectField from '../MultiSelectField'
 import { useScrollLock } from '../../lib/useScrollLock'
 import { useT, t } from '../../lib/i18n'
+import { alertDialog } from '../ConfirmHost'
+
+function bankSaveFailed(e: unknown) {
+  console.error('[bank]', e)
+  void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+}
 
 // ─── Copyable №-badge (glass tooltip) ────────────────────────────────────────
 function CopyableIdBadge({ id }: { id: number }) {
@@ -139,6 +145,12 @@ export type TrainerFilters = {
   // ЕГЭ, ни части, ни линии — отбор идёт по уровню и навыку. Поля
   // необязательные, чтобы не ломать вторую копию типа в создании ДЗ.
   levels?: string[]; skills?: string[]
+  /**
+   * Мультивыбор предмета витрины Конструктора: задания этих предметов. Пустой
+   * массив — предмет ещё не выбран, заданий нет. Не задан — отбор только по
+   * `subject` (создание ДЗ).
+   */
+  subjects?: string[]
 }
 export const emptyTrainerFilters: TrainerFilters = {
   search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [],
@@ -261,13 +273,20 @@ export function BankQuestionCard({
 
   // "Заменить" — overwrite this number in the shared bank → propagates everywhere
   // it's referenced (homeworks, student trainer, other trainers).
-  function doReplace() { replaceTaskInBank(task.id, patch()); flash('replaced') }
+  // «Заменено» — только после записи: база может отказать (чужое задание, связь).
+  async function doReplace() {
+    try { await replaceTaskInBank(task.id, patch()) }
+    catch (e) { bankSaveFailed(e); return }
+    flash('replaced')
+  }
 
   // "Сохранить как новый" — fork a brand-new searchable number, leaving the
   // original untouched. If this card is in the trainer, swap selection over.
   async function doSaveAsNew() {
     const { id: _omit, ...rest } = task
-    const newId = await addTaskToBank({ ...rest, ...patch() } as Omit<Task, 'id'>)
+    let newId: number
+    try { newId = await addTaskToBank({ ...rest, ...patch() } as Omit<Task, 'id'>) }
+    catch (e) { bankSaveFailed(e); return }
     if (selected) onForkSelected(newId)
     flash('forked')
   }
@@ -696,6 +715,7 @@ export function TrainerBankBrowser({
   const filtered = useMemo(() => {
     let list = tasks.filter(t => {
       if (filters.subject && t.subject !== filters.subject) return false
+      if (filters.subjects && !filters.subjects.includes(t.subject)) return false
       if (filters.sections.length && !filters.sections.includes(t.section)) return false
       if (filters.topics.length && !filters.topics.includes(t.topic)) return false
       if (filters.parts.length && !filters.parts.includes(String(t.part))) return false
@@ -742,7 +762,7 @@ export function TrainerBankBrowser({
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)', fontSize: 13 }}>{t('Нет заданий по выбранным фильтрам')}</div>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)', fontSize: 13 }}>{t(filters.subjects?.length === 0 ? 'Выберите предмет — можно несколько' : 'Нет заданий по выбранным фильтрам')}</div>
       )}
 
       {viewMode === 'grid' ? (
@@ -794,7 +814,7 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
   const allowedSubjects = useTeacherAccess(s => s.subjects)
   const bankIds = bankSubjectIdsFor(allowedSubjects)
   const defaultBankId = bankIds[0] || 'biology'
-  const subjScopes = filters.subject ? [filters.subject] : bankIds
+  const subjScopes = filters.subject ? [filters.subject] : filters.subjects?.length ? filters.subjects : bankIds
   const sectionOptions = merge(
     sectionsForSubject((filters.subject || defaultBankId) as Subject),
     subjScopes.map(s => sectionScope(s)),

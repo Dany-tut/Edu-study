@@ -16,6 +16,12 @@ import { useT, useLang, type Lang, useTc } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 import AppVersionRow from '../../AppVersionRow'
 import { getSessionUser } from '../../../lib/owner'
+import { AvatarPhotoFill } from '../../AvatarPhoto'
+import { useMyTeacherAvatarPath } from '../../../lib/avatarPhoto'
+import { useTeacherAccess } from '../../../lib/teacherAccess'
+import { subjectNamesFromStored } from '../../../lib/subjects'
+import TeacherSubjectsField from '../TeacherSubjectsField'
+import { Alert } from '../../Alert'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -52,6 +58,12 @@ export default function MobileTeacherProfile() {
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
+  const isTeacher = useTeacherAccess(s => s.isTeacher)
+  const mySubjects = useTeacherAccess(s => s.subjects)
+  const saveSubjects = useTeacherAccess(s => s.saveSubjects)
+  const [subjectsError, setSubjectsError] = useState(false)
+  const changeSubjects = async (next: string[]) => setSubjectsError(!(await saveSubjects(next)))
+
   const finance = useFinanceSummary()
   const home = useHomeData()
 
@@ -78,7 +90,7 @@ export default function MobileTeacherProfile() {
   const emailName = email ? email.split('@')[0] : t('Учитель')
   const m: TeacherProfileModel = useDemo ? DEMO_TEACHER_PROFILE : {
     name: profile?.name || emailName,
-    subject: profile?.subject || t('Учительский кабинет'),
+    subject: (mySubjects.length ? subjectNamesFromStored(mySubjects).join(', ') : profile?.subject) || t('Учительский кабинет'),
     planName: plan?.planName || t('Бета-доступ'),
     studentsUsed: plan?.studentsUsed ?? home.totalStudents,
     maxStudents: plan?.maxStudents ?? null,
@@ -91,6 +103,7 @@ export default function MobileTeacherProfile() {
   }
 
   const initial = (m.name.charAt(0) || 'У').toUpperCase()
+  const photoPath = useMyTeacherAvatarPath()
   const quotaPct = m.maxStudents ? Math.min(100, Math.round((m.studentsUsed / m.maxStudents) * 100)) : null
 
   const logout = async () => {
@@ -107,12 +120,23 @@ export default function MobileTeacherProfile() {
 
         {/* Identity — span 2 */}
         <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 13, padding: '14px 15px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
-          <div style={{ width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 23, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>{initial}</div>
+          <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 23, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>
+            {initial}
+            <AvatarPhotoFill path={photoPath} />
+          </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1, textTransform: 'capitalize' }}>{tn(m.name)}</div>
             <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(m.subject)}</div>
           </div>
         </div>
+
+        {/* Мои предметы — span 2. Сохраняются сразу; у админа поля нет. */}
+        {isTeacher && (
+          <div style={{ gridColumn: 'span 2' }}>
+            <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
+            {subjectsError && <Alert tone="danger" text={t('Не удалось сохранить предметы. Попробуйте ещё раз.')} style={{ marginTop: 8 }} />}
+          </div>
+        )}
 
         {/* Tariff + quota — span 2, gradient. Opens the tariff screen (same as
             the «Повысить» row below). Payment isn't wired, so choosing a plan

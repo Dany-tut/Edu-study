@@ -512,7 +512,8 @@ export async function fetchStudentTrack(
       ownerStudentId: ownerFor(studentIds, groupIds),
       modules: (mods ?? []).map(([position, label, lessons]) => ({
         id: position,
-        label,
+        label: label?.trim() ? label : 'Уроки',
+        loose: !label?.trim() || undefined,
         lessons: (lessons ?? []).flatMap(t => {
           const [lid, lShort, lTitle, num, shape, hasHard, youtube, timecodes, kind, testTasks,
                  schedDate, schedTime, recDate, recTime, schedManual, materials] = t
@@ -694,7 +695,8 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       .sort((a, b) => a.position - b.position)
       .map(mod => ({
         id: mod.position,
-        label: mod.label,
+        label: mod.label.trim() ? mod.label : 'Уроки',
+        loose: !mod.label.trim() || undefined,
         lessons: [...mod.lessons]
           .sort((a, b) => a.lesson_number - b.lesson_number)
           .flatMap(l => {
@@ -802,7 +804,8 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
     description?: string | null
   }
   for (const l of data as Row[]) {
-    const homework = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
+    const homework = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length
+      || l.homework.extraHw?.some(x => x?.tasks?.length))
       ? l.homework
       : undefined
     const content = l.content && l.content.paragraphs?.length
