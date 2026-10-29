@@ -5501,14 +5501,46 @@ export default function TeacherCourseEditorPage() {
       autosaveArmed.current = true
       if (course.dbCourseId) return
     }
+    unsaved.current = true
     const t = setTimeout(() => {
       setCourseEdited(JSON.stringify(course))
-      const seq = draftSeq.current
-      syncAccessToSupabase(course).then(ok => clearCourseDraftAfterSync(seq, ok))
-      flash()
+      runAutosave(course)
     }, 900)
     return () => clearTimeout(t)
   }, [course])
+
+  // «Сохранено!» — только после ответа базы. Раньше подпись мигала сразу, до
+  // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
+  // Пока последняя правка не доехала, `unsaved` поднят: по нему закрытие вкладки
+  // спрашивает подтверждение, а уход из редактора дописывает курс напоследок.
+  const unsaved = useRef(false)
+  const latestCourse = useRef(course)
+  latestCourse.current = course
+  // Свежая функция, а не из первого рендера: та видит пустую карту уровней
+  // доступа и затёрла бы выставленные учителем.
+  const latestSync = useRef(syncAccessToSupabase)
+  latestSync.current = syncAccessToSupabase
+  function runAutosave(c: CourseEdData) {
+    const seq = draftSeq.current
+    return syncAccessToSupabase(c).then(ok => {
+      clearCourseDraftAfterSync(seq, ok)
+      if (ok && draftSeq.current === seq) unsaved.current = false
+      if (ok) { setPublishErr(null); flash() }
+      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+      return ok
+    })
+  }
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => { if (unsaved.current) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', warn)
+    return () => {
+      window.removeEventListener('beforeunload', warn)
+      // Выход из редактора раньше, чем истекли 900 мс автосейва, гасил таймер —
+      // и последняя правка терялась. Дописываем её при размонтировании.
+      const c = latestCourse.current
+      if (unsaved.current && !c.heavyPending && (c.dbCourseId || c.title.trim())) void latestSync.current(c)
+    }
+  }, [])
 
   async function openLessonForStudents(lessonId: string) {
     if (!course.dbCourseId) return
@@ -6140,8 +6172,11 @@ export default function TeacherCourseEditorPage() {
     setCourse(updated)
     setCourseEdited(JSON.stringify(updated))
     const seq = draftSeq.current + 1
-    syncAccessToSupabase(updated).then(ok => clearCourseDraftAfterSync(seq, ok))
-    flash()
+    syncAccessToSupabase(updated).then(ok => {
+      clearCourseDraftAfterSync(seq, ok)
+      if (ok) { setPublishErr(null); flash() }
+      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+    })
   }
 
   // Страница редактора не прокручивается целиком, поэтому «прилипшей» шапки
