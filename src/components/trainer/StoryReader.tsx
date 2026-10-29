@@ -147,7 +147,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
               {t(card.title)}
             </h3>
           )}
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', ...proseWrap }}>
             {bindShortWords(t(card.text))}
           </p>
           {card.bullets && (

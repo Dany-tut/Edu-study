@@ -378,7 +378,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             </div>
           )}
           {ru ? (
-            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', ...proseWrap }}>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', ...proseWrap }}>
               {shown.split('\n\n').map((para, i) => (
                 <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
               ))}

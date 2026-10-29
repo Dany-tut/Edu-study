@@ -306,12 +306,12 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                     lang={lang}
                     accent={accent}
                     subject={glossSubject}
-                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...line.style }}
+                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 400, ...line.style }}
                   />
                 ))}</Fragment>
               ) : (
                 <Fragment key={p.id}>{proseLines(p.text).map(line => (
-                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...proseWrap, ...line.style }}>
+                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 400, ...proseWrap, ...line.style }}>
                     <Prose text={line.text} />
                   </p>
                 ))}</Fragment>

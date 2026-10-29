@@ -1959,10 +1959,10 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             // абзаце: список слов без их места в предложении — просто столбик,
             // а искать слово глазами по тексту ученик не должен.
             highlight={gloss}
-            style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--color-text)' }}
+            style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch' }}
           />
         ) : (
-          <div style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+          <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', whiteSpace: 'pre-wrap', ...proseWrap }}>
             {text.body}
           </div>
         )}

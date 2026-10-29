@@ -3700,7 +3700,7 @@ export default function HomeworkFlow({
                             {question.passageTitle}
                           </p>
                         )}
-                        <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+                        <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', whiteSpace: 'pre-wrap', ...proseWrap }}>
                           {bindShortWords(question.passage)}
                         </div>
                         {/* Перевод — только после ответа, иначе читать оригинал незачем. */}
