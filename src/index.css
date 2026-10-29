@@ -513,6 +513,19 @@ a {
   outline-offset: -2px;
 }
 
+/* ─── Активное поле — фиолетовая рамка, без кольца вокруг ─────────────────────
+   Почти у всех полей инлайн outline:none, и фокус не был виден нигде. Рисуем
+   его здесь (!important — инлайн бьёт таблицу стилей): контур 1.5 px внутрь,
+   ровно поверх рамки поля, поэтому выглядит как смена её цвета, а не как
+   отдельное кольцо — свечение вокруг Дани просил не делать. Контур идёт по
+   скруглению. Поля без своего фона (поиск в капсуле, правка на месте с
+   подчёркиванием) не трогаем: у них рамки нет, рисовать её поверх нельзя. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([style*="background: transparent"]):not([style*="background: none"]):focus,
+textarea:not([style*="background: transparent"]):not([style*="background: none"]):focus {
+  outline: 1.5px solid var(--color-control-accent) !important;
+  outline-offset: -1.5px;
+}
+
 /* Dashboard layout — fills the screen with no scroll when the viewport is tall
    enough, but falls back to scrolling instead of clipping on short windows. */
 .dashboard-root {

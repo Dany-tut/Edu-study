@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
 import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
@@ -508,11 +509,7 @@ const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 6,
   fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
 }
-const inputStyle: React.CSSProperties = {
-  padding: '10px 12px', borderRadius: 12,
-  border: '1.5px solid var(--color-border-medium)', fontSize: 14,
-  outline: 'none', background: 'var(--color-bg-4)', color: 'var(--color-text)',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 // Makes a TeacherSelect trigger match the bordered input fields above.
 const selectTriggerStyle: React.CSSProperties = {
   padding: '10px 12px', borderRadius: 12,

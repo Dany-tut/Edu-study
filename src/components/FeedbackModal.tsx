@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { FIELD } from '../lib/fieldStyle'
 import Modal from './Modal'
 import { AlertIcon } from './Alert'
 import { X, ImagePlus } from 'lucide-react'
@@ -103,11 +104,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   const isPhone = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
 
   const labelStyle: React.CSSProperties = { fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, display: 'block' }
-  const fieldStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 12px', borderRadius: 12,
-    background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-    color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none',
-  }
+  const fieldStyle: React.CSSProperties = { ...FIELD }
 
   return (
     <Modal

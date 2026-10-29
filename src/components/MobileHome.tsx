@@ -1,4 +1,5 @@
 import { useRef, useState, useMemo, useEffect } from 'react'
+import CountBadge from './CountBadge'
 import { motion } from 'framer-motion'
 import { Flame, Zap, Bell, SlidersHorizontal, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from 'lucide-react'
 import NotificationPopup from './NotificationPopup'
@@ -788,15 +789,7 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
           }} />
         )}
         <span style={{ position: 'relative', display: 'flex' }}>{icon}</span>
-        {badge != null && badge > 0 && (
-          <span style={{
-            position: 'absolute', top: -4, right: -4,
-            minWidth: 17, height: 17, padding: '0 5px', borderRadius: 999,
-            background: 'var(--grad-purple)', color: '#fff',
-            fontSize: 9, fontWeight: 800, border: '1.5px solid var(--color-bg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>{badge > 99 ? '99+' : badge}</span>
-        )}
+        {badge != null && <CountBadge count={badge} ring="var(--color-bg)" style={{ position: 'absolute', top: -4, right: -4 }} />}
       </span>
       <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', maxWidth: '100%' }}>{text}</span>
     </motion.button>

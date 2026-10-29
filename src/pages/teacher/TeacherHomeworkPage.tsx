@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
@@ -260,15 +261,7 @@ function Label({ children }: { children: React.ReactNode }) {
   return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 4, paddingLeft: 13 }}>{children}</div>
 }
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box',
-  padding: '10px 12px', borderRadius: 12,
-  border: '1.5px solid var(--color-border-medium)',
-  fontSize: 13, color: 'var(--color-text)',
-  background: 'var(--color-bg-2)',
-  outline: 'none',
-  fontFamily: 'inherit',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 
 // ─── Homework row ──────────────────────────────────────────────────────────────
 function HwRow({ hw, index, isSelected, onClick, subject }: {

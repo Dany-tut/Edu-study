@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { RadioMark } from '../../components/Radio'
 import { CheckboxMark } from '../../components/Checkbox'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -120,18 +121,11 @@ function buildHardTaskDefs(tasks: HWTask[]): HardTaskDef[] {
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box',
-  padding: '9px 12px', borderRadius: 11,
-  border: 'none',
-  fontSize: 13, color: 'var(--color-text)',
-  background: 'var(--color-bg-input)', outline: 'none',
-  fontFamily: 'inherit',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
-  // Отступ = начало текста в поле под подписью (12 px), а не край рамки.
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 12 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (12 + рамка 1.5), а не край рамки.
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 13 }}>{children}</div>
 }
 
 function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {

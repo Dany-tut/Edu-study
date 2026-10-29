@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
@@ -277,12 +278,7 @@ export function lessonShortIdMap(courseShortId: string, lessons: CELesson[]): Re
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
-const inputSt: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
-  fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
-  outline: 'none', fontFamily: 'inherit',
-}
+const inputSt: React.CSSProperties = { ...FIELD }
 
 /** Три строки под смысловые поля задания — правило описано в GrowTextarea. */
 const TASK_TEXT_MIN_H = growMinHeight(3, 13, 9)
@@ -298,8 +294,8 @@ function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextar
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    // Отступ = начало текста в поле под подписью (inputSt: 12 px), а не край рамки.
-    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 12 }}>
+    // Отступ = начало текста в поле под подписью (поле: 12 + рамка 1.5), а не край рамки.
+    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 13 }}>
       {children}
     </div>
   )

@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
+import CountBadge from './CountBadge'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
@@ -188,14 +189,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
                 {t('Уведомления')}
               </span>
-              {unread > 0 && (
-                <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#fff',
-                  background: '#FF5A5A', borderRadius: 99, padding: '1px 6px',
-                }}>
-                  {unread}
-                </span>
-              )}
+              <CountBadge count={unread} tone="danger" />
             </div>
             {unread > 0 && (
               <button onClick={markAllRead} style={{

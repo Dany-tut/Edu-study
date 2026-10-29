@@ -45,7 +45,8 @@ export const PAIR: Record<PillTone, Pair> = {
 export function pill(tone: PillTone, extra?: CSSProperties): CSSProperties {
   return {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '3px 9px', borderRadius: 8,
+    // Статус в строке — капсула (круг 2): уголок карточки — cardChip, радиус 7.
+    padding: '3px 9px', borderRadius: 999,
     fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
     background: PAIR[tone].bg, color: PAIR[tone].color,
     ...extra,

@@ -32,6 +32,7 @@
 // следующего деплоя и молча пропадала.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { FIELD } from '../../lib/fieldStyle'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Trash2, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
 import { useT, useTc } from '../../lib/i18n'
@@ -116,12 +117,7 @@ const cardStyle: React.CSSProperties = {
 
 // Поле без рамки на --color-bg-input: общий вид полей во всём кабинете.
 // Рамка вокруг каждого поля собирала форму в стену коробок.
-const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', borderRadius: 11,
-  border: 'none', background: 'var(--color-bg-input)',
-  color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 13,
-  padding: '9px 12px', outline: 'none',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 
 /** Кнопка без заливки: возврат, «добавить», удаление строки. */
 const ghostBtn: React.CSSProperties = {
@@ -134,8 +130,8 @@ const ghostBtn: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
   color: 'var(--color-text-3)', marginBottom: 8,
-  // Отступ = начало текста в поле (inputStyle: 12 px), а не край рамки.
-  paddingLeft: 12,
+  // Отступ = начало текста в поле (поле: 12 + рамка 1.5), а не край рамки.
+  paddingLeft: 13,
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

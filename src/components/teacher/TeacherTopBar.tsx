@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import CountBadge from '../CountBadge'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
@@ -449,11 +450,7 @@ export default function TeacherTopBar() {
               }}>
                 {t(item.label)}
               </span>
-              {badgeCount > 0 && (
-                <span style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, minWidth: 17, height: 17, borderRadius: 9, padding: '0 5px', background: 'linear-gradient(135deg, #E5484D, #A8282D)', color: '#fff', fontSize: 10.5, fontWeight: 800, lineHeight: 1, letterSpacing: '0.2px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5), 0 0 0 1.5px var(--color-bg)' }}>
-                  {badgeCount}
-                </span>
-              )}
+              <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
             </motion.button>
           )
         })}

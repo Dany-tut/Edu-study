@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
 import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
@@ -505,16 +506,11 @@ function dbWidgetToLocal(w: any): Widget {
 }
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
-const inputSt: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, border: 'none',
-  fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
-  outline: 'none', fontFamily: 'inherit',
-}
+const inputSt: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
-  // Отступ = начало текста в поле под подписью (inputSt: 12 px), а не край рамки.
-  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (поле: 12 + рамка 1.5), а не край рамки.
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 13 }}>{children}</div>
 }
 
 function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
@@ -540,8 +536,8 @@ const dockGlass = {
 } as const
 
 function SectionHead({ children }: { children: React.ReactNode }) {
-  // Отступ = начало текста в поле под подписью (inputSt: 12 px), а не край рамки.
-  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (поле: 12 + рамка 1.5), а не край рамки.
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 13 }}>{children}</div>
 }
 
 function SegBtn({ label, active, color, bg, onClick }: { label: string; active: boolean; color: string; bg: string; onClick: () => void }) {
@@ -1584,11 +1580,7 @@ function WidgetFilterPanel({
   const accent = 'var(--color-blue-pill-text)'
   const accentBg = 'var(--color-blue-pill-bg)'
   const hasFilters = !!(filters.search || filters.type || filters.linked)
-  const inputSt: React.CSSProperties = {
-    width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11,
-    border: 'none', fontSize: 13, color: 'var(--color-text)',
-    background: 'var(--color-bg-input)', outline: 'none', fontFamily: 'inherit',
-  }
+  const inputSt: React.CSSProperties = { ...FIELD }
   const pill = (active: boolean) => ({
     padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
     background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-muted)',

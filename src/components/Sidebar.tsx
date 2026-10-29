@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import CountBadge from './CountBadge'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
@@ -897,25 +898,11 @@ export default function Sidebar() {
                 {t(item.label)}
               </motion.span>
 
-              {badge > 0 && (
-                <span style={{
-                  position: 'absolute', top: 4, right: isCompact ? 2 : 6,
-                  minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  // На активном пункте фон уже фиолетовый — там метка белая с
-                  // фиолетовой цифрой, иначе она сливалась бы с кнопкой. Цифра
-                  // литералом, а не var(--color-purple-text): подложка метки
-                  // жёстко белая в обеих темах, а переменная в тёмной светлеет
-                  // до #DAD3FB — и цифра пропадала на белом кружке.
-                  background: isActive ? '#fff' : 'var(--grad-purple)',
-                  color: isActive ? '#3D33A0' : '#fff',
-                  fontSize: 10, fontWeight: 800, lineHeight: 1,
-                  fontVariantNumeric: 'tabular-nums',
-                  boxShadow: isActive ? 'none' : '0 2px 6px rgba(var(--accent-rgb), 0.45)',
-                }}>
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              )}
+              {/* На активном пункте фон уже фиолетовый — там счётчик белый (inverse). */}
+              <CountBadge
+                count={badge} tone={isActive ? 'inverse' : 'accent'}
+                style={{ position: 'absolute', top: 4, right: isCompact ? 2 : 6, boxShadow: isActive ? 'none' : '0 2px 6px rgba(var(--accent-rgb), 0.45)' }}
+              />
             </motion.button>
           )
         })}

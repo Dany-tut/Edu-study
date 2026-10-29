@@ -39,6 +39,7 @@
 // родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import CountBadge from '../CountBadge'
 import {
   Children, Fragment, createContext, isValidElement,
   useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
@@ -1319,13 +1320,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
           одинаковых значка на экране означали бы одно и то же место. */}
       <Filter size={14} />
       {t('Фильтры')}
-      {on && (
-        <span style={{
-          minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-          background: 'var(--grad-purple)', color: '#fff',
-          fontSize: 10, fontWeight: 800, lineHeight: '16px', textAlign: 'center',
-        }}>{count}</span>
-      )}
+      {on && <CountBadge count={count} />}
     </button>
   )
 }
@@ -1992,16 +1987,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
         }}
       >
         {t(label)}
-        {on && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-            background: tint, color: '#fff', fontSize: 10, fontWeight: 800,
-            fontVariantNumeric: 'tabular-nums',
-          }}>
-            {value.length}
-          </span>
-        )}
+        {on && <CountBadge count={value.length} style={{ background: tint }} />}
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
           <ChevronDown size={13} />
         </motion.span>

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
+import CountBadge from '../CountBadge'
 import ScrollFade from '../ScrollFade'
 import QuestionTable from '../QuestionTable'
 import { useFloatingPill } from '../../lib/useFloatingPill'
@@ -1817,11 +1818,7 @@ export default function BankTrainer({ subjectState }: {
         }}
       >
         {icon}
-        {!!opts.badge && opts.badge > 0 && (
-          <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 4px', borderRadius: 999, background: 'var(--grad-purple)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {opts.badge}
-          </span>
-        )}
+        {!!opts.badge && <CountBadge count={opts.badge} style={{ position: 'absolute', top: -2, right: -2 }} />}
       </motion.button>
     )
 

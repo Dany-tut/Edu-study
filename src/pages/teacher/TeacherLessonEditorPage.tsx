@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -26,18 +27,11 @@ import { AlertStack } from '../../components/Alert'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box',
-  padding: '9px 12px', borderRadius: 11,
-  border: '1.5px solid var(--color-border-medium)',
-  fontSize: 13, color: 'var(--color-text)',
-  background: 'var(--color-bg-2)', outline: 'none',
-  fontFamily: 'inherit',
-}
+const inputStyle: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
-  // Отступ = начало текста в поле под подписью (12 px), а не край рамки.
-  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>{children}</div>
+  // Отступ = начало текста в поле под подписью (12 + рамка 1.5), а не край рамки.
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 13 }}>{children}</div>
 }
 
 function tileBase(active: boolean): React.CSSProperties {

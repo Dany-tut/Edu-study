@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Wallet, Plus, X, Check, ChevronDown, ChevronUp,
@@ -79,14 +80,7 @@ function AddPaymentModal({
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 12px',
-    background: 'var(--color-bg-3)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 10, fontSize: 14,
-    color: 'var(--color-text)',
-    outline: 'none', boxSizing: 'border-box',
-  }
+  const inputStyle: React.CSSProperties = { ...FIELD }
 
   return (
     <motion.div
