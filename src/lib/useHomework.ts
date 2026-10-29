@@ -366,6 +366,7 @@ export function useHomework() {
     hardTaskIds?: number[]
     hardTotal?: number
     hardTasks?: HardTaskDef[]
+    basicTasks?: unknown[]
   }) {
     const { data, error } = await supabase.from('homework').insert({
       group_id: hw.groupId,
@@ -379,6 +380,7 @@ export function useHomework() {
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
+      basic_tasks: hw.basicTasks ?? [],
       created_by: await getOwnerId(),
     }).select().single()
     if (!error) await load()
@@ -395,6 +397,7 @@ export function useHomework() {
     hardTaskIds?: number[]
     hardTotal?: number
     hardTasks?: HardTaskDef[]
+    basicTasks?: unknown[]
   }) {
     const { error } = await supabase.from('homework').update({
       group_id: hw.groupId,
@@ -406,6 +409,7 @@ export function useHomework() {
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
+      basic_tasks: hw.basicTasks ?? [],
     }).eq('id', id)
     if (!error) await load()
     return { error }
