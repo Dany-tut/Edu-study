@@ -76,6 +76,10 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
 /* Десктоп: левый край шапки — на одной линии с плитками и дорожкой ниже
    (у них +32 px от края ряда). Без этого заголовок торчал левее всего экрана. */
 .season-hero:not(.season-hero--compact) { margin-inline: 32px; }
+/* Без карточки (ночь, зельеварня) текст стоит с тем же внутренним отступом, что в
+   карточке «Сладости» и в плитках ниже, — иначе он торчал левее содержимого карточек. */
+.season-hero--lanterns:not(.season-hero--compact) .season-hero__copy,
+.season-hero--potions:not(.season-hero--compact) .season-hero__copy { padding-left: 24px; }
 .season-hero__chip {
   display: inline-block; padding: 5px 13px; border-radius: 999px;
   font-size: 12.5px; font-weight: 650; line-height: 1.2;
