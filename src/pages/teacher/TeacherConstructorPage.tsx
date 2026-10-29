@@ -41,7 +41,7 @@ import {
   loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   type CustomTestMeta,
-  DEFAULT_QUESTIONS,
+  fetchDiagDefaults,
 } from '../../data/diagnosticData'
 import { getPlacementVerdict } from '../../data/placementTests'
 import { useAllStudents, useGroups, fetchSharedCourseIds, groupStudentsByPerson } from '../../lib/useGroups'
@@ -4340,9 +4340,10 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
     if (editIdx === idx) setEditIdx(null)
   }
 
-  function resetToDefault() {
-    const def = DEFAULT_QUESTIONS[subject]
-    save(def)
+  // Исходные наборы живут в базе (diag_question_defaults, только staff), не в бандле.
+  async function resetToDefault() {
+    const def = await fetchDiagDefaults(subject)
+    if (def) save(def)
     setEditIdx(null)
   }
 
@@ -5808,7 +5809,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
     },
   }))
   function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
-  function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
+  async function resetToDefault() { const def = await fetchDiagDefaults(subject); if (def) save(def); setEditIdx(null) }
   function addQuestion() {
     const newQ: DiagQuestion = { id: `q-${Date.now()}`, section: questions[questions.length - 1]?.section ?? 'Раздел 1', text: '', options: ['', '', '', ''], correct: 0 }
     const next = [...questions, newQ]
@@ -7857,7 +7858,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
     setEditIdx(null)
   }
   function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
-  function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
+  async function resetToDefault() { const def = await fetchDiagDefaults(subject); if (def) save(def); setEditIdx(null) }
 
   return (
     <motion.div

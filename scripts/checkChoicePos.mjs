@@ -32,7 +32,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { COURSE_SEEDS } from '../src/data/courseSeeds.ts'
-import { DEFAULT_QUESTIONS } from '../src/data/diagnosticData.ts'
+import { DEFAULT_QUESTIONS } from './diag/defaultQuestions.ts'
 import { displayOrder } from '../src/data/taskTypes.ts'
 import { READING_LIBRARY } from '../src/data/readingLibrary.ts'
 import { LISTENING_LIBRARY } from '../src/data/listeningLibrary.ts'
@@ -194,7 +194,7 @@ if (bad.length) {
 }
 // ── Диагностики и placement ─────────────────────────────────────────────────
 //
-// Они живут не в COURSE_SEEDS, а статикой в diagnosticData.ts/placementTests.ts,
+// Они живут не в COURSE_SEEDS, а в scripts/diag/defaultQuestions.ts (сид базы),
 // и перекос там был хуже, чем в курсах: у корейского placement верный ответ
 // стоял первым во ВСЕХ 25 вопросах, у английского вторым в 73%, у биологии с
 // химией третьим в половине.
