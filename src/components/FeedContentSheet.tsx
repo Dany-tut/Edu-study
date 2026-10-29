@@ -49,8 +49,8 @@ function KindRow({ kind, count, on, onToggle, first }: {
       borderTop: first ? 'none' : '1px solid var(--color-border-soft)',
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t(KIND_LABEL[kind])}</div>
-        <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 2 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t(KIND_LABEL[kind])}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>
           {count > 0 ? `${count} ${t('в этой ленте')}` : t('в этой ленте нет')}
         </div>
       </div>
@@ -100,7 +100,7 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
           }}
           aria-hidden
         >
-          <GripVertical size={17} />
+          <GripVertical size={18} />
         </span>
 
         <span style={{
@@ -114,12 +114,12 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             display: 'flex', alignItems: 'baseline', gap: 7,
-            fontSize: 15, fontWeight: 550,
+            fontSize: 15, fontWeight: 500,
             color: on ? 'var(--color-text)' : 'var(--color-text-4)',
           }}>
             {ranked && (
               <span style={{
-                fontSize: 11.5, fontWeight: 800, color: 'var(--color-accent)',
+                fontSize: 12, fontWeight: 800, color: 'var(--color-accent)',
                 fontVariantNumeric: 'tabular-nums',
               }}>
                 {index + 1}
@@ -127,7 +127,7 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
             )}
             {t(filterLabel(theme))}
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 2 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>
             {count > 0 ? `${count} ${t('материалов')}` : t('в этой ленте нет')}
           </div>
         </div>
@@ -189,7 +189,7 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
             />
           ))}
         </div>
-        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', padding: '8px 4px 0' }}>
+        <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', padding: '8px 4px 0' }}>
           {t('Выключенное исчезает и из ленты, и из рубрик наверху.')}
         </div>
       </div>
@@ -201,8 +201,8 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
               вообще перетаскивают. */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 15px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Сначала по темам')}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Сначала по темам')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
                 {byTheme
                   ? t('Лента идёт в вашем порядке тем — внутри темы по времени')
                   : t('Лента идёт по времени, как обычно')}
@@ -238,7 +238,7 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '0 4px' }}>
-        <span style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+        <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
           {t('Настройка своя на каждом устройстве и общая для всех курсов.')}
         </span>
         <motion.button
@@ -248,7 +248,7 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
           style={{
             flexShrink: 0, background: 'none', border: 'none', padding: 0,
             cursor: dirty ? 'pointer' : 'default', opacity: dirty ? 1 : 0.4,
-            fontFamily: 'inherit', fontSize: 13, fontWeight: 650, color: 'var(--color-accent)',
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)',
           }}
         >
           {t('Сбросить')}

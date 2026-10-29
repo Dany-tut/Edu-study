@@ -36,7 +36,7 @@ export default function BackCircle({ onClick, label = 'Назад', style }: {
         ...style,
       }}
     >
-      <ChevronLeft size={20} strokeWidth={2.25} style={{ marginLeft: -2 }} />
+      <ChevronLeft size={20} strokeWidth={2} style={{ marginLeft: -2 }} />
     </button>
   )
 }

@@ -301,7 +301,7 @@ export default function MobileHome() {
           <DynamicIsland>
         {nextToday ? (
           <>
-            <Calendar size={15} style={{ color: 'var(--color-accent)' }} />
+            <Calendar size={16} style={{ color: 'var(--color-accent)' }} />
             <span>{t('Урок')} {fmtUntil(nextToday.st.minutesUntil)}</span>
           </>
         ) : !loaded ? (
@@ -309,7 +309,7 @@ export default function MobileHome() {
           <Skeleton w={92} h={13} radius={999} />
         ) : (
           <>
-            <Flame size={15} style={{ color: '#F8A23B' }} />
+            <Flame size={16} style={{ color: '#F8A23B' }} />
             <span>{stats.streak} {t('дней')}</span>
             <span style={{ opacity: 0.35 }}>·</span>
             <Zap size={14} style={{ color: 'var(--color-accent)' }} />
@@ -349,7 +349,7 @@ export default function MobileHome() {
           transition={{ duration: 0.18, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'none' : 'auto' }}
         >
-          <GlassIconButton icon={<Bell size={17} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+          <GlassIconButton icon={<Bell size={18} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
         </motion.div>
         <motion.div
           initial={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
@@ -358,7 +358,7 @@ export default function MobileHome() {
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'auto' : 'none' }}
         >
           <GlassIconButton
-            icon={<SlidersHorizontal size={17} />}
+            icon={<SlidersHorizontal size={18} />}
             // Точка — не «новое», а «лента показана не целиком»: по ней видно,
             // что пустоватая лента это ваш же отбор, а не поломка.
             dot={prefsTouched(prefs)}
@@ -394,7 +394,7 @@ export default function MobileHome() {
             <HeroContinue lesson={continueInfo.lesson} subjectName={tc(continueInfo.subject.name)} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
           ) : (
             <div className="flex flex-col items-center justify-center text-center" style={{ gap: 6, padding: '14px 16px', borderRadius: 20, background: 'var(--color-bg-3)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}>
-              <Lock size={22} style={{ color: 'var(--color-muted)' }} />
+              <Lock size={24} style={{ color: 'var(--color-muted)' }} />
               <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
               <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель скоро добавит уроки')}</p>
             </div>
@@ -443,21 +443,21 @@ export default function MobileHome() {
                 <MobileHScroll padX={16} gap={10}>
                   {dayCards.quiz && (
                     <WidgetCard
-                      tag={t('Вопрос дня')} icon={<HelpCircle size={15} />}
+                      tag={t('Вопрос дня')} icon={<HelpCircle size={16} />}
                       accent="var(--color-purple-text)" bg="var(--color-purple-soft)"
                       text={dayCards.quiz.title}
                     />
                   )}
                   {dayCards.facts && (
                     <WidgetCard
-                      tag={t('Факт дня')} icon={<Atom size={15} />}
+                      tag={t('Факт дня')} icon={<Atom size={16} />}
                       accent="var(--color-green-text)" bg="var(--color-green-soft)"
                       text={dayCards.facts.text}
                     />
                   )}
                   {dayCards.memes && (
                     <WidgetCard
-                      tag={t('Мем дня')} icon={<Star size={15} />}
+                      tag={t('Мем дня')} icon={<Star size={16} />}
                       accent="#B07A00" bg="var(--color-yellow-soft)"
                       text={dayCards.memes.setup}
                     />
@@ -505,7 +505,7 @@ export default function MobileHome() {
                 width: 34, height: 34, borderRadius: 12, flexShrink: 0,
                 background: 'var(--color-bg-3)', display: 'grid', placeItems: 'center',
               }}>
-                <Dumbbell size={17} strokeWidth={2.2} style={{ color: 'var(--color-text-2)' }} />
+                <Dumbbell size={18} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
@@ -515,7 +515,7 @@ export default function MobileHome() {
                   {t('Занятий нет и лента пуста — можно позаниматься в тренажёре')}
                 </div>
               </div>
-              <ChevronRight size={17} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+              <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
             </button>
           )}
         </div>
@@ -656,7 +656,7 @@ function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value:
     }}>
       <div className="flex items-center" style={{ gap: 4 }}>
         <Icon size={13} style={{ color: pair.text, flexShrink: 0 }} />
-        <div className="truncate" style={{ fontSize: 15, fontWeight: 800, color: pair.text, lineHeight: 1.1 }}>{value}</div>
+        <div className="truncate" style={{ fontSize: 15, fontWeight: 800, color: pair.text, lineHeight: 1.2 }}>{value}</div>
       </div>
       <div className="truncate" style={{ fontSize: 10, fontWeight: 600, color: pair.text, opacity: 0.82 }}>{label}</div>
     </div>
@@ -722,7 +722,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
           // (он для текста на мягкой ЗАЛИВКЕ), и на белом «Продолжить» блёкло
           // выцветало. control-accent затемнён до читаемого с белым в обеих
           // темах и так же уходит в цвет открытого курса.
-          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 12.5, lineHeight: '18px', padding: '7px 15px', borderRadius: 999, border: 'none' }}
+          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 13, lineHeight: '18px', padding: '7px 15px', borderRadius: 999, border: 'none' }}
         >
           <Play size={14} fill="var(--color-control-accent)" />
           {label}

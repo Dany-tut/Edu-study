@@ -218,13 +218,13 @@ export function AvatarCropModal({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <button type="button" style={{ ...roundBtn, opacity: zoom <= 1 ? 0.4 : 1 }} onClick={() => zoomTo(zoom / 1.25)} aria-label={t('Отдалить')}>
-            <Minus size={16} strokeWidth={2.2} />
+            <Minus size={16} strokeWidth={2} />
           </button>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', minWidth: 120, textAlign: 'center' }}>
             {t('Двигайте фото пальцем')}
           </div>
           <button type="button" style={{ ...roundBtn, opacity: zoom >= MAX_ZOOM ? 0.4 : 1 }} onClick={() => zoomTo(zoom * 1.25)} aria-label={t('Приблизить')}>
-            <Plus size={16} strokeWidth={2.2} />
+            <Plus size={16} strokeWidth={2} />
           </button>
         </div>
 

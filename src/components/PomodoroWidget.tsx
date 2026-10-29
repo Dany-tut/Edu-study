@@ -63,7 +63,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
           <span style={{ fontSize: 24 * sz.scale, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {format(pomoSecondsLeft)}
           </span>
-          <span style={{ fontSize: 10 * sz.scale, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
+          <span style={{ fontSize: 10 * sz.scale, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>
             {t(MODE_LABEL[pomoMode])}
           </span>
         </div>
@@ -81,7 +81,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
                 onClick={() => pomoSwitchMode(m)}
                 className="cursor-pointer"
                 style={{
-                  fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '6px 14px', borderRadius: 999,
+                  fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '6px 14px', borderRadius: 999,
                   color: pomoMode === m ? 'var(--color-text)' : '#9A9AA0',
                   background: pomoMode === m ? 'var(--color-pill-active-bg)' : 'transparent',
                   boxShadow: pomoMode === m ? 'var(--color-pill-active-shadow)' : 'none',
@@ -116,7 +116,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
               height: btnH, padding: `0 ${22 * sz.scale}px`, borderRadius: 16,
               background: pomoRunning ? 'var(--color-bg-3)' : `linear-gradient(135deg, ${accent}, ${accent}CC)`,
               color: pomoRunning ? 'var(--color-text)' : '#FFFFFF',
-              fontSize: 14 * sz.scale, fontWeight: 650,
+              fontSize: 14 * sz.scale, fontWeight: 600,
             }}
           >
             {pomoRunning ? <Pause size={16 * sz.scale} /> : <Play size={16 * sz.scale} />}

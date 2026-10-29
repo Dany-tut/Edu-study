@@ -171,11 +171,11 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2.2} /></button>
+        <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
           {t(RU_MONTHS[viewMonth])} {viewYear}
         </span>
-        <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2.2} /></button>
+        <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2} /></button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
@@ -304,7 +304,7 @@ function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) 
           padding: '4px 11px',
           borderRadius: 6,
           background: type.bg, color: type.textColor,
-          fontSize: 13, fontWeight: 650, lineHeight: 1,
+          fontSize: 13, fontWeight: 600, lineHeight: 1,
           border: `1.5px solid ${type.color}55`,
           userSelect: 'none', cursor: 'pointer',
         }}
@@ -511,7 +511,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 color: 'var(--color-muted)',
               }}
             >
-              <X size={14} strokeWidth={2.2} />
+              <X size={14} strokeWidth={2} />
             </button>
           </div>
 
@@ -639,7 +639,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     onClick={() => { setTaskType(active ? null : tt); inputRef.current?.focus() }}
                     style={{
                       padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
-                      fontSize: 12, fontWeight: 650,
+                      fontSize: 12, fontWeight: 600,
                       background: active ? tt.bg : 'var(--color-bg-3)',
                       color: active ? tt.textColor : 'var(--color-muted)',
                       border: active ? `1.5px solid ${tt.color}44` : '1.5px solid transparent',
@@ -660,7 +660,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               {/* Date */}
               <div ref={calendarRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Calendar size={10} strokeWidth={2} />
+                  <Calendar size={12} strokeWidth={2} />
                   {t('ДАТА')}
                 </span>
                 <button
@@ -688,7 +688,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               {/* Time */}
               <div ref={timePickerRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Clock size={10} strokeWidth={2} />
+                  <Clock size={12} strokeWidth={2} />
                   {t('ВРЕМЯ')}
                 </span>
                 <button
@@ -717,7 +717,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             {/* Comment */}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <MessageSquare size={10} strokeWidth={2} />
+                <MessageSquare size={12} strokeWidth={2} />
                 {t('КОММЕНТАРИЙ')}
               </span>
               <textarea

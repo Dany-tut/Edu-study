@@ -64,7 +64,7 @@ function BigUsageBar({ icon: Icon, label, used, limit, hint }: {
           style={{ height: '100%', borderRadius: 8, background: c.fill }}
         />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--color-text-3)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--color-text-3)' }}>
         <span>{t('Использовано')}: <b style={{ color: 'var(--color-text)' }}>{fmtBytes(used)}</b></span>
         <span>{t('Лимит')}: <b style={{ color: 'var(--color-text)' }}>{fmtBytes(limit)}</b></span>
         <span style={{ color: c.text, fontWeight: 700 }}>{t('Свободно')}: {fmtBytes(limit - used)}</span>
@@ -127,7 +127,7 @@ export default function TeacherStoragePage() {
             fontSize: 12, fontWeight: 600,
           }}
         >
-          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
           {t('Обновить')}
         </motion.button>
       </div>
@@ -163,13 +163,13 @@ export default function TeacherStoragePage() {
             border: '1px solid var(--color-border-medium)',
             borderRadius: 20, padding: '20px 24px',
           }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>
               {t('По таблицам')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[...stats.tables].sort((a, b) => b.bytes - a.bytes).map(tbl => (
                 <div key={tbl.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 12.5, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbl.name}</span>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbl.name}</span>
                   <div style={{ flex: 1, height: 8, borderRadius: 5, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
                     <motion.div
                       initial={{ width: 0 }}

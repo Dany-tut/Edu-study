@@ -73,7 +73,7 @@ function NotifRow({ n, onAction, onRead }: {
         {getIcon(n.type)}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
           {n.title}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-2)', marginTop: 1, lineHeight: 1.4 }}>
@@ -84,9 +84,9 @@ function NotifRow({ n, onAction, onRead }: {
             marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5,
             padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'rgba(255,90,90,0.18)', color: '#FF5A5A',
-            fontSize: 11.5, fontWeight: 700,
+            fontSize: 12, fontWeight: 700,
           }}>
-            {n.action.label} <ArrowRight size={11} />
+            {n.action.label} <ArrowRight size={12} />
           </button>
         )}
       </div>
@@ -224,7 +224,7 @@ export default function NotificationToastContainer() {
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
                     color: 'var(--color-text-3)', display: 'flex', padding: 2 }}
                 >
-                  <X size={13} />
+                  <X size={14} />
                 </button>
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function NotificationToastContainer() {
                       <button onClick={dismissAll} style={{
                         marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
                         border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
-                        fontSize: 11.5, fontWeight: 600, color: 'var(--color-muted)',
+                        fontSize: 12, fontWeight: 600, color: 'var(--color-muted)',
                       }}>
                         {t('Закрыть все')}
                       </button>

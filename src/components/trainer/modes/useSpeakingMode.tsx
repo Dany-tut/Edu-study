@@ -297,7 +297,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
               {open.lines ? `${open.lines.length} ${t('реплик')}` : `${open.seconds} ${t('с')}`}
             </span>
           </div>
-          <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{t(open.title)}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t(open.title)}</div>
           <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{speakPrompt(open.prompt, t)}</p>
         </div>
 
@@ -336,7 +336,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
                 background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
               }}>
                 <Mic size={14} style={{ color: accent, flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 12.5, color: 'var(--color-text-2)' }}>
+                <span style={{ flex: 1, fontSize: 13, color: 'var(--color-text-2)' }}>
                   {new Date(e.at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                 </span>
                 <TileChip>{t('на проверке')}</TileChip>
@@ -365,7 +365,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
                 {x.lines ? `${x.lines.length} ${t('реплик')}` : `${x.seconds} ${t('с')}`}
               </span>
             </span>
-            <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {t(x.title)}
             </span>
             <span style={{
@@ -378,7 +378,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
               <span style={{ color: 'var(--color-text-3)' }}>
                 {done ? t('записано') : t('не записано')}
               </span>
-              {done && <Check size={13} style={{ color: 'var(--color-green-text)' }} />}
+              {done && <Check size={14} style={{ color: 'var(--color-green-text)' }} />}
             </span>
           </Tile>
         )
@@ -432,7 +432,7 @@ export function useSpeakingMode({
   const total = useMemo(() => countSpeakTasks(themes, hasVoiceFor(lang)), [themes, lang])
 
   const rail = !active ? null : (
-    <RailCard title="Фильтры" accent={accent} icon={<SlidersHorizontal size={15} />}>
+    <RailCard title="Фильтры" accent={accent} icon={<SlidersHorizontal size={16} />}>
       {/* Четыре подписи в ряд шириной в рейл ломались пополам («Шэдо/уинг»).
           Название остаётся у выбранного — того, что сейчас и определяет
           выборку, — остальные ждут значками и называют себя по наведению. */}
@@ -441,13 +441,13 @@ export function useSpeakingMode({
           // «Все» — такая же кнопка ряда, а не ссылка в углу карточки: без неё
           // ряд открывался четырьмя безымянными значками, и было непонятно,
           // что выборка сейчас полная.
-          { value: '', label: 'Все', icon: <ListChecks size={15} /> },
-          ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг', icon: <Repeat size={15} /> }] : []),
-          { value: 'roleplay', label: 'Ролевые', icon: <MessagesSquare size={15} /> },
+          { value: '', label: 'Все', icon: <ListChecks size={16} /> },
+          ...(hasVoiceFor(lang) ? [{ value: 'shadow', label: 'Шэдоуинг', icon: <Repeat size={16} /> }] : []),
+          { value: 'roleplay', label: 'Ролевые', icon: <MessagesSquare size={16} /> },
           // Рассказ о себе и чтение фраз вслух — оба монолог без диалога и без
           // эталона для повтора, отдельной кнопкой «Рассказ» не помещались в
           // ряд. См. фильтр в Speaking().
-          { value: 'aloud', label: 'Вслух', icon: <Volume2 size={15} /> },
+          { value: 'aloud', label: 'Вслух', icon: <Volume2 size={16} /> },
         ]}
         value={kindFilter}
         onChange={setKindFilter}

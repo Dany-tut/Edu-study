@@ -161,7 +161,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
           transition={{ duration: 0.18 }}
           style={{ display: 'flex', alignItems: 'center', flexShrink: 0, opacity: 0.6 }}
         >
-          <ChevronDown size={13} />
+          <ChevronDown size={14} />
         </motion.span>
       </button>
 
@@ -189,10 +189,10 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                       display: 'flex', alignItems: 'center', gap: 5, width: '100%', textAlign: 'left',
                       padding: '6px 8px', marginBottom: 2, borderRadius: 8, border: 'none', cursor: 'pointer',
                       background: 'transparent', color: 'var(--color-text-3)',
-                      fontSize: 11.5, fontWeight: 600, fontFamily: 'inherit',
+                      fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
                     }}
                   >
-                    <ChevronLeft size={13} />
+                    <ChevronLeft size={14} />
                     {t(PLAN_TIERS.find(p => p.code === pendingPlan)?.name ?? '')} · {t('на сколько?')}
                   </button>
                   {PERIODS.map(per => (
@@ -230,7 +230,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                       </div>
                     </div>
                     {busy === p.code ? <Loader2 size={14} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
-                      : sel ? <Check size={15} style={{ color: 'var(--color-purple)' }} /> : null}
+                      : sel ? <Check size={16} style={{ color: 'var(--color-purple)' }} /> : null}
                   </button>
                 )
               })}
@@ -238,13 +238,13 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
               <button onClick={() => apply(null)} disabled={busy !== null} style={{
                 width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 8, border: 'none',
                 cursor: 'pointer', background: 'transparent', color: 'var(--color-text-3)',
-                fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
+                fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
               }}>
                 {t('Снять тариф (бета)')}
               </button>
               </>
               )}
-              {err && <div style={{ fontSize: 11.5, color: '#E86A6A', padding: '4px 10px' }}>{err}</div>}
+              {err && <div style={{ fontSize: 12, color: '#E86A6A', padding: '4px 10px' }}>{err}</div>}
             </motion.div>
           )}
         </AnimatePresence>,

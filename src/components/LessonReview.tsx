@@ -75,7 +75,7 @@ export default function LessonReview({
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: palette.accent, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <RotateCcw size={13} /> {t('Повторение')}
+          <RotateCcw size={14} /> {t('Повторение')}
         </span>
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>
           {index} {t('из')} {total}

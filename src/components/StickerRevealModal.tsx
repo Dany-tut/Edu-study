@@ -43,9 +43,9 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
             position: 'absolute', top: 12, right: 12, width: 30, height: 30, borderRadius: 10,
             border: 'none', background: 'var(--color-bg)', color: 'var(--color-muted)', cursor: 'pointer',
             display: 'grid', placeItems: 'center',
-          }}><X size={15} /></button>
+          }}><X size={16} /></button>
 
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.4, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-muted)', textTransform: 'uppercase' }}>
             {items.length > 1 ? `${t('Новый стикер')} ${i + 1}/${items.length}` : t('Новый стикер')}
           </div>
 
@@ -63,14 +63,14 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
             />
           </div>
 
-          <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--color-text)' }}>«{t(tier.name)}»</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>«{t(tier.name)}»</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.45 }}>
             {t(tier.hint)}
           </div>
           {cur.comment && (
             <div style={{
               marginTop: 12, padding: '9px 12px', borderRadius: 12, textAlign: 'left',
-              fontSize: 12.5, lineHeight: 1.45, color: 'var(--color-text-2)',
+              fontSize: 13, lineHeight: 1.45, color: 'var(--color-text-2)',
               background: 'var(--color-bg)', border: '1px solid var(--color-border)',
             }}>
               <b style={{ color: 'var(--color-accent)' }}>{t('Учитель')}:</b> {cur.comment}
@@ -86,7 +86,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
               background: `linear-gradient(135deg, ${tier.ink}, ${tier.inkDark})`,
             }}
           >
-            {last ? t('В коллекцию') : t('Дальше')} <ChevronRight size={15} />
+            {last ? t('В коллекцию') : t('Дальше')} <ChevronRight size={16} />
           </button>
         </motion.div>
       </motion.div>

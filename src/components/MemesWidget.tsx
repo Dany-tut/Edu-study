@@ -24,8 +24,8 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
   if (!meme) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
-      <span style={{ fontSize: 26 }}>😄</span>
-      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>{t('Мемы')}</span>
+      <span style={{ fontSize: 24 }}>😄</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Мемы')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
     </div>
   )
@@ -95,7 +95,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
         <div className="mb-2 flex items-center gap-3">
           <span
             style={{
-              fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
+              fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
               color: 'var(--color-accent)',
               background: 'var(--color-purple-soft)',
             }}
@@ -113,13 +113,13 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
               <p style={{
-                fontSize: 13 * sz.scale, fontWeight: 500, color: '#9A9AA0', lineHeight: 1.35, marginBottom: 6,
+                fontSize: 13 * sz.scale, fontWeight: 500, color: '#9A9AA0', lineHeight: 1.3, marginBottom: 6,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {meme.setup}
               </p>
               <p style={{
-                fontSize: 20 * sz.scale, fontWeight: 650, lineHeight: 1.3, color: 'var(--color-text)',
+                fontSize: 20 * sz.scale, fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text)',
                 display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {meme.punchline}

@@ -108,10 +108,10 @@ export function ServerVoiceToggle({ lang }: { lang: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
           {t('Голос с сервера')}
         </span>
-        <span style={{ fontSize: 11.5, lineHeight: 1.35, color: 'var(--color-muted)' }}>
+        <span style={{ fontSize: 12, lineHeight: 1.3, color: 'var(--color-muted)' }}>
           {isIOS()
             ? t('Если на айфоне тишина при включённом звуке — включите: фразы будут звучать как запись.')
             : t('Если голос браузера молчит — включите: фразы будут звучать как запись.')}
@@ -277,8 +277,8 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
             transition: 'border-color 0.15s, color 0.15s',
           }}
         >
-          <Mic size={15} strokeWidth={1.8} />
-          <ChevronDown size={13} strokeWidth={1.8} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
+          <Mic size={16} strokeWidth={2} />
+          <ChevronDown size={14} strokeWidth={2} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
         </button>
       ) : (
         <button
@@ -290,7 +290,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
             padding: '7px 9px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
             border: '1px solid transparent', boxSizing: 'border-box',
             background: open ? soft : 'transparent',
-            color: open ? accent : 'var(--color-text-2)', fontSize: 12.5, fontWeight: 600,
+            color: open ? accent : 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
           }}
         >
           <Mic size={14} style={{ flexShrink: 0 }} />
@@ -348,7 +348,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                   >
                     <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 1 }}>
                       <span style={{
-                        fontSize: 13, fontWeight: on ? 700 : 550,
+                        fontSize: 13, fontWeight: on ? 700 : 500,
                         color: on ? accent : 'var(--color-text)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
@@ -374,7 +374,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                   style={{
                     marginTop: 2, padding: '7px 10px', width: '100%', textAlign: 'left',
                     border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
-                    fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)',
+                    fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
                   }}
                 >
                   {t('Показать все голоса системы')} · {total}

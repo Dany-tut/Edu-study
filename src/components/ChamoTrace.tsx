@@ -448,7 +448,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
       <div className="flex items-center" style={{ gap: 12 }}>
         {letter.say && <AudioPlayer ttsText={letter.say} lang={letter.lang} compact />}
         <div>
-          <div style={{ fontSize: 26, lineHeight: 1, fontWeight: 700, color: 'var(--color-text)' }}>
+          <div style={{ fontSize: 24, lineHeight: 1, fontWeight: 700, color: 'var(--color-text)' }}>
             {letter.ch}
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -463,10 +463,10 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             style={{
               gap: 6, padding: '8px 12px', borderRadius: 999,
               border: '1px solid var(--color-border)', background: 'transparent',
-              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
             }}
           >
-            <RotateCcw size={13} />
+            <RotateCcw size={14} />
             {t('Заново')}
           </button>
         )}

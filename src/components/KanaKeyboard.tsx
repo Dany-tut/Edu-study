@@ -150,7 +150,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
           background: 'rgba(var(--glass-rgb), 0.96)',
           color: opts.quiet ? 'var(--color-text-2)' : 'var(--color-text)',
           fontFamily: 'inherit',
-          fontSize: opts.wide ? 12.5 : 20, fontWeight: opts.wide ? 700 : 600, lineHeight: 1,
+          fontSize: opts.wide ? 13 : 20, fontWeight: opts.wide ? 700 : 600, lineHeight: 1,
           cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
         }}
       >
@@ -173,7 +173,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
       {value?.trim()
         ? (
           <span style={{
-            fontSize: 17, fontWeight: 700, color: 'var(--color-text)',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)',
             textAlign: 'center', marginBottom: 5, wordBreak: 'break-word',
           }}>
             {value}
@@ -181,7 +181,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
         )
         : (
           <span style={{
-            fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center', marginBottom: 5,
+            fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center', marginBottom: 5,
           }}>
             {t('Ответ по-японски — нижний ряд меняет последний знак')}
           </span>
@@ -247,7 +247,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
             opacity: disabled ? 0.5 : 1,
           }}
         >
-          <Delete size={17} />
+          <Delete size={18} />
         </motion.button>
       </div>
     </div>

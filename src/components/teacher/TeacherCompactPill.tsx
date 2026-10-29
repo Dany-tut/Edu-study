@@ -61,14 +61,14 @@ function PillContent({
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
         <span style={{
-          fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
+          fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {kicker}
         </span>
         <span style={{
-          fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.25,
+          fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3,
           display: '-webkit-box',
           WebkitLineClamp: expanded ? 'unset' : 1,
           WebkitBoxOrient: 'vertical',
@@ -81,7 +81,7 @@ function PillContent({
           animate={{ maxHeight: expanded ? 200 : 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           style={{
-            marginTop: 4, fontSize: 12.5, fontWeight: 450,
+            marginTop: 4, fontSize: 13, fontWeight: 500,
             color: 'var(--color-text-2)', lineHeight: 1.4, overflow: 'hidden',
             maxHeight: expanded ? 200 : 0,
           }}
@@ -158,10 +158,10 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
 function StatBadge({ label, value, color, bg }: { label: string; value: string; color: string; bg: string }) {
   return (
     <div style={{ flex: 1, background: bg, borderRadius: 12, padding: '7px 10px' }}>
-      <div style={{ fontSize: 9.5, fontWeight: 700, color, letterSpacing: 0.2, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: '0.05em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', marginTop: 1 }}>{value}</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginTop: 1 }}>{value}</div>
     </div>
   )
 }
@@ -204,16 +204,16 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
                 opacity: past ? 0.45 : 1,
               }}>
                 <span style={{
-                  display: 'flex', flexDirection: 'column', lineHeight: 1.1,
+                  display: 'flex', flexDirection: 'column', lineHeight: 1.2,
                   width: 52, flexShrink: 0,
                 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-blue-pill-text)' }}>{s.time}</span>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} {t('ВН')}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} {t('ВН')}</span>
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 500 }}>{s.groupName}</span>
                 {s.topic && (
                   <span style={{
-                    marginLeft: 'auto', fontSize: 10.5, color: 'var(--color-text-3)',
+                    marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)',
                     flexShrink: 0, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{s.topic}</span>
                 )}
@@ -273,15 +273,15 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
                     background: 'rgba(196,120,0,0.12)',
                   }}
                 >
-                  <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, width: 52, flexShrink: 0 }}>
+                  <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, width: 52, flexShrink: 0 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#C47800' }}>{p.date.slice(5).replace('-', '.')}</span>
-                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{p.timeStart.slice(0,5)}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)' }}>{p.timeStart.slice(0,5)}</span>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.scopeName}
                     </span>
-                    <span style={{ display: 'block', fontSize: 10.5, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.scopeName}
                     </span>
                   </span>
@@ -397,9 +397,9 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
               alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
               background: `${typeof accent === 'string' && accent.startsWith('#') ? accent : 'var(--color-accent)'}22`,
-              color: accent, fontSize: 11.5, fontWeight: 700,
+              color: accent, fontSize: 12, fontWeight: 700,
             }}>
-              {latest.action.label} <ArrowRight size={11} />
+              {latest.action.label} <ArrowRight size={12} />
             </button>
           )}
         </div>

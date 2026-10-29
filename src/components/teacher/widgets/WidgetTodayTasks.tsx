@@ -81,7 +81,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
       {task.typeLabel && task.typeBg && task.typeColor && (
         <span style={{
-          fontSize: 11, fontWeight: 650,
+          fontSize: 11, fontWeight: 600,
           background: task.typeBg, color: task.typeColor,
           borderRadius: 8, padding: '2px 8px', flexShrink: 0,
         }}>
@@ -119,7 +119,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
           pointerEvents: showDelete ? 'auto' : 'none',
         }}
       >
-        <XIcon size={13} strokeWidth={2.5} />
+        <XIcon size={14} strokeWidth={2.5} />
       </button>
     </div>
   )

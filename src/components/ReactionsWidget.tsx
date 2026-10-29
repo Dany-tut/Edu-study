@@ -25,8 +25,8 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
   if (!reaction) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
-      <span style={{ fontSize: 26 }}>⚗️</span>
-      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>{t('Реакции курса')}</span>
+      <span style={{ fontSize: 24 }}>⚗️</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Реакции курса')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
     </div>
   )
@@ -102,7 +102,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
         <div className="mb-2 flex items-center gap-3">
           <span
             style={{
-              fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
+              fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
               color: 'var(--color-blue-pill-text)', background: 'var(--color-blue-pill-bg)',
             }}
           >
@@ -126,7 +126,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
             >
               <p
                 style={{
-                  fontSize: 21 * sz.scale, fontWeight: 700, lineHeight: 1.25, color: 'var(--color-text)',
+                  fontSize: 20 * sz.scale, fontWeight: 700, lineHeight: 1.3, color: 'var(--color-text)',
                   fontVariantNumeric: 'tabular-nums', letterSpacing: '0.01em',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}

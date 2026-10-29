@@ -29,7 +29,7 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
       display: 'flex', flexDirection: 'column', gap: 6, overflow: 'hidden',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {label}
         </span>
         <div style={{

@@ -42,7 +42,7 @@ export default function CalibrationMatrix({ owner, subject }: {
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(q.label)}</span>
                 <span style={{ fontSize: 13, fontWeight: 800, color: q.color }}>{n}</span>
               </div>
-              <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', marginTop: 2 }}>{t(q.hint)} · {pct}%</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{t(q.hint)} · {pct}%</div>
             </div>
           )
         })}

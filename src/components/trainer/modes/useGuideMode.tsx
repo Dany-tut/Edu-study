@@ -138,7 +138,7 @@ export function useGuideMode({ lang, subjectId, accent, soft, narrow, active }: 
 
   const rail = !active ? null : (
     <>
-      <RailCard title="Раздел" accent={accent} icon={<Compass size={15} />}>
+      <RailCard title="Раздел" accent={accent} icon={<Compass size={16} />}>
         {!narrow && (
           <RailSegment
             options={views.map(v => ({ value: v.id, label: v.label, badge: v.badge }))}
@@ -166,8 +166,8 @@ export function useGuideMode({ lang, subjectId, accent, soft, narrow, active }: 
         )}
       </RailCard>
       {view === 'books' && (
-        <RailCard title="Про полку" accent={accent} icon={<Library size={15} />}>
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+        <RailCard title="Про полку" accent={accent} icon={<Library size={16} />}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
             {bindShortWords(t('Здесь ссылки на официальные страницы издательств, а не файлы. Главное на карточке — строка «когда браться»: половина брошенных учебников взята не вовремя, а не выбрана неправильно.'))}
           </div>
         </RailCard>

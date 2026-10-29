@@ -269,12 +269,12 @@ const pill = (accent: string, active: boolean): React.CSSProperties => ({
   borderRadius: 11, border: `1px solid ${active ? accent : 'var(--color-border-soft)'}`,
   background: active ? `${accent}1f` : 'transparent',
   color: active ? accent : 'var(--color-text-2)',
-  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+  fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
 })
 
 const backBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
   padding: '7px 12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
   border: '1px solid var(--color-border-soft)', background: 'transparent',
-  color: 'var(--color-text-2)', fontSize: 12.5, fontWeight: 600,
+  color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
 }

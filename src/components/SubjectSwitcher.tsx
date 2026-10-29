@@ -135,7 +135,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               >
                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label(c)}</span>
-                {active && <Check size={15} style={{ flexShrink: 0, color: c.color }} />}
+                {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
               </button>
             )
           })}

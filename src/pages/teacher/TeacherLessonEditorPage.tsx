@@ -31,7 +31,7 @@ const inputStyle: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
   // Отступ = начало текста в поле под подписью (12 + рамка 1.5), а не край рамки.
-  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 13 }}>{children}</div>
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 13 }}>{children}</div>
 }
 
 function tileBase(active: boolean): React.CSSProperties {
@@ -108,9 +108,9 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2.2} /></button>
+        <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS[viewMonth])} {viewYear}</span>
-        <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2.2} /></button>
+        <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => (
@@ -289,7 +289,7 @@ function UploadTile({
           <Icon size={20} strokeWidth={1.9} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
           <p style={{
             fontSize: 12, marginTop: 2,
             color: err ? 'var(--color-red-text)' : 'var(--color-text-3)',
@@ -316,15 +316,15 @@ function UploadTile({
                 width: 24, height: 24, borderRadius: 7, flexShrink: 0,
                 background: 'var(--grad-green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 7, fontWeight: 800, color: '#fff',
+                fontSize: 10, fontWeight: 800, color: '#fff',
               }}>{isLinkFile(f) ? 'URL' : fileExt(f.name)}</div>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
               <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
               <button
                 onClick={e => { e.stopPropagation(); remove(f.path) }}
                 style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
-                <X size={10} />
+                <X size={12} />
               </button>
             </div>
           ))}
@@ -367,7 +367,7 @@ function HomeworkCard({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <GraduationCap size={17} style={{ color: '#fff' }} />
+        <GraduationCap size={18} style={{ color: '#fff' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t('Домашка')}</span>
       </div>
       <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
@@ -375,8 +375,8 @@ function HomeworkCard({
           ? t('Заданий нет — собрать в курсе')
           : `${hw!.basic} ${t('базовых')} · ${hw!.hard} ${t('сложных')}`}
       </span>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
-        {t('Открыть в курсе')} <ChevronRight size={13} />
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+        {t('Открыть в курсе')} <ChevronRight size={14} />
       </span>
     </button>
   )
@@ -395,7 +395,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
       padding: 16, gap: 8, maxHeight: '54vh',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-        <ListVideo size={17} style={{ color: 'var(--color-green-text)' }} />
+        <ListVideo size={18} style={{ color: 'var(--color-green-text)' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto', scrollbarGutter: 'stable' }}>
@@ -417,7 +417,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
               onClick={() => onChange(codes.filter((_, j) => j !== i))}
               style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
             >
-              <Trash2 size={13} />
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
@@ -433,10 +433,10 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           padding: '8px 0', borderRadius: 11, border: '1.5px dashed rgba(74,222,128,0.3)',
           background: 'rgba(74,222,128,0.05)', cursor: 'pointer',
-          fontSize: 12.5, fontWeight: 600, color: 'var(--color-green-text)', fontFamily: 'inherit',
+          fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', fontFamily: 'inherit',
         }}
       >
-        <Plus size={13} /> {t('Таймкод')}
+        <Plus size={14} /> {t('Таймкод')}
       </button>
     </div>
   )
@@ -461,7 +461,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           width: 64, height: 64, borderRadius: 18, background: 'rgba(255,255,255,0.12)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Video size={30} style={{ color: '#fff' }} />
+          <Video size={28} style={{ color: '#fff' }} />
         </div>
         <div style={{ textAlign: 'center', padding: '0 20px' }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t('Запись прикреплена')}</div>
@@ -472,10 +472,10 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 11,
             border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.16)',
-            color: '#fff', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
+            color: '#fff', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
-          <X size={13} /> {t('Удалить')}
+          <X size={14} /> {t('Удалить')}
         </button>
       </div>
     )
@@ -491,7 +491,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         width: 64, height: 64, borderRadius: 18, background: 'rgba(74,222,128,0.1)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Video size={30} style={{ color: 'var(--color-green-text)' }} />
+        <Video size={28} style={{ color: 'var(--color-green-text)' }} />
       </div>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{t('Добавьте запись урока')}</div>
@@ -526,21 +526,21 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
               border: 'none', cursor: 'pointer', background: 'var(--grad-green)',
-              color: '#fff', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit',
+              color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
               boxShadow: '0 4px 14px rgba(74,222,128,0.3)',
             }}
           >
-            <Link2 size={15} /> {t('Вставить ссылку')}
+            <Link2 size={16} /> {t('Вставить ссылку')}
           </button>
           <button
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
               border: '1.5px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent',
-              color: 'var(--color-muted)', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
+              color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
             }}
           >
-            <Upload size={15} /> {t('Загрузить файл')}
+            <Upload size={16} /> {t('Загрузить файл')}
           </button>
         </div>
       )}
@@ -649,13 +649,13 @@ function AudiencePicker({
                   width: 20, height: 20, borderRadius: 6, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: r.kind === 'group' ? 'var(--color-surface)' : d.color,
-                  fontSize: r.kind === 'group' ? 11 : 8.5, fontWeight: 800,
+                  fontSize: r.kind === 'group' ? 11 : 10, fontWeight: 800,
                   color: '#fff',
                 }}>
                   {r.kind === 'group' ? <span>{d.icon}</span> : d.initials}
                 </div>
                 <span style={{
-                  fontSize: 11.5, fontWeight: 600,
+                  fontSize: 12, fontWeight: 600,
                   color: r.kind === 'group' ? 'var(--color-green-text)' : 'var(--color-green-text)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
@@ -669,7 +669,7 @@ function AudiencePicker({
                     color: r.kind === 'group' ? 'var(--color-green-text)' : 'var(--color-green-text)', flexShrink: 0,
                   }}
                 >
-                  <X size={9} strokeWidth={2.6} />
+                  <X size={12} strokeWidth={2.5} />
                 </button>
               </div>
             )
@@ -686,10 +686,10 @@ function AudiencePicker({
             padding: '9px 12px', borderRadius: 11, cursor: 'pointer',
             border: '1.5px dashed rgba(74,222,128,0.3)',
             background: open ? 'rgba(74,222,128,0.08)' : 'rgba(74,222,128,0.04)',
-            color: 'var(--color-green-text)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
+            color: 'var(--color-green-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
-          <Plus size={14} strokeWidth={2.4} />
+          <Plus size={14} strokeWidth={2.5} />
           {recipients.length === 0 ? t('Группа или ученик') : t('Добавить ещё')}
         </button>
 
@@ -710,7 +710,7 @@ function AudiencePicker({
               {/* Search */}
               <div style={{ padding: 8, borderBottom: '1px solid var(--color-border-soft)' }}>
                 <div style={{ position: 'relative' }}>
-                  <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
+                  <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
                   <input
                     autoFocus
                     value={query}
@@ -720,7 +720,7 @@ function AudiencePicker({
                   />
                   {query && (
                     <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
-                      <X size={13} />
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -746,10 +746,10 @@ function AudiencePicker({
                           {g.icon}
                         </div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
-                          <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g.level} · {tc(g.subject)}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{g.level} · {tc(g.subject)}</div>
                         </div>
-                        <Plus size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                        <Plus size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                       </button>
                     ))}
                   </>
@@ -770,14 +770,14 @@ function AudiencePicker({
                           onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-4)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9.5, fontWeight: 800, color: '#fff' }}>
+                          <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>
                             {initials}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
-                            <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g?.name ?? ''}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
+                            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{g?.name ?? ''}</div>
                           </div>
-                          <Plus size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                          <Plus size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                         </button>
                       )
                     })}
@@ -797,7 +797,7 @@ function AudiencePicker({
                   onClick={() => { setOpen(false); setQuery('') }}
                   style={{
                     width: '100%', padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    background: 'var(--color-bg)', color: 'var(--color-muted)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
+                    background: 'var(--color-bg)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
                   {t('Готово')}
@@ -863,7 +863,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           placeholder={t('Например: Основные оксиды')}
           style={inputStyle}
         />
-        <div style={{ fontSize: 10.5, color: 'var(--color-text-4)', marginTop: 4, lineHeight: 1.4 }}>
+        <div style={{ fontSize: 11, color: 'var(--color-text-4)', marginTop: 4, lineHeight: 1.4 }}>
           {t('Так занятие подписано в расписании и в журнале')}
         </div>
       </div>
@@ -885,7 +885,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
             style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 11, textAlign: 'left' }}
           >
-            <Calendar size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
+            <Calendar size={14} color="#9A9AA2" style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{displayDate}</span>
           </button>
           <AnimatePresence>
@@ -908,7 +908,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
               onClick={() => { setShowStartTime(v => !v); setShowCal(false); setShowEndTime(false) }}
               style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
-              <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
+              <Clock size={14} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.startTime || '—'}</span>
             </button>
             <AnimatePresence>
@@ -927,7 +927,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
               onClick={() => { setShowEndTime(v => !v); setShowCal(false); setShowStartTime(false) }}
               style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
-              <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
+              <Clock size={14} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.endTime || '—'}</span>
             </button>
             <AnimatePresence>
@@ -1314,7 +1314,7 @@ export default function TeacherLessonEditorPage() {
                   boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <FileText size={17} style={{ color: 'var(--color-green-text)' }} />
+                    <FileText size={18} style={{ color: 'var(--color-green-text)' }} />
                     <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание урока')}</span>
                   </div>
                   <textarea
@@ -1334,7 +1334,7 @@ export default function TeacherLessonEditorPage() {
                 border: '1.5px dashed var(--color-border-medium)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Video size={17} style={{ color: 'var(--color-text-3)' }} />
+                  <Video size={18} style={{ color: 'var(--color-text-3)' }} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Содержимое урока')}</span>
                 </div>
                 <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-3)', margin: 0 }}>

@@ -255,7 +255,7 @@ export function DockSegment<T extends string | number>({
                 // на всю таблетку: «Немецкий с нуля — A1 → B1, живой» съедал ряд
                 // целиком, и соседних курсов в нём не оставалось видно вовсе.
                 maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis',
-                fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
+                fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                 background: active ? (accent ?? 'var(--grad-purple)') : 'transparent',
                 color: active ? '#fff' : 'var(--color-text-2)',
                 transition: 'background 0.2s, color 0.2s',

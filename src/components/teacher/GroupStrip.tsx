@@ -152,7 +152,7 @@ function ActionPanel({
         }}
       >
         <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(155,109,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <User size={13} strokeWidth={2.2} />
+          <User size={14} strokeWidth={2} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2, textAlign: 'left' }}>{t('Добавить')}{'\n'}1:1</span>
       </motion.button>
@@ -206,7 +206,7 @@ function GroupMiniCard({
               color: '#fff', boxShadow: `0 2px 8px ${group.color}66`,
             }}
           >
-            <Plus size={15} strokeWidth={2.6} />
+            <Plus size={16} strokeWidth={2.5} />
           </motion.button>
         )}
       </AnimatePresence>
@@ -215,7 +215,7 @@ function GroupMiniCard({
           {group.level}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
-          <Users size={13} strokeWidth={1.8} />
+          <Users size={14} strokeWidth={2} />
           <span style={{ fontSize: 12, fontWeight: 600 }}>{group.studentCount}</span>
         </div>
       </div>
@@ -249,7 +249,7 @@ const hwColor = (h: number) => h >= 80 ? 'var(--color-green-text)' : h >= 60 ? '
 function MetricCell({ label, value, color, divider }: { label: string; value: string; color: string; divider?: boolean }) {
   return (
     <div style={{ flex: 1, textAlign: 'center', borderLeft: divider ? '1px solid var(--color-border-soft)' : undefined }}>
-      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)' }}>{label}</div>
       <div style={{ fontSize: 14, fontWeight: 800, color, marginTop: 1 }}>{value}</div>
     </div>
   )
@@ -292,7 +292,7 @@ function IndividualCard({
         <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-5)', padding: '2px 8px', borderRadius: 6 }}>
           {group.level}
         </span>
-        <User size={13} strokeWidth={1.8} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
+        <User size={14} strokeWidth={2} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
       </div>
 
       {/* Avatar + name + subject */}
@@ -400,7 +400,7 @@ function PersonCard({
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: person.color, background: person.color + '22', padding: '2px 8px', borderRadius: 7, border: `1px solid ${person.color}33` }}>
           1:1
         </span>
-        <User size={13} strokeWidth={1.8} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
+        <User size={14} strokeWidth={2} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
       </div>
 
       {/* Avatar + name + subject count */}
@@ -648,7 +648,7 @@ function LegacySingleAction({ label, icon: Icon, onClick }: { label: string; ico
       <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {Icon && <Icon size={17} strokeWidth={2.4} />}
       </div>
-      <span style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.25, whiteSpace: 'pre-line' }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.3, whiteSpace: 'pre-line' }}>{label}</span>
     </motion.button>
   )
 }

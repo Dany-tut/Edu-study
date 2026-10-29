@@ -48,8 +48,8 @@ export default function ThemeToggleBtn() {
         style={{ display: 'flex', alignItems: 'center' }}
       >
         {dark
-          ? <Moon size={16} strokeWidth={1.8} />
-          : <Sun size={16} strokeWidth={1.8} />
+          ? <Moon size={16} strokeWidth={2} />
+          : <Sun size={16} strokeWidth={2} />
         }
       </motion.span>
 
@@ -64,7 +64,7 @@ export default function ThemeToggleBtn() {
             transition={{ type: 'spring', stiffness: 340, damping: 30 }}
             style={{
               fontSize: 12,
-              fontWeight: 650,
+              fontWeight: 600,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               lineHeight: 1,

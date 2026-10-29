@@ -249,18 +249,18 @@ export default function Shadowing({ lines, lang, accent, soft }: {
         background: 'var(--color-bg-2)', border: `1px solid ${accent}33`,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
+          <span style={{ fontSize: 12, letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
             {at + 1} / {lines.length}
           </span>
-          <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>
             {t('записано')}: {doneCount}
           </span>
         </div>
-        <div style={{ fontSize: 21, lineHeight: 1.45, color: 'var(--color-text)', fontWeight: 650 }}>
+        <div style={{ fontSize: 20, lineHeight: 1.45, color: 'var(--color-text)', fontWeight: 600 }}>
           {line.text}
         </div>
         {line.ru && (
-          <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-3)', marginTop: 8 }}>
+          <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-3)', marginTop: 8 }}>
             {line.ru}
           </div>
         )}
@@ -379,7 +379,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
             <span style={{
               flex: 1, fontSize: 13, lineHeight: 1.4,
               color: i === at ? 'var(--color-text)' : 'var(--color-text-2)',
-              fontWeight: i === at ? 650 : 400,
+              fontWeight: i === at ? 600 : 400,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {l.text}

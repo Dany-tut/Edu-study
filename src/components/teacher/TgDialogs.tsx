@@ -56,18 +56,18 @@ export default function TgDialogs() {
         overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {t('Диалоги')} · {threads.length}
           </div>
           <button onClick={loadThreads} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           </button>
         </div>
 
         {threads.length === 0 && !loading && (
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-3)' }}>
-            <MessageCircle size={28} strokeWidth={1.6} style={{ opacity: 0.5, display: 'block', margin: '0 auto 10px' }} />
-            <div style={{ fontSize: 13.5, fontWeight: 600 }}>{t('Пока никто не писал боту')}</div>
+            <MessageCircle size={28} strokeWidth={1.5} style={{ opacity: 0.5, display: 'block', margin: '0 auto 10px' }} />
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{t('Пока никто не писал боту')}</div>
           </div>
         )}
 
@@ -84,13 +84,13 @@ export default function TgDialogs() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {unread && <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--color-purple)', flexShrink: 0 }} />}
-                  <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{threadName(th)}</span>
-                  <span style={{ marginLeft: 'auto', flexShrink: 0, padding: '2px 7px', borderRadius: 6, fontSize: 10.5, fontWeight: 700, background: sm.bg, color: sm.color }}>{t(sm.label)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{threadName(th)}</span>
+                  <span style={{ marginLeft: 'auto', flexShrink: 0, padding: '2px 7px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: sm.bg, color: sm.color }}>{t(sm.label)}</span>
                 </div>
                 <div style={{ fontSize: 12, color: unread ? 'var(--color-text-2)' : 'var(--color-text-3)', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: unread ? 600 : 400 }}>
                   {th.last_message_text ?? '—'}
                 </div>
-                <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', marginTop: 2 }}>{fmtWhen(th.last_message_at)}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{fmtWhen(th.last_message_at)}</div>
               </button>
             )
           })}
@@ -166,8 +166,8 @@ function Conversation({ thread, onBack, onStatus }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
         <BackCircle onClick={onBack} style={{ width: 32, height: 32 }} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>{threadName(thread)}</div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{threadName(thread)}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
             {thread.username ? `@${thread.username} · ` : ''}chat {thread.chat_id}
           </div>
         </div>
@@ -178,7 +178,7 @@ function Conversation({ thread, onBack, onStatus }: {
             return (
               <button key={s} onClick={() => onStatus(s)} disabled={on} style={{
                 padding: '4px 10px', borderRadius: 8, border: '1px solid var(--color-border)', cursor: on ? 'default' : 'pointer',
-                fontSize: 11.5, fontWeight: 600,
+                fontSize: 12, fontWeight: 600,
                 background: on ? sm.bg : 'transparent', color: on ? sm.color : 'var(--color-text-3)',
               }}>{t(sm.label)}</button>
             )
@@ -198,7 +198,7 @@ function Conversation({ thread, onBack, onStatus }: {
                 color: out ? '#fff' : 'var(--color-text)',
                 borderBottomRightRadius: out ? 4 : 14, borderBottomLeftRadius: out ? 14 : 4,
               }}>{m.text}</div>
-              <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', marginTop: 3, textAlign: out ? 'right' : 'left' }}>{fmtTime(m.created_at)}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 3, textAlign: out ? 'right' : 'left' }}>{fmtTime(m.created_at)}</div>
             </div>
           )
         })}

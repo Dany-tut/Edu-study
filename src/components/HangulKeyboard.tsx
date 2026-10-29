@@ -128,7 +128,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
         border: '1px solid var(--color-border-strong)',
         background: 'rgba(var(--glass-rgb), 0.96)',
         color: 'var(--color-text)', fontFamily: 'inherit',
-        fontSize: wide ? 12.5 : 21, fontWeight: wide ? 700 : 600, lineHeight: 1,
+        fontSize: wide ? 13 : 20, fontWeight: wide ? 700 : 600, lineHeight: 1,
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
       }}
     >
@@ -150,14 +150,14 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
       {value?.trim()
         ? (
           <span style={{
-            fontSize: 17, fontWeight: 700, color: 'var(--color-text)',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)',
             textAlign: 'center', letterSpacing: 1, wordBreak: 'break-word',
           }}>
             {value}
           </span>
         )
         : (
-          <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
             {t('Ответ по-корейски — слоги сложатся сами')}
           </span>
         )}
@@ -195,7 +195,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
             opacity: disabled ? 0.5 : 1,
           }}
         >
-          <Delete size={17} />
+          <Delete size={18} />
         </motion.button>
       </div>
     </div>

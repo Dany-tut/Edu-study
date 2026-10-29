@@ -66,12 +66,12 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
         }}>
           {row.n}
         </span>
-        <p style={{ flex: 1, minWidth: 0, fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', ...proseWrap }}>
+        <p style={{ flex: 1, minWidth: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-2)', ...proseWrap }}>
           {bindShortWords(row.prompt)}
         </p>
         <span className="flex items-center" style={{
           flexShrink: 0, gap: 6, padding: '5px 10px', borderRadius: 999,
-          background: bg, color: fg, fontSize: 11.5, fontWeight: 750,
+          background: bg, color: fg, fontSize: 12, fontWeight: 700,
         }}>
           <Icon size={13} />
           {t(verdictLabel(row.verdict))}
@@ -82,13 +82,13 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
         <AudioPlayer audioUrl={row.answer} compact />
       ) : row.answer ? (
         <p style={{
-          fontSize: 14.5, lineHeight: 1.5, fontWeight: 650, color: 'var(--color-text)',
+          fontSize: 15, lineHeight: 1.5, fontWeight: 600, color: 'var(--color-text)',
           whiteSpace: 'pre-wrap', ...proseWrap,
         }}>
           {row.answer}
         </p>
       ) : (
-        <p style={{ fontSize: 13.5, color: 'var(--color-muted)', fontStyle: 'italic' }}>
+        <p style={{ fontSize: 14, color: 'var(--color-muted)', fontStyle: 'italic' }}>
           {row.verdict === 'skip'
             ? t('Ученик не смог записать голос — спросить на уроке.')
             : t('Ответа нет.')}
@@ -98,7 +98,7 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
       {/* Что услышала распознавалка. Показывается только у незачтённых — там это
           и решает: ученик сказал не то или машина не расслышала сказанное. */}
       {row.heard && row.verdict !== 'correct' && (
-        <p style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-text-3)', ...proseWrap }}>
+        <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', ...proseWrap }}>
           {t('Машина услышала')}: «{row.heard}»
           {row.attempts && row.attempts > 1 ? ` · ${t('попыток')}: ${row.attempts}` : ''}
         </p>
@@ -133,14 +133,14 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
       <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
           {t('Автопроверка')}: {payload.correct} / {payload.gradable}
         </span>
         {reviewCount > 0 && (
           <span style={{
             padding: '4px 10px', borderRadius: 999,
             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-            fontSize: 11.5, fontWeight: 700,
+            fontSize: 12, fontWeight: 700,
           }}>
             {t('Смотрит преподаватель')}: {reviewCount}
           </span>
@@ -149,7 +149,7 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
           <span style={{
             padding: '4px 10px', borderRadius: 999,
             background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
-            fontSize: 11.5, fontWeight: 700,
+            fontSize: 12, fontWeight: 700,
           }}>
             {t('С подсказкой')}: {hintCount}
           </span>
@@ -162,7 +162,7 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
           style={{
             alignSelf: 'flex-start', gap: 7, padding: '7px 12px', borderRadius: 12,
             border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
-            color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+            color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
           }}
         >
           {showPassed ? <ChevronDown size={14} /> : <ChevronRight size={14} />}

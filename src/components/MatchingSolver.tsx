@@ -241,7 +241,7 @@ export default function MatchingSolver({
     position: 'relative',
     display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 46,
     padding: '10px 13px', borderRadius: 12, fontFamily: 'inherit', fontSize: 15,
-    lineHeight: 1.35, textAlign: 'left', color: 'var(--color-text)',
+    lineHeight: 1.3, textAlign: 'left', color: 'var(--color-text)',
     cursor: disabled ? 'default' : 'pointer', transition: 'background .12s, border-color .12s',
   }
 

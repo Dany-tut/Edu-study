@@ -68,7 +68,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
             {initials(tn(student.name))}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(student.name)}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(student.name)}</div>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5,
               background: group.color + '33', borderRadius: 7, padding: '2px 8px',
@@ -89,7 +89,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           border: '1px solid var(--color-border-soft)',
         }}
       >
-        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Сводка по ученику')}
         </div>
         <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
@@ -99,7 +99,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         )}
         <div className="flex items-center justify-between" style={{ padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
           <div className="flex items-center" style={{ gap: 7 }}>
-            <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
+            <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
           </div>
           <span style={{
@@ -114,7 +114,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           background: 'var(--color-yellow-soft)', border: '1px solid color-mix(in srgb, var(--color-yellow-text) 28%, transparent)',
         }}>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл')}</span>
-          <span style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
         </div>
       </div>
 
@@ -123,7 +123,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           padding: 16, borderRadius: 20,
           background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)',
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>
             {t('Заметка')}
           </div>
           <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>{student.comment}</p>
@@ -273,7 +273,7 @@ function TaskScoreGrid({
                 style={{
                   width: 64, boxSizing: 'border-box', padding: '7px 10px', borderRadius: 10,
                   border: `1.5px solid ${over ? 'var(--color-red-text)' : 'var(--color-border-medium)'}`,
-                  fontSize: 16, fontWeight: 750, color: over ? 'var(--color-red-text)' : 'var(--color-text)',
+                  fontSize: 16, fontWeight: 700, color: over ? 'var(--color-red-text)' : 'var(--color-text)',
                   background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                   appearance: 'textfield',
                 } as React.CSSProperties}
@@ -336,10 +336,10 @@ function ReviewAttachEditor({
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
         onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
+        <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
           <ImageIcon size={14} /> {t('Фото')}
         </button>
-        <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? color : 'var(--color-border-medium)'}`, background: showBoard || board ? color + '22' : 'var(--color-bg-2)', color: showBoard || board ? color : 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
+        <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? color : 'var(--color-border-medium)'}`, background: showBoard || board ? color + '22' : 'var(--color-bg-2)', color: showBoard || board ? color : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
           <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
         </button>
       </div>
@@ -423,7 +423,7 @@ export default function TeacherHomeworkReviewPage() {
   if (!hw || !group || submitters.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: 'var(--color-muted)', gap: 12 }}>
-        <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>
+        <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
           {hw && group ? t('Пока никто не сдал работу') : t('Домашка не найдена')}
         </p>
         <button onClick={() => setActivePage('homework')} style={{
@@ -546,7 +546,7 @@ export default function TeacherHomeworkReviewPage() {
         <span style={{
           position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
           maxWidth: '44%', pointerEvents: 'none',
-          textAlign: 'center', fontSize: 18, fontWeight: 750, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {tc(hw.title)}
         </span>
@@ -604,7 +604,7 @@ export default function TeacherHomeworkReviewPage() {
               gap: 7, padding: '9px 16px', borderRadius: 999,
               ...dockGlass, color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
             }}>
-              <CheckCircle2 size={15} style={{ color: 'var(--color-green-text)' }} />
+              <CheckCircle2 size={16} style={{ color: 'var(--color-green-text)' }} />
               {reviewedCount} / {submitters.length}
             </div>
           </motion.div>
@@ -646,7 +646,7 @@ export default function TeacherHomeworkReviewPage() {
                     {formatSubmittedAt(currentSubmission?.submittedAt) && (
                       <span className="flex items-center" style={{
                         gap: 5, marginLeft: 'auto', padding: '4px 10px', borderRadius: 999,
-                        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 11.5, fontWeight: 600,
+                        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600,
                       }}>
                         <Clock size={12} />
                         {t('Сдано')} {formatSubmittedAt(currentSubmission?.submittedAt)}
@@ -655,7 +655,7 @@ export default function TeacherHomeworkReviewPage() {
                   </div>
                   {currentSubmission?.comment && (
                     <p style={{
-                      fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-text)',
+                      fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)',
                       whiteSpace: 'pre-line', marginBottom: 16,
                     }}>
                       {currentSubmission.comment}
@@ -709,7 +709,7 @@ export default function TeacherHomeworkReviewPage() {
                             placeholder="—"
                             style={{
                               width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                              border: '1.5px solid var(--color-border-medium)', fontSize: 20, fontWeight: 750, color: 'var(--color-text)',
+                              border: '1.5px solid var(--color-border-medium)', fontSize: 20, fontWeight: 700, color: 'var(--color-text)',
                               background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                               appearance: 'textfield',
                             } as React.CSSProperties}
@@ -768,11 +768,11 @@ export default function TeacherHomeworkReviewPage() {
                       style={{
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
                         background: 'var(--grad-purple)',
-                        color: '#fff', fontSize: 14, fontWeight: 650,
+                        color: '#fff', fontSize: 14, fontWeight: 600,
                         boxShadow: '0 6px 18px rgba(124,108,224,0.35)',
                       }}
                     >
-                      <Check size={17} strokeWidth={2.4} />
+                      <Check size={18} strokeWidth={2.5} />
                       {t('Засчитать и начислить баллы')}
                     </motion.button>
                     <motion.button
@@ -782,10 +782,10 @@ export default function TeacherHomeworkReviewPage() {
                       style={{
                         gap: 8, padding: '13px 20px', borderRadius: 16, border: 'none',
                         background: 'var(--color-peach-soft)',
-                        color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 650,
+                        color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 600,
                       }}
                     >
-                      <RotateCcw size={16} strokeWidth={2.2} />
+                      <RotateCcw size={16} strokeWidth={2} />
                       {t('Вернуть на доработку')}
                     </motion.button>
                   </div>
@@ -813,7 +813,7 @@ export default function TeacherHomeworkReviewPage() {
                       <CheckCircle2 size={24} />
                     </div>
                     <div style={{ flex: 1, minWidth: 160 }}>
-                      <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>{t('Все работы проверены!')}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Все работы проверены!')}</div>
                       <div style={{ fontSize: 13, color: 'var(--color-green-text)', marginTop: 2 }}>{t('Задача «Проверить ДЗ» отмечена на главной.')}</div>
                     </div>
                     <motion.button

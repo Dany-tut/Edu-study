@@ -54,9 +54,9 @@ function CardActionBar({ actions, visible, accentColor }: { actions: CardActions
       opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-3px)',
       pointerEvents: visible ? 'auto' : 'none', transition: 'opacity 0.14s, transform 0.14s',
     }}>
-      {actions.onEdit && btn(actions.onEdit, t('Редактировать'), false, <Pencil size={13} strokeWidth={2} />)}
-      {actions.onDuplicate && btn(actions.onDuplicate, t('Дублировать'), false, <Copy size={13} strokeWidth={2} />)}
-      {actions.onDelete && btn(actions.onDelete, t('Удалить'), true, <Trash2 size={13} strokeWidth={2} />)}
+      {actions.onEdit && btn(actions.onEdit, t('Редактировать'), false, <Pencil size={14} strokeWidth={2} />)}
+      {actions.onDuplicate && btn(actions.onDuplicate, t('Дублировать'), false, <Copy size={14} strokeWidth={2} />)}
+      {actions.onDelete && btn(actions.onDelete, t('Удалить'), true, <Trash2 size={14} strokeWidth={2} />)}
     </div>
   )
 }

@@ -102,7 +102,7 @@ function CourseOrderActions({ saving, onCancel, onApply, stretch }: {
         style={{
           ...grow,
           padding: '0 22px', height: stretch ? 48 : 42, borderRadius: stretch ? 14 : 12, border: 'none', cursor: saving ? 'default' : 'pointer',
-          background: 'var(--grad-purple)', color: '#fff', fontSize: stretch ? 15 : 14, fontWeight: 650, opacity: saving ? 0.7 : 1,
+          background: 'var(--grad-purple)', color: '#fff', fontSize: stretch ? 15 : 14, fontWeight: 600, opacity: saving ? 0.7 : 1,
         }}
       >
         {saving ? t('Сохраняем…') : t('Готово')}
@@ -175,7 +175,7 @@ export default function CourseOrderModal({ open, onClose }: Props) {
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0 }}>
               <div>
-                <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Порядок курсов')}</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Порядок курсов')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
                   {t('Перетащите за ручку. Этот порядок будет везде: на треке, в «Курсах» и в домашках.')}
                 </p>
@@ -189,7 +189,7 @@ export default function CourseOrderModal({ open, onClose }: Props) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)',
                 }}
               >
-                <X size={17} />
+                <X size={18} />
               </motion.button>
             </div>
             <div ref={panelRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 24px 24px' }}>
@@ -243,11 +243,11 @@ function CourseRow({ row, index }: { row: Row; index: number }) {
         width: 26, height: 26, borderRadius: 9, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-        fontSize: 12.5, fontWeight: 700,
+        fontSize: 13, fontWeight: 700,
       }}>
         {index + 1}
       </span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {tc(row.name)}
       </span>
     </Reorder.Item>

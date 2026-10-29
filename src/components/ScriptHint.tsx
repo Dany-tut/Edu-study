@@ -68,7 +68,7 @@ export default function ScriptHint({
       }}
     >
       {reading && (
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-muted)', lineHeight: 1.3 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', lineHeight: 1.3 }}>
           {reading}
         </span>
       )}
@@ -91,7 +91,7 @@ export default function ScriptHint({
             cursor: 'pointer',
           }}
         >
-          <Volume2 size={13} />
+          <Volume2 size={14} />
         </span>
       )}
     </span>

@@ -229,7 +229,7 @@ export default function AdminStudentsManager() {
             onClick={() => { setForceAll(!allOpen); if (allOpen) setOpenOwners(new Set()) }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            <ChevronRight size={13} strokeWidth={2} style={{ transform: allOpen ? 'rotate(90deg)' : 'none', transition: 'transform 140ms ease' }} />
+            <ChevronRight size={14} strokeWidth={2} style={{ transform: allOpen ? 'rotate(90deg)' : 'none', transition: 'transform 140ms ease' }} />
             {/* Ширина кнопки — по САМОЙ ДЛИННОЙ подписи, а не по текущей.
                 «Развернуть все» длиннее «Свернуть все», и на переключении ряд
                 дёргался целиком: поиск в нём тянущийся (flex), и он ловил
@@ -249,7 +249,7 @@ export default function AdminStudentsManager() {
           </button>
         )}
         <button onClick={load} title={t('Обновить')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
-          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
       </div>
@@ -289,7 +289,7 @@ export default function AdminStudentsManager() {
                   fontSize: 13, fontWeight: 700,
                   color: ownerId === NO_OWNER ? '#D07020' : 'var(--color-text)',
                 }}>{tn(grp.name)}</span>
-                <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
+                <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
                   {grp.items.length} {t('учеников')}
                 </span>
               </button>
@@ -307,14 +307,14 @@ export default function AdminStudentsManager() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
                     }}>
-                      <User size={15} strokeWidth={2} />
+                      <User size={16} strokeWidth={2} />
                     </div>
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {tn(row.name) || '—'}
                         </span>
-                        {row.has_account && <KeyRound size={11} strokeWidth={2.2} style={{ color: '#2E8F76', flexShrink: 0 }} />}
+                        {row.has_account && <KeyRound size={12} strokeWidth={2} style={{ color: '#2E8F76', flexShrink: 0 }} />}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {row.is_individual ? t('1:1') : row.group_name || t('без группы')}
@@ -352,7 +352,7 @@ export default function AdminStudentsManager() {
                       title={t('Удалить')}
                       style={iconBtn('#E04848')}
                     >
-                      <X size={15} strokeWidth={2.2} />
+                      <X size={16} strokeWidth={2} />
                     </button>
                   </div>
                 ))}
@@ -381,7 +381,7 @@ export default function AdminStudentsManager() {
         {confirmMove && createPortal(
           <Backdrop onClose={() => setConfirmMove(null)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <ArrowRightLeft size={17} strokeWidth={2} style={{ color: 'var(--color-purple)' }} />
+              <ArrowRightLeft size={18} strokeWidth={2} style={{ color: 'var(--color-purple)' }} />
               <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Передать ученика?')}</div>
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
@@ -470,7 +470,7 @@ function Field({ label, value, onChange, placeholder }: {
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{label}</span>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={fieldStyle} />
     </label>
   )
@@ -502,10 +502,10 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Карточка ученика')}</div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{tn(row.owner_name)}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{tn(row.owner_name)}</div>
         </div>
         <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
-          <X size={13} />
+          <X size={14} />
         </button>
       </div>
 
@@ -516,12 +516,12 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       <Field label={t('Контакт родителя')} value={parent} onChange={setParent} />
 
       <label style={{ display: 'block', marginBottom: 12 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{t('Комментарий')}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{t('Комментарий')}</span>
         <GrowTextarea value={comment} onChange={setComment} minHeight={60} style={fieldStyle} />
       </label>
 
       <div style={{ marginBottom: 18 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{t('Группа (и вместе с ней — учитель)')}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{t('Группа (и вместе с ней — учитель)')}</span>
         <TeacherSelect
           clearable={false}
           placeholder={t('— без группы —')}

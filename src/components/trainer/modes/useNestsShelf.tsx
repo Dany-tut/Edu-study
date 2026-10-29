@@ -79,10 +79,10 @@ export function useNestsShelf({
   // Глубина стоит рядом с материалом, а не в шапке: цифра объясняет ровно то,
   // почему список именно такой длины.
   const rail = !active ? null : (
-    <RailCard title="Глубина" accent={accent} icon={<Layers size={15} />}>
+    <RailCard title="Глубина" accent={accent} icon={<Layers size={16} />}>
       <RailStat label="Рядов открыто" value={nests.length} />
       {locked > 0 && <RailStat label="Ждут курса" value={locked} />}
-      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
         {t(reachNote)}
       </div>
     </RailCard>

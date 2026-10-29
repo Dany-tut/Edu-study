@@ -179,7 +179,7 @@ export default function DateTimeField({ value, onChange, label }: {
           color: open ? 'var(--color-accent)' : 'var(--color-text-3)',
         }}
       >
-        <Calendar size={15} />
+        <Calendar size={16} />
       </button>
 
       {createPortal(
@@ -199,11 +199,11 @@ export default function DateTimeField({ value, onChange, label }: {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <button type="button" onClick={() => shift(-1)} aria-label={t('Предыдущий месяц')} style={navBtn}><ChevronLeft size={14} /></button>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t(MONTHS[view.m])} {view.y}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t(MONTHS[view.m])} {view.y}</span>
                 <button type="button" onClick={() => shift(1)} aria-label={t('Следующий месяц')} style={navBtn}><ChevronRight size={14} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
-                {DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 650, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>)}
+                {DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>)}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
                 {cells.map((day, i) => {
@@ -217,7 +217,7 @@ export default function DateTimeField({ value, onChange, label }: {
                       onMouseLeave={e => { if (!sel) e.currentTarget.style.background = isToday ? 'var(--color-accent-soft)' : 'transparent' }}
                       style={{
                         aspectRatio: '1', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                        fontSize: 12.5, fontWeight: sel || isToday ? 700 : 500,
+                        fontSize: 13, fontWeight: sel || isToday ? 700 : 500,
                         background: sel ? 'var(--grad-purple)' : isToday ? 'var(--color-accent-soft)' : 'transparent',
                         color: sel ? '#fff' : isToday ? 'var(--color-purple-text)' : 'var(--color-text)',
                       }}
@@ -227,7 +227,7 @@ export default function DateTimeField({ value, onChange, label }: {
                   )
                 })}
               </div>
-              <div style={{ marginTop: 10, fontSize: 11.5, color: 'var(--color-text-4)', textAlign: 'center' }}>
+              <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-text-4)', textAlign: 'center' }}>
                 {t('Время меняется в поле — цифрами')}
               </div>
             </motion.div>

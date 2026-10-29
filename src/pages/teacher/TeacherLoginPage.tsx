@@ -176,7 +176,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
                 color: 'var(--color-muted)',
               }}
             >
-              {showPassword ? <EyeOff size={18} strokeWidth={1.9} /> : <Eye size={18} strokeWidth={1.9} />}
+              {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
           </div>
           )}

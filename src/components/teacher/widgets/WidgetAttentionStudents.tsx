@@ -74,7 +74,7 @@ export default function WidgetAttentionStudents() {
           background: atRisk.length > 0 ? 'var(--color-peach-soft)' : 'var(--color-green-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <AlertCircle size={14} strokeWidth={2.2} style={{ color: atRisk.length > 0 ? '#C07020' : 'var(--color-green-text)' }} />
+          <AlertCircle size={14} strokeWidth={2} style={{ color: atRisk.length > 0 ? '#C07020' : 'var(--color-green-text)' }} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Требуют внимания')}</span>
         {atRisk.length > 0 && (
@@ -129,7 +129,7 @@ export default function WidgetAttentionStudents() {
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ').slice(0, 2).join(' ')}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>

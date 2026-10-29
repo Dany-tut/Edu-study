@@ -52,7 +52,7 @@ export function StoryGrid({ story, read, accent, soft, onOpen }: {
               )}
             </span>
             <span style={{
-              fontSize: 16.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.32,
+              fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3,
               letterSpacing: '-0.01em',
             }}>
               {t(ch.title)}
@@ -141,13 +141,13 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           )}
           {card.title && (
             <h3 style={{
-              margin: 0, fontSize: 19, fontWeight: 800, letterSpacing: '-0.015em',
-              color: 'var(--color-text)', lineHeight: 1.25,
+              margin: 0, fontSize: 20, fontWeight: 800, letterSpacing: '-0.015em',
+              color: 'var(--color-text)', lineHeight: 1.3,
             }}>
               {t(card.title)}
             </h3>
           )}
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: 'var(--color-text-2)', ...proseWrap }}>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
             {bindShortWords(t(card.text))}
           </p>
           {card.bullets && (
@@ -155,7 +155,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
               {card.bullets.map((b, k) => (
                 <li key={k} style={{
                   display: 'flex', alignItems: 'baseline', gap: 10,
-                  fontSize: 14.5, lineHeight: 1.5, color: 'var(--color-text)',
+                  fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)',
                 }}>
                   <span style={{ width: 5, height: 5, borderRadius: 999, background: accent, flexShrink: 0, transform: 'translateY(-2px)' }} />
                   {t(b)}
@@ -167,7 +167,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
             <div style={{
               display: 'flex', alignItems: 'baseline', gap: 9,
               padding: '11px 14px', borderRadius: 12, background: soft,
-              fontSize: 13.5, lineHeight: 1.5, fontWeight: 650, color: 'var(--color-text)',
+              fontSize: 14, lineHeight: 1.5, fontWeight: 600, color: 'var(--color-text)',
             }}>
               <Check size={14} style={{ color: accent, flexShrink: 0, transform: 'translateY(2px)' }} />
               {bindShortWords(t(card.keep))}
@@ -183,13 +183,13 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 42, padding: '0 16px',
             borderRadius: 999, border: '1px solid var(--color-border)', background: 'transparent',
-            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700,
+            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
             cursor: at === 0 ? 'default' : 'pointer', opacity: at === 0 ? 0.4 : 1,
           }}
         >
-          <ArrowLeft size={15} /> {t('Назад')}
+          <ArrowLeft size={16} /> {t('Назад')}
         </button>
-        <span style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>
+        <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>
           {at + 1} {t('из')} {chapter.cards.length}
         </span>
         <div style={{ flex: 1 }} />
@@ -198,10 +198,10 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 42, padding: '0 20px',
             borderRadius: 999, border: 'none', background: accent, color: '#fff',
-            fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           }}
         >
-          {last ? <><BookOpen size={15} /> {t('К главам')}</> : <>{t('Дальше')} <ArrowRight size={15} /></>}
+          {last ? <><BookOpen size={16} /> {t('К главам')}</> : <>{t('Дальше')} <ArrowRight size={16} /></>}
         </button>
       </div>
     </div>

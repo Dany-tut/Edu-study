@@ -127,7 +127,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             flexShrink: 0,
           }}
         >
-          <RotateCcw size={13} />
+          <RotateCcw size={14} />
           {t('Сбросить')}
         </button>
 
@@ -192,7 +192,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                     border: 'none',
                     background: desk.id === activeDeskId ? 'var(--color-purple-soft)' : 'transparent',
                     color: desk.id === activeDeskId ? 'var(--color-text)' : 'var(--color-text-2)',
-                    fontSize: 13.5, fontWeight: desk.id === activeDeskId ? 600 : 500,
+                    fontSize: 14, fontWeight: desk.id === activeDeskId ? 600 : 500,
                     cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                     lineHeight: 1,
                   }}
@@ -247,7 +247,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                   pointerEvents: pencilHovered ? 'auto' : 'none',
                 }}
               >
-                <Pencil size={13} strokeWidth={2} />
+                <Pencil size={14} strokeWidth={2} />
               </motion.button>
             </div>
           </motion.div>

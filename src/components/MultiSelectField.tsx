@@ -164,7 +164,7 @@ export default function MultiSelectField({
   const chip = (v: string) => (
     <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: field ? '3px 8px' : '2px 7px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(v)}</span>
-      <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 9 : 11} strokeWidth={2.6} /></span>
+      <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 12 : 12} strokeWidth={2.5} /></span>
     </span>
   )
 
@@ -239,11 +239,11 @@ export default function MultiSelectField({
         {!isEmpty ? (
           <button type="button" onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
             style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '0 2px', flexShrink: 0 }}>
-            <X size={13} strokeWidth={2.2} />
+            <X size={14} strokeWidth={2} />
           </button>
         ) : (
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
-            <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />
+            <ChevronDown size={small ? 12 : 14} strokeWidth={2} />
           </motion.span>
         )}
       </motion.div>
@@ -276,7 +276,7 @@ export default function MultiSelectField({
                         {...dropdownRowHover(selected)}
                       >
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{t(o)}</span>
-                        {selected && <Check size={13} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
+                        {selected && <Check size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
                       </div>
                     )
                   })}
@@ -285,7 +285,7 @@ export default function MultiSelectField({
                       style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, color: 'var(--color-text-2)' }}
                       {...dropdownRowHover(false)}
                     >
-                      <Plus size={13} strokeWidth={2.4} style={{ flexShrink: 0, color: accent }} />
+                      <Plus size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />
                       <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{t(createLabel)} «{typed}»</span>
                     </div>
                   )}
@@ -296,7 +296,7 @@ export default function MultiSelectField({
                   style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, color: accent, marginTop: 4, borderTop: '1px solid var(--color-border)', borderRadius: '0 0 9px 9px' }}
                   {...dropdownRowHover(false)}
                 >
-                  <Plus size={13} strokeWidth={2.4} style={{ flexShrink: 0 }} />
+                  <Plus size={14} strokeWidth={2.5} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0 }}>{t(createHint)}</span>
                 </div>
               )}

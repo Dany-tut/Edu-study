@@ -233,8 +233,8 @@ export default function AudioPlayer({
           />
         )}
         {playing
-          ? <Pause size={variant === 'bare' ? 19 : compact ? 16 : 18} strokeWidth={variant === 'bare' ? 1.7 : 2} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? { position: 'relative' } : undefined} />
-          : <Play size={variant === 'bare' ? 19 : compact ? 16 : 18} strokeWidth={variant === 'bare' ? 1.7 : 2} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? { position: 'relative', marginLeft: 1 } : { marginLeft: 2 }} />}
+          ? <Pause size={variant === 'bare' ? 20 : compact ? 16 : 18} strokeWidth={variant === 'bare' ? 1.7 : 2} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? { position: 'relative' } : undefined} />
+          : <Play size={variant === 'bare' ? 20 : compact ? 16 : 18} strokeWidth={variant === 'bare' ? 1.7 : 2} fill={variant === 'bare' ? 'none' : 'currentColor'} style={variant === 'bare' ? { position: 'relative', marginLeft: 1 } : { marginLeft: 2 }} />}
       </button>
 
       {allowSlow && hasSource && (
@@ -244,7 +244,7 @@ export default function AudioPlayer({
           title={t('Помедленнее')}
           style={{
             height: 32, padding: '0 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-            display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600,
+            display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600,
             border: `1.5px solid ${slow ? tone : 'var(--color-border-soft)'}`,
             background: slow ? toneSoft : 'var(--color-bg-2)',
             color: slow ? tone : 'var(--color-text-2)',
@@ -253,7 +253,7 @@ export default function AudioPlayer({
           {/* Черепаха — самый густой глиф в ряду (панцирь с насечками), поэтому
               линию ей дают тоньше, чем микрофону рядом: при одинаковом stroke
               она читается пятном, а не иконкой той же толщины. */}
-          <Turtle size={16} strokeWidth={1.6} /> {t('Медленно')}
+          <Turtle size={16} strokeWidth={1.5} /> {t('Медленно')}
         </button>
       )}
 
@@ -265,7 +265,7 @@ export default function AudioPlayer({
       )}
 
       {!hasSource && (
-        <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>{t('Аудио не задано')}</span>
+        <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Аудио не задано')}</span>
       )}
     </div>
   )

@@ -227,12 +227,12 @@ export default function PhraseDecks<T extends DeckCard>({ themes, states, accent
                     aria-label={`${t('к повторению')} ${st.due}`}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                   >
-                    <RotateCcw size={11} aria-hidden /> {st.due}
+                    <RotateCcw size={12} aria-hidden /> {st.due}
                   </span>
                 </TileChip>
               ) : null}
             </span>
-            <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {t(x.theme.title)}
             </span>
             {/* Превью — настоящие фразы на изучаемом языке, а не пересказ темы:
@@ -540,7 +540,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
               <div
                 onClick={on ? e => e.stopPropagation() : undefined}
                 style={{
-                  fontSize: on ? 30 : 15, fontWeight: 650, color: 'var(--color-text)',
+                  fontSize: on ? 28 : 15, fontWeight: 600, color: 'var(--color-text)',
                   lineHeight: 1.3, letterSpacing: on ? 0.2 : 0,
                   display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
                   transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.24s ease',
@@ -552,7 +552,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
               </div>
               {view.reading && p.reading && (
                 <div style={{
-                  fontSize: on ? 14 : 11.5, color: 'var(--color-text-3)', marginTop: on ? 4 : 2,
+                  fontSize: on ? 14 : 12, color: 'var(--color-text-3)', marginTop: on ? 4 : 2,
                   transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), margin-top 0.24s ease',
                 }}>
                   {p.reading}
@@ -569,7 +569,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
               {/* Заметка раскрывается по клику, а не висит всегда: у половины
                   фраз она в три строки, и лист темы стал бы простынёй. */}
               {on && p.note && (
-                <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 8, lineHeight: 1.5 }}>
                   {p.note}
                 </div>
               )}
@@ -586,7 +586,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                   <div
                     onClick={e => e.stopPropagation()}
                     style={{
-                      fontSize: 17, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35,
+                      fontSize: 18, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3,
                       display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
                     }}
                   >
@@ -612,7 +612,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                 </div>
               )}
             </div>
-            <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', flexShrink: 0, maxWidth: '42%', textAlign: 'right', lineHeight: 1.4 }}>
+            <div style={{ fontSize: 14, color: 'var(--color-text-2)', flexShrink: 0, maxWidth: '42%', textAlign: 'right', lineHeight: 1.4 }}>
               {p.ru}
             </div>
             {/* «Убрать» — только у раскрытой строки: корзина у каждого из
@@ -688,7 +688,7 @@ export function TakeWholeTheme({ phrases, owner, subjectId, accent, onAdded }: {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
         padding: '9px 12px', borderRadius: 12, cursor: busy || done ? 'default' : 'pointer',
-        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650,
+        fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
         border: `1px solid ${done ? 'var(--color-border-soft)' : `${accent}66`}`,
         background: 'transparent', color: done ? 'var(--color-muted)' : accent,
       }}
@@ -706,7 +706,7 @@ export function DeckHint() {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      fontSize: 11.5, color: 'var(--color-text-3)',
+      fontSize: 12, color: 'var(--color-text-3)',
     }}>
       <Layers size={12} />
       {t('Каждый ответ двигает расписание: «знаю» отодвигает фразу дальше, «не знаю» возвращает её завтра.')}

@@ -34,7 +34,7 @@ export default function WidgetGroupsList() {
             background: 'var(--color-purple-soft)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Users size={14} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
+            <Users size={14} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
           </div>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Группы')}</span>
           <span style={{
@@ -85,14 +85,14 @@ export default function WidgetGroupsList() {
                 width: 36, height: 36, borderRadius: 12, flexShrink: 0,
                 background: `${g.color}22`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 17,
+                fontSize: 18,
               }}>
                 {g.icon ?? '📚'}
               </div>
 
               {/* Name */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {g.name}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
@@ -108,7 +108,7 @@ export default function WidgetGroupsList() {
                 background: `${g.color}18`,
                 borderRadius: 8, padding: '3px 9px', flexShrink: 0,
               }}>
-                <Users size={11} strokeWidth={2.2} />
+                <Users size={12} strokeWidth={2} />
                 {g.studentCount}
               </div>
 

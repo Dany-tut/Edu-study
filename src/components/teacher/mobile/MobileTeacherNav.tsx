@@ -98,7 +98,7 @@ export default function MobileTeacherNav({
                 animate={{ height: collapsed ? 0 : 12, opacity: collapsed ? 0 : 1, marginTop: collapsed ? 0 : 4 }}
                 transition={COLLAPSE}
                 style={{
-                  fontSize: 9,
+                  fontSize: 10,
                   lineHeight: '12px',
                   overflow: 'hidden',
                   maxWidth: '100%',

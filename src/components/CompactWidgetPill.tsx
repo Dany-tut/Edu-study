@@ -115,7 +115,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             width: 15, height: 15, borderRadius: '50%',
             background: 'var(--color-bg-input)',
             color: accentColor,
-            fontSize: 8, fontWeight: 800,
+            fontSize: 10, fontWeight: 800,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
             lineHeight: 1,
@@ -142,9 +142,9 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             }}>
               {lastCorrect ? t('Верно') : t('Пока мимо')}
             </span>
-            <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
+            <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
             <span style={{
-              fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-2)',
+              fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {t('вопрос')} {lastQuestionIndex + 1} {t('из')} {total}
@@ -153,7 +153,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             {correct > 0 && (
               <span style={{
                 marginLeft: 'auto', flexShrink: 0,
-                fontSize: 10.5, fontWeight: 750,
+                fontSize: 11, fontWeight: 700,
                 padding: '2px 7px', borderRadius: 999,
                 background: pct >= 60 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                 color: pct >= 60 ? 'var(--color-green-text)' : 'var(--color-red-text)',
@@ -192,7 +192,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             style={{
               marginTop: 5,
-              fontSize: 12, fontWeight: 450, color: 'var(--color-text-2)',
+              fontSize: 12, fontWeight: 500, color: 'var(--color-text-2)',
               lineHeight: 1.45, overflow: 'hidden', willChange: 'opacity',
             }}
           >
@@ -244,7 +244,7 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
-            fontSize: 22,
+            fontSize: 24,
           }}
         >
           {fact.emoji}
@@ -284,7 +284,7 @@ function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: bool
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
-            fontSize: 22,
+            fontSize: 24,
           }}
         >
           {r.emoji}
@@ -332,7 +332,7 @@ function PomoControls() {
               key={mode}
               onClick={e => { stop(e); pomoSetTimerMode(mode) }}
               style={{
-                fontSize: 11.5, fontWeight: 650, lineHeight: 1, padding: '5px 14px', borderRadius: 999,
+                fontSize: 12, fontWeight: 600, lineHeight: 1, padding: '5px 14px', borderRadius: 999,
                 border: 'none', cursor: 'pointer', outline: 'none',
                 color: active ? 'var(--color-text)' : 'rgba(255,255,255,0.38)',
                 background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
@@ -357,7 +357,7 @@ function PomoControls() {
                 onClick={e => { stop(e); pomoSetPreset(p) }}
                 style={{
                   minWidth: 38, padding: '5px 0', borderRadius: 10, cursor: 'pointer',
-                  fontSize: 12.5, fontWeight: 650, lineHeight: 1,
+                  fontSize: 13, fontWeight: 600, lineHeight: 1,
                   border: active ? `1px solid ${POMO_ACCENT}` : '1px solid transparent',
                   color: active ? POMO_ACCENT : 'var(--color-text-2)',
                   background: active ? 'rgba(var(--accent-rgb), 0.10)' : 'var(--color-bg-3)',
@@ -379,12 +379,12 @@ function PomoControls() {
           style={{
             flex: 1, height: 38, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            fontSize: 13, fontWeight: 650,
+            fontSize: 13, fontWeight: 600,
             color: pomoRunning ? 'var(--color-text)' : '#FFFFFF',
             background: pomoRunning ? 'var(--color-bg-3)' : `linear-gradient(135deg, #B98BFF, ${POMO_ACCENT})`,
           }}
         >
-          {pomoRunning ? <Pause size={15} /> : <Play size={15} />}
+          {pomoRunning ? <Pause size={16} /> : <Play size={16} />}
           {pomoRunning ? t('Пауза') : t('Старт')}
         </button>
         <button
@@ -396,7 +396,7 @@ function PomoControls() {
             color: 'var(--color-muted)', background: 'var(--color-bg-3)',
           }}
         >
-          <RotateCcw size={15} />
+          <RotateCcw size={16} />
         </button>
       </div>
     </div>
@@ -469,7 +469,7 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
-            fontSize: 22,
+            fontSize: 24,
           }}
         >
           {m.emoji}
@@ -745,7 +745,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: bg, color: fg, fontWeight: 700, lineHeight: 1 }}
     >
       <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5 }}>{lead}{value}</motion.span>
-      <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+      <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap' }}>
         {label}
       </motion.span>
     </motion.div>
@@ -782,7 +782,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             людям, ради которых счётчик и делался. На паузе вместо числа стоит
             знак остановки, а сегодняшний итог остаётся рядом — в пилюле,
             подписанной словом «Пауза». */}
-        <span style={{ fontSize: counting && started ? 10.5 : 15, fontWeight: 750, color: palette.text, position: 'relative', lineHeight: 1, display: 'flex', alignItems: 'center' }}>
+        <span style={{ fontSize: counting && started ? 11 : 15, fontWeight: 700, color: palette.text, position: 'relative', lineHeight: 1, display: 'flex', alignItems: 'center' }}>
           {!started ? (def?.icon ?? '·')
             : counting ? formatShort(todayMs)
             : <PauseMark color={palette.text} />}
@@ -792,7 +792,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 2 }}>
         {/* Кикер — предмет, а не общее слово «прогресс»: тренажёр у ученика не один */}
         <span style={{
-          fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
+          fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
           {/* `||`, а не `??`: у предмета из стора пустая строка — это «предмета
@@ -830,7 +830,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {streak > 1 && expanded && pill('streak', `🔥 ${streak}`, t('Дней подряд'), palette.text, `${accent}1F`)}
           </div>
         ) : (
-          <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', gap: 6 }}>
             {/* Первая минута ещё не набралась. Показывать «0м» нечестно, но и
                 молчать нельзя: точка отвечает на «а он вообще считает?». */}
             {counting && <ClockDot on color={accent} />}
@@ -848,7 +848,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
         >
           {/* Словами, а не только точкой: пауза должна объяснять себя, иначе
               остановившийся счётчик читается как поломка. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--color-text-3)', marginTop: 8 }}>
             <ClockDot on={counting} color={accent} />
             <span>
               {counting ? t('Время идёт')
@@ -858,7 +858,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             </span>
           </div>
           {totalCount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>
               <span>{kind === 'lang' ? t('Выучено') : t('Решено')} {doneCount} {t('из')} {totalCount}</span>
               <span style={{ color: palette.text, fontWeight: 700 }}>{pct}%</span>
             </div>
@@ -983,7 +983,7 @@ function PillContent({
       >
         <span
           style={{
-            fontSize: 10.5,
+            fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.3,
             textTransform: 'uppercase',
@@ -997,10 +997,10 @@ function PillContent({
         </span>
         <span
           style={{
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: 600,
             color: 'var(--color-text)',
-            lineHeight: 1.25,
+            lineHeight: 1.3,
             // В заголовке тикает отсчёт помодоро — без моноширинных цифр плашка
             // меняет ширину каждую секунду.
             fontVariantNumeric: 'tabular-nums',
@@ -1023,8 +1023,8 @@ function PillContent({
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
           style={{
             marginTop: 4,
-            fontSize: 12.5,
-            fontWeight: 450,
+            fontSize: 13,
+            fontWeight: 500,
             color: 'var(--color-text-2)',
             lineHeight: 1.4,
             overflow: 'hidden',
@@ -1102,15 +1102,15 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
       </div>
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
-        <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
           {t('Уведомление')}
         </span>
-        <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.25 }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>
           {latest.title}
         </span>
         <div style={{ marginTop: 4 }}>
           <span style={{
-            fontSize: 12.5, fontWeight: 450, color: 'var(--color-text-2)', lineHeight: 1.4,
+            fontSize: 13, fontWeight: 500, color: 'var(--color-text-2)', lineHeight: 1.4,
             overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
           } as React.CSSProperties}>
             {dedupBodyS(latest.body)}
@@ -1119,9 +1119,9 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
             <button onClick={onAction} style={{
               marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
-              background: `${hexAccent}22`, color: accent, fontSize: 11.5, fontWeight: 700,
+              background: `${hexAccent}22`, color: accent, fontSize: 12, fontWeight: 700,
             }}>
-              {latest.action.label} <ArrowRight size={11} />
+              {latest.action.label} <ArrowRight size={12} />
             </button>
           )}
         </div>

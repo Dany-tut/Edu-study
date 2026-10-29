@@ -98,7 +98,7 @@ export function useReviewDeck({
   }
 
   const rail = (
-    <RailCard title="Колода" accent={accent} icon={<Layers size={15} />}>
+    <RailCard title="Колода" accent={accent} icon={<Layers size={16} />}>
       <RailStat label="На сегодня" value={due} tone={due > 0 ? 'warn' : undefined} />
       {note}
     </RailCard>

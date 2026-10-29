@@ -100,7 +100,7 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
               disabled={disabled}
               title={t('Убрать последнее нажатие')}
               style={{
-                fontSize: 44, lineHeight: 1.15, fontWeight: 700, color: 'var(--color-text)',
+                fontSize: 44, lineHeight: 1.2, fontWeight: 700, color: 'var(--color-text)',
                 border: 'none', background: 'transparent', fontFamily: 'inherit', padding: 0,
                 cursor: disabled ? 'default' : 'pointer', letterSpacing: 2,
               }}
@@ -132,8 +132,8 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
               fontFamily: 'inherit', cursor: disabled || full ? 'default' : 'pointer',
             }}
           >
-            <span style={{ fontSize: 24, lineHeight: 1.1, fontWeight: 700 }}>{k}</span>
-            <span style={{ fontSize: 10.5, color: 'var(--color-muted)', marginTop: 2 }}>
+            <span style={{ fontSize: 24, lineHeight: 1.2, fontWeight: 700 }}>{k}</span>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>
               {CHAMO[k]?.sound}
             </span>
           </motion.button>
@@ -141,7 +141,7 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
       </div>
 
       {picked.length > 0 && !disabled && !showVerdict && (
-        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Тап по собранному слову убирает последнее нажатие')}
         </span>
       )}

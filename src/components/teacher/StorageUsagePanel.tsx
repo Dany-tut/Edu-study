@@ -44,7 +44,7 @@ function UsageBar({
         <div style={{ width: 26, height: 26, borderRadius: 8, background: c.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Icon size={14} strokeWidth={2} style={{ color: c.text }} />
         </div>
-        <span style={{ fontSize: 12.5, fontWeight: 650, color: 'var(--color-text)' }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{label}</span>
         <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: c.text }}>
           {pct.toFixed(pct < 10 ? 1 : 0)}%
         </span>
@@ -119,14 +119,14 @@ export default function StorageUsagePanel() {
           transition={{ duration: 0.2 }}
           style={{ display: 'flex', color: 'var(--color-text-4)' }}
         >
-          <ChevronDown size={15} strokeWidth={2.2} />
+          <ChevronDown size={16} strokeWidth={2} />
         </motion.span>
         <button
           onClick={e => { e.stopPropagation(); load() }}
           title={t('Обновить')}
           style={{ marginLeft: 'auto', width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}
         >
-          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
         </button>
       </div>
 
@@ -162,21 +162,21 @@ export default function StorageUsagePanel() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 18 }}>
                   {/* Where photos & whiteboards actually live */}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
-                    <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
-                    <div style={{ fontSize: 11.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
+                    <ImageIcon size={16} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
                       {t('Фото и рисунки доски сейчас хранятся прямо в базе (внутри строк ДЗ):')} <b style={{ color: 'var(--color-text)' }}>{fmtBytes(stats.attachments_bytes)}</b> {t('в')} {stats.attachments_rows} {t('записях.')}
                     </div>
                   </div>
 
                   {/* Per-table breakdown */}
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
                       {t('По таблицам')}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {[...stats.tables].sort((a, b) => b.bytes - a.bytes).slice(0, 6).map(t => (
                         <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 11.5, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
                           <div style={{ flex: 1, height: 6, borderRadius: 4, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${(t.bytes / maxTableBytes) * 100}%`, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.7 }} />
                           </div>

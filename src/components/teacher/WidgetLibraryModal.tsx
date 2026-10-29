@@ -140,7 +140,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <X size={15} color="var(--color-muted)" />
+              <X size={16} color="var(--color-muted)" />
             </button>
           </div>
 

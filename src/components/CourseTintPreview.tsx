@@ -130,9 +130,9 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
           gap: 6, height: 26, padding: '0 12px', borderRadius: 999,
           background: 'rgba(var(--glass-rgb), 0.98)',
           boxShadow: 'var(--shadow-pill)',
-          fontSize: 10.5, fontWeight: 700, color: 'var(--color-text)',
+          fontSize: 11, fontWeight: 700, color: 'var(--color-text)',
         }}>
-          <Flame size={11} style={{ color: '#F59E0B' }} />
+          <Flame size={12} style={{ color: '#F59E0B' }} />
           2 {t('дней')}
         </div>
       </div>
@@ -163,10 +163,10 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
         background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)',
         transition: 'background 0.32s ease',
       }}>
-        <div style={{ fontSize: 8, fontWeight: 700, opacity: 0.85, letterSpacing: '0.05em' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, letterSpacing: '0.05em' }}>
           {t('ПРОДОЛЖИТЬ')}
         </div>
-        <div style={{ fontSize: 11.5, fontWeight: 800, margin: '3px 0 7px' }}>{t('Занятие')} #4</div>
+        <div style={{ fontSize: 12, fontWeight: 800, margin: '3px 0 7px' }}>{t('Занятие')} #4</div>
         <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.3)' }}>
           <div style={{ width: '42%', height: 4, borderRadius: 99, background: '#fff' }} />
         </div>
@@ -199,7 +199,7 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
           fontSize: 11, fontWeight: 800,
           transition: 'background-color 0.32s ease, color 0.32s ease',
         }}>
-          <BookOpen size={11} />42%
+          <BookOpen size={12} />42%
         </div>
         </Zone>
         <div className="flex items-center" style={{
@@ -207,7 +207,7 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
           background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           fontSize: 11, fontWeight: 800,
         }}>
-          <CheckCircle2 size={11} />5
+          <CheckCircle2 size={12} />5
         </div>
       </div>
 

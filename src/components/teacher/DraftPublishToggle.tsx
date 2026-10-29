@@ -26,7 +26,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
     display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 999, border: 'none',
     background: active ? activeBg : 'transparent',
     color: active ? activeColor : 'var(--color-text-3)',
-    fontSize: 13.5, fontWeight: active ? 700 : 500, fontFamily: 'inherit', whiteSpace: 'nowrap',
+    fontSize: 14, fontWeight: active ? 700 : 500, fontFamily: 'inherit', whiteSpace: 'nowrap',
     cursor: clickable ? 'pointer' : 'default', transition: 'background 0.16s, color 0.16s',
   })
 
@@ -49,14 +49,14 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
       <button role="radio" aria-checked={!published}
         onClick={draftClickable ? onDraft : undefined}
         style={seg(!published, 'var(--color-yellow-soft)', 'var(--color-yellow-text)', draftClickable)}>
-        <Pencil size={13} strokeWidth={2.2} /> {label(t('Черновик'))}
+        <Pencil size={14} strokeWidth={2} /> {label(t('Черновик'))}
       </button>
       <button role="radio" aria-checked={published}
         onClick={publishClickable ? onPublish : undefined}
         style={seg(published, 'var(--color-purple-soft)', 'var(--color-purple-text)', publishClickable)}>
         {saving
-          ? <Loader2 size={13} strokeWidth={2.2} style={{ animation: 'spin 0.9s linear infinite' }} />
-          : <Send size={13} strokeWidth={2.2} />}
+          ? <Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 0.9s linear infinite' }} />
+          : <Send size={14} strokeWidth={2} />}
         {label(t('Опубликован'))}
       </button>
     </div>

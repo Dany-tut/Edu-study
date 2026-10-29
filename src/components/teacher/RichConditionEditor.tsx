@@ -391,7 +391,7 @@ export default function RichConditionEditor({
                     alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
                   }}
                 >
-                  {fontSize}px <span style={{ fontSize: 9, opacity: 0.5 }}>▾</span>
+                  {fontSize}px <span style={{ fontSize: 10, opacity: 0.5 }}>▾</span>
                 </button>
                 {sizeOpen && createPortal(
                   <div ref={sizeDropRef} style={{
@@ -469,13 +469,13 @@ export default function RichConditionEditor({
                   color: 'var(--color-text-3)',
                 }}
               >
-                <X size={9} />
+                <X size={12} />
               </button>
 
               {divider}
 
               <ToolbarBtn title={t('Вставить фото (или Ctrl+V)')} onClick={() => fileInputRef.current?.click()}>
-                <ImageIcon size={13} />
+                <ImageIcon size={14} />
               </ToolbarBtn>
               <input
                 ref={fileInputRef}
@@ -500,7 +500,7 @@ export default function RichConditionEditor({
                   setDrawMode(m => !m)
                 }}
               >
-                <PenLine size={13} />
+                <PenLine size={14} />
               </ToolbarBtn>
             </motion.div>
           )}

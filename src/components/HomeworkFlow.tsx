@@ -455,13 +455,13 @@ function ResultModal({
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
-              fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
+              fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
               color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-amber)',
               marginBottom: 6,
             }}>
               {context === 'hard' ? t('Работа отправлена') : t('Тест сдан')}
             </p>
-            <h2 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', lineHeight: 1.18, marginBottom: 8 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 8 }}>
               {context === 'hard'
                 ? t('Отправлено на проверку!')
                 : passed
@@ -483,7 +483,7 @@ function ResultModal({
           {context === 'basic' && score !== undefined && (
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
               <span style={{
-                fontSize: 42, fontWeight: 760, lineHeight: 1, color: 'var(--color-text)',
+                fontSize: 42, fontWeight: 700, lineHeight: 1, color: 'var(--color-text)',
               }}>{score}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>{t('баллов')}</p>
             </div>
@@ -529,7 +529,7 @@ function ResultModal({
         {/* Emoji assessment section */}
         <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <p style={{ fontSize: 15, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
               {t('Оставь свою оценку')}
             </p>
             <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
@@ -570,7 +570,7 @@ function ResultModal({
                   flex: 2, padding: '15px 20px 15px 10px',
                   borderRadius: 18, border: 'none',
                   background: PURPLE.gradient,
-                  color: '#fff', fontSize: 15, fontWeight: 750,
+                  color: '#fff', fontSize: 15, fontWeight: 700,
                   cursor: 'pointer',
                   boxShadow: '0 12px 32px rgba(var(--accent-rgb), 0.32)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2,
@@ -592,7 +592,7 @@ function ResultModal({
                 width: '100%', padding: '15px 20px',
                 borderRadius: 18, border: 'none',
                 background: PURPLE.gradient,
-                color: '#fff', fontSize: 15, fontWeight: 750,
+                color: '#fff', fontSize: 15, fontWeight: 700,
                 cursor: 'pointer',
                 boxShadow: '0 12px 32px rgba(var(--accent-rgb), 0.32)',
               }}
@@ -1198,13 +1198,13 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
 function QuestionPrompt({ prompt }: { prompt: string }) {
   const parts = useMemo(() => splitLeadIn(prompt), [prompt])
   const bodyStyle: React.CSSProperties = {
-    fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)', ...proseWrap,
+    fontSize: 18, lineHeight: 1.3, fontWeight: 700, color: 'var(--color-text)', ...proseWrap,
   }
   if (!parts) return <h4 style={bodyStyle}>{bindShortWords(prompt)}</h4>
   return (
     <h4 style={bodyStyle}>
       <span style={{
-        display: 'block', fontSize: 13, fontWeight: 650, lineHeight: 1.4,
+        display: 'block', fontSize: 13, fontWeight: 600, lineHeight: 1.4,
         color: 'var(--color-text-2)', marginBottom: 3, ...balancedWrap,
       }}>
         {bindShortWords(parts.lead)}
@@ -1323,7 +1323,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
         gap: 9, padding: '10px 12px', borderRadius: 14,
         background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)',
       }}>
-        <MicOff size={15} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+        <MicOff size={16} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
           {t('Без записи')}
         </span>
@@ -1333,7 +1333,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             className="cursor-pointer"
             style={{
               marginLeft: 'auto', border: 'none', background: 'transparent', padding: 0,
-              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+              fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
               color: 'var(--color-accent)',
             }}
           >
@@ -1354,7 +1354,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
       style={{
         gap: 7, padding: '7px 14px', borderRadius: 999,
         border: '1px solid var(--color-border)', background: 'transparent',
-        color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+        color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
       }}
     >
       <Volume2 size={14} />
@@ -1402,7 +1402,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             style={{
               gap: 7, padding: '7px 14px', borderRadius: 999, border: 'none',
               background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 750,
+              fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
             }}
           >
             <Mic size={14} />
@@ -1421,7 +1421,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             style={{
               gap: 7, padding: '7px 14px', borderRadius: 999,
               border: '1px solid var(--color-border)', background: 'transparent',
-              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+              color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
             }}
           >
             <MicOff size={14} />
@@ -1504,7 +1504,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
           padding: '14px 16px', borderRadius: 16,
           background: soft, border: `1px solid ${accent}`,
         }}>
-          <div style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.35 }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
             {pattern}
           </div>
           {gloss && (
@@ -1526,7 +1526,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
                     minWidth: stacked ? 0 : 78, padding: '7px 12px', borderRadius: 12,
                     background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
                     fontSize: 14, fontWeight: 700, color: 'var(--color-text)',
-                    textAlign: stacked ? 'left' : 'center', lineHeight: 1.35,
+                    textAlign: stacked ? 'left' : 'center', lineHeight: 1.3,
                   }}>
                     {item.cue}
                   </span>
@@ -1568,7 +1568,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
                             color: 'var(--color-muted)', padding: 0,
                           }}
                         >
-                          <Eye size={15} />
+                          <Eye size={16} />
                         </button>
                       )}
                     </span>
@@ -2887,7 +2887,7 @@ export default function HomeworkFlow({
             color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
           }}
         >
-          <RotateCcw size={15} />
+          <RotateCcw size={16} />
           {t('Разобрать ошибки')}
         </motion.button>
       )}
@@ -2903,7 +2903,7 @@ export default function HomeworkFlow({
           }}
         >
           {t('Открыть хард')}
-          <ArrowRight size={15} />
+          <ArrowRight size={16} />
         </motion.button>
       )}
       <motion.button
@@ -2916,7 +2916,7 @@ export default function HomeworkFlow({
           color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
         }}
       >
-        <ChevronLeft size={15} />
+        <ChevronLeft size={16} />
         {t('Вернуться к уроку')}
       </motion.button>
       <motion.button
@@ -2929,7 +2929,7 @@ export default function HomeworkFlow({
           color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
         }}
       >
-        <Library size={15} />
+        <Library size={16} />
         {t('К урокам')}
       </motion.button>
     </div>
@@ -2967,7 +2967,7 @@ export default function HomeworkFlow({
         ...(docked ? { pointerEvents: 'auto' as const } : {}),
       }}
     >
-      <BookOpen size={17} />
+      <BookOpen size={18} />
       {!isMobile && t('Правило')}
     </motion.button>
   )
@@ -3075,7 +3075,7 @@ export default function HomeworkFlow({
 
         <h1
           className={`flex-1 min-w-0 flex items-center ${isMobile ? '' : 'text-center justify-center'}`}
-          style={{ gap: 10, fontSize: isMobile ? 17 : 18, fontWeight: 700, color: 'var(--color-text)' }}
+          style={{ gap: 10, fontSize: isMobile ? 18 : 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
           <span className="truncate">{hwTitle(homework.title, t)}</span>
           {!isMobile && levelPill(false)}
@@ -3214,11 +3214,11 @@ export default function HomeworkFlow({
               )}
             </div>
             {!isMobile && (
-              <p style={{ fontSize: 21, lineHeight: 1.15, fontWeight: 750, marginBottom: 8 }}>
+              <p style={{ fontSize: 20, lineHeight: 1.2, fontWeight: 700, marginBottom: 8 }}>
                 {t(selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel)}
               </p>
             )}
-            <p style={{ fontSize: isMobile ? 12.5 : 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.86)' }}>
+            <p style={{ fontSize: isMobile ? 13 : 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.86)' }}>
               {selectedLevel === 'basic' ? basicLevel.motivation : hardLevel.motivation}
             </p>
           </div>
@@ -3260,9 +3260,9 @@ export default function HomeworkFlow({
               <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Как это работает')}</p>
             </div>
-            <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-muted)' }}>
+            <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 700, color: 'var(--color-text)' }}>
-                <Clock size={13} />
+                <Clock size={14} />
                 {t('Обычно занимает')} {selectedEstimatedTime}.
               </span>{' '}
               {t('Базовый уровень обязателен и проверяется сразу. Если набираешь')} {homework.recommendationScore}+ {t('баллов, открывается необязательный хард-уровень с проверкой преподавателем.')}
@@ -3292,7 +3292,7 @@ export default function HomeworkFlow({
                       background: 'rgba(var(--glass-rgb), 0.82)',
                       color: 'var(--color-accent)',
                       fontSize: 11,
-                      fontWeight: 650,
+                      fontWeight: 600,
                     }}
                   >
                     {t(item)}
@@ -3333,7 +3333,7 @@ export default function HomeworkFlow({
                       <CheckCircle2 size={20} />
                     </div>
                     <div>
-                      <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
                         {t('Все вопросы отвечены!')}
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
@@ -3349,7 +3349,7 @@ export default function HomeworkFlow({
                       className="cursor-pointer"
                       style={{
                         padding: '13px 22px', borderRadius: 16, border: 'none',
-                        background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 750,
+                        background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 700,
                         boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                         display: 'flex', alignItems: 'center', gap: 8,
                       }}
@@ -3386,12 +3386,12 @@ export default function HomeworkFlow({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center flex-wrap" style={{ gap: 8, marginBottom: 4 }}>
-                          <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)' }}>
+                          <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
                             {t('Домашка сдана')}
                           </p>
                           {!basicPassed && showHard && (
                             <span style={{
-                              padding: '2px 9px', borderRadius: 999, fontSize: 11.5, fontWeight: 700,
+                              padding: '2px 9px', borderRadius: 999, fontSize: 12, fontWeight: 700,
                               background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
                             }}>
                               {t('до порога')} {basicGapToHard}
@@ -3423,7 +3423,7 @@ export default function HomeworkFlow({
                           иконка, чип «до порога» и полоса — точечно, а не
                           заливкой всей карточки. */}
                       <span style={{
-                        fontSize: 38, fontWeight: 760, lineHeight: 1, color: 'var(--color-text)',
+                        fontSize: 36, fontWeight: 700, lineHeight: 1, color: 'var(--color-text)',
                       }}>{basicScore}</span>
                       <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>
                         {t('из 100')}
@@ -3491,13 +3491,13 @@ export default function HomeworkFlow({
                             minWidth: 34, height: 30, padding: '0 10px', borderRadius: 10,
                             border: '1px solid var(--color-border-strong)', background: 'var(--color-bg-3)',
                             color: 'var(--color-text)', fontFamily: 'inherit',
-                            fontSize: 13, fontWeight: 750,
+                            fontSize: 13, fontWeight: 700,
                           }}
                         >
                           {number}
                         </button>
                       ))}
-                      <span style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45 }}>
+                      <span style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.45 }}>
                         · {t('слова из ошибок уже в колоде повторения')}
                       </span>
                     </div>
@@ -3687,11 +3687,11 @@ export default function HomeworkFlow({
                         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
                       }}>
                         {question.passageTitle && (
-                          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 8 }}>
+                          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 8 }}>
                             {question.passageTitle}
                           </p>
                         )}
-                        <div style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+                        <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
                           {bindShortWords(question.passage)}
                         </div>
                         {/* Перевод — только после ответа, иначе читать оригинал незачем. */}
@@ -3735,7 +3735,7 @@ export default function HomeworkFlow({
                             // карточка и пустое поле, и ученик не знал ни что
                             // писать, ни на каком языке. У одиночной буквы
                             // пишется её звук, у слова — перевод.
-                            <p style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.45, ...proseWrap }}>
+                            <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.45, ...proseWrap }}>
                               {[...(question.front ?? '').trim()].length === 1
                                 ? t('Запиши звук буквы русскими буквами')
                                 : t('Напиши перевод на русский')}
@@ -3814,7 +3814,7 @@ export default function HomeworkFlow({
                         // читалась кнопкой и перевешивала соседние «Верно».
                         <div style={{
                           color: 'var(--color-accent)',
-                          fontSize: 12.5, fontWeight: 650, lineHeight: 1.3,
+                          fontSize: 13, fontWeight: 600, lineHeight: 1.3,
                           whiteSpace: 'nowrap', flexShrink: 0,
                         }}>
                           {t('На проверке')}
@@ -4177,7 +4177,7 @@ export default function HomeworkFlow({
                               className="cursor-pointer"
                               style={{
                                 padding: '16px 14px', borderRadius: 18, fontFamily: 'inherit',
-                                fontSize: 17, fontWeight: 700, color: 'var(--color-text)',
+                                fontSize: 18, fontWeight: 700, color: 'var(--color-text)',
                                 border: `1px solid ${
                                   showVerdict && right ? '#6EE7A0'
                                     : showVerdict && active ? '#F48B91'
@@ -4203,7 +4203,7 @@ export default function HomeworkFlow({
                       <div style={{
                         padding: '18px 16px', borderRadius: 16, textAlign: 'center',
                         background: 'var(--color-teal-pill-bg)', color: 'var(--color-teal-pill-text)',
-                        fontSize: 22, fontWeight: 700, lineHeight: 1.3,
+                        fontSize: 24, fontWeight: 700, lineHeight: 1.3,
                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
                       }}>
                         {/* Картинка на лицевой стороне: слово вспоминается от
@@ -4312,10 +4312,10 @@ export default function HomeworkFlow({
                           padding: '14px 16px', borderRadius: 18,
                           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
                         }}>
-                          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 8 }}>
+                          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 8 }}>
                             {t('Что говорил автор')}
                           </p>
-                          <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+                          <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
                             {question.afterNote}
                           </div>
                         </div>
@@ -4408,7 +4408,7 @@ export default function HomeworkFlow({
                         gap: 10, padding: '11px 14px', borderRadius: 16,
                         background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
                       }}>
-                        <Eye size={15} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
+                        <Eye size={16} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
                         <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
                           {t('Ответ')}: <b style={{ color: 'var(--color-text)' }}>{hintText}</b>
                           {!checked && (
@@ -4433,10 +4433,10 @@ export default function HomeworkFlow({
                             style={{
                               gap: 8, padding: '10px 18px', borderRadius: 999, border: 'none',
                               background: palette.accent, color: '#fff',
-                              fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750,
+                              fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
                             }}
                           >
-                            <CheckCircle2 size={15} />
+                            <CheckCircle2 size={16} />
                             {t('Проверить')}
                           </motion.button>
                         )}
@@ -4448,7 +4448,7 @@ export default function HomeworkFlow({
                               gap: 7, padding: '9px 15px', borderRadius: 999,
                               border: '1px solid var(--color-border)', background: 'transparent',
                               color: 'var(--color-muted)', fontFamily: 'inherit',
-                              fontSize: 12.5, fontWeight: 700,
+                              fontSize: 13, fontWeight: 700,
                             }}
                           >
                             <Eye size={14} />
@@ -4461,7 +4461,7 @@ export default function HomeworkFlow({
                     {showVerdict && !isChoice && !isCorrect && question.referenceAnswer && (
                       <div style={{ padding: '12px 14px', borderRadius: 16, background: 'var(--color-green-soft)', border: '1px solid rgba(110,231,160,0.38)' }}>
                         <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-green-text)', marginBottom: 4 }}>{t('Правильный ответ')}</p>
-                        <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>{question.referenceAnswer}</p>
+                        <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>{question.referenceAnswer}</p>
                       </div>
                     )}
 
@@ -4484,7 +4484,7 @@ export default function HomeworkFlow({
                         >
                           {isCorrect ? t('Справился с заданием') : t('Разберём ошибку')}
                         </p>
-                        <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)', ...proseWrap }}>
+                        <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', ...proseWrap }}>
                           {bindShortWords(isCorrect
                             ? `${t('Пояснение:')} ${question.explanation}`
                             : question.explanation)}
@@ -4519,7 +4519,7 @@ export default function HomeworkFlow({
                       <CircleAlert size={20} />
                     </div>
                     <div>
-                      <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
                         {t('Список закончился, домашка — нет')}
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
@@ -4543,7 +4543,7 @@ export default function HomeworkFlow({
                           minWidth: 34, height: 30, padding: '0 10px', borderRadius: 10,
                           border: '1px solid var(--color-border-strong)', background: 'var(--color-bg-3)',
                           color: 'var(--color-text)', fontFamily: 'inherit',
-                          fontSize: 13, fontWeight: 750,
+                          fontSize: 13, fontWeight: 700,
                         }}
                       >
                         {number}
@@ -4560,11 +4560,11 @@ export default function HomeworkFlow({
                         flex: '1 1 200px', minWidth: 0,
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
                         background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
-                        fontSize: 14, fontWeight: 750, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
+                        fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                       }}
                     >
                       {t('К заданию')} {basicUnanswered[0].number}
-                      <ArrowRight size={15} />
+                      <ArrowRight size={16} />
                     </motion.button>
                     <motion.button
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
@@ -4582,7 +4582,7 @@ export default function HomeworkFlow({
                         fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
                       }}
                     >
-                      <Send size={15} style={{ flexShrink: 0 }} />
+                      <Send size={16} style={{ flexShrink: 0 }} />
                       {/* Подтверждение длиннее обычной подписи, и по умолчанию
                           оно разрывалось на вторую строку — кнопка прыгала в
                           высоту прямо под пальцем. Держим в одну строку. */}
@@ -4607,10 +4607,10 @@ export default function HomeworkFlow({
                   }}
                 >
                   <div>
-                    <p style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
                       {t('Что дальше')}
                     </p>
-                    <p style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap }}>
+                    <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap }}>
                       {bindShortWords(basicWrong.length > 0
                         ? `${t('Ошибок:')} ${basicWrong.length}. ${t('Их слова уже в колоде повторения — вернуться к ним можно в тренажёре.')}`
                         : t('Ошибок нет. Домашка закрыта — результат уже у преподавателя.'))
@@ -4701,7 +4701,7 @@ export default function HomeworkFlow({
                   >
                     <Lock size={28} />
                   </div>
-                  <h4 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', marginBottom: 10 }}>
+                  <h4 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', marginBottom: 10 }}>
                     {t('Сначала закрываем базовый уровень')}
                   </h4>
                   <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)', maxWidth: 520 }}>
@@ -4807,7 +4807,7 @@ function MetricPill({ label, value, tone }: { label: string; value: string; tone
       <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginBottom: 4 }}>
         {label}
       </p>
-      <p style={{ fontSize: 18, fontWeight: 760, color: tone === 'amber' ? 'var(--color-amber)' : 'var(--color-text)' }}>
+      <p style={{ fontSize: 18, fontWeight: 700, color: tone === 'amber' ? 'var(--color-amber)' : 'var(--color-text)' }}>
         {value}
       </p>
     </div>
@@ -5109,7 +5109,7 @@ function BottomProgressBar({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: isCorrect ? TICK_COLOR.correct : isWrong ? TICK_COLOR.wrong : PURPLE.gradient,
                     color: isCorrect ? '#0B4020' : isWrong ? '#6B0007' : '#fff',
-                    fontSize: 9, fontWeight: 800,
+                    fontSize: 10, fontWeight: 800,
                     boxShadow: isCorrect
                       ? '0 2px 8px rgba(110,231,160,0.4)'
                       : isWrong
@@ -5196,9 +5196,9 @@ function BottomProgressBar({
             ) : basicCompleted ? (
               <span
                 className="flex items-center"
-                style={{ gap: 7, color: 'var(--color-accent)', fontSize: 13, fontWeight: 750 }}
+                style={{ gap: 7, color: 'var(--color-accent)', fontSize: 13, fontWeight: 700 }}
               >
-                <Send size={13} />
+                <Send size={14} />
                 {t('Сдать домашку')}
               </span>
             ) : (

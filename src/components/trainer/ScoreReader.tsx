@@ -534,7 +534,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // padding и paddingLeft в одном стиле React ругает и применяет непредсказуемо.
   const cell = { paddingTop: 9, paddingRight: 14, paddingBottom: 9, paddingLeft: 0 } as const
   const ruStyle = {
-    fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap,
+    fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap,
   } as const
 
   return (
@@ -604,7 +604,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
                 реплики. В режиме «строка за строкой» продолжать нечего —
                 фрагмент и так один экран, там честнее «стоп». */}
             {sounding
-              ? (stepping ? <Square size={13} fill="#fff" /> : <Pause size={13} fill="#fff" />)
+              ? (stepping ? <Square size={14} fill="#fff" /> : <Pause size={14} fill="#fff" />)
               : <Play size={14} fill="#fff" style={{ marginLeft: 2 }} />}
           </button>
 
@@ -618,7 +618,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           </div>
 
           {stepping && (
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
               {at + 1} / {units.length}
             </span>
           )}
@@ -628,7 +628,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             style={{
               height: CTL_H, padding: '0 10px', borderRadius: 999, cursor: 'pointer',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
+              fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
               // Ширина не пляшет между 0.75× и 1.0×: цифры разной ширины
               // сдвигали бы край шапки при каждом нажатии.
               minWidth: 48, border: 'none',
@@ -739,7 +739,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
                 переносится на вторую строку и растит её — а объясняет то, что к
                 середине текста уже известно. */}
             {!stuck && !narrow && (
-              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
+              <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>
                 {stepping
                   ? t('Листай свайпом или кнопками внизу')
                   : t('Слово — перевод и озвучка, динамик слева — вся реплика')}
@@ -814,7 +814,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
         {/* Перевод, который не разложился по строкам, — общим текстом. */}
         {showRu && loose && (
           <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--color-border-soft)' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3, color: 'var(--color-text-3)', textTransform: 'uppercase', marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-text-3)', textTransform: 'uppercase', marginBottom: 6 }}>
               {t('Перевод текста')}
             </div>
             <div style={{ ...ruStyle, whiteSpace: 'pre-wrap' }}>{loose}</div>
@@ -837,8 +837,8 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
         inline
         accent={accent}
         icon={sounding
-          ? (stepping ? <Square size={15} fill="currentColor" /> : <Pause size={17} fill="currentColor" />)
-          : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
+          ? (stepping ? <Square size={16} fill="currentColor" /> : <Pause size={18} fill="currentColor" />)
+          : <Play size={18} fill="currentColor" style={{ marginLeft: 2 }} />}
         playLabel={sounding
           ? (stepping ? t('Стоп') : t('Пауза'))
           : (!stepping && paused !== null ? t('Продолжить') : t('Слушать'))}
@@ -894,7 +894,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
       <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Чтение вслух')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {[false, true].map(v => (
                 <button
@@ -902,7 +902,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
                   onClick={() => setRate(v)}
                   style={{
                     flex: 1, padding: '8px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                    fontSize: 12.5, fontWeight: slow === v ? 700 : 600,
+                    fontSize: 13, fontWeight: slow === v ? 700 : 600,
                     border: slow === v ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
                     background: slow === v ? soft : 'var(--color-bg-2)',
                     color: slow === v ? accent : 'var(--color-text-2)',
@@ -921,7 +921,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               реплики текста, то есть ровно то, что считает шкала рядом. */}
           {cues.length > 1 && (
             <div>
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
               <CueList
                 items={cues}
                 active={seekNow}
@@ -942,7 +942,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           {/* Голос — здесь же: мысль «не тот диктор» приходит в момент
               прослушивания, а из строки плеера кнопку убрали ради бегунка. */}
           <div>
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
             <VoicePicker lang={lang} accent={accent} soft={soft} />
           </div>
         </div>
@@ -1079,10 +1079,10 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
         paddingTop: 12, borderTop: '1px solid var(--color-border-soft)',
       }}>
         <NavButton onClick={() => onGo(index - 1)} disabled={index === 0} accent={accent} soft={soft}>
-          <ChevronLeft size={15} /> {t('Назад')}
+          <ChevronLeft size={16} /> {t('Назад')}
         </NavButton>
         <NavButton onClick={() => onGo(index + 1)} disabled={index === count - 1} accent={accent} soft={soft} primary>
-          {t('Дальше')} <ChevronRight size={15} />
+          {t('Дальше')} <ChevronRight size={16} />
         </NavButton>
       </div>
     </div>
@@ -1108,7 +1108,7 @@ function NavButton({ onClick, disabled, accent, soft, primary, children }: {
         // оставлял за собой выделенное синим слово на кнопке.
         userSelect: 'none', WebkitUserSelect: 'none',
         cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
-        fontSize: 13.5, fontWeight: 700,
+        fontSize: 14, fontWeight: 700,
         border: primary ? 'none' : `1px solid ${disabled ? 'var(--color-border-soft)' : 'var(--color-border-medium)'}`,
         background: primary ? (disabled ? 'var(--color-border-soft)' : accent) : (disabled ? 'transparent' : soft),
         color: primary ? '#fff' : (disabled ? 'var(--color-text-3)' : accent),
@@ -1231,7 +1231,7 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
             display: 'grid', gridTemplateColumns: '22px minmax(0, 1fr)', columnGap: 6,
             // Межстрочный интервал больше обычного: под строкой стоит ещё строка
             // транскрипции, и на 1.85 они слипаются.
-            fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.6, color: 'var(--color-text)',
+            fontSize: 16, lineHeight: ruby ? 2.1 : 1.6, color: 'var(--color-text)',
           }}
         >
           {first === null ? <span /> : (
@@ -1254,7 +1254,7 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
               onMouseEnter={e => { e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.opacity = alone ? '1' : '0.32' }}
             >
-              {alone ? <Square size={9} fill="#fff" /> : <Volume2 size={13} />}
+              {alone ? <Square size={12} fill="#fff" /> : <Volume2 size={14} />}
             </button>
           )}
           <div>

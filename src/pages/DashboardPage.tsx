@@ -696,7 +696,7 @@ function AssignedTestsBlock() {
     <div style={{ padding: '12px 0 4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <ClipboardList size={14} style={{ color: 'var(--color-accent)' }} />
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {t('Назначенные тесты')}
         </span>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 6, padding: '1px 7px' }}>
@@ -721,7 +721,7 @@ function AssignedTestsBlock() {
             <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
               {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
             </span>
-            <ChevronRight size={15} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+            <ChevronRight size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
           </motion.div>
         ))}
       </div>

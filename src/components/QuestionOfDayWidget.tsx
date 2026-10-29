@@ -43,12 +43,12 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
         <span
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,
-            fontSize: 12 * scale, fontWeight: 650, lineHeight: 1,
+            fontSize: 12 * scale, fontWeight: 600, lineHeight: 1,
             padding: '5px 12px', borderRadius: 999,
             color: 'var(--color-teal-pill-text)', background: 'var(--color-teal-pill-bg)',
           }}
         >
-          <Sparkles size={12 * scale} strokeWidth={2.2} />
+          <Sparkles size={12 * scale} strokeWidth={2} />
           {t('Вопрос дня')}
         </span>
         <span style={{ fontSize: 12 * scale, fontWeight: 500, color: 'var(--color-muted)' }}>{tc(q.subject)}</span>
@@ -56,7 +56,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
 
       {/* Question */}
       <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
-        <h3 style={{ fontSize: 21 * scale, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
+        <h3 style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
           {q.title}
         </h3>
       </div>
@@ -80,7 +80,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 height: 44 * scale, padding: `0 ${22 * scale}px`, borderRadius: 24,
                 border: 'none', cursor: 'pointer',
                 background: 'var(--grad-teal)',
-                color: '#fff', fontSize: 14 * scale, fontWeight: 650,
+                color: '#fff', fontSize: 14 * scale, fontWeight: 600,
               }}
             >
               {t('Показать ответ')}
@@ -99,10 +99,10 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 style={{
                   padding: `${8 * scale}px ${14 * scale}px`, borderRadius: 14,
                   background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
-                  fontSize: 14 * scale, fontWeight: 650, lineHeight: 1.2,
+                  fontSize: 14 * scale, fontWeight: 600, lineHeight: 1.2,
                 }}
               >
-                <Check size={15 * scale} strokeWidth={2.6} style={{ flexShrink: 0 }} />
+                <Check size={16 * scale} strokeWidth={2.5} style={{ flexShrink: 0 }} />
                 <span>{correct?.text}</span>
               </div>
               <button

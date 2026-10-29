@@ -97,9 +97,9 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
           <button
             onClick={() => { tactile(); setPresent(Object.fromEntries(roster.map(r => [r.id, true]))) }}
             className="cursor-pointer"
-            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 650, padding: '8px 14px', borderRadius: 999, background: allPresent ? PAIR.success.bg : 'var(--color-bg-4)', color: allPresent ? PAIR.success.text : 'var(--color-text-2)', border: '1px solid transparent' }}
+            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 999, background: allPresent ? PAIR.success.bg : 'var(--color-bg-4)', color: allPresent ? PAIR.success.text : 'var(--color-text-2)', border: '1px solid transparent' }}
           >
-            <Check size={15} /> {t('Все присутствовали')}
+            <Check size={16} /> {t('Все присутствовали')}
           </button>
 
           {roster.map(r => {
@@ -158,7 +158,7 @@ export default function MobileTeacherGradebook() {
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <GlassPill><CheckSquare size={15} /> {t('Журнал')}</GlassPill>
+      <GlassPill><CheckSquare size={16} /> {t('Журнал')}</GlassPill>
     </div>
   )
 
@@ -228,7 +228,7 @@ export default function MobileTeacherGradebook() {
                   <CalendarCheck size={18} style={{ color: first ? '#fff' : 'var(--color-muted)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14.5, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? (dark ? 'rgba(255,220,120,1)' : '#a34e00') : 'var(--color-text)' }}>{tc(l.title) || t('Урок')}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? (dark ? 'rgba(255,220,120,1)' : '#a34e00') : 'var(--color-text)' }}>{tc(l.title) || t('Урок')}</div>
                   <div style={{ fontSize: 12, fontWeight: 500, color: first ? (dark ? 'rgba(255,200,80,0.8)' : 'rgba(163,78,0,0.72)') : 'var(--color-muted)' }}>{fmtDate(l.date)}{l.timeStart ? ` · ${l.timeStart}` : ''}</div>
                 </div>
                 {first && (

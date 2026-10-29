@@ -171,7 +171,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
                   }}
                 >
-                  {readingVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                  {readingVisible ? <Eye size={14} /> : <EyeOff size={14} />}
                   {t('Чтение')}
                 </button>
               )}
@@ -190,7 +190,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
                   }}
                 >
-                  {walking ? <Rows3 size={13} /> : <ChevronRight size={13} />}
+                  {walking ? <Rows3 size={14} /> : <ChevronRight size={14} />}
                   {walking ? t('Показать все') : t('По одному')}
                 </button>
               )}
@@ -269,7 +269,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     <span style={{
                       display: 'block',
                       fontSize: glyph ? 40 : 18, fontWeight: 700, color: 'var(--color-text)',
-                      lineHeight: glyph ? 1.1 : 1.25, ...proseWrap,
+                      lineHeight: glyph ? 1.2 : 1.3, ...proseWrap,
                     }}>
                       {face}
                     </span>
@@ -323,7 +323,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     }}
                     aria-label={t('Предыдущее слово')}
                   >
-                    <ChevronLeft size={17} />
+                    <ChevronLeft size={18} />
                   </button>
 
                   <div className="flex items-center flex-wrap" style={{ gap: 5 }}>
@@ -356,7 +356,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     }}
                   >
                     {(step ?? 0) + 1 >= words.length ? t('Готово') : t('Дальше')}
-                    <ChevronRight size={15} />
+                    <ChevronRight size={16} />
                   </button>
                 </div>
               )}

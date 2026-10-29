@@ -91,7 +91,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
     minWidth: big ? 46 : 38, padding: big ? '8px 10px' : '7px 9px', borderRadius: 12,
     border: '1px solid rgba(var(--accent-rgb), 0.38)', background: 'var(--color-purple-soft)',
     color: 'var(--color-text)', fontFamily: 'inherit',
-    fontSize: big ? 26 : 19, lineHeight: 1.15, fontWeight: 700,
+    fontSize: big ? 24 : 20, lineHeight: 1.2, fontWeight: 700,
     textAlign: 'center',
   }
   const rowLayer: React.CSSProperties = { gridArea: '1 / 1', gap: 8 }
@@ -105,11 +105,11 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
           же оно написано. Теперь ошибка стоит строкой — её видно и её чинят. */}
       {mode === 'unscramble' && (
         <div className="flex items-center justify-center" style={{ gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)' }}>
             {t('Написано')}:
           </span>
           <span style={{
-            fontSize: big ? 24 : 19, fontWeight: 800, letterSpacing: 1,
+            fontSize: big ? 24 : 20, fontWeight: 800, letterSpacing: 1,
             color: 'var(--color-red-text)', textDecoration: 'line-through',
             textDecorationThickness: 2, opacity: 0.9,
           }}>
@@ -176,7 +176,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
               background: tile.spent ? 'var(--color-bg-3)' : 'rgba(var(--glass-rgb), 0.96)',
               color: tile.spent ? 'var(--color-muted)' : 'var(--color-text)',
               opacity: tile.spent ? 0.4 : 1,
-              fontFamily: 'inherit', fontSize: big ? 27 : 20, lineHeight: 1.15, fontWeight: 700,
+              fontFamily: 'inherit', fontSize: big ? 27 : 20, lineHeight: 1.2, fontWeight: 700,
               cursor: disabled || tile.spent || full ? 'default' : 'pointer',
             }}
           >
@@ -189,7 +189,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
           собой всё, что ниже. Пока тапать нечего — она просто невидима. */}
       {!disabled && !showVerdict && (
         <span style={{
-          fontSize: 11.5, color: 'var(--color-text-3)', textAlign: 'center',
+          fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center',
           visibility: picked.length > 0 ? 'visible' : 'hidden',
         }}>
           {t('Тап по плитке в строке возвращает её в банк')}

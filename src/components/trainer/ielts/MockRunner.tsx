@@ -195,7 +195,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
 
   const body = done ? (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: '24px 16px 80px' }}>
-      <h2 style={{ fontSize: 22, fontWeight: 850, color: 'var(--color-text)', margin: '0 0 16px' }}>
+      <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 16px' }}>
         {t('Результат')} · {t(mock.title)}
       </h2>
       <MockResults attempt={done} mock={mock} accent={accent} soft={soft} />
@@ -227,12 +227,12 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
           <span style={{
-            fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)',
+            fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {wide ? `IELTS Academic · ${t(mock.title)}` : t(mock.title)}
           </span>
-          <span style={{ fontSize: 15, fontWeight: 850, color: 'var(--color-text)' }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>
             {done ? t('Результат') : t(SECTION_LABEL[section])}
           </span>
         </div>
@@ -243,7 +243,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
             fontVariantNumeric: 'tabular-nums',
             color: left < 5 * 60_000 ? 'var(--color-red-text)' : 'var(--color-text)',
           }}>
-            <Clock size={15} /> {mmss(left)}
+            <Clock size={16} /> {mmss(left)}
           </span>
         )}
 
@@ -312,7 +312,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
 
 const solidBtn: React.CSSProperties = {
   height: 34, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-  background: 'var(--grad-purple)', color: '#fff', fontWeight: 750, fontSize: 13, fontFamily: 'inherit',
+  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
   display: 'inline-flex', alignItems: 'center', gap: 6,
 }
 
@@ -372,11 +372,11 @@ function SectionIntro({ section, index, total, onStart, accent }: {
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '48px 16px 80px', display: 'flex', flexDirection: 'column', gap: 18 }}>
       {total > 1 && (
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-3)' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)' }}>
           {t('Секция')} {index + 1} {t('из')} {total}
         </span>
       )}
-      <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0, fontSize: 26, fontWeight: 850, color: 'var(--color-text)' }}>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0, fontSize: 24, fontWeight: 800, color: 'var(--color-text)' }}>
         <Icon size={24} style={{ color: accent }} /> {SECTION_LABEL[section]}
       </h2>
       <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
@@ -420,7 +420,7 @@ function QuestionStrip({ numbers, answers, onPick, accent, soft }: {
         return (
           <button key={n} type="button" onClick={() => onPick(n)} style={{
             width: 28, height: 28, borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
-            fontSize: 11.5, fontWeight: 800, border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
+            fontSize: 12, fontWeight: 800, border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
             background: on ? soft : 'var(--color-bg-2)', color: on ? accent : 'var(--color-text-2)',
           }}>{n}</button>
         )
@@ -528,7 +528,7 @@ function ListeningRun({ mock, d, update, patch, finish, now, accent, soft }: Run
     <div style={{ maxWidth: 820, margin: '0 auto', padding: '20px 16px 120px', display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14,
-        background: soft, color: 'var(--color-text)', fontSize: 13.5, fontWeight: 650,
+        background: soft, color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
       }}>
         {review ? (
           <>
@@ -633,11 +633,11 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
           <Highlighter size={12} /> {t('выделите текст, чтобы отметить')}
         </span>
       </div>
-      <h2 style={{ margin: '0 0 14px', fontSize: 20, fontWeight: 850, color: 'var(--color-text)' }}>{passage.title}</h2>
+      <h2 style={{ margin: '0 0 14px', fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>{passage.title}</h2>
       {passage.paragraphs.map((p, i) => {
         const key = `${step}:${i}`
         return (
-          <p key={i} data-para={i} style={{ margin: '0 0 12px', fontSize: 15, lineHeight: 1.65, color: 'var(--color-text)' }}>
+          <p key={i} data-para={i} style={{ margin: '0 0 12px', fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}>
             {p.label && <b style={{ color: accent, marginRight: 8 }}>{p.label}</b>}
             <Marked text={p.text} marks={marks[key] ?? []} onDrop={m => dropMark(key, m)} />
           </p>
@@ -648,7 +648,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
           position: 'fixed', left: pick.x, top: Math.max(8, pick.y - 42), transform: 'translateX(-50%)', zIndex: 5,
           ...solidBtn, height: 32, boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
         }}>
-          <Highlighter size={13} /> {t('Выделить')}
+          <Highlighter size={14} /> {t('Выделить')}
         </button>
       )}
     </div>
@@ -684,7 +684,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
             const n = all[i].filter(q => answers[q]?.trim()).length
             return (
               <button key={i} type="button" onClick={() => go(i)} style={{
-                ...ghostBtn, height: 30, fontSize: 12.5,
+                ...ghostBtn, height: 30, fontSize: 13,
                 background: i === step ? soft : 'var(--color-bg-3)', color: i === step ? accent : 'var(--color-text)',
               }}>
                 {wide ? `${t('Текст')} ${i + 1}` : i + 1} · {n}/{all[i].length}
@@ -758,7 +758,7 @@ function WritingRun({ mock, d, update, patch, accent }: RunProps & { accent: str
         <div style={{ display: 'flex', gap: 6 }}>
           {mock.writing.map((w, i) => (
             <button key={w.task} type="button" onClick={() => update(x => ({ ...x, step: i }))} style={{
-              ...ghostBtn, height: 30, fontSize: 12.5,
+              ...ghostBtn, height: 30, fontSize: 13,
               background: i === step ? 'var(--grad-purple)' : 'var(--color-bg-3)',
               color: i === step ? '#fff' : 'var(--color-text)',
             }}>
@@ -766,7 +766,7 @@ function WritingRun({ mock, d, update, patch, accent }: RunProps & { accent: str
             </button>
           ))}
         </div>
-        <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', fontWeight: 650 }}>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', fontWeight: 600 }}>
           {t('Около')} {task.minutes} {t('минут')} · {t('не меньше')} {task.minWords} {t('слов')}
         </div>
         <div style={{ whiteSpace: 'pre-wrap', fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}>{task.prompt}</div>
@@ -907,13 +907,13 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 16px 120px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <div style={{ fontSize: 12.5, fontWeight: 800, color: accent }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: accent }}>
         Part {item.part} · {t('вопрос')} {step + 1} {t('из')} {items.length}
       </div>
 
       {item.card ? (
         <div style={{ padding: '18px 20px', borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginBottom: 10 }}>{item.card.topic}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginBottom: 10 }}>{item.card.topic}</div>
           <div style={{ fontSize: 14, color: 'var(--color-text-2)', marginBottom: 6 }}>You should say:</div>
           <ul style={{ margin: '0 0 8px', paddingLeft: 20, fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}>
             {item.card.points.map((p, i) => <li key={i}>{p}</li>)}
@@ -921,7 +921,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
           <div style={{ fontSize: 15, color: 'var(--color-text)' }}>{item.card.close}</div>
         </div>
       ) : (
-        <div style={{ fontSize: 20, lineHeight: 1.45, fontWeight: 750, color: 'var(--color-text)' }}>{item.question}</div>
+        <div style={{ fontSize: 20, lineHeight: 1.45, fontWeight: 700, color: 'var(--color-text)' }}>{item.question}</div>
       )}
 
       {phase === 'ask' && (
@@ -955,7 +955,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
             {t('Говорите')} · {mmss(until - now)}
           </span>
           <button type="button" onClick={() => void save()} style={{ ...solidBtn, marginLeft: 'auto' }}>
-            <Square size={13} /> {t('Закончить ответ')}
+            <Square size={14} /> {t('Закончить ответ')}
           </button>
         </div>
       )}

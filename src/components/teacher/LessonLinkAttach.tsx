@@ -59,14 +59,14 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
           onClick={submit}
           style={{
             flexShrink: 0, padding: '5px 9px', borderRadius: 8, border: 'none', cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: fs, fontWeight: 650,
+            fontFamily: 'inherit', fontSize: fs, fontWeight: 600,
             background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           }}
         >
           {t('Добавить')}
         </button>
       </div>
-      <p style={{ marginTop: 3, fontSize: compact ? 9.5 : 10.5, lineHeight: 1.25, color: err ? 'var(--color-red-text)' : 'var(--color-muted)' }}>
+      <p style={{ marginTop: 3, fontSize: compact ? 10 : 11, lineHeight: 1.3, color: err ? 'var(--color-red-text)' : 'var(--color-muted)' }}>
         {err ? t('Это не похоже на ссылку') : t('Доступ на Диске: «Все, у кого есть ссылка»')}
       </p>
     </div>

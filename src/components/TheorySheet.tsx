@@ -240,10 +240,10 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 32, height: 32, borderRadius: 11, background: soft, color: accent, flexShrink: 0,
               }}>
-                <BookOpen size={17} />
+                <BookOpen size={18} />
               </span>
               <span className="min-w-0 flex-1">
-                <span style={{ display: 'block', fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>
+                <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
                   {t('Правило урока')}
                 </span>
                 <span className="truncate" style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
@@ -305,12 +305,12 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                     lang={lang}
                     accent={accent}
                     subject={glossSubject}
-                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, ...line.style }}
+                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...line.style }}
                   />
                 ))}</Fragment>
               ) : (
                 <Fragment key={p.id}>{proseLines(p.text).map(line => (
-                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, ...proseWrap, ...line.style }}>
+                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...proseWrap, ...line.style }}>
                     <Prose text={line.text} />
                   </p>
                 ))}</Fragment>

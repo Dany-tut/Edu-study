@@ -53,7 +53,7 @@ export default function WidgetFinanceActivity() {
           background: 'var(--color-green-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Wallet size={14} strokeWidth={2.2} style={{ color: 'var(--color-green-text)' }} />
+          <Wallet size={14} strokeWidth={2} style={{ color: 'var(--color-green-text)' }} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
           {t('История платежей')}
@@ -94,7 +94,7 @@ export default function WidgetFinanceActivity() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)',
                 }}>
-                  {student ? initials(tn(student.name)) : <CheckCircle2 size={14} strokeWidth={2.2} />}
+                  {student ? initials(tn(student.name)) : <CheckCircle2 size={14} strokeWidth={2} />}
                 </div>
 
                 {/* Name + note */}

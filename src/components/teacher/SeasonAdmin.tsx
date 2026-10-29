@@ -69,8 +69,8 @@ export default function SeasonAdmin() {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-        <Ghost size={13} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+        <Ghost size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Праздничная тема')}
         </div>
       </div>
@@ -78,14 +78,14 @@ export default function SeasonAdmin() {
         {/* Главный рубильник */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: 'var(--color-bg-3)' }}>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хэллоуин')}</div>
-            <div style={{ fontSize: 11.5, marginTop: 3, fontWeight: 600, color: statusLive ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>{statusText}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хэллоуин')}</div>
+            <div style={{ fontSize: 12, marginTop: 3, fontWeight: 600, color: statusLive ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>{statusText}</div>
           </div>
           <Switch checked={draft.enabled} onChange={v => patch({ enabled: v })} label={t('Хэллоуин')} />
         </div>
 
         <div style={{ padding: '14px 18px', borderTop: '1px solid var(--color-border)', opacity: draft.enabled ? 1 : 0.45, transition: 'opacity 0.15s' }}>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 6 }}>{t('Даты по Москве: тема включается и уходит сама')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 6 }}>{t('Даты по Москве: тема включается и уходит сама')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <DateTimeField label={t('Начало')} value={draft.startsAt} onChange={v => patch({ startsAt: v })} />
             <DateTimeField label={t('Конец')} value={draft.endsAt} onChange={v => patch({ endsAt: v })} />
@@ -95,7 +95,7 @@ export default function SeasonAdmin() {
             <Checkbox checked={draft.ask} align="start" onChange={v => patch({ ask: v })}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Спрашивать учеников')}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.4 }}>
                   {draft.ask
                     ? t('При первом входе окно «Сейчас Хэллоуин»: ученик сам выбирает одну из трёх тем или оставляет всё как есть. Пока не выбрал — темы нет.')
                     : t('Всем сразу включается тема, выбранная ниже.')}
@@ -104,7 +104,7 @@ export default function SeasonAdmin() {
             </Checkbox>
           </div>
 
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', margin: '16px 0 6px' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', margin: '16px 0 6px' }}>
             {draft.ask
               ? t('Моя тема — только у меня, применяется сразу. Твой выбор на учеников не влияет.')
               : t('Тема для всех учеников')}
@@ -130,7 +130,7 @@ export default function SeasonAdmin() {
                     <img src={seasonImg(VARIANT_IMG[v.key])} alt="" style={{ height: 40, width: 'auto' }} />
                   </span>
                   <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 13, fontWeight: 650, color: 'var(--color-text)' }}>{t(v.title)}</span>
+                    <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t(v.title)}</span>
                     <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.3 }}>{t(v.about)}</span>
                   </span>
                 </button>
@@ -138,7 +138,7 @@ export default function SeasonAdmin() {
             })}
           </div>
 
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', margin: '16px 0 8px' }}>{t('Что включать')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', margin: '16px 0 8px' }}>{t('Что включать')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
             {PARTS.map(p => (
               <Checkbox key={p.key} checked={draft.parts[p.key]} onChange={v => patch({ parts: { ...draft.parts, [p.key]: v } })}>
@@ -161,7 +161,7 @@ export default function SeasonAdmin() {
         </div>
       </div>
       {error && <Alert tone="danger" title={t('Не сохранилось')} text={error} style={{ marginTop: 10 }} />}
-      <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
         {t('Пока сезон идёт, у ученика в меню и в профиле есть переключатель: можно передумать в любую сторону.')}
       </div>
     </div>

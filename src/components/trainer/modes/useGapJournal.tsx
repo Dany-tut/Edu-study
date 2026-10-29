@@ -38,7 +38,7 @@ export interface GapJournalHalf {
   tile: React.ReactNode
 }
 
-const smallBtn: React.CSSProperties = { height: 32, fontSize: 12.5, padding: '0 14px', gap: 5 }
+const smallBtn: React.CSSProperties = { height: 32, fontSize: 13, padding: '0 14px', gap: 5 }
 
 export function useGapJournal({
   lang, subjectId, owner, accent, soft, open, onOpen, onClose, onCarded,
@@ -118,12 +118,12 @@ export function useGapJournal({
       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <TileChip tone="solid" accent={accent} soft={soft}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <MessageCircleQuestion size={11} aria-hidden /> {t('Журнал')}
+            <MessageCircleQuestion size={12} aria-hidden /> {t('Журнал')}
           </span>
         </TileChip>
         {ready && openGaps.length > 0 && <TileChip>{openGaps.length} {t('ждут')}</TileChip>}
       </span>
-      <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+      <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
         {t('Не смог сказать')}
       </span>
       <span style={{
@@ -144,11 +144,11 @@ export function useGapJournal({
   )
 
   const rail = !open ? null : (
-    <RailCard title="Журнал" accent={accent} icon={<MessageCircleQuestion size={15} />}>
+    <RailCard title="Журнал" accent={accent} icon={<MessageCircleQuestion size={16} />}>
       <RailStat label="Записано" value={gaps.length} />
       <RailStat label="Ждут разбора" value={openGaps.length} tone={openGaps.length > 0 ? 'warn' : undefined} />
       <RailStat label="В карточках" value={doneGaps.length} tone={doneGaps.length > 0 ? 'good' : undefined} />
-      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
         {bindShortWords(t('Каждый раз, когда разговор сорвался на русский, запиши фразу. Вечером разбери: найди, как сказать, и отправь в карточки.'))}
       </div>
     </RailCard>
@@ -216,7 +216,7 @@ function Composer({ accent, onAdd }: { accent: string; onAdd: (ru: string) => Pr
         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submit() } }}
         style={{
           width: '100%', boxSizing: 'border-box', resize: 'none', border: 'none', outline: 'none',
-          background: 'transparent', fontFamily: 'inherit', fontSize: 15, lineHeight: 1.35,
+          background: 'transparent', fontFamily: 'inherit', fontSize: 15, lineHeight: 1.3,
           color: 'var(--color-text)', padding: 0,
         }}
       />
@@ -225,7 +225,7 @@ function Composer({ accent, onAdd }: { accent: string; onAdd: (ru: string) => Pr
           style={{ ...primaryBtn(accent), ...smallBtn, opacity: !text.trim() || busy ? 0.5 : 1 }}>
           {busy ? t('Записываю…') : t('Записать')}
         </button>
-        {error && <span style={{ fontSize: 12.5, color: 'var(--color-danger, #d9534f)' }}>{t('Не сохранилось — попробуйте ещё раз')}</span>}
+        {error && <span style={{ fontSize: 13, color: 'var(--color-danger, #d9534f)' }}>{t('Не сохранилось — попробуйте ещё раз')}</span>}
       </div>
     </div>
   )
@@ -286,14 +286,14 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
       border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ flex: 1, fontSize: 15, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.35, ...proseWrap }}>
+        <div style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, ...proseWrap }}>
           {gap.ru}
         </div>
         <button onClick={onRemove} aria-label={t('Удалить')} title={t('Удалить')} style={{
           border: 'none', background: 'transparent', cursor: 'pointer', padding: 4,
           color: 'var(--color-text-3)', display: 'inline-flex', flexShrink: 0,
         }}>
-          <Trash2 size={15} />
+          <Trash2 size={16} />
         </button>
       </div>
 
@@ -308,12 +308,12 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
         style={{
           width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none',
           borderBottom: `1.5px solid ${en.trim() ? accent : 'var(--color-border-medium)'}`,
-          background: 'transparent', fontFamily: 'inherit', fontSize: 15, lineHeight: 1.35,
+          background: 'transparent', fontFamily: 'inherit', fontSize: 15, lineHeight: 1.3,
           padding: '4px 0 6px', color: 'var(--color-text)', borderRadius: 0,
         }}
       />
       {gap.note && en.trim() === (gap.en ?? '') && (
-        <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', lineHeight: 1.45, ...proseWrap }}>{gap.note}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', lineHeight: 1.45, ...proseWrap }}>{gap.note}</div>
       )}
 
       {variants && variants.length > 0 && (
@@ -328,7 +328,7 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
               }}>
                 <span style={{ width: 16, flexShrink: 0, color: accent, paddingTop: 1 }}>{on && <Check size={14} />}</span>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }} lang={lang}>{v.term}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }} lang={lang}>{v.term}</span>
                   {v.note && <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{v.note}</span>}
                 </span>
               </button>
@@ -337,7 +337,7 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
         </div>
       )}
       {variants && variants.length === 0 && (
-        <div style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>{t('Подсказка ничего не предложила — впишите вариант сами.')}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Подсказка ничего не предложила — впишите вариант сами.')}</div>
       )}
       {askError && <Alert tone="danger" text={askError} />}
 
@@ -372,10 +372,10 @@ function DoneList({ gaps }: { gaps: PhraseGap[] }) {
       {shown && gaps.map(g => (
         <div key={g.id} style={{
           display: 'flex', gap: 10, alignItems: 'baseline', padding: '8px 12px', borderRadius: 12,
-          background: 'var(--color-bg-2)', fontSize: 13.5, lineHeight: 1.35,
+          background: 'var(--color-bg-2)', fontSize: 14, lineHeight: 1.3,
         }}>
-          <Check size={13} style={{ color: 'var(--color-success, #3aa76d)', flexShrink: 0, alignSelf: 'center' }} />
-          <span style={{ fontWeight: 650, color: 'var(--color-text)' }}>{g.en}</span>
+          <Check size={14} style={{ color: 'var(--color-success, #3aa76d)', flexShrink: 0, alignSelf: 'center' }} />
+          <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{g.en}</span>
           <span style={{ color: 'var(--color-text-3)' }}>{g.ru}</span>
         </div>
       ))}

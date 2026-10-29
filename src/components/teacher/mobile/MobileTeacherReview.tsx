@@ -97,10 +97,10 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
       <div>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
+          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
             <ImageIcon size={14} /> {t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
+          <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
             <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
@@ -124,7 +124,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           onClick={() => act('returned')}
           disabled={!!busy}
           className="cursor-pointer"
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.error.bg, color: PAIR.error.text, border: '1px solid transparent', fontSize: 14, fontWeight: 650 }}
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.error.bg, color: PAIR.error.text, border: '1px solid transparent', fontSize: 14, fontWeight: 600 }}
         >
           {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />} {t('Вернуть')}
         </motion.button>
@@ -135,7 +135,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           className="cursor-pointer"
           style={{ flex: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.success.bg, color: PAIR.success.text, border: '1px solid transparent', fontSize: 14, fontWeight: 700 }}
         >
-          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <Check size={17} />} {t('Принять')}
+          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />} {t('Принять')}
         </motion.button>
       </div>
     </div>
@@ -167,7 +167,7 @@ export default function MobileTeacherReview() {
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <GlassPill><ClipboardCheck size={15} /> {t('Проверка')}</GlassPill>
+      <GlassPill><ClipboardCheck size={16} /> {t('Проверка')}</GlassPill>
     </div>
   )
 
@@ -206,7 +206,7 @@ export default function MobileTeacherReview() {
         {pendingHard.length === 0 && pendingHw.length === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '48px 20px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: 999, background: PAIR.success.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={26} style={{ color: PAIR.success.text }} />
+              <Check size={24} style={{ color: PAIR.success.text }} />
             </div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Инбокс пуст')}</div>
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>{t('Все работы проверены')}</div>

@@ -71,7 +71,7 @@ export default function FeedbackRequestsManager() {
         {([['requests', t('Заявки'), Inbox], ['dialogs', t('Диалоги'), MessageCircle]] as const).map(([id, label, Icon]) => (
           <button key={id} onClick={() => setView(id)} style={{
             display: 'flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 9, border: 'none', cursor: 'pointer',
-            fontSize: 12.5, fontWeight: 600,
+            fontSize: 13, fontWeight: 600,
             background: view === id ? 'var(--color-purple-soft)' : 'transparent',
             color: view === id ? 'var(--color-purple)' : 'var(--color-text-3)',
             transition: 'background 0.15s, color 0.15s',
@@ -95,7 +95,7 @@ export default function FeedbackRequestsManager() {
               <button key={key} onClick={() => setFilter(key)}
                 style={{
                   padding: '6px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                  fontSize: 12.5, fontWeight: 600,
+                  fontSize: 13, fontWeight: 600,
                   background: active ? 'var(--color-purple-soft)' : 'transparent',
                   color: active ? 'var(--color-purple)' : 'var(--color-text-3)',
                   transition: 'background 0.15s, color 0.15s',
@@ -106,14 +106,14 @@ export default function FeedbackRequestsManager() {
           })}
         </div>
         <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
-          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
       </div>
 
       {visible.length === 0 && !loading && (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)' }}>
-          <Inbox size={30} strokeWidth={1.6} style={{ opacity: 0.5, display: 'block', margin: '0 auto' }} />
+          <Inbox size={28} strokeWidth={1.5} style={{ opacity: 0.5, display: 'block', margin: '0 auto' }} />
           <div style={{ fontSize: 14, fontWeight: 600, marginTop: 10 }}>{t('Заявок пока нет')}</div>
         </div>
       )}
@@ -137,18 +137,18 @@ export default function FeedbackRequestsManager() {
                   <RoleIcon size={15} style={{ color: 'var(--color-text-2)' }} />
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                     {r.author_name || (r.author_role === 'teacher' ? t('Учитель') : r.author_role === 'lead' ? t('Заявка') : t('Ученик'))}
                     <span style={{ fontWeight: 500, color: 'var(--color-text-3)' }}> · {roleLabel}</span>
                   </div>
                   {r.contact && (
-                    <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 2, fontWeight: 600 }}>{r.contact}</div>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 2, fontWeight: 600 }}>{r.contact}</div>
                   )}
-                  <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 1 }}>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
                     {r.section ? `${r.section} · ` : ''}{fmtDate(r.created_at)}
                   </div>
                 </div>
-                <span style={{ padding: '3px 10px', borderRadius: 7, fontSize: 11.5, fontWeight: 700, background: sm.bg, color: sm.color, flexShrink: 0 }}>{t(sm.label)}</span>
+                <span style={{ padding: '3px 10px', borderRadius: 7, fontSize: 12, fontWeight: 700, background: sm.bg, color: sm.color, flexShrink: 0 }}>{t(sm.label)}</span>
               </div>
 
               <div style={{ fontSize: 14, color: 'var(--color-text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{r.message}</div>

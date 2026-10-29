@@ -100,7 +100,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
   const total = IELTS_MOCKS.length
 
   const rail = !active || !on ? null : (
-    <RailCard title="Мой балл" accent={accent} icon={<ClipboardCheck size={15} />}>
+    <RailCard title="Мой балл" accent={accent} icon={<ClipboardCheck size={16} />}>
       {SECTION_ORDER.map(s => (
         <RailStat key={s} label={SECTION_LABEL[s]} value={fmtBand(level.bands[s])} />
       ))}
@@ -140,8 +140,8 @@ export function useMocksMode({ lang, accent, soft, active }: {
         <TileGrid min={260}>
           <Tile accent={accent} tint={{ surface: `${accent}14`, border: `${accent}4d` }} onClick={() => setRunning(draft)}>
             <TileChip tone="solid" accent={accent} soft={soft}>{t('Не досдан')}</TileChip>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>
-              <Play size={15} style={{ color: accent }} /> {t('Продолжить')}: {t(draftMock.title)}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
+              <Play size={16} style={{ color: accent }} /> {t('Продолжить')}: {t(draftMock.title)}
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>
               {t('Сейчас')}: {SECTION_LABEL[draft.section]}
@@ -154,7 +154,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
       {history.some(a => a.finishedAt) && <TrendCard history={history} accent={accent} />}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: 16, fontWeight: 850, color: 'var(--color-text)', flex: 1 }}>{t('Пробники')}</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{t('Пробники')}</div>
         {/* Случайный — сначала непройденный: повтор уже решённого пробника
             измеряет память на ответы, а не уровень. */}
         <button type="button" onClick={() => start(freshMock(history, 'full'), 'full')} style={pillBtn(accent)}>
@@ -167,16 +167,16 @@ export function useMocksMode({ lang, accent, soft, active }: {
         return (
           <div key={m.id} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 850, color: 'var(--color-text)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>
                 {t(m.title)}
                 {fullDone && <TileChip>{t('пройден')}</TileChip>}
               </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(m.about)}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(m.about)}</div>
             </div>
             <TileGrid min={190}>
               <Tile accent={accent} stack onClick={() => start(m.id, 'full')}>
                 <TileChip tone="accent" accent={accent} soft={soft}>{t('Весь экзамен')}</TileChip>
-                <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)' }}>{t('Полный пробник')}</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Полный пробник')}</span>
                 <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>
                   {t('Четыре секции подряд, около 2 ч 45 мин. Итоговый балл — как на экзамене.')}
                 </span>
@@ -188,9 +188,9 @@ export function useMocksMode({ lang, accent, soft, active }: {
                   <Tile key={s} accent={accent} onClick={() => start(m.id, s)}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <TileChip>{t('Одна секция')}</TileChip>
-                      {done && <Check size={13} style={{ color: 'var(--color-green-text)' }} />}
+                      {done && <Check size={14} style={{ color: 'var(--color-green-text)' }} />}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
                       <Icon size={15} style={{ color: accent }} /> {SECTION_LABEL[s]}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(SECTION_HINT[s])}</span>
@@ -203,12 +203,12 @@ export function useMocksMode({ lang, accent, soft, active }: {
       })}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ fontSize: 16, fontWeight: 850, color: 'var(--color-text)' }}>{t('Аркада')}</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{t('Аркада')}</div>
         <TileGrid min={260}>
           <Tile accent={accent} tint={{ surface: '#1d1b2e', border: '#2e2a4a' }} onClick={() => setArcade(true)}>
             <TileChip tone="solid" accent={accent} soft={soft}>Speaking</TileChip>
-            <span style={{ fontSize: 17, fontWeight: 850, color: '#fff' }}>Speak or Die</span>
-            <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.45 }}>
+            <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>Speak or Die</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.45 }}>
               {t('Минута речи на случайную тему. Замолчал — проиграл. Тренирует беглость — четверть балла Speaking.')}
             </span>
             <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
@@ -220,7 +220,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
 
       {history.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ fontSize: 16, fontWeight: 850, color: 'var(--color-text)' }}>{t('История')}</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{t('История')}</div>
           {history.map(a => (
             <HistoryRow key={a.id} a={a} accent={accent}
               onOpen={() => setRunning({ attempt: a, section: 'listening', step: 0, deadline: null })}
@@ -229,7 +229,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
         </div>
       )}
 
-      <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: 'var(--color-text-3)' }}>
+      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-text-3)' }}>
         {t('IELTS — торговая марка British Council, IDP и Cambridge. Пробники написаны с нуля и не являются официальными материалами.')}
       </p>
     </div>
@@ -311,9 +311,9 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--color-text-2)' }}>
-        <Target size={15} style={{ color: accent }} /> {t('Цель')}
+        <Target size={16} style={{ color: accent }} /> {t('Цель')}
         {days != null && days > 0 && (
-          <span style={{ marginLeft: 'auto', fontSize: 12.5, fontWeight: 800, color: accent }}>
+          <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 800, color: accent }}>
             {t('до экзамена')} {days} {t(plural(days, ['день', 'дня', 'дней']))}
           </span>
         )}
@@ -321,8 +321,8 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
 
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14 }}>
         <div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('сейчас')}</div>
-          <div style={{ fontSize: 34, fontWeight: 850, lineHeight: 1, color: 'var(--color-text)' }}>{fmtBand(level)}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('сейчас')}</div>
+          <div style={{ fontSize: 32, fontWeight: 800, lineHeight: 1, color: 'var(--color-text)' }}>{fmtBand(level)}</div>
         </div>
         {/* Шкала 0–9: где я и где цель — одним взглядом. */}
         <div style={{ flex: 1, paddingBottom: 8, position: 'relative' }}>
@@ -335,12 +335,12 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
           }} />
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('цель')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('цель')}</div>
           {/* Степпер — одна капсула: 34 = 3 + круг 28 + 3, число постоянной ширины. */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, height: 34, padding: 3, borderRadius: 999, background: 'var(--color-bg-3)' }}>
-            <button type="button" onClick={() => set({ target: Math.max(4, target - 0.5) })} style={stepBtn} aria-label={t('Ниже')}><Minus size={13} /></button>
-            <span style={{ fontSize: 22, fontWeight: 850, lineHeight: 1, color: accent, minWidth: 48, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{fmtBand(target)}</span>
-            <button type="button" onClick={() => set({ target: Math.min(9, target + 0.5) })} style={stepBtn} aria-label={t('Выше')}><Plus size={13} /></button>
+            <button type="button" onClick={() => set({ target: Math.max(4, target - 0.5) })} style={stepBtn} aria-label={t('Ниже')}><Minus size={14} /></button>
+            <span style={{ fontSize: 24, fontWeight: 800, lineHeight: 1, color: accent, minWidth: 48, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{fmtBand(target)}</span>
+            <button type="button" onClick={() => set({ target: Math.min(9, target + 0.5) })} style={stepBtn} aria-label={t('Выше')}><Plus size={14} /></button>
           </div>
         </div>
       </div>
@@ -350,10 +350,10 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
       <div style={{ position: 'relative' }}>
         <button type="button" onClick={() => setCal(v => !v)} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 12px', borderRadius: 999,
-          border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 12.5,
+          border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 13,
           cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          <CalendarDays size={13} />
+          <CalendarDays size={14} />
           {goal?.date
             ? new Date(`${goal.date}T00:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
             : t('Дата экзамена')}
@@ -414,7 +414,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
         {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => (
-          <span key={d} style={{ fontSize: 10.5, textAlign: 'center', color: 'var(--color-text-3)', fontWeight: 700 }}>{t(d)}</span>
+          <span key={d} style={{ fontSize: 11, textAlign: 'center', color: 'var(--color-text-3)', fontWeight: 700 }}>{t(d)}</span>
         ))}
         {Array.from({ length: lead }, (_, i) => <span key={`e${i}`} />)}
         {Array.from({ length: n }, (_, i) => {
@@ -423,7 +423,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
           const past = new Date(y, m, d) < today
           return (
             <button key={d} type="button" disabled={past} onClick={() => onPick(iso(d))} style={{
-              height: 30, borderRadius: 8, border: 'none', fontFamily: 'inherit', fontSize: 12.5, fontWeight: on ? 800 : 600,
+              height: 30, borderRadius: 8, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 800 : 600,
               cursor: past ? 'default' : 'pointer', opacity: past ? 0.35 : 1,
               background: on ? soft : 'transparent', color: on ? accent : 'var(--color-text)',
             }}>{d}</button>
@@ -489,8 +489,8 @@ function PlanCard({ history, goal, weakest, accent, soft, onPractice, onFull, on
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--color-text-2)' }}>
-        <Flame size={15} style={{ color: accent }} /> {t('План на сегодня')}
-        <span style={{ marginLeft: 'auto', fontSize: 12.5, color: doneN === items.length ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
+        <Flame size={16} style={{ color: accent }} /> {t('План на сегодня')}
+        <span style={{ marginLeft: 'auto', fontSize: 13, color: doneN === items.length ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
           {doneN}/{items.length}
         </span>
       </div>
@@ -507,7 +507,7 @@ function PlanCard({ history, goal, weakest, accent, soft, onPractice, onFull, on
             {x.done ? <Check size={14} /> : i + 1}
           </span>
           <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-            <span style={{ fontSize: 14, fontWeight: 750, color: 'var(--color-text)' }}>{x.title}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{x.title}</span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{x.sub}</span>
           </span>
           <Play size={14} style={{ color: accent, flexShrink: 0 }} />
@@ -533,10 +533,10 @@ function TrendCard({ history, accent }: { history: MockAttempt[]; accent: string
           return (
             <div key={s}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)', flex: 1 }}>{SECTION_LABEL[s]}</span>
-                <span style={{ fontSize: 18, fontWeight: 850, color: 'var(--color-text)' }}>{fmtBand(last)}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', flex: 1 }}>{SECTION_LABEL[s]}</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{fmtBand(last)}</span>
                 {delta != null && delta !== 0 && (
-                  <span style={{ fontSize: 11.5, fontWeight: 800, color: delta > 0 ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: delta > 0 ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
                     {delta > 0 ? '+' : ''}{delta.toFixed(1)}
                   </span>
                 )}
@@ -553,7 +553,7 @@ function TrendCard({ history, accent }: { history: MockAttempt[]; accent: string
 function Spark({ values, accent }: { values: number[]; accent: string }) {
   const w = 160, h = 36, pad = 4
   if (values.length === 0) {
-    return <div style={{ height: h, display: 'flex', alignItems: 'center', fontSize: 11.5, color: 'var(--color-text-3)' }}>—</div>
+    return <div style={{ height: h, display: 'flex', alignItems: 'center', fontSize: 12, color: 'var(--color-text-3)' }}>—</div>
   }
   const lo = Math.min(...values, 4), hi = Math.max(...values, 9)
   const x = (i: number) => values.length === 1 ? w / 2 : pad + (i * (w - pad * 2)) / (values.length - 1)
@@ -589,18 +589,18 @@ function HistoryRow({ a, accent, onOpen, onDelete }: {
         flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
         background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
       }}>
-        <span style={{ fontSize: 13, fontWeight: 750, color: 'var(--color-text)', minWidth: 120 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', minWidth: 120 }}>
           {mock ? t(mock.title) : a.mockId} · {a.scope === 'full' ? t('полный') : SECTION_LABEL[a.scope]}
         </span>
         <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
           {new Date(a.finishedAt ?? a.startedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
         </span>
-        <span style={{ display: 'flex', gap: 10, fontSize: 12.5, color: 'var(--color-text-2)', flex: 1 }}>
+        <span style={{ display: 'flex', gap: 10, fontSize: 13, color: 'var(--color-text-2)', flex: 1 }}>
           {sections.map(s => (
             <span key={s}>{SECTION_LABEL[s][0]} <b style={{ color: 'var(--color-text)' }}>{fmtBand(sectionBand(a, s, g))}</b></span>
           ))}
         </span>
-        {overall != null && <span style={{ fontSize: 16, fontWeight: 850, color: accent }}>{fmtBand(overall)}</span>}
+        {overall != null && <span style={{ fontSize: 16, fontWeight: 800, color: accent }}>{fmtBand(overall)}</span>}
       </button>
       <button type="button" onClick={onDelete} title={t('Удалить попытку')} style={{
         border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)', padding: 4, display: 'inline-flex',

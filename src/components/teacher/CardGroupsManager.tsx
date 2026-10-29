@@ -123,12 +123,12 @@ const inputStyle: React.CSSProperties = { ...FIELD }
 const ghostBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 7,
   border: 'none', background: 'transparent', cursor: 'pointer',
-  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+  fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
   color: 'var(--color-muted)', padding: '6px 8px', borderRadius: 8,
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+  fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
   color: 'var(--color-text-3)', marginBottom: 8,
   // Отступ = начало текста в поле (поле: 12 + рамка 1.5), а не край рамки.
   paddingLeft: 13,
@@ -689,7 +689,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
             borderColor: 'var(--color-border-medium)',
           }}
         >
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
             {t('Отмечено наборов:')} {picked.size}
           </div>
 
@@ -707,7 +707,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                 disabled={busy || !shelfName.trim()}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                  borderRadius: 12, border: 'none', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+                  borderRadius: 12, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                   cursor: !busy && shelfName.trim() ? 'pointer' : 'default',
                   background: shelfName.trim() ? MAT_BG : 'var(--color-bg-1)',
                   color: shelfName.trim() ? MAT_COLOR : 'var(--color-text-3)',
@@ -740,7 +740,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                 display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                 borderRadius: 12, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit',
                 border: '1px solid var(--color-border-medium)', background: 'transparent',
-                color: 'var(--color-text-2)', fontSize: 12.5, fontWeight: 700,
+                color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
               }}
             >
               <FolderInput size={14} /> {t('Вынуть с полки')}
@@ -752,10 +752,10 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
             style={{
               marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, height: 36, padding: '0 12px',
               borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', border: 'none',
-              background: 'transparent', color: 'var(--color-muted)', fontSize: 12.5, fontWeight: 600,
+              background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600,
             }}
           >
-            <X size={13} /> {t('Снять отметки')}
+            <X size={14} /> {t('Снять отметки')}
           </button>
         </div>
       )}
@@ -801,13 +801,13 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                 onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) openEditor(g, null) }}
                 style={ghostWide}
               >
-                <Pencil size={13} /> {t('Настройки полки')}
+                <Pencil size={14} /> {t('Настройки полки')}
               </button>
               <button
                 onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) void removeShelf(g) }}
                 style={{ ...ghostWide, color: 'var(--color-red-text)' }}
               >
-                <Trash2 size={13} /> {t('Удалить полку')}
+                <Trash2 size={14} /> {t('Удалить полку')}
               </button>
             </div>
           )}
@@ -834,15 +834,15 @@ function ShelfChip({ label, hint, active, onClick, onEdit }: {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: onEdit ? '0 6px 0 12px' : '0 12px',
-        borderRadius: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700,
+        borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 700,
         border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
         background: active ? MAT_BG : 'transparent',
         color: active ? MAT_COLOR : 'var(--color-text-2)',
       }}
     >
-      <Layers size={13} />
+      <Layers size={14} />
       <span>{label}</span>
-      <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 600 }}>{hint}</span>
+      <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}>{hint}</span>
       {onEdit && (
         <button
           onClick={e => { e.stopPropagation(); onEdit() }}
@@ -884,7 +884,7 @@ function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onS
         accentColor={MAT_COLOR} accentBg={MAT_BG}
         isSelected={checked} onClick={onOpen}
         actions={editMode ? { onDelete } : undefined}
-        icon={<Layers size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
+        icon={<Layers size={18} strokeWidth={2} style={{ color: MAT_COLOR }} />}
         iconBg={MAT_BG}
         badge={onShelfNow ? (
           <span
@@ -897,7 +897,7 @@ function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onS
         ) : undefined}
         title={set.title || t('Без названия')}
         subtitle={set.about || scopeLabelOf(group)}
-        footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{set.cards.length} {t('карточек')}</span></>}
+        footerLeft={<><Layers size={14} strokeWidth={2} /><span>{set.cards.length} {t('карточек')}</span></>}
         footerRight={<>{scopeLabelOf(group)}</>}
       />
       {/* Отметка поверх иконки: карточку открывают кликом, а отмечают — сюда.
@@ -926,12 +926,12 @@ function SeedCard({ group, onTake }: { group: CardGroup; onTake: () => void }) {
     <ContentCard
       accentColor={MAT_COLOR} accentBg={MAT_BG}
       isSelected={false} onClick={onTake}
-      icon={<Copy size={17} strokeWidth={2} style={{ color: MAT_COLOR }} />}
+      icon={<Copy size={18} strokeWidth={2} style={{ color: MAT_COLOR }} />}
       iconBg={MAT_BG}
       badge={<span style={cardChip(MAT_COLOR)}>{t('Готовое')}</span>}
       title={group.title}
       subtitle={group.about || scopeLabelOf(group)}
-      footerLeft={<><Layers size={13} strokeWidth={1.8} /><span>{group.sets.length} {t(plural(group.sets.length, ['набор', 'набора', 'наборов']))} · {cards} {t(plural(cards, ['карточка', 'карточки', 'карточек']))}</span></>}
+      footerLeft={<><Layers size={14} strokeWidth={2} /><span>{group.sets.length} {t(plural(group.sets.length, ['набор', 'набора', 'наборов']))} · {cards} {t(plural(cards, ['карточка', 'карточки', 'карточек']))}</span></>}
       footerRight={<>{scopeLabelOf(group)}</>}
     />
   )
@@ -991,14 +991,14 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--color-text)' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
                 {set.title || `${t('Набор')} ${i + 1}`}
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>
                 {set.cards.length} {t('карточек')}
               </div>
             </div>
-            <button onClick={() => onOpenSet(set.id)} style={ghost} title={t('Открыть набор')}><Pencil size={13} /></button>
+            <button onClick={() => onOpenSet(set.id)} style={ghost} title={t('Открыть набор')}><Pencil size={14} /></button>
             <button
               onClick={() => {
                 if (i === 0) return
@@ -1024,7 +1024,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
               style={{ ...ghost, color: 'var(--color-red-text)' }}
               title={t('Удалить набор')}
             >
-              <Trash2 size={13} />
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
@@ -1041,7 +1041,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
             color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
           }}
         >
-          <Plus size={15} /> {t('Добавить набор')}
+          <Plus size={16} /> {t('Добавить набор')}
         </button>
       </div>
     </EditorColumns>
@@ -1072,7 +1072,7 @@ function AudienceField({ group, patch, studentOptions }: {
           studentIds: studentOptions.filter(o => labels.includes(o.label)).map(o => o.value),
         })}
       />
-      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 5 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 5 }}>
         {group.studentIds.length === 0
           ? t('Никто не отмечен — значит, это увидят все ваши ученики этого предмета.')
           : `${t('Видят только отмеченные:')} ${group.studentIds.length}`}
@@ -1207,7 +1207,7 @@ function SetProps({ group, set, patch, onGroupChange, studentOptions }: {
   // по три слова. Иконка сидит в тексте как буква.
   const shelfLine = (
     <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-muted)' }}>
-      <Layers size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
+      <Layers size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
       {t('Лежит на полке')} «{group.title}» · {scopeLabelOf(group)}{' '}
       <span style={{ color: 'var(--color-text-3)' }}>
         {t('— предмет и адресность у полки общие.')}
@@ -1277,7 +1277,7 @@ function SetStart({ lang, onAdd, onAddGrouped, onManual, onBulk }: {
       </div>
       {/* Про вставку сразу в набор надо сказать словами: невидимая возможность
           никого не выручает, а кнопки рядом выглядят как весь выбор. */}
-      <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.35 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.3 }}>
         {t('Список уже в буфере? Вставьте его прямо сюда — карточки разберутся сами, а первая строка станет названием набора.')}
       </div>
     </div>
@@ -1288,7 +1288,7 @@ const startBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
   height: 40, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
   border: '1px solid var(--color-border-soft)', background: 'transparent',
-  color: 'var(--color-text-2)', fontSize: 12.5, fontWeight: 700,
+  color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
 }
 
 /**
@@ -1615,7 +1615,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
               onFocus={underline(true)}
               onBlur={underline(false)}
               placeholder={t('Слово или фраза')}
-              style={cellStyle({ fontWeight: 650 })}
+              style={cellStyle({ fontWeight: 600 })}
             />
             <input
               value={c.note ?? ''}
@@ -1623,7 +1623,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
               onFocus={underline(true)}
               onBlur={underline(false)}
               placeholder={t('Пояснение — необязательно')}
-              style={cellStyle({ fontSize: 11.5, color: 'var(--color-muted)' })}
+              style={cellStyle({ fontSize: 12, color: 'var(--color-muted)' })}
             />
           </div>
           <input
@@ -1640,14 +1640,14 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             onFocus={underline(true)}
             onBlur={underline(false)}
             placeholder="—"
-            style={cellStyle({ fontSize: 11.5, color: 'var(--color-text-3)' })}
+            style={cellStyle({ fontSize: 12, color: 'var(--color-text-3)' })}
           />
           <button
             onClick={() => onCards(cards.filter((_, j) => j !== i))}
             style={{ ...ghost, width: 26, height: 26, border: 'none', color: 'var(--color-muted)' }}
             title={t('Убрать карточку')}
           >
-            <Trash2 size={13} />
+            <Trash2 size={14} />
           </button>
         </div>
       ))}
@@ -1663,7 +1663,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             onFocus={underline(true)}
             onBlur={underline(false)}
             placeholder={t('Слово или фраза')}
-            style={cellStyle({ fontWeight: 650 })}
+            style={cellStyle({ fontWeight: 600 })}
           />
           <input
             value={row.note ?? ''}
@@ -1672,7 +1672,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             onFocus={underline(true)}
             onBlur={underline(false)}
             placeholder={t('Пояснение — необязательно')}
-            style={cellStyle({ fontSize: 11.5, color: 'var(--color-muted)' })}
+            style={cellStyle({ fontSize: 12, color: 'var(--color-muted)' })}
           />
         </div>
         <input
@@ -1691,7 +1691,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
           onFocus={underline(true)}
           onBlur={underline(false)}
           placeholder={t('S01E04')}
-          style={cellStyle({ fontSize: 11.5, color: 'var(--color-text-3)' })}
+          style={cellStyle({ fontSize: 12, color: 'var(--color-text-3)' })}
         />
         <button
           onClick={addRow}
@@ -1703,7 +1703,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             color: ready ? MAT_COLOR : 'var(--color-text-3)',
           }}
         >
-          <Plus size={15} />
+          <Plus size={16} />
         </button>
       </div>
     </div>
@@ -1727,7 +1727,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
 
       <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button type="button" onClick={() => setBulkOpen(v => !v)} style={{ ...ghostBtn, padding: 0 }}>
-          <ChevronDown size={13} style={{ transform: bulkOpen ? 'rotate(180deg)' : 'none' }} />
+          <ChevronDown size={14} style={{ transform: bulkOpen ? 'rotate(180deg)' : 'none' }} />
           {t('Вставить списком')}
         </button>
         {bulkOpen && (
@@ -1747,12 +1747,12 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
                 cursor: parseBulk(bulk).length > 0 ? 'pointer' : 'default',
                 background: parseBulk(bulk).length > 0 ? MAT_BG : 'var(--color-bg-1)',
                 color: parseBulk(bulk).length > 0 ? MAT_COLOR : 'var(--color-text-3)',
-                fontSize: 12.5, fontWeight: 700,
+                fontSize: 13, fontWeight: 700,
               }}
             >
               {t('Разобрать и добавить')}
             </button>
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.35 }}>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.3 }}>
               {parseBulk(bulk).length > 0
                 ? `${t('Распознано карточек:')} ${parseBulk(bulk).length}`
                 : t('По строке на карточку: слово, тире, перевод. Или парами строк: слово, следом перевод.')}
@@ -1818,5 +1818,5 @@ const ghost: React.CSSProperties = {
 const ghostWide: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 6, height: 32, padding: '0 12px',
   borderRadius: 11, border: '1px solid var(--color-border-soft)', background: 'transparent',
-  color: 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+  color: 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
 }

@@ -75,10 +75,10 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           className="flex-1 min-w-0 cursor-pointer"
           style={{ border: 'none', background: 'none', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
         >
-          <span style={{ display: 'block', fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>
+          <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
             {tc(c.lessonTitle)}
           </span>
-          <span style={{ display: 'block', fontSize: 12.5, color: 'var(--color-muted)', marginTop: 1 }}>
+          <span style={{ display: 'block', fontSize: 13, color: 'var(--color-muted)', marginTop: 1 }}>
             {t(KIND_LABEL[c.kind])} · {c.summary}
             {!!c.details?.length && ` · ${openKey === c.key ? t('скрыть') : t('подробнее')}`}
           </span>
@@ -135,7 +135,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
     <section key={id} data-group={id} style={{ marginBottom: 20, scrollMarginTop: 4 }}>
       <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
         <Icon size={15} style={{ color: tone, flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 750, color: tone }}>{title} · {list.length}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: tone }}>{title} · {list.length}</span>
         <button
           onClick={() => toggleAll(list, !list.every(c => picked.has(c.key)))}
           className="cursor-pointer"
@@ -165,9 +165,9 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
         }}
       >
         <header className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '18px 22px', borderBottom: '1px solid var(--color-border-soft)' }}>
-          <RefreshCw size={17} style={{ color: 'var(--color-accent)' }} />
+          <RefreshCw size={18} style={{ color: 'var(--color-accent)' }} />
           <span className="flex-1 min-w-0">
-            <span style={{ display: 'block', fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>
+            <span style={{ display: 'block', fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>
               {t('Что изменилось в готовом курсе')}
             </span>
             <span style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
@@ -206,7 +206,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
                         это клик по таблетке, второй обработчик отменил бы первый. */}
                     <Checkbox size={16} checked={all} onChange={() => {}} />
                     <g.Icon size={13} style={{ color: g.tone, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{g.title}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{g.title}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{n}/{g.list.length}</span>
                   </button>
                 )
@@ -221,7 +221,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
         <div ref={el => { bodyRef.current = el; if (el) updateEdges(el) }} onScroll={e => updateEdges(e.currentTarget)}
           style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '16px 22px' }}>
           {diff.changes.length === 0 ? (
-            <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.55, padding: '12px 0' }}>
+            <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5, padding: '12px 0' }}>
               {t('Расхождений нет — курс совпадает с готовым.')}
             </p>
           ) : (
@@ -241,7 +241,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
         </div>
 
         <footer className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '14px 22px', borderTop: '1px solid var(--color-border-soft)' }}>
-          <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {t('Выбрано:')} {picked.size} {t('из')} {diff.changes.length}
           </span>
           <button onClick={onClose} className="cursor-pointer"

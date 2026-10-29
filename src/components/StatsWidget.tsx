@@ -97,7 +97,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
         {statCards.map(s => {
           const body = (
             <>
-              <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1 }}>
+              <span className="stat-value" style={{ fontWeight: 600, color: 'var(--color-text)', lineHeight: 1 }}>
                 {s.value ?? (loaded ? <EmptyValue icon={STAT_ICONS[s.label]} /> : <PendingValue />)}
               </span>
               <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
@@ -120,7 +120,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
 
         {/* Stars card */}
         <div className={`stat-card flex flex-col items-center justify-center rounded-[24px]${seasonStars ? ' stat-card--season-stars' : ''}`} style={{ ...cardStyle, textAlign: 'center', gap: 8 }}>
-          <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="stat-value" style={{ fontWeight: 600, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
             {hasLessons ? (
               <>
                 {seasonStars

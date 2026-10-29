@@ -37,11 +37,11 @@ export default function SpeechHeard({ heard, target, ok, title }: {
 
   return (
     <div style={{
-      padding: '12px 16px', borderRadius: 14, fontSize: 13, lineHeight: 1.55,
+      padding: '12px 16px', borderRadius: 14, fontSize: 13, lineHeight: 1.5,
       background: 'var(--color-bg-2)',
       border: `1px solid ${good ? 'var(--color-green-text)' : 'var(--color-border-medium)'}`,
     }}>
-      <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 4 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 4 }}>
         {title ?? (good ? t('Услышано — совпало с образцом') : t('Услышано'))}
       </div>
       <div style={{ color: 'var(--color-text)' }}>

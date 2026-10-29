@@ -94,10 +94,10 @@ function EarningsCard({ delay }: { delay: number }) {
             width: 30, height: 30, borderRadius: 10,
             background: 'var(--color-yellow-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <TrendingUp size={15} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
+            <TrendingUp size={16} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 750, color: amount != null ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+        <div style={{ fontSize: 36, fontWeight: 700, color: amount != null ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
           {amount != null ? fmt(amount) : '—'}
         </div>
         <div style={{
@@ -131,7 +131,7 @@ function StatCard({
             <Icon size={15} strokeWidth={2} style={{ color: accentColor }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
+        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: accentColor,
           background: accentBg, borderRadius: 8, padding: '3px 8px',
@@ -166,7 +166,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
 
   // Dot rendered inside the rail; line color leans on the group accent for live/upcoming.
   const dot = isDone ? (
-    <CheckCircle2 size={17} strokeWidth={2.2} style={{ color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: '50%' }} />
+    <CheckCircle2 size={18} strokeWidth={2} style={{ color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: '50%' }} />
   ) : isLive ? (
     <span style={{ position: 'relative', display: 'flex' }}>
       <span style={{ width: 13, height: 13, borderRadius: '50%', background: item.color, boxShadow: `0 0 0 3px color-mix(in srgb, ${item.color} 28%, transparent)` }} />
@@ -207,7 +207,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
       </div>
 
       {/* Time — МСК primary, Vietnam (студент Галя) below */}
-      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, flexShrink: 0, width: 62, alignSelf: 'center' }}>
+      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, flexShrink: 0, width: 62, alignSelf: 'center' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: isLive ? 'var(--color-text)' : 'var(--color-text-2)' }}>
           {item.time}{item.endTime ? `–${item.endTime}` : ''}
         </span>
@@ -227,10 +227,10 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
             borderRadius: 8, padding: '3px 9px', flexShrink: 0, maxWidth: '100%',
           }}>
             <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
           </span>
           {isLive && (
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
               {t('ИДЁТ СЕЙЧАС')}
             </span>
           )}
@@ -244,7 +244,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
 
       {/* Student count */}
       <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-3)', alignSelf: 'center' }}>
-        <Users size={13} strokeWidth={1.8} />
+        <Users size={14} strokeWidth={2} />
         <span style={{ fontSize: 12, fontWeight: 600 }}>{item.studentCount}</span>
       </span>
     </motion.button>
@@ -259,7 +259,7 @@ function NowMarker({ time }: { time: string }) {
       <div style={{ width: 22, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-red-text)', boxShadow: '0 0 0 3px var(--color-red-soft)' }} />
       </div>
-      <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
+      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
         {t('СЕЙЧАС')} · {time}
       </span>
       <span style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--color-red-soft), transparent)' }} />
@@ -292,7 +292,7 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
     if (!items.length) return null
     return (
       <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
           {label}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -312,7 +312,7 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
                   {tn(s.name).split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ')[0]} {tn(s.name).split(' ')[1]?.[0]}.
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{group?.name ?? ''}</div>
@@ -337,8 +337,8 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
       background: 'var(--color-bg-4)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-        <Banknote size={13} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <Banknote size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {t('Оплата')}
         </span>
       </div>
@@ -429,7 +429,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
           background: `color-mix(in srgb, ${accent} 16%, transparent)`,
           color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
         }}>
-          <AlertCircle size={12} strokeWidth={2.4} />
+          <AlertCircle size={12} strokeWidth={2.5} />
           {urgencyLabel(item.type)}
         </span>
       )}
@@ -521,7 +521,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 minWidth: 26, height: 26, padding: '0 8px', borderRadius: 13,
                 background: accent, color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 750, lineHeight: 1, pointerEvents: 'none',
+                fontSize: 13, fontWeight: 700, lineHeight: 1, pointerEvents: 'none',
                 boxShadow: `0 4px 12px color-mix(in srgb, ${accent} 50%, transparent)`,
               }}>
                 {items.length}
@@ -579,7 +579,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 {t(stackTypeLabel[front.type])} · {items.length}
               </span>
               <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
-                {t('Свернуть')} <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
+                {t('Свернуть')} <ChevronRight size={12} style={{ transform: 'rotate(-90deg)' }} />
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -631,7 +631,7 @@ function QuickAction({
       }}>
         <Icon size={17} strokeWidth={2} style={{ color }} />
       </div>
-      <span style={{ fontSize: 11, fontWeight: 650, color, textAlign: 'center', lineHeight: 1.2 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color, textAlign: 'center', lineHeight: 1.2 }}>
         {label}
       </span>
     </motion.button>
@@ -680,7 +680,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
       {task.typeLabel && task.typeBg && task.typeColor && (
         <span style={{
-          fontSize: 11, fontWeight: 650,
+          fontSize: 11, fontWeight: 600,
           background: task.typeBg, color: task.typeColor,
           borderRadius: 8, padding: '2px 8px', flexShrink: 0,
         }}>
@@ -718,7 +718,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
           pointerEvents: showDelete ? 'auto' : 'none',
         }}
       >
-        <XIcon size={13} strokeWidth={2.5} />
+        <XIcon size={14} strokeWidth={2.5} />
       </button>
     </div>
   )
@@ -1118,7 +1118,7 @@ export default function TeacherHome() {
                 }}>
                   {todaySchedule.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
-                      <Clock size={26} strokeWidth={1.5} />
+                      <Clock size={24} strokeWidth={1.5} />
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{t('Сегодня уроков нет')}</span>
                     </div>
                   ) : todaySchedule.map((item, i) => (

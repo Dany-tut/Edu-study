@@ -25,8 +25,8 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
   if (!fact) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
-      <span style={{ fontSize: 26 }}>🔬</span>
-      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>{t('Научные факты')}</span>
+      <span style={{ fontSize: 24 }}>🔬</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Научные факты')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
     </div>
   )
@@ -88,7 +88,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
             )}
             {/* readability scrim */}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(120deg, rgba(0,0,0,0.05), rgba(0,0,0,0.28))' }} />
-            <span style={{ position: 'absolute', left: 16, bottom: 12, fontSize: 38 * sz.scale, lineHeight: 1, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.35))' }}>
+            <span style={{ position: 'absolute', left: 16, bottom: 12, fontSize: 36 * sz.scale, lineHeight: 1, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.35))' }}>
               {fact.emoji}
             </span>
           </motion.div>
@@ -99,7 +99,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
         <div className="mb-2 flex items-center gap-3">
           <span
             style={{
-              fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
+              fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
               color: subjectTheme(fact.subject).text,
               background: subjectTheme(fact.subject).soft,
             }}
@@ -116,7 +116,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                fontSize: 17 * sz.scale, fontWeight: 550, lineHeight: sz.bodyLeading, color: 'var(--color-text)',
+                fontSize: 18 * sz.scale, fontWeight: 500, lineHeight: sz.bodyLeading, color: 'var(--color-text)',
                 display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}
             >

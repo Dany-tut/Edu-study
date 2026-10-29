@@ -19,7 +19,7 @@ import { TAP_SCALE } from '../lib/mobileTokens'
 
 const LABEL: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 7, minWidth: 0,
-  fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
+  fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
 }
 
 export default function UpdateDockPill() {
@@ -38,7 +38,7 @@ export default function UpdateDockPill() {
 
   const label = (
     <>
-      <ArrowDownToLine size={15} strokeWidth={2.3} />
+      <ArrowDownToLine size={16} strokeWidth={2} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {updating ? `${t('Обновляем…')} ${pct}%` : `${t('Есть обновление')}${remote ? ` · ${remote}` : ''}`}
       </span>
@@ -92,7 +92,7 @@ export default function UpdateDockPill() {
             position: 'relative', flexShrink: 0,
             height: 34, display: 'inline-flex', alignItems: 'center', padding: '0 15px',
             borderRadius: 999, background: 'var(--grad-purple)', color: '#fff',
-            fontSize: 12.5, fontWeight: 700,
+            fontSize: 13, fontWeight: 700,
           }}
         >
           {t('Обновить')}

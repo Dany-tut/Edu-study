@@ -340,7 +340,7 @@ export default function TrackPlayer({
         <PlayerPill
           inline={inline}
           accent={accent}
-          icon={playing ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" style={{ marginLeft: 2 }} />}
+          icon={playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" style={{ marginLeft: 2 }} />}
           playLabel={playing ? t('Пауза') : t('Играть')}
           onPlay={toggle}
           trackRef={trackRef}
@@ -373,7 +373,7 @@ export default function TrackPlayer({
       <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Запись')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
             {/* У синтеза ступени названы словами, а не числами: 0.6 у
                 браузерного голоса — уже не речь, и обещать «половину скорости»
                 там нечем. Цифры остаются файлу, где они правда. */}
@@ -411,7 +411,7 @@ export default function TrackPlayer({
 
           {usesTts && lines.length > 1 && (
             <div>
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
               <CueList
                 items={lines}
                 active={line}
@@ -427,7 +427,7 @@ export default function TrackPlayer({
               прослушивания, а из строки плеера кнопку убрали ради бегунка. */}
           {usesTts && lang && (
             <div>
-              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
               <VoicePicker lang={lang} accent={accent} soft={soft} />
             </div>
           )}
@@ -440,7 +440,7 @@ export default function TrackPlayer({
 function rateStyle(on: boolean, accent: string, soft: string): React.CSSProperties {
   return {
     flex: 1, padding: '8px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-    fontSize: 12.5, fontWeight: on ? 700 : 600,
+    fontSize: 13, fontWeight: on ? 700 : 600,
     border: on ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
     background: on ? soft : 'var(--color-bg-2)',
     color: on ? accent : 'var(--color-text-2)',

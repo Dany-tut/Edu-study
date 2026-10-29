@@ -500,7 +500,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>·</span>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 600 }}>{dateLabel}</span>
             </div>
-            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
               {t('Оценки за урок')}
             </h2>
             <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--color-text-3)' }}>
@@ -621,7 +621,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                   >
                     {studentPresent
                       ? <Check size={14} strokeWidth={2.5} color="#1a7a3f" />
-                      : <X size={13} strokeWidth={2.5} color="#c0303a" />
+                      : <X size={14} strokeWidth={2.5} color="#c0303a" />
                     }
                   </button>
                 </div>

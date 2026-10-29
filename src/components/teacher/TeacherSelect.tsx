@@ -227,14 +227,14 @@ export default function TeacherSelect({
             onMouseDown={handleClear}
             // Иконка, а не глиф «×»: символ сидит на линии шрифта и уезжает ниже середины поля.
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: 2, margin: -2, flexShrink: 0 }}
-          ><X size={small ? 11 : 13} strokeWidth={2.2} /></button>
+          ><X size={small ? 12 : 14} strokeWidth={2} /></button>
         ) : (
           <motion.span
             animate={{ rotate: open ? 180 : 0 }}
             transition={{ duration: 0.18 }}
             style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}
           >
-            <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />
+            <ChevronDown size={small ? 12 : 14} strokeWidth={2} />
           </motion.span>
         )}
       </div>
@@ -285,7 +285,7 @@ export default function TeacherSelect({
                       onMouseDown={e => { e.preventDefault(); e.stopPropagation(); commitAdd() }}
                       style={{ display: 'flex', background: accentBg, border: 'none', borderRadius: 7, padding: 4, cursor: 'pointer', color: accent, flexShrink: 0 }}
                     >
-                      <Check size={small ? 12 : 14} strokeWidth={2.6} />
+                      <Check size={small ? 12 : 14} strokeWidth={2.5} />
                     </button>
                   </div>
                 ) : (
@@ -302,7 +302,7 @@ export default function TeacherSelect({
                       background: 'transparent', color: accent, transition: 'background 0.12s',
                     }}
                   >
-                    <Plus size={small ? 12 : 14} strokeWidth={2.6} /> {t('Добавить')}
+                    <Plus size={small ? 12 : 14} strokeWidth={2.5} /> {t('Добавить')}
                   </button>
                 )
               )}
@@ -327,7 +327,7 @@ export default function TeacherSelect({
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
                           {tc(t(o.label))}
                         </span>
-                        {selected && !showDel && <Check size={small ? 11 : 13} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+                        {selected && !showDel && <Check size={small ? 12 : 14} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
                         {editable && onDeleteOption && (
                           <>
                             {/* Right 1/3 hover zone — reveals the trash. Clearing is
@@ -356,7 +356,7 @@ export default function TeacherSelect({
                                   }}
                                 >
                                   <span style={{ display: 'flex', background: 'var(--color-peach-soft)', borderRadius: 7, padding: 4 }}>
-                                    <Trash2 size={small ? 12 : 14} strokeWidth={2.2} />
+                                    <Trash2 size={small ? 12 : 14} strokeWidth={2} />
                                   </span>
                                 </motion.button>
                               )}

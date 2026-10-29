@@ -135,7 +135,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
         }}
       >
-        {playing ? <Square size={13} /> : <Play size={13} />}
+        {playing ? <Square size={14} /> : <Play size={14} />}
         {playing ? t('Остановить') : t('Прослушать диалог')}
       </button>
 
@@ -166,10 +166,10 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                       color: active ? 'var(--color-accent)' : 'var(--color-muted)',
                     }}
                   >
-                    <Volume2 size={13} />
+                    <Volume2 size={14} />
                   </button>
                 </div>
-                <div style={{ fontSize: 14.5, lineHeight: 1.5, color: 'var(--color-text)' }}>
+                <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
                   {hasGap ? gapSlot(line) : line.text}
                 </div>
               </div>
@@ -196,7 +196,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                   className="cursor-pointer"
                   style={{
                     padding: '9px 14px', borderRadius: 12, fontFamily: 'inherit',
-                    fontSize: 14, fontWeight: 650, lineHeight: 1.3,
+                    fontSize: 14, fontWeight: 600, lineHeight: 1.3,
                     border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
                     background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
                     color: active ? 'var(--color-accent)' : 'var(--color-text)',

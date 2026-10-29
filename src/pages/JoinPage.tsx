@@ -160,7 +160,7 @@ export default function JoinPage() {
         {step === 'form' && (
           <>
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>{t('Добро пожаловать!')}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добро пожаловать!')}</div>
               <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>
                 {t('Придумайте логин и пароль для')} <strong style={{ color: 'var(--color-text)' }}>{studentName}</strong>
               </div>

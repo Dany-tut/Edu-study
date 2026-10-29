@@ -40,7 +40,7 @@ function studentSignal(s: Student, t: (k: string) => string): Signal | null {
 function SignalChip({ signal }: { signal: Signal }) {
   const c = signal.kind === 'danger' ? PAIR.error : PAIR.review
   return (
-    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: c.bg, color: c.text, flexShrink: 0, whiteSpace: 'nowrap' }}>{signal.text}</span>
+    <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: c.bg, color: c.text, flexShrink: 0, whiteSpace: 'nowrap' }}>{signal.text}</span>
   )
 }
 
@@ -63,13 +63,13 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
         <AvatarPhotoFill path={student.avatarPath} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {subject ? `${tc(subject)} · ` : ''}{t('ДЗ')} {student.hwScore}% · {t('посещ.')} {student.attendance}%
         </div>
       </div>
       {signal && <SignalChip signal={signal} />}
-      <ChevronRight size={17} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+      <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
     </motion.button>
   )
 }
@@ -87,16 +87,16 @@ function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClic
       className="cursor-pointer"
       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
     >
-      <div style={{ width: 42, height: 42, borderRadius: 12, background: `color-mix(in srgb, ${group.color} 18%, transparent)`, color: group.color, fontSize: 19, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{group.icon}</div>
+      <div style={{ width: 42, height: 42, borderRadius: 12, background: `color-mix(in srgb, ${group.color} 18%, transparent)`, color: group.color, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{group.icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</div>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>
           {group.studentCount} {t('учеников')}{agg.avgHw != null ? ` · ${t('ср. ДЗ')} ${agg.avgHw}%` : ''}
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
-        {agg.pending > 0 && <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, whiteSpace: 'nowrap' }}>{agg.pending} {t('проверить')}</span>}
-        {agg.debtCount > 0 && <span style={{ fontSize: 10.5, fontWeight: 600, color: PAIR.error.text, whiteSpace: 'nowrap' }}>{agg.debtCount} {t('долг')}</span>}
+        {agg.pending > 0 && <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, whiteSpace: 'nowrap' }}>{agg.pending} {t('проверить')}</span>}
+        {agg.debtCount > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: PAIR.error.text, whiteSpace: 'nowrap' }}>{agg.debtCount} {t('долг')}</span>}
         {agg.pending === 0 && agg.debtCount === 0 && (
           <span style={{ fontSize: 11, fontWeight: 600, color: PAIR.success.text, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={12} /> {t('всё сдано')}</span>
         )}
@@ -112,7 +112,7 @@ function SummaryTile({ value, label, tone }: { value: number; label: string; ton
     : { bg: 'var(--color-bg-4)', text: 'var(--color-accent)' }
   return (
     <div style={{ flex: 1, background: c.bg, borderRadius: 12, padding: '8px 4px', textAlign: 'center' }}>
-      <div style={{ fontSize: 17, fontWeight: 750, color: c.text }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: c.text }}>{value}</div>
       <div style={{ fontSize: 10, fontWeight: 600, color: c.text, opacity: 0.9 }}>{label}</div>
     </div>
   )
@@ -123,7 +123,7 @@ function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; labe
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
       <span style={{ color: 'var(--color-muted)', display: 'flex' }}>{icon}</span>
       <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--color-text-2)' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 650, color: danger ? 'var(--color-red-text)' : 'var(--color-text)' }}>{value}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: danger ? 'var(--color-red-text)' : 'var(--color-text)' }}>{value}</span>
     </div>
   )
 }
@@ -146,15 +146,15 @@ export function StudentSheet({ student, group, open, loading, onClose }: { stude
         <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: 8 }}>
           <div style={{ display: 'flex', gap: 8, padding: '4px 0 14px' }}>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.success.bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 750, color: PAIR.success.text }}>{student.hwScore}%</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.success.text }}>{student.hwScore}%</div>
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.success.text, opacity: 0.85 }}>{t('ДЗ')}</div>
             </div>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.info.bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 750, color: PAIR.info.text }}>{student.testScore}%</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.info.text }}>{student.testScore}%</div>
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.info.text, opacity: 0.85 }}>{t('тесты')}</div>
             </div>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.review.bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 750, color: PAIR.review.text }}>{student.attendance}%</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.review.text }}>{student.attendance}%</div>
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.review.text, opacity: 0.85 }}>{t('посещ.')}</div>
             </div>
           </div>
@@ -184,7 +184,7 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <BackCircle onClick={onBack} label="Все группы" />
-        <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{group.icon}{ICON_GAP}{group.name}</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)' }}>{group.icon}{ICON_GAP}{group.name}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {students.map(s => (
             <PersonRow key={s.id} student={s} onClick={() => setSelected(s)} />
@@ -209,7 +209,7 @@ const FILTERS: { key: StudentsFilter; label: string }[] = [
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', margin: '6px 15px 2px' }}>{children}</div>
+    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '6px 15px 2px' }}>{children}</div>
   )
 }
 
@@ -263,7 +263,7 @@ export default function MobileTeacherStudents() {
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <GlassPill><Users size={15} /> {t('Ученики')}</GlassPill>
+      <GlassPill><Users size={16} /> {t('Ученики')}</GlassPill>
     </div>
   )
 
@@ -282,7 +282,7 @@ export default function MobileTeacherStudents() {
                   onClick={() => setFilter(f.key)}
                   className="cursor-pointer"
                   style={{
-                    flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 13.5, fontWeight: 650,
+                    flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 14, fontWeight: 600,
                     color: active ? '#fff' : 'var(--color-muted)',
                     background: active ? 'var(--color-avatar-bg)' : 'transparent',
                     transition: 'background 0.15s, color 0.15s',

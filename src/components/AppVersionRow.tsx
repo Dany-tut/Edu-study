@@ -79,7 +79,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
           // lineHeight: 1 — иначе глобальные 1.5 добавляют под цифрами ~4.5px
           // пустой строки, и подвал меню выглядит просевшим: слева от текста до
           // края панели 22px, а снизу — почти 25. Со сжатой строкой поля равны.
-          fontSize: 11.5, lineHeight: 1, fontWeight: 550, textAlign: 'left',
+          fontSize: 12, lineHeight: 1, fontWeight: 500, textAlign: 'left',
           color: filled ? 'var(--color-accent)' : 'var(--color-text-4)',
           ...style,
         }}
@@ -102,7 +102,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
     >
       {/* Без иконки — ряд ровно такой же, как «Тема оформления» и «Язык»:
           подпись слева, состояние пилюлей справа. */}
-      <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+      <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
         {t('Версия')} {APP_VERSION}
       </span>
 
@@ -111,7 +111,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
           style={{
             position: 'relative', overflow: 'hidden',
             height: 34, display: 'inline-flex', alignItems: 'center', padding: PILL_PAD, borderRadius: 999,
-            fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+            fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
             background: filled && !updating ? 'var(--grad-purple)' : 'var(--color-bg-5)',
             color: filled && !updating ? '#fff' : 'var(--color-accent)',
           }}

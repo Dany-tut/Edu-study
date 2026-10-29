@@ -51,7 +51,7 @@ function fmtDate(iso?: string): string {
 }
 
 function Label({ children, color }: { children: React.ReactNode; color?: string }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: color ?? 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: color ?? 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
 }
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ function SolutionCard({ ev, onZoomPhoto }: { ev: HardEvent & { kind: 'solution' 
   return (
     <div style={{ borderRadius: 18, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', padding: 18 }}>
       <div style={{ marginBottom: 12 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-purple-text)', letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Send size={12} /> {t('Решение ученика')}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-purple-text)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Send size={12} /> {t('Решение ученика')}</span>
         {fmtDate(ev.at) && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginTop: 4 }}>{fmtDate(ev.at)}</div>}
       </div>
       <AnswerBody comment={ev.answer} photos={ev.photos} board={ev.board} onZoomPhoto={onZoomPhoto} photosClickable={!!onZoomPhoto} />
@@ -116,12 +116,12 @@ function CommentCard({ ev, repliesTo, onZoomPhoto }: { ev: HardEvent & { kind: '
     <div style={{ borderRadius: 18, border: `1px solid var(--color-${tone}-soft)`, background: `var(--color-${tone}-soft)`, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
         <div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageSquare size={12} /> {t('Комментарий преподавателя')}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageSquare size={12} /> {t('Комментарий преподавателя')}</span>
           {fmtDate(ev.at) && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginTop: 4 }}>{fmtDate(ev.at)}</div>}
         </div>
         {ev.verdict && (
           <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '3px 9px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            {accepted ? <><Star size={11} fill="currentColor" /> {t('Принято')}{typeof ev.score === 'number' ? ` · ${ev.score}/5` : ''}</> : <><RotateCcw size={11} /> {t('На доработку')}</>}
+            {accepted ? <><Star size={12} fill="currentColor" /> {t('Принято')}{typeof ev.score === 'number' ? ` · ${ev.score}/5` : ''}</> : <><RotateCcw size={12} /> {t('На доработку')}</>}
           </span>
         )}
       </div>
@@ -229,10 +229,10 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
           ))}
         </div>
       )}
-      {photoError && <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-peach-text)' }}>{photoError}</div>}
+      {photoError && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-peach-text)' }}>{photoError}</div>}
       {showBoard && <WhiteboardCanvas initialData={board ?? undefined} onSave={setBoard} />}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Голосовой ответ')}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Голосовой ответ')}</span>
         <VoiceRecorder value={voice} onChange={setVoice} />
       </div>
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
@@ -246,8 +246,8 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
           </button>
         </div>
         <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board, voice })}
-          style={{ padding: '13px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 750, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <Send size={15} /> {busy ? t('Отправляю…') : t('Отправить решение')}
+          style={{ padding: '13px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <Send size={16} /> {busy ? t('Отправляю…') : t('Отправить решение')}
         </motion.button>
       </div>
     </div>
@@ -329,14 +329,14 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <Label>{t('Приложить к ответу')}</Label>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => fileRef.current?.click()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => fileRef.current?.click()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <ImageIcon size={14} /> {t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => setShowBoard(v => !v)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
-        {photoError && <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{photoError}</div>}
+        {photoError && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{photoError}</div>}
         {photos.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
             {photos.map((src, i) => (
@@ -362,7 +362,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('completed')} disabled={busy}
           style={{ padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--grad-green)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 6px 18px rgba(42,125,79,0.28)', opacity: busy ? 0.6 : 1 }}>
-          <Check size={15} /> {t('Принять задание')} · {score}/5
+          <Check size={16} /> {t('Принять задание')} · {score}/5
         </motion.button>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('returned')} disabled={busy}
           style={{ padding: '13px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: busy ? 0.6 : 1 }}>
@@ -425,8 +425,8 @@ export default function HardConversation({
         </div>
         {tab.statement && (
           /<\/?[a-z][\s\S]*>/i.test(tab.statement)
-            ? <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--color-text)', ...proseWrap }} dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(tab.statement)) }} />
-            : <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap', ...proseWrap }}>{bindShortWords(tab.statement)}</p>
+            ? <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)', ...proseWrap }} dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(tab.statement)) }} />
+            : <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap', ...proseWrap }}>{bindShortWords(tab.statement)}</p>
         )}
         {tab.image && <img src={tab.image} alt="" onClick={() => onZoomPhoto?.(tab.image!)} style={{ marginTop: 12, maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: onZoomPhoto ? 'zoom-in' : 'default', display: 'block' }} />}
       </div>
@@ -458,7 +458,7 @@ export default function HardConversation({
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
                 <Star size={16} fill="currentColor" /> {t('Задание принято')} · {score}/5
               </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-green-text)', opacity: 0.85, marginTop: 3 }}>
+              <div style={{ fontSize: 13, color: 'var(--color-green-text)', opacity: 0.85, marginTop: 3 }}>
                 {role === 'student' ? `${t('Стикер')} «${t(tierOf(score).name)}» ${t('добавлен в коллекцию')}` : `${t('Ученик получил стикер')} «${t(tierOf(score).name)}»`}
               </div>
             </div>

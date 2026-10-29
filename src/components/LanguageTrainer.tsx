@@ -961,7 +961,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {!narrow && <SubjectHero state={subjectState} subtitle={heroSubtitle} palette={palette} />}
 
       {!narrow && (
-      <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
+      <RailCard title="Режим" accent={palette.accent} icon={<Layers size={16} />}>
         <RailModes
           items={MODES
             .filter(m => (m.id !== 'blocks' || blocks.on) && (m.id !== 'grammar' || grammar.on) && (m.id !== 'guide' || guide.on) && (m.id !== 'mocks' || mocks.on))
@@ -981,16 +981,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {/* Две половины «Чтения». Показываем переключатель только там, где сцены
           для языка вообще написаны: пустая вкладка хуже отсутствующей. */}
       {mode === 'reading' && (sceneLib || feedLib) && !narrow && (
-        <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={15} />}>
+        <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={16} />}>
           <RailSegment
             options={[
               // Лента — первой и по умолчанию включена (см. readingView),
               // как «Шэдоуинг» в «Говорении»: свежее чтение важнее архива
               // текстов/сцен. Появляется только там, где для языка собран
               // хоть один материал: пустая вкладка хуже отсутствующей.
-              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedShelf.total, icon: <Rows3 size={15} /> }] : []),
-              { value: 'texts', label: 'Тексты', badge: allTexts.length, icon: <AlignLeft size={15} /> },
-              { value: 'scenes', label: 'Сцены', badge: scenesShelf.total, icon: <Quote size={15} /> },
+              ...(feedLib ? [{ value: 'feed', label: 'Лента', badge: feedShelf.total, icon: <Rows3 size={16} /> }] : []),
+              { value: 'texts', label: 'Тексты', badge: allTexts.length, icon: <AlignLeft size={16} /> },
+              { value: 'scenes', label: 'Сцены', badge: scenesShelf.total, icon: <Quote size={16} /> },
             ]}
             value={readingView}
             onChange={v => v && switchReadingView(v as ReadingView)}
@@ -999,7 +999,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             clearable={false}
             idleIcon
           />
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {readingView === 'scenes'
               ? t('Отрывки из книг и сериалов. У каждого — что было до сцены и чем всё кончилось.')
               : readingView === 'feed'
@@ -1020,7 +1020,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           {/* Уровень уехал в строку управления — там же, где он у сцен,
               грамматики и библиотеки. Здесь остаётся выбор материала и полка:
               это «что показываем», а не «чем сузили». */}
-          <RailCard title="Материал" accent={palette.accent} icon={<Layers size={15} />}
+          <RailCard title="Материал" accent={palette.accent} icon={<Layers size={16} />}
             action={sets.shelfPicked || packs.shelfPicked
               ? { label: t('Сбросить'), onClick: () => { sets.resetShelf(); packs.reset() } }
               : undefined}>
@@ -1030,18 +1030,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                 // «Наборы» — все стопки языка разом: разговорник, полки
                 // учителя и подборки-сиды. Половина стоит и без разговорника:
                 // группы бывают там, где книги нет.
-                ...(hasBook || decksOn ? [{ value: 'sets', label: 'Наборы', icon: <Layers size={15} /> }] : []),
+                ...(hasBook || decksOn ? [{ value: 'sets', label: 'Наборы', icon: <Layers size={16} /> }] : []),
                 // «Слова» отдельной таблеткой от «Наборов»: это разный
                 // материал, а не разный фильтр одного. В наборах — готовые
                 // фразы под ситуацию, здесь — лексика пачкой по смыслу.
-                ...(packs.on ? [{ value: 'packs', label: 'Слова', icon: <Languages size={15} /> }] : []),
+                ...(packs.on ? [{ value: 'packs', label: 'Слова', icon: <Languages size={16} /> }] : []),
                 // Подпись короткая: «Повторение» рядом с соседями не влезало
                 // в рейл и обрезалось в «Повторе…». Неактивные ждут значками
                 // (idleIcon), выбранный забирает освободившееся место.
-                { value: 'due', label: 'Повторы', badge: review.due, icon: <RotateCcw size={15} /> },
+                { value: 'due', label: 'Повторы', badge: review.due, icon: <RotateCcw size={16} /> },
                 // Третья таблетка только там, где гнёзда для языка написаны:
                 // пустая вкладка хуже отсутствующей.
-                ...(nestsShelf.on ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={15} /> }] : []),
+                ...(nestsShelf.on ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={16} /> }] : []),
               ]}
               value={vocabView}
               onChange={v => v && setVocabView(v as VocabView)}
@@ -1065,7 +1065,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               объясняет ровно то, почему список именно такой длины. */}
           {vocabView === 'nests' && nestsShelf.rail}
           {(hasBook || packs.on || decksOn) && vocabView !== 'nests' && (
-            <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+            <RailCard title="Показ" accent={palette.accent} icon={<Eye size={16} />}>
               <RailToggle label="Романизация" on={phraseView.reading}
                 onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
               <RailToggle label="Сначала перевод" on={phraseView.reverse}
@@ -1080,7 +1080,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {mode === 'vocab' && openMyWords && (
         <>
           {myWordsHalf.rail}
-          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={16} />}>
             <RailToggle label="Романизация" on={phraseView.reading}
               onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
             <RailToggle label="Сначала перевод" on={phraseView.reverse}
@@ -1092,7 +1092,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {mode === 'vocab' && openItem && (
         <>
           {sets.rail}
-          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={16} />}>
             <RailToggle label="Романизация" on={phraseView.reading}
               onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
             <RailToggle label="Сначала перевод" on={phraseView.reverse}
@@ -1119,10 +1119,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       {/* Карточка нужна и без выбора голосов: на айфоне в ней живёт «Голос с
           сервера» — запасная озвучка, когда голос браузера молчит. */}
       {(voiceChoice || isIOS() || serverVoiceOn()) && (
-        <RailCard title="Озвучка" accent={palette.accent} icon={<Mic size={15} />}>
+        <RailCard title="Озвучка" accent={palette.accent} icon={<Mic size={16} />}>
           <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
           {voiceChoice && (
-            <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, ...proseWrap }}>
               {bindShortWords(t('Этим голосом читается всё на этом языке: тексты, карточки, разговорник.'))}
             </div>
           )}
@@ -1354,9 +1354,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                       строки полки и соседних плиток стоят по одной сетке. */}
                   <div style={{
                     display: 'flex', alignItems: 'flex-start', gap: 7,
-                    fontSize: 14.5, lineHeight: 1.3, fontWeight: 750, color: 'var(--color-text)',
+                    fontSize: 15, lineHeight: 1.3, fontWeight: 700, color: 'var(--color-text)',
                   }}>
-                    <Layers size={15} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
+                    <Layers size={16} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
                     {t(g.title)}
                   </div>
                   {/* Описание полки — тремя строками: у сида это целый абзац,
@@ -1511,7 +1511,7 @@ export function Chips({ label, value, options, onChange, accent }: {
   if (options.length < 2) return null
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
+      <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-3)' }}>
         {label}
       </span>
       {options.map(o => {
@@ -1520,7 +1520,7 @@ export function Chips({ label, value, options, onChange, accent }: {
           <button key={o} onClick={() => onChange(on ? '' : o)}
             style={{
               padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 12.5, fontWeight: 650,
+              fontSize: 13, fontWeight: 600,
               border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
               background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
               color: on ? accent : 'var(--color-text-2)',
@@ -1566,7 +1566,7 @@ const TOUR_KEY = 'lang-reader-tour-v1'
 const finishChip = {
   display: 'inline-flex', alignItems: 'center', gap: 6,
   padding: '9px 12px', borderRadius: 11, background: 'transparent',
-  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+  fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
 } as const
 
 function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, subjectId, onBack }: {
@@ -1765,7 +1765,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           разборе его рисует сама партитура, в простом тексте — TrackPlayer
           ниже), а второй плеер в шторке — это два бегунка на одну запись. */}
       {!narrow && (
-        <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
+        <RailCard title="Послушать" accent={accent} icon={<Volume2 size={16} />}>
           <div ref={audioRef} style={{ display: 'grid', gap: 10 }}>
             <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
             <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
@@ -1774,7 +1774,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
       )}
 
       {text.glossary.length > 0 && (
-        <RailCard title="Словарь текста" accent={accent} icon={<ListChecks size={15} />}>
+        <RailCard title="Словарь текста" accent={accent} icon={<ListChecks size={16} />}>
           {/* Список, а не сетка плашек: в рейле у слова есть вся ширина
               строки, поэтому перевод помещается рядом и не требует ни
               раскрытия, ни зарезервированного места под две строки. */}
@@ -1799,7 +1799,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
               padding: '9px 12px', borderRadius: 12,
               cursor: takingWords || tookWords !== null ? 'default' : 'pointer',
-              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650,
+              fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
               border: `1px solid ${tookWords !== null ? 'var(--color-border-soft)' : `${accent}66`}`,
               background: 'transparent',
               color: tookWords !== null ? 'var(--color-muted)' : accent,
@@ -1812,7 +1812,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
         </RailCard>
       )}
 
-      <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={15} />}>
+      <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={16} />}>
         <RailStat
           label="Отвечено"
           value={`${Object.keys(answers).length} / ${text.questions.length}`}
@@ -1844,7 +1844,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           у скелета). Рассказ нужен один раз, а место в строке занимал всегда. */}
       {!narrow && (
         <ToolButton icon label={t('Подсказки')} onClick={() => setTour(true)} accent={accent}>
-          <HelpCircle size={15} />
+          <HelpCircle size={16} />
         </ToolButton>
       )}
       <ToolRight>
@@ -1895,17 +1895,17 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           background: palette.soft, border: `1px solid ${accent}33`,
           display: 'flex', flexDirection: 'column', gap: 9,
         }}>
-          <div style={{ fontSize: 11.5, fontWeight: 750, letterSpacing: 0.3, color: accent, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', color: accent, textTransform: 'uppercase' }}>
             {t('Что вокруг')}
           </div>
-          <div style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--color-text)', ...proseWrap }}>
+          <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)', ...proseWrap }}>
             {bindShortWords(scene.setup)}
           </div>
           {work?.quote && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <Quote size={13} style={{ color: accent, flexShrink: 0, marginTop: 4 }} />
+              <Quote size={14} style={{ color: accent, flexShrink: 0, marginTop: 4 }} />
               <div>
-                <span style={{ fontSize: 13.5, fontStyle: 'italic', color: 'var(--color-text-2)', lineHeight: 1.55 }}>
+                <span style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text-2)', lineHeight: 1.5 }}>
                   {work.quote.text}
                 </span>
                 <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 3 }}>
@@ -1917,7 +1917,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           {/* Ученик должен знать, что именно он читает: подлинник или наш
               текст на тему книги. Это не юридическая формальность — от этого
               зависит, стоит ли запоминать оборот как «так пишет Акутагава». */}
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
             {scene.textOrigin === 'verbatim'
               ? `${t('Подлинный текст')}${work?.source?.translator ? ` · ${t('перевод')}: ${work.source.translator}` : ''}`
               : t('Текст написан нами по теме произведения — это не текст автора')}
@@ -1959,10 +1959,10 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             // абзаце: список слов без их места в предложении — просто столбик,
             // а искать слово глазами по тексту ученик не должен.
             highlight={gloss}
-            style={{ fontSize: 16.5, lineHeight: 1.85, color: 'var(--color-text)' }}
+            style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--color-text)' }}
           />
         ) : (
-          <div style={{ fontSize: 16.5, lineHeight: 1.85, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+          <div style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
             {text.body}
           </div>
         )}
@@ -2018,7 +2018,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           padding: '22px', borderRadius: 18,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>
-          <div style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
+          <div style={{ fontSize: 12, letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
             {scene && work ? `${work.title} · ${scene.where}` : `${t(text.topic)} · ${text.level}`}
           </div>
 
@@ -2027,7 +2027,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               ради чего вообще хочется открыть следующий отрывок. У учебного
               текста развязки нет, и её место занимает итог проверки: иначе
               экран начинался бы с пустоты. */}
-          <div style={{ fontSize: 19, lineHeight: 1.5, color: 'var(--color-text)', marginTop: 10, ...balancedWrap }}>
+          <div style={{ fontSize: 20, lineHeight: 1.5, color: 'var(--color-text)', marginTop: 10, ...balancedWrap }}>
             {scene?.after
               ? bindShortWords(scene.after)
               : `${correctCount} ${t('из')} ${text.questions.length} ${t('верно')}`}
@@ -2056,7 +2056,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                   color: showTranslation ? accent : 'var(--color-text-2)',
                 }}
               >
-                <Languages size={15} /> {t('Перевод')}
+                <Languages size={16} /> {t('Перевод')}
               </button>
             )}
 
@@ -2073,7 +2073,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                   cursor: takingWords || tookWords !== null ? 'default' : 'pointer',
                 }}
               >
-                <Layers size={15} />
+                <Layers size={16} />
                 {tookWords !== null
                   ? (tookWords > 0 ? `${t('в колоде')} +${tookWords}` : t('уже в колоде'))
                   : (takingWords ? t('Добавляю…') : `${text.glossary.length} ${t('слов в колоду')}`)}
@@ -2084,19 +2084,19 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               onClick={onBack}
               style={{
                 ...finishChip, marginLeft: 'auto', padding: '9px 15px',
-                border: `1px solid ${accent}66`, color: accent, fontWeight: 650,
+                border: `1px solid ${accent}66`, color: accent, fontWeight: 600,
               }}
             >
-              {t('Дальше')} <ArrowRight size={15} />
+              {t('Дальше')} <ArrowRight size={16} />
             </button>
           </div>
 
           {showTranslation && text.translation && !(hasScore && scoreView) && (
             <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)' }}>
-              <div style={{ fontSize: 11.5, letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 7 }}>
+              <div style={{ fontSize: 12, letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 7 }}>
                 {t('Перевод текста')}
               </div>
-              <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+              <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
                 {text.translation}
               </div>
             </div>
@@ -2134,7 +2134,7 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
   return (
     <div style={{ padding: '15px 17px', borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{
-        display: 'flex', gap: 6, fontSize: 15, fontWeight: 650,
+        display: 'flex', gap: 6, fontSize: 15, fontWeight: 600,
         color: 'var(--color-text)', marginBottom: 11,
       }}>
         <span style={{ flexShrink: 0 }}>{index + 1}.</span>
@@ -2180,8 +2180,8 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
                 background: showRight ? 'var(--color-green-soft)' : showWrong ? 'var(--color-red-soft)' : picked ? 'var(--color-bg-3)' : 'var(--color-bg-input)',
               }}
             >
-              {checked && (showRight ? <CheckCircle2 size={15} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
-                : showWrong ? <XCircle size={15} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} /> : null)}
+              {checked && (showRight ? <CheckCircle2 size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                : showWrong ? <XCircle size={16} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} /> : null)}
               {/* Варианты переводятся вместе с вопросом: понятый вопрос и
                   непонятные ответы — то же угадывание, просто на шаг позже. */}
               <span style={proseWrap}>{bindShortWords(on ? ru!.options[oi] : opt)}</span>
@@ -2237,7 +2237,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
           шторке — это два разных бегунка на одну запись. Видео остаётся в
           рейле всегда: у него свой плеер площадки, и промотка у него своя. */}
       {(!narrow || item.videoUrl) && (
-        <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
+        <RailCard title="Запись" accent={accent} icon={<Volume2 size={16} />}>
           {/* Материал ленты из плеера площадки: озвучивать нечего — смотрим
               ролик там, где он лежит. Плеер тот же, что в домашке и уроке. */}
           {item.videoUrl
@@ -2246,13 +2246,13 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
                 <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} picker={false} />
                 <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
               </>}
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
           </div>
         </RailCard>
       )}
 
-      <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={15} />}>
+      <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={16} />}>
         <RailStat
           label="Отвечено"
           value={`${Object.keys(answers).length} / ${item.questions.length}`}
@@ -2321,7 +2321,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
               <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 700, color: accent }}>
                 {t('Расшифровка')}
               </summary>
-              <div style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--color-text)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+              <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
                 {item.script}
               </div>
             </details>
@@ -2331,7 +2331,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
               <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 700, color: accent }}>
                 {t('Перевод')}
               </summary>
-              <div style={{ fontSize: 13.5, lineHeight: 1.7, color: 'var(--color-text-2)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+              <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
                 {item.translation}
               </div>
             </details>
@@ -2342,7 +2342,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
                 const reading = wordReading(g.term, lang)
                 return (
                   <span key={g.term} style={{
-                    padding: '5px 10px', borderRadius: 999, fontSize: 12.5,
+                    padding: '5px 10px', borderRadius: 999, fontSize: 13,
                     background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
                   }}>
                     {g.term}

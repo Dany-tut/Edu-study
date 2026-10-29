@@ -137,8 +137,8 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
         display: 'flex', alignItems: 'center', gap: 10, padding: 'calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px',
         borderBottom: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
       }}>
-        <span style={{ flex: 1, fontSize: 15, fontWeight: 850, color: 'var(--color-text)' }}>Speak or Die</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-text-2)' }}>
+        <span style={{ flex: 1, fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>Speak or Die</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--color-text-2)' }}>
           <Trophy size={14} style={{ color: accent }} /> {t('рекорд')}: {record.best} {t('слов')}
         </span>
         <button type="button" onClick={onClose} title={t('Закрыть')} style={{
@@ -156,7 +156,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
 
           {phase === 'ready' && (
             <>
-              <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.55, color: 'var(--color-text)' }}>
+              <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
                 {t('Говорите минуту без остановки. Замолчали дольше, чем позволяет уровень, — раунд проигран. «Эээ» не спасает: считаются только слова.')}
               </p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -175,7 +175,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button type="button" onClick={start} disabled={!asr} style={{
                   height: 44, padding: '0 24px', borderRadius: 999, border: 'none', cursor: asr ? 'pointer' : 'default',
-                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 750, fontSize: 15, fontFamily: 'inherit',
+                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8, opacity: asr ? 1 : 0.5,
                 }}>
                   <Mic size={16} /> {t('Начать')}
@@ -185,7 +185,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                   background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                 }}>
-                  <RotateCcw size={15} /> {t('Другая тема')}
+                  <RotateCcw size={16} /> {t('Другая тема')}
                 </button>
               </div>
               {!asr && (
@@ -199,7 +199,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
           {phase === 'play' && (
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
-                <span style={{ fontSize: 44, fontWeight: 850, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontSize: 44, fontWeight: 800, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>
                   {Math.max(0, Math.ceil(ROUND - elapsed))}
                 </span>
                 <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{t('секунд')} · {wordsRef.current} {t('слов')}</span>
@@ -216,7 +216,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                   }} />
                 </div>
               </div>
-              <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: 'var(--color-text-2)', minHeight: 70 }}>
+              <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: 'var(--color-text-2)', minHeight: 70 }}>
                 {text.split(' ').slice(-30).join(' ')}
               </p>
             </>
@@ -224,7 +224,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
 
           {(phase === 'won' || phase === 'lost') && (
             <>
-              <div style={{ fontSize: 28, fontWeight: 850, color: phase === 'won' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: phase === 'won' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
                 {phase === 'won' ? t('Минута выдержана!') : t('Пауза слишком длинная')}
               </div>
               <div style={{ fontSize: 15, color: 'var(--color-text)' }}>
@@ -235,14 +235,14 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 {t('Ориентир: на band 7 за минуту говорят 110–150 слов связно. Меньше 80 — беглость тянет балл вниз.')}
               </p>
               {text && (
-                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--color-text)', padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)' }}>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--color-text)', padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)' }}>
                   {text}
                 </p>
               )}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="button" onClick={start} style={{
                   height: 42, padding: '0 22px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 750, fontSize: 14, fontFamily: 'inherit',
+                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
                 }}>{t('Ещё раз')}</button>
                 <button type="button" onClick={again} style={{
                   height: 42, padding: '0 18px', borderRadius: 999, border: 'none', cursor: 'pointer',

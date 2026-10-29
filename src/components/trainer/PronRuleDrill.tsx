@@ -65,7 +65,7 @@ export function PronGrid({ rules, results, accent, soft, onOpen }: {
             </span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
               <span style={{
-                fontSize: 16, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3,
+                fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3,
                 letterSpacing: '-0.01em',
               }}>
                 {t(rule.title)}
@@ -122,17 +122,17 @@ function ExampleRow({ rule, ex, lang, accent, tone }: {
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.25 }}>
+          <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
             {ex.written}
           </span>
-          <span style={{ fontSize: 15, fontWeight: 750, color: accent }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: accent }}>
             → {spokenLabel(rule, ex.spoken)}
           </span>
-          {cyr && <span style={{ fontSize: 12.5, color: accent, opacity: 0.85 }}>{cyr}</span>}
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)' }}>{ex.ru}</span>
+          {cyr && <span style={{ fontSize: 13, color: accent, opacity: 0.85 }}>{cyr}</span>}
+          <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{ex.ru}</span>
         </div>
         {ex.note && (
-          <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
+          <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
             {ex.note}
           </div>
         )}
@@ -254,14 +254,14 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <TileChip tone="accent" accent={accent} soft={soft}>{rule.ko}</TileChip>
-        <span style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
           {t(rule.title)}
         </span>
       </div>
-      <div style={{ fontSize: 13.5, fontWeight: 700, color: accent, ...proseWrap }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: accent, ...proseWrap }}>
         {t(rule.tagline)}
       </div>
-      <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
+      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0, ...proseWrap }}>
         {t(rule.why)}
       </p>
     </div>
@@ -293,10 +293,10 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
           <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 700 }}>
             {questionOf(rule, t)}
           </div>
-          <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>
+          <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>
             {q.ex.written}
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>{q.ex.ru}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{q.ex.ru}</div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
@@ -311,7 +311,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
                 disabled={!!picked}
                 style={{
                   padding: '14px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
-                  fontFamily: 'inherit', fontSize: 20, fontWeight: 750, lineHeight: 1.2,
+                  fontFamily: 'inherit', fontSize: 20, fontWeight: 700, lineHeight: 1.2,
                   border: `1.5px solid ${
                     show && isAnswer ? 'var(--color-green-accent)'
                     : show ? 'var(--color-red-border)'
@@ -331,7 +331,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
         {picked && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 750,
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700,
               color: right ? 'var(--color-green-text)' : 'var(--color-red-text)',
             }}>
               {right ? <Check size={16} /> : <X size={16} />}
@@ -362,7 +362,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
           padding: '22px 18px', borderRadius: 20, textAlign: 'center',
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)' }}>{score} / {total}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, ...proseWrap }}>
             {pct === 100
               ? t('Правило прочитано без промахов. Оно ещё вернётся в текстах — там и проверится по-настоящему.')
@@ -371,7 +371,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
         </div>
         {weak.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 750, color: 'var(--color-muted)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)' }}>
               {t('Прочитал не так')}
             </div>
             {weak.map(ex => <ExampleRow key={ex.written} rule={rule} ex={ex} lang={lang} accent={accent} tone="bad" />)}
@@ -404,7 +404,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
         <div style={{
           padding: '12px 14px', borderRadius: 16,
           border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-          fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-muted)', ...proseWrap,
+          fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap,
         }}>
           {t(rule.trap)}
         </div>
@@ -412,14 +412,14 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <button onClick={start} style={primaryBtn(accent)}>
-          <BookOpenCheck size={15} />
+          <BookOpenCheck size={16} />
           {t('Проверить чтение')}
         </button>
         <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
         {added !== null && (
-          <span style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Всё это уже в колоде.')}
           </span>
         )}
@@ -436,7 +436,7 @@ const BTN_H = 42
 const btnBase: React.CSSProperties = {
   height: BTN_H, boxSizing: 'border-box', borderRadius: 999, cursor: 'pointer',
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750, lineHeight: 1, whiteSpace: 'nowrap',
+  fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 
 const primaryBtn = (accent: string): React.CSSProperties => ({

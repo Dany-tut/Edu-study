@@ -133,7 +133,7 @@ export default function MobileProfilePage() {
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
       <div style={{ width: 38, flexShrink: 0 }} />
       <DynamicIsland>
-        <Flame size={15} style={{ color: '#F8A23B' }} />
+        <Flame size={16} style={{ color: '#F8A23B' }} />
         <span>{stats.streak} {t('дней')}</span>
         <span style={{ opacity: 0.35 }}>·</span>
         <Zap size={14} style={{ color: 'var(--color-accent)' }} />
@@ -158,7 +158,7 @@ export default function MobileProfilePage() {
                   onClick={() => { tactile(); pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Сменить фото') : t('Загрузить фото')}
                   className="flex items-center justify-center"
-                  style={{ position: 'relative', width: 58, height: 58, borderRadius: 999, padding: 0, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 25, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
+                  style={{ position: 'relative', width: 58, height: 58, borderRadius: 999, padding: 0, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 24, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
                 >
                   {initial}
                   <AvatarPhotoFill path={avatarPath} />
@@ -170,11 +170,11 @@ export default function MobileProfilePage() {
                   className="flex items-center justify-center"
                   style={{ position: 'absolute', right: -3, bottom: -3, width: 22, height: 22, borderRadius: 999, padding: 0, cursor: 'pointer', border: '2px solid var(--color-bg-3)', background: 'var(--color-bg-5)', color: 'var(--color-text-2)' }}
                 >
-                  {avatarPath ? <X size={11} strokeWidth={2.6} /> : <Camera size={11} strokeWidth={2.4} />}
+                  {avatarPath ? <X size={12} strokeWidth={2.5} /> : <Camera size={12} strokeWidth={2.5} />}
                 </button>
               </div>
               <div className="min-w-0" style={{ flex: 1 }}>
-                <div style={{ fontSize: 21, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.15 }}>{name}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{name}</div>
                 <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 7 }}>
                   {/* Строка уровня — она же вход в смену карточки, когда их
                       несколько: стрелка появляется только тогда, иначе это
@@ -184,24 +184,24 @@ export default function MobileProfilePage() {
                     onClick={hasChoice ? () => { tactile(); setCardsOpen(true) } : undefined}
                     role={hasChoice ? 'button' : undefined}
                     style={{
-                      gap: 4, background: PAIR.focus.bg, color: PAIR.focus.text, fontSize: 11.5,
+                      gap: 4, background: PAIR.focus.bg, color: PAIR.focus.text, fontSize: 12,
                       fontWeight: 700, padding: '4px 10px', borderRadius: 999,
                       cursor: hasChoice ? 'pointer' : undefined,
                     }}
                   >
-                    <Zap size={11} />{t('Уровень')} {level} · {rank}
+                    <Zap size={12} />{t('Уровень')} {level} · {rank}
                     {hasChoice && <ChevronDown size={12} style={{ marginLeft: 1, opacity: 0.75 }} />}
                   </span>
                   {subjects.length > 0 && (
-                    <span className="flex items-center" style={{ gap: 4, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 999 }}>
-                      <BookOpen size={11} />{subjects.length}
+                    <span className="flex items-center" style={{ gap: 4, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999 }}>
+                      <BookOpen size={12} />{subjects.length}
                     </span>
                   )}
                 </div>
               </div>
             </div>
             <div style={{ marginTop: 15 }}>
-              <div className="flex items-center justify-between" style={{ fontSize: 11.5, fontWeight: 700, marginBottom: 6 }}>
+              <div className="flex items-center justify-between" style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
                 <span style={{ color: 'var(--color-text-3)' }}>{t('До уровня')} {level + 1}</span>
                 <span style={{ color: 'var(--color-purple-text)' }}>{xpInLevel}/{XP_PER_LEVEL} XP</span>
               </div>
@@ -257,7 +257,7 @@ export default function MobileProfilePage() {
             <div style={{ borderRadius: 22, padding: 16, color: '#fff', background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)' }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('Средний балл')}</div>
+                  <div style={{ fontSize: 11, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Средний балл')}</div>
                   <div className="flex items-center" style={{ gap: 8, marginTop: 6 }}>
                     <span style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{heroAvg ? `${heroAvg}%` : '—'}</span>
                     {delta !== null && (
@@ -316,9 +316,9 @@ export default function MobileProfilePage() {
                 style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 aria-label={t('Переключить тему')}
               >
-                <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Тема оформления')}</span>
-                <span className="flex items-center" style={{ gap: 5, height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}>
-                  {dark ? <Moon size={13} strokeWidth={1.9} /> : <Sun size={13} strokeWidth={1.9} />}
+                <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Тема оформления')}</span>
+                <span className="flex items-center" style={{ gap: 5, height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
+                  {dark ? <Moon size={14} strokeWidth={2} /> : <Sun size={14} strokeWidth={2} />}
                   {dark ? t('Тёмная') : t('Светлая')}
                 </span>
               </button>
@@ -331,8 +331,8 @@ export default function MobileProfilePage() {
                   className="flex items-center justify-between cursor-pointer"
                   style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
-                  <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Хэллоуин-тема')}</span>
-                  <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Хэллоуин-тема')}</span>
+                  <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
                     {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
                   </span>
                 </button>
@@ -345,14 +345,14 @@ export default function MobileProfilePage() {
                 className="flex items-center justify-between cursor-pointer"
                 style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
               >
-                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Цвет курса')}
                 </span>
                 <span className="flex items-center" style={{ gap: 8 }}>
                   {tintColor
                     ? <span style={{ width: 22, height: 22, borderRadius: 999, background: tintColor, boxShadow: '0 0 0 1px var(--color-border-medium)' }} />
-                    : <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Выключено')}</span>}
-                  <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                    : <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Выключено')}</span>}
+                  <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
                 </span>
               </motion.button>
 
@@ -364,12 +364,12 @@ export default function MobileProfilePage() {
                   className="flex items-center justify-between cursor-pointer"
                   style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 >
-                  <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                  <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     {t('Порядок курсов')}
                   </span>
                   <span className="flex items-center" style={{ gap: 8 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{subjects.length}</span>
-                    <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{subjects.length}</span>
+                    <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
                   </span>
                 </motion.button>
               )}
@@ -381,14 +381,14 @@ export default function MobileProfilePage() {
                 className="flex items-center justify-between cursor-pointer"
                 style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
               >
-                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Лента и жесты')}
                 </span>
                 <span className="flex items-center" style={{ gap: 8 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>
                     {t('Свайп влево')} · {t(ACTION_LABEL[swipeLeftAction])}
                   </span>
-                  <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                  <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
                 </span>
               </motion.button>
 
@@ -399,8 +399,8 @@ export default function MobileProfilePage() {
                 style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
               >
-                <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
-                <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Язык')}</span>
+                <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
                   {lang === 'ru' ? 'Русский' : 'English'}
                 </span>
               </button>
@@ -411,10 +411,10 @@ export default function MobileProfilePage() {
                 className="flex items-center justify-between cursor-pointer"
                 style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
               >
-                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Обратная связь')}
                 </span>
-                <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
               </motion.button>
 
               {canInstall && (
@@ -424,10 +424,10 @@ export default function MobileProfilePage() {
                   className="flex items-center justify-between cursor-pointer"
                   style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
                 >
-                  <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
+                  <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
                   </span>
-                  <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+                  <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
                 </motion.button>
               )}
 
@@ -439,9 +439,9 @@ export default function MobileProfilePage() {
               whileTap={{ scale: 0.97 }}
               onClick={logout}
               className="flex items-center justify-center cursor-pointer"
-              style={{ gap: 8, padding: '13px', borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 14.5, fontWeight: 600 }}
+              style={{ gap: 8, padding: '13px', borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 15, fontWeight: 600 }}
             >
-              <LogOut size={17} />
+              <LogOut size={18} />
               {t('Выйти из аккаунта')}
             </motion.button>
           </div>
@@ -501,7 +501,7 @@ function ScoreChart({ data, empty }: { data: number[]; empty: string }) {
     return (
       <div
         className="flex items-center justify-center"
-        style={{ height: 96, marginTop: 14, borderRadius: 14, border: '1px dashed rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 600, opacity: 0.8, padding: '0 18px', textAlign: 'center', lineHeight: 1.35 }}
+        style={{ height: 96, marginTop: 14, borderRadius: 14, border: '1px dashed rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 600, opacity: 0.8, padding: '0 18px', textAlign: 'center', lineHeight: 1.3 }}
       >
         {empty}
       </div>
@@ -575,7 +575,7 @@ function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
       }}
     >
       <span className="flex items-center justify-center flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 10, background: pair?.bg ?? 'var(--color-bg-5)', fontSize: 15 }}>{icon}</span>
-      <span style={{ fontSize: 12.5, fontWeight: 650, lineHeight: 1.25, color: active ? accent : 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 32 }}>
+      <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: active ? accent : 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 32 }}>
         {title}
       </span>
       {typeof progress === 'number' ? (
@@ -583,10 +583,10 @@ function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
           <span style={{ flex: 1, height: 5, borderRadius: 99, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
             <span style={{ display: 'block', width: `${Math.max(2, progress)}%`, height: '100%', borderRadius: 99, background: accent }} />
           </span>
-          <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--color-text-3)' }}>{progress}%</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-3)' }}>{progress}%</span>
         </span>
       ) : (
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)' }}>{caption}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)' }}>{caption}</span>
       )}
     </motion.button>
   )

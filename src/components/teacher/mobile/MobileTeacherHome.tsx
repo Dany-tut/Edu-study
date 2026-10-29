@@ -94,9 +94,9 @@ function SectionLabel({ children, action, onAction }: {
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', marginBottom: 2 }}>
-      <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase' }}>{children}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{children}</span>
       {action && (
-        <button onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)' }}>
+        <button onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>
           {action}
         </button>
       )}
@@ -142,10 +142,10 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
         <Confetti />
         <div style={{ position: 'relative', zIndex: 4 }}>
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--color-bg-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-            <PartyPopper size={26} style={{ color: PAIR.success.text }} />
+            <PartyPopper size={24} style={{ color: PAIR.success.text }} />
           </div>
-          <div style={{ fontSize: 16, fontWeight: 750, color: PAIR.success.text }}>{t('Всё проверено — инбокс пуст')}</div>
-          <div style={{ fontSize: 12.5, fontWeight: 500, color: PAIR.success.text, opacity: 0.85, marginTop: 4, lineHeight: 1.4 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: PAIR.success.text }}>{t('Всё проверено — инбокс пуст')}</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: PAIR.success.text, opacity: 0.85, marginTop: 4, lineHeight: 1.4 }}>
             {t('Ни одной работы в очереди. Спокойный день ✨')}
           </div>
         </div>
@@ -161,18 +161,18 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
     <div style={{ borderRadius: 20, background: pair.bg, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-bg-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ClipboardCheck size={21} style={{ color: pair.text }} />
+          <ClipboardCheck size={20} style={{ color: pair.text }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15.5, fontWeight: 750, color: pair.text, lineHeight: 1.25 }}>{review} {t('работ ждут проверки')}</div>
-          <div style={{ fontSize: 11.5, fontWeight: 500, color: pair.text, opacity: 0.82, marginTop: 2 }}>{sub}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: pair.text, lineHeight: 1.3 }}>{review} {t('работ ждут проверки')}</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: pair.text, opacity: 0.82, marginTop: 2 }}>{sub}</div>
         </div>
       </div>
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={() => { tactile(); onOpen() }}
         className="cursor-pointer"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 12, padding: '11px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 13.5, fontWeight: 700 }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 12, padding: '11px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 14, fontWeight: 700 }}
       >
         <ArrowRight size={16} /> {t('Проверить сейчас')}
       </motion.button>
@@ -196,13 +196,13 @@ function MoneyStrip({ received, debt, debtorCount, plannedLessons, onOpen }: {
         <Wallet size={18} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Доход за месяц')} · {rub(received)}</div>
-        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Доход за месяц')} · {rub(received)}</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 1 }}>
           {plannedLessons > 0 ? `${t('ещё')} ${plannedLessons} ${t('занятий по расписанию')}` : t('нет запланированных занятий')}
         </div>
       </div>
       {debt > 0 && (
-        <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
           {debtorCount} {debtorCount === 1 ? t('долг') : debtorCount < 5 ? t('долга') : t('долгов')} {rub(debt)}
         </span>
       )}
@@ -224,13 +224,13 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--color-accent)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 7 }}>
             {item.time} · {item.groupName}
-            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>
               {item.status === 'live' ? t('идёт') : t('ближайший')}
             </span>
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>
             {item.topic}{item.studentCount > 1 ? ` · ${item.studentCount} ${t('учеников')}` : ''}
           </div>
         </div>
@@ -238,8 +238,8 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
       {/* «Материалы» рядом была без обработчика с июля — кнопка, которая ничего
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>
-          <Play size={13} /> {t('Открыть')}
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700 }}>
+          <Play size={14} /> {t('Открыть')}
         </motion.button>
       </div>
     </div>
@@ -253,14 +253,14 @@ function ScheduleRow({ item, last }: { item: ScheduleItem; last: boolean }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
       <span style={{ width: 8, height: 8, borderRadius: '50%', background: statusDot[item.status], flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)' }}>{item.time} · {item.groupName}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{item.time} · {item.groupName}</div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>
           {done ? t('проведён') : item.topic}
         </div>
       </div>
       {done
         ? <CircleCheck size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
-        : <Clock size={15} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
+        : <Clock size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
     </div>
   )
 }
@@ -274,13 +274,13 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
   const { tn } = useTc()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.avBg, color: c.avText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 700, flexShrink: 0 }}>{item.initials}</div>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.avBg, color: c.avText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{item.initials}</div>
       <button onClick={() => { tactile(); onOpen() }} className="cursor-pointer text-left" style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 650, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
           {tn(item.name)}
           <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.bg, color: c.text }}>{item.tag}</span>
         </div>
-        <div style={{ fontSize: 10.5, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
+        <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
       </button>
       <button onClick={() => { tactile(); onRemind() }} aria-label={t('Напомнить в Telegram')} className="cursor-pointer flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-bg-3)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--color-border-soft)' }}>
         <Send size={14} />
@@ -302,10 +302,10 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
     <button onClick={copy} className="flex items-center cursor-pointer text-left" style={{ gap: 11, width: '100%', padding: '12px 13px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="truncate" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
-        {sub && <div className="truncate" style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>}
+        {sub && <div className="truncate" style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>}
       </div>
       <span className="flex items-center flex-shrink-0" style={{ gap: 5, padding: '7px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--grad-purple)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.18s' }}>
-        {copied ? <Check size={13} /> : <Copy size={13} />}
+        {copied ? <Check size={14} /> : <Copy size={14} />}
         {copied ? t('Готово') : t('Копировать')}
       </span>
     </button>
@@ -384,10 +384,10 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   const topZone = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
       <GlassPill>
-        <span style={{ fontWeight: 750 }}>{model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя')}</span>
+        <span style={{ fontWeight: 700 }}>{model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя')}</span>
       </GlassPill>
       <GlassPill>
-        <Users size={15} style={{ color: 'var(--color-accent)' }} /> {model.studentTotal}
+        <Users size={16} style={{ color: 'var(--color-accent)' }} /> {model.studentTotal}
       </GlassPill>
     </div>
   )
@@ -478,8 +478,8 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
 
         {/* desktop-only hint */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
-          <BookOpen size={17} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-          <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.35 }}>
+          <BookOpen size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.3 }}>
             {t('Полный конструктор курсов, тренажёров и редактор уроков — на компьютере.')}
           </span>
         </div>
@@ -502,7 +502,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
               <LinkRow key={s.id} label={t(s.label)} sub={t('открытая диагностика')} url={diagLink(s.id)} />
             ))}
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.4, padding: '0 2px' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.4, padding: '0 2px' }}>
             {t('Ссылку можно отправить ученику в любом мессенджере — он откроет тест по ней.')}
           </div>
         </div>

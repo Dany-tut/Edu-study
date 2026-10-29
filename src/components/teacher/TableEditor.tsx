@@ -49,7 +49,7 @@ function InsertHandle({ accent, title, onClick, style }: {
         opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',
         transition: 'opacity 0.12s ease, transform 0.12s ease',
       }}>
-        <Plus size={12} strokeWidth={3} />
+        <Plus size={12} strokeWidth={2.5} />
       </div>
     </div>
   )
@@ -258,7 +258,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           })}
                           <button onMouseDown={e => { e.stopPropagation(); removeCellImage(key) }}
                             style={{ marginLeft: 2, width: 18, height: 18, borderRadius: 5, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
-                            <X size={9} />
+                            <X size={12} />
                           </button>
                         </div>
                         <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImageSizes[key] ?? DEFAULT_IMAGE_SIZE}%`, borderRadius: 6 }} />
@@ -271,7 +271,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, false) }}
                           style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           title={t('Убрать поле ответа')}
-                        ><X size={9} /></button>
+                        ><X size={12} /></button>
                       </div>
                     ) : isExplicitlyBlank ? (
                       // Ячейка без ответа — та же раскладка, что у «вписать»: подпись + X, чтобы тип можно было сменить
@@ -281,7 +281,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           onMouseDown={e => { e.stopPropagation(); setBlank(key, false) }}
                           style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           title={t('Убрать отметку «Пусто»')}
-                        ><X size={9} /></button>
+                        ><X size={12} /></button>
                       </div>
                     ) : showChoice ? (
                       <div
@@ -316,7 +316,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           <button
                             onClick={e => { e.stopPropagation(); pickCellImage(key) }}
                             style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                          ><Camera size={10} /> {t('Фото')}</button>
+                          ><Camera size={12} /> {t('Фото')}</button>
                         )}
                       </div>
                     ) : (

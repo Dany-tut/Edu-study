@@ -104,7 +104,7 @@ export default function StudentLoginPage() {
         }}
       >
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>{t('Вход в кабинет')}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{t('Вход в кабинет')}</div>
           <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Введите email и пароль')}</div>
         </div>
 
@@ -150,7 +150,7 @@ export default function StudentLoginPage() {
                 padding: 0, color: 'var(--color-muted)',
               }}
             >
-              {showPassword ? <EyeOff size={18} strokeWidth={1.9} /> : <Eye size={18} strokeWidth={1.9} />}
+              {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
           </div>
         </div>

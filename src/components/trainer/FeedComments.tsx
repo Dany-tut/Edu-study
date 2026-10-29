@@ -98,7 +98,7 @@ function Bubble({ c, accent, onRemove }: {
       display: 'flex', flexDirection: 'column', gap: 4,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-        <span style={{ fontSize: 12, fontWeight: 750, color: c.mine ? accent : 'var(--color-text-2)' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: c.mine ? accent : 'var(--color-text-2)' }}>
           {c.authorName}
         </span>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{whenLabel(c.createdAt)}</span>
@@ -111,11 +111,11 @@ function Bubble({ c, accent, onRemove }: {
               color: 'var(--color-text-4)', display: 'inline-flex', padding: 2,
             }}
           >
-            <Trash2 size={13} />
+            <Trash2 size={14} />
           </button>
         )}
       </div>
-      <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text)', ...proseWrap }}>
+      <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-text)', ...proseWrap }}>
         {c.body}
       </div>
     </div>
@@ -182,7 +182,7 @@ function Composer({ accent, placeholder, onSend, compact }: {
           cursor: value.trim() ? 'pointer' : 'default',
         }}
       >
-        <Send size={15} />
+        <Send size={16} />
       </button>
     </div>
   )
@@ -191,7 +191,7 @@ function Composer({ accent, placeholder, onSend, compact }: {
 function Muted({ children, tone }: { children: React.ReactNode; tone?: 'bad' }) {
   return (
     <div style={{
-      fontSize: 12.5, lineHeight: 1.5,
+      fontSize: 13, lineHeight: 1.5,
       color: tone === 'bad' ? 'var(--color-red-fill)' : 'var(--color-muted)',
       ...proseWrap,
     }}>

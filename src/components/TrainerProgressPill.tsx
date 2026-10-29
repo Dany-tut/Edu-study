@@ -49,7 +49,7 @@ export default function TrainerProgressPill() {
       {/* Top row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <TrendingUp size={13} style={{ color: 'var(--color-green-accent)' }} />
+          <TrendingUp size={14} style={{ color: 'var(--color-green-accent)' }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t('Прогресс')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

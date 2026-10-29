@@ -204,7 +204,7 @@ function SaveToTrainerDialog({
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Задание изменено')}</div>
         </div>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 20, lineHeight: 1.55 }}>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 20, lineHeight: 1.5 }}>
           {t('Это задание взято из тренажера и было изменено. Что сделать с обновлённой версией?')}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -309,7 +309,7 @@ function TaskCard({
               background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0,
             }}
           >
-            <Trash2 size={13} />
+            <Trash2 size={14} />
           </button>
           <div style={{ color: 'var(--color-text-4)', flexShrink: 0 }}>
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -385,7 +385,7 @@ function TaskCard({
                               }}
                               style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
-                              <X size={11} />
+                              <X size={12} />
                             </button>
                           )}
                         </div>
@@ -433,7 +433,7 @@ function TaskCard({
                               onClick={() => onUpdate({ pairs: (task.pairs ?? []).filter((_, i) => i !== pi) })}
                               style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
-                              <X size={11} />
+                              <X size={12} />
                             </button>
                           )}
                         </div>
@@ -469,7 +469,7 @@ function TaskCard({
                             <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)}><ArrowUp size={12} /></button>
                             <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)}><ArrowDown size={12} /></button>
                             {items.length > 2 && (
-                              <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={11} /></button>
+                              <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={12} /></button>
                             )}
                           </div>
                         ))}
@@ -575,7 +575,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage
         margin: '0 24px 20px 0',
       }}
     >
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
         {t('ТИП ЗАДАНИЯ')}
       </div>
       {palette.map(tt => (
@@ -593,14 +593,14 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage
           padding: '9px 12px', borderRadius: 13,
           border: '1.5px dashed var(--color-border-medium)',
           background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-          color: 'var(--color-muted)', fontSize: 11.5, fontWeight: 600,
+          color: 'var(--color-muted)', fontSize: 12, fontWeight: 600,
         }}
       >
         <Link2 size={14} style={{ flexShrink: 0 }} />
         {t('Импорт из Google Forms')}
       </button>
       <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
         {t('СЛОЖНОЕ ЗАДАНИЕ')}
       </div>
       {TASK_TYPES.slice(0, 2).map(tt => (
@@ -616,7 +616,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage
             transition: 'all 0.13s',
           }}
         >
-          <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
+          <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)' }}>{t(tt.label)}</div>
         </button>
       ))}
@@ -665,7 +665,7 @@ function ComposeTab({
           textAlign: 'center', padding: '60px 0', color: 'var(--color-text-4)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
-          <BookOpen size={36} strokeWidth={1.2} />
+          <BookOpen size={36} strokeWidth={1.5} />
           <div style={{ fontSize: 13, fontWeight: 600 }}>{t('Выберите тип задания справа')}</div>
           <div style={{ fontSize: 12, color: 'var(--color-text-5)' }}>{t('и оно появится здесь')}</div>
         </div>
@@ -774,7 +774,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
             onChange={setEditedQuestion}
             placeholder={t('Текст задания…')}
             minHeight={growMinHeight(3, 15, 2, 1)}
-            style={{ fontSize: 15, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
+            style={{ fontSize: 15, lineHeight: 1.45, fontWeight: 600, color: 'var(--color-text)' }}
           />
         </div>
 
@@ -817,7 +817,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     padding: '6px 10px', borderRadius: 10, cursor: 'pointer',
                     border: variantId !== null ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: variantId !== null ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
-                    fontSize: 11.5, fontWeight: 700,
+                    fontSize: 12, fontWeight: 700,
                     color: variantId !== null ? 'var(--color-green-text)' : 'var(--color-muted)',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
@@ -848,7 +848,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
                     border: justReplaced ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: justReplaced ? 'var(--color-green-soft)' : 'var(--color-surface)',
-                    fontSize: 11.5, fontWeight: 700,
+                    fontSize: 12, fontWeight: 700,
                     color: justReplaced ? 'var(--color-green-text)' : 'var(--color-red-text)',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
@@ -921,7 +921,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid var(--color-border-soft)' }}>
         <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
-          <AlertCircle size={10} />{reported ? t('Отправлено') : t('Ошибка')}
+          <AlertCircle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>
       </div>
     </div>
@@ -1038,7 +1038,7 @@ function PreviewTab({
   if (tasks.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-        <Eye size={36} strokeWidth={1.2} />
+        <Eye size={36} strokeWidth={1.5} />
         <div style={{ fontSize: 13, fontWeight: 600 }}>{t('Добавьте задания для предпросмотра')}</div>
       </div>
     )
@@ -1068,11 +1068,11 @@ function PreviewTab({
                       onClick={() => onOpenTrainerDialog(task.id)}
                       style={cardChipTone('peach', { border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}
                     >
-                      <AlertTriangle size={11} strokeWidth={2.4} style={{ marginRight: 4, verticalAlign: '-1px' }} />{t('изменено')}
+                      <AlertTriangle size={12} strokeWidth={2.5} style={{ marginRight: 4, verticalAlign: '-1px' }} />{t('изменено')}
                     </button>
                   )}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.55, marginBottom: 8 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.5, marginBottom: 8 }}>
                   {stripHtml(task.question) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без текста')}</span>}
                 </div>
 
@@ -1089,7 +1089,7 @@ function PreviewTab({
                           background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-green-text)' : 'var(--color-text-4)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
-                          {(task.correctChoices ?? []).includes(ci) && <Check size={10} style={{ color: '#fff' }} />}
+                          {(task.correctChoices ?? []).includes(ci) && <Check size={12} style={{ color: '#fff' }} />}
                         </div>
                         <span style={{ fontSize: 12, color: 'var(--color-text)' }}>{ch || `${t('Вариант')} ${ci + 1}`}</span>
                       </div>
@@ -1134,7 +1134,7 @@ function PreviewTab({
                 onClick={() => onDelete(task.id)}
                 style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
-                <Trash2 size={13} />
+                <Trash2 size={14} />
               </button>
             </div>
           </GlassCard>
@@ -1230,7 +1230,7 @@ function TrainerFilterPanel({
       <MultiSelectField label={t('Тема')} options={topicOptions} values={filters.topics}
         onChange={v => onChange({ topics: v })} small />
       <div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Часть')}</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Часть')}</div>
         <div style={{ display: 'flex', gap: 6 }}>
           {(['1', '2'] as string[]).map(p => {
             const active = filters.parts.includes(p)
@@ -1399,7 +1399,7 @@ function HardTaskAccordion({
                           }}>
                             {sel
                               ? <Check size={12} style={{ color: '#fff' }} />
-                              : <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-muted)' }}>
+                              : <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-muted)' }}>
                                   {tn(s.name).split(' ').map(p => p[0]).join('').slice(0, 2)}
                                 </span>
                             }
@@ -1567,10 +1567,10 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onChange('') } }}
             style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
-            <X size={10} />
+            <X size={12} />
           </span>
         )}
-        <ChevronDown size={13} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
 
       <AnimatePresence>
@@ -1676,10 +1676,10 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onChange('') } }}
             style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
-            <X size={10} />
+            <X size={12} />
           </span>
         )}
-        <ChevronDown size={13} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
 
       <AnimatePresence>
@@ -1718,12 +1718,12 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
                   background: g.id === value ? 'var(--color-accent-soft, var(--color-purple-soft))' : 'var(--color-bg-3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Users size={13} style={{ color: g.id === value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
+                  <Users size={14} style={{ color: g.id === value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: g.id === value ? 650 : 500, color: g.id === value ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                <span style={{ fontSize: 13, fontWeight: g.id === value ? 600 : 500, color: g.id === value ? 'var(--color-accent)' : 'var(--color-text)' }}>
                   {g.name}
                 </span>
-                {g.id === value && <Check size={13} style={{ marginLeft: 'auto', color: 'var(--color-accent)', flexShrink: 0 }} />}
+                {g.id === value && <Check size={14} style={{ marginLeft: 'auto', color: 'var(--color-accent)', flexShrink: 0 }} />}
               </button>
             ))}
             </ScrollFade>
@@ -1816,10 +1816,10 @@ function LessonPicker({
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onChange('') } }}
             style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
-            <X size={10} />
+            <X size={12} />
           </span>
         )}
-        <ChevronDown size={13} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
 
       {/* Dropdown */}
@@ -1842,7 +1842,7 @@ function LessonPicker({
           >
             {/* Search */}
             <div style={{ position: 'relative', marginBottom: 6 }}>
-              <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
               <input
                 autoFocus
                 value={query}
@@ -1857,7 +1857,7 @@ function LessonPicker({
               />
               {query && (
                 <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
-                  <X size={13} />
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -1876,17 +1876,17 @@ function LessonPicker({
                   onMouseLeave={e => { if (value) e.currentTarget.style.background = 'transparent' }}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X size={13} style={{ color: 'var(--color-text-3)' }} />
+                    <X size={14} style={{ color: 'var(--color-text-3)' }} />
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 600, color: !value ? 'var(--color-accent)' : 'var(--color-muted)' }}>{t('Без привязки')}</span>
-                  {!value && <Check size={13} style={{ color: 'var(--color-accent)', marginLeft: 'auto' }} />}
+                  {!value && <Check size={14} style={{ color: 'var(--color-accent)', marginLeft: 'auto' }} />}
                 </button>
 
                 {/* Suggested section */}
                 {suggested.length > 0 && !query && (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 8px 4px' }}>
-                      <Sparkles size={11} style={{ color: 'var(--color-accent)' }} />
+                      <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
                       <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>{t('ПОДХОДЯТ К ТЕМЕ')}</span>
                     </div>
                     {suggested.map(l => (
@@ -1933,14 +1933,14 @@ function LessonOption({ lesson, active, suggested, onClick }: {
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
       <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <BookOpen size={13} style={{ color: 'var(--color-accent)' }} />
+        <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(lesson.lessonTitle)}</div>
         <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(lesson.courseTitle)}</div>
       </div>
       {suggested && <Sparkles size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
-      {active && <Check size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
+      {active && <Check size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
     </button>
   )
 }
@@ -2409,7 +2409,7 @@ export default function TeacherHomeworkCreatePage() {
             <button
               style={{
                 flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass,
-                cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)',
+                cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--color-muted)',
                 fontFamily: 'inherit', pointerEvents: 'auto',
               }}
             >
@@ -2457,7 +2457,7 @@ export default function TeacherHomeworkCreatePage() {
               style={{
                 padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
                 background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
-                fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
+                fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
               }}
             >
               {draftLabel}
@@ -2674,7 +2674,7 @@ export default function TeacherHomeworkCreatePage() {
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Публикация домашки')}</div>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 6, lineHeight: 1.55 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 6, lineHeight: 1.5 }}>
                   {t('Домашнее задание будет привязано к уроку:')}
                 </div>
                 <div style={{ background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 14px', marginBottom: 20 }}>

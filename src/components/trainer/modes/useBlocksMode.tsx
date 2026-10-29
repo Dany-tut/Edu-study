@@ -165,7 +165,7 @@ export function useBlocksMode({
   const rail = !active ? null : (
     <>
       {!openStem && !openRoot && !openNum && !openPron && (
-        <RailCard title="Что собираем" accent={accent} icon={<Blocks size={15} />}>
+        <RailCard title="Что собираем" accent={accent} icon={<Blocks size={16} />}>
           {!narrow && (
           // Четыре подписи со счётчиками в рейл не влезали и резались
           // многоточием («О.. 8») — поэтому режим idleIcon: подпись целиком
@@ -173,10 +173,10 @@ export function useBlocksMode({
           // так стоят в тулбаре и на плитках.
           <RailSegment
             options={[
-              ...(stemsOn ? [{ value: 'stems', label: 'Основы', icon: <Layers size={15} /> }] : []),
-              ...(rootsOn ? [{ value: 'roots', label: 'Корни', icon: <Puzzle size={15} /> }] : []),
-              ...(numbersOn ? [{ value: 'numbers', label: 'Числа', icon: <Hash size={15} /> }] : []),
-              ...(soundsOn ? [{ value: 'sounds', label: 'Звуки', icon: <AudioLines size={15} /> }] : []),
+              ...(stemsOn ? [{ value: 'stems', label: 'Основы', icon: <Layers size={16} /> }] : []),
+              ...(rootsOn ? [{ value: 'roots', label: 'Корни', icon: <Puzzle size={16} /> }] : []),
+              ...(numbersOn ? [{ value: 'numbers', label: 'Числа', icon: <Hash size={16} /> }] : []),
+              ...(soundsOn ? [{ value: 'sounds', label: 'Звуки', icon: <AudioLines size={16} /> }] : []),
             ]}
             value={view}
             onChange={v => v && switchView(v as BlocksView)}
@@ -186,7 +186,7 @@ export function useBlocksMode({
             idleIcon
           />
           )}
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {view === 'stems'
               ? t('Глагол не спрягается по лицам: основа стоит, меняется хвост.')
               : view === 'roots'
@@ -202,13 +202,13 @@ export function useBlocksMode({
           витрине, и внутри основы, и внутри прогона — то есть везде, где рейл
           и так виден. */}
       {view === 'stems' && (
-        <RailCard title="Хвосты" accent={accent} icon={<Layers size={15} />}>
+        <RailCard title="Хвосты" accent={accent} icon={<Layers size={16} />}>
           {KO_ENDINGS.map(e => (
             <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: TONE[e.tone].fg, whiteSpace: 'nowrap' }}>
                 {e.block}
               </span>
-              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(e.label)}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(e.label)}</span>
             </div>
           ))}
         </RailCard>
@@ -217,7 +217,7 @@ export function useBlocksMode({
       {/* Тот же приём, что и со справочником хвостов: правило выбора ряда нужно
           и на витрине, и внутри набора, и посреди прогона. */}
       {view === 'numbers' && (
-        <RailCard title="Каким рядом" accent={accent} icon={<Layers size={15} />}>
+        <RailCard title="Каким рядом" accent={accent} icon={<Layers size={16} />}>
           {SYSTEM_RULES.map(rule => (
             <div key={rule.system} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{
@@ -228,7 +228,7 @@ export function useBlocksMode({
               }}>
                 {t(systemLabel(rule.system))}
               </span>
-              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(rule.what)}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(rule.what)}</span>
             </div>
           ))}
         </RailCard>
@@ -238,7 +238,7 @@ export function useBlocksMode({
           рядом»: семь конечных звуков нужны и на витрине, и посреди прогона,
           потому что через них проходит половина правил. */}
       {view === 'sounds' && (
-        <RailCard title="Семь конечных" accent={accent} icon={<Layers size={15} />}>
+        <RailCard title="Семь конечных" accent={accent} icon={<Layers size={16} />}>
           {([
             ['ㄱ ㅋ ㄲ', '[к]'], ['ㄴ', '[н]'], ['ㄷ ㅅ ㅆ ㅈ ㅊ ㅌ ㅎ', '[т]'],
             ['ㄹ', '[ль]'], ['ㅁ', '[м]'], ['ㅂ ㅍ', '[п]'], ['ㅇ', '[нъ]'],
@@ -247,10 +247,10 @@ export function useBlocksMode({
               <span style={{ fontSize: 13, fontWeight: 800, color: accent, whiteSpace: 'nowrap' }}>
                 {letters}
               </span>
-              <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(sound)}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{t(sound)}</span>
             </div>
           ))}
-          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
             {t('Так звучит любой 받침 — если следом не идёт гласная.')}
           </div>
         </RailCard>
@@ -260,7 +260,7 @@ export function useBlocksMode({
         <RailCard
           title="Полки"
           accent={accent}
-          icon={<SlidersHorizontal size={15} />}
+          icon={<SlidersHorizontal size={16} />}
           action={rootGroup ? { label: t('Все полки'), onClick: () => setRootGroup('') } : undefined}
         >
           <RailList
@@ -278,7 +278,7 @@ export function useBlocksMode({
       )}
 
       {(
-        <RailCard title="Показ" accent={accent} icon={<Eye size={15} />}>
+        <RailCard title="Показ" accent={accent} icon={<Eye size={16} />}>
           <RailToggle label="Романизация" on={reading}
             onChange={v => onReading(v)} accent={accent} />
         </RailCard>

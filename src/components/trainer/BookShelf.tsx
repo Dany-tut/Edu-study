@@ -88,13 +88,13 @@ function Cover({ book, lang }: { book: Textbook; lang: string }) {
         position: 'relative', height: '100%', boxSizing: 'border-box',
         padding: '13px 12px 13px 18px', display: 'flex', flexDirection: 'column',
       }}>
-        <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', opacity: 0.72 }}>
+        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', opacity: 0.72 }}>
           {t(book.kind)}
         </span>
         <span style={{ marginTop: 'auto', fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>
           {bookShort(book)}
         </span>
-        <span style={{ fontSize: 10, opacity: 0.75, marginTop: 3, lineHeight: 1.35 }}>
+        <span style={{ fontSize: 10, opacity: 0.75, marginTop: 3, lineHeight: 1.3 }}>
           {book.publisher} · {book.level}
         </span>
       </div>
@@ -129,27 +129,27 @@ export function BookShelf({ books, lang, accent, soft }: {
               {book.free && (
                 <TileChip tone="accent" accent="var(--color-green-text)" soft="var(--color-green-soft)">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <Gift size={10} /> {t('бесплатно')}
+                    <Gift size={12} /> {t('бесплатно')}
                   </span>
                 </TileChip>
               )}
             </span>
 
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 780, color: 'var(--color-text)', lineHeight: 1.3 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {book.title}
             </h3>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
               {[book.authors, book.publisher, `${t('объяснения:')} ${book.explainedIn}`].filter(Boolean).join(' · ')}
             </span>
 
-            <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
               {bindShortWords(t(book.about))}
             </p>
 
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {book.parts.map((p, i) => (
                 <li key={i} style={{
-                  fontSize: 11.5, lineHeight: 1.4, color: 'var(--color-text-3)',
+                  fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-3)',
                   // Радиус — половина высоты ОДНОЙ строки (11.5×1.4 + 3+3 ≈ 22),
                   // а не 999: на узком экране подпись переносится, и полное
                   // скругление превращает её в кривой овал.
@@ -165,10 +165,10 @@ export function BookShelf({ books, lang, accent, soft }: {
               display: 'flex', flexDirection: 'column', gap: 3,
               padding: '10px 13px', borderRadius: 12, background: soft,
             }}>
-              <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: accent }}>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent }}>
                 {t('Когда браться')}
               </span>
-              <span style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text)', ...proseWrap }}>
+              <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text)', ...proseWrap }}>
                 {bindShortWords(t(book.when))}
               </span>
             </div>
@@ -186,7 +186,7 @@ export function BookShelf({ books, lang, accent, soft }: {
                     rel="noreferrer noopener"
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
-                      fontSize: 12.5, fontWeight: 700, color: accent, textDecoration: 'none',
+                      fontSize: 13, fontWeight: 700, color: accent, textDecoration: 'none',
                     }}
                   >
                     <Icon size={13} />

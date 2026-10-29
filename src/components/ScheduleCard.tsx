@@ -219,7 +219,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 {seasonEmpty ? <SeasonEmptyDay /> : (
                   <>
                     <CalendarX2 size={20} style={{ marginBottom: 8 }} />
-                    <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
                     <p style={{ fontSize: 12, marginTop: 3 }}>{t('Преподаватель еще не проставил уроки')}</p>
                   </>
                 )}
@@ -262,7 +262,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             {day.lessons.length > 0 ? (
               day.lessons.slice(0, 2).map(lesson => (
                 <div key={lesson.id}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {tc(lesson.subject)}
                   </p>
                   <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
@@ -273,7 +273,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               ))
             ) : (
               <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'var(--color-muted)' }}>
-                <p style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
                 <p style={{ fontSize: 11, marginTop: 3 }}>{t('Уроки еще не проставлены')}</p>
               </div>
             )}

@@ -140,7 +140,7 @@ export default function HomeworkFlowBar({
               background: disabled ? 'rgba(var(--glass-rgb), 0.86)' : 'var(--grad-purple)',
               backdropFilter: disabled ? 'blur(14px)' : undefined,
               color: disabled ? 'var(--color-muted)' : '#fff',
-              fontFamily: 'inherit', fontSize: 15, fontWeight: 780,
+              fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
               cursor: disabled ? 'default' : 'pointer',
               boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(var(--accent-rgb), 0.35)',
               pointerEvents: 'auto',

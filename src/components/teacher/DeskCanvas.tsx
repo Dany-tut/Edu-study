@@ -145,7 +145,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20,
             boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}
         >
-          <X size={12} color="#fff" strokeWidth={3} />
+          <X size={12} color="#fff" strokeWidth={2.5} />
         </button>
       )}
     </div>

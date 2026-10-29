@@ -360,13 +360,13 @@ export default function AnnotationLayer({
           position: 'sticky', top: 8, zIndex: 6,
         }}>
           <button title={t('Карандаш')} onClick={() => setTool('pen')} style={iconBtn(tool === 'pen', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
-            <Pencil size={13} />
+            <Pencil size={14} />
           </button>
           <button title={t('Маркер — полупрозрачное выделение в строку')} onClick={() => setTool('marker')} style={iconBtn(tool === 'marker', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
-            <Highlighter size={13} />
+            <Highlighter size={14} />
           </button>
           <button title={t('Ластик')} onClick={() => setTool('eraser')} style={iconBtn(tool === 'eraser', 'var(--color-peach-soft)', 'var(--color-peach-text)')}>
-            <Eraser size={13} />
+            <Eraser size={14} />
           </button>
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           {PEN_COLORS.map(c => (
@@ -379,10 +379,10 @@ export default function AnnotationLayer({
           <input type="range" min={1} max={14} value={activeSize} onChange={e => setActiveSize(+e.target.value)} style={{ width: 64 }} />
           <div style={{ flex: 1 }} />
           <button title={t('Отменить')} onClick={undo} disabled={!canUndo} style={{ ...iconBtn(false), cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.35 }}>
-            <Undo2 size={13} />
+            <Undo2 size={14} />
           </button>
           <button title={t('Стереть всю разметку')} onClick={clear} style={{ ...iconBtn(false), background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
-            <Trash2 size={13} />
+            <Trash2 size={14} />
           </button>
         </div>
       )}

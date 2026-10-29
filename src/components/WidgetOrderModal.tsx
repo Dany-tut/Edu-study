@@ -54,7 +54,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
       >
         <w.Icon size={17} />
       </span>
-      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)' }}>{w.label}</span>
+      <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{w.label}</span>
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => onHide(id)}
@@ -158,7 +158,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0 }}>
               <div>
-                <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Виджеты')}</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Виджеты')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
                   {t('Перетащите за ручку, чтобы изменить порядок. Скрытые — ниже черты.')}
                 </p>
@@ -172,7 +172,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)',
                 }}
               >
-                <X size={17} />
+                <X size={18} />
               </motion.button>
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 24px 24px' }}>
@@ -195,7 +195,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 12px' }}>
                     <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
                       {t('Скрытые')}
                     </span>
                     <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
@@ -219,7 +219,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                         >
                           <w.Icon size={17} />
                         </span>
-                        <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-muted)' }}>{w.label}</span>
+                        <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-muted)' }}>{w.label}</span>
                         <motion.button
                           whileTap={{ scale: 0.9 }}
                           onClick={() => show(w.id)}
@@ -253,7 +253,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                     background: 'transparent', color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
                   }}
                 >
-                  <RotateCcw size={15} />
+                  <RotateCcw size={16} />
                   {t('Сбросить')}
                 </motion.button>
                 <motion.button
@@ -271,7 +271,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   onClick={apply}
                   style={{
                     padding: '0 22px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 650,
+                    background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600,
                   }}
                 >
                   {t('Готово')}

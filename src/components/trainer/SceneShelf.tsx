@@ -96,10 +96,10 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen, levelOr
       {shown.map(g => (
         <section key={g.title} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <header>
-            <h2 style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
               {t(g.title)}
             </h2>
-            <p style={{ fontSize: 12.5, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5 }}>
               {t(g.hint)}
             </p>
           </header>
@@ -120,9 +120,9 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen, levelOr
                           плашка ужималась по ширине и переносила подпись под
                           иконку, превращая её в двухэтажную. */}
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        {w.medium === 'series' ? <Tv size={11} />
-                          : w.medium === 'film' ? <Clapperboard size={11} />
-                          : <BookOpen size={11} />}
+                        {w.medium === 'series' ? <Tv size={12} />
+                          : w.medium === 'film' ? <Clapperboard size={12} />
+                          : <BookOpen size={12} />}
                         {w.medium === 'series' ? t('сериал')
                           : w.medium === 'film' ? t('фильм')
                           : t('книга')}
@@ -134,10 +134,10 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen, levelOr
                   </span>
 
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                       {w.title}
                     </span>
-                    <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{workLine(w)}</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{workLine(w)}</span>
                   </span>
 
                   <TileMeter value={p.percent} />
@@ -176,7 +176,7 @@ function OriginalRow({ Icon, label, accent, children }: {
   return (
     <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
       <Icon size={13} style={{ color: accent, flexShrink: 0, marginTop: 3 }} />
-      <span style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
+      <span style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
         <b style={{ color: 'var(--color-text-3)', fontWeight: 700 }}>{t(label)}. </b>
         {bindShortWords(t(children))}
       </span>
@@ -208,16 +208,16 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         <div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.25 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>
             {work.title}
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--color-text-3)', marginTop: 3 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>
             {work.origTitle !== work.title && <span>{work.origTitle} · </span>}
             {workLine(work)}
           </div>
         </div>
 
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: 'var(--color-text-2)', ...proseWrap }}>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
           {bindShortWords(work.blurb)}
         </p>
 
@@ -231,10 +231,10 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
           }}>
             <Quote size={14} style={{ color: accent, flexShrink: 0, marginTop: 3 }} />
             <span>
-              <span style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text)', lineHeight: 1.55 }}>
+              <span style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text)', lineHeight: 1.5 }}>
                 {work.quote.text}
               </span>
-              <span style={{ display: 'block', fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 4 }}>
+              <span style={{ display: 'block', fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
                 {work.quote.attribution}
               </span>
             </span>
@@ -250,7 +250,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
             border: '1px solid var(--color-amber-border)',
           }}>
             <AlertTriangle size={14} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 2 }} />
-            <span style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-2)', ...proseWrap }}>
+            <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', ...proseWrap }}>
               {bindShortWords(work.source.caveat)}
             </span>
           </div>
@@ -263,7 +263,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
         {work.source && (
           <div style={{
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '2px 8px',
-            fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.55,
+            fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5,
           }}>
             <span>
               {t('Источник')}: {work.source.corpus}
@@ -279,7 +279,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
                 color: accent, textDecoration: 'none', whiteSpace: 'nowrap',
               }}
             >
-              {t('оригинал')} <ExternalLink size={10} />
+              {t('оригинал')} <ExternalLink size={12} />
             </a>
           </div>
         )}
@@ -299,7 +299,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
               {work.medium === 'book'
                 ? <BookOpen size={14} style={{ color: accent, flexShrink: 0 }} />
                 : <PlayCircle size={14} style={{ color: accent, flexShrink: 0 }} />}
-              <span style={{ fontSize: 13.5, fontWeight: 780, color: 'var(--color-text)' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                 {work.medium === 'book' ? t('Читать в оригинале') : t('Смотреть в оригинале')}
               </span>
               {/* Уровень — единственное, что человек ищет глазами, поэтому он
@@ -325,7 +325,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
         )}
 
         {work.bucket === 'inspired' && (
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.55, ...proseWrap }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5, ...proseWrap }}>
             {bindShortWords(t('Произведение современное, поэтому его текст мы не публикуем. Сцены ниже написаны нами: они дают тему, регистр и лексику книги, но это не текст автора.'))}
           </div>
         )}
@@ -401,10 +401,10 @@ function SceneRow({ scene, passed, hidden, accent, soft, onOpen }: {
         {passed && (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
-            padding: '2px 8px 2px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
+            padding: '2px 8px 2px 6px', borderRadius: 999, fontSize: 11, fontWeight: 800,
             background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           }}>
-            <Check size={12} strokeWidth={3} />
+            <Check size={12} strokeWidth={2.5} />
             {t('пройдено')}
           </span>
         )}
@@ -413,7 +413,7 @@ function SceneRow({ scene, passed, hidden, accent, soft, onOpen }: {
         </span>
       </span>
 
-      <span style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
         {scene.title}
       </span>
 

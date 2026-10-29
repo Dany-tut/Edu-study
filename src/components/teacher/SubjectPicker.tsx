@@ -156,7 +156,7 @@ function SubjectDropdown({
                 }}>
                 {o.icon && <span aria-hidden>{o.icon}</span>}
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span>
-                {on && <Check size={13} strokeWidth={2.5} style={{ color: activeColor, flexShrink: 0 }} />}
+                {on && <Check size={14} strokeWidth={2.5} style={{ color: activeColor, flexShrink: 0 }} />}
               </button>
             )
           })}

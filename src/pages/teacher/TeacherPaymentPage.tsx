@@ -31,10 +31,10 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
       )}
       <div style={{ fontSize: 13, fontWeight: 700, color: accent ? 'rgba(255,255,255,0.78)' : 'var(--color-text-3)', marginBottom: 8 }}>{t(tier.name)}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 3 }}>
-        <span style={{ fontSize: 30, fontWeight: 800, color: accent ? '#fff' : 'var(--color-text)', letterSpacing: '-1px' }}>{tier.priceRub === 0 ? t('Бесплатно') : planPrice(tier, lang)}</span>
+        <span style={{ fontSize: 28, fontWeight: 800, color: accent ? '#fff' : 'var(--color-text)', letterSpacing: '-1px' }}>{tier.priceRub === 0 ? t('Бесплатно') : planPrice(tier, lang)}</span>
         {tier.priceRub > 0 && <span style={{ fontSize: 12, color: accent ? 'rgba(255,255,255,0.6)' : 'var(--color-text-3)' }}>/{t('мес')}</span>}
       </div>
-      <div style={{ fontSize: 12.5, color: accent ? 'rgba(255,255,255,0.7)' : 'var(--color-text-3)' }}>
+      <div style={{ fontSize: 13, color: accent ? 'rgba(255,255,255,0.7)' : 'var(--color-text-3)' }}>
         {tier.maxStudents == null ? t('Без лимита учеников') : `${t('До')} ${tier.maxStudents} ${t('учеников')}`}
       </div>
 
@@ -44,9 +44,9 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
         {tier.features.map(f => (
           <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 18, height: 18, borderRadius: 6, flexShrink: 0, background: accent ? 'rgba(255,255,255,0.2)' : 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={11} strokeWidth={3} style={{ color: accent ? '#fff' : 'var(--color-accent)' }} />
+              <Check size={12} strokeWidth={2.5} style={{ color: accent ? '#fff' : 'var(--color-accent)' }} />
             </div>
-            <span style={{ fontSize: 12.5, color: accent ? 'rgba(255,255,255,0.88)' : 'var(--color-text-2)' }}>{t(f)}</span>
+            <span style={{ fontSize: 13, color: accent ? 'rgba(255,255,255,0.88)' : 'var(--color-text-2)' }}>{t(f)}</span>
           </div>
         ))}
       </div>
@@ -63,7 +63,7 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
         } as React.CSSProperties}
       >
         {current ? t('Активен')
-          : requested ? <><Check size={15} /> {t('Заявка отправлена')}</>
+          : requested ? <><Check size={16} /> {t('Заявка отправлена')}</>
           : requesting ? t('Отправляем…')
           : <><Send size={14} /> {t('Оставить заявку')}</>}
       </button>
@@ -127,7 +127,7 @@ export default function TeacherPaymentPage() {
 
         {/* Plans */}
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>{t('Планы')}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 14 }}>{t('Планы')}</div>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
             {PLAN_TIERS.map(tier => (
               <PlanCard
@@ -147,7 +147,7 @@ export default function TeacherPaymentPage() {
 
         {/* Billing history placeholder */}
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>{t('История платежей')}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 14 }}>{t('История платежей')}</div>
           <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '32px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CreditCard size={20} strokeWidth={1.5} style={{ color: 'var(--color-text-3)' }} />

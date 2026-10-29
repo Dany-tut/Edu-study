@@ -61,13 +61,13 @@ export default function SubjectColorPicker({
               style={{ width: '100%', height: 56, padding: '0 15px', background: 'transparent', border: 'none' }}
               aria-expanded={open}
             >
-              <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
-                <span style={{ fontSize: 17 }} aria-hidden>{s.icon}</span>
+              <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+                <span style={{ fontSize: 18 }} aria-hidden>{s.icon}</span>
                 {s.name}
               </span>
               <span className="flex items-center" style={{ gap: 8 }}>
                 {own && (
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('свой')}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('свой')}</span>
                 )}
                 <span style={{
                   width: 26, height: 26, borderRadius: 999, background: current,
@@ -105,7 +105,7 @@ export default function SubjectColorPicker({
                             }}
                             aria-label={hex}
                           >
-                            {active && <Check size={16} strokeWidth={3} color="#fff" />}
+                            {active && <Check size={16} strokeWidth={2.5} color="#fff" />}
                           </motion.button>
                         )
                       })}
@@ -118,10 +118,10 @@ export default function SubjectColorPicker({
                         style={{
                           marginTop: 10, gap: 7, height: 34, padding: '0 13px', borderRadius: 999,
                           background: 'var(--color-bg-5)', color: 'var(--color-muted)',
-                          border: 'none', fontSize: 12.5, fontWeight: 600,
+                          border: 'none', fontSize: 13, fontWeight: 600,
                         }}
                       >
-                        <RotateCcw size={13} strokeWidth={2.2} />
+                        <RotateCcw size={14} strokeWidth={2} />
                         {resetLabel}
                       </motion.button>
                     )}

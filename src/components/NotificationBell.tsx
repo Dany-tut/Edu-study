@@ -77,7 +77,7 @@ export default function NotificationBell({ size = 16, hoverBg = 'rgba(var(--acce
         animate={bellState}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', transformOrigin: 'top center' }}
       >
-        <Bell size={size} strokeWidth={bellState !== 'idle' ? 2.2 : 1.8} />
+        <Bell size={size} strokeWidth={bellState !== 'idle' ? 2 : 2} />
       </motion.span>
 
       {/* Glow halo when ringing/sticker */}

@@ -135,7 +135,7 @@ export default function ConfirmHost() {
                 <Icon size={17} />
               </span>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.35 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
                   {top.title}
                 </div>
                 {top.message && (
@@ -153,7 +153,7 @@ export default function ConfirmHost() {
                   style={{
                     flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                     border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-                    color: 'var(--color-text-2)', fontSize: 13, fontWeight: 650,
+                    color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
                   }}
                 >
                   {top.cancelLabel ?? t('Отмена')}
@@ -171,7 +171,7 @@ export default function ConfirmHost() {
                   // теме бледно-розовый (он для текста поверх подложки).
                   background: danger ? 'var(--btn-red-bg)' : 'var(--grad-purple)',
                   boxShadow: danger ? 'var(--btn-red-glow)' : undefined,
-                  color: '#fff', fontSize: 13, fontWeight: 750,
+                  color: '#fff', fontSize: 13, fontWeight: 700,
                 }}
               >
                 {top.confirmLabel ?? (top.kind === 'alert' ? t('Понятно') : t('Продолжить'))}

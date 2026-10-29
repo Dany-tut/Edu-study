@@ -62,7 +62,7 @@ function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notifica
         {getIcon(n.type)}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.25 }}>
+        <div style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
           {n.title}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
@@ -185,7 +185,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             padding: '14px 14px 10px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <Bell size={15} style={{ color: 'var(--color-muted)' }} />
+              <Bell size={16} style={{ color: 'var(--color-muted)' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
                 {t('Уведомления')}
               </span>

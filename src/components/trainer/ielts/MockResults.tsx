@@ -194,8 +194,8 @@ function BandTile({ label, band, pending, note, accent, strong }: {
       border: strong ? 'none' : '1px solid var(--color-border-soft)',
     }}>
       <span style={{ fontSize: 12, fontWeight: 700, color: strong ? 'rgba(255,255,255,0.85)' : 'var(--color-text-2)' }}>{label}</span>
-      <span style={{ fontSize: 28, fontWeight: 850, lineHeight: 1.1, color: strong ? '#fff' : band == null ? 'var(--color-text-3)' : accent }}>
-        {pending && band == null ? <Loader2 size={22} className="spin" /> : fmtBand(band)}
+      <span style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.2, color: strong ? '#fff' : band == null ? 'var(--color-text-3)' : accent }}>
+        {pending && band == null ? <Loader2 size={24} className="spin" /> : fmtBand(band)}
       </span>
       {note && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{note}</span>}
     </div>
@@ -243,10 +243,10 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
         {grade && (
           <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{
-              fontSize: 11.5, fontWeight: 800, padding: '2px 8px', borderRadius: 999,
+              fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 999,
               background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
             }}>CEFR {cefrOf(grade.band)}</span>
-            <span style={{ fontSize: 22, fontWeight: 850, color: accent }}>{fmtBand(grade.band)}</span>
+            <span style={{ fontSize: 24, fontWeight: 800, color: accent }}>{fmtBand(grade.band)}</span>
           </span>
         )}
       </div>
@@ -263,7 +263,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
             {error ? t(error) : t('Оценки ещё нет')}
           </span>
           <button type="button" onClick={onRetry} style={outlineBtn(accent)}>
-            <RotateCcw size={13} /> {t('Оценить')}
+            <RotateCcw size={14} /> {t('Оценить')}
           </button>
         </div>
       )}
@@ -280,8 +280,8 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
                   padding: '10px 12px', borderRadius: 14, background: 'var(--color-bg)',
                   border: `1px solid ${low ? accent : 'var(--color-border-soft)'}`,
                 }}>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 2 }}>{c.name}</div>
-                  <div style={{ fontSize: 20, fontWeight: 850, color: 'var(--color-text)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 2 }}>{c.name}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>
                     {c.band}<span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}> / 9</span>
                   </div>
                   <div style={{ height: 5, borderRadius: 3, background: 'var(--color-bg-3)', marginTop: 6, overflow: 'hidden' }}>
@@ -296,7 +296,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
             {tabs.map(x => (
               <button key={x.id} type="button" onClick={() => setTab(x.id)} style={{
                 height: 30, padding: '0 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 12.5, fontWeight: 700,
+                fontSize: 13, fontWeight: 700,
                 background: tab === x.id ? 'var(--color-bg-2)' : 'transparent',
                 color: tab === x.id ? 'var(--color-text)' : 'var(--color-text-2)',
               }}>
@@ -342,7 +342,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
 
           {tab === 'answer' && (
             <pre style={{
-              margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55,
+              margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.5,
               color: 'var(--color-text)', padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg)',
               border: '1px solid var(--color-border-soft)',
             }}>{answer}</pre>
@@ -379,7 +379,7 @@ function LexisList({ lexis, accent }: { lexis: NonNullable<Grade['lexis']>; acce
       {lexis.map((x, i) => (
         <div key={i} style={{
           display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', padding: '8px 12px', borderRadius: 12,
-          background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)', fontSize: 13.5, lineHeight: 1.45,
+          background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)', fontSize: 14, lineHeight: 1.45,
         }}>
           <span style={{ color: 'var(--color-text-3)' }}>{x.from}</span>
           <span style={{ color: 'var(--color-text-3)' }}>→</span>
@@ -391,9 +391,9 @@ function LexisList({ lexis, accent }: { lexis: NonNullable<Grade['lexis']>; acce
         <button type="button" onClick={save} disabled={state === 'saving' || state === 'done'} style={{
           ...outlineBtn(accent), opacity: state === 'saving' || state === 'done' ? 0.6 : 1,
         }}>
-          <Layers size={13} /> {t('В карточки')}
+          <Layers size={14} /> {t('В карточки')}
         </button>
-        <span style={{ fontSize: 12.5, color: state === 'fail' ? 'var(--color-red-text)' : 'var(--color-text-2)' }}>
+        <span style={{ fontSize: 13, color: state === 'fail' ? 'var(--color-red-text)' : 'var(--color-text-2)' }}>
           {state === 'done' ? t('Добавлено — слова придут в повторение')
             : state === 'known' ? t('Эти слова уже в колоде')
             : state === 'fail' ? t('Не получилось добавить')
@@ -407,7 +407,7 @@ function LexisList({ lexis, accent }: { lexis: NonNullable<Grade['lexis']>; acce
 const outlineBtn = (accent: string): React.CSSProperties => ({
   display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 14px', borderRadius: 999,
   border: `1.5px solid ${accent}`, background: 'transparent', color: accent, fontWeight: 700,
-  fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
+  fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
 })
 
 /** Текст записи — открывается только в разборе, после экзамена. */
@@ -418,7 +418,7 @@ function Transcript({ lines }: { lines: string[] }) {
     <div>
       <button type="button" onClick={() => setOpen(v => !v)} style={{
         border: 'none', background: 'transparent', padding: 0, color: 'var(--color-text-2)', fontWeight: 700,
-        fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline',
+        fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline',
       }}>
         {open ? t('Скрыть текст записи') : t('Текст записи')}
       </button>

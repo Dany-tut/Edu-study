@@ -172,7 +172,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                 disabled={disabled}
                 style={{
                   position: 'relative', borderRadius: 9, fontFamily: 'inherit',
-                  fontSize: 21, fontWeight: 700, lineHeight: 1,
+                  fontSize: 20, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--color-text)',
                   border: showVerdict
@@ -187,7 +187,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                 {grid.numbers[k] !== undefined && (
                   <span style={{
                     position: 'absolute', top: 2, left: 4,
-                    fontSize: 9.5, fontWeight: 800, color: 'var(--color-text-4)',
+                    fontSize: 10, fontWeight: 800, color: 'var(--color-text-4)',
                   }}>
                     {grid.numbers[k]}
                   </span>
@@ -215,7 +215,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                       minWidth: 40, padding: '8px 9px', borderRadius: 11,
                       border: '1px solid var(--color-border-strong)',
                       background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-text)',
-                      fontFamily: 'inherit', fontSize: 19, fontWeight: 700, cursor: 'pointer',
+                      fontFamily: 'inherit', fontSize: 20, fontWeight: 700, cursor: 'pointer',
                     }}
                   >
                     {kk}
@@ -228,7 +228,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                 style={{
                   padding: '7px 15px', borderRadius: 999, border: '1px solid var(--color-border)',
                   background: 'transparent', color: 'var(--color-muted)',
-                  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                 }}
               >
                 {t('Очистить клетку')}

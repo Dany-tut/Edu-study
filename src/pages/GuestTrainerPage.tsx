@@ -141,7 +141,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
         }}
       >
         <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 750, color: 'var(--color-text)' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
             {t('Вы смотрите как гость')}
           </div>
           <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-2)', marginTop: 2 }}>

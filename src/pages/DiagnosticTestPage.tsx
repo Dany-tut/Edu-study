@@ -335,11 +335,11 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
             (custom_diag_tests.done_label) — свой текст учителя, по умолчанию её нет. Цвет —
             акцент теста, чтобы не спорить с вердиктом ниже. */}
         {doneLabel && (
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: accent, marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent, marginBottom: 10 }}>
             {doneLabel}
           </div>
         )}
-        <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.15, marginBottom: 12 }}>
+        <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 12 }}>
           {t('Молодец!')}
         </div>
         <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: verdict ? 20 : 28, maxWidth: 300 }}>
@@ -369,7 +369,7 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
               <span style={{ padding: '3px 12px', borderRadius: 999, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 800 }}>{verdict.level}</span>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: 'var(--color-text-3)' }}>{t('ТВОЙ УРОВЕНЬ')}</span>
             </div>
-            <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55, marginBottom: 10 }}>{verdict.note}</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 10 }}>{verdict.note}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
               {t('Рекомендуем курс:')} <span style={{ color: accent }}>{tc(verdict.courseTitle)}</span>
             </div>
@@ -878,7 +878,7 @@ export default function DiagnosticTestPage() {
               padding: '5px 11px 5px 9px', borderRadius: 12, lineHeight: 1.3, background: `${theme.accent}1f`,
               color: theme.accent, fontSize: 12, fontWeight: 600,
             }}>
-              <Target size={13} style={{ flexShrink: 0, marginTop: 1.5 }} />
+              <Target size={14} style={{ flexShrink: 0, marginTop: 1.5 }} />
               <span style={{ minWidth: 0 }}>
                 {t(theme.label).replace(/^Линия\s+\d+\.\s*/, '')} · {total}{'\u00A0'}{t('вопросов')}
               </span>
@@ -886,7 +886,7 @@ export default function DiagnosticTestPage() {
             {offer ? (
               <>
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Тест не закончен')}</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Тест не закончен')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>
                     <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{offer.p.name}</span> · {t('отвечено')} {Object.keys(offer.p.answers).length} {t('из')} {total}.<br />
                     {t('Ответы сохранены — можно продолжить с того же места.')}
@@ -909,7 +909,7 @@ export default function DiagnosticTestPage() {
               </>
             ) : (<>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 6 }}>{t('Как тебя зовут?')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('По имени преподаватель найдёт твои результаты.')}</div>
             </div>
             <NameEntryField value={studentName} onChange={setStudentName} onSubmit={startTest} accent={theme.accent} />
@@ -1025,7 +1025,7 @@ export default function DiagnosticTestPage() {
 
             {/* Question text */}
             <div style={{
-              fontSize: isDesktop ? 16 : 14.5, fontWeight: 700, lineHeight: 1.22,
+              fontSize: isDesktop ? 16 : 15, fontWeight: 700, lineHeight: 1.3,
               color: 'var(--color-text)', marginBottom: isDesktop ? 20 : 12,
               ...proseWrap,
             }}>
@@ -1154,7 +1154,7 @@ export default function DiagnosticTestPage() {
                       <motion.span key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <Check size={16} strokeWidth={2.6} /> {inline ? t('Принято') : t('Ответ принят')}
+                        <Check size={16} strokeWidth={2.5} /> {inline ? t('Принято') : t('Ответ принят')}
                       </motion.span>
                     ) : inline ? t('Ответить') : t('Принять ответ')}
                   </motion.button>

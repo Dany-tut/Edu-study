@@ -32,7 +32,7 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
     padding: '9px 18px', borderRadius: 999, border: 'none',
     cursor: disabled ? 'not-allowed' : 'pointer',
     background: a.gradient, color: '#fff',
-    fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit',
+    fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
     boxShadow: a.glow
       ? `0 4px 14px ${a.shadow}, 0 0 22px 2px ${a.glow}`
       : `0 4px 14px ${a.shadow}`,
@@ -102,7 +102,7 @@ export default function TeacherSaveButton({
         {[
           <>{icon ?? <Check size={14} strokeWidth={2.5} />} {label}</>,
           <><Loader2 size={14} strokeWidth={2.5} /> {savingText}</>,
-          <><Check size={15} strokeWidth={2.5} /> {savedText}</>,
+          <><Check size={16} strokeWidth={2.5} /> {savedText}</>,
         ].map((content, i) => (
           <span key={i} aria-hidden
             style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', visibility: 'hidden', pointerEvents: 'none' }}>
@@ -123,7 +123,7 @@ export default function TeacherSaveButton({
           <motion.span key="saved"
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
-            <Check size={15} strokeWidth={2.5} /> {savedText}
+            <Check size={16} strokeWidth={2.5} /> {savedText}
           </motion.span>
         ) : (
           <motion.span key="save"

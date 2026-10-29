@@ -99,7 +99,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
         value={draft.title}
         onChange={e => patch({ title: e.target.value })}
         placeholder={t('Название подборки')}
-        style={{ ...input(accent), fontSize: 17, fontWeight: 700 }}
+        style={{ ...input(accent), fontSize: 18, fontWeight: 700 }}
       />
       <input
         value={draft.about}
@@ -129,7 +129,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
           color: accent, fontSize: 13, fontWeight: 700,
         }}
       >
-        <Plus size={15} /> {t('Добавить набор')}
+        <Plus size={16} /> {t('Добавить набор')}
       </button>
     </div>
   )
@@ -196,7 +196,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
                 borderRadius: 12, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
               }}
             >
-              <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 650, color: 'var(--color-text)' }}>{c.term}</div>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{c.term}</div>
               {c.ep && <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{c.ep}</div>}
               <div style={{ fontSize: 13, color: 'var(--color-text-2)', width: '38%', textAlign: 'right' }}>{c.ru}</div>
               <button
@@ -204,7 +204,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
                 style={{ border: 'none', background: 'transparent', color: 'var(--color-muted)', cursor: 'pointer', padding: 2 }}
                 title={t('Убрать карточку')}
               >
-                <Trash2 size={13} />
+                <Trash2 size={14} />
               </button>
             </div>
           ))}
@@ -239,7 +239,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
             height: 40, padding: '0 14px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
             background: row.term.trim() && row.ru.trim() ? `${accent}1f` : 'var(--color-bg-2)',
             color: row.term.trim() && row.ru.trim() ? accent : 'var(--color-text-3)',
-            fontSize: 12.5, fontWeight: 700,
+            fontSize: 13, fontWeight: 700,
             cursor: row.term.trim() && row.ru.trim() ? 'pointer' : 'default',
           }}
         >
@@ -259,7 +259,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
         value={set.about}
         onChange={v => patch({ about: v })}
         placeholder={t('Подпись набора — необязательно')}
-        style={{ ...input(accent), fontSize: 12.5, resize: 'none' }}
+        style={{ ...input(accent), fontSize: 13, resize: 'none' }}
       />
     </div>
   )

@@ -105,7 +105,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Link2 size={19} style={{ color: 'var(--color-accent)' }} />
+              <Link2 size={20} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Импорт из Google Forms')}</div>
             <button onClick={handleClose} style={{ marginLeft: 'auto', width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
@@ -115,7 +115,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
 
           {!form && (
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.55, marginBottom: 12 }}>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, marginBottom: 12 }}>
                 {t('Вставьте ссылку на Google-форму с доступом «Всем, у кого есть ссылка». Правильные ответы Google не отдаёт — отметьте их вручную после импорта.')}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -153,7 +153,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
             <>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginTop: 10 }}>{form.title}</div>
               {form.description && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{form.description}</div>}
-              <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', margin: '8px 0 6px' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-3)', margin: '8px 0 6px' }}>
                 {t('Найдено вопросов:')} {form.questions.length} · {t('выбрано:')} {selectedCount}
               </div>
               <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 2 }}>
@@ -213,18 +213,18 @@ function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; in
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 3 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 700, color: visual.color, background: visual.bg, padding: '2px 7px', borderRadius: 999 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: visual.color, background: visual.bg, padding: '2px 7px', borderRadius: 999 }}>
             {t(TYPE_LABELS[q.type] ?? q.type)}
           </span>
           {needsAnswer && (
-            <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', padding: '2px 7px', borderRadius: 999 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', padding: '2px 7px', borderRadius: 999 }}>
               {t('нет ответа — отметьте вручную')}
             </span>
           )}
         </div>
-        <div style={{ fontSize: 12.5, color: 'var(--color-text)', lineHeight: 1.4 }}>{index + 1}. {q.title}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.4 }}>{index + 1}. {q.title}</div>
         {q.choices && (
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 3 }}>
             {q.choices.join(' · ')}
           </div>
         )}
