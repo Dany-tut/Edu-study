@@ -1093,3 +1093,31 @@ input::-webkit-textfield-decoration-container {
    ручных onMouseEnter с разными фонами (bg, bg-2, bg-3, bg-5). */
 .hover-row { transition: background 0.15s ease; }
 .hover-row:hover { background: var(--color-bg-3); }
+
+/* ─── Ползунок — один стиль (дизайн-система, круг 3) ──────────────────────────
+   Системный ползунок синий и в каждой ОС свой (доска, пометки на ответе рисовали
+   именно его). Дорожка 4 px капсулой --color-bg-5, бегунок 18 белый с тенью;
+   в Firefox ещё и заливка пройденного градиентом. Громкость видео — своя,
+   белая поверх видео (.video-volume), её не трогаем. */
+input[type="range"]:not(.video-volume) {
+  -webkit-appearance: none; appearance: none;
+  height: 18px; background: transparent; cursor: pointer; accent-color: var(--color-control-accent);
+}
+input[type="range"]:not(.video-volume)::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px; background: var(--color-bg-5);
+}
+input[type="range"]:not(.video-volume)::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border-medium);
+}
+input[type="range"]:not(.video-volume)::-moz-range-track {
+  height: 4px; border-radius: 999px; background: var(--color-bg-5);
+}
+input[type="range"]:not(.video-volume)::-moz-range-progress {
+  height: 4px; border-radius: 999px; background: var(--grad-purple);
+}
+input[type="range"]:not(.video-volume)::-moz-range-thumb {
+  width: 18px; height: 18px; border: none; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border-medium);
+}

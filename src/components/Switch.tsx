@@ -10,14 +10,16 @@
  * списка», переключатель — «работает или нет». Разная форма ровно за этим:
  * по ней видно, что нажатие меняет поведение, а не отмечает пункт.
  */
-export default function Switch({ checked, onChange, disabled, label }: {
+export default function Switch({ checked, onChange, disabled, label, size = 'M' }: {
   checked: boolean
   onChange: (v: boolean) => void
   disabled?: boolean
   /** Подпись для screen reader — сам ряд рисует её сам. */
   label?: string
+  /** M — 46×28 (настройки), S — 32×20 (плотные рейлы тренажёра). */
+  size?: 'M' | 'S'
 }) {
-  const W = 46, H = 28, PAD = 3
+  const [W, H, PAD] = size === 'S' ? [32, 20, 2] : [46, 28, 3]
   const knob = H - PAD * 2
   return (
     <label

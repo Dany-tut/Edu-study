@@ -1106,7 +1106,8 @@ export function RailToggle({ label, on, onChange, accent }: {
       onClick={() => onChange(!on)}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-        width: '100%', padding: '5px 0', border: 'none', background: 'none', cursor: 'pointer',
+        // Строка 36 — палец попадает; тумблер — размер S общего Switch (32×20).
+        width: '100%', minHeight: 36, padding: 0, border: 'none', background: 'none', cursor: 'pointer',
         fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--color-text-2)', textAlign: 'left',
       }}
       role="switch"
@@ -1114,12 +1115,13 @@ export function RailToggle({ label, on, onChange, accent }: {
     >
       <span>{t(label)}</span>
       <span style={{
-        position: 'relative', flexShrink: 0, width: 32, height: 18, borderRadius: 999,
-        background: on ? accent : 'var(--color-border-medium)', transition: 'background .16s',
+        position: 'relative', flexShrink: 0, width: 32, height: 20, borderRadius: 999, boxSizing: 'border-box',
+        background: on ? accent : 'var(--color-bg-5)', border: `1px solid ${on ? 'transparent' : 'var(--color-border-medium)'}`,
+        transition: 'background .16s',
       }}>
         <span style={{
-          position: 'absolute', top: 2, left: on ? 16 : 2, width: 14, height: 14, borderRadius: '50%',
-          background: '#fff', transition: 'left .16s',
+          position: 'absolute', top: 1, left: on ? 13 : 1, width: 16, height: 16, borderRadius: '50%',
+          background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.28)', transition: 'left .16s',
         }} />
       </span>
     </button>
