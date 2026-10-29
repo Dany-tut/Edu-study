@@ -57,7 +57,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'rgba(11,11,13,0.35)',
+          background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >
@@ -68,7 +68,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
           transition={{ type: 'spring', stiffness: 420, damping: 28, mass: 0.8 }}
           onClick={e => e.stopPropagation()}
           style={{
-            background: 'var(--color-bg-input)', borderRadius: 20,
+            background: 'var(--color-bg-input)', borderRadius: 22,
             boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
             width: 420, maxWidth: '92vw',
             padding: '28px 24px 20px',

@@ -143,7 +143,7 @@ function GoogleFormBankCategoryModal({
   return createPortal(
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <motion.div
@@ -4499,7 +4499,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
   return createPortal(
     <div
       onClick={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 12 }}
@@ -9945,14 +9945,14 @@ function AssignTestModal({
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.94, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 16 }}
         transition={{ type: 'spring', stiffness: 360, damping: 32 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 24, border: '1px solid var(--color-border-glass)', boxShadow: '0 32px 80px rgba(0,0,0,0.22)', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 22, border: '1px solid var(--color-border-glass)', boxShadow: '0 32px 80px rgba(0,0,0,0.22)', overflow: 'hidden' }}
       >
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', gap: 12 }}>

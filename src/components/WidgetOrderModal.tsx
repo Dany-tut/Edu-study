@@ -1,4 +1,5 @@
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
+import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { GripVertical, Plus, Minus, X } from 'lucide-react'
@@ -134,7 +135,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
           style={{
             position: 'fixed', inset: 0, zIndex: 2000,
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-            background: 'rgba(15,12,24,0.42)',
+            background: MODAL_BACKDROP.background,
             backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
           }}
         >
@@ -143,13 +144,14 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.2, ease: EASE }}
             style={{
-              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto',
-              background: 'var(--color-bg)', borderRadius: 24, padding: 24,
+              // Рамка не прокручивается: шапка стоит, листается только тело (см. Modal.tsx).
+              width: 'min(420px, 100%)', maxHeight: '90dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              background: 'var(--color-bg)', borderRadius: MODAL_RADIUS, paddingTop: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
           >
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0 }}>
               <div>
                 <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Виджеты')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -168,91 +170,93 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 <X size={17} />
               </motion.button>
             </div>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 24px 24px' }}>
 
-            {/* Shown widgets — vertical reorderable list */}
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={order}
-              onReorder={setOrder}
-              style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '20px 0 0', listStyle: 'none', padding: 0 }}
-            >
-              {order.map(id => (
-                <ShownRow key={id} id={id} onHide={hide} disabled={lastOne} />
-              ))}
-            </Reorder.Group>
+              {/* Shown widgets — vertical reorderable list */}
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={order}
+                onReorder={setOrder}
+                style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '20px 0 0', listStyle: 'none', padding: 0 }}
+              >
+                {order.map(id => (
+                  <ShownRow key={id} id={id} onHide={hide} disabled={lastOne} />
+                ))}
+              </Reorder.Group>
 
-            {/* Divider + hidden widgets — "+" brings one back into the carousel */}
-            {hidden.length > 0 && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 12px' }}>
-                  <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
-                    {t('Скрытые')}
-                  </span>
-                  <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {hidden.map(w => (
-                    <div
-                      key={w.id}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '10px 12px', borderRadius: 14, opacity: 0.72,
-                        background: 'rgba(var(--glass-rgb), 0.5)', border: '1.5px solid var(--color-border-medium)',
-                      }}
-                    >
-                      <span
+              {/* Divider + hidden widgets — "+" brings one back into the carousel */}
+              {hidden.length > 0 && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 12px' }}>
+                    <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
+                      {t('Скрытые')}
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {hidden.map(w => (
+                      <div
+                        key={w.id}
                         style={{
-                          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: w.soft, color: w.color, opacity: 0.7,
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '10px 12px', borderRadius: 14, opacity: 0.72,
+                          background: 'rgba(var(--glass-rgb), 0.5)', border: '1.5px solid var(--color-border-medium)',
                         }}
                       >
-                        <w.Icon size={17} />
-                      </span>
-                      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-muted)' }}>{w.label}</span>
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => show(w.id)}
-                        aria-label={`${t('Показать')} «${w.label}»`}
-                        title={t('Добавить')}
-                        style={{
-                          width: 28, height: 28, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-                        }}
-                      >
-                        <Plus size={16} />
-                      </motion.button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+                        <span
+                          style={{
+                            width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: w.soft, color: w.color, opacity: 0.7,
+                          }}
+                        >
+                          <w.Icon size={17} />
+                        </span>
+                        <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-muted)' }}>{w.label}</span>
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => show(w.id)}
+                          aria-label={`${t('Показать')} «${w.label}»`}
+                          title={t('Добавить')}
+                          style={{
+                            width: 28, height: 28, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+                          }}
+                        >
+                          <Plus size={16} />
+                        </motion.button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
-            {/* Footer */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={onClose}
-                style={{
-                  padding: '0 18px', height: 42, borderRadius: 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
-                  background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
-                }}
-              >
-                {t('Отмена')}
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={apply}
-                style={{
-                  padding: '0 22px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 650,
-                }}
-              >
-                {t('Готово')}
-              </motion.button>
+              {/* Footer */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={onClose}
+                  style={{
+                    padding: '0 18px', height: 42, borderRadius: 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
+                    background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
+                  }}
+                >
+                  {t('Отмена')}
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={apply}
+                  style={{
+                    padding: '0 22px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
+                    background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 650,
+                  }}
+                >
+                  {t('Готово')}
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         </motion.div>

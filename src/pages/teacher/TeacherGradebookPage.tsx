@@ -468,7 +468,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(11,11,13,0.45)', backdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
     >
@@ -480,7 +480,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
         style={{
           background: 'rgba(var(--glass-rgb), 0.97)',
           backdropFilter: 'blur(20px)',
-          borderRadius: 24,
+          borderRadius: 22,
           boxShadow: 'var(--shadow-modal-lg)',
           width: 560, maxHeight: '82vh',
           display: 'flex', flexDirection: 'column',

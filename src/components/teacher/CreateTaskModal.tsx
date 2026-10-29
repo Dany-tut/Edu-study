@@ -474,7 +474,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
         onClick={handleClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'rgba(20,16,32,0.38)',
+          background: 'rgba(0,0,0,0.45)',
           backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
           paddingTop: 80,
@@ -488,7 +488,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.85 }}
           onClick={e => e.stopPropagation()}
           style={{
-            width: 520, borderRadius: 26,
+            width: 520, borderRadius: 22,
             background: 'rgba(var(--glass-rgb), 0.96)',
             backdropFilter: 'blur(24px) saturate(200%)',
             border: '1px solid var(--color-border-glass)',

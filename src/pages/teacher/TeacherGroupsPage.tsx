@@ -104,7 +104,7 @@ function AddGroupModal({ onClose, onSave }: {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <motion.div
@@ -114,7 +114,7 @@ function AddGroupModal({ onClose, onSave }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
         }}
       >
@@ -227,7 +227,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <motion.div
@@ -237,7 +237,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         transition={{ duration: 0.2 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
           width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
         }}
       >
@@ -373,7 +373,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <motion.div
@@ -383,7 +383,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24,
+          background: 'var(--color-bg-input)', borderRadius: 22,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
@@ -683,7 +683,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <motion.div
@@ -693,7 +693,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24,
+          background: 'var(--color-bg-input)', borderRadius: 22,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
@@ -1518,7 +1518,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.48)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
       onClick={onClose}
     >
       <motion.div
@@ -1530,7 +1530,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
         style={{
           width: '100%', maxWidth: 800, maxHeight: '90dvh',
           background: 'var(--color-bg-input)',
-          borderRadius: 28, boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
+          borderRadius: 22, boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
           border: '1px solid var(--color-border-glass)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}

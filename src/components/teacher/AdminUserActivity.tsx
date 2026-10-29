@@ -381,8 +381,8 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
   })
 
   return createPortal(
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 420, maxWidth: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 18, padding: 22 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 420, maxWidth: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 22, padding: 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{tn(teacher.name)}: {t('начать с нуля')}</div>

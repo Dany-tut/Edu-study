@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { MODAL_BACKDROP, MODAL_CARD } from '../Modal'
 import TeacherSaveButton from './TeacherSaveButton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -434,14 +435,17 @@ function Backdrop({ children, onClose }: { children: React.ReactNode; onClose: (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
+      style={{ ...MODAL_BACKDROP, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
     >
+      {/* Рамка стоит, листается тело — полоса прокрутки не заходит в углы. */}
       <motion.div
         initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: 420, maxWidth: '100%', maxHeight: '86vh', overflowY: 'auto', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 18, padding: 22 }}
+        style={{ ...MODAL_CARD, width: 420, maxWidth: '100%', maxHeight: '86dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
-        {children}
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: 22 }}>
+          {children}
+        </div>
       </motion.div>
     </motion.div>
   )

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { MODAL_BACKDROP, MODAL_CARD } from '../components/Modal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, ChevronRight, Lightbulb, Info, X } from 'lucide-react'
 import { appendAnonResult } from '../data/diagnosticData'
@@ -116,32 +117,34 @@ function InfoDot({ info }: { info: DomainInfo }) {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+            style={{ ...MODAL_BACKDROP, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           >
             <motion.div
               initial={{ scale: 0.92, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: 440, maxHeight: '80vh', overflowY: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)', borderRadius: 20, padding: '22px 22px 24px' }}
+              style={{ ...MODAL_CARD, width: '100%', maxWidth: 440, maxHeight: '80dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                <span style={{ fontSize: 24 }}>{info.emoji}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{info.dimension}</div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: ACC, letterSpacing: 0.5 }}>{info.chc} · {info.label}</div>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '22px 22px 24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontSize: 24 }}>{info.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{info.dimension}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: ACC, letterSpacing: 0.5 }}>{info.chc} · {info.label}</div>
+                  </div>
+                  <button onClick={() => setOpen(false)} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
                 </div>
-                <button onClick={() => setOpen(false)} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
+                {([
+                  [t('Что измеряет'), t(info.measures)],
+                  [t('Как устроено'), t(info.how)],
+                  [t('Что определяет'), t(info.determines)],
+                  [t('Методология'), t(info.science)],
+                ] as [string, string][]).map(([h, body]) => (
+                  <div key={h} style={{ marginTop: 14 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>{h}</div>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55 }}>{body}</div>
+                  </div>
+                ))}
               </div>
-              {([
-                [t('Что измеряет'), t(info.measures)],
-                [t('Как устроено'), t(info.how)],
-                [t('Что определяет'), t(info.determines)],
-                [t('Методология'), t(info.science)],
-              ] as [string, string][]).map(([h, body]) => (
-                <div key={h} style={{ marginTop: 14 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>{h}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.55 }}>{body}</div>
-                </div>
-              ))}
             </motion.div>
           </motion.div>
         )}

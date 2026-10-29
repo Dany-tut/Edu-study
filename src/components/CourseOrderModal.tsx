@@ -1,4 +1,5 @@
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
+import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { GripVertical, X } from 'lucide-react'
@@ -157,7 +158,7 @@ export default function CourseOrderModal({ open, onClose }: Props) {
           style={{
             position: 'fixed', inset: 0, zIndex: 2000,
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-            background: 'rgba(15,12,24,0.42)',
+            background: MODAL_BACKDROP.background,
             backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
           }}
         >
@@ -165,14 +166,14 @@ export default function CourseOrderModal({ open, onClose }: Props) {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.2, ease: EASE }}
-            ref={panelRef}
             style={{
-              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto', overscrollBehavior: 'contain',
-              background: 'var(--color-bg)', borderRadius: 24, padding: 24,
+              // Рамка не прокручивается: шапка стоит, листается только тело (см. Modal.tsx).
+              width: 'min(420px, 100%)', maxHeight: '90dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              background: 'var(--color-bg)', borderRadius: MODAL_RADIUS, paddingTop: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0 }}>
               <div>
                 <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Порядок курсов')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -191,12 +192,14 @@ export default function CourseOrderModal({ open, onClose }: Props) {
                 <X size={17} />
               </motion.button>
             </div>
+            <div ref={panelRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 24px 24px' }}>
 
-            <div style={{ marginTop: 20 }}>
-              <CourseOrderList rows={rows} setRows={setRows} />
-            </div>
-            <div style={{ marginTop: 24 }}>
-              <CourseOrderActions saving={saving} onCancel={onClose} onApply={apply} />
+              <div style={{ marginTop: 20 }}>
+                <CourseOrderList rows={rows} setRows={setRows} />
+              </div>
+              <div style={{ marginTop: 24 }}>
+                <CourseOrderActions saving={saving} onCancel={onClose} onApply={apply} />
+              </div>
             </div>
           </motion.div>
         </motion.div>

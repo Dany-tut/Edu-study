@@ -6444,11 +6444,11 @@ export default function TeacherCourseEditorPage() {
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={() => !handoutBusy && setHandoutOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)' }}>
+          style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
           <motion.div
             initial={{ scale: 0.96, y: 8 }} animate={{ scale: 1, y: 0 }}
             onClick={e => e.stopPropagation()}
-            style={{ width: 460, maxWidth: '92vw', maxHeight: '88vh', overflow: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', borderRadius: 20, boxShadow: '0 24px 70px rgba(0,0,0,0.4)', padding: 22 }}>
+            style={{ width: 460, maxWidth: '92vw', maxHeight: '88vh', overflow: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', borderRadius: 22, boxShadow: '0 24px 70px rgba(0,0,0,0.4)', padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Copy size={17} strokeWidth={2.2} color="var(--color-green-text)" />

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
@@ -155,7 +156,7 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
           style={{
             position: 'fixed', inset: 0, zIndex: 2000,
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-            background: 'rgba(15,12,24,0.42)',
+            background: MODAL_BACKDROP.background,
             backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
           }}
         >
@@ -164,14 +165,14 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.2, ease: EASE }}
-            ref={panelRef}
             style={{
-              width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto', overscrollBehavior: 'contain',
-              background: 'var(--color-bg)', borderRadius: 24, padding: 24,
+              // Рамка не прокручивается: шапка стоит, листается только тело (см. Modal.tsx).
+              width: 'min(420px, 100%)', maxHeight: '90dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              background: 'var(--color-bg)', borderRadius: MODAL_RADIUS, paddingTop: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0, marginBottom: 18 }}>
               <div>
                 <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Цвет курса')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -191,7 +192,9 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
                 <X size={17} />
               </motion.button>
             </div>
-            <CourseTintSettings surface="var(--color-bg)" />
+            <div ref={panelRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 24px 24px' }}>
+              <CourseTintSettings surface="var(--color-bg)" />
+            </div>
           </motion.div>
         </motion.div>
       )}

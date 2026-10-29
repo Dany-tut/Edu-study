@@ -791,12 +791,12 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setConfirmDel(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
           >
             <motion.div
               initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              style={{ width: 380, maxWidth: '90vw', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 18, padding: 22 }}
+              style={{ width: 380, maxWidth: '90vw', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 22, padding: 22 }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />

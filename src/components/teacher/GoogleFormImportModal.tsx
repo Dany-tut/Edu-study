@@ -85,7 +85,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000, backdropFilter: 'blur(4px)',
         }}
