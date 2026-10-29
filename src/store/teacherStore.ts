@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { confirmDialog } from '../components/ConfirmHost'
+import { t } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
 
 export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
@@ -240,18 +242,22 @@ function initialPage(): TeacherPage {
 // Возвращает true, если терять есть что.
 let leaveGuard: (() => boolean) | null = null
 export function setLeaveGuard(fn: (() => boolean) | null) { leaveGuard = fn }
-export function mayLeave(): boolean {
-  if (!leaveGuard || !leaveGuard()) return true
-  if (!window.confirm('Есть несохранённые изменения. Уйти без сохранения?')) return false
-  leaveGuard = null
-  return true
+/** Уйти, если терять нечего; иначе спросить окном приложения (не системным
+ *  confirm — тот рисует ОС чужим шрифтом поверх тёмной темы). */
+export function whenMayLeave(go: () => void) {
+  if (!leaveGuard || !leaveGuard()) { go(); return }
+  void confirmDialog({
+    title: t('Уйти без сохранения?'),
+    message: t('Несохранённые изменения пропадут.'),
+    confirmLabel: t('Уйти'), tone: 'danger',
+  }).then(ok => { if (ok) { leaveGuard = null; go() } })
 }
 
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
-  setActivePage: page => { if (!mayLeave()) return; clearEditorSession(); clearCardsSession(); set({ activePage: page, headerDocked: false }) },
+  setActivePage: page => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: page, headerDocked: false }) }),
   pendingGradebookLessonId: null,
-  openGradebook: scheduleId => { if (!mayLeave()) return; clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) },
+  openGradebook: scheduleId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) }),
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
   editingCourseJson: readEditorSession(),
   openCourseEditor: courseJson => {

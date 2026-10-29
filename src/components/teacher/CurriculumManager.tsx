@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { confirmDialog } from '../ConfirmHost'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown, Plus, Trash2, X, Check, RotateCcw, Database, Hash, BookOpen, GripVertical,
@@ -240,7 +241,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
             <BookOpen size={12} /> {topics.length}
           </span>
         </span>
-        <button onClick={e => { e.stopPropagation(); if (confirm(`${t('Удалить раздел')} «${section}» ${t('со всеми темами и линиями?')}`)) removeSection(subject, section) }}
+        <button onClick={e => { e.stopPropagation(); void confirmDialog({ title: `${t('Удалить раздел')} «${section}»?`, message: t('Темы и линии раздела тоже удалятся.'), confirmLabel: t('Удалить'), tone: 'danger' }).then(ok => { if (ok) removeSection(subject, section) }) }}
           style={{ display: 'flex', width: 30, height: 30, borderRadius: 9, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', flexShrink: 0, ...revealStyle(del.visible, 30, 10) }}>
           <Trash2 size={14} />
         </button>
@@ -357,7 +358,7 @@ export default function CurriculumManager() {
               ariaLabel={t('Предмет')}
             />
           </div>
-          <button onClick={() => { if (confirm(t('Вернуть стандартную структуру ЕГЭ для этого предмета? Ваши правки будут потеряны.'))) resetSubject(subject) }}
+          <button onClick={() => { void confirmDialog({ title: t('Вернуть стандартную структуру ЕГЭ?'), message: t('Ваши правки структуры этого предмета будут потеряны.'), confirmLabel: t('Вернуть'), tone: 'danger' }).then(ok => { if (ok) resetSubject(subject) }) }}
             title={t('Сбросить к стандарту ЕГЭ')}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
             <RotateCcw size={14} /> {t('Сбросить')}

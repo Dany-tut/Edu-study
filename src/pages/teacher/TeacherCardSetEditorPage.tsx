@@ -22,7 +22,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { useTeacher, setLeaveGuard, mayLeave } from '../../store/teacherStore'
+import { useTeacher, setLeaveGuard, whenMayLeave } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
 import { getOwnerId } from '../../lib/owner'
 import { fetchOwnCardGroups, saveCardGroup, applyCardSaveIds, isShelf, type CardGroup } from '../../lib/cardGroups'
@@ -135,9 +135,10 @@ export default function TeacherCardSetEditorPage() {
   /** Выход: черновик из сессии убираем — иначе следующий F5 вернул бы сюда. */
   function back() {
     // Спросить ДО того, как гасить черновик сессии: отказ оставляет всё как было.
-    if (!mayLeave()) return
-    setCardsEdited(null)
-    setActivePage('constructor')
+    whenMayLeave(() => {
+      setCardsEdited(null)
+      setActivePage('constructor')
+    })
   }
 
   return (

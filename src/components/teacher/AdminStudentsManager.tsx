@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { confirmDialog } from '../ConfirmHost'
 import { FIELD } from '../../lib/fieldStyle'
 import { MODAL_BACKDROP, MODAL_CARD } from '../Modal'
 import TeacherSaveButton from './TeacherSaveButton'
@@ -64,8 +65,6 @@ export default function AdminStudentsManager() {
   const [query, setQuery] = useState('')
   const [ownerFilter, setOwnerFilter] = useState('')
   const [editing, setEditing] = useState<StudentRow | null>(null)
-  const [confirmDel, setConfirmDel] = useState<StudentRow | null>(null)
-  const [confirmMove, setConfirmMove] = useState<{ row: StudentRow; owner: string } | null>(null)
   const [notice, setNotice] = useState<{ tone: 'danger' | 'success'; text: string } | null>(null)
   // Свёрнутые учителя. Держим именно РАЗВЁРНУТЫХ, а не свёрнутых: учителей
   // становится больше со временем, и новый должен приходить закрытым сам, без
@@ -104,12 +103,15 @@ export default function AdminStudentsManager() {
     const grp = groups.find(g => g.id === row.group_id)
     const simple = row.is_individual && (grp?.students ?? 1) <= 1
     if (simple) void doReassign(row, newOwner)
-    else setConfirmMove({ row, owner: newOwner })
+    else void confirmDialog({
+      title: t('Передать ученика?'),
+      message: `${tn(row.name)} ${t('сейчас в общей группе')} «${row.group_name}». ${t('Он переедет в новую личную группу учителя')} ${teachers.find(x => x.id === newOwner)?.name ?? ''} ${t('— личный прогресс, журнал и расписание переедут вместе с ним, а групповое ДЗ старой группы останется у прежнего учителя.')}`,
+      confirmLabel: t('Передать'),
+    }).then(ok => { if (ok) void doReassign(row, newOwner) })
   }
 
   async function doReassign(row: StudentRow, newOwner: string) {
     setBusyId(row.id)
-    setConfirmMove(null)
     const { data, error } = await supabase.rpc('admin_student_reassign', { p_student: row.id, p_owner: newOwner })
     const teacher = teachers.find(x => x.id === newOwner)?.name ?? ''
     if (error) setNotice({ tone: 'danger', text: error.message })
@@ -134,7 +136,6 @@ export default function AdminStudentsManager() {
 
   async function doDelete(row: StudentRow) {
     setBusyId(row.id)
-    setConfirmDel(null)
     const { error } = await supabase.rpc('admin_student_delete', { p_id: row.id })
     if (error) setNotice({ tone: 'danger', text: error.message })
     await load()
@@ -347,7 +348,11 @@ export default function AdminStudentsManager() {
                       <Pencil size={14} strokeWidth={2} />
                     </button>
                     <button
-                      onClick={() => setConfirmDel(row)}
+                      onClick={() => void confirmDialog({
+                        title: t('Удалить безвозвратно?'),
+                        message: `${t('Ученик')} «${tn(row.name)}» ${t('и весь его прогресс, посещаемость, расписание и платежи будут удалены навсегда.')}${row.has_account ? ' ' + t('Аккаунт входа останется в системе — сбросить его можно на карточке ученика у учителя.') : ''}`,
+                        confirmLabel: t('Удалить'), tone: 'danger',
+                      }).then(ok => { if (ok) void doDelete(row) })}
                       disabled={busyId === row.id}
                       title={t('Удалить')}
                       style={iconBtn('#E04848')}
@@ -376,51 +381,6 @@ export default function AdminStudentsManager() {
         />
       )}
 
-      {/* Reassign confirm (общая группа → новая личная) */}
-      <AnimatePresence>
-        {confirmMove && createPortal(
-          <Backdrop onClose={() => setConfirmMove(null)}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <ArrowRightLeft size={18} strokeWidth={2} style={{ color: 'var(--color-purple)' }} />
-              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Передать ученика?')}</div>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
-              <b>{tn(confirmMove.row.name)}</b> {t('сейчас в общей группе')} «{confirmMove.row.group_name}». {t('Он переедет в новую личную группу учителя')} <b>{teachers.find(x => x.id === confirmMove.owner)?.name}</b> {t('— личный прогресс, журнал и расписание переедут вместе с ним, а групповое ДЗ старой группы останется у прежнего учителя.')}
-            </div>
-            <Actions
-              cancel={t('Отмена')}
-              confirm={t('Передать')}
-              onCancel={() => setConfirmMove(null)}
-              onConfirm={() => doReassign(confirmMove.row, confirmMove.owner)}
-            />
-          </Backdrop>,
-          document.body
-        )}
-      </AnimatePresence>
-
-      {/* Delete confirm */}
-      <AnimatePresence>
-        {confirmDel && createPortal(
-          <Backdrop onClose={() => setConfirmDel(null)}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
-              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Удалить безвозвратно?')}</div>
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
-              {t('Ученик')} <b>«{tn(confirmDel.name)}»</b> {t('и весь его прогресс, посещаемость, расписание и платежи будут удалены навсегда.')}
-              {confirmDel.has_account && <> {t('Аккаунт входа останется в системе — сбросить его можно на карточке ученика у учителя.')}</>}
-            </div>
-            <Actions
-              cancel={t('Отмена')}
-              confirm={t('Удалить')}
-              danger
-              onCancel={() => setConfirmDel(null)}
-              onConfirm={() => doDelete(confirmDel)}
-            />
-          </Backdrop>,
-          document.body
-        )}
-      </AnimatePresence>
     </div>
   )
 }
@@ -452,16 +412,6 @@ function Backdrop({ children, onClose }: { children: React.ReactNode; onClose: (
   )
 }
 
-function Actions({ cancel, confirm, danger, onCancel, onConfirm }: {
-  cancel: string; confirm: string; danger?: boolean; onCancel: () => void; onConfirm: () => void
-}) {
-  return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-      <button onClick={onCancel} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{cancel}</button>
-      <button onClick={onConfirm} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: danger ? 'var(--btn-red-bg)' : 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{confirm}</button>
-    </div>
-  )
-}
 
 const fieldStyle: React.CSSProperties = { ...FIELD }
 

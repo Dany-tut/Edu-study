@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { confirmDialog } from '../../components/ConfirmHost'
 import { FIELD } from '../../lib/fieldStyle'
 import { RadioMark } from '../../components/Radio'
 import { CheckboxMark } from '../../components/Checkbox'
@@ -2284,11 +2285,14 @@ export default function TeacherHomeworkCreatePage() {
 
   // Explicit "Назад" = user abandons the form — the one place a draft dies unsaved.
   function exitPage() {
+    const leave = () => { clearDrafts(`${draftScope}.`); setActivePage('homework') }
     // Назад стирает черновик насовсем — с собранными заданиями спрашиваем.
-    if (!published && hwTasks.length + hardTasks.length > 0
-      && !window.confirm(t('Домашка не опубликована. Выйти и удалить черновик?'))) return
-    clearDrafts(`${draftScope}.`)
-    setActivePage('homework')
+    if (published || hwTasks.length + hardTasks.length === 0) { leave(); return }
+    void confirmDialog({
+      title: t('Домашка не опубликована. Выйти и удалить черновик?'),
+      message: t('Собранные задания пропадут.'),
+      confirmLabel: t('Удалить и выйти'), tone: 'danger',
+    }).then(ok => { if (ok) leave() })
   }
 
   function updateTask(id: string, p: Partial<HWTask>, isHard = false) {

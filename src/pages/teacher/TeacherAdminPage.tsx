@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { confirmDialog } from '../../components/ConfirmHost'
 import Segmented from '../../components/Segmented'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
@@ -668,7 +669,16 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
   const [rows, setRows] = useState<ContentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [confirmDel, setConfirmDel] = useState<ContentRow | null>(null)
+  // Подтверждение удаления — общим окном приложения (ConfirmHost), а не своим.
+  function askDelete(row: ContentRow) {
+    void confirmDialog({
+      title: t('Удалить безвозвратно?'),
+      message: row.kind === 'course'
+        ? `${t('Курс')} «${tc(row.title)}» ${t('и все его уроки/модули будут удалены навсегда.')}`
+        : `${t('Группа')} «${tc(row.title)}» ${t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}`,
+      confirmLabel: t('Удалить'), tone: 'danger',
+    }).then(ok => { if (ok) void doDelete(row) })
+  }
   const [filter, setFilter] = useState<'all' | 'course' | 'group'>('all')
 
   async function load() {
@@ -690,7 +700,6 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
   async function doDelete(row: ContentRow) {
     setBusyId(row.id)
     await supabase.rpc('admin_delete_content', { p_kind: row.kind, p_id: row.id })
-    setConfirmDel(null)
     await load()
     setBusyId(null)
   }
@@ -764,7 +773,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                 />
               </div>
               <button
-                onClick={() => setConfirmDel(row)}
+                onClick={() => askDelete(row)}
                 disabled={busyId === row.id}
                 title={t('Удалить')}
                 style={{
@@ -782,34 +791,6 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
 
       {/* Delete confirm */}
       <AnimatePresence>
-        {confirmDel && createPortal(
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setConfirmDel(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
-          >
-            <motion.div
-              initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: 380, maxWidth: '90vw', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 22, padding: 22 }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
-                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Удалить безвозвратно?')}</div>
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
-                {confirmDel.kind === 'course'
-                  ? <>{t('Курс')} <b>«{tc(confirmDel.title)}»</b> {t('и все его уроки/модули будут удалены навсегда.')}</>
-                  : <>{t('Группа')} <b>«{tc(confirmDel.title)}»</b> {t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}</>}
-              </div>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: 'var(--btn-red-bg)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('Удалить')}</button>
-              </div>
-            </motion.div>
-          </motion.div>,
-          document.body
-        )}
       </AnimatePresence>
     </div>
   )
