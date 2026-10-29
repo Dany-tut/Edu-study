@@ -111,7 +111,8 @@ function AppRoutes() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((e, s) => {
-      if (e === 'PASSWORD_RECOVERY') setRecovery(true)
+      // По коду из письма пароль меняет сама форма входа (см. TeacherLoginPage).
+      if (e === 'PASSWORD_RECOVERY' && !sessionStorage.getItem('pw_reset_by_code')) setRecovery(true)
       setSession(s)
     })
     // Re-check the session when the tab regains focus: if the token silently

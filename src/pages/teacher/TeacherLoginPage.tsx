@@ -13,10 +13,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   // Свободной регистрации нет: аккаунт учителя создаётся только по ссылке-приглашению (#/join-teacher)
-  const [mode, setMode] = useState<'login' | 'reset' | 'newpassword'>(
+  // reset → письмо ушло → code: код из письма + новый пароль на этом же экране.
+  // Ссылка из письма (newpassword) остаётся запасным путём.
+  const [mode, setMode] = useState<'login' | 'reset' | 'code' | 'newpassword'>(
     recovery ? 'newpassword' : 'login',
   )
   const [showPassword, setShowPassword] = useState(false)
+  const [code, setCode] = useState('')
 
   function switchMode(next: 'login' | 'reset') {
     setMode(next)
@@ -42,7 +45,23 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
         if (error) throw error
-        setNotice(t('Письмо для сброса пароля отправлено. Проверьте почту.'))
+        setMode('code')
+        setPassword('')
+        setNotice(t('Мы отправили код на почту. Введите его и придумайте новый пароль.'))
+      } else if (mode === 'code') {
+        // verifyOtp шлёт PASSWORD_RECOVERY, и App подменил бы этот экран формой
+        // «по ссылке» посреди смены пароля. Флаг говорит App: пароль меняем здесь.
+        sessionStorage.setItem('pw_reset_by_code', '1')
+        try {
+          const { error: otpErr } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: 'recovery' })
+          if (otpErr) throw otpErr
+          const { error } = await supabase.auth.updateUser({ password })
+          if (error) throw error
+        } finally {
+          sessionStorage.removeItem('pw_reset_by_code')
+        }
+        setNotice(t('Пароль обновлён. Входим…'))
+        onLogin()
       } else if (mode === 'newpassword') {
         const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
@@ -59,11 +78,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
   const titles: Record<typeof mode, string> = {
     login: t('Войдите в аккаунт'),
     reset: t('Сброс пароля'),
+    code: t('Код из письма'),
     newpassword: t('Новый пароль'),
   }
   const buttonLabels: Record<typeof mode, string> = {
     login: t('Войти'),
-    reset: t('Отправить письмо'),
+    reset: t('Отправить код'),
+    code: t('Сохранить пароль'),
     newpassword: t('Сохранить пароль'),
   }
 
@@ -99,6 +120,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
             <input
               className="auth-input"
               type="email"
+              readOnly={mode === 'code'}
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -119,12 +141,40 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
               }}
             />
           )}
+          {mode === 'code' && (
+            <input
+              className="auth-input"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder={t('Код из письма')}
+              value={code}
+              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              required
+              autoFocus
+              style={{
+                minHeight: 50,
+                lineHeight: '22px',
+                padding: '13px 16px',
+                borderRadius: 14,
+                border: '1.5px solid var(--color-border-medium)',
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: 6,
+                textAlign: 'center',
+                outline: 'none',
+                boxSizing: 'border-box',
+                color: 'var(--color-text)',
+                WebkitTextFillColor: 'var(--color-text)',
+                background: 'var(--color-bg-input)',
+              }}
+            />
+          )}
           {mode !== 'reset' && (
           <div style={{ position: 'relative' }}>
             <input
               className="auth-input"
               type={showPassword ? 'text' : 'password'}
-              placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
+              placeholder={mode === 'login' ? t('Пароль') : t('Новый пароль')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -211,7 +261,11 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
 
         {mode !== 'newpassword' && (
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
-            {mode === 'reset' ? (
+            {mode === 'code' ? (
+              <span onClick={() => switchMode('reset')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
+                {t('Отправить код ещё раз')}
+              </span>
+            ) : mode === 'reset' ? (
               <span onClick={() => switchMode('login')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
                 {t('← Назад ко входу')}
               </span>
