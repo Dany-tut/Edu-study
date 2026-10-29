@@ -12,7 +12,7 @@ import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import CourseNode from './CourseNode'
 import HScrollFade from './HScrollFade'
-import { useFloatingPill, PILL_ANCHOR } from '../lib/useFloatingPill'
+import { CourseSelect, ModuleChain } from './CourseModuleBar'
 import { playTransitionDrop } from '../lib/sound'
 import { EMOJI_STEPS } from './homeworkSteps'
 import HardStarLottie from './HardStarLottie'
@@ -24,6 +24,9 @@ const HARD_CARD_WIDTH = 320
 const TRACK_SIDE_PADDING = 36
 // Vertical breathing room above the row so the selected node's glow ring isn't clipped.
 const GLOW_PAD = 24
+// Трек подтягивается под строку курса: кружки встают в 12 px от неё, свечение
+// уходит в воздух над строкой (строка поверх — zIndex 2).
+const TRACK_PULL_UP = 12 - GLOW_PAD
 
 // Format a lesson's scheduled date as "18 июня" to match the schedule calendar.
 // The DB stores dates as "DD.MM.YYYY" text; also tolerate ISO "YYYY-MM-DD".
@@ -104,7 +107,7 @@ function useScrollTabIntoView(
   }, [rowRef, attr, activeId])
 }
 
-function TrackForSubject({ subject }: { subject: Subject }) {
+function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot?: React.ReactNode }) {
   const t = useT()
   const { tc } = useTc()
   const { activeModuleId, setActiveModule, setTrackPopoverOpen, openLesson, openHomeworkForLesson, highlightLessonId, lessonAssessments } = useDashboard()
@@ -115,7 +118,6 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   // so resolve to an actually-rendered module — lets the pill appear without a click.
   const effectiveModuleId =
     subject.modules.find(m => m.id === activeModuleId)?.id ?? subject.modules[0]?.id
-  const modulePill = useFloatingPill(effectiveModuleId ?? '')
   const moduleRowRef = useRef<HTMLDivElement>(null)
   useScrollTabIntoView(moduleRowRef, 'data-module-tab', String(effectiveModuleId ?? ''))
 
@@ -209,111 +211,34 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   const hardStyleData = HARD_STYLE[hardStatus]
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col" style={{ padding: '8px 0 0' }}>
-      {/* ── Top row: Module tabs — one line, extra modules scroll under the
-           edge fade instead of wrapping onto a second row. ── */}
-      {/* Курс без модулей — вкладка одна и без названия, ряд не нужен. */}
-      <div ref={moduleRowRef} style={{ flexShrink: 0, display: subject.modules.length === 1 && subject.modules[0].loose ? 'none' : undefined }}>
-      <HScrollFade padX={32} gap={0} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
-        <div
-          ref={modulePill.containerRef}
-          className="flex items-center gap-2"
-          style={{ position: 'relative', flexShrink: 0 }}
-        >
-          {modulePill.pillMotion && (
-            <motion.span
-              // initial={false} — первое появление сразу на месте: иначе плашка
-              // приезжала бы пружиной из нуля контейнера.
-              initial={false}
-              animate={modulePill.pillMotion}
-              transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
-              style={{
-                ...PILL_ANCHOR,
-                borderRadius: 999,
-                background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
-                backdropFilter: 'var(--blur-glass)',
-                WebkitBackdropFilter: 'var(--blur-glass)',
-                boxShadow: 'var(--shadow-xs)',
-                border: '1px solid var(--color-border-glass)',
-                pointerEvents: 'none',
-                zIndex: 0,
+    <div className="flex-1 min-h-0 flex flex-col">
+      {/* ── Курс ▾ | модули кружками — одна строка (см. CourseModuleBar).
+           Модулей больше, чем влезает, — цепочка уезжает под фейд; текущий
+           подматывается в поле зрения. Курс без модулей — цепочки нет. ── */}
+      <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
+      <HScrollFade padX={32} padTop={0} padBottom={0} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
+        {courseSlot}
+        {!(subject.modules.length === 1 && subject.modules[0].loose) && (
+          <>
+            {courseSlot && <span aria-hidden style={{ width: 1, height: 22, background: 'var(--color-text-4)', flexShrink: 0 }} />}
+            <ModuleChain
+              subject={subject}
+              activeId={effectiveModuleId}
+              onSelect={id => {
+                if (id === activeModuleId) return
+                playTransitionDrop()
+                setActiveModule(id)
               }}
             />
-          )}
-          {subject.modules.map((mod, modIndex) => {
-            const isActive = mod.id === effectiveModuleId
-            const totalLessons = mod.lessons.length
-            const completedLessons = mod.lessons.filter(l => l.status === 'completed').length
-            const isFullyDone = totalLessons > 0 && completedLessons === totalLessons
-            const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
-
-            // A module is locked until the previous module's last lesson is completed
-            const prevMod = modIndex > 0 ? subject.modules[modIndex - 1] : null
-            const isLocked = prevMod != null && prevMod.lessons.length > 0
-              && prevMod.lessons[prevMod.lessons.length - 1].status !== 'completed'
-
-            const textColor = isLocked
-              ? 'var(--color-muted)'
-              : isFullyDone
-                ? 'var(--color-green-text)'
-                : 'var(--color-text)'
-
-            return (
-              <motion.button
-                key={mod.id}
-                ref={isLocked ? undefined : modulePill.registerItem(mod.id)}
-                data-module-tab={mod.id}
-                whileHover={isLocked ? {} : { scale: 1.04 }}
-                whileTap={isLocked ? {} : { scale: 0.96 }}
-                onClick={() => {
-                  if (isLocked || mod.id === activeModuleId) return
-                  playTransitionDrop()
-                  setActiveModule(mod.id)
-                }}
-                className="inline-flex items-center gap-1.5"
-                style={{
-                  position: 'relative',
-                  zIndex: 1,
-                  padding: '8px 20px',
-                  borderRadius: 999,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  background: 'transparent',
-                  color: textColor,
-                  border: '1px solid transparent',
-                  cursor: isLocked ? 'default' : 'pointer',
-                  opacity: isLocked ? 0.7 : 1,
-                  transition: 'color 0.15s ease, opacity 0.15s ease',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
-              >
-                {isLocked && <Lock size={12} style={{ position: 'relative', zIndex: 1 }} />}
-                <span style={{ position: 'relative', zIndex: 1 }}>{tc(mod.label)}</span>
-                {pct > 0 && !isLocked && (
-                  <span
-                    style={{
-                      position: 'relative',
-                      zIndex: 1,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      fontSize: 11,
-                      fontWeight: 500,
-                      color: isFullyDone ? 'var(--color-green-text)' : 'var(--color-text-3)',
-                    }}
-                  >
-                    {pct}%
-                  </span>
-                )}
-              </motion.button>
-            )
-          })}
-        </div>
+          </>
+        )}
       </HScrollFade>
       </div>
 
-      {/* ── Track body: auto height, centered content ── */}
-      <div className="flex items-center" style={{ paddingTop: 22, paddingBottom: 12 }}>
+      {/* ── Track body: auto height, centered content. Сверху минус: над
+           кружками GLOW_PAD под свечение, и без поправки трек отъезжал бы от
+           строки курса на 24 px вместо 12. ── */}
+      <div className="flex items-center" style={{ marginTop: TRACK_PULL_UP, paddingBottom: 12 }}>
         <div className="flex items-center gap-6 w-full">
 
           {/* Full-width track — nodes distributed across the whole row */}
@@ -728,36 +653,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   )
 }
 
-/**
- * Название курса → одна или две строки примерно равной длины.
- *
- * Делит по словам в месте, где длиннейшая из строк минимальна: «Английский для
- * дизайнера» + «— от письма до оффера», а не «Английский для дизайнера — от
- * письма до» + «оффера». Короткие названия остаются одной строкой — вторая
- * строка ради двух слов делает пилюлю выше без пользы.
- */
-const TITLE_ONE_LINE = 24
-
-function balanceTitle(name: string): string[] {
-  const words = name.trim().split(/\s+/)
-  if (name.length <= TITLE_ONE_LINE || words.length < 2) return [name]
-  let best = [name]
-  let bestWidth = Infinity
-  for (let i = 1; i < words.length; i++) {
-    const a = words.slice(0, i).join(' ')
-    const b = words.slice(i).join(' ')
-    // +3 второй строке — на хвост «12%», он тоже занимает место.
-    // Штраф за тире в конце первой строки: «IELTS/TOEFL —» / «от 6.0 к 7.5»
-    // читается хуже, чем «IELTS/TOEFL» / «— от 6.0 к 7.5».
-    const width = Math.max(a.length, b.length + 3) + (/[—–-]$/.test(a) ? 4 : 0)
-    if (width < bestWidth) { bestWidth = width; best = [a, b] }
-  }
-  return best
-}
-
 export default function CourseTrack() {
   const t = useT()
-  const { tc } = useTc()
   const { activeSubjectId, setActiveSubject } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
@@ -766,11 +663,6 @@ export default function CourseTrack() {
   // first paint without requiring a click.
   const effectiveActiveId =
     subjects.find(s => s.id === activeSubjectId)?.id ?? subjects[0]?.id ?? ''
-  const subjectPill = useFloatingPill(effectiveActiveId)
-  const subjectRowRef = useRef<HTMLDivElement>(null)
-  useScrollTabIntoView(subjectRowRef, 'data-subject-tab', effectiveActiveId)
-  // Only show the switcher pill when there's more than one course to switch between.
-  const showPill = subjects.length > 1
 
   if (subjects.length === 0) {
     return (
@@ -788,117 +680,18 @@ export default function CourseTrack() {
   }
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      {/* Subject switcher tabs — one line always: с ростом числа курсов лишние
-          уезжают за экран под фейд, а не сваливаются в две-три строки. */}
-      <div ref={subjectRowRef} style={{ flexShrink: 0 }}>
-      <HScrollFade padX={32} gap={0} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
-      {/* items-stretch, а не items-center: как только одно название переносится
-          на вторую строку, все кнопки ряда обязаны стать одной высоты — иначе
-          соседние короткие пилюли висят коротышками посреди строки. */}
-      <div
-        ref={subjectPill.containerRef}
-        className="inline-flex items-stretch gap-2"
-        style={{ justifyContent: 'flex-start', position: 'relative', flexShrink: 0 }}
-      >
-        {showPill && subjectPill.pillMotion && (
-          <motion.span
-            initial={false}
-            animate={subjectPill.pillMotion}
-            transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
-            style={{
-              ...PILL_ANCHOR,
-              borderRadius: 999,
-              background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
-              backdropFilter: 'var(--blur-glass)',
-              WebkitBackdropFilter: 'var(--blur-glass)',
-              boxShadow: 'var(--shadow-xs)',
-              border: '1px solid var(--color-border-glass)',
-              pointerEvents: 'none',
-              zIndex: 0,
+    <div className="flex flex-col h-full">
+      <TrackForSubject
+        courseSlot={
+          <CourseSelect
+            subjects={subjects}
+            activeId={effectiveActiveId}
+            onSelect={id => {
+              playTransitionDrop()
+              setActiveSubject(id)
             }}
           />
-        )}
-        {subjects.map(s => {
-          const isActive = effectiveActiveId === s.id
-          const allLessons = s.modules.flatMap(m => m.lessons)
-          const completedAll = allLessons.filter(l => l.status === 'completed').length
-          const subjectPct = allLessons.length > 0 ? Math.round((completedAll / allLessons.length) * 100) : 0
-          return (
-            <motion.button
-              key={s.id}
-              ref={subjectPill.registerItem(s.id)}
-              data-subject-tab={s.id}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => {
-                if (s.id === activeSubjectId) return
-                playTransitionDrop()
-                setActiveSubject(s.id)
-              }}
-              className="inline-flex items-center gap-1.5"
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                padding: '6px 20px',
-                borderRadius: 999,
-                fontSize: 14,
-                fontWeight: 600,
-                background: 'transparent',
-                color: 'var(--color-text)',
-                border: '1px solid transparent',
-                cursor: 'pointer',
-                transition: 'color 0.15s ease, font-weight 0.15s ease',
-                flexShrink: 0,
-              }}
-            >
-              {/* Название в две строки. Названия языковых курсов длинные
-                  («Английский для дизайнера — от письма до оффера»), и в одну
-                  строку три-четыре таких курса съедают всю ширину: остальные
-                  уезжают за фейд, и переключаться приходится вслепую. Перенос
-                  режет ширину пилюли вдвое — на экран влезает вдвое больше
-                  курсов.
-
-                  Строки режем сами (balanceTitle), а не браузерным переносом:
-                  автоперенос внутри коробки maxWidth: 200 оставляет коробку
-                  двухсотпиксельной, даже когда обе строки короче — короткое
-                  название висело в левом углу пустой пилюли. Свои nowrap-строки
-                  дают ширину по самой длинной из них, и пилюля обнимает текст.
-
-                  Процент — хвостом последней строки, а не соседним флекс-
-                  элементом: отдельный элемент прижимался бы к правому краю
-                  коробки, и у короткого названия между ним и словом зияла бы
-                  дыра в полпилюли. */}
-              <span
-                style={{
-                  position: 'relative', zIndex: 1,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  textAlign: 'center',
-                  lineHeight: 1.3,
-                }}
-              >
-                {balanceTitle(tc(s.name)).map((line, i, lines) => (
-                  <span
-                    key={i}
-                    style={{ whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}
-                  >
-                    {line}
-                    {i === lines.length - 1 && (
-                      <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-purple)' }}>
-                        {' '}{subjectPct}%
-                      </span>
-                    )}
-                  </span>
-                ))}
-              </span>
-            </motion.button>
-          )
-        })}
-      </div>
-      </HScrollFade>
-      </div>
-
-      <TrackForSubject
+        }
         subject={subjects.find(s => s.id === activeSubjectId) ?? subjects[0] ?? null}
       />
     </div>

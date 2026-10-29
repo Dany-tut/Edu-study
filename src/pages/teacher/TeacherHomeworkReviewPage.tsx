@@ -491,14 +491,15 @@ export default function TeacherHomeworkReviewPage() {
     if (target !== -1 && target !== idx) go(target)
   }
 
-  // ai — «Ок» на предоценке ИИ: балл ИИ вместо поля формы. Комментарий —
-  // только учителя: ответ ИИ ученик не видит.
-  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number }) {
+  // ai — «Ок» на предоценке ИИ: балл и ответ ИИ вместо полей формы (свой
+  // комментарий учителя, если уже написан, остаётся). Ученик получает ответ
+  // от учителя — про ИИ он не знает.
+  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number; comment: string }) {
     const submissionId = currentSubmission?.id
     if (!submissionId) return
     const score = ai ? ai.score
       : hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
-    const comment = draft.comment
+    const comment = ai && !draft.comment.trim() ? ai.comment : draft.comment
     // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
     // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
     const ok = await reviewHomework(submissionId, verdict, score, comment, {
@@ -704,8 +705,11 @@ export default function TeacherHomeworkReviewPage() {
                   {aiGrade && (
                     <AiGradeCard
                       grade={aiGrade}
-                      onAccept={() => { if (aiGrade.score != null) void handleVerdict('accepted', { score: aiGrade.score }) }}
-                      onEdit={() => { if (aiGrade.score != null) setDraft({ score: String(aiGrade.score) }) }}
+                      onAccept={() => { if (aiGrade.score != null) void handleVerdict('accepted', { score: aiGrade.score, comment: aiGrade.comment }) }}
+                      onEdit={() => setDraft({
+                        ...(aiGrade.score != null ? { score: String(aiGrade.score) } : {}),
+                        ...(aiGrade.comment ? { comment: aiGrade.comment } : {}),
+                      })}
                     />
                   )}
 

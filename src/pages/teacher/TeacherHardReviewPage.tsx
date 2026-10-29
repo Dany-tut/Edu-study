@@ -49,8 +49,9 @@ export default function TeacherHardReviewPage() {
   const sideLift = useStickyLift(sideRef)
   // Предоценка ИИ по критериям ФИПИ (hw_ai_grades, kind hard): по вкладке —
   // первичные баллы и оценка 1–5. «Править» кладёт оценку в черновик проверки
-  // и пересоздаёт переписку, чтобы поле подхватило черновик. Комментарий ИИ
-  // ученику не уходит: «Ок» берёт комментарий из черновика учителя.
+  // вместе с ответом ИИ и пересоздаёт переписку, чтобы поля подхватили
+  // черновик. «Ок» отправляет оценку и ответ ИИ от имени учителя (если учитель
+  // уже начал писать свой комментарий — уходит его текст).
   const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(sub ? [sub.id] : [])
   const [composerEpoch, setComposerEpoch] = useState(0)
 
@@ -191,14 +192,16 @@ export default function TeacherHardReviewPage() {
               onAccept={() => {
                 if (!aiTask?.mark) return
                 void reviewTab(currentKey, {
-                  comment: (readDraft<string>(`hardReview:${sub.id}:${currentKey}:comment`) ?? '').trim(),
+                  comment: (readDraft<string>(`hardReview:${sub.id}:${currentKey}:comment`) ?? '').trim() || (aiTask.comment ?? ''),
                   photos: [], board: null, boardMode: 'beside', annotation: null,
                   verdict: 'completed', score: aiTask.mark,
                 })
               }}
               onEdit={() => {
-                if (!aiTask?.mark) return
-                writeDraft(`hardReview:${sub.id}:${currentKey}:score`, aiTask.mark)
+                if (!aiTask) return
+                const draft = `hardReview:${sub.id}:${currentKey}`
+                if (aiTask.comment) writeDraft(`${draft}:comment`, aiTask.comment)
+                if (aiTask.mark) writeDraft(`${draft}:score`, aiTask.mark)
                 setComposerEpoch(e => e + 1)
               }}
             />
