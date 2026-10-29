@@ -655,7 +655,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
         }}>
           {saveError && (
-            <Alert tone="danger" text={saveError} style={{ flex: 1, minWidth: 0 }} />
+            <Alert tone="danger" text={saveError} style={{ flex: 1, minWidth: 0, marginRight: 14 }} />
           )}
           <button
             onClick={onClose}
