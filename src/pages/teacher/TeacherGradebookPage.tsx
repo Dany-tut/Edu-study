@@ -21,14 +21,14 @@ const fadeUp = (delay = 0) => ({
 })
 
 function ScorePill({ value }: { value: number | null }) {
-  if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
+  if (value === null) return <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>—</span>
   const pct = value / 100
   const color = pct >= 0.8 ? 'var(--color-green-text)' : pct >= 0.6 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
   const bg = pct >= 0.8 ? 'var(--color-green-soft)' : pct >= 0.6 ? 'var(--color-yellow-soft)' : 'var(--color-red-soft)'
   return (
     <span style={{
       display: 'inline-block', minWidth: 34,
-      fontSize: 12, fontWeight: 700, color,
+      fontSize: 12, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums',
       background: bg, borderRadius: 7, padding: '2px 7px', textAlign: 'center',
     }}>
       {value}
@@ -184,7 +184,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       return (
                         <td key={date} style={{ padding: '10px 8px', textAlign: 'center' }}>
                           {rec === undefined ? (
-                            <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
+                            <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>—</span>
                           ) : present ? (
                             <div style={{
                               width: 22, height: 22, borderRadius: 7, margin: '0 auto',
@@ -205,7 +205,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                     })}
                     <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                       {pct === null ? (
-                        <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
+                        <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>—</span>
                       ) : (
                         <span style={{
                           fontSize: 13, fontWeight: 700,

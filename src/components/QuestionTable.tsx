@@ -100,7 +100,7 @@ export default function QuestionTable({
       )
     }
     if (isEmpty) return <div style={{ padding: cellPad, minWidth: 48, minHeight: 20 }}>&nbsp;</div>
-    if (isBlank) return <div style={{ padding: cellPad, color: 'var(--color-text-4)' }}>—</div>
+    if (isBlank) return <div style={{ padding: cellPad, color: 'var(--color-text-3)' }}>—</div>
     if (img) return (
       <div style={{ padding: '6px 8px' }}>
         <img src={img} alt="" style={{ display: 'block', width: `${imgSize}%`, borderRadius: 6 }} />
@@ -127,7 +127,7 @@ export default function QuestionTable({
           </thead>
           <tbody>
             {table.rows.map((row, r) => (
-              <tr key={r} style={{ background: r % 2 === 1 ? 'rgba(0,0,0,0.02)' : undefined }}>
+              <tr key={r} style={{ background: r % 2 === 1 ? 'var(--color-bg-2)' : undefined }}>
                 {row.map((cell, c) => {
                   const key = `${r},${c}`
                   const cellFillable = interactive && (table.emptyCells?.[key] || (blankAsInput && table.blankCells?.[key]))

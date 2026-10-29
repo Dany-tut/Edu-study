@@ -5025,7 +5025,7 @@ function DiagResultsTable({
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: 'var(--color-bg-3)' }}>
+            <tr style={{ background: 'var(--color-bg-2)' }}>
               {[t('Ученик'), t('Дата'), t('Результат'), t('Разделы (слабые)'), t('Статус')].map((h, i) => (
                 <th key={h} style={{ padding: '9px 16px', textAlign: i >= 2 ? 'center' : 'left', fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border-soft)' }}>{h}</th>
               ))}

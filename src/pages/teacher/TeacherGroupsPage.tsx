@@ -1334,14 +1334,14 @@ function Th({
 }
 
 function ScorePill({ value, max = 100 }: { value: number | null; max?: number }) {
-  if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
+  if (value === null) return <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>—</span>
   const pct = value / max
-  const color = pct >= 0.8 ? 'var(--color-green-text)' : pct >= 0.6 ? 'var(--color-text-2)' : 'var(--color-red-text)'
+  const color = pct >= 0.8 ? 'var(--color-green-text)' : pct >= 0.6 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
   const bg    = pct >= 0.8 ? 'var(--color-green-soft)' : pct >= 0.6 ? 'var(--color-yellow-soft)' : 'var(--color-red-soft)'
   return (
     <span style={{
       display: 'inline-block', minWidth: 34,
-      fontSize: 12, fontWeight: 700, color,
+      fontSize: 12, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums',
       background: bg, borderRadius: 7, padding: '2px 7px', textAlign: 'center',
     }}>
       {value}
@@ -2662,7 +2662,7 @@ export default function TeacherGroupsPage() {
                 <ScrollFadeTable>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: 'var(--color-bg-3)' }}>
+                      <tr style={{ background: 'var(--color-bg-2)' }}>
                         <Th label={t('Студент')}        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label={t('Посл. вход')}     sortKey="lastVisit"  currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label={t('ДЗ')}             sortKey="hwScore"    currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
@@ -2678,7 +2678,7 @@ export default function TeacherGroupsPage() {
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                         const isSelected = student.id === activeStudentId
                         const colBg = (key: SortKey) =>
-                          sortKey === key ? { background: 'rgba(255,255,255,0.035)' } : {}
+                          sortKey === key ? { background: 'color-mix(in srgb, var(--color-accent) 5%, transparent)' } : {}
                         return (
                           <motion.tr
                             key={student.id}
@@ -2760,7 +2760,7 @@ export default function TeacherGroupsPage() {
                                   {student.debt.toLocaleString('ru-RU')} ₽
                                 </span>
                               ) : (
-                                <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>—</span>
+                                <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>—</span>
                               )}
                             </td>
                           </motion.tr>

@@ -286,7 +286,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
         borderLeft: isSelected ? '3px solid var(--color-accent)' : '3px solid transparent',
         transition: 'background 0.15s',
       }}
-      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-2)' }}
+      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
       onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
     >
       {/* Group / student + subject chip */}
@@ -343,7 +343,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
       </td>
 
       {/* Submitted bar */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
             <div style={{ height: '100%', width: `${submittedPct}%`, background: 'var(--color-purple)', borderRadius: 99, transition: 'width 0.5s' }} />
@@ -355,7 +355,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
       </td>
 
       {/* Reviewed */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
             <div style={{ height: '100%', width: `${reviewedPct}%`, background: 'var(--color-green-accent)', borderRadius: 99, transition: 'width 0.5s' }} />
