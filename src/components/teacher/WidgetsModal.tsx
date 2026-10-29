@@ -90,7 +90,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 width: 32, height: 32, borderRadius: '50%', border: 'none',
                 background: 'var(--color-bg-3)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#555', flexShrink: 0,
+                color: 'var(--color-text-3)', flexShrink: 0,
               }}
             >
               <X size={15} />

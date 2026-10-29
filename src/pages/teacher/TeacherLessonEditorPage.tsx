@@ -470,7 +470,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         </div>
         <div style={{ textAlign: 'center', padding: '0 20px' }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t('Запись прикреплена')}</div>
-          <div style={{ fontSize: 12, color: 'var(--color-border-glass)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
         </div>
         <button
           onClick={() => onChange('')}

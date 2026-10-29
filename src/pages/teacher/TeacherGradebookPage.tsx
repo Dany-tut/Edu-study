@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Check } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
@@ -74,6 +75,8 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
         opacity: fadeRight ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
+      <ScrollArrow side="left" visible={fadeLeft} onClick={() => ref.current && nudgeScroll(ref.current, 'left')} inset={6} />
+      <ScrollArrow side="right" visible={fadeRight} onClick={() => ref.current && nudgeScroll(ref.current, 'right')} inset={6} />
     </div>
   )
 }

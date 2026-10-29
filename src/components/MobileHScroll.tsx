@@ -10,15 +10,14 @@ export default function MobileHScroll({
   gap = 8,
   fade = 'var(--color-bg)',
   padX = 16,
-  arrows = false,
+  arrows = true,
 }: {
   children: ReactNode
   gap?: number
   /** Color the edge fade blends into — match the surface behind the row. */
   fade?: string
   padX?: number
-  /** Стрелки у краёв. По умолчанию выключены: ряды чипс листаются только
-   *  скроллом — как трек на главной. */
+  /** Стрелки у краёв (см. HScrollFade). Включены по умолчанию. */
   arrows?: boolean
 }) {
   return (

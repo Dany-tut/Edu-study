@@ -543,7 +543,7 @@ export default function Sidebar() {
                               color: '#fff',
                               border: 'none',
                               boxShadow: selected
-                                ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px #fff, 0 0 0 4px var(--color-accent)'
+                                ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px var(--color-bg-2), 0 0 0 4px var(--color-accent)'
                                 : 'inset 0 0 0 1px rgba(255,255,255,0.4)',
                             }}
                           >

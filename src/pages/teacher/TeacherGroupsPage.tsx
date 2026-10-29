@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
 import Skeleton from '../../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -503,7 +504,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
 
 const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 6,
-  fontSize: 12, fontWeight: 600, color: '#555',
+  fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
 }
 const inputStyle: React.CSSProperties = {
   padding: '10px 12px', borderRadius: 12,
@@ -1132,6 +1133,8 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
         opacity: fadeRight ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
+      <ScrollArrow side="left" visible={fadeLeft} onClick={() => ref.current && nudgeScroll(ref.current, 'left')} inset={6} />
+      <ScrollArrow side="right" visible={fadeRight} onClick={() => ref.current && nudgeScroll(ref.current, 'right')} inset={6} />
     </div>
   )
 }

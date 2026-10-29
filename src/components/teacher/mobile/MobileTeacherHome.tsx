@@ -261,7 +261,7 @@ function ScheduleRow({ item, last }: { item: ScheduleItem; last: boolean }) {
       </div>
       {done
         ? <CircleCheck size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
-        : <Clock size={15} style={{ color: 'var(--color-border-strong)', flexShrink: 0 }} />}
+        : <Clock size={15} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
     </div>
   )
 }

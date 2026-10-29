@@ -51,7 +51,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       <div className="flex flex-shrink-0 items-center" style={{ height: '100%' }}>
       <div className="relative flex-shrink-0" style={{ width: ringSize, height: ringSize }}>
         <svg width={ringSize} height={ringSize} viewBox="0 0 104 104" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="52" cy="52" r={46} fill="none" strokeWidth="8" style={{ stroke: 'var(--color-border-glass)' }} />
+          <circle cx="52" cy="52" r={46} fill="none" strokeWidth="8" style={{ stroke: 'var(--color-border-strong)' }} />
           <motion.circle
             cx="52" cy="52" r={46} fill="none" stroke={accent} strokeWidth="8" strokeLinecap="round"
             strokeDasharray={C}

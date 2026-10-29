@@ -511,6 +511,8 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
       if (!canvas) { setPhase('shown'); return }
       const ctx = canvas.getContext('2d')
       if (!ctx) { setPhase('shown'); return }
+      // Цвет частиц — из темы: тёмные точки на тёмной плашке не видны.
+      const spoilerRgb = getComputedStyle(document.documentElement).getPropertyValue('--spoiler-dot-rgb').trim() || '11, 11, 13'
       canvas.width = W
       canvas.height = H
 
@@ -538,7 +540,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
           const alpha = p.a * (1 - t) * (1 - t)
           if (alpha < 0.01) continue
           ctx!.globalAlpha = alpha
-          ctx!.fillStyle = 'rgba(11,11,13,0.7)'
+          ctx!.fillStyle = 'rgba(' + spoilerRgb + ',0.7)'
           ctx!.beginPath()
           ctx!.roundRect(p.x, p.y, p.w, p.h, 2)
           ctx!.fill()
@@ -567,7 +569,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
               border: 'none', padding: 0, borderRadius: 999,
-              background: phase === 'dissolving' ? 'transparent' : 'rgba(11,11,13,0.16)',
+              background: phase === 'dissolving' ? 'transparent' : 'rgba(var(--spoiler-dot-rgb),0.16)',
               cursor: 'pointer', overflow: 'hidden',
             }}
           >

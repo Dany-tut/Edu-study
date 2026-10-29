@@ -477,7 +477,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                     </div>
                   ) : <div />}
                   {task.matchRight![i] !== undefined ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: rowGap, padding: rowPad, borderRadius: 12, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border-soft)', minHeight: rowMinH }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: rowGap, padding: rowPad, borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', minHeight: rowMinH }}>
                       <span style={{ width: chipSz, height: chipSz, borderRadius: 8, flexShrink: 0, background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{i + 1}</span>
                       <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: rowTextLH }}>{task.matchRight![i]}</span>
                     </div>

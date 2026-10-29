@@ -87,7 +87,7 @@ function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClic
       className="cursor-pointer"
       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
     >
-      <div style={{ width: 42, height: 42, borderRadius: 12, background: group.colorSoft, color: group.color, fontSize: 19, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{group.icon}</div>
+      <div style={{ width: 42, height: 42, borderRadius: 12, background: `color-mix(in srgb, ${group.color} 18%, transparent)`, color: group.color, fontSize: 19, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{group.icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</div>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>

@@ -3329,7 +3329,7 @@ export default function HomeworkFlow({
                     <div style={{
                       width: 44, height: 44, borderRadius: 14, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)',
+                      background: 'var(--color-bg-3)', color: 'var(--color-muted)',
                     }}>
                       <CheckCircle2 size={20} />
                     </div>

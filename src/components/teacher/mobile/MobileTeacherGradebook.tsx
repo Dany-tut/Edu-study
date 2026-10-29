@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import MobileHScroll from '../../MobileHScroll'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
 import { CheckSquare, Check, X, CalendarCheck, Loader2 } from 'lucide-react'
@@ -165,17 +166,13 @@ export default function MobileTeacherGradebook() {
     <MobileScreen topZone={topZone} topPad={64} scrollKey={`t-grade-${groupId}-${savedTick}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Group selector */}
-        <div style={{
-          display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2,
-          WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 24px), transparent 100%)',
-          maskImage: 'linear-gradient(to right, #000 calc(100% - 24px), transparent 100%)',
-        }} className="no-scrollbar">
+        <MobileHScroll padX={0}>
           {groups.map(g => (
             <MobilePill key={g.id} active={g.id === groupId} onClick={() => setGroupId(g.id)} size="sm">
               {g.icon}{ICON_GAP}{g.name}
             </MobilePill>
           ))}
-        </div>
+        </MobileHScroll>
 
         {/* Lessons: nearest upcoming first (highlighted), then the rest of the
             future ascending, then past lessons newest-first. The hook returns

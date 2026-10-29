@@ -38,7 +38,7 @@ const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string;
   // lib/courseTint.ts): подпись здесь — --color-accent, и фиолетовая карточка
   // под коралловой подписью английского выглядела недокрашенной.
   current:   { bg: 'var(--color-accent-soft)', ring: 'var(--color-purple)', label: 'var(--color-text)', subText: 'var(--color-accent)' },
-  locked:    { bg: 'var(--color-bg-3)', ring: '#E0E0E2', label: 'var(--color-text-3)', subText: 'var(--color-text-5)' },
+  locked:    { bg: 'var(--color-bg-3)', ring: 'var(--color-border-strong)', label: 'var(--color-text-3)', subText: 'var(--color-text-5)' },
 }
 
 const ALL = 'all' as const
