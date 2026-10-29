@@ -198,8 +198,13 @@ function AppRoutes() {
     )
   }
 
+  // Ссылка из письма «сброс пароля» приходит с токеном вместо пути
+  // (/#access_token=…&type=recovery); supabase-js съедает его и шлёт
+  // PASSWORD_RECOVERY, а адрес остаётся пустым. Поэтому форма нового пароля
+  // не ждёт #/teacher, а встаёт поверх любого маршрута.
+  if (recovery) return <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); window.location.hash = '#/teacher' }} recovery /></Chunk>
+
   if (hash.startsWith('#/teacher')) {
-    if (recovery) return <Chunk><TeacherLoginPage onLogin={() => setRecovery(false)} recovery /></Chunk>
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
     const isStudentAccount = session?.user?.user_metadata?.role === 'student'

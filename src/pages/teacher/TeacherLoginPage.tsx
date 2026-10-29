@@ -36,7 +36,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         void trackNow('login', { role: 'teacher', method: 'auth' })
         onLogin()
       } else if (mode === 'reset') {
-        const redirectTo = `${window.location.origin}${window.location.pathname}#/teacher`
+        // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
+        // адресе ломал разбор. Форму нового пароля App показывает сам.
+        // Адрес должен быть в Auth → URL Configuration → Redirect URLs.
+        const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
         if (error) throw error
         setNotice(t('Письмо для сброса пароля отправлено. Проверьте почту.'))
