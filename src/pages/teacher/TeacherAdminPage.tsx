@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Segmented from '../../components/Segmented'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
@@ -701,18 +702,12 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
     <div>
       {/* Filter + orphan warning */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
-          {([['all', 'Всё'], ['course', 'Курсы'], ['group', 'Группы']] as const).map(([id, label]) => (
-            <button key={id} onClick={() => setFilter(id)} style={{
-              padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-              fontSize: 12, fontWeight: 600,
-              background: filter === id ? 'var(--color-purple-soft)' : 'transparent',
-              color: filter === id ? 'var(--color-purple)' : 'var(--color-text-3)',
-            }}>{t(label)}</button>
-          ))}
-        </div>
+        <Segmented
+          variant="filter" value={filter} onChange={setFilter}
+          items={([['all', 'Всё'], ['course', 'Курсы'], ['group', 'Группы']] as const).map(([id, label]) => ({ id, label: t(label) }))}
+        />
         {orphanCount > 0 && (
-          <span style={{ fontSize: 12, color: '#D07020', fontWeight: 600 }}>
+          <span style={{ fontSize: 12, color: 'var(--color-peach-text)', fontWeight: 600 }}>
             {orphanCount} {t('без владельца')}
           </span>
         )}
@@ -1080,25 +1075,10 @@ export default function TeacherAdminPage() {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, marginBottom: 24, width: 'fit-content' }}>
-          {([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox]] as const).map(([id, label, Icon]) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: 600,
-                background: tab === id ? 'var(--color-purple-soft)' : 'transparent',
-                color: tab === id ? 'var(--color-purple)' : 'var(--color-text-3)',
-                transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              <Icon size={14} strokeWidth={2} />
-              {label}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          variant="mode" value={tab} onChange={setTab} style={{ marginBottom: 24 }}
+          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
+        />
 
         {tab === 'analytics' && <TeacherAnalytics />}
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Segmented from '../Segmented'
 import { createPortal } from 'react-dom'
 import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -80,39 +81,15 @@ export default function AdminUserActivity() {
     <div>
       {/* Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
-          {(['people', 'teachers', 'students'] as const).map(v => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              style={{
-                padding: '6px 14px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: 600,
-                background: view === v ? 'var(--color-purple-soft)' : 'transparent',
-                color: view === v ? 'var(--color-purple)' : 'var(--color-text-3)',
-              }}
-            >
-              {v === 'people' ? t('Все пользователи') : v === 'teachers' ? t('По учителям') : t('Ученики')}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          variant="mode" value={view} onChange={setView}
+          items={[{ id: 'people', label: t('Все пользователи') }, { id: 'teachers', label: t('По учителям') }, { id: 'students', label: t('Ученики') }]}
+        />
         {view !== 'students' && (
-        <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
-          {DAYS.map(d => (
-            <button
-              key={d}
-              onClick={() => setDays(d)}
-              style={{
-                padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: 600,
-                background: days === d ? 'var(--color-purple-soft)' : 'transparent',
-                color: days === d ? 'var(--color-purple)' : 'var(--color-text-3)',
-              }}
-            >
-              {d} {t('дн')}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          variant="filter" value={String(days)} onChange={v => setDays(Number(v) as typeof days)} style={{ marginLeft: 'auto' }}
+          items={DAYS.map(d => ({ id: String(d), label: `${d} ${t('дн')}` }))}
+        />
         )}
         {loading && view !== 'students' && <RefreshCw size={14} style={{ color: 'var(--color-text-3)', animation: 'spin 1s linear infinite' }} />}
       </div>
