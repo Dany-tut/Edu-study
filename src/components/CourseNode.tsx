@@ -68,9 +68,12 @@ interface Props {
   isHighlighted?: boolean
   onSelect?: (lesson: Lesson) => void
   onHardSelect?: (lesson: Lesson) => void
+  /** Праздничная тема рисует фонарь/конфету только на ОДНОМ уроке — первом текущем:
+   *  открытых уроков в курсе бывает несколько, и ряд из пяти конфет читался мусором. */
+  seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect }: Props) {
+export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect, seasonMark = false }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
@@ -122,7 +125,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const isActive = isSelected || displayStatus === 'current'
   // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
-  const seasonNode = useSeason().on('track') && displayStatus === 'current' && !isDiamond
+  const seasonNode = useSeason().on('track') && seasonMark && displayStatus === 'current' && !isDiamond
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (

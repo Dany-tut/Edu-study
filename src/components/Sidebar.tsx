@@ -27,8 +27,7 @@ import { useT, useLang, tn, type Lang } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
-import Switch from './Switch'
-import { useSeason, setSeasonOn } from '../lib/season'
+import { useSeason, openSeasonPicker, VARIANTS } from '../lib/season'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -673,13 +672,29 @@ export default function Sidebar() {
                           <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
                         </motion.button>
 
-                        {/* Праздничная тема — только пока сезон идёт: выключить у себя. */}
+                        {/* Праздничная тема — только пока сезон идёт: открывает окно выбора
+                            из трёх тем (или «Без темы»), справа — что выбрано сейчас. */}
                         {season.live && (
-                          <div style={{ width: '100%', padding: '6px 8px', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text)', fontSize: 14, fontWeight: 550 }}>
+                          <motion.button
+                            whileTap={{ scale: 0.985 }}
+                            onClick={() => openSeasonPicker()}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                            style={{
+                              width: '100%', padding: '9px 8px',
+                              display: 'flex', alignItems: 'center',
+                              gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
+                              background: 'transparent',
+                              color: 'var(--color-text)',
+                              fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            }}
+                          >
                             <Ghost size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                            <span style={{ flex: 1, textAlign: 'left' }}>{t('Хэллоуин-тема')}</span>
-                            <Switch checked={season.active} onChange={v => setSeasonOn(v)} label={t('Хэллоуин-тема')} />
-                          </div>
+                            <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{t('Хэллоуин-тема')}</span>
+                            <span className="truncate" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
+                              {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
+                            </span>
+                          </motion.button>
                         )}
 
                         {/* Opens the list modal — left-aligned like SettingsRow */}

@@ -224,7 +224,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             ) : (
               <div
                 className="rounded-2xl flex flex-col items-center justify-center text-center"
-                style={{ minHeight: 116, padding: '18px 24px', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
+                style={{ minHeight: 116, padding: '18px 24px', background: seasonEmpty ? 'transparent' : 'var(--color-bg-3)', color: 'var(--color-muted)' }}
               >
                 {seasonEmpty ? <SeasonEmptyDay /> : (
                   <>

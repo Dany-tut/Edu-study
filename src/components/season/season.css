@@ -158,6 +158,16 @@ html[data-season-variant="candy"] .stat-card--season-stars {
   box-shadow: 0 14px 30px rgba(255, 122, 26, 0.35) !important;
   border-color: transparent !important;
 }
+/* Как в макете B: цифра крупно слева, подпись под ней, ведёрко большое справа и
+   выглядывает за верх плитки (карусель разрешает вылезти на 56 px). */
+html[data-season-variant="candy"] .stat-card--season-stars {
+  position: relative; align-items: flex-start !important; justify-content: flex-end !important;
+  text-align: left !important; padding-left: 22px !important; padding-bottom: 16px !important;
+}
+html[data-season-variant="candy"] .stat-card--season-stars .season-stat-img {
+  position: absolute; right: -16px; top: -36px; height: 100px !important;
+  filter: drop-shadow(0 12px 18px rgba(154, 58, 0, 0.3));
+}
 html[data-season-variant="candy"] .stat-card--season-stars .stat-value,
 html[data-season-variant="candy"] .stat-card--season-stars .stat-label { color: #fff !important; }
 
@@ -210,7 +220,7 @@ html[data-season-variant="potions"] .season-track-fill {
   transform: translate(-50%, 42%); pointer-events: none;
 }
 .season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform: translate(-50%, 30%); }
-.season-node-img--candy { transform: translate(-50%, 50%) rotate(-12deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
+.season-node-img--candy { transform: translate(-50%, 50%) scale(0.8) rotate(-12deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
 .season-node-orb {
   position: absolute; inset: -4px; border-radius: 999px; z-index: 2; pointer-events: none;
   background: #34D399; box-shadow: 0 0 0 4px #fff, 0 0 22px rgba(52, 211, 153, 0.7);
@@ -260,6 +270,7 @@ html[data-theme="dark"] .season-ask__eyebrow { color: #FFB36B; }
   transform: translateY(-2px); border-color: rgba(var(--accent-rgb), 0.55);
   box-shadow: 0 10px 26px rgba(var(--accent-rgb), 0.18);
 }
+.season-ask__opt[data-current] { border: 2px solid var(--color-control-accent); box-shadow: 0 10px 26px rgba(var(--accent-rgb), 0.2); }
 .season-ask__art { position: relative; height: 128px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .season-ask__art--lanterns { background: url('/season/halloween/night-banner.webp') 70% center / cover, #150E30; }
 .season-ask__art--candy { background: linear-gradient(135deg, #FFF4EA, #F3EEFF); }

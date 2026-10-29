@@ -48,8 +48,6 @@ const PREVIEW_KEY = 'season.preview'
 /** Старый выключатель (до модалки) — читаем как ответ «не надо». */
 const LEGACY_OFF_KEY = 'season.off'
 const THEME_WAS = 'season.themeWas'
-/** Последний выбранный вариант — переключатель «включить» в меню возвращает его. */
-const LAST_KEY = 'season.lastVariant'
 const isVariant = (v: string | null): v is SeasonVariant => VARIANTS.some(x => x.key === v)
 
 const ls = {
@@ -101,8 +99,8 @@ export async function saveSeason(s: Season): Promise<string | null> {
 
 // ── общее состояние: грузим один раз на вкладку, все хуки видят одно и то же ──
 
-type State = { season: Season | null; preview: boolean; choice: SeasonChoice; now: number }
-let state: State = { season: null, preview: ls.get(PREVIEW_KEY) === '1', choice: null, now: Date.now() }
+type State = { season: Season | null; preview: boolean; choice: SeasonChoice; now: number; picker: boolean }
+let state: State = { season: null, preview: ls.get(PREVIEW_KEY) === '1', choice: null, now: Date.now(), picker: false }
 const subs = new Set<() => void>()
 function emit() { subs.forEach(f => f()); mark() }
 let started = false
@@ -137,17 +135,17 @@ export function setSeasonPreview(on: boolean) {
 /** Свой выбор: вариант из окна (ученик) или из админки (админ, только у себя), либо 'off'. */
 export function setSeasonChoice(choice: SeasonVariant | 'off') {
   if (state.season) ls.set(choiceKey(state.season), choice)
-  if (choice !== 'off') ls.set(LAST_KEY, choice)
   ls.set(LEGACY_OFF_KEY, null)
-  state = { ...state, choice }
+  state = { ...state, choice, picker: false }
   emit()
 }
 
-/** Переключатель в меню/профиле: включить — последний выбранный вариант (или общий). */
-export function setSeasonOn(on: boolean) {
-  const last = ls.get(LAST_KEY)
-  setSeasonChoice(on ? (isVariant(last) ? last : state.season?.variant ?? 'lanterns') : 'off')
+/** Окно выбора темы по запросу — строка «Хэллоуин-тема» в меню и профиле. */
+export function openSeasonPicker(open = true) {
+  state = { ...state, picker: open }
+  emit()
 }
+
 
 export type SeasonStatus = 'soon' | 'live' | 'over'
 export const statusOf = (s: Season, now = Date.now()): SeasonStatus =>
@@ -170,6 +168,8 @@ export type SeasonView = {
   live: boolean
   /** показать ученику окно «Сейчас Хэллоуин — выбери тему» */
   asking: boolean
+  /** окно выбора открыли сами из настроек */
+  picking: boolean
   preview: boolean
   season: Season | null
   /** вариант на экране (null — темы нет) */
@@ -187,7 +187,7 @@ const snapshot = (): SeasonView => {
   const s = state.season
   viewOf = state
   view = {
-    active, live: isLive(state), asking: isAsking(state), preview: state.preview, season: s,
+    active, live: isLive(state), asking: isAsking(state), picking: state.picker && isLive(state), preview: state.preview, season: s,
     variant: active ? variantOf(state) : null, choice: state.choice,
     on: p => active && !!s?.parts[p],
   }

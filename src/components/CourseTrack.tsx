@@ -164,6 +164,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   // much of *that* module is completed ("закрыто").
   const activeModule = subject.modules.find(m => m.id === effectiveModuleId) ?? subject.modules[0]
   const allLessons = activeModule?.lessons ?? []
+  // Первый текущий урок — на нём праздничная тема ставит фонарь/конфету (CourseNode.seasonMark).
+  const seasonMarkId = allLessons.find(l => l.status === 'current')?.id
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
 
   // Progress: proportion of this module's lessons that are completed
@@ -378,6 +380,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       index={i}
                       isSelected={selectedLesson?.id === lesson.id}
                       isHighlighted={highlightLessonId === lesson.id}
+                      seasonMark={lesson.id === seasonMarkId}
                       onSelect={(clickedLesson) => {
                         setSelectedHardLessonId(null)
                         setSelectedLessonId(prev => prev === clickedLesson.id ? null : clickedLesson.id)

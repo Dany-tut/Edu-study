@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useSeason, setSeasonChoice, seasonImg, VARIANTS, type SeasonVariant } from '../../lib/season'
+import { useSeason, setSeasonChoice, openSeasonPicker, seasonImg, VARIANTS, type SeasonVariant } from '../../lib/season'
 import { useT } from '../../lib/i18n'
 import './season.css'
 
@@ -28,11 +28,15 @@ export default function SeasonAsk() {
   const t = useT()
   const s = useSeason()
   const [dismissed, setDismissed] = useState(false)
-  const open = s.asking && !dismissed && !!s.season
+  // Само при первом входе (asking) или по строке «Хэллоуин-тема» в настройках (picking).
+  const open = ((s.asking && !dismissed) || s.picking) && !!s.season
+  const close = () => { setDismissed(true); openSeasonPicker(false) }
+  // Вызвано из настроек: подсвечиваем текущую тему, вторая кнопка — «Без темы».
+  const current = s.picking && s.active ? s.variant : null
 
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); setDismissed(true) } }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); close() } }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
@@ -50,7 +54,7 @@ export default function SeasonAsk() {
           transition={{ duration: 0.16 }}
           style={{ position: 'fixed', inset: 0, zIndex: 4100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
         >
-          <div onClick={() => setDismissed(true)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
+          <div onClick={close} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
           <motion.div
             initial={{ scale: 0.94, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.97, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
@@ -58,14 +62,14 @@ export default function SeasonAsk() {
             className="season-ask"
           >
             <div className="season-ask__eyebrow">{t('Сейчас Хэллоуин')}</div>
-            <div id="season-ask-title" className="season-ask__title">{t('Выбери тему кабинета')}</div>
+            <div id="season-ask-title" className="season-ask__title">{t(s.picking ? 'Тема кабинета' : 'Выбери тему кабинета')}</div>
             <p className="season-ask__text">
               {t('До')} {until} {t('главная будет в праздничном оформлении — или оставь всё как есть.')}
             </p>
 
             <div className="season-ask__grid">
               {VARIANTS.map(v => (
-                <button key={v.key} className="season-ask__opt" onClick={() => setSeasonChoice(v.key)}>
+                <button key={v.key} className="season-ask__opt" data-current={current === v.key || undefined} aria-pressed={current === v.key} onClick={() => setSeasonChoice(v.key)}>
                   <span className={`season-ask__art season-ask__art--${v.key}`}>
                     <img aria-hidden src={seasonImg(VARIANT_ART[v.key])} alt="" className="season-ask__img" />
                   </span>
@@ -78,7 +82,7 @@ export default function SeasonAsk() {
             </div>
 
             <button className="season-ask__btn season-ask__btn--ghost" onClick={() => setSeasonChoice('off')}>
-              {t('Оставить как есть')}
+              {t(s.picking ? 'Без темы' : 'Оставить как есть')}
             </button>
             <p className="season-ask__note">{t('Поменять тему или выключить — в меню профиля.')}</p>
           </motion.div>
