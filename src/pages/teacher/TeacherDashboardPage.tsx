@@ -6,6 +6,7 @@ import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
 import TeacherHome from './TeacherHome'
 import TeacherGroupsPage from './TeacherGroupsPage'
+import TeacherSchedulePage from './TeacherSchedulePage'
 import TeacherHomeworkPage from './TeacherHomeworkPage'
 import TeacherGradebookPage from './TeacherGradebookPage'
 import TeacherConstructorPage from './TeacherConstructorPage'
@@ -214,6 +215,7 @@ export default function TeacherDashboardPage() {
             />
           </div>
         )}
+        {activePage === 'schedule'        && <TeacherSchedulePage />}
         {activePage === 'groups'          && <TeacherGroupsPage />}
         {activePage === 'homework'        && <TeacherHomeworkPage />}
         {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}

@@ -20,6 +20,9 @@ export type NotifType =
   | 'test_completed'
   | 'payment_due'
   | 'fill_journal'
+  // перенос и отмена занятия (0119_schedule_reschedule.sql)
+  | 'lesson_moved'
+  | 'lesson_cancelled'
 
 export type NotifLink = { page?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string }
 

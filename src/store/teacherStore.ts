@@ -3,7 +3,7 @@ import { confirmDialog } from '../components/ConfirmHost'
 import { t } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
 
-export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
+export type TeacherPage = 'home' | 'schedule' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
 
 export type StudentTrainerStats = {
   doneCount: number
@@ -154,6 +154,7 @@ type TeacherStore = {
 // lands the teacher back on the same section — including admin/finances/storage.
 export const HASH_TO_PAGE: Record<string, TeacherPage> = {
   '#/teacher':             'home',
+  '#/teacher/schedule':    'schedule',
   '#/teacher/groups':      'groups',
   '#/teacher/homework':    'homework',
   '#/teacher/gradebook':   'gradebook',

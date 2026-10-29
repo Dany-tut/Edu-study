@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
+import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import { getContrastColor } from '../lib/utils'
 import { useT } from '../lib/i18n'
@@ -23,6 +23,8 @@ const ICON_MAP: Record<NotifType, React.ReactNode> = {
   test_completed:       <CheckCircle2  size={16} />,
   payment_due:          <Banknote      size={16} />,
   fill_journal:         <NotebookPen   size={16} />,
+  lesson_moved:         <CalendarClock size={16} />,
+  lesson_cancelled:     <CalendarX     size={16} />,
 }
 
 function getIcon(type: string) {
@@ -46,6 +48,8 @@ const TYPE_COLOR: Record<string, string> = {
   test_assigned:        '#786AD7',
   test_completed:       '#3FCC8A',
   fill_journal:         '#F59E0B',
+  lesson_moved:         '#786AD7',
+  lesson_cancelled:     '#F59E0B',
 }
 function getColor(type: string): string {
   return TYPE_COLOR[type] ?? '#FF5A5A'

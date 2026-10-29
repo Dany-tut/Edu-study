@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import MobileTeacherNav, { type MTab } from './MobileTeacherNav'
 import MobileTeacherHome from './MobileTeacherHome'
+import MobileTeacherSchedule from './MobileTeacherSchedule'
 import MobileTeacherStudents from './MobileTeacherStudents'
 import MobileTeacherReview from './MobileTeacherReview'
 import MobileTeacherGradebook from './MobileTeacherGradebook'
@@ -13,6 +14,7 @@ import { DEMO_HARD_SUBS, DEMO_HW } from '../../../data/teacherDevDemo'
 // available). Hiding the matching desktop tab hides the mobile one too.
 const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
   home: 'home',
+  schedule: 'home',
   students: 'groups',
   review: 'homework',
   gradebook: 'gradebook',
@@ -38,7 +40,7 @@ export default function MobileTeacherApp() {
   // is always available, so there is always a target).
   useEffect(() => {
     if (!isHidden(tab)) return
-    const first = (['home', 'students', 'review', 'gradebook', 'profile'] as MTab[]).find(t => !isHidden(t))
+    const first = (['home', 'schedule', 'students', 'review', 'gradebook', 'profile'] as MTab[]).find(t => !isHidden(t))
     setTab(first ?? 'profile')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, canTab])
@@ -57,12 +59,13 @@ export default function MobileTeacherApp() {
   return (
     <div className="lg:hidden">
       {tab === 'home'      && <MobileTeacherHome onNavigate={setTab} />}
+      {tab === 'schedule'  && <MobileTeacherSchedule onAttendance={() => setTab('gradebook')} />}
       {tab === 'students'  && <MobileTeacherStudents />}
       {tab === 'review'    && <MobileTeacherReview />}
       {tab === 'gradebook' && <MobileTeacherGradebook />}
       {tab === 'profile'   && <MobileTeacherProfile />}
 
-      <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />
+      <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','schedule','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />
     </div>
   )
 }

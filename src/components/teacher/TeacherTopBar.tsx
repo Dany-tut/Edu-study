@@ -7,7 +7,7 @@ import {
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
   CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  type LucideIcon,
+  CalendarDays, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -38,6 +38,7 @@ import { useDashboard } from '../../store/dashboardStore'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
+  { id: 'schedule',    label: 'Расписание',  icon: CalendarDays },
   { id: 'groups',      label: 'Группы',      icon: Users },
   { id: 'homework',    label: 'ДЗ',          icon: ClipboardList },
   { id: 'gradebook',   label: 'Журнал',      icon: BookOpen },
@@ -135,7 +136,8 @@ export default function TeacherTopBar() {
   // Subscribe to the raw lists so this bar re-renders when access loads/changes
   // (canTab/canPage are stable method refs and wouldn't trigger on their own).
   useTeacherAccess(s => s.hiddenTabs)
-  const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
+  // Расписание — часть «Главной»: скрыта главная — скрыто и оно.
+  const visibleNav = navItems.filter(item => canTab((item.id === 'schedule' ? 'home' : item.id) as TeacherTabId))
   const quickAllowed = (a: QuickAction): boolean => {
     if (a.page) return canPage(a.page)
     switch (a.action) {

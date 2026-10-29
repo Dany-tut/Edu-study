@@ -2,7 +2,7 @@ import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
   ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine,
-  X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen,
+  X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen, CalendarClock, CalendarX,
   Bell, Clock, RotateCcw, Trophy,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
@@ -345,12 +345,15 @@ const NOTIF_ICON: Record<string, React.ReactNode> = {
   test_completed:       <CheckCircle2  size={18} />,
   payment_due:          <Banknote      size={18} />,
   fill_journal:         <NotebookPen   size={18} />,
+  lesson_moved:         <CalendarClock size={18} />,
+  lesson_cancelled:     <CalendarX     size={18} />,
 }
 const NOTIF_COLOR: Record<string, string> = {
   student_joined: '#786AD7', achievement: '#786AD7', lesson_unlocked: '#786AD7',
   quiz_available: '#786AD7', test_assigned: '#786AD7',
   homework_assigned: '#F59E0B', deadline_approaching: '#F59E0B', payment_due: '#F59E0B',
   hw_returned: '#F59E0B', fill_journal: '#F59E0B',
+  lesson_moved: '#786AD7', lesson_cancelled: '#F59E0B',
   homework_graded: '#3FCC8A', homework_submitted: '#3FCC8A', hw_graded: '#3FCC8A',
   hw_submitted: '#3FCC8A', test_completed: '#3FCC8A',
 }
