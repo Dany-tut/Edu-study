@@ -93,7 +93,9 @@ function AlertRow({ item }: { item: AlertItem }) {
             fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
-          <span style={{ position: 'relative', top: '-0.12em' }}>{item.action.label}</span>
+          {/* Подъём −0.12em из общего правила здесь перебирал: в таблетке без
+              иконки подпись вставала выше центра. −0.04em — на глаз ровно. */}
+          <span style={{ position: 'relative', top: '-0.04em' }}>{item.action.label}</span>
         </button>
       )}
       {item.onClose && (
