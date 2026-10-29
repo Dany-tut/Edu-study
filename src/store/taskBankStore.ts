@@ -157,11 +157,15 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       set({ tasks, recentlyEditedId: id })
       return
     }
-    const { error } = await supabase
+    // Чужое задание RLS отсекает без ошибки — ноль строк. Это тоже провал:
+    // иначе учитель видел «Заменено», а в базе оставалось старое.
+    const { data, error } = await supabase
       .from('task_bank')
       .update(taskToDb(patch))
       .eq('id', id)
+      .select('id')
     if (error) throw error
+    if (!data?.length) throw new Error('task_bank: нет прав на это задание')
     set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...patch } : t), recentlyEditedId: id }))
   },
 
@@ -172,7 +176,9 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       set({ tasks })
       return
     }
-    await supabase.from('task_bank').delete().eq('id', id)
+    const { data, error } = await supabase.from('task_bank').delete().eq('id', id).select('id')
+    if (error) throw error
+    if (!data?.length) throw new Error('task_bank: нет прав на это задание')
     set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
   },
 }))

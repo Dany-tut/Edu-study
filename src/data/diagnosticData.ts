@@ -908,7 +908,13 @@ async function fetchDiagQuestionsNow(subject: DiagSubject): Promise<DiagQuestion
 // Async save — updates cache + upserts all rows to Supabase.
 export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]): Promise<void> {
   questionsCache.set(subject, qs)
-  if (!qs.length) return
+  // Пустой список — тоже правка: удалили последний вопрос. Раньше здесь был
+  // выход, и в базе вопрос оставался.
+  if (!qs.length) {
+    const { error } = await supabase.from('diag_questions').delete().eq('subject', subject)
+    if (error) { console.error('saveDiagQuestions:', error); throw new Error(error.message) }
+    return
+  }
   const rows = qs.map((q, pos) => ({
     id: q.id, subject, section: q.section, text: q.text,
     options: q.options, correct: q.correct, position: pos,
@@ -923,11 +929,12 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
   }
   // Remove deleted questions from DB
   const ids = qs.map(q => q.id)
-  await supabase
+  const { error: delError } = await supabase
     .from('diag_questions')
     .delete()
     .eq('subject', subject)
     .not('id', 'in', `(${ids.join(',')})`)
+  if (delError) { console.error('saveDiagQuestions delete:', delError); throw new Error(delError.message) }
 }
 
 // ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
@@ -1002,7 +1009,7 @@ export function saveBuiltinChip(subject: string, chip: string): void {
 
 export async function deleteCustomTestMeta(id: string): Promise<void> {
   const { error } = await supabase.from('custom_diag_tests').delete().eq('id', id)
-  if (error) console.error('deleteCustomTestMeta:', error)
+  if (error) { console.error('deleteCustomTestMeta:', error); throw new Error(error.message) }
 }
 
 export async function updateCustomTestAccent(id: string, accent: string): Promise<void> {

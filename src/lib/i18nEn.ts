@@ -4686,4 +4686,13 @@ export const EN: Record<string, string> = {
   'В карточки': 'To cards',
   'Уже в карточках': 'Already in cards',
   'Подсказка не ответила': 'The hint didn’t respond',
+  'Задание не сохранилось — проверьте связь и попробуйте ещё раз.': 'The task didn’t save — check your connection and try again.',
+  'Задание в банке не сохранилось — проверьте связь и попробуйте ещё раз.': 'The bank task didn’t save — check your connection and try again.',
+  'Задание не удалилось — проверьте связь и попробуйте ещё раз.': 'The task wasn’t deleted — check your connection and try again.',
+  'Вопросы теста не сохранились — проверьте связь и попробуйте ещё раз.': 'The test questions didn’t save — check your connection and try again.',
+  'Часть отмеченного не удалилась — проверьте связь и попробуйте ещё раз.': 'Some selected items weren’t deleted — check your connection and try again.',
+  'Курс не удалился — проверьте связь и попробуйте ещё раз.': 'The course wasn’t deleted — check your connection and try again.',
+  'Виджет не удалился — проверьте связь и попробуйте ещё раз.': 'The widget wasn’t deleted — check your connection and try again.',
+  'Виджет не сохранился — проверьте связь и попробуйте ещё раз.': 'The widget didn’t save — check your connection and try again.',
+  'Копия курса не создалась — проверьте связь и попробуйте ещё раз.': 'The course copy wasn’t created — check your connection and try again.',
 }

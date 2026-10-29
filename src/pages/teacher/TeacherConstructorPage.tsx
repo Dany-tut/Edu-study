@@ -2674,13 +2674,25 @@ function CreatorView({
 
       if (editingTask) {
         // Update existing task in the bank, then close without creating a new trainer card.
-        replaceTask(editingTask.id, task)
+        // Закрываем только после записи: при сбое правка и черновик остаются.
+        try { await replaceTask(editingTask.id, task) }
+        catch (e) {
+          console.error('[bank] replaceTask', e)
+          void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+          return
+        }
         clearDrafts(tkDraft)
         onCancel()
         return
       }
 
-      const newId = await addTask(task)
+      let newId: number
+      try { newId = await addTask(task) }
+      catch (e) {
+        console.error('[bank] addTask', e)
+        void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+        return
+      }
 
       // Create a trainer card so the task appears in the Тренажёр list.
       const isBio = tkSubject === 'Биология'
@@ -4277,6 +4289,16 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
   )
 }
 
+/** Вопросы теста — в базу; сбой виден. Раньше запись уходила «в фоне», и
+ *  отказ базы оставался в консоли: учитель правил тест, а ученики получали
+ *  старые вопросы. */
+function persistDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]): void {
+  saveDiagQuestions(subject, qs).catch(e => {
+    console.error('[diag] saveDiagQuestions', e)
+    void alertDialog({ title: t('Вопросы теста не сохранились — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+  })
+}
+
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   const t = useT()
   const { label: rawLabel, accent, soft } = SUBJECT_META[subject]
@@ -4293,7 +4315,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
 
   function save(qs: DiagQuestion[]) {
     setQuestions(qs)
-    saveDiagQuestions(subject, qs)
+    persistDiagQuestions(subject, qs)
   }
 
   function startEdit(idx: number) {
@@ -5756,7 +5778,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
-  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs); setDirty(false) }
+  function save(qs: DiagQuestion[]) { setQuestions(qs); persistDiagQuestions(subject, qs); setDirty(false) }
   function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct); setEditAccepts((q.accepts ?? []).join('; ')); setEditTable(q.table); setDirty(false) }
   function applyEdit(q: DiagQuestion): DiagQuestion {
     if (q.kind === 'term') return { ...q, text: editText, table: editTable, accepts: editAccepts.split(/[;\n]/).map(x => x.trim()).filter(Boolean) }
@@ -5782,7 +5804,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
         save(questions.map((q, i) => i === editIdx ? applyEdit(q) : q))
         setEditIdx(null)
       } else {
-        saveDiagQuestions(subject, questions)
+        persistDiagQuestions(subject, questions)
       }
     },
   }))
@@ -7832,7 +7854,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
   const [editCorrect, setEditCorrect] = useState(0)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
-  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
+  function save(qs: DiagQuestion[]) { setQuestions(qs); persistDiagQuestions(subject, qs) }
   function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }
   function commitEdit() {
     if (editIdx === null) return
@@ -8876,29 +8898,54 @@ export default function TeacherConstructorPage() {
     })
   }
 
+  // Карточка уходит с экрана только после ответа базы. Раньше её убирали
+  // сразу: отказ (нет прав, нет связи) молчал, и после F5 «удалённое»
+  // возвращалось. Не удалилось — остаётся отмеченным, и учитель это видит.
   async function deleteChecked() {
+    const failed = new Set<string>()
     if (activeTab === 'course') {
       const toDelete = courses.filter(c => checkedIds.has(c.id))
-      setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
-      await Promise.all(toDelete.map(c => {
-        const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
-        return shortId ? supabase.from('courses').delete().eq('short_id', shortId) : Promise.resolve()
+      await Promise.all(toDelete.map(async c => {
+        if (!(await deleteCourseRow(c))) failed.add(c.id)
       }))
+      setCourses(prev => prev.filter(c => !checkedIds.has(c.id) || failed.has(c.id)))
     } else if (onTasksShelf) {
-      checkedIds.forEach(id => removeTask(Number(id)))
-      const uuids = [...checkedIds].filter(id => isUUID(id))
-      if (uuids.length) await supabase.from('trainers').delete().in('id', uuids)
+      await Promise.all([...checkedIds].map(id => removeTask(Number(id)).catch(e => {
+        console.error('[bank] removeTask', e); failed.add(id)
+      })))
     } else if (activeTab === 'testing') {
-      await Promise.all([...checkedIds].map(id => deleteCustomTestMeta(id)))
-      setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id)))
+      await Promise.all([...checkedIds].map(id => deleteCustomTestMeta(id).catch(() => { failed.add(id) })))
+      setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id) || failed.has(ct.id)))
     } else {
       const toDelete = widgets.filter(w => checkedIds.has(w.id))
-      setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
-      const uuids = toDelete.map(w => w.id).filter(id => isUUID(id))
-      if (uuids.length) await supabase.from('widgets').delete().in('id', uuids)
+      await Promise.all(toDelete.map(async w => {
+        if (!(await deleteWidgetRow(w))) failed.add(w.id)
+      }))
+      setWidgets(prev => prev.filter(w => !checkedIds.has(w.id) || failed.has(w.id)))
+    }
+    if (failed.size) {
+      setCheckedIds(failed)
+      void alertDialog({ title: t('Часть отмеченного не удалилась — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
     }
     setCheckedIds(new Set())
     setEditMode(false)
+  }
+
+  /** Удалить строку курса в базе. false — база отказала; курса, которого в
+   *  базе ещё нет, удалять нечего — это успех. */
+  async function deleteCourseRow(c: Course): Promise<boolean> {
+    const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
+    if (!shortId) return true
+    const { data, error } = await supabase.from('courses').delete().eq('short_id', shortId).select('id')
+    if (error || !data?.length) { console.error('[deleteCourse]', error ?? 'нет прав'); return false }
+    return true
+  }
+  async function deleteWidgetRow(w: Widget): Promise<boolean> {
+    if (!isUUID(w.id)) return true
+    const { data, error } = await supabase.from('widgets').delete().eq('id', w.id).select('id')
+    if (error || !data?.length) { console.error('[deleteWidget]', error ?? 'нет прав'); return false }
+    return true
   }
 
   async function duplicateChecked() {
@@ -8987,9 +9034,18 @@ export default function TeacherConstructorPage() {
       title: w.title, type: w.type, linked_trainer_id: linkedUuid,
       items: w.items, color: w.color, bg: w.bg,
     }
+    // У widgets.created_by нет значения по умолчанию, а читать строку можно
+    // только автору — без автора вставка с RETURNING падала целиком, и у
+    // учителя без админки виджеты не сохранялись вовсе. Автора ставим только
+    // новому: правка чужого (админом) не должна переписывать владельца.
     if (isUUID(w.id)) row.id = w.id
+    else row.created_by = await getOwnerId()
     const { data, error } = await supabase.from('widgets').upsert(row, { onConflict: 'id' }).select('id, created_at').single()
-    if (error) { console.error('[syncWidgetToDb]', error); return }
+    if (error) {
+      console.error('[syncWidgetToDb]', error)
+      void alertDialog({ title: t('Виджет не сохранился — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
     if (data) {
       // Время создания берём из БД — оно и задаёт порядок карточек.
       setWidgets(prev => prev.map(x => x.id === w.id
@@ -9082,14 +9138,33 @@ export default function TeacherConstructorPage() {
 
   // Per-card actions: duplicate clones with fresh ids + "(копия)" as a draft;
   // delete confirms first (irreversible).
-  function duplicateCourse(c: Course) {
+  // Копия курса из базы делается в базе целиком: модули и уроки с содержимым
+  // (duplicate_my_course). Раньше копия собиралась только на экране и после
+  // F5 пропадала. Курс, которого в базе ещё нет, копируется на экране и
+  // записывается так же, как новый.
+  async function duplicateCourse(c: Course) {
+    const title = (c.title) + t(' (копия)')
     const copy: Course = {
-      ...c, id: uid(), title: (c.title) + t(' (копия)'), status: 'draft',
+      ...c, id: uid(), title, status: 'draft', shared: false,
+      // Как и в duplicate_course: назначения и метка сида у копии свои (пустые).
+      groupIds: [], studentIds: [], seedStamp: undefined,
       lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp(),
       // Копия — новый курс: своё время создания, чужую публикацию не наследует.
       createdAt: new Date().toISOString(), publishedAt: undefined,
     }
-    setCourses(prev => [copy, ...prev])
+    if (!c.dbCourseId) {
+      setCourses(prev => [{ ...copy, dbCourseId: undefined }, ...prev])
+      syncCourseToDb({ ...copy, dbCourseId: undefined })
+      return
+    }
+    const { data, error } = await supabase.rpc('duplicate_my_course', { p_short_id: c.dbCourseId, p_title: title })
+    const row = (data as Array<{ id: string; short_id: string; created_at: string }> | null)?.[0]
+    if (error || !row) {
+      console.error('[duplicateCourse]', error)
+      void alertDialog({ title: t('Копия курса не создалась — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
+    setCourses(prev => [{ ...copy, id: row.short_id, dbCourseId: row.short_id, createdAt: row.created_at }, ...prev])
   }
   async function deleteCourse(c: Course) {
     const ok = await confirmDialog({
@@ -9099,10 +9174,12 @@ export default function TeacherConstructorPage() {
       tone: 'danger',
     })
     if (!ok) return
+    if (!(await deleteCourseRow(c))) {
+      void alertDialog({ title: t('Курс не удалился — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
     setCourses(prev => prev.filter(x => x.id !== c.id))
     if (selectedId === c.id) setSelectedId(null)
-    const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
-    if (shortId) await supabase.from('courses').delete().eq('short_id', shortId)
   }
   function duplicateWidget(w: Widget) {
     const copy: Widget = {
@@ -9112,6 +9189,8 @@ export default function TeacherConstructorPage() {
       createdAt: new Date().toISOString(),
     }
     setWidgets(prev => [copy, ...prev])
+    // Копия — в базу сразу, иначе она жила до перезагрузки страницы.
+    syncWidgetToDb(copy)
   }
   async function deleteWidget(w: Widget) {
     const ok = await confirmDialog({
@@ -9120,9 +9199,12 @@ export default function TeacherConstructorPage() {
       tone: 'danger',
     })
     if (!ok) return
+    if (!(await deleteWidgetRow(w))) {
+      void alertDialog({ title: t('Виджет не удалился — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      return
+    }
     setWidgets(prev => prev.filter(x => x.id !== w.id))
     if (selectedId === w.id) setSelectedId(null)
-    if (isUUID(w.id)) await supabase.from('widgets').delete().eq('id', w.id)
   }
 
   // Подписи — по сущности (см. тип Tab). Цвет разметки достался «Материалам»:
@@ -9523,7 +9605,10 @@ export default function TeacherConstructorPage() {
                         selectedIds={new Set([...checkedIds].map(Number).filter(n => !isNaN(n)))}
                         onToggleSelected={id => toggleCheck(String(id))}
                         onForkSelected={() => {}}
-                        onDeleteTask={id => removeTask(id)}
+                        onDeleteTask={id => { removeTask(id).catch(e => {
+                          console.error('[bank] removeTask', e)
+                          void alertDialog({ title: t('Задание не удалилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+                        }) }}
                         showSelect={false}
                         compact={true}
                         editMode={editMode}

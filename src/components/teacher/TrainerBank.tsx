@@ -29,6 +29,12 @@ import { copyToClipboard } from '../../lib/clipboard'
 import MultiSelectField from '../MultiSelectField'
 import { useScrollLock } from '../../lib/useScrollLock'
 import { useT, t } from '../../lib/i18n'
+import { alertDialog } from '../ConfirmHost'
+
+function bankSaveFailed(e: unknown) {
+  console.error('[bank]', e)
+  void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+}
 
 // ─── Copyable №-badge (glass tooltip) ────────────────────────────────────────
 function CopyableIdBadge({ id }: { id: number }) {
@@ -261,13 +267,20 @@ export function BankQuestionCard({
 
   // "Заменить" — overwrite this number in the shared bank → propagates everywhere
   // it's referenced (homeworks, student trainer, other trainers).
-  function doReplace() { replaceTaskInBank(task.id, patch()); flash('replaced') }
+  // «Заменено» — только после записи: база может отказать (чужое задание, связь).
+  async function doReplace() {
+    try { await replaceTaskInBank(task.id, patch()) }
+    catch (e) { bankSaveFailed(e); return }
+    flash('replaced')
+  }
 
   // "Сохранить как новый" — fork a brand-new searchable number, leaving the
   // original untouched. If this card is in the trainer, swap selection over.
   async function doSaveAsNew() {
     const { id: _omit, ...rest } = task
-    const newId = await addTaskToBank({ ...rest, ...patch() } as Omit<Task, 'id'>)
+    let newId: number
+    try { newId = await addTaskToBank({ ...rest, ...patch() } as Omit<Task, 'id'>) }
+    catch (e) { bankSaveFailed(e); return }
     if (selected) onForkSelected(newId)
     flash('forked')
   }

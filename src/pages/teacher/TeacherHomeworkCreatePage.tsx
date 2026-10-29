@@ -13,6 +13,7 @@ import { useStickyLift } from '../../lib/useStickyLift'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, useTc, tc } from '../../lib/i18n'
+import { alertDialog } from '../../components/ConfirmHost'
 import { supabase } from '../../lib/supabase'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
@@ -721,25 +722,36 @@ function BankTaskCard({ task, index, added, onAdd }: {
   // Snapshot of just the editable fields → reused for new/replacement bank tasks.
   const editedFields = () => ({ question: editedQuestion, answer: editedAnswer, solution: editedSolution })
 
+  // Сбой записи в банк — сказать один раз, а не на каждую букву правки.
+  const bankFailShown = useRef(false)
+  function bankFailed(e: unknown) {
+    console.error('[bank]', e)
+    if (bankFailShown.current) return
+    bankFailShown.current = true
+    void alertDialog({ title: t('Задание в банке не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      .then(() => { bankFailShown.current = false })
+  }
+
   // Keep the live variant in sync while the toggle stays on and edits continue.
   useEffect(() => {
-    if (variantId !== null) replaceTaskInBank(variantId, editedFields())
+    if (variantId !== null) replaceTaskInBank(variantId, editedFields()).catch(bankFailed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editedQuestion, editedAnswer, editedSolution])
 
   function toggleVariant() {
     if (variantId !== null) {
-      removeTaskFromBank(variantId)
-      setVariantId(null)
+      const id = variantId
+      removeTaskFromBank(id).then(() => setVariantId(null), bankFailed)
     } else {
       // Same characteristics, new content, fresh searchable id.
       const { id: _omit, ...rest } = task
-      addTaskToBank({ ...rest, ...editedFields() }).then(newId => setVariantId(newId))
+      addTaskToBank({ ...rest, ...editedFields() }).then(newId => setVariantId(newId), bankFailed)
     }
   }
 
-  function replaceInTrainer() {
-    replaceTaskInBank(task.id, editedFields())
+  async function replaceInTrainer() {
+    try { await replaceTaskInBank(task.id, editedFields()) }
+    catch (e) { bankFailed(e); return }
     setJustReplaced(true)
     setTimeout(() => setJustReplaced(false), 2000)
   }
