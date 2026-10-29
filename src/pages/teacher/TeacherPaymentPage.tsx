@@ -56,7 +56,7 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
         onClick={onRequest}
         style={{
           width: '100%', padding: '11px', borderRadius: 12, border: accent ? 'none' : '1px solid var(--color-border-medium)',
-          background: current ? (accent ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-3)') : accent ? 'rgba(255,255,255,0.22)' : 'var(--color-purple)',
+          background: current ? (accent ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-3)') : accent ? 'rgba(255,255,255,0.22)' : 'var(--grad-purple)',
           color: current ? (accent ? 'rgba(255,255,255,0.7)' : 'var(--color-text-3)') : '#fff',
           fontSize: 13, fontWeight: 700, cursor: current || requesting || requested ? 'default' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,

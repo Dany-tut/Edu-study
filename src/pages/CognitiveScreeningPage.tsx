@@ -925,7 +925,7 @@ function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConf
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{s.desc}</div>
                   </div>
-                  {isTop && <span style={{ fontSize: 10, fontWeight: 700, color: '#92400e', background: ACC, borderRadius: 6, padding: '2px 7px' }}>TOP</span>}
+                  {isTop && <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'var(--color-yellow-fill)', borderRadius: 6, padding: '2px 7px' }}>TOP</span>}
                 </div>
                 <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)' }}>
                   <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct}%` }} transition={{ duration: 0.7, delay: 0.2 }} style={{ height: '100%', borderRadius: 999, background: col }} />

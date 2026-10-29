@@ -382,7 +382,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c3', title: t('ЕГЭ по Биологии — 2025'), subject: 'Биология', level: 'ЕГЭ',
     description: t('Актуальная программа ЕГЭ 2025'),
-    color: '#5FD68A', bg: 'var(--color-green-soft)', status: 'draft', lastEdited: '05.06',
+    color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', status: 'draft', lastEdited: '05.06',
     lessons: [
       { id: 'l6', title: t('Фотосинтез'), trainerId: 't4', widgetId: 'w1' },
     ],
@@ -2686,7 +2686,7 @@ function CreatorView({
 
       // Create a trainer card so the task appears in the Тренажёр list.
       const isBio = tkSubject === 'Биология'
-      const trainerColor = isBio ? '#5FD68A' : 'var(--color-purple)'
+      const trainerColor = isBio ? 'var(--color-green-text)' : 'var(--color-purple)'
       const trainerBg    = isBio ? '#D6F5E3' : '#EFE0FF'
       const trainerTitle = (tkTopic || tkSection || stripHtml(tkQuestion).slice(0, 40)).trim() || t('Новое задание')
       const newTrainer: Trainer = {
@@ -3450,10 +3450,10 @@ function CreatorView({
                     {explPhotos.map((src, i) => (
                       <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
                         <img src={src} alt="" style={{ maxWidth: 180, maxHeight: 140, borderRadius: 8, objectFit: 'cover', display: 'block' }} />
-                        <button
+                        <button aria-label={t('Очистить')}
                           onClick={() => setExplPhotos(prev => prev.filter((_, j) => j !== i))}
                           style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, lineHeight: 1 }}
-                        >×</button>
+                        ><X size={13} strokeWidth={2.5} /></button>
                       </div>
                     ))}
                   </div>
@@ -4020,7 +4020,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
               <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Поиск иконки…")}
                 style={{ width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
               {search && (
-                <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
+                <button aria-label={t('Очистить')} onClick={() => setSearch('')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}><X size={13} strokeWidth={2.5} /></button>
               )}
             </div>
 
@@ -4370,7 +4370,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
             padding: '8px 14px', borderRadius: 12, cursor: 'pointer',
-            border: `1.5px solid ${copied ? '#22c55e' : accent}`,
+            border: `1.5px solid ${copied ? 'var(--color-green-text)' : accent}`,
             background: copied ? 'var(--color-green-soft)' : `${accent}15`,
             color: copied ? 'var(--color-green-text)' : accent,
             fontSize: 12, fontWeight: 700, transition: 'all 0.18s', flexShrink: 0,
@@ -4570,7 +4570,7 @@ function DiagnosticStudentCard({
   const { accent, soft, label: subjectLabel } = SUBJECT_META[result.subject as DiagSubject] ?? { accent: '#8B5CF6', soft: 'var(--color-purple-soft)', label: result.subject }
   const date = new Date(result.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
   const time = new Date(result.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-  const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+  const pctColor = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
   const initials = result.name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
   const weakSections = sections.filter(([, v]) => v.total > 0 && v.correct / v.total < 0.5)
   const linkedStudent = result.linkedStudentId ? allStudents.find(s => s.id === result.linkedStudentId) : null
@@ -4605,13 +4605,13 @@ function DiagnosticStudentCard({
               // «40%» на трёх вопросах читалось бы как результат теста.
               <span style={{
                 padding: '1px 7px', borderRadius: 6, fontSize: 10, fontWeight: 700,
-                background: 'var(--color-amber-soft, rgba(245,158,11,0.14))', color: '#b45309',
+                background: 'var(--color-amber-soft, rgba(245,158,11,0.14))', color: 'var(--color-yellow-text)',
               }}>
                 {t('не закончил')}{result.answered != null && result.total != null ? ` · ${result.answered}/${result.total}` : ''}
               </span>
             )}
             {linkedStudent && (
-              <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ color: 'var(--color-green-text)', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Check size={10} strokeWidth={2.5} /> {linkedStudent.name.split(' ')[0]}
               </span>
             )}
@@ -4620,7 +4620,7 @@ function DiagnosticStudentCard({
 
         <div style={{
           width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-          background: `${pctColor}15`, border: `2px solid ${pctColor}33`,
+          background: `color-mix(in srgb, ${pctColor} 8%, transparent)`, border: `2px solid color-mix(in srgb, ${pctColor} 20%, transparent)`,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{ fontSize: 17, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
@@ -4651,7 +4651,7 @@ function DiagnosticStudentCard({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {sections.map(([sec, { correct: c, total: t }]) => {
                     const p = t ? Math.round((c / t) * 100) : 0
-                    const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                    const col = p >= 70 ? 'var(--color-green-text)' : p >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                     return (
                       <div key={sec}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
@@ -4679,7 +4679,7 @@ function DiagnosticStudentCard({
                     {weakSections.map(([sec, { correct: c, total: t }]) => (
                       <div key={sec} style={{ fontSize: 12, color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
                         <span>{sec}</span>
-                        <span style={{ fontWeight: 700, color: '#ef4444' }}>{Math.round((c / t) * 100)}%</span>
+                        <span style={{ fontWeight: 700, color: 'var(--color-red-text)' }}>{Math.round((c / t) * 100)}%</span>
                       </div>
                     ))}
                   </div>
@@ -4705,7 +4705,7 @@ function DiagnosticStudentCard({
                         <span key={step.level} style={{
                           padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700,
                           background: step.passed ? 'rgba(34,197,94,0.12)' : 'var(--color-bg-5)',
-                          color: step.passed ? '#22c55e' : 'var(--color-text-3)',
+                          color: step.passed ? 'var(--color-green-text)' : 'var(--color-text-3)',
                         }}>
                           {step.level} · {step.correct}/{step.total}
                         </span>
@@ -4735,7 +4735,7 @@ function DiagnosticStudentCard({
                             width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
                             background: hasAnswer ? (isCorrect ? '#22c55e22' : '#ef444422') : 'var(--color-bg-5)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 9, fontWeight: 800, color: hasAnswer ? (isCorrect ? '#22c55e' : '#ef4444') : 'var(--color-text-3)',
+                            fontSize: 9, fontWeight: 800, color: hasAnswer ? (isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)') : 'var(--color-text-3)',
                           }}>{i + 1}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, marginBottom: 4 }}>{q.text}</div>
@@ -4743,15 +4743,15 @@ function DiagnosticStudentCard({
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
                                   {isCorrect
-                                    ? <CheckCircle size={11} style={{ color: '#22c55e', flexShrink: 0 }} />
-                                    : <Circle size={11} style={{ color: '#ef4444', flexShrink: 0 }} />}
-                                  <span style={{ color: isCorrect ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                                    ? <CheckCircle size={11} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                                    : <Circle size={11} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} />}
+                                  <span style={{ color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontWeight: 600 }}>
                                     {diagAnswerLabel(q, chosen)}
                                   </span>
                                 </div>
                                 {!isCorrect && (
-                                  <div style={{ fontSize: 11, color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <CheckCircle size={11} style={{ color: '#22c55e', flexShrink: 0 }} />
+                                  <div style={{ fontSize: 11, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                    <CheckCircle size={11} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                                     <span style={{ color: 'var(--color-muted)' }}>{t('Верно:')}</span>
                                     <span style={{ fontWeight: 600, color: 'var(--color-text-2)' }}>{diagCorrectLabel(q) || t('ответ не задан')}</span>
                                   </div>
@@ -5042,7 +5042,7 @@ function DiagResultsTable({
               const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
               const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
               const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
-              const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+              const pctColor = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
               const weak = sections.filter(([, v]) => v.total > 0 && v.correct / v.total < 0.5).map(([k]) => k)
               const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
               const initials = (r.name ?? '').split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
@@ -5062,7 +5062,7 @@ function DiagResultsTable({
                       </div>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(r.name)}</div>
-                        {r.linkedStudentId && <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={9} /> {t('привязан')}</div>}
+                        {r.linkedStudentId && <div style={{ fontSize: 10, color: 'var(--color-green-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={9} /> {t('привязан')}</div>}
                       </div>
                     </div>
                   </td>
@@ -5076,9 +5076,9 @@ function DiagResultsTable({
                   <td style={{ padding: '11px 16px' }}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
                       {weak.length === 0
-                        ? <span style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>{t('Всё ок')}</span>
+                        ? <span style={{ fontSize: 10, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Всё ок')}</span>
                         : weak.slice(0, 3).map(s => (
-                            <span key={s} style={{ fontSize: 9, padding: '2px 7px', borderRadius: 6, background: '#ef444420', color: '#ef4444', fontWeight: 600 }}>{s}</span>
+                            <span key={s} style={{ fontSize: 9, padding: '2px 7px', borderRadius: 6, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontWeight: 600 }}>{s}</span>
                           ))
                       }
                     </div>
@@ -5086,7 +5086,7 @@ function DiagResultsTable({
                   <td style={{ padding: '11px 16px', textAlign: 'center' }}>
                     {!r.completed ? (
                       <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'rgba(245,158,11,0.14)', color: '#f59e0b', fontWeight: 700, whiteSpace: 'nowrap' }}>{t('Не закончил')}</span>
+                        <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'rgba(245,158,11,0.14)', color: 'var(--color-yellow-text)', fontWeight: 700, whiteSpace: 'nowrap' }}>{t('Не закончил')}</span>
                         <ResumeLinkButton result={r} accent={accent} />
                       </div>
                     ) : r.linkedStudentId
@@ -5125,7 +5125,7 @@ function DiagResultStudentPanel({
   const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
   const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
   const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
-  const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+  const pctColor = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
   const linkedStudent = result.linkedStudentId ? allStudents.find(s => s.id === result.linkedStudentId) : null
   const date = new Date(result.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
   const time = new Date(result.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
@@ -5169,8 +5169,8 @@ function DiagResultStudentPanel({
         >
 
           {/* Score ring */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, background: `${pctColor}10`, border: `1px solid ${pctColor}22` }}>
-            <div style={{ width: 60, height: 60, borderRadius: 18, background: `${pctColor}20`, border: `3px solid ${pctColor}44`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, background: `color-mix(in srgb, ${pctColor} 6%, transparent)`, border: `1px solid color-mix(in srgb, ${pctColor} 13%, transparent)` }}>
+            <div style={{ width: 60, height: 60, borderRadius: 18, background: `color-mix(in srgb, ${pctColor} 13%, transparent)`, border: `3px solid color-mix(in srgb, ${pctColor} 27%, transparent)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
               <div style={{ fontSize: 9, color: 'var(--color-muted)', marginTop: 2 }}>{totalC}/{totalQ}</div>
             </div>
@@ -5212,9 +5212,9 @@ function DiagResultStudentPanel({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {sections.map(([sec, v]) => {
                 const p = v.total ? Math.round((v.correct / v.total) * 100) : 0
-                const c = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                const c = p >= 70 ? 'var(--color-green-text)' : p >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                 return (
-                  <div key={sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: `1px solid ${c}22` }}>
+                  <div key={sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: `1px solid color-mix(in srgb, ${c} 13%, transparent)` }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{sec}</div>
                       <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
@@ -5258,7 +5258,7 @@ function DiagResultStudentPanel({
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {shown.map(({ q, i, chosen, hasAnswer, ok }) => {
-                      const col = ok ? '#22c55e' : hasAnswer ? '#ef4444' : 'var(--color-text-3)'
+                      const col = ok ? 'var(--color-green-text)' : hasAnswer ? 'var(--color-red-text)' : 'var(--color-text-3)'
                       return (
                         <div key={q.id} style={{
                           borderRadius: 11, padding: '9px 12px',
@@ -5320,12 +5320,12 @@ function DiagResultStudentPanel({
             )}
             {linkedStudent ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: 'var(--color-green-soft)', border: '1px solid rgba(34,197,94,0.25)' }}>
-                <Check size={16} style={{ color: '#22c55e', flexShrink: 0 }} />
+                <Check size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(linkedStudent.name)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-green-text)' }}>{t('Привязан к профилю')}</div>
                 </div>
-                <button onClick={handleUnlink} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: '#ef4444', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
+                <button onClick={handleUnlink} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
               </div>
             ) : (
               <button
@@ -6017,7 +6017,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                         <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
                         <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : t('Дата')}</span>
-                        {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
+                        {dueDate && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={13} strokeWidth={2.5} /></button>}
                       </button>
                       <AnimatePresence>
                         {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} anchorRef={calAnchorRef} accent={accent} soft={soft} />}
@@ -6097,7 +6097,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                           <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px' }}>{t('Никто ещё не сдал')}</div>
                         ) : assignResults.map(r => {
                           const pct = r.results ? Math.round(Object.values(r.results).reduce((acc, s) => acc + s.correct, 0) / Math.max(1, Object.values(r.results).reduce((acc, s) => acc + s.total, 0)) * 100) : 0
-                          const col = pct >= 70 ? '#34C877' : pct >= 40 ? '#F5A623' : '#F48B91'
+                          const col = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                           return (
                             <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg)' }}>
                               <span style={{ fontSize: 11, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(r.name)}</span>
@@ -7182,7 +7182,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                           <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : t('Дата')}</span>
-                          {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
+                          {dueDate && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={13} strokeWidth={2.5} /></button>}
                         </button>
                         <AnimatePresence>
                           {calOpen2 && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen2(false) }} onClose={() => setCalOpen2(false)} anchorRef={calAnchor2Ref} accent={accent} soft={soft} />}
@@ -10058,7 +10058,7 @@ function AssignmentsPanel({
                     {a.dueDate && <span>{t('до')} {a.dueDate}</span>}
                   </div>
                 </div>
-                <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? '#F5A623' : 'var(--color-purple-text)' }}>
+                <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
                   {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
                 </span>
                 <button onClick={e => { e.stopPropagation(); onDelete(a.id) }}
@@ -10074,7 +10074,7 @@ function AssignmentsPanel({
                     <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 12px' }}>{t('Никто ещё не сдал')}</div>
                   ) : results.map(r => {
                     const pct = r.results ? Math.round(Object.values(r.results).reduce((a, s) => a + s.correct, 0) / Math.max(1, Object.values(r.results).reduce((a, s) => a + s.total, 0)) * 100) : 0
-                    const col = pct >= 70 ? '#34C877' : pct >= 40 ? '#F5A623' : '#F48B91'
+                    const col = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                     return (
                       <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg)' }}>
                         <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{tn(r.name)}</span>

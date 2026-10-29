@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { ModalClose } from '../../components/Modal'
+import { createPortal } from 'react-dom'
 import { ScrollArrow, nudgeScroll } from '../../components/HScrollFade'
 import Skeleton from '../../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -120,7 +122,7 @@ function AddGroupModal({ onClose, onSave }: {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Новая группа')}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -243,7 +245,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить ученика')}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <button
@@ -399,7 +401,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик')}</span>
-          <button onClick={onClose} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
 
         {step === 'config' && newStudentId ? (
@@ -421,7 +423,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               onClick={copyLink}
               style={{
                 width: '100%', padding: '12px 0',
-                background: copied ? '#3FCC8A' : 'var(--color-purple)',
+                background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: 'pointer',
                 transition: 'background 0.2s',
@@ -709,7 +711,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик 1:1')}</span>
-          <button onClick={onClose} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
 
         {step === 'config' && newStudentId ? (
@@ -726,7 +728,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             </div>
             <button onClick={copyLink} style={{
               width: '100%', padding: '12px 0',
-              background: copied ? '#3FCC8A' : 'var(--color-purple)',
+              background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)',
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
             }}>
@@ -2473,7 +2475,9 @@ export default function TeacherGroupsPage() {
   const [addToGroupTarget, setAddToGroupTarget] = useState<string | null>(null)  // group id → PickStudentModal
   const [addToGroupForStudent, setAddToGroupForStudent] = useState(false)         // student card → PickGroupModal
   const [enrolling, setEnrolling] = useState(false)
-  const [rosterAddMenu, setRosterAddMenu] = useState(false)
+  // Меню «+ Ученик» — в портале по координатам кнопки: карточка таблицы с
+  // overflow:hidden обрезала его, когда учеников мало или нет совсем.
+  const [rosterAddMenu, setRosterAddMenu] = useState<{ top: number; right: number } | null>(null)
 
   const existingKeysForGroup = (gid: string) =>
     new Set(allStudents.filter(s => s.groupId === gid).map(personKey))
@@ -2629,7 +2633,10 @@ export default function TeacherGroupsPage() {
                       {!activeGroup.isIndividual && (
                         <div style={{ position: 'relative', flex: 'none' }}>
                           <button
-                            onClick={() => setRosterAddMenu(v => !v)}
+                            onClick={e => {
+                              const r = e.currentTarget.getBoundingClientRect()
+                              setRosterAddMenu(v => v ? null : { top: r.bottom + 6, right: window.innerWidth - r.right })
+                            }}
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 6,
                               padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
@@ -2639,24 +2646,25 @@ export default function TeacherGroupsPage() {
                           >
                             <Plus size={14} strokeWidth={2.6} /> {t('Ученик')}
                           </button>
-                          {rosterAddMenu && (
+                          {rosterAddMenu && createPortal(
                             <>
-                              <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setRosterAddMenu(false)} />
+                              <div style={{ position: 'fixed', inset: 0, zIndex: 1100 }} onClick={() => setRosterAddMenu(null)} />
                               <div style={{
-                                position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41,
+                                position: 'fixed', right: rosterAddMenu.right, top: rosterAddMenu.top, zIndex: 1101,
                                 background: 'var(--color-bg-input)', borderRadius: 14, padding: 6, width: 220,
                                 boxShadow: '0 12px 40px rgba(0,0,0,0.18)', border: '1px solid var(--color-border-soft)',
                               }}>
                                 <RosterAddItem
                                   title={t('Новый ученик')} subtitle={t('создать и выдать логин')}
-                                  onClick={() => { setRosterAddMenu(false); setShowAddStudent(true) }}
+                                  onClick={() => { setRosterAddMenu(null); setShowAddStudent(true) }}
                                 />
                                 <RosterAddItem
                                   title={t('Существующий')} subtitle={t('перенести из другой группы / 1:1')}
-                                  onClick={() => { setRosterAddMenu(false); setAddToGroupTarget(activeGroup.id) }}
+                                  onClick={() => { setRosterAddMenu(null); setAddToGroupTarget(activeGroup.id) }}
                                 />
                               </div>
-                            </>
+                            </>,
+                            document.body,
                           )}
                         </div>
                       )}

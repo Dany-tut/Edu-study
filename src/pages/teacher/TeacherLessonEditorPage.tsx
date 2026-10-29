@@ -29,7 +29,7 @@ import { AlertStack } from '../../components/Alert'
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '9px 12px', borderRadius: 11,
-  border: '1.5px solid rgba(0,0,0,0.09)',
+  border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)',
   background: 'var(--color-bg-2)', outline: 'none',
   fontFamily: 'inherit',
@@ -542,7 +542,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
-              border: '1.5px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: 'transparent',
+              border: '1.5px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent',
               color: 'var(--color-muted)', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
             }}
           >
@@ -714,7 +714,7 @@ function AudiencePicker({
               }}
             >
               {/* Search */}
-              <div style={{ padding: 8, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ padding: 8, borderBottom: '1px solid var(--color-border-soft)' }}>
                 <div style={{ position: 'relative' }}>
                   <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
                   <input
@@ -791,14 +791,14 @@ function AudiencePicker({
                 )}
 
                 {groupMatches.length === 0 && studentMatches.length === 0 && (
-                  <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-4)' }}>
+                  <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)' }}>
                     {t('Ничего не найдено')}
                   </div>
                 )}
               </ScrollFade>
               </div>
 
-              <div style={{ padding: 8, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ padding: 8, borderTop: '1px solid var(--color-border-soft)' }}>
                 <button
                   onClick={() => { setOpen(false); setQuery('') }}
                   style={{

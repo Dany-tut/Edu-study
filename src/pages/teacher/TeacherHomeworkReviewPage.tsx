@@ -272,7 +272,7 @@ function TaskScoreGrid({
                 placeholder="—"
                 style={{
                   width: 64, boxSizing: 'border-box', padding: '7px 10px', borderRadius: 10,
-                  border: `1.5px solid ${over ? '#f87171' : 'rgba(0,0,0,0.1)'}`,
+                  border: `1.5px solid ${over ? 'var(--color-red-text)' : 'var(--color-border-medium)'}`,
                   fontSize: 16, fontWeight: 750, color: over ? 'var(--color-red-text)' : 'var(--color-text)',
                   background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                   appearance: 'textfield',
@@ -709,7 +709,7 @@ export default function TeacherHomeworkReviewPage() {
                             placeholder="—"
                             style={{
                               width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                              border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 20, fontWeight: 750, color: 'var(--color-text)',
+                              border: '1.5px solid var(--color-border-medium)', fontSize: 20, fontWeight: 750, color: 'var(--color-text)',
                               background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                               appearance: 'textfield',
                             } as React.CSSProperties}

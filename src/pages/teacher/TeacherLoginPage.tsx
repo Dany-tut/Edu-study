@@ -201,7 +201,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             style={{
               padding: '13px 24px',
               borderRadius: 14,
-              background: loading ? 'rgba(155,109,255,0.6)' : 'var(--color-purple)',
+              background: 'var(--grad-purple)', opacity: loading ? 0.6 : 1,
               color: '#fff',
               fontWeight: 700,
               fontSize: 15,

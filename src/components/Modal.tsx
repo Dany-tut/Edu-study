@@ -93,12 +93,7 @@ export default function Modal({
                 <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.25 }}>{title}</div>
                 {subtitle != null && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>}
               </div>
-              <button
-                type="button" onClick={onClose} aria-label={t('Закрыть')}
-                style={{ width: 30, height: 30, borderRadius: 9, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}
-              >
-                <X size={16} />
-              </button>
+              <ModalClose onClose={onClose} />
             </div>
           )}
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: `${title != null ? 4 : padding}px ${padding}px ${footer ? 12 : padding}px` }}>
@@ -113,5 +108,21 @@ export default function Modal({
       </div>
     </>,
     document.body,
+  )
+}
+
+/**
+ * Крестик окна — один на все окна. 36 px — палец попадает и на телефоне
+ * (раньше 30, а в части окон голая иконка 18 px без поля вокруг).
+ */
+export function ModalClose({ onClose, style }: { onClose: () => void; style?: CSSProperties }) {
+  const t = useT()
+  return (
+    <button
+      type="button" onClick={onClose} aria-label={t('Закрыть')}
+      style={{ width: 36, height: 36, borderRadius: 11, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0, ...style }}
+    >
+      <X size={18} />
+    </button>
   )
 }

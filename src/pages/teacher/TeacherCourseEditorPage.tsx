@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
+import { ModalClose } from '../../components/Modal'
 import { AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -3732,7 +3733,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
     ? bankTasks.filter(t => t.question.toLowerCase().includes(search.toLowerCase()))
     : bankTasks
 
-  const accent = hard ? '#B45309' : 'var(--color-text-2)'
+  const accent = hard ? 'var(--color-peach-text)' : 'var(--color-text-2)'
   const accentBg = hard ? 'rgba(245,158,11,0.1)' : 'transparent'
   const border = hard ? 'rgba(245,158,11,0.4)' : 'var(--color-border)'
 
@@ -3879,7 +3880,7 @@ function HomeworkLeftPanel({
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
             <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t(tt.label)}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t(tt.label)}</span>
           </button>
         ))}
         <BankPicker hard onPick={bt => addFromBank(bt, true)} />
@@ -6457,7 +6458,7 @@ export default function TeacherCourseEditorPage() {
                 <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выдать новой группе')}</div>
                 <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>{t('Свежая копия курса — свой старт, ноль прогресса')}</div>
               </div>
-              <button onClick={() => !handoutBusy && setHandoutOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 4 }}><X size={18} /></button>
+              <ModalClose onClose={() => { if (!handoutBusy) setHandoutOpen(false) }} />
             </div>
 
             {/* Group picker */}

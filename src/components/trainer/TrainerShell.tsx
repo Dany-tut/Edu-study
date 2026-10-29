@@ -46,7 +46,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { subjectFill } from '../../lib/subjects'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -1593,10 +1593,10 @@ export function SearchPill({ value, onChange, placeholder }: {
         }}
       />
       {value && (
-        <button
+        <button aria-label={t('Очистить')}
           onClick={e => { e.stopPropagation(); onChange('') }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}
-        >×</button>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}
+        ><X size={13} strokeWidth={2.5} /></button>
       )}
     </div>
   )

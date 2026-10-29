@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { ModalClose } from '../Modal'
 import BackCircle from '../BackCircle'
 import { motion } from 'framer-motion'
 import { X, Search, Users, Check, User } from 'lucide-react'
@@ -62,7 +63,7 @@ export function PickStudentModal({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить ученика')}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
           {t('в группу')} <b style={{ color: targetGroup.color }}>{targetGroup.name}</b> {t('— существующий ученик сохранит свой логин')}
@@ -145,7 +146,7 @@ export function PickGroupModal({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить в группу')}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
           <b>{tn(studentName)}</b> {t('сохранит свой логин и увидит курс группы')}
@@ -265,7 +266,7 @@ export function AddExistingIndividualModal({
             )}
             {step === 'result' ? t('Карточка 1:1 создана') : t('Существующий ученик → 1:1')}
           </span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <ModalClose onClose={onClose} />
         </div>
 
         {step === 'pick' && (

@@ -457,7 +457,7 @@ function Actions({ cancel, confirm, danger, onCancel, onConfirm }: {
   return (
     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
       <button onClick={onCancel} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{cancel}</button>
-      <button onClick={onConfirm} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: danger ? '#E04848' : 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{confirm}</button>
+      <button onClick={onConfirm} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: danger ? 'var(--btn-red-bg)' : 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{confirm}</button>
     </div>
   )
 }

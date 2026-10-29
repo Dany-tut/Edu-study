@@ -904,7 +904,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
           style={{
             ...inputStyle,
             fontWeight: 700, fontSize: 14,
-            border: '1.5px solid rgba(0,0,0,0.1)',
+            border: '1.5px solid var(--color-border-medium)',
             background: 'rgba(var(--glass-rgb), 0.85)',
           }}
           placeholder={t('Введите правильный ответ...')}
@@ -1003,7 +1003,7 @@ function TrainerTab({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)', fontSize: 13 }}>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-3)', fontSize: 13 }}>
           {t('Нет заданий по выбранным фильтрам')}
         </div>
       )}
@@ -1426,7 +1426,7 @@ function HardTaskAccordion({
                       key={opt.v}
                       onClick={() => setTab(opt.v as 'compose' | 'trainer')}
                       style={{
-                        flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
+                        flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
                         background: tab === opt.v ? 'var(--color-surface)' : 'transparent',
                         color: tab === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
@@ -1624,7 +1624,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                     style={{
                       width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                       cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                      background: isSelected ? 'var(--color-accent)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
+                      background: isSelected ? 'var(--grad-purple)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
                       color: isSelected ? '#fff' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
                       transition: 'background 0.12s',
                     }}
@@ -2512,7 +2512,7 @@ export default function TeacherHomeworkCreatePage() {
                 onClick={() => setActiveTab(tab.key)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
+                  padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
                   background: activeTab === tab.key ? 'var(--color-surface)' : 'transparent',
                   color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-muted)',
@@ -2690,7 +2690,7 @@ export default function TeacherHomeworkCreatePage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => setShowPublishConfirm(false)}
-                    style={{ flex: 1, padding: '10px 0', borderRadius: 14, border: '1.5px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    style={{ flex: 1, padding: '10px 0', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                   >
                     {t('Отмена')}
                   </button>

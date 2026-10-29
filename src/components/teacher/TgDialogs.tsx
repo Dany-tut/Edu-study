@@ -194,7 +194,7 @@ function Conversation({ thread, onBack, onStatus }: {
             <div key={m.id} style={{ alignSelf: out ? 'flex-end' : 'flex-start', maxWidth: '78%' }}>
               <div style={{
                 padding: '9px 13px', borderRadius: 14, fontSize: 14, lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                background: out ? 'var(--color-purple)' : 'var(--color-bg-3)',
+                background: out ? 'var(--grad-purple)' : 'var(--color-bg-3)',
                 color: out ? '#fff' : 'var(--color-text)',
                 borderBottomRightRadius: out ? 4 : 14, borderBottomLeftRadius: out ? 14 : 4,
               }}>{m.text}</div>

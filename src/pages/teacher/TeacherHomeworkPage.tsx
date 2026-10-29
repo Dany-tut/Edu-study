@@ -263,7 +263,7 @@ function Label({ children }: { children: React.ReactNode }) {
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '10px 12px', borderRadius: 12,
-  border: '1.5px solid rgba(0,0,0,0.1)',
+  border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)',
   background: 'var(--color-bg-2)',
   outline: 'none',

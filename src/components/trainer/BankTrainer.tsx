@@ -158,10 +158,8 @@ function FilterField({ label, options, value, onChange, accent }: {
           }}
         />
         {value && !open ? (
-          <button onMouseDown={e => { e.preventDefault(); onChange('') }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}>
-            ×
-          </button>
+          <button aria-label={t('Очистить')} onMouseDown={e => { e.preventDefault(); onChange('') }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}><X size={13} strokeWidth={2.5} /></button>
         ) : (
           <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease', pointerEvents: 'none' }}>
             <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -196,7 +194,7 @@ function FilterField({ label, options, value, onChange, accent }: {
                 </button>
               )}
               {shown.length === 0 ? (
-                <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-5)' }}>{t('Ничего не найдено')}</div>
+                <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
               ) : shown.map(opt => {
                 const rest = opt === value ? `${accent}14` : 'transparent'
                 return (
@@ -765,11 +763,13 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
         <button onClick={peek} aria-label={t('Показать ответ')} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
           background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
         <button onClick={() => onFavorite(task.id)} style={{
-          padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
+          padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? 'var(--color-yellow-border)' : 'var(--color-border-medium)'}`,
           background: isFav ? 'var(--color-yellow-soft)' : 'transparent', cursor: 'pointer', flexShrink: 0,
-        }}><Star size={12} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} fill={isFav ? '#7A6B00' : 'none'} /></button>
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} aria-label={t('В избранное')}><Star size={12} color={isFav ? 'var(--color-yellow-text)' : 'var(--color-text-3)'} fill={isFav ? 'var(--color-yellow-text)' : 'none'} /></button>
       </div>
 
       {/* Solution */}
@@ -1194,7 +1194,7 @@ function ProgressModal({
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ fontSize: 17, fontWeight: 750, color: 'var(--color-text)' }}>{t('Мой прогресс')}</div>
-            <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+            <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
               <X size={14} />
             </button>
           </div>
@@ -2266,7 +2266,7 @@ export default function BankTrainer({ subjectState }: {
               placeholder={searchOpen || search ? t('Поиск по тексту или №...') : t('Поиск')}
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
             />
-            {search && <button onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>×</button>}
+            {search && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={13} strokeWidth={2.5} /></button>}
           </div>
           {/* Статус, вид и сортировка — общие со скелетом (components/trainer).
               Своих копий у банка больше нет: расходились бы при первой правке. */}

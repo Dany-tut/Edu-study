@@ -4916,7 +4916,7 @@ function ProgressStrip({
           )}
           {(gradedCount - correctCount) > 0 && (
             <span style={{
-              fontSize: 11, fontWeight: 700, color: '#A8282D',
+              fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)',
               background: 'var(--color-red-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
               ✗ {gradedCount - correctCount} {t('нет')}

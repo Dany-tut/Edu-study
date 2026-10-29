@@ -352,7 +352,7 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
             style={{
               width: '100%', padding: '12px 0', marginBottom: verdict ? 16 : 24, borderRadius: 14,
               border: 'none', cursor: retrying ? 'default' : 'pointer', fontFamily: 'inherit',
-              fontSize: 14, fontWeight: 700, background: '#ef4444', color: '#fff', opacity: retrying ? 0.6 : 1,
+              fontSize: 14, fontWeight: 700, background: 'var(--btn-red-bg)', color: '#fff', opacity: retrying ? 0.6 : 1,
             }}>
             {retrying ? t('Отправляю…') : t('Отправить ещё раз')}
           </button>

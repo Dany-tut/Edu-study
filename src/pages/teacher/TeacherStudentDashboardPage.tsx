@@ -95,7 +95,7 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: { label: string; icon
 
 function SectionRow({ section, correct, total }: { section: string; correct: number; total: number }) {
   const pct = total ? correct / total : 0
-  const color = pct >= 0.7 ? '#34C877' : pct >= 0.4 ? '#FAC775' : '#F09595'
+  const color = pct >= 0.7 ? 'var(--color-green-text)' : pct >= 0.4 ? '#FAC775' : '#F09595'
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -193,7 +193,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
         {results.map(r => {
           const accent = getAccent(r)
           const pct = getPct(r)
-          const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+          const pctColor = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
           const label = getLabel(r)
           const Icon = getIconComp(r)
           const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
@@ -239,7 +239,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
             : sections
           const topSection = isLogic ? sortedSections[0] : null
           const pct = getPct(r)
-          const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+          const pctColor = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
           const Icon = getIconComp(r)
           const label = getLabel(r)
           const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
@@ -273,7 +273,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
                 <div style={{ padding: '14px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {sortedSections.map(([sec, { correct: c, total: t }]) => {
                     const p = t ? Math.round((c / t) * 100) : 0
-                    const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                    const col = p >= 70 ? 'var(--color-green-text)' : p >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                     return (
                       <div key={sec}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -589,10 +589,10 @@ export default function TeacherStudentDashboardPage() {
           transition: 'opacity 0.2s',
         }}>
           {[
-            { icon: ClipboardCheck, label: t('ДЗ'), value: `${Math.round(hwAvg)}%`, color: '#5FD68A', bg: 'var(--color-green-soft)' },
+            { icon: ClipboardCheck, label: t('ДЗ'), value: `${Math.round(hwAvg)}%`, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
             { icon: TrendingUp,     label: t('Тесты'), value: `${student.testScore}%`, color: 'var(--color-purple)', bg: 'rgba(185,143,255,0.14)' },
-            { icon: Award,          label: t('Пробник'), value: student.trialScore != null ? `${student.trialScore}%` : '—', color: '#F5A623', bg: 'rgba(245,166,35,0.12)' },
-            { icon: Clock,          label: t('Посещаемость'), value: `${realAttendance}%`, color: realAttendance >= 90 ? '#34C877' : realAttendance >= 70 ? '#F5A623' : '#F48B91', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
+            { icon: Award,          label: t('Пробник'), value: student.trialScore != null ? `${student.trialScore}%` : '—', color: 'var(--color-yellow-text)', bg: 'rgba(245,166,35,0.12)' },
+            { icon: Clock,          label: t('Посещаемость'), value: `${realAttendance}%`, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: t('Тренажёр'), value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -669,12 +669,12 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={BarChart3} label={t('Показатели')} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <ScoreBar label={t('Домашние задания')} icon={ClipboardCheck} value={Math.round(hwAvg)} color="#5FD68A" bg="rgba(95,214,138,0.14)" />
+                <ScoreBar label={t('Домашние задания')} icon={ClipboardCheck} value={Math.round(hwAvg)} color="var(--color-green-text)" bg="rgba(95,214,138,0.14)" />
                 <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="rgba(185,143,255,0.14)" />
-                {student.trialScore != null && <ScoreBar label={t('Пробный экзамен')} icon={Award} value={student.trialScore} color="#F5A623" bg="rgba(245,166,35,0.12)" />}
+                {student.trialScore != null && <ScoreBar label={t('Пробный экзамен')} icon={Award} value={student.trialScore} color="var(--color-yellow-text)" bg="rgba(245,166,35,0.12)" />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--color-bg)', borderRadius: 12 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: realAttendance >= 90 ? 'rgba(95,214,138,0.14)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'rgba(244,139,145,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Clock size={13} strokeWidth={2} style={{ color: realAttendance >= 90 ? '#5FD68A' : realAttendance >= 70 ? '#F5A623' : '#F48B91' }} />
+                    <Clock size={13} strokeWidth={2} style={{ color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }} />
                   </div>
                   <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{t('Посещаемость')}</span>
                   <span style={{ fontSize: 16, fontWeight: 750, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{realAttendance}%</span>
@@ -719,11 +719,11 @@ export default function TeacherStudentDashboardPage() {
                 )}
                 {hwHistory.map((hw, i) => {
                   const pct = hw.returned ? 0 : Math.round((hw.score / hw.maxScore) * 100)
-                  const color = hw.returned ? '#F48B91' : pct >= 80 ? '#34C877' : pct >= 50 ? '#F5A623' : '#F48B91'
+                  const color = hw.returned ? 'var(--color-red-text)' : pct >= 80 ? 'var(--color-green-text)' : pct >= 50 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg)' }}>
                       <div style={{ width: 24, height: 24, borderRadius: '50%', background: hw.returned ? 'var(--color-red-soft)' : pct === 100 ? 'var(--color-green-soft)' : 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {hw.returned ? <AlertCircle size={12} style={{ color: '#F48B91' }} /> : pct === 100 ? <CheckCheck size={12} style={{ color: '#34C877' }} /> : <CheckCircle2 size={12} style={{ color: 'var(--color-muted)' }} />}
+                        {hw.returned ? <AlertCircle size={12} style={{ color: 'var(--color-red-text)' }} /> : pct === 100 ? <CheckCheck size={12} style={{ color: 'var(--color-green-text)' }} /> : <CheckCircle2 size={12} style={{ color: 'var(--color-muted)' }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(hw.title)}</div>
@@ -757,7 +757,7 @@ export default function TeacherStudentDashboardPage() {
                 )}
                 {lessonHistory.map((l, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 10, background: l.attended ? 'var(--color-bg)' : 'var(--color-red-soft)' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.attended ? '#34C877' : '#F48B91', flexShrink: 0 }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.attended ? 'var(--color-green-text)' : 'var(--color-red-text)', flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{l.topic}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-muted)', flexShrink: 0 }}>{l.date}</span>
                   </div>
@@ -815,7 +815,7 @@ export default function TeacherStudentDashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {studentCourses.map(c => {
                     const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
-                    const pctColor = pct >= 0.7 ? '#34C877' : pct >= 0.4 ? '#F5A623' : group.color
+                    const pctColor = pct >= 0.7 ? 'var(--color-green-text)' : pct >= 0.4 ? 'var(--color-yellow-text)' : group.color
                     return (
                       <div key={c.id} style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', border: `1px solid ${group.color}20` }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
@@ -907,13 +907,13 @@ export default function TeacherStudentDashboardPage() {
               <SectionHeader icon={Star} label={t('Активность (28 дней)')} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
                 {activityHeat.map((heat, i) => {
-                  const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : '#34C877'
+                  const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : 'var(--color-green-text)'
                   return <div key={i} style={{ height: 22, borderRadius: 5, background: bg }} />
                 })}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
                 <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Меньше')}</span>
-                {['var(--color-bg-5)', 'rgba(52,200,119,0.18)', 'rgba(52,200,119,0.45)', '#34C877'].map(c => (
+                {['var(--color-bg-5)', 'rgba(52,200,119,0.18)', 'rgba(52,200,119,0.45)', 'var(--color-green-text)'].map(c => (
                   <div key={c} style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
                 ))}
                 <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Больше')}</span>

@@ -358,7 +358,7 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
             {tc(lesson.title)}
           </span>
           {status === 'completed' && lesson.points != null && (
-            <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: '#B07A00', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>
+            <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: 'var(--color-yellow-text)', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>
               <Zap size={11} />+{lesson.points}
             </span>
           )}

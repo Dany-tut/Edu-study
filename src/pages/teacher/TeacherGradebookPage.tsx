@@ -275,7 +275,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
                         position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: 'var(--color-purple)',
+                        background: 'var(--grad-purple)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>

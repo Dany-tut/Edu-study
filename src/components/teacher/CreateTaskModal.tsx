@@ -196,7 +196,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
               style={{
                 width: 30, height: 30, borderRadius: 8, border: 'none',
                 cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500,
-                background: sel ? 'var(--color-accent)' : tod ? 'var(--color-purple-soft)' : 'transparent',
+                background: sel ? 'var(--grad-purple)' : tod ? 'var(--color-purple-soft)' : 'transparent',
                 color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.1s',

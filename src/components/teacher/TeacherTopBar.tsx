@@ -426,7 +426,7 @@ export default function TeacherTopBar() {
             >
               <div
                   style={{
-                    position: 'absolute', inset: 0, borderRadius: 20,
+                    position: 'absolute', inset: 0, borderRadius: 22,
                     background: 'var(--grad-purple)',
                     boxShadow: isActive ? '0 4px 14px rgba(106,90,230,0.42)' : 'none',
                     opacity: isActive ? 1 : 0,

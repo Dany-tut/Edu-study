@@ -235,13 +235,12 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
           </div>
         </div>
       </div>
+      {/* «Материалы» рядом была без обработчика с июля — кнопка, которая ничего
+          не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>
           <Play size={13} /> {t('Открыть')}
         </motion.button>
-        <button className="cursor-pointer" style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, border: '1px solid var(--color-border-soft)' }}>
-          {t('Материалы')}
-        </button>
       </div>
     </div>
   )

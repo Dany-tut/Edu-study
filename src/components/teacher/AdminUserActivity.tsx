@@ -86,7 +86,7 @@ export default function AdminUserActivity() {
               key={v}
               onClick={() => setView(v)}
               style={{
-                padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                padding: '6px 14px', borderRadius: 7, border: 'none', cursor: 'pointer',
                 fontSize: 13, fontWeight: 600,
                 background: view === v ? 'var(--color-purple-soft)' : 'transparent',
                 color: view === v ? 'var(--color-purple)' : 'var(--color-text-3)',
@@ -103,7 +103,7 @@ export default function AdminUserActivity() {
               key={d}
               onClick={() => setDays(d)}
               style={{
-                padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
                 fontSize: 12.5, fontWeight: 600,
                 background: days === d ? 'var(--color-purple-soft)' : 'transparent',
                 color: days === d ? 'var(--color-purple)' : 'var(--color-text-3)',

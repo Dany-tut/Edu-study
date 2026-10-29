@@ -85,8 +85,8 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
   if (homeworkFeedback) {
     const { lastCorrect, lastQuestionIndex, correct, total, lessonTitle, lastMessage } = homeworkFeedback
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0
-    const correctColor = '#2A7D4F'
-    const wrongColor = '#A8282D'
+    const correctColor = 'var(--color-green-text)'
+    const wrongColor = 'var(--color-red-text)'
     const accentColor = lastCorrect ? correctColor : wrongColor
 
     return (

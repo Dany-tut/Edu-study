@@ -718,7 +718,7 @@ function AssignedTestsBlock() {
                 {a.dueDate && <span style={{ marginLeft: 8, color: 'var(--color-peach-text)' }}>{t('до')} {a.dueDate}</span>}
               </div>
             </div>
-            <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? '#F5A623' : 'var(--color-purple-text)' }}>
+            <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
               {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
             </span>
             <ChevronRight size={15} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />

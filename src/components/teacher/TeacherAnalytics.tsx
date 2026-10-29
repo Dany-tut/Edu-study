@@ -747,7 +747,7 @@ export default function TeacherAnalytics() {
                 <span style={{
                   borderRadius:9, padding:'1px 7px',
                   fontSize:11.5, fontWeight:700, lineHeight:'16px',
-                  background:'rgba(224,72,72,0.18)', color:'#E86A6A',
+                  background:'var(--color-red-soft)', color:'var(--color-red-text)',
                 }}>{totalErrors}</span>
               )}
             </button>

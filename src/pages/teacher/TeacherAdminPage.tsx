@@ -704,7 +704,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
         <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
           {([['all', 'Всё'], ['course', 'Курсы'], ['group', 'Группы']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setFilter(id)} style={{
-              padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 600,
               background: filter === id ? 'var(--color-purple-soft)' : 'transparent',
               color: filter === id ? 'var(--color-purple)' : 'var(--color-text-3)',
@@ -809,7 +809,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: '#E04848', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('Удалить')}</button>
+                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: 'var(--btn-red-bg)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('Удалить')}</button>
               </div>
             </motion.div>
           </motion.div>,
@@ -1181,7 +1181,7 @@ export default function TeacherAdminPage() {
                           </span>
                         )}
                         {isTeacher && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#1F9B6B', background: 'rgba(31,155,107,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title={t('Учитель зарегистрирован')}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-green-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title={t('Учитель зарегистрирован')}>
                             <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />{t('активен')}
                           </span>
                         )}
@@ -1253,7 +1253,7 @@ export default function TeacherAdminPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {inv.email || t('Без email')}
-                        <span style={{ fontSize: 10, fontWeight: 700, color: '#C77700', background: 'rgba(199,119,0,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                           <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />{t('не активировано')}
                         </span>
                       </div>

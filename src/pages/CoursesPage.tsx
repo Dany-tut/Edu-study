@@ -467,7 +467,7 @@ export default function CoursesPage() {
                     position: 'absolute',
                     inset: 0,
                     borderRadius: 999,
-                    background: 'rgba(240,240,242,0.92)',
+                    background: 'var(--color-bg-3)',
                     opacity: 0,
                     pointerEvents: 'none',
                     zIndex: 0,
